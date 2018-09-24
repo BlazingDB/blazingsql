@@ -1,0 +1,119 @@
+EVALUATION AGREEMENT
+TERMS & CONDITIONS
+(Available online at blazingdb.com/alpha.pdf)
+IMPORTANT: PLEASE READ THIS EVALUATION AGREEMENT (“AGREEMENT​”) BEFORE CLICKING THE “ACCEPT” BUTTON, INSTALLING, CONFIGURING
+AND/OR USING THE BLAZING SOFTWARE PRODUCT THAT ACCOMPANIES OR IS PROVIDED IN CONNECTION WITH THIS AGREEMENT. BY CLICKING THE
+“ACCEPT” BUTTON, INSTALLING, CONFIGURING AND/OR USING THE PRODUCT IN ANY WAY, YOU AND THE ENTITY THAT YOU REPRESENT (“EVALUATOR​”)
+IS UNCONDITIONALLY CONSENTING TO BE BOUND BY AND IS BECOMING A PARTY TO THIS AGREEMENT WITH BLAZING AND YOU REPRESENT AND WARRANT
+THAT YOU HAVE THE AUTHORITY TO BIND SUCH ENTITY TO THESE TERMS. IF EVALUATOR DOES NOT UNCONDITIONALLY AGREE TO ALL OF THE TERMS OF
+THIS AGREEMENT, USE OF THE PRODUCT IS STRICTLY PROHIBITED. IF EVALUATOR HAS EXECUTED, OR SUBSEQUENTLY EXECUTES, AN EVALUATION
+AGREEMENT OR AN END USER AGREEMENT WITH BLAZING, THEN THE TERMS AND CONDITIONS OF SUCH EXECUTED EVALUATION AGREEMENT OR END
+USER AGREEMENT, AS APPLICABLE, SHALL GOVERN AND CONTROL YOUR USE OF THE PRODUCT.
+1. EVALUATION LICENSE; TERM. This “Agreement” governs Evaluators use of the Blazing’s product and its associated software
+and documentation (the “Product​”). Subject to the terms of this Agreement, Blazing hereby provides Evaluator, during the Term, a
+non­exclusive, non­transferable, non­assignable, non­sublicensable right and license to install and run a single copy of the Product on
+one (1) computer owned or controlled by Evaluator solely for the purpose of internally evaluating the performance and functionality of
+the Product. Evaluator agrees to use and evaluate the Product and report on its operations to Blazing, for the period of time specified
+by Blazing in writing, or if no such period is specified then for sixty (60) days after the date Evaluator accepts this Agreement (as
+described in the premable above) (the “Term​”).
+2. FEEDBACK​. During the Term, Evaluator agrees to provide to Blazing feedback regarding the use, operation, performance, and
+functionality of the Product (“Feedback​”). Such Feedback will include information about operating results, performance, known or
+suspected bugs, errors or compatibility problems and user­desired features. Evaluator hereby grants to Blazing a perpetual,
+irrevocable, worldwide, sublicenseable, and royalty­free right to use and otherwise exploit the Feedback in any manner. Blazing shall
+not disclose Evaluator’s name or the name of any Evaluator employee to a third party in connection with any Feedback.
+3. PRODUCT USE​. Evaluator agrees that it will not (i) reproduce, modify, distribute, transfer, rent, lease, disclose, or make
+available to any third party any portion of the Product (or any related software or documentation) in any form; (ii) publish, translate,
+sublicense or assign, in whole or in part, any software embedded therein; (iii) reverse engineer, decompile, or disassemble any portion
+of the Product, or otherwise attempt to decrypt, extract or derive the source code for the software (or any parts thereof) embedded
+therein; (iv) access the Product in order to build a similar or competitive product or service; or (v) publish or disclose to any third
+party any performance or benchmark tests or analyses or other non­public information relating to the Product or the use thereof. The
+software is copyrighted and protected by the laws of the United States and other countries, and international treaty provisions.
+Evaluator shall not remove any copyright or other proprietary notices from the Product or its software.
+4. THIRD PARTY CODE. Certain items of software code provided with the Product are subject to “open source” or “free software”
+licenses (“Third Party Code​”). Such Third Party Code is opaquely embedded within the Product hardware and is not directly
+accessible by, nor does it interface directly with, Evaluator’s software or products, thereby avoiding any open source licensing
+contamination of Evaluator’s intellectual property. The Third Party Code is not subject to the terms and conditions of this Agreement,
+except for Sections 5, 9, 10 and 11 of this Agreement. Instead, each item of Third Party Code is licensed under the terms of the
+license that accompanies such Third Party Code. Nothing in this document limits Evaluator’s rights under, or grants Evaluator rights
+that supersede, the terms and conditions of any applicable license for the Third Party Code, including any rights to copy, modify, or
+distribute Third Party Code under the applicable license. If required by an applicable license, source code for such software will be
+made available by Blazing or its supplier upon written request.
+5. TITLE. Blazing and its suppliers shall retain all right, title and interest in the Product and in all intellectual property rights
+therein, including without limitation all patent, trademark, trade name and copyright, whether registered or not registered. No license
+or other express or implied rights of any kind are granted or conveyed except for the limited internal license expressly provided above.
+The Product shall remain Blazing’s sole and exclusive personal property. Evaluator shall not offer, loan, transfer, encumber, sell or
+otherwise dispose of the Product to any third party without having received prior written authorization from Blazing.
+6. TERMINATION. ​(a) This Agreement will expire at the end of the Term, unless terminated earlier. Either party may terminate
+this Agreement upon notice to the other party. In addition, this Agreement will terminate immediately upon any breach by Evaluator
+1
+957594 v9/HN
+in which event Evaluator shall return the Product in accordance with Section 8. (b) Upon any such expiration or termination, Sections
+3, 4, 5, 6, 7(b), and 8 through 14 will survive.
+7. RETURN OF PRODUCT. At the end of the Term or upon earlier termination, if Evaluator elects not to purchase the Product, then
+Evaluator shall (a) ensure that all of Evaluator’s confidential or proprietary information is deleted from the Product; (b) promptly
+contact Blazing regarding the return of the Product to include obtaining an RMA number, packaging instructions and shipping
+address; and (c) promptly return the Product to Blazing in accordance with Blazing instructions. Products returned to Blazing shall be
+in good condition, normal wear and tear excepted. Evaluator shall pay any amounts charged by Blazing for any damage to the Product
+(other than normal wear and tear) while in Evaluator’s possession or resulting from improper handling or the use of un­approved
+packaging.
+8. EXCLUDED USES. Evaluator acknowledges that the Product is not designed or intended for use in life support, life sustaining,
+nuclear or other applications in which failure of such Products or Services could reasonably be expected to result in personal injury,
+loss of life or catastrophic property damage (the “Excluded Uses”​) and Evaluator agrees to indemnify and hold Blazing and its
+suppliers harmless from and against any claims, losses and damages to the extent arising from such Excluded Uses.
+9. DISCLAIMER OF WARRANTIES​. Blazing is providing the Product on an “AS IS” basis for use by Evaluator at its own risk.
+BLAZING AND ITS SUPPLIERS DISCLAIM ALL WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY,
+INCLUDING WITHOUT LIMITATION, ANY IMPLIED WARRANTIES OF TITLE, NON­INFRINGEMENT OF THIRD PARTY
+RIGHTS, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+10. LIMITATION OF LIABILITY​. EVALUATOR AGREES THAT BLAZING AND ITS SUPPLIERS SHALL NOT BE
+RESPONSIBLE FOR ANY LOSS OR DAMAGE TO EVALUATOR, ITS CUSTOMERS, OR THIRD PARTIES CAUSED BY
+FAILURE OF BLAZING TO DELIVER THE PRODUCT OR FAILURE OF THE PRODUCT TO FUNCTION. EVALUATOR
+SHALL NOT PLACE PRODUCTION DATA ON THE PRODUCT AND BLAZING WILL HAVE NO LIABILITY FOR ANY
+LOSS OF PRODUCTION DATA. IN NO EVENT WILL BLAZING BE LIABLE FOR ANY SPECIAL, CONSEQUENTIAL,
+EXEMPLARY, INCIDENTAL, OR INDIRECT DAMAGES, INCLUDING LOST PROFITS, IN CONNECTION WITH THE USE
+OF THE PRODUCT OR OTHER MATERIALS PROVIDED ALONG WITH THE PRODUCT OR IN CONNECTION WITH ANY
+OTHER CLAIM ARISING FROM THIS AGREEMENT, EVEN IF BLAZING HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES. TO THE MAXIMUM EXTENT PERMITTED BY LAW, BLAZING AGGREGATE CUMULATIVE
+LIABILITY HEREUNDER SHALL NOT EXCEED THE AMOUNT OF $100.00 US DOLLARS. EVALUATOR AGREES THAT
+BLAZING SUPPLIERS WILL HAVE NO LIABILITY TO EVALUATOR OF ANY KIND UNDER OR AS A RESULT OF THIS
+AGREEMENT.
+11. CONFIDENTIALITY​. ​“Confidential Information​” means any Blazing information, whether disclosed orally or in written or
+magnetic media, that is identified as “confidential” or with a similar legend at the time of such disclosure, or that Evaluator knows or
+should have known is the confidential or proprietary information of Blazing. Evaluator shall not use or disclose any Confidential
+Information except as expressly authorized by this Agreement and shall protect the Confidential Information using the same degree of
+care that it uses with respect to its own confidential information, but in no event with safeguards less than a reasonably prudent
+business world exercise under similar circumstances. All Product related technical information, evaluation or reports supplied to or
+prepared by Evaluator are Confidential Information. Except as provided herein, Evaluator agrees not to permit any third party access
+to any materials generated by Blazing or Evaluator regarding the Product without Blazing advance written approval.
+12. PRODUCT DIAGNOSTIC REPORTING​. Evaluator acknowledges that the Product will store certain diagnostic information about the
+routine operations of the Product (including, without limitation, its performance, data reduction ratios, configuration data, and any
+hardware faults) and will periodically transmit this diagnostic information to Blazing. Evaluator agrees that Blazing has a perpetual,
+irrevocable, worldwide, sublicenseable, and royalty­free right to use this diagnostic information in any manner and that Evaluator will
+not interfere with the collection or transmission of such information to Blazing. For clarification, there is no actual user data of
+Evaluator that is transmitted or provided to Blazing.
+13. GENERAL PROVISIONS.
+Governing Law and Venue. This Agreement will be governed and interpreted by and under the laws of the State of Texas,
+without giving effect to any conflicts of laws principles that require the application of the law of a different state. Each party hereby
+expressly consents to the personal jurisdiction and venue in the state and federal courts in Austin, Texas for any lawsuit filed there
+arising from or related to this Agreement.
+2
+957594 v9/HN
+Severability​. If any provision of this Agreement is, for any reason, held to be invalid or unenforceable, the other provisions of
+this Agreement will remain enforceable and the invalid or unenforceable provision will be deemed modified so that it is valid and
+enforceable to the maximum extent permitted by law.
+No Assignment​. This Agreement, and Evaluator’s rights and obligations herein, may not be assigned, delegated, or transferred by
+Evaluator without Blazing prior written consent, and any attempted assignment, delegation, or transfer in violation of the foregoing
+will be null and void.
+Notices​. All notices or other communications required under Sections 5, 7, 11 and 14 of this Agreement shall be in writing and
+shall be delivered by personal delivery, certified overnight deliver such as Federal Express, or registered mail (return receipt
+requested) and shall be deemed given upon personal delivery or upon confirmation of receipt. All other notices and communications
+may be made by email or other applicable method.
+Waiver​. Any waiver or failure to enforce any provision of this Agreement on one occasion will not be deemed a waiver of any
+other provision or of such provision on any other occasion.
+Export. The Product, its Software and related technology are subject to U.S. export control laws and may be subject to export or
+import regulations in other countries. Evaluator agrees not to export, reexport, or transfer, directly or indirectly, the Product or any
+U.S. technical data acquired from Blazing in violation of the United States export laws or regulations.
+U.S. Government End Users​. The Product, its software and related documentation, are “commercial items” as defined in 48
+CFR 2.101 and their use is subject to the policies set forth in 48 CFR 12.211, 48 CFR 12.212 and 48 CFR 227.7202, as applicable.
+Entire Agreement; Modification​. This Agreement constitutes the entire agreement between the Evaluator and Blazing and
+supersedes in their entirety any and all oral or written agreements previously existing between Evaluator and Blazing with respect to
+the subject matter hereof. This Agreement may only be amended in a writing signed by duly authorized representatives of the parties.
