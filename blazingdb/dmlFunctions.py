@@ -3,6 +3,7 @@
 from collections import namedtuple
 import requests
 from connection import Connector
+from blazindb.protocol.interpreter import MessageType as InterpreterMessageType
 
 class param:
     def __init__(self, database, query):
@@ -33,15 +34,20 @@ class ddlFunctions:
     def getResult(self):
         
         connection = blazingdb.protocol.UnixSocketConnection("/tmp/socket")
+        
         client = blazingdb.protocol.Client(connection)
 
-        Connector.Open(self)
-
-        requestBuffer = struct.pack('ss', 'type=getResults', self.token)
-
-        reponseBuffer = client.send(requestBuffer)        
+        getResult = blazingdb.protocol.interpreter.GetResultRequestSchema(token=self.token)
         
-        Connector.Close(self)
+        request = blazingdb.protocol.transport.channel.RequestSchema(header={
+            'messageType': InterpreterMessageType.GetResult, 
+            'accessToken': 123,
+            'payloadLength':0},
+            payload=getResult.ToBuffer())
+        
+        responseBuffer = client.send(request.ToBuffer())
+
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)  
         
         return reponseBuffer
     
