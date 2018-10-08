@@ -1,53 +1,54 @@
-# coding=utf-8
+import blazingdb.protocol
+import blazingdb.protocol.interpreter
+import blazingdb.protocol.orchestrator
+import blazingdb.protocol.transport.channel
+import connection
 
-from collections import namedtuple
-import requests
-from connection import Connector
-from blazindb.protocol.interpreter import MessageType as InterpreterMessageType
-
-class param:
-    def __init__(self, database, query):
-        self.database = database
-        self.query = query
+from blazingdb.protocol.errors import Error
+from blazingdb.messages.blazingdb.protocol.Status import Status
+from blazingdb.protocol.interpreter import InterpreterMessage
+from blazingdb.protocol.orchestrator import OrchestratorMessageType
 
 class ddlFunctions:
-    def __init__(self, param):
-        self.param = param
-
-    def query(self):        
+    
+    def __init__(self, orchestrator_path, database, query):
+        self._orchestrator_path = orchestrator_path
+        self._interpreter_path = interpreter_path
         
-        connection = blazingdb.protocol.UnixSocketConnection('/tmp/socket')
-        client = blazingdb.protocol.client(connection)
+    def runQuery(self, query):
+        dmlRequestSchema = blazingdb.protocol.orchestrator.DMLRequestSchema(query=query)
         
-        self.query = 'select * from tabla'
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML,
+                                                                               self.accessToken, dmlRequestSchema)
+        responseBuffer = connection.sendRequest(self._orchestrator_path, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
         
-        requestBuffer = blazingdb.protocol.orchestrator.MakeDMLRequest(self.query)
+        if response.status == Status.Error:
+          errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
+          raise Error(errorResponse.errors)
+        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(response.payload)
         
-        responseBuffer = client.send(requestBuffer)
+        print(dmlResponseDTO.resultToken)
         
-        response = blazingdb.protocol.orchestrator.DMLResponseFrom(responseBuffer)
+        self._get_result(dmlResponseDTO.resultToken)
         
-        print response.payload.token
-        
-        return response.payload.token
-        
-    def getResult(self):
-        
-        connection = blazingdb.protocol.UnixSocketConnection("/tmp/socket")
-        
-        client = blazingdb.protocol.Client(connection)
-
-        getResult = blazingdb.protocol.interpreter.GetResultRequestSchema(token=self.token)
-        
-        request = blazingdb.protocol.transport.channel.RequestSchema(header={
-            'messageType': InterpreterMessageType.GetResult, 
-            'accessToken': 123,
-            'payloadLength':0},
-            payload=getResult.ToBuffer())
-        
-        responseBuffer = client.send(request.ToBuffer())
-
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)  
-        
-        return reponseBuffer
+    def getResult(self):        
+        getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
+          resultToken=result_token)
+    
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
+          InterpreterMessage.GetResult, self.accessToken, getResultRequest)
+    
+        responseBuffer = connection.sendRequest(self._interpreter_path, requestBuffer)
+    
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
+          responseBuffer)
+    
+        if response.status == Status.Error:
+          raise ValueError('Error status')
+    
+        getResultResponse = \
+          blazingdb.protocol.interpreter.GetResultResponseSchema.From(
+            response.payload)
+    
     
