@@ -1,33 +1,29 @@
-# coding=utf-8
+import blazingdb.protocol.orchestrator
+import blazingdb.protocol.transport.channel
+import connection
 
-from collections import namedtuple
-import requests
-from connection import Connector
-import blazindb.protocol
-
-Status = namedtuple(
-    'Status', ['valid', 'message', 'access_token']
-)
+from blazingdb.protocol.errors import Error
+from blazingdb.messages.blazingdb.protocol.Status import Status
+from blazingdb.protocol.orchestrator import OrchestratorMessageType
 
 class ddlFunctions:
-    def __init__(self, database='', table=''):
-        self.database = database
-        self.table = table
+    
+    def __init__(self, orchestrator_path, query):
+        self._orchestrator_path = orchestrator_path
+        self.query = query
         
-    def createDatabase(self):
+    def createDatabase(self,query):
         
-        Connector.Open(self)
-
-        dbCreationReq = blazingdb.protocol.messages.DatabaseCreationRequest(database)
-    
-        requestBuffer = dbCreationReq.ToBuffer()
-    
-        responseBuffer = client.send(requestBuffer)
-    
-        dbCreationResponse = blazingdb.protocol.messages.DatabaseCreationResponse()
-
-        if dbCreationResponse.hasError():
-            raise BlazingDB.CreationError()
+        dmlRequestSchema = blazingdb.protocol.orchestrator.DDLRequestSchema(query=query)
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL,
+                                                                               self.accessToken, dmlRequestSchema)
+        responseBuffer = connection.sendRequest(self._orchestrator_path, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+        if response.status == Status.Error:
+          errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
+          raise Error(errorResponse.errors)
+        print(response.status)
+        return response.status
     
     def dropDatabase(self):
         
