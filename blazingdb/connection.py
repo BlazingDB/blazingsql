@@ -1,8 +1,12 @@
 import blazingdb.protocol
 import blazingdb.protocol.orchestrator
 import blazingdb.protocol.transport.channel
+import errors
+
 from blazingdb.messages.blazingdb.protocol.Status import Status
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
+from tornado.platform.common import try_close
+from traitlets.config.application import catch_config_error
 
 class Connection:
     
@@ -20,13 +24,14 @@ class Connection:
         
         requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
           OrchestratorMessageType.AuthOpen, authSchema)
-        
-        responseBuffer = self.sendRequest(self._orchestrator_path, requestBuffer)
+        try:
+            responseBuffer = self.sendRequest(self._orchestrator_path, requestBuffer)
+        except errors.ConnectionError as err:
+            print(err)
         
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
         if response.status == Status.Error:
           errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
-          print(errorResponse.errors)
         else:
           responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(response.payload)
           self.accessToken = responsePayload.accessToken
@@ -37,8 +42,13 @@ class Connection:
         requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
           OrchestratorMessageType.AuthClose, authSchema)
     
-        responseBuffer = self.sendRequest(self._orchestrator_path, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+        responseBuffer = self.sendRequest(self._orchestrator_path, requestBuffer)        
+        
+        try:
+            response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+        except errors.ConnectionError as err:
+            print(err)
+            
         if response.status == Status.Error:
           errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
           

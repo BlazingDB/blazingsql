@@ -11,15 +11,16 @@ from blazingdb.protocol.orchestrator import OrchestratorMessageType
 
 class ddlFunctions:
     
-    def __init__(self, orchestrator_path, database, query):
+    def __init__(self, orchestrator_path, query, accessToken):
         self._orchestrator_path = orchestrator_path
         self._interpreter_path = interpreter_path
+        self._access_token = accessToken
         
     def runQuery(self, query):
         dmlRequestSchema = blazingdb.protocol.orchestrator.DMLRequestSchema(query=query)
         
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML,
-                                                                               self.accessToken, dmlRequestSchema)
+                                                                               self._access_token, dmlRequestSchema)
         responseBuffer = connection.sendRequest(self._orchestrator_path, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
         
@@ -37,7 +38,7 @@ class ddlFunctions:
           resultToken=result_token)
     
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-          InterpreterMessage.GetResult, self.accessToken, getResultRequest)
+          InterpreterMessage.GetResult, self._access_token, getResultRequest)
     
         responseBuffer = connection.sendRequest(self._interpreter_path, requestBuffer)
     
@@ -51,6 +52,9 @@ class ddlFunctions:
           blazingdb.protocol.interpreter.GetResultResponseSchema.From(
             response.payload)
         
-        return getResultResponse
+        rrr=self.interpreteResult(getResultResponse)
+        
+        return rrr
     
-    
+    def interpreteResult(self):
+        self.getResult(dmlResponseDTO.resultToken)
