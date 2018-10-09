@@ -8,6 +8,7 @@ class Connection:
     
     def __init__(self, orchestrator_path, interpreter_path):
         self._orchestrator_path = orchestrator_path
+        self._interpreter_path = interpreter_path
     
     def sendRequest(self, unix_path, requestBuffer):
         connection = blazingdb.protocol.UnixSocketConnection(unix_path)
@@ -28,7 +29,6 @@ class Connection:
           print(errorResponse.errors)
         else:
           responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(response.payload)
-          print(responsePayload.accessToken)
           self.accessToken = responsePayload.accessToken
      
     def close(self):
@@ -41,9 +41,9 @@ class Connection:
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
         if response.status == Status.Error:
           errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
-          print(errorResponse.errors)
           
         self._orchestrator_path = None
+        self._interpreter_path = None
         
         print(response.status)
 

@@ -28,11 +28,11 @@ class ddlFunctions:
           raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(response.payload)
         
-        print(dmlResponseDTO.resultToken)
+        self.getResult(dmlResponseDTO.resultToken)
         
-        self._get_result(dmlResponseDTO.resultToken)
+        return dmlResponseDTO.resultToken
         
-    def getResult(self):        
+    def getResult(self, result_token):        
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
           resultToken=result_token)
     
@@ -50,5 +50,7 @@ class ddlFunctions:
         getResultResponse = \
           blazingdb.protocol.interpreter.GetResultResponseSchema.From(
             response.payload)
+        
+        return getResultResponse
     
     
