@@ -5,8 +5,6 @@ import errors
 
 from blazingdb.messages.blazingdb.protocol.Status import Status
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
-from tornado.platform.common import try_close
-from traitlets.config.application import catch_config_error
 
 class Connection:
     
@@ -35,6 +33,8 @@ class Connection:
         else:
           responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(response.payload)
           self.accessToken = responsePayload.accessToken
+    
+        return responsePayload.accessToken 
      
     def close(self):
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
