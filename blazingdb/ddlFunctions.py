@@ -19,10 +19,11 @@ class ddlFunctions:
                                                                                self.accessToken, dmlRequestSchema)
         responseBuffer = connection.sendRequest(self._orchestrator_path, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+        
         if response.status == Status.Error:
           errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
           raise Error(errorResponse.errors)
-        print(response.status)
+                
         return response.status
     
     def dropDatabase(self):
