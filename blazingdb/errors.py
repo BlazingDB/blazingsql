@@ -1,8 +1,9 @@
-class ConnectionError(Exception):
+
+class ConnectionError():
   """"""
 
-class SintaxError(Error):
+class SintaxError():
   """"""
 
-class TokenNotFoundError(Error):
+class TokenNotFoundError():
   """"""
