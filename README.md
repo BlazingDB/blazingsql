@@ -13,6 +13,8 @@ BlazingDB Python Connector allow to connector to BlazingDB completely in Python.
 - requests (>= 2.12)
 - pyarrow (>= 0.9)
 
+- numpy 1.15.2
+
 For Ubuntu 16.04 you can install the required dependencies with:
 
 ```shell-script
@@ -25,7 +27,7 @@ pip install pyarrow
 ## Installation
 
 You can install directly from sources with:
- 
+
 ```shell-script
 pip install .
 ```
