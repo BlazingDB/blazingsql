@@ -9,6 +9,8 @@ from blazingdb.messages.blazingdb.protocol.Status import Status
 from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 
+import pycuda.driver as drv
+
 class dmlFunctions:
     
     def __init__(self, orchestrator_path, interpreter_path, query, accessToken):
@@ -16,8 +18,28 @@ class dmlFunctions:
         self._interpreter_path = interpreter_path
         self._access_token = accessToken
         
-    def runQuery(self, query):
-        dmlRequestSchema = blazingdb.protocol.orchestrator.DMLRequestSchema(query=query)
+    def runQuery(self, query, input_dataset):
+        
+        dev = drv.Device(0)
+
+        tableGroup["name"] = ""
+        tableGroup["tables"] = []
+        for inputData in input_dataset:
+            table["name"] = inputData._table_Name
+            table["columns"] = []
+            table["columnNames"] = []
+            for name, series in df._cols.items():
+#             WSM TODO add if statement for valid != nullptr
+                table["columnNames"].append(name)
+                table["columns"].append({'data': drv.mem_get_ipc_handle(series._column.cffi_view.data),
+                                          'valid': drv.mem_get_ipc_handle(series._column.cffi_view.valid),
+                                           'size': series._column.cffi_view.size,
+                                            'dtype': series._column.cffi_view.dtype,
+                                             'dtype_info': series._column.cffi_view.dtype_info})
+            
+            
+        
+        dmlRequestSchema = blazingdb.protocol.orchestrator.DMLRequestSchema(query=query, tableGroup=tableGroup)
         
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML,
                                                                                self._access_token, dmlRequestSchema)
@@ -56,3 +78,12 @@ class dmlFunctions:
     
 #     def interpreteResult(self):
 #         self.getResult(dmlResponseDTO.resultToken)
+
+
+class inputData:
+    
+    def __init__(self, table_name, gdfDataFrame):
+        self._table_Name = table_name
+        self._gdfDataFrame = gdfDataFrame
+        
+        

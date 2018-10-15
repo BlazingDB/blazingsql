@@ -8,9 +8,8 @@ from blazingdb.protocol.orchestrator import OrchestratorMessageType
 
 class Connection:
     
-    def __init__(self, orchestrator_path, interpreter_path):
-        self._orchestrator_path = orchestrator_path
-        self._interpreter_path = interpreter_path
+    def __init__(self, orchestrator_path):
+        self._orchestrator_path = orchestrator_path        
     
     def sendRequest(self, unix_path, requestBuffer):
         connection = blazingdb.protocol.UnixSocketConnection(unix_path)
@@ -53,7 +52,6 @@ class Connection:
           errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
           
         self._orchestrator_path = None
-        self._interpreter_path = None
         
         print(response.status)
 
