@@ -13,11 +13,10 @@ BlazingDB Python Connector allow to connector to BlazingDB completely in Python.
 - requests (>= 2.12)
 - pyarrow (>= 0.9)
 
-- numpy 1.15.2
-
 For Ubuntu 16.04 you can install the required dependencies with:
 
 ```shell-script
+sudo apt-get install flex bison
 sudo apt-get install -y --no-install-recommends python python-pip python-setuptools
 pip install wheel
 pip install requests
