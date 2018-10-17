@@ -15,6 +15,8 @@ from blazingdb.protocol.orchestrator import OrchestratorMessageType
 
 from pygdf import read_csv
 
+import time
+
 class PyBlazingTest:
 
     def main():
@@ -32,9 +34,13 @@ class PyBlazingTest:
       filepath = "/home/william/repos/DataSets/TPCH50Mb/nation.psv"
       df = read_csv(filepath, delimiter='|', dtype=["int32","int64","int","int64"],names=["n_nationkey","n_name","n_regionkey","n_comments"])
 
+      time.sleep(1)
+
+      print(df)
+
       input_dataset = [inputData("nation",df)]
       result_token = dml_client.runQuery("select * from nation", input_dataset)
-      
+
 
 
 #
