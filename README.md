@@ -6,6 +6,7 @@ BlazingDB Python Connector allow to connector to BlazingDB completely in Python.
 
 ## Requirements
 
+- CUDA >=9.1
 - python 2.7
 - python-pip 2.7
 - python-setuptools
