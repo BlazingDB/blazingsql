@@ -9,9 +9,7 @@ from blazingdb.messages.blazingdb.protocol.Status import Status
 from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 
-import pycuda.driver as drv
-
-from libgdf_cffi import ffi
+from pygdf import _gdf
 
 class dmlFunctions:
 
@@ -33,33 +31,29 @@ class dmlFunctions:
             table["columns"] = []
             table["columnNames"] = []
             for name, series in inputData._gdfDataFrame._cols.items():
-#             WSM TODO add if statement for valid != nullptr
-                print("series")
-                print(type(series))
-                print("series._column")
-                print(type(series._column))
-                print("series._column.data")
-                print(type(series._column.data))
-                print("series._column.data.mem")
-                print(type(series._column.data.mem))
-                ull = ffi.cast("unsigned long long", series._column.data.mem)
-                print("ull")
-                print(type(ull))
-                print("series._column.cffi_view")
-                print(type(series._column.cffi_view))
-                print("series._column.cffi_view.data")
-                print(type(series._column.cffi_view.data))
-
+#
                 table["columnNames"].append(name)
-                table["columns"].append({'data': bytes(drv.mem_get_ipc_handle(series._column.data.mem)),
-                                          'valid': bytes(drv.mem_get_ipc_handle(series._column.cffi_view.valid)),
-                                           'size': series._column.cffi_view.size,
-                                            'dtype': series._column.cffi_view.dtype,
-                                             'dtype_info': series._column.cffi_view.dtype_info})
+
+                cffiView = series._column.cffi_view
+                if series._column._mask is None:
+                    table["columns"].append({'data': bytes(series._column._data.mem.get_ipc_handle()._ipc_handle.handle),
+                              'valid': None,
+                               'size': cffiView.size,
+                                'dtype': cffiView.dtype,
+                                 'dtype_info': 0,  # TODO dtype_info is currently not used in pygdf
+                                   'null_count': cffiView.null_count})
+                else:
+                    table["columns"].append({'data': bytes(series._column._data.mem.get_ipc_handle()._ipc_handle.handle),
+                              'valid': bytes(series._column._mask.mem.get_ipc_handle()._ipc_handle.handle),
+                               'size': cffiView.size,
+                                'dtype': cffiView.dtype,
+                                 'dtype_info': 0,  # TODO dtype_info is currently not used in pygdf
+                                   'null_count': cffiView.null_count})
+
             tableGroup["tables"].append(table)
 
-
-        dmlRequestSchema = blazingdb.protocol.orchestrator.DMLRequestSchema(query=query, tableGroup=tableGroup)
+        dmlRequestSchema = self._BuildDMLRequestSchema(query, tableGroup)
+        # dmlRequestSchema = blazingdb.protocol.orchestrator.DMLRequestSchema(query=query, tableGroup=tableGroup)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML,
                                                                                self._access_token, dmlRequestSchema)
@@ -72,6 +66,28 @@ class dmlFunctions:
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(response.payload)
 
         return dmlResponseDTO.resultToken
+
+    def _BuildDMLRequestSchema(self, query, tableGroupDto):
+      tableGroupName = tableGroupDto['name']
+      tables = []
+      for index, t in enumerate(tableGroupDto['tables']):
+        tableName = t['name']
+        columnNames = t['columnNames']
+        columns = []
+        for i, c in enumerate(t['columns']):
+          data = blazingdb.protocol.gdf.cudaIpcMemHandle_tSchema(reserved=c['data'])
+          if c['valid'] is None:
+              valid = blazingdb.protocol.gdf.cudaIpcMemHandle_tSchema(reserved=b'')
+          else:
+              valid = blazingdb.protocol.gdf.cudaIpcMemHandle_tSchema(reserved=c['valid'])
+
+          dtype_info = blazingdb.protocol.gdf.gdf_dtype_extra_infoSchema(time_unit= c['dtype_info'])
+          gdfColumn = blazingdb.protocol.gdf.gdf_columnSchema(data=data, valid=valid, size=c['size'], dtype=c['dtype'], dtype_info=dtype_info, null_count=c['null_count'])
+          columns.append(gdfColumn)
+        table = blazingdb.protocol.orchestrator.BlazingTableSchema(name=tableName, columns=columns, columnNames=columnNames)
+        tables.append(table)
+      tableGroup = blazingdb.protocol.orchestrator.TableGroupSchema(tables=tables, name=tableGroupName)
+      return blazingdb.protocol.orchestrator.DMLRequestSchema(query=query, tableGroup=tableGroup)
 
     def getResult(self, result_token):
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
