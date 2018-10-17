@@ -2,6 +2,7 @@ import blazingdb.protocol
 import blazingdb.protocol.interpreter
 import blazingdb.protocol.orchestrator
 import blazingdb.protocol.transport.channel
+from connection import Connection 
 
 from blazingdb.protocol.errors import Error
 from blazingdb.messages.blazingdb.protocol.Status import Status
@@ -37,7 +38,7 @@ class dmlFunctions:
                 if series._column._mask is None:
                     table["columns"].append(
                         {'data': bytes(series._column._data.mem.get_ipc_handle()._ipc_handle.handle),
-                         'valid': None,
+                         'valid': b"",
                          'size': cffiView.size,
                          'dtype': cffiView.dtype,
                          'dtype_info': 0,  # TODO dtype_info is currently not used in pygdf

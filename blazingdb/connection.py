@@ -5,7 +5,6 @@ import errors
 
 from blazingdb.messages.blazingdb.protocol.Status import Status
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
-from dmlFunctions import inputData
 
 class Connection:
     
