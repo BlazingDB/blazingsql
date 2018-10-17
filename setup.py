@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import sys
 
@@ -67,6 +68,8 @@ class build_ext(build_ext):
     self.print('Install LibGDF for CFFI')
     subprocess.check_call(('make', 'copy_python'), cwd=buildDir)
     subprocess.check_call(('python', 'setup.py', 'install'), cwd=buildDir)
+
+    shutil.copy(os.path.join(buildDir, 'libgdf.so'), self.build_lib)
 
     print()
 
