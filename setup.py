@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 
 from setuptools import setup, find_packages, Extension
 from setuptools.sandbox import DirectorySandbox, _execfile, setup_context
@@ -44,33 +45,36 @@ class build_ext(build_ext):
   def build_extension(self, extension):
     import git
 
-    baseDir = os.path.abspath(
-      os.path.dirname(self.get_ext_fullpath(extension.name)))
     libGdfUrl = 'https://github.com/rapidsai/libgdf.git'
-    libGdfDir = os.path.join(baseDir, 'libgdf-src')
+    self.print('Create temporal directory for LibGDF')
+    with tempfile.TemporaryDirectory() as baseDir:
+      libGdfDir = os.path.join(baseDir, 'libgdf-src')
 
-    self.print('Cloning LibGDF repository on ' + libGdfDir)
-    repo = git.Repo.clone_from(libGdfUrl, libGdfDir)
-    for submodule in repo.submodules:
-      submodule.update(recursive=True)
+      self.print('Cloning LibGDF repository on ' + libGdfDir)
+      repo = git.Repo.clone_from(libGdfUrl, libGdfDir)
+      for submodule in repo.submodules:
+        submodule.update(recursive=True)
 
-    self.print('Prepare building directory LibGDF')
-    buildDir = os.path.join(libGdfDir, 'build')
-    if not os.path.exists(buildDir):
-      os.mkdir(buildDir)
+      self.print('Prepare building directory LibGDF')
+      buildDir = os.path.join(libGdfDir, 'build')
+      if not os.path.exists(buildDir):
+        os.mkdir(buildDir)
 
-    self.print('Run cmake for LibGDF')
-    subprocess.check_call(('cmake', libGdfDir), cwd=buildDir)
+      self.print('Run cmake for LibGDF')
+      subprocess.check_call(('cmake', libGdfDir), cwd=buildDir)
 
-    self.print('Build LibGDF')
-    subprocess.check_call(('make', 'gdf', '-j4'), cwd=buildDir)
+      self.print('Build LibGDF')
+      subprocess.check_call(('make', 'gdf', '-j4'), cwd=buildDir)
 
-    self.print('Install LibGDF for CFFI')
-    subprocess.check_call(('make', 'copy_python'), cwd=buildDir)
-    subprocess.check_call(('python', 'setup.py', 'install'), cwd=buildDir)
+      self.print('Install LibGDF for CFFI')
+      subprocess.check_call(('make', 'copy_python'), cwd=buildDir)
+      subprocess.check_call(('python', 'setup.py', 'install'), cwd=buildDir)
 
-    shutil.copy(os.path.join(buildDir, 'libgdf.so'), self.build_lib)
-
+      libGdfSo = os.path.join(buildDir, 'libgdf.so')
+      shutil.copy(libGdfSo, self.build_lib)
+      shutil.copy(libGdfSo,
+                  os.path.abspath(
+                    os.path.dirname(self.get_ext_fullpath(extension.name))))
     print()
 
   def print(self, s):
