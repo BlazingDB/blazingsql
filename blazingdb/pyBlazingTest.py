@@ -31,7 +31,7 @@ class PyBlazingTest:
 
       dml_client = dmlFunctions('/tmp/orchestrator.socket', '/tmp/ral.socket', '', access_token)
 
-      filepath = "/home/william/repos/DataSets/TPCH50Mb/nation.psv"
+      filepath = "/home/aocsa/repos/DataSets/TPCH50Mb/nation.psv"
       df = read_csv(filepath, delimiter='|', dtype=["int32","int64","int","int64"],names=["n_nationkey","n_name","n_regionkey","n_comments"])
 
       time.sleep(1)
