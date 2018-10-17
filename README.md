@@ -16,8 +16,7 @@ BlazingDB Python Connector allow to connector to BlazingDB completely in Python.
 For Ubuntu 16.04 you can install the required dependencies with:
 
 ```shell-script
-sudo apt-get install flex bison
-sudo apt-get install -y --no-install-recommends python python-pip python-setuptools
+sudo apt-get install -y --no-install-recommends python python-pip python-setuptools flex bison libffi-dev
 pip install wheel
 pip install requests
 pip install pyarrow
