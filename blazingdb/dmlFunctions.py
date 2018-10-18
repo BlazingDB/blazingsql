@@ -121,7 +121,32 @@ class dmlFunctions:
 #     def interpreteResult(self):
 #         self.getResult(dmlResponseDTO.resultToken)
 
-
+    
+#     # William example code for how to create DataFrame from raw inputs
+#     def createDataFrameFromResult(self):
+#         
+#         outcols = []
+#         
+#         for i in range(0, num_cols):
+#             
+# #             get for each column the data, valid, dtype, null_count and size
+#         
+#             gdf_col = _gdf._columnview(size, data, valid, dtype, null_count)
+#             newcol = Column.from_cffi_view(gdf_col)
+#             if(newcol.dtype == np.dtype('datetime64[ms]')):
+#                 outcols.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+#             else:
+#                 outcols.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+#         
+#          # Build dataframe
+#         df = DataFrame()
+#         for k, v in zip(names, outcols):
+#             df[k] = v
+#     
+#         return df
+        
+    
+    
 class inputData:
 
     def __init__(self, table_name, gdfDataFrame):
