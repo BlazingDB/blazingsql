@@ -95,6 +95,32 @@ class dmlFunctions:
         return blazingdb.protocol.orchestrator.DMLRequestSchema(query=query, tableGroup=tableGroup)
 
     def getResult(self, result_token):
+        
+        
+        def createDataFrameFromResult(resultResponse):
+         
+            outcols = []
+             
+            for i, column in enumerate(resultResponse.columns):
+                data_ptr = cuda.IPCMemoryHandle(column.data)
+                valid_ptr = cuda.IPCMemoryHandle(column.valid)
+                 
+                gdf_col = _gdf._columnview(column.size, data_ptr, valid_ptr, column.dtype, column.null_count)
+                newcol = Column.from_cffi_view(gdf_col)
+                if(newcol.dtype == np.dtype('datetime64[ms]')):
+                    outcols.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+                else:
+                    outcols.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+             
+             # Build dataframe
+            df = DataFrame()
+            for k, v in zip(resultResponse.columnNames, outcols):
+                df[k] = v
+         
+            return df      
+        
+        
+        
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
             resultToken=result_token)
 
@@ -109,41 +135,15 @@ class dmlFunctions:
         if response.status == Status.Error:
             raise ValueError('Error status')
 
-        getResultResponse = \
-            blazingdb.protocol.interpreter.GetResultResponseSchema.From(
-                response.payload)
+        resultResponse = blazingdb.protocol.interpreter.GetQueryResultFrom(response.payload)
 
-        #         rrr=self.interpreteResult(getResultResponse)
+        result.metadata = resultResponse.metadata
+        result.dataFrame = createDataFrameFromResult(resultResponse)
 
-        return getResultResponse
-
-
-#     def interpreteResult(self):
-#         self.getResult(dmlResponseDTO.resultToken)
+        return result
 
     
-#     # William example code for how to create DataFrame from raw inputs
-#     def createDataFrameFromResult(self):
-#         
-#         outcols = []
-#         
-#         for i in range(0, num_cols):
-#             
-# #             get for each column the data, valid, dtype, null_count and size
-#         
-#             gdf_col = _gdf._columnview(size, data, valid, dtype, null_count)
-#             newcol = Column.from_cffi_view(gdf_col)
-#             if(newcol.dtype == np.dtype('datetime64[ms]')):
-#                 outcols.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
-#             else:
-#                 outcols.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
-#         
-#          # Build dataframe
-#         df = DataFrame()
-#         for k, v in zip(names, outcols):
-#             df[k] = v
-#     
-#         return df
+    
         
     
     
