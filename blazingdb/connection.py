@@ -18,41 +18,41 @@ class Connection:
     
     def open(self):
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
-        
+         
         requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
           OrchestratorMessageType.AuthOpen, authSchema)
         try:
             responseBuffer = self.sendRequest(self._orchestrator_path, requestBuffer)
         except errors.ConnectionError as err:
             print(err)
-        
+         
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
         if response.status == Status.Error:
           errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
         else:
           responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(response.payload)
           self.accessToken = responsePayload.accessToken
-    
-        return responsePayload.accessToken 
      
+        return responsePayload.accessToken 
+      
     def close(self):
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
-    
+     
         requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
           OrchestratorMessageType.AuthClose, authSchema)
-    
+     
         responseBuffer = self.sendRequest(self._orchestrator_path, requestBuffer)        
-        
+         
         try:
             response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
         except errors.ConnectionError as err:
             print(err)
-            
+             
         if response.status == Status.Error:
           errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
-          
+           
         self._orchestrator_path = None
-        
+         
         print(response.status)
 
     

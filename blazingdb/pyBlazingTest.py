@@ -28,18 +28,43 @@ class PyBlazingTest:
         access_token = cnn.open()
       except Error as err:
         print(err)
+        
+        
+        
+      ddl_client = ddlFunctions('/tmp/orchestrator.socket', access_token)
+      nation_tableName = "nation"
+      nation_columnNames = ["n_nationkey","n_name","n_regionkey","n_comments"]
+      nation_columnTypes = ["GDF_INT32","GDF_INT64","GDF_INT8","GDF_INT64"] # libgdf style types
+      
+      try:
+          status = ddl_client.createTable(nation_tableName, nation_columnNames, nation_columnTypes)
+      except Error as err:
+          print("Error in creating table")
+          print(err)
+      
 
-      dml_client = dmlFunctions('/tmp/orchestrator.socket', '/tmp/ral.socket', '', access_token)
+      dml_client = dmlFunctions('/tmp/orchestrator.socket', '/tmp/ral.socket', access_token)
 
       filepath = "/home/aocsa/repos/DataSets/TPCH50Mb/nation.psv"
-      df = read_csv(filepath, delimiter='|', dtype=["int32","int64","int","int64"],names=["n_nationkey","n_name","n_regionkey","n_comments"])
+      nation_columnTypes = ["int32","int64","int","int64"]  # pygdf/pandas style types 
+      df = read_csv(filepath, delimiter='|', dtype=nation_columnTypes,names=nation_columnNames)
 
       time.sleep(1)
 
       print(df)
 
-      input_dataset = [inputData("nation",df)]
-      result_token = dml_client.runQuery("select * from nation", input_dataset)
+      input_dataset = [inputData(nation_tableName,df)]
+      result_token = dml_client.runQuery("select * from nation where n_nationkey  < 5", input_dataset)
+      
+      resultResponse = dml_client.getResult(result_token)
+      
+      print('  metadata:')
+      print('     status: %s' % resultResponse.metadata.status)
+      print('    message: %s' % resultResponse.metadata.message)
+      print('       time: %s' % resultResponse.metadata.time)
+      print('       rows: %s' % resultResponse.metadata.rows)
+              
+      print(resultResponse.dataFrame)
 
 
 

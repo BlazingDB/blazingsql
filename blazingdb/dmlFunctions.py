@@ -11,11 +11,12 @@ from blazingdb.protocol.orchestrator import OrchestratorMessageType
 
 from pygdf import read_csv
 from pygdf import _gdf
+from pygdf.column import Column
 
 
 class dmlFunctions:
 
-    def __init__(self, orchestrator_path, interpreter_path, query, accessToken):
+    def __init__(self, orchestrator_path, interpreter_path, accessToken):
         self._orchestrator_path = orchestrator_path
         self._interpreter_path = interpreter_path
         self._access_token = accessToken
@@ -94,8 +95,8 @@ class dmlFunctions:
         tableGroup = blazingdb.protocol.orchestrator.TableGroupSchema(tables=tables, name=tableGroupName)
         return blazingdb.protocol.orchestrator.DMLRequestSchema(query=query, tableGroup=tableGroup)
 
-    def getResult(self, result_token):
-        
+
+    def getResult(self, result_token):        
         
         def createDataFrameFromResult(resultResponse):
          
@@ -117,8 +118,7 @@ class dmlFunctions:
             for k, v in zip(resultResponse.columnNames, outcols):
                 df[k] = v
          
-            return df      
-        
+            return df              
         
         
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
