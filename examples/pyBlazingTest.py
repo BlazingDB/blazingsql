@@ -63,6 +63,11 @@ def main():
                        mask=_gdf.unwrap_devary(devary_valid), dtype=dtype or devary.dtype,
                        null_count=0)
 
+  # with dml_client.getResult(result_token) as df :
+    # ...
+    # ...
+    # ...
+
   for i, c in enumerate(resultResponse.columns):
     with cuda.open_ipc_array(c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype)) as data_ptr:
       with cuda.open_ipc_array(c.valid, shape=utils.calc_chunk_size(c.size, utils.mask_bitsize), dtype=np.int8) as valid_ptr:
