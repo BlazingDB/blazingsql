@@ -23,8 +23,8 @@ from pygdf import DataFrame
 from libgdf_cffi import ffi
 from numba import cuda
 from pygdf.buffer import Buffer
+import numpy as np
 import numpy
-
 
 unix_path = '/tmp/demo.socket'
 
@@ -46,14 +46,11 @@ def get_one_ipc_df(input_dataset):
       ipd_handle = series._column._data.mem.get_ipc_handle()
       return ipd_handle
              
-
-
 def read_sample_csv_file():
   filepath = "/home/aocsa/repos/DataSets/TPCH50Mb/nation.psv"
   df = read_csv(filepath, delimiter='|', dtype=["int32", "int64", "int", "int64"],
                 names=["n_nationkey", "n_name", "n_regionkey", "n_comments"])
-  
-  
+
   time.sleep(1)
 #   print(df)
   input_dataset = [inputData("nation", df)]
@@ -80,14 +77,20 @@ def client():
   print("done wait")
 
 
-
 def server():
   print('waiting')
 
   connection = blazingdb.protocol.UnixSocketConnection(unix_path)
   server = blazingdb.protocol.Server(connection)
 
-  def controller(ipch):
+  def from_cffi_view(cffi_view):
+    data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
+    data_buf = Buffer(data_mem)
+    mask = None
+    return column.Column(data=data_buf, mask=mask)
+
+
+  def get_column(ipch):
     with cuda.open_ipc_array(ipch, shape=25, dtype=numpy.int32) as data_ptr:
       data = _gdf.unwrap_devary(data_ptr)
       print(type(data))
@@ -102,20 +105,17 @@ def server():
 
       print('gpu array')
       gdf_col = _gdf.columnview_from_devary(data_ptr)
-
-      def from_cffi_view(cffi_view):
-        data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
-        data_buf = Buffer(data_mem)
-        mask = None
-        return column.Column(data=data_buf, mask=mask)
-      #column.Column.from_cffi_view
-      outcols = []
       newcol = from_cffi_view(gdf_col)
-      outcols.append(newcol.view(numerical.NumericalColumn, dtype=newcol.dtype))
+      return newcol.copy()
 
-      DF = DataFrame()
-      DF["colA"] = outcols[0]
-      print(DF)
+  def controller(ipch):
+    newcol = get_column(ipch)
+    outcols = []
+    outcols.append(newcol.view(numerical.NumericalColumn, dtype=newcol.dtype))
+
+    DF = DataFrame()
+    DF["colA"] = outcols[0]
+    print(DF)
 
     return b'hi back!'
   server.handle(controller)
