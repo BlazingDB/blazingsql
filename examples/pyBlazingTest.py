@@ -59,6 +59,11 @@ def main():
   print('       rows: %s' % resultResponse.metadata.rows)
 
   print('  dataframe:')
+  # with dml_client.getResult(result_token) as df :
+    # ...
+    # ...
+    # ...
+
   print(resultResponse.dataFrame)
 
   print('****************** Closing Connection ********************')
