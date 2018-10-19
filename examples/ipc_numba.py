@@ -38,7 +38,7 @@ def get_one_ipc_df(input_dataset):
     table["name"] = inputData._table_Name
     table["columns"] = []
     table["columnNames"] = []
-    for name, series in inputData._gdfDataFrame._cols.items():
+    for name, series in inputData._dataFrame._cols.items():
       table["columnNames"].append(name)
       cffiView = series._column.cffi_view
       print('dtype')
@@ -68,7 +68,7 @@ def client():
   ipch = get_one_ipc_df(input_dataset)
   print(ipch)
   
-  print(input_dataset[0]._gdfDataFrame)
+  print(input_dataset[0]._dataFrame)
 
   hb = bytes(ipch._ipc_handle.handle)
   print("here is my handle source")
