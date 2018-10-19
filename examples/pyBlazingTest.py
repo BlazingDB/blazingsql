@@ -16,7 +16,7 @@ from pygdf.datetime import DatetimeColumn
 from pygdf.numerical import NumericalColumn
 from pygdf import DataFrame
 from pygdf import column
-
+from pygdf import utils
 
 def main():
   cnn = Connection('/tmp/orchestrator.socket')
@@ -48,7 +48,7 @@ def main():
   print(df)
 
   input_dataset = [inputData(nation_tableName, df)]
-  result_token = dml_client.runQuery("select * from nation where n_nationkey  < 5", input_dataset)
+  result_token = dml_client.runQuery("select n_nationkey > 5 from main.nation", input_dataset)
 
   resultResponse = dml_client.getResult(result_token)
 
@@ -58,29 +58,30 @@ def main():
   print('       time: %s' % resultResponse.metadata.time)
   print('       rows: %s' % resultResponse.metadata.rows)
 
+  def columnview_from_devary(devary, devary_valid, dtype=None):
+    return _gdf._columnview(size=devary.size, data=_gdf.unwrap_devary(devary),
+                       mask=_gdf.unwrap_devary(devary_valid), dtype=dtype or devary.dtype,
+                       null_count=0)
+
   for i, c in enumerate(resultResponse.columns):
     with cuda.open_ipc_array(c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype)) as data_ptr:
-      def from_cffi_view(cffi_view):
-        data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
-        data_buf = Buffer(data_mem)
-        mask = None
-        return column.Column(data=data_buf, mask=mask)
+      with cuda.open_ipc_array(c.valid, shape=utils.calc_chunk_size(c.size, utils.mask_bitsize), dtype=np.int8) as valid_ptr:
+        gdf_col = columnview_from_devary(data_ptr, valid_ptr)
+        outcols = []
+        newcol = column.Column.from_cffi_view(gdf_col)
 
-      gdf_col = _gdf.columnview_from_devary(data_ptr)
-      outcols = []
-      newcol = from_cffi_view(gdf_col)
-      if newcol.dtype == np.dtype('datetime64[ms]'):
-        outcols.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
-      else:
-        outcols.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+        # what is it? is  it required?:
+        if newcol.dtype == np.dtype('datetime64[ms]'):
+          outcols.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+        else:
+          outcols.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
 
-      # Build dataframe
-      df = DataFrame()
-      for k, v in zip(resultResponse.columnNames, outcols):
-        df['column' + str(k)] = v
-
-      print('  dataframe:')
-      print(df)
+        # Build dataframe
+        df = DataFrame()
+        for k, v in zip(resultResponse.columnNames, outcols):
+          df['column' + str(k)] = v #todo chech concat
+        print('  dataframe:')
+        print(df)
 
   print('****************** Close Connection ********************')
   cnn.close()
