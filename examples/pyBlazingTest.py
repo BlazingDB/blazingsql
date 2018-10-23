@@ -29,8 +29,8 @@ def main():
 
   ddl_client = ddlFunctions(cnn)
   nation_tableName = "nation"
-  nation_columnNames = ["n_regionkey"]
-  nation_columnTypes = ["GDF_INT8"]  # libgdf style types
+  nation_columnNames = ["n_nationkey", "n_name", "n_regionkey", "n_comments"]
+  nation_columnTypes = ["GDF_INT32", "GDF_INT64", "GDF_INT8", "GDF_INT64"]  # libgdf style types
 
   try:
     status = ddl_client.createTable(nation_tableName, nation_columnNames, nation_columnTypes)
@@ -39,19 +39,16 @@ def main():
     print(err)
 
   dml_client = dmlFunctions(cnn)
-  filepath = "/home/william/repos/DataSets/TPCH50Mb/nation.psv"
+  filepath = "data/nation.psv"
   nation_columnTypes = ["int32", "int64", "int", "int64"]  # pygdf/pandas style types
   df = read_csv(filepath, delimiter='|', dtype=nation_columnTypes, names=nation_columnNames)
 
   time.sleep(1)
 
   print(df)
-  # fuck:
+
   input_dataset = [inputData(nation_tableName, df)]
-  result_token = dml_client.runQuery("select n_regionkey from main.nation", input_dataset)
-  print ("#result_token:")
-  print (result_token)
-  time.sleep(3)
+  result_token = dml_client.runQuery("select n_nationkey > 5 from main.nation", input_dataset)
 
   resultResponse = dml_client.getResult(result_token)
 
