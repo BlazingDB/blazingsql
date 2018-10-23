@@ -45,13 +45,18 @@ class build_ext(build_ext):
   def build_extension(self, extension):
     import git
 
-    libGdfUrl = 'https://github.com/rapidsai/libgdf.git'
+    libGdfUrl = 'git@github.com:BlazingDB/libgdf.git'
     self.print('Create temporal directory for LibGDF')
     with tempfile.TemporaryDirectory() as baseDir:
       libGdfDir = os.path.join(baseDir, 'libgdf-src')
 
       self.print('Cloning LibGDF repository on ' + libGdfDir)
       repo = git.Repo.clone_from(libGdfUrl, libGdfDir)
+      binops_head = repo.create_head(
+        'binary-operators-draft',
+        '3a74ff855dcf75ed5145685e929494d65748d2a6')
+      repo.head.reference = binops_head
+      repo.head.reset(index=True, working_tree=True)
       for submodule in repo.submodules:
         submodule.update(recursive=True)
 
