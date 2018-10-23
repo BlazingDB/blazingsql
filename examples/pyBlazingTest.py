@@ -39,8 +39,8 @@ def main():
     print(err)
 
   dml_client = dmlFunctions(cnn)
-  filepath = "/home/aocsa/repos/DataSets/TPCH50Mb/nation.psv"
-  nation_columnTypes = ["int"]  # pygdf/pandas style types
+  filepath = "/home/william/repos/DataSets/TPCH50Mb/nation.psv"
+  nation_columnTypes = ["int32", "int64", "int", "int64"]  # pygdf/pandas style types
   df = read_csv(filepath, delimiter='|', dtype=nation_columnTypes, names=nation_columnNames)
 
   time.sleep(1)
@@ -61,38 +61,18 @@ def main():
   print('       time: %s' % resultResponse.metadata.time)
   print('       rows: %s' % resultResponse.metadata.rows)
 
-  def columnview_from_devary(devary, devary_valid, dtype=None):
-    return _gdf._columnview(size=devary.size, data=_gdf.unwrap_devary(devary),
-                       mask=_gdf.unwrap_devary(devary_valid), dtype=dtype or devary.dtype,
-                       null_count=0)
-
+  print('  dataframe:')
   # with dml_client.getResult(result_token) as df :
     # ...
     # ...
     # ...
 
-  for i, c in enumerate(resultResponse.columns):
-    with cuda.open_ipc_array(c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype)) as data_ptr:
-      with cuda.open_ipc_array(c.valid, shape=utils.calc_chunk_size(c.size, utils.mask_bitsize), dtype=np.int8) as valid_ptr:
-        gdf_col = columnview_from_devary(data_ptr, valid_ptr)
-        outcols = []
-        newcol = column.Column.from_cffi_view(gdf_col)
+  print(resultResponse.dataFrame)
 
-        # what is it? is  it required?:
-        if newcol.dtype == np.dtype('datetime64[ms]'):
-          outcols.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
-        else:
-          outcols.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
-
-        # Build dataframe
-        df = DataFrame()
-        for k, v in zip(resultResponse.columnNames, outcols):
-          df['column' + str(k)] = v #todo chech concat
-        print('  dataframe:')
-        print(df)
-
-  print('****************** Close Connection ********************')
+  print('****************** Closing Connection ********************')
   cnn.close()
 
+  print('****************** Closed Connection ********************')
+  
 if __name__ == '__main__':
   main()
