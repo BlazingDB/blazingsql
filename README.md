@@ -18,6 +18,7 @@ For Ubuntu 16.04 you can install the required dependencies with:
 
 ```shell-script
 sudo apt-get install -y --no-install-recommends python python-pip python-setuptools flex bison libffi-dev
+pip install numpy==1.15.2
 pip install wheel
 pip install requests
 pip install pyarrow
