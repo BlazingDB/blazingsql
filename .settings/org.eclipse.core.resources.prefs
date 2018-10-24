@@ -1,7 +1,5 @@
 eclipse.preferences.version=1
 encoding//blazingdb/__init__.py=utf-8
-encoding//blazingdb/arrow_tools.py=utf-8
-encoding//blazingdb/connection.py=utf-8
 encoding//blazingdb/ddlFunctions.py=utf-8
 encoding//blazingdb/dmlFunctions.py=utf-8
 encoding//blazingdb/errors.py=utf-8
