@@ -176,7 +176,7 @@ def main():
         print(err)
 
     data_sz = 25
-    dtype = np.int64
+    dtype = np.float64
 
     sample_data_df = gen_data_frame(data_sz, 'data', dtype)
     sample_valid_df = gen_data_frame(data_sz, 'valid', np.int8)
@@ -200,6 +200,7 @@ def main():
         resultSet = client.run_dml_query('select id from main.nation', tableGroup)
 
         print("#RESULT_SET:")
+
         print('GetResult Response')
         print('  metadata:')
         print('     status: %s' % resultSet.metadata.status)
@@ -208,50 +209,33 @@ def main():
         print('       rows: %s' % resultSet.metadata.rows)
         print('  columnNames: %s' % list(resultSet.columnNames))
 
-        def createDataFrameFromResult(resultResponse):
-            def columnview_from_devary(devary_data, devary_valid, dtype=None):
-                return _gdf._columnview(size=devary_data.size, data=_gdf.unwrap_devary(devary_data),
-                                        mask=devary_valid, dtype=dtype or devary_data.dtype,
-                                        null_count=0)
+        def columnview_from_devary(devary_data, devary_valid, dtype=None):
+            return _gdf._columnview(size=devary_data.size, data=_gdf.unwrap_devary(devary_data),
+                                    mask=devary_valid, dtype=dtype or devary_data.dtype,
+                                    null_count=0)
 
-            def from_cffi_view(cffi_view):
-                data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
-                data_buf = Buffer(data_mem)
-                mask = None
-                return column.Column(data=data_buf, mask=mask)
+        def from_cffi_view(cffi_view):
+            data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
+            data_buf = Buffer(data_mem)
+            mask = None
+            return column.Column(data=data_buf, mask=mask)
 
-            for i, c in enumerate(resultResponse.columns):
-                with cuda.open_ipc_array(c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype)) as data_ptr:
-                    # if len(c.valid) == 0:
-                        gdf_col = columnview_from_devary(data_ptr, ffi.NULL)
-                        newcol = from_cffi_view(gdf_col)
+        for i, c in enumerate(resultSet.columns):
+            assert len(c.data) == 64
+            with cuda.open_ipc_array(c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype)) as data_ptr:
+                gdf_col = columnview_from_devary(data_ptr, ffi.NULL)
+                newcol = from_cffi_view(gdf_col)
 
-                        outcols = []
-                        outcols.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+                outcols = []
+                outcols.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
 
-                        # Build dataframe
-                        df = DataFrame()
-                        for k, v in zip(resultResponse.columnNames, outcols):
-                            df[str(k)] = v  # todo chech concat
-                        print('  dataframe:')
-                        print(df)
-                    # else:
-                    #     with cuda.open_ipc_array(c.valid, shape=utils.calc_chunk_size(c.size, utils.mask_bitsize),
-                    #                              dtype=np.int8) as valid_ptr:
-                    #         gdf_col = columnview_from_devary(data_ptr, valid_ptr)
-                    #         newcol = column.Column.from_cffi_view(gdf_col)
-                    #
-                    #         outcols = []
-                    #         outcols.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
-                    #
-                    #         # Build dataframe
-                    #         df = DataFrame()
-                    #         for k, v in zip(resultResponse.columnNames, outcols):
-                    #             df[str(k)] = v  # todo chech concat
-                    #         print('  dataframe:')
-                    #         print(df)
+                # Build dataframe
+                df = DataFrame()
+                for k, v in zip(resultSet.columnNames, outcols):
+                    df[str(k)] = v  # todo chech concat
+                print('  dataframe:')
+                print(df)
 
-        createDataFrameFromResult(resultSet)
         print("#RESULT_SET:")
 
         resultSet = client.free_result(123456)
