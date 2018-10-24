@@ -129,3 +129,15 @@ if __name__ == '__main__':
   p2.start()
   time.sleep(0.5)
   p1.start()
+
+#
+#
+#
+# def get_column(c):
+#     assert len(c.data) == 64
+#     with cuda.open_ipc_array(c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype)) as data_ptr:
+#         assert len(c.valid) == 64
+#         with cuda.open_ipc_array(c.valid, shape=utils.calc_chunk_size(c.size, utils.mask_bitsize),
+#                                  dtype=np.int8) as valid_ptr:
+#             gdf_col = columnview_from_devary(data_ptr, valid_ptr)
+#             return column.Column.from_cffi_view(gdf_col).copy()
