@@ -133,19 +133,10 @@ class PyConnector:
     queryResult = blazingdb.protocol.interpreter.GetQueryResultFrom(response.payload)
     return queryResult
 
-def create_sample_device_valid():
-  a = numpy.random.randn(1, 32) + 1
-  a = a.astype(numpy.int8)
-  print('valid: ', a)
-  a_gpu = cuda.mem_alloc(a.size * a.dtype.itemsize)
-  cuda.memcpy_htod(a_gpu, a)
-  print("size: " + str(a.size))
-  return a_gpu, a.size
-
 
 def create_sample_device_data():
   a = numpy.random.randn(1, 32) + 6
-  a = a.astype(numpy.int32)
+  a = a.astype(numpy.int8)
   print('orig: ', a)
   a_gpu = cuda.mem_alloc(a.size * a.dtype.itemsize)
   cuda.memcpy_htod(a_gpu, a)
@@ -166,14 +157,13 @@ def main():
     print(err)
 
   try:
-    client.run_ddl_drop_table('nation', 'main')
-    client.run_ddl_create_table('nation', ['id'], ['GDF_INT32'], 'main')
+    client.run_ddl_create_table('nation', ['id'], ['GDF_INT8'], 'main')
   except Error as err:
     print(err)
 
   data_gpu, data_sz = create_sample_device_data()
   data_handler = bytes(cuda.mem_get_ipc_handle(data_gpu))
-  valid_gpu, data_sz = create_sample_device_valid()
+  valid_gpu, data_sz = create_sample_device_data()
   valid_handler = bytes(cuda.mem_get_ipc_handle(valid_gpu))
 
   try:
@@ -181,13 +171,13 @@ def main():
       'tables': [
         {
           'name': 'main.nation',
-          'columns': [{'data': data_handler, 'valid': valid_handler, 'size': data_sz, 'dtype': 3, 'null_count': 0, 'dtype_info': 0}],
+          'columns': [{'data': data_handler, 'valid': valid_handler, 'size': data_sz, 'dtype': 1, 'null_count': 0, 'dtype_info': 0}],
           'columnNames': ['id']
         }
       ],
       'name': 'main',
     }
-    resultSet = client.run_dml_query('select id from main.nation', tableGroup)
+    resultSet = client.run_dml_query('select id > 5 from main.nation', tableGroup)
 
     print("#RESULT_SET:")
     print('GetResult Response')
@@ -199,7 +189,7 @@ def main():
     print('  columnNames: %s' % list(resultSet.columnNames))
     for i, column in enumerate(resultSet.columns):
       x_ptr = cuda.IPCMemoryHandle(column.data)  # x_ptr: device raw pointer
-      x_gpu = gpuarray.GPUArray((1, column.size), numpy.int32, gpudata=x_ptr)
+      x_gpu = gpuarray.GPUArray((1, column.size), numpy.int8, gpudata=x_ptr)
       print('\tgpu:  ', x_gpu.get())
     print("#RESULT_SET:")
 
