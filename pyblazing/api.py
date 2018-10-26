@@ -418,12 +418,12 @@ def _private_run_query(sql, tables):
 import pyarrow as pa
 
 
-arr = pa.RecordBatchStreamReader('/gpu.arrow').read_all()
-print(arr)
-df = arr.to_pandas()
-df = df[['swings', 'tractions']]
-gdf = gd.DataFrame.from_pandas(df)
-gdf._cols["swings"]._column.data.mem.get_ipc_handle()._ipc_handle.handle
+#arr = pa.RecordBatchStreamReader('/gpu.arrow').read_all()
+#print(arr)
+#df = arr.to_pandas()
+#df = df[['swings', 'tractions']]
+#gdf = gd.DataFrame.from_pandas(df)
+#gdf._cols["swings"]._column.data.mem.get_ipc_handle()._ipc_handle.handle
 # print(gdf.columns)
 # print(gdf._cols["swings"]._column.dtype)
 # gdf._cols["swings"]._column.cffi_view.size
