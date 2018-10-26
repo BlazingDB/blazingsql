@@ -27,6 +27,13 @@ from numba import cuda
 import numpy as np
 import pandas as pd
 
+# NDarray device helper
+from numba import cuda
+from numba.cuda.cudadrv import driver, devices
+require_context = devices.require_context
+current_context = devices.get_context
+gpus = devices.gpus
+
 
 def run_query(sql, tables):
     """
@@ -365,51 +372,56 @@ def _private_run_query(sql, tables):
         tableGroup = _to_table_group(tables)
         resultSet = client.run_dml_query(sql, tableGroup)
 
-        print("#RESULT_SET:")
+        def cffi_view_to_column_mem(cffi_view):
+            data = _gdf._as_numba_devarray(intaddr=int(ffi.cast("uintptr_t",
+                                                                cffi_view.data)),
+                                           nelem=cffi_view.size,
+                                           dtype=_gdf.gdf_to_np_dtype(cffi_view.dtype))
+            mask = None
+            return data, mask
 
-        print('GetResult Response')
-        print('  metadata:')
-        print('     status: %s' % resultSet.metadata.status)
-        print('    message: %s' % resultSet.metadata.message)
-        print('       time: %s' % resultSet.metadata.time)
-        print('       rows: %s' % resultSet.metadata.rows)
-        print('  columnNames: %s' % list(resultSet.columnNames))
+        def from_cffi_view(cffi_view):
+            data_mem, mask_mem = cffi_view_to_column_mem(cffi_view)
+            data_buf = Buffer(data_mem)
+            mask = None
+            return column.Column(data=data_buf, mask=mask)
 
-#        def columnview_from_devary(devary_data, devary_valid, dtype=None):
-#            return _gdf._columnview(size=devary_data.size, data=_gdf.unwrap_devary(devary_data),
-#                                    mask=devary_valid, dtype=dtype or devary_data.dtype,
-#                                    null_count=0)
+        def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
+            dtype = np.dtype(dtype)
+            # compute size
+            size = np.prod(shape) * dtype.itemsize
+            # manually recreate the IPC mem handle
+            handle = driver.drvapi.cu_ipc_mem_handle(*handle)
+            # use *IpcHandle* to open the IPC memory
+            ipchandle = driver.IpcHandle(None, handle, size, offset=offset)
+            return ipchandle, ipchandle.open_array(current_context(), shape=shape,
+                                                   strides=strides, dtype=dtype)
 
-#        def from_cffi_view(cffi_view):
-#            data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
-#            data_buf = Buffer(data_mem)
-#            mask = None
-#            return column.Column(data=data_buf, mask=mask)
+        gdf_columns = []
+        ipchandles = []
+        for i, c in enumerate(resultSet.columns):
+            assert len(c.data) == 64
+            ipch, data_ptr = _open_ipc_array(
+                c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+            ipchandles.append(ipch)
+            gdf_col = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
+            newcol = from_cffi_view(gdf_col).copy()
+            gdf_columns.append(newcol.view(
+                NumericalColumn, dtype=newcol.dtype))
 
-#        for i, c in enumerate(resultSet.columns):
-#            assert len(c.data) == 64
-#            with cuda.open_ipc_array(c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype)) as data_ptr:
-#                gdf_col = columnview_from_devary(data_ptr, ffi.NULL)
-#                newcol = from_cffi_view(gdf_col)
+        df = DataFrame()
+        for k, v in zip(resultSet.columnNames, gdf_columns):
+            df[str(k)] = v
 
-#                outcols = []
-#                outcols.append(newcol.view(
-#                    NumericalColumn, dtype=newcol.dtype))
+        resultSet.columns = df
 
-#                # Build dataframe
-#                df = DataFrame()
-#                for k, v in zip(resultSet.columnNames, outcols):
-#                    df[str(k)] = v  # todo chech concat
-#                print('  dataframe:')
-#                print(df)
-
-#        print("#RESULT_SET:")
-
-#        resultSet = client.free_result(123456)
+        # @todo close ipch, see one solution at ()
+        # print(df)
+        # for ipch in ipchandles:
+        #     ipch.close()
 
     except Error as err:
         print(err)
 
     client.close_connection()
-
     return resultSet
