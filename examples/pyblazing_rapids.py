@@ -13,7 +13,7 @@ gdf = gen_data_frame(20, 'swings', np.float32)
 
 table = 'holas'
 tables = {table: gdf}
-result = run_query('select swings from main.holas', tables)
+result = pyblazing.run_query('select swings from main.holas', tables)
 
 print("#RESULT_SET:")
 
