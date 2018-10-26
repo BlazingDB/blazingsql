@@ -301,11 +301,13 @@ def _reset_table(client, table, gdf):
 
 
 def _to_table_group(tables):
-    tableGroup = {'name': 'main'}
+    database_name = 'main'
+    tableGroup = {'name': database_name}
     blazing_tables = []
     for table, gdf in tables.items():
         # TODO columnNames should have the columns of the query (check this)
-        blazing_table = {'name': table, 'columnNames': gdf.columns}
+        blazing_table = {'name': database_name + '.' + table,
+                         'columnNames': gdf.columns.values.tolist()}
         blazing_columns = []
 
         for column in gdf.columns:
@@ -426,6 +428,8 @@ gdf._cols["swings"]._column.data.mem.get_ipc_handle()._ipc_handle.handle
 # print(gdf._cols["swings"]._column.dtype)
 # gdf._cols["swings"]._column.cffi_view.size
 
+gdf = gen_data_frame(20, 'swings', np.float32)
+
 
 table = 'holas'
 tables = {table: gdf}
@@ -433,6 +437,7 @@ tables = {table: gdf}
 #client = _get_client()
 #_reset_table(client, table, gdf)
 
-result = run_query('select * from holas', tables)
+#result = run_query('select swings, tractions from main.holas', tables)
+result = run_query('select swings from main.holas', tables)
 
 print("hi")
