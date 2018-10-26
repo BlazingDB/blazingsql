@@ -15,6 +15,7 @@ from libgdf_cffi import ffi
 from pygdf.datetime import DatetimeColumn
 from pygdf.numerical import NumericalColumn
 
+import pyarrow as pa
 from pygdf import _gdf
 from pygdf import column
 from pygdf import numerical
@@ -89,6 +90,49 @@ def run_query_pandas(sql, tables):
     pygdf.dataframe.DataFrame
     """
 
+    gdf_tables = {}
+    for table, df in tables.items():
+        gdf = gd.DataFrame.from_pandas(df)
+        gdf_tables[table] = gdf
+
+    return run_query(sql, gdf_tables)
+
+
+import pandas as pd
+
+
+df = arr.to_pandas(nthreads=2)
+
+#TODO complete API docs
+def run_query_arrow(sql, tables):
+    """
+    Run a SQL query over a dictionary of Pandas DataFrames.
+    This convenience function will convert each table from Pandas DataFrame 
+    to GPU ``DataFrame`` and then will use ``run_query``.  
+    Parameters
+    ----------
+    sql : str
+        The SQL query.
+    tables : dict[str]:Pandas DataFrame
+        A dictionary where each key is the table name and each value is the 
+        associated Pandas DataFrame object.
+    Returns
+    -------
+    A GPU ``DataFrame`` object that contains the SQL query result.
+    Examples
+    --------
+    >>> import pyarrow as pa
+    
+    >>> products = pa.RecordBatchStreamReader('products.arrow').read_all()
+    
+    >>> products = pd.DataFrame({'month': [2, 8, 11], 'sales': [12.1, 20.6, 13.79]})
+    >>> cats = pd.DataFrame({'age': [12, 28, 19], 'weight': [5.3, 9, 7.68]})
+    >>> tables = {'products': products, 'cats': cats}
+    >>> result = pyblazing.run_query('select * from products, cats limit 2', tables)
+    >>> type(result)
+    pygdf.dataframe.DataFrame
+    """
+    #TODO
     gdf_tables = {}
     for table, df in tables.items():
         gdf = gd.DataFrame.from_pandas(df)
