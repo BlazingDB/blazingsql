@@ -1,4 +1,5 @@
-import pyblazing
+import pyarrow as pa
+
 
 #arr = pa.RecordBatchStreamReader('/gpu.arrow').read_all()
 #print(arr)
