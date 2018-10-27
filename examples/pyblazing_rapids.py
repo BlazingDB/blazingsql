@@ -1,11 +1,13 @@
 import numpy as np
+import pandas as pd
+import pygdf as gd
 import pyblazing
 
 
 def gen_data_frame(nelem, name, dtype):
     pdf = pd.DataFrame()
     pdf[name] = np.arange(nelem, dtype=dtype)
-    df = DataFrame.from_pandas(pdf)
+    df = gd.DataFrame.from_pandas(pdf)
     return df
 
 
@@ -24,6 +26,7 @@ print('    message: %s' % result.metadata.message)
 print('       time: %s' % result.metadata.time)
 print('       rows: %s' % result.metadata.rows)
 print('  columnNames: %s' % list(result.columnNames))
+print(type(result.columns))
 print(result.columns)
 
 print("hi")
