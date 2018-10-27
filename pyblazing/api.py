@@ -98,12 +98,7 @@ def run_query_pandas(sql, tables):
     return run_query(sql, gdf_tables)
 
 
-import pandas as pd
-
-
-df = arr.to_pandas(nthreads=2)
-
-#TODO complete API docs
+# TODO complete API docs
 def run_query_arrow(sql, tables):
     """
     Run a SQL query over a dictionary of Pandas DataFrames.
@@ -122,9 +117,9 @@ def run_query_arrow(sql, tables):
     Examples
     --------
     >>> import pyarrow as pa
-    
+
     >>> products = pa.RecordBatchStreamReader('products.arrow').read_all()
-    
+
     >>> products = pd.DataFrame({'month': [2, 8, 11], 'sales': [12.1, 20.6, 13.79]})
     >>> cats = pd.DataFrame({'age': [12, 28, 19], 'weight': [5.3, 9, 7.68]})
     >>> tables = {'products': products, 'cats': cats}
@@ -132,7 +127,7 @@ def run_query_arrow(sql, tables):
     >>> type(result)
     pygdf.dataframe.DataFrame
     """
-    #TODO
+    # TODO
     gdf_tables = {}
     for table, df in tables.items():
         gdf = gd.DataFrame.from_pandas(df)
