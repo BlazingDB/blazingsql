@@ -252,7 +252,6 @@ class PyConnector:
         print(response.status)
 
     def free_result(self, result_token):
-
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
             resultToken=result_token)
 
@@ -277,7 +276,7 @@ class PyConnector:
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
             InterpreterMessage.GetResult, self.accessToken, getResultRequest)
 
-        responseBuffer = self._send_request(interpreter_path, requestBuffer)
+        responseBuffer = self._send_request(self._interpreter_path, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
