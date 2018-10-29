@@ -463,4 +463,4 @@ def _private_run_query(sql, tables):
         print(err)
 
     client.close_connection()
-    return resultSet
+    return resultSet.columns
