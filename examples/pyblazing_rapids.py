@@ -15,18 +15,9 @@ gdf = gen_data_frame(20, 'swings', np.float32)
 
 table = 'holas'
 tables = {table: gdf}
-result = pyblazing.run_query('select swings from main.holas', tables)
+gdfResult = pyblazing.run_query('select swings from main.holas', tables)
 
 print("#RESULT_SET:")
-
-print('GetResult Response')
-print('  metadata:')
-print('     status: %s' % result.metadata.status)
-print('    message: %s' % result.metadata.message)
-print('       time: %s' % result.metadata.time)
-print('       rows: %s' % result.metadata.rows)
-print('  columnNames: %s' % list(result.columnNames))
-print(type(result.columns))
-print(result.columns)
+print(gdfResult)
 
 print("hi")
