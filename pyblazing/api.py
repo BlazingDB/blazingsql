@@ -44,7 +44,7 @@ def run_query(sql, tables):
     sql : str
         The SQL query.
     tables : dict[str]:GPU ``DataFrame``
-        A dictionary where each key is the table name and each value is the 
+        A dictionary where each key is the table name and each value is the
         associated GPU ``DataFrame`` object.
     Returns
     -------
@@ -66,14 +66,14 @@ def run_query(sql, tables):
 def run_query_pandas(sql, tables):
     """
     Run a SQL query over a dictionary of Pandas DataFrames.
-    This convenience function will convert each table from Pandas DataFrame 
-    to GPU ``DataFrame`` and then will use ``run_query``.  
+    This convenience function will convert each table from Pandas DataFrame
+    to GPU ``DataFrame`` and then will use ``run_query``.
     Parameters
     ----------
     sql : str
         The SQL query.
     tables : dict[str]:Pandas DataFrame
-        A dictionary where each key is the table name and each value is the 
+        A dictionary where each key is the table name and each value is the
         associated Pandas DataFrame object.
     Returns
     -------
@@ -139,9 +139,9 @@ def _lots_of_stuff():
 
 
 class PyConnector:
-    def __init__(self, orchestrator_path, interpreter_path):
+    def __init__(self, orchestrator_path):
         self._orchestrator_path = orchestrator_path
-        self._interpreter_path = interpreter_path
+        self._interpreter_path = None
 
     def connect(self):
         print("open connection")
@@ -186,7 +186,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        print(dmlResponseDTO.resultToken)
+        self._interpreter_path = dmlResponseDTO.nodeConnection.path
         return self._get_result(dmlResponseDTO.resultToken)
 
     def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName):
@@ -250,7 +250,6 @@ class PyConnector:
         print(response.status)
 
     def free_result(self, result_token):
-
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
             resultToken=result_token)
 
@@ -275,8 +274,7 @@ class PyConnector:
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
             InterpreterMessage.GetResult, self.accessToken, getResultRequest)
 
-        responseBuffer = self._send_request(
-            self._interpreter_path, requestBuffer)
+        responseBuffer = self._send_request(self._interpreter_path, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -385,7 +383,7 @@ def _to_table_group(tables):
 
 
 def _get_client():
-    client = PyConnector('/tmp/orchestrator.socket', '/tmp/ral.socket')
+    client = PyConnector('/tmp/orchestrator.socket')
 
     try:
         client.connect()
