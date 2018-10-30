@@ -44,7 +44,7 @@ def run_query(sql, tables):
     sql : str
         The SQL query.
     tables : dict[str]:GPU ``DataFrame``
-        A dictionary where each key is the table name and each value is the 
+        A dictionary where each key is the table name and each value is the
         associated GPU ``DataFrame`` object.
     Returns
     -------
@@ -66,14 +66,14 @@ def run_query(sql, tables):
 def run_query_pandas(sql, tables):
     """
     Run a SQL query over a dictionary of Pandas DataFrames.
-    This convenience function will convert each table from Pandas DataFrame 
-    to GPU ``DataFrame`` and then will use ``run_query``.  
+    This convenience function will convert each table from Pandas DataFrame
+    to GPU ``DataFrame`` and then will use ``run_query``.
     Parameters
     ----------
     sql : str
         The SQL query.
     tables : dict[str]:Pandas DataFrame
-        A dictionary where each key is the table name and each value is the 
+        A dictionary where each key is the table name and each value is the
         associated Pandas DataFrame object.
     Returns
     -------
@@ -85,7 +85,7 @@ def run_query_pandas(sql, tables):
     >>> products = pd.DataFrame({'month': [2, 8, 11], 'sales': [12.1, 20.6, 13.79]})
     >>> cats = pd.DataFrame({'age': [12, 28, 19], 'weight': [5.3, 9, 7.68]})
     >>> tables = {'products': products, 'cats': cats}
-    >>> result = pyblazing.run_query('select * from products, cats limit 2', tables)
+    >>> result = pyblazing.run_query_pandas('select * from products, cats limit 2', tables)
     >>> type(result)
     pygdf.dataframe.DataFrame
     """
@@ -101,39 +101,37 @@ def run_query_pandas(sql, tables):
 # TODO complete API docs
 def run_query_arrow(sql, tables):
     """
-    Run a SQL query over a dictionary of Pandas DataFrames.
-    This convenience function will convert each table from Pandas DataFrame 
-    to GPU ``DataFrame`` and then will use ``run_query``.  
+    Run a SQL query over a dictionary of pyarrow.Table.
+    This convenience function will convert each table from pyarrow.Table
+    to Pandas DataFrame and then will use ``run_query_pandas``.  
     Parameters
     ----------
     sql : str
         The SQL query.
-    tables : dict[str]:Pandas DataFrame
+    tables : dict[str]:pyarrow.Table
         A dictionary where each key is the table name and each value is the 
-        associated Pandas DataFrame object.
+        associated pyarrow.Table object.
     Returns
     -------
     A GPU ``DataFrame`` object that contains the SQL query result.
     Examples
     --------
     >>> import pyarrow as pa
-
+    >>> import pyblazing
     >>> products = pa.RecordBatchStreamReader('products.arrow').read_all()
-
-    >>> products = pd.DataFrame({'month': [2, 8, 11], 'sales': [12.1, 20.6, 13.79]})
-    >>> cats = pd.DataFrame({'age': [12, 28, 19], 'weight': [5.3, 9, 7.68]})
+    >>> cats = pa.RecordBatchStreamReader('cats.arrow').read_all()
     >>> tables = {'products': products, 'cats': cats}
-    >>> result = pyblazing.run_query('select * from products, cats limit 2', tables)
+    >>> result = pyblazing.run_query_arrow('select * from products, cats limit 2', tables)
     >>> type(result)
     pygdf.dataframe.DataFrame
     """
-    # TODO
-    gdf_tables = {}
-    for table, df in tables.items():
-        gdf = gd.DataFrame.from_pandas(df)
-        gdf_tables[table] = gdf
 
-    return run_query(sql, gdf_tables)
+    pandas_tables = {}
+    for table, arr in tables.items():
+        df = arr.to_pandas()
+        pandas_tables[table] = df
+
+    return run_query_pandas(sql, pandas_tables)
 
 
 def _lots_of_stuff():
@@ -141,9 +139,9 @@ def _lots_of_stuff():
 
 
 class PyConnector:
-    def __init__(self, orchestrator_path, interpreter_path):
+    def __init__(self, orchestrator_path):
         self._orchestrator_path = orchestrator_path
-        self._interpreter_path = interpreter_path
+        self._interpreter_path = None
 
     def connect(self):
         print("open connection")
@@ -188,7 +186,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        print(dmlResponseDTO.resultToken)
+        self._interpreter_path = dmlResponseDTO.nodeConnection.path
         return self._get_result(dmlResponseDTO.resultToken)
 
     def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName):
@@ -252,7 +250,6 @@ class PyConnector:
         print(response.status)
 
     def free_result(self, result_token):
-
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
             resultToken=result_token)
 
@@ -277,8 +274,7 @@ class PyConnector:
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
             InterpreterMessage.GetResult, self.accessToken, getResultRequest)
 
-        responseBuffer = self._send_request(
-            self._interpreter_path, requestBuffer)
+        responseBuffer = self._send_request(self._interpreter_path, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -387,7 +383,7 @@ def _to_table_group(tables):
 
 
 def _get_client():
-    client = PyConnector('/tmp/orchestrator.socket', '/tmp/ral.socket')
+    client = PyConnector('/tmp/orchestrator.socket')
 
     try:
         client.connect()
