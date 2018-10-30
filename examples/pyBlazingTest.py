@@ -1,75 +1,26 @@
-from blazingdb.connector.connection import Connection
-from blazingdb.connector.ddlFunctions import ddlFunctions
-from blazingdb.connector.dmlFunctions import dmlFunctions
-from blazingdb.connector.dmlFunctions import inputData
-from blazingdb.protocol.errors import Error
+import pygdf
+import pyblazing
 
-from pygdf import read_csv
-import time
-
-import numpy as np
-from numba import cuda
-from pygdf import _gdf
-from pygdf.buffer import Buffer
-from pygdf.categorical import CategoricalColumn
-from pygdf.datetime import DatetimeColumn
-from pygdf.numerical import NumericalColumn
-from pygdf import DataFrame
-from pygdf import column
-from pygdf import utils
 
 def main():
-  cnn = Connection('/tmp/orchestrator.socket')
-
-  try:
-    print('****************** Open Connection *********************')
-    cnn.open()
-  except Error as err:
-    print(err)
-
-  ddl_client = ddlFunctions(cnn)
+  
   nation_tableName = "nation"
-  nation_columnNames = ["n_nationkey", "n_name", "n_regionkey", "n_comments"]
+#   nation_columnNames = ["n_nationkey", "n_name", "n_regionkey", "n_comments"]
+  nation_columnNames = ["acol", "bcol", "ccol", "dcol"]
   nation_columnTypes = ["GDF_INT32", "GDF_INT64", "GDF_INT8", "GDF_INT64"]  # libgdf style types
 
-  try:
-    status = ddl_client.createTable(nation_tableName, nation_columnNames, nation_columnTypes)
-  except Error as err:
-    print("Error in creating table")
-    print(err)
-
-  dml_client = dmlFunctions(cnn)
   filepath = "data/nation.psv"
   nation_columnTypes = ["int32", "int64", "int", "int64"]  # pygdf/pandas style types
-  df = read_csv(filepath, delimiter='|', dtype=nation_columnTypes, names=nation_columnNames)
+  gdf = pygdf.read_csv(filepath, delimiter='|', dtype=nation_columnTypes, names=nation_columnNames)
+  print(gdf)
 
-  time.sleep(1)
+  tables = {nation_tableName: gdf}
+  result = pyblazing.run_query('select acol + 1, ccol + 2 from main.nation', tables)
+#   result = pyblazing.run_query('select n_nationkey, n_regionkey, n_name from main.nation', tables)
+#   result = pyblazing.run_query('select n_nationkey, n_regionkey from main.nation where n_nationkey > 5', tables)
+  print(result)
 
-  print(df)
-
-  input_dataset = [inputData(nation_tableName, df)]
-  result_token = dml_client.runQuery("select n_nationkey > 5 from main.nation", input_dataset)
-
-  resultResponse = dml_client.getResult(result_token)
-
-  print('  metadata:')
-  print('     status: %s' % resultResponse.metadata.status)
-  print('    message: %s' % resultResponse.metadata.message)
-  print('       time: %s' % resultResponse.metadata.time)
-  print('       rows: %s' % resultResponse.metadata.rows)
-
-  print('  dataframe:')
-  # with dml_client.getResult(result_token) as df :
-    # ...
-    # ...
-    # ...
-
-  print(resultResponse.dataFrame)
-
-  print('****************** Closing Connection ********************')
-  cnn.close()
-
-  print('****************** Closed Connection ********************')
+  
   
 if __name__ == '__main__':
   main()
