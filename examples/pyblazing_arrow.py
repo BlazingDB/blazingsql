@@ -1,38 +1,17 @@
+import pyarrow as pa
+import pyblazing
 
-# BlazingSQL with data from arrow table
+arrow_table = pa.RecordBatchStreamReader('data/gpu.arrow').read_all()
 
-arr = pa.RecordBatchStreamReader('data/gpu.arrow').read_all()
-print(arr)
-df = arr.to_pandas()
-df = df[['swings', 'tractions']]
-gdf = gd.DataFrame.from_pandas(df)
-print(gdf)
+columns = ('swings', 'tractions')
+filter_cols = [c.name for c in arrow_table.columns if not c.name in columns]
+arrow_table = arrow_table.drop(filter_cols)
 
-table = 'tblArrow'
-tables = {table: gdf}
+print(arrow_table)
 
-result = pyblazing.run_query('select * from main.tblArrow', tables)
+tables = {'gpu_info': arrow_table}
+sql = 'select * from main.gpu_info'
+result_gdf = pyblazing.run_query_arrow(sql, tables)
 
-print('select * from main.tblArrow')
-print("#RESULT_SET:")
-print(result)
-
-# BlazingSQL with data from pandas dataframe.
-
-
-def gen_data_frame(nelem, name, dtype):
-    pdf = pd.DataFrame()
-    pdf[name] = np.arange(nelem, dtype=dtype)
-    df = gd.DataFrame.from_pandas(pdf)
-    return df
-
-
-gdf = gen_data_frame(20, 'values', np.float32)
-
-table = 'tblPandas'
-tables = {table: gdf}
-gdfResult = pyblazing.run_query('select * from main.tblPandas', tables)
-
-print('select * from main.tblPandas')
-print("#RESULT_SET:")
-print(gdfResult)
+print(sql)
+print(result_gdf)
