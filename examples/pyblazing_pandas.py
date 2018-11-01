@@ -10,7 +10,6 @@ nation_df = nation_df[['n_nationkey', 'n_regionkey']]
 print(nation_df)
 
 tables = {'nation': nation_df}
-
 sql = 'select n_nationkey, n_regionkey, n_nationkey + n_regionkey as addition from main.nation'
 result_gdf = pyblazing.run_query_pandas(sql, tables)
 

@@ -9,7 +9,6 @@ nation_gdf = cudf.read_csv("data/nation.psv", delimiter='|',
 print(nation_gdf)
 
 tables = {'nation': nation_gdf}
-
 sql = 'select n_nationkey, n_regionkey, n_nationkey + n_regionkey as addition from main.nation'
 result_gdf = pyblazing.run_query(sql, tables)
 
