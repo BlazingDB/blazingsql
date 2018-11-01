@@ -99,7 +99,8 @@ def run_query_pandas(sql, tables):
 
 
 # TODO complete API docs
-def run_query_arrow(sql, tables):
+# WARNING EXPERIMENTAL
+def _run_query_arrow(sql, tables):
     """
     Run a SQL query over a dictionary of pyarrow.Table.
     This convenience function will convert each table from pyarrow.Table
