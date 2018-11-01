@@ -1,8 +1,8 @@
 import pygdf as cudf
 import pyblazing
 
-column_names = ["n_nationkey", "n_name", "n_regionkey", "n_comments"]
-column_types = ["int32", "int64", "int32", "int64"]
+column_names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comments']
+column_types = ['int32', 'int64', 'int32', 'int64']
 nation_gdf = cudf.read_csv("data/nation.psv", delimiter='|',
                            dtype=column_types, names=column_names)
 
