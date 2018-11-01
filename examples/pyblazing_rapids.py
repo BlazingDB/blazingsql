@@ -1,23 +1,17 @@
-import numpy as np
-import pandas as pd
-import pygdf as gd
+import pygdf as cudf
 import pyblazing
 
+column_names = ["n_nationkey", "n_name", "n_regionkey", "n_comments"]
+column_types = ["int32", "int64", "int32", "int64"]
+nation_gdf = cudf.read_csv("data/nation.psv", delimiter='|',
+                           dtype=column_types, names=column_names)
 
-def gen_data_frame(nelem, name, dtype):
-    pdf = pd.DataFrame()
-    pdf[name] = np.arange(nelem, dtype=dtype)
-    df = gd.DataFrame.from_pandas(pdf)
-    return df
+print(nation_gdf)
 
+tables = {'nation': nation_gdf}
 
-gdf = gen_data_frame(20, 'swings', np.float32)
+sql = 'select n_nationkey, n_regionkey, n_nationkey + n_regionkey as addition from main.nation'
+result_gdf = pyblazing.run_query(sql, tables)
 
-table = 'holas'
-tables = {table: gdf}
-gdfResult = pyblazing.run_query('select swings from main.holas', tables)
-
-print("#RESULT_SET:")
-print(gdfResult)
-
-print("hi")
+print(sql)
+print(result_gdf)
