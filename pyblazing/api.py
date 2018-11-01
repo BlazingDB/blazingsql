@@ -144,7 +144,8 @@ class PyConnector:
         self._interpreter_path = None
 
     def connect(self):
-        print("open connection")
+        # TODO find a way to print only for debug mode (add verbose arg)
+        #print("open connection")
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
@@ -162,7 +163,9 @@ class PyConnector:
             raise Error(errorResponse.errors)
         responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(
             response.payload)
-        print(responsePayload.accessToken)
+
+        # TODO find a way to print only for debug mode (add verbose arg)
+        # print(responsePayload.accessToken)
         self.accessToken = responsePayload.accessToken
 
     def _send_request(self, unix_path, requestBuffer):
@@ -171,7 +174,8 @@ class PyConnector:
         return client.send(requestBuffer)
 
     def run_dml_query(self, query, tableGroup):
-        print(query)
+        # TODO find a way to print only for debug mode (add verbose arg)
+        # print(query)
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDMLRequestSchema(
             query, tableGroup)
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML,
@@ -190,16 +194,18 @@ class PyConnector:
         return self._get_result(dmlResponseDTO.resultToken)
 
     def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName):
-        print('create table: ' + tableName)
-        print(columnNames)
-        print(columnTypes)
-        print(dbName)
+        # TODO find a way to print only for debug mode (add verbose arg)
+        #print('create table: ' + tableName)
+        # print(columnNames)
+        # print(columnTypes)
+        # print(dbName)
         dmlRequestSchema = blazingdb.protocol.orchestrator.DDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
                                                                                        columnTypes=columnTypes,
                                                                                        dbName=dbName)
 
-        print(dmlRequestSchema)
+        # TODO find a way to print only for debug mode (add verbose arg)
+        # print(dmlRequestSchema)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self.accessToken, dmlRequestSchema)
@@ -212,11 +218,16 @@ class PyConnector:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
             raise Error(errorResponse.errors)
-        print(response.status)
+
+        # TODO find a way to print only for debug mode (add verbose arg)
+        # print(response.status)
+
         return response.status
 
     def run_ddl_drop_table(self, tableName, dbName):
-        print('drop table: ' + tableName)
+        # TODO find a way to print only for debug mode (add verbose arg)
+        #print('drop table: ' + tableName)
+
         dmlRequestSchema = blazingdb.protocol.orchestrator.DDLDropTableRequestSchema(
             name=tableName, dbName=dbName)
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_DROP_TABLE,
@@ -229,11 +240,16 @@ class PyConnector:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
             raise Error(errorResponse.errors)
-        print(response.status)
+
+        # TODO find a way to print only for debug mode (add verbose arg)
+        # print(response.status)
+
         return response.status
 
     def close_connection(self):
-        print("close connection")
+        # TODO find a way to print only for debug mode (add verbose arg)
+        #print("close connection")
+
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
@@ -247,7 +263,9 @@ class PyConnector:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
             print(errorResponse.errors)
-        print(response.status)
+
+        # TODO find a way to print only for debug mode (add verbose arg)
+        # print(response.status)
 
     def free_result(self, result_token):
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
@@ -264,7 +282,9 @@ class PyConnector:
 
         if response.status == Status.Error:
             raise ValueError('Error status')
-        print('free result OK!')
+
+        # TODO find a way to print only for debug mode (add verbose arg)
+        #print('free result OK!')
 
     def _get_result(self, result_token):
 
@@ -274,7 +294,8 @@ class PyConnector:
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
             InterpreterMessage.GetResult, self.accessToken, getResultRequest)
 
-        responseBuffer = self._send_request(self._interpreter_path, requestBuffer)
+        responseBuffer = self._send_request(
+            self._interpreter_path, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -326,7 +347,10 @@ def gdf_column_type_to_str(dtype):
 
 def _get_table_def_from_gdf(gdf):
     cols = gdf.columns.values.tolist()
-    print(cols)
+
+    # TODO find a way to print only for debug mode (add verbose arg)
+    # print(cols)
+
     types = []
     for key, column in gdf._cols.items():
         dtype = column._column.cffi_view.dtype
