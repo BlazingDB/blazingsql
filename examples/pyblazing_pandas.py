@@ -1,24 +1,18 @@
-import pyarrow as pa
+import pandas as pd
+import pyblazing
 
+column_names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comments']
+column_types = {'n_nationkey': 'int32', 'n_regionkey': 'int64'}
+nation_df = pd.read_csv("data/nation.psv", delimiter='|',
+                        dtype=column_types, names=column_names)
+nation_df = nation_df[['n_nationkey', 'n_regionkey']]
 
-arr = pa.RecordBatchStreamReader('/gpu.arrow').read_all()
-print(arr)
-df = arr.to_pandas()
-df = df[['swings', 'tractions']]
-gdf = gd.DataFrame.from_pandas(df)
-gdf._cols["swings"]._column.data.mem.get_ipc_handle()._ipc_handle.handle
-print(gdf.columns)
-print(gdf._cols["swings"]._column.dtype)
-gdf._cols["swings"]._column.cffi_view.size
+print(nation_df)
 
-gdf = gen_data_frame(20, 'swings', np.float32)
+tables = {'nation': nation_df}
 
+sql = 'select n_nationkey, n_regionkey, n_nationkey + n_regionkey as addition from main.nation'
+result_gdf = pyblazing.run_query_pandas(sql, tables)
 
-table = 'holas'
-tables = {table: gdf}
-
-
-#result = run_query('select swings, tractions from main.holas', tables)
-result = run_query('select swings from main.holas', tables)
-
-print("hi")
+print(sql)
+print(result_gdf)
