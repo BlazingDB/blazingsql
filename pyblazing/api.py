@@ -35,6 +35,24 @@ require_context = devices.require_context
 current_context = devices.get_context
 gpus = devices.gpus
 
+class ResultSetHandle:
+    columns = None
+    token = None
+    interpreter_path = None
+    handle = None
+    client = None
+    def __init__(self,columns, token, interpreter_path, handle, client):
+        self.columns = columns
+        self.token = token
+        self.interpreter_path = interpreter_path
+        self.handle = handle
+        self.client = client
+
+    def __del__(self):
+        del self.handle
+        self.client.free_result(self.token,self.interpreter_path)
+
+
 
 def run_query(sql, tables):
     """
@@ -142,7 +160,9 @@ def _lots_of_stuff():
 class PyConnector:
     def __init__(self, orchestrator_path):
         self._orchestrator_path = orchestrator_path
-        self._interpreter_path = None
+
+    def __del__(self):
+        self.close_connection()
 
     def connect(self):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -174,6 +194,21 @@ class PyConnector:
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
 
+    def run_dml_query_token(self, query, tableGroup):
+        dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDMLRequestSchema(query, tableGroup)
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML, self.accessToken, dmlRequestSchema)
+        responseBuffer = self._send_request(
+            self._orchestrator_path, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
+            responseBuffer)
+        if response.status == Status.Error:
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
+                response.payload)
+            raise Error(errorResponse.errors)
+        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
+            response.payload)
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path
+
     def run_dml_query(self, query, tableGroup):
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(query)
@@ -191,8 +226,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        self._interpreter_path = dmlResponseDTO.nodeConnection.path
-        return self._get_result(dmlResponseDTO.resultToken)
+        return self._get_result(dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path)
 
     def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -268,7 +302,7 @@ class PyConnector:
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(response.status)
 
-    def free_result(self, result_token):
+    def free_result(self, result_token, interpreter_path):
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
             resultToken=result_token)
 
@@ -276,7 +310,7 @@ class PyConnector:
             InterpreterMessage.FreeResult, self.accessToken, getResultRequest)
 
         responseBuffer = self._send_request(
-            self._interpreter_path, requestBuffer)
+            interpreter_path, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -287,7 +321,7 @@ class PyConnector:
         # TODO find a way to print only for debug mode (add verbose arg)
         #print('free result OK!')
 
-    def _get_result(self, result_token):
+    def _get_result(self, result_token, interpreter_path):
 
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
             resultToken=result_token)
@@ -296,7 +330,7 @@ class PyConnector:
             InterpreterMessage.GetResult, self.accessToken, getResultRequest)
 
         responseBuffer = self._send_request(
-            self._interpreter_path, requestBuffer)
+            interpreter_path, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -387,12 +421,14 @@ def _to_table_group(tables):
             data_ipch = get_ipc_handle_for(dataframe_column)
 
             # TODO this valid data is fixed and is invalid
-            sample_valid_df = gen_data_frame(data_sz, 'valid', np.int8)
-            valid_ipch = get_ipc_handle_for(sample_valid_df['valid'])
+	    #felipe doesnt undertand why we need this we can send null
+	    #if the bitmask is not valid
+            #sample_valid_df = gen_data_frame(data_sz, 'valid', np.int8)
+            #valid_ipch = get_ipc_handle_for(sample_valid_df['valid'])
 
             blazing_column = {
                 'data': data_ipch,
-                'valid': valid_ipch,  # TODO we should use valid mask
+                'valid': None,  # TODO we should use valid mask
                 'size': data_sz,
                 'dtype': dataframe_column._column.cffi_view.dtype,
                 'null_count': 0,
@@ -407,7 +443,7 @@ def _to_table_group(tables):
     return tableGroup
 
 
-def _get_client():
+def _get_client_internal():
     client = PyConnector('/tmp/orchestrator.socket')
 
     try:
@@ -418,6 +454,12 @@ def _get_client():
     return client
 
 
+
+__blazing__global_client = _get_client_internal()
+
+def _get_client():
+    return __blazing__global_client
+
 def _private_run_query(sql, tables):
     client = _get_client()
 
@@ -426,11 +468,16 @@ def _private_run_query(sql, tables):
             _reset_table(client, table, gdf)
     except Error as err:
         print(err)
-
+    ipchandles = []
     resultSet = None
+    token = None
+    interpreter_path = None
     try:
         tableGroup = _to_table_group(tables)
-        resultSet = client.run_dml_query(sql, tableGroup)
+        token, interpreter_path = client.run_dml_query_token(sql, tableGroup)
+        print(token)
+        print(interpreter_path)
+        resultSet = client._get_result(token, interpreter_path)
 
         def cffi_view_to_column_mem(cffi_view):
             data = _gdf._as_numba_devarray(intaddr=int(ffi.cast("uintptr_t",
@@ -458,16 +505,16 @@ def _private_run_query(sql, tables):
                                                    strides=strides, dtype=dtype)
 
         gdf_columns = []
-        ipchandles = []
+        
         for i, c in enumerate(resultSet.columns):
             assert len(c.data) == 64
             ipch, data_ptr = _open_ipc_array(
                 c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
             ipchandles.append(ipch)
+            #gdf_col = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
+            #newcol = from_cffi_view(gdf_col).copy()
             gdf_col = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
-            newcol = from_cffi_view(gdf_col).copy()
-            gdf_columns.append(newcol.view(
-                NumericalColumn, dtype=newcol.dtype))
+            gdf_columns.append(from_cffi_view(gdf_col))
 
         df = DataFrame()
         for k, v in zip(resultSet.columnNames, gdf_columns):
@@ -483,5 +530,5 @@ def _private_run_query(sql, tables):
     except Error as err:
         print(err)
 
-    client.close_connection()
-    return resultSet.columns
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client)
+    return return_result
