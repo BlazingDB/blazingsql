@@ -475,8 +475,6 @@ def _private_run_query(sql, tables):
     try:
         tableGroup = _to_table_group(tables)
         token, interpreter_path = client.run_dml_query_token(sql, tableGroup)
-        print(token)
-        print(interpreter_path)
         resultSet = client._get_result(token, interpreter_path)
 
         def cffi_view_to_column_mem(cffi_view):
