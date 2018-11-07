@@ -36,21 +36,42 @@ current_context = devices.get_context
 gpus = devices.gpus
 
 class ResultSetHandle:
+
     columns = None
     token = None
     interpreter_path = None
     handle = None
     client = None
-    def __init__(self,columns, token, interpreter_path, handle, client):
+
+    def __init__(self,columns, token, interpreter_path, handle, client, calciteTime):
         self.columns = columns
         self.token = token
         self.interpreter_path = interpreter_path
         self.handle = handle
         self.client = client
+        self.calciteTime = calciteTime
 
     def __del__(self):
         del self.handle
         self.client.free_result(self.token,self.interpreter_path)
+
+    def __str__(self):
+      return ('''columns = %(columns)s
+token = %(token)s
+interpreter_path = %(interpreter_path)s
+handle = %(handle)s
+client = %(client)s
+calciteTime = %(calciteTime)d''' % {
+        'columns': self.columns,
+        'token': self.token,
+        'interpreter_path': self.interpreter_path,
+        'handle': self.handle,
+        'client': self.client,
+        'calciteTime' : self.calciteTime,
+      })
+
+    def __repr__(self):
+      return str(self)
 
 
 
@@ -122,13 +143,13 @@ def _run_query_arrow(sql, tables):
     """
     Run a SQL query over a dictionary of pyarrow.Table.
     This convenience function will convert each table from pyarrow.Table
-    to Pandas DataFrame and then will use ``run_query_pandas``.  
+    to Pandas DataFrame and then will use ``run_query_pandas``.
     Parameters
     ----------
     sql : str
         The SQL query.
     tables : dict[str]:pyarrow.Table
-        A dictionary where each key is the table name and each value is the 
+        A dictionary where each key is the table name and each value is the
         associated pyarrow.Table object.
     Returns
     -------
@@ -207,7 +228,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.calciteTime
 
     def run_dml_query(self, query, tableGroup):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -322,7 +343,6 @@ class PyConnector:
         #print('free result OK!')
 
     def _get_result(self, result_token, interpreter_path):
-
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
             resultToken=result_token)
 
@@ -340,6 +360,7 @@ class PyConnector:
 
         queryResult = blazingdb.protocol.interpreter.GetQueryResultFrom(
             response.payload)
+
         return queryResult
 
 
@@ -474,7 +495,7 @@ def _private_run_query(sql, tables):
     interpreter_path = None
     try:
         tableGroup = _to_table_group(tables)
-        token, interpreter_path = client.run_dml_query_token(sql, tableGroup)
+        token, interpreter_path, calciteTime = client.run_dml_query_token(sql, tableGroup)
         resultSet = client._get_result(token, interpreter_path)
 
         def cffi_view_to_column_mem(cffi_view):
@@ -503,7 +524,7 @@ def _private_run_query(sql, tables):
                                                    strides=strides, dtype=dtype)
 
         gdf_columns = []
-        
+
         for i, c in enumerate(resultSet.columns):
             assert len(c.data) == 64
             ipch, data_ptr = _open_ipc_array(
@@ -528,5 +549,5 @@ def _private_run_query(sql, tables):
     except Error as err:
         print(err)
 
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client)
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime)
     return return_result
