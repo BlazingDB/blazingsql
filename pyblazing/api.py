@@ -28,6 +28,8 @@ from numba import cuda
 import numpy as np
 import pandas as pd
 
+import time 
+
 # NDarray device helper
 from numba import cuda
 from numba.cuda.cudadrv import driver, devices
@@ -43,13 +45,15 @@ class ResultSetHandle:
     handle = None
     client = None
 
-    def __init__(self,columns, token, interpreter_path, handle, client, calciteTime):
+    def __init__(self,columns, token, interpreter_path, handle, client, calciteTime, ralTime, totalTime):
         self.columns = columns
         self.token = token
         self.interpreter_path = interpreter_path
         self.handle = handle
         self.client = client
         self.calciteTime = calciteTime
+        self.ralTime = ralTime
+        self.totalTime = totalTime
 
     def __del__(self):
         del self.handle
@@ -61,13 +65,17 @@ token = %(token)s
 interpreter_path = %(interpreter_path)s
 handle = %(handle)s
 client = %(client)s
-calciteTime = %(calciteTime)d''' % {
+calciteTime = %(calciteTime)d
+ralTime = %(ralTime)d
+totalTime = %(totalTime)d''' % {
         'columns': self.columns,
         'token': self.token,
         'interpreter_path': self.interpreter_path,
         'handle': self.handle,
         'client': self.client,
         'calciteTime' : self.calciteTime,
+        'ralTime' : self.ralTime,
+        'totalTime' : self.totalTime,
       })
 
     def __repr__(self):
@@ -482,6 +490,9 @@ def _get_client():
     return __blazing__global_client
 
 def _private_run_query(sql, tables):
+    
+    startTime = time.time()
+    
     client = _get_client()
 
     try:
@@ -497,7 +508,7 @@ def _private_run_query(sql, tables):
         tableGroup = _to_table_group(tables)
         token, interpreter_path, calciteTime = client.run_dml_query_token(sql, tableGroup)
         resultSet = client._get_result(token, interpreter_path)
-
+        
         def cffi_view_to_column_mem(cffi_view):
             data = _gdf._as_numba_devarray(intaddr=int(ffi.cast("uintptr_t",
                                                                 cffi_view.data)),
@@ -540,6 +551,8 @@ def _private_run_query(sql, tables):
             df[str(k)] = v
 
         resultSet.columns = df
+        
+        totalTime = (time.time() - startTime) * 1000  # in milliseconds
 
         # @todo close ipch, see one solution at ()
         # print(df)
@@ -549,5 +562,5 @@ def _private_run_query(sql, tables):
     except Error as err:
         print(err)
 
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime)
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
     return return_result
