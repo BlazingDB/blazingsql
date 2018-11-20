@@ -5,6 +5,7 @@ import blazingdb.protocol.interpreter
 import blazingdb.protocol.orchestrator
 import blazingdb.protocol.transport.channel
 from blazingdb.protocol.errors import Error
+from blazingdb.protocol.calcite.errors import SyntaxError
 from blazingdb.messages.blazingdb.protocol.Status import Status
 
 from blazingdb.protocol.interpreter import InterpreterMessage
@@ -225,6 +226,8 @@ class PyConnector:
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
+            if b'SqlSyntaxException' in errorResponse.errors:
+                raise SyntaxError(errorResponse.errors.decode('utf-8'))
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
@@ -545,7 +548,8 @@ def _private_run_query(sql, tables):
         # print(df)
         # for ipch in ipchandles:
         #     ipch.close()
-
+    except SyntaxError as error:
+        raise error
     except Error as err:
         print(err)
 
