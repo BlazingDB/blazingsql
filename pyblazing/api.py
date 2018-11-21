@@ -1,4 +1,4 @@
-import pygdf as gd
+import cudf as gd
 
 import blazingdb.protocol
 import blazingdb.protocol.interpreter
@@ -12,17 +12,16 @@ from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
 from libgdf_cffi import ffi
-from pygdf.datetime import DatetimeColumn
-from pygdf.numerical import NumericalColumn
+from cudf.datetime import DatetimeColumn
+from cudf.numerical import NumericalColumn
 
 import pyarrow as pa
-from pygdf import _gdf
-from pygdf import column
-from pygdf import numerical
-from pygdf import DataFrame
-from pygdf.dataframe import Series
-from pygdf.buffer import Buffer
-from pygdf import utils
+from cudf import _gdf
+from cudf.column import Column
+from cudf import DataFrame
+from cudf.dataframe import Series
+from cudf.buffer import Buffer
+from cudf import utils
 
 from numba import cuda
 import numpy as np
@@ -90,14 +89,14 @@ def run_query(sql, tables):
     A GPU ``DataFrame`` object that contains the SQL query result.
     Examples
     --------
-    >>> import pygdf as gd
+    >>> import cudf as gd
     >>> import pyblazing
     >>> products = gd.DataFrame({'month': [2, 8, 11], 'sales': [12.1, 20.6, 13.79]})
     >>> cats = gd.DataFrame({'age': [12, 28, 19], 'weight': [5.3, 9, 7.68]})
     >>> tables = {'products': products, 'cats': cats}
     >>> result = pyblazing.run_query('select * from products, cats limit 2', tables)
     >>> type(result)
-    pygdf.dataframe.DataFrame
+    cudf.dataframe.DataFrame
     """
     return _private_run_query(sql, tables)
 
@@ -126,7 +125,7 @@ def run_query_pandas(sql, tables):
     >>> tables = {'products': products, 'cats': cats}
     >>> result = pyblazing.run_query_pandas('select * from products, cats limit 2', tables)
     >>> type(result)
-    pygdf.dataframe.DataFrame
+    cudf.dataframe.DataFrame
     """
 
     gdf_tables = {}
@@ -163,7 +162,7 @@ def _run_query_arrow(sql, tables):
     >>> tables = {'products': products, 'cats': cats}
     >>> result = pyblazing.run_query_arrow('select * from products, cats limit 2', tables)
     >>> type(result)
-    pygdf.dataframe.DataFrame
+    cudf.dataframe.DataFrame
     """
 
     pandas_tables = {}
@@ -498,19 +497,32 @@ def _private_run_query(sql, tables):
         token, interpreter_path, calciteTime = client.run_dml_query_token(sql, tableGroup)
         resultSet = client._get_result(token, interpreter_path)
 
-        def cffi_view_to_column_mem(cffi_view):
-            data = _gdf._as_numba_devarray(intaddr=int(ffi.cast("uintptr_t",
-                                                                cffi_view.data)),
-                                           nelem=cffi_view.size,
-                                           dtype=_gdf.gdf_to_np_dtype(cffi_view.dtype))
-            mask = None
-            return data, mask
+#         def cffi_view_to_column_mem(cffi_view):
+#             data = _gdf._as_numba_devarray(intaddr=int(ffi.cast("uintptr_t",
+#                                                                 cffi_view.data)),
+#                                            nelem=cffi_view.size,
+#                                            dtype=_gdf.gdf_to_np_dtype(cffi_view.dtype))
+#             mask = None
+#             return data, mask
+# 
+#         def from_cffi_view(cffi_view):
+#             data_mem, mask_mem = cffi_view_to_column_mem(cffi_view)
+#             data_buf = Buffer(data_mem)
+#             mask = None
+#             return column.Column(data=data_buf, mask=mask)
 
         def from_cffi_view(cffi_view):
-            data_mem, mask_mem = cffi_view_to_column_mem(cffi_view)
+            """Create a Column object from a cffi struct gdf_column*.
+            """
+            data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
             data_buf = Buffer(data_mem)
-            mask = None
-            return column.Column(data=data_buf, mask=mask)
+ 
+            if mask_mem is not None:
+                mask = Buffer(mask_mem)
+            else:
+                mask = None
+ 
+            return Column(data=data_buf, mask=mask)
 
         def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
             dtype = np.dtype(dtype)
@@ -532,8 +544,12 @@ def _private_run_query(sql, tables):
             ipchandles.append(ipch)
             #gdf_col = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
             #newcol = from_cffi_view(gdf_col).copy()
-            gdf_col = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
-            gdf_columns.append(from_cffi_view(gdf_col))
+            cffi_view = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
+            newcol = from_cffi_view(cffi_view)
+            if(newcol.dtype == np.dtype('datetime64[ms]')):
+                gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+            else:
+                gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
 
         df = DataFrame()
         for k, v in zip(resultSet.columnNames, gdf_columns):
