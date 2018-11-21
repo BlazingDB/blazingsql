@@ -510,21 +510,8 @@ def _private_run_query(sql, tables):
         tableGroup = _to_table_group(tables)
         token, interpreter_path, calciteTime = client.run_dml_query_token(sql, tableGroup)
         resultSet = client._get_result(token, interpreter_path)
-        
-#         def cffi_view_to_column_mem(cffi_view):
-#             data = _gdf._as_numba_devarray(intaddr=int(ffi.cast("uintptr_t",
-#                                                                 cffi_view.data)),
-#                                            nelem=cffi_view.size,
-#                                            dtype=_gdf.gdf_to_np_dtype(cffi_view.dtype))
-#             mask = None
-#             return data, mask
-# 
-#         def from_cffi_view(cffi_view):
-#             data_mem, mask_mem = cffi_view_to_column_mem(cffi_view)
-#             data_buf = Buffer(data_mem)
-#             mask = None
-#             return column.Column(data=data_buf, mask=mask)
 
+        # TODO: this function was copied from column.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there 
         def from_cffi_view(cffi_view):
             """Create a Column object from a cffi struct gdf_column*.
             """
@@ -538,6 +525,7 @@ def _private_run_query(sql, tables):
  
             return Column(data=data_buf, mask=mask)
 
+        # TODO: this code does not seem to handle nulls at all. This will need to be addressed
         def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
             dtype = np.dtype(dtype)
             # compute size
@@ -556,8 +544,8 @@ def _private_run_query(sql, tables):
             ipch, data_ptr = _open_ipc_array(
                 c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
             ipchandles.append(ipch)
-            #gdf_col = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
-            #newcol = from_cffi_view(gdf_col).copy()
+            
+            # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
             cffi_view = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
             newcol = from_cffi_view(cffi_view)
             if(newcol.dtype == np.dtype('datetime64[ms]')):
