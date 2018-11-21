@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import pygdf as gd
+import cudf as gd
 import pyblazing
 
 
