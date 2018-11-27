@@ -13,15 +13,15 @@ from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
 from libgdf_cffi import ffi
-from cudf.datetime import DatetimeColumn
-from cudf.numerical import NumericalColumn
+from cudf.dataframe.datetime import DatetimeColumn
+from cudf.dataframe.numerical import NumericalColumn
 
 import pyarrow as pa
 from cudf import _gdf
-from cudf.column import Column
+from cudf.dataframe.column import Column
 from cudf import DataFrame
-from cudf.dataframe import Series
-from cudf.buffer import Buffer
+from cudf.dataframe.dataframe import Series
+from cudf.dataframe.buffer import Buffer
 from cudf import utils
 
 from numba import cuda
