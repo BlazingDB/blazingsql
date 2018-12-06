@@ -28,7 +28,8 @@ from numba import cuda
 import numpy as np
 import pandas as pd
 
-import time 
+import time
+
 
 # NDarray device helper
 from numba import cuda
@@ -180,6 +181,10 @@ def _run_query_arrow(sql, tables):
         pandas_tables[table] = df
 
     return run_query_pandas(sql, pandas_tables)
+
+
+def run_query_filesystem(sql, filesystem_tables):
+    return None
 
 
 def _lots_of_stuff():
@@ -572,3 +577,94 @@ def _private_run_query(sql, tables):
 
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
     return return_result
+
+from collections import namedtuple
+from blazingdb.protocol.transport.channel import MakeRequestBuffer
+from blazingdb.protocol.transport.channel import ResponseSchema
+from blazingdb.protocol.transport.channel import ResponseErrorSchema
+from blazingdb.protocol.orchestrator import OrchestratorMessageType
+from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDeregisterRequestSchema
+from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType
+
+import numpy as np
+import pandas as pd
+
+def dtype_to_str(dtype):
+    if pd.api.types.is_categorical_dtype(dtype):
+        return 'GDF_INT8'
+    dicc = {np.float64: 'GDF_FLOAT64',
+            np.float32: 'GDF_FLOAT32',
+            np.int64: 'GDF_INT64',
+            np.int32: 'GDF_INT32',
+            np.int16: 'GDF_INT16',
+            np.int8: 'GDF_INT8',    
+            np.bool_: 'GDF_INT8',
+            np.datetime64: 'GDF_DATE64',
+            np.object: 'GDF_INT64',
+            np.str: 'GDF_INT64',
+            }
+    _type = np.dtype(dtype).type
+    if _type in dicc:
+        return dicc[_type]
+    return 'GDF_INT64'
+
+def create_csv_table_from_filesystem(table_name, path_list, lineterminator='\n',
+             delimiter=',', sep=None, delim_whitespace=False,
+             skipinitialspace=False, names=None, dtype=None,
+             skipfooter=0, skiprows=0, dayfirst=False):
+    print('create csv table')
+    client = _get_client()
+    client.run_ddl_drop_table(table_name, 'main')
+    column_types = [dtype_to_str(item)  for item in list(dtype)]  
+    print(names)
+    print(column_types)
+    client.run_ddl_create_table(table_name, names, column_types, 'main')
+
+
+
+def create_parquet_table_from_filesystem(table_name, path_list):
+    print('create parquet table')
+    client = _get_client()
+
+    # client.run_ddl_drop_table(table_name, 'main')
+    # column_types = [dtype_to_str(item)  for item in list(dtype)]
+    # client.run_ddl_create_table(table_name, names, column_types, 'main')
+
+
+def create_table(table_name, path_list, **kwargs):
+    if len(kwargs.items()) > 0: # csv
+        create_csv_table_from_filesystem(table_name, path_list, **kwargs)
+        file_type = "csv"
+    else: # parquet
+        create_parquet_table_from_filesystem(table_name, path_list)
+        file_type = "parquet"
+    return {
+        table_name: path_list,
+        "type": file_type
+    }
+    
+def register_file_system(authority, type, root, params = None):
+    if params is not None:
+        params = namedtuple("FileSystemConnection", params.keys())(*params.values())
+    client = _get_client()
+    schema = FileSystemRegisterRequestSchema(authority, root, type, params)
+    request_buffer = MakeRequestBuffer(OrchestratorMessageType.RegisterFileSystem,
+                                       client.accessToken,
+                                       schema)
+    response_buffer = client._send_request( client._orchestrator_path, request_buffer)
+    response = ResponseSchema.From(response_buffer)
+    if response.status == Status.Error:
+        raise Error(ResponseErrorSchema.From(response.payload).errors)
+    return response.status
+
+def deregister_file_system(authority):
+    schema = FileSystemDeregisterRequestSchema(authority)
+    client = _get_client()
+    request_buffer = MakeRequestBuffer(OrchestratorMessageType.DeregisterFileSystem,
+                                       client.accessToken,
+                                       schema)
+    response_buffer = client._send_request(client._orchestrator_path, request_buffer)
+    response = ResponseSchema.From(response_buffer)
+    if response.status == Status.Error:
+        raise Error(ResponseErrorSchema.From(response.payload).errors)
+    return response.status
