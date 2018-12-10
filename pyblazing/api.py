@@ -183,9 +183,6 @@ def _run_query_arrow(sql, tables):
     return run_query_pandas(sql, pandas_tables)
 
 
-def run_query_filesystem(sql, filesystem_tables):
-    return None
-
 
 def _lots_of_stuff():
     pass
@@ -585,9 +582,112 @@ from blazingdb.protocol.transport.channel import ResponseErrorSchema
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDeregisterRequestSchema
 from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType
-
 import numpy as np
 import pandas as pd
+import logging
+##############################################################################
+# logging.debug('debug')
+# logging.info('info')
+# logging.warning('warning')
+# logging.error('error')
+# logging.critical('critical')
+
+log_format = (
+    '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
+
+logging.basicConfig(
+    filename='debug.log',
+    format=log_format,
+    level=logging.DEBUG,
+)
+
+formatter = logging.Formatter(log_format)
+handler = logging.StreamHandler()
+handler.setLevel(logging.WARNING)
+handler.setFormatter(formatter)
+logging.getLogger().addHandler(handler)
+##############################################################################
+
+class Table:
+
+    def __init__(self, name, schema):
+        self.name = name
+        self.schema = schema
+
+    def __hash__(self):
+        return hash(self.schema.schema_type)
+
+    def __eq__(self, other):
+        return self.schema.schema_type == other.schema.schema_type
+
+
+from typing import Dict, Tuple, List
+import collections
+SqlData = Dict[Table, List]
+SqlDataCollection = collections.namedtuple('SqlDataCollection', ['tables', 'set_of_files'])
+
+
+class SchemaFrom:
+    Gdf = 0
+    ParquetFile = 1
+    CsvFile = 2
+
+
+class Schema:
+    def __init__(self, type, **kwargs):
+        schema_type, names, types = self._get_schema(**kwargs)
+        assert schema_type == type
+
+        self.column_names = names
+        self.column_types = types
+        self.kwargs = kwargs
+        self.schema_type = type
+
+
+
+    def __hash__(self):
+        return hash(self.schema_type)
+
+    def __eq__(self, other):
+        return self.schema_type == other.schema_type
+
+    def _get_schema_from_gdf(self, gdf):
+        cols, types = _get_table_def_from_gdf(gdf)
+        return cols, types
+
+    def _get_schema_from_parquet(self, path):
+        # todo
+        ## column_names, column_types = get_parquet_schema(path_list) #new
+
+        return None, None
+
+    def _get_schema(self, **kwargs):
+        """
+        :param table_name:
+        :param kwargs:
+                csv: column_names, column_types
+                gdf: gpu data frame
+                parquet: path
+        :return:
+        """
+        column_names = kwargs.get('names', None)
+        column_types = kwargs.get('dtype', None)
+        gdf = kwargs.get('gdf', None)
+        path = kwargs.get('path', None)
+
+        if column_names is not None and column_types is not None:
+            return SchemaFrom.CsvFile, column_names, column_types
+        elif gdf is not None:
+            self.gdf = gdf
+            cols, types = self._get_schema_from_gdf(gdf)
+            return SchemaFrom.Gdf, cols, types
+        elif path is not None:
+            cols, types = self._get_schema_from_parquet(path)
+            return SchemaFrom.ParquetFile, cols, types
+
+        schema_logger = logging.getLogger('Schema')
+        schema_logger.critical('Not schema found')
+
 
 def dtype_to_str(dtype):
     if pd.api.types.is_categorical_dtype(dtype):
@@ -608,41 +708,41 @@ def dtype_to_str(dtype):
         return dicc[_type]
     return 'GDF_INT64'
 
-def create_csv_table_from_filesystem(table_name, path_list, lineterminator='\n',
-             delimiter=',', sep=None, delim_whitespace=False,
-             skipinitialspace=False, names=None, dtype=None,
-             skipfooter=0, skiprows=0, dayfirst=False):
+def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
-    client = _get_client()
-    client.run_ddl_drop_table(table_name, 'main')
-    column_types = [dtype_to_str(item)  for item in list(dtype)]  
-    print(names)
-    print(column_types)
-    client.run_ddl_create_table(table_name, names, column_types, 'main')
+
+    # todo
+    ## token = read_csv_table(path_list) #new
+    # gdf = get_result(token)
+    return None
 
 
-
-def create_parquet_table_from_filesystem(table_name, path_list):
+def read_parquet_table_from_filesystem(table_name, path_list):
     print('create parquet table')
     client = _get_client()
 
-    # client.run_ddl_drop_table(table_name, 'main')
-    # column_types = [dtype_to_str(item)  for item in list(dtype)]
-    # client.run_ddl_create_table(table_name, names, column_types, 'main')
+    # todo
+    ## token = read_parquet_table(path_list) #new
+    # gdf = get_result(token)
+    return None
+
+def create_table(table_name, schema):
+
+    if schema.schema_type == SchemaFrom.CsvFile:  # csv
+        gdf = read_csv_table_from_filesystem(table_name, schema)
+    elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
+        gdf = read_parquet_table_from_filesystem(table_name, schema)
+    else:
+        gdf = schema.gdf
+
+    client = _get_client()
+    if gdf is not None:
+        _reset_table(client, table_name, gdf)
+    else:
+        logging.error('not gdf read')
+    return gdf
 
 
-def create_table(table_name, path_list, **kwargs):
-    if len(kwargs.items()) > 0: # csv
-        create_csv_table_from_filesystem(table_name, path_list, **kwargs)
-        file_type = "csv"
-    else: # parquet
-        create_parquet_table_from_filesystem(table_name, path_list)
-        file_type = "parquet"
-    return {
-        table_name: path_list,
-        "type": file_type
-    }
-    
 def register_file_system(authority, type, root, params = None):
     if params is not None:
         params = namedtuple("FileSystemConnection", params.keys())(*params.values())
@@ -668,3 +768,7 @@ def deregister_file_system(authority):
     if response.status == Status.Error:
         raise Error(ResponseErrorSchema.From(response.payload).errors)
     return response.status
+
+
+def run_sql(sql, sql_data):
+    logging.warning('run sql')
