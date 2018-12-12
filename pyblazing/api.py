@@ -225,6 +225,27 @@ class PyConnector:
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
 
+    def run_dml_load_parquet_file(self, path):
+        print('load parquet file')
+
+    def run_dml_load_csv_file(self, path, names, dtypes, delimiter = '|', line_terminator='\n', skip_rows=0):
+        print('load csv file')
+        requestSchema = blazingdb.protocol.io.CsvFileSchema(path=path, delimiter=delimiter, lineTerminator = line_terminator, skipRows=skip_rows, names=names, dtypes=dtypes)
+
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadCSV,
+                                                                                self.accessToken, requestSchema)
+        responseBuffer = self._send_request(self._orchestrator_path, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+        if response.status == Status.Error:
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
+                response.payload)
+            if b'SqlSyntaxException' in errorResponse.errors:
+                raise SyntaxError(errorResponse.errors.decode('utf-8'))
+            raise Error(errorResponse.errors)
+        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
+            response.payload)
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path
+
     def run_dml_query_token(self, query, tableGroup):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDMLRequestSchema(query, tableGroup)
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML, self.accessToken, dmlRequestSchema)
@@ -493,6 +514,61 @@ __blazing__global_client = _get_client_internal()
 def _get_client():
     return __blazing__global_client
 
+
+# TODO: this function was copied from column.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there
+def from_cffi_view(cffi_view):
+    """Create a Column object from a cffi struct gdf_column*.
+    """
+    data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
+    data_buf = Buffer(data_mem)
+
+    if mask_mem is not None:
+        mask = Buffer(mask_mem)
+    else:
+        mask = None
+
+    return Column(data=data_buf, mask=mask)
+
+
+# TODO: this code does not seem to handle nulls at all. This will need to be addressed
+def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
+    dtype = np.dtype(dtype)
+    # compute size
+    size = np.prod(shape) * dtype.itemsize
+    # manually recreate the IPC mem handle
+    handle = driver.drvapi.cu_ipc_mem_handle(*handle)
+    # use *IpcHandle* to open the IPC memory
+    ipchandle = driver.IpcHandle(None, handle, size, offset=offset)
+    return ipchandle, ipchandle.open_array(current_context(), shape=shape,
+                                           strides=strides, dtype=dtype)
+
+def _private_get_result(token, interpreter_path, calciteTime):
+    client = _get_client()
+    resultSet = client._get_result(token, interpreter_path)
+
+    gdf_columns = []
+    ipchandles = []
+    for i, c in enumerate(resultSet.columns):
+        assert len(c.data) == 64
+        ipch, data_ptr = _open_ipc_array(
+            c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+        ipchandles.append(ipch)
+
+        # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
+        cffi_view = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
+        newcol = from_cffi_view(cffi_view)
+        if (newcol.dtype == np.dtype('datetime64[ms]')):
+            gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+        else:
+            gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+
+    df = DataFrame()
+    for k, v in zip(resultSet.columnNames, gdf_columns):
+        df[str(k)] = v
+
+    resultSet.columns = df
+    return resultSet, ipchandles
+
 def _private_run_query(sql, tables):
     
     startTime = time.time()
@@ -504,69 +580,15 @@ def _private_run_query(sql, tables):
             _reset_table(client, table, gdf)
     except Error as err:
         print(err)
-    ipchandles = []
+
     resultSet = None
     token = None
     interpreter_path = None
     try:
         tableGroup = _to_table_group(tables)
         token, interpreter_path, calciteTime = client.run_dml_query_token(sql, tableGroup)
-        resultSet = client._get_result(token, interpreter_path)
-
-        # TODO: this function was copied from column.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there 
-        def from_cffi_view(cffi_view):
-            """Create a Column object from a cffi struct gdf_column*.
-            """
-            data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
-            data_buf = Buffer(data_mem)
- 
-            if mask_mem is not None:
-                mask = Buffer(mask_mem)
-            else:
-                mask = None
- 
-            return Column(data=data_buf, mask=mask)
-
-        # TODO: this code does not seem to handle nulls at all. This will need to be addressed
-        def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
-            dtype = np.dtype(dtype)
-            # compute size
-            size = np.prod(shape) * dtype.itemsize
-            # manually recreate the IPC mem handle
-            handle = driver.drvapi.cu_ipc_mem_handle(*handle)
-            # use *IpcHandle* to open the IPC memory
-            ipchandle = driver.IpcHandle(None, handle, size, offset=offset)
-            return ipchandle, ipchandle.open_array(current_context(), shape=shape,
-                                                   strides=strides, dtype=dtype)
-
-        gdf_columns = []
-
-        for i, c in enumerate(resultSet.columns):
-            assert len(c.data) == 64
-            ipch, data_ptr = _open_ipc_array(
-                c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-            ipchandles.append(ipch)
-            
-            # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
-            cffi_view = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
-            newcol = from_cffi_view(cffi_view)
-            if(newcol.dtype == np.dtype('datetime64[ms]')):
-                gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
-            else:
-                gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
-
-        df = DataFrame()
-        for k, v in zip(resultSet.columnNames, gdf_columns):
-            df[str(k)] = v
-
-        resultSet.columns = df
-        
+        resultSet, ipchandles = _private_get_result(token, interpreter_path, calciteTime)
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
-
-        # @todo close ipch, see one solution at ()
-        # print(df)
-        # for ipch in ipchandles:
-        #     ipch.close()
     except SyntaxError as error:
         raise error
     except Error as err:
@@ -671,7 +693,7 @@ class Schema:
         :return:
         """
         column_names = kwargs.get('names', None)
-        column_types = kwargs.get('dtype', None)
+        column_types = kwargs.get('dtypes', None)
         gdf = kwargs.get('gdf', None)
         path = kwargs.get('path', None)
 
@@ -689,42 +711,44 @@ class Schema:
         schema_logger.critical('Not schema found')
 
 
-def dtype_to_str(dtype):
-    if pd.api.types.is_categorical_dtype(dtype):
-        return 'GDF_INT8'
-    dicc = {np.float64: 'GDF_FLOAT64',
-            np.float32: 'GDF_FLOAT32',
-            np.int64: 'GDF_INT64',
-            np.int32: 'GDF_INT32',
-            np.int16: 'GDF_INT16',
-            np.int8: 'GDF_INT8',    
-            np.bool_: 'GDF_INT8',
-            np.datetime64: 'GDF_DATE64',
-            np.object: 'GDF_INT64',
-            np.str: 'GDF_INT64',
-            }
-    _type = np.dtype(dtype).type
-    if _type in dicc:
-        return dicc[_type]
-    return 'GDF_INT64'
+# def dtype_to_str(dtype):
+#     if pd.api.types.is_categorical_dtype(dtype):
+#         return 'GDF_INT8'
+#     dicc = {np.float64: 'GDF_FLOAT64',
+#             np.float32: 'GDF_FLOAT32',
+#             np.int64: 'GDF_INT64',
+#             np.int32: 'GDF_INT32',
+#             np.int16: 'GDF_INT16',
+#             np.int8: 'GDF_INT8',
+#             np.bool_: 'GDF_INT8',
+#             np.datetime64: 'GDF_DATE64',
+#             np.object: 'GDF_INT64',
+#             np.str: 'GDF_INT64',
+#             }
+#     _type = np.dtype(dtype).type
+#     if _type in dicc:
+#         return dicc[_type]
+#     return 'GDF_INT64'
 
 def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
+    client = _get_client()
 
-    # todo
-    ## token = read_csv_table(path_list) #new
-    # gdf = get_result(token)
-    return None
+    token, interpreter_path = client.run_dml_load_csv_file(**schema.kwargs)
+    resultSet, ipchandles = _private_get_result(token, interpreter_path, 0)
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, 0, resultSet.metadata.time, 0)
+    return return_result
 
 
 def read_parquet_table_from_filesystem(table_name, path_list):
     print('create parquet table')
     client = _get_client()
 
-    # todo
-    ## token = read_parquet_table(path_list) #new
-    # gdf = get_result(token)
-    return None
+    token, interpreter_path = client.run_dml_load_parquet_file(schema.kwargs)
+    resultSet, ipchandles = _private_get_result(token, interpreter_path, 0)
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, 0, resultSet.metadata.time, 0)
+    return return_result
+
 
 def create_table(table_name, schema):
 
