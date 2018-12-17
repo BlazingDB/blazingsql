@@ -227,6 +227,22 @@ class PyConnector:
 
     def run_dml_load_parquet_file(self, path):
         print('load parquet file')
+        ## todo use rowGroupIndices, and columnIndices, someway??
+        requestSchema = blazingdb.protocol.io.ParquetFileSchema(path=path, rowGroupIndices=[], columnIndices=[])
+
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadParquet,
+                                                                               self.accessToken, requestSchema)
+        responseBuffer = self._send_request(self._orchestrator_path, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+        if response.status == Status.Error:
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
+                response.payload)
+            if b'SqlSyntaxException' in errorResponse.errors:
+                raise SyntaxError(errorResponse.errors.decode('utf-8'))
+            raise Error(errorResponse.errors)
+        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
+            response.payload)
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path
 
     def run_dml_load_csv_file(self, path, names, dtypes, delimiter = '|', line_terminator='\n', skip_rows=0):
         print('load csv file')
@@ -249,6 +265,24 @@ class PyConnector:
     def run_dml_query_token(self, query, tableGroup):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDMLRequestSchema(query, tableGroup)
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML, self.accessToken, dmlRequestSchema)
+        responseBuffer = self._send_request(
+            self._orchestrator_path, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
+            responseBuffer)
+        if response.status == Status.Error:
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
+                response.payload)
+            if b'SqlSyntaxException' in errorResponse.errors:
+                raise SyntaxError(errorResponse.errors.decode('utf-8'))
+            raise Error(errorResponse.errors)
+        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
+            response.payload)
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.calciteTime
+
+    def run_dml_query_filesystem_token(self, query, tableGroup):
+        dmlRequestSchema = blazingdb.protocol.io.BuildFileSystemDMLRequestSchema(query, tableGroup)
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML_FS,
+                                                                               self.accessToken, dmlRequestSchema)
         responseBuffer = self._send_request(
             self._orchestrator_path, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
@@ -435,7 +469,7 @@ def gdf_column_type_to_str(dtype):
 
 
 def _get_table_def_from_gdf(gdf):
-    cols = gdf.columns.values.tolist()
+    cols = gdf.columns.values.tolist() ## todo las propiedades, solo una columna!
 
     # TODO find a way to print only for debug mode (add verbose arg)
     # print(cols)
@@ -562,12 +596,12 @@ def _private_get_result(token, interpreter_path, calciteTime):
         else:
             gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
 
-    df = DataFrame()
+    gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
-        df[str(k)] = v
+        assert k != ""
+        gdf[k.decode("utf-8")] = v
 
-    resultSet.columns = df
-    return resultSet, ipchandles
+    return resultSet, ipchandles, gdf
 
 def _private_run_query(sql, tables):
     
@@ -587,7 +621,7 @@ def _private_run_query(sql, tables):
     try:
         tableGroup = _to_table_group(tables)
         token, interpreter_path, calciteTime = client.run_dml_query_token(sql, tableGroup)
-        resultSet, ipchandles = _private_get_result(token, interpreter_path, calciteTime)
+        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, calciteTime)
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
     except SyntaxError as error:
         raise error
@@ -597,57 +631,55 @@ def _private_run_query(sql, tables):
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
     return return_result
 
+
+def _private_run_query(sql, files):
+    startTime = time.time()
+
+    client = _get_client()
+
+    resultSet = None
+    token = None
+    interpreter_path = None
+    try:
+        token, interpreter_path, calciteTime = client.run_dml_query_fs_token(sql, files)
+        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, calciteTime)
+        totalTime = (time.time() - startTime) * 1000  # in milliseconds
+    except SyntaxError as error:
+        raise error
+    except Error as err:
+        print(err)
+
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime,
+                                    resultSet.metadata.time, totalTime)
+    return return_result
 from collections import namedtuple
 from blazingdb.protocol.transport.channel import MakeRequestBuffer
 from blazingdb.protocol.transport.channel import ResponseSchema
 from blazingdb.protocol.transport.channel import ResponseErrorSchema
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDeregisterRequestSchema
-from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType
+from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
 import numpy as np
 import pandas as pd
 import logging
 ##############################################################################
-# logging.debug('debug')
-# logging.info('info')
-# logging.warning('warning')
-# logging.error('error')
-# logging.critical('critical')
-
 log_format = (
     '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
 
-logging.basicConfig(
-    filename='debug.log',
-    format=log_format,
-    level=logging.DEBUG,
-)
-
 formatter = logging.Formatter(log_format)
 handler = logging.StreamHandler()
-handler.setLevel(logging.WARNING)
+handler.setLevel(logging.INFO)
 handler.setFormatter(formatter)
 logging.getLogger().addHandler(handler)
+logging.getLogger().setLevel(logging.INFO)
+
+logging.debug('debug')
+logging.info('info')
+logging.warning('warning')
+logging.error('error')
+logging.critical('critical')
+
 ##############################################################################
-
-class Table:
-
-    def __init__(self, name, schema):
-        self.name = name
-        self.schema = schema
-
-    def __hash__(self):
-        return hash(self.schema.schema_type)
-
-    def __eq__(self, other):
-        return self.schema.schema_type == other.schema.schema_type
-
-
-from typing import Dict, Tuple, List
-import collections
-SqlData = Dict[Table, List]
-SqlDataCollection = collections.namedtuple('SqlDataCollection', ['tables', 'set_of_files'])
-
 
 class SchemaFrom:
     Gdf = 0
@@ -655,39 +687,36 @@ class SchemaFrom:
     CsvFile = 2
 
 
-class Schema:
+class TableSchema:
     def __init__(self, type, **kwargs):
-        schema_type, names, types = self._get_schema(**kwargs)
+        schema_type = self._get_schema(**kwargs)
         assert schema_type == type
 
-        self.column_names = names
-        self.column_types = types
         self.kwargs = kwargs
         self.schema_type = type
+        self.column_names = []
+        self.column_types = []
 
+    def set_table_name(self, name):
+        self.table_name = name
 
+    def set_column_names(self, names):
+        self.column_names = names
+
+    def set_column_types(self, types):
+        self.column_types = types
 
     def __hash__(self):
-        return hash(self.schema_type)
+        return hash( (self.schema_type, self.table_name) )
 
     def __eq__(self, other):
-        return self.schema_type == other.schema_type
-
-    def _get_schema_from_gdf(self, gdf):
-        cols, types = _get_table_def_from_gdf(gdf)
-        return cols, types
-
-    def _get_schema_from_parquet(self, path):
-        # todo
-        ## column_names, column_types = get_parquet_schema(path_list) #new
-
-        return None, None
+        return self.schema_type == other.schema_type and self.table_name == other.table_name
 
     def _get_schema(self, **kwargs):
         """
         :param table_name:
         :param kwargs:
-                csv: column_names, column_types
+                csv: names, dtypes
                 gdf: gpu data frame
                 parquet: path
         :return:
@@ -698,73 +727,68 @@ class Schema:
         path = kwargs.get('path', None)
 
         if column_names is not None and column_types is not None:
-            return SchemaFrom.CsvFile, column_names, column_types
+            return SchemaFrom.CsvFile
         elif gdf is not None:
             self.gdf = gdf
-            cols, types = self._get_schema_from_gdf(gdf)
-            return SchemaFrom.Gdf, cols, types
+            return SchemaFrom.Gdf
         elif path is not None:
-            cols, types = self._get_schema_from_parquet(path)
-            return SchemaFrom.ParquetFile, cols, types
+            return SchemaFrom.ParquetFile
 
         schema_logger = logging.getLogger('Schema')
         schema_logger.critical('Not schema found')
 
 
-# def dtype_to_str(dtype):
-#     if pd.api.types.is_categorical_dtype(dtype):
-#         return 'GDF_INT8'
-#     dicc = {np.float64: 'GDF_FLOAT64',
-#             np.float32: 'GDF_FLOAT32',
-#             np.int64: 'GDF_INT64',
-#             np.int32: 'GDF_INT32',
-#             np.int16: 'GDF_INT16',
-#             np.int8: 'GDF_INT8',
-#             np.bool_: 'GDF_INT8',
-#             np.datetime64: 'GDF_DATE64',
-#             np.object: 'GDF_INT64',
-#             np.str: 'GDF_INT64',
-#             }
-#     _type = np.dtype(dtype).type
-#     if _type in dicc:
-#         return dicc[_type]
-#     return 'GDF_INT64'
 
 def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
     client = _get_client()
 
     token, interpreter_path = client.run_dml_load_csv_file(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(token, interpreter_path, 0)
+    resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, 0)
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, 0, resultSet.metadata.time, 0)
-    return return_result
+    return gdf
 
 
-def read_parquet_table_from_filesystem(table_name, path_list):
+def read_parquet_table_from_filesystem(table_name, schema):
     print('create parquet table')
     client = _get_client()
 
-    token, interpreter_path = client.run_dml_load_parquet_file(schema.kwargs)
-    resultSet, ipchandles = _private_get_result(token, interpreter_path, 0)
+    token, interpreter_path = client.run_dml_load_parquet_file(**schema.kwargs)
+    resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, 0)
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, 0, resultSet.metadata.time, 0)
-    return return_result
+    return gdf
 
 
-def create_table(table_name, schema):
-
+def register_table_schema(table_name, **kwargs):
+    schema = TableSchema(**kwargs)
+    return_result = None
     if schema.schema_type == SchemaFrom.CsvFile:  # csv
         gdf = read_csv_table_from_filesystem(table_name, schema)
     elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
         gdf = read_parquet_table_from_filesystem(table_name, schema)
     else:
         gdf = schema.gdf
+        #todo remove this option
+
+    print('create table with ')
+    print(gdf)
+
+    schema.set_table_name(table_name)
+    col_names, types = _get_table_def_from_gdf(gdf)
+    schema.set_column_names(col_names)
+    schema.set_column_types(types)
+
+    print(col_names)
+    print(types)
 
     client = _get_client()
     if gdf is not None:
         _reset_table(client, table_name, gdf)
     else:
         logging.error('not gdf read')
-    return gdf
+
+    logging.info(gdf)
+    return schema
 
 
 def register_file_system(authority, type, root, params = None):
@@ -794,5 +818,48 @@ def deregister_file_system(authority):
     return response.status
 
 
-def run_sql(sql, sql_data):
-    logging.warning('run sql')
+def _sql_data_to_table_group(sql_data):
+    database_name = 'main'
+    tableGroup = {'name': database_name}
+    blazing_tables = []
+    for schema, files in sql_data.items():
+        blazing_table = {'name':   database_name + '.' + schema.table_name}
+        blazing_table['columnNames'] = schema.column_names
+        if schema.schema_type == SchemaFrom.ParquetFile:
+            blazing_table['schemaType'] = FileSchemaType.PARQUET
+            blazing_table['parquet'] = schema.kwargs
+            blazing_table['csv'] = None
+        else:
+            blazing_table['schemaType'] = FileSchemaType.CSV
+            blazing_table['csv'] = schema.kwargs
+            blazing_table['parquet'] = None
+
+        blazing_table['files'] = files
+        blazing_tables.append(blazing_table)
+
+    tableGroup['tables'] = blazing_tables
+    return tableGroup
+
+def run_query_filesystem(sql, sql_data):
+    logging.info('run_query_filesystem')
+    startTime = time.time()
+
+    client = _get_client()
+
+    resultSet = None
+    token = None
+    interpreter_path = None
+    try:
+        tableGroup = _sql_data_to_table_group(sql_data)
+        token, interpreter_path, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
+        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, calciteTime)
+        totalTime = (time.time() - startTime) * 1000  # in milliseconds
+    except SyntaxError as error:
+        raise error
+    except Error as err:
+        print(err)
+
+    print(gdf_out)
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime,
+                                    resultSet.metadata.time, totalTime)
+    return return_result
