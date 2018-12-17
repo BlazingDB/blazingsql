@@ -12,7 +12,7 @@ from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
-from libgdf_cffi import ffi
+from libgdf_cffi import ffi, libgdf
 from cudf.dataframe.datetime import DatetimeColumn
 from cudf.dataframe.numerical import NumericalColumn
 
@@ -23,6 +23,7 @@ from cudf import DataFrame
 from cudf.dataframe.dataframe import Series
 from cudf.dataframe.buffer import Buffer
 from cudf import utils
+from cudf.utils.utils import calc_chunk_size, mask_bitsize
 
 from numba import cuda
 import numpy as np
@@ -462,7 +463,7 @@ def _to_table_group(tables):
                 'valid': None,  # TODO we should use valid mask
                 'size': data_sz,
                 'dtype': dataframe_column._column.cffi_view.dtype,
-                'null_count': 0,
+                'null_count': dataframe_column._column.cffi_view.null_count,
                 'dtype_info': 0
             }
             blazing_columns.append(blazing_column)
@@ -519,11 +520,17 @@ def _private_run_query(sql, tables):
             data_buf = Buffer(data_mem)
  
             if mask_mem is not None:
-                mask = Buffer(mask_mem)
+                mask_buf = Buffer(mask_mem)
             else:
-                mask = None
+                mask_buf = None
  
-            return Column(data=data_buf, mask=mask)
+            return Column(data=data_buf, mask=mask_buf)
+
+        # TODO: this function was copied from _gdf.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there 
+        def columnview_from_devary(data_devary, mask_devary, dtype=None):
+            return _gdf._columnview(size=data_devary.size,  data=_gdf.unwrap_devary(data_devary),
+                       mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
+                       null_count=0)
 
         # TODO: this code does not seem to handle nulls at all. This will need to be addressed
         def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
@@ -545,8 +552,14 @@ def _private_run_query(sql, tables):
                 c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
             ipchandles.append(ipch)
             
+            valid_ptr = None
+            if(c.null_count > 0):
+                ipch, valid_ptr = _open_ipc_array(
+                    c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
+                ipchandles.append(ipch)
+
             # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
-            cffi_view = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
+            cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
             newcol = from_cffi_view(cffi_view)
             if(newcol.dtype == np.dtype('datetime64[ms]')):
                 gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
