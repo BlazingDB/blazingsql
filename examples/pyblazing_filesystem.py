@@ -1,7 +1,7 @@
 import pyarrow as pa
 import pyblazing
 from pyblazing import DriverType, FileSystemType, EncryptionType
-from pyblazing import Schema, SchemaFrom, Table, SqlData, SqlDataCollection
+from pyblazing import SchemaFrom
 
 def register_hdfs():
     print('*** Register a HDFS File System ***')
@@ -42,55 +42,75 @@ import numpy as np
 import pandas as pd
 import cudf as cudf
 
-def main():
-    # print('*** Register a POSIX File System ***')
-    # fs_status = pyblazing.register_file_system(
-    #     authority="tpch",
-    #     type=FileSystemType.POSIX,
-    #     root="/tmp/tpch/1mb/"
-    # )
-    # print(fs_status)
-    # customer_schema = pyblazing.Schema(type=SchemaFrom.ParquetFile, path='/tpch/orders00.parquet')
-    # parquet_customer_table = pyblazing.create_table(table_name='order', schema=customer_schema)
 
-    column_names = ["n_nationkey", "n_name", "n_regionkey", "n_comments"]
-    column_types = ["int32", "int64", "int32", "int64"]
-    nation_df = pd.read_csv("data/nation.psv", delimiter='|', names=column_names)
-    nation_df = nation_df[['n_nationkey', 'n_regionkey']]
-    nation_gdf = cudf.DataFrame.from_pandas(nation_df)
+# def load_from_pandas():
+#     column_names = ["n_nationkey", "n_name", "n_regionkey", "n_comments"]
+#     column_types = ["int32", "int64", "int32", "int64"]
+#     nation_df = pd.read_csv("data/nation.psv", delimiter='|', names=column_names)
+#     nation_df = nation_df[['n_nationkey', 'n_regionkey']]
+#     nation_gdf = cudf.DataFrame.from_pandas(nation_df)
+#
+#     nation_schema = Schema(type=SchemaFrom.Gdf, gdf=nation_gdf)
+#     gdf_nation_table = pyblazing.register_table('nation', nation_schema)
+#
 
+def load_and_query_csv_files():
+    print('*** Register a POSIX File System ***')
+    fs_status = pyblazing.register_file_system(
+        authority="tpch",
+        type=FileSystemType.POSIX,
+        root="/"  # como se usa en ral
+    )
+    print(fs_status)
     names=['n_nationkey', 'n_name', 'n_regionkey', 'n_comment']
     dtypes = [3, 4, 3, 4]
-    order_schema = Schema(type=SchemaFrom.CsvFile, path='/tmp/nation.psv', delimiter='|', dtypes=dtypes, names=names)
-    csv_order_table = pyblazing.create_table(table_name='order', schema=order_schema)
-    nation_schema = Schema(type=SchemaFrom.Gdf, gdf=nation_gdf)
-    gdf_nation_table = pyblazing.create_table('nation', nation_schema)
+    #todo, estos kwargs deberian coincidir con flatbuffers CsvFile
+        # path: string;
+        # delimiter: string;
+        # lineTerminator: string;
+        # skipRows: int;
+        # names: [string];
+        # dtypes: [int];
+    nation_schema = pyblazing.register_table_schema(table_name='nation_csv', type=SchemaFrom.CsvFile, path='/tmp/tpch/1mb/nation.psv', delimiter='|', dtypes=dtypes, names=names)
+    # query using multiples files
+    sql_data = {
+        nation_schema: ['/tmp/tpch/1mb/nation.psv']
+    }
+    sql = 'select n_nationkey, n_regionkey + n_nationkey as addition from main.nation_csv'
+    result_gdf = pyblazing.run_query_filesystem(sql, sql_data)
+    print(sql)
+    print(result_gdf)
 
-    # single query
-    # sql = 'select id, name from order, customer, nation'
-    # sql_data = {
-    #     gdf_nation_table: gdf_nation_table,
-    #     parquet_customer_table: ['/tpch/customer00.parquet'],
-    #     csv_order_table: ['/tpch/order00.csv']
-    # }
-    #
-    # result = pyblazing.run_sql('select id, name from order, customer, nation', sql_data)
+    fs_status = pyblazing.deregister_file_system(authority="tpch")
+    print(fs_status)
+    fs_status = pyblazing.deregister_file_system(authority="tpch")
+    print(fs_status)
+
+def load_and_query_parquet_files():
+    print('*** Register a POSIX File System ***')
+    fs_status = pyblazing.register_file_system(
+        authority="tpch",
+        type=FileSystemType.POSIX,
+        root="/" #como se usa en ral
+    )
+    print(fs_status)
+
+    # register schema
+    orders_schema = pyblazing.register_table_schema(table_name='customer_parquet', type=SchemaFrom.ParquetFile, path='/tmp/DataSet50mb/customer_0_0.parquet')
+
+    # query using multiples files
+    sql_data = {
+        orders_schema: ['/tmp/DataSet50mb/customer_0_0.parquet',
+                        '/tmp/DataSet50mb/customer_0_1.parquet']
+    }
+    sql = 'select c_custkey, c_acctbal, c_acctbal + c_nationkey as addition from main.customer_parquet'
+    result_gdf = pyblazing.run_query_filesystem(sql, sql_data)
+    print(sql)
+    print(result_gdf)
 
     fs_status = pyblazing.deregister_file_system(authority="tpch")
     print(fs_status)
 
-    # multiples queries
-    # sql = 'select * from order, customer, nation'
-    # sql_data = SqlDataCollection(tables=[gdf_nation_table, parquet_customer_table, csv_order_table],
-    #                    list_of_files=[
-    #                        [None, '/tpch/customer00.parquet', '/tpch/order00.csv'],
-    #                        [None, '/tpch/customer01.parquet', '/tpch/order01.csv'],
-    #                        [None, '/tpch/customer02.parquet', '/tpch/order02.csv'],
-    #                        [None, '/tpch/customer03.parquet', '/tpch/order03.csv'],
-    #                    ])
-    # run_query = lambda sql_data: pyblazing.run_sql(sql, sql_data)
-    # results = map(run_query, sql_data.list_of_files)
-
-
 if __name__ == '__main__':
-    main()
+    # load_and_query_parquet_files()
+    load_and_query_csv_files()
