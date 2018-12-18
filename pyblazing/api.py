@@ -12,7 +12,7 @@ from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
-from libgdf_cffi import ffi
+from libgdf_cffi import ffi, libgdf
 from cudf.dataframe.datetime import DatetimeColumn
 from cudf.dataframe.numerical import NumericalColumn
 
@@ -23,6 +23,7 @@ from cudf import DataFrame
 from cudf.dataframe.dataframe import Series
 from cudf.dataframe.buffer import Buffer
 from cudf import utils
+from cudf.utils.utils import calc_chunk_size, mask_bitsize
 
 from numba import cuda
 import numpy as np
@@ -519,7 +520,7 @@ def _to_table_group(tables):
                 'valid': None,  # TODO we should use valid mask
                 'size': data_sz,
                 'dtype': dataframe_column._column.cffi_view.dtype,
-                'null_count': 0,
+                'null_count': dataframe_column._column.cffi_view.null_count,
                 'dtype_info': 0
             }
             blazing_columns.append(blazing_column)
