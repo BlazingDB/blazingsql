@@ -52,17 +52,29 @@ def main():
     print(fs_status)
 
     # register schema
-    orders_schema = pyblazing.register_table_schema(table_name='customer_parquet', type=SchemaFrom.ParquetFile, path='/tmp/DataSet50mb/customer_0_0.parquet')
+    customer_schema = pyblazing.register_table_schema(table_name='customer_parquet', type=SchemaFrom.ParquetFile, path='/tmp/DataSet50mb/customer_0_0.parquet')
+    nation_schema = pyblazing.register_table_schema(table_name='nation_parquet', type=SchemaFrom.ParquetFile,
+                                                      path='/tmp/DataSet50mb/nation_0_0.parquet')
 
     # query using multiples files
     sql_data = {
-        orders_schema: ['/tmp/DataSet50mb/customer_0_0.parquet',
-                        '/tmp/DataSet50mb/customer_0_1.parquet']
+        customer_schema: ['/tmp/DataSet50mb/customer_0_0.parquet',
+                          '/tmp/DataSet50mb/customer_0_1.parquet'],
+        nation_schema: ['/tmp/DataSet50mb/nation_0_0.parquet']
     }
-    sql = 'select c_custkey, c_acctbal, c_acctbal + c_nationkey as addition from main.customer_parquet'
+
+    sql = '''
+        select avg(c.c_custkey), avg(c.c_nationkey), n.n_regionkey 
+        from main.customer_parquet as c 
+        inner join main.nation_parquet as n 
+        on c.c_nationkey = n.n_nationkey 
+        group by n.n_regionkey
+    '''
     result_gdf = pyblazing.run_query_filesystem(sql, sql_data)
     print(sql)
     print(result_gdf)
+
+
 
     fs_status = pyblazing.deregister_file_system(authority="tpch")
     print(fs_status)
