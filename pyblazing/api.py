@@ -655,25 +655,6 @@ from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDe
 from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
 import numpy as np
 import pandas as pd
-import logging
-##############################################################################
-log_format = (
-    '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
-
-formatter = logging.Formatter(log_format)
-handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
-handler.setFormatter(formatter)
-logging.getLogger().addHandler(handler)
-logging.getLogger().setLevel(logging.INFO)
-
-logging.debug('debug')
-logging.info('info')
-logging.warning('warning')
-logging.error('error')
-logging.critical('critical')
-
-##############################################################################
 
 class SchemaFrom:
     Gdf = 0
@@ -728,8 +709,8 @@ class TableSchema:
         elif path is not None:
             return SchemaFrom.ParquetFile
 
-        schema_logger = logging.getLogger('Schema')
-        schema_logger.critical('Not schema found')
+        # schema_logger = logging.getLogger('Schema')
+        # schema_logger.critical('Not schema found')
 
 
 
@@ -781,9 +762,8 @@ def register_table_schema(table_name, **kwargs):
     if gdf is not None:
         _reset_table(client, table_name, gdf)
     else:
-        logging.error('not gdf read')
+        print('not gdf read')
 
-    logging.info(gdf)
     return schema
 
 
@@ -837,7 +817,6 @@ def _sql_data_to_table_group(sql_data):
     return tableGroup
 
 def run_query_filesystem(sql, sql_data):
-    logging.info('run_query_filesystem')
     startTime = time.time()
 
     client = _get_client()

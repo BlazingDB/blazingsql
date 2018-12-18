@@ -64,17 +64,15 @@ def main():
     }
 
     sql = '''
-        select avg(c.c_custkey), avg(c.c_nationkey), n.n_regionkey 
-        from main.customer_parquet as c 
-        inner join main.nation_parquet as n 
-        on c.c_nationkey = n.n_nationkey 
+        select avg(c.c_custkey), avg(c.c_nationkey), n.n_regionkey
+        from main.customer_parquet as c
+        inner join main.nation_parquet as n
+        on c.c_nationkey = n.n_nationkey
         group by n.n_regionkey
     '''
     result_gdf = pyblazing.run_query_filesystem(sql, sql_data)
     print(sql)
     print(result_gdf)
-
-
 
     fs_status = pyblazing.deregister_file_system(authority="tpch")
     print(fs_status)
