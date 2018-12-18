@@ -739,6 +739,8 @@ class TableSchema:
 
 
 
+# TODO complete API docs
+# WARNING EXPERIMENTAL
 def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
     client = _get_client()
