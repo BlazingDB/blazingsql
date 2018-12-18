@@ -558,11 +558,11 @@ def from_cffi_view(cffi_view):
     data_buf = Buffer(data_mem)
 
     if mask_mem is not None:
-        mask = Buffer(mask_mem)
+        mask_buf = Buffer(mask_mem)
     else:
-        mask = None
+        mask_buf = None
 
-    return Column(data=data_buf, mask=mask)
+    return Column(data=data_buf, mask=mask_buf)
 
 
 # TODO: this code does not seem to handle nulls at all. This will need to be addressed
@@ -577,6 +577,12 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     return ipchandle, ipchandle.open_array(current_context(), shape=shape,
                                            strides=strides, dtype=dtype)
 
+ # TODO: this function was copied from _gdf.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there
+def columnview_from_devary(data_devary, mask_devary, dtype=None):
+    return _gdf._columnview(size=data_devary.size,  data=_gdf.unwrap_devary(data_devary),
+               mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
+               null_count=0)
+
 def _private_get_result(token, interpreter_path, calciteTime):
     client = _get_client()
     resultSet = client._get_result(token, interpreter_path)
@@ -589,8 +595,14 @@ def _private_get_result(token, interpreter_path, calciteTime):
             c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
         ipchandles.append(ipch)
 
+        valid_ptr = None
+        if (c.null_count > 0):
+            ipch, valid_ptr = _open_ipc_array(
+                c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
+            ipchandles.append(ipch)
+
         # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
-        cffi_view = _gdf.columnview_from_devary(data_ptr, ffi.NULL)
+        cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
         newcol = from_cffi_view(cffi_view)
         if (newcol.dtype == np.dtype('datetime64[ms]')):
             gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
