@@ -633,26 +633,6 @@ def _private_run_query(sql, tables):
     return return_result
 
 
-def _private_run_query(sql, files):
-    startTime = time.time()
-
-    client = _get_client()
-
-    resultSet = None
-    token = None
-    interpreter_path = None
-    try:
-        token, interpreter_path, calciteTime = client.run_dml_query_fs_token(sql, files)
-        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, calciteTime)
-        totalTime = (time.time() - startTime) * 1000  # in milliseconds
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
-
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime,
-                                    resultSet.metadata.time, totalTime)
-    return return_result
 from collections import namedtuple
 from blazingdb.protocol.transport.channel import MakeRequestBuffer
 from blazingdb.protocol.transport.channel import ResponseSchema
@@ -856,13 +836,14 @@ def run_query_filesystem(sql, sql_data):
         tableGroup = _sql_data_to_table_group(sql_data)
         token, interpreter_path, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
         resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, calciteTime)
+        print(gdf_out)
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
     except SyntaxError as error:
         raise error
     except Error as err:
         print(err)
+        raise err
 
-    print(gdf_out)
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime,
                                     resultSet.metadata.time, totalTime)
     return return_result
