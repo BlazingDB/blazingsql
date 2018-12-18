@@ -623,6 +623,7 @@ def _private_run_query(sql, tables):
         tableGroup = _to_table_group(tables)
         token, interpreter_path, calciteTime = client.run_dml_query_token(sql, tableGroup)
         resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, calciteTime)
+        resultSet.columns = gdf_out
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
     except SyntaxError as error:
         raise error
