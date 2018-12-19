@@ -47,8 +47,15 @@ class ResultSetHandle:
     handle = None
     client = None
 
-    def __init__(self,columns, token, interpreter_path, handle, client, calciteTime, ralTime, totalTime):
+    def __init__(self, columns, token, interpreter_path, handle, client, calciteTime, ralTime, totalTime):
         self.columns = columns
+
+        if hasattr(self.columns, '__iter__'):
+            for col in self.columns:
+                col.token = token
+        else:
+            self.columns.token = token
+
         self.token = token
         self.interpreter_path = interpreter_path
         self.handle = handle
@@ -58,6 +65,9 @@ class ResultSetHandle:
         self.totalTime = totalTime
 
     def __del__(self):
+        # @todo
+        # for ipch in self.handle:
+        #    ipch.close()
         del self.handle
         self.client.free_result(self.token,self.interpreter_path)
 
@@ -226,7 +236,7 @@ class PyConnector:
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
 
-    def run_dml_load_parquet_file(self, path):
+    def run_dml_load_parquet_schema(self, path):
         print('load parquet file')
         ## todo use rowGroupIndices, and columnIndices, someway??
         requestSchema = blazingdb.protocol.io.ParquetFileSchema(path=path, rowGroupIndices=[], columnIndices=[])
@@ -245,7 +255,7 @@ class PyConnector:
             response.payload)
         return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path
 
-    def run_dml_load_csv_file(self, path, names, dtypes, delimiter = '|', line_terminator='\n', skip_rows=0):
+    def run_dml_load_csv_schema(self, path, names, dtypes, delimiter = '|', line_terminator='\n', skip_rows=0):
         print('load csv file')
         requestSchema = blazingdb.protocol.io.CsvFileSchema(path=path, delimiter=delimiter, lineTerminator = line_terminator, skipRows=skip_rows, names=names, dtypes=dtypes)
 
@@ -439,9 +449,13 @@ def gen_data_frame(nelem, name, dtype):
     return df
 
 
-def get_ipc_handle_for(df):
-    cffiView = df._column.cffi_view
-    ipch = df._column._data.mem.get_ipc_handle()
+def get_ipc_handle_for(gdf, dataframe_column):
+    cffiView = dataframe_column._column.cffi_view
+    # todo deep_copy
+    #if hasattr(gdf, 'token'):
+    #   dataframe_column._column._data = dataframe_column._column._data.copy()
+
+    ipch = dataframe_column._column._data.mem.get_ipc_handle()
     return bytes(ipch._ipc_handle.handle)
 
 
@@ -495,19 +509,24 @@ def _to_table_group(tables):
     tableGroup = {'name': database_name}
     blazing_tables = []
     for table, gdf in tables.items():
+
         # TODO columnNames should have the columns of the query (check this)
         blazing_table = {'name': database_name + '.' + table,
                          'columnNames': gdf.columns.values.tolist()}
         blazing_columns = []
 
+        #if gdf.token is not None:
+        #    gdf = gdf.copy()
+
         for column in gdf.columns:
             dataframe_column = gdf._cols[column]
             # TODO support more column types
+
             numerical_column = dataframe_column._column
             data_sz = numerical_column.cffi_view.size
             dtype = numerical_column.cffi_view.dtype
 
-            data_ipch = get_ipc_handle_for(dataframe_column)
+            data_ipch = get_ipc_handle_for(gdf, dataframe_column)
 
             # TODO this valid data is fixed and is invalid
 	    #felipe doesnt undertand why we need this we can send null
@@ -550,11 +569,34 @@ def _get_client():
     return __blazing__global_client
 
 
+from librmm_cffi import librmm as rmm
+
+# TODO: this function was copied from column.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there
+def cffi_view_to_column_mem(cffi_view):
+    intaddr = int(ffi.cast("uintptr_t", cffi_view.data))
+    data = rmm.device_array_from_ptr(intaddr,
+                                     nelem=cffi_view.size,
+                                     dtype=_gdf.gdf_to_np_dtype(cffi_view.dtype),
+                                     finalizer=rmm._make_finalizer(0, 0))
+
+    if cffi_view.valid:
+        intaddr = int(ffi.cast("uintptr_t", cffi_view.valid))
+        mask = rmm.device_array_from_ptr(intaddr,
+                                         nelem=calc_chunk_size(cffi_view.size,
+                                                               mask_bitsize),
+                                         dtype=_gdf.mask_dtype,
+                                         finalizer=rmm._make_finalizer(0,
+                                                                       0))
+    else:
+        mask = None
+
+    return data, mask
+
 # TODO: this function was copied from column.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there
 def from_cffi_view(cffi_view):
     """Create a Column object from a cffi struct gdf_column*.
     """
-    data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
+    data_mem, mask_mem = cffi_view_to_column_mem(cffi_view)
     data_buf = Buffer(data_mem)
 
     if mask_mem is not None:
@@ -562,7 +604,7 @@ def from_cffi_view(cffi_view):
     else:
         mask_buf = None
 
-    return Column(data=data_buf, mask=None)
+    return Column(data=data_buf, mask=mask_buf)
 
 
 # TODO: this code does not seem to handle nulls at all. This will need to be addressed
@@ -591,15 +633,15 @@ def _private_get_result(token, interpreter_path, calciteTime):
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
         assert len(c.data) == 64
-        ipch, data_ptr = _open_ipc_array(
+        ipch_data, data_ptr = _open_ipc_array(
             c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-        ipchandles.append(ipch)
+        ipchandles.append(ipch_data)
 
         valid_ptr = None
         if (c.null_count > 0):
-            ipch, valid_ptr = _open_ipc_array(
+            ipch_valid, valid_ptr = _open_ipc_array(
                 c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
-            ipchandles.append(ipch)
+            ipchandles.append(ipch_valid)
 
         # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
         cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
@@ -619,9 +661,7 @@ def _private_get_result(token, interpreter_path, calciteTime):
 def _private_run_query(sql, tables):
     
     startTime = time.time()
-    
     client = _get_client()
-
     try:
         for table, gdf in tables.items():
             _reset_table(client, table, gdf)
@@ -641,7 +681,8 @@ def _private_run_query(sql, tables):
         raise error
     except Error as err:
         print(err)
-
+    finally:
+        print('**ipc error in _private_run_query')
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
     return return_result
 
@@ -671,6 +712,7 @@ class TableSchema:
         self.schema_type = type
         self.column_names = []
         self.column_types = []
+        self.gdf= None
 
     def set_table_name(self, name):
         self.table_name = name
@@ -680,6 +722,9 @@ class TableSchema:
 
     def set_column_types(self, types):
         self.column_types = types
+
+    def set_gdf(self, gdf):
+        self.gdf = gdf
 
     def __hash__(self):
         return hash( (self.schema_type, self.table_name) )
@@ -720,7 +765,7 @@ def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
     client = _get_client()
 
-    token, interpreter_path = client.run_dml_load_csv_file(**schema.kwargs)
+    token, interpreter_path = client.run_dml_load_csv_schema(**schema.kwargs)
     resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, 0)
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, 0, resultSet.metadata.time, 0)
     return gdf
@@ -730,7 +775,7 @@ def read_parquet_table_from_filesystem(table_name, schema):
     print('create parquet table')
     client = _get_client()
 
-    token, interpreter_path = client.run_dml_load_parquet_file(**schema.kwargs)
+    token, interpreter_path = client.run_dml_load_parquet_schema(**schema.kwargs)
     resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, 0)
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, 0, resultSet.metadata.time, 0)
     return gdf
@@ -754,16 +799,7 @@ def register_table_schema(table_name, **kwargs):
     col_names, types = _get_table_def_from_gdf(gdf)
     schema.set_column_names(col_names)
     schema.set_column_types(types)
-
-    print(col_names)
-    print(types)
-
-    client = _get_client()
-    if gdf is not None:
-        _reset_table(client, table_name, gdf)
-    else:
-        print('not gdf read')
-
+    schema.set_gdf(gdf)
     return schema
 
 
@@ -793,14 +829,13 @@ def deregister_file_system(authority):
         raise Error(ResponseErrorSchema.From(response.payload).errors)
     return response.status
 
-
+from collections import OrderedDict
 def _sql_data_to_table_group(sql_data):
     database_name = 'main'
-    tableGroup = {'name': database_name}
+    tableGroup = OrderedDict([('name', database_name), ('tables', [])])
     blazing_tables = []
     for schema, files in sql_data.items():
-        blazing_table = {'name':   database_name + '.' + schema.table_name}
-        blazing_table['columnNames'] = schema.column_names
+        blazing_table = OrderedDict([('name',  database_name + '.' + schema.table_name ), ('columnNames', schema.column_names)])
         if schema.schema_type == SchemaFrom.ParquetFile:
             blazing_table['schemaType'] = FileSchemaType.PARQUET
             blazing_table['parquet'] = schema.kwargs
@@ -821,6 +856,10 @@ def run_query_filesystem(sql, sql_data):
 
     client = _get_client()
 
+    for schema, files in sql_data.items():
+        _reset_table(client, schema.table_name, schema.gdf)
+
+
     resultSet = None
     token = None
     interpreter_path = None
@@ -828,7 +867,7 @@ def run_query_filesystem(sql, sql_data):
         tableGroup = _sql_data_to_table_group(sql_data)
         token, interpreter_path, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
         resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, calciteTime)
-        print(gdf_out)
+        resultSet.columns = gdf_out
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
     except SyntaxError as error:
         raise error
