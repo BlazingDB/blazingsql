@@ -12,6 +12,7 @@ from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
+from librmm_cffi import librmm as rmm
 from libgdf_cffi import ffi, libgdf
 from cudf.dataframe.datetime import DatetimeColumn
 from cudf.dataframe.numerical import NumericalColumn
@@ -23,7 +24,7 @@ from cudf import DataFrame
 from cudf.dataframe.dataframe import Series
 from cudf.dataframe.buffer import Buffer
 from cudf import utils
-from cudf.utils.utils import calc_chunk_size, mask_bitsize
+from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
 
 from numba import cuda
 import numpy as np
@@ -451,7 +452,8 @@ def gen_data_frame(nelem, name, dtype):
 
 def get_ipc_handle_for(gdf, dataframe_column):
     cffiView = dataframe_column._column.cffi_view
-    # todo deep_copy
+
+    #@todo deep_copy
     #if hasattr(gdf, 'token'):
     #   dataframe_column._column._data = dataframe_column._column._data.copy()
 
@@ -514,9 +516,6 @@ def _to_table_group(tables):
         blazing_table = {'name': database_name + '.' + table,
                          'columnNames': gdf.columns.values.tolist()}
         blazing_columns = []
-
-        #if gdf.token is not None:
-        #    gdf = gdf.copy()
 
         for column in gdf.columns:
             dataframe_column = gdf._cols[column]
