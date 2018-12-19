@@ -562,7 +562,7 @@ def from_cffi_view(cffi_view):
     else:
         mask_buf = None
 
-    return Column(data=data_buf, mask=mask_buf)
+    return Column(data=data_buf, mask=None)
 
 
 # TODO: this code does not seem to handle nulls at all. This will need to be addressed
