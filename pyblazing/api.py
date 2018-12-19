@@ -12,6 +12,7 @@ from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
+from librmm_cffi import librmm as rmm
 from libgdf_cffi import ffi, libgdf
 from cudf.dataframe.datetime import DatetimeColumn
 from cudf.dataframe.numerical import NumericalColumn
@@ -23,7 +24,7 @@ from cudf import DataFrame
 from cudf.dataframe.dataframe import Series
 from cudf.dataframe.buffer import Buffer
 from cudf import utils
-from cudf.utils.utils import calc_chunk_size, mask_bitsize
+from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
 
 from numba import cuda
 import numpy as np
@@ -512,11 +513,27 @@ def _private_run_query(sql, tables):
         token, interpreter_path, calciteTime = client.run_dml_query_token(sql, tableGroup)
         resultSet = client._get_result(token, interpreter_path)
 
+        # TODO: this function was copied from _gdf.py in cudf but removing finalizer initialization
+        def cffi_view_to_column_mem(cffi_view):
+            intaddr = int(ffi.cast("uintptr_t", cffi_view.data))
+            data = rmm.device_array_from_ptr(intaddr,
+                                                nelem=cffi_view.size,
+                                                dtype=_gdf.gdf_to_np_dtype(cffi_view.dtype))
+
+            if cffi_view.valid:
+                intaddr = int(ffi.cast("uintptr_t", cffi_view.valid))
+                mask = rmm.device_array_from_ptr(intaddr, nelem=calc_chunk_size(cffi_view.size,
+                                                 mask_bitsize),dtype=mask_dtype)
+            else:
+                mask = None
+
+            return data, mask
+
         # TODO: this function was copied from column.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there 
         def from_cffi_view(cffi_view):
             """Create a Column object from a cffi struct gdf_column*.
             """
-            data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
+            data_mem, mask_mem = cffi_view_to_column_mem(cffi_view)
             data_buf = Buffer(data_mem)
  
             if mask_mem is not None:
