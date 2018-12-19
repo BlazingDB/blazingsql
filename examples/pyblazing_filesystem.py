@@ -74,6 +74,14 @@ def main():
     print(sql)
     print(result_gdf)
 
+    sql = 'select * from main.nation_parquet'
+    sql_data = {
+        nation_schema: ['/tmp/DataSet50mb/nation_0_0.parquet']
+    }
+    result_gdf = pyblazing.run_query_filesystem(sql, sql_data)
+    print(sql)
+    print(result_gdf)
+
     fs_status = pyblazing.deregister_file_system(authority="tpch")
     print(fs_status)
 
