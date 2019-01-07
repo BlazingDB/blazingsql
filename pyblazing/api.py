@@ -233,8 +233,7 @@ class PyConnector:
         self.accessToken = responsePayload.accessToken
 
     def _send_request(self, unix_path, requestBuffer):
-        connection = blazingdb.protocol.UnixSocketConnection(unix_path)
-        client = blazingdb.protocol.Client(connection)
+        client = blazingdb.protocol.ZeroMqClient(unix_path)
         return client.send(requestBuffer)
 
     def run_dml_load_parquet_schema(self, path):
@@ -551,7 +550,7 @@ def _to_table_group(tables):
 
 
 def _get_client_internal():
-    client = PyConnector('/tmp/orchestrator.socket')
+    client = PyConnector('ipc:///tmp/orchestrator.socket')
 
     try:
         client.connect()
@@ -626,6 +625,7 @@ def columnview_from_devary(data_devary, mask_devary, dtype=None):
 
 def _private_get_result(token, interpreter_path, calciteTime):
     client = _get_client()
+    print(interpreter_path)
     resultSet = client._get_result(token, interpreter_path)
 
     gdf_columns = []
