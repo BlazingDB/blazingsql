@@ -449,15 +449,21 @@ def gen_data_frame(nelem, name, dtype):
     return df
 
 
-def get_ipc_handle_for(gdf, dataframe_column):
-    cffiView = dataframe_column._column.cffi_view
+def get_ipc_handle_for_data(gdf, dataframe_column):
+  
+    if hasattr(gdf, 'token'):
+        return None
+    else:
+       ipch = dataframe_column._column._data.mem.get_ipc_handle()
+       return bytes(ipch._ipc_handle.handle)    
 
-    #@todo deep_copy
-    #if hasattr(gdf, 'token'):
-    #   dataframe_column._column._data = dataframe_column._column._data.copy()
-
-    ipch = dataframe_column._column._data.mem.get_ipc_handle()
-    return bytes(ipch._ipc_handle.handle)
+def get_ipc_handle_for_valid(gdf, dataframe_column):
+  
+    if hasattr(gdf, 'token'):
+        return None
+    else:
+       ipch = dataframe_column._column._valid.mem.get_ipc_handle()
+       return bytes(ipch._ipc_handle.handle)
 
 
 def gdf_column_type_to_str(dtype):
@@ -523,26 +529,30 @@ def _to_table_group(tables):
             numerical_column = dataframe_column._column
             data_sz = numerical_column.cffi_view.size
             dtype = numerical_column.cffi_view.dtype
+            null_count = numerical_column.cffi_view.null_count
 
-            data_ipch = get_ipc_handle_for(gdf, dataframe_column)
+            data_ipch = get_ipc_handle_for_data(gdf, dataframe_column)
+            valid_ipch = None
 
-            # TODO this valid data is fixed and is invalid
-	    #felipe doesnt undertand why we need this we can send null
-	    #if the bitmask is not valid
-            #sample_valid_df = gen_data_frame(data_sz, 'valid', np.int8)
-            #valid_ipch = get_ipc_handle_for(sample_valid_df['valid'])
-
+            if (null_count > 0):
+                valid_ipch = get_ipc_handle_for_valid(gdf, dataframe_column)
+                
             blazing_column = {
                 'data': data_ipch,
-                'valid': None,  # TODO we should use valid mask
+                'valid': valid_ipch,
                 'size': data_sz,
-                'dtype': dataframe_column._column.cffi_view.dtype,
-                'null_count': dataframe_column._column.cffi_view.null_count,
+                'dtype': dtype,
+                'null_count': null_count,
                 'dtype_info': 0
             }
             blazing_columns.append(blazing_column)
 
         blazing_table['columns'] = blazing_columns
+        if hasattr(gdf, 'token'):
+            blazing_table['token'] = gdf.token
+        else:
+            blazing_table['token'] = None
+
         blazing_tables.append(blazing_table)
 
     tableGroup['tables'] = blazing_tables
