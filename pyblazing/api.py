@@ -680,8 +680,7 @@ def _private_run_query(sql, tables):
         raise error
     except Error as err:
         print(err)
-    finally:
-        print('**ipc error in _private_run_query')
+    
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
     return return_result
 
