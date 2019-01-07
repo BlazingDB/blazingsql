@@ -51,10 +51,12 @@ def main():
     )
     print(fs_status)
 
-    # register schema
     customer_schema = pyblazing.register_table_schema(table_name='customer_parquet', type=SchemaFrom.ParquetFile, path='/tmp/DataSet50mb/customer_0_0.parquet')
     nation_schema = pyblazing.register_table_schema(table_name='nation_parquet', type=SchemaFrom.ParquetFile,
                                                       path='/tmp/DataSet50mb/nation_0_0.parquet')
+
+
+    region_schema = pyblazing.register_table_schema(table_name='region_parquet', type=SchemaFrom.ParquetFile, path='/tmp/DataSet50mb/region_0_0.parquet')
 
     # query using multiples files
     sql_data = {
@@ -70,6 +72,7 @@ def main():
         on c.c_nationkey = n.n_nationkey
         group by n.n_regionkey
     '''
+
     result_gdf = pyblazing.run_query_filesystem(sql, sql_data)
     print(sql)
     print(result_gdf)
@@ -77,6 +80,16 @@ def main():
     sql = 'select * from main.nation_parquet'
     sql_data = {
         nation_schema: ['/tmp/DataSet50mb/nation_0_0.parquet']
+    }
+    result_gdf = pyblazing.run_query_filesystem(sql, sql_data)
+    print(sql)
+    print(result_gdf)
+
+
+
+    sql = 'select r_regionkey from main.region_parquet'
+    sql_data = {
+        region_schema: ['/tmp/DataSet50mb/region_0_0.parquet']
     }
     result_gdf = pyblazing.run_query_filesystem(sql, sql_data)
     print(sql)
