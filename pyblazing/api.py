@@ -43,7 +43,7 @@ gpus = devices.gpus
 class ResultSetHandle:
 
     columns = None
-    token = None
+    token = 0
     interpreter_path = None
     handle = None
     client = None
@@ -462,7 +462,7 @@ def get_ipc_handle_for_valid(gdf, dataframe_column):
     if hasattr(gdf, 'token'):
         return None
     else:
-       ipch = dataframe_column._column._valid.mem.get_ipc_handle()
+       ipch = dataframe_column._column._mask.mem.get_ipc_handle()
        return bytes(ipch._ipc_handle.handle)
 
 
@@ -551,7 +551,7 @@ def _to_table_group(tables):
         if hasattr(gdf, 'token'):
             blazing_table['token'] = gdf.token
         else:
-            blazing_table['token'] = None
+            blazing_table['token'] = 0
 
         blazing_tables.append(blazing_table)
 
@@ -678,7 +678,7 @@ def _private_run_query(sql, tables):
         print(err)
 
     resultSet = None
-    token = None
+    token = 0
     interpreter_path = None
     try:
         tableGroup = _to_table_group(tables)
@@ -869,7 +869,7 @@ def run_query_filesystem(sql, sql_data):
 
 
     resultSet = None
-    token = None
+    token = 0
     interpreter_path = None
     try:
         tableGroup = _sql_data_to_table_group(sql_data)
