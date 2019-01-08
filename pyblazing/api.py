@@ -44,7 +44,7 @@ class ResultSetHandle:
 
     columns = None
     token = None
-    interpreter_path = None
+    interpreter_path = None # interpreter_path is a string with this format "ip:port"
     handle = None
     client = None
 
@@ -232,8 +232,11 @@ class PyConnector:
         # print(responsePayload.accessToken)
         self.accessToken = responsePayload.accessToken
 
-    def _send_request(self, unix_path, requestBuffer):
-        client = blazingdb.protocol.ZeroMqClient(unix_path)
+    # connection_path is a string with this format "ip:port" 
+    def _send_request(self, connection_path, requestBuffer):
+        ip, port = connection_path.split(":")
+        connection = blazingdb.protocol.TcpSocketConnection(ip, port)
+        client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
 
     def run_dml_load_parquet_schema(self, path):
@@ -549,8 +552,9 @@ def _to_table_group(tables):
     return tableGroup
 
 
-def _get_client_internal():
-    client = PyConnector('ipc:///tmp/orchestrator.socket')
+def _get_client_internal(orchestrator_ip, orchestrator_port):
+    orchestrator_path = "%s:%s" % (orchestrator_ip, orchestrator_port)
+    client = PyConnector(orchestrator_path)
 
     try:
         client.connect()
@@ -559,9 +563,9 @@ def _get_client_internal():
 
     return client
 
-
-
-__blazing__global_client = _get_client_internal()
+__orchestrator_ip = "localhost"
+__orchestrator_port = "8890"
+__blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
 def _get_client():
     return __blazing__global_client
