@@ -232,7 +232,7 @@ class PyConnector:
         # print(responsePayload.accessToken)
         self.accessToken = responsePayload.accessToken
 
-    # connection_path is a string with this format "ip:port" 
+    # connection_path is a string with this format "ip:port"
     def _send_request(self, connection_path, requestBuffer):
         ip, port = connection_path.split(":")
         connection = blazingdb.protocol.TcpSocketConnection(ip, int(port))
@@ -291,7 +291,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.calciteTime
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.calciteTime
 
     def run_dml_query_filesystem_token(self, query, tableGroup):
         dmlRequestSchema = blazingdb.protocol.io.BuildFileSystemDMLRequestSchema(query, tableGroup)
@@ -563,7 +563,7 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
 
     return client
 
-__orchestrator_ip = "localhost"
+__orchestrator_ip = "127.0.0.1"
 __orchestrator_port = "8890"
 __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
@@ -629,7 +629,6 @@ def columnview_from_devary(data_devary, mask_devary, dtype=None):
 
 def _private_get_result(token, interpreter_path, calciteTime):
     client = _get_client()
-    print(interpreter_path)
     resultSet = client._get_result(token, interpreter_path)
 
     gdf_columns = []
@@ -662,7 +661,7 @@ def _private_get_result(token, interpreter_path, calciteTime):
     return resultSet, ipchandles, gdf
 
 def _private_run_query(sql, tables):
-    
+
     startTime = time.time()
     client = _get_client()
     try:
@@ -684,7 +683,7 @@ def _private_run_query(sql, tables):
         raise error
     except Error as err:
         print(err)
-    
+
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
     return return_result
 
