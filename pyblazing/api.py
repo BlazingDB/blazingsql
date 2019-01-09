@@ -641,24 +641,25 @@ def _private_get_result(token, interpreter_path, calciteTime):
     gdf_columns = []
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
-        assert len(c.data) == 64
-        ipch_data, data_ptr = _open_ipc_array(
-            c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-        ipchandles.append(ipch_data)
+        if c.size != 0 :
+            assert len(c.data) == 64
+            ipch_data, data_ptr = _open_ipc_array(
+                c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+            ipchandles.append(ipch_data)
 
-        valid_ptr = None
-        if (c.null_count > 0):
-            ipch_valid, valid_ptr = _open_ipc_array(
-                c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
-            ipchandles.append(ipch_valid)
+            valid_ptr = None
+            if (c.null_count > 0):
+                ipch_valid, valid_ptr = _open_ipc_array(
+                    c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
+                ipchandles.append(ipch_valid)
 
-        # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
-        cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
-        newcol = from_cffi_view(cffi_view)
-        if (newcol.dtype == np.dtype('datetime64[ms]')):
-            gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
-        else:
-            gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+            # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
+            cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
+            newcol = from_cffi_view(cffi_view)
+            if (newcol.dtype == np.dtype('datetime64[ms]')):
+                gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+            else:
+                gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
 
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
