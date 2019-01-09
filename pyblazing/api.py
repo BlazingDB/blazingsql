@@ -235,7 +235,7 @@ class PyConnector:
     # connection_path is a string with this format "ip:port" 
     def _send_request(self, connection_path, requestBuffer):
         ip, port = connection_path.split(":")
-        connection = blazingdb.protocol.TcpSocketConnection(ip, port)
+        connection = blazingdb.protocol.TcpSocketConnection(ip, int(port))
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
 
