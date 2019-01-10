@@ -43,7 +43,7 @@ gpus = devices.gpus
 class ResultSetHandle:
 
     columns = None
-    token = None
+    token = 0
     interpreter_path = None # if tcp is the host/ip, if ipc is unix socket path
     interpreter_port = None # if tcp is valid, if ipc is None
     handle = None
@@ -315,7 +315,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.calciteTime
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
 
     def run_dml_query(self, query, tableGroup):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -334,7 +334,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return self._get_result(dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path)
+        return self._get_result(dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.nodeConnection.port)
 
     def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -458,15 +458,21 @@ def gen_data_frame(nelem, name, dtype):
     return df
 
 
-def get_ipc_handle_for(gdf, dataframe_column):
-    cffiView = dataframe_column._column.cffi_view
+def get_ipc_handle_for_data(gdf, dataframe_column):
+  
+    if hasattr(gdf, 'token'):
+        return None
+    else:
+       ipch = dataframe_column._column._data.mem.get_ipc_handle()
+       return bytes(ipch._ipc_handle.handle)    
 
-    #@todo deep_copy
-    #if hasattr(gdf, 'token'):
-    #   dataframe_column._column._data = dataframe_column._column._data.copy()
-
-    ipch = dataframe_column._column._data.mem.get_ipc_handle()
-    return bytes(ipch._ipc_handle.handle)
+def get_ipc_handle_for_valid(gdf, dataframe_column):
+  
+    if hasattr(gdf, 'token'):
+        return None
+    else:
+       ipch = dataframe_column._column._mask.mem.get_ipc_handle()
+       return bytes(ipch._ipc_handle.handle)
 
 
 def gdf_column_type_to_str(dtype):
@@ -532,26 +538,30 @@ def _to_table_group(tables):
             numerical_column = dataframe_column._column
             data_sz = numerical_column.cffi_view.size
             dtype = numerical_column.cffi_view.dtype
+            null_count = numerical_column.cffi_view.null_count
 
-            data_ipch = get_ipc_handle_for(gdf, dataframe_column)
+            data_ipch = get_ipc_handle_for_data(gdf, dataframe_column)
+            valid_ipch = None
 
-            # TODO this valid data is fixed and is invalid
-	    #felipe doesnt undertand why we need this we can send null
-	    #if the bitmask is not valid
-            #sample_valid_df = gen_data_frame(data_sz, 'valid', np.int8)
-            #valid_ipch = get_ipc_handle_for(sample_valid_df['valid'])
-
+            if (null_count > 0):
+                valid_ipch = get_ipc_handle_for_valid(gdf, dataframe_column)
+                
             blazing_column = {
                 'data': data_ipch,
-                'valid': None,  # TODO we should use valid mask
+                'valid': valid_ipch,
                 'size': data_sz,
-                'dtype': dataframe_column._column.cffi_view.dtype,
-                'null_count': dataframe_column._column.cffi_view.null_count,
+                'dtype': dtype,
+                'null_count': null_count,
                 'dtype_info': 0
             }
             blazing_columns.append(blazing_column)
 
         blazing_table['columns'] = blazing_columns
+        if hasattr(gdf, 'token'):
+            blazing_table['token'] = gdf.token
+        else:
+            blazing_table['token'] = 0
+
         blazing_tables.append(blazing_table)
 
     tableGroup['tables'] = blazing_tables
@@ -642,24 +652,25 @@ def _private_get_result(token, interpreter_path, interpreter_port, calciteTime):
     gdf_columns = []
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
-        assert len(c.data) == 64
-        ipch_data, data_ptr = _open_ipc_array(
-            c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-        ipchandles.append(ipch_data)
+        if c.size != 0 :
+            assert len(c.data) == 64
+            ipch_data, data_ptr = _open_ipc_array(
+                c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+            ipchandles.append(ipch_data)
 
-        valid_ptr = None
-        if (c.null_count > 0):
-            ipch_valid, valid_ptr = _open_ipc_array(
-                c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
-            ipchandles.append(ipch_valid)
+            valid_ptr = None
+            if (c.null_count > 0):
+                ipch_valid, valid_ptr = _open_ipc_array(
+                    c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
+                ipchandles.append(ipch_valid)
 
-        # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
-        cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
-        newcol = from_cffi_view(cffi_view)
-        if (newcol.dtype == np.dtype('datetime64[ms]')):
-            gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
-        else:
-            gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+            # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
+            cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
+            newcol = from_cffi_view(cffi_view)
+            if (newcol.dtype == np.dtype('datetime64[ms]')):
+                gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+            else:
+                gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
 
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
@@ -679,7 +690,7 @@ def _private_run_query(sql, tables):
         print(err)
 
     resultSet = None
-    token = None
+    token = 0
     interpreter_path = None
     interpreter_port = None
     try:
@@ -872,7 +883,7 @@ def run_query_filesystem(sql, sql_data):
 
 
     resultSet = None
-    token = None
+    token = 0
     interpreter_path = None
     interpreter_port = None
     try:
