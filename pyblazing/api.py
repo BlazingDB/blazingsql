@@ -44,11 +44,12 @@ class ResultSetHandle:
 
     columns = None
     token = None
-    interpreter_path = None # interpreter_path is a string with this format "ip:port"
+    interpreter_path = None # if tcp is the host/ip, if ipc is unix socket path
+    interpreter_port = None # if tcp is valid, if ipc is None
     handle = None
     client = None
 
-    def __init__(self, columns, token, interpreter_path, handle, client, calciteTime, ralTime, totalTime):
+    def __init__(self, columns, token, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime):
         self.columns = columns
 
         if hasattr(self.columns, '__iter__'):
@@ -59,6 +60,7 @@ class ResultSetHandle:
 
         self.token = token
         self.interpreter_path = interpreter_path
+        self.interpreter_port = interpreter_port
         self.handle = handle
         self.client = client
         self.calciteTime = calciteTime
@@ -70,12 +72,13 @@ class ResultSetHandle:
         # for ipch in self.handle:
         #    ipch.close()
         del self.handle
-        self.client.free_result(self.token,self.interpreter_path)
+        self.client.free_result(self.token,self.interpreter_path,self.interpreter_port)
 
     def __str__(self):
       return ('''columns = %(columns)s
 token = %(token)s
 interpreter_path = %(interpreter_path)s
+interpreter_port = %(interpreter_port)s
 handle = %(handle)s
 client = %(client)s
 calciteTime = %(calciteTime)d
@@ -84,6 +87,7 @@ totalTime = %(totalTime)d''' % {
         'columns': self.columns,
         'token': self.token,
         'interpreter_path': self.interpreter_path,
+        'interpreter_port': self.interpreter_port,
         'handle': self.handle,
         'client': self.client,
         'calciteTime' : self.calciteTime,
@@ -201,8 +205,9 @@ def _lots_of_stuff():
 
 
 class PyConnector:
-    def __init__(self, orchestrator_path):
+    def __init__(self, orchestrator_path, orchestrator_port):
         self._orchestrator_path = orchestrator_path
+        self._orchestrator_port = orchestrator_port
 
     def __del__(self):
         self.close_connection()
@@ -216,7 +221,7 @@ class PyConnector:
             OrchestratorMessageType.AuthOpen, authSchema)
 
         responseBuffer = self._send_request(
-            self._orchestrator_path, requestBuffer)
+            self._orchestrator_path, self._orchestrator_port, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -232,10 +237,9 @@ class PyConnector:
         # print(responsePayload.accessToken)
         self.accessToken = responsePayload.accessToken
 
-    # connection_path is a string with this format "ip:port" 
-    def _send_request(self, connection_path, requestBuffer):
-        ip, port = connection_path.split(":")
-        connection = blazingdb.protocol.TcpSocketConnection(ip, int(port))
+    # connection_path is a ip/host when tcp and can be unix socket when ipc  
+    def _send_request(self, connection_path, connection_port, requestBuffer):
+        connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
 
@@ -246,7 +250,7 @@ class PyConnector:
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadParquet,
                                                                                self.accessToken, requestSchema)
-        responseBuffer = self._send_request(self._orchestrator_path, requestBuffer)
+        responseBuffer = self._send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
@@ -264,7 +268,7 @@ class PyConnector:
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadCSV,
                                                                                 self.accessToken, requestSchema)
-        responseBuffer = self._send_request(self._orchestrator_path, requestBuffer)
+        responseBuffer = self._send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
@@ -274,13 +278,13 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.nodeConnection.port
 
     def run_dml_query_token(self, query, tableGroup):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDMLRequestSchema(query, tableGroup)
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML, self.accessToken, dmlRequestSchema)
         responseBuffer = self._send_request(
-            self._orchestrator_path, requestBuffer)
+            self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
         if response.status == Status.Error:
@@ -291,14 +295,14 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.calciteTime
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
 
     def run_dml_query_filesystem_token(self, query, tableGroup):
         dmlRequestSchema = blazingdb.protocol.io.BuildFileSystemDMLRequestSchema(query, tableGroup)
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML_FS,
                                                                                self.accessToken, dmlRequestSchema)
         responseBuffer = self._send_request(
-            self._orchestrator_path, requestBuffer)
+            self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
         if response.status == Status.Error:
@@ -319,7 +323,7 @@ class PyConnector:
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML,
                                                                                self.accessToken, dmlRequestSchema)
         responseBuffer = self._send_request(
-            self._orchestrator_path, requestBuffer)
+            self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
         if response.status == Status.Error:
@@ -348,7 +352,7 @@ class PyConnector:
                                                                                self.accessToken, dmlRequestSchema)
 
         responseBuffer = self._send_request(
-            self._orchestrator_path, requestBuffer)
+            self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
         if response.status == Status.Error:
@@ -370,7 +374,7 @@ class PyConnector:
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_DROP_TABLE,
                                                                                self.accessToken, dmlRequestSchema)
         responseBuffer = self._send_request(
-            self._orchestrator_path, requestBuffer)
+            self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
         if response.status == Status.Error:
@@ -393,7 +397,7 @@ class PyConnector:
             OrchestratorMessageType.AuthClose, authSchema)
 
         responseBuffer = self._send_request(
-            self._orchestrator_path, requestBuffer)
+            self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
         if response.status == Status.Error:
@@ -404,7 +408,7 @@ class PyConnector:
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(response.status)
 
-    def free_result(self, result_token, interpreter_path):
+    def free_result(self, result_token, interpreter_path, interpreter_port):
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
             resultToken=result_token)
 
@@ -412,7 +416,7 @@ class PyConnector:
             InterpreterMessage.FreeResult, self.accessToken, getResultRequest)
 
         responseBuffer = self._send_request(
-            interpreter_path, requestBuffer)
+            interpreter_path, interpreter_port, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -423,7 +427,7 @@ class PyConnector:
         # TODO find a way to print only for debug mode (add verbose arg)
         #print('free result OK!')
 
-    def _get_result(self, result_token, interpreter_path):
+    def _get_result(self, result_token, interpreter_path, interpreter_port):
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
             resultToken=result_token)
 
@@ -431,7 +435,7 @@ class PyConnector:
             InterpreterMessage.GetResult, self.accessToken, getResultRequest)
 
         responseBuffer = self._send_request(
-            interpreter_path, requestBuffer)
+            interpreter_path, interpreter_port, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -627,10 +631,11 @@ def columnview_from_devary(data_devary, mask_devary, dtype=None):
                mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
                null_count=0)
 
-def _private_get_result(token, interpreter_path, calciteTime):
+def _private_get_result(token, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
-    print(interpreter_path)
-    resultSet = client._get_result(token, interpreter_path)
+    #print(interpreter_path)
+    #print(interpreter_port)
+    resultSet = client._get_result(token, interpreter_path, interpreter_port)
 
     gdf_columns = []
     ipchandles = []
@@ -674,10 +679,11 @@ def _private_run_query(sql, tables):
     resultSet = None
     token = None
     interpreter_path = None
+    interpreter_port = None
     try:
         tableGroup = _to_table_group(tables)
-        token, interpreter_path, calciteTime = client.run_dml_query_token(sql, tableGroup)
-        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, calciteTime)
+        token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
         resultSet.columns = gdf_out
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
     except SyntaxError as error:
@@ -685,7 +691,7 @@ def _private_run_query(sql, tables):
     except Error as err:
         print(err)
     
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
     return return_result
 
 
@@ -767,9 +773,9 @@ def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
     client = _get_client()
 
-    token, interpreter_path = client.run_dml_load_csv_schema(**schema.kwargs)
-    resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, 0)
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, 0, resultSet.metadata.time, 0)
+    token, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
+    resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, interpreter_port, 0)
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
     return gdf
 
 
@@ -777,9 +783,9 @@ def read_parquet_table_from_filesystem(table_name, schema):
     print('create parquet table')
     client = _get_client()
 
-    token, interpreter_path = client.run_dml_load_parquet_schema(**schema.kwargs)
-    resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, 0)
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, 0, resultSet.metadata.time, 0)
+    token, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
+    resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, interpreter_port, 0)
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
     return gdf
 
 
@@ -813,7 +819,7 @@ def register_file_system(authority, type, root, params = None):
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.RegisterFileSystem,
                                        client.accessToken,
                                        schema)
-    response_buffer = client._send_request( client._orchestrator_path, request_buffer)
+    response_buffer = client._send_request( client._orchestrator_path, self._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
     if response.status == Status.Error:
         raise Error(ResponseErrorSchema.From(response.payload).errors)
@@ -825,7 +831,7 @@ def deregister_file_system(authority):
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.DeregisterFileSystem,
                                        client.accessToken,
                                        schema)
-    response_buffer = client._send_request(client._orchestrator_path, request_buffer)
+    response_buffer = client._send_request(client._orchestrator_path, self._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
     if response.status == Status.Error:
         raise Error(ResponseErrorSchema.From(response.payload).errors)
@@ -865,10 +871,11 @@ def run_query_filesystem(sql, sql_data):
     resultSet = None
     token = None
     interpreter_path = None
+    interpreter_port = None
     try:
         tableGroup = _sql_data_to_table_group(sql_data)
-        token, interpreter_path, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
-        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, calciteTime)
+        token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
+        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
         resultSet.columns = gdf_out
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
     except SyntaxError as error:
@@ -877,6 +884,6 @@ def run_query_filesystem(sql, sql_data):
         print(err)
         raise err
 
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, ipchandles, client, calciteTime,
+    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
                                     resultSet.metadata.time, totalTime)
     return return_result
