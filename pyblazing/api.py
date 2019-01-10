@@ -274,7 +274,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8')
 
     def run_dml_query_token(self, query, tableGroup):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDMLRequestSchema(query, tableGroup)
@@ -309,7 +309,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.calciteTime
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.calciteTime
 
     def run_dml_query(self, query, tableGroup):
         # TODO find a way to print only for debug mode (add verbose arg)
