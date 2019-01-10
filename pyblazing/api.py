@@ -278,7 +278,8 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.nodeConnection.port
+
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port
 
     def run_dml_query_token(self, query, tableGroup):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDMLRequestSchema(query, tableGroup)
@@ -295,7 +296,8 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
+
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
 
     def run_dml_query_filesystem_token(self, query, tableGroup):
         dmlRequestSchema = blazingdb.protocol.io.BuildFileSystemDMLRequestSchema(query, tableGroup)
@@ -313,7 +315,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.calciteTime
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.calciteTime
 
     def run_dml_query(self, query, tableGroup):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -567,7 +569,7 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
 
     return client
 
-__orchestrator_ip = "localhost"
+__orchestrator_ip = "127.0.0.1"
 __orchestrator_port = "8890"
 __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
@@ -633,6 +635,7 @@ def columnview_from_devary(data_devary, mask_devary, dtype=None):
 
 def _private_get_result(token, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
+
     #print(interpreter_path)
     #print(interpreter_port)
     resultSet = client._get_result(token, interpreter_path, interpreter_port)
@@ -667,7 +670,7 @@ def _private_get_result(token, interpreter_path, interpreter_port, calciteTime):
     return resultSet, ipchandles, gdf
 
 def _private_run_query(sql, tables):
-    
+
     startTime = time.time()
     client = _get_client()
     try:
@@ -690,8 +693,9 @@ def _private_run_query(sql, tables):
         raise error
     except Error as err:
         print(err)
-    
+
     return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
+
     return return_result
 
 
