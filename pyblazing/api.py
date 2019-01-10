@@ -260,7 +260,7 @@ class PyConnector:
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path
+        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.nodeConnection.port
 
     def run_dml_load_csv_schema(self, path, names, dtypes, delimiter = '|', line_terminator='\n', skip_rows=0):
         print('load csv file')
