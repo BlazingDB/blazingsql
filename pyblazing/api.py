@@ -559,8 +559,7 @@ def _to_table_group(tables):
 
 
 def _get_client_internal(orchestrator_ip, orchestrator_port):
-    orchestrator_path = "%s:%s" % (orchestrator_ip, orchestrator_port)
-    client = PyConnector(orchestrator_path)
+    client = PyConnector(orchestrator_ip, orchestrator_port)
 
     try:
         client.connect()
@@ -570,7 +569,7 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
     return client
 
 __orchestrator_ip = "127.0.0.1"
-__orchestrator_port = "8890"
+__orchestrator_port = 8890
 __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
 def _get_client():
