@@ -833,7 +833,7 @@ def register_file_system(authority, type, root, params = None):
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.RegisterFileSystem,
                                        client.accessToken,
                                        schema)
-    response_buffer = client._send_request( client._orchestrator_path, self._orchestrator_port, request_buffer)
+    response_buffer = client._send_request( client._orchestrator_path, client._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
     if response.status == Status.Error:
         raise Error(ResponseErrorSchema.From(response.payload).errors)
@@ -845,7 +845,7 @@ def deregister_file_system(authority):
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.DeregisterFileSystem,
                                        client.accessToken,
                                        schema)
-    response_buffer = client._send_request(client._orchestrator_path, self._orchestrator_port, request_buffer)
+    response_buffer = client._send_request(client._orchestrator_path, client._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
     if response.status == Status.Error:
         raise Error(ResponseErrorSchema.From(response.payload).errors)
