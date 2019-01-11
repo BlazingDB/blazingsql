@@ -28,16 +28,15 @@ def main():
     names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment']
     dtypes = [3, 4, 3, 4]
 
-    nation_schema = pyblazing.register_table_schema(table_name='nation_csv', type=SchemaFrom.CsvFile, path='hdfs://tpch_hdfs/Data1Mb/nation_0_0.psv', delimiter='|', dtypes=dtypes, names=names)
-    sql_data = {
-        nation_schema: ['hdfs://tpch_hdfs/Data1Mb/nation_0_0.psv']
-    }
-
+    nation_table = pyblazing.create_table(table_name='nation_csv', type=SchemaFrom.CsvFile, path='hdfs://tpch_hdfs/Data1Mb/nation_0_0.psv', delimiter='|', dtypes=dtypes, names=names)
     sql = 'select n_nationkey, n_regionkey + n_nationkey as addition from main.nation_csv'
+    print(nation_table.name)
+    print(nation_table.columns)
+    print(nation_table.columns.dtypes)
 
-    result_gdf = pyblazing.run_query_filesystem(sql, sql_data)
+    result_gdf = pyblazing.run_query(sql, {nation_table.name: nation_table.columns})
     print(sql)
-    print(result_gdf)
+    print(result_gdf.columns)
 
 if __name__ == '__main__':
     main()

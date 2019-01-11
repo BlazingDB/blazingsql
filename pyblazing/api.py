@@ -71,8 +71,9 @@ class ResultSetHandle:
         # @todo
         # for ipch in self.handle:
         #    ipch.close()
-        del self.handle
-        self.client.free_result(self.token,self.interpreter_path,self.interpreter_port)
+        if self.handle is not None:
+            del self.handle
+            self.client.free_result(self.token,self.interpreter_path,self.interpreter_port)
 
     def __str__(self):
       return ('''columns = %(columns)s
@@ -677,7 +678,8 @@ def _private_get_result(token, interpreter_path, interpreter_port, calciteTime):
         assert k != ""
         gdf[k.decode("utf-8")] = v
 
-    return resultSet, ipchandles, gdf
+    resultSet.columns = gdf
+    return resultSet, ipchandles
 
 def _private_run_query(sql, tables):
 
@@ -696,17 +698,17 @@ def _private_run_query(sql, tables):
     try:
         tableGroup = _to_table_group(tables)
         token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
-        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
-        resultSet.columns = gdf_out
+        resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
+
+        return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
+
     except SyntaxError as error:
         raise error
     except Error as err:
         print(err)
 
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
-
-    return return_result
+    return None
 
 
 from collections import namedtuple
@@ -788,9 +790,8 @@ def read_csv_table_from_filesystem(table_name, schema):
     client = _get_client()
 
     token, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
-    resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, interpreter_port, 0)
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
-    return gdf
+    resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, 0)
+    return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
 
 
 def read_parquet_table_from_filesystem(table_name, schema):
@@ -798,30 +799,34 @@ def read_parquet_table_from_filesystem(table_name, schema):
     client = _get_client()
 
     token, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
-    resultSet, ipchandles, gdf = _private_get_result(token, interpreter_path, interpreter_port, 0)
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
-    return gdf
+    resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, 0)
+    return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+
+
+def create_table(table_name, **kwargs):
+    schema = TableSchema(**kwargs)
+    return_result = None
+    if schema.schema_type == SchemaFrom.CsvFile:  # csv
+        return_result = read_csv_table_from_filesystem(table_name, schema)
+    elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
+        return_result = read_parquet_table_from_filesystem(table_name, schema)
+    return_result.name = table_name
+    return return_result
 
 
 def register_table_schema(table_name, **kwargs):
     schema = TableSchema(**kwargs)
     return_result = None
     if schema.schema_type == SchemaFrom.CsvFile:  # csv
-        gdf = read_csv_table_from_filesystem(table_name, schema)
+        return_result = read_csv_table_from_filesystem(table_name, schema)
     elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
-        gdf = read_parquet_table_from_filesystem(table_name, schema)
-    else:
-        gdf = schema.gdf
-        #todo remove this option
-
-    print('create table with ')
-    print(gdf)
+        return_result = read_parquet_table_from_filesystem(table_name, schema)
 
     schema.set_table_name(table_name)
-    col_names, types = _get_table_def_from_gdf(gdf)
+    col_names, types = _get_table_def_from_gdf(return_result.columns)
     schema.set_column_names(col_names)
     schema.set_column_types(types)
-    schema.set_gdf(gdf)
+    schema.set_gdf(return_result.columns)
     return schema
 
 
@@ -889,8 +894,7 @@ def run_query_filesystem(sql, sql_data):
     try:
         tableGroup = _sql_data_to_table_group(sql_data)
         token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
-        resultSet, ipchandles, gdf_out = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
-        resultSet.columns = gdf_out
+        resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
     except SyntaxError as error:
         raise error
