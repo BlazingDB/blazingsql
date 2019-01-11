@@ -237,7 +237,7 @@ class PyConnector:
         # print(responsePayload.accessToken)
         self.accessToken = responsePayload.accessToken
 
-    # connection_path is a ip/host when tcp and can be unix socket when ipc  
+    # connection_path is a ip/host when tcp and can be unix socket when ipc
     def _send_request(self, connection_path, connection_port, requestBuffer):
         connection = blazingdb.protocol.UnixSocketConnection(connection_path)
         client = blazingdb.protocol.Client(connection)
@@ -459,15 +459,15 @@ def gen_data_frame(nelem, name, dtype):
 
 
 def get_ipc_handle_for_data(gdf, dataframe_column):
-  
+
     if hasattr(gdf, 'token'):
         return None
     else:
        ipch = dataframe_column._column._data.mem.get_ipc_handle()
-       return bytes(ipch._ipc_handle.handle)    
+       return bytes(ipch._ipc_handle.handle)
 
 def get_ipc_handle_for_valid(gdf, dataframe_column):
-  
+
     if hasattr(gdf, 'token'):
         return None
     else:
@@ -545,7 +545,7 @@ def _to_table_group(tables):
 
             if (null_count > 0):
                 valid_ipch = get_ipc_handle_for_valid(gdf, dataframe_column)
-                
+
             blazing_column = {
                 'data': data_ipch,
                 'valid': valid_ipch,
@@ -833,7 +833,7 @@ def register_file_system(authority, type, root, params = None):
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.RegisterFileSystem,
                                        client.accessToken,
                                        schema)
-    response_buffer = client._send_request( client._orchestrator_path, self._orchestrator_port, request_buffer)
+    response_buffer = client._send_request( client._orchestrator_path, client._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
     if response.status == Status.Error:
         raise Error(ResponseErrorSchema.From(response.payload).errors)
@@ -845,7 +845,7 @@ def deregister_file_system(authority):
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.DeregisterFileSystem,
                                        client.accessToken,
                                        schema)
-    response_buffer = client._send_request(client._orchestrator_path, self._orchestrator_port, request_buffer)
+    response_buffer = client._send_request(client._orchestrator_path, client._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
     if response.status == Status.Error:
         raise Error(ResponseErrorSchema.From(response.payload).errors)
