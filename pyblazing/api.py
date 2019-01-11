@@ -238,9 +238,9 @@ class PyConnector:
         # print(responsePayload.accessToken)
         self.accessToken = responsePayload.accessToken
 
-    # connection_path is a ip/host when tcp and can be unix socket when ipc  
+    # connection_path is a ip/host when tcp and can be unix socket when ipc
     def _send_request(self, connection_path, connection_port, requestBuffer):
-        connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
+        connection = blazingdb.protocol.UnixSocketConnection(connection_path)
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
 
@@ -460,15 +460,15 @@ def gen_data_frame(nelem, name, dtype):
 
 
 def get_ipc_handle_for_data(gdf, dataframe_column):
-  
+
     if hasattr(gdf, 'token'):
         return None
     else:
        ipch = dataframe_column._column._data.mem.get_ipc_handle()
-       return bytes(ipch._ipc_handle.handle)    
+       return bytes(ipch._ipc_handle.handle)
 
 def get_ipc_handle_for_valid(gdf, dataframe_column):
-  
+
     if hasattr(gdf, 'token'):
         return None
     else:
@@ -546,7 +546,7 @@ def _to_table_group(tables):
 
             if (null_count > 0):
                 valid_ipch = get_ipc_handle_for_valid(gdf, dataframe_column)
-                
+
             blazing_column = {
                 'data': data_ipch,
                 'valid': valid_ipch,
@@ -579,7 +579,7 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
 
     return client
 
-__orchestrator_ip = "127.0.0.1"
+__orchestrator_ip = '/tmp/orchestrator.socket'
 __orchestrator_port = 8890
 __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
