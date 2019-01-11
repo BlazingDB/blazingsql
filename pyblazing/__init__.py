@@ -6,5 +6,6 @@ from .api  import register_table_schema
 from .api  import FileSystemType, DriverType, EncryptionType
 from .api import SchemaFrom
 from .api import run_query_filesystem
+from .api import create_table
 #TODO this api is experimental
 #from .api import run_query_arrow
