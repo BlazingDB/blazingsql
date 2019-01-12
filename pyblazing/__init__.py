@@ -1,4 +1,6 @@
 from .api import run_query
+from .api import run_query_get_token
+from .api import run_query_get_results
 from .api import run_query_pandas
 from .api import register_file_system
 from .api import deregister_file_system
