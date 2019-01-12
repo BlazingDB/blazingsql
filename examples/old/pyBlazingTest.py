@@ -30,7 +30,7 @@ def main():
 #   result = pyblazing.run_query('select r_regionkey from main.region', tables)
   
   tables = {nation_tableName: nation_gdf}
-  result = pyblazing.run_query('SELECT avg(n_nationkey), sum(n_nationkey), count(n_nationkey),  n_regionkey FROM main.nation where n_nationkey > 10 group by n_regionkey', tables)  
+  result = pyblazing.run_query('SELECT sum(n_nationkey) FROM main.nation group by n_regionkey', tables)  
 #   result = pyblazing.run_query('select n_nationkey, n_regionkey from main.nation', tables)
 #   result = pyblazing.run_query('select acol, ccol, acol + ccol as summy from main.nation', tables)
 #   result = pyblazing.run_query('select acol, ccol from main.nation', tables)

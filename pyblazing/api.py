@@ -127,6 +127,11 @@ def run_query(sql, tables):
     """
     return _private_run_query(sql, tables)
 
+def run_query_get_token(sql, tables):
+    return _run_query_get_token(sql, tables)
+
+def run_query_get_results(metaToken):
+    return _run_query_get_results(metaToken)
 
 def run_query_pandas(sql, tables):
     """
@@ -681,8 +686,7 @@ def _private_get_result(token, interpreter_path, interpreter_port, calciteTime):
     resultSet.columns = gdf
     return resultSet, ipchandles
 
-def _private_run_query(sql, tables):
-
+def _run_query_get_token(sql, tables):
     startTime = time.time()
     client = _get_client()
     try:
@@ -691,24 +695,71 @@ def _private_run_query(sql, tables):
     except Error as err:
         print(err)
 
-    resultSet = None
     token = 0
     interpreter_path = None
     interpreter_port = None
     try:
         tableGroup = _to_table_group(tables)
         token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
-        resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
-        totalTime = (time.time() - startTime) * 1000  # in milliseconds
+        metaToken = {"client" : client, "token" : token, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+        return metaToken
+    except SyntaxError as error:
+        raise error
+    except Error as err:
+        print(err)
+    
+    return None
 
-        return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
+def _run_query_get_results(metaToken):
+    try:
+        resultSet, ipchandles = _private_get_result(metaToken["token"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+        totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
+    except SyntaxError as error:
+        raise error
+    except Error as err:
+        print(err)
+    return_result = ResultSetHandle(resultSet.columns, metaToken["token"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
+    return return_result
 
+def _private_run_query(sql, tables):
+
+    try:
+        metaToken = _run_query_get_token(sql, tables)
+        return _run_query_get_results(metaToken)
     except SyntaxError as error:
         raise error
     except Error as err:
         print(err)
 
     return None
+    
+    # startTime = time.time()
+    # client = _get_client()
+    # try:
+    #     for table, gdf in tables.items():
+    #         _reset_table(client, table, gdf)
+    # except Error as err:
+    #     print(err)
+
+    # resultSet = None
+    # token = 0
+    # interpreter_path = None
+    # interpreter_port = None
+    # try:
+    #     tableGroup = _to_table_group(tables)
+    #     token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+    #     resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
+    #     totalTime = (time.time() - startTime) * 1000  # in milliseconds
+
+    #     return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
+
+    # except SyntaxError as error:
+    #     raise error
+    # except Error as err:
+    #     print(err)
+
+    # return None
+
 
 
 from collections import namedtuple
