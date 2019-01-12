@@ -69,9 +69,9 @@ class ResultSetHandle:
 
     def __del__(self):
         # @todo
-        # for ipch in self.handle:
-        #    ipch.close()
         if self.handle is not None:
+            for ipch in self.handle:
+                ipch.close()
             del self.handle
             self.client.free_result(self.token,self.interpreter_path,self.interpreter_port)
 
