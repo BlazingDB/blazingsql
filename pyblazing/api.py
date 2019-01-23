@@ -484,17 +484,17 @@ def gen_data_frame(nelem, name, dtype):
     return df
 
 
-def get_ipc_handle_for_data(gdf, dataframe_column):
+def get_ipc_handle_for_data(column, dataframe_column):
 
-    if hasattr(gdf, 'token'):
+    if hasattr(column, 'column_token'):
         return None
     else:
        ipch = dataframe_column._column._data.mem.get_ipc_handle()
        return bytes(ipch._ipc_handle.handle)
 
-def get_ipc_handle_for_valid(gdf, dataframe_column):
+def get_ipc_handle_for_valid(column, dataframe_column):
 
-    if hasattr(gdf, 'token'):
+    if hasattr(column, 'column_token'):
         return None
     else:
        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
@@ -556,6 +556,7 @@ def _to_table_group(tables):
         blazing_table = {'name': database_name + '.' + table,
                          'columnNames': gdf.columns.values.tolist()}
         blazing_columns = []
+        columnTokens = []
 
         for column in gdf.columns:
             dataframe_column = gdf._cols[column]
@@ -566,11 +567,11 @@ def _to_table_group(tables):
             dtype = numerical_column.cffi_view.dtype
             null_count = numerical_column.cffi_view.null_count
 
-            data_ipch = get_ipc_handle_for_data(gdf, dataframe_column)
+            data_ipch = get_ipc_handle_for_data(column, dataframe_column)
             valid_ipch = None
 
             if (null_count > 0):
-                valid_ipch = get_ipc_handle_for_valid(gdf, dataframe_column)
+                valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
 
             blazing_column = {
                 'data': data_ipch,
@@ -580,6 +581,12 @@ def _to_table_group(tables):
                 'null_count': null_count,
                 'dtype_info': 0
             }
+
+            if hasattr(column, 'column_token'):
+                columnTokens.append(column.column_token)
+            else:
+                columnTokens.append(0)
+
             blazing_columns.append(blazing_column)
 
         blazing_table['columns'] = blazing_columns
@@ -588,6 +595,7 @@ def _to_table_group(tables):
         else:
             blazing_table['token'] = 0
 
+        blazing_table['columnTokens'] = columnTokens
         blazing_tables.append(blazing_table)
 
     tableGroup['tables'] = blazing_tables
