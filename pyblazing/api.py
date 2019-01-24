@@ -43,14 +43,16 @@ gpus = devices.gpus
 class ResultSetHandle:
 
     columns = None
+    columnTokens = None
     token = 0
     interpreter_path = None # if tcp is the host/ip, if ipc is unix socket path
     interpreter_port = None # if tcp is valid, if ipc is None
     handle = None
     client = None
 
-    def __init__(self, columns, token, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime):
+    def __init__(self, columns, columnTokens, token, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime):
         self.columns = columns
+        self.columnTokens = columnTokens
 
         if hasattr(self.columns, '__iter__'):
             for col in self.columns:
@@ -746,7 +748,7 @@ def _run_query_get_results(metaToken):
         raise error
     except Error as err:
         print(err)
-    return_result = ResultSetHandle(resultSet.columns, metaToken["token"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
+    return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["token"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
     return return_result
 
 def _private_run_query(sql, tables):
@@ -870,7 +872,7 @@ def read_csv_table_from_filesystem(table_name, schema):
 
     token, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
     resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
 
 
 def read_parquet_table_from_filesystem(table_name, schema):
@@ -879,7 +881,7 @@ def read_parquet_table_from_filesystem(table_name, schema):
 
     token, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
     resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
 
 
 def create_table(table_name, **kwargs):
@@ -981,6 +983,6 @@ def run_query_filesystem(sql, sql_data):
         print(err)
         raise err
 
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
+    return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
                                     resultSet.metadata.time, totalTime)
     return return_result
