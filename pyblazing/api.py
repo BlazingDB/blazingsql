@@ -54,9 +54,11 @@ class ResultSetHandle:
         self.columns = columns
         self.columnTokens = columnTokens
 
-        if hasattr(self.columns, '__iter__'):
-            for col in self.columns:
-                col.token = token
+        if columns.columns.size>0:
+            idx = 0
+            for col in self.columns.columns:
+                self.columns[col].columnToken = columnTokens[idx]
+                idx = idx + 1
         else:
             self.columns.token = token
 
@@ -488,7 +490,7 @@ def gen_data_frame(nelem, name, dtype):
 
 def get_ipc_handle_for_data(column, dataframe_column):
 
-    if hasattr(column, 'column_token'):
+    if hasattr(dataframe_column, 'columnToken'):
         return None
     else:
        ipch = dataframe_column._column._data.mem.get_ipc_handle()
@@ -496,7 +498,7 @@ def get_ipc_handle_for_data(column, dataframe_column):
 
 def get_ipc_handle_for_valid(column, dataframe_column):
 
-    if hasattr(column, 'column_token'):
+    if hasattr(dataframe_column, 'columnToken'):
         return None
     else:
        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
@@ -584,8 +586,8 @@ def _to_table_group(tables):
                 'dtype_info': 0
             }
 
-            if hasattr(column, 'column_token'):
-                columnTokens.append(column.column_token)
+            if hasattr(gdf[column], 'columnToken'):
+                columnTokens.append(gdf[column].columnToken)
             else:
                 columnTokens.append(0)
 
