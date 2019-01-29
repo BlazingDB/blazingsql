@@ -43,22 +43,26 @@ gpus = devices.gpus
 class ResultSetHandle:
 
     columns = None
-    token = 0
+    columnTokens = None
+    resultToken = 0
     interpreter_path = None # if tcp is the host/ip, if ipc is unix socket path
     interpreter_port = None # if tcp is valid, if ipc is None
     handle = None
     client = None
 
-    def __init__(self, columns, token, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime):
+    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime):
         self.columns = columns
+        self.columnTokens = columnTokens
 
-        if hasattr(self.columns, '__iter__'):
-            for col in self.columns:
-                col.token = token
+        if columns.columns.size>0:
+            idx = 0
+            for col in self.columns.columns:
+                self.columns[col].columnToken = columnTokens[idx]
+                idx = idx + 1
         else:
-            self.columns.token = token
+            self.columns.resultToken = resultToken
 
-        self.token = token
+        self.resultToken = resultToken
         self.interpreter_path = interpreter_path
         self.interpreter_port = interpreter_port
         self.handle = handle
@@ -73,11 +77,11 @@ class ResultSetHandle:
             for ipch in self.handle:
                 ipch.close()
             del self.handle
-            self.client.free_result(self.token,self.interpreter_path,self.interpreter_port)
+            self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
 
     def __str__(self):
       return ('''columns = %(columns)s
-token = %(token)s
+resultToken = %(resultToken)s
 interpreter_path = %(interpreter_path)s
 interpreter_port = %(interpreter_port)s
 handle = %(handle)s
@@ -86,7 +90,7 @@ calciteTime = %(calciteTime)d
 ralTime = %(ralTime)d
 totalTime = %(totalTime)d''' % {
         'columns': self.columns,
-        'token': self.token,
+        'resultToken': self.resultToken,
         'interpreter_path': self.interpreter_path,
         'interpreter_port': self.interpreter_port,
         'handle': self.handle,
@@ -484,17 +488,17 @@ def gen_data_frame(nelem, name, dtype):
     return df
 
 
-def get_ipc_handle_for_data(gdf, dataframe_column):
+def get_ipc_handle_for_data(column, dataframe_column):
 
-    if hasattr(gdf, 'token'):
+    if hasattr(dataframe_column, 'columnToken'):
         return None
     else:
        ipch = dataframe_column._column._data.mem.get_ipc_handle()
        return bytes(ipch._ipc_handle.handle)
 
-def get_ipc_handle_for_valid(gdf, dataframe_column):
+def get_ipc_handle_for_valid(column, dataframe_column):
 
-    if hasattr(gdf, 'token'):
+    if hasattr(dataframe_column, 'columnToken'):
         return None
     else:
        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
@@ -556,6 +560,7 @@ def _to_table_group(tables):
         blazing_table = {'name': database_name + '.' + table,
                          'columnNames': gdf.columns.values.tolist()}
         blazing_columns = []
+        columnTokens = []
 
         for column in gdf.columns:
             dataframe_column = gdf._cols[column]
@@ -566,11 +571,11 @@ def _to_table_group(tables):
             dtype = numerical_column.cffi_view.dtype
             null_count = numerical_column.cffi_view.null_count
 
-            data_ipch = get_ipc_handle_for_data(gdf, dataframe_column)
+            data_ipch = get_ipc_handle_for_data(column, dataframe_column)
             valid_ipch = None
 
             if (null_count > 0):
-                valid_ipch = get_ipc_handle_for_valid(gdf, dataframe_column)
+                valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
 
             blazing_column = {
                 'data': data_ipch,
@@ -580,14 +585,21 @@ def _to_table_group(tables):
                 'null_count': null_count,
                 'dtype_info': 0
             }
+
+            if hasattr(gdf[column], 'columnToken'):
+                columnTokens.append(gdf[column].columnToken)
+            else:
+                columnTokens.append(0)
+
             blazing_columns.append(blazing_column)
 
         blazing_table['columns'] = blazing_columns
-        if hasattr(gdf, 'token'):
-            blazing_table['token'] = gdf.token
+        if hasattr(gdf, 'resultToken'):
+            blazing_table['resultToken'] = gdf.resultToken
         else:
-            blazing_table['token'] = 0
+            blazing_table['resultToken'] = 0
 
+        blazing_table['columnTokens'] = columnTokens
         blazing_tables.append(blazing_table)
 
     tableGroup['tables'] = blazing_tables
@@ -668,12 +680,12 @@ def columnview_from_devary(data_devary, mask_devary, dtype=None):
                mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
                null_count=0)
 
-def _private_get_result(token, interpreter_path, interpreter_port, calciteTime):
+def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
 
     #print(interpreter_path)
     #print(interpreter_port)
-    resultSet = client._get_result(token, interpreter_path, interpreter_port)
+    resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
 
     gdf_columns = []
     ipchandles = []
@@ -715,13 +727,13 @@ def _run_query_get_token(sql, tables):
     except Error as err:
         print(err)
 
-    token = 0
+    resultToken = 0
     interpreter_path = None
     interpreter_port = None
     try:
         tableGroup = _to_table_group(tables)
-        token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
-        metaToken = {"client" : client, "token" : token, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+        metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
         return metaToken
     except SyntaxError as error:
         raise error
@@ -732,13 +744,13 @@ def _run_query_get_token(sql, tables):
 
 def _run_query_get_results(metaToken):
     try:
-        resultSet, ipchandles = _private_get_result(metaToken["token"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+        resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
         totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
     except SyntaxError as error:
         raise error
     except Error as err:
         print(err)
-    return_result = ResultSetHandle(resultSet.columns, metaToken["token"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
+    return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
     return return_result
 
 def _private_run_query(sql, tables):
@@ -860,18 +872,18 @@ def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
     client = _get_client()
 
-    token, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
+    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
 
 
 def read_parquet_table_from_filesystem(table_name, schema):
     print('create parquet table')
     client = _get_client()
 
-    token, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
+    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
 
 
 def create_table(table_name, **kwargs):
@@ -959,13 +971,13 @@ def run_query_filesystem(sql, sql_data):
 
 
     resultSet = None
-    token = 0
+    resultToken = 0
     interpreter_path = None
     interpreter_port = None
     try:
         tableGroup = _sql_data_to_table_group(sql_data)
-        token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
-        resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
+        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
+        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime)
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
     except SyntaxError as error:
         raise error
@@ -973,6 +985,6 @@ def run_query_filesystem(sql, sql_data):
         print(err)
         raise err
 
-    return_result = ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
+    return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
                                     resultSet.metadata.time, totalTime)
     return return_result
