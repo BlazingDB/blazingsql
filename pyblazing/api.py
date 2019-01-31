@@ -258,7 +258,7 @@ class PyConnector:
         ## todo use rowGroupIndices, and columnIndices, someway??
         requestSchema = blazingdb.protocol.io.ParquetFileSchema(path=path, rowGroupIndices=[], columnIndices=[])
 
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadParquet,
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadParquetSchema,
                                                                                self.accessToken, requestSchema)
         responseBuffer = self._send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
@@ -276,7 +276,7 @@ class PyConnector:
         print('load csv file')
         requestSchema = blazingdb.protocol.io.CsvFileSchema(path=path, delimiter=delimiter, lineTerminator = line_terminator, skipRows=skip_rows, names=names, dtypes=dtypes)
 
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadCSV,
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadCsvSchema,
                                                                                 self.accessToken, requestSchema)
         responseBuffer = self._send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
