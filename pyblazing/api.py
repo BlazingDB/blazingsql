@@ -32,7 +32,6 @@ import pandas as pd
 
 import time
 
-
 # NDarray device helper
 from numba import cuda
 from numba.cuda.cudadrv import driver, devices
@@ -220,7 +219,10 @@ class PyConnector:
         self._orchestrator_port = orchestrator_port
 
     def __del__(self):
-        self.close_connection()
+        try:
+            self.close_connection()
+        except:
+            print("Can't close connection, probably it was lost")
 
     def connect(self):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -267,6 +269,8 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
@@ -285,6 +289,8 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
@@ -303,7 +309,9 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors)
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
+            raise Error(errorResponse.errors.decode('utf-8'))
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
 
@@ -322,7 +330,9 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors)
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
+            raise Error(errorResponse.errors.decode('utf-8'))
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
         return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
@@ -392,7 +402,7 @@ class PyConnector:
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
-            raise Error(errorResponse.errors)
+            raise Error(errorResponse.errors.decode('utf-8'))
 
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(response.status)
@@ -415,7 +425,7 @@ class PyConnector:
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
-            print(errorResponse.errors)
+            raise Error(errorResponse.errors.decode('utf-8'))
 
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(response.status)
@@ -477,6 +487,9 @@ class PyConnector:
 
         queryResult = blazingdb.protocol.interpreter.GetQueryResultFrom(
             response.payload)
+
+        if queryResult.metadata.status.decode() == "Error":
+            raise Error(queryResult.metadata.message.decode('utf-8'))
 
         return queryResult
 
@@ -613,6 +626,8 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
         client.connect()
     except Error as err:
         print(err)
+    except RuntimeError as err:
+        print("Connection to the orchestrator could not be started")
 
     return client
 
@@ -725,31 +740,20 @@ def _run_query_get_token(sql, tables):
         for table, gdf in tables.items():
             _reset_table(client, table, gdf)
     except Error as err:
-        print(err)
+        raise err
 
     resultToken = 0
     interpreter_path = None
     interpreter_port = None
-    try:
-        tableGroup = _to_table_group(tables)
-        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
-        metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
-        return metaToken
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
-    
-    return None
+
+    tableGroup = _to_table_group(tables)
+    resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+    return metaToken
 
 def _run_query_get_results(metaToken):
-    try:
-        resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
-        totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
+    resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+    totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
     return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
     return return_result
 
@@ -759,9 +763,20 @@ def _private_run_query(sql, tables):
         metaToken = _run_query_get_token(sql, tables)
         return _run_query_get_results(metaToken)
     except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
+        print(error)
+    except Error as error:
+        print(str(error))
+    except RuntimeError as error:
+        print(error)
+    except ValueError as error:
+        print(error)
+    except ConnectionRefusedError as error:
+        print(error)
+    except AttributeError as error:
+        print(error)
+    except Exception:
+        print("Unexpected error on run_query")
+        # Todo: print traceback.print_exc() when debug mode is enabled
 
     return None
     
