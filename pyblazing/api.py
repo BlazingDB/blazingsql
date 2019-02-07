@@ -323,9 +323,11 @@ class PyConnector:
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
             raise Error(errorResponse.errors)
-        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
-            response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
+
+        distributed_response = blazingdb.protocol.orchestrator.DMLDistributedResponseSchema.From(response.payload)
+
+        return distributed_response.size, list(item for item in distributed_response.responses)
+
 
     def run_dml_query(self, query, tableGroup):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -969,15 +971,19 @@ def run_query_filesystem(sql, sql_data):
     for schema, files in sql_data.items():
         _reset_table(client, schema.table_name, schema.gdf)
 
-
-    resultSet = None
-    resultToken = 0
-    interpreter_path = None
-    interpreter_port = None
+    totalTime = 0
+    result_list = []
     try:
         tableGroup = _sql_data_to_table_group(sql_data)
-        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
-        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime)
+        dist_size, dist_list = client.run_dml_query_filesystem_token(sql, tableGroup)
+
+        for result in dist_list:
+            resultSet, ipchandles = _private_get_result(result.resultToken,
+                                                        result.nodeConnection.path.decode('utf8'),
+                                                        result.nodeConnection.port,
+                                                        result.calciteTime)
+            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles})
+
         totalTime = (time.time() - startTime) * 1000  # in milliseconds
     except SyntaxError as error:
         raise error
@@ -985,6 +991,17 @@ def run_query_filesystem(sql, sql_data):
         print(err)
         raise err
 
-    return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
-                                    resultSet.metadata.time, totalTime)
-    return return_result
+    result_set_list = []
+    for result in result_list:
+        result_set_list.append(ResultSetHandle(result['resultSet'].columns,
+                                               result['resultSet'].columnTokens,
+                                               result['result'].resultToken,
+                                               result['result'].nodeConnection.path.decode('utf8'),
+                                               result['result'].nodeConnection.port,
+                                               result['ipchandles'],
+                                               client,
+                                               result['result'].calciteTime,
+                                               result['resultSet'].metadata.time,
+                                               totalTime))
+
+    return result_set_list
