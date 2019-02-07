@@ -229,6 +229,7 @@ class PyConnector:
             print("Can't close connection, probably it was lost")
 
     def connect(self):
+        self.accessToken = 0
         # TODO find a way to print only for debug mode (add verbose arg)
         #print("open connection")
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
@@ -745,8 +746,8 @@ def exceptions_wrapper(f):
             print(error)
         except Error as error:
             print(str(error))
-        except Exception:
-            print("Unexpected error on " + f.__name__)
+        except Exception as error:
+            print("Unexpected error on " + f.__name__ + ": " + error)
             # Todo: print traceback.print_exc() when debug mode is enabled
     return applicator
 
@@ -774,7 +775,7 @@ def _run_query_get_token(sql, tables):
     except Error as error:
         error_message = str(error)
     except Exception:
-        error_message = "Unexpected error on " + _run_query_get_token.__name__
+        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
 
     if error_message is not '':
         print(error_message)
@@ -795,8 +796,8 @@ def _run_query_get_results(metaToken):
         error_message = error
     except Error as error:
         error_message = str(error)
-    except Exception:
-        error_message = "Unexpected error on " + _run_query_get_results.__name__
+    except Exception as error:
+        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
 
     if error_message is not '':
         print(error_message)
