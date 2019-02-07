@@ -50,17 +50,18 @@ class ResultSetHandle:
     client = None
     error_message = None # when empty the query ran succesfully
 
-    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime):
+    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message):
         self.columns = columns
         self.columnTokens = columnTokens
 
-        if columns.columns.size>0:
-            idx = 0
-            for col in self.columns.columns:
-                self.columns[col].columnToken = columnTokens[idx]
-                idx = idx + 1
-        else:
-            self.columns.resultToken = resultToken
+        if columns is not None:
+            if columns.columns.size>0:
+                idx = 0
+                for col in self.columns.columns:
+                    self.columns[col].columnToken = columnTokens[idx]
+                    idx = idx + 1
+            else:
+                self.columns.resultToken = resultToken
 
         self.resultToken = resultToken
         self.interpreter_path = interpreter_path
@@ -70,6 +71,7 @@ class ResultSetHandle:
         self.calciteTime = calciteTime
         self.ralTime = ralTime
         self.totalTime = totalTime
+        self.error_message = error_message
 
     def __del__(self):
         # @todo
@@ -98,6 +100,7 @@ totalTime = %(totalTime)d''' % {
         'calciteTime' : self.calciteTime,
         'ralTime' : self.ralTime,
         'totalTime' : self.totalTime,
+        'error_message' : self.error_message,
       })
 
     def __repr__(self):
@@ -738,48 +741,68 @@ def exceptions_wrapper(f):
     def applicator(*args, **kwargs):
         try:
             f(*args,**kwargs)
-        except SyntaxError as error:
+        except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
             print(error)
         except Error as error:
             print(str(error))
-        except RuntimeError as error:
-            print(error)
-        except ValueError as error:
-            print(error)
-        except ConnectionRefusedError as error:
-            print(error)
-        except AttributeError as error:
-            print(error)
         except Exception:
             print("Unexpected error on " + f.__name__)
             # Todo: print traceback.print_exc() when debug mode is enabled
     return applicator
 
-@exceptions_wrapper
+#@exceptions_wrapper
 def _run_query_get_token(sql, tables):
     startTime = time.time()
-    client = _get_client()
-
-    for table, gdf in tables.items():
-        _reset_table(client, table, gdf)
 
     resultToken = 0
     interpreter_path = None
     interpreter_port = None
+    calciteTime = 0
+    error_message = ''
 
-    tableGroup = _to_table_group(tables)
-    resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+    try:
+        client = _get_client()
+
+        for table, gdf in tables.items():
+            _reset_table(client, table, gdf)
+
+        tableGroup = _to_table_group(tables)
+
+        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception:
+        error_message = "Unexpected error on " + _run_query_get_token.__name__
+
+    if error_message is not '':
+        print(error_message)
+
     metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
     return metaToken
 
-@exceptions_wrapper
 def _run_query_get_results(metaToken):
-    resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
-    totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
-    return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
+    error_message = ''
+
+    try:
+        resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+
+        totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
+        return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime, '')
+        return return_result
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception:
+        error_message = "Unexpected error on " + _run_query_get_results.__name__
+
+    if error_message is not '':
+        print(error_message)
+    return_result = ResultSetHandle(None, None, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], None, metaToken["client"], metaToken["calciteTime"], 0, 0, error_message)
     return return_result
 
-@exceptions_wrapper
 def _private_run_query(sql, tables):
     metaToken = _run_query_get_token(sql, tables)
     return _run_query_get_results(metaToken)
@@ -891,7 +914,7 @@ def read_csv_table_from_filesystem(table_name, schema):
 
     resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
     resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, "")
 
 
 def read_parquet_table_from_filesystem(table_name, schema):
@@ -900,7 +923,7 @@ def read_parquet_table_from_filesystem(table_name, schema):
 
     resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
     resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, "")
 
 
 def create_table(table_name, **kwargs):
