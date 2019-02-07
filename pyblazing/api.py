@@ -48,6 +48,7 @@ class ResultSetHandle:
     interpreter_port = None # if tcp is valid, if ipc is None
     handle = None
     client = None
+    error_message = None # when empty the query ran succesfully
 
     def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime):
         self.columns = columns
@@ -627,7 +628,7 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
     except Error as err:
         print(err)
     except RuntimeError as err:
-        print("Connection to the orchestrator could not be started")
+        print("Connection to the Orchestrator could not be started")
 
     return client
 
@@ -733,14 +734,34 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     resultSet.columns = gdf
     return resultSet, ipchandles
 
+def exceptions_wrapper(f):
+    def applicator(*args, **kwargs):
+        try:
+            f(*args,**kwargs)
+        except SyntaxError as error:
+            print(error)
+        except Error as error:
+            print(str(error))
+        except RuntimeError as error:
+            print(error)
+        except ValueError as error:
+            print(error)
+        except ConnectionRefusedError as error:
+            print(error)
+        except AttributeError as error:
+            print(error)
+        except Exception:
+            print("Unexpected error on " + f.__name__)
+            # Todo: print traceback.print_exc() when debug mode is enabled
+    return applicator
+
+@exceptions_wrapper
 def _run_query_get_token(sql, tables):
     startTime = time.time()
     client = _get_client()
-    try:
-        for table, gdf in tables.items():
-            _reset_table(client, table, gdf)
-    except Error as err:
-        raise err
+
+    for table, gdf in tables.items():
+        _reset_table(client, table, gdf)
 
     resultToken = 0
     interpreter_path = None
@@ -751,34 +772,17 @@ def _run_query_get_token(sql, tables):
     metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
     return metaToken
 
+@exceptions_wrapper
 def _run_query_get_results(metaToken):
     resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
     totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
     return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
     return return_result
 
+@exceptions_wrapper
 def _private_run_query(sql, tables):
-
-    try:
-        metaToken = _run_query_get_token(sql, tables)
-        return _run_query_get_results(metaToken)
-    except SyntaxError as error:
-        print(error)
-    except Error as error:
-        print(str(error))
-    except RuntimeError as error:
-        print(error)
-    except ValueError as error:
-        print(error)
-    except ConnectionRefusedError as error:
-        print(error)
-    except AttributeError as error:
-        print(error)
-    except Exception:
-        print("Unexpected error on run_query")
-        # Todo: print traceback.print_exc() when debug mode is enabled
-
-    return None
+    metaToken = _run_query_get_token(sql, tables)
+    return _run_query_get_results(metaToken)
     
     # startTime = time.time()
     # client = _get_client()
@@ -806,8 +810,6 @@ def _private_run_query(sql, tables):
     #     print(err)
 
     # return None
-
-
 
 from collections import namedtuple
 from blazingdb.protocol.transport.channel import MakeRequestBuffer
@@ -976,6 +978,7 @@ def _sql_data_to_table_group(sql_data):
     tableGroup['tables'] = blazing_tables
     return tableGroup
 
+@exceptions_wrapper
 def run_query_filesystem(sql, sql_data):
     startTime = time.time()
 
@@ -984,21 +987,15 @@ def run_query_filesystem(sql, sql_data):
     for schema, files in sql_data.items():
         _reset_table(client, schema.table_name, schema.gdf)
 
-
     resultSet = None
     resultToken = 0
     interpreter_path = None
     interpreter_port = None
-    try:
-        tableGroup = _sql_data_to_table_group(sql_data)
-        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
-        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime)
-        totalTime = (time.time() - startTime) * 1000  # in milliseconds
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
-        raise err
+
+    tableGroup = _sql_data_to_table_group(sql_data)
+    resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
+    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime)
+    totalTime = (time.time() - startTime) * 1000  # in milliseconds
 
     return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
                                     resultSet.metadata.time, totalTime)
