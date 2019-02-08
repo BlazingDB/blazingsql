@@ -326,7 +326,7 @@ class PyConnector:
 
         distributed_response = blazingdb.protocol.orchestrator.DMLDistributedResponseSchema.From(response.payload)
 
-        return distributed_response.size, list(item for item in distributed_response.responses)
+        return list(item for item in distributed_response.responses)
 
 
     def run_dml_query(self, query, tableGroup):
@@ -975,7 +975,7 @@ def run_query_filesystem(sql, sql_data):
     result_list = []
     try:
         tableGroup = _sql_data_to_table_group(sql_data)
-        dist_size, dist_list = client.run_dml_query_filesystem_token(sql, tableGroup)
+        dist_list = client.run_dml_query_filesystem_token(sql, tableGroup)
 
         for result in dist_list:
             resultSet, ipchandles = _private_get_result(result.resultToken,
