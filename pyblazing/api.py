@@ -911,20 +911,48 @@ class TableSchema:
 # WARNING EXPERIMENTAL
 def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
-    client = _get_client()
+    error_message = ''
 
-    resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, "")
+    try:
+        client = _get_client()
+
+        resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
+        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+
+        return ResultSetHandle(None, None, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, '')
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + read_csv_table_from_filesystem.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
 
 
 def read_parquet_table_from_filesystem(table_name, schema):
     print('create parquet table')
-    client = _get_client()
+    error_message = ''
 
-    resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, "")
+    try:
+        client = _get_client()
+
+        resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
+        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + run_query_filesystem.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
 
 
 def create_table(table_name, **kwargs):
@@ -1002,25 +1030,38 @@ def _sql_data_to_table_group(sql_data):
     tableGroup['tables'] = blazing_tables
     return tableGroup
 
-@exceptions_wrapper
+#@exceptions_wrapper
 def run_query_filesystem(sql, sql_data):
+    error_message = ''
     startTime = time.time()
 
-    client = _get_client()
+    try:
+        client = _get_client()
 
-    for schema, files in sql_data.items():
-        _reset_table(client, schema.table_name, schema.gdf)
+        for schema, files in sql_data.items():
+            _reset_table(client, schema.table_name, schema.gdf)
 
-    resultSet = None
-    resultToken = 0
-    interpreter_path = None
-    interpreter_port = None
+        resultSet = None
+        resultToken = 0
+        interpreter_path = None
+        interpreter_port = None
 
-    tableGroup = _sql_data_to_table_group(sql_data)
-    resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
-    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime)
-    totalTime = (time.time() - startTime) * 1000  # in milliseconds
+        tableGroup = _sql_data_to_table_group(sql_data)
+        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
+        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime)
+        totalTime = (time.time() - startTime) * 1000  # in milliseconds
 
-    return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
-                                    resultSet.metadata.time, totalTime)
-    return return_result
+        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
+                                    resultSet.metadata.time, totalTime, '')
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + run_query_filesystem.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return ResultSetHandle(None, None, resultToken, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
+                                    resultSet.metadata.time, totalTime, error_message)
