@@ -11,3 +11,5 @@ from .api import run_query_filesystem
 from .api import create_table
 #TODO this api is experimental
 #from .api import run_query_arrow
+
+from .api import _get_client_internal

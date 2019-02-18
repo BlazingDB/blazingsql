@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from enum import Enum
 
+from pyblazing import _get_client_internal
+
 
 class S3(Enum):
     NONE = 'NONE'
@@ -82,7 +84,7 @@ class ResultSet:
     # TODO see Rodriugo proposal for interesting actions/operations here
 
 
-class SQL:
+class SQL(object):
 
     def __init__(self):
         pass
@@ -107,10 +109,10 @@ class SQL:
         return rs
 
 
-class FileSystem:
+class FileSystem(object):
 
     def __init__(self):
-        self.file_systems = []
+        self.file_systems = OrderedDict()
 
     def __repr__(self):
         return "TODO"
@@ -119,6 +121,8 @@ class FileSystem:
         pass
 
     def hdfs(self, prefix, **kwargs):
+        self._verify_prefix(prefix)
+
         # TODO percy check prefix is unique
 
         host = kwargs.get('host', '127.0.0.1')
@@ -128,19 +132,20 @@ class FileSystem:
 
         fs = OrderedDict()
         fs['type'] = 'hdfs'
-        fs['prefix'] = prefix
         fs['host'] = host
         fs['port'] = port
         fs['user'] = user
         fs['kerberos_ticket'] = kerberos_ticket
 
-        self.file_systems.append(fs)
+        self.file_systems[prefix] = fs
 
         # TODO percy connect here with low level api
 
         return fs
 
     def s3(self, prefix, **kwargs):
+        self._verify_prefix(prefix)
+
         # TODO percy check prefix is unique
 
         bucket_name = kwargs.get('bucket_name', '')
@@ -152,7 +157,6 @@ class FileSystem:
 
         fs = OrderedDict()
         fs['type'] = 's3'
-        fs['prefix'] = prefix
         fs['bucket_name'] = bucket_name
         fs['access_key_id'] = access_key_id
         fs['secret_key'] = secret_key
@@ -160,7 +164,7 @@ class FileSystem:
         fs['encryption_type'] = encryption_type
         fs['kms_key_amazon_resource_name'] = kms_key_amazon_resource_name
 
-        self.file_systems.append(fs)
+        self.file_systems[prefix] = fs
 
         # TODO percy connect here with low level api
 
@@ -173,16 +177,22 @@ class FileSystem:
             fs_str = '%s (%s)' % (prefix, type)
             print(fs_str)
 
+    def _verify_prefix(self, prefix):
+        # TODO percy throw exception
+        if prefix in self.file_systems:
+            # TODO percy improve this one add the fs type so we can raise a nice exeption
+            raise Exception('Fail add fs')
 
-class BlazingContext:
+
+class BlazingContext(SQL, FileSystem):
 
     # connection (string) can be the unix socket path or the tcp host:port
     def __init__(self, connection):
-        self.connection = connection
+        FileSystem.__init__(self)
+        SQL.__init__(self)
 
-        # TODO percy fs and sql can be python modules instead of classes
-        self.fs = FileSystem()
-        self.sql = SQL()
+        self.connection = connection
+        self.client = _get_client_internal(connection, 8890)
 
     def __repr__(self):
         return "BlazingContext('%s')" % (self.connection)
@@ -191,6 +201,8 @@ class BlazingContext:
         return self.connection
 
 
-def make_context(connection):
+def make_context():
+    # TODO percy we hardcode here becouse we know current ral has hardcoded this
+    connection = '/tmp/orchestrator.socket'
     bc = BlazingContext(connection)
     return bc

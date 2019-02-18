@@ -616,9 +616,10 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
 
     return client
 
-__orchestrator_ip = '/tmp/orchestrator.socket'
-__orchestrator_port = 8890
-__blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
+# NOTE percy the client instance should belong in context
+#__orchestrator_ip = '/tmp/orchestrator.socket'
+#__orchestrator_port = 8890
+#__blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
 def _get_client():
     return __blazing__global_client
