@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from enum import Enum
 
-from pyblazing import _get_client_internal
+import pyblazing
 
 
 class S3(Enum):
@@ -120,10 +120,10 @@ class FileSystem(object):
     def __str__(self):
         pass
 
-    def hdfs(self, prefix, **kwargs):
+    def hdfs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
 
-        # TODO percy check prefix is unique
+        root = kwargs.get('root', '/')
 
         host = kwargs.get('host', '127.0.0.1')
         port = kwargs.get('port', 8020)
@@ -137,16 +137,15 @@ class FileSystem(object):
         fs['user'] = user
         fs['kerberos_ticket'] = kerberos_ticket
 
-        self.file_systems[prefix] = fs
-
-        # TODO percy connect here with low level api
+        # TODO percy manage exceptions here ?
+        self._register_hdfs(client, prefix, root, fs)
 
         return fs
 
-    def s3(self, prefix, **kwargs):
+    def s3(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
 
-        # TODO percy check prefix is unique
+        root = kwargs.get('root', '/')
 
         bucket_name = kwargs.get('bucket_name', '')
         access_key_id = kwargs.get('access_key_id', '')
@@ -183,22 +182,50 @@ class FileSystem(object):
             # TODO percy improve this one add the fs type so we can raise a nice exeption
             raise Exception('Fail add fs')
 
+    def _register_hdfs(self, client, prefix, root, fs):
+        fs_status = pyblazing.register_file_system(
+            client,
+            authority = prefix,
+            type = pyblazing.FileSystemType.HDFS,
+            root = root,
+            params = {
+                'host': fs['host'],
+                'port': fs['port'],
+                'user': fs['user'],
+                'driverType': pyblazing.DriverType.LIBHDFS3,
+                'kerberosTicket': fs['kerberos_ticket']
+            }
+        )
 
-class BlazingContext(SQL, FileSystem):
+        if fs_status != 1:
+            # TODO percy better error  message
+            raise Exception("coud not register the hdfs")
+
+        self.file_systems[prefix] = fs
+
+
+class BlazingContext(object):
 
     # connection (string) can be the unix socket path or the tcp host:port
     def __init__(self, connection):
-        FileSystem.__init__(self)
-        SQL.__init__(self)
-
         self.connection = connection
-        self.client = _get_client_internal(connection, 8890)
+        self.client = pyblazing._get_client_internal(connection, 8890)
+        self.fs = FileSystem()
 
     def __repr__(self):
         return "BlazingContext('%s')" % (self.connection)
 
     def __str__(self):
         return self.connection
+
+    def hdfs(self, prefix, **kwargs):
+        return self.fs.hdfs(self.client, prefix, **kwargs)
+
+    def s3(self, prefix, **kwargs):
+        return self.fs.s3(self.client, prefix, kwargs)
+
+    def show_filesystems(self):
+        self.fs.show()
 
 
 def make_context():

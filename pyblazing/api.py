@@ -620,9 +620,9 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
 #__orchestrator_ip = '/tmp/orchestrator.socket'
 #__orchestrator_port = 8890
 #__blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
-
-def _get_client():
-    return __blazing__global_client
+#
+#def _get_client():
+#    return __blazing__global_client
 
 
 from librmm_cffi import librmm as rmm
@@ -914,10 +914,9 @@ def register_table_schema(table_name, **kwargs):
     return schema
 
 
-def register_file_system(authority, type, root, params = None):
+def register_file_system(client, authority, type, root, params = None):
     if params is not None:
         params = namedtuple("FileSystemConnection", params.keys())(*params.values())
-    client = _get_client()
     schema = FileSystemRegisterRequestSchema(authority, root, type, params)
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.RegisterFileSystem,
                                        client.accessToken,
@@ -928,9 +927,8 @@ def register_file_system(authority, type, root, params = None):
         raise Error(ResponseErrorSchema.From(response.payload).errors)
     return response.status
 
-def deregister_file_system(authority):
+def deregister_file_system(client, authority):
     schema = FileSystemDeregisterRequestSchema(authority)
-    client = _get_client()
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.DeregisterFileSystem,
                                        client.accessToken,
                                        schema)
