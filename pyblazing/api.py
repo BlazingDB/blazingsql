@@ -131,11 +131,11 @@ def run_query(sql, tables):
     """
     return _private_run_query(sql, tables)
 
-def run_query_get_token(sql, tables):
-    return _run_query_get_token(sql, tables)
+def run_query_get_token(client, sql, tables):
+    return _run_query_get_token(client, sql, tables)
 
-def run_query_get_results(metaToken):
-    return _run_query_get_results(metaToken)
+def run_query_get_results(client, metaToken):
+    return _run_query_get_results(client, metaToken)
 
 def run_query_pandas(sql, tables):
     """
@@ -681,8 +681,7 @@ def columnview_from_devary(data_devary, mask_devary, dtype=None):
                mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
                null_count=0)
 
-def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
-    client = _get_client()
+def _private_get_result(client, resultToken, interpreter_path, interpreter_port, calciteTime):
 
     #print(interpreter_path)
     #print(interpreter_port)
@@ -719,9 +718,8 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     resultSet.columns = gdf
     return resultSet, ipchandles
 
-def _run_query_get_token(sql, tables):
+def _run_query_get_token(client, sql, tables):
     startTime = time.time()
-    client = _get_client()
     try:
         for table, gdf in tables.items():
             _reset_table(client, table, gdf)
@@ -743,9 +741,9 @@ def _run_query_get_token(sql, tables):
     
     return None
 
-def _run_query_get_results(metaToken):
+def _run_query_get_results(client, metaToken):
     try:
-        resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+        resultSet, ipchandles = _private_get_result(client, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
         totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
     except SyntaxError as error:
         raise error
@@ -754,10 +752,10 @@ def _run_query_get_results(metaToken):
     return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
     return return_result
 
-def _private_run_query(sql, tables):
+def _private_run_query(client, sql, tables):
 
     try:
-        metaToken = _run_query_get_token(sql, tables)
+        metaToken = _run_query_get_token(client, sql, tables)
         return _run_query_get_results(metaToken)
     except SyntaxError as error:
         raise error
@@ -869,42 +867,40 @@ class TableSchema:
 
 # TODO complete API docs
 # WARNING EXPERIMENTAL
-def read_csv_table_from_filesystem(table_name, schema):
+def read_csv_table_from_filesystem(client, table_name, schema):
     print('create csv table')
-    client = _get_client()
 
     resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
     resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
     return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
 
 
-def read_parquet_table_from_filesystem(table_name, schema):
+def read_parquet_table_from_filesystem(client, table_name, schema):
     print('create parquet table')
-    client = _get_client()
 
     resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
     resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
     return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
 
 
-def create_table(table_name, **kwargs):
+def create_table(client, table_name, **kwargs):
     schema = TableSchema(**kwargs)
     return_result = None
     if schema.schema_type == SchemaFrom.CsvFile:  # csv
-        return_result = read_csv_table_from_filesystem(table_name, schema)
+        return_result = read_csv_table_from_filesystem(client, table_name, schema)
     elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
-        return_result = read_parquet_table_from_filesystem(table_name, schema)
+        return_result = read_parquet_table_from_filesystem(client, table_name, schema)
     return_result.name = table_name
     return return_result
 
 
-def register_table_schema(table_name, **kwargs):
+def register_table_schema(client, table_name, **kwargs):
     schema = TableSchema(**kwargs)
     return_result = None
     if schema.schema_type == SchemaFrom.CsvFile:  # csv
-        return_result = read_csv_table_from_filesystem(table_name, schema)
+        return_result = read_csv_table_from_filesystem(client, table_name, schema)
     elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
-        return_result = read_parquet_table_from_filesystem(table_name, schema)
+        return_result = read_parquet_table_from_filesystem(client, table_name, schema)
 
     schema.set_table_name(table_name)
     col_names, types = _get_table_def_from_gdf(return_result.columns)
@@ -960,10 +956,8 @@ def _sql_data_to_table_group(sql_data):
     tableGroup['tables'] = blazing_tables
     return tableGroup
 
-def run_query_filesystem(sql, sql_data):
+def run_query_filesystem(client, sql, sql_data):
     startTime = time.time()
-
-    client = _get_client()
 
     for schema, files in sql_data.items():
         _reset_table(client, schema.table_name, schema.gdf)
