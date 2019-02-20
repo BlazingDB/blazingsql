@@ -1,5 +1,6 @@
 import unittest
 
+import pyblazing
 from pyblazing.apiv2 import sql
 from pyblazing.apiv2 import datasource
 
@@ -10,6 +11,10 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
     def setUp(self):
         self.sql = sql.SQL()
+
+        # TODO percy check this we needto use mocks
+        connection = '/tmp/orchestrator.socket'
+        self.client = pyblazing._get_client_internal(connection, 8890)
 
     def test_simple(self):
         cudf_df = DataFrame()
@@ -25,11 +30,13 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
         print("PRINTTTTTT TABLE DATASOURCES")
         print(table)
-        
-        print("RUN QUERYYYYYYYYY")
-        
-        self.run_query()
 
+        print("RUN QUERYYYYYYYYY")
+
+        result = self.sql.run_query(self.client, "select * from main.holas", ['holas'])
+        now = result.get()
+
+        print(now)
 
 
 if __name__ == '__main__':

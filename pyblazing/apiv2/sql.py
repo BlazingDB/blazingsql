@@ -3,12 +3,19 @@ from collections import OrderedDict
 import pyblazing
 
 
+# TODO we need to deal here with this metatokens stuff and many rals
 # Maintains the resulset and the token after the run_query
 class ResultSet:
 
+    def __init__(self, client, metaToken):
+        self.client = client
+        self.metaToken = metaToken
+
     # this will call the get_result api
     def get(self):
-        pass
+        temp = pyblazing.run_query_get_results(self.client, self.metaToken)
+
+        return temp
 
     # TODO see Rodriugo proposal for interesting actions/operations here
 
@@ -49,15 +56,15 @@ class SQL(object):
     # TODO percy think about William proposal, launch, token split and distribution use case
     # table_names is an array of strings
     # return result obj ... by default is async
-    def run_query(self, sql, table_names):
-        rs = ResultSet()
-
+    def run_query(self, client, sql, table_names):
         tables = {}
-        
-        for table_name in table_names:
-            tables[]
 
-        metaToken = pyblazing.run_query_get_token(sql, tables)
+        for table_name in table_names:
+            tables[table_name] = self.tables[table_name].dataframe()
+
+        metaToken = pyblazing.run_query_get_token(client, sql, tables)
+
+        rs = ResultSet(client, metaToken)
 
         # TODO percy
         return rs
