@@ -3,8 +3,8 @@ from enum import Enum
 
 import pyblazing
 
-from filesystem import FileSystem
-from sql import SQL
+from .filesystem import FileSystem
+from .sql import SQL
 
 
 class BlazingContext(object):
