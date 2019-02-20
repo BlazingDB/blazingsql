@@ -16,7 +16,7 @@ class ResultSet:
 class SQL(object):
 
     def __init__(self):
-        pass
+        self.tables = OrderedDict()
 
     # TODO percy
     def create_database(self, database_name):
@@ -24,7 +24,11 @@ class SQL(object):
 
     # ds is the DataSource object
     def create_table(self, table_name, datasource):
-        pass
+        self._verify_table_name(table_name)
+
+        # TODO verify cuda ipc ownership or reuse resources here
+
+        self.tables[table_name] = datasource
 
     # TODO percy this is to save materialized tables avoid reading from the data source
     def create_view(self, view_name, sql):
@@ -43,8 +47,24 @@ class SQL(object):
         pass
 
     # TODO percy think about William proposal, launch, token split and distribution use case
+    # table_names is an array of strings
     # return result obj ... by default is async
-    def run_query(self, sql, async_opts = 'TODO'):
+    def run_query(self, sql, table_names):
         rs = ResultSet()
+
+        tables = {}
+        
+        for table_name in table_names:
+            tables[]
+
+        metaToken = pyblazing.run_query_get_token(sql, tables)
+
         # TODO percy
         return rs
+
+    def _verify_table_name(self, table_name):
+        # TODO percy throw exception
+        if table_name in self.tables:
+            # TODO percy improve this one add the fs type so we can raise a nice exeption
+            raise Exception('Fail add table_name already exists')
+

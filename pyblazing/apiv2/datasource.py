@@ -1,5 +1,4 @@
 from enum import IntEnum
-from __builtin__ import None
 
 
 class Type(IntEnum):
@@ -46,6 +45,10 @@ class DataSource:
     # parquet file on filesystem
     def is_parquet(self):
         return self.type == Type.parquet
+
+    def dataframe(self):
+        # TODO percy add more support
+        return self.cudf_df
 
     def _load(self, type, **kwargs):
         if type == Type.cudf:
