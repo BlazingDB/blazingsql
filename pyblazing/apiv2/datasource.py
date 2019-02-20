@@ -113,15 +113,15 @@ class DataSource:
 
 
 def from_cudf(cudf_df):
-    pass
+    return DataSource(Type.cudf, cudf_df = cudf_df)
 
 
 def from_pandas(pandas_df):
-    pass
+    return DataSource(Type.pandas, pandas_df = pandas_df)
 
 
 def from_arrow(arrow_table):
-    pass
+    return DataSource(Type.arrow, arrow_table = arrow_table)
 
 
 # path (with wildcard support) is file system transparent
