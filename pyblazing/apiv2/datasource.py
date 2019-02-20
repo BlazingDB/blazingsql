@@ -1,4 +1,5 @@
 from enum import IntEnum
+from __builtin__ import None
 
 
 class Type(IntEnum):
@@ -11,51 +12,115 @@ class Type(IntEnum):
 
 class DataSource:
 
-    def __init__(self, path, filetype, **kwargs):
-        self.path = path
-        self.filetype = filetype
-        self.is_valid = self._load()
+    def __init__(self, type, **kwargs):
+        self.type = type
+
+        # declare all the possible fields (will be defined in _load)
+        self.cudf_df = None
+        self.pandas_df = None
+        self.arrow_table = None
+        self.path = None
+
+        # init the data source
+        self.valid = self._load(type, **kwargs)
 
     def is_valid(self):
-        return self.is_valid
+        return self.valid
 
     # cudf.DataFrame in-gpu-memory
     def is_cudf(self):
-        return self.filetype == FileType.cudf
+        return self.type == Type.cudf
 
     # pandas.DataFrame in-memory
     def is_pandas(self):
-        return self.filetype == FileType.pandas
+        return self.type == Type.pandas
 
     # arrow file on filesystem or arrow in-memory
     def is_arrow(self):
-        return self.filetype == FileType.arrow
+        return self.type == Type.arrow
 
     # csv file on filesystem
     def is_csv(self):
-        return self.filetype == FileType.csv
+        return self.type == Type.csv
 
     # parquet file on filesystem
     def is_parquet(self):
-        return self.filetype == FileType.parquet
+        return self.type == Type.parquet
 
-    def _load(self, **kwargs):
+    def _load(self, type, **kwargs):
+        if type == Type.cudf:
+            cudf_df = kwargs.get('cudf_df', None)
+            return self._load_cudf_df(cudf_df)
+        elif type == Type.pandas:
+            pandas_df = kwargs.get('pandas_df', None)
+            return self._load_cudf_df(pandas_df)
+        elif type == Type.arrow:
+            arrow_table = kwargs.get('arrow_table', None)
+            return self._load_arrow_table(arrow_table)
+        elif type == Type.csv:
+            self.path = kwargs.get('path', None)
+
+            pass
+        elif type == Type.parquet:
+            self.path = kwargs.get('path', None)
+
+            pass
+        else:
+            # TODO percy manage errors
+            raise Exception("invalid datasource type")
+
         # TODO percy compare against bz proto Status_Success or Status_Error
         # here we need to use low level api pyblazing.create_table
-        return True
+        return False
+
+    def _load_cudf_df(self, cudf_df):
+        # TODO percy manage datasource load errors
+        if cudf_df == None:
+            return False
+
+        self.cudf_df = cudf_df
+
+        # TODO percy see if we need to perform sanity check for cudf_df object
+        self.valid = True
+
+        return self.valid
+
+    def _load_pandas_df(self, pandas_df):
+        # TODO percy manage datasource load errors
+        if pandas_df == None:
+            return False
+
+        self.pandas_df = pandas_df
+
+        # TODO percy see if we need to perform sanity check for pandas_df object
+        self.valid = True
+
+        return self.valid
+
+    def _load_arrow_table(self, arrow_table):
+        # TODO percy manage datasource load errors
+        if arrow_table == None:
+            return False
+
+        self.arrow_table = arrow_table
+
+        # TODO percy see if we need to perform sanity check for arrow_table object
+        self.valid = True
+
+        return self.valid
 
 # BEGIN DataSource builders
 
 
-def from_cudf():
+def from_cudf(cudf_df):
     pass
 
 
-def from_pandas():
+def from_pandas(pandas_df):
     pass
 
 
-def from_arrow():
+def from_arrow(arrow_table):
     pass
 
 
