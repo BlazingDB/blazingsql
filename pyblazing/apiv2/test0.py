@@ -1,7 +1,4 @@
-from components import make_context
-from components import from_csv
-from components import from_parquet
-from components import from_dir
+from apiv2 import make_context
 
 ###  API usage ###
 
