@@ -69,6 +69,38 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
         print(now)
 
+    def test_simple_csv(self):
+        # TODO this is ugly ... seems ds concept se mete en el camino
+
+        table_name = 'holas_csv'
+        path = '/home/percy/Blazing/TPCH/files_50mb/nation.tbl'
+        column_names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment']
+        column_types = [3, 4, 3, 4]
+        delimiter = '|'
+        skip_rows = 0
+
+        ds = datasource.from_csv(
+            self.client,
+            table_name,
+            path,
+            column_names,
+            column_types,
+            delimiter,
+            skip_rows
+        )
+
+        table = self.sql.create_table(table_name, ds)
+
+        print("PRINTTTTTT TABLE CCCCCCCCCCCCCCCCSSSSSSSSSSVVVVVVVVVVVVVVVV DATASOURCE")
+        print(table)
+
+        print("RUN CCCCCCCSSSSVVVV QUERYYYYYYYYY")
+
+        result = self.sql.run_query(self.client, "select * from main.holas_csv", [table_name])
+        now = result.get()
+
+        print(now)
+
 
 if __name__ == '__main__':
     unittest.main()
