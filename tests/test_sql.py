@@ -4,6 +4,9 @@ import pyblazing
 from pyblazing.apiv2 import sql
 from pyblazing.apiv2 import datasource
 
+from pyblazing import DriverType, FileSystemType, EncryptionType
+from pyblazing import SchemaFrom
+
 from cudf import DataFrame
 
 
@@ -15,6 +18,16 @@ class TestCreateTableFromGDF(unittest.TestCase):
         # TODO percy check this we needto use mocks
         connection = '/tmp/orchestrator.socket'
         self.client = pyblazing._get_client_internal(connection, 8890)
+
+        # TODO clean this stuff
+
+        print('*** Register a POSIX File System ***')
+        fs_status = pyblazing.register_file_system(
+            self.client,
+            authority = "tpch",
+            type = FileSystemType.POSIX,
+            root = "/"
+        )
 
     def test_simple_cudf(self):
         cudf_df = DataFrame()
