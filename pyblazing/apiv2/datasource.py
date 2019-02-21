@@ -248,15 +248,15 @@ class DataSource:
 
 
 def from_cudf(cudf_df):
-    return DataSource(Type.cudf, cudf_df = cudf_df)
+    return DataSource(None, Type.cudf, cudf_df = cudf_df)
 
 
 def from_pandas(pandas_df):
-    return DataSource(Type.pandas, pandas_df = pandas_df)
+    return DataSource(None, Type.pandas, pandas_df = pandas_df)
 
 
 def from_arrow(arrow_table):
-    return DataSource(Type.arrow, arrow_table = arrow_table)
+    return DataSource(None, Type.arrow, arrow_table = arrow_table)
 
 
 def from_csv(client, table_name, path, column_names, column_types, delimiter, skip_rows):
