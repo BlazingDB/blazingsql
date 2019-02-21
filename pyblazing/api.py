@@ -871,7 +871,7 @@ def read_csv_table_from_filesystem(client, table_name, schema):
     print('create csv table')
 
     resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+    resultSet, ipchandles = _private_get_result(client, resultToken, interpreter_path, interpreter_port, 0)
     return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
 
 
@@ -879,7 +879,7 @@ def read_parquet_table_from_filesystem(client, table_name, schema):
     print('create parquet table')
 
     resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+    resultSet, ipchandles = _private_get_result(client, resultToken, interpreter_path, interpreter_port, 0)
     return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
 
 
