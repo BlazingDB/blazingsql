@@ -37,6 +37,13 @@ class SQL(object):
 
         self.tables[table_name] = datasource
 
+        # TODO percy create table result
+        output = OrderedDict()
+        output['name'] = table_name
+        output['datasource'] = str(datasource)
+
+        return str(output)
+
     # TODO percy this is to save materialized tables avoid reading from the data source
     def create_view(self, view_name, sql):
         pass

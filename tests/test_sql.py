@@ -28,7 +28,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
         print("PRINTTTTTT RAWWWWWWW")
         print(cudf_df)
 
-        print("PRINTTTTTT TABLE DATASOURCES")
+        print("PRINTTTTTT TABLE DATASOURCE")
         print(table)
 
         print("RUN QUERYYYYYYYYY")
