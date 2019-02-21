@@ -52,16 +52,16 @@ class TestCreateTableFromGDF(unittest.TestCase):
         # TODO this is ugly ... seems ds concept se mete en el camino
         table_name = 'holas_parquet'
 
-        ds = datasource.from_parquet(self.client, table_name, '/home/percy/Blazing/Parquet/tpch-1gb/nation/0_0_0.parquet')
+        ds = datasource.from_parquet(self.context.client, table_name, '/home/percy/Blazing/Parquet/tpch-1gb/nation/0_0_0.parquet')
 
-        table = self.sql.create_table(table_name, ds)
+        table = self.context.create_table(table_name, ds)
 
         print("PRINTTTTTT TABLE PARQUETTT DATASOURCE")
         print(table)
 
         print("RUN PARQUETTTTT QUERYYYYYYYYY")
 
-        result = self.sql.run_query(self.client, "select * from main.holas_parquet", [table_name])
+        result = self.context.run_query("select * from main.holas_parquet", [table_name])
         now = result.get()
 
         print(now)
@@ -77,7 +77,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
         skip_rows = 0
 
         ds = datasource.from_csv(
-            self.client,
+            self.context.client,
             table_name,
             path,
             column_names,
@@ -86,14 +86,14 @@ class TestCreateTableFromGDF(unittest.TestCase):
             skip_rows
         )
 
-        table = self.sql.create_table(table_name, ds)
+        table = self.context.create_table(table_name, ds)
 
         print("PRINTTTTTT TABLE CCCCCCCCCCCCCCCCSSSSSSSSSSVVVVVVVVVVVVVVVV DATASOURCE")
         print(table)
 
         print("RUN CCCCCCCSSSSVVVV QUERYYYYYYYYY")
 
-        result = self.sql.run_query(self.client, "select * from main.holas_csv", [table_name])
+        result = self.run_query("select * from main.holas_csv", [table_name])
         now = result.get()
 
         print(now)
