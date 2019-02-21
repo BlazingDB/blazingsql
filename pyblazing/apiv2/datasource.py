@@ -3,6 +3,42 @@ from enum import IntEnum
 import pyblazing
 from pyblazing import SchemaFrom
 
+# TODO BIG TODO percy blazing-io didn't expose the wildcard API of FileSystem API
+
+
+# TODO percy fix this we need to define a unify type system for pyblazing
+def get_dtype_values(dtypes):
+    values = []
+
+    def gdf_type(type_name):
+        dicc = {
+            'str': libgdf.GDF_STRING,
+            'date': libgdf.GDF_DATE64,
+            'date64': libgdf.GDF_DATE64,
+            'date32': libgdf.GDF_DATE32,
+            'timestamp': libgdf.GDF_TIMESTAMP,
+            'category': libgdf.GDF_CATEGORY,
+            'float': libgdf.GDF_FLOAT32,
+            'double': libgdf.GDF_FLOAT64,
+            'float32': libgdf.GDF_FLOAT32,
+            'float64': libgdf.GDF_FLOAT64,
+            'short': libgdf.GDF_INT16,
+            'long': libgdf.GDF_INT64,
+            'int': libgdf.GDF_INT32,
+            'int32': libgdf.GDF_INT32,
+            'int64': libgdf.GDF_INT64,
+        }
+        if dicc.get(type_name):
+            return dicc[type_name]
+        return libgdf.GDF_INT64
+
+    for key in dtypes:
+        values.append(gdf_type(dtypes[key]))
+
+    print('>>>> dtyps for', dtypes.values())
+    print(values)
+    return values
+
 
 class Type(IntEnum):
     cudf = 0
@@ -97,7 +133,11 @@ class DataSource:
         elif type == Type.csv:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
-            return self._load_csv(table_name, path)
+            column_names = kwargs.get('column_names', None)
+            column_types = kwargs.get('column_types', None)
+            delimiter = kwargs.get('delimiter', '|')
+            skip_rows = kwargs.get('skip_rows', 0)
+            return self._load_csv(table_name, path, column_names, column_types, delimiter, skip_rows)
         elif type == Type.parquet:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
@@ -146,9 +186,36 @@ class DataSource:
 
         return self.valid
 
-    def _load_csv(self, table_name, path):
-        # TODO percy
-        pass
+    def _load_csv(self, table_name, path, column_names, column_types, delimiter, skip_rows):
+        # TODO percy manage datasource load errors
+        if path == None:
+            return False
+
+        self.path = path
+
+        print("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+
+        table = pyblazing.create_table(
+            self.client,
+            table_name = table_name,
+            type = SchemaFrom.CsvFile,
+            path = path,
+            delimiter = delimiter,
+            names = column_names,
+            dtypes = column_types,
+            skip_rows = skip_rows
+        )
+
+        print(table)
+
+        print("EENDDDDDDDDDDDDDDDD")
+
+        self.parquet = table
+
+        # TODO percy see if we need to perform sanity check for arrow_table object
+        self.valid = True
+
+        return self.valid
 
     def _load_parquet(self, table_name, path):
         # TODO percy manage datasource load errors
@@ -192,9 +259,15 @@ def from_arrow(arrow_table):
     return DataSource(Type.arrow, arrow_table = arrow_table)
 
 
-# TODO percy path (with wildcard support) is file system transparent
-def from_csv(client, table_name, path):
-    return DataSource(client, Type.csv, table_name = table_name, path = path)
+def from_csv(client, table_name, path, column_names, column_types, delimiter, skip_rows):
+    return DataSource(client, Type.csv,
+        table_name = table_name,
+        path = path,
+        column_names = column_names,
+        column_types = column_types,
+        delimiter = delimiter,
+        skip_rows = skip_rows
+    )
 
 
 # TODO percy path (with wildcard support) is file system transparent
