@@ -74,11 +74,12 @@ class DataSource:
 
     def dataframe(self):
         # TODO percy add more support
-        if type == Type.cudf:
+
+        if self.type == Type.cudf:
             return self.cudf_df
-        elif type == Type.csv:
+        elif self.type == Type.csv:
             return self.csv.columns
-        elif type == Type.parquet:
+        elif self.type == Type.parquet:
             return self.parquet.columns
 
         return None
@@ -156,12 +157,18 @@ class DataSource:
 
         self.path = path
 
+        print("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+
         table = pyblazing.create_table(
             self.client,
             table_name = table_name,
             type = SchemaFrom.ParquetFile,
             path = path
         )
+
+        print(table)
+
+        print("EENDDDDDDDDDDDDDDDD")
 
         self.parquet = table
 
