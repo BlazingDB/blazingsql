@@ -43,8 +43,8 @@ class BlazingContext(object):
     def drop_table(self, table_name):
         return self.sql.drop_table(table_name)
 
-    def run_query(self, sql, async_opts = 'TODO'):
-        return self.sql.run_query(sql, async_opts)
+    def run_query(self, sql, table_names):
+        return self.sql.run_query(self.client, sql, table_names)
 
     # END SQL interface
 
