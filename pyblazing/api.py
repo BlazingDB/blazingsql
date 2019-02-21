@@ -90,16 +90,17 @@ handle = %(handle)s
 client = %(client)s
 calciteTime = %(calciteTime)d
 ralTime = %(ralTime)d
-totalTime = %(totalTime)d''' % {
+totalTime = %(totalTime)d
+error_message = %(error_message)s''' % {
         'columns': self.columns,
         'resultToken': self.resultToken,
         'interpreter_path': self.interpreter_path,
         'interpreter_port': self.interpreter_port,
         'handle': self.handle,
         'client': self.client,
-        'calciteTime' : self.calciteTime,
-        'ralTime' : self.ralTime,
-        'totalTime' : self.totalTime,
+        'calciteTime' : self.calciteTime if self.calciteTime is not None else 0,
+        'ralTime' : self.ralTime if self.ralTime is not None else 0,
+        'totalTime' : self.totalTime if self.totalTime is not None else 0,
         'error_message' : self.error_message,
       })
 
@@ -548,16 +549,14 @@ def gdf_column_type_to_str(dtype):
 
 
 def _get_table_def_from_gdf(gdf):
-    cols = gdf.columns.values.tolist() ## todo las propiedades, solo una columna!
-
-    # TODO find a way to print only for debug mode (add verbose arg)
-    # print(cols)
-
+    
+    colNames = []
     types = []
-    for key, column in gdf._cols.items():
+    for colName, column in gdf._cols.items():
         dtype = column._column.cffi_view.dtype
+        colNames.append(colName)
         types.append(gdf_column_type_to_str(dtype))
-    return cols, types
+    return colNames, types
 
 
 def _reset_table(client, table, gdf):
@@ -919,7 +918,6 @@ def read_csv_table_from_filesystem(table_name, schema):
         resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
         resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
 
-        return ResultSetHandle(None, None, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, '')
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -973,6 +971,8 @@ def register_table_schema(table_name, **kwargs):
         return_result = read_csv_table_from_filesystem(table_name, schema)
     elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
         return_result = read_parquet_table_from_filesystem(table_name, schema)
+    else:
+        print("ERROR: unknown schema type")
 
     schema.set_table_name(table_name)
     col_names, types = _get_table_def_from_gdf(return_result.columns)
@@ -1063,5 +1063,5 @@ def run_query_filesystem(sql, sql_data):
     if error_message is not '':
         print(error_message)
 
-    return ResultSetHandle(None, None, resultToken, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
-                                    resultSet.metadata.time, totalTime, error_message)
+    return ResultSetHandle(None, None, None, None, None, None, None, None,
+                                    None, None, error_message)
