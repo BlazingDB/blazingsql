@@ -918,6 +918,8 @@ def read_csv_table_from_filesystem(table_name, schema):
         resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
         resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
 
+        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -928,7 +930,7 @@ def read_csv_table_from_filesystem(table_name, schema):
     if error_message is not '':
         print(error_message)
 
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+    return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)    
 
 
 def read_parquet_table_from_filesystem(table_name, schema):
@@ -940,6 +942,9 @@ def read_parquet_table_from_filesystem(table_name, schema):
 
         resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
         resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+
+        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -950,7 +955,9 @@ def read_parquet_table_from_filesystem(table_name, schema):
     if error_message is not '':
         print(error_message)
 
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+    return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)
+
+    
 
 
 def create_table(table_name, **kwargs):
