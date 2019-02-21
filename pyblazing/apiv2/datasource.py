@@ -23,6 +23,25 @@ class DataSource:
         # init the data source
         self.valid = self._load(type, **kwargs)
 
+    def __repr__(self):
+        return "TODO"
+
+    def __str__(self):
+        if self.valid == False:
+            return 'Invalid datasource'
+
+        type_str = {
+            Type.cudf: 'cudf',
+            Type.pandas: 'pandas',
+            Type.arrow: 'arrow',
+            Type.csv: 'csv',
+            Type.parquet: 'parquet'
+        }
+
+        # TODO percy path and stuff
+
+        return type_str[self.type]
+
     def is_valid(self):
         return self.valid
 
