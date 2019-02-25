@@ -712,8 +712,14 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     for i, c in enumerate(resultSet.columns):
         if c.size != 0 :
             assert len(c.data) == 64
-            ipch_data, data_ptr = _open_ipc_array(
-                c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+            if c.dtype == libgdf.GDF_DATE32:
+                c.dtype = libgdf.GDF_INT32
+                ipch_data, data_ptr = _open_ipc_array(
+                    c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+                c.dtype = libgdf.GDF_DATE64
+            else:
+                ipch_data, data_ptr = _open_ipc_array(
+                    c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
             ipchandles.append(ipch_data)
 
             valid_ptr = None

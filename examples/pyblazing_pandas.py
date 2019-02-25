@@ -41,3 +41,18 @@ result_gdf = pyblazing.run_query(sql, tables)
 print(sql)
 print(result_gdf)
 
+
+
+column_names = ['l_orderkey', 'l_receiptdate']
+column_types = ['int64', 'date']
+lineitem_gdf = cudf.read_csv("data/lineitem.psv", delimiter='|', dtype=column_types, names=column_names)
+
+print (lineitem_gdf)
+
+tables = {'nation': nation_gdf, 'region': region_gdf, 'lineitem': lineitem_gdf}
+
+sql = "select EXTRACT(YEAR FROM l_receiptdate) from main.lineitem"
+result_gdf = pyblazing.run_query(sql, tables)
+
+print(sql)
+print(result_gdf)
