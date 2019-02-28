@@ -5,6 +5,7 @@ import pyblazing
 
 from .filesystem import FileSystem
 from .sql import SQL
+from SocketServer import ForkingTCPServer
 
 
 class BlazingContext(object):
@@ -43,10 +44,49 @@ class BlazingContext(object):
     def drop_table(self, table_name):
         return self.sql.drop_table(table_name)
 
-    def run_query(self, sql, table_names):
+    # async
+    def run_query(self, sql, table_names = []):
         return self.sql.run_query(self.client, sql, table_names)
 
     # END SQL interface
+
+# fowrod/future
+result = context.run_query("asdasdd", [...])
+  - so we are hiding concepts like token
+
+# TODO
+#result.pass_owner()
+#result.define_column_onersehe()
+
+# TODO more doc for this case
+gdf_content = result.get() ...start fechting content
+  - manage the ipc 
+
+Action Item:
+- calcite catalog proper use
+- define what specif objet u get from resul.get()
+  - result.status (True/False)
+  - result.colums/etc (cover non-distribution uses cases)
+  - ...
+- workflow using the conmsumttion of distrubion reseult sets
+  - simulate rdd: previews (remote/local)
+    - head
+    - foot
+  - result.get uses cases and implications
+    - dask integration
+
+
+gtc (I need to be align: expentations)
+  - non-distribution (backend one api?)
+    - demo: net flow demo (single node/single gpu) <--
+      - multiple files ... 
+    - getting starting with sql <--
+
+  - distribution (new api?)
+    - query many rals using the different gpus from dgx-2
+    - dask stuff  
+
+
 
 
 def make_context():
