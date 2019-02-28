@@ -10,7 +10,7 @@ print(bc)
 bc.hdfs('my_fs4', host = '34.73.46.231', port = 54310)
 
 # bc.fs.s3('datastore', bucket_name = 'public_demo', access_key_id = 'ASDD', secret_key = 'SDFG')
-# bc.fs.hdfs('prod_fs', host = '127.0.0.1', port = 54310)
+bc.fs.hdfs('prod_fs', host = '127.0.0.1', port = 54310)
 # bc.fs.show()  # print all the file systems
 #
 # # create table using blazing-io: from_x seems ok
@@ -29,10 +29,21 @@ bc.hdfs('my_fs4', host = '34.73.46.231', port = 54310)
 #
 # #on-memory datasources: sin from_
 # bc.sql.table('customers', from_gdf(gdf))
-# bc.sql.table('customers', from_arrow(arrow))
+
+bc.table('customers', from_parquet('hdfs://asdsda/here/'))
+
+- hacky way:
+  - run_query without tables ... at the end if empty send all the tables
+  - high level regiester can get many files (parquet) but cheat underthehood (pick the 1st one)
+  - parse the path and pass our new decorated path (with wildcard) 
+- directory level with opts
+- support too wildcards
+
+bc.run('adsd asdsad', ['hdfs://asdsda/here/1.parquet, hdfs://asdsda/here/2.parquet'])
+
 #
 # # run query (async by default)
-# result1 = bc.sql.run_query('select * from orders where foo', ["orders"])
+result1 = bc.sql.run_query('select * from orders where foo')
 # result2 = bc.sql.run_query('select * from lineitem, miserablesfb where blah', ["lineitem"])
 #
 # # resultset operations (get() will call get result under the hood)
