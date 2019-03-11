@@ -151,8 +151,9 @@ class DataSource:
 
     def _load_cudf_df(self, cudf_df):
         # TODO percy manage datasource load errors
-        if cudf_df == None:
-            return False
+        # TODO unsupported cudf.df comparation with none
+        #if cudf_df == None:
+        #    return False
 
         self.cudf_df = cudf_df
 
