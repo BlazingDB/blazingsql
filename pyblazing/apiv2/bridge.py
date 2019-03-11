@@ -23,5 +23,13 @@ class internal_api:
         return pyblazing.register_file_system(authority, type, root, params)
 
     @staticmethod
-    def register_table_schema(client, table_name, **kwargs):
-        return pyblazing.register_table_schema(table_name, **kwargs)
+    def create_table(client, table_name, **kwargs):
+        return pyblazing.create_table(table_name, **kwargs)
+
+    @staticmethod
+    def run_query_get_token(client, sql, tables):
+        return pyblazing.run_query_get_token(sql, tables)
+
+    @staticmethod
+    def run_query_get_results(client, metaToken):
+        return pyblazing.run_query_get_results(metaToken)

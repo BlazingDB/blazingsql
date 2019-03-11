@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-import pyblazing
+from .bridge import internal_api
 
 
 # TODO we need to deal here with this metatokens stuff and many rals
@@ -13,7 +13,7 @@ class ResultSet:
 
     # this will call the get_result api
     def get(self):
-        temp = pyblazing.run_query_get_results(self.client, self.metaToken)
+        temp = internal_api.run_query_get_results(self.client, self.metaToken)
 
         return temp
 
@@ -40,9 +40,9 @@ class SQL(object):
         # TODO percy create table result
         output = OrderedDict()
         output['name'] = table_name
-        output['datasource'] = str(datasource)
+        output['datasource'] = datasource
 
-        return str(output)
+        return output
 
     # TODO percy this is to save materialized tables avoid reading from the data source
     def create_view(self, view_name, sql):
@@ -69,7 +69,7 @@ class SQL(object):
         for table_name in table_names:
             tables[table_name] = self.tables[table_name].dataframe()
 
-        metaToken = pyblazing.run_query_get_token(client, sql, tables)
+        metaToken = internal_api.run_query_get_token(client, sql, tables)
 
         rs = ResultSet(client, metaToken)
 
