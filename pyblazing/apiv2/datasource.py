@@ -1,5 +1,6 @@
 from enum import IntEnum
 
+from libgdf_cffi import ffi, libgdf
 import cudf
 
 from .bridge import internal_api
@@ -33,10 +34,13 @@ def get_dtype_values(dtypes):
             return dicc[type_name]
         return libgdf.GDF_INT64
 
-    for key in dtypes:
-        values.append(gdf_type(dtypes[key]))
+    # for key in dtypes:
+    #    values.append(gdf_type(dtypes[key]))
 
-    print('>>>> dtyps for', dtypes.values())
+    for i in range(0, len(dtypes)):
+        values.append(gdf_type(dtypes[i]))
+
+    print('------------------------------------>>>> dtyps for', dtypes)
     print(values)
     return values
 
@@ -136,11 +140,18 @@ class DataSource:
         elif type == Type.csv:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
-            column_names = kwargs.get('column_names', None)
-            column_types = kwargs.get('column_types', None)
-            delimiter = kwargs.get('delimiter', '|')
-            skip_rows = kwargs.get('skip_rows', 0)
-            return self._load_csv(table_name, path, column_names, column_types, delimiter, skip_rows)
+            csv_column_names = kwargs.get('csv_column_names', [])
+            csv_column_types = kwargs.get('csv_column_types', [])
+
+            print("LOSTIPOSSSSSSSSSSSSSSSSSSSS: " + str(csv_column_types))
+
+            csv_delimiter = kwargs.get('csv_delimiter', '|')
+            csv_skip_rows = kwargs.get('csv_skip_rows', 0)
+            return self._load_csv(table_name, path,
+                csv_column_names,
+                csv_column_types,
+                csv_delimiter,
+                csv_skip_rows)
         elif type == Type.parquet:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
@@ -187,7 +198,7 @@ class DataSource:
             path = path,
             delimiter = delimiter,
             names = column_names,
-            dtypes = column_types,
+            dtypes = get_dtype_values(column_types),
             skip_rows = skip_rows
         )
 
@@ -248,10 +259,10 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, sk
     return DataSource(client, Type.csv,
         table_name = table_name,
         path = path,
-        column_names = column_names,
-        column_types = column_types,
-        delimiter = delimiter,
-        skip_rows = skip_rows
+        csv_column_names = column_names,
+        csv_column_types = column_types,
+        csv_delimiter = delimiter,
+        csv_skip_rows = skip_rows
     )
 
 
