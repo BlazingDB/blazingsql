@@ -1,9 +1,7 @@
 from collections import OrderedDict
 from enum import Enum
 
-import pyblazing
-
-S3EncryptionType = pyblazing.EncryptionType
+from .bridge import internal_api
 
 
 class FileSystem(object):
@@ -21,6 +19,19 @@ class FileSystem(object):
             prefix = fs['prefix']
             fs_str = '%s (%s)' % (prefix, type)
             print(fs_str)
+
+    def localfs(self, client, prefix, **kwargs):
+        self._verify_prefix(prefix)
+
+        root = kwargs.get('root', '/')
+
+        fs = OrderedDict()
+        fs['type'] = 'local'
+
+        # TODO percy manage exceptions here ?
+        self._register_localfs(client, prefix, root, fs)
+
+        return fs
 
     def hdfs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -53,7 +64,7 @@ class FileSystem(object):
         access_key_id = kwargs.get('access_key_id', '')
         secret_key = kwargs.get('secret_key', '')
         session_token = kwargs.get('session_token', '')
-        encryption_type = kwargs.get('encryption_type', S3EncryptionType.NONE)
+        encryption_type = kwargs.get('encryption_type', internal_api.S3EncryptionType.NONE)
         kms_key_amazon_resource_name = kwargs.get('kms_key_amazon_resource_name', '')
 
         fs = OrderedDict()
@@ -76,28 +87,38 @@ class FileSystem(object):
             # TODO percy improve this one add the fs type so we can raise a nice exeption
             raise Exception('Fail add fs')
 
-    def _register_hdfs(self, client, prefix, root, fs):
-        fs_status = pyblazing.register_file_system(
+    def _register_localfs(self, client, prefix, root, fs):
+        fs_status = internal_api.register_file_system(
             client,
             authority = prefix,
-            type = pyblazing.FileSystemType.HDFS,
+            type = internal_api.FileSystemType.POSIX,
+            root = root
+        )
+
+        self._verify_filesystem(prefix, fs, fs_status)
+
+    def _register_hdfs(self, client, prefix, root, fs):
+        fs_status = internal_api.register_file_system(
+            client,
+            authority = prefix,
+            type = internal_api.FileSystemType.HDFS,
             root = root,
             params = {
                 'host': fs['host'],
                 'port': fs['port'],
                 'user': fs['user'],
-                'driverType': pyblazing.DriverType.LIBHDFS3,
+                'driverType': internal_api.DriverType.LIBHDFS3,
                 'kerberosTicket': fs['kerberos_ticket']
             }
         )
 
-        self._verify_filesystem(fs, fs_status)
+        self._verify_filesystem(prefix, fs, fs_status)
 
     def _register_s3(self, client, prefix, root, fs):
-        fs_status = pyblazing.register_file_system(
+        fs_status = internal_api.register_file_system(
             client,
             authority = prefix,
-            type = FileSystemType.S3,
+            type = internal_api.FileSystemType.S3,
             root = root,
             params = {
                 "bucketName": fs['bucket_name'],
@@ -109,9 +130,9 @@ class FileSystem(object):
             }
         )
 
-        self._verify_filesystem(fs, fs_status)
+        self._verify_filesystem(prefix, fs, fs_status)
 
-    def _verify_filesystem(self, fs, fs_status):
+    def _verify_filesystem(self, prefix, fs, fs_status):
         if fs_status != 1:
             # TODO percy better error  message
             raise Exception("coud not register the s3")
