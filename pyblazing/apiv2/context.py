@@ -1,10 +1,19 @@
 from collections import OrderedDict
 from enum import Enum
 
+import cudf
+import pandas
+import pyarrow
+
 from .bridge import internal_api
 
 from .filesystem import FileSystem
 from .sql import SQL
+from .datasource import from_cudf
+from .datasource import from_pandas
+from .datasource import from_arrow
+from .datasource import from_csv
+from .datasource import from_parquet
 
 
 class BlazingContext(object):
@@ -40,7 +49,16 @@ class BlazingContext(object):
 
     # BEGIN SQL interface
 
-    def create_table(self, table_name, datasource):
+    def create_table(self, table_name, input):
+        datasource = None
+
+        if type(input) == cudf.DataFrame:
+            datasource = from_cudf(input)
+        elif type(input) == pandas.DataFrame:
+            datasource = from_pandas(input)
+        elif type(input) == pyarrow.Table:
+            datasource = from_arrow(input)
+
         return self.sql.create_table(table_name, datasource)
 
     def drop_table(self, table_name):
