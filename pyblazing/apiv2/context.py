@@ -1,5 +1,7 @@
 from collections import OrderedDict
 from enum import Enum
+from urllib.parse import urlparse
+from pathlib import PurePath
 
 import cudf
 import pandas
@@ -49,7 +51,7 @@ class BlazingContext(object):
 
     # BEGIN SQL interface
 
-    def create_table(self, table_name, input):
+    def create_table(self, table_name, input, **kwargs):
         datasource = None
 
         if type(input) == cudf.DataFrame:
@@ -58,8 +60,34 @@ class BlazingContext(object):
             datasource = from_pandas(input)
         elif type(input) == pyarrow.Table:
             datasource = from_arrow(input)
+        elif type(input) == str:
+            uri = urlparse(input)
+            path = PurePath(uri.path)
 
-        return self.sql.create_table(table_name, datasource)
+            if path.suffix == '.parquet':
+                datasource = from_parquet(self.client, table_name, str(path))
+            elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
+                # TODO percy duplicated code bud itnernal api desing remove this later
+                csv_column_names = kwargs.get('csv_column_names', [])
+                csv_column_types = kwargs.get('csv_column_types', [])
+                csv_delimiter = kwargs.get('csv_delimiter', '|')
+                csv_skip_rows = kwargs.get('csv_skip_rows', 0)
+
+                datasource = from_csv(self.client, table_name, str(path),
+                    csv_column_names,
+                    csv_column_types,
+                    csv_delimiter,
+                    csv_skip_rows)
+
+            # TODO percy dir
+
+        self.sql.create_table(table_name, datasource)
+
+        # table = self.context.create_table(table_name, ds)
+
+        # TODO percy raise exption here or manage the error
+
+        return None
 
     def drop_table(self, table_name):
         return self.sql.drop_table(table_name)

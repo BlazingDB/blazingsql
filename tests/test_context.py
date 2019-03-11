@@ -79,9 +79,10 @@ class TestCreateTableFromGDF(unittest.TestCase):
         # TODO this is ugly ... seems ds concept se mete en el camino
         table_name = 'holas_parquet'
 
-        ds = datasource.from_parquet(self.context.client, table_name, '/home/percy/Blazing/Parquet/tpch-1gb/nation/0_0_0.parquet')
+        # ds = datasource.from_parquet(self.context.client, table_name, '/home/percy/Blazing/Parquet/tpch-1gb/nation/0_0_0.parquet')
+        # table = self.context.create_table(table_name, ds)
 
-        table = self.context.create_table(table_name, ds)
+        table = self.context.create_table(table_name, '/home/percy/Blazing/Parquet/tpch-1gb/nation/0_0_0.parquet')
 
         print("PRINTTTTTT TABLE PARQUETTT DATASOURCE")
         print(table)
@@ -94,26 +95,30 @@ class TestCreateTableFromGDF(unittest.TestCase):
         print(now)
 
     def test_simple_csv(self):
-        # TODO this is ugly ... seems ds concept se mete en el camino
-
         table_name = 'holas_csv'
         path = '/home/percy/Blazing/TPCH/files_50mb/nation.tbl'
-        column_names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment']
-        column_types = [3, 4, 3, 4]
-        delimiter = '|'
-        skip_rows = 0
 
-        ds = datasource.from_csv(
-            self.context.client,
-            table_name,
-            path,
-            column_names,
-            column_types,
-            delimiter,
-            skip_rows
+        # csv_column_names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment']
+        # csv_column_types = [3, 4, 3, 4]
+        # csv_delimiter = '|'
+        # csv_skip_rows = 0
+        # ds = datasource.from_csv(
+        #    self.context.client,
+        #    table_name,
+        #    path,
+        #    column_names,
+        #    column_types,
+        #    delimiter,
+        #    skip_rows
+        # )
+        # table = self.context.create_table(table_name, ds)
+
+        table = self.context.create_table(table_name, path,
+            csv_column_names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment'],
+            csv_column_types = ['int', 'int64', 'int', 'int64'],  # TODO percy support string later use int64 for now
+            csv_delimiter = '|',
+            csv_skip_rows = 0
         )
-
-        table = self.context.create_table(table_name, ds)
 
         print("PRINTTTTTT TABLE CCCCCCCCCCCCCCCCSSSSSSSSSSVVVVVVVVVVVVVVVV DATASOURCE")
         print(table)
