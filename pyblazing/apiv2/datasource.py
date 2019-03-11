@@ -194,9 +194,9 @@ class DataSource:
 
         print("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
 
-        table = internal_api.register_table_schema(
+        table = internal_api.create_table(
             self.client,
-            table_name = table_name,
+            table_name,
             type = internal_api.SchemaFrom.CsvFile,
             path = path,
             delimiter = delimiter,
@@ -225,9 +225,9 @@ class DataSource:
 
         print("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
 
-        table = internal_api.register_table_schema(
+        table = internal_api.create_table(
             self.client,
-            table_name = table_name,
+            table_name,
             type = internal_api.SchemaFrom.ParquetFile,
             path = path
         )

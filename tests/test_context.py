@@ -80,7 +80,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
         print("RUN CCCCCCCSSSSVVVV QUERYYYYYYYYY")
 
-        result = self.run_query("select * from main.holas_csv", [table_name])
+        result = self.context.run_query("select * from main.holas_csv", [table_name])
         now = result.get()
 
         print(now)
