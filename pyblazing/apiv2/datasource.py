@@ -1,7 +1,6 @@
 from enum import IntEnum
 
-import pyblazing
-from pyblazing import SchemaFrom
+from .bridge import internal_api
 
 # TODO BIG TODO percy blazing-io didn't expose the wildcard API of FileSystem API
 
@@ -195,10 +194,10 @@ class DataSource:
 
         print("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
 
-        table = pyblazing.create_table(
+        table = internal_api.register_table_schema(
             self.client,
             table_name = table_name,
-            type = SchemaFrom.CsvFile,
+            type = internal_api.SchemaFrom.CsvFile,
             path = path,
             delimiter = delimiter,
             names = column_names,
@@ -226,10 +225,10 @@ class DataSource:
 
         print("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
 
-        table = pyblazing.create_table(
+        table = internal_api.register_table_schema(
             self.client,
             table_name = table_name,
-            type = SchemaFrom.ParquetFile,
+            type = internal_api.SchemaFrom.ParquetFile,
             path = path
         )
 

@@ -1,11 +1,7 @@
 import unittest
 
-import pyblazing
 from pyblazing.apiv2 import context
 from pyblazing.apiv2 import datasource
-
-from pyblazing import DriverType, FileSystemType, EncryptionType
-from pyblazing import SchemaFrom
 
 from cudf import DataFrame
 
@@ -15,16 +11,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
     def setUp(self):
         # TODO percy check this we needto use mocks
         self.context = context.make_context()
-
-        # TODO clean this stuff
-
-        print('*** Register a POSIX File System ***')
-        fs_status = pyblazing.register_file_system(
-            self.context.client,
-            authority = "tpch",
-            type = FileSystemType.POSIX,
-            root = "/"
-        )
+        self.context.localfs("tpch")
 
     def test_simple_cudf(self):
         cudf_df = DataFrame()
