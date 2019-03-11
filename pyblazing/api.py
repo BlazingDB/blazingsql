@@ -720,7 +720,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                 # todo: remove this when C gdf struct is replaced by pyarrow object
                 #  is this workaround  only for python object?
                 # yes. it is!. Because RAL only knowns the column_token.
-                data_ptr.dtype = np.datetime64
+                
             else:
                 ipch_data, data_ptr = _open_ipc_array(
                     c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
