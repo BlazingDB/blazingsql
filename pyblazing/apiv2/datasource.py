@@ -1,5 +1,7 @@
 from enum import IntEnum
 
+import cudf
+
 from .bridge import internal_api
 
 # TODO BIG TODO percy blazing-io didn't expose the wildcard API of FileSystem API
@@ -55,9 +57,7 @@ class DataSource:
         self.type = type
 
         # declare all the possible fields (will be defined in _load)
-        self.cudf_df = None
-        self.pandas_df = None
-        self.arrow_table = None
+        self.cudf_df = None  # cudf, pandas and arrow data will be passed/converted into this var
         self.csv = None
         self.parquet = None
         self.path = None
@@ -112,6 +112,10 @@ class DataSource:
 
         if self.type == Type.cudf:
             return self.cudf_df
+        elif self.type == Type.pandas:
+            return self.cudf_df
+        elif self.type == Type.arrow:
+            return self.cudf_df
         elif self.type == Type.csv:
             return self.csv.columns
         elif self.type == Type.parquet:
@@ -150,11 +154,6 @@ class DataSource:
         return False
 
     def _load_cudf_df(self, cudf_df):
-        # TODO percy manage datasource load errors
-        # TODO unsupported cudf.df comparation with none
-        #if cudf_df == None:
-        #    return False
-
         self.cudf_df = cudf_df
 
         # TODO percy see if we need to perform sanity check for cudf_df object
@@ -163,28 +162,14 @@ class DataSource:
         return self.valid
 
     def _load_pandas_df(self, pandas_df):
-        # TODO percy manage datasource load errors
-        if pandas_df == None:
-            return False
+        cudf_df = cudf.DataFrame.from_pandas(pandas_df)
 
-        self.pandas_df = pandas_df
-
-        # TODO percy see if we need to perform sanity check for pandas_df object
-        self.valid = True
-
-        return self.valid
+        return self._load_cudf_df(cudf_df)
 
     def _load_arrow_table(self, arrow_table):
-        # TODO percy manage datasource load errors
-        if arrow_table == None:
-            return False
+        pandas_df = arrow_table.to_pandas()
 
-        self.arrow_table = arrow_table
-
-        # TODO percy see if we need to perform sanity check for arrow_table object
-        self.valid = True
-
-        return self.valid
+        return self._load_pandas_df(pandas_df)
 
     def _load_csv(self, table_name, path, column_names, column_types, delimiter, skip_rows):
         # TODO percy manage datasource load errors
