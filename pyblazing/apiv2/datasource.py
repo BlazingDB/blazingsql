@@ -51,6 +51,7 @@ class Type(IntEnum):
     arrow = 2
     csv = 3
     parquet = 4
+    result_set = 5
 
 
 class DataSource:
@@ -81,7 +82,8 @@ class DataSource:
             Type.pandas: 'pandas',
             Type.arrow: 'arrow',
             Type.csv: 'csv',
-            Type.parquet: 'parquet'
+            Type.parquet: 'parquet',
+            Type.result_set: 'result_set'
         }
 
         # TODO percy path and stuff
@@ -111,6 +113,13 @@ class DataSource:
     def is_parquet(self):
         return self.type == Type.parquet
 
+    # blazing result set handle
+    def is_result_set(self):
+        return self.type == Type.result_set
+
+    def is_from_file(self):
+        return self.type == Type.parquet or self.type == Type.csv
+
     def dataframe(self):
         # TODO percy add more support
 
@@ -119,6 +128,8 @@ class DataSource:
         elif self.type == Type.pandas:
             return self.cudf_df
         elif self.type == Type.arrow:
+            return self.cudf_df
+        elif self.type == Type.result_set:
             return self.cudf_df
         elif self.type == Type.csv:
             return self.csv.columns
@@ -137,14 +148,14 @@ class DataSource:
         elif type == Type.arrow:
             arrow_table = kwargs.get('arrow_table', None)
             return self._load_arrow_table(arrow_table)
+        elif type == Type.result_set:
+            result_set = kwargs.get('result_set', None)
+            return self._load_result_set(result_set)
         elif type == Type.csv:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
             csv_column_names = kwargs.get('csv_column_names', [])
             csv_column_types = kwargs.get('csv_column_types', [])
-
-            print("LOSTIPOSSSSSSSSSSSSSSSSSSSS: " + str(csv_column_types))
-
             csv_delimiter = kwargs.get('csv_delimiter', '|')
             csv_skip_rows = kwargs.get('csv_skip_rows', 0)
             return self._load_csv(table_name, path,
@@ -182,14 +193,18 @@ class DataSource:
 
         return self._load_pandas_df(pandas_df)
 
+    def _load_result_set(self,result_set):
+        cudf_df = result_set.columns
+
+        return self._load_cudf_df(cudf_df)
+
+
     def _load_csv(self, table_name, path, column_names, column_types, delimiter, skip_rows):
         # TODO percy manage datasource load errors
         if path == None:
             return False
 
         self.path = path
-
-        print("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
 
         table = internal_api.create_table(
             self.client,
@@ -202,11 +217,7 @@ class DataSource:
             skip_rows = skip_rows
         )
 
-        print(table)
-
-        print("EENDDDDDDDDDDDDDDDD")
-
-        self.parquet = table
+        self.csv = table
 
         # TODO percy see if we need to perform sanity check for arrow_table object
         self.valid = True
@@ -220,18 +231,12 @@ class DataSource:
 
         self.path = path
 
-        print("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-
         table = internal_api.create_table(
             self.client,
             table_name,
             type = internal_api.SchemaFrom.ParquetFile,
             path = path
         )
-
-        print(table)
-
-        print("EENDDDDDDDDDDDDDDDD")
 
         self.parquet = table
 
@@ -253,6 +258,9 @@ def from_pandas(pandas_df):
 
 def from_arrow(arrow_table):
     return DataSource(None, Type.arrow, arrow_table = arrow_table)
+
+def from_result_set(result_set):
+    return DataSource(None, Type.result_set, result_set = result_set)
 
 
 def from_csv(client, table_name, path, column_names, column_types, delimiter, skip_rows):

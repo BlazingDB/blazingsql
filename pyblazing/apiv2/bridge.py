@@ -12,6 +12,8 @@ class internal_api:
     S3EncryptionType = pyblazing.EncryptionType
     FileSystemType = pyblazing.FileSystemType
 
+    ResultSetHandle = pyblazing.ResultSetHandle
+
     # Function/Method wrappers
 
     _get_client_internal = pyblazing._get_client_internal
