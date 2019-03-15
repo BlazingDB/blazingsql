@@ -37,12 +37,12 @@ class SQL(object):
 
         self.tables[table_name] = datasource
 
-        # TODO percy create table result
-        output = OrderedDict()
-        output['name'] = table_name
-        output['datasource'] = datasource
+        # # TODO percy create table result
+        # output = OrderedDict()
+        # output['name'] = table_name
+        # output['datasource'] = datasource
 
-        return output
+        # return output
 
     # TODO percy this is to save materialized tables avoid reading from the data source
     def create_view(self, view_name, sql):
@@ -54,7 +54,8 @@ class SQL(object):
 
     # TODO percy drops should be here but this will be later (see Felipe proposal free)
     def drop_table(self, table_name):
-        pass
+        if table_name in self.tables:
+            del self.tables[table_name]
 
     # TODO percy
     def drop_view(self, view_name):
@@ -66,15 +67,38 @@ class SQL(object):
     def run_query(self, client, sql, table_names):
         tables = {}
 
+        # lets see if we use run_query_filesystem or run_query.
+        # TODO change this when we can mix input types
+        all_from_file = True
+        all_not_from_file = True
         for table_name in table_names:
-            tables[table_name] = self.tables[table_name].dataframe()
+            all_from_file = all_from_file and self.tables[table_name].is_from_file()
+            all_not_from_file = all_not_from_file and not self.tables[table_name].is_from_file()
+        
+        if all_from_file:
+            for table_name in table_names:
+                tables[table_name] = self.tables[table_name].dataframe()
 
-        metaToken = internal_api.run_query_get_token(client, sql, tables)
+            metaToken = internal_api.run_query_get_token(client, sql, tables)
 
-        rs = ResultSet(client, metaToken)
+            rs = ResultSet(client, metaToken)
 
-        # TODO percy
-        return rs
+            # TODO percy
+            return rs
+        elif all_not_from_file:
+            for table_name in table_names:
+                tables[table_name] = self.tables[table_name].dataframe()
+
+            metaToken = internal_api.run_query_get_token(client, sql, tables)
+
+            rs = ResultSet(client, metaToken)
+
+            # TODO percy
+            return rs
+        else:
+            raise Exception('All tables either have to come from files or not from files. Sorry. We will support the mixed case soon.')
+
+        
 
     def _verify_table_name(self, table_name):
         # TODO percy throw exception

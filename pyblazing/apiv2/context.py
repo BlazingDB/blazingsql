@@ -16,7 +16,8 @@ from .datasource import from_pandas
 from .datasource import from_arrow
 from .datasource import from_csv
 from .datasource import from_parquet
-
+from .datasource import from_result_set
+import time
 
 class BlazingContext(object):
 
@@ -26,7 +27,7 @@ class BlazingContext(object):
         self.client = internal_api._get_client_internal(connection, 8890)
         self.fs = FileSystem()
         self.sql = SQL()
-
+        
     def __repr__(self):
         return "BlazingContext('%s')" % (self.connection)
 
@@ -60,6 +61,8 @@ class BlazingContext(object):
             datasource = from_pandas(input)
         elif type(input) == pyarrow.Table:
             datasource = from_arrow(input)
+        elif type(input) == internal_api.ResultSetHandle:
+            datasource = from_result_set(input)
         elif type(input) == str:
             uri = urlparse(input)
             path = PurePath(uri.path)
@@ -78,6 +81,8 @@ class BlazingContext(object):
                     csv_column_types,
                     csv_delimiter,
                     csv_skip_rows)
+        else :
+            raise Exception("Unknown data type " + str(type(input)) + " when creating table")
 
             # TODO percy dir
 

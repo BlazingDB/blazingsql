@@ -13,3 +13,4 @@ from .api import create_table
 #from .api import run_query_arrow
 
 from .api import _get_client_internal
+from .api import ResultSetHandle
