@@ -19,6 +19,7 @@ from .datasource import from_parquet
 from .datasource import from_result_set
 import time
 
+
 class BlazingContext(object):
 
     # connection (string) can be the unix socket path or the tcp host:port
@@ -29,11 +30,12 @@ class BlazingContext(object):
         self.sql = SQL()
 
     def __del__(self):
-        del self.sql
-        del self.fs
-        del self.client
+        # TODO percy clean next time
+        # del self.sql
+        # del self.fs
+        # del self.client
+        pass
 
-        
     def __repr__(self):
         return "BlazingContext('%s')" % (self.connection)
 
