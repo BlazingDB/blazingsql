@@ -24,7 +24,7 @@ class BlazingContext(object):
     # connection (string) can be the unix socket path or the tcp host:port
     def __init__(self, connection):
         self.connection = connection
-        self.client = internal_api.__blazing__global_client
+        self.client = internal_api._get_client
         self.fs = FileSystem()
         self.sql = SQL()
 

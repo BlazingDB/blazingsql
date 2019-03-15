@@ -16,9 +16,7 @@ class internal_api:
 
     # Function/Method wrappers
 
-    _get_client_internal = pyblazing._get_client_internal
-
-    __blazing__global_client = pyblazing.__blazing__global_client
+    _get_client = pyblazing._get_client
 
     # Decorators
 
