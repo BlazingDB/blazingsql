@@ -25,6 +25,11 @@ class SQL(object):
     def __init__(self):
         self.tables = OrderedDict()
 
+    def __del__(self):
+        all_table_names = list(self.tables.keys())
+        for table_name in all_table_names:
+            self.drop_table(table_name)
+
     # TODO percy
     def create_database(self, database_name):
         pass
