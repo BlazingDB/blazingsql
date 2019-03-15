@@ -14,3 +14,4 @@ from .api import create_table
 
 from .api import _get_client_internal
 from .api import ResultSetHandle
+from .api import __blazing__global_client

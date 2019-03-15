@@ -18,6 +18,8 @@ class internal_api:
 
     _get_client_internal = pyblazing._get_client_internal
 
+    __blazing__global_client = pyblazing.__blazing__global_client
+
     # Decorators
 
     @staticmethod
