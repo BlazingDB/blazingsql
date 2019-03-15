@@ -27,6 +27,12 @@ class BlazingContext(object):
         self.client = internal_api._get_client_internal(connection, 8890)
         self.fs = FileSystem()
         self.sql = SQL()
+
+    def __del__(self):
+        del self.sql
+        del self.fs
+        del self.client
+
         
     def __repr__(self):
         return "BlazingContext('%s')" % (self.connection)

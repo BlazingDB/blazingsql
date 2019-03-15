@@ -225,6 +225,7 @@ class PyConnector:
 
     def __del__(self):
         try:
+            print("CLOSING CONNECTION")
             self.close_connection()
         except:
             print("Can't close connection, probably it was lost")
