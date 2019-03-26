@@ -729,7 +729,17 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                 gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
             else:
                 gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
-
+        else:
+            if c.dtype == libgdf.GDF_DATE32:
+                c.dtype = libgdf.GDF_INT32
+                
+            dtype=_gdf.gdf_to_np_dtype(c.dtype)
+            if (dtype == np.dtype('datetime64[ms]')):
+                gdf_columns.append(DatetimeColumn(data=Buffer.null(dtype), dtype=dtype))
+            else:
+                gdf_columns.append(NumericalColumn(data=Buffer.null(dtype), dtype=dtype))
+            
+    
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
         assert k != ""
