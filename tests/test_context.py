@@ -16,6 +16,10 @@ class TestCreateTableFromGDF(unittest.TestCase):
         # self.context.hdfs("percyfs", server="asdasd.com", port = 3424)
         # self.context.hdfs("datawares", server="asdasd.com", port = 3421)
 
+    def register_hdfs_connection(self):
+        fs = self.context.hdfs("percyfs", server="localhost", port = 54310, user="why")
+        print(fs)
+
     def test_simple_cudf(self):
         cudf_df = DataFrame()
         cudf_df['key'] = [1, 2, 3, 4, 5]
