@@ -512,8 +512,11 @@ def get_ipc_handle_for_data(column, dataframe_column):
     if hasattr(dataframe_column, 'columnToken'):
         return None
     else:
-       ipch = dataframe_column._column._data.mem.get_ipc_handle()
-       return bytes(ipch._ipc_handle.handle)
+        if dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY:
+            return None
+        else:
+            ipch = dataframe_column._column._data.mem.get_ipc_handle()
+            return bytes(ipch._ipc_handle.handle)
 
 def get_ipc_handle_for_valid(column, dataframe_column):
 
@@ -523,6 +526,15 @@ def get_ipc_handle_for_valid(column, dataframe_column):
        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
        return bytes(ipch._ipc_handle.handle)
 
+def get_ipc_handle_for_custring_views(column, dataframe_column):
+
+    if hasattr(dataframe_column, 'columnToken'):
+        return None
+    else:
+        ipch = None
+        return ipch
+        # ipch = dataframe_column._column._mask.mem.get_ipc_handle()
+        # return bytes(ipch._ipc_handle.handle)
 
 def gdf_column_type_to_str(dtype):
     str_dtype = {
@@ -538,11 +550,12 @@ def gdf_column_type_to_str(dtype):
         9: 'GDF_TIMESTAMP',
         10: 'GDF_CATEGORY',
         11: 'GDF_STRING',
-        12: 'GDF_UINT8',
-        13: 'GDF_UINT16',
-        14: 'GDF_UINT32',
-        15: 'GDF_UINT64',
-        16: 'N_GDF_TYPES'
+        12: 'GDF_STRING_CATEGORY',
+        13: 'GDF_UINT8',
+        14: 'GDF_UINT16',
+        15: 'GDF_UINT32',
+        16: 'GDF_UINT64',
+        17: 'N_GDF_TYPES'
     }
 
     return str_dtype[dtype]
@@ -590,13 +603,18 @@ def _to_table_group(tables):
 
             data_ipch = get_ipc_handle_for_data(column, dataframe_column)
             valid_ipch = None
+            custrings_views_ipch = None
 
             if (null_count > 0):
                 valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
 
+            if numerical_column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY:
+                custrings_views_ipch = get_ipc_handle_for_custring_views(column, dataframe_column)
+
             blazing_column = {
                 'data': data_ipch,
                 'valid': valid_ipch,
+                'custrings_views': custrings_views_ipch,
                 'size': data_sz,
                 'dtype': dtype,
                 'null_count': null_count,
@@ -697,7 +715,7 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
 def columnview_from_devary(data_devary, mask_devary, dtype=None):
     return _gdf._columnview(size=data_devary.size,  data=_gdf.unwrap_devary(data_devary),
                mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
-               null_count=0)
+               null_count=0, nvcat=None)
 
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
