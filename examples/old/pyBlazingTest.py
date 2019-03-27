@@ -17,7 +17,7 @@ def main():
   nation_columnTypes = ["GDF_INT32", "GDF_INT64", "GDF_INT8", "GDF_INT64"]  # libgdf style types
   nation_filepath = dataFolder + "nation.tbl"
   nation_columnTypes = ["int32", "int64", "int32", "int64"]  # pygdf/pandas style types
-  nation_gdf = cudf.read_csv(nation_filepath, delimiter='|', dtype=nation_columnTypes, names=nation_columnNames)
+  # nation_gdf = cudf.read_csv(nation_filepath, delimiter='|', dtype=nation_columnTypes, names=nation_columnNames)
   # print(nation_gdf)
   
   region_tableName = "region"
@@ -25,14 +25,14 @@ def main():
   region_columnTypes = ["GDF_INT32", "GDF_INT64", "GDF_INT64"]  # libgdf style types
   region_filepath = dataFolder + "region.tbl"
   region_columnTypes = ["int32", "int64", "int64"]  # pygdf/pandas style types
-  region_gdf = cudf.read_csv(region_filepath, delimiter='|', dtype=region_columnTypes, names=region_columnNames)
+  # region_gdf = cudf.read_csv(region_filepath, delimiter='|', dtype=region_columnTypes, names=region_columnNames)
 
-  # names_nation = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment']
-  # dtypes_nation = [3, 4, 3, 4]
+  names_nation = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment']
+  dtypes_nation = [3, 4, 3, 4]
     
-  # nation_table = pyblazing.register_table_schema(table_name='nation_csv', type=pyblazing.SchemaFrom.CsvFile, path=dataFolder + 'nation_0_0.psv', delimiter='|', dtypes=dtypes_nation, names=names_nation)
-  # result_gdf = pyblazing.run_query_filesystem('select n_regionkey + 3 from main.nation_csv', {nation_table: [dataFolder + 'nation_0_0.psv']})
-  # print(result_gdf.columns)
+  nation_table = pyblazing.register_table_schema(table_name='nation_csv', type=pyblazing.SchemaFrom.CsvFile, path=dataFolder + 'nation.tbl', delimiter='|', dtypes=dtypes_nation, names=names_nation)
+  result_gdf = pyblazing.run_query_filesystem('select n_regionkey + 3 from main.nation_csv', {nation_table: [dataFolder + 'nation.tbl']})
+  print(result_gdf.columns)
 
   # orders_tableName = "orders"
   # orders_columnNames = ["o_orderkey", "o_custkey", "o_orderstatus","o_totalprice", "o_orderdate", "o_orderpriority","o_clerk", "o_shippriority", "o_comment"]
@@ -43,13 +43,15 @@ def main():
   # orders_columnTypes = ["int64", "int32", "int64", "float", "int32", "int64", "int64", "int64", "int64"]  # pygdf/pandas style types
   # orders_gdf = cudf.read_csv(orders_filepath, delimiter='|', dtype=orders_columnTypes, names=orders_columnNames)
 
-  # region_schema = pyblazing.register_table_schema(table_name='region', type=pyblazing.SchemaFrom.ParquetFile, path=parquetFolder + 'region_0_0.parquet')
-  # tables = {region_schema: [parquetFolder + 'region_0_0.parquet']}
-  # result_gdf = pyblazing.run_query_filesystem('select r_regionkey + 3 from main.region', tables)
-  # print(result_gdf.columns)
+  region_schema = pyblazing.register_table_schema(table_name='region', type=pyblazing.SchemaFrom.ParquetFile, path=parquetFolder + 'region_0_0.parquet')
+  tables = {region_schema: [parquetFolder + 'region_0_0.parquet']}
+  result_gdf = pyblazing.run_query_filesystem('select r_regionkey + 3 from main.region', tables)
+  print(result_gdf.columns)
 
-  # lineitem_schema = pyblazing.register_table_schema(table_name='lineitem', type=pyblazing.SchemaFrom.ParquetFile, path=parquetFolder + 'lineitem_0_0.parquet')
-  # print(lineitem_schema.column_types)
+  lineitem_schema = pyblazing.register_table_schema(table_name='lineitem', type=pyblazing.SchemaFrom.ParquetFile, path= '/home/william/repos/DataSets/large_lineitem/lineitem_0_0.parquet')
+  tables = {lineitem_schema: ['/home/william/repos/DataSets/large_lineitem/lineitem_0_0.parquet', '/home/william/repos/DataSets/large_lineitem/lineitem_0_0 (copy).parquet']}
+  result_gdf = pyblazing.run_query_filesystem('select count(l_linenumber) from main.lineitem', tables)
+  print(result_gdf.columns)
 
   # orders_schema = pyblazing.register_table_schema(table_name='orders', type=pyblazing.SchemaFrom.ParquetFile, path=parquetFolder + 'orders_0_0.parquet')
   # print(dir(orders_schema))
@@ -83,18 +85,18 @@ def main():
   # result = pyblazing.run_query(sql, tables)
   # print(result.columns) 
 
-  sql = "select n1.n_regionkey, n1.n_nationkey, n2.n_nationkey from main.nation as n1 full outer join main.nation as n2 on n1.n_nationkey = n2.n_nationkey + 6 where n1.n_regionkey < 2"
-  tables = {nation_tableName: nation_gdf}  
-  result = pyblazing.run_query(sql, tables)
-  print(result.columns)
+  # sql = "select n1.n_regionkey, n1.n_nationkey, n2.n_nationkey from main.nation as n1 full outer join main.nation as n2 on n1.n_nationkey = n2.n_nationkey + 6 where n1.n_regionkey < 2"
+  # tables = {nation_tableName: nation_gdf}  
+  # result = pyblazing.run_query(sql, tables)
+  # print(result.columns)
 
-  sql = "select n1.n_regionkey, sum(n1.n_nationkey) as s1, min(n1.n_nationkey) as m1, sum(n2.n_nationkey) as s2, min(n2.n_nationkey) as m2, count(*) as cstar from main.nation as n1 full outer join main.nation as n2 on n1.n_nationkey = n2.n_nationkey + 6 where n1.n_regionkey < 2 group by n1.n_regionkey "
+  # sql = "select n1.n_regionkey, sum(n1.n_nationkey) as s1, min(n1.n_nationkey) as m1, sum(n2.n_nationkey) as s2, min(n2.n_nationkey) as m2, count(*) as cstar from main.nation as n1 full outer join main.nation as n2 on n1.n_nationkey = n2.n_nationkey + 6 where n1.n_regionkey < 2 group by n1.n_regionkey "
   # # sql = "select n1.n_nationkey as n1key, n2.n_nationkey + 1000 as n2key, n1.n_nationkey + n2.n_nationkey from main.nation as n1 full outer join main.nation as n2 on n1.n_nationkey = n2.n_nationkey + 6"\
   # # sql = "select n1.n_nationkey + n2.n_nationkey from main.nation as n1 inner join main.nation as n2 on n1.n_nationkey = n2.n_nationkey"
   # # sql = "select n_nationkey + n_regionkey from main.nation "
-  tables = {nation_tableName: nation_gdf}  
-  result = pyblazing.run_query(sql, tables)
-  print(result.columns)
+  # tables = {nation_tableName: nation_gdf}  
+  # result = pyblazing.run_query(sql, tables)
+  # print(result.columns)
 
   # tables2 = {"mytable": result.columns}  
   # result2 = pyblazing.run_query("select * from main.mytable", tables)
