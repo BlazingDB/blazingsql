@@ -13,8 +13,8 @@ class TestCreateTableFromGDF(unittest.TestCase):
         # TODO percy check this we needto use mocks
         self.context = context.make_context()
         self.context.localfs("tpch")
-        self.context.hdfs("percyfs", server="asdasd.com", port = 3424)
-        self.context.hdfs("datawares", server="asdasd.com", port = 3421)
+        # self.context.hdfs("percyfs", server="asdasd.com", port = 3424)
+        # self.context.hdfs("datawares", server="asdasd.com", port = 3421)
 
     def test_simple_cudf(self):
         cudf_df = DataFrame()
@@ -22,7 +22,19 @@ class TestCreateTableFromGDF(unittest.TestCase):
         cudf_df['val'] = [float(i + 10) for i in range(5)]
 
         table = self.context.create_table('holas', cudf_df)
-        
+
+        # now = result.get()
+
+        # print(now)
+        print("PRINTTTTTT RAWWWWWWW")
+        print(cudf_df)
+
+        print("PRINTTTTTT TABLE DATASOURCE")
+        print(table)
+
+        print("RUN QUERYYYYYYYYY")
+
+        result = self.context.run_query("select * from main.holas", ['holas'])
         now = result.get()
 
         print(now)
@@ -66,35 +78,35 @@ class TestCreateTableFromGDF(unittest.TestCase):
         print(now)
 
     def test_simple_parquet(self):
-        1. instance context
-        2. register fs
-        3. create_table (csv, pa) (we can use any fs in the path)
-        4. run_query (async)
-        5. result.get -> get results
+#         1. instance context
+#         2. register fs
+#         3. create_table (csv, pa) (we can use any fs in the path)
+#         4. run_query (async)
+#         5. result.get -> get results
+#
+# blazingsql as main package
+# 1 day
+# feature/auto-logging
+# EndToEndTests.coalesceTest
+# EndToEndTests.parquetTest
+#
+# demos
+#   sql tutorial -> *****
+#   netflow -> **
+#   mortage -> *
+#
+#
+# file, list, wildcard, directory
+# file, list # wildcard, directory
+#
+#
+# the 1st try -> hacks on paths
+# the 2nd is the file, list approach
+        # table = self.context.create_table('holas_parquet', fileType = Parquet, '/tpch-1gb/nation/')
 
-blazingsql as main package
-1 day 
-feature/auto-logging
-EndToEndTests.coalesceTest
-EndToEndTests.parquetTest
-
-demos
-  sql tutorial -> *****
-  netflow -> **
-  mortage -> *
-
-
-file, list, wildcard, directory
-file, list # wildcard, directory
-
-
-the 1st try -> hacks on paths
-the 2nd is the file, list approach
-
-
-        table = self.context.create_table('holas_parquet', fileType = Parquet, '/tpch-1gb/nation/')
-        result = self.context.run_query("select * from main.holas_parquet", ["table1"]) # async
-        now = result.get() # data
+        table = self.context.create_table(table_name, '/home/percy/Blazing/Parquet/tpch-1gb/nation/0_0_0.parquet')
+        result = self.context.run_query("select * from main.holas_parquet", ["table1"])  # async
+        now = result.get()  # data
 
         print(now)
 
