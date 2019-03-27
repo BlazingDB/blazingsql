@@ -992,7 +992,9 @@ def create_table(table_name, **kwargs):
 
     sql = "SELECT * FROM main." + table_name
     sql_data = {schema: [path]}
-    return run_query_filesystem(sql, sql_data)
+    return_result = run_query_filesystem(sql, sql_data)
+    return_result.name = table_name
+    return return_result
 
 
 def register_table_schema(table_name, **kwargs):
