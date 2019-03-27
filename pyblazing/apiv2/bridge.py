@@ -8,7 +8,7 @@ class internal_api:
     # Type wrappers
 
     SchemaFrom = pyblazing.SchemaFrom
-    DriverType = pyblazing.DriverType.LIBHDFS3,
+    DriverType = pyblazing.DriverType
     S3EncryptionType = pyblazing.EncryptionType
     FileSystemType = pyblazing.FileSystemType
 
