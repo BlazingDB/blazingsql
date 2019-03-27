@@ -71,12 +71,24 @@ class BlazingContext(object):
             datasource = from_arrow(input)
         elif type(input) == internal_api.ResultSetHandle:
             datasource = from_result_set(input)
-        elif type(input) == str:
-            uri = urlparse(input)
-            path = PurePath(uri.path)
+        elif type(input) == str or type(input) == list:
+
+            if type(input) == str:
+                uri = urlparse(input)
+                path = PurePath(uri.path)
+                paths = [input]
+            else: # its a list
+                if len(input) == 0:
+                    raise Exception("Input into create_table was an empty list")
+                elif type(input[0]) != str:
+                    raise Exception("If input into create_table is a list, it is expecting a list of path strings")
+                else:
+                    uri = urlparse(input[0])
+                    path = PurePath(uri.path)
+                    paths = input
 
             if path.suffix == '.parquet':
-                datasource = from_parquet(self.client, table_name, str(path))
+                datasource = from_parquet(self.client, table_name, paths)
             elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
                 # TODO percy duplicated code bud itnernal api desing remove this later
                 csv_column_names = kwargs.get('csv_column_names', [])
@@ -84,11 +96,12 @@ class BlazingContext(object):
                 csv_delimiter = kwargs.get('csv_delimiter', '|')
                 csv_skip_rows = kwargs.get('csv_skip_rows', 0)
 
-                datasource = from_csv(self.client, table_name, str(path),
+                datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
                     csv_delimiter,
                     csv_skip_rows)
+
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
 
