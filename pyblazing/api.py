@@ -526,15 +526,21 @@ def get_ipc_handle_for_valid(column, dataframe_column):
        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
        return bytes(ipch._ipc_handle.handle)
 
+def get_ipc_handle_for_custring_membuffer(column, dataframe_column):
+
+    if hasattr(dataframe_column, 'columnToken'):
+        return None
+    else:
+        ipch = dataframe_column._column._data.get_cpointer_membuffer()
+        return bytes(ipch)
+
 def get_ipc_handle_for_custring_views(column, dataframe_column):
 
     if hasattr(dataframe_column, 'columnToken'):
         return None
     else:
-        ipch = None
-        return ipch
-        # ipch = dataframe_column._column._mask.mem.get_ipc_handle()
-        # return bytes(ipch._ipc_handle.handle)
+        ipch = dataframe_column._column._data.get_cpointer_views()
+        return bytes(ipch)
 
 def gdf_column_type_to_str(dtype):
     str_dtype = {
@@ -603,18 +609,21 @@ def _to_table_group(tables):
 
             data_ipch = get_ipc_handle_for_data(column, dataframe_column)
             valid_ipch = None
+            custrings_membuffer_ipch = None
             custrings_views_ipch = None
 
             if (null_count > 0):
                 valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
 
             if numerical_column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY:
+                custrings_membuffer_ipch = get_ipc_handle_for_custring_membuffer(column, dataframe_column)
                 custrings_views_ipch = get_ipc_handle_for_custring_views(column, dataframe_column)
 
             blazing_column = {
                 'data': data_ipch,
                 'valid': valid_ipch,
                 'custrings_views': custrings_views_ipch,
+                'custrings_membuffer': custrings_membuffer_ipch,
                 'size': data_sz,
                 'dtype': dtype,
                 'null_count': null_count,
