@@ -70,8 +70,7 @@ class SQL(object):
     # table_names is an array of strings
     # return result obj ... by default is async
     def run_query(self, client, sql, table_names):
-        tables = {}
-
+        
         # lets see if we use run_query_filesystem or run_query.
         # TODO change this when we can mix input types
         all_from_file = True
@@ -81,16 +80,18 @@ class SQL(object):
             all_not_from_file = all_not_from_file and not self.tables[table_name].is_from_file()
         
         if all_from_file:
+            sql_data = {}
             for table_name in table_names:
-                tables[table_name] = self.tables[table_name].dataframe()
+                sql_data[self.tables[table_name].schema()] = self.tables[table_name].path
 
-            metaToken = internal_api.run_query_get_token(client, sql, tables)
+            metaToken = internal_api.run_query_filesystem_get_token(client, sql, sql_data)
 
             rs = ResultSet(client, metaToken)
 
             # TODO percy
             return rs
         elif all_not_from_file:
+            tables = {}
             for table_name in table_names:
                 tables[table_name] = self.tables[table_name].dataframe()
 

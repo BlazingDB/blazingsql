@@ -34,14 +34,9 @@ def get_dtype_values(dtypes):
             return dicc[type_name]
         return libgdf.GDF_INT64
 
-    # for key in dtypes:
-    #    values.append(gdf_type(dtypes[key]))
-
     for i in range(0, len(dtypes)):
         values.append(gdf_type(dtypes[i]))
 
-    print('------------------------------------>>>> dtyps for', dtypes)
-    print(values)
     return values
 
 
@@ -131,10 +126,14 @@ class DataSource:
             return self.cudf_df
         elif self.type == Type.result_set:
             return self.cudf_df
-        elif self.type == Type.csv:
-            return self.csv.columns
+        
+        return None
+
+    def schema(self):
+        if self.type == Type.csv:
+            return self.csv
         elif self.type == Type.parquet:
-            return self.parquet.columns
+            return self.parquet
 
         return None
 
@@ -206,18 +205,18 @@ class DataSource:
 
         self.path = path
 
-        table = internal_api.create_table(
+        table_schema = internal_api.register_table_schema(
             self.client,
             table_name,
             type = internal_api.SchemaFrom.CsvFile,
-            path = path,
+            path = path[0],
             delimiter = delimiter,
             names = column_names,
             dtypes = get_dtype_values(column_types),
             skip_rows = skip_rows
         )
 
-        self.csv = table
+        self.csv = table_schema
 
         # TODO percy see if we need to perform sanity check for arrow_table object
         self.valid = True
@@ -231,14 +230,14 @@ class DataSource:
 
         self.path = path
 
-        table = internal_api.create_table(
+        table_schema = internal_api.register_table_schema(
             self.client,
             table_name,
             type = internal_api.SchemaFrom.ParquetFile,
-            path = path
+            path = path[0]
         )
 
-        self.parquet = table
+        self.parquet = table_schema
 
         # TODO percy see if we need to perform sanity check for arrow_table object
         self.valid = True

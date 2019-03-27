@@ -135,8 +135,14 @@ def run_query(sql, tables):
     """
     return _private_run_query(sql, tables)
 
+def run_query_filesystem(sql, sql_data):
+    return _private_run_query_filesystem(sql, sql_data)
+
 def run_query_get_token(sql, tables):
     return _run_query_get_token(sql, tables)
+
+def run_query_filesystem_get_token(sql, sql_data):
+    return _run_query_filesystem_get_token(sql, sql_data)
 
 def run_query_get_results(metaToken):
     return _run_query_get_results(metaToken)
@@ -738,8 +744,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                 gdf_columns.append(DatetimeColumn(data=Buffer.null(dtype), dtype=dtype))
             else:
                 gdf_columns.append(NumericalColumn(data=Buffer.null(dtype), dtype=dtype))
-            
-    
+
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
         assert k != ""
@@ -785,7 +790,38 @@ def _run_query_get_token(sql, tables):
     except Error as error:
         error_message = str(error)
     except Exception:
-        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
+        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+    return metaToken
+
+def _run_query_filesystem_get_token(sql, sql_data):
+    startTime = time.time()
+
+    resultToken = 0
+    interpreter_path = None
+    interpreter_port = None
+    calciteTime = 0
+    error_message = ''
+
+    try:
+        client = _get_client()
+
+        for schema, files in sql_data.items():
+            _reset_table(client, schema.table_name, schema.gdf)
+
+        tableGroup = _sql_data_to_table_group(sql_data)
+
+        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception:
+        error_message = "Unexpected error on " + _run_query_filesystem_get_token.__name__ + ", " + str(error)
 
     if error_message is not '':
         print(error_message)
@@ -817,33 +853,11 @@ def _run_query_get_results(metaToken):
 def _private_run_query(sql, tables):
     metaToken = _run_query_get_token(sql, tables)
     return _run_query_get_results(metaToken)
-    
-    # startTime = time.time()
-    # client = _get_client()
-    # try:
-    #     for table, gdf in tables.items():
-    #         _reset_table(client, table, gdf)
-    # except Error as err:
-    #     print(err)
 
-    # resultSet = None
-    # token = 0
-    # interpreter_path = None
-    # interpreter_port = None
-    # try:
-    #     tableGroup = _to_table_group(tables)
-    #     token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
-    #     resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
-    #     totalTime = (time.time() - startTime) * 1000  # in milliseconds
+def _private_run_query_filesystem(sql, sql_data):
+    metaToken = _run_query_filesystem_get_token(sql, sql_data)
+    return _run_query_get_results(metaToken)
 
-    #     return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
-
-    # except SyntaxError as error:
-    #     raise error
-    # except Error as err:
-    #     print(err)
-
-    # return None
 
 from collections import namedtuple
 from blazingdb.protocol.transport.channel import MakeRequestBuffer
@@ -972,14 +986,13 @@ def read_parquet_table_from_filesystem(table_name, schema):
 
 
 def create_table(table_name, **kwargs):
-    schema = TableSchema(**kwargs)
-    return_result = None
-    if schema.schema_type == SchemaFrom.CsvFile:  # csv
-        return_result = read_csv_table_from_filesystem(table_name, schema)
-    elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
-        return_result = read_parquet_table_from_filesystem(table_name, schema)
-    return_result.name = table_name
-    return return_result
+
+    schema = register_table_schema(table_name, **kwargs)
+    path = kwargs.get('path', None)
+
+    sql = "SELECT * FROM main." + table_name
+    sql_data = {schema: [path]}
+    return run_query_filesystem(sql, sql_data)
 
 
 def register_table_schema(table_name, **kwargs):
@@ -1048,38 +1061,3 @@ def _sql_data_to_table_group(sql_data):
     tableGroup['tables'] = blazing_tables
     return tableGroup
 
-#@exceptions_wrapper
-def run_query_filesystem(sql, sql_data):
-    error_message = ''
-    startTime = time.time()
-
-    try:
-        client = _get_client()
-
-        for schema, files in sql_data.items():
-            _reset_table(client, schema.table_name, schema.gdf)
-
-        resultSet = None
-        resultToken = 0
-        interpreter_path = None
-        interpreter_port = None
-
-        tableGroup = _sql_data_to_table_group(sql_data)
-        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
-        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime)
-        totalTime = (time.time() - startTime) * 1000  # in milliseconds
-
-        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, calciteTime,
-                                    resultSet.metadata.time, totalTime, '')
-    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
-        error_message = error
-    except Error as error:
-        error_message = str(error)
-    except Exception as error:
-        error_message = "Unexpected error on " + run_query_filesystem.__name__ + ", " + str(error)
-
-    if error_message is not '':
-        print(error_message)
-
-    return ResultSetHandle(None, None, None, None, None, None, None, None,
-                                    None, None, error_message)
