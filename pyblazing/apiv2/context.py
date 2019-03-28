@@ -27,11 +27,11 @@ class BlazingContext(object):
         self.connection = connection
         self.client = internal_api._get_client()
         self.fs = FileSystem()
-        self.sql = SQL()
+        self.sqlObject = SQL()
 
     def __del__(self):
         # TODO percy clean next time
-        # del self.sql
+        # del self.sqlObject
         # del self.fs
         # del self.client
         pass
@@ -107,7 +107,7 @@ class BlazingContext(object):
 
             # TODO percy dir
 
-        self.sql.create_table(table_name, datasource)
+        self.sqlObject.create_table(table_name, datasource)
 
         # table = self.context.create_table(table_name, ds)
 
@@ -116,11 +116,11 @@ class BlazingContext(object):
         return None
 
     def drop_table(self, table_name):
-        return self.sql.drop_table(table_name)
+        return self.sqlObject.drop_table(table_name)
 
     # async
-    def run_query(self, sql, table_names = []):
-        return self.sql.run_query(self.client, sql, table_names)
+    def sql(self, sql, table_names = []):
+        return self.sqlObject.run_query(self.client, sql, table_names)
 
     # END SQL interface
 
