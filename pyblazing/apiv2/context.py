@@ -23,7 +23,7 @@ import time
 class BlazingContext(object):
 
     # connection (string) can be the unix socket path or the tcp host:port
-    def __init__(self, connection):
+    def __init__(self, connection = '/tmp/orchestrator.socket'):
         self.connection = connection
         self.client = internal_api._get_client()
         self.fs = FileSystem()
