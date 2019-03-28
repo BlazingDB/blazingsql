@@ -91,10 +91,10 @@ class BlazingContext(object):
                 datasource = from_parquet(self.client, table_name, paths)
             elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
                 # TODO percy duplicated code bud itnernal api desing remove this later
-                csv_column_names = kwargs.get('csv_column_names', [])
-                csv_column_types = kwargs.get('csv_column_types', [])
-                csv_delimiter = kwargs.get('csv_delimiter', '|')
-                csv_skip_rows = kwargs.get('csv_skip_rows', 0)
+                csv_column_names = kwargs.get('names', [])
+                csv_column_types = kwargs.get('dtype', [])
+                csv_delimiter = kwargs.get('delimiter', '|')
+                csv_skip_rows = kwargs.get('skiprows', 0)
 
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,

@@ -134,10 +134,10 @@ class TestCreateTableFromGDF(unittest.TestCase):
         # table = self.context.create_table(table_name, ds)
 
         table = self.context.create_table(table_name, path,
-            csv_column_names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment'],
-            csv_column_types = ['int', 'int64', 'int', 'int64'],  # TODO percy support string later use int64 for now
-            csv_delimiter = '|',
-            csv_skip_rows = 0
+            names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment'],
+            dtype = ['int', 'int64', 'int', 'int64'],  # TODO percy support string later use int64 for now
+            delimiter = '|',
+            skiprows = 0
         )
 
         print("PRINTTTTTT TABLE CCCCCCCCCCCCCCCCSSSSSSSSSSVVVVVVVVVVVVVVVV DATASOURCE")
@@ -145,7 +145,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
         print("RUN CCCCCCCSSSSVVVV QUERYYYYYYYYY")
 
-        result = self.context.run_query("select * from main.holas_csv", [table_name])
+        result = self.context.sql("select * from main.holas_csv", [table_name])
         now = result.get()
 
         print(now)
