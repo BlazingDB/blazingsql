@@ -38,7 +38,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
         print("RUN QUERYYYYYYYYY")
 
-        result = self.context.run_query("select * from main.holas", ['holas'])
+        result = self.context.sql("select * from main.holas", ['holas'])
         now = result.get()
 
         print(now)
