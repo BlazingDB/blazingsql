@@ -1,6 +1,6 @@
 import unittest
 
-from pyblazing.apiv2 import context
+import blazingsql
 
 from cudf import DataFrame
 import pandas as pd
@@ -11,7 +11,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
     def setUp(self):
         # TODO percy check this we needto use mocks
-        self.context = context.make_context()
+        self.context = blazingsql.BlazingContext()
         self.context.localfs("tpch")
         # self.context.hdfs("percyfs", server="asdasd.com", port = 3424)
         # self.context.hdfs("datawares", server="asdasd.com", port = 3421)
@@ -59,7 +59,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
         print("RUN QUERYYYYYYYYY")
 
-        result = self.context.run_query("select * from main.holas2", ['holas2'])
+        result = self.context.sql("select * from main.holas2", ['holas2'])
         now = result.get()
 
         print(now)
@@ -76,7 +76,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
         print("RUN QUERYYYYYYYYY")
 
-        result = self.context.run_query("select * from main.holas3", ['holas3'])
+        result = self.context.sql("select * from main.holas3", ['holas3'])
         now = result.get()
 
         print(now)
@@ -109,7 +109,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
         # table = self.context.create_table('holas_parquet', fileType = Parquet, '/tpch-1gb/nation/')
 
         table = self.context.create_table(table_name, '/home/percy/Blazing/Parquet/tpch-1gb/nation/0_0_0.parquet')
-        result = self.context.run_query("select * from main.holas_parquet", ["table1"])  # async
+        result = self.context.sql("select * from main.holas_parquet", ["table1"])  # async
         now = result.get()  # data
 
         print(now)
