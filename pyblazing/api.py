@@ -76,7 +76,7 @@ class ResultSetHandle:
     def __del__(self):
         # @todo
         if self.handle is not None:
-            for ipch in self.handle:
+            for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
             del self.handle
             self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
@@ -526,22 +526,6 @@ def get_ipc_handle_for_valid(column, dataframe_column):
        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
        return bytes(ipch._ipc_handle.handle)
 
-def get_ipc_handle_for_custring_membuffer(column, dataframe_column):
-
-    if hasattr(dataframe_column, 'columnToken'):
-        return None
-    else:
-        ipch = dataframe_column._column._data.get_cpointer_membuffer()
-        return bytes(ipch)
-
-def get_ipc_handle_for_custring_views(column, dataframe_column):
-
-    if hasattr(dataframe_column, 'columnToken'):
-        return None
-    else:
-        ipch = dataframe_column._column._data.get_cpointer_views()
-        return bytes(ipch)
-
 def gdf_column_type_to_str(dtype):
     str_dtype = {
         0: 'GDF_invalid',
@@ -609,25 +593,29 @@ def _to_table_group(tables):
 
             data_ipch = get_ipc_handle_for_data(column, dataframe_column)
             valid_ipch = None
-            custrings_membuffer_ipch = None
-            custrings_views_ipch = None
+            custrings_data = 0
 
             if (null_count > 0):
                 valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
 
-            if numerical_column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY:
-                custrings_membuffer_ipch = get_ipc_handle_for_custring_membuffer(column, dataframe_column)
-                custrings_views_ipch = get_ipc_handle_for_custring_views(column, dataframe_column)
+            if numerical_column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY: #todo check wether dtype is GDF_STRING
+                ipc_data = dataframe_column._column._data.get_ipc_data()
+
+                custrings_data = {
+                    'custrings_views': bytes(ipc_data[0]), #custrings_views_ipch,
+                    'custrings_views_count': ipc_data[1], #custrings_views_count,
+                    'custrings_membuffer': bytes(ipc_data[2]), #custrings_membuffer_ipch,
+                    'custrings_membuffer_size': ipc_data[3], #custrings_membuffer_size,
+                    'custrings_base_ptr': ipc_data[4], #custrings_base_ptr
+                }
 
             blazing_column = {
                 'data': data_ipch,
                 'valid': valid_ipch,
-                'custrings_views': custrings_views_ipch,
-                'custrings_membuffer': custrings_membuffer_ipch,
                 'size': data_sz,
                 'dtype': dtype,
                 'null_count': null_count,
-                'dtype_info': 0
+                'dtype_info': custrings_data
             }
 
             if hasattr(gdf[column], 'columnToken'):
@@ -737,34 +725,45 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
         if c.size != 0 :
-            assert len(c.data) == 64
-            # todo: remove this if when C gdf struct is replaced by pyarrow object
-            if c.dtype == libgdf.GDF_DATE32:
-                c.dtype = libgdf.GDF_INT32
-                ipch_data, data_ptr = _open_ipc_array(
-                    c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-                # todo: remove this when C gdf struct is replaced by pyarrow object
-                #  is this workaround  only for python object?
-                # yes. it is!. Because RAL only knowns the column_token.
-                
-            else:
-                ipch_data, data_ptr = _open_ipc_array(
-                    c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-            ipchandles.append(ipch_data)
+            if c.dtype == libgdf.GDF_STRING_CATEGORY:
+                ipc_data = [c.dtype_info.custrings_views,
+                            c.dtype_info.custrings_views_count,
+                            c.dtype_info.custrings_membuffer,
+                            c.dtype_info.custrings_membuffer_size,
+                            c.dtype_info.custrings_base_ptr]
 
-            valid_ptr = None
-            if (c.null_count > 0):
-                ipch_valid, valid_ptr = _open_ipc_array(
-                    c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
-                ipchandles.append(ipch_valid)
+                new_strs = nvstrings.create_from_ipc(ipc_data)
+                newcol = string.StringColumn(new_strs)
 
-            # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
-            cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
-            newcol = from_cffi_view(cffi_view)
-            if (newcol.dtype == np.dtype('datetime64[ms]')):
-                gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+                gdf_columns.append(newcol.view(StringColumn, dtype='object'))
             else:
-                gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+                assert len(c.data) == 64
+                # todo: remove this if when C gdf struct is replaced by pyarrow object
+                if c.dtype == libgdf.GDF_DATE32:
+                    c.dtype = libgdf.GDF_INT32
+                    ipch_data, data_ptr = _open_ipc_array(
+                        c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+                    # todo: remove this when C gdf struct is replaced by pyarrow object
+                    #  is this workaround  only for python object?
+                    # yes. it is!. Because RAL only knowns the column_token.
+                else:
+                    ipch_data, data_ptr = _open_ipc_array(
+                        c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+                ipchandles.append(ipch_data)
+
+                valid_ptr = None
+                if (c.null_count > 0):
+                    ipch_valid, valid_ptr = _open_ipc_array(
+                        c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
+                    ipchandles.append(ipch_valid)
+
+                # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
+                cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
+                newcol = from_cffi_view(cffi_view)
+                if (newcol.dtype == np.dtype('datetime64[ms]')):
+                    gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+                else:
+                    gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
 
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
