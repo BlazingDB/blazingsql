@@ -7,9 +7,11 @@ import pandas as pd
 def main():
   
   dataFolder = '/home/william/repos/DataSets/tpch10Mb/'
+  cust1g = '/home/william/repos/DataSets/tpch1Gb/customer.tbl'
   # dataFolder = '/home/william/repos/DataSets/DataSet100Mb/'
   
   parquetFolder = '/home/william/repos/DataSets/tpchParquet/'
+  largeLineitem = '/home/william/repos/DataSets/large_lineitem/lineitem_0_0.parquet'
 
   nation_tableName = "nation"
   nation_columnNames = ["n_nationkey", "n_name", "n_regionkey", "n_comments"]
@@ -29,10 +31,31 @@ def main():
 
   names_nation = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comment']
   dtypes_nation = [3, 4, 3, 4]
+
+  # lineitem_table = pyblazing.register_table_schema(table_name='lineitem', type=pyblazing.SchemaFrom.ParquetFile, path=largeLineitem)
+  colNames = ["c_custkey","c_name","c_address","c_nationkey","c_number","c_acctbal","c_mktsegment","c_comment"]
+  colTypes = ["int32","int64","int64","int32","int64","float64","int64","int64"]
+  customer_gdf = cudf.read_csv(cust1g,delimiter='|', dtype=colTypes, names=colNames)
+  result_gdf = pyblazing.run_query('select c_custkey + 3 as c_custkey_new from main.customer where c_custkey > 1000', {"customer": customer_gdf})
+  print(result_gdf)
+
+  result_gdf2 = pyblazing.run_query('select count(c_custkey + 3) as c_custkey_new from main.customer where c_custkey > 1000', {"customer": customer_gdf})
+  print(result_gdf2)
+  # result_gdf = pyblazing.run_query_filesystem('select count(l_orderkey) from main.lineitem', {lineitem_table: [largeLineitem]})
+  # print(result_gdf)
+
+  # result_gdf = pyblazing.run_query_filesystem('select count(l_orderkey) from main.lineitem where l_orderkey > 100000 and l_linenumber > 0', {lineitem_table: [largeLineitem]})
+  # print(result_gdf)
+
+  # result_gdf = pyblazing.run_query_filesystem('select count(l_linenumber) from main.lineitem where l_orderkey > 100000 and l_linenumber > 0', {lineitem_table: [largeLineitem]})
+  # print(result_gdf)
+
+  # result_gdf = pyblazing.run_query_filesystem('select count(l_linenumber), count(l_orderkey) from main.lineitem where l_orderkey > 100000', {lineitem_table: [largeLineitem]})
+  # print(result_gdf)
     
-  nation_table = pyblazing.register_table_schema(table_name='nation_csv', type=pyblazing.SchemaFrom.CsvFile, path=dataFolder + 'nation.tbl', delimiter='|', dtypes=dtypes_nation, names=names_nation)
-  result_gdf = pyblazing.run_query_filesystem('select n_regionkey + 3 from main.nation_csv', {nation_table: [dataFolder + 'nation.tbl']})
-  print(result_gdf.columns)
+  # nation_table = pyblazing.register_table_schema(table_name='nation_csv', type=pyblazing.SchemaFrom.CsvFile, path=dataFolder + 'nation.tbl', delimiter='|', dtypes=dtypes_nation, names=names_nation)
+  # result_gdf = pyblazing.run_query_filesystem('select n_regionkey + 3 from main.nation_csv', {nation_table: [dataFolder + 'nation.tbl']})
+  # print(result_gdf.columns)
 
   # orders_tableName = "orders"
   # orders_columnNames = ["o_orderkey", "o_custkey", "o_orderstatus","o_totalprice", "o_orderdate", "o_orderpriority","o_clerk", "o_shippriority", "o_comment"]
@@ -43,23 +66,27 @@ def main():
   # orders_columnTypes = ["int64", "int32", "int64", "float", "int32", "int64", "int64", "int64", "int64"]  # pygdf/pandas style types
   # orders_gdf = cudf.read_csv(orders_filepath, delimiter='|', dtype=orders_columnTypes, names=orders_columnNames)
 
-  region_schema = pyblazing.register_table_schema(table_name='region', type=pyblazing.SchemaFrom.ParquetFile, path=parquetFolder + 'region_0_0.parquet')
-  tables = {region_schema: [parquetFolder + 'region_0_0.parquet']}
-  result_gdf = pyblazing.run_query_filesystem('select r_regionkey + 3 from main.region', tables)
-  print(result_gdf.columns)
+  # region_schema = pyblazing.register_table_schema(table_name='region', type=pyblazing.SchemaFrom.ParquetFile, path=parquetFolder + 'region_0_0.parquet')
+  # tables = {region_schema: [parquetFolder + 'region_0_0.parquet']}
+  # result_gdf = pyblazing.run_query_filesystem('select r_regionkey + 3 from main.region', tables)
+  # print(result_gdf.columns)
 
-  lineitem_schema = pyblazing.register_table_schema(table_name='lineitem', type=pyblazing.SchemaFrom.ParquetFile, path= '/home/william/repos/DataSets/large_lineitem/lineitem_0_0.parquet')
-  tables = {lineitem_schema: ['/home/william/repos/DataSets/large_lineitem/lineitem_0_0.parquet', '/home/william/repos/DataSets/large_lineitem/lineitem_0_0 (copy).parquet']}
-  result_gdf = pyblazing.run_query_filesystem('select count(l_linenumber) from main.lineitem', tables)
-  print(result_gdf.columns)
+  # lineitem_schema = pyblazing.register_table_schema(table_name='lineitem', type=pyblazing.SchemaFrom.ParquetFile, path= '/home/william/repos/DataSets/large_lineitem/lineitem_0_0.parquet')
+  # tables = {lineitem_schema: ['/home/william/repos/DataSets/large_lineitem/lineitem_0_0.parquet', '/home/william/repos/DataSets/large_lineitem/lineitem_0_0 (copy).parquet']}
+  # result_gdf = pyblazing.run_query_filesystem('select count(l_linenumber) from main.lineitem', tables)
+  # print(result_gdf.columns)
 
   # orders_schema = pyblazing.register_table_schema(table_name='orders', type=pyblazing.SchemaFrom.ParquetFile, path=parquetFolder + 'orders_0_0.parquet')
-  # print(dir(orders_schema))
-  # print(orders_schema.column_types)
+  # # print(dir(orders_schema))
+  # # print(orders_schema.column_types)
   # tables = {orders_schema: [parquetFolder + 'orders_0_0.parquet']}
-  # result_gdf = pyblazing.run_query_filesystem('select * from main.orders', tables)
+  # result_gdf = pyblazing.run_query_filesystem('select count(o_orderkey) from main.orders where o_orderkey > 10000', tables)
   # print(result_gdf.columns)
-  
+
+  # result_gdf = pyblazing.run_query_filesystem('select count(o_custkey) from main.orders where o_orderkey > 10000', tables)
+  # print(result_gdf.columns)
+
+
   # table_pdf = pd.read_csv(region_filepath, delimiter = '|', usecols = [0], names = ['r_regionkey'])
   # region_gdf = DataFrame.from_pandas(table_pdf)
   # print(region_gdf)
