@@ -598,10 +598,13 @@ def _to_table_group(tables):
             if (null_count > 0):
                 valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
 
-            if numerical_column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY: #todo check wether dtype is GDF_STRING
+            if numerical_column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY:
                 ipc_data = dataframe_column._column._data.get_ipc_data()
 
+                dtype = libgdf.GDF_STRING # TODO: open issue, it must be a GDF_STRING
+
                 custrings_data = {
+                    'time_unit': 0, #TODO dummy value
                     'custrings_views': bytes(ipc_data[0]), #custrings_views_ipch,
                     'custrings_views_count': ipc_data[1], #custrings_views_count,
                     'custrings_membuffer': bytes(ipc_data[2]), #custrings_membuffer_ipch,
@@ -725,7 +728,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
         if c.size != 0 :
-            if c.dtype == libgdf.GDF_STRING_CATEGORY:
+            if c.dtype == libgdf.GDF_STRING:
                 ipc_data = [c.dtype_info.custrings_views,
                             c.dtype_info.custrings_views_count,
                             c.dtype_info.custrings_membuffer,
