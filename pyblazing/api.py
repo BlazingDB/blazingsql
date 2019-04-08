@@ -593,7 +593,7 @@ def _to_table_group(tables):
 
             data_ipch = get_ipc_handle_for_data(column, dataframe_column)
             valid_ipch = None
-            custrings_data = 0
+            custrings_data = {'time_unit': 0}
 
             if (null_count > 0):
                 valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
