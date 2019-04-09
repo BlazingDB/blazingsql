@@ -606,10 +606,10 @@ def _to_table_group(tables):
                 custrings_data = {
                     'time_unit': 0, #TODO dummy value
                     'custrings_views': bytes(ipc_data[0]), #custrings_views_ipch,
-                    'custrings_views_count': ipc_data[1], #custrings_views_count,
+                    'custrings_viewscount': ipc_data[1], #custrings_views_count,
                     'custrings_membuffer': bytes(ipc_data[2]), #custrings_membuffer_ipch,
-                    'custrings_membuffer_size': ipc_data[3], #custrings_membuffer_size,
-                    'custrings_base_ptr': ipc_data[4], #custrings_base_ptr
+                    'custrings_membuffersize': ipc_data[3], #custrings_membuffer_size,
+                    'custrings_baseptr': ipc_data[4], #custrings_base_ptr
                 }
 
             blazing_column = {
@@ -730,10 +730,10 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
         if c.size != 0 :
             if c.dtype == libgdf.GDF_STRING:
                 ipc_data = [c.dtype_info.custrings_views,
-                            c.dtype_info.custrings_views_count,
+                            c.dtype_info.custrings_viewscount,
                             c.dtype_info.custrings_membuffer,
-                            c.dtype_info.custrings_membuffer_size,
-                            c.dtype_info.custrings_base_ptr]
+                            c.dtype_info.custrings_membuffersize,
+                            c.dtype_info.custrings_baseptr]
 
                 new_strs = nvstrings.create_from_ipc(ipc_data)
                 newcol = string.StringColumn(new_strs)
@@ -813,7 +813,7 @@ def _run_query_get_token(sql, tables):
     except Error as error:
         error_message = str(error)
     except Exception:
-        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
+        error_message = "Unexpected error on " + _run_query_get_results.__name__
 
     if error_message is not '':
         print(error_message)
