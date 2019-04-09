@@ -602,25 +602,26 @@ def _to_table_group(tables):
             if (null_count > 0):
                 valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
 
-            if numerical_column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY:
-                ipc_data = dataframe_column._column._data.get_ipc_data()
-
-                dtype = libgdf.GDF_STRING # TODO: open issue, it must be a GDF_STRING
-
             blazing_column = {
                 'data': data_ipch,
                 'valid': valid_ipch,
                 'size': data_sz,
                 'dtype': dtype,
                 'null_count': null_count,
-                'dtype_info': dtype_info,
-                #custrings_data
-                'custrings_views': bytes(ipc_data[0]), #custrings_views_ipch,
-                'custrings_viewscount': ipc_data[1], #custrings_views_count,
-                'custrings_membuffer': bytes(ipc_data[2]), #custrings_membuffer_ipch,
-                'custrings_membuffersize': ipc_data[3], #custrings_membuffer_size,
-                'custrings_baseptr': ipc_data[4], #custrings_base_ptr
+                'dtype_info': dtype_info
             }
+
+            if numerical_column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY:
+                ipc_data = dataframe_column._column._data.get_ipc_data()
+                dtype = libgdf.GDF_STRING # TODO: open issue, it must be a GDF_STRING
+
+                blazing_column['dtype'] = dtype
+                #custrings_data
+                blazing_column['custrings_views'] = bytes(ipc_data[0]) #custrings_views_ipch,
+                blazing_column['custrings_viewscount'] = ipc_data[1] #custrings_views_count,
+                blazing_column['custrings_membuffer'] = bytes(ipc_data[2]) #custrings_membuffer_ipch,
+                blazing_column['custrings_membuffersize'] = ipc_data[3] #custrings_membuffer_size,
+                blazing_column['custrings_baseptr'] = ipc_data[4] #custrings_base_ptr
 
             if hasattr(gdf[column], 'columnToken'):
                 columnTokens.append(gdf[column].columnToken)
