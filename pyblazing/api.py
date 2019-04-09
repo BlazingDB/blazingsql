@@ -20,6 +20,7 @@ from cudf.dataframe.numerical import NumericalColumn
 import pyarrow as pa
 from cudf import _gdf
 from cudf.dataframe.column import Column
+from cudf.dataframe.string import StringColumn
 from cudf import DataFrame
 from cudf.dataframe.dataframe import Series
 from cudf.dataframe.buffer import Buffer
@@ -31,6 +32,7 @@ import numpy as np
 import pandas as pd
 
 import time
+import nvstrings
 
 # NDarray device helper
 from numba import cuda
@@ -593,7 +595,9 @@ def _to_table_group(tables):
 
             data_ipch = get_ipc_handle_for_data(column, dataframe_column)
             valid_ipch = None
-            custrings_data = {'time_unit': 0}
+            dtype_info = {
+                'time_unit': 0, #TODO dummy value
+            }
 
             if (null_count > 0):
                 valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
@@ -603,22 +607,19 @@ def _to_table_group(tables):
 
                 dtype = libgdf.GDF_STRING # TODO: open issue, it must be a GDF_STRING
 
-                custrings_data = {
-                    'time_unit': 0, #TODO dummy value
-                    'custrings_views': bytes(ipc_data[0]), #custrings_views_ipch,
-                    'custrings_viewscount': ipc_data[1], #custrings_views_count,
-                    'custrings_membuffer': bytes(ipc_data[2]), #custrings_membuffer_ipch,
-                    'custrings_membuffersize': ipc_data[3], #custrings_membuffer_size,
-                    'custrings_baseptr': ipc_data[4], #custrings_base_ptr
-                }
-
             blazing_column = {
                 'data': data_ipch,
                 'valid': valid_ipch,
                 'size': data_sz,
                 'dtype': dtype,
                 'null_count': null_count,
-                'dtype_info': custrings_data
+                'dtype_info': dtype_info,
+                #custrings_data
+                'custrings_views': bytes(ipc_data[0]), #custrings_views_ipch,
+                'custrings_viewscount': ipc_data[1], #custrings_views_count,
+                'custrings_membuffer': bytes(ipc_data[2]), #custrings_membuffer_ipch,
+                'custrings_membuffersize': ipc_data[3], #custrings_membuffer_size,
+                'custrings_baseptr': ipc_data[4], #custrings_base_ptr
             }
 
             if hasattr(gdf[column], 'columnToken'):
@@ -729,14 +730,14 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     for i, c in enumerate(resultSet.columns):
         if c.size != 0 :
             if c.dtype == libgdf.GDF_STRING:
-                ipc_data = [c.dtype_info.custrings_views,
-                            c.dtype_info.custrings_viewscount,
-                            c.dtype_info.custrings_membuffer,
-                            c.dtype_info.custrings_membuffersize,
-                            c.dtype_info.custrings_baseptr]
+                ipc_data = [c.custrings_views,
+                            c.custrings_viewscount,
+                            c.custrings_membuffer,
+                            c.custrings_membuffersize,
+                            c.custrings_baseptr]
 
                 new_strs = nvstrings.create_from_ipc(ipc_data)
-                newcol = string.StringColumn(new_strs)
+                newcol = StringColumn(new_strs)
 
                 gdf_columns.append(newcol.view(StringColumn, dtype='object'))
             else:
