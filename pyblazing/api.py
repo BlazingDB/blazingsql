@@ -32,7 +32,6 @@ import pandas as pd
 
 import time
 
-
 # NDarray device helper
 from numba import cuda
 from numba.cuda.cudadrv import driver, devices
@@ -49,18 +48,20 @@ class ResultSetHandle:
     interpreter_port = None # if tcp is valid, if ipc is None
     handle = None
     client = None
+    error_message = None # when empty the query ran succesfully
 
-    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime):
+    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message):
         self.columns = columns
         self.columnTokens = columnTokens
 
-        if columns.columns.size>0:
-            idx = 0
-            for col in self.columns.columns:
-                self.columns[col].columnToken = columnTokens[idx]
-                idx = idx + 1
-        else:
-            self.columns.resultToken = resultToken
+        if columns is not None:
+            if columns.columns.size>0:
+                idx = 0
+                for col in self.columns.columns:
+                    self.columns[col].columnToken = columnTokens[idx]
+                    idx = idx + 1
+            else:
+                self.columns.resultToken = resultToken
 
         self.resultToken = resultToken
         self.interpreter_path = interpreter_path
@@ -70,6 +71,7 @@ class ResultSetHandle:
         self.calciteTime = calciteTime
         self.ralTime = ralTime
         self.totalTime = totalTime
+        self.error_message = error_message
 
     def __del__(self):
         # @todo
@@ -88,16 +90,18 @@ handle = %(handle)s
 client = %(client)s
 calciteTime = %(calciteTime)d
 ralTime = %(ralTime)d
-totalTime = %(totalTime)d''' % {
+totalTime = %(totalTime)d
+error_message = %(error_message)s''' % {
         'columns': self.columns,
         'resultToken': self.resultToken,
         'interpreter_path': self.interpreter_path,
         'interpreter_port': self.interpreter_port,
         'handle': self.handle,
         'client': self.client,
-        'calciteTime' : self.calciteTime,
-        'ralTime' : self.ralTime,
-        'totalTime' : self.totalTime,
+        'calciteTime' : self.calciteTime if self.calciteTime is not None else 0,
+        'ralTime' : self.ralTime if self.ralTime is not None else 0,
+        'totalTime' : self.totalTime if self.totalTime is not None else 0,
+        'error_message' : self.error_message,
       })
 
     def __repr__(self):
@@ -131,8 +135,14 @@ def run_query(sql, tables):
     """
     return _private_run_query(sql, tables)
 
+def run_query_filesystem(sql, sql_data):
+    return _private_run_query_filesystem(sql, sql_data)
+
 def run_query_get_token(sql, tables):
     return _run_query_get_token(sql, tables)
+
+def run_query_filesystem_get_token(sql, sql_data):
+    return _run_query_filesystem_get_token(sql, sql_data)
 
 def run_query_get_results(metaToken):
     return _run_query_get_results(metaToken)
@@ -220,9 +230,14 @@ class PyConnector:
         self._orchestrator_port = orchestrator_port
 
     def __del__(self):
-        self.close_connection()
+        try:
+            print("CLOSING CONNECTION")
+            self.close_connection()
+        except:
+            print("Can't close connection, probably it was lost")
 
     def connect(self):
+        self.accessToken = 0
         # TODO find a way to print only for debug mode (add verbose arg)
         #print("open connection")
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
@@ -267,6 +282,8 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
@@ -285,6 +302,8 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
@@ -303,7 +322,9 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors)
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
+            raise Error(errorResponse.errors.decode('utf-8'))
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
 
@@ -322,7 +343,9 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors)
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
+            raise Error(errorResponse.errors.decode('utf-8'))
 
         distributed_response = blazingdb.protocol.orchestrator.DMLDistributedResponseSchema.From(response.payload)
 
@@ -394,7 +417,7 @@ class PyConnector:
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
-            raise Error(errorResponse.errors)
+            raise Error(errorResponse.errors.decode('utf-8'))
 
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(response.status)
@@ -417,7 +440,7 @@ class PyConnector:
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
-            print(errorResponse.errors)
+            raise Error(errorResponse.errors.decode('utf-8'))
 
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(response.status)
@@ -480,6 +503,9 @@ class PyConnector:
         queryResult = blazingdb.protocol.interpreter.GetQueryResultFrom(
             response.payload)
 
+        if queryResult.metadata.status.decode() == "Error":
+            raise Error(queryResult.metadata.message.decode('utf-8'))
+
         return queryResult
 
 
@@ -532,16 +558,14 @@ def gdf_column_type_to_str(dtype):
 
 
 def _get_table_def_from_gdf(gdf):
-    cols = gdf.columns.values.tolist() ## todo las propiedades, solo una columna!
-
-    # TODO find a way to print only for debug mode (add verbose arg)
-    # print(cols)
-
+    
+    colNames = []
     types = []
-    for key, column in gdf._cols.items():
+    for colName, column in gdf._cols.items():
         dtype = column._column.cffi_view.dtype
+        colNames.append(colName)
         types.append(gdf_column_type_to_str(dtype))
-    return cols, types
+    return colNames, types
 
 
 def _reset_table(client, table, gdf):
@@ -615,6 +639,8 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
         client.connect()
     except Error as err:
         print(err)
+    except RuntimeError as err:
+        print("Connection to the Orchestrator could not be started")
 
     return client
 
@@ -680,7 +706,7 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
 def columnview_from_devary(data_devary, mask_devary, dtype=None):
     return _gdf._columnview(size=data_devary.size,  data=_gdf.unwrap_devary(data_devary),
                mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
-               null_count=0)
+               null_count=0, nvcat=None)
 
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
@@ -694,8 +720,18 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     for i, c in enumerate(resultSet.columns):
         if c.size != 0 :
             assert len(c.data) == 64
-            ipch_data, data_ptr = _open_ipc_array(
-                c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+            # todo: remove this if when C gdf struct is replaced by pyarrow object
+            if c.dtype == libgdf.GDF_DATE32:
+                c.dtype = libgdf.GDF_INT32
+                ipch_data, data_ptr = _open_ipc_array(
+                    c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+                # todo: remove this when C gdf struct is replaced by pyarrow object
+                #  is this workaround  only for python object?
+                # yes. it is!. Because RAL only knowns the column_token.
+                
+            else:
+                ipch_data, data_ptr = _open_ipc_array(
+                    c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
             ipchandles.append(ipch_data)
 
             valid_ptr = None
@@ -711,6 +747,15 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                 gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
             else:
                 gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+        else:
+            if c.dtype == libgdf.GDF_DATE32:
+                c.dtype = libgdf.GDF_INT32
+                
+            dtype=_gdf.gdf_to_np_dtype(c.dtype)
+            if (dtype == np.dtype('datetime64[ms]')):
+                gdf_columns.append(DatetimeColumn(data=Buffer.null(dtype), dtype=dtype))
+            else:
+                gdf_columns.append(NumericalColumn(data=Buffer.null(dtype), dtype=dtype))
 
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
@@ -720,80 +765,110 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     resultSet.columns = gdf
     return resultSet, ipchandles
 
+def exceptions_wrapper(f):
+    def applicator(*args, **kwargs):
+        try:
+            f(*args,**kwargs)
+        except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+            print(error)
+        except Error as error:
+            print(str(error))
+        except Exception as error:
+            print("Unexpected error on " + f.__name__ + ": " + error)
+            # Todo: print traceback.print_exc() when debug mode is enabled
+    return applicator
+
+#@exceptions_wrapper
 def _run_query_get_token(sql, tables):
     startTime = time.time()
-    client = _get_client()
-    try:
-        for table, gdf in tables.items():
-            _reset_table(client, table, gdf)
-    except Error as err:
-        print(err)
 
     resultToken = 0
     interpreter_path = None
     interpreter_port = None
+    calciteTime = 0
+    error_message = ''
+
     try:
+        client = _get_client()
+
+        for table, gdf in tables.items():
+            _reset_table(client, table, gdf)
+
         tableGroup = _to_table_group(tables)
+
         resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
-        metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
-        return metaToken
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
-    
-    return None
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception:
+        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+    return metaToken
+
+def _run_query_filesystem_get_token(sql, sql_data):
+    startTime = time.time()
+
+    resultToken = 0
+    interpreter_path = None
+    interpreter_port = None
+    calciteTime = 0
+    error_message = ''
+
+    try:
+        client = _get_client()
+
+        for schema, files in sql_data.items():
+            _reset_table(client, schema.table_name, schema.gdf)
+
+        tableGroup = _sql_data_to_table_group(sql_data)
+
+        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception:
+        error_message = "Unexpected error on " + _run_query_filesystem_get_token.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+    return metaToken
 
 def _run_query_get_results(metaToken):
+    error_message = ''
+
     try:
         resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+
         totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
-    return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
+        return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime, '')
+        return return_result
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+    return_result = ResultSetHandle(None, None, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], None, metaToken["client"], metaToken["calciteTime"], 0, 0, error_message)
     return return_result
 
 def _private_run_query(sql, tables):
+    metaToken = _run_query_get_token(sql, tables)
+    return _run_query_get_results(metaToken)
 
-    try:
-        metaToken = _run_query_get_token(sql, tables)
-        return _run_query_get_results(metaToken)
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
-
-    return None
-    
-    # startTime = time.time()
-    # client = _get_client()
-    # try:
-    #     for table, gdf in tables.items():
-    #         _reset_table(client, table, gdf)
-    # except Error as err:
-    #     print(err)
-
-    # resultSet = None
-    # token = 0
-    # interpreter_path = None
-    # interpreter_port = None
-    # try:
-    #     tableGroup = _to_table_group(tables)
-    #     token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
-    #     resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
-    #     totalTime = (time.time() - startTime) * 1000  # in milliseconds
-
-    #     return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
-
-    # except SyntaxError as error:
-    #     raise error
-    # except Error as err:
-    #     print(err)
-
-    # return None
-
+def _private_run_query_filesystem(sql, sql_data):
+    metaToken = _run_query_filesystem_get_token(sql, sql_data)
+    return _run_query_get_results(metaToken)
 
 
 from collections import namedtuple
@@ -872,29 +947,64 @@ class TableSchema:
 # WARNING EXPERIMENTAL
 def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
-    client = _get_client()
+    error_message = ''
 
-    resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    try:
+        client = _get_client()
+
+        resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
+        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+
+        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + read_csv_table_from_filesystem.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)    
 
 
 def read_parquet_table_from_filesystem(table_name, schema):
     print('create parquet table')
-    client = _get_client()
+    error_message = ''
 
-    resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    try:
+        client = _get_client()
+
+        resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
+        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+
+        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + run_query_filesystem.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)
+
+    
 
 
 def create_table(table_name, **kwargs):
-    schema = TableSchema(**kwargs)
-    return_result = None
-    if schema.schema_type == SchemaFrom.CsvFile:  # csv
-        return_result = read_csv_table_from_filesystem(table_name, schema)
-    elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
-        return_result = read_parquet_table_from_filesystem(table_name, schema)
+
+    schema = register_table_schema(table_name, **kwargs)
+    path = kwargs.get('path', None)
+
+    sql = "SELECT * FROM main." + table_name
+    sql_data = {schema: [path]}
+    return_result = run_query_filesystem(sql, sql_data)
     return_result.name = table_name
     return return_result
 
@@ -906,6 +1016,8 @@ def register_table_schema(table_name, **kwargs):
         return_result = read_csv_table_from_filesystem(table_name, schema)
     elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
         return_result = read_parquet_table_from_filesystem(table_name, schema)
+    else:
+        print("ERROR: unknown schema type")
 
     schema.set_table_name(table_name)
     col_names, types = _get_table_def_from_gdf(return_result.columns)
@@ -963,45 +1075,3 @@ def _sql_data_to_table_group(sql_data):
     tableGroup['tables'] = blazing_tables
     return tableGroup
 
-def run_query_filesystem(sql, sql_data):
-    startTime = time.time()
-
-    client = _get_client()
-
-    for schema, files in sql_data.items():
-        _reset_table(client, schema.table_name, schema.gdf)
-
-    totalTime = 0
-    result_list = []
-    try:
-        tableGroup = _sql_data_to_table_group(sql_data)
-        dist_list = client.run_dml_query_filesystem_token(sql, tableGroup)
-
-        for result in dist_list:
-            resultSet, ipchandles = _private_get_result(result.resultToken,
-                                                        result.nodeConnection.path.decode('utf8'),
-                                                        result.nodeConnection.port,
-                                                        result.calciteTime)
-            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles})
-
-        totalTime = (time.time() - startTime) * 1000  # in milliseconds
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
-        raise err
-
-    result_set_list = []
-    for result in result_list:
-        result_set_list.append(ResultSetHandle(result['resultSet'].columns,
-                                               result['resultSet'].columnTokens,
-                                               result['result'].resultToken,
-                                               result['result'].nodeConnection.path.decode('utf8'),
-                                               result['result'].nodeConnection.port,
-                                               result['ipchandles'],
-                                               client,
-                                               result['result'].calciteTime,
-                                               result['resultSet'].metadata.time,
-                                               totalTime))
-
-    return result_set_list

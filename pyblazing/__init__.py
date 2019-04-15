@@ -1,5 +1,6 @@
 from .api import run_query
 from .api import run_query_get_token
+from .api import run_query_filesystem_get_token
 from .api import run_query_get_results
 from .api import run_query_pandas
 from .api import register_file_system
@@ -11,3 +12,6 @@ from .api import run_query_filesystem
 from .api import create_table
 #TODO this api is experimental
 #from .api import run_query_arrow
+
+from .api import ResultSetHandle
+from .api import _get_client
