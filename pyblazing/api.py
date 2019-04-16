@@ -813,6 +813,8 @@ def _run_query_get_token(sql, tables):
 def _run_query_filesystem_get_token(sql, sql_data):
     startTime = time.time()
 
+    metaTokenList = []
+
     resultToken = 0
     interpreter_path = None
     interpreter_port = None
@@ -827,7 +829,14 @@ def _run_query_filesystem_get_token(sql, sql_data):
 
         tableGroup = _sql_data_to_table_group(sql_data)
 
-        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
+        dist_list = client.run_dml_query_filesystem_token(sql, tableGroup)
+
+        for result in dist_list:
+            metaToken = {"client" : client, "resultToken" : result.resultToken, "interpreter_path" : result.nodeConnection.path.decode('utf8'), "interpreter_port" : result.nodeConnection.port, "startTime" : startTime, "calciteTime" : result.calciteTime}
+            metaTokenList.append(metaToken)
+
+        return metaTokenList
+
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -839,17 +848,27 @@ def _run_query_filesystem_get_token(sql, sql_data):
         print(error_message)
 
     metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
-    return metaToken
+    metaTokenList.append(metaToken)
+    return metaTokenList
 
-def _run_query_get_results(metaToken):
+def _run_query_get_results(metaTokenList):
+
+    if type(metaTokenList) != list:
+        metaTokenList = [metaTokenList]
+
     error_message = ''
 
-    try:
-        resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+    resultList = []
 
-        totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
-        return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime, '')
-        return return_result
+    try:
+        for metaToken in metaTokenList:
+            resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+
+            totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
+            result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime, '')
+            resultList.append(result) 
+        
+        return resultList
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -859,16 +878,18 @@ def _run_query_get_results(metaToken):
 
     if error_message is not '':
         print(error_message)
-    return_result = ResultSetHandle(None, None, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], None, metaToken["client"], metaToken["calciteTime"], 0, 0, error_message)
-    return return_result
+    errorResult = ResultSetHandle(None, None, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], None, metaToken["client"], metaToken["calciteTime"], 0, 0, error_message)
+    resultList.append(errorResult) 
+    
+    return resultList
 
 def _private_run_query(sql, tables):
     metaToken = _run_query_get_token(sql, tables)
     return _run_query_get_results(metaToken)
 
 def _private_run_query_filesystem(sql, sql_data):
-    metaToken = _run_query_filesystem_get_token(sql, sql_data)
-    return _run_query_get_results(metaToken)
+    metaTokenList = _run_query_filesystem_get_token(sql, sql_data)
+    return _run_query_get_results(metaTokenList)
 
 
 from collections import namedtuple
