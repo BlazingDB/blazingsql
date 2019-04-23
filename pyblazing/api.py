@@ -20,6 +20,7 @@ from cudf.dataframe.numerical import NumericalColumn
 import pyarrow as pa
 from cudf import _gdf
 from cudf.dataframe.column import Column
+from cudf.dataframe.string import StringColumn
 from cudf import DataFrame
 from cudf.dataframe.dataframe import Series
 from cudf.dataframe.buffer import Buffer
@@ -31,6 +32,7 @@ import numpy as np
 import pandas as pd
 
 import time
+import nvstrings
 
 # NDarray device helper
 from numba import cuda
@@ -76,36 +78,36 @@ class ResultSetHandle:
     def __del__(self):
         # @todo
         if self.handle is not None:
-            for ipch in self.handle:
+            for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
             del self.handle
             self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
 
     def __str__(self):
-      return ('''columns = %(columns)s
-resultToken = %(resultToken)s
-interpreter_path = %(interpreter_path)s
-interpreter_port = %(interpreter_port)s
-handle = %(handle)s
-client = %(client)s
-calciteTime = %(calciteTime)d
-ralTime = %(ralTime)d
-totalTime = %(totalTime)d
-error_message = %(error_message)s''' % {
-        'columns': self.columns,
-        'resultToken': self.resultToken,
-        'interpreter_path': self.interpreter_path,
-        'interpreter_port': self.interpreter_port,
-        'handle': self.handle,
-        'client': self.client,
-        'calciteTime' : self.calciteTime if self.calciteTime is not None else 0,
-        'ralTime' : self.ralTime if self.ralTime is not None else 0,
-        'totalTime' : self.totalTime if self.totalTime is not None else 0,
-        'error_message' : self.error_message,
-      })
+        return ('''columns = %(columns)s
+                    resultToken = %(resultToken)s
+                    interpreter_path = %(interpreter_path)s
+                    interpreter_port = %(interpreter_port)s
+                    handle = %(handle)s
+                    client = %(client)s
+                    calciteTime = %(calciteTime)d
+                    ralTime = %(ralTime)d
+                    totalTime = %(totalTime)d
+                    error_message = %(error_message)s''' % {
+                            'columns': self.columns,
+                            'resultToken': self.resultToken,
+                            'interpreter_path': self.interpreter_path,
+                            'interpreter_port': self.interpreter_port,
+                            'handle': self.handle,
+                            'client': self.client,
+                            'calciteTime' : self.calciteTime if self.calciteTime is not None else 0,
+                            'ralTime' : self.ralTime if self.ralTime is not None else 0,
+                            'totalTime' : self.totalTime if self.totalTime is not None else 0,
+                            'error_message' : self.error_message,
+                        })
 
     def __repr__(self):
-      return str(self)
+        return str(self)
 
 
 
@@ -514,22 +516,36 @@ def gen_data_frame(nelem, name, dtype):
     return df
 
 
-def get_ipc_handle_for_data(column, dataframe_column):
+def get_ipc_handle_for_data(dataframe_column):
 
     if hasattr(dataframe_column, 'columnToken'):
         return None
     else:
-       ipch = dataframe_column._column._data.mem.get_ipc_handle()
-       return bytes(ipch._ipc_handle.handle)
+        if dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY or dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING:
+            return None
+        else:
+            ipch = dataframe_column._column._data.mem.get_ipc_handle()
+            return bytes(ipch._ipc_handle.handle)
 
-def get_ipc_handle_for_valid(column, dataframe_column):
+def get_ipc_handle_for_valid(dataframe_column):
 
     if hasattr(dataframe_column, 'columnToken'):
         return None
-    else:
+    elif dataframe_column._column.cffi_view.null_count > 0:
        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
        return bytes(ipch._ipc_handle.handle)
+    else:
+        return None
 
+def get_ipc_handle_for_strings(dataframe_column):
+
+    if hasattr(dataframe_column, 'columnToken'):
+        return None
+    elif dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY or dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING:
+        # TODO: this is assuming that it is a GDF_STRING but could be GDF_STRING_CATEGORY due to a bug
+       return dataframe_column._column._data.get_ipc_data()       
+    else:
+        return None
 
 def gdf_column_type_to_str(dtype):
     str_dtype = {
@@ -545,11 +561,12 @@ def gdf_column_type_to_str(dtype):
         9: 'GDF_TIMESTAMP',
         10: 'GDF_CATEGORY',
         11: 'GDF_STRING',
-        12: 'GDF_UINT8',
-        13: 'GDF_UINT16',
-        14: 'GDF_UINT32',
-        15: 'GDF_UINT64',
-        16: 'N_GDF_TYPES'
+        12: 'GDF_STRING_CATEGORY',
+        13: 'GDF_UINT8',
+        14: 'GDF_UINT16',
+        15: 'GDF_UINT32',
+        16: 'GDF_UINT64',
+        17: 'N_GDF_TYPES'
     }
 
     return str_dtype[dtype]
@@ -595,11 +612,13 @@ def _to_table_group(tables):
             dtype = numerical_column.cffi_view.dtype
             null_count = numerical_column.cffi_view.null_count
 
-            data_ipch = get_ipc_handle_for_data(column, dataframe_column)
-            valid_ipch = None
-
-            if (null_count > 0):
-                valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
+            data_ipch = get_ipc_handle_for_data(dataframe_column)
+            valid_ipch = get_ipc_handle_for_valid(dataframe_column)
+            ipc_data = get_ipc_handle_for_strings(dataframe_column)
+            
+            dtype_info = {
+                'time_unit': 0, #TODO dummy value
+            }
 
             blazing_column = {
                 'data': data_ipch,
@@ -607,8 +626,19 @@ def _to_table_group(tables):
                 'size': data_sz,
                 'dtype': dtype,
                 'null_count': null_count,
-                'dtype_info': 0
+                'dtype_info': dtype_info
             }
+
+            if ipc_data is not None:
+                dtype = libgdf.GDF_STRING # TODO: open issue, it must be a GDF_STRING
+
+                blazing_column['dtype'] = dtype
+                #custrings_data
+                blazing_column['custrings_views'] = bytes(ipc_data[0]) #custrings_views_ipch,
+                blazing_column['custrings_viewscount'] = ipc_data[1] #custrings_views_count,
+                blazing_column['custrings_membuffer'] = bytes(ipc_data[2]) #custrings_membuffer_ipch,
+                blazing_column['custrings_membuffersize'] = ipc_data[3] #custrings_membuffer_size,
+                blazing_column['custrings_baseptr'] = ipc_data[4] #custrings_base_ptr
 
             if hasattr(gdf[column], 'columnToken'):
                 columnTokens.append(gdf[column].columnToken)
@@ -717,43 +747,57 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
         if c.size != 0 :
-            assert len(c.data) == 64
-            # todo: remove this if when C gdf struct is replaced by pyarrow object
-            if c.dtype == libgdf.GDF_DATE32:
-                c.dtype = libgdf.GDF_INT32
-                ipch_data, data_ptr = _open_ipc_array(
-                    c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-                # todo: remove this when C gdf struct is replaced by pyarrow object
-                #  is this workaround  only for python object?
-                # yes. it is!. Because RAL only knowns the column_token.
-                
-            else:
-                ipch_data, data_ptr = _open_ipc_array(
-                    c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-            ipchandles.append(ipch_data)
+            if c.dtype == libgdf.GDF_STRING:
+                ipc_data = [c.custrings_views,
+                            c.custrings_viewscount,
+                            c.custrings_membuffer,
+                            c.custrings_membuffersize,
+                            c.custrings_baseptr]
 
-            valid_ptr = None
-            if (c.null_count > 0):
-                ipch_valid, valid_ptr = _open_ipc_array(
-                    c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
-                ipchandles.append(ipch_valid)
+                new_strs = nvstrings.create_from_ipc(ipc_data)
+                newcol = StringColumn(new_strs)
 
-            # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
-            cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
-            newcol = from_cffi_view(cffi_view)
-            if (newcol.dtype == np.dtype('datetime64[ms]')):
-                gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+                gdf_columns.append(newcol.view(StringColumn, dtype='object'))
             else:
-                gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+                assert len(c.data) == 64
+                # todo: remove this if when C gdf struct is replaced by pyarrow object
+                if c.dtype == libgdf.GDF_DATE32:
+                    c.dtype = libgdf.GDF_INT32
+                    ipch_data, data_ptr = _open_ipc_array(
+                        c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+                    # todo: remove this when C gdf struct is replaced by pyarrow object
+                    #  is this workaround  only for python object?
+                    # yes. it is!. Because RAL only knowns the column_token.
+                else:
+                    ipch_data, data_ptr = _open_ipc_array(
+                        c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+                ipchandles.append(ipch_data)
+
+                valid_ptr = None
+                if (c.null_count > 0):
+                    ipch_valid, valid_ptr = _open_ipc_array(
+                        c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
+                    ipchandles.append(ipch_valid)
+
+                # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
+                cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
+                newcol = from_cffi_view(cffi_view)
+                if (newcol.dtype == np.dtype('datetime64[ms]')):
+                    gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+                else:
+                    gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
         else:
-            if c.dtype == libgdf.GDF_DATE32:
-                c.dtype = libgdf.GDF_INT32
-                
-            dtype=_gdf.gdf_to_np_dtype(c.dtype)
-            if (dtype == np.dtype('datetime64[ms]')):
-                gdf_columns.append(DatetimeColumn(data=Buffer.null(dtype), dtype=dtype))
+            if c.dtype == libgdf.GDF_STRING:
+                print("WARNING: Unhandled empty string column.")  #WSM need to handle this
             else:
-                gdf_columns.append(NumericalColumn(data=Buffer.null(dtype), dtype=dtype))
+                if c.dtype == libgdf.GDF_DATE32:
+                    c.dtype = libgdf.GDF_INT32
+                    
+                dtype=_gdf.gdf_to_np_dtype(c.dtype)
+                if (dtype == np.dtype('datetime64[ms]')):
+                    gdf_columns.append(DatetimeColumn(data=Buffer.null(dtype), dtype=dtype))
+                else:
+                    gdf_columns.append(NumericalColumn(data=Buffer.null(dtype), dtype=dtype))
 
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
