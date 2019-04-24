@@ -20,6 +20,7 @@ from cudf.dataframe.numerical import NumericalColumn
 import pyarrow as pa
 from cudf import _gdf
 from cudf.dataframe.column import Column
+from cudf.dataframe.string import StringColumn
 from cudf import DataFrame
 from cudf.dataframe.dataframe import Series
 from cudf.dataframe.buffer import Buffer
@@ -31,7 +32,7 @@ import numpy as np
 import pandas as pd
 
 import time
-
+import nvstrings
 
 # NDarray device helper
 from numba import cuda
@@ -49,18 +50,20 @@ class ResultSetHandle:
     interpreter_port = None # if tcp is valid, if ipc is None
     handle = None
     client = None
+    error_message = None # when empty the query ran succesfully
 
-    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime):
+    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message):
         self.columns = columns
         self.columnTokens = columnTokens
 
-        if columns.columns.size>0:
-            idx = 0
-            for col in self.columns.columns:
-                self.columns[col].columnToken = columnTokens[idx]
-                idx = idx + 1
-        else:
-            self.columns.resultToken = resultToken
+        if columns is not None:
+            if columns.columns.size>0:
+                idx = 0
+                for col in self.columns.columns:
+                    self.columns[col].columnToken = columnTokens[idx]
+                    idx = idx + 1
+            else:
+                self.columns.resultToken = resultToken
 
         self.resultToken = resultToken
         self.interpreter_path = interpreter_path
@@ -70,38 +73,41 @@ class ResultSetHandle:
         self.calciteTime = calciteTime
         self.ralTime = ralTime
         self.totalTime = totalTime
+        self.error_message = error_message
 
     def __del__(self):
         # @todo
         if self.handle is not None:
-            for ipch in self.handle:
+            for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
             del self.handle
             self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
 
     def __str__(self):
-      return ('''columns = %(columns)s
-resultToken = %(resultToken)s
-interpreter_path = %(interpreter_path)s
-interpreter_port = %(interpreter_port)s
-handle = %(handle)s
-client = %(client)s
-calciteTime = %(calciteTime)d
-ralTime = %(ralTime)d
-totalTime = %(totalTime)d''' % {
-        'columns': self.columns,
-        'resultToken': self.resultToken,
-        'interpreter_path': self.interpreter_path,
-        'interpreter_port': self.interpreter_port,
-        'handle': self.handle,
-        'client': self.client,
-        'calciteTime' : self.calciteTime,
-        'ralTime' : self.ralTime,
-        'totalTime' : self.totalTime,
-      })
+        return ('''columns = %(columns)s
+                    resultToken = %(resultToken)s
+                    interpreter_path = %(interpreter_path)s
+                    interpreter_port = %(interpreter_port)s
+                    handle = %(handle)s
+                    client = %(client)s
+                    calciteTime = %(calciteTime)d
+                    ralTime = %(ralTime)d
+                    totalTime = %(totalTime)d
+                    error_message = %(error_message)s''' % {
+                            'columns': self.columns,
+                            'resultToken': self.resultToken,
+                            'interpreter_path': self.interpreter_path,
+                            'interpreter_port': self.interpreter_port,
+                            'handle': self.handle,
+                            'client': self.client,
+                            'calciteTime' : self.calciteTime if self.calciteTime is not None else 0,
+                            'ralTime' : self.ralTime if self.ralTime is not None else 0,
+                            'totalTime' : self.totalTime if self.totalTime is not None else 0,
+                            'error_message' : self.error_message,
+                        })
 
     def __repr__(self):
-      return str(self)
+        return str(self)
 
 
 
@@ -131,8 +137,14 @@ def run_query(sql, tables):
     """
     return _private_run_query(sql, tables)
 
+def run_query_filesystem(sql, sql_data):
+    return _private_run_query_filesystem(sql, sql_data)
+
 def run_query_get_token(sql, tables):
     return _run_query_get_token(sql, tables)
+
+def run_query_filesystem_get_token(sql, sql_data):
+    return _run_query_filesystem_get_token(sql, sql_data)
 
 def run_query_get_results(metaToken):
     return _run_query_get_results(metaToken)
@@ -220,9 +232,14 @@ class PyConnector:
         self._orchestrator_port = orchestrator_port
 
     def __del__(self):
-        self.close_connection()
+        try:
+            print("CLOSING CONNECTION")
+            self.close_connection()
+        except:
+            print("Can't close connection, probably it was lost")
 
     def connect(self):
+        self.accessToken = 0
         # TODO find a way to print only for debug mode (add verbose arg)
         #print("open connection")
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
@@ -267,6 +284,8 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
@@ -285,6 +304,8 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
             raise Error(errorResponse.errors)
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
@@ -303,7 +324,9 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors)
+            elif b'SqlValidationException' in errorResponse.errors:
+                raise ValueError(errorResponse.errors.decode('utf-8'))
+            raise Error(errorResponse.errors.decode('utf-8'))
         dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
             response.payload)
 
@@ -322,11 +345,21 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
+
             raise Error(errorResponse.errors)
 
         distributed_response = blazingdb.protocol.orchestrator.DMLDistributedResponseSchema.From(response.payload)
 
         return list(item for item in distributed_response.responses)
+
+
+#TODO percy strings merge
+#            elif b'SqlValidationException' in errorResponse.errors:
+#                raise ValueError(errorResponse.errors.decode('utf-8'))
+#            raise Error(errorResponse.errors.decode('utf-8'))
+#        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
+#            response.payload)
+#        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
 
 
     def run_dml_query(self, query, tableGroup):
@@ -394,7 +427,7 @@ class PyConnector:
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
-            raise Error(errorResponse.errors)
+            raise Error(errorResponse.errors.decode('utf-8'))
 
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(response.status)
@@ -417,7 +450,7 @@ class PyConnector:
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
-            print(errorResponse.errors)
+            raise Error(errorResponse.errors.decode('utf-8'))
 
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(response.status)
@@ -480,6 +513,9 @@ class PyConnector:
         queryResult = blazingdb.protocol.interpreter.GetQueryResultFrom(
             response.payload)
 
+        if queryResult.metadata.status.decode() == "Error":
+            raise Error(queryResult.metadata.message.decode('utf-8'))
+
         return queryResult
 
 
@@ -490,22 +526,36 @@ def gen_data_frame(nelem, name, dtype):
     return df
 
 
-def get_ipc_handle_for_data(column, dataframe_column):
+def get_ipc_handle_for_data(dataframe_column):
 
     if hasattr(dataframe_column, 'columnToken'):
         return None
     else:
-       ipch = dataframe_column._column._data.mem.get_ipc_handle()
-       return bytes(ipch._ipc_handle.handle)
+        if dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY or dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING:
+            return None
+        else:
+            ipch = dataframe_column._column._data.mem.get_ipc_handle()
+            return bytes(ipch._ipc_handle.handle)
 
-def get_ipc_handle_for_valid(column, dataframe_column):
+def get_ipc_handle_for_valid(dataframe_column):
 
     if hasattr(dataframe_column, 'columnToken'):
         return None
-    else:
+    elif dataframe_column._column.cffi_view.null_count > 0:
        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
        return bytes(ipch._ipc_handle.handle)
+    else:
+        return None
 
+def get_ipc_handle_for_strings(dataframe_column):
+
+    if hasattr(dataframe_column, 'columnToken'):
+        return None
+    elif dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY or dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING:
+        # TODO: this is assuming that it is a GDF_STRING but could be GDF_STRING_CATEGORY due to a bug
+       return dataframe_column._column._data.get_ipc_data()       
+    else:
+        return None
 
 def gdf_column_type_to_str(dtype):
     str_dtype = {
@@ -521,27 +571,26 @@ def gdf_column_type_to_str(dtype):
         9: 'GDF_TIMESTAMP',
         10: 'GDF_CATEGORY',
         11: 'GDF_STRING',
-        12: 'GDF_UINT8',
-        13: 'GDF_UINT16',
-        14: 'GDF_UINT32',
-        15: 'GDF_UINT64',
-        16: 'N_GDF_TYPES'
+        12: 'GDF_STRING_CATEGORY',
+        13: 'GDF_UINT8',
+        14: 'GDF_UINT16',
+        15: 'GDF_UINT32',
+        16: 'GDF_UINT64',
+        17: 'N_GDF_TYPES'
     }
 
     return str_dtype[dtype]
 
 
 def _get_table_def_from_gdf(gdf):
-    cols = gdf.columns.values.tolist() ## todo las propiedades, solo una columna!
-
-    # TODO find a way to print only for debug mode (add verbose arg)
-    # print(cols)
-
+    
+    colNames = []
     types = []
-    for key, column in gdf._cols.items():
+    for colName, column in gdf._cols.items():
         dtype = column._column.cffi_view.dtype
+        colNames.append(colName)
         types.append(gdf_column_type_to_str(dtype))
-    return cols, types
+    return colNames, types
 
 
 def _reset_table(client, table, gdf):
@@ -573,11 +622,13 @@ def _to_table_group(tables):
             dtype = numerical_column.cffi_view.dtype
             null_count = numerical_column.cffi_view.null_count
 
-            data_ipch = get_ipc_handle_for_data(column, dataframe_column)
-            valid_ipch = None
-
-            if (null_count > 0):
-                valid_ipch = get_ipc_handle_for_valid(column, dataframe_column)
+            data_ipch = get_ipc_handle_for_data(dataframe_column)
+            valid_ipch = get_ipc_handle_for_valid(dataframe_column)
+            ipc_data = get_ipc_handle_for_strings(dataframe_column)
+            
+            dtype_info = {
+                'time_unit': 0, #TODO dummy value
+            }
 
             blazing_column = {
                 'data': data_ipch,
@@ -585,8 +636,19 @@ def _to_table_group(tables):
                 'size': data_sz,
                 'dtype': dtype,
                 'null_count': null_count,
-                'dtype_info': 0
+                'dtype_info': dtype_info
             }
+
+            if ipc_data is not None:
+                dtype = libgdf.GDF_STRING # TODO: open issue, it must be a GDF_STRING
+
+                blazing_column['dtype'] = dtype
+                #custrings_data
+                blazing_column['custrings_views'] = bytes(ipc_data[0]) #custrings_views_ipch,
+                blazing_column['custrings_viewscount'] = ipc_data[1] #custrings_views_count,
+                blazing_column['custrings_membuffer'] = bytes(ipc_data[2]) #custrings_membuffer_ipch,
+                blazing_column['custrings_membuffersize'] = ipc_data[3] #custrings_membuffer_size,
+                blazing_column['custrings_baseptr'] = ipc_data[4] #custrings_base_ptr
 
             if hasattr(gdf[column], 'columnToken'):
                 columnTokens.append(gdf[column].columnToken)
@@ -615,6 +677,8 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
         client.connect()
     except Error as err:
         print(err)
+    except RuntimeError as err:
+        print("Connection to the Orchestrator could not be started")
 
     return client
 
@@ -693,24 +757,57 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
         if c.size != 0 :
-            assert len(c.data) == 64
-            ipch_data, data_ptr = _open_ipc_array(
-                c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-            ipchandles.append(ipch_data)
+            if c.dtype == libgdf.GDF_STRING:
+                ipc_data = [c.custrings_views,
+                            c.custrings_viewscount,
+                            c.custrings_membuffer,
+                            c.custrings_membuffersize,
+                            c.custrings_baseptr]
 
-            valid_ptr = None
-            if (c.null_count > 0):
-                ipch_valid, valid_ptr = _open_ipc_array(
-                    c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
-                ipchandles.append(ipch_valid)
+                new_strs = nvstrings.create_from_ipc(ipc_data)
+                newcol = StringColumn(new_strs)
 
-            # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
-            cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
-            newcol = from_cffi_view(cffi_view)
-            if (newcol.dtype == np.dtype('datetime64[ms]')):
-                gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+                gdf_columns.append(newcol.view(StringColumn, dtype='object'))
             else:
-                gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+                assert len(c.data) == 64
+                # todo: remove this if when C gdf struct is replaced by pyarrow object
+                if c.dtype == libgdf.GDF_DATE32:
+                    c.dtype = libgdf.GDF_INT32
+                    ipch_data, data_ptr = _open_ipc_array(
+                        c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+                    # todo: remove this when C gdf struct is replaced by pyarrow object
+                    #  is this workaround  only for python object?
+                    # yes. it is!. Because RAL only knowns the column_token.
+                else:
+                    ipch_data, data_ptr = _open_ipc_array(
+                        c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+                ipchandles.append(ipch_data)
+
+                valid_ptr = None
+                if (c.null_count > 0):
+                    ipch_valid, valid_ptr = _open_ipc_array(
+                        c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
+                    ipchandles.append(ipch_valid)
+
+                # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
+                cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
+                newcol = from_cffi_view(cffi_view)
+                if (newcol.dtype == np.dtype('datetime64[ms]')):
+                    gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+                else:
+                    gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+        else:
+            if c.dtype == libgdf.GDF_STRING:
+                print("WARNING: Unhandled empty string column.")  #WSM need to handle this
+            else:
+                if c.dtype == libgdf.GDF_DATE32:
+                    c.dtype = libgdf.GDF_INT32
+                    
+                dtype=_gdf.gdf_to_np_dtype(c.dtype)
+                if (dtype == np.dtype('datetime64[ms]')):
+                    gdf_columns.append(DatetimeColumn(data=Buffer.null(dtype), dtype=dtype))
+                else:
+                    gdf_columns.append(NumericalColumn(data=Buffer.null(dtype), dtype=dtype))
 
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
@@ -720,21 +817,39 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     resultSet.columns = gdf
     return resultSet, ipchandles
 
+def exceptions_wrapper(f):
+    def applicator(*args, **kwargs):
+        try:
+            f(*args,**kwargs)
+        except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+            print(error)
+        except Error as error:
+            print(str(error))
+        except Exception as error:
+            print("Unexpected error on " + f.__name__ + ": " + error)
+            # Todo: print traceback.print_exc() when debug mode is enabled
+    return applicator
+
+#@exceptions_wrapper
 def _run_query_get_token(sql, tables):
     startTime = time.time()
-    client = _get_client()
-    try:
-        for table, gdf in tables.items():
-            _reset_table(client, table, gdf)
-    except Error as err:
-        print(err)
 
     resultToken = 0
     interpreter_path = None
     interpreter_port = None
+    calciteTime = 0
+    error_message = ''
+
     try:
+        client = _get_client()
+
+        for table, gdf in tables.items():
+            _reset_table(client, table, gdf)
+
         tableGroup = _to_table_group(tables)
+
         resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+
         metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
         return metaToken
     except SyntaxError as error:
@@ -744,18 +859,77 @@ def _run_query_get_token(sql, tables):
 
     return None
 
+#TODO percy strings merge
+#    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+#        error_message = error
+#    except Error as error:
+#        error_message = str(error)
+#    except Exception:
+#        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
+#
+#    if error_message is not '':
+#        print(error_message)
+#
+#    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+#    return metaToken
+
+def _run_query_filesystem_get_token(sql, sql_data):
+    startTime = time.time()
+
+    resultToken = 0
+    interpreter_path = None
+    interpreter_port = None
+    calciteTime = 0
+    error_message = ''
+
+    try:
+        client = _get_client()
+
+        for schema, files in sql_data.items():
+            _reset_table(client, schema.table_name, schema.gdf)
+
+        tableGroup = _sql_data_to_table_group(sql_data)
+
+        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception:
+        error_message = "Unexpected error on " + _run_query_filesystem_get_token.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+    return metaToken
+
+
 def _run_query_get_results(metaToken):
+    error_message = ''
+
     try:
         resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+
         totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
-    return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime)
+        return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime, '')
+        return return_result
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+    return_result = ResultSetHandle(None, None, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], None, metaToken["client"], metaToken["calciteTime"], 0, 0, error_message)
     return return_result
 
 def _private_run_query(sql, tables):
+    metaToken = _run_query_get_token(sql, tables)
+    return _run_query_get_results(metaToken)
+
 
     try:
         metaToken = _run_query_get_token(sql, tables)
@@ -793,6 +967,11 @@ def _private_run_query(sql, tables):
     #     print(err)
 
     # return None
+
+
+def _private_run_query_filesystem(sql, sql_data):
+    metaToken = _run_query_filesystem_get_token(sql, sql_data)
+    return _run_query_get_results(metaToken)
 
 
 
@@ -872,29 +1051,64 @@ class TableSchema:
 # WARNING EXPERIMENTAL
 def read_csv_table_from_filesystem(table_name, schema):
     print('create csv table')
-    client = _get_client()
+    error_message = ''
 
-    resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    try:
+        client = _get_client()
+
+        resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
+        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+
+        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + read_csv_table_from_filesystem.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)    
 
 
 def read_parquet_table_from_filesystem(table_name, schema):
     print('create parquet table')
-    client = _get_client()
+    error_message = ''
 
-    resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
-    resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
-    return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0)
+    try:
+        client = _get_client()
+
+        resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
+        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+
+        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + run_query_filesystem.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)
+
+    
 
 
 def create_table(table_name, **kwargs):
-    schema = TableSchema(**kwargs)
-    return_result = None
-    if schema.schema_type == SchemaFrom.CsvFile:  # csv
-        return_result = read_csv_table_from_filesystem(table_name, schema)
-    elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
-        return_result = read_parquet_table_from_filesystem(table_name, schema)
+
+    schema = register_table_schema(table_name, **kwargs)
+    path = kwargs.get('path', None)
+
+    sql = "SELECT * FROM main." + table_name
+    sql_data = {schema: [path]}
+    return_result = run_query_filesystem(sql, sql_data)
     return_result.name = table_name
     return return_result
 
@@ -906,6 +1120,8 @@ def register_table_schema(table_name, **kwargs):
         return_result = read_csv_table_from_filesystem(table_name, schema)
     elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
         return_result = read_parquet_table_from_filesystem(table_name, schema)
+    else:
+        print("ERROR: unknown schema type")
 
     schema.set_table_name(table_name)
     col_names, types = _get_table_def_from_gdf(return_result.columns)
@@ -963,6 +1179,7 @@ def _sql_data_to_table_group(sql_data):
     tableGroup['tables'] = blazing_tables
     return tableGroup
 
+
 def run_query_filesystem(sql, sql_data):
     startTime = time.time()
 
@@ -1005,3 +1222,4 @@ def run_query_filesystem(sql, sql_data):
                                                totalTime))
 
     return result_set_list
+

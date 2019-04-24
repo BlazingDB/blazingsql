@@ -1,6 +1,25 @@
 import pandas as pd
 import cudf
 import pyblazing
+import pyarrow.parquet as pq
+import pyarrow as pa
+from pyblazing import SchemaFrom
+
+def read_parquet_file(dir_path = '/home/aocsa/blazingsql/tests/Data1Mb/'):
+    table = pq.read_table(dir_path + 'lineitem_0_0.parquet');
+    # print(table)
+    # print('********************')
+    # print ( pa.date32().to_pandas_dtype()  )
+    # print('********************')
+    # df = table.to_pandas()
+    # print(df[['l_shipdate', 'l_commitdate']])
+    # print(df.dtypes)
+
+    table = pyblazing.create_table(table_name='lineitem_parquet', type=SchemaFrom.ParquetFile, path=dir_path + 'lineitem_0_0.parquet');
+    sql = "select EXTRACT(YEAR FROM l_receiptdate) from main.lineitem_parquet"
+    res = pyblazing.run_query(sql, {table.name: table.columns})
+    print(sql)
+    print(res.columns)
 
 
 column_names = ['n_nationkey', 'n_name', 'n_regionkey', 'n_comments']
@@ -41,3 +60,18 @@ result_gdf = pyblazing.run_query(sql, tables)
 print(sql)
 print(result_gdf)
 
+
+
+column_names = ['l_orderkey', 'l_receiptdate']
+column_types = ['int64', 'date']
+lineitem_gdf = cudf.read_csv("data/lineitem.psv", delimiter='|', dtype=column_types, names=column_names)
+
+print (lineitem_gdf)
+
+tables = {'nation': nation_gdf, 'region': region_gdf, 'lineitem': lineitem_gdf}
+
+sql = "select EXTRACT(YEAR FROM l_receiptdate) from main.lineitem"
+result_gdf = pyblazing.run_query(sql, tables)
+
+print(sql)
+print(result_gdf)
