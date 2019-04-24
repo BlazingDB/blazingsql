@@ -212,7 +212,7 @@ def main():
         def columnview_from_devary(devary_data, devary_valid, dtype=None):
             return _gdf._columnview(size=devary_data.size, data=_gdf.unwrap_devary(devary_data),
                                     mask=devary_valid, dtype=dtype or devary_data.dtype,
-                                    null_count=0)
+                                    null_count=0, nvcat=None)
 
         def from_cffi_view(cffi_view):
             data_mem, mask_mem = _gdf.cffi_view_to_column_mem(cffi_view)
