@@ -1106,10 +1106,17 @@ def _sql_data_to_table_group(sql_data):
             blazing_table['schemaType'] = FileSchemaType.PARQUET
             blazing_table['parquet'] = schema.kwargs
             blazing_table['csv'] = None
-        else:
+            blazing_table['gdf'] = None
+        elif schema.schema_type == SchemaFrom.ParquetFile:
             blazing_table['schemaType'] = FileSchemaType.CSV
             blazing_table['csv'] = schema.kwargs
             blazing_table['parquet'] = None
+            blazing_table['gdf'] = None
+        else:
+            blazing_table['schemaType'] = FileSchemaType.GDF
+            blazing_table['csv'] = None
+            blazing_table['parquet'] = None
+            blazing_table['gdf'] = schema.kwargs
 
         blazing_table['files'] = files
         blazing_tables.append(blazing_table)
