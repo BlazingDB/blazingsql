@@ -95,7 +95,7 @@ class SQL(object):
             for table_name in table_names:
                 tables[table_name] = self.tables[table_name].dataframe()
 
-            metaToken = internal_api.run_query_get_token(client, sql, tables)
+            metaToken = internal_api.run_query_filesystem_get_token(client, sql, tables)
 
             rs = ResultSet(client, metaToken)
 
@@ -104,7 +104,6 @@ class SQL(object):
         else:
             raise Exception('All tables either have to come from files or not from files. Sorry. We will support the mixed case soon.')
 
-        
 
     def _verify_table_name(self, table_name):
         # TODO percy throw exception
