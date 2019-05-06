@@ -634,7 +634,7 @@ def _to_table_group(tables):
 
                 blazing_column['dtype'] = dtype
                 #custrings_data
-                blazing_column['custrings_data'] = bytes(ipc_data)
+                blazing_column['custrings_data'] = ipc_data
 
             if hasattr(gdf[column], 'columnToken'):
                 columnTokens.append(gdf[column].columnToken)
