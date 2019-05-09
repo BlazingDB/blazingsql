@@ -634,11 +634,7 @@ def _to_table_group(tables):
 
                 blazing_column['dtype'] = dtype
                 #custrings_data
-                blazing_column['custrings_views'] = bytes(ipc_data[0]) #custrings_views_ipch,
-                blazing_column['custrings_viewscount'] = ipc_data[1] #custrings_views_count,
-                blazing_column['custrings_membuffer'] = bytes(ipc_data[2]) #custrings_membuffer_ipch,
-                blazing_column['custrings_membuffersize'] = ipc_data[3] #custrings_membuffer_size,
-                blazing_column['custrings_baseptr'] = ipc_data[4] #custrings_base_ptr
+                blazing_column['custrings_data'] = ipc_data
 
             if hasattr(gdf[column], 'columnToken'):
                 columnTokens.append(gdf[column].columnToken)
@@ -748,13 +744,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     for i, c in enumerate(resultSet.columns):
         if c.size != 0 :
             if c.dtype == libgdf.GDF_STRING:
-                ipc_data = [c.custrings_views,
-                            c.custrings_viewscount,
-                            c.custrings_membuffer,
-                            c.custrings_membuffersize,
-                            c.custrings_baseptr]
-
-                new_strs = nvstrings.create_from_ipc(ipc_data)
+                new_strs = nvstrings.create_from_ipc(c.custrings_data)
                 newcol = StringColumn(new_strs)
 
                 gdf_columns.append(newcol.view(StringColumn, dtype='object'))
