@@ -680,7 +680,7 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
 def columnview_from_devary(data_devary, mask_devary, dtype=None):
     return _gdf._columnview(size=data_devary.size,  data=_gdf.unwrap_devary(data_devary),
                mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
-               null_count=0, nvcat=None)
+               null_count=0)
 
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
