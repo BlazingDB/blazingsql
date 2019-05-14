@@ -744,7 +744,7 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
 def columnview_from_devary(data_devary, mask_devary, dtype=None):
     return _gdf._columnview(size=data_devary.size,  data=_gdf.unwrap_devary(data_devary),
                mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
-               null_count=0)
+               null_count=0, nvcat=None)
 
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
@@ -1209,6 +1209,7 @@ def run_query_filesystem(sql, sql_data):
         raise err
 
     result_set_list = []
+ 
     for result in result_list:
         result_set_list.append(ResultSetHandle(result['resultSet'].columns,
                                                result['resultSet'].columnTokens,
@@ -1219,7 +1220,9 @@ def run_query_filesystem(sql, sql_data):
                                                client,
                                                result['result'].calciteTime,
                                                result['resultSet'].metadata.time,
-                                               totalTime))
+                                               totalTime,
+                                               ''
+                                               ))
 
     return result_set_list
 
