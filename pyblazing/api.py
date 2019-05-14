@@ -1,3 +1,4 @@
+import traceback
 import cudf as gd
 
 import blazingdb.protocol
@@ -553,6 +554,7 @@ def _run_query_get_token(sql, tables):
     except Error as error:
         error_message = str(error)
     except Exception as error:
+        print(traceback.print_exc())
         error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
 
     if error_message is not '':

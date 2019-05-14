@@ -1,4 +1,5 @@
 import time
+import traceback
 
 from blazingdb.protocol.errors import Error
 from .api import (_get_client, _to_table_group, _get_table_def_from_gdf, ResultSetHandle, _createResultSetIPCHandles)
@@ -31,12 +32,21 @@ async def run_query(sql, tables):
 
 
 async def _private_run_query(sql, tables):
-    return await _run_query_get_results(await _run_query_get_token(sql, tables))
+    token = await _run_query_get_token(sql, tables)
+    if token['error_message'] is not '':
+        error = token['error_message']
+        if isinstance(error, str):
+            raise Exception(error)
+        else:
+            raise error
+    return await _run_query_get_results(token)
+
 
 async def _reset_table(client, table, gdf):
     await client.run_ddl_drop_table(table, 'main')
     cols, types = _get_table_def_from_gdf(gdf)
     await client.run_ddl_create_table(table, cols, types, 'main')
+
 
 async def _run_query_get_results(metaToken):
 
@@ -66,12 +76,15 @@ async def _run_query_get_results(metaToken):
         return return_result
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         print(error)
+        print(traceback.print_exc())
         error_message = error
     except Error as error:
         print(error)
+        print(traceback.print_exc())
         error_message = str(error)
     except Exception as error:
         print(error)
+        print(traceback.print_exc())
         error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
 
     return_result = ResultSetHandle(None, None,
@@ -109,14 +122,28 @@ async def _run_query_get_token(sql, tables):
             await client.run_dml_query_token(sql, _to_table_group(tables))
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        print(str(error))
+        print(traceback.print_exc())
         error_message = error
     except Error as error:
+        print(str(error))
+        print(traceback.print_exc())
         error_message = str(error)
     except Exception as error:
+        print(str(error))
+        print(traceback.print_exc())
         error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
 
     if error_message is not '':
         print(error_message)
 
-    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+    metaToken = {
+        "client" : client,
+        "resultToken" : resultToken,
+        "interpreter_path" : interpreter_path,
+        "interpreter_port" : interpreter_port,
+        "startTime" : startTime,
+        "calciteTime" : calciteTime,
+        "error_message": error_message
+    }
     return metaToken
