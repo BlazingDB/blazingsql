@@ -12,6 +12,8 @@ from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
+from .connector import PyConnector
+
 from librmm_cffi import librmm as rmm
 from libgdf_cffi import ffi, libgdf
 from cudf.dataframe.datetime import DatetimeColumn
@@ -58,10 +60,8 @@ class ResultSetHandle:
 
         if columns is not None:
             if columns.columns.size>0:
-                idx = 0
-                for col in self.columns.columns:
-                    self.columns[col].columnToken = columnTokens[idx]
-                    idx = idx + 1
+                for col, tok in zip(self.columns.columns, columnTokens):
+                    self.columns[col].columnToken = tok
             else:
                 self.columns.resultToken = resultToken
 
@@ -221,292 +221,8 @@ def _run_query_arrow(sql, tables):
     return run_query_pandas(sql, pandas_tables)
 
 
-
 def _lots_of_stuff():
     pass
-
-
-class PyConnector:
-    def __init__(self, orchestrator_path, orchestrator_port):
-        self._orchestrator_path = orchestrator_path
-        self._orchestrator_port = orchestrator_port
-
-    def __del__(self):
-        try:
-            print("CLOSING CONNECTION")
-            self.close_connection()
-        except:
-            print("Can't close connection, probably it was lost")
-
-    def connect(self):
-        self.accessToken = 0
-        # TODO find a way to print only for debug mode (add verbose arg)
-        #print("open connection")
-        authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
-            OrchestratorMessageType.AuthOpen, authSchema)
-
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
-
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            print(errorResponse.errors)
-            raise Error(errorResponse.errors)
-        responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(
-            response.payload)
-
-        # TODO find a way to print only for debug mode (add verbose arg)
-        # print(responsePayload.accessToken)
-        self.accessToken = responsePayload.accessToken
-
-    # connection_path is a ip/host when tcp and can be unix socket when ipc
-    def _send_request(self, connection_path, connection_port, requestBuffer):
-        connection = blazingdb.protocol.UnixSocketConnection(connection_path)
-        client = blazingdb.protocol.Client(connection)
-        return client.send(requestBuffer)
-
-    def run_dml_load_parquet_schema(self, path):
-        print('load parquet file')
-        ## todo use rowGroupIndices, and columnIndices, someway??
-        requestSchema = blazingdb.protocol.io.ParquetFileSchema(path=path, rowGroupIndices=[], columnIndices=[])
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadParquetSchema,
-                                                                               self.accessToken, requestSchema)
-        responseBuffer = self._send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            if b'SqlSyntaxException' in errorResponse.errors:
-                raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            elif b'SqlValidationException' in errorResponse.errors:
-                raise ValueError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors)
-        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
-            response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.nodeConnection.port
-
-    def run_dml_load_csv_schema(self, path, names, dtypes, delimiter = '|', line_terminator='\n', skip_rows=0):
-        print('load csv file')
-        requestSchema = blazingdb.protocol.io.CsvFileSchema(path=path, delimiter=delimiter, lineTerminator = line_terminator, skipRows=skip_rows, names=names, dtypes=dtypes)
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.LoadCsvSchema,
-                                                                                self.accessToken, requestSchema)
-        responseBuffer = self._send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            if b'SqlSyntaxException' in errorResponse.errors:
-                raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            elif b'SqlValidationException' in errorResponse.errors:
-                raise ValueError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors)
-        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
-            response.payload)
-
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port
-
-    def run_dml_query_token(self, query, tableGroup):
-        dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDMLRequestSchema(query, tableGroup)
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML, self.accessToken, dmlRequestSchema)
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            if b'SqlSyntaxException' in errorResponse.errors:
-                raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            elif b'SqlValidationException' in errorResponse.errors:
-                raise ValueError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors.decode('utf-8'))
-        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
-            response.payload)
-
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
-
-    def run_dml_query_filesystem_token(self, query, tableGroup):
-        dmlRequestSchema = blazingdb.protocol.io.BuildFileSystemDMLRequestSchema(query, tableGroup)
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML_FS,
-                                                                               self.accessToken, dmlRequestSchema)
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            if b'SqlSyntaxException' in errorResponse.errors:
-                raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            elif b'SqlValidationException' in errorResponse.errors:
-                raise ValueError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors.decode('utf-8'))
-        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
-            response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
-
-    def run_dml_query(self, query, tableGroup):
-        # TODO find a way to print only for debug mode (add verbose arg)
-        # print(query)
-        dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDMLRequestSchema(
-            query, tableGroup)
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML,
-                                                                               self.accessToken, dmlRequestSchema)
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            raise Error(errorResponse.errors)
-        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
-            response.payload)
-        return self._get_result(dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.nodeConnection.port)
-
-    def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName):
-        # TODO find a way to print only for debug mode (add verbose arg)
-        #print('create table: ' + tableName)
-        # print(columnNames)
-        # print(columnTypes)
-        # print(dbName)
-        dmlRequestSchema = blazingdb.protocol.orchestrator.DDLCreateTableRequestSchema(name=tableName,
-                                                                                       columnNames=columnNames,
-                                                                                       columnTypes=columnTypes,
-                                                                                       dbName=dbName)
-
-        # TODO find a way to print only for debug mode (add verbose arg)
-        # print(dmlRequestSchema)
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
-                                                                               self.accessToken, dmlRequestSchema)
-
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            raise Error(errorResponse.errors)
-
-        # TODO find a way to print only for debug mode (add verbose arg)
-        # print(response.status)
-
-        return response.status
-
-    def run_ddl_drop_table(self, tableName, dbName):
-        # TODO find a way to print only for debug mode (add verbose arg)
-        #print('drop table: ' + tableName)
-
-        dmlRequestSchema = blazingdb.protocol.orchestrator.DDLDropTableRequestSchema(
-            name=tableName, dbName=dbName)
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_DROP_TABLE,
-                                                                               self.accessToken, dmlRequestSchema)
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            raise Error(errorResponse.errors.decode('utf-8'))
-
-        # TODO find a way to print only for debug mode (add verbose arg)
-        # print(response.status)
-
-        return response.status
-
-    def close_connection(self):
-        # TODO find a way to print only for debug mode (add verbose arg)
-        #print("close connection")
-
-        authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-            OrchestratorMessageType.AuthClose, self.accessToken, authSchema)
-
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            raise Error(errorResponse.errors.decode('utf-8'))
-
-        # TODO find a way to print only for debug mode (add verbose arg)
-        # print(response.status)
-
-    def free_memory(self, interpreter_path, interpreter_port):
-        result_token = 2433423
-        getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
-            resultToken=result_token)
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-            InterpreterMessage.FreeMemory, self.accessToken, getResultRequest)
-
-        responseBuffer = self._send_request(
-            interpreter_path, interpreter_port, requestBuffer)
-
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-
-        if response.status == Status.Error:
-            raise ValueError('Error status')
-
-        # TODO find a way to print only for debug mode (add verbose arg)
-        #print('free result OK!')
-
-    def free_result(self, result_token, interpreter_path, interpreter_port):
-        getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
-            resultToken=result_token)
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-            InterpreterMessage.FreeResult, self.accessToken, getResultRequest)
-
-        responseBuffer = self._send_request(
-            interpreter_path, interpreter_port, requestBuffer)
-
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-
-        if response.status == Status.Error:
-            raise ValueError('Error status')
-
-        # TODO find a way to print only for debug mode (add verbose arg)
-        #print('free result OK!')
-
-    def _get_result(self, result_token, interpreter_path, interpreter_port):
-        getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
-            resultToken=result_token)
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-            InterpreterMessage.GetResult, self.accessToken, getResultRequest)
-
-        responseBuffer = self._send_request(
-            interpreter_path, interpreter_port, requestBuffer)
-
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-
-        if response.status == Status.Error:
-            raise ValueError('Error status')
-
-        queryResult = blazingdb.protocol.interpreter.GetQueryResultFrom(
-            response.payload)
-
-        if queryResult.metadata.status.decode() == "Error":
-            raise Error(queryResult.metadata.message.decode('utf-8'))
-
-        return queryResult
 
 
 def gen_data_frame(nelem, name, dtype):
@@ -739,6 +455,9 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     #print(interpreter_port)
     resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
 
+    return _createResultSetIPCHandles(resultSet)
+
+def _createResultSetIPCHandles(resultSet):
     gdf_columns = []
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
@@ -833,7 +552,7 @@ def _run_query_get_token(sql, tables):
         error_message = error
     except Error as error:
         error_message = str(error)
-    except Exception:
+    except Exception as error:
         error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
 
     if error_message is not '':
@@ -861,14 +580,14 @@ def _run_query_filesystem_get_token(sql, sql_data):
 
         resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        print(error)
         error_message = error
     except Error as error:
+        print(error)
         error_message = str(error)
-    except Exception:
+    except Exception as error:
+        print(error)
         error_message = "Unexpected error on " + _run_query_filesystem_get_token.__name__ + ", " + str(error)
-
-    if error_message is not '':
-        print(error_message)
 
     metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
     return metaToken
@@ -883,14 +602,15 @@ def _run_query_get_results(metaToken):
         return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime, '')
         return return_result
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        print(error)
         error_message = error
     except Error as error:
+        print(error)
         error_message = str(error)
     except Exception as error:
+        print(error)
         error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
 
-    if error_message is not '':
-        print(error_message)
     return_result = ResultSetHandle(None, None, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], None, metaToken["client"], metaToken["calciteTime"], 0, 0, error_message)
     return return_result
 
