@@ -1,6 +1,7 @@
 import inspect
 from blazingdb.protocol import Client, AsyncClient, UnixSocketConnection
 
+
 def bind_request(create_request, handle_response):
 
     def do_request(self, *args, **kwargs):
@@ -20,7 +21,7 @@ def bind_request(create_request, handle_response):
         return result
 
     def request(self, *args, **kwargs):
-        if is_caller_async():
+        if self.asyncio_enabled and is_caller_async():
             return handle_response_async(self, do_request_async(self, *args, **kwargs))
         return handle_response(self, do_request(self, *args, **kwargs))
 

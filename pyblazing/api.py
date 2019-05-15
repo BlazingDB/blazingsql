@@ -61,6 +61,7 @@ class ResultSetHandle:
 
         if columns is not None:
             if columns.columns.size>0:
+                self.columns.resultToken = resultToken
                 for col, tok in zip(self.columns.columns, columnTokens):
                     self.columns[col].columnToken = tok
             else:
@@ -77,12 +78,17 @@ class ResultSetHandle:
         self.error_message = error_message
 
     def __del__(self):
-        # @todo
+        # Free NVStrings handles
+        if self.columns is not None:
+            for col in self.columns._cols.values():
+                if isinstance(col._column, StringColumn):
+                    nvstrings.free(col._column._data)
+            del self.columns
         if self.handle is not None:
-            for ipch in self.handle: #todo add NVStrings handles
+            for ipch in self.handle:
                 ipch.close()
             del self.handle
-            self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
+            self.client.free_result(self.resultToken, self.interpreter_path, self.interpreter_port)
 
     def __str__(self):
         return ('''columns = %(columns)s
@@ -353,8 +359,8 @@ def _to_table_group(tables):
                 #custrings_data
                 blazing_column['custrings_data'] = ipc_data
 
-            if hasattr(gdf[column], 'columnToken'):
-                columnTokens.append(gdf[column].columnToken)
+            if hasattr(dataframe_column, 'columnToken'):
+                columnTokens.append(dataframe_column.columnToken)
             else:
                 columnTokens.append(0)
 

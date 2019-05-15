@@ -48,13 +48,6 @@ async def _reset_table(client, table, gdf):
     cols, types = _get_table_def_from_gdf(gdf)
     await client.run_ddl_create_table(table, cols, types, 'main')
 
-def _reset_tables_async(client, tables):
-    coroutines = []
-    for table, gdf in tables.items():
-        co = _reset_table(client, table, gdf)
-        coroutines.append(asyncio.shield(co))
-    return asyncio.shield(asyncio.gather(*coroutines))
-
 async def _run_query_get_results(metaToken):
 
     error_message = ''
@@ -122,7 +115,8 @@ async def _run_query_get_token(sql, tables):
     try:
         client = _get_client()
 
-        await _reset_tables_async(client, tables)
+        for table, gdf in tables.items():
+            await _reset_table(client, table, gdf)
 
         resultToken, interpreter_path, interpreter_port, calciteTime = \
             await client.run_dml_query_token(sql, _to_table_group(tables))

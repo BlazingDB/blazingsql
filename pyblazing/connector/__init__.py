@@ -14,20 +14,14 @@ from ._get_result import (create__get_result_request, handle__get_result_respons
 
 class PyConnector:
 
+    asyncio_enabled = False
+
     def __init__(self, orchestrator_path, orchestrator_port):
         self._path = orchestrator_path
         self._port = orchestrator_port
         self._interpreter = Interpreter(self)
         self._orchestrator = Orchestrator(self)
 
-    def __del__(self):
-        try:
-            print("CLOSING CONNECTION")
-            self.close_connection()
-        except:
-            print("Can't close connection, probably it was lost")
-        del self._interpreter
-        del self._orchestrator
 
     def connect(self):
         return self._orchestrator.connect()
@@ -70,6 +64,9 @@ class Orchestrator:
     def _port(self):
         return self._connector._port
     @property
+    def asyncio_enabled(self):
+        return self._connector.asyncio_enabled
+    @property
     def accessToken(self):
         return self._connector.accessToken
     @accessToken.setter
@@ -97,6 +94,9 @@ class Orchestrator:
 class Interpreter:
     def __init__(self, connector):
         self._connector = connector
+    @property
+    def asyncio_enabled(self):
+        return self._connector.asyncio_enabled
     @property
     def accessToken(self):
         return self._connector.accessToken

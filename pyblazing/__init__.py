@@ -15,6 +15,7 @@ from .api import create_table
 from .api import ResultSetHandle
 from .api import _get_client
 
+from .connector import PyConnector
 from .connector.utils import is_caller_async
 from .api import run_query as run_query_sync
 from .aio import run_query as run_query_async
@@ -43,6 +44,6 @@ def run_query(sql, tables):
     >>> type(result)
     cudf.dataframe.DataFrame
     """
-    if is_caller_async():
+    if PyConnector.asyncio_enabled and is_caller_async():
         return run_query_async(sql, tables)
     return run_query_sync(sql, tables)
