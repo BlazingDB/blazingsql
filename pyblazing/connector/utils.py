@@ -31,7 +31,6 @@ def is_caller_async():
     """Figure out who's calling."""
     # Get the calling frame
     caller = inspect.currentframe().f_back.f_back
-    original_caller = caller
     while caller:
         # Pull the function name from FrameInfo
         func_name = inspect.getframeinfo(caller)[2]
