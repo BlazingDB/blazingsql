@@ -345,12 +345,22 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
-            elif b'SqlValidationException' in errorResponse.errors:
-                raise ValueError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors.decode('utf-8'))
-        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
-            response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
+
+            raise Error(errorResponse.errors)
+
+        distributed_response = blazingdb.protocol.orchestrator.DMLDistributedResponseSchema.From(response.payload)
+
+        return list(item for item in distributed_response.responses)
+
+
+#TODO percy strings merge
+#            elif b'SqlValidationException' in errorResponse.errors:
+#                raise ValueError(errorResponse.errors.decode('utf-8'))
+#            raise Error(errorResponse.errors.decode('utf-8'))
+#        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
+#            response.payload)
+#        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
+
 
     def run_dml_query(self, query, tableGroup):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -829,18 +839,29 @@ def _run_query_get_token(sql, tables):
         tableGroup = _to_table_group(tables)
 
         resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
-    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
-        error_message = error
-    except Error as error:
-        error_message = str(error)
-    except Exception:
-        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
 
-    if error_message is not '':
-        print(error_message)
+        metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+        return metaToken
+    except SyntaxError as error:
+        raise error
+    except Error as err:
+        print(err)
 
-    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
-    return metaToken
+    return None
+
+#TODO percy strings merge
+#    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+#        error_message = error
+#    except Error as error:
+#        error_message = str(error)
+#    except Exception:
+#        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
+#
+#    if error_message is not '':
+#        print(error_message)
+#
+#    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+#    return metaToken
 
 def _run_query_filesystem_get_token(sql, sql_data):
     startTime = time.time()
@@ -873,6 +894,7 @@ def _run_query_filesystem_get_token(sql, sql_data):
     metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
     return metaToken
 
+
 def _run_query_get_results(metaToken):
     error_message = ''
 
@@ -898,9 +920,49 @@ def _private_run_query(sql, tables):
     metaToken = _run_query_get_token(sql, tables)
     return _run_query_get_results(metaToken)
 
+
+    try:
+        metaToken = _run_query_get_token(sql, tables)
+        return _run_query_get_results(metaToken)
+    except SyntaxError as error:
+        raise error
+    except Error as err:
+        print(err)
+
+    return None
+
+    # startTime = time.time()
+    # client = _get_client()
+    # try:
+    #     for table, gdf in tables.items():
+    #         _reset_table(client, table, gdf)
+    # except Error as err:
+    #     print(err)
+
+    # resultSet = None
+    # token = 0
+    # interpreter_path = None
+    # interpreter_port = None
+    # try:
+    #     tableGroup = _to_table_group(tables)
+    #     token, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+    #     resultSet, ipchandles = _private_get_result(token, interpreter_path, interpreter_port, calciteTime)
+    #     totalTime = (time.time() - startTime) * 1000  # in milliseconds
+
+    #     return ResultSetHandle(resultSet.columns, token, interpreter_path, interpreter_port, ipchandles, client, calciteTime, resultSet.metadata.time, totalTime)
+
+    # except SyntaxError as error:
+    #     raise error
+    # except Error as err:
+    #     print(err)
+
+    # return None
+
+
 def _private_run_query_filesystem(sql, sql_data):
     metaToken = _run_query_filesystem_get_token(sql, sql_data)
     return _run_query_get_results(metaToken)
+
 
 
 from collections import namedtuple
@@ -1106,4 +1168,51 @@ def _sql_data_to_table_group(sql_data):
 
     tableGroup['tables'] = blazing_tables
     return tableGroup
+
+
+def run_query_filesystem(sql, sql_data):
+    startTime = time.time()
+
+    client = _get_client()
+
+    for schema, files in sql_data.items():
+        _reset_table(client, schema.table_name, schema.gdf)
+
+    totalTime = 0
+    result_list = []
+    try:
+        tableGroup = _sql_data_to_table_group(sql_data)
+        dist_list = client.run_dml_query_filesystem_token(sql, tableGroup)
+
+        for result in dist_list:
+            resultSet, ipchandles = _private_get_result(result.resultToken,
+                                                        result.nodeConnection.path.decode('utf8'),
+                                                        result.nodeConnection.port,
+                                                        result.calciteTime)
+            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles})
+
+        totalTime = (time.time() - startTime) * 1000  # in milliseconds
+    except SyntaxError as error:
+        raise error
+    except Error as err:
+        print(err)
+        raise err
+
+    result_set_list = []
+ 
+    for result in result_list:
+        result_set_list.append(ResultSetHandle(result['resultSet'].columns,
+                                               result['resultSet'].columnTokens,
+                                               result['result'].resultToken,
+                                               result['result'].nodeConnection.path.decode('utf8'),
+                                               result['result'].nodeConnection.port,
+                                               result['ipchandles'],
+                                               client,
+                                               result['result'].calciteTime,
+                                               result['resultSet'].metadata.time,
+                                               totalTime,
+                                               ''
+                                               ))
+
+    return result_set_list
 
