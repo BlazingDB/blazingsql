@@ -778,7 +778,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                     gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
         else:
             if c.dtype == libgdf.GDF_STRING:
-                print("WARNING: Unhandled empty string column.")  #WSM need to handle this
+                gdf_columns.append(StringColumn(nvstrings.to_device([])))
             else:
                 if c.dtype == libgdf.GDF_DATE32:
                     c.dtype = libgdf.GDF_INT32
@@ -1106,4 +1106,3 @@ def _sql_data_to_table_group(sql_data):
 
     tableGroup['tables'] = blazing_tables
     return tableGroup
-
