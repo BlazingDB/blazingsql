@@ -76,7 +76,6 @@ class ResultSetHandle:
         self.error_message = error_message
 
     def __del__(self):
-        # @todo
         if self.handle is not None:
             for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
@@ -749,7 +748,10 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
 
                 gdf_columns.append(newcol.view(StringColumn, dtype='object'))
             else:
-                assert len(c.data) == 64
+                if c.dtype == libgdf.GDF_STRING_CATEGORY:
+                    print("WARNING _private_get_result received a GDF_STRING_CATEGORY")
+                    
+                assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
                 # todo: remove this if when C gdf struct is replaced by pyarrow object
                 if c.dtype == libgdf.GDF_DATE32:
                     c.dtype = libgdf.GDF_INT32
@@ -765,6 +767,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
 
                 valid_ptr = None
                 if (c.null_count > 0):
+                    assert len(c.valid) == 64,"Valid ipc handle was not 64 bytes"
                     ipch_valid, valid_ptr = _open_ipc_array(
                         c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
                     ipchandles.append(ipch_valid)
@@ -791,7 +794,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
 
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
-        assert k != ""
+        assert k != "", "Column name was an empty string"
         gdf[k.decode("utf-8")] = v
 
     resultSet.columns = gdf
@@ -922,7 +925,7 @@ class SchemaFrom:
 class TableSchema:
     def __init__(self, type, **kwargs):
         schema_type = self._get_schema(**kwargs)
-        assert schema_type == type
+        assert schema_type == type, "Unexpected schema type when creating TableSchema"
 
         self.kwargs = kwargs
         self.schema_type = type
