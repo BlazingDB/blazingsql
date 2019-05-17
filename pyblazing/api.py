@@ -82,7 +82,10 @@ class ResultSetHandle:
         if self.columns is not None:
             for col in self.columns._cols.values():
                 if isinstance(col._column, StringColumn):
-                    nvstrings.free(col._column._data)
+                    try:
+                        nvstrings.free(col._column._data)
+                    except:
+                        pass
             del self.columns
         if self.handle is not None:
             for ipch in self.handle:
