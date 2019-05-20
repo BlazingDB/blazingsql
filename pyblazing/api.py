@@ -749,7 +749,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                 gdf_columns.append(newcol.view(StringColumn, dtype='object'))
             else:
                 if c.dtype == libgdf.GDF_STRING_CATEGORY:
-                    print("WARNING _private_get_result received a GDF_STRING_CATEGORY")
+                    print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
                     
                 assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
                 # todo: remove this if when C gdf struct is replaced by pyarrow object
