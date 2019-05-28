@@ -622,10 +622,25 @@ def _to_table_group(tables):
             dtype = numerical_column.cffi_view.dtype
             null_count = numerical_column.cffi_view.null_count
 
-            data_ipch = get_ipc_handle_for_data(dataframe_column)
-            valid_ipch = get_ipc_handle_for_valid(dataframe_column)
-            ipc_data = get_ipc_handle_for_strings(dataframe_column)
-            
+            data_ipch = None
+            valid_ipch = None
+            ipc_data = None
+
+            try:
+                data_ipch = get_ipc_handle_for_data(dataframe_column)
+            except:
+                print("ERROR: when getting the IPC handle for data")
+
+            try:
+                valid_ipch = get_ipc_handle_for_valid(dataframe_column)
+            except:
+                print("ERROR: when getting the IPC handle for valid")
+
+            try:
+                ipc_data = get_ipc_handle_for_strings(dataframe_column)
+            except:
+                print("ERROR: when getting the IPC handle for strings")
+
             dtype_info = {
                 'time_unit': 0, #TODO dummy value
             }
