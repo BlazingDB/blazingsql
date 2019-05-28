@@ -41,6 +41,10 @@ require_context = devices.require_context
 current_context = devices.get_context
 gpus = devices.gpus
 
+#Todo Rommel Percy : avoid using global variables, i.e. move these properties with the free function _to_table_group
+dataColumnTokens = {}
+validColumnTokens = {}
+
 class ResultSetHandle:
 
     columns = None
@@ -60,7 +64,8 @@ class ResultSetHandle:
             if columns.columns.size>0:
                 idx = 0
                 for col in self.columns.columns:
-                    self.columns[col].columnToken = columnTokens[idx]
+                    dataColumnTokens[self.columns[col]._column.cffi_view.data] = columnTokens[idx]
+                    validColumnTokens[self.columns[col]._column.cffi_view.valid] = columnTokens[idx]
                     idx = idx + 1
             else:
                 self.columns.resultToken = resultToken
@@ -82,6 +87,12 @@ class ResultSetHandle:
                 ipch.close()
             del self.handle
             self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
+
+        if self.columns is not None:
+            if self.columns.columns.size>0:
+                for col in self.columns.columns:
+                    dataColumnTokens.pop(self.columns[col]._column.cffi_view.data, None)
+                    validColumnTokens.pop(self.columns[col]._column.cffi_view.valid, None)
 
     def __str__(self):
         return ('''columns = %(columns)s
@@ -518,7 +529,7 @@ def gen_data_frame(nelem, name, dtype):
 
 def get_ipc_handle_for_data(dataframe_column):
 
-    if hasattr(dataframe_column, 'columnToken'):
+    if dataframe_column._column.cffi_view.data in dataColumnTokens:
         return None
     else:
         if dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY or dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING:
@@ -529,7 +540,7 @@ def get_ipc_handle_for_data(dataframe_column):
 
 def get_ipc_handle_for_valid(dataframe_column):
 
-    if hasattr(dataframe_column, 'columnToken'):
+    if dataframe_column._column.cffi_view.valid in validColumnTokens:
         return None
     elif dataframe_column._column.cffi_view.null_count > 0:
        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
@@ -539,7 +550,7 @@ def get_ipc_handle_for_valid(dataframe_column):
 
 def get_ipc_handle_for_strings(dataframe_column):
 
-    if hasattr(dataframe_column, 'columnToken'):
+    if dataframe_column._column.cffi_view.data in dataColumnTokens:
         return None
     elif dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY or dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING:
         # TODO: this is assuming that it is a GDF_STRING but could be GDF_STRING_CATEGORY due to a bug
@@ -636,8 +647,8 @@ def _to_table_group(tables):
                 #custrings_data
                 blazing_column['custrings_data'] = ipc_data
 
-            if hasattr(gdf[column], 'columnToken'):
-                columnTokens.append(gdf[column].columnToken)
+            if dataframe_column._column.cffi_view.data in dataColumnTokens:
+                columnTokens.append(dataColumnTokens[dataframe_column._column.cffi_view.data])
             else:
                 columnTokens.append(0)
 
