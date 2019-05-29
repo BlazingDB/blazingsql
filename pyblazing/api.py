@@ -723,18 +723,17 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                     print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
                     
                 assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
-                np_dtype = gdf_to_np_dtype(c.dtype)
                 # todo: remove this if when C gdf struct is replaced by pyarrow object
                 if c.dtype == gdf_dtype.GDF_DATE32:
                     c.dtype = gdf_dtype.GDF_INT32
                     ipch_data, data_ptr = _open_ipc_array(
-                        c.data, shape=c.size, dtype=np_dtype)
+                        c.data, shape=c.size, dtype=gdf_to_np_dtype(c.dtype))
                     # todo: remove this when C gdf struct is replaced by pyarrow object
                     #  is this workaround  only for python object?
                     # yes. it is!. Because RAL only knowns the column_token.
                 else:
                     ipch_data, data_ptr = _open_ipc_array(
-                        c.data, shape=c.size, dtype=np_dtype)
+                        c.data, shape=c.size, dtype=gdf_to_np_dtype(c.dtype))
                 ipchandles.append(ipch_data)
 
                 valid_ptr = None
