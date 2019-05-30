@@ -562,7 +562,8 @@ def get_np_dtype_to_gdf_dtype_str(dtype):
         np.dtype('int16'):      'GDF_INT16',
         np.dtype('int8'):       'GDF_INT8',
         np.dtype('bool_'):      'GDF_BOOL8',
-        np.dtype('datetime64'): 'GDF_DATE64',
+        np.dtype('datetime64[ms]'): 'GDF_DATE64',
+        np.dtype('datetime64'): 'GDF_DATE64',        
         np.dtype('object_'):    'GDF_STRING',
         np.dtype('str_'):       'GDF_STRING',
         np.dtype('<M8[ms]'):    'GDF_DATE64',        
@@ -579,7 +580,8 @@ def get_np_dtype_to_gdf_dtype(dtype):
         np.dtype('int16'):      gdf_dtype.GDF_INT16,
         np.dtype('int8'):       gdf_dtype.GDF_INT8,
         np.dtype('bool_'):      gdf_dtype.GDF_BOOL8,
-        np.dtype('datetime64'): gdf_dtype.GDF_DATE64,
+        np.dtype('datetime64[ms]'): gdf_dtype.GDF_DATE64,
+        np.dtype('datetime64'): gdf_dtype.GDF_DATE64,        
         np.dtype('object_'):    gdf_dtype.GDF_STRING,
         np.dtype('str_'):       gdf_dtype.GDF_STRING,
         np.dtype('<M8[ms]'):    gdf_dtype.GDF_DATE64,        
@@ -712,6 +714,17 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     gdf_columns = []
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
+
+        # todo: remove this if when C gdf struct is replaced by pyarrow object
+        # this workaround is only for the python object. The RAL knows the column_token and will know what its dtype actually is
+        if c.dtype == gdf_dtype.GDF_DATE32:
+            c.dtype = gdf_dtype.GDF_INT32
+        
+        if c.dtype == gdf_dtype.GDF_DATE64:
+            np_dtype = np.dtype('datetime64[ms]')
+        else:
+            np_dtype = gdf_to_np_dtype(c.dtype)
+
         if c.size != 0 :
             if c.dtype == gdf_dtype.GDF_STRING:
                 new_strs = nvstrings.create_from_ipc(c.custrings_data)
@@ -723,17 +736,9 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                     print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
                     
                 assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
-                # todo: remove this if when C gdf struct is replaced by pyarrow object
-                if c.dtype == gdf_dtype.GDF_DATE32:
-                    c.dtype = gdf_dtype.GDF_INT32
-                    ipch_data, data_ptr = _open_ipc_array(
-                        c.data, shape=c.size, dtype=gdf_to_np_dtype(c.dtype))
-                    # todo: remove this when C gdf struct is replaced by pyarrow object
-                    #  is this workaround  only for python object?
-                    # yes. it is!. Because RAL only knowns the column_token.
-                else:
-                    ipch_data, data_ptr = _open_ipc_array(
-                        c.data, shape=c.size, dtype=gdf_to_np_dtype(c.dtype))
+                                
+                ipch_data, data_ptr = _open_ipc_array(
+                        c.data, shape=c.size, dtype=np_dtype)
                 ipchandles.append(ipch_data)
 
                 valid_ptr = None
@@ -744,9 +749,9 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                     ipchandles.append(ipch_valid)
 
                 if (valid_ptr is None):
-                    gdf_columns.append(build_column(Buffer(data_ptr), gdf_to_np_dtype(c.dtype)))
+                    gdf_columns.append(build_column(Buffer(data_ptr), np_dtype))
                 else:
-                    gdf_columns.append(build_column(Buffer(data_ptr), gdf_to_np_dtype(c.dtype), Buffer(valid_ptr)))
+                    gdf_columns.append(build_column(Buffer(data_ptr), np_dtype, Buffer(valid_ptr)))
                 
         else:
             if c.dtype == gdf_dtype.GDF_STRING:
@@ -755,7 +760,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                 if c.dtype == gdf_dtype.GDF_DATE32:
                     c.dtype = gdf_dtype.GDF_INT32
                     
-                gdf_columns.append(build_column(Buffer.null(gdf_to_np_dtype(c.dtype)), gdf_to_np_dtype(c.dtype)))
+                gdf_columns.append(build_column(Buffer.null(np_dtype), np_dtype))
 
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
