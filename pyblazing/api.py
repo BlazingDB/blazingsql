@@ -588,6 +588,35 @@ def get_np_dtype_to_gdf_dtype(dtype):
     }
     return dtypes[dtype]
 
+def get_dtype_values(dtypes):
+    values = []
+    def gdf_type(type_name):
+        dicc = {
+            'str': gdf_dtype.GDF_STRING,
+            'date': gdf_dtype.GDF_DATE64,
+            'date64': gdf_dtype.GDF_DATE64,
+            'date32': gdf_dtype.GDF_DATE32,
+            'timestamp': gdf_dtype.GDF_TIMESTAMP,
+            'category': gdf_dtype.GDF_CATEGORY,
+            'float': gdf_dtype.GDF_FLOAT32,
+            'double': gdf_dtype.GDF_FLOAT64,
+            'float32': gdf_dtype.GDF_FLOAT32,
+            'float64': gdf_dtype.GDF_FLOAT64,
+            'short': gdf_dtype.GDF_INT16,
+            'long': gdf_dtype.GDF_INT64,
+            'int': gdf_dtype.GDF_INT32,
+            'int32': gdf_dtype.GDF_INT32,
+            'int64': gdf_dtype.GDF_INT64,
+        }
+        if dicc.get(type_name):
+            return dicc[type_name]
+        return gdf_dtype.GDF_INT64
+
+    for key in dtypes:
+        values.append( gdf_type(dtypes[key]))
+
+    return values
+
 def _get_table_def_from_gdf(gdf):
     
     colNames = []
@@ -719,7 +748,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
         # this workaround is only for the python object. The RAL knows the column_token and will know what its dtype actually is
         if c.dtype == gdf_dtype.GDF_DATE32:
             c.dtype = gdf_dtype.GDF_INT32
-        
+
         if c.dtype == gdf_dtype.GDF_DATE64:
             np_dtype = np.dtype('datetime64[ms]')
         else:

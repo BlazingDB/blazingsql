@@ -106,16 +106,17 @@ def main():
 
   # nation_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/nation_0_0.psv", delimiter='|', dtype=nationColTypes, names=nationColNames)  
   # bc.create_table('nation', nation_gdf)
-  region_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/region_0_0.psv", delimiter='|', dtype=regionColTypes, names=regionColNames)  
-  bc.create_table('region', region_gdf)
-  # orders_gdf = cudf.read_csv("/home/william/repos/DataSets/tpch1GbTest/orders_0_0.psv", delimiter='|', dtype=ordersColTypes, names=ordersColNames)  
-  # bc.create_table('orders', orders_gdf)
+  # region_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/region_0_0.psv", delimiter='|', dtype=regionColTypes, names=regionColNames)  
+  # bc.create_table('region', region_gdf)
+  orders_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/orders_0_0.psv", delimiter='|', dtype=ordersColTypes, names=ordersColNames)  
+  # print(orders_gdf)
+  bc.create_table('orders', orders_gdf)
 
-  query0 = """select r_regionkey, r_name from main.region where r_regionkey > 2"""
-  result0 = bc.sql(query0, ['region']).get()
-  print(result0)
-  # query1 = """select n_nationkey, n_regionkey as fkey, n_name from main.nation where n_regionkey > 2  and n_nationkey > 3order by n_nationkey"""
-  # result1 = bc.sql(query1, ['nation', 'region']).get()
+  # query0 = """select r_regionkey, r_name from main.region where r_regionkey > 2"""
+  # result0 = bc.sql(query0, ['region']).get()
+  # print(result0)
+  # query1 = """select count(n_nationkey) from main.nation group by n_nationkey"""
+  # result1 = bc.sql(query1, ['nation']).get()
   # print(result1)
 
   # query = """with regionTemp as ( select r_regionkey, r_name from main.region where r_regionkey > 2 ),
@@ -124,8 +125,22 @@ def main():
   # result = bc.sql(query, ['nation', 'region']).get()
   # print(result)
 
-  # result2 = bc.sql("select avg(o_custkey) from main.orders group by o_orderstatus", ['orders']).get()
+  # result2 = bc.sql("select min(o_orderdate) as miny, max(o_orderdate) as maxy from main.orders where o_orderdate = DATE '1996-01-02'", ['orders']).get()
   # print(result2)
+
+  print(orders_gdf['o_orderdate'].astype('int64'))
+  result2 = bc.sql("select o_orderdate from main.orders where o_orderdate = DATE '1996-01-02'", ['orders']).get()
+  print(result2)
+  
+  result3 = bc.sql("select min(o_orderdate) as miny, max(o_orderdate) as maxy from main.orders where o_orderdate < DATE '1995-02-04' and o_orderdate > DATE '1994-09-22'", ['orders']).get()
+  print(result3)
+
+  # result4 = bc.sql("select o_orderdate from main.orders", ['orders']).get()
+  # print(result4)
+
+  # bc.create_table('orders2', result2.columns)
+  # result3 = bc.sql("select EXTRACT(YEAR FROM miny), EXTRACT(MONTH FROM miny), EXTRACT(DAY FROM miny), EXTRACT(YEAR FROM maxy), EXTRACT(MONTH FROM maxy), EXTRACT(DAY FROM maxy) from main.orders2", ['orders2']).get()
+  # print(result3)
 
   # print("read the file")
   # # time.sleep(3)

@@ -13,6 +13,8 @@ class internal_api:
     FileSystemType = pyblazing.FileSystemType
 
     ResultSetHandle = pyblazing.ResultSetHandle
+    gdf_dtype = pyblazing.gdf_dtype
+    get_dtype_values = pyblazing.get_dtype_values
 
     # Function/Method wrappers
 
