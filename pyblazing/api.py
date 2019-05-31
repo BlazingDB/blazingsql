@@ -143,8 +143,8 @@ def run_query_filesystem(sql, sql_data):
 def run_query_get_token(sql, tables):
     return _run_query_get_token(sql, tables)
 
-def run_query_filesystem_get_token(sql, sql_data):
-    return _run_query_filesystem_get_token(sql, sql_data)
+def run_query_filesystem_get_token(sql):
+    return _run_query_filesystem_get_token(sql)
 
 def run_query_get_results(metaToken):
     return _run_query_get_results(metaToken)
@@ -269,6 +269,42 @@ class PyConnector:
         connection = blazingdb.protocol.UnixSocketConnection(connection_path)
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
+
+    def run_ddl_new_create_table(self, 
+                                 tableName,
+                                 columnNames,
+                                 columnTypes,
+                                 dbName,
+                                 schemaType,
+                                 gdf,
+                                 files,
+                                 csvDelimiter,
+                                 csvLineTerminator,
+                                 csvSkipRows):
+        dmlRequestSchema = blazingdb.protocol.orchestrator.DDLCreateTableRequestSchema(name=tableName,
+                                                                                       columnNames=columnNames,
+                                                                                       columnTypes=columnTypes,
+                                                                                       dbName=dbName,
+                                                                                       schemaType=schemaType,
+                                                                                       gdf=gdf,
+                                                                                       files=files,
+                                                                                       csvDelimiter=csvDelimiter,
+                                                                                       csvLineTerminator=csvLineTerminator,
+                                                                                       csvSkipRows=csvSkipRows)
+
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
+                                                                               self.accessToken, dmlRequestSchema)
+
+        responseBuffer = self._send_request(
+            self._orchestrator_path, self._orchestrator_port, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
+            responseBuffer)
+        if response.status == Status.Error:
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
+                response.payload)
+            raise Error(errorResponse.errors)
+
+        return response.status
 
     def run_dml_load_parquet_schema(self, path):
         print('load parquet file')
@@ -583,10 +619,10 @@ def _get_table_def_from_gdf(gdf):
     return colNames, types
 
 
-def _reset_table(client, table, gdf):
-    client.run_ddl_drop_table(table, 'main')
-    cols, types = _get_table_def_from_gdf(gdf)
-    client.run_ddl_create_table(table, cols, types, 'main')
+#def _reset_table(client, table, gdf):
+#    client.run_ddl_drop_table(table, 'main')
+#    cols, types = _get_table_def_from_gdf(gdf)
+#    client.run_ddl_create_table(table, cols, types, 'main')
 
 # TODO add valid support
 
@@ -852,7 +888,7 @@ def _run_query_get_token(sql, tables):
     metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
     return metaToken
 
-def _run_query_filesystem_get_token(sql, sql_data):
+def _run_query_filesystem_get_token(sql):
     startTime = time.time()
 
     resultToken = 0
@@ -938,7 +974,7 @@ class TableSchema:
         self.schema_type = type
         self.column_names = []
         self.column_types = []
-        self.gdf= None
+        self.gdf = None
 
     def set_table_name(self, name):
         self.table_name = name
@@ -970,7 +1006,7 @@ class TableSchema:
         column_names = kwargs.get('names', None)
         column_types = kwargs.get('dtypes', None)
         gdf = kwargs.get('gdf', None)
-        path = kwargs.get('path', None)
+        path = kwargs.get('files', None)
 
         if column_names is not None and column_types is not None:
             return SchemaFrom.CsvFile
@@ -1050,6 +1086,30 @@ def create_table(table_name, **kwargs):
     return_result.name = table_name
     return return_result
 
+#cambiar para success or failed
+def new_create_table(table_name, **kwargs):
+    print('new create table')
+    schema = TableSchema(**kwargs)
+    return_result = None
+    error_message = ''
+
+    try:
+        client = _get_client()
+        return_result, interpreter_path, interpreter_port = client.run_ddl_new_create_table(**schema.kwargs)
+
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + new_create_table.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    #Todo Rommel check if this error happens
+    #print("ERROR: unknown schema type")
+    return return_result
 
 def register_table_schema(table_name, **kwargs):
     schema = TableSchema(**kwargs)
@@ -1107,7 +1167,7 @@ def _sql_data_to_table_group(sql_data):
             blazing_table['parquet'] = schema.kwargs
             blazing_table['csv'] = None
             blazing_table['gdf'] = None
-        elif schema.schema_type == SchemaFrom.ParquetFile:
+        elif schema.schema_type == SchemaFrom.CsvFile:
             blazing_table['schemaType'] = FileSchemaType.CSV
             blazing_table['csv'] = schema.kwargs
             blazing_table['parquet'] = None

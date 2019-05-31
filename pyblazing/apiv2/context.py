@@ -60,11 +60,12 @@ class BlazingContext(object):
 
     # BEGIN SQL interface
 
+    #remove
     def create_table(self, table_name, input, **kwargs):
         datasource = None
 
         if type(input) == cudf.DataFrame:
-            datasource = from_cudf(input)
+            datasource = from_cudf(input, table_name)
         elif type(input) == pandas.DataFrame:
             datasource = from_pandas(input)
         elif type(input) == pyarrow.Table:
@@ -119,8 +120,8 @@ class BlazingContext(object):
         return self.sqlObject.drop_table(table_name)
 
     # async
-    def sql(self, sql, table_names = []):
-        return self.sqlObject.run_query(self.client, sql, table_names)
+    def sql(self, sql):
+        return self.sqlObject.run_query(self.client, sql)
 
     # END SQL interface
 

@@ -10,6 +10,7 @@ from .api  import FileSystemType, DriverType, EncryptionType
 from .api import SchemaFrom
 from .api import run_query_filesystem
 from .api import create_table
+from .api import new_create_table
 #TODO this api is experimental
 #from .api import run_query_arrow
 
