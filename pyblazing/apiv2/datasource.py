@@ -56,6 +56,7 @@ class DataSource:
 
         self.type = type
 
+        #remove
         # declare all the possible fields (will be defined in _load)
         self.cudf_df = None  # cudf, pandas and arrow data will be passed/converted into this var
         self.csv = None
@@ -85,8 +86,8 @@ class DataSource:
 
         return type_str[self.type]
 
-    def is_valid(self):
-        return self.valid
+    #def is_valid(self):
+    #    return self.valid
 
     # cudf.DataFrame in-gpu-memory
     def is_cudf(self):
@@ -134,9 +135,12 @@ class DataSource:
             return self.csv
         elif self.type == Type.parquet:
             return self.parquet
+        elif self.type == Type.cudf:
+            return self.cudf_df
 
         return None
 
+# BEGIN remove
     def _load(self, type, **kwargs):
         if type == Type.cudf:
             cudf_df = kwargs.get('cudf_df', None)
@@ -205,7 +209,7 @@ class DataSource:
 
         self.path = path
 
-        table_schema = internal_api.register_table_schema(
+        return_result = internal_api.new_create_table(
             self.client,
             table_name,
             type = internal_api.SchemaFrom.CsvFile,
@@ -216,10 +220,9 @@ class DataSource:
             skip_rows = skip_rows
         )
 
-        self.csv = table_schema
-
         # TODO percy see if we need to perform sanity check for arrow_table object
-        self.valid = True
+        #return success or failed
+        self.valid = return_result
 
         return self.valid
 
@@ -230,25 +233,25 @@ class DataSource:
 
         self.path = path
 
-        table_schema = internal_api.register_table_schema(
+        return_result = internal_api.new_create_table(
             self.client,
             table_name,
             type = internal_api.SchemaFrom.ParquetFile,
-            path = path[0]
+            files = path[0]
         )
 
-        self.parquet = table_schema
-
         # TODO percy see if we need to perform sanity check for arrow_table object
-        self.valid = True
+        #return success or failed
+        self.valid = return_result
 
         return self.valid
+#END remove
 
 # BEGIN DataSource builders
 
 
-def from_cudf(cudf_df):
-    return DataSource(None, Type.cudf, cudf_df = cudf_df)
+def from_cudf(cudf_df, table_name):
+    return DataSource(None, Type.cudf, table_name = table_name, cudf_df = cudf_df)
 
 
 def from_pandas(pandas_df):

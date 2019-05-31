@@ -19,10 +19,15 @@ class internal_api:
     _get_client = pyblazing._get_client
 
     # Decorators
+    # Todo Rommel remove deprecated methods
 
     @staticmethod
     def register_file_system(client, authority, type, root, params = None):
         return pyblazing.register_file_system(authority, type, root, params)
+
+    @staticmethod
+    def new_create_table(client, table_name, **kwargs):
+        return pyblazing.new_create_table(table_name, **kwargs)
 
     @staticmethod
     def register_table_schema(client, table_name, **kwargs):
@@ -37,8 +42,8 @@ class internal_api:
         return pyblazing.run_query_get_token(sql, tables)
 
     @staticmethod
-    def run_query_filesystem_get_token(client, sql, sql_data):
-        return pyblazing.run_query_filesystem_get_token(sql, sql_data)
+    def run_query_filesystem_get_token(client, sql):
+        return pyblazing.run_query_filesystem_get_token(sql)
 
     @staticmethod
     def run_query_get_results(client, metaToken):
