@@ -51,7 +51,7 @@ class BlazingContext(object):
         return self.fs.hdfs(self.client, prefix, **kwargs)
 
     def s3(self, prefix, **kwargs):
-        return self.fs.s3(self.client, prefix, kwargs)
+        return self.fs.s3(self.client, prefix, **kwargs)
 
     def show_filesystems(self):
         print(self.fs)
