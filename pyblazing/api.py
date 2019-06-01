@@ -747,6 +747,14 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
 
     #print(interpreter_path)
     #print(interpreter_port)
+    
+    print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTt")
+    print(interpreter_path)
+    print(interpreter_port)
+    print("ijhTt")
+    
+    
+    
     resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
 
     gdf_columns = []
