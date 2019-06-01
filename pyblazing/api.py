@@ -266,7 +266,7 @@ class PyConnector:
     # connection_path is a ip/host when tcp and can be unix socket when ipc
     def _send_request(self, connection_path, connection_port, requestBuffer):
         #TODO percy fix hardcode 
-        connection = blazingdb.protocol.TcpSocketConnection("127.0.0.1", 8889)
+        connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
 
@@ -678,8 +678,8 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
 
     return client
 
-__orchestrator_ip = '/tmp/orchestrator.socket'
-__orchestrator_port = 8890
+__orchestrator_ip = '127.0.0.1'
+__orchestrator_port = 8889
 __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
 def _get_client():
