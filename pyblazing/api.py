@@ -613,7 +613,7 @@ def get_dtype_values(dtypes):
         return gdf_dtype.GDF_INT64
 
     for key in dtypes:
-        values.append( gdf_type(dtypes[key]))
+        values.append(gdf_type(key))
 
     return values
 
