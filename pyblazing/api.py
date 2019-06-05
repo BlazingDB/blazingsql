@@ -332,21 +332,13 @@ class PyConnector:
                 response.payload)
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
-
-            raise Error(errorResponse.errors)
+            elif b'SqlValidationException' in errorResponse.errors:
+               raise ValueError(errorResponse.errors.decode('utf-8'))
+            raise Error(errorResponse.errors.decode('utf-8'))
 
         distributed_response = blazingdb.protocol.orchestrator.DMLDistributedResponseSchema.From(response.payload)
 
         return list(item for item in distributed_response.responses)
-
-
-#TODO percy strings merge
-#            elif b'SqlValidationException' in errorResponse.errors:
-#                raise ValueError(errorResponse.errors.decode('utf-8'))
-#            raise Error(errorResponse.errors.decode('utf-8'))
-#        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
-#            response.payload)
-#        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
 
 
     def run_dml_query(self, query, tableGroup):
@@ -840,26 +832,19 @@ def _run_query_get_token(sql, tables):
 
         metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
         return metaToken
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception:
+        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
 
-    return None
+    if error_message is not '':
+        print(error_message)
 
-#TODO percy strings merge
-#    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
-#        error_message = error
-#    except Error as error:
-#        error_message = str(error)
-#    except Exception:
-#        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
-#
-#    if error_message is not '':
-#        print(error_message)
-#
-#    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
-#    return metaToken
+    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+    return metaToken
+ 
 
 def _run_query_filesystem_get_token(sql, sql_data):
     startTime = time.time()
