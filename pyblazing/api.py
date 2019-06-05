@@ -12,8 +12,6 @@ from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
-from librmm_cffi import librmm as rmm
-
 import pyarrow as pa
 from cudf.bindings.cudf_cpp import *
 
@@ -729,8 +727,6 @@ __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrato
 def _get_client():
     return __blazing__global_client
 
-
-from librmm_cffi import librmm as rmm
 
 def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     dtype = np.dtype(dtype)
