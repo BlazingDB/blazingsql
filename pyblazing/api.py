@@ -41,10 +41,26 @@ require_context = devices.require_context
 current_context = devices.get_context
 gpus = devices.gpus
 
+def _get_client_internal(host_ip, tcp_port):
+    client = PyConnector(host_ip, tcp_port)
+
+    try:
+        client.connect()
+    except Error as err:
+        print(err)
+    except RuntimeError as err:
+        print("Connection to BlazingSQL could not be started")
+
+    return client
+
 # TODO percy default orchestrator ports: manage these in the new api.context ... see ./__init__.py
 __orchestrator_ip = '127.0.0.1'
 __orchestrator_port = 8889
 __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
+
+''' This function returns the global client to the Orchestrator'''
+def _get_client():
+    return __blazing__global_client
 
 '''If no args are passed will use '127.0.0.1' as the host and the TCP port 8889'''  
 def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port):
@@ -675,24 +691,6 @@ def _to_table_group(tables):
 
     tableGroup['tables'] = blazing_tables
     return tableGroup
-
-
-def _get_client_internal(host_ip, tcp_port):
-    client = PyConnector(host_ip, tcp_port)
-
-    try:
-        client.connect()
-    except Error as err:
-        print(err)
-    except RuntimeError as err:
-        print("Connection to BlazingSQL could not be started")
-
-    return client
-
-''' This function returns the global client to the Orchestrator'''
-def _get_client():
-    return __blazing__global_client
-
 
 from librmm_cffi import librmm as rmm
 
