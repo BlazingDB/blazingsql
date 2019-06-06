@@ -689,6 +689,8 @@ __orchestrator_port = 8889
 __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
 def _get_client():
+    global __blazing__global_client
+    
     return __blazing__global_client
 
 '''If no args are passed will use '127.0.0.1' as the host and the TCP port 8889'''  
