@@ -15,3 +15,5 @@ from .api import create_table
 
 from .api import ResultSetHandle
 from .api import _get_client
+
+from .api import SetupOrchestratorConnection
