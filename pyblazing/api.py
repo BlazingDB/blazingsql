@@ -230,6 +230,10 @@ class PyConnector:
         self._orchestrator_path = orchestrator_path
         self._orchestrator_port = orchestrator_port
 
+        print("new clienttt")
+        print(self._orchestrator_path)
+        print(self._orchestrator_port)
+
     def __del__(self):
         try:
             print("CLOSING CONNECTION")
