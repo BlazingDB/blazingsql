@@ -703,6 +703,10 @@ def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orches
     global __orchestrator_port
     global __blazing__global_client
     
+    print("in setup")
+    print(__orchestrator_ip)
+    print(__orchestrator_port)
+    
     __orchestrator_ip = orchestrator_host_ip
     __orchestrator_port = orchestrator_port
     __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
