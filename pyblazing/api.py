@@ -687,6 +687,10 @@ def _get_client():
 
 '''If no args are passed will use '127.0.0.1' as the host and the TCP port 8889'''  
 def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port):
+    global __orchestrator_ip
+    global __orchestrator_port
+    global __blazing__global_client
+    
     __orchestrator_ip = orchestrator_host_ip
     __orchestrator_port = orchestrator_port
     __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
