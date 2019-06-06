@@ -44,11 +44,13 @@ gpus = devices.gpus
 # TODO percy default orchestrator ports: manage these in the new api.context ... see ./__init__.py
 __orchestrator_ip = '127.0.0.1'
 __orchestrator_port = 8889
+__blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
 '''If no args are passed will use '127.0.0.1' as the host and the TCP port 8889'''  
 def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port):
     __orchestrator_ip = orchestrator_host_ip
     __orchestrator_port = orchestrator_port
+    __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
 class ResultSetHandle:
 
@@ -675,20 +677,21 @@ def _to_table_group(tables):
     return tableGroup
 
 
-def _get_client_internal(orchestrator_ip, orchestrator_port):
-    client = PyConnector(orchestrator_ip, orchestrator_port)
+def _get_client_internal(host_ip, tcp_port):
+    client = PyConnector(host_ip, tcp_port)
 
     try:
         client.connect()
     except Error as err:
         print(err)
     except RuntimeError as err:
-        print("Connection to the Orchestrator could not be started")
+        print("Connection to BlazingSQL could not be started")
 
     return client
 
-def _get_client(ip_or_unix_path, tcp_port):
-    return _get_client_internal(__orchestrator_ip, __orchestrator_port)
+''' This function returns the global client to the Orchestrator'''
+def _get_client():
+    return __blazing__global_client
 
 
 from librmm_cffi import librmm as rmm
@@ -748,7 +751,7 @@ def columnview_from_devary(data_devary, mask_devary, dtype=None):
                null_count=0, nvcat=None)
 
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
-    client = _get_client(interpreter_path, interpreter_port)
+    client = _get_client_internal(interpreter_path, interpreter_port)
 
     #print(interpreter_path)
     #print(interpreter_port)
@@ -848,7 +851,7 @@ def _run_query_get_token(sql, tables):
     error_message = ''
 
     try:
-        client = _get_client(__orchestrator_ip, __orchestrator_port)
+        client = _get_client()
 
         for table, gdf in tables.items():
             _reset_table(client, table, gdf)
@@ -890,7 +893,7 @@ def _run_query_filesystem_get_token(sql, sql_data):
     error_message = ''
 
     try:
-        client = _get_client(__orchestrator_ip, __orchestrator_port)
+        client = _get_client()
 
         for schema, files in sql_data.items():
             _reset_table(client, schema.table_name, schema.gdf)
@@ -949,7 +952,7 @@ def _private_run_query(sql, tables):
     return None
 
     # startTime = time.time()
-    # client = _get_client(__orchestrator_ip, __orchestrator_port)
+    # client = _get_client()
     # try:
     #     for table, gdf in tables.items():
     #         _reset_table(client, table, gdf)
@@ -1061,7 +1064,7 @@ def read_csv_table_from_filesystem(table_name, schema):
     error_message = ''
 
     try:
-        client = _get_client(__orchestrator_ip, __orchestrator_port)
+        client = _get_client()
 
         resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
         resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
@@ -1086,7 +1089,7 @@ def read_parquet_table_from_filesystem(table_name, schema):
     error_message = ''
 
     try:
-        client = _get_client(__orchestrator_ip, __orchestrator_port)
+        client = _get_client()
 
         resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
         resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
@@ -1141,7 +1144,7 @@ def register_table_schema(table_name, **kwargs):
 def register_file_system(authority, type, root, params = None):
     if params is not None:
         params = namedtuple("FileSystemConnection", params.keys())(*params.values())
-    client = _get_client(__orchestrator_ip, __orchestrator_port)
+    client = _get_client()
     schema = FileSystemRegisterRequestSchema(authority, root, type, params)
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.RegisterFileSystem,
                                        client.accessToken,
@@ -1154,7 +1157,7 @@ def register_file_system(authority, type, root, params = None):
 
 def deregister_file_system(authority):
     schema = FileSystemDeregisterRequestSchema(authority)
-    client = _get_client(__orchestrator_ip, __orchestrator_port)
+    client = _get_client()
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.DeregisterFileSystem,
                                        client.accessToken,
                                        schema)
@@ -1190,7 +1193,7 @@ def _sql_data_to_table_group(sql_data):
 def run_query_filesystem(sql, sql_data):
     startTime = time.time()
 
-    client = _get_client(__orchestrator_ip, __orchestrator_port)
+    client = _get_client()
 
     for schema, files in sql_data.items():
         _reset_table(client, schema.table_name, schema.gdf)
