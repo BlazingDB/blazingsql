@@ -45,7 +45,8 @@ gpus = devices.gpus
 __orchestrator_ip = '127.0.0.1'
 __orchestrator_port = 8889
 
-def SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port):
+'''If no args are passed will use '127.0.0.1' as the host and the TCP port 8889'''  
+def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port):
     __orchestrator_ip = orchestrator_host_ip
     __orchestrator_port = orchestrator_port
 
