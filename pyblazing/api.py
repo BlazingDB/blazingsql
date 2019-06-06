@@ -690,7 +690,8 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
 
 __orchestrator_ip = '127.0.0.1'
 __orchestrator_port = 8889
-__blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
+# TODO NOTE percy (avoid globals) always call SetupOrchestratorConnection before any api call
+__blazing__global_client = None
 
 def _get_client():
     global __blazing__global_client
