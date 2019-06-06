@@ -519,36 +519,6 @@ class PyConnector:
         return queryResult
 
 
-## Internals ##
-
-
-def _get_client_internal(host_ip, tcp_port):
-    client = PyConnector(host_ip, tcp_port)
-
-    try:
-        client.connect()
-    except Error as err:
-        print(err)
-    except RuntimeError as err:
-        print("Connection to BlazingSQL could not be started")
-
-    return client
-
-# TODO percy default orchestrator ports: manage these in the new api.context ... see ./__init__.py
-__orchestrator_ip = '127.0.0.1'
-__orchestrator_port = 8889
-__blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
-
-''' This function returns the global client to the Orchestrator'''
-def _get_client():
-    return __blazing__global_client
-
-'''If no args are passed will use '127.0.0.1' as the host and the TCP port 8889'''  
-def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port):
-    __orchestrator_ip = orchestrator_host_ip
-    __orchestrator_port = orchestrator_port
-    __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
-
 def gen_data_frame(nelem, name, dtype):
     pdf = pd.DataFrame()
     pdf[name] = np.arange(nelem, dtype=dtype)
@@ -695,6 +665,27 @@ def _to_table_group(tables):
     tableGroup['tables'] = blazing_tables
     return tableGroup
 
+
+def _get_client_internal(orchestrator_ip, orchestrator_port):
+    client = PyConnector(orchestrator_ip, orchestrator_port)
+
+    try:
+        client.connect()
+    except Error as err:
+        print(err)
+    except RuntimeError as err:
+        print("Connection to the Orchestrator could not be started")
+
+    return client
+
+__orchestrator_ip = '127.0.0.1'
+__orchestrator_port = 8889
+__blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
+
+def _get_client():
+    return __blazing__global_client
+
+
 from librmm_cffi import librmm as rmm
 
 # TODO: this function was copied from column.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there
@@ -752,7 +743,7 @@ def columnview_from_devary(data_devary, mask_devary, dtype=None):
                null_count=0, nvcat=None)
 
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
-    client = _get_client_internal(interpreter_path, interpreter_port)
+    client = _get_client()
 
     #print(interpreter_path)
     #print(interpreter_port)
