@@ -142,20 +142,20 @@ class DataSource:
 
 # BEGIN remove
     def _load(self, type, **kwargs):
+        table_name = kwargs.get('table_name', None)
         if type == Type.cudf:
             cudf_df = kwargs.get('cudf_df', None)
-            return self._load_cudf_df(cudf_df)
+            return self._load_cudf_df(table_name, cudf_df)
         elif type == Type.pandas:
             pandas_df = kwargs.get('pandas_df', None)
-            return self._load_pandas_df(pandas_df)
+            return self._load_pandas_df(table_name, pandas_df)
         elif type == Type.arrow:
             arrow_table = kwargs.get('arrow_table', None)
-            return self._load_arrow_table(arrow_table)
+            return self._load_arrow_table(table_name, arrow_table)
         elif type == Type.result_set:
             result_set = kwargs.get('result_set', None)
-            return self._load_result_set(result_set)
+            return self._load_result_set(table_name, result_set)
         elif type == Type.csv:
-            table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
             csv_column_names = kwargs.get('csv_column_names', [])
             csv_column_types = kwargs.get('csv_column_types', [])
@@ -178,28 +178,38 @@ class DataSource:
         # here we need to use low level api pyblazing.create_table
         return False
 
-    def _load_cudf_df(self, cudf_df):
+    def _load_cudf_df(self, table_name, cudf_df):
         self.cudf_df = cudf_df
+
+        column_names = list(nation_gdf.dtypes.index)
+        # column_dtypes = [] WSM NEED GDF dtypes here
+        return_result = internal_api.new_create_table(
+            self.client,
+            table_name,
+            type = internal_api.SchemaFrom.Gdf,
+            names = column_names,
+            dtypes = get_dtype_values(column_types)
+        )
 
         # TODO percy see if we need to perform sanity check for cudf_df object
         self.valid = True
 
         return self.valid
 
-    def _load_pandas_df(self, pandas_df):
+    def _load_pandas_df(self, table_name, pandas_df):
         cudf_df = cudf.DataFrame.from_pandas(pandas_df)
 
-        return self._load_cudf_df(cudf_df)
+        return self._load_cudf_df(table_name, cudf_df)
 
-    def _load_arrow_table(self, arrow_table):
+    def _load_arrow_table(self, table_name, arrow_table):
         pandas_df = arrow_table.to_pandas()
 
-        return self._load_pandas_df(pandas_df)
+        return self._load_pandas_df(table_name, pandas_df)
 
-    def _load_result_set(self,result_set):
+    def _load_result_set(self, table_name, result_set):
         cudf_df = result_set.columns
 
-        return self._load_cudf_df(cudf_df)
+        return self._load_cudf_df(table_name, cudf_df)
 
 
     def _load_csv(self, table_name, path, column_names, column_types, delimiter, skip_rows):
@@ -254,15 +264,15 @@ def from_cudf(cudf_df, table_name):
     return DataSource(None, Type.cudf, table_name = table_name, cudf_df = cudf_df)
 
 
-def from_pandas(pandas_df):
-    return DataSource(None, Type.pandas, pandas_df = pandas_df)
+def from_pandas(pandas_df, table_name):
+    return DataSource(None, Type.pandas, table_name = table_name, pandas_df = pandas_df)
 
 
-def from_arrow(arrow_table):
-    return DataSource(None, Type.arrow, arrow_table = arrow_table)
+def from_arrow(arrow_table, table_name):
+    return DataSource(None, Type.arrow, table_name = table_name, arrow_table = arrow_table)
 
-def from_result_set(result_set):
-    return DataSource(None, Type.result_set, result_set = result_set)
+def from_result_set(result_set, table_name):
+    return DataSource(None, Type.result_set, table_name = table_name, result_set = result_set)
 
 
 def from_csv(client, table_name, path, column_names, column_types, delimiter, skip_rows):
