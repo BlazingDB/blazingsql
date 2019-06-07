@@ -67,11 +67,11 @@ class BlazingContext(object):
         if type(input) == cudf.DataFrame:
             datasource = from_cudf(input, table_name)
         elif type(input) == pandas.DataFrame:
-            datasource = from_pandas(input)
+            datasource = from_pandas(input, table_name)
         elif type(input) == pyarrow.Table:
-            datasource = from_arrow(input)
+            datasource = from_arrow(input, table_name)
         elif type(input) == internal_api.ResultSetHandle:
-            datasource = from_result_set(input)
+            datasource = from_result_set(input, table_name)
         elif type(input) == str or type(input) == list:
 
             if type(input) == str:

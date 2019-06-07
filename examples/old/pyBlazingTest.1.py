@@ -24,17 +24,17 @@ def main():
   print(nation_gdf)
   
   bc.create_table('nation_cudf', nation_gdf)
-  result1 = bc.sql("select n_nationkey, n_name, n_regionkey from main.nation_cudf where n_regionkey = 1", ['nation_cudf'])
+  result1 = bc.sql("select n_nationkey, n_name, n_regionkey from main.nation_cudf where n_regionkey = 1")
   now = result1.get()
   print("blazing nation_cudf")
   print(now)
 
-  bc.create_table('nation_csv', nation_filepath, delimiter='|', dtype=nation_columnTypes, names=nation_columnNames)
-  result4 = bc.sql("select n_nationkey, n_name, n_regionkey from main.nation_csv where n_regionkey = 1", ['nation_csv'])
-  now = result4.get()
-  print("csv output")
-  print(now)
-  print("csv output done")
+  # bc.create_table('nation_csv', nation_filepath, delimiter='|', dtype=nation_columnTypes, names=nation_columnNames)
+  # result4 = bc.sql("select n_nationkey, n_name, n_regionkey from main.nation_csv where n_regionkey = 1")
+  # now = result4.get()
+  # print("csv output")
+  # print(now)
+  # print("csv output done")
 
   # bc.create_table('nation_par', [parquetFolder + 'nation_0_0.parquet'])
   # result2 = bc.sql("select * from main.nation_par where n_nationkey < 20", ['nation_par'])
@@ -51,9 +51,9 @@ def main():
   # rere = result3.get()
   # print(rere)
 
-  print("last")
-  print(now)
-  print("lasty")
+  # print("last")
+  # print(now)
+  # print("lasty")
   
   
 if __name__ == '__main__':
