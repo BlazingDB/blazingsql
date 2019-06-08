@@ -396,36 +396,36 @@ class PyConnector:
             response.payload)
         return self._get_result(dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path, dmlResponseDTO.nodeConnection.port)
 
-    def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName):
-        # TODO find a way to print only for debug mode (add verbose arg)
-        #print('create table: ' + tableName)
-        # print(columnNames)
-        # print(columnTypes)
-        # print(dbName)
-        dmlRequestSchema = blazingdb.protocol.orchestrator.DDLCreateTableRequestSchema(name=tableName,
-                                                                                       columnNames=columnNames,
-                                                                                       columnTypes=columnTypes,
-                                                                                       dbName=dbName)
+    # def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName):
+    #     # TODO find a way to print only for debug mode (add verbose arg)
+    #     #print('create table: ' + tableName)
+    #     # print(columnNames)
+    #     # print(columnTypes)
+    #     # print(dbName)
+    #     dmlRequestSchema = blazingdb.protocol.orchestrator.DDLCreateTableRequestSchema(name=tableName,
+    #                                                                                    columnNames=columnNames,
+    #                                                                                    columnTypes=columnTypes,
+    #                                                                                    dbName=dbName)
 
-        # TODO find a way to print only for debug mode (add verbose arg)
-        # print(dmlRequestSchema)
+    #     # TODO find a way to print only for debug mode (add verbose arg)
+    #     # print(dmlRequestSchema)
 
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
-                                                                               self.accessToken, dmlRequestSchema)
+    #     requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
+    #                                                                            self.accessToken, dmlRequestSchema)
 
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            raise Error(errorResponse.errors)
+    #     responseBuffer = self._send_request(
+    #         self._orchestrator_path, self._orchestrator_port, requestBuffer)
+    #     response = blazingdb.protocol.transport.channel.ResponseSchema.From(
+    #         responseBuffer)
+    #     if response.status == Status.Error:
+    #         errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
+    #             response.payload)
+    #         raise Error(errorResponse.errors)
 
-        # TODO find a way to print only for debug mode (add verbose arg)
-        # print(response.status)
+    #     # TODO find a way to print only for debug mode (add verbose arg)
+    #     # print(response.status)
 
-        return response.status
+    #     return response.status
 
     def run_ddl_drop_table(self, tableName, dbName):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -1070,19 +1070,19 @@ class TableSchema:
 def new_create_table(tableName, **kwargs):
     print('new create table')
     print(kwargs)
-    schema = TableSchema(**kwargs)
+    # schema = TableSchema(**kwargs)
     return_result = None
     error_message = ''
 
-    columnNames = kwargs.get('names', None)
-    columnTypes = kwargs.get('dtypes', None)
+    columnNames = kwargs.get('names', [])
+    columnTypes = kwargs.get('dtypes', [])
     dbName = 'main'
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
-    files = kwargs.get('path', None)
-    csvDelimiter = kwargs.get('delimiter', None)
-    csvLineTerminator = kwargs.get('line_terminator', None)
-    csvSkipRows = kwargs.get('skip_rows', None)
+    files = kwargs.get('path', [])
+    csvDelimiter = kwargs.get('delimiter', '|')
+    csvLineTerminator = kwargs.get('line_terminator', '\n')
+    csvSkipRows = kwargs.get('skip_rows', 0)
 
     try:
         client = _get_client()
