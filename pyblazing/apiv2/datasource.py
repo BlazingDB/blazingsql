@@ -1,43 +1,10 @@
 from enum import IntEnum
 
-from libgdf_cffi import ffi, libgdf
 import cudf
 
 from .bridge import internal_api
 
 # TODO BIG TODO percy blazing-io didn't expose the wildcard API of FileSystem API
-
-
-# TODO percy fix this we need to define a unify type system for pyblazing
-def get_dtype_values(dtypes):
-    values = []
-
-    def gdf_type(type_name):
-        dicc = {
-            'str': libgdf.GDF_STRING,
-            'date': libgdf.GDF_DATE64,
-            'date64': libgdf.GDF_DATE64,
-            'date32': libgdf.GDF_DATE32,
-            'timestamp': libgdf.GDF_TIMESTAMP,
-            'category': libgdf.GDF_CATEGORY,
-            'float': libgdf.GDF_FLOAT32,
-            'double': libgdf.GDF_FLOAT64,
-            'float32': libgdf.GDF_FLOAT32,
-            'float64': libgdf.GDF_FLOAT64,
-            'short': libgdf.GDF_INT16,
-            'long': libgdf.GDF_INT64,
-            'int': libgdf.GDF_INT32,
-            'int32': libgdf.GDF_INT32,
-            'int64': libgdf.GDF_INT64,
-        }
-        if dicc.get(type_name):
-            return dicc[type_name]
-        return libgdf.GDF_INT64
-
-    for i in range(0, len(dtypes)):
-        values.append(gdf_type(dtypes[i]))
-
-    return values
 
 
 class Type(IntEnum):
@@ -181,14 +148,15 @@ class DataSource:
     def _load_cudf_df(self, table_name, cudf_df):
         self.cudf_df = cudf_df
 
-        column_names = list(nation_gdf.dtypes.index)
-        # column_dtypes = [] WSM NEED GDF dtypes here
+        column_names = list(cudf_df.dtypes.index)
+        column_dtypes = [internal_api.get_np_dtype_to_gdf_dtype(x) for x in cudf_df.dtypes]
         return_result = internal_api.new_create_table(
             self.client,
             table_name,
             type = internal_api.SchemaFrom.Gdf,
             names = column_names,
-            dtypes = get_dtype_values(column_types)
+            dtypes = column_dtypes,
+            gdf = cudf_df
         )
 
         # TODO percy see if we need to perform sanity check for cudf_df object
@@ -226,7 +194,7 @@ class DataSource:
             path = path[0],
             delimiter = delimiter,
             names = column_names,
-            dtypes = get_dtype_values(column_types),
+            dtypes = internal_api.get_dtype_values(column_types),
             skip_rows = skip_rows
         )
 
@@ -247,7 +215,7 @@ class DataSource:
             self.client,
             table_name,
             type = internal_api.SchemaFrom.ParquetFile,
-            files = path[0]
+            path = path[0]
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
