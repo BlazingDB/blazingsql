@@ -13,21 +13,16 @@ from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
 from librmm_cffi import librmm as rmm
-from libgdf_cffi import ffi, libgdf
-from cudf.dataframe.datetime import DatetimeColumn
-from cudf.dataframe.numerical import NumericalColumn
 
 import pyarrow as pa
-from cudf import _gdf
-from cudf.dataframe.column import Column
+from cudf.bindings.cudf_cpp import *
+
 from cudf.dataframe.string import StringColumn
 from cudf import DataFrame
-from cudf.dataframe.dataframe import Series
 from cudf.dataframe.buffer import Buffer
-from cudf import utils
+from cudf.dataframe.columnops import build_column
 from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
 
-from numba import cuda
 import numpy as np
 import pandas as pd
 
@@ -76,7 +71,6 @@ class ResultSetHandle:
         self.error_message = error_message
 
     def __del__(self):
-        # @todo
         if self.handle is not None:
             for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
@@ -137,8 +131,8 @@ def run_query(sql, tables):
     """
     return _private_run_query(sql, tables)
 
-def run_query_filesystem(sql, sql_data):
-    return _private_run_query_filesystem(sql, sql_data)
+def run_query_filesystem(sql):
+    return _private_run_query_filesystem(sql)
 
 def run_query_get_token(sql, tables):
     return _run_query_get_token(sql, tables)
@@ -219,11 +213,6 @@ def _run_query_arrow(sql, tables):
         pandas_tables[table] = df
 
     return run_query_pandas(sql, pandas_tables)
-
-
-
-def _lots_of_stuff():
-    pass
 
 
 class PyConnector:
@@ -557,7 +546,7 @@ def get_ipc_handle_for_data(dataframe_column):
     if hasattr(dataframe_column, 'columnToken'):
         return None
     else:
-        if dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY or dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING:
+        if get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
             return None
         else:
             ipch = dataframe_column._column._data.mem.get_ipc_handle()
@@ -567,9 +556,9 @@ def get_ipc_handle_for_valid(dataframe_column):
 
     if hasattr(dataframe_column, 'columnToken'):
         return None
-    elif dataframe_column._column.cffi_view.null_count > 0:
-       ipch = dataframe_column._column._mask.mem.get_ipc_handle()
-       return bytes(ipch._ipc_handle.handle)
+    elif dataframe_column.null_count > 0:
+        ipch = dataframe_column._column._mask.mem.get_ipc_handle()
+        return bytes(ipch._ipc_handle.handle)
     else:
         return None
 
@@ -577,46 +566,102 @@ def get_ipc_handle_for_strings(dataframe_column):
 
     if hasattr(dataframe_column, 'columnToken'):
         return None
-    elif dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING_CATEGORY or dataframe_column._column.cffi_view.dtype == libgdf.GDF_STRING:
-        # TODO: this is assuming that it is a GDF_STRING but could be GDF_STRING_CATEGORY due to a bug
-       return dataframe_column._column._data.get_ipc_data()       
+    elif get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
+        return dataframe_column._column._data.get_ipc_data()       
     else:
         return None
 
-def gdf_column_type_to_str(dtype):
-    str_dtype = {
-        0: 'GDF_invalid',
-        1: 'GDF_INT8',
-        2: 'GDF_INT16',
-        3: 'GDF_INT32',
-        4: 'GDF_INT64',
-        5: 'GDF_FLOAT32',
-        6: 'GDF_FLOAT64',
-        7: 'GDF_DATE32',
-        8: 'GDF_DATE64',
-        9: 'GDF_TIMESTAMP',
-        10: 'GDF_CATEGORY',
-        11: 'GDF_STRING',
-        12: 'GDF_STRING_CATEGORY',
-        13: 'GDF_UINT8',
-        14: 'GDF_UINT16',
-        15: 'GDF_UINT32',
-        16: 'GDF_UINT64',
-        17: 'N_GDF_TYPES'
+class gdf_dtype(object):
+    GDF_invalid = 0
+    GDF_INT8 = 1
+    GDF_INT16 = 2
+    GDF_INT32 = 3
+    GDF_INT64 = 4
+    GDF_FLOAT32 = 5
+    GDF_FLOAT64 = 6
+    GDF_BOOL8 = 7
+    GDF_DATE32 = 8
+    GDF_DATE64 = 9
+    GDF_TIMESTAMP = 10
+    GDF_CATEGORY = 11
+    GDF_STRING = 12
+    GDF_STRING_CATEGORY = 13
+    N_GDF_TYPES = 14
+
+def get_np_dtype_to_gdf_dtype_str(dtype):
+ 
+    dtypes = {
+        np.dtype('float64'):    'GDF_FLOAT64',
+        np.dtype('float32'):    'GDF_FLOAT32',
+        np.dtype('int64'):      'GDF_INT64',
+        np.dtype('int32'):      'GDF_INT32',
+        np.dtype('int16'):      'GDF_INT16',
+        np.dtype('int8'):       'GDF_INT8',
+        np.dtype('bool_'):      'GDF_BOOL8',
+        np.dtype('datetime64[ms]'): 'GDF_DATE64',
+        np.dtype('datetime64'): 'GDF_DATE64',        
+        np.dtype('object_'):    'GDF_STRING',
+        np.dtype('str_'):       'GDF_STRING',
+        np.dtype('<M8[ms]'):    'GDF_DATE64',        
     }
+    return dtypes[dtype]
 
-    return str_dtype[dtype]
+def get_np_dtype_to_gdf_dtype(dtype):
+ 
+    dtypes = {
+        np.dtype('float64'):    gdf_dtype.GDF_FLOAT64,
+        np.dtype('float32'):    gdf_dtype.GDF_FLOAT32,
+        np.dtype('int64'):      gdf_dtype.GDF_INT64,
+        np.dtype('int32'):      gdf_dtype.GDF_INT32,
+        np.dtype('int16'):      gdf_dtype.GDF_INT16,
+        np.dtype('int8'):       gdf_dtype.GDF_INT8,
+        np.dtype('bool_'):      gdf_dtype.GDF_BOOL8,
+        np.dtype('datetime64[ms]'): gdf_dtype.GDF_DATE64,
+        np.dtype('datetime64'): gdf_dtype.GDF_DATE64,        
+        np.dtype('object_'):    gdf_dtype.GDF_STRING,
+        np.dtype('str_'):       gdf_dtype.GDF_STRING,
+        np.dtype('<M8[ms]'):    gdf_dtype.GDF_DATE64,        
+    }
+    return dtypes[dtype]
 
+def get_dtype_values(dtypes):
+    values = []
+    def gdf_type(type_name):
+        dicc = {
+            'str': gdf_dtype.GDF_STRING,
+            'date': gdf_dtype.GDF_DATE64,
+            'date64': gdf_dtype.GDF_DATE64,
+            'date32': gdf_dtype.GDF_DATE32,
+            'timestamp': gdf_dtype.GDF_TIMESTAMP,
+            'category': gdf_dtype.GDF_CATEGORY,
+            'float': gdf_dtype.GDF_FLOAT32,
+            'double': gdf_dtype.GDF_FLOAT64,
+            'float32': gdf_dtype.GDF_FLOAT32,
+            'float64': gdf_dtype.GDF_FLOAT64,
+            'short': gdf_dtype.GDF_INT16,
+            'long': gdf_dtype.GDF_INT64,
+            'int': gdf_dtype.GDF_INT32,
+            'int32': gdf_dtype.GDF_INT32,
+            'int64': gdf_dtype.GDF_INT64,
+        }
+        if dicc.get(type_name):
+            return dicc[type_name]
+        return gdf_dtype.GDF_INT64
 
-def _get_table_def_from_gdf(gdf):
+    for key in dtypes:
+        values.append(gdf_type(key))
+
+    return values
+
+# def _get_table_def_from_gdf(gdf):
     
-    colNames = []
-    types = []
-    for colName, column in gdf._cols.items():
-        dtype = column._column.cffi_view.dtype
-        colNames.append(colName)
-        types.append(gdf_column_type_to_str(dtype))
-    return colNames, types
+#     colNames = []
+#     types = []
+#     for colName, column in gdf._cols.items():
+#         dtype = column.dtype
+#         colNames.append(colName)
+#         types.append(get_np_dtype_to_gdf_dtype_str(dtype))
+#     return colNames, types
 
 
 #def _reset_table(client, table, gdf):
@@ -643,10 +688,9 @@ def _to_table_group(tables):
             dataframe_column = gdf._cols[column]
             # TODO support more column types
 
-            numerical_column = dataframe_column._column
-            data_sz = numerical_column.cffi_view.size
-            dtype = numerical_column.cffi_view.dtype
-            null_count = numerical_column.cffi_view.null_count
+            data_sz = len(dataframe_column)
+            dtype = get_np_dtype_to_gdf_dtype(dataframe_column.dtype)
+            null_count = dataframe_column.null_count
 
             data_ipch = get_ipc_handle_for_data(dataframe_column)
             valid_ipch = get_ipc_handle_for_valid(dataframe_column)
@@ -666,15 +710,11 @@ def _to_table_group(tables):
             }
 
             if ipc_data is not None:
-                dtype = libgdf.GDF_STRING # TODO: open issue, it must be a GDF_STRING
+                dtype = gdf_dtype.GDF_STRING # TODO: open issue, it must be a GDF_STRING
 
                 blazing_column['dtype'] = dtype
                 #custrings_data
-                blazing_column['custrings_views'] = bytes(ipc_data[0]) #custrings_views_ipch,
-                blazing_column['custrings_viewscount'] = ipc_data[1] #custrings_views_count,
-                blazing_column['custrings_membuffer'] = bytes(ipc_data[2]) #custrings_membuffer_ipch,
-                blazing_column['custrings_membuffersize'] = ipc_data[3] #custrings_membuffer_size,
-                blazing_column['custrings_baseptr'] = ipc_data[4] #custrings_base_ptr
+                blazing_column['custrings_data'] = ipc_data
 
             if hasattr(gdf[column], 'columnToken'):
                 columnTokens.append(gdf[column].columnToken)
@@ -718,43 +758,6 @@ def _get_client():
 
 from librmm_cffi import librmm as rmm
 
-# TODO: this function was copied from column.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there
-def cffi_view_to_column_mem(cffi_view):
-    intaddr = int(ffi.cast("uintptr_t", cffi_view.data))
-    data = rmm.device_array_from_ptr(intaddr,
-                                     nelem=cffi_view.size,
-                                     dtype=_gdf.gdf_to_np_dtype(cffi_view.dtype),
-                                     finalizer=rmm._make_finalizer(0, 0))
-
-    if cffi_view.valid:
-        intaddr = int(ffi.cast("uintptr_t", cffi_view.valid))
-        mask = rmm.device_array_from_ptr(intaddr,
-                                         nelem=calc_chunk_size(cffi_view.size,
-                                                               mask_bitsize),
-                                         dtype=_gdf.mask_dtype,
-                                         finalizer=rmm._make_finalizer(0,
-                                                                       0))
-    else:
-        mask = None
-
-    return data, mask
-
-# TODO: this function was copied from column.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there
-def from_cffi_view(cffi_view):
-    """Create a Column object from a cffi struct gdf_column*.
-    """
-    data_mem, mask_mem = cffi_view_to_column_mem(cffi_view)
-    data_buf = Buffer(data_mem)
-
-    if mask_mem is not None:
-        mask_buf = Buffer(mask_mem)
-    else:
-        mask_buf = None
-
-    return Column(data=data_buf, mask=mask_buf)
-
-
-# TODO: this code does not seem to handle nulls at all. This will need to be addressed
 def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     dtype = np.dtype(dtype)
     # compute size
@@ -766,12 +769,6 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     return ipchandle, ipchandle.open_array(current_context(), shape=shape,
                                            strides=strides, dtype=dtype)
 
- # TODO: this function was copied from _gdf.py in cudf  but fixed so that it can handle a null mask. cudf has a bug there
-def columnview_from_devary(data_devary, mask_devary, dtype=None):
-    return _gdf._columnview(size=data_devary.size,  data=_gdf.unwrap_devary(data_devary),
-               mask=_gdf.unwrap_mask(mask_devary)[0] if mask_devary is not None else ffi.NULL, dtype=dtype or data_devary.dtype,
-               null_count=0, nvcat=None)
-
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
 
@@ -782,62 +779,57 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     gdf_columns = []
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
-        if c.size != 0 :
-            if c.dtype == libgdf.GDF_STRING:
-                ipc_data = [c.custrings_views,
-                            c.custrings_viewscount,
-                            c.custrings_membuffer,
-                            c.custrings_membuffersize,
-                            c.custrings_baseptr]
 
-                new_strs = nvstrings.create_from_ipc(ipc_data)
+        # todo: remove this if when C gdf struct is replaced by pyarrow object
+        # this workaround is only for the python object. The RAL knows the column_token and will know what its dtype actually is
+        if c.dtype == gdf_dtype.GDF_DATE32:
+            c.dtype = gdf_dtype.GDF_INT32
+
+        if c.dtype == gdf_dtype.GDF_DATE64:
+            np_dtype = np.dtype('datetime64[ms]')
+        else:
+            np_dtype = gdf_to_np_dtype(c.dtype)
+
+        if c.size != 0 :
+            if c.dtype == gdf_dtype.GDF_STRING:
+                new_strs = nvstrings.create_from_ipc(c.custrings_data)
                 newcol = StringColumn(new_strs)
 
                 gdf_columns.append(newcol.view(StringColumn, dtype='object'))
             else:
-                assert len(c.data) == 64
-                # todo: remove this if when C gdf struct is replaced by pyarrow object
-                if c.dtype == libgdf.GDF_DATE32:
-                    c.dtype = libgdf.GDF_INT32
-                    ipch_data, data_ptr = _open_ipc_array(
-                        c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
-                    # todo: remove this when C gdf struct is replaced by pyarrow object
-                    #  is this workaround  only for python object?
-                    # yes. it is!. Because RAL only knowns the column_token.
-                else:
-                    ipch_data, data_ptr = _open_ipc_array(
-                        c.data, shape=c.size, dtype=_gdf.gdf_to_np_dtype(c.dtype))
+                if c.dtype == gdf_dtype.GDF_STRING_CATEGORY:
+                    print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
+                    
+                assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
+                                
+                ipch_data, data_ptr = _open_ipc_array(
+                        c.data, shape=c.size, dtype=np_dtype)
                 ipchandles.append(ipch_data)
 
                 valid_ptr = None
                 if (c.null_count > 0):
+                    assert len(c.valid) == 64,"Valid ipc handle was not 64 bytes"
                     ipch_valid, valid_ptr = _open_ipc_array(
                         c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
                     ipchandles.append(ipch_valid)
 
-                # TODO: this code imitates what is in io.py from cudf in read_csv . The way it handles datetime indicates that we will need to fix this for better handling of timestemp and other datetime data types
-                cffi_view = columnview_from_devary(data_ptr, valid_ptr, ffi.NULL)
-                newcol = from_cffi_view(cffi_view)
-                if (newcol.dtype == np.dtype('datetime64[ms]')):
-                    gdf_columns.append(newcol.view(DatetimeColumn, dtype='datetime64[ms]'))
+                if (valid_ptr is None):
+                    gdf_columns.append(build_column(Buffer(data_ptr), np_dtype))
                 else:
-                    gdf_columns.append(newcol.view(NumericalColumn, dtype=newcol.dtype))
+                    gdf_columns.append(build_column(Buffer(data_ptr), np_dtype, Buffer(valid_ptr)))
+                
         else:
-            if c.dtype == libgdf.GDF_STRING:
-                print("WARNING: Unhandled empty string column.")  #WSM need to handle this
+            if c.dtype == gdf_dtype.GDF_STRING:
+                gdf_columns.append(StringColumn(nvstrings.to_device([])))
             else:
-                if c.dtype == libgdf.GDF_DATE32:
-                    c.dtype = libgdf.GDF_INT32
+                if c.dtype == gdf_dtype.GDF_DATE32:
+                    c.dtype = gdf_dtype.GDF_INT32
                     
-                dtype=_gdf.gdf_to_np_dtype(c.dtype)
-                if (dtype == np.dtype('datetime64[ms]')):
-                    gdf_columns.append(DatetimeColumn(data=Buffer.null(dtype), dtype=dtype))
-                else:
-                    gdf_columns.append(NumericalColumn(data=Buffer.null(dtype), dtype=dtype))
+                gdf_columns.append(build_column(Buffer.null(np_dtype), np_dtype))
 
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
-        assert k != ""
+        assert k != "", "Column name was an empty string"
         gdf[k.decode("utf-8")] = v
 
     resultSet.columns = gdf
@@ -900,10 +892,8 @@ def _run_query_filesystem_get_token(sql):
     try:
         client = _get_client()
 
-        for schema, files in sql_data.items():
-            _reset_table(client, schema.table_name, schema.gdf)
-
-        tableGroup = _sql_data_to_table_group(sql_data)
+        # tableGroup = _sql_data_to_table_group(sql_data)
+        tableGroup = _create_dummy_table_group()
 
         resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_filesystem_token(sql, tableGroup)
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
@@ -944,8 +934,8 @@ def _private_run_query(sql, tables):
     metaToken = _run_query_get_token(sql, tables)
     return _run_query_get_results(metaToken)
 
-def _private_run_query_filesystem(sql, sql_data):
-    metaToken = _run_query_filesystem_get_token(sql, sql_data)
+def _private_run_query_filesystem(sql):
+    metaToken = _run_query_filesystem_get_token(sql)
     return _run_query_get_results(metaToken)
 
 
@@ -968,7 +958,7 @@ class SchemaFrom:
 class TableSchema:
     def __init__(self, type, **kwargs):
         schema_type = self._get_schema(**kwargs)
-        assert schema_type == type
+        assert schema_type == type, "Unexpected schema type when creating TableSchema"
 
         self.kwargs = kwargs
         self.schema_type = type
@@ -1021,82 +1011,85 @@ class TableSchema:
 
 
 
-# TODO complete API docs
-# WARNING EXPERIMENTAL
-def read_csv_table_from_filesystem(table_name, schema):
-    print('create csv table')
-    error_message = ''
+# # TODO complete API docs
+# # WARNING EXPERIMENTAL
+# def read_csv_table_from_filesystem(table_name, schema):
+#     print('create csv table')
+#     error_message = ''
 
-    try:
-        client = _get_client()
+#     try:
+#         client = _get_client()
 
-        resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
-        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+#         resultToken, interpreter_path, interpreter_port = client.run_dml_load_csv_schema(**schema.kwargs)
+#         resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
 
-        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+#         return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
 
-    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
-        error_message = error
-    except Error as error:
-        error_message = str(error)
-    except Exception as error:
-        error_message = "Unexpected error on " + read_csv_table_from_filesystem.__name__ + ", " + str(error)
+#     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+#         error_message = error
+#     except Error as error:
+#         error_message = str(error)
+#     except Exception as error:
+#         error_message = "Unexpected error on " + read_csv_table_from_filesystem.__name__ + ", " + str(error)
 
-    if error_message is not '':
-        print(error_message)
+#     if error_message is not '':
+#         print(error_message)
 
-    return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)    
+#     return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)    
 
 
-def read_parquet_table_from_filesystem(table_name, schema):
-    print('create parquet table')
-    error_message = ''
+# def read_parquet_table_from_filesystem(table_name, schema):
+#     print('create parquet table')
+#     error_message = ''
 
-    try:
-        client = _get_client()
+#     try:
+#         client = _get_client()
 
-        resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
-        resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
+#         resultToken, interpreter_path, interpreter_port = client.run_dml_load_parquet_schema(**schema.kwargs)
+#         resultSet, ipchandles = _private_get_result(resultToken, interpreter_path, interpreter_port, 0)
 
-        return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
+#         return ResultSetHandle(resultSet.columns, resultSet.columnTokens, resultToken, interpreter_path, interpreter_port, ipchandles, client, 0, resultSet.metadata.time, 0, error_message)
 
-    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
-        error_message = error
-    except Error as error:
-        error_message = str(error)
-    except Exception as error:
-        error_message = "Unexpected error on " + run_query_filesystem.__name__ + ", " + str(error)
+#     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+#         error_message = error
+#     except Error as error:
+#         error_message = str(error)
+#     except Exception as error:
+#         error_message = "Unexpected error on " + run_query_filesystem.__name__ + ", " + str(error)
 
-    if error_message is not '':
-        print(error_message)
+#     if error_message is not '':
+#         print(error_message)
 
-    return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)
+#     return ResultSetHandle(None, None, None, None, None, None, None, None, None, None, error_message)
 
     
 
 
-def create_table(table_name, **kwargs):
-
-    schema = register_table_schema(table_name, **kwargs)
-    path = kwargs.get('path', None)
-
-    sql = "SELECT * FROM main." + table_name
-    sql_data = {schema: [path]}
-    return_result = run_query_filesystem(sql, sql_data)
-    return_result.name = table_name
-    return return_result
 
 #cambiar para success or failed
-def new_create_table(table_name, **kwargs):
+def new_create_table(tableName, **kwargs):
     print('new create table')
+    print(kwargs)
     schema = TableSchema(**kwargs)
     return_result = None
     error_message = ''
 
+    columnNames = kwargs.get('names', None)
+    columnTypes = kwargs.get('dtypes', None)
+    dbName = 'main'
+    schemaType = kwargs.get('type', None)
+    gdf = kwargs.get('gdf', None)
+    files = kwargs.get('path', None)
+    csvDelimiter = kwargs.get('delimiter', None)
+    csvLineTerminator = kwargs.get('line_terminator', None)
+    csvSkipRows = kwargs.get('skip_rows', None)
+
     try:
         client = _get_client()
-        return_result, interpreter_path, interpreter_port = client.run_ddl_new_create_table(**schema.kwargs)
-
+        # return_result, interpreter_path, interpreter_port = client.run_ddl_new_create_table(**schema.kwargs)
+        return_result, interpreter_path, interpreter_port = client.run_ddl_new_create_table(tableName, 
+                        columnNames,columnTypes,dbName,schemaType,gdf,files,csvDelimiter,csvLineTerminator,csvSkipRows)
+         
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -1111,22 +1104,22 @@ def new_create_table(table_name, **kwargs):
     #print("ERROR: unknown schema type")
     return return_result
 
-def register_table_schema(table_name, **kwargs):
-    schema = TableSchema(**kwargs)
-    return_result = None
-    if schema.schema_type == SchemaFrom.CsvFile:  # csv
-        return_result = read_csv_table_from_filesystem(table_name, schema)
-    elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
-        return_result = read_parquet_table_from_filesystem(table_name, schema)
-    else:
-        print("ERROR: unknown schema type")
+# def register_table_schema(table_name, **kwargs):
+#     schema = TableSchema(**kwargs)
+#     return_result = None
+#     if schema.schema_type == SchemaFrom.CsvFile:  # csv
+#         return_result = read_csv_table_from_filesystem(table_name, schema)
+#     elif schema.schema_type == SchemaFrom.ParquetFile: # parquet
+#         return_result = read_parquet_table_from_filesystem(table_name, schema)
+#     else:
+#         print("ERROR: unknown schema type")
 
-    schema.set_table_name(table_name)
-    col_names, types = _get_table_def_from_gdf(return_result.columns)
-    schema.set_column_names(col_names)
-    schema.set_column_types(types)
-    schema.set_gdf(return_result.columns)
-    return schema
+#     schema.set_table_name(table_name)
+#     col_names, types = _get_table_def_from_gdf(return_result.columns)
+#     schema.set_column_names(col_names)
+#     schema.set_column_types(types)
+#     schema.set_gdf(return_result.columns)
+#     return schema
 
 
 def register_file_system(authority, type, root, params = None):
@@ -1184,3 +1177,7 @@ def _sql_data_to_table_group(sql_data):
     tableGroup['tables'] = blazing_tables
     return tableGroup
 
+def _create_dummy_table_group():
+    database_name = 'main'
+    tableGroup = OrderedDict([('name', database_name), ('tables', [])])
+    return tableGroup

@@ -13,6 +13,9 @@ class internal_api:
     FileSystemType = pyblazing.FileSystemType
 
     ResultSetHandle = pyblazing.ResultSetHandle
+    gdf_dtype = pyblazing.gdf_dtype
+    get_dtype_values = pyblazing.get_dtype_values
+    get_np_dtype_to_gdf_dtype = pyblazing.get_np_dtype_to_gdf_dtype
 
     # Function/Method wrappers
 
@@ -29,14 +32,10 @@ class internal_api:
     def new_create_table(client, table_name, **kwargs):
         return pyblazing.new_create_table(table_name, **kwargs)
 
-    @staticmethod
-    def register_table_schema(client, table_name, **kwargs):
-        return pyblazing.register_table_schema(table_name, **kwargs)
+    # @staticmethod
+    # def register_table_schema(client, table_name, **kwargs):
+    #     return pyblazing.register_table_schema(table_name, **kwargs)
         
-    @staticmethod
-    def create_table(client, table_name, **kwargs):
-        return pyblazing.create_table(table_name, **kwargs)
-
     @staticmethod
     def run_query_get_token(client, sql, tables):
         return pyblazing.run_query_get_token(sql, tables)
