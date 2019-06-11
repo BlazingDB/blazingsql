@@ -816,6 +816,7 @@ def gdf_to_BlazingTable(gdf):
         blazing_table['resultToken'] = 0
 
     blazing_table['columnTokens'] = columnTokens
+    return blazing_table
 
 def make_empty_BlazingTable():
     empty_dtype_info = {'time_unit': 0}
