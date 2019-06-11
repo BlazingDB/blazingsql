@@ -276,7 +276,7 @@ class PyConnector:
                                                                                        dbName=dbName,
                                                                                        schemaType=schemaType,
                                                                                        gdf=blazing_table,
-                                                                                       files=[files],
+                                                                                       files=files,
                                                                                        csvDelimiter=csvDelimiter,
                                                                                        csvLineTerminator=csvLineTerminator,
                                                                                        csvSkipRows=csvSkipRows)

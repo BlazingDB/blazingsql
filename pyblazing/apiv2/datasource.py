@@ -191,7 +191,7 @@ class DataSource:
             self.client,
             table_name,
             type = internal_api.SchemaFrom.CsvFile,
-            path = path[0],
+            path = path,
             delimiter = delimiter,
             names = column_names,
             dtypes = internal_api.get_dtype_values(column_types),
@@ -215,7 +215,7 @@ class DataSource:
             self.client,
             table_name,
             type = internal_api.SchemaFrom.ParquetFile,
-            path = path[0]
+            path = path
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
