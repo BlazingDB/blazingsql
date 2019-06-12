@@ -134,8 +134,8 @@ def run_query(sql, tables):
 def run_query_filesystem(sql):
     return _private_run_query_filesystem(sql)
 
-def run_query_get_token(sql, tables):
-    return _run_query_get_token(sql, tables)
+# def run_query_get_token(sql, tables):
+#     return _run_query_get_token(sql, tables)
 
 def run_query_filesystem_get_token(sql):
     return _run_query_filesystem_get_token(sql)
@@ -938,37 +938,37 @@ def exceptions_wrapper(f):
             # Todo: print traceback.print_exc() when debug mode is enabled
     return applicator
 
-#@exceptions_wrapper
-def _run_query_get_token(sql, tables):
-    startTime = time.time()
+# #@exceptions_wrapper
+# def _run_query_get_token(sql, tables):
+#     startTime = time.time()
 
-    resultToken = 0
-    interpreter_path = None
-    interpreter_port = None
-    calciteTime = 0
-    error_message = ''
+#     resultToken = 0
+#     interpreter_path = None
+#     interpreter_port = None
+#     calciteTime = 0
+#     error_message = ''
 
-    try:
-        client = _get_client()
+#     try:
+#         client = _get_client()
 
-        for table, gdf in tables.items():
-            _reset_table(client, table, gdf)
+#         for table, gdf in tables.items():
+#             _reset_table(client, table, gdf)
 
-        tableGroup = _to_table_group(tables)
+#         tableGroup = _to_table_group(tables)
 
-        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
-    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
-        error_message = error
-    except Error as error:
-        error_message = str(error)
-    except Exception:
-        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
+#         resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+#     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+#         error_message = error
+#     except Error as error:
+#         error_message = str(error)
+#     except Exception:
+#         error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
 
-    if error_message is not '':
-        print(error_message)
+#     if error_message is not '':
+#         print(error_message)
 
-    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
-    return metaToken
+#     metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+#     return metaToken
 
 def _run_query_filesystem_get_token(sql):
     startTime = time.time()
@@ -1020,9 +1020,9 @@ def _run_query_get_results(metaToken):
     return_result = ResultSetHandle(None, None, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], None, metaToken["client"], metaToken["calciteTime"], 0, 0, error_message)
     return return_result
 
-def _private_run_query(sql, tables):
-    metaToken = _run_query_get_token(sql, tables)
-    return _run_query_get_results(metaToken)
+# def _private_run_query(sql, tables):
+#     metaToken = _run_query_get_token(sql, tables)
+#     return _run_query_get_results(metaToken)
 
 def _private_run_query_filesystem(sql):
     metaToken = _run_query_filesystem_get_token(sql)

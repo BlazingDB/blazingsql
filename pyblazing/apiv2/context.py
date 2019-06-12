@@ -108,7 +108,7 @@ class BlazingContext(object):
 
             # TODO percy dir
 
-        self.sqlObject.create_table(table_name, datasource)
+        # self.sqlObject.create_table(table_name, datasource)
 
         # table = self.context.create_table(table_name, ds)
 

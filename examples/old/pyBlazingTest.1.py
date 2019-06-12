@@ -104,21 +104,56 @@ def main():
 
   # print('DONE!!')
 
-  # nation_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/nation_0_0.psv", delimiter='|', dtype=nationColTypes, names=nationColNames)  
-  # bc.create_table('nation', nation_gdf)
-  bc.create_table('nation', "/home/william/repos/DataSets/DataSet100Mb/nation_0_0.psv", delimiter='|', dtype=nationColTypes, names=nationColNames) 
-  # region_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/region_0_0.psv", delimiter='|', dtype=regionColTypes, names=regionColNames)  
-  # bc.create_table('region', region_gdf)
-  # orders_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/orders_0_0.psv", delimiter='|', dtype=ordersColTypes, names=ordersColNames)  
-  # print(orders_gdf)
-  # bc.create_table('orders', orders_gdf)
+  # # nation_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/nation_0_0.psv", delimiter='|', dtype=nationColTypes, names=nationColNames)  
+  # # bc.create_table('nation', nation_gdf)
+  # bc.create_table('nation', ["/home/william/repos/DataSets/DataSet100Mb/nation_0_0.psv"], delimiter='|', dtype=nationColTypes, names=nationColNames) 
+  # # region_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/region_0_0.psv", delimiter='|', dtype=regionColTypes, names=regionColNames)  
+  # # bc.create_table('region', region_gdf)
+  # # orders_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/orders_0_0.psv", delimiter='|', dtype=ordersColTypes, names=ordersColNames)  
+  # # print(orders_gdf)
+  # # bc.create_table('orders', orders_gdf)
 
-  # query0 = """select r_regionkey, r_name from main.region where r_regionkey > 2"""
-  # result0 = bc.sql(query0, ['region']).get()
-  # print(result0)
-  query1 = """select n_regionkey, count(n_nationkey) from main.nation group by n_regionkey"""
-  result1 = bc.sql(query1).get()
-  print(result1)
+  # # query0 = """select r_regionkey, r_name from main.region where r_regionkey > 2"""
+  # # result0 = bc.sql(query0, ['region']).get()
+  # # print(result0)
+  # query1 = """select n_regionkey, max(n_nationkey), count(n_nationkey) from main.nation group by n_regionkey"""
+  # query1 = "select count(n_nationkey), count(n_regionkey) from main.nation"
+  # # query1 = """select n_regionkey, n_nationkey from main.nation"""
+  # result1 = bc.sql(query1).get()
+  # print(result1)
+
+  # bc.create_table('customer', "/home/william/repos/DataSets/DataSet100Mb/customer_0_0.parquet")
+  # query2 = """select c_nationkey, max(c_custkey), count(c_custkey) from main.customer group by c_nationkey"""
+  # result2 = bc.sql(query2).get()
+  # print(result2)
+
+  # bc.create_table('nation', ["/home/william/repos/DataSets/DataSet100Mb/nation_0_0.psv"], delimiter='|', dtype=nationColTypes, names=nationColNames) 
+  bc.create_table('nation', ["/home/william/repos/DataSets/DataSet100Mb/nation_0_0.parquet", "/home/william/repos/DataSets/DataSet100Mb/nation_0_0.parquet"])
+  # query2 = """select n_nationkey, n_regionkey, n_name from main.nation"""
+  query2 = """select n_regionkey, max(n_nationkey), count(n_nationkey) from main.nation  group by n_regionkey """
+  result2 = bc.sql(query2).get()
+  print(result2)
+
+  # query2 = """select n_regionkey, min(n_nationkey), count(n_nationkey) from main.nation group by n_regionkey"""
+  # result2 = bc.sql(query2).get()
+  # print(result2)
+
+  # query = "select count(c_custkey) as c1, count(c_acctbal) as c2 from main.customer"
+  # result2 = bc.sql(query).get()
+  # print(result2)
+
+  # query = """select n_regionkey, max(n_nationkey), count(n_nationkey) from main.nation group by n_regionkey"""
+  # query = "select count(n_nationkey), count(n_regionkey) from main.nation"
+  # result2 = bc.sql(query).get()
+  # print(result2)
+      
+  # query = "select count(s_suppkey), count(s_nationkey) from supplier"
+  # result2 = bc.sql(query).get()
+  # print(result2)
+    
+  # query = "select count(c_custkey), sum(c_acctbal), avg(c_acctbal), min(c_custkey), max(c_nationkey), (max(c_nationkey) + min(c_nationkey))/2 c_nationkey from main.customer where c_custkey < 100 group by c_nationkey"
+  # result2 = bc.sql(query).get()
+  # print(result2)
 
   # query = """with regionTemp as ( select r_regionkey, r_name from main.region where r_regionkey > 2 ),
   #   nationTemp as (select n_nationkey, n_regionkey as fkey, n_name from main.nation where n_nationkey > 3 order by n_nationkey) 
