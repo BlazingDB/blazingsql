@@ -36,6 +36,10 @@ require_context = devices.require_context
 current_context = devices.get_context
 gpus = devices.gpus
 
+#Todo Rommel Percy : avoid using global variables, i.e. move these properties with the free function _to_table_group
+dataColumnTokens = {}
+validColumnTokens = {}
+
 class ResultSetHandle:
 
     columns = None
@@ -55,7 +59,9 @@ class ResultSetHandle:
             if columns.columns.size>0:
                 idx = 0
                 for col in self.columns.columns:
-                    self.columns[col].columnToken = columnTokens[idx]
+                    dataColumnTokens[self.columns[col]._column._data] = columnTokens[idx]
+                    if self.columns[col]._column._mask is not None:
+                        validColumnTokens[self.columns[col]._column._mask] = columnTokens[idx]
                     idx = idx + 1
             else:
                 self.columns.resultToken = resultToken
@@ -76,6 +82,13 @@ class ResultSetHandle:
                 ipch.close()
             del self.handle
             self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
+
+        if self.columns is not None:
+            if self.columns.columns.size>0:
+                for col in self.columns.columns:
+                    dataColumnTokens.pop(self.columns[col]._column._data, None)
+                    if self.columns[col]._column._mask is not None:
+                        validColumnTokens.pop(self.columns[col]._column._mask, None)
 
     def __str__(self):
         return ('''columns = %(columns)s
@@ -543,7 +556,7 @@ def gen_data_frame(nelem, name, dtype):
 
 def get_ipc_handle_for_data(dataframe_column):
 
-    if hasattr(dataframe_column, 'columnToken'):
+    if dataframe_column._column._data in dataColumnTokens:
         return None
     else:
         if get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
@@ -554,7 +567,7 @@ def get_ipc_handle_for_data(dataframe_column):
 
 def get_ipc_handle_for_valid(dataframe_column):
 
-    if hasattr(dataframe_column, 'columnToken'):
+    if dataframe_column._column._mask in validColumnTokens:
         return None
     elif dataframe_column.null_count > 0:
         ipch = dataframe_column._column._mask.mem.get_ipc_handle()
@@ -564,7 +577,7 @@ def get_ipc_handle_for_valid(dataframe_column):
 
 def get_ipc_handle_for_strings(dataframe_column):
 
-    if hasattr(dataframe_column, 'columnToken'):
+    if dataframe_column._column._data in dataColumnTokens:
         return None
     elif get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
         return dataframe_column._column._data.get_ipc_data()       
@@ -721,10 +734,25 @@ def _to_table_group(tables):
             dtype = get_np_dtype_to_gdf_dtype(dataframe_column.dtype)
             null_count = dataframe_column.null_count
 
-            data_ipch = get_ipc_handle_for_data(dataframe_column)
-            valid_ipch = get_ipc_handle_for_valid(dataframe_column)
-            ipc_data = get_ipc_handle_for_strings(dataframe_column)
-            
+            data_ipch = None
+            valid_ipch = None
+            ipc_data = None
+
+            try:
+                data_ipch = get_ipc_handle_for_data(dataframe_column)
+            except:
+                print("ERROR: when getting the IPC handle for data")
+
+            try:
+                valid_ipch = get_ipc_handle_for_valid(dataframe_column)
+            except:
+                print("ERROR: when getting the IPC handle for valid")
+
+            try:
+                ipc_data = get_ipc_handle_for_strings(dataframe_column)
+            except:
+                print("ERROR: when getting the IPC handle for strings")
+
             dtype_info = {
                 'time_unit': 0, #TODO dummy value
             }
@@ -745,8 +773,8 @@ def _to_table_group(tables):
                 #custrings_data
                 blazing_column['custrings_data'] = ipc_data
 
-            if hasattr(gdf[column], 'columnToken'):
-                columnTokens.append(gdf[column].columnToken)
+            if dataframe_column._column._data in dataColumnTokens:
+                columnTokens.append(dataColumnTokens[dataframe_column._column._data])
             else:
                 columnTokens.append(0)
 
