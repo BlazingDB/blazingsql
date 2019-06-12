@@ -36,9 +36,9 @@ class internal_api:
     # def register_table_schema(client, table_name, **kwargs):
     #     return pyblazing.register_table_schema(table_name, **kwargs)
         
-    @staticmethod
-    def run_query_get_token(client, sql, tables):
-        return pyblazing.run_query_get_token(sql, tables)
+    # @staticmethod
+    # def run_query_get_token(client, sql, tables):
+    #     return pyblazing.run_query_get_token(sql, tables)
 
     @staticmethod
     def run_query_filesystem_get_token(client, sql):
