@@ -806,9 +806,20 @@ def gdf_to_BlazingTable(gdf):
         dtype = get_np_dtype_to_gdf_dtype(dataframe_column.dtype)
         null_count = dataframe_column.null_count
 
-        data_ipch = get_ipc_handle_for_data(dataframe_column)
-        valid_ipch = get_ipc_handle_for_valid(dataframe_column)
-        ipc_data = get_ipc_handle_for_strings(dataframe_column)
+        try:
+            data_ipch = get_ipc_handle_for_data(dataframe_column)
+        except:
+            print("ERROR: when getting the IPC handle for data")
+
+        try:
+            valid_ipch = get_ipc_handle_for_valid(dataframe_column)
+        except:
+            print("ERROR: when getting the IPC handle for valid")
+
+        try:
+            ipc_data = get_ipc_handle_for_strings(dataframe_column)
+        except:
+            print("ERROR: when getting the IPC handle for strings")
         
         dtype_info = {
             'time_unit': 0, #TODO dummy value
@@ -830,8 +841,8 @@ def gdf_to_BlazingTable(gdf):
             #custrings_data
             blazing_column['custrings_data'] = ipc_data
 
-        if hasattr(gdf[column], 'columnToken'):
-            columnTokens.append(gdf[column].columnToken)
+        if dataframe_column._column._data in dataColumnTokens:
+            columnTokens.append(dataColumnTokens[dataframe_column._column._data])
         else:
             columnTokens.append(0)
 
