@@ -150,7 +150,7 @@ class DataSource:
 
         column_names = list(cudf_df.dtypes.index)
         column_dtypes = [internal_api.get_np_dtype_to_gdf_dtype(x) for x in cudf_df.dtypes]
-        return_result = internal_api.new_create_table(
+        return_result = internal_api.create_table(
             self.client,
             table_name,
             type = internal_api.SchemaFrom.Gdf,
@@ -187,7 +187,7 @@ class DataSource:
 
         self.path = path
 
-        return_result = internal_api.new_create_table(
+        return_result = internal_api.create_table(
             self.client,
             table_name,
             type = internal_api.SchemaFrom.CsvFile,
@@ -211,7 +211,7 @@ class DataSource:
 
         self.path = path
 
-        return_result = internal_api.new_create_table(
+        return_result = internal_api.create_table(
             self.client,
             table_name,
             type = internal_api.SchemaFrom.ParquetFile,

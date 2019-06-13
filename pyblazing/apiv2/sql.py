@@ -66,11 +66,9 @@ class SQL(object):
     def drop_view(self, view_name):
         pass
 
-    # TODO percy think about William proposal, launch, token split and distribution use case
-    # table_names is an array of strings
-    # return result obj ... by default is async
+    # WSM NEW API
     def run_query(self, client, sql):
-        metaToken = internal_api.run_query_filesystem_get_token(client, sql)
+        metaToken = internal_api.run_query_get_token(client, sql)
         return ResultSet(client, metaToken)
 
 
