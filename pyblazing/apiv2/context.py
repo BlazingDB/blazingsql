@@ -108,10 +108,6 @@ class BlazingContext(object):
 
             # TODO percy dir
 
-        # self.sqlObject.create_table(table_name, datasource)
-
-        # table = self.context.create_table(table_name, ds)
-
         # TODO percy raise exption here or manage the error
 
         return None
@@ -124,43 +120,6 @@ class BlazingContext(object):
         return self.sqlObject.run_query(self.client, sql)
 
     # END SQL interface
-
-# TODO percy remove these comments once the feedback is implemented
-# # fowrod/future
-# result = context.run_query("asdasdd", [...])
-#   - so we are hiding concepts like token
-#
-# # TODO
-# #result.pass_owner()
-# #result.define_column_onersehe()
-#
-# # TODO more doc for this case
-# gdf_content = result.get() ...start fechting content
-#   - manage the ipc
-#
-# Action Item:
-# - calcite catalog proper use
-# - define what specif objet u get from resul.get()
-#   - result.status (True/False)
-#   - result.colums/etc (cover non-distribution uses cases)
-#   - ...
-# - workflow using the conmsumttion of distrubion reseult sets
-#   - simulate rdd: previews (remote/local)
-#     - head
-#     - foot
-#   - result.get uses cases and implications
-#     - dask integration
-#
-#
-# gtc (I need to be align: expentations)
-#   - non-distribution (backend one api?)
-#     - demo: net flow demo (single node/single gpu) <--
-#       - multiple files ...
-#     - getting starting with sql <--
-#
-#   - distribution (new api?)
-#     - query many rals using the different gpus from dgx-2
-#     - dask stuff
 
 
 def make_context():
