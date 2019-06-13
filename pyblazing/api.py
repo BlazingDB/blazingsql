@@ -715,8 +715,6 @@ class SchemaFrom:
 
 #cambiar para success or failed
 def create_table(tableName, **kwargs):
-    print('new create table')
-    print(kwargs)
     return_result = None
     error_message = ''
 
