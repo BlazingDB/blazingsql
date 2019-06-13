@@ -66,45 +66,11 @@ class SQL(object):
     def drop_view(self, view_name):
         pass
 
-    # TODO percy think about William proposal, launch, token split and distribution use case
-    # table_names is an array of strings
-    # return result obj ... by default is async
-    def run_query(self, client, sql, table_names):
-        
-        # lets see if we use run_query_filesystem or run_query.
-        # TODO change this when we can mix input types
-        all_from_file = True
-        all_not_from_file = True
-        for table_name in table_names:
-            all_from_file = all_from_file and self.tables[table_name].is_from_file()
-            all_not_from_file = all_not_from_file and not self.tables[table_name].is_from_file()
-        
-        if all_from_file:
-            sql_data = {}
-            for table_name in table_names:
-                sql_data[self.tables[table_name].schema()] = self.tables[table_name].path
+    # WSM NEW API
+    def run_query(self, client, sql):
+        metaToken = internal_api.run_query_get_token(client, sql)
+        return ResultSet(client, metaToken)
 
-            metaToken = internal_api.run_query_filesystem_get_token(client, sql, sql_data)
-
-            rs = ResultSet(client, metaToken)
-
-            # TODO percy
-            return rs
-        elif all_not_from_file:
-            tables = {}
-            for table_name in table_names:
-                tables[table_name] = self.tables[table_name].dataframe()
-
-            metaToken = internal_api.run_query_get_token(client, sql, tables)
-
-            rs = ResultSet(client, metaToken)
-
-            # TODO percy
-            return rs
-        else:
-            raise Exception('All tables either have to come from files or not from files. Sorry. We will support the mixed case soon.')
-
-        
 
     def _verify_table_name(self, table_name):
         # TODO percy throw exception
