@@ -116,7 +116,9 @@ class BlazingContext(object):
         return self.sqlObject.drop_table(table_name)
 
     # async
-    def sql(self, sql):
+    def sql(self, sql, table_list=[]):
+        if (len(table_list) > 0):
+            print("NOTE: You no longer need to send a table list to the .sql() funtion")
         return self.sqlObject.run_query(self.client, sql)
 
     # END SQL interface

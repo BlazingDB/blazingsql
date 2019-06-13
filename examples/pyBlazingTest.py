@@ -36,9 +36,9 @@ def main():
   # # nation_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/nation_0_0.psv", delimiter='|', dtype=nationColTypes, names=nationColNames)
   # # bc.create_table('nation', nation_gdf)
   
-  bc.create_table('lineitem', ["/home/william/repos/DataSets/DataSet100Mb/lineitem_0_0.psv"], delimiter='|', dtype=lineitemColTypes, names=lineitemColNames)
-  # lineitem_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/lineitem_0_0.psv", delimiter='|', dtype=lineitemColTypes, names=lineitemColNames)
-  # bc.create_table('lineitem', lineitem_gdf)
+  # bc.create_table('lineitem', ["/home/william/repos/DataSets/DataSet100Mb/lineitem_0_0.psv"], delimiter='|', dtype=lineitemColTypes, names=lineitemColNames)
+  lineitem_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/lineitem_0_0.psv", delimiter='|', dtype=lineitemColTypes, names=lineitemColNames)
+  bc.create_table('lineitem', lineitem_gdf)
   bc.create_table('orders', ["/home/william/repos/DataSets/DataSet100Mb/orders_0_0.psv"], delimiter='|', dtype=ordersColTypes, names=ordersColNames)
   bc.create_table('customer', ["/home/william/repos/DataSets/DataSet100Mb/customer_0_0.psv"], delimiter='|', dtype=customerColTypes, names=customerColNames)
   bc.create_table('supplier', ["/home/william/repos/DataSets/DataSet100Mb/supplier_0_0.psv"], delimiter='|', dtype=supplierColTypes, names=supplierColNames)
@@ -105,7 +105,7 @@ def main():
     inner join main.nation as n2 on c.c_nationkey = n2.n_nationkey 
     where n1.n_nationkey = 1 and n2.n_nationkey = 2 and o.o_orderkey < 10000"""
 
-  # query = "select l_orderkey, l_suppkey from main.lineitem"
+  # query = "select l_orderkey, l_suppkey from main.lineitem limit 5"
  
   result1 = bc.sql(query).get()
   print(result1)
