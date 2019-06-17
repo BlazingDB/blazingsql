@@ -34,5 +34,5 @@ class internal_api:
         return pyblazing.run_query_get_token(sql)
 
     @staticmethod
-    def run_query_get_results(client, metaToken):
-        return pyblazing.run_query_get_results(metaToken)
+    def run_query_get_results(client, metaToken, startTime):
+        return pyblazing.run_query_get_results(metaToken, startTime)

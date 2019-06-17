@@ -109,7 +109,7 @@ class ResultSetHandle:
                             'calciteTime' : self.calciteTime if self.calciteTime is not None else 0,
                             'ralTime' : self.ralTime if self.ralTime is not None else 0,
                             'totalTime' : self.totalTime if self.totalTime is not None else 0,
-                            'error_message' : self.error_message,
+                            'error_message' : self.error_message
                         })
 
     def __repr__(self):
@@ -119,8 +119,8 @@ class ResultSetHandle:
 def run_query_get_token(sql):
     return _run_query_get_token(sql)
 
-def run_query_get_results(metaToken):
-    return _run_query_get_results(metaToken)
+def run_query_get_results(metaToken, startTime):
+    return _run_query_get_results(metaToken, startTime)
 
 
 class PyConnector:
@@ -659,10 +659,9 @@ def _run_query_get_token(sql):
 
         tableGroup = _create_dummy_table_group()
 
-        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+        dist_token = client.run_dml_query_token(sql, tableGroup)
 
-        metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
-        return metaToken
+        return dist_token
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -673,19 +672,28 @@ def _run_query_get_token(sql):
     if error_message is not '':
         print(error_message)
 
-    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
-    return metaToken
+    # metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+    # return metaToken
+
+    # TODO make distributed result set if there is error
  
 
-def _run_query_get_results(metaToken):
+def _run_query_get_results(distMetaToken, startTime):
     error_message = ''
 
-    try:
-        resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+    client = _get_client()
 
-        totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
-        return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime, '')
-        return return_result
+    try:
+        result_list = []
+        for result in distMetaToken:
+            resultSet, ipchandles = _private_get_result(result.resultToken,
+                                                        result.nodeConnection.path.decode('utf8'),
+                                                        result.nodeConnection.port,
+                                                        result.calciteTime)
+            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles})
+
+        totalTime = (time.time() - startTime) * 1000  # in milliseconds
+
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -695,8 +703,24 @@ def _run_query_get_results(metaToken):
 
     if error_message is not '':
         print(error_message)
-    return_result = ResultSetHandle(None, None, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], None, metaToken["client"], metaToken["calciteTime"], 0, 0, error_message)
-    return return_result
+
+    result_set_list = []
+ 
+    for result in result_list:
+        result_set_list.append(ResultSetHandle(result['resultSet'].columns,
+                                               result['resultSet'].columnTokens,
+                                               result['result'].resultToken,
+                                               result['result'].nodeConnection.path.decode('utf8'),
+                                               result['result'].nodeConnection.port,
+                                               result['ipchandles'],
+                                               client,
+                                               result['result'].calciteTime,
+                                               result['resultSet'].metadata.time,
+                                               totalTime,
+                                               ''
+                                               ))
+
+    return result_set_list
 
 
 

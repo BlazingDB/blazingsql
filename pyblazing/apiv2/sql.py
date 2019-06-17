@@ -2,18 +2,21 @@ from collections import OrderedDict
 
 from .bridge import internal_api
 
+import time
+
 
 # TODO we need to deal here with this metatokens stuff and many rals
 # Maintains the resulset and the token after the run_query
 class ResultSet:
 
-    def __init__(self, client, metaToken):
+    def __init__(self, client, metaToken, startTime):
         self.client = client
         self.metaToken = metaToken
+        self.startTime = startTime
 
     # this will call the get_result api
     def get(self):
-        temp = internal_api.run_query_get_results(self.client, self.metaToken)
+        temp = internal_api.run_query_get_results(self.client, self.metaToken, self.startTime)
 
         return temp
 
@@ -66,10 +69,10 @@ class SQL(object):
     def drop_view(self, view_name):
         pass
 
-    # WSM NEW API
     def run_query(self, client, sql):
+        startTime = time.time()
         metaToken = internal_api.run_query_get_token(client, sql)
-        return ResultSet(client, metaToken)
+        return ResultSet(client, metaToken, startTime)
 
 
     def _verify_table_name(self, table_name):
