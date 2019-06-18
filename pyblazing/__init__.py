@@ -11,3 +11,4 @@ from .api import _get_client
 from .api import gdf_dtype
 from .api import get_dtype_values
 from .api import get_np_dtype_to_gdf_dtype
+from .api import SetupOrchestratorConnection
