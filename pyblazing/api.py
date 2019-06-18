@@ -128,6 +128,10 @@ class PyConnector:
         self._orchestrator_path = orchestrator_path
         self._orchestrator_port = orchestrator_port
 
+        print("new clienttt")
+        print(self._orchestrator_path)
+        print(self._orchestrator_port)
+
     def __del__(self):
         try:
             print("CLOSING CONNECTION")
@@ -163,7 +167,14 @@ class PyConnector:
 
     # connection_path is a ip/host when tcp and can be unix socket when ipc
     def _send_request(self, connection_path, connection_port, requestBuffer):
-        connection = blazingdb.protocol.UnixSocketConnection(connection_path)
+        #TODO percy fix hardcode 
+        
+        print("testing ... _send_request")
+        print(connection_path)
+        print(connection_port)
+        print("....--------")
+        
+        connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
 
@@ -559,13 +570,27 @@ def _get_client_internal(orchestrator_ip, orchestrator_port):
 
     return client
 
-__orchestrator_ip = '/tmp/orchestrator.socket'
-__orchestrator_port = 8890
-__blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
+__orchestrator_ip = '127.0.0.1'
+__orchestrator_port = 8889
+# TODO NOTE percy (avoid globals) always call SetupOrchestratorConnection before any api call
+__blazing__global_client = None
 
 def _get_client():
     return __blazing__global_client
 
+'''If no args are passed will use '127.0.0.1' as the host and the TCP port 8889'''  
+def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port):
+    global __orchestrator_ip
+    global __orchestrator_port
+    global __blazing__global_client
+    
+    print("in setup")
+    print(__orchestrator_ip)
+    print(__orchestrator_port)
+    
+    __orchestrator_ip = orchestrator_host_ip
+    __orchestrator_port = orchestrator_port
+    __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
 
 def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     dtype = np.dtype(dtype)
@@ -583,6 +608,14 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
 
     #print(interpreter_path)
     #print(interpreter_port)
+    
+    print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTt")
+    print(interpreter_path)
+    print(interpreter_port)
+    print("ijhTt")
+    
+    
+    
     resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
 
     gdf_columns = []
