@@ -22,8 +22,19 @@ import time
 
 class BlazingContext(object):
 
-    # connection (string) can be the unix socket path or the tcp host:port
-    def __init__(self, connection = '/tmp/orchestrator.socket'):
+    def __init__(self, connection = 'localhost:8889'):
+        """
+        :param connection: BlazingSQL cluster URL to connect to
+            (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
+        """
+
+        # NOTE ("//"+) is a neat trick to handle ip:port cases
+        parse_result = urlparse("//" + connection)
+        __orchestrator_ip = parse_result.hostname
+        __orchestrator_port = parse_result.port
+        internal_api.SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port)
+
+        # TODO percy handle errors (see above)
         self.connection = connection
         self.client = internal_api._get_client()
         self.fs = FileSystem()
@@ -124,8 +135,10 @@ class BlazingContext(object):
     # END SQL interface
 
 
-def make_context():
-    # TODO percy we hardcode here becouse we know current ral has hardcoded this
-    connection = '/tmp/orchestrator.socket'
+def make_context(connection = 'localhost:8889'):
+    """
+    :param connection: BlazingSQL cluster URL to connect to
+           (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
+    """
     bc = BlazingContext(connection)
     return bc
