@@ -167,13 +167,6 @@ class PyConnector:
 
     # connection_path is a ip/host when tcp and can be unix socket when ipc
     def _send_request(self, connection_path, connection_port, requestBuffer):
-        #TODO percy fix hardcode 
-        
-        print("testing ... _send_request")
-        print(connection_path)
-        print(connection_port)
-        print("....--------")
-        
         connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
         client = blazingdb.protocol.Client(connection)
         return client.send(requestBuffer)
