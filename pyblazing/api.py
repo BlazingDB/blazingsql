@@ -128,10 +128,6 @@ class PyConnector:
         self._orchestrator_path = orchestrator_path
         self._orchestrator_port = orchestrator_port
 
-        print("new clienttt")
-        print(self._orchestrator_path)
-        print(self._orchestrator_port)
-
     def __del__(self):
         try:
             print("CLOSING CONNECTION")
@@ -576,10 +572,6 @@ def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orches
     global __orchestrator_ip
     global __orchestrator_port
     global __blazing__global_client
-    
-    print("in setup")
-    print(__orchestrator_ip)
-    print(__orchestrator_port)
     
     __orchestrator_ip = orchestrator_host_ip
     __orchestrator_port = orchestrator_port
