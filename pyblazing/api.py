@@ -603,19 +603,10 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     return ipchandle, ipchandle.open_array(current_context(), shape=shape,
                                            strides=strides, dtype=dtype)
 
+# interpreter_path is the TCP protocol port for RAL 
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
 
-    #print(interpreter_path)
-    #print(interpreter_port)
-    
-    print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTt")
-    print(interpreter_path)
-    print(interpreter_port)
-    print("ijhTt")
-    
-    
-    
     resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
 
     gdf_columns = []
