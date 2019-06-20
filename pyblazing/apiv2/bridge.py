@@ -20,6 +20,7 @@ class internal_api:
     # Function/Method wrappers
 
     _get_client = pyblazing._get_client
+    SetupOrchestratorConnection = pyblazing.SetupOrchestratorConnection
 
     @staticmethod
     def register_file_system(client, authority, type, root, params = None):
