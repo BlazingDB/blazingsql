@@ -122,6 +122,9 @@ def run_query_get_token(sql):
 def run_query_get_results(metaToken, startTime):
     return _run_query_get_results(metaToken, startTime)
 
+def run_query_get_concat_results(metaToken, startTime):
+    return _run_query_get_concat_results(metaToken, startTime)
+
 
 class PyConnector:
     def __init__(self, orchestrator_path, orchestrator_port):
@@ -682,7 +685,7 @@ def _run_query_get_results(distMetaToken, startTime):
     error_message = ''
 
     client = _get_client()
-
+    totalTime = 0
     try:
         result_list = []
         for result in distMetaToken:
@@ -721,6 +724,49 @@ def _run_query_get_results(distMetaToken, startTime):
                                                ))
 
     return result_set_list
+
+
+def _run_query_get_concat_results(distMetaToken, startTime):
+    
+    from cudf.multi import concat
+
+    client = _get_client()
+
+    error_message = ''
+    try:
+        result_list = []
+        for result in distMetaToken:
+            resultSet, ipchandles = _private_get_result(result.resultToken,
+                                                        result.nodeConnection.path.decode('utf8'),
+                                                        result.nodeConnection.port,
+                                                        result.calciteTime)
+            result_list.append(resultSet)
+
+        need_to_concat = sum([len(result.columns) > 0 for result in result_list]) > 1
+
+        if (need_to_concat):
+            all_gdfs = [result.columns for result in result_list]
+            return concat(all_gdfs, ignore_index=True)
+        else:
+            for result in result_list:  # if we dont need to concatenate, likely we only have one, or only one that has data
+                if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings. 
+                    gdf = result.columns
+                    for col_name, col in gdf._cols.items():
+                        if (col.dtype != 'object'):
+                            gdf[col_name] = gdf[col_name].copy(deep=True)
+                    return gdf
+
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return DataFrame()
 
 
 
