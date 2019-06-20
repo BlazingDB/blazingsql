@@ -20,7 +20,11 @@ class ResultSet:
 
         return temp
 
-    # TODO see Rodriugo proposal for interesting actions/operations here
+    # this assumes all ral are local. It will get all results and concatenamte them and only return the gdf. 
+    # It will not return a result object, therefore it will need to make a copy
+    def get_all(self):
+        return internal_api.run_query_get_concat_results(self.client, self.metaToken, self.startTime)
+
 
 
 class SQL(object):
