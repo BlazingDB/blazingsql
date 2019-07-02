@@ -280,13 +280,13 @@ class ResultSetHandle:
         self._buffer_ids = []
         if columns is not None:
             if columns.columns.size > 0:
-                for idx, name in enumerate(self.columns):
-                    col = self.columns[name]
-                    data_id = id(col.data)
+                for idx, column in enumerate(self.columns.columns):
+                    dataframe_column = self.columns._cols[column]
+                    data_id = id(dataframe_column._column._data)
                     dataColumnTokens[data_id] = columnTokens[idx]
                     self._buffer_ids.append(data_id)
-                    if col.has_null_mask:
-                        nulmask_id = id(col.nullmask)
+                    if dataframe_column.null_count > 0:
+                        nulmask_id = id(dataframe_column._column._mask)
                         validColumnTokens[nulmask_id] = columnTokens[idx]
                         self._buffer_ids.append(nulmask_id)
             else:
@@ -342,7 +342,7 @@ class ResultSetHandle:
 
 def get_ipc_handle_for_data(dataframe_column):
 
-    if dataframe_column._column._data in dataColumnTokens:
+    if id(dataframe_column._column._data) in dataColumnTokens:
         return None
     else:
         if get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
@@ -353,7 +353,7 @@ def get_ipc_handle_for_data(dataframe_column):
 
 def get_ipc_handle_for_valid(dataframe_column):
 
-    if dataframe_column._column._mask in validColumnTokens:
+    if id(dataframe_column._column._mask) in validColumnTokens:
         return None
     elif dataframe_column.null_count > 0:
         ipch = dataframe_column._column._mask.mem.get_ipc_handle()
@@ -363,7 +363,7 @@ def get_ipc_handle_for_valid(dataframe_column):
 
 def get_ipc_handle_for_strings(dataframe_column):
 
-    if dataframe_column._column._data in dataColumnTokens:
+    if id(dataframe_column._column._data) in dataColumnTokens:
         return None
     elif get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
         return dataframe_column._column._data.get_ipc_data()       
