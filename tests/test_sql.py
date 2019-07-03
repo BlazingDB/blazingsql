@@ -16,8 +16,7 @@ class TestCreateTableFromGDF(unittest.TestCase):
         self.sql = sql.SQL()
 
         # TODO percy check this we needto use mocks
-        connection = '/tmp/orchestrator.socket'
-        self.client = pyblazing._get_client_internal(connection, 8890)
+        self.client = pyblazing._get_client()
 
         # TODO clean this stuff
 
@@ -104,4 +103,3 @@ class TestCreateTableFromGDF(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
