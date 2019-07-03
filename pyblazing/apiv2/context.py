@@ -11,12 +11,14 @@ from .bridge import internal_api
 
 from .filesystem import FileSystem
 from .sql import SQL
+from .sql import ResultSet
 from .datasource import from_cudf
 from .datasource import from_pandas
 from .datasource import from_arrow
 from .datasource import from_csv
 from .datasource import from_parquet
 from .datasource import from_result_set
+from .datasource import from_distributed_result_set
 import time
 
 
@@ -83,6 +85,8 @@ class BlazingContext(object):
             datasource = from_arrow(input, table_name)
         elif type(input) == internal_api.ResultSetHandle:
             datasource = from_result_set(input, table_name)
+        elif type(input) == ResultSet:
+            datasource = from_distributed_result_set(input,table_name)
         elif type(input) == str or type(input) == list:
 
             if type(input) == str:
