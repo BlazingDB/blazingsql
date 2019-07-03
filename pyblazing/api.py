@@ -531,8 +531,9 @@ def gdf_to_BlazingTable(gdf):
             #custrings_data
             blazing_column['custrings_data'] = ipc_data
 
-        if dataframe_column._column._data in dataColumnTokens:
-            columnTokens.append(dataColumnTokens[dataframe_column._column._data])
+        column_data_id = id(dataframe_column._column._data)
+        if column_data_id in dataColumnTokens:
+            columnTokens.append(dataColumnTokens[column_data_id])
         else:
             columnTokens.append(0)
 
