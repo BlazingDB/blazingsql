@@ -108,6 +108,8 @@ class BlazingContext(object):
 
             # TODO percy dir
 
+        self.sqlObject.create_table(table_name, datasource)
+        
         # TODO percy raise exption here or manage the error
 
         return None
