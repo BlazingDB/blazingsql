@@ -85,8 +85,9 @@ class BlazingContext(object):
             datasource = from_arrow(input, table_name)
         elif type(input) == internal_api.ResultSetHandle:
             datasource = from_result_set(input, table_name)
-        elif type(input) == ResultSet:
-            datasource = from_distributed_result_set(input,table_name)
+        elif hasattr(input, 'metaToken') and type(input.metaToken[0]) == blazingdb.protocol.transport.responses:
+            resultSet = ResultSet("",input.metaToken[0].resultToken,"")
+            datasource = from_distributed_result_set(resultSet,table_name)
         elif type(input) == str or type(input) == list:
 
             if type(input) == str:

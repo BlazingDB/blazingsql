@@ -263,7 +263,7 @@ def from_result_set(result_set, table_name):
     return DataSource(None, Type.result_set, table_name = table_name, result_set = result_set)
 
 def from_distributed_result_set(result_set, table_name):
-    return DataSource(None, Type.distributed_result_set, table_name = table_name, distributed_result_set = distributed_result_set)
+    return DataSource(None, Type.distributed_result_set, table_name = table_name, result_set = result_set)
 
 
 def from_csv(client, table_name, path, column_names, column_types, delimiter, skip_rows):
