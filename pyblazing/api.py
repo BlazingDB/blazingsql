@@ -732,6 +732,9 @@ def _run_query_get_results(distMetaToken, startTime):
                                                ''
                                                ))
 
+    if len(result_set_list) == 1:
+        result_set_list = result_set_list[0]
+
     return result_set_list
 
 
