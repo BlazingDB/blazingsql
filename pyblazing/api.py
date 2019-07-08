@@ -4,7 +4,6 @@ import blazingdb.protocol
 import blazingdb.protocol.interpreter
 import blazingdb.protocol.orchestrator
 import blazingdb.protocol.transport.channel
-from blazingdb.protocol.errors import Error
 from blazingdb.protocol.calcite.errors import SyntaxError
 from blazingdb.messages.blazingdb.protocol.Status import Status
 
@@ -39,136 +38,84 @@ gpus = devices.gpus
 dataColumnTokens = {}
 validColumnTokens = {}
 
-class ResultSetHandle:
-
-    columns = None
-    columnTokens = None
-    resultToken = 0
-    interpreter_path = None # if tcp is the host/ip, if ipc is unix socket path
-    interpreter_port = None # if tcp is valid, if ipc is None
-    handle = None
-    client = None
-    error_message = None # when empty the query ran succesfully
-
-    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message):
-        self.columns = columns
-        self.columnTokens = columnTokens
-
-        if columns is not None:
-            if columns.columns.size>0:
-                idx = 0
-                for col in self.columns.columns:
-                    dataColumnTokens[self.columns[col]._column._data] = columnTokens[idx]
-                    if self.columns[col]._column._mask is not None:
-                        validColumnTokens[self.columns[col]._column._mask] = columnTokens[idx]
-                    idx = idx + 1
-            else:
-                self.columns.resultToken = resultToken
-
-        self.resultToken = resultToken
-        self.interpreter_path = interpreter_path
-        self.interpreter_port = interpreter_port
-        self.handle = handle
-        self.client = client
-        self.calciteTime = calciteTime
-        self.ralTime = ralTime
-        self.totalTime = totalTime
-        self.error_message = error_message
-
-    def __del__(self):
-        if self.handle is not None:
-            for ipch in self.handle: #todo add NVStrings handles
-                ipch.close()
-            del self.handle
-            self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
-
-        if self.columns is not None:
-            if self.columns.columns.size>0:
-                for col in self.columns.columns:
-                    dataColumnTokens.pop(self.columns[col]._column._data, None)
-                    if self.columns[col]._column._mask is not None:
-                        validColumnTokens.pop(self.columns[col]._column._mask, None)
-
-    def __str__(self):
-        return ('''columns = %(columns)s
-                    resultToken = %(resultToken)s
-                    interpreter_path = %(interpreter_path)s
-                    interpreter_port = %(interpreter_port)s
-                    handle = %(handle)s
-                    client = %(client)s
-                    calciteTime = %(calciteTime)d
-                    ralTime = %(ralTime)d
-                    totalTime = %(totalTime)d
-                    error_message = %(error_message)s''' % {
-                            'columns': self.columns,
-                            'resultToken': self.resultToken,
-                            'interpreter_path': self.interpreter_path,
-                            'interpreter_port': self.interpreter_port,
-                            'handle': self.handle,
-                            'client': self.client,
-                            'calciteTime' : self.calciteTime if self.calciteTime is not None else 0,
-                            'ralTime' : self.ralTime if self.ralTime is not None else 0,
-                            'totalTime' : self.totalTime if self.totalTime is not None else 0,
-                            'error_message' : self.error_message
-                        })
-
-    def __repr__(self):
-        return str(self)
+# connection_path is a ip/host when tcp and can be unix socket when ipc
+def _send_request(connection_path, connection_port, requestBuffer):
+    connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
+    client = blazingdb.protocol.Client(connection)
+    return client.send(requestBuffer)
 
 
-def run_query_get_token(sql):
-    return _run_query_get_token(sql)
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
-def run_query_get_results(metaToken, startTime):
-    return _run_query_get_results(metaToken, startTime)
-
-def run_query_get_concat_results(metaToken, startTime):
-    return _run_query_get_concat_results(metaToken, startTime)
-
-
-class PyConnector:
+class PyConnector(metaclass=Singleton):
+    
     def __init__(self, orchestrator_path, orchestrator_port):
         self._orchestrator_path = orchestrator_path
         self._orchestrator_port = orchestrator_port
+        self._accessToken = None
 
     def __del__(self):
-        try:
-            print("CLOSING CONNECTION")
-            self.close_connection()
-        except:
-            print("Can't close connection, probably it was lost")
+        self.close_connection()
 
     def connect(self):
-        self.accessToken = 0
         # TODO find a way to print only for debug mode (add verbose arg)
         #print("open connection")
+        if self._accessToken is not None:
+            print("Already connected to the Orchestrator")
+            return
+
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
             OrchestratorMessageType.AuthOpen, authSchema)
 
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
+        responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
-            print(errorResponse.errors)
-            raise Error(errorResponse.errors)
+            print("Connection to the Orchestrator could not be started")
+            raise RuntimeError(errorResponse.errors)
         responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(
             response.payload)
+        
+        print('connection established')
+        self._accessToken = responsePayload.accessToken
 
+    def close_connection(self):   
         # TODO find a way to print only for debug mode (add verbose arg)
-        # print(responsePayload.accessToken)
-        self.accessToken = responsePayload.accessToken
+        #print("close connection")
+        if self._accessToken is None:
+            print("Already disconnected")
+            return
 
-    # connection_path is a ip/host when tcp and can be unix socket when ipc
-    def _send_request(self, connection_path, connection_port, requestBuffer):
-        connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
-        client = blazingdb.protocol.Client(connection)
-        return client.send(requestBuffer)
+        authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
+
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
+            OrchestratorMessageType.AuthClose, self._accessToken, authSchema)
+
+        responseBuffer = _send_request(
+            self._orchestrator_path, self._orchestrator_port, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
+            responseBuffer)
+        if response.status == Status.Error:
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
+                response.payload)
+            print("Can't close connection, probably it was lost")
+            raise RuntimeError(errorResponse.errors.decode('utf-8'))
+
+        print('Successfully disconnected')
+        self._accessToken = None
+
+    def is_connected(self):
+        return self._accessToken is not None
 
     def run_ddl_create_table(self, 
                                  tableName,
@@ -193,24 +140,24 @@ class PyConnector:
                                                                                        csvSkipRows=csvSkipRows)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
-                                                                               self.accessToken, dmlRequestSchema)
+                                                                               self._accessToken, dmlRequestSchema)
 
-        responseBuffer = self._send_request(
+        responseBuffer = _send_request(
             self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
-            raise Error(errorResponse.errors)
+            raise RuntimeError(errorResponse.errors)
 
         return response.status
 
     def run_dml_query_token(self, query, tableGroup):
         dmlRequestSchema = blazingdb.protocol.io.BuildFileSystemDMLRequestSchema(query, tableGroup)
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DML_FS,
-                                                                               self.accessToken, dmlRequestSchema)
-        responseBuffer = self._send_request(
+                                                                               self._accessToken, dmlRequestSchema)
+        responseBuffer = _send_request(
             self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -221,13 +168,13 @@ class PyConnector:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
             elif b'SqlValidationException' in errorResponse.errors:
                raise ValueError(errorResponse.errors.decode('utf-8'))
-            raise Error(errorResponse.errors.decode('utf-8'))
+            raise RuntimeError(errorResponse.errors.decode('utf-8'))
 
         distributed_response = blazingdb.protocol.orchestrator.DMLDistributedResponseSchema.From(response.payload)
 
         return list(item for item in distributed_response.responses)
 
-
+               
     def run_ddl_drop_table(self, tableName, dbName):
         # TODO find a way to print only for debug mode (add verbose arg)
         #print('drop table: ' + tableName)
@@ -235,41 +182,20 @@ class PyConnector:
         dmlRequestSchema = blazingdb.protocol.orchestrator.DDLDropTableRequestSchema(
             name=tableName, dbName=dbName)
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_DROP_TABLE,
-                                                                               self.accessToken, dmlRequestSchema)
-        responseBuffer = self._send_request(
+                                                                               self._accessToken, dmlRequestSchema)
+        responseBuffer = _send_request(
             self._orchestrator_path, self._orchestrator_port, requestBuffer)
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
                 response.payload)
-            raise Error(errorResponse.errors.decode('utf-8'))
+            raise RuntimeError(errorResponse.errors.decode('utf-8'))
 
         # TODO find a way to print only for debug mode (add verbose arg)
         # print(response.status)
 
         return response.status
-
-    def close_connection(self):
-        # TODO find a way to print only for debug mode (add verbose arg)
-        #print("close connection")
-
-        authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-            OrchestratorMessageType.AuthClose, self.accessToken, authSchema)
-
-        responseBuffer = self._send_request(
-            self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
-            raise Error(errorResponse.errors.decode('utf-8'))
-
-        # TODO find a way to print only for debug mode (add verbose arg)
-        # print(response.status)
 
     def free_memory(self, interpreter_path, interpreter_port):
         result_token = 2433423
@@ -277,9 +203,9 @@ class PyConnector:
             resultToken=result_token)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-            InterpreterMessage.FreeMemory, self.accessToken, getResultRequest)
+            InterpreterMessage.FreeMemory, self._accessToken, getResultRequest)
 
-        responseBuffer = self._send_request(
+        responseBuffer = _send_request(
             interpreter_path, interpreter_port, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
@@ -296,9 +222,9 @@ class PyConnector:
             resultToken=result_token)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-            InterpreterMessage.FreeResult, self.accessToken, getResultRequest)
+            InterpreterMessage.FreeResult, self._accessToken, getResultRequest)
 
-        responseBuffer = self._send_request(
+        responseBuffer = _send_request(
             interpreter_path, interpreter_port, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
@@ -315,9 +241,9 @@ class PyConnector:
             resultToken=result_token)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-            InterpreterMessage.GetResult, self.accessToken, getResultRequest)
+            InterpreterMessage.GetResult, self._accessToken, getResultRequest)
 
-        responseBuffer = self._send_request(
+        responseBuffer = _send_request(
             interpreter_path, interpreter_port, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
@@ -330,14 +256,93 @@ class PyConnector:
             response.payload)
 
         if queryResult.metadata.status.decode() == "Error":
-            raise Error(queryResult.metadata.message.decode('utf-8'))
+            raise RuntimeError(queryResult.metadata.message.decode('utf-8'))
 
         return queryResult
+
+def _get_client():
+    __orchestrator_ip = '/tmp/orchestrator.socket'
+    __orchestrator_port = 8890
+    client = PyConnector(__orchestrator_ip, __orchestrator_port)
+
+    if not client.is_connected():
+        client.connect()
+
+    return client
+
+
+class ResultSetHandle:
+
+    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message):
+        self.columns = columns
+        self.columnTokens = columnTokens
+
+        self._buffer_ids = []
+        if columns is not None:
+            if columns.columns.size > 0:
+                for idx, column in enumerate(self.columns.columns):
+                    dataframe_column = self.columns._cols[column]
+                    data_id = id(dataframe_column._column._data)
+                    dataColumnTokens[data_id] = columnTokens[idx]
+                    self._buffer_ids.append(data_id)
+                    if dataframe_column.null_count > 0:
+                        nulmask_id = id(dataframe_column._column._mask)
+                        validColumnTokens[nulmask_id] = columnTokens[idx]
+                        self._buffer_ids.append(nulmask_id)
+            else:
+                self.columns.resultToken = resultToken
+
+        self.resultToken = resultToken
+        self.interpreter_path = interpreter_path
+        self.interpreter_port = interpreter_port
+        self.handle = handle
+        self.client = client
+        self.calciteTime = calciteTime
+        self.ralTime = ralTime
+        self.totalTime = totalTime
+        self.error_message = error_message
+
+    def __del__(self):
+        for key in self._buffer_ids:
+            dataColumnTokens.pop(key, None)
+            validColumnTokens.pop(key, None)
+        
+        if self.handle is not None:
+            for ipch in self.handle: #todo add NVStrings handles
+                ipch.close()
+            del self.handle
+            self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
+
+    def __str__(self):
+        return ('''columns = %(columns)s
+                    resultToken = %(resultToken)s
+                    interpreter_path = %(interpreter_path)s
+                    interpreter_port = %(interpreter_port)s
+                    handle = %(handle)s
+                    client = %(client)s
+                    calciteTime = %(calciteTime)d
+                    ralTime = %(ralTime)d
+                    totalTime = %(totalTime)d
+                    error_message = %(error_message)s''' % {
+                            'columns': self.columns,
+                            'resultToken': self.resultToken,
+                            'interpreter_path': self.interpreter_path,
+                            'interpreter_port': self.interpreter_port,
+                            'handle': self.handle,
+                            'client': self.client,
+                            'calciteTime' : self.calciteTime if self.calciteTime is not None else 0,
+                            'ralTime' : self.ralTime if self.ralTime is not None else 0,
+                            'totalTime' : self.totalTime if self.totalTime is not None else 0,
+                            'error_message' : self.error_message,
+                        })
+
+    def __repr__(self):
+        return str(self)
 
 
 def get_ipc_handle_for_data(dataframe_column):
 
-    if dataframe_column._column._data in dataColumnTokens:
+    if id(dataframe_column._column._data) in dataColumnTokens:
         return None
     else:
         if get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
@@ -348,7 +353,7 @@ def get_ipc_handle_for_data(dataframe_column):
 
 def get_ipc_handle_for_valid(dataframe_column):
 
-    if dataframe_column._column._mask in validColumnTokens:
+    if id(dataframe_column._column._mask) in validColumnTokens:
         return None
     elif dataframe_column.null_count > 0:
         ipch = dataframe_column._column._mask.mem.get_ipc_handle()
@@ -358,7 +363,7 @@ def get_ipc_handle_for_valid(dataframe_column):
 
 def get_ipc_handle_for_strings(dataframe_column):
 
-    if dataframe_column._column._data in dataColumnTokens:
+    if id(dataframe_column._column._data) in dataColumnTokens:
         return None
     elif get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
         return dataframe_column._column._data.get_ipc_data()       
@@ -526,8 +531,9 @@ def gdf_to_BlazingTable(gdf):
             #custrings_data
             blazing_column['custrings_data'] = ipc_data
 
-        if dataframe_column._column._data in dataColumnTokens:
-            columnTokens.append(dataColumnTokens[dataframe_column._column._data])
+        column_data_id = id(dataframe_column._column._data)
+        if column_data_id in dataColumnTokens:
+            columnTokens.append(dataColumnTokens[column_data_id])
         else:
             columnTokens.append(0)
 
@@ -656,6 +662,8 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
     resultSet.columns = gdf
     return resultSet, ipchandles
 
+def run_query_get_token(sql):
+    return _run_query_get_token(sql)
 
 def _run_query_get_token(sql):
     startTime = time.time()
@@ -687,10 +695,10 @@ def _run_query_get_token(sql):
     # metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
     # return metaToken
 
-    # TODO make distributed result set if there is error
- 
+def run_query_get_results(metaToken):
+    return _run_query_get_results(metaToken)
 
-def _run_query_get_results(distMetaToken, startTime):
+def _run_query_get_results(metaToken):
     error_message = ''
 
     client = _get_client()
@@ -737,6 +745,9 @@ def _run_query_get_results(distMetaToken, startTime):
 
     return result_set_list
 
+
+def run_query_get_concat_results(metaToken, startTime):
+    return _run_query_get_concat_results(metaToken, startTime)
 
 def _run_query_get_concat_results(distMetaToken, startTime):
     
@@ -850,10 +861,10 @@ def register_file_system(authority, type, root, params = None):
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.RegisterFileSystem,
                                        client.accessToken,
                                        schema)
-    response_buffer = client._send_request( client._orchestrator_path, client._orchestrator_port, request_buffer)
+    response_buffer = _send_request( client._orchestrator_path, client._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
     if response.status == Status.Error:
-        raise Error(ResponseErrorSchema.From(response.payload).errors)
+        raise RuntimeError(ResponseErrorSchema.From(response.payload).errors)
     return response.status
 
 def deregister_file_system(authority):
@@ -862,10 +873,10 @@ def deregister_file_system(authority):
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.DeregisterFileSystem,
                                        client.accessToken,
                                        schema)
-    response_buffer = client._send_request(client._orchestrator_path, client._orchestrator_port, request_buffer)
+    response_buffer = _send_request(client._orchestrator_path, client._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
     if response.status == Status.Error:
-        raise Error(ResponseErrorSchema.From(response.payload).errors)
+        raise RuntimeError(ResponseErrorSchema.From(response.payload).errors)
     return response.status
 
 def _create_dummy_table_group():
