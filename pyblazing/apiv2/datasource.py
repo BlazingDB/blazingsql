@@ -127,8 +127,8 @@ class DataSource:
             result_set = kwargs.get('result_set', None)
             return self._load_result_set(table_name, result_set)
         elif type == Type.distributed_result_set:
-            distributed_result_set = kwargs.get('distributed_result_set', None)
-            return self._load_distributed_result_set(table_name, distributed_result_set)
+            result_set = kwargs.get('result_set', None)
+            return self._load_distributed_result_set(table_name, result_set)
         elif type == Type.csv:
             path = kwargs.get('path', None)
             csv_column_names = kwargs.get('csv_column_names', [])
@@ -187,7 +187,7 @@ class DataSource:
         return self._load_cudf_df(table_name, cudf_df)
 
     def _load_distributed_result_set(self, table_name, distributed_result_set):
-
+        print(distributed_result_set)
         internal_api.create_table(
             self.client,
             table_name,
