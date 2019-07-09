@@ -119,7 +119,23 @@ def main():
 
   # Changes to feature/new_csv_table_param
   
-  bc.create_table('nation_header', ["/home/user/blazingdb/datasets/nation_header.psv"], delimiter='|', names=nationColNames)
+  bc.create_table('nation_header', ["/home/user/blazingdb/datasets/nation_header.psv"], delimiter='|')
+  bc.create_table('region_header', ["/home/user/blazingdb/datasets/nation_header.psv"], delimiter='|')
+  bc.create_table('nation', ["/home/user/blazingdb/datasets/nation.psv"], delimiter='|', names=nationColNames)
 
+  
+  query_nation_header = "select * from main.nation_header"
+  query_region_header = "select * from main.region_header"
+  query_nation = "select * from main.nation"
+
+  
+  result_nation_header = bc.sql(query_nation_header)
+  result_region_header = bc.sql(query_region_header)
+  result_nation = bc.sql(query_nation)
+
+  #print(result_nation)
+  #print(result_nation_header)
+
+ 
 if __name__ == '__main__':
   main()
