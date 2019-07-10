@@ -32,9 +32,9 @@ class BlazingContext(object):
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
-        __orchestrator_ip = parse_result.hostname
-        __orchestrator_port = parse_result.port
-        internal_api.SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port)
+        orchestrator_host_ip = parse_result.hostname
+        orchestrator_port = parse_result.port
+        internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
 
         # TODO percy handle errors (see above)
         self.connection = connection
