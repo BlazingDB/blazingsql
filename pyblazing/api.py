@@ -54,18 +54,21 @@ class Singleton(type):
 
 
 class PyConnector(metaclass=Singleton):
-    def __init__(self, orchestrator_path, orchestrator_port):
-        self._orchestrator_path = orchestrator_path
-        self._orchestrator_port = orchestrator_port
+    def __init__(self):
+        self._orchestrator_path = '127.0.0.1'
+        self._orchestrator_port = 8889
         self._accessToken = None
 
     def __del__(self):
         self.close_connection()
 
 
-    def connect(self):
+    def connect(self, orchestrator_path, orchestrator_port):
         # TODO find a way to print only for debug mode (add verbose arg)
         #print("open connection")
+        self._orchestrator_path = orchestrator_path
+        self._orchestrator_port = orchestrator_port
+
         if self._accessToken is not None:
             print("Already connected to the Orchestrator")
             return
@@ -265,14 +268,7 @@ class PyConnector(metaclass=Singleton):
 
 
 def _get_client():
-    __orchestrator_ip = '/tmp/orchestrator.socket'
-    __orchestrator_port = 8890
-    client = PyConnector(__orchestrator_ip, __orchestrator_port)
-
-    if not client.is_connected():
-        client.connect()
-
-    return client
+    return PyConnector()
 
 class ResultSetHandle:
 
@@ -559,15 +555,9 @@ def make_empty_BlazingTable():
     return blazing_table
 
 
-'''If no args are passed will use '127.0.0.1' as the host and the TCP port 8889'''  
-def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port):
-    global __orchestrator_ip
-    global __orchestrator_port
-    global __blazing__global_client
-
-    __orchestrator_ip = orchestrator_host_ip
-    __orchestrator_port = orchestrator_port
-    __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
+def SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port):
+    client = PyConnector()
+    client.connect(orchestrator_host_ip, orchestrator_port)
 
 def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     dtype = np.dtype(dtype)
