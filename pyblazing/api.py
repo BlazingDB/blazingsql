@@ -116,7 +116,7 @@ class PyConnector(metaclass=Singleton):
     def is_connected(self):
         return self._accessToken is not None
 
-    def run_ddl_create_table(self, 
+    def run_ddl_create_table(self,
                                  tableName,
                                  columnNames,
                                  columnTypes,
@@ -126,7 +126,8 @@ class PyConnector(metaclass=Singleton):
                                  files,
                                  csvDelimiter,
                                  csvLineTerminator,
-                                 csvSkipRows):
+                                 csvSkipRows,
+                                 resultToken):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
                                                                                        columnTypes=columnTypes,
@@ -136,7 +137,8 @@ class PyConnector(metaclass=Singleton):
                                                                                        files=files,
                                                                                        csvDelimiter=csvDelimiter,
                                                                                        csvLineTerminator=csvLineTerminator,
-                                                                                       csvSkipRows=csvSkipRows)
+                                                                                       csvSkipRows=csvSkipRows,
+                                                                                       resultToken=resultToken)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -367,7 +369,7 @@ def get_ipc_handle_for_strings(dataframe_column):
     if id(dataframe_column._column._data) in dataColumnTokens:
         return None
     elif get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
-        return dataframe_column._column._data.get_ipc_data()       
+        return dataframe_column._column._data.get_ipc_data()
     else:
         return None
 
@@ -389,7 +391,7 @@ class gdf_dtype(object):
     N_GDF_TYPES = 14
 
 def get_np_dtype_to_gdf_dtype_str(dtype):
- 
+
     dtypes = {
         np.dtype('float64'):    'GDF_FLOAT64',
         np.dtype('float32'):    'GDF_FLOAT32',
@@ -399,10 +401,10 @@ def get_np_dtype_to_gdf_dtype_str(dtype):
         np.dtype('int8'):       'GDF_INT8',
         np.dtype('bool_'):      'GDF_BOOL8',
         np.dtype('datetime64[ms]'): 'GDF_DATE64',
-        np.dtype('datetime64'): 'GDF_DATE64',        
+        np.dtype('datetime64'): 'GDF_DATE64',
         np.dtype('object_'):    'GDF_STRING',
         np.dtype('str_'):       'GDF_STRING',
-        np.dtype('<M8[ms]'):    'GDF_DATE64',        
+        np.dtype('<M8[ms]'):    'GDF_DATE64',
     }
     return dtypes[dtype]
 
@@ -436,7 +438,7 @@ def gdf_dtypes_to_gdf_dtype_strs(dtypes):
     return values
 
 def get_np_dtype_to_gdf_dtype(dtype):
- 
+
     dtypes = {
         np.dtype('float64'):    gdf_dtype.GDF_FLOAT64,
         np.dtype('float32'):    gdf_dtype.GDF_FLOAT32,
@@ -446,10 +448,10 @@ def get_np_dtype_to_gdf_dtype(dtype):
         np.dtype('int8'):       gdf_dtype.GDF_INT8,
         np.dtype('bool_'):      gdf_dtype.GDF_BOOL8,
         np.dtype('datetime64[ms]'): gdf_dtype.GDF_DATE64,
-        np.dtype('datetime64'): gdf_dtype.GDF_DATE64,        
+        np.dtype('datetime64'): gdf_dtype.GDF_DATE64,
         np.dtype('object_'):    gdf_dtype.GDF_STRING,
         np.dtype('str_'):       gdf_dtype.GDF_STRING,
-        np.dtype('<M8[ms]'):    gdf_dtype.GDF_DATE64,        
+        np.dtype('<M8[ms]'):    gdf_dtype.GDF_DATE64,
     }
     return dtypes[dtype]
 
@@ -492,7 +494,7 @@ def gdf_to_BlazingTable(gdf):
 
     for column in gdf.columns:
         dataframe_column = gdf._cols[column]
-       
+
         data_sz = len(dataframe_column)
         dtype = get_np_dtype_to_gdf_dtype(dataframe_column.dtype)
         null_count = dataframe_column.null_count
@@ -511,7 +513,7 @@ def gdf_to_BlazingTable(gdf):
             ipc_data = get_ipc_handle_for_strings(dataframe_column)
         except:
             print("ERROR: when getting the IPC handle for strings")
-        
+
         dtype_info = {
             'time_unit': 0, #TODO dummy value
         }
@@ -555,14 +557,14 @@ def make_empty_BlazingTable():
     empty_gdf_column_handler = {'data':None, 'valid':None, 'size':0, 'dtype':0, 'dtype_info':None, 'null_count':0, 'custrings_data': None}
     blazing_table = {'columns': [empty_gdf_column_handler], 'columnTokens': [], 'resultToken': 0}
     return blazing_table
-    
+
 
 '''If no args are passed will use '127.0.0.1' as the host and the TCP port 8889'''  
 def SetupOrchestratorConnection(orchestrator_host_ip = __orchestrator_ip, orchestrator_port = __orchestrator_port):
     global __orchestrator_ip
     global __orchestrator_port
     global __blazing__global_client
-    
+
     __orchestrator_ip = orchestrator_host_ip
     __orchestrator_port = orchestrator_port
     __blazing__global_client = _get_client_internal(__orchestrator_ip, __orchestrator_port)
@@ -578,7 +580,7 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     return ipchandle, ipchandle.open_array(current_context(), shape=shape,
                                            strides=strides, dtype=dtype)
 
-# interpreter_path is the TCP protocol port for RAL 
+# interpreter_path is the TCP protocol port for RAL
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
 
@@ -607,9 +609,9 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
             else:
                 if c.dtype == gdf_dtype.GDF_STRING_CATEGORY:
                     print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
-                    
+
                 assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
-                                
+
                 ipch_data, data_ptr = _open_ipc_array(
                         c.data, shape=c.size, dtype=np_dtype)
                 ipchandles.append(ipch_data)
@@ -625,14 +627,14 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                     gdf_columns.append(build_column(Buffer(data_ptr), np_dtype))
                 else:
                     gdf_columns.append(build_column(Buffer(data_ptr), np_dtype, Buffer(valid_ptr)))
-                
+
         else:
             if c.dtype == gdf_dtype.GDF_STRING:
                 gdf_columns.append(StringColumn(nvstrings.to_device([])))
             else:
                 if c.dtype == gdf_dtype.GDF_DATE32:
                     c.dtype = gdf_dtype.GDF_INT32
-                    
+
                 gdf_columns.append(build_column(Buffer.null(np_dtype), np_dtype))
 
     gdf = DataFrame()
@@ -708,7 +710,7 @@ def _run_query_get_results(distMetaToken, startTime):
         print(error_message)
 
     result_set_list = []
- 
+
     for result in result_list:
         result_set_list.append(ResultSetHandle(result['resultSet'].columns,
                                                result['resultSet'].columnTokens,
@@ -790,6 +792,7 @@ class SchemaFrom:
     CsvFile = 0
     ParquetFile = 1
     Gdf = 2
+    Distributed = 3
 
 
 #cambiar para success or failed
@@ -806,7 +809,7 @@ def create_table(tableName, **kwargs):
     csvDelimiter = kwargs.get('delimiter', '|')
     csvLineTerminator = kwargs.get('line_terminator', '\n')
     csvSkipRows = kwargs.get('skip_rows', 0)
-
+    resultToken = kwargs.get('resultToken', 0)
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
     else:
@@ -817,9 +820,9 @@ def create_table(tableName, **kwargs):
 
     try:
         client = _get_client()
-        return_result = client.run_ddl_create_table(tableName, 
-                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows)
-         
+        return_result = client.run_ddl_create_table(tableName,
+                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,resultToken)
+
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -897,7 +900,7 @@ def run_query_filesystem(sql, sql_data):
         raise err
 
     result_set_list = []
- 
+
     for result in result_list:
         result_set_list.append(ResultSetHandle(result['resultSet'].columns,
                                                result['resultSet'].columnTokens,

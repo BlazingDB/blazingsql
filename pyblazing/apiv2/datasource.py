@@ -14,6 +14,7 @@ class Type(IntEnum):
     csv = 3
     parquet = 4
     result_set = 5
+    distributed_result_set = 6
 
 
 class DataSource:
@@ -80,6 +81,9 @@ class DataSource:
     def is_result_set(self):
         return self.type == Type.result_set
 
+    def is_distributed_result_set(self):
+        return self.type == Type.distributed_result_set
+
     def is_from_file(self):
         return self.type == Type.parquet or self.type == Type.csv
 
@@ -94,7 +98,7 @@ class DataSource:
             return self.cudf_df
         elif self.type == Type.result_set:
             return self.cudf_df
-        
+
         return None
 
     def schema(self):
@@ -122,6 +126,9 @@ class DataSource:
         elif type == Type.result_set:
             result_set = kwargs.get('result_set', None)
             return self._load_result_set(table_name, result_set)
+        elif type == Type.distributed_result_set:
+            result_set = kwargs.get('result_set', None)
+            return self._load_distributed_result_set(table_name, result_set)
         elif type == Type.csv:
             path = kwargs.get('path', None)
             csv_column_names = kwargs.get('csv_column_names', [])
@@ -178,6 +185,19 @@ class DataSource:
         cudf_df = result_set.columns
 
         return self._load_cudf_df(table_name, cudf_df)
+
+    def _load_distributed_result_set(self, table_name, distributed_result_set):
+        print(distributed_result_set)
+        internal_api.create_table(
+            self.client,
+            table_name,
+            type = internal_api.SchemaFrom.Distributed,
+            resultToken = distributed_result_set[0].resultToken
+        )
+
+        self.valid = True
+
+        return self.valid
 
 
     def _load_csv(self, table_name, path, column_names, column_types, delimiter, skip_rows):
@@ -241,6 +261,9 @@ def from_arrow(arrow_table, table_name):
 
 def from_result_set(result_set, table_name):
     return DataSource(None, Type.result_set, table_name = table_name, result_set = result_set)
+
+def from_distributed_result_set(result_set, table_name):
+    return DataSource(None, Type.distributed_result_set, table_name = table_name, result_set = result_set)
 
 
 def from_csv(client, table_name, path, column_names, column_types, delimiter, skip_rows):
