@@ -724,7 +724,7 @@ def create_table(tableName, **kwargs):
     csvDelimiter = kwargs.get('delimiter', '|')
     csvLineTerminator = kwargs.get('line_terminator', '\n')
     csvSkipRows = kwargs.get('skip_rows', 0)
-    csvHeader = kwargs.get('header')
+    csvHeader = kwargs.get('header', -1)
 
     if gdf is None:
         blazing_table = make_empty_BlazingTable()

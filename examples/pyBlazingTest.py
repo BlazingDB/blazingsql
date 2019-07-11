@@ -116,26 +116,61 @@ def main():
   # print(query)
   # print(result2)
 
-
-  # Changes to feature/new_csv_table_param
-  
-  bc.create_table('nation_header', ["/home/user/blazingdb/datasets/nation_header.psv"], delimiter='|')
-  bc.create_table('region_header', ["/home/user/blazingdb/datasets/nation_header.psv"], delimiter='|')
+  # Christian C paths
+  # Tables with and without param names
+  # nation_header.psv, region_header.psv and lineitem_heaader.psv already contain header in the file
   bc.create_table('nation', ["/home/user/blazingdb/datasets/nation.psv"], delimiter='|', names=nationColNames)
+  bc.create_table('nation_header', ["/home/user/blazingdb/datasets/nation_header.psv"], delimiter='|')
+  bc.create_table('region', ["/home/user/blazingdb/datasets/region.psv"], delimiter='|', names=regionColNames)
+  bc.create_table('region_header', ["/home/user/blazingdb/datasets/region_header.psv"], delimiter='|')
+  bc.create_table('lineitem', ["/home/user/blazingdb/datasets/lineitem.psv"], delimiter='|', names=lineitemColNames)
+  bc.create_table('lineitem_header', ["/home/user/blazingdb/datasets/lineitem_header.psv"], delimiter='|')
 
+  # Calling sql() and get() functions
+  result_nation = bc.sql("select * from main.nation").get()
+  result_nation_header = bc.sql("select * from main.nation_header").get()
+  result_region = bc.sql("select * from main.region").get()
+  result_region_header = bc.sql("select * from main.region_header").get()
+  result_lineitem = bc.sql("select * from main.lineitem").get()
+  result_lineitem_header = bc.sql("select * from main.lineitem_header").get()
   
-  query_nation_header = "select * from main.nation_header"
-  query_region_header = "select * from main.region_header"
-  query_nation = "select * from main.nation"
+  # Print results (columns and its dtypes)
+  gdf_nation = result_nation.columns
+  print("\ngdf columns of nation:")
+  print(gdf_nation)
+  print("\ngdf dtypes of nation:")
+  print(gdf_nation.dtypes)
 
+  gdf_nation_header = result_nation_header.columns
+  print("\ngdf columns of nation_header:")
+  print(gdf_nation_header)
+  print("\ngdf dtypes of nation_header:")
+  print(gdf_nation_header.dtypes)
+
+  gdf_region = result_region.columns
+  print("\ngdf columns of region:")
+  print(gdf_region)
+  print("\ngdf dtypes of region:")
+  print(gdf_region.dtypes)
   
-  result_nation_header = bc.sql(query_nation_header)
-  result_region_header = bc.sql(query_region_header)
-  result_nation = bc.sql(query_nation)
+  gdf_region_header = result_region_header.columns
+  print("\ngdf columns of region_header:")
+  print(gdf_region_header)
+  print("\ngdf dtypes of region_header:")
+  print(gdf_region_header.dtypes)
 
-  #print(result_nation)
-  #print(result_nation_header)
+  gdf_lineitem = result_lineitem.columns
+  print("\ngdf columns of lineitem:")
+  print(gdf_lineitem)
+  print("\ngdf dtypes of lineitem:")
+  print(gdf_lineitem.dtypes)
 
- 
+  gdf_lineitem_header = result_lineitem_header.columns
+  print("\ngdf columns of lineitem_header:")
+  print(gdf_lineitem_header)
+  print("\ngdf dtypes of lineitem_header:")
+  print(gdf_lineitem_header.dtypes)
+  
+
 if __name__ == '__main__':
   main()
