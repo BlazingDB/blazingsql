@@ -757,7 +757,7 @@ def register_file_system(authority, type, root, params = None):
     client = _get_client()
     schema = FileSystemRegisterRequestSchema(authority, root, type, params)
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.RegisterFileSystem,
-                                       client.accessToken,
+                                       client._accessToken,
                                        schema)
     response_buffer = _send_request( client._orchestrator_path, client._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
@@ -769,7 +769,7 @@ def deregister_file_system(authority):
     schema = FileSystemDeregisterRequestSchema(authority)
     client = _get_client()
     request_buffer = MakeRequestBuffer(OrchestratorMessageType.DeregisterFileSystem,
-                                       client.accessToken,
+                                       client._accessToken,
                                        schema)
     response_buffer = _send_request(client._orchestrator_path, client._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
