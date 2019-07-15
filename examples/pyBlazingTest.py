@@ -32,6 +32,9 @@ def main():
   supplierColNames = [ 's_suppkey', 's_name', 's_address', 's_nationkey', 's_phone', 's_acctbal', 's_comment']
   supplierColTypes = ["int32", "str", "str", "int32", "str", "float64", "str"]
 
+  countryColNames = ['e_country', 'e_comment', 'e_extension']
+  
+
   # bc.create_table('nation', "/home/william/repos/DataSets/DataSet100Mb/nation_0_0.parquet")
   # # nation_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/nation_0_0.psv", delimiter='|', dtype=nationColTypes, names=nationColNames)
   # # bc.create_table('nation', nation_gdf)
@@ -116,15 +119,17 @@ def main():
   # print(query)
   # print(result2)
 
-  # Christian C paths
-  # Tables with and without param names
-  # nation_header.psv, region_header.psv and lineitem_heaader.psv already contain header in the file
-  bc.create_table('nation', ["/home/user/blazingdb/datasets/nation.psv"], delimiter='|', names=nationColNames)
-  bc.create_table('nation_header', ["/home/user/blazingdb/datasets/nation_header.psv"], delimiter='|')
-  bc.create_table('region', ["/home/user/blazingdb/datasets/region.psv"], delimiter='|', names=regionColNames)
-  bc.create_table('region_header', ["/home/user/blazingdb/datasets/region_header.psv"], delimiter='|')
-  bc.create_table('lineitem', ["/home/user/blazingdb/datasets/lineitem.psv"], delimiter='|', names=lineitemColNames)
-  bc.create_table('lineitem_header', ["/home/user/blazingdb/datasets/lineitem_header.psv"], delimiter='|')
+  # Change your paths HERE
+  # *_header.psv and *_header.csv files already contain header so the [names] param is not necessary
+  bc.create_table('nation', "/home/user/blazingdb/datasets/nation.psv", names=nationColNames)
+  bc.create_table('nation_header', "/home/user/blazingdb/datasets/nation_header.psv")
+  bc.create_table('region', "/home/user/blazingdb/datasets/region.psv", names=regionColNames)
+  bc.create_table('region_header', "/home/user/blazingdb/datasets/region_header.psv")
+  bc.create_table('lineitem', "/home/user/blazingdb/datasets/lineitem.psv", names=lineitemColNames)
+  bc.create_table('lineitem_header', "/home/user/blazingdb/datasets/lineitem_header.psv")
+  bc.create_table('country', "/home/user/blazingdb/datasets/country.csv", names=countryColNames)
+  bc.create_table('country_header', "/home/user/blazingdb/datasets/country_header.csv")
+  bc.create_table('business_2018', "/home/user/blazingdb/datasets/business-operations-2018.csv")
 
   # Calling sql() and get() functions
   result_nation = bc.sql("select * from main.nation").get()
@@ -133,8 +138,13 @@ def main():
   result_region_header = bc.sql("select * from main.region_header").get()
   result_lineitem = bc.sql("select * from main.lineitem").get()
   result_lineitem_header = bc.sql("select * from main.lineitem_header").get()
+  result_country_csv = bc.sql("select * from main.country").get()
+  result_country_header_csv = bc.sql("select * from main.country_header").get()
+  result_business = bc.sql("select * from main.business_2018").get()
   
-  # Print results (columns and its dtypes)
+  # uncomment to see the results
+  #'''
+  # PSV examples
   gdf_nation = result_nation.columns
   print("\ngdf columns of nation:")
   print(gdf_nation)
@@ -171,6 +181,24 @@ def main():
   print("\ngdf dtypes of lineitem_header:")
   print(gdf_lineitem_header.dtypes)
   
+  # CSV Examples
+  gdf_country_csv = result_country_csv.columns
+  print("\ngdf columns of country")
+  print(gdf_country_csv)
+  print("\ngdf dtypes of country:")
+  print(gdf_country_csv.dtypes)
 
+  gdf_country_header_csv = result_country_header_csv.columns
+  print("\ngdf columns of country_header_csv:")
+  print(gdf_country_header_csv)
+  print("\ngdf dtypes of country_header_csv:")
+  print(gdf_country_header_csv.dtypes)
+  
+  gdf_business_2018_csv = result_business.columns
+  print("\ngdf columns of business_2018_csv:")
+  print(gdf_business_2018_csv)
+  print("\ngdf dtypes of business_2018_csv:")
+  print(gdf_business_2018_csv.dtypes)
+  
 if __name__ == '__main__':
   main()

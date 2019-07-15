@@ -94,13 +94,18 @@ class BlazingContext(object):
                 # TODO percy duplicated code bud itnernal api desing remove this later
                 csv_column_names = kwargs.get('names', [])
                 csv_column_types = kwargs.get('dtype', [])
-                csv_delimiter = kwargs.get('delimiter', '|')
-                csv_skip_rows = kwargs.get('skiprows', 0)
+
+                if path.suffix == '.csv':
+                    csv_delimiter = kwargs.get('delimiter', ',')
+                else:
+                    csv_delimiter = kwargs.get('delimiter', '|')
 
                 if len(csv_column_names) == 0:
                     csv_header = kwargs.get('header', 0)
                 else:
                     csv_header = kwargs.get('header', -1)
+
+                csv_skip_rows = kwargs.get('skiprows', 0)
 
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
