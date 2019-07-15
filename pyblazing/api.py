@@ -4,14 +4,13 @@ import blazingdb.protocol
 import blazingdb.protocol.interpreter
 import blazingdb.protocol.orchestrator
 import blazingdb.protocol.transport.channel
+from blazingdb.protocol.errors import Error
 from blazingdb.protocol.calcite.errors import SyntaxError
 from blazingdb.messages.blazingdb.protocol.Status import Status
 
 from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
-
-from librmm_cffi import librmm as rmm
 
 import pyarrow as pa
 from cudf.bindings.cudf_cpp import *
@@ -42,10 +41,9 @@ validColumnTokens = {}
 
 # connection_path is a ip/host when tcp and can be unix socket when ipc
 def _send_request(connection_path, connection_port, requestBuffer):
-    connection = blazingdb.protocol.UnixSocketConnection(connection_path)
+    connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
     client = blazingdb.protocol.Client(connection)
     return client.send(requestBuffer)
-
 
 class Singleton(type):
     _instances = {}
@@ -54,19 +52,23 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+
 class PyConnector(metaclass=Singleton):
-    
-    def __init__(self, orchestrator_path, orchestrator_port):
-        self._orchestrator_path = orchestrator_path
-        self._orchestrator_port = orchestrator_port
+    def __init__(self):
+        self._orchestrator_path = '127.0.0.1'
+        self._orchestrator_port = 8889
         self._accessToken = None
 
     def __del__(self):
         self.close_connection()
 
-    def connect(self):
+
+    def connect(self, orchestrator_path, orchestrator_port):
         # TODO find a way to print only for debug mode (add verbose arg)
         #print("open connection")
+        self._orchestrator_path = orchestrator_path
+        self._orchestrator_port = orchestrator_port
+
         if self._accessToken is not None:
             print("Already connected to the Orchestrator")
             return
@@ -76,7 +78,8 @@ class PyConnector(metaclass=Singleton):
         requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
             OrchestratorMessageType.AuthOpen, authSchema)
 
-        responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
+        responseBuffer = _send_request(self._orchestrator_path, 
+            self._orchestrator_port, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
             responseBuffer)
@@ -87,16 +90,13 @@ class PyConnector(metaclass=Singleton):
             raise RuntimeError(errorResponse.errors)
         responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(
             response.payload)
-        
+
         print('connection established')
         self._accessToken = responsePayload.accessToken
-
-    def close_connection(self):   
+       
+    def close_connection(self):
         # TODO find a way to print only for debug mode (add verbose arg)
         #print("close connection")
-        if self._accessToken is None:
-            print("Already disconnected")
-            return
 
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
 
@@ -119,7 +119,7 @@ class PyConnector(metaclass=Singleton):
     def is_connected(self):
         return self._accessToken is not None
 
-    def run_ddl_create_table(self, 
+    def run_ddl_create_table(self,
                                  tableName,
                                  columnNames,
                                  columnTypes,
@@ -129,7 +129,8 @@ class PyConnector(metaclass=Singleton):
                                  files,
                                  csvDelimiter,
                                  csvLineTerminator,
-                                 csvSkipRows):
+                                 csvSkipRows,
+                                 resultToken):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
                                                                                        columnTypes=columnTypes,
@@ -139,7 +140,8 @@ class PyConnector(metaclass=Singleton):
                                                                                        files=files,
                                                                                        csvDelimiter=csvDelimiter,
                                                                                        csvLineTerminator=csvLineTerminator,
-                                                                                       csvSkipRows=csvSkipRows)
+                                                                                       csvSkipRows=csvSkipRows,
+                                                                                       resultToken=resultToken)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -169,11 +171,13 @@ class PyConnector(metaclass=Singleton):
             if b'SqlSyntaxException' in errorResponse.errors:
                 raise SyntaxError(errorResponse.errors.decode('utf-8'))
             elif b'SqlValidationException' in errorResponse.errors:
-                raise ValueError(errorResponse.errors.decode('utf-8'))
+               raise ValueError(errorResponse.errors.decode('utf-8'))
             raise RuntimeError(errorResponse.errors.decode('utf-8'))
-        dmlResponseDTO = blazingdb.protocol.orchestrator.DMLResponseSchema.From(
-            response.payload)
-        return dmlResponseDTO.resultToken, dmlResponseDTO.nodeConnection.path.decode('utf8'), dmlResponseDTO.nodeConnection.port, dmlResponseDTO.calciteTime
+
+        distributed_response = blazingdb.protocol.orchestrator.DMLDistributedResponseSchema.From(response.payload)
+
+        return list(item for item in distributed_response.responses)
+
 
     def run_ddl_drop_table(self, tableName, dbName):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -196,6 +200,8 @@ class PyConnector(metaclass=Singleton):
         # print(response.status)
 
         return response.status
+
+
 
     def free_memory(self, interpreter_path, interpreter_port):
         result_token = 2433423
@@ -260,16 +266,9 @@ class PyConnector(metaclass=Singleton):
 
         return queryResult
 
+
 def _get_client():
-    __orchestrator_ip = '/tmp/orchestrator.socket'
-    __orchestrator_port = 8890
-    client = PyConnector(__orchestrator_ip, __orchestrator_port)
-
-    if not client.is_connected():
-        client.connect()
-
-    return client
-
+    return PyConnector()
 
 class ResultSetHandle:
 
@@ -279,8 +278,8 @@ class ResultSetHandle:
 
         self._buffer_ids = []
         if columns is not None:
-            if columns.columns.size > 0:
-                for idx, column in enumerate(self.columns.columns):
+            if columns.columns.size>0:
+               for idx, column in enumerate(self.columns.columns):
                     dataframe_column = self.columns._cols[column]
                     data_id = id(dataframe_column._column._data)
                     dataColumnTokens[data_id] = columnTokens[idx]
@@ -306,12 +305,13 @@ class ResultSetHandle:
         for key in self._buffer_ids:
             dataColumnTokens.pop(key, None)
             validColumnTokens.pop(key, None)
-        
+
         if self.handle is not None:
             for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
             del self.handle
             self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
+       
 
     def __str__(self):
         return ('''columns = %(columns)s
@@ -333,12 +333,11 @@ class ResultSetHandle:
                             'calciteTime' : self.calciteTime if self.calciteTime is not None else 0,
                             'ralTime' : self.ralTime if self.ralTime is not None else 0,
                             'totalTime' : self.totalTime if self.totalTime is not None else 0,
-                            'error_message' : self.error_message,
+                            'error_message' : self.error_message
                         })
 
     def __repr__(self):
         return str(self)
-
 
 def get_ipc_handle_for_data(dataframe_column):
 
@@ -366,7 +365,7 @@ def get_ipc_handle_for_strings(dataframe_column):
     if id(dataframe_column._column._data) in dataColumnTokens:
         return None
     elif get_np_dtype_to_gdf_dtype(dataframe_column.dtype) == gdf_dtype.GDF_STRING:
-        return dataframe_column._column._data.get_ipc_data()       
+        return dataframe_column._column._data.get_ipc_data()
     else:
         return None
 
@@ -388,7 +387,7 @@ class gdf_dtype(object):
     N_GDF_TYPES = 14
 
 def get_np_dtype_to_gdf_dtype_str(dtype):
- 
+
     dtypes = {
         np.dtype('float64'):    'GDF_FLOAT64',
         np.dtype('float32'):    'GDF_FLOAT32',
@@ -398,10 +397,10 @@ def get_np_dtype_to_gdf_dtype_str(dtype):
         np.dtype('int8'):       'GDF_INT8',
         np.dtype('bool_'):      'GDF_BOOL8',
         np.dtype('datetime64[ms]'): 'GDF_DATE64',
-        np.dtype('datetime64'): 'GDF_DATE64',        
+        np.dtype('datetime64'): 'GDF_DATE64',
         np.dtype('object_'):    'GDF_STRING',
         np.dtype('str_'):       'GDF_STRING',
-        np.dtype('<M8[ms]'):    'GDF_DATE64',        
+        np.dtype('<M8[ms]'):    'GDF_DATE64',
     }
     return dtypes[dtype]
 
@@ -435,7 +434,7 @@ def gdf_dtypes_to_gdf_dtype_strs(dtypes):
     return values
 
 def get_np_dtype_to_gdf_dtype(dtype):
- 
+
     dtypes = {
         np.dtype('float64'):    gdf_dtype.GDF_FLOAT64,
         np.dtype('float32'):    gdf_dtype.GDF_FLOAT32,
@@ -445,10 +444,10 @@ def get_np_dtype_to_gdf_dtype(dtype):
         np.dtype('int8'):       gdf_dtype.GDF_INT8,
         np.dtype('bool_'):      gdf_dtype.GDF_BOOL8,
         np.dtype('datetime64[ms]'): gdf_dtype.GDF_DATE64,
-        np.dtype('datetime64'): gdf_dtype.GDF_DATE64,        
+        np.dtype('datetime64'): gdf_dtype.GDF_DATE64,
         np.dtype('object_'):    gdf_dtype.GDF_STRING,
         np.dtype('str_'):       gdf_dtype.GDF_STRING,
-        np.dtype('<M8[ms]'):    gdf_dtype.GDF_DATE64,        
+        np.dtype('<M8[ms]'):    gdf_dtype.GDF_DATE64,
     }
     return dtypes[dtype]
 
@@ -491,7 +490,7 @@ def gdf_to_BlazingTable(gdf):
 
     for column in gdf.columns:
         dataframe_column = gdf._cols[column]
-       
+
         data_sz = len(dataframe_column)
         dtype = get_np_dtype_to_gdf_dtype(dataframe_column.dtype)
         null_count = dataframe_column.null_count
@@ -510,7 +509,7 @@ def gdf_to_BlazingTable(gdf):
             ipc_data = get_ipc_handle_for_strings(dataframe_column)
         except:
             print("ERROR: when getting the IPC handle for strings")
-        
+
         dtype_info = {
             'time_unit': 0, #TODO dummy value
         }
@@ -556,7 +555,9 @@ def make_empty_BlazingTable():
     return blazing_table
 
 
-from librmm_cffi import librmm as rmm
+def SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port):
+    client = PyConnector()
+    client.connect(orchestrator_host_ip, orchestrator_port)
 
 def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     dtype = np.dtype(dtype)
@@ -569,11 +570,10 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
     return ipchandle, ipchandle.open_array(current_context(), shape=shape,
                                            strides=strides, dtype=dtype)
 
+# interpreter_path is the TCP protocol port for RAL
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
 
-    #print(interpreter_path)
-    #print(interpreter_port)
     resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
 
     gdf_columns = []
@@ -599,9 +599,9 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
             else:
                 if c.dtype == gdf_dtype.GDF_STRING_CATEGORY:
                     print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
-                    
+
                 assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
-                                
+
                 ipch_data, data_ptr = _open_ipc_array(
                         c.data, shape=c.size, dtype=np_dtype)
                 ipchandles.append(ipch_data)
@@ -617,14 +617,14 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                     gdf_columns.append(build_column(Buffer(data_ptr), np_dtype))
                 else:
                     gdf_columns.append(build_column(Buffer(data_ptr), np_dtype, Buffer(valid_ptr)))
-                
+
         else:
             if c.dtype == gdf_dtype.GDF_STRING:
                 gdf_columns.append(StringColumn(nvstrings.to_device([])))
             else:
                 if c.dtype == gdf_dtype.GDF_DATE32:
                     c.dtype = gdf_dtype.GDF_INT32
-                    
+
                 gdf_columns.append(build_column(Buffer.null(np_dtype), np_dtype))
 
     gdf = DataFrame()
@@ -652,7 +652,9 @@ def _run_query_get_token(sql):
 
         tableGroup = _create_dummy_table_group()
 
-        resultToken, interpreter_path, interpreter_port, calciteTime = client.run_dml_query_token(sql, tableGroup)
+        dist_token = client.run_dml_query_token(sql, tableGroup)
+
+        return dist_token
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -663,21 +665,30 @@ def _run_query_get_token(sql):
     if error_message is not '':
         print(error_message)
 
-    metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
-    return metaToken
+    # metaToken = {"client" : client, "resultToken" : resultToken, "interpreter_path" : interpreter_path, "interpreter_port" : interpreter_port, "startTime" : startTime, "calciteTime" : calciteTime}
+    # return metaToken
 
-def run_query_get_results(metaToken):
-    return _run_query_get_results(metaToken)
+    # TODO make distributed result set if there is error
+ 
+def run_query_get_results(metaToken, startTime):
+    return _run_query_get_results(metaToken, startTime)
 
-def _run_query_get_results(metaToken):
+def _run_query_get_results(distMetaToken, startTime):
     error_message = ''
 
+    client = _get_client()
+    totalTime = 0
     try:
-        resultSet, ipchandles = _private_get_result(metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], metaToken["calciteTime"])
+        result_list = []
+        for result in distMetaToken:
+            resultSet, ipchandles = _private_get_result(result.resultToken,
+                                                        result.nodeConnection.path.decode('utf8'),
+                                                        result.nodeConnection.port,
+                                                        result.calciteTime)
+            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles})
 
-        totalTime = (time.time() - metaToken["startTime"]) * 1000  # in milliseconds
-        return_result = ResultSetHandle(resultSet.columns, resultSet.columnTokens, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], ipchandles, metaToken["client"], metaToken["calciteTime"], resultSet.metadata.time, totalTime, '')
-        return return_result
+        totalTime = (time.time() - startTime) * 1000  # in milliseconds
+
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -687,8 +698,74 @@ def _run_query_get_results(metaToken):
 
     if error_message is not '':
         print(error_message)
-    return_result = ResultSetHandle(None, None, metaToken["resultToken"], metaToken["interpreter_path"], metaToken["interpreter_port"], None, metaToken["client"], metaToken["calciteTime"], 0, 0, error_message)
-    return return_result
+
+    result_set_list = []
+
+    for result in result_list:
+        result_set_list.append(ResultSetHandle(result['resultSet'].columns,
+                                               result['resultSet'].columnTokens,
+                                               result['result'].resultToken,
+                                               result['result'].nodeConnection.path.decode('utf8'),
+                                               result['result'].nodeConnection.port,
+                                               result['ipchandles'],
+                                               client,
+                                               result['result'].calciteTime,
+                                               result['resultSet'].metadata.time,
+                                               totalTime,
+                                               ''
+                                               ))
+
+    if len(result_set_list) == 1:
+        result_set_list = result_set_list[0]
+
+    return result_set_list
+
+
+def run_query_get_concat_results(metaToken, startTime):
+    return _run_query_get_concat_results(metaToken, startTime)
+
+def _run_query_get_concat_results(distMetaToken, startTime):
+    
+    from cudf.multi import concat
+
+    client = _get_client()
+
+    error_message = ''
+    try:
+        result_list = []
+        for result in distMetaToken:
+            resultSet, ipchandles = _private_get_result(result.resultToken,
+                                                        result.nodeConnection.path.decode('utf8'),
+                                                        result.nodeConnection.port,
+                                                        result.calciteTime)
+            result_list.append(resultSet)
+
+        need_to_concat = sum([len(result.columns) > 0 for result in result_list]) > 1
+
+        if (need_to_concat):
+            all_gdfs = [result.columns for result in result_list]
+            return concat(all_gdfs, ignore_index=True)
+        else:
+            for result in result_list:  # if we dont need to concatenate, likely we only have one, or only one that has data
+                if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings. 
+                    gdf = result.columns
+                    for col_name, col in gdf._cols.items():
+                        if (col.dtype != 'object'):
+                            gdf[col_name] = gdf[col_name].copy(deep=True)
+                    return gdf
+
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return DataFrame()
+
 
 
 from collections import namedtuple
@@ -705,6 +782,7 @@ class SchemaFrom:
     CsvFile = 0
     ParquetFile = 1
     Gdf = 2
+    Distributed = 3
 
 
 #cambiar para success or failed
@@ -721,7 +799,7 @@ def create_table(tableName, **kwargs):
     csvDelimiter = kwargs.get('delimiter', '|')
     csvLineTerminator = kwargs.get('line_terminator', '\n')
     csvSkipRows = kwargs.get('skip_rows', 0)
-
+    resultToken = kwargs.get('resultToken', 0)
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
     else:
@@ -732,9 +810,9 @@ def create_table(tableName, **kwargs):
 
     try:
         client = _get_client()
-        return_result = client.run_ddl_create_table(tableName, 
-                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows)
-         
+        return_result = client.run_ddl_create_table(tableName,
+                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,resultToken)
+
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
     except Error as error:
@@ -781,3 +859,50 @@ def _create_dummy_table_group():
     database_name = 'main'
     tableGroup = OrderedDict([('name', database_name), ('tables', [])])
     return tableGroup
+
+
+def run_query_filesystem(sql, sql_data):
+    startTime = time.time()
+
+    client = _get_client()
+
+    for schema, files in sql_data.items():
+        _reset_table(client, schema.table_name, schema.gdf)
+
+    totalTime = 0
+    result_list = []
+    try:
+        tableGroup = _sql_data_to_table_group(sql_data)
+        dist_list = client.run_dml_query_filesystem_token(sql, tableGroup)
+
+        for result in dist_list:
+            resultSet, ipchandles = _private_get_result(result.resultToken,
+                                                        result.nodeConnection.path.decode('utf8'),
+                                                        result.nodeConnection.port,
+                                                        result.calciteTime)
+            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles})
+
+        totalTime = (time.time() - startTime) * 1000  # in milliseconds
+    except SyntaxError as error:
+        raise error
+    except Error as err:
+        print(err)
+        raise err
+
+    result_set_list = []
+
+    for result in result_list:
+        result_set_list.append(ResultSetHandle(result['resultSet'].columns,
+                                               result['resultSet'].columnTokens,
+                                               result['result'].resultToken,
+                                               result['result'].nodeConnection.path.decode('utf8'),
+                                               result['result'].nodeConnection.port,
+                                               result['ipchandles'],
+                                               client,
+                                               result['result'].calciteTime,
+                                               result['resultSet'].metadata.time,
+                                               totalTime,
+                                               ''
+                                               ))
+
+    return result_set_list

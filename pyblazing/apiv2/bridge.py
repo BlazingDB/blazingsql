@@ -20,6 +20,7 @@ class internal_api:
     # Function/Method wrappers
 
     _get_client = pyblazing._get_client
+    SetupOrchestratorConnection = pyblazing.SetupOrchestratorConnection
 
     @staticmethod
     def register_file_system(client, authority, type, root, params = None):
@@ -34,5 +35,9 @@ class internal_api:
         return pyblazing.run_query_get_token(sql)
 
     @staticmethod
-    def run_query_get_results(client, metaToken):
-        return pyblazing.run_query_get_results(metaToken)
+    def run_query_get_results(client, metaToken, startTime):
+        return pyblazing.run_query_get_results(metaToken, startTime)
+
+    @staticmethod
+    def run_query_get_concat_results(client, metaToken, startTime):
+        return pyblazing.run_query_get_concat_results(metaToken, startTime)

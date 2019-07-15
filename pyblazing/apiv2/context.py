@@ -11,19 +11,32 @@ from .bridge import internal_api
 
 from .filesystem import FileSystem
 from .sql import SQL
+from .sql import ResultSet
 from .datasource import from_cudf
 from .datasource import from_pandas
 from .datasource import from_arrow
 from .datasource import from_csv
 from .datasource import from_parquet
 from .datasource import from_result_set
+from .datasource import from_distributed_result_set
 import time
 
 
 class BlazingContext(object):
 
-    # connection (string) can be the unix socket path or the tcp host:port
-    def __init__(self, connection = '/tmp/orchestrator.socket'):
+    def __init__(self, connection = 'localhost:8889'):
+        """
+        :param connection: BlazingSQL cluster URL to connect to
+            (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
+        """
+
+        # NOTE ("//"+) is a neat trick to handle ip:port cases
+        parse_result = urlparse("//" + connection)
+        orchestrator_host_ip = parse_result.hostname
+        orchestrator_port = parse_result.port
+        internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
+
+        # TODO percy handle errors (see above)
         self.connection = connection
         self.client = internal_api._get_client()
         self.fs = FileSystem()
@@ -72,6 +85,8 @@ class BlazingContext(object):
             datasource = from_arrow(input, table_name)
         elif type(input) == internal_api.ResultSetHandle:
             datasource = from_result_set(input, table_name)
+        elif hasattr(input, 'metaToken'):
+            datasource = from_distributed_result_set(input.metaToken,table_name)
         elif type(input) == str or type(input) == list:
 
             if type(input) == str:
@@ -126,8 +141,10 @@ class BlazingContext(object):
     # END SQL interface
 
 
-def make_context():
-    # TODO percy we hardcode here becouse we know current ral has hardcoded this
-    connection = '/tmp/orchestrator.socket'
+def make_context(connection = 'localhost:8889'):
+    """
+    :param connection: BlazingSQL cluster URL to connect to
+           (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
+    """
     bc = BlazingContext(connection)
     return bc
