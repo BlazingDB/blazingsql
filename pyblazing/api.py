@@ -78,7 +78,7 @@ class PyConnector(metaclass=Singleton):
         requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
             OrchestratorMessageType.AuthOpen, authSchema)
 
-        responseBuffer = _send_request(self._orchestrator_path, 
+        responseBuffer = _send_request(self._orchestrator_path,
             self._orchestrator_port, requestBuffer)
 
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(
@@ -93,7 +93,7 @@ class PyConnector(metaclass=Singleton):
 
         print('connection established')
         self._accessToken = responsePayload.accessToken
-       
+
     def close_connection(self):
         # TODO find a way to print only for debug mode (add verbose arg)
         #print("close connection")
@@ -311,7 +311,7 @@ class ResultSetHandle:
                 ipch.close()
             del self.handle
             self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
-       
+
 
     def __str__(self):
         return ('''columns = %(columns)s
@@ -669,7 +669,7 @@ def _run_query_get_token(sql):
     # return metaToken
 
     # TODO make distributed result set if there is error
- 
+
 def run_query_get_results(metaToken, startTime):
     return _run_query_get_results(metaToken, startTime)
 
@@ -721,11 +721,101 @@ def _run_query_get_results(distMetaToken, startTime):
     return result_set_list
 
 
+def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTime,client):
+
+    resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
+
+    gdf_columns = []
+    ipchandles = []
+    for i, c in enumerate(resultSet.columns):
+
+        # todo: remove this if when C gdf struct is replaced by pyarrow object
+        # this workaround is only for the python object. The RAL knows the column_token and will know what its dtype actually is
+        if c.dtype == gdf_dtype.GDF_DATE32:
+            c.dtype = gdf_dtype.GDF_INT32
+
+        if c.dtype == gdf_dtype.GDF_DATE64:
+            np_dtype = np.dtype('datetime64[ms]')
+        else:
+            np_dtype = gdf_to_np_dtype(c.dtype)
+
+        if c.size != 0 :
+            if c.dtype == gdf_dtype.GDF_STRING:
+                new_strs = nvstrings.create_from_ipc(c.custrings_data)
+                newcol = StringColumn(new_strs)
+
+                gdf_columns.append(newcol.view(StringColumn, dtype='object'))
+            else:
+                if c.dtype == gdf_dtype.GDF_STRING_CATEGORY:
+                    print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
+
+                assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
+
+                ipch_data, data_ptr = _open_ipc_array(
+                        c.data, shape=c.size, dtype=np_dtype)
+                ipchandles.append(ipch_data)
+
+                valid_ptr = None
+                if (c.null_count > 0):
+                    assert len(c.valid) == 64,"Valid ipc handle was not 64 bytes"
+                    ipch_valid, valid_ptr = _open_ipc_array(
+                        c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
+                    ipchandles.append(ipch_valid)
+
+                if (valid_ptr is None):
+                    gdf_columns.append(build_column(Buffer(data_ptr), np_dtype))
+                else:
+                    gdf_columns.append(build_column(Buffer(data_ptr), np_dtype, Buffer(valid_ptr)))
+
+        else:
+            if c.dtype == gdf_dtype.GDF_STRING:
+                gdf_columns.append(StringColumn(nvstrings.to_device([])))
+            else:
+                if c.dtype == gdf_dtype.GDF_DATE32:
+                    c.dtype = gdf_dtype.GDF_INT32
+
+                gdf_columns.append(build_column(Buffer.null(np_dtype), np_dtype))
+
+    gdf = DataFrame()
+    for k, v in zip(resultSet.columnNames, gdf_columns):
+        assert k != "", "Column name was an empty string"
+        gdf[k.decode("utf-8")] = v
+
+
+    resultSet.columns = gdf
+    return resultSet, ipchandles
+
+def convert_result_msg(metaToken,connection):
+
+    resultSet, ipchandles = _get_result_dask(metaToken.resultToken,"127.0.0.1",8891,0,connection)
+
+    totalTime = 0  # in milliseconds
+
+    result = {'result': metaToken, 'resultSet': resultSet, 'ipchandles': ipchandles}
+
+    return pyblazing.ResultSetHandle(result['resultSet'].columns,
+                           result['resultSet'].columnTokens,
+                           result['result'].resultToken,
+                           result['result'].nodeConnection.path.decode('utf8'),
+                           result['result'].nodeConnection.port,
+                                               result['ipchandles'],
+                                               connection,
+                                               result['result'].calciteTime,
+                                               result['resultSet'].metadata.time,
+                                               totalTime,
+                                               ''
+                                               )
+
+
+def convert_to_dask(metaToken,connection):
+    result_set = convert_result_msg(metaToken,connection)
+    return result_set.columns.copy(deep=True)
+
 def run_query_get_concat_results(metaToken, startTime):
     return _run_query_get_concat_results(metaToken, startTime)
 
 def _run_query_get_concat_results(distMetaToken, startTime):
-    
+
     from cudf.multi import concat
 
     client = _get_client()
@@ -747,7 +837,7 @@ def _run_query_get_concat_results(distMetaToken, startTime):
             return concat(all_gdfs, ignore_index=True)
         else:
             for result in result_list:  # if we dont need to concatenate, likely we only have one, or only one that has data
-                if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings. 
+                if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings.
                     gdf = result.columns
                     for col_name, col in gdf._cols.items():
                         if (col.dtype != 'object'):
