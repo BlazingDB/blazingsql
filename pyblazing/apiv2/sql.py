@@ -3,24 +3,32 @@ from collections import OrderedDict
 from .bridge import internal_api
 
 import time
+import dask.dataframe as dd
+
+
 
 
 # TODO we need to deal here with this metatokens stuff and many rals
 # Maintains the resulset and the token after the run_query
 class ResultSet:
 
-    def __init__(self, client, metaToken, startTime):
+    def __init__(self, client, metaToken, startTime, dask_client):
         self.client = client
         self.metaToken = metaToken
         self.startTime = startTime
+        self.dask_client = dask_client
 
     # this will call the get_result api
     def get(self):
-        temp = internal_api.run_query_get_results(self.client, self.metaToken, self.startTime)
+        if(self.dask_client is None):
+            temp = internal_api.run_query_get_results(self.client, self.metaToken, self.startTime)
+        else:
+            dask_futures = dask_client.run(internal_api.convert_to_dask,self.metaToken,self.client)
+            temp = dd.from_delayed(dask_futures)
 
         return temp
 
-    # this assumes all ral are local. It will get all results and concatenamte them and only return the gdf. 
+    # this assumes all ral are local. It will get all results and concatenamte them and only return the gdf.
     # It will not return a result object, therefore it will need to make a copy
     def get_all(self):
         return internal_api.run_query_get_concat_results(self.client, self.metaToken, self.startTime)
@@ -73,10 +81,10 @@ class SQL(object):
     def drop_view(self, view_name):
         pass
 
-    def run_query(self, client, sql):
+    def run_query(self, client, sql,dask_client):
         startTime = time.time()
         metaToken = internal_api.run_query_get_token(client, sql)
-        return ResultSet(client, metaToken, startTime)
+        return ResultSet(client, metaToken, startTime,dask_client)
 
 
     def _verify_table_name(self, table_name):
@@ -84,4 +92,3 @@ class SQL(object):
         if table_name in self.tables:
             # TODO percy improve this one add the fs type so we can raise a nice exeption
             raise Exception('Fail add table_name already exists')
-

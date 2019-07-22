@@ -24,7 +24,7 @@ import time
 
 class BlazingContext(object):
 
-    def __init__(self, connection = 'localhost:8889'):
+    def __init__(self, connection = 'localhost:8889', dask_client = None):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -41,7 +41,7 @@ class BlazingContext(object):
         self.client = internal_api._get_client()
         self.fs = FileSystem()
         self.sqlObject = SQL()
-
+        self.dask_client = dask_client;
     def __del__(self):
         # TODO percy clean next time
         # del self.sqlObject
@@ -124,7 +124,7 @@ class BlazingContext(object):
             # TODO percy dir
 
         self.sqlObject.create_table(table_name, datasource)
-        
+
         # TODO percy raise exption here or manage the error
 
         return None
@@ -136,7 +136,7 @@ class BlazingContext(object):
     def sql(self, sql, table_list=[]):
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
-        return self.sqlObject.run_query(self.client, sql)
+        return self.sqlObject.run_query(self.client, sql,self.dask_client)
 
     # END SQL interface
 
