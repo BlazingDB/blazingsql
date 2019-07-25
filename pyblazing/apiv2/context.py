@@ -110,13 +110,20 @@ class BlazingContext(object):
                 csv_column_names = kwargs.get('names', [])
                 csv_column_types = kwargs.get('dtype', [])
                 csv_delimiter = kwargs.get('delimiter', '|')
-                csv_skip_rows = kwargs.get('skiprows', 0)
+                csv_lineterminator = kwargs.get('lineterminator', '\n')
+                csv_skiprows = kwargs.get('skiprows', 0)
+                csv_nrows = kwargs.get('nrows', -1)
+
+                if path.suffix == '.csv':
+                    csv_delimiter = ","
 
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
                     csv_delimiter,
-                    csv_skip_rows)
+                    csv_lineterminator,
+                    csv_skiprows,
+                    csv_nrows)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")

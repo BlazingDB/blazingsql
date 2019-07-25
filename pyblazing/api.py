@@ -130,6 +130,7 @@ class PyConnector(metaclass=Singleton):
                                  csvDelimiter,
                                  csvLineTerminator,
                                  csvSkipRows,
+                                 csvNrows,
                                  resultToken):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
@@ -141,6 +142,7 @@ class PyConnector(metaclass=Singleton):
                                                                                        csvDelimiter=csvDelimiter,
                                                                                        csvLineTerminator=csvLineTerminator,
                                                                                        csvSkipRows=csvSkipRows,
+                                                                                       csvNrows=csvNrows,
                                                                                        resultToken=resultToken)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
@@ -797,9 +799,11 @@ def create_table(tableName, **kwargs):
     gdf = kwargs.get('gdf', None)
     files = kwargs.get('path', [])
     csvDelimiter = kwargs.get('delimiter', '|')
-    csvLineTerminator = kwargs.get('line_terminator', '\n')
-    csvSkipRows = kwargs.get('skip_rows', 0)
+    csvLineTerminator = kwargs.get('lineterminator', '\n')
+    csvSkipRows = kwargs.get('skiprows', 0)
+    csvNrows = kwargs.get('nrows', -1)
     resultToken = kwargs.get('resultToken', 0)
+
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
     else:
@@ -810,8 +814,8 @@ def create_table(tableName, **kwargs):
 
     try:
         client = _get_client()
-        return_result = client.run_ddl_create_table(tableName,
-                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,resultToken)
+        return_result = client.run_ddl_create_table(tableName,columnNames,columnTypes,dbName,schemaType,
+                        blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,csvNrows, resultToken)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
