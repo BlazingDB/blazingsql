@@ -1,4 +1,4 @@
-# <div align="left"><img src="img/blazingSQL.png"/>&nbsp;blazingSQL</div>
+# <div align="left"><img src="img/blazingSQL.png" width="200px"/>&nbsp;BlazingSQL</div>
 
 **NOTE:** For the latest stable [README.md](https://github.com/blazingdb/pyblazing/blob/develop/README.md) ensure you are on the `develop` branch.
 
