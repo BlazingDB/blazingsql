@@ -51,10 +51,7 @@ class SQL(object):
 
     # ds is the DataSource object
     def create_table(self, table_name, datasource):
-        self._verify_table_name(table_name)
-
-        # TODO verify cuda ipc ownership or reuse resources here
-
+       
         self.tables[table_name] = datasource
 
         # # TODO percy create table result
@@ -86,9 +83,4 @@ class SQL(object):
         metaToken = internal_api.run_query_get_token(client, sql)
         return ResultSet(client, metaToken, startTime,dask_client)
 
-
-    def _verify_table_name(self, table_name):
-        # TODO percy throw exception
-        if table_name in self.tables:
-            # TODO percy improve this one add the fs type so we can raise a nice exeption
-            raise Exception('Fail add table_name already exists')
+    
