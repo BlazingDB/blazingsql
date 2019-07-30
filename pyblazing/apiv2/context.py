@@ -112,7 +112,7 @@ class BlazingContext(object):
                 csv_delimiter = kwargs.get('delimiter', '|')
                 csv_lineterminator = kwargs.get('lineterminator', '\n')
                 csv_skiprows = kwargs.get('skiprows', 0)
-                csv_nrows = kwargs.get('nrows', -1)
+                csv_nrows = kwargs.get('nrows', -1) # Depends if there is names or not
 
                 if path.suffix == '.csv':
                     csv_delimiter = ","

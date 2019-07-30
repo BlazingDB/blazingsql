@@ -122,9 +122,8 @@ def main():
 
 
   #Adding params to create_table
-  bc.create_table('nation', "/home/user/blazingdb/datasets/nation.csv", delimiter=',', names=nationColNames, 
-          skiprows=2, lineterminator='\n', nrows=3)
-  # quotechar='"', doublequote=True, nrows=1, header=1)
+  bc.create_table('nation', "/home/user/blazingdb/datasets/nation_header.csv", dtype=nationColTypes, names=nationColNames, skiprows=2, nrows=1)
+    #  quotechar='"', doublequote=True,  header=1)
   
   # Calling sql() and get() functions
   result_nation = bc.sql("select * from main.nation").get()
@@ -132,6 +131,7 @@ def main():
   gdf_nation = result_nation.columns
   print("\ngdf columns of nation:")
   print(gdf_nation)
+  
 
 if __name__ == '__main__':
   main()
