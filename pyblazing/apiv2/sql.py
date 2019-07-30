@@ -23,7 +23,7 @@ class ResultSet:
         if(self.dask_client is None):
             temp = internal_api.run_query_get_results(self.client, self.metaToken, self.startTime)
         else:
-            dask_futures = dask_client.run(internal_api.convert_to_dask,self.metaToken,self.client)
+            dask_futures = self.dask_client.run(internal_api.convert_to_dask,self.metaToken,self.client)
             temp = dd.from_delayed(dask_futures)
 
         return temp
@@ -51,7 +51,7 @@ class SQL(object):
 
     # ds is the DataSource object
     def create_table(self, table_name, datasource):
-       
+
         self.tables[table_name] = datasource
 
         # # TODO percy create table result
@@ -82,5 +82,3 @@ class SQL(object):
         startTime = time.time()
         metaToken = internal_api.run_query_get_token(client, sql)
         return ResultSet(client, metaToken, startTime,dask_client)
-
-    
