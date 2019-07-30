@@ -41,3 +41,7 @@ class internal_api:
     @staticmethod
     def run_query_get_concat_results(client, metaToken, startTime):
         return pyblazing.run_query_get_concat_results(metaToken, startTime)
+
+    @staticmethod
+    def convert_to_dask(metaToken,connection):
+        return pyblazing.convert_to_dask(metaToken,connection)
