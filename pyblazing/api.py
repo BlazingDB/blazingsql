@@ -142,7 +142,7 @@ class PyConnector(metaclass=Singleton):
                                                                                        csvDelimiter=csvDelimiter,
                                                                                        csvLineTerminator=csvLineTerminator,
                                                                                        csvSkipRows=csvSkipRows,
-                                                                                       csvNrows=csvNrows,
+                                                                                      # csvNrows=csvNrows,
                                                                                        resultToken=resultToken)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,

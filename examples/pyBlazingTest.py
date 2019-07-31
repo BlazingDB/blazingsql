@@ -121,9 +121,10 @@ def main():
   # print(result2)
 
 
-  #Adding params to create_table
-  bc.create_table('nation', "/home/user/blazingdb/datasets/nation_header.csv", dtype=nationColTypes, names=nationColNames, skiprows=2, nrows=1)
-    #  quotechar='"', doublequote=True,  header=1)
+  # Change the dataset path here
+  bc.create_table('nation', "/home/user/blazingdb/datasets/nation_header.csv")
+  #bc.create_table('nation', "/home/user/blazingdb/datasets/nation_header.csv", dtype=nationColTypes, names=nationColNames, skiprows=2, nrows=1)
+  #quotechar='"', doublequote=True,  header=1)
   
   # Calling sql() and get() functions
   result_nation = bc.sql("select * from main.nation").get()
