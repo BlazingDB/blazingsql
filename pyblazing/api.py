@@ -793,7 +793,7 @@ def convert_result_msg(metaToken,connection):
 
     result = {'result': metaToken, 'resultSet': resultSet, 'ipchandles': ipchandles}
 
-    return pyblazing.ResultSetHandle(result['resultSet'].columns,
+    return ResultSetHandle(result['resultSet'].columns,
                            result['resultSet'].columnTokens,
                            result['result'].resultToken,
                            result['result'].nodeConnection.path.decode('utf8'),
