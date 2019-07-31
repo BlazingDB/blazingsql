@@ -23,7 +23,10 @@ class ResultSet:
         if(self.dask_client is None):
             temp = internal_api.run_query_get_results(self.client, self.metaToken, self.startTime)
         else:
-            dask_futures = self.dask_client.run(internal_api.convert_to_dask,self.metaToken,self.client)
+            dask_futures = []
+            for worker in list(self.dask_client.scheduler_info()["workers"]):
+                dask_futures.append(self.dask_client.submit(internal_api.convert_to_dask,self.metaToken,self.client, workers=[worker]))
+
             temp = dd.from_delayed(dask_futures)
 
         return temp
