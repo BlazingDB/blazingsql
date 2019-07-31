@@ -26,7 +26,6 @@ class ResultSet:
             dask_futures = []
             for worker in list(self.dask_client.scheduler_info()["workers"]):
                 dask_futures.append(self.dask_client.submit(internal_api.convert_to_dask,self.metaToken,self.client, workers=[worker]))
-
             temp = dd.from_delayed(dask_futures)
 
         return temp
