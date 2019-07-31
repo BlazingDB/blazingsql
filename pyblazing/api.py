@@ -787,7 +787,7 @@ def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTim
 
 def convert_result_msg(metaToken,connection):
 
-    resultSet, ipchandles = _get_result_dask(metaToken.resultToken,"127.0.0.1",8891,0,connection)
+    resultSet, ipchandles = _get_result_dask(metaToken[0].resultToken,"127.0.0.1",8891,0,connection)
 
     totalTime = 0  # in milliseconds
 
