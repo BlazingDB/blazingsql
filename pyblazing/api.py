@@ -791,7 +791,7 @@ def convert_result_msg(metaToken,connection):
 
     totalTime = 0  # in milliseconds
 
-    result = {'result': metaToken, 'resultSet': resultSet, 'ipchandles': ipchandles}
+    result = {'result': metaToken[0], 'resultSet': resultSet, 'ipchandles': ipchandles}
 
     return ResultSetHandle(result['resultSet'].columns,
                            result['resultSet'].columnTokens,
