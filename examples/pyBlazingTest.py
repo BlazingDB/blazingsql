@@ -122,7 +122,8 @@ def main():
 
 
   # Change the dataset path here
-  bc.create_table('nation', "/home/user/blazingdb/datasets/nation_header.csv")
+  proofColNames=["n_artist","n_rating","n_year","n_location","n_festival"]
+  bc.create_table('nation', "/home/user/blazingdb/datasets/proof.csv", skiprows=0)
   #bc.create_table('nation', "/home/user/blazingdb/datasets/nation_header.csv", dtype=nationColTypes, names=nationColNames, skiprows=2, nrows=1)
   #quotechar='"', doublequote=True,  header=1)
   

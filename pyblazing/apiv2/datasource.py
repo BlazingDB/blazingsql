@@ -136,6 +136,7 @@ class DataSource:
             csv_delimiter = kwargs.get('csv_delimiter', '|')
             csv_lineterminator = kwargs.get('csv_lineterminator', '\n')
             csv_skiprows = kwargs.get('csv_skiprows', 0)
+            csv_header = kwargs.get('csv_header', 0)
             csv_nrows = kwargs.get('csv_nrows', -1)
             return self._load_csv(table_name, path,
                 csv_column_names,
@@ -143,6 +144,7 @@ class DataSource:
                 csv_delimiter,
                 csv_lineterminator,
                 csv_skiprows,
+                csv_header,
                 csv_nrows)
         elif type == Type.parquet:
             table_name = kwargs.get('table_name', None)
@@ -204,7 +206,7 @@ class DataSource:
         return self.valid
 
 
-    def _load_csv(self, table_name, path, column_names, column_types, delimiter, lineterminator, skiprows, nrows):
+    def _load_csv(self, table_name, path, column_names, column_types, delimiter, lineterminator, skiprows, header, nrows):
         # TODO percy manage datasource load errors
         if path == None:
             return False
@@ -221,6 +223,7 @@ class DataSource:
             delimiter = delimiter,
             lineterminator = lineterminator,
             skiprows = skiprows,
+            header = header,
             nrows = nrows
         )
 
@@ -272,7 +275,7 @@ def from_distributed_result_set(result_set, table_name):
     return DataSource(None, Type.distributed_result_set, table_name = table_name, result_set = result_set)
 
 
-def from_csv(client, table_name, path, column_names, column_types, delimiter, lineterminator, skiprows, nrows):
+def from_csv(client, table_name, path, column_names, column_types, delimiter, lineterminator, skiprows, header, nrows):
     return DataSource(client, Type.csv,
         table_name = table_name,
         path = path,
@@ -281,6 +284,7 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, li
         csv_delimiter = delimiter,
         csv_lineterminator=lineterminator,
         csv_skiprows = skiprows,
+        csv_header = header,
         csv_nrows = nrows)
 
 

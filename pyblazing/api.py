@@ -131,6 +131,7 @@ class PyConnector(metaclass=Singleton):
                                  csvLineTerminator,
                                  csvSkipRows,
                                  csvNrows,
+                                 csvHeader,
                                  resultToken):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
@@ -142,7 +143,8 @@ class PyConnector(metaclass=Singleton):
                                                                                        csvDelimiter=csvDelimiter,
                                                                                        csvLineTerminator=csvLineTerminator,
                                                                                        csvSkipRows=csvSkipRows,
-                                                                                       resultToken=resultToken)
+                                                                                       resultToken=resultToken,
+                                                                                       csvHeader=csvHeader)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -800,6 +802,7 @@ def create_table(tableName, **kwargs):
     csvDelimiter = kwargs.get('delimiter', '|')
     csvLineTerminator = kwargs.get('lineterminator', '\n')
     csvSkipRows = kwargs.get('skiprows', 0)
+    csvHeader = kwargs.get('header', 0)
     csvNrows = kwargs.get('nrows', -1)
     resultToken = kwargs.get('resultToken', 0)
 
@@ -814,7 +817,7 @@ def create_table(tableName, **kwargs):
     try:
         client = _get_client()
         return_result = client.run_ddl_create_table(tableName,columnNames,columnTypes,dbName,schemaType,
-                        blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,csvNrows, resultToken)
+                        blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,csvNrows, csvHeader, resultToken)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
