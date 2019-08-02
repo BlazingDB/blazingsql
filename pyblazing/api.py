@@ -75,8 +75,8 @@ class PyConnector(metaclass=Singleton):
 
         authSchema = blazingdb.protocol.orchestrator.AuthRequestSchema()
 
-        requestBuffer = blazingdb.protocol.transport.channel.MakeAuthRequestBuffer(
-            OrchestratorMessageType.AuthOpen, authSchema)
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
+            OrchestratorMessageType.AuthOpen, self._accessToken, authSchema)
 
         responseBuffer = _send_request(self._orchestrator_path,
             self._orchestrator_port, requestBuffer)
