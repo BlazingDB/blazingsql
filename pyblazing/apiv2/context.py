@@ -118,7 +118,8 @@ class BlazingContext(object):
                 if path.suffix == '.csv':
                     csv_delimiter = ","
                 
-                if (len(csv_column_names) > 0) csv_header = -1;
+                if (len(csv_column_names) > 0):
+                     csv_header = -1;
 
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
