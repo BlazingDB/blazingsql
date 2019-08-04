@@ -65,8 +65,6 @@ You may also email us at [info@blazingsql.com](info@blazingsql.com) or find out 
 
 The RAPIDS suite of open source software libraries aim to enable execution of end-to-end data science and analytics pipelines entirely on GPUs. It relies on NVIDIA® CUDA® primitives for low-level compute optimization, but exposing that GPU parallelism and high-bandwidth memory speed through user-friendly Python interfaces.
 
-<p align="center"><img src="https://github.com/rapidsai/cudf/raw/branch-0.9/img/rapids_arrow.png" width="70%"/></p>
-
 ## Apache Arrow on GPU
 
 The GPU version of [Apache Arrow](https://arrow.apache.org/) is a common API that enables efficient interchange of tabular data between processes running on the GPU. End-to-end computation on the GPU avoids unnecessary copying and converting of data off the GPU, reducing compute time and cost for high-performance analytics common in artificial intelligence workloads. As the name implies, cuDF uses the Apache Arrow columnar data format on the GPU. Currently, a subset of the features in Apache Arrow are supported.
