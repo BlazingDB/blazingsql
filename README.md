@@ -1,7 +1,6 @@
 > A lightweight, GPU accelerated, SQL engine built on the [RAPIDS.ai](https://rapids.ai) ecosystem.
 
-[![BlazingSQL](https://github.com/BlazingDB/pyBlazing/blob/develop/img/blazingSQL.png)](https://colab.research.google.com/drive/1r7S15Ie33yRw8cmET7_bjCpvjJiDOdub)
-
+<a href='https://colab.research.google.com/drive/1r7S15Ie33yRw8cmET7_bjCpvjJiDOdub'> <p align="center"><img src="https://github.com/BlazingDB/pyBlazing/blob/roaramburu-readme-update/img/bsql_rapids.PNG"/></p></a>
 
 [Getting Started](https://github.com/BlazingDB/pyBlazing#getting-started) | [Documentation](https://docs.blazingdb.com) | [Examples](https://github.com/BlazingDB/pyBlazing#examples) | [Contributing](https://github.com/BlazingDB/pyBlazing#contributing) | [License](https://github.com/BlazingDB/pyBlazing/blob/develop/LICENSE) | [Blog](https://blog.blazingdb.com)
 
