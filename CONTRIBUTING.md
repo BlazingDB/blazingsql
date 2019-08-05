@@ -19,7 +19,7 @@ Contributions to blazingSQL fall into the following three categories.
 
 ## Code contributions
 
-1. Follow the guide at the bottom of this page for [Setting Up Your Build Environment](#setting-up-your-build-environment).
+1. Follow the guide in our documentation for [Building From Source](https://docs.blazingdb.com/docs/build-from-source).
 2. Comment on the issue stating that you are going to work on it.
 3. Code! Make sure to update unit tests!
 4. When done, [create your pull request](https://github.com/blazingdb/pyBlazing/compare).
@@ -28,10 +28,6 @@ Contributions to blazingSQL fall into the following three categories.
 
 Remember, if you are unsure about anything, don't hesitate to comment on issues
 and ask for clarifications!
-
-
-## Setting Up Your Build Environment
-
 
 
 ## Attribution
