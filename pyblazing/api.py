@@ -57,7 +57,7 @@ class PyConnector(metaclass=Singleton):
     def __init__(self):
         self._orchestrator_path = '127.0.0.1'
         self._orchestrator_port = 8889
-        self._accessToken = None
+        self._accessToken = 0
 
     def __del__(self):
         self.close_connection()
@@ -69,7 +69,7 @@ class PyConnector(metaclass=Singleton):
         self._orchestrator_path = orchestrator_path
         self._orchestrator_port = orchestrator_port
 
-        if self._accessToken is not None:
+        if self._accessToken is not 0:
             print("Already connected to the Orchestrator")
             return
 
@@ -114,7 +114,7 @@ class PyConnector(metaclass=Singleton):
             raise RuntimeError(errorResponse.errors.decode('utf-8'))
 
         print('Successfully disconnected')
-        self._accessToken = None
+        self._accessToken = 0
 
     def is_connected(self):
         return self._accessToken is not None
