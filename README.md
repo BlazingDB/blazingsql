@@ -46,7 +46,7 @@ print(result_gdf)
 You can find our full documentation at [the following site](https://docs.blazingdb.com/docs/)
 
 ## Build/Install from Source
-See build [instructions](CONTRIBUTING.md#setting-up-your-build-environment).
+See build [instructions](https://docs.blazingdb.com/docs/build-from-source).
 
 ## Contributing
 Have questions or feedback? Post a [new github issue](https://github.com/BlazingDB/pyBlazing/issues/new/choose).
