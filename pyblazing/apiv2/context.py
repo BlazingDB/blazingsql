@@ -112,14 +112,14 @@ class BlazingContext(object):
                 csv_delimiter = kwargs.get('delimiter', '|')
                 csv_lineterminator = kwargs.get('lineterminator', '\n')
                 csv_skiprows = kwargs.get('skiprows', 0)
-                csv_nrows = kwargs.get('nrows', -1) # Depends if there is names or not
+                csv_nrows = kwargs.get('nrows', -1)
                 csv_header = kwargs.get('header', 0)
 
                 if path.suffix == '.csv':
                     csv_delimiter = ","
                 
-                if (len(csv_column_names) > 0):
-                     csv_header = -1;
+                if (len(csv_column_names) > 0): # Depends if there is names or not
+                    csv_header = -1;
 
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,

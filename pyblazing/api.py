@@ -130,9 +130,9 @@ class PyConnector(metaclass=Singleton):
                                  csvDelimiter,
                                  csvLineTerminator,
                                  csvSkipRows,
-                                 csvNrows,
-                                 csvHeader,
-                                 resultToken):
+                                 resultToken,
+                                 csvHeader):
+                                 
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
                                                                                        columnTypes=columnTypes,
@@ -817,7 +817,7 @@ def create_table(tableName, **kwargs):
     try:
         client = _get_client()
         return_result = client.run_ddl_create_table(tableName,columnNames,columnTypes,dbName,schemaType,
-                        blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,csvNrows, csvHeader, resultToken)
+                        blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows, resultToken, csvHeader)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
