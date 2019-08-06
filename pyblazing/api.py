@@ -131,7 +131,8 @@ class PyConnector(metaclass=Singleton):
                                  csvLineTerminator,
                                  csvSkipRows,
                                  resultToken,
-                                 csvHeader):
+                                 csvHeader,
+                                 csvNrows):
                                  
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
@@ -144,7 +145,8 @@ class PyConnector(metaclass=Singleton):
                                                                                        csvLineTerminator=csvLineTerminator,
                                                                                        csvSkipRows=csvSkipRows,
                                                                                        resultToken=resultToken,
-                                                                                       csvHeader=csvHeader)
+                                                                                       csvHeader=csvHeader,
+                                                                                       csvNrows=csvNrows)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -817,7 +819,7 @@ def create_table(tableName, **kwargs):
     try:
         client = _get_client()
         return_result = client.run_ddl_create_table(tableName,columnNames,columnTypes,dbName,schemaType,
-                        blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows, resultToken, csvHeader)
+                        blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows, resultToken, csvHeader, csvNrows)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
