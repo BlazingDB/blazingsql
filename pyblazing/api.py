@@ -723,6 +723,8 @@ def _run_query_get_results(distMetaToken, startTime):
 
 def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTime,client):
 
+# WSM put try around this whole funcion and make it return one more variable error_message
+
     resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
 
     gdf_columns = []
@@ -786,7 +788,7 @@ def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTim
     return resultSet, ipchandles
 
 def convert_result_msg(metaToken,connection):
-
+# WSM this funciton will return error_message
     resultSet, ipchandles = _get_result_dask(metaToken[0].resultToken,"127.0.0.1",8891,0,connection)
 
     totalTime = 0  # in milliseconds
@@ -803,7 +805,7 @@ def convert_result_msg(metaToken,connection):
                                                result['result'].calciteTime,
                                                result['resultSet'].metadata.time,
                                                totalTime,
-                                               ''
+                                               ''  # WSM add error_message
                                                )
 
 
@@ -820,10 +822,12 @@ def _run_query_get_concat_results(distMetaToken, startTime):
 
     client = _get_client()
 
-    error_message = ''
+    error_message = '' # WSM this should be an error_message that concatenates all error messages. Add something like. Node 0: error here. Node 1: error here. Node 2: no error.
+    # WSM also collect a set of sum of time
     try:
         result_list = []
         for result in distMetaToken:
+            # WSM move try here
             resultSet, ipchandles = _private_get_result(result.resultToken,
                                                         result.nodeConnection.path.decode('utf8'),
                                                         result.nodeConnection.port,
@@ -842,7 +846,7 @@ def _run_query_get_concat_results(distMetaToken, startTime):
                     for col_name, col in gdf._cols.items():
                         if (col.dtype != 'object'):
                             gdf[col_name] = gdf[col_name].copy(deep=True)
-                    return gdf
+                    return gdf  # WSM now we will want to construct a ResultSetHandle with the gdf and the sum of times. Other parameters can become NONE
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
@@ -854,7 +858,7 @@ def _run_query_get_concat_results(distMetaToken, startTime):
     if error_message is not '':
         print(error_message)
 
-    return DataFrame()
+    return DataFrame()  # WSM remember to change this to a ResultSetHandle
 
 
 
