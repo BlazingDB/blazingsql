@@ -24,7 +24,7 @@ For example:
 from blazingsql import BlazingContext
 bc = BlazingContext()
 
-bc.s3('dir_name', bucket_name='bucket_name', access_key_id='access_key', secrect_key='secret_key')
+bc.s3('dir_name', bucket_name='bucket_name', access_key_id='access_key', secret_key='secret_key')
 
 # Create Table from CSV
 bc.create_table('taxi', '/dir_name/taxi.csv')
