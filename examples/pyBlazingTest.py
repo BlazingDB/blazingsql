@@ -41,10 +41,11 @@ def main():
   
   # bc.create_table('lineitem', ["/home/william/repos/DataSets/DataSet100Mb/lineitem_0_0.psv"], delimiter='|', dtype=lineitemColTypes, names=lineitemColNames)
   # lineitem_gdf = cudf.read_csv("/home/william/repos/DataSets/DataSet100Mb/lineitem_0_0.psv", delimiter='|', dtype=lineitemColTypes, names=lineitemColNames)
-  # bc.create_table('lineitem', lineitem_gdf)
-  # bc.create_table('orders', ["/home/william/repos/DataSets/DataSet100Mb/orders_0_0.psv"], delimiter='|', dtype=ordersColTypes, names=ordersColNames)
-  # bc.create_table('customer', ["/home/william/repos/DataSets/DataSet100Mb/customer_0_0.psv"], delimiter='|', dtype=customerColTypes, names=customerColNames)
-  # bc.create_table('supplier', ["/home/william/repos/DataSets/DataSet100Mb/supplier_0_0.psv"], delimiter='|', dtype=supplierColTypes, names=supplierColNames)
+
+  bc.create_table('lineitem', ["/home/william/repos/DataSets/DataSet100Mb/lineitem_0_0.psv"], delimiter='|', dtype=lineitemColTypes, names=lineitemColNames)
+  bc.create_table('orders', ["/home/william/repos/DataSets/DataSet100Mb/orders_0_0.psv"], delimiter='|', dtype=ordersColTypes, names=ordersColNames)
+  bc.create_table('customer', ["/home/william/repos/DataSets/DataSet100Mb/customer_0_0.psv"], delimiter='|', dtype=customerColTypes, names=customerColNames)
+  bc.create_table('supplier', ["/home/william/repos/DataSets/DataSet100Mb/supplier_0_0.psv"], delimiter='|', dtype=supplierColTypes, names=supplierColNames)
 
 
   # bc.create_table('nation', "/home/william/repos/DataSets/DataSet100Mb/nation_0_0.parquet")
@@ -91,42 +92,25 @@ def main():
   # print(orders_csv.dtypes)
 
 
-  # query0 = """select n1.n_nationkey as supp_nation, n2.n_nationkey as cust_nation, l.l_extendedprice * l.l_discount 
-  # from main.supplier as s 
-  # inner join main.lineitem as l on s.s_suppkey = l.l_suppkey 
-  # inner join main.orders as o on o.o_orderkey = l.l_orderkey 
-  # inner join main.customer as c on c.c_custkey = o.o_custkey 
-  # inner join main.nation as n1 on s.s_nationkey = n1.n_nationkey 
-  # inner join main.nation as n2 on c.c_nationkey = n2.n_nationkey 
-  # where n1.n_nationkey = 1 and n2.n_nationkey = 2 and o.o_orderkey < 10000"""
-  # query = """select n1.n_nationkey as supp_nation, n2.n_nationkey as cust_nation, l.l_extendedprice * l.l_discount 
-  #   from main.supplier as s 
-  #   inner join main.lineitem as l on s.s_suppkey = l.l_suppkey 
-  #   inner join main.orders as o on o.o_orderkey = l.l_orderkey 
-  #   inner join main.customer as c on c.c_custkey = o.o_custkey 
-  #   inner join main.nation as n1 on s.s_nationkey = n1.n_nationkey 
-  #   inner join main.nation as n2 on c.c_nationkey = n2.n_nationkey 
-  #   where n1.n_nationkey = 1 and n2.n_nationkey = 2 and o.o_orderkey < 10000"""
+  query0 = """select n1.n_nationkey as supp_nation, n2.n_nationkey as cust_nation, l.l_extendedprice * l.l_discount 
+  from main.supplier as s 
+  inner join main.lineitem as l on s.s_suppkey = l.l_suppkey 
+  inner join main.orders as o on o.o_orderkey = l.l_orderkey 
+  inner join main.customer as c on c.c_custkey = o.o_custkey 
+  inner join main.nation as n1 on s.s_nationkey = n1.n_nationkey 
+  inner join main.nation as n2 on c.c_nationkey = n2.n_nationkey 
+  where n1.n_nationkey = 1 and n2.n_nationkey = 2 and o.o_orderkey < 10000"""
+  query = """select n1.n_nationkey as supp_nation, n2.n_nationkey as cust_nation, l.l_extendedprice * l.l_discount 
+    from main.supplier as s 
+    inner join main.lineitem as l on s.s_suppkey = l.l_suppkey 
+    inner join main.orders as o on o.o_orderkey = l.l_orderkey 
+    inner join main.customer as c on c.c_custkey = o.o_custkey 
+    inner join main.nation as n1 on s.s_nationkey = n1.n_nationkey 
+    inner join main.nation as n2 on c.c_nationkey = n2.n_nationkey 
+    where n1.n_nationkey = 1 and n2.n_nationkey = 2 and o.o_orderkey < 10000"""
 
-  # query = """select MIN(n.n_nationkey), MAX(n.n_nationkey) 
-  #   from main.nation as n left outer join main.region as r on n.n_nationkey = r.r_regionkey 
-  #   WHERE n.n_nationkey IS NULL"""
-  query = "select count(c_custkey), count(c_nationkey) from customer"
-  
-  result1 = bc.sql(query).get_all()
-  print(result1)
-
-  bc.create_table('customer',["/home/william/repos/DataSets/Multifiles/100MBNulls2Part/customer_0_0.parquet"])
-
-  result1 = bc.sql(query).get_all()
-  print(result1)
-
-  bc.create_table('customer', ["/home/william/repos/DataSets/Multifiles/100MBNulls2Part/customer_0_0.psv"], delimiter='|', dtype=customerColTypes, names=customerColNames)
-  result1 = bc.sql(query).get_all()
-  print(result1)
-
-  gdf = cudf.read_csv("/home/william/repos/DataSets/Multifiles/100MBNulls2Part/customer_0_0.psv", delimiter='|', dtype=customerColTypes, names=customerColNames)
-  bc.create_table('customer', gdf)
+  # query = "select l_orderkey, l_suppkey from main.lineitem"
+ 
   result1 = bc.sql(query).get_all()
   print(result1)
 
