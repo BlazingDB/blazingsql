@@ -278,7 +278,7 @@ class ResultSetHandle:
 
         self._buffer_ids = []
         if columns is not None:
-            if columns.columns.size>0:
+            if columns.columns.size>0 and columnTokens is not None:
                for idx, column in enumerate(self.columns.columns):
                     dataframe_column = self.columns._cols[column]
                     data_id = id(dataframe_column._column._data)
@@ -723,73 +723,80 @@ def _run_query_get_results(distMetaToken, startTime):
 
 def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTime,client):
 
-# WSM put try around this whole funcion and make it return one more variable error_message
-
-    resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
-
+    error_message = ''
     gdf_columns = []
     ipchandles = []
-    for i, c in enumerate(resultSet.columns):
-
-        # todo: remove this if when C gdf struct is replaced by pyarrow object
-        # this workaround is only for the python object. The RAL knows the column_token and will know what its dtype actually is
-        if c.dtype == gdf_dtype.GDF_DATE32:
-            c.dtype = gdf_dtype.GDF_INT32
-
-        if c.dtype == gdf_dtype.GDF_DATE64:
-            np_dtype = np.dtype('datetime64[ms]')
-        else:
-            np_dtype = gdf_to_np_dtype(c.dtype)
-
-        if c.size != 0 :
-            if c.dtype == gdf_dtype.GDF_STRING:
-                new_strs = nvstrings.create_from_ipc(c.custrings_data)
-                newcol = StringColumn(new_strs)
-
-                gdf_columns.append(newcol.view(StringColumn, dtype='object'))
+    resultSet = None
+    try:                
+        resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)        
+        
+        for i, c in enumerate(resultSet.columns):
+    
+            # todo: remove this if when C gdf struct is replaced by pyarrow object
+            # this workaround is only for the python object. The RAL knows the column_token and will know what its dtype actually is
+            if c.dtype == gdf_dtype.GDF_DATE32:
+                c.dtype = gdf_dtype.GDF_INT32
+    
+            if c.dtype == gdf_dtype.GDF_DATE64:
+                np_dtype = np.dtype('datetime64[ms]')
             else:
-                if c.dtype == gdf_dtype.GDF_STRING_CATEGORY:
-                    print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
-
-                assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
-
-                ipch_data, data_ptr = _open_ipc_array(
-                        c.data, shape=c.size, dtype=np_dtype)
-                ipchandles.append(ipch_data)
-
-                valid_ptr = None
-                if (c.null_count > 0):
-                    assert len(c.valid) == 64,"Valid ipc handle was not 64 bytes"
-                    ipch_valid, valid_ptr = _open_ipc_array(
-                        c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
-                    ipchandles.append(ipch_valid)
-
-                if (valid_ptr is None):
-                    gdf_columns.append(build_column(Buffer(data_ptr), np_dtype))
+                np_dtype = gdf_to_np_dtype(c.dtype)
+    
+            if c.size != 0 :
+                if c.dtype == gdf_dtype.GDF_STRING:
+                    new_strs = nvstrings.create_from_ipc(c.custrings_data)
+                    newcol = StringColumn(new_strs)
+    
+                    gdf_columns.append(newcol.view(StringColumn, dtype='object'))
                 else:
-                    gdf_columns.append(build_column(Buffer(data_ptr), np_dtype, Buffer(valid_ptr)))
-
-        else:
-            if c.dtype == gdf_dtype.GDF_STRING:
-                gdf_columns.append(StringColumn(nvstrings.to_device([])))
+                    if c.dtype == gdf_dtype.GDF_STRING_CATEGORY:
+                        print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
+    
+                    assert len(c.data) == 64,"Data ipc handle was not 64 bytes"
+    
+                    ipch_data, data_ptr = _open_ipc_array(
+                            c.data, shape=c.size, dtype=np_dtype)
+                    ipchandles.append(ipch_data)
+    
+                    valid_ptr = None
+                    if (c.null_count > 0):
+                        assert len(c.valid) == 64,"Valid ipc handle was not 64 bytes"
+                        ipch_valid, valid_ptr = _open_ipc_array(
+                            c.valid, shape=calc_chunk_size(c.size, mask_bitsize), dtype=np.int8)
+                        ipchandles.append(ipch_valid)
+    
+                    if (valid_ptr is None):
+                        gdf_columns.append(build_column(Buffer(data_ptr), np_dtype))
+                    else:
+                        gdf_columns.append(build_column(Buffer(data_ptr), np_dtype, Buffer(valid_ptr)))
+    
             else:
-                if c.dtype == gdf_dtype.GDF_DATE32:
-                    c.dtype = gdf_dtype.GDF_INT32
+                if c.dtype == gdf_dtype.GDF_STRING:
+                    gdf_columns.append(StringColumn(nvstrings.to_device([])))
+                else:
+                    if c.dtype == gdf_dtype.GDF_DATE32:
+                        c.dtype = gdf_dtype.GDF_INT32
+    
+                    gdf_columns.append(build_column(Buffer.null(np_dtype), np_dtype))
+    
+        gdf = DataFrame()
+        for k, v in zip(resultSet.columnNames, gdf_columns):
+            assert k != "", "Column name was an empty string"
+            gdf[k.decode("utf-8")] = v
 
-                gdf_columns.append(build_column(Buffer.null(np_dtype), np_dtype))
-
-    gdf = DataFrame()
-    for k, v in zip(resultSet.columnNames, gdf_columns):
-        assert k != "", "Column name was an empty string"
-        gdf[k.decode("utf-8")] = v
-
-
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = ""
+        
     resultSet.columns = gdf
-    return resultSet, ipchandles
+    
+    return resultSet, ipchandles, error_message
 
 def convert_result_msg(metaToken,connection):
-# WSM this funciton will return error_message
-    resultSet, ipchandles = _get_result_dask(metaToken[0].resultToken,"127.0.0.1",8891,0,connection)
+    resultSet, ipchandles, error_message = _get_result_dask(metaToken[0].resultToken,"127.0.0.1",8891,0,connection)
 
     totalTime = 0  # in milliseconds
 
@@ -805,7 +812,7 @@ def convert_result_msg(metaToken,connection):
                                                result['result'].calciteTime,
                                                result['resultSet'].metadata.time,
                                                totalTime,
-                                               ''  # WSM add error_message
+                                               error_message  
                                                )
 
 
@@ -822,43 +829,71 @@ def _run_query_get_concat_results(distMetaToken, startTime):
 
     client = _get_client()
 
-    error_message = '' # WSM this should be an error_message that concatenates all error messages. Add something like. Node 0: error here. Node 1: error here. Node 2: no error.
-    # WSM also collect a set of sum of time
-    try:
-        result_list = []
-        for result in distMetaToken:
-            # WSM move try here
+    all_error_messages = ''
+    result_list = []
+    ral_count = 0
+    sum_calcite_time = 0
+    sum_ral_time = 0
+    sum_total_time = 0
+    
+    for result in distMetaToken:
+        ral_count = ral_count + 1
+        error_message = ''
+        try:
+            startTime = time.time()
+            totalTime = 0
             resultSet, ipchandles = _private_get_result(result.resultToken,
                                                         result.nodeConnection.path.decode('utf8'),
                                                         result.nodeConnection.port,
                                                         result.calciteTime)
+            
+            totalTime = (time.time() - startTime) * 1000  # in milliseconds
+            
+            sum_calcite_time = sum_calcite_time + result.calciteTime
+            sum_ral_time =  sum_ral_time + result.metadata.time
+            sum_total_time =  sum_total_time + totalTime
+            
             result_list.append(resultSet)
+        except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+            error_message = error
+        except Error as error:
+            error_message = str(error)
+        except Exception as error:
+            error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
+    
+        if error_message is not '':            
+            print(error_message)
+            all_error_messages = all_error_messages + " Node " + ral_count + ":" + error_message
+            
+    need_to_concat = sum([len(result.columns) > 0 for result in result_list]) > 1
 
-        need_to_concat = sum([len(result.columns) > 0 for result in result_list]) > 1
+    gdf =  None
+    
+    if (need_to_concat):
+        all_gdfs = [result.columns for result in result_list]
+        gdf =  concat(all_gdfs, ignore_index=True)        
+    else:
+        for result in result_list:  # if we dont need to concatenate, likely we only have one, or only one that has data
+            if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings.
+                 gdf = result.columns
+                 for col_name, col in gdf._cols.items():
+                     if (col.dtype != 'object'):
+                         gdf[col_name] = gdf[col_name].copy(deep=True)
 
-        if (need_to_concat):
-            all_gdfs = [result.columns for result in result_list]
-            return concat(all_gdfs, ignore_index=True)
-        else:
-            for result in result_list:  # if we dont need to concatenate, likely we only have one, or only one that has data
-                if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings.
-                    gdf = result.columns
-                    for col_name, col in gdf._cols.items():
-                        if (col.dtype != 'object'):
-                            gdf[col_name] = gdf[col_name].copy(deep=True)
-                    return gdf  # WSM now we will want to construct a ResultSetHandle with the gdf and the sum of times. Other parameters can become NONE
+    resultSetHandle = ResultSetHandle(gdf,
+                                       None,
+                                       None,
+                                       None,
+                                       None,
+                                       None,
+                                       None,
+                                       sum_calcite_time,
+                                       sum_ral_time,
+                                       sum_total_time,
+                                       all_error_messages
+                                       )
 
-    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
-        error_message = error
-    except Error as error:
-        error_message = str(error)
-    except Exception as error:
-        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
-
-    if error_message is not '':
-        print(error_message)
-
-    return DataFrame()  # WSM remember to change this to a ResultSetHandle
+    return resultSetHandle 
 
 
 
