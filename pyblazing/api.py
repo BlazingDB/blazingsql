@@ -1,12 +1,22 @@
 import cudf as gd
 
+from collections import namedtuple
+
 import blazingdb.protocol
 import blazingdb.protocol.interpreter
 import blazingdb.protocol.orchestrator
 import blazingdb.protocol.transport.channel
+
+from blazingdb.messages.blazingdb.protocol.Status import Status
+from blazingdb.messages.blazingdb.protocol.FileSchemaType import FileSchemaType
 from blazingdb.protocol.errors import Error
 from blazingdb.protocol.calcite.errors import SyntaxError
-from blazingdb.messages.blazingdb.protocol.Status import Status
+from blazingdb.protocol.transport.channel import MakeRequestBuffer
+from blazingdb.protocol.transport.channel import ResponseSchema
+from blazingdb.protocol.transport.channel import ResponseErrorSchema
+from blazingdb.protocol.orchestrator import OrchestratorMessageType
+from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDeregisterRequestSchema
+from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
 
 from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
@@ -31,6 +41,7 @@ from collections import OrderedDict
 # NDarray device helper
 from numba import cuda
 from numba.cuda.cudadrv import driver, devices
+
 require_context = devices.require_context
 current_context = devices.get_context
 gpus = devices.gpus
@@ -855,25 +866,6 @@ def _run_query_get_concat_results(distMetaToken, startTime):
         print(error_message)
 
     return DataFrame()
-
-
-
-from collections import namedtuple
-from blazingdb.protocol.transport.channel import MakeRequestBuffer
-from blazingdb.protocol.transport.channel import ResponseSchema
-from blazingdb.protocol.transport.channel import ResponseErrorSchema
-from blazingdb.protocol.orchestrator import OrchestratorMessageType
-from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDeregisterRequestSchema
-from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
-import numpy as np
-import pandas as pd
-
-class SchemaFrom:
-    CsvFile = 0
-    ParquetFile = 1
-    Gdf = 2
-    Distributed = 3
-
 
 #cambiar para success or failed
 def create_table(tableName, **kwargs):
