@@ -272,7 +272,7 @@ def _get_client():
 
 class ResultSetHandle:
 
-    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message):
+    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message, total_nodes, n_crashed_nodes):
         self.columns = columns
         self.columnTokens = columnTokens
 
@@ -300,6 +300,8 @@ class ResultSetHandle:
         self.ralTime = ralTime
         self.totalTime = totalTime
         self.error_message = error_message
+        self.total_nodes =  total_nodes
+        self.n_crashed_nodes = n_crashed_nodes 
 
     def __del__(self):
         for key in self._buffer_ids:
@@ -700,7 +702,7 @@ def _run_query_get_results(distMetaToken, startTime):
         print(error_message)
 
     result_set_list = []
-
+    
     for result in result_list:
         result_set_list.append(ResultSetHandle(result['resultSet'].columns,
                                                result['resultSet'].columnTokens,
@@ -712,7 +714,9 @@ def _run_query_get_results(distMetaToken, startTime):
                                                result['result'].calciteTime,
                                                result['resultSet'].metadata.time,
                                                totalTime,
-                                               ''
+                                               '',
+                                               0,  #total_nodes
+                                               0   #n_crashed_nodes
                                                ))
 
     if len(result_set_list) == 1:
@@ -812,7 +816,9 @@ def convert_result_msg(metaToken,connection):
                                                result['result'].calciteTime,
                                                result['resultSet'].metadata.time,
                                                totalTime,
-                                               error_message  
+                                               error_message,
+                                               0, #total_nodes
+                                               0  #n_crashed_nodes
                                                )
 
 
@@ -835,6 +841,9 @@ def _run_query_get_concat_results(distMetaToken, startTime):
     sum_calcite_time = 0
     sum_ral_time = 0
     sum_total_time = 0
+    total_nodes = 0
+    n_crashed_nodes = 0 
+    
     
     for result in distMetaToken:
         ral_count = ral_count + 1
@@ -861,9 +870,13 @@ def _run_query_get_concat_results(distMetaToken, startTime):
         except Exception as error:
             error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
     
+        total_nodes = total_nodes + 1
+        
         if error_message is not '':            
             print(error_message)
-            all_error_messages = all_error_messages + " Node " + ral_count + ":" + error_message
+            all_error_messages = all_error_messages + " Node " + str(ral_count) + ":" + error_message
+        else:
+            n_crashed_nodes = n_crashed_nodes + 1
             
     need_to_concat = sum([len(result.columns) > 0 for result in result_list]) > 1
 
@@ -890,7 +903,9 @@ def _run_query_get_concat_results(distMetaToken, startTime):
                                        sum_calcite_time,
                                        sum_ral_time,
                                        sum_total_time,
-                                       all_error_messages
+                                       all_error_messages,
+                                       total_nodes, #total_nodes
+                                       n_crashed_nodes  #n_crashed_nodes
                                        )
 
     return resultSetHandle 
@@ -1031,7 +1046,9 @@ def run_query_filesystem(sql, sql_data):
                                                result['result'].calciteTime,
                                                result['resultSet'].metadata.time,
                                                totalTime,
-                                               ''
+                                               '',
+                                               0, #total_nodes
+                                               0  #n_crashed_nodes
                                                ))
 
     return result_set_list
