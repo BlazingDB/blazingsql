@@ -874,7 +874,7 @@ def _run_query_get_concat_results(distMetaToken, startTime):
         
         if error_message is not '':            
             print(error_message)
-            all_error_messages = all_error_messages + " Node " + str(ral_count) + ":" + error_message
+            all_error_messages = all_error_messages + " Node " + str(ral_count) + ":" + str(error_message)
         else:
             n_crashed_nodes = n_crashed_nodes + 1
             
