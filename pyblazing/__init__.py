@@ -5,7 +5,7 @@ from .api import run_query_get_concat_results
 from .api import register_file_system
 from .api import deregister_file_system
 from .api  import FileSystemType, DriverType, EncryptionType
-from .api import SchemaFrom
+from .api import FileSchemaType
 from .api import create_table
 
 from .api import ResultSetHandle

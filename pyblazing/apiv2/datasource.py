@@ -160,7 +160,7 @@ class DataSource:
         return_result = internal_api.create_table(
             self.client,
             table_name,
-            type = internal_api.SchemaFrom.Gdf,
+            type = internal_api.FileSchemaType.GDF,
             names = column_names,
             dtypes = column_dtypes,
             gdf = cudf_df
@@ -191,7 +191,7 @@ class DataSource:
         internal_api.create_table(
             self.client,
             table_name,
-            type = internal_api.SchemaFrom.Distributed,
+            type = internal_api.FileSchemaType.DISTRIBUTED,
             resultToken = distributed_result_set[0].resultToken
         )
 
@@ -210,7 +210,7 @@ class DataSource:
         return_result = internal_api.create_table(
             self.client,
             table_name,
-            type = internal_api.SchemaFrom.CsvFile,
+            type = internal_api.FileSchemaType.CSV,
             path = path,
             delimiter = delimiter,
             names = column_names,
@@ -234,7 +234,7 @@ class DataSource:
         return_result = internal_api.create_table(
             self.client,
             table_name,
-            type = internal_api.SchemaFrom.ParquetFile,
+            type = internal_api.FileSchemaType.PARQUET,
             path = path
         )
 
