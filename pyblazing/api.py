@@ -844,7 +844,6 @@ def _run_query_get_concat_results(distMetaToken, startTime):
     total_nodes = 0
     n_crashed_nodes = 0 
     
-    
     for result in distMetaToken:
         ral_count = ral_count + 1
         error_message = ''
@@ -859,7 +858,7 @@ def _run_query_get_concat_results(distMetaToken, startTime):
             totalTime = (time.time() - startTime) * 1000  # in milliseconds
             
             sum_calcite_time = sum_calcite_time + result.calciteTime
-            sum_ral_time =  sum_ral_time + result.metadata.time
+            sum_ral_time =  sum_ral_time  + resultSet.metadata.time
             sum_total_time =  sum_total_time + totalTime
             
             result_list.append(resultSet)
