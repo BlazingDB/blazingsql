@@ -8,7 +8,6 @@ import blazingdb.protocol.orchestrator
 import blazingdb.protocol.transport.channel
 
 from blazingdb.messages.blazingdb.protocol.Status import Status
-from blazingdb.messages.blazingdb.protocol.FileSchemaType import FileSchemaType
 from blazingdb.protocol.errors import Error
 from blazingdb.protocol.calcite.errors import SyntaxError
 from blazingdb.protocol.transport.channel import MakeRequestBuffer
@@ -17,7 +16,7 @@ from blazingdb.protocol.transport.channel import ResponseErrorSchema
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDeregisterRequestSchema
 from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
-
+ 
 from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
