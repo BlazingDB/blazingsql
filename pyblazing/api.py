@@ -660,7 +660,7 @@ def _run_query_get_token(sql):
     except Error as error:
         error_message = str(error)
     except Exception:
-        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
+        error_message = "Unexpected error on " + _run_query_get_token.__name__
 
     if error_message is not '':
         print(error_message)
@@ -712,7 +712,7 @@ def _run_query_get_results(distMetaToken, startTime):
                                                result['result'].calciteTime,
                                                result['resultSet'].metadata.time,
                                                totalTime,
-                                               ''
+                                               error_message
                                                ))
 
     if len(result_set_list) == 1:
@@ -873,6 +873,7 @@ class SchemaFrom:
     ParquetFile = 1
     Gdf = 2
     Distributed = 3
+    JsonFile = 4
 
 
 #cambiar para success or failed
