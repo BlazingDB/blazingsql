@@ -15,6 +15,7 @@ class Type(IntEnum):
     parquet = 4
     result_set = 5
     distributed_result_set = 6
+    json = 7
 
 
 class DataSource:
@@ -47,6 +48,7 @@ class DataSource:
             Type.arrow: 'arrow',
             Type.csv: 'csv',
             Type.parquet: 'parquet',
+            Type.json: 'json',
             Type.result_set: 'result_set'
         }
 
@@ -77,6 +79,10 @@ class DataSource:
     def is_parquet(self):
         return self.type == Type.parquet
 
+    # json file on filesystem
+    def is_json(self):
+        return self.type == Type.json
+
     # blazing result set handle
     def is_result_set(self):
         return self.type == Type.result_set
@@ -106,6 +112,8 @@ class DataSource:
             return self.csv
         elif self.type == Type.parquet:
             return self.parquet
+        elif self.type == Type.json:
+            return self.json
         elif self.type == Type.cudf:
             return self.cudf_df
 
@@ -144,6 +152,10 @@ class DataSource:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
             return self._load_parquet(table_name, path)
+        elif type == Type.json:
+            table_name = kwargs.get('table_name', None)
+            path = kwargs.get('path', None)
+            return self._load_json(table_name, path)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -243,6 +255,26 @@ class DataSource:
         self.valid = return_result
 
         return self.valid
+
+    def _load_json(self, table_name, path):
+        # TODO percy manage datasource load errors
+        if path == None:
+            return False
+
+        self.path = path
+
+        return_result = internal_api.create_table(
+            self.client,
+            table_name,
+            type = internal_api.SchemaFrom.JsonFile,
+            path = path
+        )
+
+        # TODO percy see if we need to perform sanity check for arrow_table object
+        #return success or failed
+        self.valid = return_result
+
+        return self.valid
 #END remove
 
 # BEGIN DataSource builders
@@ -280,5 +312,8 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, sk
 # TODO percy path (with wildcard support) is file system transparent
 def from_parquet(client, table_name, path):
     return DataSource(client, Type.parquet, table_name = table_name, path = path)
+
+def from_json(client, table_name, path):
+    return DataSource(client, Type.json, table_name = table_name, path = path)
 
 # END DataSource builders
