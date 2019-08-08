@@ -714,7 +714,7 @@ def _run_query_get_results(distMetaToken, startTime):
     result_set_list = []
     
     for result in result_list:
-        if result.error_message is not '':
+        if result['error_message'] is not '':
             result_set_list.append(ResultSetHandle(None,
                                                    None, 
                                                    result['result'].resultToken,
