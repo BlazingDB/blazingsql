@@ -39,6 +39,7 @@ gpus = devices.gpus
 dataColumnTokens = {}
 validColumnTokens = {}
 
+
 # connection_path is a ip/host when tcp and can be unix socket when ipc
 def _send_request(connection_path, connection_port, requestBuffer):
     connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
@@ -690,7 +691,10 @@ def _run_query_get_results(distMetaToken, startTime):
                                                         result.nodeConnection.path.decode('utf8'),
                                                         result.nodeConnection.port,
                                                         result.calciteTime)
-            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles})
+            
+            totalTime = (time.time() - startTime) * 1000  # in milliseconds
+            
+            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles, 'totalTime':totalTime, 'error_message':''})
             
         except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
             error_message = error
@@ -698,34 +702,48 @@ def _run_query_get_results(distMetaToken, startTime):
             error_message = str(error)
         except Exception as error:
             error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
-
-    totalTime = (time.time() - startTime) * 1000  # in milliseconds
-
-    if error_message is not '':
-        print(error_message)
-        
-    if error_message is not '':            
-        print(error_message)
-        n_crashed_nodes = n_crashed_nodes + 1
-        
+            
+        if error_message is not '':
+            print(error_message)
+            result_list.append({'result': result, 'resultSet': None, 'ipchandles': None, 'totalTime':0, 'error_message':error_message})
+                    
+        if error_message is not '':            
+            print(error_message)
+            n_crashed_nodes = n_crashed_nodes + 1 
 
     result_set_list = []
     
     for result in result_list:
-        result_set_list.append(ResultSetHandle(result['resultSet'].columns,
-                                               result['resultSet'].columnTokens,
-                                               result['result'].resultToken,
-                                               result['result'].nodeConnection.path.decode('utf8'),
-                                               result['result'].nodeConnection.port,
-                                               result['ipchandles'],
-                                               client,
-                                               result['result'].calciteTime,
-                                               result['resultSet'].metadata.time,
-                                               totalTime,
-                                               error_message,
-                                               total_nodes,  #total_nodes
-                                               n_crashed_nodes   #n_crashed_nodes
-                                               ))
+        if result.error_message is not '':
+            result_set_list.append(ResultSetHandle(None,
+                                                   None, 
+                                                   result['result'].resultToken,
+                                                   result['result'].nodeConnection.path.decode('utf8'),
+                                                   result['result'].nodeConnection.port,
+                                                   None,
+                                                   client,
+                                                   result['result'].calciteTime,
+                                                   None,
+                                                   0,
+                                                   result['error_message'],
+                                                   total_nodes,  #total_nodes
+                                                   n_crashed_nodes   #n_crashed_nodes
+                                                   ))
+        else:
+            result_set_list.append(ResultSetHandle(result['resultSet'].columns,
+                                                   result['resultSet'].columnTokens,
+                                                   result['result'].resultToken,
+                                                   result['result'].nodeConnection.path.decode('utf8'),
+                                                   result['result'].nodeConnection.port,
+                                                   result['ipchandles'],
+                                                   client,
+                                                   result['result'].calciteTime,
+                                                   result['resultSet'].metadata.time,
+                                                   result['totalTime'],
+                                                   result['error_message'],
+                                                   total_nodes,  #total_nodes
+                                                   n_crashed_nodes   #n_crashed_nodes
+                                                   ))
 
     if len(result_set_list) == 1:
         result_set_list = result_set_list[0]
@@ -995,3 +1013,10 @@ def _create_dummy_table_group():
     database_name = 'main'
     tableGroup = OrderedDict([('name', database_name), ('tables', [])])
     return tableGroup
+
+def gdf_to_np_dtype(dtype):
+   """Util to convert gdf dtype to numpy dtype.
+   """
+   return np.dtype(gdf_dtypes[dtype])
+
+
