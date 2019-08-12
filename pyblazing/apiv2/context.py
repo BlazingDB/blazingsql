@@ -150,6 +150,15 @@ class BlazingContext(object):
                 elif csv_nrows < 0:
                     raise ValueError("'nrows' must be an integer >= 0")
 
+                # skipinitialspace
+                csv_skipinitialspace = kwargs.get('skipinitialspace', False)
+                if csv_skipinitialspace == None:
+                   raise TypeError("an integer is required")
+                elif csv_skipinitialspace == False:
+                    csv_skipinitialspace = False
+                else:
+                    csv_skipinitialspace = True
+
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
@@ -157,7 +166,8 @@ class BlazingContext(object):
                     csv_skiprows,
                     csv_lineterminator,
                     csv_header,
-                    csv_nrows)
+                    csv_nrows,
+                    csv_skipinitialspace)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
