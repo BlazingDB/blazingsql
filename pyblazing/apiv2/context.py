@@ -143,13 +143,21 @@ class BlazingContext(object):
                 if csv_header == None or csv_header < -1 :
                     csv_header = -1
 
+                # nrows
+                csv_nrows = kwargs.get('nrows')
+                if csv_nrows == None:
+                    csv_nrows = -1
+                elif csv_nrows < 0:
+                    raise ValueError("'nrows' must be an integer >= 0")
+
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
                     csv_delimiter,
                     csv_skiprows,
                     csv_lineterminator,
-                    csv_header)
+                    csv_header,
+                    csv_nrows)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")

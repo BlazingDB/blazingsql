@@ -137,6 +137,7 @@ class DataSource:
             csv_lineterminator = kwargs.get('csv_lineterminator')
             csv_skiprows = kwargs.get('csv_skiprows')
             csv_header = kwargs.get('csv_header')
+            csv_nrows = kwargs.get('csv_nrows')
 
             return self._load_csv(table_name, path,
                 csv_column_names,
@@ -144,7 +145,8 @@ class DataSource:
                 csv_delimiter,
                 csv_skiprows,
                 csv_lineterminator,
-                csv_header)
+                csv_header,
+                csv_nrows)
 
         elif type == Type.parquet:
             table_name = kwargs.get('table_name', None)
@@ -206,7 +208,7 @@ class DataSource:
         return self.valid
 
 
-    def _load_csv(self, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header):
+    def _load_csv(self, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header, nrows):
         # TODO percy manage datasource load errors
         if path == None:
             return False
@@ -223,7 +225,8 @@ class DataSource:
             dtypes = internal_api.get_dtype_values(column_types),
             skiprows = skiprows,
             lineterminator = lineterminator,
-            header = header
+            header = header,
+            nrows = nrows
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
@@ -274,7 +277,7 @@ def from_distributed_result_set(result_set, table_name):
     return DataSource(None, Type.distributed_result_set, table_name = table_name, result_set = result_set)
 
 
-def from_csv(client, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header):
+def from_csv(client, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header, nrows):
     return DataSource(client, Type.csv,
         table_name = table_name,
         path = path,
@@ -283,7 +286,8 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, sk
         csv_delimiter = delimiter,
         csv_skiprows = skiprows,
         csv_lineterminator = lineterminator,
-        csv_header = header
+        csv_header = header,
+        csv_nrows = nrows
     )
 
 
