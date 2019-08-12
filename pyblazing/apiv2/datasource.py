@@ -133,13 +133,19 @@ class DataSource:
             path = kwargs.get('path', None)
             csv_column_names = kwargs.get('csv_column_names', [])
             csv_column_types = kwargs.get('csv_column_types', [])
-            csv_delimiter = kwargs.get('csv_delimiter', '|')
-            csv_skip_rows = kwargs.get('csv_skip_rows', 0)
+            csv_delimiter = kwargs.get('csv_delimiter')
+            csv_lineterminator = kwargs.get('csv_lineterminator')
+            csv_skiprows = kwargs.get('csv_skiprows')
+            csv_header = kwargs.get('csv_header')
+
             return self._load_csv(table_name, path,
                 csv_column_names,
                 csv_column_types,
                 csv_delimiter,
-                csv_skip_rows)
+                csv_skiprows,
+                csv_lineterminator,
+                csv_header)
+
         elif type == Type.parquet:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
@@ -200,7 +206,7 @@ class DataSource:
         return self.valid
 
 
-    def _load_csv(self, table_name, path, column_names, column_types, delimiter, skip_rows):
+    def _load_csv(self, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header):
         # TODO percy manage datasource load errors
         if path == None:
             return False
@@ -215,7 +221,9 @@ class DataSource:
             delimiter = delimiter,
             names = column_names,
             dtypes = internal_api.get_dtype_values(column_types),
-            skip_rows = skip_rows
+            skiprows = skiprows,
+            lineterminator = lineterminator,
+            header = header
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
@@ -266,14 +274,16 @@ def from_distributed_result_set(result_set, table_name):
     return DataSource(None, Type.distributed_result_set, table_name = table_name, result_set = result_set)
 
 
-def from_csv(client, table_name, path, column_names, column_types, delimiter, skip_rows):
+def from_csv(client, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header):
     return DataSource(client, Type.csv,
         table_name = table_name,
         path = path,
         csv_column_names = column_names,
         csv_column_types = column_types,
         csv_delimiter = delimiter,
-        csv_skip_rows = skip_rows
+        csv_skiprows = skiprows,
+        csv_lineterminator = lineterminator,
+        csv_header = header
     )
 
 
