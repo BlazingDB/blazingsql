@@ -107,16 +107,49 @@ class BlazingContext(object):
                 datasource = from_parquet(self.client, table_name, paths)
             elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
                 # TODO percy duplicated code bud itnernal api desing remove this later
+
+                # Names and types
                 csv_column_names = kwargs.get('names', [])
                 csv_column_types = kwargs.get('dtype', [])
-                csv_delimiter = kwargs.get('delimiter', '|')
-                csv_skip_rows = kwargs.get('skiprows', 0)
+
+                # delimiter
+                csv_delimiter = kwargs.get('delimiter')
+                if csv_delimiter == None:
+                    if path.suffix == '.csv':
+                        csv_delimiter = ","
+                    else:
+                        csv_delimiter = "|"
+
+                # lineterminator
+                csv_lineterminator = kwargs.get('lineterminator', '\n')
+                if csv_lineterminator == None:
+                    csv_lineterminator = '\n'
+                elif isinstance(csv_lineterminator, bool):
+                    raise TypeError("object of type 'bool' has no len()")
+                elif isinstance(csv_lineterminator, int):
+                    raise TypeError("object of type 'int' has no len()")
+                if len(csv_lineterminator) > 1:
+                    raise ValueError("Only length-1 decimal markers supported")
+
+                # skiprows
+                csv_skiprows = kwargs.get('skiprows', 0)
+                if csv_skiprows == None or csv_skiprows < 0:
+                    csv_skiprows = 0
+
+                # header
+                csv_header = kwargs.get('header',-1)
+                if csv_header == -1 and len(csv_column_names) == 0:
+                    csv_header = 0
+                if csv_header == None or csv_header < -1 :
+                    csv_header = -1
 
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
                     csv_delimiter,
-                    csv_skip_rows)
+                    csv_skiprows,
+                    csv_lineterminator,
+                    csv_header)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
