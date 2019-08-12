@@ -899,7 +899,7 @@ def create_table(tableName, **kwargs):
     if dask_cudf is None:
         dask_tables = dask_cudf_to_BlazingDaskTable(dask_cudf)
     else
-        dask_tables = make_empty_BlazingDaskTable()
+        dask_tables = []
 
     if (len(columnTypes) > 0):
         columnTypes = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
