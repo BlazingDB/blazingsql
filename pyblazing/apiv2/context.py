@@ -159,6 +159,15 @@ class BlazingContext(object):
                 else:
                     csv_skipinitialspace = True
 
+                # delim_whitespace
+                csv_delim_whitespace = kwargs.get('delim_whitespace', False)
+                if csv_delim_whitespace == None or csv_delim_whitespace == False:
+                    csv_delim_whitespace = False
+                elif isinstance(csv_delim_whitespace, str):
+                    raise TypeError("an integer is required")
+                else:
+                    csv_delim_whitespace = True
+                 
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
@@ -167,7 +176,8 @@ class BlazingContext(object):
                     csv_lineterminator,
                     csv_header,
                     csv_nrows,
-                    csv_skipinitialspace)
+                    csv_skipinitialspace,
+                    csv_delim_whitespace)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
