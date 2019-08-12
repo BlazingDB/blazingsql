@@ -885,6 +885,7 @@ def create_table(tableName, **kwargs):
     dbName = 'main'
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
+    dask_cudf = kwargs.get('gdf', None)
     files = kwargs.get('path', [])
     csvDelimiter = kwargs.get('delimiter', '|')
     csvLineTerminator = kwargs.get('line_terminator', '\n')
@@ -894,6 +895,11 @@ def create_table(tableName, **kwargs):
         blazing_table = make_empty_BlazingTable()
     else:
         blazing_table = gdf_to_BlazingTable(gdf)
+
+    if dask_cudf is None:
+        dask_tables = dask_cudf_to_BlazingDaskTable(dask_cudf)
+    else
+        dask_tables = make_empty_BlazingDaskTable()
 
     if (len(columnTypes) > 0):
         columnTypes = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
@@ -918,6 +924,16 @@ def create_table(tableName, **kwargs):
     return return_result
 
 
+def get_machine_and_blazing_table(partition):
+    return socket.gethostname(), gdf_to_BlazingTable(gdf)
+
+def dask_cudf_to_BlazingDaskTable(dask_cudf):
+    df_list = dask_cudf.map_partitions(get_machine_and_pointer).compute()
+    dask_cudf_ret = []
+    for socket, gdf in df_list :
+        node_table = BlazingNodeTable(socket,gdf)
+        dask_cudf_ret.append(node_table)
+    return node_table
 
 def register_file_system(authority, type, root, params = None):
     if params is not None:

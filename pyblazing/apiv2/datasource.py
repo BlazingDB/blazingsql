@@ -30,7 +30,7 @@ class DataSource:
         self.csv = None
         self.parquet = None
         self.path = None
-
+        self.dask_cudf = None
         # init the data source
         self.valid = self._load(type, **kwargs)
 
@@ -47,7 +47,8 @@ class DataSource:
             Type.arrow: 'arrow',
             Type.csv: 'csv',
             Type.parquet: 'parquet',
-            Type.result_set: 'result_set'
+            Type.result_set: 'result_set',
+            Type.dask_cudf: 'dask_cudf'
         }
 
         # TODO percy path and stuff
@@ -56,6 +57,11 @@ class DataSource:
 
     #def is_valid(self):
     #    return self.valid
+
+
+    #dask_cudf.Dataframe in gpu-memory distributed_result_set
+    def is_dask(self):
+        return self.type == Type.dask_cudf
 
     # cudf.DataFrame in-gpu-memory
     def is_cudf(self):
@@ -98,7 +104,8 @@ class DataSource:
             return self.cudf_df
         elif self.type == Type.result_set:
             return self.cudf_df
-
+        elif self.type == Type.dask:
+            return self.dask_cudf
         return None
 
     def schema(self):
@@ -108,6 +115,8 @@ class DataSource:
             return self.parquet
         elif self.type == Type.cudf:
             return self.cudf_df
+        elif self.type == Type.dask_cudf
+            return self.dask_cudf
 
         return None
 
@@ -144,6 +153,9 @@ class DataSource:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
             return self._load_parquet(table_name, path)
+        elif type == Type.dask_cudf
+            dask_cudf = kwargs.get('dask_cudf', None)
+            return self._load_dask_cudf(table_name,dask_cudf)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -151,6 +163,26 @@ class DataSource:
         # TODO percy compare against bz proto Status_Success or Status_Error
         # here we need to use low level api pyblazing.create_table
         return False
+
+    def _load_dask_cudf(self, table_name, dask_cudf):
+        self.dask_cudf = dask_cudf
+
+        column_names = list(result.dtypes.index)
+        column_dtypes = [internal_api.get_np_dtype_to_gdf_dtype(x) for x in dask_cdf.dtypes]
+        return_result = internal_api.create_table(
+            self.client,
+            table_name,
+            type = internal_api.SchemaFrom.Dask,
+            names = column_names,
+            dtypes = column_dtypes,
+            dask_cudf = dask_cudf
+        )
+
+        # TODO percy see if we need to perform sanity check for cudf_df object
+        self.valid = True
+
+        return self.valid
+
 
     def _load_cudf_df(self, table_name, cudf_df):
         self.cudf_df = cudf_df
