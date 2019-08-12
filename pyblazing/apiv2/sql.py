@@ -23,7 +23,9 @@ class ResultSet:
         if(self.dask_client is None):
             temp = internal_api.run_query_get_results(self.client, self.metaToken, self.startTime)
         else:
-            dask_futures = dask_client.run(internal_api.convert_to_dask,self.metaToken,self.client)
+            dask_futures = []
+            for worker in list(self.dask_client.scheduler_info()["workers"]):
+                dask_futures.append(self.dask_client.submit(internal_api.convert_to_dask,self.metaToken,self.client, workers=[worker]))
             temp = dd.from_delayed(dask_futures)
 
         return temp
@@ -51,9 +53,6 @@ class SQL(object):
 
     # ds is the DataSource object
     def create_table(self, table_name, datasource):
-        self._verify_table_name(table_name)
-
-        # TODO verify cuda ipc ownership or reuse resources here
 
         self.tables[table_name] = datasource
 
@@ -85,10 +84,3 @@ class SQL(object):
         startTime = time.time()
         metaToken = internal_api.run_query_get_token(client, sql)
         return ResultSet(client, metaToken, startTime,dask_client)
-
-
-    def _verify_table_name(self, table_name):
-        # TODO percy throw exception
-        if table_name in self.tables:
-            # TODO percy improve this one add the fs type so we can raise a nice exeption
-            raise Exception('Fail add table_name already exists')
