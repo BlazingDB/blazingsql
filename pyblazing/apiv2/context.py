@@ -18,6 +18,7 @@ from .datasource import from_arrow
 from .datasource import from_csv
 from .datasource import from_parquet
 from .datasource import from_json
+from .datasource import from_orc
 from .datasource import from_result_set
 from .datasource import from_distributed_result_set
 import time
@@ -108,6 +109,8 @@ class BlazingContext(object):
                 datasource = from_parquet(self.client, table_name, paths)
             elif path.suffix == '.json' or kwargs.get('fileFormat', None) == 'json':
                     datasource = from_json(self.client, table_name, paths)
+            elif path.suffix == '.orc' or kwargs.get('fileFormat', None) == 'orc':
+                datasource = from_orc(self.client, table_name, paths)
             elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl' or kwargs.get('fileFormat', None) == 'csv':
                 # TODO percy duplicated code bud itnernal api desing remove this later
                 csv_column_names = kwargs.get('names', [])

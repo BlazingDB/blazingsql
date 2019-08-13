@@ -16,6 +16,7 @@ class Type(IntEnum):
     result_set = 5
     distributed_result_set = 6
     json = 7
+    orc = 8
 
 
 class DataSource:
@@ -49,6 +50,7 @@ class DataSource:
             Type.csv: 'csv',
             Type.parquet: 'parquet',
             Type.json: 'json',
+            Type.orc: 'orc',
             Type.result_set: 'result_set'
         }
 
@@ -83,6 +85,10 @@ class DataSource:
     def is_json(self):
         return self.type == Type.json
 
+    # orc file on filesystem
+    def is_orc(self):
+        return self.type == Type.orc
+
     # blazing result set handle
     def is_result_set(self):
         return self.type == Type.result_set
@@ -114,6 +120,8 @@ class DataSource:
             return self.parquet
         elif self.type == Type.json:
             return self.json
+        elif self.type == Type.orc:
+            return self.orc
         elif self.type == Type.cudf:
             return self.cudf_df
 
@@ -156,6 +164,10 @@ class DataSource:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
             return self._load_json(table_name, path)
+        elif type == Type.orc:
+            table_name = kwargs.get('table_name', None)
+            path = kwargs.get('path', None)
+            return self._load_orc(table_name, path)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -275,6 +287,26 @@ class DataSource:
         self.valid = return_result
 
         return self.valid
+
+    def _load_orc(self, table_name, path):
+        # TODO percy manage datasource load errors
+        if path == None:
+            return False
+
+        self.path = path
+
+        return_result = internal_api.create_table(
+            self.client,
+            table_name,
+            type = internal_api.SchemaFrom.OrcFile,
+            path = path
+        )
+
+        # TODO percy see if we need to perform sanity check for arrow_table object
+        #return success or failed
+        self.valid = return_result
+
+        return self.valid
 #END remove
 
 # BEGIN DataSource builders
@@ -316,4 +348,6 @@ def from_parquet(client, table_name, path):
 def from_json(client, table_name, path):
     return DataSource(client, Type.json, table_name = table_name, path = path)
 
+def from_orc(client, table_name, path):
+    return DataSource(client, Type.orc, table_name = table_name, path = path)
 # END DataSource builders
