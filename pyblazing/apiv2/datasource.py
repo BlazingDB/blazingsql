@@ -143,6 +143,7 @@ class DataSource:
             csv_skip_blank_lines = kwargs.get('csv_skip_blank_lines')
             csv_quotechar = kwargs.get('csv_quotechar')
             csv_quoting = kwargs.get('csv_quoting')
+            csv_doublequote = kwargs.get('csv_doublequote')
 
             return self._load_csv(table_name, path,
                 csv_column_names,
@@ -156,7 +157,8 @@ class DataSource:
                 csv_delim_whitespace,
                 csv_skip_blank_lines,
                 csv_quotechar,
-                csv_quoting)
+                csv_quoting,
+                csv_doublequote)
 
         elif type == Type.parquet:
             table_name = kwargs.get('table_name', None)
@@ -219,7 +221,7 @@ class DataSource:
 
 
     def _load_csv(self, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header, nrows, skipinitialspace, delim_whitespace,
-        skip_blank_lines, quotechar, quoting):
+        skip_blank_lines, quotechar, quoting, doublequote):
         # TODO percy manage datasource load errors
         if path == None:
             return False
@@ -242,7 +244,8 @@ class DataSource:
             delim_whitespace = delim_whitespace,
             skip_blank_lines = skip_blank_lines,
             quotechar = quotechar,
-            quoting = quoting
+            quoting = quoting,
+            doublequote = doublequote
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
@@ -294,7 +297,7 @@ def from_distributed_result_set(result_set, table_name):
 
 
 def from_csv(client, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header, nrows, skipinitialspace, delim_whitespace,
-    skip_blank_lines, quotechar, quoting):
+    skip_blank_lines, quotechar, quoting, doublequote):
     return DataSource(client, Type.csv,
         table_name = table_name,
         path = path,
@@ -309,7 +312,8 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, sk
         csv_delim_whitespace = delim_whitespace,
         csv_skip_blank_lines = skip_blank_lines,
         csv_quotechar = quotechar,
-        csv_quoting = quoting
+        csv_quoting = quoting,
+        csv_doublequote = doublequote
     )
 
 
