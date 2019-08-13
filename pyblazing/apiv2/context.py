@@ -193,6 +193,13 @@ class BlazingContext(object):
                         raise TypeError("bad 'quoting' value")
                 else:
                     raise TypeError(" 'quoting' must be an integer")
+
+                # doublequote
+                csv_doublequote = kwargs.get('doublequote', True)
+                if csv_doublequote == None or not isinstance(csv_doublequote, int):
+                   raise TypeError("an integer is required")
+                elif csv_doublequote != False:
+                    csv_doublequote = True
                  
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
@@ -206,7 +213,8 @@ class BlazingContext(object):
                     csv_delim_whitespace,
                     csv_skip_blank_lines,
                     csv_quotechar,
-                    csv_quoting)
+                    csv_quoting,
+                    csv_doublequote)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
