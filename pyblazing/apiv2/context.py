@@ -185,6 +185,14 @@ class BlazingContext(object):
                     raise TypeError("quotechar must be string, not bool")
                 elif len(csv_quotechar) > 1 :
                     raise TypeError("quotechar must be a 1-character string")
+
+                # quoting
+                csv_quoting = kwargs.get('quoting', 0)
+                if isinstance(csv_quoting, int) :
+                    if csv_quoting < 0 or csv_quoting > 3 :
+                        raise TypeError("bad 'quoting' value")
+                else:
+                    raise TypeError(" 'quoting' must be an integer")
                  
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
@@ -197,7 +205,8 @@ class BlazingContext(object):
                     csv_skipinitialspace,
                     csv_delim_whitespace,
                     csv_skip_blank_lines,
-                    csv_quotechar)
+                    csv_quotechar,
+                    csv_quoting)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
