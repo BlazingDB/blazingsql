@@ -172,9 +172,19 @@ class BlazingContext(object):
                 csv_skip_blank_lines = kwargs.get('skip_blank_lines', True)
                 if csv_skip_blank_lines == None or isinstance(csv_skip_blank_lines, str):
                     raise TypeError("an integer is required")
-
                 if csv_skip_blank_lines != False:
                     csv_skip_blank_lines = True
+
+                # quotechar
+                csv_quotechar = kwargs.get('quotechar', '\"')
+                if csv_quotechar == None:
+                    raise TypeError("quotechar must be set if quoting enabled")
+                elif isinstance(csv_quotechar, int):
+                    raise TypeError("quotechar must be string, not int")
+                elif isinstance(csv_quotechar, bool):
+                    raise TypeError("quotechar must be string, not bool")
+                elif len(csv_quotechar) > 1 :
+                    raise TypeError("quotechar must be a 1-character string")
                  
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
@@ -186,7 +196,8 @@ class BlazingContext(object):
                     csv_nrows,
                     csv_skipinitialspace,
                     csv_delim_whitespace,
-                    csv_skip_blank_lines)
+                    csv_skip_blank_lines,
+                    csv_quotechar)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
