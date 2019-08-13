@@ -940,6 +940,7 @@ class SchemaFrom:
     Gdf = 2
     Distributed = 3
     JsonFile = 4
+    OrcFile = 5
 
 
 #cambiar para success or failed
