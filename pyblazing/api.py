@@ -120,28 +120,30 @@ class PyConnector(metaclass=Singleton):
         return self._accessToken is not None
 
     def run_ddl_create_table(self,
-                                 tableName,
-                                 columnNames,
-                                 columnTypes,
-                                 dbName,
-                                 schemaType,
-                                 blazing_table,
-                                 files,
-                                 csvDelimiter,
-                                 csvLineTerminator,
-                                 csvSkipRows,
-                                 resultToken):
+                             tableName,
+                             columnNames,
+                             columnTypes,
+                             dbName,
+                             schemaType,
+                             blazing_table,
+                             files,
+                             csvDelimiter,
+                             csvLineTerminator,
+                             csvSkipRows,
+                             resultToken,
+                             daskTables):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
-                                                                                       columnNames=columnNames,
-                                                                                       columnTypes=columnTypes,
-                                                                                       dbName=dbName,
-                                                                                       schemaType=schemaType,
-                                                                                       gdf=blazing_table,
-                                                                                       files=files,
-                                                                                       csvDelimiter=csvDelimiter,
-                                                                                       csvLineTerminator=csvLineTerminator,
-                                                                                       csvSkipRows=csvSkipRows,
-                                                                                       resultToken=resultToken)
+                                                                                            columnNames=columnNames,
+                                                                                            columnTypes=columnTypes,
+                                                                                            dbName=dbName,
+                                                                                            schemaType=schemaType,
+                                                                                            gdf=blazing_table,
+                                                                                            files=files,
+                                                                                            csvDelimiter=csvDelimiter,
+                                                                                            csvLineTerminator=csvLineTerminator,
+                                                                                            csvSkipRows=csvSkipRows,
+                                                                                            resultToken=resultToken,
+                                                                                            daskTables=daskTables)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -907,7 +909,17 @@ def create_table(tableName, **kwargs):
     try:
         client = _get_client()
         return_result = client.run_ddl_create_table(tableName,
-                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,resultToken)
+                                                    columnNames,
+                                                    columnTypes,
+                                                    dbName,
+                                                    schemaType,
+                                                    blazing_table,
+                                                    files,
+                                                    csvDelimiter,
+                                                    csvLineTerminator,
+                                                    csvSkipRows,
+                                                    resultToken,
+                                                    dask_tables)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
@@ -933,7 +945,7 @@ def dask_cudf_to_BlazingDaskTable(dask_cudf):
     for socket, gdf in df_list :
         node_table = BlazingNodeTable(socket,gdf)
         dask_cudf_ret.append(node_table)
-    return node_table
+    return dask_cudf_ret
 
 def register_file_system(authority, type, root, params = None):
     if params is not None:
