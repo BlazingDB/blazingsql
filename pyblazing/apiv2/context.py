@@ -235,6 +235,13 @@ class BlazingContext(object):
                 else:
                     csv_na_filter = True
 
+                # dayfirst
+                csv_dayfirst = kwargs.get('dayfirst', False)
+                if csv_dayfirst == True or csv_dayfirst == 1:
+                    csv_dayfirst = True
+                else:
+                    csv_dayfirst = False
+
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
@@ -252,7 +259,8 @@ class BlazingContext(object):
                     csv_decimal,
                     csv_skipfooter,
                     csv_na_filter,
-                    csv_keep_default_na)
+                    csv_keep_default_na,
+                    csv_dayfirst)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
