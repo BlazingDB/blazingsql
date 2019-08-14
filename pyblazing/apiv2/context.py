@@ -211,7 +211,16 @@ class BlazingContext(object):
                     raise TypeError("object of type 'int' has no len()")
                 if len(csv_decimal) > 1:
                     raise ValueError("Only length-1 decimal markers supported")
-                 
+
+                # skipfooter
+                csv_skipfooter = kwargs.get('skipfooter', 0)
+                if csv_skipfooter == True or isinstance(csv_skipfooter, str):
+                    raise TypeError("skipfooter must be an integer")
+                elif csv_skipfooter == False or csv_skipfooter == None:
+                    csv_skipfooter = 0
+                if csv_skipfooter < 0:
+                    csv_skipfooter = 0
+
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
@@ -226,7 +235,8 @@ class BlazingContext(object):
                     csv_quotechar,
                     csv_quoting,
                     csv_doublequote,
-                    csv_decimal)
+                    csv_decimal,
+                    csv_skipfooter)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
