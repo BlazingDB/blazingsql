@@ -200,6 +200,17 @@ class BlazingContext(object):
                    raise TypeError("an integer is required")
                 elif csv_doublequote != False:
                     csv_doublequote = True
+
+                # decimal
+                csv_decimal = kwargs.get('decimal', '.')
+                if csv_decimal == None:
+                    raise TypeError("object of type 'NoneType' has no len()")
+                elif isinstance(csv_lineterminator, bool):
+                    raise TypeError("object of type 'bool' has no len()")
+                elif isinstance(csv_lineterminator, int):
+                    raise TypeError("object of type 'int' has no len()")
+                if len(csv_decimal) > 1:
+                    raise ValueError("Only length-1 decimal markers supported")
                  
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
@@ -214,7 +225,8 @@ class BlazingContext(object):
                     csv_skip_blank_lines,
                     csv_quotechar,
                     csv_quoting,
-                    csv_doublequote)
+                    csv_doublequote,
+                    csv_decimal)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
