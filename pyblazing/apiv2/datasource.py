@@ -146,6 +146,7 @@ class DataSource:
             csv_doublequote = kwargs.get('csv_doublequote')
             csv_decimal = kwargs.get('csv_decimal')
             csv_skipfooter = kwargs.get('csv_skipfooter')
+            csv_na_filter = kwargs.get('csv_na_filter')
 
             return self._load_csv(table_name, path,
                 csv_column_names,
@@ -162,7 +163,8 @@ class DataSource:
                 csv_quoting,
                 csv_doublequote,
                 csv_decimal,
-                csv_skipfooter)
+                csv_skipfooter,
+                csv_na_filter)
 
         elif type == Type.parquet:
             table_name = kwargs.get('table_name', None)
@@ -225,7 +227,7 @@ class DataSource:
 
 
     def _load_csv(self, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header, nrows, skipinitialspace, delim_whitespace,
-        skip_blank_lines, quotechar, quoting, doublequote, decimal, skipfooter):
+        skip_blank_lines, quotechar, quoting, doublequote, decimal, skipfooter, na_filter):
         # TODO percy manage datasource load errors
         if path == None:
             return False
@@ -251,7 +253,8 @@ class DataSource:
             quoting = quoting,
             doublequote = doublequote,
             decimal = decimal,
-            skipfooter = skipfooter
+            skipfooter = skipfooter,
+            na_filter = na_filter
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
@@ -303,7 +306,7 @@ def from_distributed_result_set(result_set, table_name):
 
 
 def from_csv(client, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header, nrows, skipinitialspace, delim_whitespace,
-    skip_blank_lines, quotechar, quoting, doublequote, decimal, skipfooter):
+    skip_blank_lines, quotechar, quoting, doublequote, decimal, skipfooter, na_filter):
     return DataSource(client, Type.csv,
         table_name = table_name,
         path = path,
@@ -321,7 +324,8 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, sk
         csv_quoting = quoting,
         csv_doublequote = doublequote,
         csv_decimal = decimal,
-        csv_skipfooter = skipfooter
+        csv_skipfooter = skipfooter,
+        csv_na_filter = na_filter
     )
 
 
