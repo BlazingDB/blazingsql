@@ -141,7 +141,8 @@ class PyConnector(metaclass=Singleton):
                                  csvQuoting,
                                  csvDoublequote,
                                  csvDecimal,
-                                 csvSkipfooter):
+                                 csvSkipfooter,
+                                 csvNaFilter):
 
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
@@ -163,7 +164,8 @@ class PyConnector(metaclass=Singleton):
                                                                                        csvQuoting=csvQuoting,
                                                                                        csvDoublequote=csvDoublequote,
                                                                                        csvDecimal=csvDecimal,
-                                                                                       csvSkipfooter=csvSkipfooter)
+                                                                                       csvSkipfooter=csvSkipfooter,
+                                                                                       csvNaFilter=csvNaFilter)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -987,6 +989,7 @@ def create_table(tableName, **kwargs):
     csvDoublequote = kwargs.get('doublequote')
     csvDecimal = kwargs.get('decimal')
     csvSkipfooter = kwargs.get('skipfooter')
+    csvNaFilter = kwargs.get('na_filter')
     
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
@@ -1000,7 +1003,8 @@ def create_table(tableName, **kwargs):
         client = _get_client()
         return_result = client.run_ddl_create_table(tableName,
                         columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,resultToken,csvHeader,
-                        csvNrows,csvSkipinitialspace,csvDelimWhitespace,csvSkipBlankLines,csvQuotechar,csvQuoting,csvDoublequote,csvDecimal,csvSkipfooter)
+                        csvNrows,csvSkipinitialspace,csvDelimWhitespace,csvSkipBlankLines,csvQuotechar,csvQuoting,csvDoublequote,csvDecimal,csvSkipfooter,
+                        csvNaFilter)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
