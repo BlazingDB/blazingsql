@@ -221,6 +221,13 @@ class BlazingContext(object):
                 if csv_skipfooter < 0:
                     csv_skipfooter = 0
 
+                # keep_default_na
+                csv_keep_default_na = kwargs.get('keep_default_na', True)
+                if csv_keep_default_na == False or csv_keep_default_na == 0:
+                    csv_keep_default_na = False
+                else:
+                    csv_keep_default_na = True
+
                 # na_filter
                 csv_na_filter = kwargs.get('na_filter', True)
                 if csv_na_filter == False or csv_na_filter == 0:
@@ -244,7 +251,8 @@ class BlazingContext(object):
                     csv_doublequote,
                     csv_decimal,
                     csv_skipfooter,
-                    csv_na_filter)
+                    csv_na_filter,
+                    csv_keep_default_na)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
