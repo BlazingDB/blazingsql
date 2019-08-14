@@ -943,6 +943,16 @@ def dask_cudf_to_BlazingDaskTable(dask_cudf):
     df_list = dask_cudf.map_partitions(get_machine_and_pointer).compute()
     dask_cudf_ret = []
     for socket, gdf in df_list :
+        # TODO: {@code node_table} must be similar to the following form to run
+        # internally in blazing-protocol
+        # node_table = {
+        #   'ip': '192.168.0.1',
+        #   'gdf': {
+        #     'columns': ...,
+        #     'columnTokens': ...,
+        #     'resultToken': ...
+        #   }
+        # }
         node_table = BlazingNodeTable(socket,gdf)
         dask_cudf_ret.append(node_table)
     return dask_cudf_ret
