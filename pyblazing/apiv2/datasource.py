@@ -149,6 +149,7 @@ class DataSource:
             csv_na_filter = kwargs.get('csv_na_filter')
             csv_keep_default_na = kwargs.get('csv_keep_default_na')
             csv_dayfirst = kwargs.get('csv_dayfirst')
+            csv_thousands = kwargs.get('csv_thousands')
 
             return self._load_csv(table_name, path,
                 csv_column_names,
@@ -168,7 +169,8 @@ class DataSource:
                 csv_skipfooter,
                 csv_na_filter,
                 csv_keep_default_na,
-                csv_dayfirst)
+                csv_dayfirst,
+                csv_thousands)
 
         elif type == Type.parquet:
             table_name = kwargs.get('table_name', None)
@@ -231,7 +233,7 @@ class DataSource:
 
 
     def _load_csv(self, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header, nrows, skipinitialspace, delim_whitespace,
-        skip_blank_lines, quotechar, quoting, doublequote, decimal, skipfooter, na_filter, keep_default_na, dayfirst):
+        skip_blank_lines, quotechar, quoting, doublequote, decimal, skipfooter, na_filter, keep_default_na, dayfirst, thousands):
         # TODO percy manage datasource load errors
         if path == None:
             return False
@@ -260,7 +262,8 @@ class DataSource:
             skipfooter = skipfooter,
             na_filter = na_filter,
             keep_default_na = keep_default_na,
-            dayfirst = dayfirst
+            dayfirst = dayfirst,
+            thousands = thousands
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
@@ -312,7 +315,7 @@ def from_distributed_result_set(result_set, table_name):
 
 
 def from_csv(client, table_name, path, column_names, column_types, delimiter, skiprows, lineterminator, header, nrows, skipinitialspace, delim_whitespace,
-    skip_blank_lines, quotechar, quoting, doublequote, decimal, skipfooter, na_filter, keep_default_na, dayfirst):
+    skip_blank_lines, quotechar, quoting, doublequote, decimal, skipfooter, na_filter, keep_default_na, dayfirst, thousands):
     return DataSource(client, Type.csv,
         table_name = table_name,
         path = path,
@@ -333,7 +336,8 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, sk
         csv_skipfooter = skipfooter,
         csv_na_filter = na_filter,
         csv_keep_default_na = keep_default_na,
-        csv_dayfirst = dayfirst
+        csv_dayfirst = dayfirst,
+        csv_thousands = thousands
     )
 
 
