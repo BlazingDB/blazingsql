@@ -253,6 +253,17 @@ class BlazingContext(object):
                 if len(csv_thousands) > 1:
                     raise ValueError("Only length-1 decimal markers supported")
 
+                # comment
+                csv_comment = kwargs.get('comment', '\0')
+                if csv_comment == None:
+                    csv_comment = '\0'
+                elif isinstance(csv_comment, bool):
+                    raise TypeError("object of type 'bool' has no len()")
+                elif isinstance(csv_comment, int):
+                    raise TypeError("object of type 'int' has no len()")
+                if len(csv_comment) > 1:
+                    raise ValueError("Only length-1 decimal markers supported")
+
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
@@ -272,7 +283,8 @@ class BlazingContext(object):
                     csv_na_filter,
                     csv_keep_default_na,
                     csv_dayfirst,
-                    csv_thousands)
+                    csv_thousands,
+                    csv_comment)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
