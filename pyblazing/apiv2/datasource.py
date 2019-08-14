@@ -1,12 +1,13 @@
-from enum import IntEnum
+from enum import IntEnum, unique
+
+import pandas
+import pyarrow
 
 import cudf
 
 from .bridge import internal_api
 
-# TODO BIG TODO percy blazing-io didn't expose the wildcard API of FileSystem API
-
-
+@unique
 class Type(IntEnum):
     cudf = 0
     pandas = 1
@@ -15,6 +16,87 @@ class Type(IntEnum):
     parquet = 4
     result_set = 5
     distributed_result_set = 6
+
+# NOTE This class doesnt have any logic related to a remote call, is only for parsing the input
+class Descriptor:
+    def __init__(self, input):
+        self.uri = None
+        self.type = None
+        self.files = None
+
+        if type(input) == cudf.DataFrame:
+            self.type = Type.cudf
+        elif type(input) == pandas.DataFrame:
+            self.type = Type.pandas
+        elif type(input) == pyarrow.Table:
+            self.type = Type.arrow
+        elif type(input) == internal_api.ResultSetHandle:
+            self.type = Type.result_set
+        elif hasattr(input, 'metaToken'):
+            self.type = Type.distributed_result_set
+        elif type(input) == list:
+            self._parse_list(input)
+        elif type(input) == str:
+            if self._is_dir(input) or self._is_wildcard(input):
+                list_input = scan_datasource(None, input)
+                self._parse_list(list_input)
+            else:
+                path = self._to_path(input)
+                self.type = self._type_from_path(path)
+                
+                if self.type == None:
+                    raise Exception("If input into create_table is a file path string, it is expecting a valid file extension")
+                
+                self.files = [input]
+            
+            self.uri = input
+
+    def uri(self):
+        return self.uri
+
+    def type(self):
+        return self.type
+
+    def files(self):
+        return self.files
+
+    def _to_path(self, str_input):
+        url = urlparse(input)
+        path = PurePath(url.path)
+        return path
+
+    def _type_from_path(self, path):
+        if path.suffix == '.parquet':
+            return Type.parquet
+        
+        if path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
+            return Type.csv
+        
+        return None
+
+    def _is_wildcard(self, str_input):
+        return '*' in str_input
+
+    def _is_dir(self, str_input):
+        return str_input.endswith('/')
+
+    def _parse_list(self, list_input):
+        if len(list_input) == 0:
+            raise Exception("Input into create_table was an empty list")
+        
+        head = list_input[0]
+        
+        if type(head) != str:
+            raise Exception("If input into create_table is a list, it is expecting a list of path strings")
+        
+        path = self._to_path(head)
+        self.type = self._type_from_path(path)
+        
+        if self.type == None:
+            raise Exception("If input into create_table is a list, it is expecting a list of valid file extension paths")
+        
+        self.uri = str(path.parent)
+        self.files = list_input
 
 
 class DataSource:
@@ -29,7 +111,7 @@ class DataSource:
         self.cudf_df = None  # cudf, pandas and arrow data will be passed/converted into this var
         self.csv = None
         self.parquet = None
-        self.path = None
+        self.files = None
 
         # init the data source
         self.valid = self._load(type, **kwargs)
@@ -50,9 +132,7 @@ class DataSource:
             Type.result_set: 'result_set'
         }
 
-        # TODO percy path and stuff
-
-        return type_str[self.type]
+        return type_str[self.type] + ": " + self.files
 
     #def is_valid(self):
     #    return self.valid
@@ -84,6 +164,7 @@ class DataSource:
     def is_distributed_result_set(self):
         return self.type == Type.distributed_result_set
 
+    # DEPRECATED NOTE percy deprecated
     def is_from_file(self):
         return self.type == Type.parquet or self.type == Type.csv
 
@@ -130,20 +211,20 @@ class DataSource:
             result_set = kwargs.get('result_set', None)
             return self._load_distributed_result_set(table_name, result_set)
         elif type == Type.csv:
-            path = kwargs.get('path', None)
+            files = kwargs.get('files', None)
             csv_column_names = kwargs.get('csv_column_names', [])
             csv_column_types = kwargs.get('csv_column_types', [])
             csv_delimiter = kwargs.get('csv_delimiter', '|')
             csv_skip_rows = kwargs.get('csv_skip_rows', 0)
-            return self._load_csv(table_name, path,
+            return self._load_csv(table_name, files,
                 csv_column_names,
                 csv_column_types,
                 csv_delimiter,
                 csv_skip_rows)
         elif type == Type.parquet:
             table_name = kwargs.get('table_name', None)
-            path = kwargs.get('path', None)
-            return self._load_parquet(table_name, path)
+            files = kwargs.get('files', None)
+            return self._load_parquet(table_name, files)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -200,18 +281,18 @@ class DataSource:
         return self.valid
 
 
-    def _load_csv(self, table_name, path, column_names, column_types, delimiter, skip_rows):
+    def _load_csv(self, table_name, files, column_names, column_types, delimiter, skip_rows):
         # TODO percy manage datasource load errors
-        if path == None:
+        if files == None:
             return False
 
-        self.path = path
+        self.files = files
 
         return_result = internal_api.create_table(
             self.client,
             table_name,
             type = internal_api.FileSchemaType.CSV,
-            path = path,
+            files = self.files,
             delimiter = delimiter,
             names = column_names,
             dtypes = internal_api.get_dtype_values(column_types),
@@ -224,18 +305,18 @@ class DataSource:
 
         return self.valid
 
-    def _load_parquet(self, table_name, path):
+    def _load_parquet(self, table_name, files):
         # TODO percy manage datasource load errors
-        if path == None:
+        if files == None:
             return False
 
-        self.path = path
+        self.files = files
 
         return_result = internal_api.create_table(
             self.client,
             table_name,
             type = internal_api.FileSchemaType.PARQUET,
-            path = path
+            files = self.files
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
@@ -266,10 +347,10 @@ def from_distributed_result_set(result_set, table_name):
     return DataSource(None, Type.distributed_result_set, table_name = table_name, result_set = result_set)
 
 
-def from_csv(client, table_name, path, column_names, column_types, delimiter, skip_rows):
+def from_csv(client, table_name, files, column_names, column_types, delimiter, skip_rows):
     return DataSource(client, Type.csv,
         table_name = table_name,
-        path = path,
+        files = files,
         csv_column_names = column_names,
         csv_column_types = column_types,
         csv_delimiter = delimiter,
@@ -277,8 +358,15 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, sk
     )
 
 
-# TODO percy path (with wildcard support) is file system transparent
-def from_parquet(client, table_name, path):
-    return DataSource(client, Type.parquet, table_name = table_name, path = path)
+def from_parquet(client, table_name, files):
+    return DataSource(client, Type.parquet, table_name = table_name, files = files)
 
 # END DataSource builders
+
+# BEGIN DataSource utils
+
+def scan_datasource(client, uri):
+    files = internal_api.scan_datasource(client, uri)
+    return files
+
+# END DataSource utils

@@ -7,6 +7,7 @@ from .api import deregister_file_system
 from .api  import FileSystemType, DriverType, EncryptionType
 from .api import FileSchemaType
 from .api import create_table
+from .api import scan_datasource
 
 from .api import ResultSetHandle
 from .api import _get_client
