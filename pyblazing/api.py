@@ -211,7 +211,20 @@ class PyConnector(metaclass=Singleton):
 
         return response.status
 
+    def run_scan_datasource(self, uri):
+        datasourceSchema = blazingdb.protocol.orchestrator.BuildDataSourceRequestSchema(uri=uri)
 
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.ScanDataSource, self._accessToken, datasourceSchema)
+
+        responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+
+        if response.status == Status.Error:
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
+                response.payload)
+            raise RuntimeError(errorResponse.errors)
+
+        return response.status
 
     def free_memory(self, interpreter_path, interpreter_port):
         result_token = 2433423
@@ -876,7 +889,7 @@ def create_table(tableName, **kwargs):
     dbName = 'main'
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
-    files = kwargs.get('path', [])
+    files = kwargs.get('files', [])
     csvDelimiter = kwargs.get('delimiter', '|')
     csvLineTerminator = kwargs.get('line_terminator', '\n')
     csvSkipRows = kwargs.get('skip_rows', 0)
@@ -987,3 +1000,23 @@ def run_query_filesystem(sql, sql_data):
                                                ))
 
     return result_set_list
+
+
+def scan_datasource(uri):
+    return_result = None
+    
+    try:
+        client = _get_client()
+        return_result = client.run_scan_datasource(uri)
+
+    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+        error_message = error
+    except Error as error:
+        error_message = str(error)
+    except Exception as error:
+        error_message = "Unexpected error on " + scan_datasource.__name__ + ", " + str(error)
+
+    if error_message is not '':
+        print(error_message)
+
+    return return_result

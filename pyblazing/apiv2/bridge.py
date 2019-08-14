@@ -45,3 +45,7 @@ class internal_api:
     @staticmethod
     def convert_to_dask(metaToken,connection):
         return pyblazing.convert_to_dask(metaToken,connection)
+
+    @staticmethod
+    def scan_datasource(client, uri):
+        return pyblazing.scan_datasource(uri)

@@ -4,14 +4,13 @@ from urllib.parse import urlparse
 from pathlib import PurePath
 
 import cudf
-import pandas
-import pyarrow
 
 from .bridge import internal_api
 
 from .filesystem import FileSystem
 from .sql import SQL
 from .sql import ResultSet
+from .datasource import Descriptor
 from .datasource import from_cudf
 from .datasource import from_pandas
 from .datasource import from_arrow
@@ -77,6 +76,10 @@ class BlazingContext(object):
     def create_table(self, table_name, input, **kwargs):
         datasource = None
 
+        ds_descriptor = Descriptor(input)
+
+        print("AAAAAAAAAAA222222444444444444444444444444444444442")
+
         if type(input) == cudf.DataFrame:
             datasource = from_cudf(input, table_name)
         elif type(input) == pandas.DataFrame:
@@ -88,6 +91,11 @@ class BlazingContext(object):
         elif hasattr(input, 'metaToken'):
             datasource = from_distributed_result_set(input.metaToken,table_name)
         elif type(input) == str or type(input) == list:
+
+            # NOTE percy implement here the wildcard stuff
+            # ... put the login in datasource
+
+
 
             if type(input) == str:
                 uri = urlparse(input)
