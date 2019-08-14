@@ -264,6 +264,17 @@ class BlazingContext(object):
                 if len(csv_comment) > 1:
                     raise ValueError("Only length-1 decimal markers supported")
 
+                # true_values
+                csv_true_values = kwargs.get('true_values', [])
+                if isinstance(csv_true_values, bool):
+                    raise TypeError("'bool' object is not iterable")
+                elif isinstance(csv_true_values, int):
+                    raise TypeError("'int' object is not iterable")
+                elif csv_true_values == None:
+                    csv_true_values = []
+                elif isinstance(csv_true_values, str):
+                    csv_true_values = csv_true_values.split(',')
+
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
@@ -284,7 +295,8 @@ class BlazingContext(object):
                     csv_keep_default_na,
                     csv_dayfirst,
                     csv_thousands,
-                    csv_comment)
+                    csv_comment,
+                    csv_true_values)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
