@@ -120,66 +120,37 @@ class PyConnector(metaclass=Singleton):
     def is_connected(self):
         return self._accessToken is not None
 
-    def run_ddl_create_table(self,
-                                 tableName,
-                                 columnNames,
-                                 columnTypes,
-                                 dbName,
-                                 schemaType,
-                                 blazing_table,
-                                 files,
-                                 csvDelimiter,
-                                 csvLineTerminator,
-                                 csvSkipRows,
-                                 resultToken,
-                                 csvHeader,
-                                 csvNrows,
-                                 csvSkipinitialspace,
-                                 csvDelimWhitespace,
-                                 csvSkipBlankLines,
-                                 csvQuotechar,
-                                 csvQuoting,
-                                 csvDoublequote,
-                                 csvDecimal,
-                                 csvSkipfooter,
-                                 csvNaFilter,
-                                 csvKeepDefaultNa,
-                                 csvDayfirst,
-                                 csvThousands,
-                                 csvComment,
-                                 csvTrueValues,
-                                 csvFalseValues,
-                                 csvNaValues):
+    def run_ddl_create_table(self, tableName, dbName, schemaType, blazing_table, files, resultToken, csv_args):
 
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
-                                                                                       columnNames=columnNames,
-                                                                                       columnTypes=columnTypes,
                                                                                        dbName=dbName,
                                                                                        schemaType=schemaType,
                                                                                        gdf=blazing_table,
                                                                                        files=files,
-                                                                                       csvDelimiter=csvDelimiter,
-                                                                                       csvLineTerminator=csvLineTerminator,
-                                                                                       csvSkipRows=csvSkipRows,
                                                                                        resultToken=resultToken,
-                                                                                       csvHeader=csvHeader,
-                                                                                       csvNrows=csvNrows,
-                                                                                       csvSkipinitialspace=csvSkipinitialspace,
-                                                                                       csvDelimWhitespace=csvDelimWhitespace,
-                                                                                       csvSkipBlankLines=csvSkipBlankLines,
-                                                                                       csvQuotechar=csvQuotechar,
-                                                                                       csvQuoting=csvQuoting,
-                                                                                       csvDoublequote=csvDoublequote,
-                                                                                       csvDecimal=csvDecimal,
-                                                                                       csvSkipfooter=csvSkipfooter,
-                                                                                       csvNaFilter=csvNaFilter,
-                                                                                       csvKeepDefaultNa=csvKeepDefaultNa,
-                                                                                       csvDayfirst=csvDayfirst,
-                                                                                       csvThousands=csvThousands,
-                                                                                       csvComment=csvComment,
-                                                                                       csvTrueValues=csvTrueValues,
-                                                                                       csvFalseValues=csvFalseValues,
-                                                                                       csvNaValues=csvNaValues)
+                                                                                       columnNames=csv_args.column_names,
+                                                                                       columnTypes=csv_args.column_types,
+                                                                                       csvDelimiter=csv_args.delimiter,
+                                                                                       csvLineTerminator=csv_args.lineterminator,
+                                                                                       csvSkipRows=csv_args.skiprows,
+                                                                                       csvHeader=csv_args.header,
+                                                                                       csvNrows=csv_args.nrows,
+                                                                                       csvSkipinitialspace=csv_args.skipinitialspace,
+                                                                                       csvDelimWhitespace=csv_args.delim_whitespace,
+                                                                                       csvSkipBlankLines=csv_args.skip_blank_lines,
+                                                                                       csvQuotechar=csv_args.quotechar,
+                                                                                       csvQuoting=csv_args.quoting,
+                                                                                       csvDoublequote=csv_args.doublequote,
+                                                                                       csvDecimal=csv_args.decimal,
+                                                                                       csvSkipfooter=csv_args.skipfooter,
+                                                                                       csvNaFilter=csv_args.na_filter,
+                                                                                       csvKeepDefaultNa=csv_args.keep_default_na,
+                                                                                       csvDayfirst=csv_args.dayfirst,
+                                                                                       csvThousands=csv_args.thousands,
+                                                                                       csvComment=csv_args.comment,
+                                                                                       csvTrueValues=csv_args.true_values,
+                                                                                       csvFalseValues=csv_args.false_values,
+                                                                                       csvNaValues=csv_args.na_values)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -982,50 +953,24 @@ class SchemaFrom:
 def create_table(tableName, **kwargs):
     return_result = None
     error_message = ''
-
-    columnNames = kwargs.get('names', [])
-    columnTypes = kwargs.get('dtypes', [])
     dbName = 'main'
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
     files = kwargs.get('path', [])
-    csvDelimiter = kwargs.get('delimiter')
-    csvLineTerminator = kwargs.get('lineterminator')
-    csvSkipRows = kwargs.get('skiprows')
     resultToken = kwargs.get('resultToken', 0)
-    csvHeader = kwargs.get('header')
-    csvNrows = kwargs.get('nrows')
-    csvSkipinitialspace = kwargs.get('skipinitialspace')
-    csvDelimWhitespace = kwargs.get('delim_whitespace')
-    csvSkipBlankLines = kwargs.get('skip_blank_lines')
-    csvQuotechar = kwargs.get('quotechar')
-    csvQuoting = kwargs.get('quoting')
-    csvDoublequote = kwargs.get('doublequote')
-    csvDecimal = kwargs.get('decimal')
-    csvSkipfooter = kwargs.get('skipfooter')
-    csvNaFilter = kwargs.get('na_filter')
-    csvKeepDefaultNa = kwargs.get('keep_default_na')
-    csvDayfirst = kwargs.get('dayfirst')
-    csvThousands = kwargs.get('thousands')
-    csvComment = kwargs.get('comment')
-    csvTrueValues = kwargs.get('true_values')
-    csvFalseValues = kwargs.get('false_values')
-    csvNaValues = kwargs.get('na_values')
+    csv_args = kwargs.get('csv_args', None)
     
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
     else:
         blazing_table = gdf_to_BlazingTable(gdf)
 
-    if (len(columnTypes) > 0):
-        columnTypes = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
+    if (len(csv_args.column_types) > 0):
+        columnTypes = gdf_dtypes_to_gdf_dtype_strs(csv_args.column_types)
 
     try:
         client = _get_client()
-        return_result = client.run_ddl_create_table(tableName,
-                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,resultToken,csvHeader,
-                        csvNrows,csvSkipinitialspace,csvDelimWhitespace,csvSkipBlankLines,csvQuotechar,csvQuoting,csvDoublequote,csvDecimal,csvSkipfooter,
-                        csvNaFilter,csvKeepDefaultNa,csvDayfirst,csvThousands,csvComment,csvTrueValues,csvFalseValues,csvNaValues)
+        return_result = client.run_ddl_create_table(tableName, dbName, schemaType, blazing_table, files, resultToken, csv_args)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
