@@ -21,6 +21,224 @@ from .datasource import from_result_set
 from .datasource import from_distributed_result_set
 import time
 
+class CsvArgs():
+
+    def __init__(self):
+        self.column_names = []
+        self.column_types = []
+        self.delimiter = ','
+        self.skiprows = 0
+        self.lineterminator = '\n'
+        self.skipinitialspace = False
+        self.delim_whitespace = False
+        self.header = -1
+        self.nrows = -1
+        self.skip_blank_lines = True
+        self.quotechar = '\"'
+        self.quoting = 0
+        self.doublequote = True
+        self.decimal = '.'
+        self.skipfooter = 0
+        self.keep_default_na = True
+        self.na_filter = True
+        self.dayfirst = False
+        self.thousands = '\0'
+        self.comment = '\0'
+        self.true_values = []
+        self.false_values = []
+        self.na_values = []
+
+    # Validate input params
+    def validation(self, path, **kwargs):
+
+        # path
+        self.path = path
+
+        # names & dtype
+        self.column_names = kwargs.get('names', [])
+        self.column_types = kwargs.get('dtype', [])
+
+        # delimiter
+        self.delimiter = kwargs.get('delimiter')
+        if self.delimiter == None:
+            if self.path.suffix == '.csv':
+                self.delimiter = ","
+            else:
+                self.delimiter = "|"
+
+        # lineterminator
+        self.lineterminator = kwargs.get('lineterminator', '\n')
+        if self.lineterminator == None:
+            self.lineterminator = '\n'
+        elif isinstance(self.lineterminator, bool):
+            raise TypeError("object of type 'bool' has no len()")
+        elif isinstance(self.lineterminator, int):
+            raise TypeError("object of type 'int' has no len()")
+        if len(self.lineterminator) > 1:
+            raise ValueError("Only length-1 decimal markers supported")
+
+        # skiprows
+        self.skiprows = kwargs.get('skiprows', 0)
+        if self.skiprows == None or self.skiprows < 0:
+            self.skiprows = 0
+        
+        # header
+        self.header = kwargs.get('header',-1)
+        if self.header == -1 and len(self.column_names) == 0:
+            self.header = 0
+        if self.header == None or self.header < -1 :
+            self.header = -1
+
+        # nrows
+        self.nrows = kwargs.get('nrows')
+        if self.nrows == None:
+            self.nrows = -1
+        elif self.nrows < 0:
+            raise ValueError("'nrows' must be an integer >= 0")
+
+        # skipinitialspace
+        self.skipinitialspace = kwargs.get('skipinitialspace', False)
+        if self.skipinitialspace  == None:
+            raise TypeError("an integer is required")
+        elif self.skipinitialspace  == False:
+            self.skipinitialspace  = False
+        else:
+            self.skipinitialspace  = True
+
+        # delim_whitespace
+        self.delim_whitespace = kwargs.get('delim_whitespace', False)
+        if self.delim_whitespace == None or self.delim_whitespace == False:
+            self.delim_whitespace = False
+        elif isinstance(self.delim_whitespace, str):
+            raise TypeError("an integer is required")
+        else:
+            self.delim_whitespace = True
+
+        # skip_blank_lines
+        self.skip_blank_lines = kwargs.get('skip_blank_lines', True)
+        if self.skip_blank_lines == None or isinstance(self.skip_blank_lines, str):
+            raise TypeError("an integer is required")
+        if self.skip_blank_lines != False:
+            self.skip_blank_lines = True
+
+        # quotechar
+        self.quotechar = kwargs.get('quotechar', '\"')
+        if self.quotechar == None:
+            raise TypeError("quotechar must be set if quoting enabled")
+        elif isinstance(self.quotechar, int):
+            raise TypeError("quotechar must be string, not int")
+        elif isinstance(self.quotechar, bool):
+            raise TypeError("quotechar must be string, not bool")
+        elif len(self.quotechar) > 1 :
+            raise TypeError("quotechar must be a 1-character string")
+
+        # quoting
+        self.quoting = kwargs.get('quoting', 0)
+        if isinstance(self.quoting, int) :
+            if self.quoting < 0 or self.quoting > 3 :
+                raise TypeError("bad 'quoting' value")
+        else:
+            raise TypeError(" 'quoting' must be an integer")
+
+        # doublequote
+        self.doublequote = kwargs.get('doublequote', True)
+        if self.doublequote == None or not isinstance(self.doublequote, int):
+            raise TypeError("an integer is required")
+        elif self.doublequote != False:
+            self.doublequote = True
+
+        # decimal
+        self.decimal = kwargs.get('decimal', '.')
+        if self.decimal == None:
+            raise TypeError("object of type 'NoneType' has no len()")
+        elif isinstance(self.decimal, bool):
+            raise TypeError("object of type 'bool' has no len()")
+        elif isinstance(self.decimal, int):
+            raise TypeError("object of type 'int' has no len()")
+        if len(self.decimal) > 1:
+            raise ValueError("Only length-1 decimal markers supported")
+
+        # skipfooter
+        self.skipfooter = kwargs.get('skipfooter', 0)
+        if self.skipfooter == True or isinstance(self.skipfooter, str):
+            raise TypeError("skipfooter must be an integer")
+        elif self.skipfooter == False or self.skipfooter == None:
+            self.skipfooter = 0
+        if self.skipfooter < 0:
+            self.skipfooter = 0
+
+        # keep_default_na
+        self.keep_default_na = kwargs.get('keep_default_na', True)
+        if self.keep_default_na  == False or self.keep_default_na  == 0:
+            self.keep_default_na  = False
+        else:
+            self.keep_default_na  = True
+
+        # na_filter
+        self.na_filter = kwargs.get('na_filter', True)
+        if self.na_filter == False or self.na_filter == 0:
+            self.na_filter = False
+        else:
+            self.na_filter = True
+
+        # dayfirst
+        self.dayfirst = kwargs.get('dayfirst', False)
+        if self.dayfirst == True or self.dayfirst == 1:
+            self.dayfirst = True
+        else:
+            self.dayfirst = False
+
+        # thousands
+        self.thousands = kwargs.get('thousands', '\0')
+        if self.thousands == None:
+            self.thousands = '\0'
+        elif isinstance(self.thousands, bool):
+            raise TypeError("object of type 'bool' has no len()")
+        elif isinstance(self.thousands, int):
+            raise TypeError("object of type 'int' has no len()")
+        if len(self.thousands) > 1:
+            raise ValueError("Only length-1 decimal markers supported")
+
+        # comment
+        self.comment = kwargs.get('comment', '\0')
+        if self.comment == None:
+            self.comment = '\0'
+        elif isinstance(self.comment, bool):
+            raise TypeError("object of type 'bool' has no len()")
+        elif isinstance(self.comment, int):
+            raise TypeError("object of type 'int' has no len()")
+        if len(self.comment) > 1:
+            raise ValueError("Only length-1 decimal markers supported")
+
+        # true_values
+        self.true_values = kwargs.get('true_values', [])
+        if isinstance(self.true_values, bool):
+            raise TypeError("'bool' object is not iterable")
+        elif isinstance(self.true_values, int):
+            raise TypeError("'int' object is not iterable")
+        elif self.true_values == None:
+            self.true_values = []
+        elif isinstance(self.true_values, str):
+            self.true_values = self.true_values.split(',')
+
+        # false_values
+        self.false_values = kwargs.get('false_values', [])
+        if isinstance(self.false_values, bool):
+            raise TypeError("'bool' object is not iterable")
+        elif isinstance(self.false_values, int):
+            raise TypeError("'int' object is not iterable")
+        elif self.false_values == None:
+            self.false_values = []
+        elif isinstance(self.false_values, str):
+            self.false_values = self.false_values.split(',')
+
+        # na_values
+        self.na_values = kwargs.get('na_values', [])
+        if isinstance(self.na_values , int) or isinstance(self.na_values , bool):
+            self.na_values  = str(self.na_values ).split(',')
+        elif self.na_values  == None:
+            self.na_values  = []
+        
 
 class BlazingContext(object):
 
@@ -88,7 +306,6 @@ class BlazingContext(object):
         elif hasattr(input, 'metaToken'):
             datasource = from_distributed_result_set(input.metaToken,table_name)
         elif type(input) == str or type(input) == list:
-
             if type(input) == str:
                 uri = urlparse(input)
                 path = PurePath(uri.path)
@@ -102,222 +319,13 @@ class BlazingContext(object):
                     uri = urlparse(input[0])
                     path = PurePath(uri.path)
                     paths = input
-
             if path.suffix == '.parquet':
                 datasource = from_parquet(self.client, table_name, paths)
             elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
                 # TODO percy duplicated code bud itnernal api desing remove this later
-
-                # Names and types
-                csv_column_names = kwargs.get('names', [])
-                csv_column_types = kwargs.get('dtype', [])
-
-                # delimiter
-                csv_delimiter = kwargs.get('delimiter')
-                if csv_delimiter == None:
-                    if path.suffix == '.csv':
-                        csv_delimiter = ","
-                    else:
-                        csv_delimiter = "|"
-
-                # lineterminator
-                csv_lineterminator = kwargs.get('lineterminator', '\n')
-                if csv_lineterminator == None:
-                    csv_lineterminator = '\n'
-                elif isinstance(csv_lineterminator, bool):
-                    raise TypeError("object of type 'bool' has no len()")
-                elif isinstance(csv_lineterminator, int):
-                    raise TypeError("object of type 'int' has no len()")
-                if len(csv_lineterminator) > 1:
-                    raise ValueError("Only length-1 decimal markers supported")
-
-                # skiprows
-                csv_skiprows = kwargs.get('skiprows', 0)
-                if csv_skiprows == None or csv_skiprows < 0:
-                    csv_skiprows = 0
-
-                # header
-                csv_header = kwargs.get('header',-1)
-                if csv_header == -1 and len(csv_column_names) == 0:
-                    csv_header = 0
-                if csv_header == None or csv_header < -1 :
-                    csv_header = -1
-
-                # nrows
-                csv_nrows = kwargs.get('nrows')
-                if csv_nrows == None:
-                    csv_nrows = -1
-                elif csv_nrows < 0:
-                    raise ValueError("'nrows' must be an integer >= 0")
-
-                # skipinitialspace
-                csv_skipinitialspace = kwargs.get('skipinitialspace', False)
-                if csv_skipinitialspace == None:
-                   raise TypeError("an integer is required")
-                elif csv_skipinitialspace == False:
-                    csv_skipinitialspace = False
-                else:
-                    csv_skipinitialspace = True
-
-                # delim_whitespace
-                csv_delim_whitespace = kwargs.get('delim_whitespace', False)
-                if csv_delim_whitespace == None or csv_delim_whitespace == False:
-                    csv_delim_whitespace = False
-                elif isinstance(csv_delim_whitespace, str):
-                    raise TypeError("an integer is required")
-                else:
-                    csv_delim_whitespace = True
-
-                # skip_blank_lines
-                csv_skip_blank_lines = kwargs.get('skip_blank_lines', True)
-                if csv_skip_blank_lines == None or isinstance(csv_skip_blank_lines, str):
-                    raise TypeError("an integer is required")
-                if csv_skip_blank_lines != False:
-                    csv_skip_blank_lines = True
-
-                # quotechar
-                csv_quotechar = kwargs.get('quotechar', '\"')
-                if csv_quotechar == None:
-                    raise TypeError("quotechar must be set if quoting enabled")
-                elif isinstance(csv_quotechar, int):
-                    raise TypeError("quotechar must be string, not int")
-                elif isinstance(csv_quotechar, bool):
-                    raise TypeError("quotechar must be string, not bool")
-                elif len(csv_quotechar) > 1 :
-                    raise TypeError("quotechar must be a 1-character string")
-
-                # quoting
-                csv_quoting = kwargs.get('quoting', 0)
-                if isinstance(csv_quoting, int) :
-                    if csv_quoting < 0 or csv_quoting > 3 :
-                        raise TypeError("bad 'quoting' value")
-                else:
-                    raise TypeError(" 'quoting' must be an integer")
-
-                # doublequote
-                csv_doublequote = kwargs.get('doublequote', True)
-                if csv_doublequote == None or not isinstance(csv_doublequote, int):
-                   raise TypeError("an integer is required")
-                elif csv_doublequote != False:
-                    csv_doublequote = True
-
-                # decimal
-                csv_decimal = kwargs.get('decimal', '.')
-                if csv_decimal == None:
-                    raise TypeError("object of type 'NoneType' has no len()")
-                elif isinstance(csv_lineterminator, bool):
-                    raise TypeError("object of type 'bool' has no len()")
-                elif isinstance(csv_lineterminator, int):
-                    raise TypeError("object of type 'int' has no len()")
-                if len(csv_decimal) > 1:
-                    raise ValueError("Only length-1 decimal markers supported")
-
-                # skipfooter
-                csv_skipfooter = kwargs.get('skipfooter', 0)
-                if csv_skipfooter == True or isinstance(csv_skipfooter, str):
-                    raise TypeError("skipfooter must be an integer")
-                elif csv_skipfooter == False or csv_skipfooter == None:
-                    csv_skipfooter = 0
-                if csv_skipfooter < 0:
-                    csv_skipfooter = 0
-
-                # keep_default_na
-                csv_keep_default_na = kwargs.get('keep_default_na', True)
-                if csv_keep_default_na == False or csv_keep_default_na == 0:
-                    csv_keep_default_na = False
-                else:
-                    csv_keep_default_na = True
-
-                # na_filter
-                csv_na_filter = kwargs.get('na_filter', True)
-                if csv_na_filter == False or csv_na_filter == 0:
-                    csv_na_filter = False
-                else:
-                    csv_na_filter = True
-
-                # dayfirst
-                csv_dayfirst = kwargs.get('dayfirst', False)
-                if csv_dayfirst == True or csv_dayfirst == 1:
-                    csv_dayfirst = True
-                else:
-                    csv_dayfirst = False
-
-                # thousands
-                csv_thousands = kwargs.get('thousands', '\0')
-                if csv_thousands == None:
-                    csv_thousands = '\0'
-                elif isinstance(csv_thousands, bool):
-                    raise TypeError("object of type 'bool' has no len()")
-                elif isinstance(csv_thousands, int):
-                    raise TypeError("object of type 'int' has no len()")
-                if len(csv_thousands) > 1:
-                    raise ValueError("Only length-1 decimal markers supported")
-
-                # comment
-                csv_comment = kwargs.get('comment', '\0')
-                if csv_comment == None:
-                    csv_comment = '\0'
-                elif isinstance(csv_comment, bool):
-                    raise TypeError("object of type 'bool' has no len()")
-                elif isinstance(csv_comment, int):
-                    raise TypeError("object of type 'int' has no len()")
-                if len(csv_comment) > 1:
-                    raise ValueError("Only length-1 decimal markers supported")
-
-                # true_values
-                csv_true_values = kwargs.get('true_values', [])
-                if isinstance(csv_true_values, bool):
-                    raise TypeError("'bool' object is not iterable")
-                elif isinstance(csv_true_values, int):
-                    raise TypeError("'int' object is not iterable")
-                elif csv_true_values == None:
-                    csv_true_values = []
-                elif isinstance(csv_true_values, str):
-                    csv_true_values = csv_true_values.split(',')
-
-                # false_values
-                csv_false_values = kwargs.get('false_values', [])
-                if isinstance(csv_false_values, bool):
-                    raise TypeError("'bool' object is not iterable")
-                elif isinstance(csv_false_values, int):
-                    raise TypeError("'int' object is not iterable")
-                elif csv_false_values == None:
-                    csv_false_values = []
-                elif isinstance(csv_false_values, str):
-                    csv_false_values = csv_false_values.split(',')
-
-                # na_values
-                csv_na_values = kwargs.get('na_values', [])
-                if isinstance(csv_na_values, int) or isinstance(csv_na_values, bool):
-                    csv_na_values = str(csv_na_values).split(',')
-                elif csv_na_values == None:
-                    csv_na_values = []
-
-                datasource = from_csv(self.client, table_name, paths,
-                    csv_column_names,
-                    csv_column_types,
-                    csv_delimiter,
-                    csv_skiprows,
-                    csv_lineterminator,
-                    csv_header,
-                    csv_nrows,
-                    csv_skipinitialspace,
-                    csv_delim_whitespace,
-                    csv_skip_blank_lines,
-                    csv_quotechar,
-                    csv_quoting,
-                    csv_doublequote,
-                    csv_decimal,
-                    csv_skipfooter,
-                    csv_na_filter,
-                    csv_keep_default_na,
-                    csv_dayfirst,
-                    csv_thousands,
-                    csv_comment,
-                    csv_true_values,
-                    csv_false_values,
-                    csv_na_values)
-
+                csv_args = CsvArgs()
+                csv_args.validation(path, **kwargs)
+                datasource = from_csv(self.client, table_name, paths, csv_args)
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
 
