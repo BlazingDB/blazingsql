@@ -286,6 +286,13 @@ class BlazingContext(object):
                 elif isinstance(csv_false_values, str):
                     csv_false_values = csv_false_values.split(',')
 
+                # na_values
+                csv_na_values = kwargs.get('na_values', [])
+                if isinstance(csv_na_values, int) or isinstance(csv_na_values, bool):
+                    csv_na_values = str(csv_na_values).split(',')
+                elif csv_na_values == None:
+                    csv_na_values = []
+
                 datasource = from_csv(self.client, table_name, paths,
                     csv_column_names,
                     csv_column_types,
@@ -308,7 +315,8 @@ class BlazingContext(object):
                     csv_thousands,
                     csv_comment,
                     csv_true_values,
-                    csv_false_values)
+                    csv_false_values,
+                    csv_na_values)
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
