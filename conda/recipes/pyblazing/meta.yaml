@@ -1,0 +1,35 @@
+package:
+    name: blazingsql-python
+    version: 0.4.0
+
+source:
+    path: ../../../
+
+requirements:
+    build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+    host:
+        - python >=3.6.0
+        - cudf
+        - pip
+        - blazingsql-protocol
+        - nvstrings
+        - rmm
+        - dask-cudf
+        - dask
+
+    run:
+        - python >=3.6.0
+        - pip
+        - blazingsql-protocol
+        - nvstrings
+        - rmm
+        - cudf
+        - dask-cudf
+        - dask
+about:
+    home: http://www.blazingsql.com/
+    license: Apache-2.0
+    license_family: Apache
+    license_file: LICENSE
