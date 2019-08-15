@@ -954,7 +954,6 @@ def create_table(tableName, **kwargs):
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
     files = kwargs.get('path', [])
-    fileFormat = kwargs.get('fileFormat', None)
     csvDelimiter = kwargs.get('delimiter', '|')
     csvLineTerminator = kwargs.get('line_terminator', '\n')
     csvSkipRows = kwargs.get('skip_rows', 0)

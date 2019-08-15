@@ -105,13 +105,14 @@ class BlazingContext(object):
                     path = PurePath(uri.path)
                     paths = input
 
-            if path.suffix == '.parquet' or kwargs.get('fileFormat', None) == 'parquet':
+            fileFormat = kwargs.get('file_format', None)
+            if path.suffix == '.parquet' or fileFormat == 'parquet':
                 datasource = from_parquet(self.client, table_name, paths)
-            elif path.suffix == '.json' or kwargs.get('fileFormat', None) == 'json':
-                    datasource = from_json(self.client, table_name, paths)
-            elif path.suffix == '.orc' or kwargs.get('fileFormat', None) == 'orc':
+            elif path.suffix == '.json' or fileFormat == 'json':
+                datasource = from_json(self.client, table_name, paths)
+            elif path.suffix == '.orc' or fileFormat == 'orc':
                 datasource = from_orc(self.client, table_name, paths)
-            elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl' or kwargs.get('fileFormat', None) == 'csv':
+            elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl' or fileFormat == 'csv':
                 # TODO percy duplicated code bud itnernal api desing remove this later
                 csv_column_names = kwargs.get('names', [])
                 csv_column_types = kwargs.get('dtype', [])
@@ -124,7 +125,7 @@ class BlazingContext(object):
                     csv_delimiter,
                     csv_skip_rows)
             else:
-                raise Exception("Unknown file format, optionally you can set the file format by passing it as a parameter like: bc.create_table(\"/path/\", fileFormat = 'csv')")
+                raise Exception("Unknown file format, optionally you can set the file format by passing it as a parameter like: bc.create_table(\"/path/\", file_format = 'csv')")
 
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
