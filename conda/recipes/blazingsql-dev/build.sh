@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
+cd ${INSTALL_PREFIX}
+
+git clone https://github.com/BlazingDB/blazingdb-ral.git
+
+git clone https://github.com/BlazingDB/blazingdb-orchestrator.git
+
+git clone https://github.com/BlazingDB/pyblazing.git
+
+git clone https://github.com/BlazingDB/blazingdb-io.git
+
+git clone https://github.com/BlazingDB/blazingdb-communication.git
+
+git clone https://github.com/BlazingDB/blazingdb-protocol.git
