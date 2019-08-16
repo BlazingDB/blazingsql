@@ -1,7 +1,7 @@
 #!/bin/bash
 python=$1
 toolkit=$2
-conda install cudatoolkit=$toolkit -c anaconda
+conda install cudatoolkit=$toolkit -c anaconda -y
 
 #usage is
 # ./build-all-environments.sh 3.6 9.2
