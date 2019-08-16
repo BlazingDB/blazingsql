@@ -7,7 +7,7 @@ requirements:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
     host:
-        - python >=3.6.0
+        - python
         - blazingsql-ral
         - blazingsql-protocol
         - blazingsql-orchestrator
@@ -16,7 +16,7 @@ requirements:
         - blazingsql-calcite
 
     run:
-        - python >=3.6.0
+        - python
         - blazingsql-ral
         - blazingsql-protocol
         - blazingsql-orchestrator

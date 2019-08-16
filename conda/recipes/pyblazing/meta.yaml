@@ -10,7 +10,7 @@ requirements:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
     host:
-        - python >=3.6.0
+        - python
         - cudf
         - pip
         - blazingsql-protocol
@@ -20,7 +20,7 @@ requirements:
         - dask
 
     run:
-        - python >=3.6.0
+        - python
         - pip
         - blazingsql-protocol
         - nvstrings
