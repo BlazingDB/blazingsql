@@ -131,6 +131,7 @@ class PyConnector(metaclass=Singleton):
                                  csvDelimiter,
                                  csvLineTerminator,
                                  csvSkipRows,
+                                 jsonLines,
                                  resultToken):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
@@ -142,6 +143,7 @@ class PyConnector(metaclass=Singleton):
                                                                                        csvDelimiter=csvDelimiter,
                                                                                        csvLineTerminator=csvLineTerminator,
                                                                                        csvSkipRows=csvSkipRows,
+                                                                                       jsonLines=jsonLines,
                                                                                        resultToken=resultToken)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
@@ -957,6 +959,7 @@ def create_table(tableName, **kwargs):
     csvDelimiter = kwargs.get('delimiter', '|')
     csvLineTerminator = kwargs.get('line_terminator', '\n')
     csvSkipRows = kwargs.get('skip_rows', 0)
+    jsonLines = kwargs.get('lines', True)
     resultToken = kwargs.get('resultToken', 0)
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
@@ -969,7 +972,7 @@ def create_table(tableName, **kwargs):
     try:
         client = _get_client()
         return_result = client.run_ddl_create_table(tableName,
-                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,resultToken)
+                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,jsonLines,resultToken)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error

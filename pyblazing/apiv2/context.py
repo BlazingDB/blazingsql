@@ -109,7 +109,8 @@ class BlazingContext(object):
             if path.suffix == '.parquet' or fileFormat == 'parquet':
                 datasource = from_parquet(self.client, table_name, paths)
             elif path.suffix == '.json' or fileFormat == 'json':
-                datasource = from_json(self.client, table_name, paths)
+                json_lines = kwargs.get('lines', True)
+                datasource = from_json(self.client, table_name, paths, json_lines)
             elif path.suffix == '.orc' or fileFormat == 'orc':
                 datasource = from_orc(self.client, table_name, paths)
             elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl' or fileFormat == 'csv':
