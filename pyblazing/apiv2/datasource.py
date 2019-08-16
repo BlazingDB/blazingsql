@@ -163,7 +163,8 @@ class DataSource:
         elif type == Type.json:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
-            return self._load_json(table_name, path)
+            json_lines = kwargs.get('json_lines', True)
+            return self._load_json(table_name, path, json_lines)
         elif type == Type.orc:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
@@ -268,7 +269,7 @@ class DataSource:
 
         return self.valid
 
-    def _load_json(self, table_name, path):
+    def _load_json(self, table_name, path, lines):
         # TODO percy manage datasource load errors
         if path == None:
             return False
@@ -279,7 +280,8 @@ class DataSource:
             self.client,
             table_name,
             type = internal_api.SchemaFrom.JsonFile,
-            path = path
+            path = path,
+            lines = lines
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
@@ -345,8 +347,8 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, sk
 def from_parquet(client, table_name, path):
     return DataSource(client, Type.parquet, table_name = table_name, path = path)
 
-def from_json(client, table_name, path):
-    return DataSource(client, Type.json, table_name = table_name, path = path)
+def from_json(client, table_name, path, lines):
+    return DataSource(client, Type.json, table_name = table_name, path = path, json_lines = lines)
 
 def from_orc(client, table_name, path):
     return DataSource(client, Type.orc, table_name = table_name, path = path)
