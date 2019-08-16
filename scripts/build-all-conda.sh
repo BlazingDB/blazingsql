@@ -17,17 +17,26 @@ i=0
 for repo in "${repos[@]}"
 do
   cd $CONDA_PREFIX
-if [ ! -d "$repo" ]; then
-  git clone https://github.com/BlazingDB/$repo
-fi
-cd $repo
-if [ ${branches[i]} != "latest" ]; then
-  git checkout ${branches[i]}
-fi
-i=$(($i+1))
+  if [ ! -d "$repo" ]; then
+      git clone https://github.com/BlazingDB/$repo
+  else 
+    cd $repo
+    if [ ! -d ".git" ]; then # the folder existed but its not a repo. Lets delete it and actually get the repo
+      cd ..
+      rm -r $repo
+      git clone https://github.com/BlazingDB/$repo
+    else
+      cd ..
+    fi    
+  fi
+  cd $repo
+  if [ ${branches[i]} != "latest" ]; then
+    git checkout ${branches[i]}
+  fi
+  i=$(($i+1))
 
-cd conda/recipes/$repo
-conda build -c conda-forge -c felipeblazing -c rapidsai-nightly --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} .
-echo "Cloned and conda built ${repo}"
+  cd conda/recipes/$repo
+  conda build -c conda-forge -c felipeblazing -c rapidsai-nightly --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} .
+  echo "######################################################################### Cloned and built ${repo} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 done
