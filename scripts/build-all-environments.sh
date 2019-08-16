@@ -1,5 +1,5 @@
 #!/bin/bash
-
+conda init bash
 #usage is
 # ./build-all-environments.sh 1 1
 #  ./build-all-environments.sh [build conda environment] [run conda build]
@@ -10,9 +10,11 @@ if [ $# -eq 0 ]
     build_conda_env=1
     run_conda_build=1
   elif [ $# -eq 1 ]
+  then
     build_conda_env=$1
     run_conda_build=1
   elif [ $# -eq 2 ]
+  then
     build_conda_env=$1
     run_conda_build=$2
 fi
@@ -23,10 +25,11 @@ do
   for toolkit in "${toolkit_versions[@]}"
   do
     if [ $build_conda_env -eq 1 ]; then
-      conda create -n conda-py${python}_cuda${toolkit}
+      conda create -y -n conda-py${python}_cuda${toolkit}
     fi
+    conda init bash
     conda activate conda-py${python}_cuda${toolkit}
-    ./build-all-conda.sh python toolkit &
+    ./build-all-conda.sh $python $toolkit
   done
 done
 
