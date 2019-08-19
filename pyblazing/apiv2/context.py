@@ -27,13 +27,13 @@ class CsvArgs():
         self.path = path
         self.column_names = kwargs.get('names', [])
         self.column_types = kwargs.get('dtype', [])
-        self.delimiter = kwargs.get('delimiter', ',')
+        self.delimiter = kwargs.get('delimiter', None)  # the default value of truth is set in the validation
         self.skiprows = kwargs.get('skiprows', 0)
         self.lineterminator = kwargs.get('lineterminator', '\n')
         self.skipinitialspace = kwargs.get('skipinitialspace', False)
         self.delim_whitespace = kwargs.get('delim_whitespace', False)
         self.header = kwargs.get('header', -1)
-        self.nrows = kwargs.get('nrows')
+        self.nrows = kwargs.get('nrows', None)  # the default value of truth is set in the validation
         self.skip_blank_lines = kwargs.get('skip_blank_lines', True)
         self.quotechar = kwargs.get('quotechar', '\"')
         self.quoting = kwargs.get('quoting', 0)
@@ -58,6 +58,8 @@ class CsvArgs():
                 self.delimiter = ","
             elif self.path.suffix == '.psv': 
                 self.delimiter = "|"
+            else:
+                self.delimiter = ","
 
         # lineterminator
         if isinstance(self.lineterminator, bool):
