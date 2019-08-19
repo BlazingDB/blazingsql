@@ -110,6 +110,8 @@ class BlazingContext(object):
                 datasource = from_parquet(self.client, table_name, paths)
             elif path.suffix == '.json' or fileFormat == 'json':
                 json_lines = kwargs.get('lines', True)
+                if(json_lines == False):
+                    raise Exception("Only lines=True is currently supported, optionally you can read the file with Pandas")
                 datasource = from_json(self.client, table_name, paths, json_lines)
             elif path.suffix == '.orc' or fileFormat == 'orc':
                 datasource = from_orc(self.client, table_name, paths)
