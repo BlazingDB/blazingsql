@@ -23,54 +23,44 @@ import time
 
 class CsvArgs():
 
-    def __init__(self):
-        self.column_names = []
-        self.column_types = []
-        self.delimiter = ','
-        self.skiprows = 0
-        self.lineterminator = '\n'
-        self.skipinitialspace = False
-        self.delim_whitespace = False
-        self.header = -1
-        self.nrows = -1
-        self.skip_blank_lines = True
-        self.quotechar = '\"'
-        self.quoting = 0
-        self.doublequote = True
-        self.decimal = '.'
-        self.skipfooter = 0
-        self.keep_default_na = True
-        self.na_filter = True
-        self.dayfirst = False
-        self.thousands = '\0'
-        self.comment = '\0'
-        self.true_values = []
-        self.false_values = []
-        self.na_values = []
-
-    # Validate input params
-    def validation(self, path, **kwargs):
-
-        # path
+    def __init__(self, path, **kwargs):
         self.path = path
-
-        # names & dtype
         self.column_names = kwargs.get('names', [])
         self.column_types = kwargs.get('dtype', [])
+        self.delimiter = kwargs.get('delimiter', ',')
+        self.skiprows = kwargs.get('skiprows', 0)
+        self.lineterminator = kwargs.get('lineterminator', '\n')
+        self.skipinitialspace = kwargs.get('skipinitialspace', False)
+        self.delim_whitespace = kwargs.get('delim_whitespace', False)
+        self.header = kwargs.get('header', -1)
+        self.nrows = kwargs.get('nrows')
+        self.skip_blank_lines = kwargs.get('skip_blank_lines', True)
+        self.quotechar = kwargs.get('quotechar', '\"')
+        self.quoting = kwargs.get('quoting', 0)
+        self.doublequote = kwargs.get('doublequote', True)
+        self.decimal = kwargs.get('decimal', '.')
+        self.skipfooter = kwargs.get('skipfooter', 0)
+        self.keep_default_na = kwargs.get('keep_default_na', True)
+        self.na_filter = kwargs.get('na_filter', True)
+        self.dayfirst = kwargs.get('dayfirst', False)
+        self.thousands = kwargs.get('thousands', '\0')
+        self.comment = kwargs.get('comment', '\0')
+        self.true_values = kwargs.get('true_values', [])
+        self.false_values = kwargs.get('false_values', [])
+        self.na_values = kwargs.get('na_values', [])
+
+    # Validate input params
+    def validation(self):
 
         # delimiter
-        self.delimiter = kwargs.get('delimiter')
         if self.delimiter == None:
             if self.path.suffix == '.csv':
                 self.delimiter = ","
-            else:
+            elif self.path.suffix == '.psv': 
                 self.delimiter = "|"
 
         # lineterminator
-        self.lineterminator = kwargs.get('lineterminator', '\n')
-        if self.lineterminator == None:
-            self.lineterminator = '\n'
-        elif isinstance(self.lineterminator, bool):
+        if isinstance(self.lineterminator, bool):
             raise TypeError("object of type 'bool' has no len()")
         elif isinstance(self.lineterminator, int):
             raise TypeError("object of type 'int' has no len()")
@@ -78,26 +68,26 @@ class CsvArgs():
             raise ValueError("Only length-1 decimal markers supported")
 
         # skiprows
-        self.skiprows = kwargs.get('skiprows', 0)
         if self.skiprows == None or self.skiprows < 0:
             self.skiprows = 0
+        elif isinstance(self.skiprows, str):
+            raise TypeError("an integer is required")
         
         # header
-        self.header = kwargs.get('header',-1)
         if self.header == -1 and len(self.column_names) == 0:
             self.header = 0
         if self.header == None or self.header < -1 :
             self.header = -1
+        elif isinstance(self.header, str):
+            raise TypeError("header must be integer or list of integers")
 
         # nrows
-        self.nrows = kwargs.get('nrows')
         if self.nrows == None:
             self.nrows = -1
         elif self.nrows < 0:
             raise ValueError("'nrows' must be an integer >= 0")
 
         # skipinitialspace
-        self.skipinitialspace = kwargs.get('skipinitialspace', False)
         if self.skipinitialspace  == None:
             raise TypeError("an integer is required")
         elif self.skipinitialspace  == False:
@@ -106,7 +96,6 @@ class CsvArgs():
             self.skipinitialspace  = True
 
         # delim_whitespace
-        self.delim_whitespace = kwargs.get('delim_whitespace', False)
         if self.delim_whitespace == None or self.delim_whitespace == False:
             self.delim_whitespace = False
         elif isinstance(self.delim_whitespace, str):
@@ -115,14 +104,12 @@ class CsvArgs():
             self.delim_whitespace = True
 
         # skip_blank_lines
-        self.skip_blank_lines = kwargs.get('skip_blank_lines', True)
         if self.skip_blank_lines == None or isinstance(self.skip_blank_lines, str):
             raise TypeError("an integer is required")
         if self.skip_blank_lines != False:
             self.skip_blank_lines = True
 
         # quotechar
-        self.quotechar = kwargs.get('quotechar', '\"')
         if self.quotechar == None:
             raise TypeError("quotechar must be set if quoting enabled")
         elif isinstance(self.quotechar, int):
@@ -133,7 +120,6 @@ class CsvArgs():
             raise TypeError("quotechar must be a 1-character string")
 
         # quoting
-        self.quoting = kwargs.get('quoting', 0)
         if isinstance(self.quoting, int) :
             if self.quoting < 0 or self.quoting > 3 :
                 raise TypeError("bad 'quoting' value")
@@ -141,14 +127,12 @@ class CsvArgs():
             raise TypeError(" 'quoting' must be an integer")
 
         # doublequote
-        self.doublequote = kwargs.get('doublequote', True)
         if self.doublequote == None or not isinstance(self.doublequote, int):
             raise TypeError("an integer is required")
         elif self.doublequote != False:
             self.doublequote = True
 
         # decimal
-        self.decimal = kwargs.get('decimal', '.')
         if self.decimal == None:
             raise TypeError("object of type 'NoneType' has no len()")
         elif isinstance(self.decimal, bool):
@@ -159,7 +143,6 @@ class CsvArgs():
             raise ValueError("Only length-1 decimal markers supported")
 
         # skipfooter
-        self.skipfooter = kwargs.get('skipfooter', 0)
         if self.skipfooter == True or isinstance(self.skipfooter, str):
             raise TypeError("skipfooter must be an integer")
         elif self.skipfooter == False or self.skipfooter == None:
@@ -168,28 +151,24 @@ class CsvArgs():
             self.skipfooter = 0
 
         # keep_default_na
-        self.keep_default_na = kwargs.get('keep_default_na', True)
         if self.keep_default_na  == False or self.keep_default_na  == 0:
             self.keep_default_na  = False
         else:
             self.keep_default_na  = True
 
         # na_filter
-        self.na_filter = kwargs.get('na_filter', True)
         if self.na_filter == False or self.na_filter == 0:
             self.na_filter = False
         else:
             self.na_filter = True
 
         # dayfirst
-        self.dayfirst = kwargs.get('dayfirst', False)
         if self.dayfirst == True or self.dayfirst == 1:
             self.dayfirst = True
         else:
             self.dayfirst = False
 
         # thousands
-        self.thousands = kwargs.get('thousands', '\0')
         if self.thousands == None:
             self.thousands = '\0'
         elif isinstance(self.thousands, bool):
@@ -200,7 +179,6 @@ class CsvArgs():
             raise ValueError("Only length-1 decimal markers supported")
 
         # comment
-        self.comment = kwargs.get('comment', '\0')
         if self.comment == None:
             self.comment = '\0'
         elif isinstance(self.comment, bool):
@@ -211,7 +189,6 @@ class CsvArgs():
             raise ValueError("Only length-1 decimal markers supported")
 
         # true_values
-        self.true_values = kwargs.get('true_values', [])
         if isinstance(self.true_values, bool):
             raise TypeError("'bool' object is not iterable")
         elif isinstance(self.true_values, int):
@@ -222,7 +199,6 @@ class CsvArgs():
             self.true_values = self.true_values.split(',')
 
         # false_values
-        self.false_values = kwargs.get('false_values', [])
         if isinstance(self.false_values, bool):
             raise TypeError("'bool' object is not iterable")
         elif isinstance(self.false_values, int):
@@ -233,7 +209,6 @@ class CsvArgs():
             self.false_values = self.false_values.split(',')
 
         # na_values
-        self.na_values = kwargs.get('na_values', [])
         if isinstance(self.na_values , int) or isinstance(self.na_values , bool):
             self.na_values  = str(self.na_values ).split(',')
         elif self.na_values  == None:
@@ -323,8 +298,8 @@ class BlazingContext(object):
                 datasource = from_parquet(self.client, table_name, paths)
             elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
                 # TODO percy duplicated code bud itnernal api desing remove this later
-                csv_args = CsvArgs()
-                csv_args.validation(path, **kwargs)
+                csv_args = CsvArgs(path, **kwargs)
+                csv_args.validation()
                 datasource = from_csv(self.client, table_name, paths, csv_args)
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
