@@ -67,9 +67,9 @@ class BlazingContext(object):
     # remove
     def create_table(self, table_name, input, **kwargs):
         ds = build_datasource(self.client, input, table_name, **kwargs)
-        self.sqlObject.create_table(ds.table_name, ds)
+        table = self.sqlObject.create_table(ds)
 
-        return ds
+        return table
 
     def drop_table(self, table_name):
         return self.sqlObject.drop_table(table_name)
