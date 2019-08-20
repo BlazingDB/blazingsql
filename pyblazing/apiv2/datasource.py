@@ -1,6 +1,7 @@
 from enum import IntEnum, unique
 
 from urllib.parse import urlparse
+from urllib.parse import ParseResult
 from pathlib import PurePath
 
 import pandas
@@ -26,98 +27,113 @@ class Type(IntEnum):
 class Descriptor:
 
     def __init__(self, input):
-        self.in_directory = False
-        self.has_wildcard = False
-        self.wildcard = ""
+        self._in_directory = False
+        self._has_wildcard = False
+        self._wildcard = ""
 
-        self.uri = None
-        self.type = None
-        self.files = None
+        self._uri = None
+        self._type = None
+        self._files = None
 
         if type(input) == cudf.DataFrame:
-            self.type = Type.cudf
+            self._type = Type.cudf
         elif type(input) == pandas.DataFrame:
-            self.type = Type.pandas
+            self._type = Type.pandas
         elif type(input) == pyarrow.Table:
-            self.type = Type.arrow
+            self._type = Type.arrow
         elif type(input) == internal_api.ResultSetHandle:
-            self.type = Type.result_set
+            self._type = Type.result_set
         elif hasattr(input, 'metaToken'):
-            self.type = Type.distributed_result_set
+            self._type = Type.distributed_result_set
         elif type(input) == list:
             self._parse_list(input)
         elif type(input) == str:
             if self._is_dir(input):
                 list_input = scan_datasource(None, input, "")
                 self._parse_list(list_input)
-                self.in_directory = True
+                self._in_directory = True
             elif self._is_wildcard(input):
-                path = self._to_path(input)
-                directory = self._get_parent_dir(path)
+                url = self._to_url(input)
+                path = self._to_path(url)
+                parent_dir = self._get_parent_dir(path)
                 wildcard = self._get_wildcard(path)
-                # TODO percy directory should be compose from the scheme and auth and so on
+
+                directory = ParseResult(
+                    scheme = url.scheme,
+                    netloc = url.netloc,
+                    path = str(parent_dir),
+                    params = url.params,
+                    query = url.query,
+                    fragment = url.fragment)
+
+                directory = directory.geturl() + '/'
+
                 list_input = scan_datasource(None, directory, wildcard)
                 self._parse_list(list_input)
-                self.has_wildcard = True
-                self.wildcard = wildcard
+                self._has_wildcard = True
+                self._wildcard = wildcard
             else:
-                path = self._to_path(input)
-                self.type = self._type_from_path(path)
+                url = self._to_url(input)
+                path = self._to_path(url)
+                self._type = self._type_from_path(path)
 
-                if self.type == None:
+                if self._type == None:
                     raise Exception("If input into create_table is a file path string, it is expecting a valid file extension")
 
-                self.files = [input]
+                self._files = [input]
 
-            self.uri = input
+            self._uri = input
 
     def in_directory(self):
-        return self.in_directory
+        return self._in_directory
 
     def has_wildcard(self):
-        return self.has_wildcard
+        return self._has_wildcard
 
     def wildcard(self):
-        return self.wildcard
+        return self._wildcard
 
     def uri(self):
-        return self.uri
+        return self._uri
 
     def type(self):
-        return self.type
+        return self._type
 
     def files(self):
-        return self.files
+        return self._files
 
     # cudf.DataFrame in-gpu-memory
     def is_cudf(self):
-        return self.type == Type.cudf
+        return self._type == Type.cudf
 
     # pandas.DataFrame in-memory
     def is_pandas(self):
-        return self.type == Type.pandas
+        return self._type == Type.pandas
 
     # arrow file on filesystem or arrow in-memory
     def is_arrow(self):
-        return self.type == Type.arrow
+        return self._type == Type.arrow
 
     # csv file on filesystem
     def is_csv(self):
-        return self.type == Type.csv
+        return self._type == Type.csv
 
     # parquet file on filesystem
     def is_parquet(self):
-        return self.type == Type.parquet
+        return self._type == Type.parquet
 
     # blazing result set handle
     def is_result_set(self):
-        return self.type == Type.result_set
+        return self._type == Type.result_set
 
     def is_distributed_result_set(self):
-        return self.type == Type.distributed_result_set
+        return self._type == Type.distributed_result_set
 
-    def _to_path(self, str_input):
+    def _to_url(self, str_input):
         url = urlparse(str_input)
+        return url
+
+    def _to_path(self, url):
         path = PurePath(url.path)
         return path
 
@@ -139,6 +155,9 @@ class Descriptor:
     def _get_wildcard(self, path):
         return path.name
 
+    def _get_parent_dir(self, path):
+        return path.parents[0]
+
     def _parse_list(self, list_input):
         if len(list_input) == 0:
             raise Exception("Input into create_table was an empty list")
@@ -148,14 +167,15 @@ class Descriptor:
         if type(head) != str:
             raise Exception("If input into create_table is a list, it is expecting a list of path strings")
 
-        path = self._to_path(head)
-        self.type = self._type_from_path(path)
+        url = self._to_url(head)
+        path = self._to_path(url)
+        self._type = self._type_from_path(path)
 
-        if self.type == None:
+        if self._type == None:
             raise Exception("If input into create_table is a list, it is expecting a list of valid file extension paths")
 
-        self.uri = str(path.parent)
-        self.files = list_input
+        self._uri = str(path.parent)
+        self._files = list_input
 
 
 class DataSource:
@@ -424,9 +444,9 @@ def build_datasource(client, input, table_name, **kwargs):
     elif ds_descriptor.is_distributed_result_set():
         ds = from_distributed_result_set(input.metaToken, table_name)
     elif ds_descriptor.is_parquet():
-        ds = from_parquet(client, table_name, ds_descriptor.files)
+        ds = from_parquet(client, table_name, ds_descriptor.files())
     elif ds_descriptor.is_csv():
-        ds = from_csv(client, table_name, ds_descriptor.files, **kwargs)
+        ds = from_csv(client, table_name, ds_descriptor.files(), **kwargs)
 
     # TODO percy raise error if ds is None
 

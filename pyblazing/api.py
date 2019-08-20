@@ -226,6 +226,7 @@ class PyConnector(metaclass=Singleton):
 
         datasource_response = blazingdb.protocol.orchestrator.DataSourceResponseSchema.From(response.payload)
         files = list(item.decode("utf-8") for item in datasource_response.files)
+
         return files
 
     def free_memory(self, interpreter_path, interpreter_port):
@@ -1029,6 +1030,7 @@ def gdf_to_np_dtype(dtype):
 def scan_datasource(directory, wildcard):
     return_result = None
     error_message = ''
+    files = None
     
     try:
         client = _get_client()
@@ -1043,6 +1045,8 @@ def scan_datasource(directory, wildcard):
 
     if error_message is not '':
         print(error_message)
+
+    # TODO percy raise error if files is None
 
     return files
 
