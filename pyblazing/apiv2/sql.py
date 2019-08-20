@@ -15,12 +15,15 @@ class Table:
         if not self.is_valid():
             return 'Invalid BlazingSQL table'
 
+        ident = "  "  # or can be a tab "\t"
         output = "BlazingSQL table type: %s\n" % self.type().value
-        files = self._datasource.descriptor().files()
+        output += "%sTable name: %s\n" % (ident, self.name())
 
-        if len(files) > 0:
-            for file in files:
-                output += "    %s\n" % file
+        if len(self.datasource_files()) > 0:
+            output += "%sData source URI: %s\n" % (ident, self.datasource_uri())
+            output += "%sData source files:\n" % ident
+            for file in self.datasource_files():
+                output += "%s%s%s\n" % (ident, ident, file)
 
         return output
 
