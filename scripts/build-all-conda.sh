@@ -1,11 +1,11 @@
 #!/bin/bash
 python=$1
 toolkit=$2
-
+channel=$3
 
 #usage is
-# ./build-all-environments.sh 3.6 9.2
-#  ./build-all-environments.sh [python version] [cuda toolkit version]
+# ./build-all-environments.sh 3.6 9.2 felipeblazing
+#  ./build-all-environments.sh [python version] [cuda toolkit version] [channel]
 
 echo "$CONDA_PREFIX: "$CONDA_PREFIX
 cd $CONDA_PREFIX
@@ -40,7 +40,7 @@ do
 
   echo "repo_dir: conda/recipes/"$repo
   cd conda/recipes/$repo
-  conda build -c conda-forge -c felipeblazing -c rapidsai-nightly --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} .
+  conda build -c conda-forge -c $channel -c rapidsai-nightly --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} .
   if [ $? != 0 ]; then
     #exit 1
     echo "######################################################################### Build failed ${repo} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
