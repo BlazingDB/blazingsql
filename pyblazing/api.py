@@ -49,6 +49,7 @@ gpus = devices.gpus
 dataColumnTokens = {}
 validColumnTokens = {}
 
+
 # connection_path is a ip/host when tcp and can be unix socket when ipc
 def _send_request(connection_path, connection_port, requestBuffer):
     connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
@@ -296,13 +297,13 @@ def _get_client():
 
 class ResultSetHandle:
 
-    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message):
+    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message, total_nodes, n_crashed_nodes):
         self.columns = columns
         self.columnTokens = columnTokens
 
         self._buffer_ids = []
         if columns is not None:
-            if columns.columns.size>0:
+            if columns.columns.size>0 and columnTokens is not None:
                for idx, column in enumerate(self.columns.columns):
                     dataframe_column = self.columns._cols[column]
                     data_id = id(dataframe_column._column._data)
@@ -324,6 +325,8 @@ class ResultSetHandle:
         self.ralTime = ralTime
         self.totalTime = totalTime
         self.error_message = error_message
+        self.total_nodes =  total_nodes
+        self.n_crashed_nodes = n_crashed_nodes 
 
     def __del__(self):
         for key in self._buffer_ids:
@@ -702,42 +705,69 @@ def _run_query_get_results(distMetaToken, startTime):
 
     client = _get_client()
     totalTime = 0
-    try:
-        result_list = []
-        for result in distMetaToken:
+    total_nodes = 1
+    n_crashed_nodes = 0
+            
+    result_list = []
+    for result in distMetaToken:
+        try:
             resultSet, ipchandles = _private_get_result(result.resultToken,
                                                         result.nodeConnection.path.decode('utf8'),
                                                         result.nodeConnection.port,
                                                         result.calciteTime)
-            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles})
-
-        totalTime = (time.time() - startTime) * 1000  # in milliseconds
-
-    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
-        error_message = error
-    except Error as error:
-        error_message = str(error)
-    except Exception as error:
-        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
-
-    if error_message is not '':
-        print(error_message)
+            
+            totalTime = (time.time() - startTime) * 1000  # in milliseconds
+            
+            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles, 'totalTime':totalTime, 'error_message':''})
+            
+        except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+            error_message = error
+        except Error as error:
+            error_message = str(error)
+        except Exception as error:
+            error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
+            
+        if error_message is not '':
+            print(error_message)
+            result_list.append({'result': result, 'resultSet': None, 'ipchandles': None, 'totalTime':0, 'error_message':error_message})
+                    
+        if error_message is not '':            
+            print(error_message)
+            n_crashed_nodes = n_crashed_nodes + 1 
 
     result_set_list = []
-
+    
     for result in result_list:
-        result_set_list.append(ResultSetHandle(result['resultSet'].columns,
-                                               result['resultSet'].columnTokens,
-                                               result['result'].resultToken,
-                                               result['result'].nodeConnection.path.decode('utf8'),
-                                               result['result'].nodeConnection.port,
-                                               result['ipchandles'],
-                                               client,
-                                               result['result'].calciteTime,
-                                               result['resultSet'].metadata.time,
-                                               totalTime,
-                                               ''
-                                               ))
+        if result['error_message'] is not '':
+            result_set_list.append(ResultSetHandle(None,
+                                                   None, 
+                                                   result['result'].resultToken,
+                                                   result['result'].nodeConnection.path.decode('utf8'),
+                                                   result['result'].nodeConnection.port,
+                                                   None,
+                                                   client,
+                                                   result['result'].calciteTime,
+                                                   None,
+                                                   0,
+                                                   result['error_message'],
+                                                   total_nodes,  #total_nodes
+                                                   n_crashed_nodes   #n_crashed_nodes
+                                                   ))
+        else:
+            result_set_list.append(ResultSetHandle(result['resultSet'].columns,
+                                                   result['resultSet'].columnTokens,
+                                                   result['result'].resultToken,
+                                                   result['result'].nodeConnection.path.decode('utf8'),
+                                                   result['result'].nodeConnection.port,
+                                                   result['ipchandles'],
+                                                   client,
+                                                   result['result'].calciteTime,
+                                                   result['resultSet'].metadata.time,
+                                                   result['totalTime'],
+                                                   result['error_message'],
+                                                   total_nodes,  #total_nodes
+                                                   n_crashed_nodes   #n_crashed_nodes
+                                                   ))
 
     if len(result_set_list) == 1:
         result_set_list = result_set_list[0]
@@ -844,41 +874,77 @@ def _run_query_get_concat_results(distMetaToken, startTime):
 
     client = _get_client()
 
-    error_message = ''
-    try:
-        result_list = []
-        for result in distMetaToken:
+    all_error_messages = ''
+    result_list = []
+    ral_count = 0
+    sum_calcite_time = 0
+    sum_ral_time = 0
+    sum_total_time = 0
+    total_nodes = 0
+    n_crashed_nodes = 0 
+    
+    for result in distMetaToken:
+        ral_count = ral_count + 1
+        error_message = ''
+        try:
+            totalTime = 0
             resultSet, ipchandles = _private_get_result(result.resultToken,
                                                         result.nodeConnection.path.decode('utf8'),
                                                         result.nodeConnection.port,
                                                         result.calciteTime)
+
+            totalTime = (time.time() - startTime) * 1000  # in milliseconds
+            
+            sum_calcite_time = sum_calcite_time + result.calciteTime
+            sum_ral_time =  sum_ral_time  + resultSet.metadata.time
+            sum_total_time =  sum_total_time + totalTime
+            
             result_list.append(resultSet)
+        except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
+            error_message = error
+        except Error as error:
+            error_message = str(error)
+        except Exception as error:
+            error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
+    
+        total_nodes = total_nodes + 1
+        
+        if error_message is not '':            
+            print(error_message)
+            all_error_messages = all_error_messages + " Node " + str(ral_count) + ":" + str(error_message)
+            n_crashed_nodes = n_crashed_nodes + 1
+            
+    need_to_concat = sum([len(result.columns) > 0 for result in result_list]) > 1
 
-        need_to_concat = sum([len(result.columns) > 0 for result in result_list]) > 1
+    gdf =  None
+    
+    if (need_to_concat):
+        all_gdfs = [result.columns for result in result_list]
+        gdf =  concat(all_gdfs, ignore_index=True)        
+    else:
+        for result in result_list:  # if we dont need to concatenate, likely we only have one, or only one that has data
+            if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings.
+                 gdf = result.columns
+                 for col_name, col in gdf._cols.items():
+                     if (col.dtype != 'object'):
+                         gdf[col_name] = gdf[col_name].copy(deep=True)
 
-        if (need_to_concat):
-            all_gdfs = [result.columns for result in result_list]
-            return concat(all_gdfs, ignore_index=True)
-        else:
-            for result in result_list:  # if we dont need to concatenate, likely we only have one, or only one that has data
-                if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings.
-                    gdf = result.columns
-                    for col_name, col in gdf._cols.items():
-                        if (col.dtype != 'object'):
-                            gdf[col_name] = gdf[col_name].copy(deep=True)
-                    return gdf
+    resultSetHandle = ResultSetHandle(gdf,
+                                       None,
+                                       None,
+                                       None,
+                                       None,
+                                       None,
+                                       None,
+                                       sum_calcite_time,
+                                       sum_ral_time,
+                                       sum_total_time,
+                                       all_error_messages,
+                                       total_nodes, #total_nodes
+                                       n_crashed_nodes  #n_crashed_nodes
+                                       )
 
-    except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
-        error_message = error
-    except Error as error:
-        error_message = str(error)
-    except Exception as error:
-        error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
-
-    if error_message is not '':
-        print(error_message)
-
-    return DataFrame()
+    return resultSetHandle 
 
 #cambiar para success or failed
 def create_table(tableName, **kwargs):
@@ -922,8 +988,6 @@ def create_table(tableName, **kwargs):
     #print("ERROR: unknown schema type")
     return return_result
 
-
-
 def register_file_system(authority, type, root, params = None):
     if params is not None:
         params = namedtuple("FileSystemConnection", params.keys())(*params.values())
@@ -955,52 +1019,11 @@ def _create_dummy_table_group():
     tableGroup = OrderedDict([('name', database_name), ('tables', [])])
     return tableGroup
 
+def gdf_to_np_dtype(dtype):
+   """Util to convert gdf dtype to numpy dtype.
+   """
+   return np.dtype(gdf_dtypes[dtype])
 
-def run_query_filesystem(sql, sql_data):
-    startTime = time.time()
-
-    client = _get_client()
-
-    for schema, files in sql_data.items():
-        _reset_table(client, schema.table_name, schema.gdf)
-
-    totalTime = 0
-    result_list = []
-    try:
-        tableGroup = _sql_data_to_table_group(sql_data)
-        dist_list = client.run_dml_query_filesystem_token(sql, tableGroup)
-
-        for result in dist_list:
-            resultSet, ipchandles = _private_get_result(result.resultToken,
-                                                        result.nodeConnection.path.decode('utf8'),
-                                                        result.nodeConnection.port,
-                                                        result.calciteTime)
-            result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles})
-
-        totalTime = (time.time() - startTime) * 1000  # in milliseconds
-    except SyntaxError as error:
-        raise error
-    except Error as err:
-        print(err)
-        raise err
-
-    result_set_list = []
-
-    for result in result_list:
-        result_set_list.append(ResultSetHandle(result['resultSet'].columns,
-                                               result['resultSet'].columnTokens,
-                                               result['result'].resultToken,
-                                               result['result'].nodeConnection.path.decode('utf8'),
-                                               result['result'].nodeConnection.port,
-                                               result['ipchandles'],
-                                               client,
-                                               result['result'].calciteTime,
-                                               result['resultSet'].metadata.time,
-                                               totalTime,
-                                               ''
-                                               ))
-
-    return result_set_list
 
 
 def scan_datasource(directory, wildcard):
@@ -1022,3 +1045,4 @@ def scan_datasource(directory, wildcard):
         print(error_message)
 
     return files
+
