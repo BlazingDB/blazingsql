@@ -966,7 +966,7 @@ def create_table(tableName, **kwargs):
         blazing_table = gdf_to_BlazingTable(gdf)
 
     if (len(csv_args.column_types) > 0):
-        columnTypes = gdf_dtypes_to_gdf_dtype_strs(csv_args.column_types)
+        csv_args.column_types = gdf_dtypes_to_gdf_dtype_strs(get_dtype_values(csv_args.column_types))
 
     try:
         client = _get_client()
