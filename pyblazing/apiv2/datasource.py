@@ -162,17 +162,21 @@ class Descriptor:
         if len(list_input) == 0:
             raise Exception("Input into create_table was an empty list")
 
-        head = list_input[0]
+        last_valid_type = None
+        for file in list_input:
+            if type(file) != str:
+                raise Exception("If input into create_table is a list, it is expecting a list of path strings")
 
-        if type(head) != str:
-            raise Exception("If input into create_table is a list, it is expecting a list of path strings")
+            url = self._to_url(file)
+            path = self._to_path(url)
+            self._type = self._type_from_path(path)
 
-        url = self._to_url(head)
-        path = self._to_path(url)
-        self._type = self._type_from_path(path)
+            if self._type == None:
+                error_msg = "If input into create_table is a list, it is expecting a list of valid %s files. Invalid file: %s"
+                error_msg = error_msg % (last_valid_type.value, file)
+                raise Exception(error_msg)
 
-        if self._type == None:
-            raise Exception("If input into create_table is a list, it is expecting a list of valid file extension paths")
+            last_valid_type = self._type
 
         self._uri = str(path.parent)
         self._files = list_input
