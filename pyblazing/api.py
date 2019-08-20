@@ -222,7 +222,7 @@ class PyConnector(metaclass=Singleton):
 
         if response.status == Status.Error:
             errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
-            raise RuntimeError(errorResponse.errors)
+            raise RuntimeError(errorResponse.errors.decode("utf-8"))
 
         datasource_response = blazingdb.protocol.orchestrator.DataSourceResponseSchema.From(response.payload)
         files = list(item.decode("utf-8") for item in datasource_response.files)
@@ -1044,9 +1044,6 @@ def scan_datasource(directory, wildcard):
         error_message = "Unexpected error on " + scan_datasource.__name__ + ", " + str(error)
 
     if error_message is not '':
-        print(error_message)
-
-    # TODO percy raise error if files is None
+        raise RuntimeError(error_message)
 
     return files
-
