@@ -34,6 +34,7 @@ do
   cd $repo
   if [ ${branches[i]} != "latest" ]; then
     git checkout ${branches[i]}
+    git pull origin ${branches[i]}
   fi
   i=$(($i+1))
 
