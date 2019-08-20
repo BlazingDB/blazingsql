@@ -211,8 +211,8 @@ class PyConnector(metaclass=Singleton):
 
         return response.status
 
-    def run_scan_datasource(self, uri):
-        datasourceSchema = blazingdb.protocol.orchestrator.BuildDataSourceRequestSchema(uri=uri)
+    def run_scan_datasource(self, directory, wildcard):
+        datasourceSchema = blazingdb.protocol.orchestrator.BuildDataSourceRequestSchema(directory = directory, wildcard = wildcard)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.ScanDataSource, self._accessToken, datasourceSchema)
 
@@ -220,11 +220,12 @@ class PyConnector(metaclass=Singleton):
         response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
 
         if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(
-                response.payload)
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
             raise RuntimeError(errorResponse.errors)
 
-        return response.status
+        datasource_response = blazingdb.protocol.orchestrator.DataSourceResponseSchema.From(response.payload)
+        files = list(item.decode("utf-8") for item in datasource_response.files)
+        return files
 
     def free_memory(self, interpreter_path, interpreter_port):
         result_token = 2433423
@@ -1002,12 +1003,13 @@ def run_query_filesystem(sql, sql_data):
     return result_set_list
 
 
-def scan_datasource(uri):
+def scan_datasource(directory, wildcard):
     return_result = None
+    error_message = ''
     
     try:
         client = _get_client()
-        return_result = client.run_scan_datasource(uri)
+        files = client.run_scan_datasource(directory, wildcard)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
@@ -1019,4 +1021,4 @@ def scan_datasource(uri):
     if error_message is not '':
         print(error_message)
 
-    return return_result
+    return files

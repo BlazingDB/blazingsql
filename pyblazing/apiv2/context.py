@@ -1,23 +1,14 @@
 from collections import OrderedDict
 from enum import Enum
-from urllib.parse import urlparse
-from pathlib import PurePath
 
-import cudf
+from urllib.parse import urlparse
 
 from .bridge import internal_api
 
 from .filesystem import FileSystem
 from .sql import SQL
 from .sql import ResultSet
-from .datasource import Descriptor
-from .datasource import from_cudf
-from .datasource import from_pandas
-from .datasource import from_arrow
-from .datasource import from_csv
-from .datasource import from_parquet
-from .datasource import from_result_set
-from .datasource import from_distributed_result_set
+from .datasource import build_datasource
 import time
 
 
@@ -41,6 +32,7 @@ class BlazingContext(object):
         self.fs = FileSystem()
         self.sqlObject = SQL()
         self.dask_client = dask_client;
+
     def __del__(self):
         # TODO percy clean next time
         # del self.sqlObject
@@ -72,79 +64,21 @@ class BlazingContext(object):
 
     # BEGIN SQL interface
 
-    #remove
+    # remove
     def create_table(self, table_name, input, **kwargs):
-        datasource = None
+        ds = build_datasource(self.client, input, table_name, **kwargs)
+        self.sqlObject.create_table(ds.table_name, ds)
 
-        ds_descriptor = Descriptor(input)
-
-        print("AAAAAAAAAAA222222444444444444444444444444444444442")
-
-        if type(input) == cudf.DataFrame:
-            datasource = from_cudf(input, table_name)
-        elif type(input) == pandas.DataFrame:
-            datasource = from_pandas(input, table_name)
-        elif type(input) == pyarrow.Table:
-            datasource = from_arrow(input, table_name)
-        elif type(input) == internal_api.ResultSetHandle:
-            datasource = from_result_set(input, table_name)
-        elif hasattr(input, 'metaToken'):
-            datasource = from_distributed_result_set(input.metaToken,table_name)
-        elif type(input) == str or type(input) == list:
-
-            # NOTE percy implement here the wildcard stuff
-            # ... put the login in datasource
-
-
-
-            if type(input) == str:
-                uri = urlparse(input)
-                path = PurePath(uri.path)
-                paths = [input]
-            else: # its a list
-                if len(input) == 0:
-                    raise Exception("Input into create_table was an empty list")
-                elif type(input[0]) != str:
-                    raise Exception("If input into create_table is a list, it is expecting a list of path strings")
-                else:
-                    uri = urlparse(input[0])
-                    path = PurePath(uri.path)
-                    paths = input
-
-            if path.suffix == '.parquet':
-                datasource = from_parquet(self.client, table_name, paths)
-            elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
-                # TODO percy duplicated code bud itnernal api desing remove this later
-                csv_column_names = kwargs.get('names', [])
-                csv_column_types = kwargs.get('dtype', [])
-                csv_delimiter = kwargs.get('delimiter', '|')
-                csv_skip_rows = kwargs.get('skiprows', 0)
-
-                datasource = from_csv(self.client, table_name, paths,
-                    csv_column_names,
-                    csv_column_types,
-                    csv_delimiter,
-                    csv_skip_rows)
-
-        else :
-            raise Exception("Unknown data type " + str(type(input)) + " when creating table")
-
-            # TODO percy dir
-
-        self.sqlObject.create_table(table_name, datasource)
-
-        # TODO percy raise exption here or manage the error
-
-        return None
+        return ds
 
     def drop_table(self, table_name):
         return self.sqlObject.drop_table(table_name)
 
     # async
-    def sql(self, sql, table_list=[]):
+    def sql(self, sql, table_list = []):
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
-        return self.sqlObject.run_query(self.client, sql,self.dask_client)
+        return self.sqlObject.run_query(self.client, sql, self.dask_client)
 
     # END SQL interface
 
