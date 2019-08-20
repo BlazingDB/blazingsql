@@ -1,3 +1,4 @@
+from .api import Status
 from .api import run_query_get_token
 from .api import convert_to_dask
 from .api import run_query_get_results

@@ -1,4 +1,4 @@
-from enum import IntEnum, unique
+from enum import Enum, unique
 
 from urllib.parse import urlparse
 from urllib.parse import ParseResult
@@ -13,14 +13,14 @@ from .bridge import internal_api
 
 
 @unique
-class Type(IntEnum):
-    cudf = 0
-    pandas = 1
-    arrow = 2
-    csv = 3
-    parquet = 4
-    result_set = 5
-    distributed_result_set = 6
+class Type(Enum):
+    cudf = "RAPIDS CUDF DataFrame"
+    pandas = "Pandas DataFrame"
+    arrow = "PyArrow Table"
+    csv = "CSV"
+    parquet = "Apache Parquet"
+    result_set = "BlazingSQL Non-distributed ResultSet"
+    distributed_result_set = "BlazingSQL Distributed ResultSet"
 
 
 # NOTE This class doesnt have any logic related to a remote call, is only for parsing the input
@@ -31,9 +31,9 @@ class Descriptor:
         self._has_wildcard = False
         self._wildcard = ""
 
-        self._uri = None
+        self._uri = ""
         self._type = None
-        self._files = None
+        self._files = []
 
         if type(input) == cudf.DataFrame:
             self._type = Type.cudf
@@ -180,72 +180,25 @@ class Descriptor:
 
 class DataSource:
 
-    def __init__(self, client, type, **kwargs):
-        self.client = client
-
-        self.table_name = None
-
-        # TODO remove type and use Descriptor
-        self.type = type
-
-        # remove
-        # declare all the possible fields (will be defined in _load)
-        self.cudf_df = None  # cudf, pandas and arrow data will be passed/converted into this var
-        self.csv = None
-        self.parquet = None
-        self.files = None
+    def __init__(self, client, descriptor, **kwargs):
+        self._client = client
+        self._descriptor = descriptor
+        self._table_name = kwargs.get('table_name', None)
 
         # init the data source
-        self.valid = self._load(type, **kwargs)
+        self._valid = self._load(**kwargs)
 
-    def __repr__(self):
-        return "TODO"
+    def is_valid(self):
+        return self._valid
 
-    def __str__(self):
-        if self.valid == False:
-            return 'Invalid datasource'
+    def descriptor(self):
+        return self._descriptor
 
-        type_str = {
-            Type.cudf: 'cudf',
-            Type.pandas: 'pandas',
-            Type.arrow: 'arrow',
-            Type.csv: 'csv',
-            Type.parquet: 'parquet',
-            Type.result_set: 'result_set'
-        }
+    def table_name(self):
+        return self._table_name
 
-        return type_str[self.type] + ": " + self.files
-
-    # def is_valid(self):
-    #    return self.valid
-
-    def dataframe(self):
-        # TODO percy add more support
-
-        if self.type == Type.cudf:
-            return self.cudf_df
-        elif self.type == Type.pandas:
-            return self.cudf_df
-        elif self.type == Type.arrow:
-            return self.cudf_df
-        elif self.type == Type.result_set:
-            return self.cudf_df
-
-        return None
-
-    def schema(self):
-        if self.type == Type.csv:
-            return self.csv
-        elif self.type == Type.parquet:
-            return self.parquet
-        elif self.type == Type.cudf:
-            return self.cudf_df
-
-        return None
-
-# BEGIN remove
-    def _load(self, type, **kwargs):
-        self.table_name = kwargs.get('table_name', None)
+    def _load(self, **kwargs):
+        type = self._descriptor.type()
 
         if type == Type.cudf:
             cudf_df = kwargs.get('cudf_df', None)
@@ -263,19 +216,17 @@ class DataSource:
             result_set = kwargs.get('result_set', None)
             return self._load_distributed_result_set(result_set)
         elif type == Type.csv:
-            files = kwargs.get('files', None)
             csv_column_names = kwargs.get('csv_column_names', [])
             csv_column_types = kwargs.get('csv_column_types', [])
             csv_delimiter = kwargs.get('csv_delimiter', '|')
             csv_skip_rows = kwargs.get('csv_skip_rows', 0)
-            return self._load_csv(files,
+            return self._load_csv(
                 csv_column_names,
                 csv_column_types,
                 csv_delimiter,
                 csv_skip_rows)
         elif type == Type.parquet:
-            files = kwargs.get('files', None)
-            return self._load_parquet(files)
+            return self._load_parquet()
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -284,130 +235,122 @@ class DataSource:
         # here we need to use low level api pyblazing.create_table
         return False
 
+    def _create_table_status_to_bool(self, return_result):
+        if internal_api.Status.Error == return_result:
+            return False
+        elif internal_api.Status.Success == return_result:
+            return True
+        else:
+            # TODO percy raise error
+            pass
+
+        return False
+
     def _load_cudf_df(self, cudf_df):
         self.cudf_df = cudf_df
 
         column_names = list(cudf_df.dtypes.index)
         column_dtypes = [internal_api.get_np_dtype_to_gdf_dtype(x) for x in cudf_df.dtypes]
         return_result = internal_api.create_table(
-            self.client,
-            self.table_name,
+            self._client,
+            self._table_name,
             type = internal_api.FileSchemaType.GDF,
             names = column_names,
             dtypes = column_dtypes,
             gdf = cudf_df
         )
 
-        # TODO percy see if we need to perform sanity check for cudf_df object
-        self.valid = True
-
-        return self.valid
+        return self._create_table_status_to_bool(return_result)
 
     def _load_pandas_df(self, pandas_df):
         cudf_df = cudf.DataFrame.from_pandas(pandas_df)
 
-        return self._load_cudf_df(self.table_name, cudf_df)
+        return self._load_cudf_df(self._table_name, cudf_df)
 
     def _load_arrow_table(self, arrow_table):
         pandas_df = arrow_table.to_pandas()
 
-        return self._load_pandas_df(self.table_name, pandas_df)
+        return self._load_pandas_df(self._table_name, pandas_df)
 
     def _load_result_set(self, result_set):
         cudf_df = result_set.columns
 
-        return self._load_cudf_df(self.table_name, cudf_df)
+        return self._load_cudf_df(self._table_name, cudf_df)
 
     def _load_distributed_result_set(self, distributed_result_set):
         print(distributed_result_set)
-        internal_api.create_table(
+        return_result = internal_api.create_table(
             self.client,
-            self.table_name,
+            self._table_name,
             type = internal_api.FileSchemaType.DISTRIBUTED,
             resultToken = distributed_result_set[0].resultToken
         )
 
-        self.valid = True
+        return self._create_table_status_to_bool(return_result)
 
-        return self.valid
-
-    def _load_csv(self, files, column_names, column_types, delimiter, skip_rows):
+    def _load_csv(self, column_names, column_types, delimiter, skip_rows):
         # TODO percy manage datasource load errors
-        if files == None:
+        if self._descriptor.files() == None:
             return False
 
-        self.files = files
-
         return_result = internal_api.create_table(
-            self.client,
-            self.table_name,
+            self._client,
+            self._table_name,
             type = internal_api.FileSchemaType.CSV,
-            files = self.files,
+            files = self._descriptor.files(),
             delimiter = delimiter,
             names = column_names,
             dtypes = internal_api.get_dtype_values(column_types),
             skip_rows = skip_rows
         )
 
-        # TODO percy see if we need to perform sanity check for arrow_table object
-        # return success or failed
-        self.valid = return_result
+        return self._create_table_status_to_bool(return_result)
 
-        return self.valid
-
-    def _load_parquet(self, files):
+    def _load_parquet(self):
         # TODO percy manage datasource load errors
-        if files == None:
+        if self._descriptor.files() == None:
             return False
 
-        self.files = files
-
         return_result = internal_api.create_table(
-            self.client,
-            self.table_name,
+            self._client,
+            self._table_name,
             type = internal_api.FileSchemaType.PARQUET,
-            files = self.files
+            files = self._descriptor.files(),
         )
 
-        # TODO percy see if we need to perform sanity check for arrow_table object
-        # return success or failed
-        self.valid = return_result
-
-        return self.valid
-# END remove
+        return self._create_table_status_to_bool(return_result)
 
 # BEGIN DataSource builders
 
 
-def from_cudf(cudf_df, table_name):
-    return DataSource(None, Type.cudf, table_name = table_name, cudf_df = cudf_df)
+def from_cudf(cudf_df, table_name, descriptor):
+    return DataSource(None, descriptor, table_name = table_name, cudf_df = cudf_df)
 
 
-def from_pandas(pandas_df, table_name):
-    return DataSource(None, Type.pandas, table_name = table_name, pandas_df = pandas_df)
+def from_pandas(pandas_df, table_name, descriptor):
+    return DataSource(None, descriptor, table_name = table_name, pandas_df = pandas_df)
 
 
-def from_arrow(arrow_table, table_name):
-    return DataSource(None, Type.arrow, table_name = table_name, arrow_table = arrow_table)
+def from_arrow(arrow_table, table_name, descriptor):
+    return DataSource(None, descriptor, table_name = table_name, arrow_table = arrow_table)
 
 
-def from_result_set(result_set, table_name):
-    return DataSource(None, Type.result_set, table_name = table_name, result_set = result_set)
+def from_result_set(result_set, table_name, descriptor):
+    return DataSource(None, descriptor, table_name = table_name, result_set = result_set)
 
 
-def from_distributed_result_set(result_set, table_name):
-    return DataSource(None, Type.distributed_result_set, table_name = table_name, result_set = result_set)
+def from_distributed_result_set(result_set, table_name, descriptor):
+    return DataSource(None, descriptor, table_name = table_name, result_set = result_set)
 
 
-def from_csv(client, table_name, files, **kwargs):
+def from_csv(client, table_name, descriptor, **kwargs):
     column_names = kwargs.get('names', [])
     column_types = kwargs.get('dtype', [])
     delimiter = kwargs.get('delimiter', '|')
     skip_rows = kwargs.get('skiprows', 0)
 
-    return DataSource(client, Type.csv,
+    return DataSource(client, descriptor,
         table_name = table_name,
-        files = files,
         csv_column_names = column_names,
         csv_column_types = column_types,
         csv_delimiter = delimiter,
@@ -415,8 +358,8 @@ def from_csv(client, table_name, files, **kwargs):
     )
 
 
-def from_parquet(client, table_name, files):
-    return DataSource(client, Type.parquet, table_name = table_name, files = files)
+def from_parquet(client, table_name, descriptor):
+    return DataSource(client, descriptor, table_name = table_name)
 
 # END DataSource builders
 
@@ -431,22 +374,22 @@ def scan_datasource(client, directory, wildcard):
 def build_datasource(client, input, table_name, **kwargs):
     ds = None
 
-    ds_descriptor = Descriptor(input)
+    descriptor = Descriptor(input)
 
-    if ds_descriptor.is_cudf():
-        ds = from_cudf(input, table_name)
-    elif ds_descriptor.is_pandas():
-        ds = from_pandas(input, table_name)
-    elif ds_descriptor.is_arrow():
-        ds = from_arrow(input, table_name)
-    elif ds_descriptor.is_result_set():
-        ds = from_result_set(input, table_name)
-    elif ds_descriptor.is_distributed_result_set():
-        ds = from_distributed_result_set(input.metaToken, table_name)
-    elif ds_descriptor.is_parquet():
-        ds = from_parquet(client, table_name, ds_descriptor.files())
-    elif ds_descriptor.is_csv():
-        ds = from_csv(client, table_name, ds_descriptor.files(), **kwargs)
+    if descriptor.is_cudf():
+        ds = from_cudf(input, table_name, descriptor)
+    elif descriptor.is_pandas():
+        ds = from_pandas(input, table_name, descriptor)
+    elif descriptor.is_arrow():
+        ds = from_arrow(input, table_name, descriptor)
+    elif descriptor.is_result_set():
+        ds = from_result_set(input, table_name, descriptor)
+    elif descriptor.is_distributed_result_set():
+        ds = from_distributed_result_set(input.metaToken, table_name, descriptor)
+    elif descriptor.is_parquet():
+        ds = from_parquet(client, table_name, descriptor)
+    elif descriptor.is_csv():
+        ds = from_csv(client, table_name, descriptor, **kwargs)
 
     # TODO percy raise error if ds is None
 

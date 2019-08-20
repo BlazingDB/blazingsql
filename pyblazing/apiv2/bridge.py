@@ -6,7 +6,8 @@ import pyblazing
 class internal_api:
 
     # Type wrappers
-
+    Status = pyblazing.Status
+    
     FileSchemaType = pyblazing.FileSchemaType
     DriverType = pyblazing.DriverType
     S3EncryptionType = pyblazing.EncryptionType
