@@ -483,8 +483,6 @@ def get_dtype_values(dtypes):
 
     return values
 
-
-
 #  converts to data structure used for sending via blazingdb-protocol
 def gdf_to_BlazingTable(gdf):
     blazing_table = {}
@@ -1015,8 +1013,23 @@ def _create_dummy_table_group():
     return tableGroup
 
 def gdf_to_np_dtype(dtype):
-   """Util to convert gdf dtype to numpy dtype.
-   """
-   return np.dtype(gdf_dtypes[dtype])
+    """Util to convert gdf dtype to numpy dtype.
+    """
+    gdf_dtypes = {
+        gdf_dtype.GDF_FLOAT64: np.float64,
+        gdf_dtype.GDF_FLOAT32: np.float32,
+        gdf_dtype.GDF_INT64: np.int64,
+        gdf_dtype.GDF_INT32: np.int32,
+        gdf_dtype.GDF_INT16: np.int16,
+        gdf_dtype.GDF_INT8: np.int8,
+        gdf_dtype.GDF_BOOL8: np.bool_,
+        gdf_dtype.GDF_DATE64: np.datetime64,
+        gdf_dtype.GDF_TIMESTAMP: np.datetime64,
+        gdf_dtype.GDF_CATEGORY: np.int32,
+        gdf_dtype.GDF_STRING_CATEGORY: np.object_,
+        gdf_dtype.GDF_STRING: np.object_,
+        gdf_dtype.N_GDF_TYPES: np.int32
+    }
+    return np.dtype(gdf_dtypes[dtype])
 
 
