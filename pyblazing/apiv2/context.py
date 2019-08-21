@@ -333,3 +333,9 @@ def make_context(connection = 'localhost:8889'):
     """
     bc = BlazingContext(connection)
     return bc
+
+
+def make_default_csv_arg(**kwargs):
+    path = kwargs.get('path', '')
+    csv_args = CsvArgs(path, **kwargs)
+    return csv_args

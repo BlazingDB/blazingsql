@@ -941,6 +941,7 @@ from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDe
 from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
 import numpy as np
 import pandas as pd
+import pyblazing
 
 class SchemaFrom:
     CsvFile = 0
@@ -959,6 +960,9 @@ def create_table(tableName, **kwargs):
     files = kwargs.get('path', [])
     resultToken = kwargs.get('resultToken', 0)
     csv_args = kwargs.get('csv_args', None)
+
+    if csv_args == None:
+        csv_args = pyblazing.make_default_csv_arg(**kwargs) # create a CsvArgs with default args
     
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
