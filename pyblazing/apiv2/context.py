@@ -20,7 +20,26 @@ from .datasource import from_parquet
 from .datasource import from_result_set
 from .datasource import from_distributed_result_set
 import time
+import socket, errno
+import subprocess
 
+def runEngine():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_running = False
+    try:
+        s.bind(("127.0.0.1", 8889))
+        server_running = False
+    except socket.error as e:
+        if e.errno == errno.EADDRINUSE:
+            server_running = True
+        else:
+            # something else raised the socket.error exception
+            print(e)
+    s.close()
+    if(server_running == False):
+        subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
+        subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891'])
+        subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
 
 class BlazingContext(object):
 
@@ -29,7 +48,8 @@ class BlazingContext(object):
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
-
+        if(dask_client == None):
+            runEngine()
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
         orchestrator_host_ip = parse_result.hostname
