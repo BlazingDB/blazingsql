@@ -132,6 +132,10 @@ class PyConnector(metaclass=Singleton):
                                  csvLineTerminator,
                                  csvSkipRows,
                                  jsonLines,
+                                 orcStripe,
+                                 orcSkipRows,
+                                 orcNumRows,
+                                 orcUseIndex,
                                  resultToken):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
@@ -144,6 +148,10 @@ class PyConnector(metaclass=Singleton):
                                                                                        csvLineTerminator=csvLineTerminator,
                                                                                        csvSkipRows=csvSkipRows,
                                                                                        jsonLines=jsonLines,
+                                                                                       orcStripe=orcStripe,
+                                                                                       orcSkipRows=orcSkipRows,
+                                                                                       orcNumRows=orcNumRows,
+                                                                                       orcUseIndex=orcUseIndex,
                                                                                        resultToken=resultToken)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
@@ -960,6 +968,10 @@ def create_table(tableName, **kwargs):
     csvLineTerminator = kwargs.get('line_terminator', '\n')
     csvSkipRows = kwargs.get('skip_rows', 0)
     jsonLines = kwargs.get('lines', True)
+    orcStripe = kwargs.get('stripe', -1)
+    orcSkipRows = kwargs.get('skip_rows', -1)
+    orcNumRows = kwargs.get('num_rows', -1)
+    orcUseIndex = kwargs.get('use_index', False)
     resultToken = kwargs.get('resultToken', 0)
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
@@ -972,7 +984,7 @@ def create_table(tableName, **kwargs):
     try:
         client = _get_client()
         return_result = client.run_ddl_create_table(tableName,
-                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,jsonLines,resultToken)
+                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,jsonLines,orcStripe,orcSkipRows,orcNumRows,orcUseIndex,resultToken)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
