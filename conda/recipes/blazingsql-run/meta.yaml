@@ -9,15 +9,20 @@ requirements:
     host:
         - python
         - blazingsql-ral
+        - blazingsql-protocol
         - blazingsql-orchestrator
+        - blazingsql-communication
+        - blazingsql-io
         - blazingsql-calcite
-        - blazingsql-python
+
     run:
         - python
         - blazingsql-ral
+        - blazingsql-protocol
         - blazingsql-orchestrator
+        - blazingsql-communication
+        - blazingsql-io
         - blazingsql-calcite
-        - blazingsql-python
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
