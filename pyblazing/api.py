@@ -955,6 +955,8 @@ def create_table(tableName, **kwargs):
     return_result = None
     error_message = ''
     dbName = 'main'
+    columnNames = kwargs.get('names', [])
+    columnTypes = kwargs.get('dtypes', [])
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
     files = kwargs.get('path', [])
@@ -963,6 +965,8 @@ def create_table(tableName, **kwargs):
 
     if csv_args == None:
         csv_args = pyblazing.make_default_csv_arg(**kwargs) # create a CsvArgs with default args
+        csv_args.column_names = columnNames
+        csv_args.column_types = columnTypes
     
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
