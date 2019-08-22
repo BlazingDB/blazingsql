@@ -24,6 +24,24 @@ from .datasource import from_distributed_result_set
 import time
 
 
+class OrcArgs():
+
+    def __init__(self, **kwargs):
+        self.stripe = kwargs.get('stripe', -1)
+        self.skip_rows = kwargs.get('skip_rows', -1)
+        self.num_rows = kwargs.get('num_rows', -1)
+        self.use_index = kwargs.get('use_index', False)
+
+    # Validate input params
+    def validation(self):
+
+        # num_rows
+        if self.num_rows == None:                                                                                                           
+            self.num_rows = -1
+        elif self.num_rows < 0 and self.num_rows != -1:
+            raise ValueError("'num_rows' must be an integer >= 0")
+
+
 class BlazingContext(object):
 
     def __init__(self, connection = 'localhost:8889', dask_client = None):
@@ -43,7 +61,8 @@ class BlazingContext(object):
         self.client = internal_api._get_client()
         self.fs = FileSystem()
         self.sqlObject = SQL()
-        self.dask_client = dask_client;
+        self.dask_client = dask_client
+
     def __del__(self):
         # TODO percy clean next time
         # del self.sqlObject
@@ -114,7 +133,9 @@ class BlazingContext(object):
                     raise Exception("Only lines=True is currently supported, optionally you can read the file with Pandas")
                 datasource = from_json(self.client, table_name, paths, json_lines)
             elif path.suffix == '.orc' or fileFormat == 'orc':
-                datasource = from_orc(self.client, table_name, paths)
+                orc_args = OrcArgs(**kwargs)
+                orc_args.validation()
+                datasource = from_orc(self.client, table_name, paths, orc_args)
             elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl' or fileFormat == 'csv':
                 # TODO percy duplicated code bud itnernal api desing remove this later
                 csv_column_names = kwargs.get('names', [])
@@ -160,3 +181,8 @@ def make_context(connection = 'localhost:8889'):
     """
     bc = BlazingContext(connection)
     return bc
+
+
+def make_default_orc_arg(**kwargs):
+    orc_args = OrcArgs(**kwargs)
+    return orc_args

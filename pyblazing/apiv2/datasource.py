@@ -168,7 +168,8 @@ class DataSource:
         elif type == Type.orc:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
-            return self._load_orc(table_name, path)
+            orc_args = kwargs.get('orc_args', None)
+            return self._load_orc(table_name, path, orc_args)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -290,7 +291,7 @@ class DataSource:
 
         return self.valid
 
-    def _load_orc(self, table_name, path):
+    def _load_orc(self, table_name, path, orc_args):
         # TODO percy manage datasource load errors
         if path == None:
             return False
@@ -301,7 +302,8 @@ class DataSource:
             self.client,
             table_name,
             type = internal_api.SchemaFrom.OrcFile,
-            path = path
+            path = path,
+            orc_args = orc_args
         )
 
         # TODO percy see if we need to perform sanity check for arrow_table object
@@ -350,6 +352,6 @@ def from_parquet(client, table_name, path):
 def from_json(client, table_name, path, lines):
     return DataSource(client, Type.json, table_name = table_name, path = path, json_lines = lines)
 
-def from_orc(client, table_name, path):
-    return DataSource(client, Type.orc, table_name = table_name, path = path)
+def from_orc(client, table_name, path, orc_args):
+    return DataSource(client, Type.orc, table_name = table_name, path = path, orc_args = orc_args)
 # END DataSource builders
