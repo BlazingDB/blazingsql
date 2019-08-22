@@ -976,7 +976,7 @@ def create_table(tableName, **kwargs):
             columnTypes = gdf_dtypes_to_gdf_dtype_strs(get_dtype_values(csv_args.column_types))
         columnNames=csv_args.column_names
     else:
-        csv_args = pyblazing.make_default_csv_arg(**kwargs)
+        csv_args = pyblazing.make_default_csv_argfiles(**kwargs)
 
     try:
         client = _get_client()

@@ -23,8 +23,8 @@ import time
 
 class CsvArgs():
 
-    def __init__(self, path, **kwargs):
-        self.path = path
+    def __init__(self, paths, **kwargs):
+        self.paths = paths
         self.column_names = kwargs.get('names', [])
         self.column_types = kwargs.get('dtype', [])
         self.delimiter = kwargs.get('delimiter', None)  # the actual default value will be set in the validation funcion
@@ -59,9 +59,10 @@ class CsvArgs():
 
         # delimiter
         if self.delimiter == None:
-            if self.path.suffix == '.csv':
+            first_path = self.paths[0]
+            if first_path[-4:] == '.csv':
                 self.delimiter = ","
-            elif self.path.suffix == '.psv': 
+            elif first_path[-4:] =='.psv': 
                 self.delimiter = "|"
             else:
                 self.delimiter = ","
@@ -305,7 +306,7 @@ class BlazingContext(object):
                 datasource = from_parquet(self.client, table_name, paths)
             elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
                 # TODO percy duplicated code bud itnernal api desing remove this later
-                csv_args = CsvArgs(path, **kwargs)
+                csv_args = CsvArgs(paths, **kwargs)
                 csv_args.validation()
                 datasource = from_csv(self.client, table_name, paths, csv_args)
         else :
@@ -341,7 +342,7 @@ def make_context(connection = 'localhost:8889'):
 
 
 def make_default_csv_arg(**kwargs):
-    path = kwargs.get('path', '')
-    csv_args = CsvArgs(path, **kwargs)
+    paths = kwargs.get('path', [])
+    csv_args = CsvArgs(paths, **kwargs)
     csv_args.validate_empty()
     return csv_args
