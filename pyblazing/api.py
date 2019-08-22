@@ -976,7 +976,7 @@ def create_table(tableName, **kwargs):
             columnTypes = gdf_dtypes_to_gdf_dtype_strs(get_dtype_values(csv_args.column_types))
         columnNames=csv_args.column_names
     else:
-        csv_args = pyblazing.make_default_csv_argfiles(**kwargs)
+        csv_args = pyblazing.make_default_csv_arg(**kwargs)
 
     try:
         client = _get_client()
@@ -996,19 +996,6 @@ def create_table(tableName, **kwargs):
     #Todo Rommel check if this error happens
     #print("ERROR: unknown schema type")
     return return_result
-
-    '''
-    if csv_args == None:
-        csv_args = pyblazing.make_default_csv_arg(**kwargs) # create a CsvArgs with default args
-        if (len(columnTypes) > 0):
-            csv_args.column_types = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
-    else:
-        if (len(csv_args.column_types) > 0):
-            csv_args.column_types = gdf_dtypes_to_gdf_dtype_strs(get_dtype_values(csv_args.column_types))
-    try:
-        client = _get_client()
-        return_result = client.run_ddl_create_table(tableName, dbName, schemaType, blazing_table, files, resultToken, csv_args)
-    '''
 
 
 def register_file_system(authority, type, root, params = None):
