@@ -1,4 +1,5 @@
-FROM nvidia/cuda:9.2-devel-ubuntu16.04
+ARG CUDA_VERSION=9.2
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu16.04
 
 MAINTAINER BlazingSQL <felipe@blazingsql.com>
 
@@ -21,7 +22,7 @@ RUN mkdir /blazingsql
 
 RUN conda install -y \
       -c rapidsai-nightly/label/xgboost -c rapidsai-nightly -c nvidia -c conda-forge \
-      python=3.6 cudatoolkit=10.0 \
+      python=3.6 cudatoolkit=${CUDA_VERSION} \
       cudf=0.10.* cuml=0.10.* cugraph=0.10.* gcsfs pynvml pip jupyter \
       dask-cudf=0.10.* \
       rapidsai/label/xgboost::xgboost=>0.9
