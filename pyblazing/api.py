@@ -204,25 +204,6 @@ class PyConnector(metaclass=Singleton):
 
 
 
-    def free_memory(self, interpreter_path, interpreter_port):
-        result_token = 2433423
-        getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
-            resultToken=result_token)
-
-        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(
-            InterpreterMessage.FreeMemory, self._accessToken, getResultRequest)
-
-        responseBuffer = _send_request(
-            interpreter_path, interpreter_port, requestBuffer)
-
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(
-            responseBuffer)
-
-        if response.status == Status.Error:
-            raise ValueError('Error status')
-
-        # TODO find a way to print only for debug mode (add verbose arg)
-        #print('free result OK!')
 
     def free_result(self, result_token, interpreter_path, interpreter_port):
         getResultRequest = blazingdb.protocol.interpreter.GetResultRequestSchema(
