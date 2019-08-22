@@ -1,4 +1,6 @@
-ARG CUDA_VERSION=9.2
+ARG CUDA_VERSION=10.0
+ARG BLAZING_CHANNEL=felipeblazing/label/cuda10.0
+
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu16.04
 
 MAINTAINER BlazingSQL <felipe@blazingsql.com>
