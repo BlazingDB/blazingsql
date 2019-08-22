@@ -49,6 +49,11 @@ class CsvArgs():
         self.false_values = kwargs.get('false_values', [])
         self.na_values = kwargs.get('na_values', [])
 
+    # Validate especific params when a csv or psv file is not sent
+    def validate_empty(self):
+        self.delimiter = ','
+        self.nrows = -1
+
     # Validate input params
     def validation(self):
 
@@ -338,4 +343,5 @@ def make_context(connection = 'localhost:8889'):
 def make_default_csv_arg(**kwargs):
     path = kwargs.get('path', '')
     csv_args = CsvArgs(path, **kwargs)
+    csv_args.validate_empty()
     return csv_args
