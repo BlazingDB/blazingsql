@@ -120,7 +120,7 @@ class PyConnector(metaclass=Singleton):
     def is_connected(self):
         return self._accessToken is not None
 
-    def run_ddl_create_table(self, tableName, dbName, schemaType, blazing_table, files, resultToken, csv_args):
+    def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName, schemaType, blazing_table, files, resultToken, csv_args):
 
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        dbName=dbName,
@@ -128,8 +128,8 @@ class PyConnector(metaclass=Singleton):
                                                                                        gdf=blazing_table,
                                                                                        files=files,
                                                                                        resultToken=resultToken,
-                                                                                       columnNames=csv_args.column_names,
-                                                                                       columnTypes=csv_args.column_types,
+                                                                                       columnNames=columnNames,
+                                                                                       columnTypes=columnTypes,
                                                                                        csvDelimiter=csv_args.delimiter,
                                                                                        csvLineTerminator=csv_args.lineterminator,
                                                                                        csvSkipRows=csv_args.skiprows,
@@ -954,31 +954,34 @@ class SchemaFrom:
 def create_table(tableName, **kwargs):
     return_result = None
     error_message = ''
-    dbName = 'main'
     columnNames = kwargs.get('names', [])
     columnTypes = kwargs.get('dtypes', [])
+    dbName = 'main'
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
     files = kwargs.get('path', [])
     resultToken = kwargs.get('resultToken', 0)
     csv_args = kwargs.get('csv_args', None)
 
-    if csv_args == None:
-        csv_args = pyblazing.make_default_csv_arg(**kwargs) # create a CsvArgs with default args
-        csv_args.column_names = columnNames
-        csv_args.column_types = columnTypes
-    
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
     else:
         blazing_table = gdf_to_BlazingTable(gdf)
 
-    if (len(csv_args.column_types) > 0):
-        csv_args.column_types = gdf_dtypes_to_gdf_dtype_strs(get_dtype_values(csv_args.column_types))
+    if (len(columnTypes) > 0):
+        columnTypes = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
+
+    if csv_args is not None:
+        if (len(csv_args.column_types) > 0):
+            columnTypes = gdf_dtypes_to_gdf_dtype_strs(get_dtype_values(csv_args.column_types))
+        columnNames=csv_args.column_names
+    else:
+        csv_args = pyblazing.make_default_csv_arg(**kwargs)
 
     try:
         client = _get_client()
-        return_result = client.run_ddl_create_table(tableName, dbName, schemaType, blazing_table, files, resultToken, csv_args)
+        return_result = client.run_ddl_create_table(tableName,columnNames,columnTypes,
+                        dbName,schemaType,blazing_table,files,resultToken,csv_args)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
@@ -993,6 +996,20 @@ def create_table(tableName, **kwargs):
     #Todo Rommel check if this error happens
     #print("ERROR: unknown schema type")
     return return_result
+
+    '''
+    if csv_args == None:
+        csv_args = pyblazing.make_default_csv_arg(**kwargs) # create a CsvArgs with default args
+        if (len(columnTypes) > 0):
+            csv_args.column_types = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
+    else:
+        if (len(csv_args.column_types) > 0):
+            csv_args.column_types = gdf_dtypes_to_gdf_dtype_strs(get_dtype_values(csv_args.column_types))
+    try:
+        client = _get_client()
+        return_result = client.run_ddl_create_table(tableName, dbName, schemaType, blazing_table, files, resultToken, csv_args)
+    '''
+
 
 def register_file_system(authority, type, root, params = None):
     if params is not None:
