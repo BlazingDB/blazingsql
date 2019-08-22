@@ -120,29 +120,37 @@ class PyConnector(metaclass=Singleton):
     def is_connected(self):
         return self._accessToken is not None
 
-    def run_ddl_create_table(self,
-                                 tableName,
-                                 columnNames,
-                                 columnTypes,
-                                 dbName,
-                                 schemaType,
-                                 blazing_table,
-                                 files,
-                                 csvDelimiter,
-                                 csvLineTerminator,
-                                 csvSkipRows,
-                                 resultToken):
+    def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName, schemaType, blazing_table, files, resultToken, csv_args):
+
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
-                                                                                       columnNames=columnNames,
-                                                                                       columnTypes=columnTypes,
                                                                                        dbName=dbName,
                                                                                        schemaType=schemaType,
                                                                                        gdf=blazing_table,
                                                                                        files=files,
-                                                                                       csvDelimiter=csvDelimiter,
-                                                                                       csvLineTerminator=csvLineTerminator,
-                                                                                       csvSkipRows=csvSkipRows,
-                                                                                       resultToken=resultToken)
+                                                                                       resultToken=resultToken,
+                                                                                       columnNames=columnNames,
+                                                                                       columnTypes=columnTypes,
+                                                                                       csvDelimiter=csv_args.delimiter,
+                                                                                       csvLineTerminator=csv_args.lineterminator,
+                                                                                       csvSkipRows=csv_args.skiprows,
+                                                                                       csvHeader=csv_args.header,
+                                                                                       csvNrows=csv_args.nrows,
+                                                                                       csvSkipinitialspace=csv_args.skipinitialspace,
+                                                                                       csvDelimWhitespace=csv_args.delim_whitespace,
+                                                                                       csvSkipBlankLines=csv_args.skip_blank_lines,
+                                                                                       csvQuotechar=csv_args.quotechar,
+                                                                                       csvQuoting=csv_args.quoting,
+                                                                                       csvDoublequote=csv_args.doublequote,
+                                                                                       csvDecimal=csv_args.decimal,
+                                                                                       csvSkipfooter=csv_args.skipfooter,
+                                                                                       csvNaFilter=csv_args.na_filter,
+                                                                                       csvKeepDefaultNa=csv_args.keep_default_na,
+                                                                                       csvDayfirst=csv_args.dayfirst,
+                                                                                       csvThousands=csv_args.thousands,
+                                                                                       csvComment=csv_args.comment,
+                                                                                       csvTrueValues=csv_args.true_values,
+                                                                                       csvFalseValues=csv_args.false_values,
+                                                                                       csvNaValues=csv_args.na_values)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -912,6 +920,7 @@ from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDe
 from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
 import numpy as np
 import pandas as pd
+import pyblazing
 
 class SchemaFrom:
     CsvFile = 0
@@ -924,17 +933,15 @@ class SchemaFrom:
 def create_table(tableName, **kwargs):
     return_result = None
     error_message = ''
-
     columnNames = kwargs.get('names', [])
     columnTypes = kwargs.get('dtypes', [])
     dbName = 'main'
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
     files = kwargs.get('path', [])
-    csvDelimiter = kwargs.get('delimiter', '|')
-    csvLineTerminator = kwargs.get('line_terminator', '\n')
-    csvSkipRows = kwargs.get('skip_rows', 0)
     resultToken = kwargs.get('resultToken', 0)
+    csv_args = kwargs.get('csv_args', None)
+
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
     else:
@@ -943,10 +950,17 @@ def create_table(tableName, **kwargs):
     if (len(columnTypes) > 0):
         columnTypes = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
 
+    if csv_args is not None:
+        if (len(csv_args.column_types) > 0):
+            columnTypes = gdf_dtypes_to_gdf_dtype_strs(get_dtype_values(csv_args.column_types))
+        columnNames=csv_args.column_names
+    else:
+        csv_args = pyblazing.make_default_csv_arg(**kwargs)
+
     try:
         client = _get_client()
-        return_result = client.run_ddl_create_table(tableName,
-                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,resultToken)
+        return_result = client.run_ddl_create_table(tableName,columnNames,columnTypes,
+                        dbName,schemaType,blazing_table,files,resultToken,csv_args)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
@@ -961,6 +975,7 @@ def create_table(tableName, **kwargs):
     #Todo Rommel check if this error happens
     #print("ERROR: unknown schema type")
     return return_result
+
 
 def register_file_system(authority, type, root, params = None):
     if params is not None:
