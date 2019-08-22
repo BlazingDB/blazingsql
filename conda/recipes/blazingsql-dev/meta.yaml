@@ -1,3 +1,5 @@
+{% set cuda_version='.'.join(environ.get('CUDA_VERSION', '9.2').split('.')[:2]) %}
+
 package:
     name: blazingsq-dev
     version: 0.4.0
@@ -8,10 +10,38 @@ requirements:
         - {{ compiler('cxx') }}
     host:
         - python
-        - blazingsql-ral
-        - blazingsql-orchestrator
-        - blazingsql-calcite
-        - blazingsql-python
+        - cudf
+        - pip
+        - nvstrings
+        - rmm
+        - dask-cudf
+        - dask
+        - gtest
+        - gmock
+        - setuptools
+        - boost >=1.70.0
+        - boost-cpp >=1.70.0
+        - openssl
+        - rapidjson
+        - cudatoolkit
+        - flatbuffers
+        - zlib
+        - curl
+        - arrow-cpp >=0.14.1
+        - blazingsql-protocol
+        - blazingsql-io
+        - blazingsql-communication
+        - libcudf
+        - libnvstrings
+        - librmm
+        - parquet-cpp
+        - libhdfs3
+        - dask
+        - dask-cudf
+        - cudatoolkit {{ cuda_version }}.*
+        - cmake
+        - maven
+        - zeromq
     run:
         - python
         - blazingsql-ral
