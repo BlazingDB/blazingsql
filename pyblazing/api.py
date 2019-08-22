@@ -132,10 +132,7 @@ class PyConnector(metaclass=Singleton):
                                  csvLineTerminator,
                                  csvSkipRows,
                                  jsonLines,
-                                 orcStripe,
-                                 orcSkipRows,
-                                 orcNumRows,
-                                 orcUseIndex,
+                                 orc_args,
                                  resultToken):
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        columnNames=columnNames,
@@ -148,10 +145,10 @@ class PyConnector(metaclass=Singleton):
                                                                                        csvLineTerminator=csvLineTerminator,
                                                                                        csvSkipRows=csvSkipRows,
                                                                                        jsonLines=jsonLines,
-                                                                                       orcStripe=orcStripe,
-                                                                                       orcSkipRows=orcSkipRows,
-                                                                                       orcNumRows=orcNumRows,
-                                                                                       orcUseIndex=orcUseIndex,
+                                                                                       orcStripe=orc_args.stripe,
+                                                                                       orcSkipRows=orc_args.skip_rows,
+                                                                                       orcNumRows=orc_args.num_rows,
+                                                                                       orcUseIndex=orc_args.use_index,
                                                                                        resultToken=resultToken)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
@@ -943,6 +940,7 @@ from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDe
 from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
 import numpy as np
 import pandas as pd
+import pyblazing
 
 class SchemaFrom:
     CsvFile = 0
@@ -968,11 +966,12 @@ def create_table(tableName, **kwargs):
     csvLineTerminator = kwargs.get('line_terminator', '\n')
     csvSkipRows = kwargs.get('skip_rows', 0)
     jsonLines = kwargs.get('lines', True)
-    orcStripe = kwargs.get('stripe', -1)
-    orcSkipRows = kwargs.get('skip_rows', -1)
-    orcNumRows = kwargs.get('num_rows', -1)
-    orcUseIndex = kwargs.get('use_index', False)
+    orc_args = kwargs.get('orc_args', None)
     resultToken = kwargs.get('resultToken', 0)
+
+    if orc_args == None:
+        orc_args = pyblazing.make_default_orc_arg(**kwargs) # create a OrcArgs with default args
+
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
     else:
@@ -984,7 +983,7 @@ def create_table(tableName, **kwargs):
     try:
         client = _get_client()
         return_result = client.run_ddl_create_table(tableName,
-                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,jsonLines,orcStripe,orcSkipRows,orcNumRows,orcUseIndex,resultToken)
+                        columnNames,columnTypes,dbName,schemaType,blazing_table,files,csvDelimiter,csvLineTerminator,csvSkipRows,jsonLines,orc_args,resultToken)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
