@@ -23,11 +23,12 @@ import time
 import socket, errno
 import subprocess
 
-def runEngine():
+
+def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_running = False
     try:
-        s.bind(("127.0.0.1", 8889))
+        s.bind(("127.0.0.1", socketNum))
         server_running = False
     except socket.error as e:
         if e.errno == errno.EADDRINUSE:
@@ -36,10 +37,23 @@ def runEngine():
             # something else raised the socket.error exception
             print(e)
     s.close()
-    if(server_running == False):
-        subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
+    return server_running
+
+def runRal():
+    if(checkSocket(9100)):
         subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891'])
+
+def setupDask(dask_client):
+    dask_client.run(runRal)
+
+def runCalcite():
+    if(checkSocket(8890)):
         subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
+
+def runOrchestrator():
+    if(checkSocket(8889)):
+        subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
+
 
 class BlazingContext(object):
 
@@ -49,7 +63,14 @@ class BlazingContext(object):
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
         if(dask_client == None):
-            runEngine()
+            runOrchestrator()
+            runRal()
+            runCalcite()
+        else:
+            runOrchestrator()
+            setupDask(dask_client)
+            runCalcite()
+
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
         orchestrator_host_ip = parse_result.hostname
@@ -61,7 +82,8 @@ class BlazingContext(object):
         self.client = internal_api._get_client()
         self.fs = FileSystem()
         self.sqlObject = SQL()
-        self.dask_client = dask_client;
+        self.dask_client = dask_client
+        setupDask(self.dask_client)
     def __del__(self):
         # TODO percy clean next time
         # del self.sqlObject
