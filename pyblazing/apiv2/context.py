@@ -62,7 +62,7 @@ class BlazingContext(object):
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
-        if(dask_client == None):
+        if(dask_client is None):
             runOrchestrator()
             runRal()
             runCalcite()
@@ -83,7 +83,7 @@ class BlazingContext(object):
         self.fs = FileSystem()
         self.sqlObject = SQL()
         self.dask_client = dask_client
-        setupDask(self.dask_client)
+        
     def __del__(self):
         # TODO percy clean next time
         # del self.sqlObject
