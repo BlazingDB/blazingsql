@@ -1,4 +1,8 @@
 #!/bin/bash
+#usage is
+# ./build-all-conda.sh 3.6 9.2 cuda10.0 felipeblazing dev|main
+#  ./build-all-conda.sh [python version] [cuda toolkit version] [channel] [label (optional)]
+
 python=$1
 toolkit=$2
 channel=$3
@@ -8,11 +12,6 @@ if [ -z "$4" ]
   else
     label=$4
 fi
-
-
-#usage is
-# ./build-all-conda.sh 3.6 9.2 felipeblazing cuda10.0
-#  ./build-all-conda.sh [python version] [cuda toolkit version] [channel] [label (optional)]
 
 
 echo "$CONDA_PREFIX: "$CONDA_PREFIX
@@ -49,13 +48,12 @@ do
   echo "repo_dir: conda/recipes/"$repo
   cd conda/recipes/$repo
 
+  status="Cloned and built"
+  echo "### CMD: conda build --label $label -c conda-forge -c $channel -c rapidsai --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} ."
   conda build --label $label -c conda-forge -c $channel -c rapidsai --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} .
   if [ $? != 0 ]; then
-    #exit 1
-    echo "######################################################################### Build failed ${repo} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-  else
-    echo "######################################################################### Cloned and built ${repo} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+    status="Build failed"
   fi
-
+  echo "######################################################################### ${status} ${repo} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 done
