@@ -49,7 +49,7 @@ do
   echo "repo_dir: conda/recipes/"$repo
   cd conda/recipes/$repo
 
-  conda build --label $label -c conda-forge -c $channel -c rapidsai-nightly --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} .
+  conda build --label $label -c conda-forge -c $channel -c rapidsai --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} .
   if [ $? != 0 ]; then
     #exit 1
     echo "######################################################################### Build failed ${repo} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
