@@ -29,9 +29,6 @@ requirements:
         - zlib
         - curl
         - arrow-cpp >=0.14.1
-        - blazingsql-protocol
-        - blazingsql-io
-        - blazingsql-communication
         - libcudf
         - libnvstrings
         - librmm
@@ -63,9 +60,6 @@ requirements:
         - zlib
         - curl
         - arrow-cpp >=0.14.1
-        - blazingsql-protocol
-        - blazingsql-io
-        - blazingsql-communication
         - libcudf
         - libnvstrings
         - librmm
