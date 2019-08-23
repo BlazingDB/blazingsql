@@ -229,17 +229,28 @@ class OrcArgs():
 
     def __init__(self, **kwargs):
         self.stripe = kwargs.get('stripe', -1)
-        self.skip_rows = kwargs.get('skip_rows', -1)
-        self.num_rows = kwargs.get('num_rows', -1)
+        self.skip_rows = kwargs.get('skip_rows', None)  # the actual default value will be set in the validation funcion
+        self.num_rows = kwargs.get('num_rows', None)  # the actual default value will be set in the validation funcion
         self.use_index = kwargs.get('use_index', False)
+
+    # Validate especific params when a csv or psv file is not sent
+    def validate_empty(self):
+        self.skip_rows = 0
+        self.num_rows = -1
 
     # Validate input params
     def validation(self):
 
+        # skip_rows
+        if self.skip_rows == None:
+            self.skip_rows = 0
+        elif self.skip_rows < 0:
+            raise ValueError("'skip_rows' must be an integer >= 0")
+
         # num_rows
-        if self.num_rows == None:                                                                                                           
+        if self.num_rows == None:
             self.num_rows = -1
-        elif self.num_rows < 0 and self.num_rows != -1:
+        elif self.num_rows < 0:
             raise ValueError("'num_rows' must be an integer >= 0")
 
 
@@ -377,6 +388,7 @@ def make_context(connection = 'localhost:8889'):
 
 def make_default_orc_arg(**kwargs):
     orc_args = OrcArgs(**kwargs)
+    orc_args.validate_empty()
     return orc_args
 
 def make_default_csv_arg(**kwargs):
