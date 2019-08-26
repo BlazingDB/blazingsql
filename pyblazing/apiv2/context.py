@@ -17,6 +17,8 @@ from .datasource import from_pandas
 from .datasource import from_arrow
 from .datasource import from_csv
 from .datasource import from_parquet
+from .datasource import from_json
+from .datasource import from_orc
 from .datasource import from_result_set
 from .datasource import from_distributed_result_set
 import time
@@ -223,6 +225,35 @@ class CsvArgs():
             self.na_values  = []
         
 
+class OrcArgs():
+
+    def __init__(self, **kwargs):
+        self.stripe = kwargs.get('stripe', -1)
+        self.skip_rows = kwargs.get('skip_rows', None)  # the actual default value will be set in the validation funcion
+        self.num_rows = kwargs.get('num_rows', None)  # the actual default value will be set in the validation funcion
+        self.use_index = kwargs.get('use_index', False)
+
+    # Validate especific params when a csv or psv file is not sent
+    def validate_empty(self):
+        self.skip_rows = 0
+        self.num_rows = -1
+
+    # Validate input params
+    def validation(self):
+
+        # skip_rows
+        if self.skip_rows == None:
+            self.skip_rows = 0
+        elif self.skip_rows < 0:
+            raise ValueError("'skip_rows' must be an integer >= 0")
+
+        # num_rows
+        if self.num_rows == None:
+            self.num_rows = -1
+        elif self.num_rows < 0:
+            raise ValueError("'num_rows' must be an integer >= 0")
+
+
 class BlazingContext(object):
 
     def __init__(self, connection = 'localhost:8889', dask_client = None):
@@ -242,7 +273,8 @@ class BlazingContext(object):
         self.client = internal_api._get_client()
         self.fs = FileSystem()
         self.sqlObject = SQL()
-        self.dask_client = dask_client;
+        self.dask_client = dask_client
+
     def __del__(self):
         # TODO percy clean next time
         # del self.sqlObject
@@ -302,13 +334,26 @@ class BlazingContext(object):
                     uri = urlparse(input[0])
                     path = PurePath(uri.path)
                     paths = input
-            if path.suffix == '.parquet':
+
+            fileFormat = kwargs.get('file_format', None)
+            if path.suffix == '.parquet' or fileFormat == 'parquet':
                 datasource = from_parquet(self.client, table_name, paths)
-            elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
+            elif path.suffix == '.json' or fileFormat == 'json':
+                json_lines = kwargs.get('lines', True)
+                if(json_lines == False):
+                    raise Exception("Only lines=True is currently supported, optionally you can read the file with Pandas")
+                datasource = from_json(self.client, table_name, paths, json_lines)
+            elif path.suffix == '.orc' or fileFormat == 'orc':
+                orc_args = OrcArgs(**kwargs)
+                orc_args.validation()
+                datasource = from_orc(self.client, table_name, paths, orc_args)
+            elif path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl' or fileFormat == 'csv':
                 # TODO percy duplicated code bud itnernal api desing remove this later
                 csv_args = CsvArgs(paths, **kwargs)
                 csv_args.validation()
                 datasource = from_csv(self.client, table_name, paths, csv_args)
+            else:
+                raise Exception("Unknown file format, optionally you can set the file format by passing it as a parameter like: bc.create_table(\"/path/\", file_format = 'csv')")
         else :
             raise Exception("Unknown data type " + str(type(input)) + " when creating table")
 
@@ -340,6 +385,11 @@ def make_context(connection = 'localhost:8889'):
     bc = BlazingContext(connection)
     return bc
 
+
+def make_default_orc_arg(**kwargs):
+    orc_args = OrcArgs(**kwargs)
+    orc_args.validate_empty()
+    return orc_args
 
 def make_default_csv_arg(**kwargs):
     paths = kwargs.get('path', [])

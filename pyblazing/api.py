@@ -120,7 +120,7 @@ class PyConnector(metaclass=Singleton):
     def is_connected(self):
         return self._accessToken is not None
 
-    def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName, schemaType, blazing_table, files, resultToken, csv_args):
+    def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName, schemaType, blazing_table, files, resultToken, csv_args, jsonLines, orc_args):
 
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        dbName=dbName,
@@ -150,7 +150,12 @@ class PyConnector(metaclass=Singleton):
                                                                                        csvComment=csv_args.comment,
                                                                                        csvTrueValues=csv_args.true_values,
                                                                                        csvFalseValues=csv_args.false_values,
-                                                                                       csvNaValues=csv_args.na_values)
+                                                                                       csvNaValues=csv_args.na_values,
+                                                                                       jsonLines=jsonLines,
+                                                                                       orcStripe=orc_args.stripe,
+                                                                                       orcSkipRows=orc_args.skip_rows,
+                                                                                       orcNumRows=orc_args.num_rows,
+                                                                                       orcUseIndex=orc_args.use_index)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -650,7 +655,7 @@ def _run_query_get_token(sql):
     except Error as error:
         error_message = str(error)
     except Exception:
-        error_message = "Unexpected error on " + _run_query_get_token.__name__ + ", " + str(error)
+        error_message = "Unexpected error on " + _run_query_get_token.__name__
 
     if error_message is not '':
         print(error_message)
@@ -927,6 +932,8 @@ class SchemaFrom:
     ParquetFile = 1
     Gdf = 2
     Distributed = 3
+    JsonFile = 4
+    OrcFile = 5
 
 
 #cambiar para success or failed
@@ -941,6 +948,11 @@ def create_table(tableName, **kwargs):
     files = kwargs.get('path', [])
     resultToken = kwargs.get('resultToken', 0)
     csv_args = kwargs.get('csv_args', None)
+    jsonLines = kwargs.get('lines', True)
+    orc_args = kwargs.get('orc_args', None)
+
+    if orc_args == None:
+        orc_args = pyblazing.make_default_orc_arg(**kwargs) # create a OrcArgs with default args
 
     if gdf is None:
         blazing_table = make_empty_BlazingTable()
@@ -960,7 +972,7 @@ def create_table(tableName, **kwargs):
     try:
         client = _get_client()
         return_result = client.run_ddl_create_table(tableName,columnNames,columnTypes,
-                        dbName,schemaType,blazing_table,files,resultToken,csv_args)
+                        dbName,schemaType,blazing_table,files,resultToken,csv_args,jsonLines,orc_args)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
