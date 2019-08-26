@@ -887,7 +887,7 @@ def create_table(tableName, **kwargs):
     dbName = 'main'
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
-    dask_cudf = kwargs.get('gdf', None)
+    dask_cudf = kwargs.get('dask_cudf', None)
     files = kwargs.get('path', [])
     csvDelimiter = kwargs.get('delimiter', '|')
     csvLineTerminator = kwargs.get('line_terminator', '\n')
@@ -941,19 +941,22 @@ def get_machine_and_blazing_table(partition):
 
 def dask_cudf_to_BlazingDaskTable(dask_cudf):
     from dask.distributed import Client
+    # TODO: manage from pyconnector creation dask sheduler connection
     client = Client('127.0.0.1:8786')
 
     persisted_cudf = client.persist(dask_cudf)
+    client.compute(persisted_cudf)
 
-    distributedBlazingTables = pdf.map_partitions(gdf_to_BlazingTable).compute()
+    distributedBlazingTables = persisted_cudf.map_partitions(
+        gdf_to_BlazingTable).compute()
 
     who_has = client.who_has()
     ips = [who_has[str(k)][0] for k in ddf.dask.keys()]
 
     dask_cudf_ret = [{
-          'ip': p[0],
-          'gdf': p[1]
-      } for p in zip(ips, distributedBlazingTables)]
+        'ip': p[0],
+        'gdf': p[1]
+    } for p in zip(ips, distributedBlazingTables)]
 
     return dask_cudf_ret
 
