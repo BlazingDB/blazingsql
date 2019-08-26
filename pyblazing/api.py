@@ -900,7 +900,7 @@ def create_table(tableName, **kwargs):
 
     if dask_cudf is None:
         dask_tables = dask_cudf_to_BlazingDaskTable(dask_cudf)
-    else
+    else:
         dask_tables = []
 
     if (len(columnTypes) > 0):
