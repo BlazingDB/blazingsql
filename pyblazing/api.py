@@ -940,21 +940,21 @@ def get_machine_and_blazing_table(partition):
     return socket.gethostname(), gdf_to_BlazingTable(gdf)
 
 def dask_cudf_to_BlazingDaskTable(dask_cudf):
-    df_list = dask_cudf.map_partitions(get_machine_and_pointer).compute()
-    dask_cudf_ret = []
-    for socket, gdf in df_list :
-        # TODO: {@code node_table} must be similar to the following form to run
-        # internally in blazing-protocol
-        # node_table = {
-        #   'ip': '192.168.0.1',
-        #   'gdf': {
-        #     'columns': ...,
-        #     'columnTokens': ...,
-        #     'resultToken': ...
-        #   }
-        # }
-        node_table = BlazingNodeTable(socket,gdf)
-        dask_cudf_ret.append(node_table)
+    from dask.distributed import Client
+    client = Client('127.0.0.1:8786')
+
+    persisted_cudf = client.persist(dask_cudf)
+
+    distributedBlazingTables = pdf.map_partitions(gdf_to_BlazingTable).compute()
+
+    who_has = client.who_has()
+    ips = [who_has[str(k)][0] for k in ddf.dask.keys()]
+
+    dask_cudf_ret = [{
+          'ip': p[0],
+          'gdf': p[1]
+      } for p in zip(ips, distributedBlazingTables)]
+
     return dask_cudf_ret
 
 def register_file_system(authority, type, root, params = None):
