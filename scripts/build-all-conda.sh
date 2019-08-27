@@ -40,6 +40,7 @@ do
   fi
   cd $repo
   if [ ${branches[i]} != "latest" ]; then
+    git fetch
     git checkout ${branches[i]}
     git pull origin ${branches[i]}
   fi
