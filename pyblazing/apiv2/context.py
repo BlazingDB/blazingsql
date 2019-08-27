@@ -24,7 +24,7 @@ from .datasource import from_distributed_result_set
 import time
 import socket, errno
 import subprocess
-
+import os
 
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -99,7 +99,7 @@ class CsvArgs():
             first_path = self.paths[0]
             if first_path[-4:] == '.csv':
                 self.delimiter = ","
-            elif first_path[-4:] =='.psv': 
+            elif first_path[-4:] =='.psv':
                 self.delimiter = "|"
             else:
                 self.delimiter = ","
@@ -117,7 +117,7 @@ class CsvArgs():
             self.skiprows = 0
         elif isinstance(self.skiprows, str):
             raise TypeError("an integer is required")
-        
+
         # header
         if self.header == -1 and len(self.column_names) == 0:
             self.header = 0
@@ -258,7 +258,7 @@ class CsvArgs():
             self.na_values  = str(self.na_values ).split(',')
         elif self.na_values  == None:
             self.na_values  = []
-        
+
 
 class OrcArgs():
 
