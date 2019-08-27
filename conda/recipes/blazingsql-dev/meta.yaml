@@ -4,7 +4,7 @@ package:
     name: blazingsq-dev
     version: 0.4.0
 
-source: 
+source:
     path: ../../../
 
 requirements:
@@ -22,7 +22,6 @@ requirements:
         - gtest
         - gmock
         - setuptools
-        - boost >=1.70.0
         - boost-cpp >=1.70.0
         - openssl
         - rapidjson
@@ -53,7 +52,6 @@ requirements:
         - gtest
         - gmock
         - setuptools
-        - boost >=1.70.0
         - boost-cpp >=1.70.0
         - openssl
         - rapidjson
