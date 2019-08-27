@@ -50,8 +50,10 @@ def setupDask(dask_client):
 
 def runCalcite():
     if(checkSocket(8890)):
-        subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
-
+        if(os.getenv("CONDA_PREFIX") == None):
+            subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
+        else:
+            subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'])
 def runOrchestrator():
     if(checkSocket(8889)):
         subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
