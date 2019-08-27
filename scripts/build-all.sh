@@ -25,8 +25,9 @@ do
   fi
   cd $repo
   if [ ${branches[i]} != "latest" ]; then
-    git pull
+    git fetch
     git checkout ${branches[i]}
+    git pull
   fi
   i=$(($i+1))
 
