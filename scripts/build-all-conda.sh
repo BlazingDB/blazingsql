@@ -18,7 +18,7 @@ echo "$CONDA_PREFIX: "$CONDA_PREFIX
 cd $CONDA_PREFIX
 #set branch to latest to just build develop
 repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-orchestrator blazingdb-ral pyBlazing blazingdb-calcite)
-branches=(feature/conda feature/conda feature/conda feature/conda feature/conda feature/conda latest)
+branches=(feature/conda feature/conda feature/conda feature/conda feature/conda feature/conda feature/conda)
 #assumes that you have installed blazingsql-dev into the current conda Environment
 mkdir $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} -p
 i=0
@@ -50,6 +50,7 @@ do
   cd conda/recipes/$repo
 
   status="Cloned and built"
+  export BUILD=0
   echo "### CMD: conda build --label $label -c conda-forge -c $channel -c rapidsai --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} ."
   conda build --label $label -c conda-forge -c $channel -c rapidsai --python=$python --output-folder $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} .
   if [ $? != 0 ]; then
