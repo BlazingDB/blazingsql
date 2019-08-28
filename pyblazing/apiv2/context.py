@@ -6,6 +6,7 @@ from pathlib import PurePath
 import cudf
 import pandas
 import pyarrow
+import dask_cudf
 
 from .bridge import internal_api
 
@@ -19,6 +20,7 @@ from .datasource import from_csv
 from .datasource import from_parquet
 from .datasource import from_result_set
 from .datasource import from_distributed_result_set
+from .datasource import from_dask_cudf
 import time
 
 
@@ -85,6 +87,8 @@ class BlazingContext(object):
             datasource = from_arrow(input, table_name)
         elif type(input) == internal_api.ResultSetHandle:
             datasource = from_result_set(input, table_name)
+        elif type(input) == dask_cudf.core.DataFrame:
+            datasource = from_dask_cudf(input, table_name)
         elif hasattr(input, 'metaToken'):
             datasource = from_distributed_result_set(input.metaToken,table_name)
         elif type(input) == str or type(input) == list:
@@ -141,10 +145,10 @@ class BlazingContext(object):
     # END SQL interface
 
 
-def make_context(connection = 'localhost:8889'):
+def make_context(connection = 'localhost:8889', dask_client = None):
     """
     :param connection: BlazingSQL cluster URL to connect to
            (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
     """
-    bc = BlazingContext(connection)
+    bc = BlazingContext(connection, dask_client)
     return bc

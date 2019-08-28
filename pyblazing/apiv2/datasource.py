@@ -15,6 +15,7 @@ class Type(IntEnum):
     parquet = 4
     result_set = 5
     distributed_result_set = 6
+    dask_cudf = 7
 
 
 class DataSource:
@@ -104,7 +105,7 @@ class DataSource:
             return self.cudf_df
         elif self.type == Type.result_set:
             return self.cudf_df
-        elif self.type == Type.dask:
+        elif self.type == Type.dask_cudf:
             return self.dask_cudf
         return None
 
@@ -115,7 +116,7 @@ class DataSource:
             return self.parquet
         elif self.type == Type.cudf:
             return self.cudf_df
-        elif self.type == Type.dask_cudf
+        elif self.type == Type.dask_cudf:
             return self.dask_cudf
 
         return None
@@ -153,7 +154,7 @@ class DataSource:
             table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
             return self._load_parquet(table_name, path)
-        elif type == Type.dask_cudf
+        elif type == Type.dask_cudf:
             dask_cudf = kwargs.get('dask_cudf', None)
             return self._load_dask_cudf(table_name,dask_cudf)
         else:
@@ -167,8 +168,8 @@ class DataSource:
     def _load_dask_cudf(self, table_name, dask_cudf):
         self.dask_cudf = dask_cudf
 
-        column_names = list(result.dtypes.index)
-        column_dtypes = [internal_api.get_np_dtype_to_gdf_dtype(x) for x in dask_cdf.dtypes]
+        column_names = list(dask_cudf.dtypes.index)
+        column_dtypes = [internal_api.get_np_dtype_to_gdf_dtype(x) for x in dask_cudf.dtypes]
         return_result = internal_api.create_table(
             self.client,
             table_name,
@@ -312,5 +313,13 @@ def from_csv(client, table_name, path, column_names, column_types, delimiter, sk
 # TODO percy path (with wildcard support) is file system transparent
 def from_parquet(client, table_name, path):
     return DataSource(client, Type.parquet, table_name = table_name, path = path)
+
+
+
+# TODO
+def from_dask_cudf(dask_df, table_name):
+    return DataSource(None, Type.dask_cudf, table_name = table_name, dask_cudf = dask_df)
+
+
 
 # END DataSource builders

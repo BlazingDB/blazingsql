@@ -1,3 +1,8 @@
+import time
+import re
+
+from collections import OrderedDict
+
 import cudf as gd
 
 import blazingdb.protocol
@@ -24,9 +29,7 @@ from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
 import numpy as np
 import pandas as pd
 
-import time
 import nvstrings
-from collections import OrderedDict
 
 # NDarray device helper
 from numba import cuda
@@ -875,6 +878,7 @@ class SchemaFrom:
     ParquetFile = 1
     Gdf = 2
     Distributed = 3
+    Dask = 4
 
 
 #cambiar para success or failed
@@ -941,9 +945,10 @@ def get_machine_and_blazing_table(partition):
 
 def dask_cudf_to_BlazingDaskTable(dask_cudf):
     from dask.distributed import Client
-    # TODO: manage from pyconnector creation dask sheduler connection
+    # TODO: manage from blazingContext creation dask sheduler connection
     client = Client('127.0.0.1:8786')
 
+    # TODO: check persisted dask_cudf
     persisted_cudf = client.persist(dask_cudf)
     client.compute(persisted_cudf)
 
@@ -951,7 +956,8 @@ def dask_cudf_to_BlazingDaskTable(dask_cudf):
         gdf_to_BlazingTable).compute()
 
     who_has = client.who_has()
-    ips = [who_has[str(k)][0] for k in ddf.dask.keys()]
+    ips = [re.findall(r'(?:\d+\.){3}\d+', who_has[str(k)][0])[0]
+           for k in ddf.dask.keys()]
 
     dask_cudf_ret = [{
         'ip': p[0],
