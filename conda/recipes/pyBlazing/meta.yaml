@@ -1,6 +1,13 @@
+{% set cuda_version='.'.join(environ.get('CUDA_VERSION', '9.2').split('.')[:2]) %}
+{% set build = environ.get('BUILD', '0').lstrip('v') %}
+
 package:
     name: blazingsql-python
     version: 0.4.0
+
+build:
+    number: {{ build }}
+    string: cuda{{ cuda_version + '_py' + CONDA_PY + '_' + build }}
 
 source:
     path: ../../../

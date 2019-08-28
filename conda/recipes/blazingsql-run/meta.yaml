@@ -1,6 +1,11 @@
+{% set cuda_version='.'.join(environ.get('CUDA_VERSION', '9.2').split('.')[:2]) %}
+
 package:
     name: blazingsq-dev
     version: 0.4.0
+
+source:
+    path: ../../../
 
 requirements:
     build:
