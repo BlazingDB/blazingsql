@@ -3,8 +3,8 @@
 cd $CONDA_PREFIX
 #set branch to latest to just build develop
 repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-orchestrator blazingdb-ral pyBlazing blazingdb-calcite)
-branches=(feature/conda feature/conda feature/conda feature/conda feature/conda feature/conda latest)
-build_type=(Release Release Release Release Debug Release Release)
+branches=(develop develop develop develop develop develop develop)
+build_type=(Release Release Release Release Release Release Release)
 
 #assumes that you have installed blazingsql-dev into the current conda Environment
 
