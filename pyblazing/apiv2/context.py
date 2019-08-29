@@ -41,14 +41,14 @@ def checkSocket(socketNum):
     s.close()
     return server_running
 
-def runRal():
+def runEngine():
     if(checkSocket(9100)):
         subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891'])
 
 def setupDask(dask_client):
-    dask_client.run(runRal)
+    dask_client.run(runEngine)
 
-def runCalcite():
+def runAlgebra():
     if(checkSocket(8890)):
         if(os.getenv("CONDA_PREFIX") == None):
             subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
@@ -291,19 +291,24 @@ class OrcArgs():
 
 class BlazingContext(object):
 
-    def __init__(self, connection = 'localhost:8889', dask_client = None):
+    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator=True, run_engine=True, run_algebra=True):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
         if(dask_client is None):
-            runOrchestrator()
-            runRal()
-            runCalcite()
+            if run_orchestrator:
+                runOrchestrator()
+            if run_engine:
+                runEngine()
+            if run_algebra:
+                runAlgebra()
         else:
-            runOrchestrator()
+            if run_orchestrator:
+                runOrchestrator()
             setupDask(dask_client)
-            runCalcite()
+            if run_algebra:
+                runAlgebra()
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
