@@ -4,6 +4,7 @@ cd $CONDA_PREFIX
 #set branch to latest to just build develop
 repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-orchestrator blazingdb-ral pyBlazing blazingdb-calcite)
 branches=(feature/conda feature/conda feature/conda feature/conda feature/conda feature/conda latest)
+build_type=(Release Release Release Release Debug Release Release)
 
 #assumes that you have installed blazingsql-dev into the current conda Environment
 
@@ -32,7 +33,7 @@ do
   i=$(($i+1))
 
   chmod +x conda/recipes/$repo/build.sh
-  conda/recipes/$repo/build.sh
+  conda/recipes/$repo/build.sh ${build_type[i]}
   echo "######################################################################### Cloned and built ${repo} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 done
