@@ -7,51 +7,26 @@ MAINTAINER BlazingSQL <felipe@blazingsql.com>
 
 LABEL Description="blazingsql/blazingsql is the official BlazingDB environment for BlazingSQL on NIVIDA RAPIDS." Vendor="BlazingSQL" Version="0.4.0"
 
-RUN apt-get update
-RUN apt-get install -y gcc make curl
-
+RUN apt-get update && \
+    apt-get install -y gcc make curl wget
 
 # Install miniconda to /miniconda
-RUN curl -LO http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
-RUN bash Miniconda-latest-Linux-x86_64.sh -p /miniconda -b
-RUN rm Miniconda-latest-Linux-x86_64.sh
-ENV PATH=/miniconda/bin:${PATH}
-RUN conda update -y conda
+ENV PATH=${PATH}:/miniconda3/bin
+RUN wget -q -O /tmp/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
+    bash /tmp/miniconda.sh -bfp /miniconda3/ && \
+    rm -f /tmp/miniconda.sh && \
+    conda update -y conda && \
+    conda clean --all
 
 # Setup the Calcite database catalog
 RUN mkdir /blazingsql
 
-
-RUN conda install -y \
-      -c rapidsai-nightly/label/xgboost -c rapidsai-nightly -c nvidia -c conda-forge \
-      python=3.6 cudatoolkit=${CUDA_VERSION} \
-      cudf=0.10.* cuml=0.10.* cugraph=0.10.* gcsfs pynvml pip jupyter \
-      dask-cudf=0.10.* \
-      rapidsai/label/xgboost::xgboost=>0.9
-
-RUN conda install -y -c rapidsai-nightly -c nvidia -c conda-forge -c felipeblazing/label/cuda10.0 python=3.6 cudatoolkit=10.0 blazingsql-ral blazingsql-orchestrator blazingsql-calcite blazingsql-python
-RUN pip install flatbuffers
-
-
-
-
-USER root
-
-
-# NOTE Fix some numba issues (NvvmSupportError: libNVVM cannot be found)
-#ENV NUMBAPRO_NVVM /usr/local/cuda-9.2/nvvm/lib64/libnvvm.so
-#ENV NUMBAPRO_LIBDEVICE /usr/local/cuda-9.2/nvvm/libdevice/
-
-
-# Copy the demo files
-#RUN mkdir -p /blazingdb/data/
-#RUN mkdir -p /blazingdb/notebooks/
-#COPY data /blazingdb/data/
-#COPY notebooks/ /blazingdb/notebooks/
-#RUN chown -R jupyter:jupyter /blazingdb/
+RUN conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda10.0 blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=10.0
+RUN pip install flatbuffers && \
+    pip install jupyterlab
 
 # NOTE Expose CUDF runtime
-ENV LD_LIBRARY_PATH /miniconda/lib/
+ENV LD_LIBRARY_PATH /miniconda3/lib/
 
 # If the user wants to persist the blazingsql catalog (schema store)
 VOLUME /blazingsql
@@ -62,4 +37,4 @@ VOLUME /tmp
 # Jupyter
 EXPOSE 80
 
-CMD ["jupyter", "notebook", "--port", "80"]
+CMD ["jupyter-lab", "--notebook=/blazingsql/", "--allow-root", "--ip=0.0.0.0", "--port=80", "--no-browser", "--NotebookApp.token='rapids'"]
