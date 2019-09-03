@@ -28,23 +28,26 @@ import os
 
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_running = False
+    socket_free = False
     try:
         s.bind(("127.0.0.1", socketNum))
-        server_running = False
+        socket_free = True
     except socket.error as e:
         if e.errno == errno.EADDRINUSE:
-            server_running = True
+            socket_free = False
         else:
             # something else raised the socket.error exception
+            print("ERROR: Something happened when checking socket " + str(socketNum))
             print(e)
     s.close()
-    return server_running
+    return socket_free
 
 def runEngine():
     if(checkSocket(9100)):
-        subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891'])
-
+        subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891', 'lo'])
+    else:
+        print("WARNING: Did not automativally launch blazingsql-engine")
+    
 def setupDask(dask_client):
     dask_client.run(runEngine)
 
@@ -54,9 +57,14 @@ def runAlgebra():
             subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
             subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'])
+    else:
+        print("WARNING: Did not automativally launch blazingsql-algebra")
+
 def runOrchestrator():
     if(checkSocket(8889)):
         subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
+    else:
+        print("WARNING: Did not automativally launch blazingsql-orchestrator")
 
 class CsvArgs():
 
