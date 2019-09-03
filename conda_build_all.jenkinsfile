@@ -134,5 +134,5 @@ def slackSendMessage(String status="Started", String color){
   slackSend channel: "${params.SLACK_CHANNEL}",
             color: color,
             failOnError: true,
-            message: "${buildStatus}" + "${env.SLACK_MESSAGE}"
+            message: "${status}" + "${env.SLACK_MESSAGE}"
 }
