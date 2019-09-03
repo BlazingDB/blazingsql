@@ -42,9 +42,9 @@ def checkSocket(socketNum):
     s.close()
     return socket_free
 
-def runEngine():
+def runEngine(network_interface = 'lo'):
     if(checkSocket(9100)):
-        subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891', 'lo'])
+        subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface])
     else:
         print("WARNING: Did not automativally launch blazingsql-engine")
     
@@ -299,7 +299,7 @@ class OrcArgs():
 
 class BlazingContext(object):
 
-    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator=True, run_engine=True, run_algebra=True):
+    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator=True, run_engine=True, run_algebra=True, network_interface='lo'):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -308,7 +308,7 @@ class BlazingContext(object):
             if run_orchestrator:
                 runOrchestrator()
             if run_engine:
-                runEngine()
+                runEngine(network_interface)
             if run_algebra:
                 runAlgebra()
         else:
@@ -316,7 +316,7 @@ class BlazingContext(object):
                 runOrchestrator()
             setupDask(dask_client)
             if run_algebra:
-                runAlgebra()
+                runAlgebra(network_interface)
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
