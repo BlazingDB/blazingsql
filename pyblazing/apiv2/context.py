@@ -42,23 +42,44 @@ def checkSocket(socketNum):
     s.close()
     return socket_free
 
-def runEngine(network_interface = 'lo'):
+def runEngine(network_interface = 'lo', processes = None):
+    process = None
     if(checkSocket(9100)):
-        subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface])
+        process = subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface])
+    else:
+        print("WARNING: blazingsql-engine was not automativally started, its probably already running")
+
+    if (processes is not None):
+        processes.append(process)
+    return processes
     
 def setupDask(dask_client):
     dask_client.run(runEngine)
 
-def runAlgebra():
+def runAlgebra(processes = None):
+    process = None
     if(checkSocket(8890)):
         if(os.getenv("CONDA_PREFIX") == None):
-            subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
+            process = subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
-            subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'])
+            process = subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'])
+    else:
+        print("WARNING: blazingsql-algebra was not automativally started, its probably already running")
 
-def runOrchestrator():
+    if (processes is not None):
+        processes.append(process)
+    return processes
+
+def runOrchestrator(processes = None):
+    process = None
     if(checkSocket(8889)):
-        subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
+        process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
+    else:
+        print("WARNING: blazingsql-orchestrator was not automativally started, its probably already running")
+
+    if (processes is not None):
+        processes.append(process)
+    return processes
 
 class CsvArgs():
 
@@ -293,24 +314,28 @@ class OrcArgs():
 
 class BlazingContext(object):
 
-    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator=True, run_engine=True, run_algebra=True, network_interface='lo'):
+    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator=True, run_engine=True, run_algebra=True, network_interface='lo', leave_processes_running=False):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
+        processes = None
+        if not leave_processes_running:
+            processes = []
+
         if(dask_client is None):
             if run_orchestrator:
-                runOrchestrator()
+                processes = runOrchestrator(processes=processes)
             if run_engine:
-                runEngine(network_interface)
+                processes = runEngine(network_interface=network_interface, processes=processes)
             if run_algebra:
-                runAlgebra()
+                processes = runAlgebra(processes=processes)
         else:
             if run_orchestrator:
-                runOrchestrator()
+                processes = runOrchestrator(processes=processes)
             setupDask(dask_client)
             if run_algebra:
-                runAlgebra(network_interface)
+                processes = runAlgebra(network_interface=network_interface, processes=processes)
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
@@ -324,6 +349,7 @@ class BlazingContext(object):
         self.fs = FileSystem()
         self.sqlObject = SQL()
         self.dask_client = dask_client
+        self.processes = processes
 
 
     def __del__(self):
@@ -331,6 +357,11 @@ class BlazingContext(object):
         # del self.sqlObject
         # del self.fs
         # del self.client
+        if (self.processes is not None):
+            for process in self.processes:
+                if (process is not None):
+                    process.terminate()
+
         pass
 
     def __repr__(self):
