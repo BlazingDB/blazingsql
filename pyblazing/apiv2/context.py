@@ -39,7 +39,7 @@ def checkSocket(socketNum):
             # something else raised the socket.error exception
             print(e)
     s.close()
-    return server_running
+    return not server_running
 
 def runEngine():
     if(checkSocket(9100)):
