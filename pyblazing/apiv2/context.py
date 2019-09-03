@@ -45,8 +45,6 @@ def checkSocket(socketNum):
 def runEngine(network_interface = 'lo'):
     if(checkSocket(9100)):
         subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface])
-    else:
-        print("WARNING: Did not automativally launch blazingsql-engine")
     
 def setupDask(dask_client):
     dask_client.run(runEngine)
@@ -57,14 +55,10 @@ def runAlgebra():
             subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
             subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'])
-    else:
-        print("WARNING: Did not automativally launch blazingsql-algebra")
 
 def runOrchestrator():
     if(checkSocket(8889)):
         subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
-    else:
-        print("WARNING: Did not automativally launch blazingsql-orchestrator")
 
 class CsvArgs():
 
