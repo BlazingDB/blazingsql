@@ -33,8 +33,8 @@ pipeline {
           environment {
             CUDA_VERSION = "10.0"
             PYTHON_VERSION = "3.7"
-            ARTIFACT_PYBLAZING = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
-            ARTIFACT_DEV = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
+            ARTIFACT_PYBLAZING = "cuda${env.CUDA_VERSION}_py${env.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
+            ARTIFACT_DEV = "cuda${env.CUDA_VERSION}_py${env.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
           }
 
           steps {
@@ -52,8 +52,8 @@ pipeline {
           environment {
             CUDA_VERSION = "10.0"
             PYTHON_VERSION = "3.6"
-            ARTIFACT_PYBLAZING = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
-            ARTIFACT_DEV = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
+            ARTIFACT_PYBLAZING = "cuda${env.CUDA_VERSION}_py${env.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
+            ARTIFACT_DEV = "cuda${env.CUDA_VERSION}_py${env.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
           }
 
           steps {
@@ -71,8 +71,8 @@ pipeline {
           environment {
             CUDA_VERSION = "9.2"
             PYTHON_VERSION = "3.7"
-            ARTIFACT_PYBLAZING = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
-            ARTIFACT_DEV = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
+            ARTIFACT_PYBLAZING = "cuda${env.CUDA_VERSION}_py${env.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
+            ARTIFACT_DEV = "cuda${env.CUDA_VERSION}_py${env.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
           }
 
           steps {
@@ -90,8 +90,8 @@ pipeline {
           environment {
             CUDA_VERSION = "9.2"
             PYTHON_VERSION = "3.6"
-            ARTIFACT_PYBLAZING = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
-            ARTIFACT_DEV = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
+            ARTIFACT_PYBLAZING = "cuda${env.CUDA_VERSION}_py${env.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
+            ARTIFACT_DEV = "cuda${env.CUDA_VERSION}_py${env.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
           }
 
           steps {
