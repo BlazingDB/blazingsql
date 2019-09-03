@@ -40,8 +40,8 @@ pipeline {
           steps {
             sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION} ${env.BUILD_NUMBER}"
             withCredentials([usernamePassword(credentialsId: "${params.CREDENTIALS}", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
-              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_DEV}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${env.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${env.CUDA_VERSION} ${env.ARTIFACT_DEV}"
             }
             sh "rm -f ${env.ARTIFACT_PYBLAZING}"
             sh "rm -f ${env.ARTIFACT_DEV}"
@@ -59,8 +59,8 @@ pipeline {
           steps {
             sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION} ${env.BUILD_NUMBER}"
             withCredentials([usernamePassword(credentialsId: "${params.CREDENTIALS}", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
-              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_DEV}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${env.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${env.CUDA_VERSION} ${env.ARTIFACT_DEV}"
             }
             sh "rm -f ${env.ARTIFACT_PYBLAZING}"
             sh "rm -f ${env.ARTIFACT_DEV}"
@@ -78,8 +78,8 @@ pipeline {
           steps {
             sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION} ${env.BUILD_NUMBER}"
             withCredentials([usernamePassword(credentialsId: "${params.CREDENTIALS}", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
-              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_DEV}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${env.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${env.CUDA_VERSION} ${env.ARTIFACT_DEV}"
             }
             sh "rm -f ${env.ARTIFACT_PYBLAZING}"
             sh "rm -f ${env.ARTIFACT_DEV}"
@@ -97,8 +97,8 @@ pipeline {
           steps {
             sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION} ${env.BUILD_NUMBER}"
             withCredentials([usernamePassword(credentialsId: "${params.CREDENTIALS}", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
-              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_DEV}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${env.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${env.CUDA_VERSION} ${env.ARTIFACT_DEV}"
             }
             sh "rm -f ${env.ARTIFACT_PYBLAZING}"
             sh "rm -f ${env.ARTIFACT_DEV}"
