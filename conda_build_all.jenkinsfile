@@ -1,0 +1,138 @@
+pipeline {
+  agent any
+
+  options {
+    ansiColor('xterm')
+    timestamps()
+    timeout(time: 2, unit: 'HOURS')
+  }
+
+  parameters {
+    string(name: 'BRANCH', defaultValue: 'develop', description: 'Branch from compile')
+    string(name: 'CREDENTIALS', defaultValue: 'mario21ic-conda', description: 'Anaconda cloud credentials')
+    string(name: 'SLACK_CHANNEL', defaultValue: 'jenkins-blazingsql', description: 'Slack channel to notify')
+  }
+  
+  environment {
+    SLACK_MESSAGE=" - Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}: ${env.BUILD_URL}"
+  }
+
+  stages {
+
+    stage("Repository") {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage("Compile") {
+
+      parallel {
+
+        stage('cuda10.0_py37') {
+          environment {
+            CUDA_VERSION = "10.0"
+            PYTHON_VERSION = "3.7"
+            ARTIFACT_PYBLAZING = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
+            ARTIFACT_DEV = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
+          }
+
+          steps {
+            sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION} ${env.BUILD_NUMBER}"
+            withCredentials([usernamePassword(credentialsId: "${params.CREDENTIALS}", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_DEV}"
+            }
+            sh "rm -f ${env.ARTIFACT_PYBLAZING}"
+            sh "rm -f ${env.ARTIFACT_DEV}"
+          }
+        }
+
+        stage('cuda10.0_py36') {
+          environment {
+            CUDA_VERSION = "10.0"
+            PYTHON_VERSION = "3.6"
+            ARTIFACT_PYBLAZING = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
+            ARTIFACT_DEV = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
+          }
+
+          steps {
+            sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION} ${env.BUILD_NUMBER}"
+            withCredentials([usernamePassword(credentialsId: "${params.CREDENTIALS}", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_DEV}"
+            }
+            sh "rm -f ${env.ARTIFACT_PYBLAZING}"
+            sh "rm -f ${env.ARTIFACT_DEV}"
+          }
+        }
+
+        stage('cuda9.2_py37') {
+          environment {
+            CUDA_VERSION = "9.2"
+            PYTHON_VERSION = "3.7"
+            ARTIFACT_PYBLAZING = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
+            ARTIFACT_DEV = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
+          }
+
+          steps {
+            sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION} ${env.BUILD_NUMBER}"
+            withCredentials([usernamePassword(credentialsId: "${params.CREDENTIALS}", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_DEV}"
+            }
+            sh "rm -f ${env.ARTIFACT_PYBLAZING}"
+            sh "rm -f ${env.ARTIFACT_DEV}"
+          }
+        }
+
+        stage('cuda9.2_py36') {
+          environment {
+            CUDA_VERSION = "9.2"
+            PYTHON_VERSION = "3.6"
+            ARTIFACT_PYBLAZING = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
+            ARTIFACT_DEV = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
+          }
+
+          steps {
+            sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION} ${env.BUILD_NUMBER}"
+            withCredentials([usernamePassword(credentialsId: "${params.CREDENTIALS}", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
+              sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_DEV}"
+            }
+            sh "rm -f ${env.ARTIFACT_PYBLAZING}"
+            sh "rm -f ${env.ARTIFACT_DEV}"
+          }
+        }
+
+      }
+
+    }
+
+  }
+
+  // Method to post jenkinsfile
+  post {
+    always {
+      echo "Job has finished"
+    }
+    success {
+      slackSendMessage("Success", "good")
+    }
+    failure {
+      slackSendMessage("Failure", "danger")
+    }
+    unstable {
+      slackSendMessage("Warning", "warning")
+    }
+  }
+
+}
+
+// Method to send notifications for slack
+def slackSendMessage(String status="Started", String color){
+  slackSend channel: "${params.SLACK_CHANNEL}",
+            color: color,
+            failOnError: true,
+            message: "${buildStatus}" + "${env.SLACK_MESSAGE}"
+}
