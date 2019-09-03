@@ -326,13 +326,15 @@ class BlazingContext(object):
         if(dask_client is None):
             if run_orchestrator:
                 processes = runOrchestrator(processes=processes)
+                time.sleep(1)            
             if run_engine:
-                processes = runEngine(network_interface=network_interface, processes=processes)
+                processes = runEngine(network_interface=network_interface, processes=processes)                
             if run_algebra:
-                processes = runAlgebra(processes=processes)
+                processes = runAlgebra(processes=processes)                
         else:
             if run_orchestrator:
                 processes = runOrchestrator(processes=processes)
+                time.sleep(1)
             setupDask(dask_client)
             if run_algebra:
                 processes = runAlgebra(network_interface=network_interface, processes=processes)
