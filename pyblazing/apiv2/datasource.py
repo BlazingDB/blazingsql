@@ -222,23 +222,17 @@ class DataSource:
             result_set = kwargs.get('result_set', None)
             return self._load_distributed_result_set(result_set)
         elif type == Type.csv:
-            path = kwargs.get('path', None)
             csv_args = kwargs.get('csv_args', None)
-            return self._load_csv(table_name, path, csv_args)
+            return self._load_csv(csv_args)
         elif type == Type.parquet:
-            table_name = kwargs.get('table_name', None)
             path = kwargs.get('path', None)
-            return self._load_parquet(table_name, path)
+            return self._load_parquet()
         elif type == Type.json:
-            table_name = kwargs.get('table_name', None)
-            path = kwargs.get('path', None)
             json_lines = kwargs.get('json_lines', True)
-            return self._load_json(table_name, path, json_lines)
+            return self._load_json(json_lines)
         elif type == Type.orc:
-            table_name = kwargs.get('table_name', None)
-            path = kwargs.get('path', None)
             orc_args = kwargs.get('orc_args', None)
-            return self._load_orc(table_name, path, orc_args)
+            return self._load_orc(orc_args)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -324,52 +318,40 @@ class DataSource:
             self._client,
             self._table_name,
             type = internal_api.FileSchemaType.PARQUET,
-            files = self._descriptor.files(),
+            path = self._descriptor.files()
         )
 
         return self._create_table_status_to_bool(return_result)
 
-    def _load_json(self, table_name, path, lines):
+    def _load_json(self, lines):
         # TODO percy manage datasource load errors
-        if path == None:
+        if self._descriptor.files() == None:
             return False
 
-        self.path = path
-
         return_result = internal_api.create_table(
-            self.client,
-            table_name,
-            type = internal_api.SchemaFrom.JsonFile,
-            path = path,
+            self._client,
+            self._table_name,
+            type = internal_api.FileSchemaType.JSON,
+            path = self._descriptor.files(),
             lines = lines
         )
 
-        # TODO percy see if we need to perform sanity check for arrow_table object
-        # return success or failed
-        self.valid = return_result
+        return self._create_table_status_to_bool(return_result)
 
-        return self.valid
-
-    def _load_orc(self, table_name, path, orc_args):
+    def _load_orc(self, orc_args):
         # TODO percy manage datasource load errors
-        if path == None:
+        if self._descriptor.files() == None:
             return False
 
-        self.path = path
-
         return_result = internal_api.create_table(
-            self.client,
-            table_name,
-            type = internal_api.SchemaFrom.OrcFile,
-            path = path,
+            self._client,
+            self._table_name,
+            type = internal_api.FileSchemaType.ORC,
+            path = self._descriptor.files(),
             orc_args = orc_args
         )
 
-        # TODO percy see if we need to perform sanity check for arrow_table object
-        # return success or failed
-        self.valid = return_result
-
-        return self.valid
+        return self._create_table_status_to_bool(return_result)
 
 # BEGIN DataSource builders
 
