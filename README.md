@@ -33,7 +33,7 @@ bc.create_table('taxi', '/dir_name/taxi.csv')
 result = bc.sql('SELECT count(*) FROM taxi GROUP BY year(key)').get()
 result_gdf = result.columns
 
-#Print GDF 
+#Print GDF
 print(result_gdf)
 ```
 ## Examples
@@ -47,6 +47,34 @@ You can find our full documentation at [the following site](https://docs.blazing
 
 ## Build/Install from Source
 See build [instructions](https://docs.blazingdb.com/docs/build-from-source).
+For additional information, browse our complete [documentation](https://docs.blazingdb.com/docs/)
+
+## Quick Start
+
+Too see all the ways you can get started with BlazingSQL checkout out our [Getting Started Page](https://blazingsql.com/#/getstarted)
+
+## Build Conda Package
+Navigate to the folder
+```
+cd conda/recipes/pyblazing
+conda build  -c blazingsql -c conda-forge -c rapidsai-nightly blazingsql-dev .
+```
+
+## Build/Install from Source (Conda Environment)
+This is the recommended way of building pyblazing and other dependencies from source. It ensures that all the dependencies are available to the build process.
+```
+conda install -c blazingsql -c conda-forge -c rapidsai-nightly blazingsql-dev
+```
+$CONDA_PREFIX now has a folder for every blazingsql repository. Inside each repo you can run in conda/recipes/{repo name}/build.sh from the root folder of the repository.
+
+## Build/Install from Source (github)
+```
+git clone https://github.com/blazingdb/pyblazing
+cd pyblazing
+pip install .
+```
+
+
 
 ## Contributing
 Have questions or feedback? Post a [new github issue](https://github.com/BlazingDB/pyBlazing/issues/new/choose).

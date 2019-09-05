@@ -21,6 +21,8 @@ class Type(Enum):
     parquet = "Apache Parquet"
     result_set = "BlazingSQL Non-distributed ResultSet"
     distributed_result_set = "BlazingSQL Distributed ResultSet"
+    json = "JSON"
+    orc = "Apache ORC"
 
 
 # NOTE This class doesnt have any logic related to a remote call, is only for parsing the input
@@ -220,17 +222,23 @@ class DataSource:
             result_set = kwargs.get('result_set', None)
             return self._load_distributed_result_set(result_set)
         elif type == Type.csv:
-            csv_column_names = kwargs.get('csv_column_names', [])
-            csv_column_types = kwargs.get('csv_column_types', [])
-            csv_delimiter = kwargs.get('csv_delimiter', '|')
-            csv_skip_rows = kwargs.get('csv_skip_rows', 0)
-            return self._load_csv(
-                csv_column_names,
-                csv_column_types,
-                csv_delimiter,
-                csv_skip_rows)
+            path = kwargs.get('path', None)
+            csv_args = kwargs.get('csv_args', None)
+            return self._load_csv(table_name, path, csv_args)
         elif type == Type.parquet:
-            return self._load_parquet()
+            table_name = kwargs.get('table_name', None)
+            path = kwargs.get('path', None)
+            return self._load_parquet(table_name, path)
+        elif type == Type.json:
+            table_name = kwargs.get('table_name', None)
+            path = kwargs.get('path', None)
+            json_lines = kwargs.get('json_lines', True)
+            return self._load_json(table_name, path, json_lines)
+        elif type == Type.orc:
+            table_name = kwargs.get('table_name', None)
+            path = kwargs.get('path', None)
+            orc_args = kwargs.get('orc_args', None)
+            return self._load_orc(table_name, path, orc_args)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -292,20 +300,17 @@ class DataSource:
 
         return self._create_table_status_to_bool(return_result)
 
-    def _load_csv(self, column_names, column_types, delimiter, skip_rows):
+    def _load_csv(self, csv_args):
         # TODO percy manage datasource load errors
         if self._descriptor.files() == None:
             return False
 
         return_result = internal_api.create_table(
-            self._client,
+            self.client,
             self._table_name,
             type = internal_api.FileSchemaType.CSV,
-            files = self._descriptor.files(),
-            delimiter = delimiter,
-            names = column_names,
-            dtypes = internal_api.get_dtype_values(column_types),
-            skip_rows = skip_rows
+            path = self._descriptor.files(),
+            csv_args = csv_args
         )
 
         return self._create_table_status_to_bool(return_result)
@@ -323,6 +328,48 @@ class DataSource:
         )
 
         return self._create_table_status_to_bool(return_result)
+
+    def _load_json(self, table_name, path, lines):
+        # TODO percy manage datasource load errors
+        if path == None:
+            return False
+
+        self.path = path
+
+        return_result = internal_api.create_table(
+            self.client,
+            table_name,
+            type = internal_api.SchemaFrom.JsonFile,
+            path = path,
+            lines = lines
+        )
+
+        # TODO percy see if we need to perform sanity check for arrow_table object
+        # return success or failed
+        self.valid = return_result
+
+        return self.valid
+
+    def _load_orc(self, table_name, path, orc_args):
+        # TODO percy manage datasource load errors
+        if path == None:
+            return False
+
+        self.path = path
+
+        return_result = internal_api.create_table(
+            self.client,
+            table_name,
+            type = internal_api.SchemaFrom.OrcFile,
+            path = path,
+            orc_args = orc_args
+        )
+
+        # TODO percy see if we need to perform sanity check for arrow_table object
+        # return success or failed
+        self.valid = return_result
+
+        return self.valid
 
 # BEGIN DataSource builders
 
@@ -347,24 +394,23 @@ def from_distributed_result_set(result_set, table_name, descriptor):
     return DataSource(None, descriptor, table_name = table_name, result_set = result_set)
 
 
-def from_csv(client, table_name, descriptor, **kwargs):
-    column_names = kwargs.get('names', [])
-    column_types = kwargs.get('dtype', [])
-    delimiter = kwargs.get('delimiter', '|')
-    skip_rows = kwargs.get('skiprows', 0)
-
+def from_csv(client, table_name, descriptor, csv_args):
     return DataSource(client, descriptor,
         table_name = table_name,
-        csv_column_names = column_names,
-        csv_column_types = column_types,
-        csv_delimiter = delimiter,
-        csv_skip_rows = skip_rows
+        csv_args = csv_args
     )
 
 
 def from_parquet(client, table_name, descriptor):
     return DataSource(client, descriptor, table_name = table_name)
 
+
+def from_json(client, table_name, descriptor, lines):
+    return DataSource(client, descriptor, table_name = table_name, json_lines = lines)
+
+
+def from_orc(client, table_name, descriptor, orc_args):
+    return DataSource(client, descriptor, table_name = table_name, orc_args = orc_args)
 # END DataSource builders
 
 # BEGIN DataSource utils
