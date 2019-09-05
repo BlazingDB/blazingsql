@@ -14,7 +14,7 @@ from blazingdb.protocol.calcite.errors import SyntaxError
 from blazingdb.messages.blazingdb.protocol.Status import Status
 
 from blazingdb.protocol.interpreter import InterpreterMessage
-from blazingdb.protocol.orchestrator import OrchestratorMessageType
+from blazingdb.protocol.orchestrator import OrchestratorMessageType, NodeTableSchema
 from blazingdb.protocol.gdf import gdf_columnSchema
 
 import pyarrow as pa
@@ -903,9 +903,9 @@ def create_table(tableName, **kwargs):
         blazing_table = gdf_to_BlazingTable(gdf)
 
     if dask_cudf is None:
-        dask_tables = dask_cudf_to_BlazingDaskTable(dask_cudf)
-    else:
         dask_tables = []
+    else:
+        dask_tables = dask_cudf_to_BlazingDaskTable(dask_cudf)
 
     if (len(columnTypes) > 0):
         columnTypes = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
@@ -943,6 +943,44 @@ def create_table(tableName, **kwargs):
 def get_machine_and_blazing_table(partition):
     return socket.gethostname(), gdf_to_BlazingTable(gdf)
 
+
+def columnSchemaFrom(dask_column):
+    from blazingdb.protocol.gdf import (cudaIpcMemHandle_tSchema,
+                                        gdf_dtype_extra_infoSchema,
+                                        custringsData_tSchema,
+                                        gdf_columnSchema)
+
+    raw_data = dask_column['data']
+    data = cudaIpcMemHandle_tSchema(reserved=raw_data if raw_data else b'')
+
+    raw_valid = dask_column['valid']
+    valid = cudaIpcMemHandle_tSchema(reserved=raw_valid if raw_valid else b'')
+
+    raw_custrings_data = (dask_column['custrings_data']
+                          if 'custrings_data' in dask_column
+                          else None)
+    custrings_data = custringsData_tSchema(
+        reserved=raw_custrings_data if raw_custrings_data else b'')
+
+    dtype_info = gdf_dtype_extra_infoSchema(time_unit=0)
+
+    return gdf_columnSchema(data=data,
+                            valid=valid,
+                            size=dask_column['size'],
+                            dtype=dask_column['dtype'],
+                            dtype_info=dtype_info,
+                            null_count=dask_column['null_count'],
+                            custrings_data=custrings_data)
+
+
+def tableSchemaFrom(dask_cudf):
+    from blazingdb.protocol.orchestrator import BlazingTableSchema
+    return BlazingTableSchema(columns=[columnSchemaFrom(dask_column)
+                                       for dask_column in dask_cudf['columns']],
+                              columnTokens=dask_cudf['columnTokens'],
+                              resultToken=dask_cudf['resultToken'])
+
+
 def dask_cudf_to_BlazingDaskTable(dask_cudf):
     from dask.distributed import Client
     # TODO: manage from blazingContext creation dask sheduler connection
@@ -957,14 +995,15 @@ def dask_cudf_to_BlazingDaskTable(dask_cudf):
 
     who_has = client.who_has()
     ips = [re.findall(r'(?:\d+\.){3}\d+', who_has[str(k)][0])[0]
-           for k in ddf.dask.keys()]
+           for k in dask_cudf.dask.keys()]
 
-    dask_cudf_ret = [{
-        'ip': p[0],
-        'gdf': p[1]
-    } for p in zip(ips, distributedBlazingTables)]
+    dask_cudf_ret = [
+        # {'ip':p[0], 'gdf':p[1]}
+        NodeTableSchema(ip=p[0], gdf=tableSchemaFrom(p[1]))
+        for p in zip(ips, distributedBlazingTables)]
 
     return dask_cudf_ret
+
 
 def register_file_system(authority, type, root, params = None):
     if params is not None:
@@ -980,6 +1019,7 @@ def register_file_system(authority, type, root, params = None):
         raise RuntimeError(ResponseErrorSchema.From(response.payload).errors)
     return response.status
 
+
 def deregister_file_system(authority):
     schema = FileSystemDeregisterRequestSchema(authority)
     client = _get_client()
@@ -991,6 +1031,7 @@ def deregister_file_system(authority):
     if response.status == Status.Error:
         raise RuntimeError(ResponseErrorSchema.From(response.payload).errors)
     return response.status
+
 
 def _create_dummy_table_group():
     database_name = 'main'
