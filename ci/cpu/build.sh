@@ -45,3 +45,6 @@ conda install -y conda-build anaconda-client
 
 logger "Build conda pkg for pyblazing..."
 source ci/cpu/pyblazing/conda-build.sh
+
+logger "Upload conda pkg for pyblazing..."
+#source ci/cpu/upload_anaconda.sh
