@@ -25,7 +25,7 @@ class Type(Enum):
     orc = "Apache ORC"
 
 
-# NOTE This class doesnt have any logic related to a remote call, is only for parsing the input
+# NOTE This is only for parsing the input, will call the scan_datasource service if necessary
 class Descriptor:
 
     def __init__(self, input):
