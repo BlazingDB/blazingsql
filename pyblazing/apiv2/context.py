@@ -28,35 +28,61 @@ import os
 
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_running = False
+    socket_free = False
     try:
         s.bind(("127.0.0.1", socketNum))
-        server_running = False
+        socket_free = True
     except socket.error as e:
         if e.errno == errno.EADDRINUSE:
-            server_running = True
+            socket_free = False
         else:
             # something else raised the socket.error exception
+            print("ERROR: Something happened when checking socket " + str(socketNum))
             print(e)
     s.close()
-    return server_running
+    return socket_free
 
-def runEngine():
-    if(checkSocket(9100)):
-        subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891'])
+def runEngine(network_interface = 'lo', processes = None):
+    process = None
+    devnull = open(os.devnull, 'w')
+    if(checkSocket(9001)):
+        process = subprocess.Popen(['blazingsql-engine', '1', '0' ,'127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface],stdout=devnull, stderr=devnull)
+    else:
+        print("WARNING: blazingsql-engine was not automativally started, its probably already running")
+
+    if (processes is not None):
+        processes.append(process)
+    return processes
 
 def setupDask(dask_client):
     dask_client.run(runEngine)
 
-def runAlgebra():
+def runAlgebra(processes = None):
+    process = None
+    devnull = open(os.devnull, 'w')
     if(checkSocket(8890)):
         if(os.getenv("CONDA_PREFIX") == None):
-            subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
+            process = subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
-            subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'])
-def runOrchestrator():
-    if(checkSocket(8889)):
-        subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
+            process = subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'],stdout=devnull, stderr=devnull)
+    else:
+        print("WARNING: blazingsql-algebra was not automativally started, its probably already running")
+
+    if (processes is not None):
+        processes.append(process)
+    return processes
+
+def runOrchestrator(processes = None):
+    process = None
+    devnull = open(os.devnull, 'w')
+    if(checkSocket(9100)):
+        process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'],stdout=devnull, stderr=devnull)
+    else:
+        print("WARNING: blazingsql-orchestrator was not automativally started, its probably already running")
+
+    if (processes is not None):
+        processes.append(process)
+    return processes
 
 class CsvArgs():
 
@@ -291,24 +317,33 @@ class OrcArgs():
 
 class BlazingContext(object):
 
-    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator=True, run_engine=True, run_algebra=True):
+    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator=True, run_engine=True, run_algebra=True, network_interface='lo', leave_processes_running=False):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
+        processes = None
+        if not leave_processes_running:
+            processes = []
+
         if(dask_client is None):
             if run_orchestrator:
-                runOrchestrator()
+                processes = runOrchestrator(processes=processes)
+                time.sleep(2) # lets the orchestrator start before we start the other processes
             if run_engine:
-                runEngine()
+                processes = runEngine(network_interface=network_interface, processes=processes)
             if run_algebra:
-                runAlgebra()
+                processes = runAlgebra(processes=processes)
+            if run_engine or run_algebra:
+                time.sleep(3) # lets the engine and algebra processes start before we continue
         else:
             if run_orchestrator:
-                runOrchestrator()
+                processes = runOrchestrator(processes=processes)
+                time.sleep(1)  # lets the orchestrator start before we start the other processes
             setupDask(dask_client)
             if run_algebra:
-                runAlgebra()
+                processes = runAlgebra(network_interface=network_interface, processes=processes)
+                time.sleep(3) # lets the engine and algebra processes start before we continue
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
@@ -322,6 +357,7 @@ class BlazingContext(object):
         self.fs = FileSystem()
         self.sqlObject = SQL()
         self.dask_client = dask_client
+        self.processes = processes
 
 
     def __del__(self):
@@ -329,6 +365,11 @@ class BlazingContext(object):
         # del self.sqlObject
         # del self.fs
         # del self.client
+        if (self.processes is not None):
+            for process in self.processes:
+                if (process is not None):
+                    process.terminate()
+
         pass
 
     def __repr__(self):
