@@ -281,17 +281,17 @@ class DataSource:
     def _load_pandas_df(self, pandas_df):
         cudf_df = cudf.DataFrame.from_pandas(pandas_df)
 
-        return self._load_cudf_df(self._table_name, cudf_df)
+        return self._load_cudf_df(cudf_df)
 
     def _load_arrow_table(self, arrow_table):
         pandas_df = arrow_table.to_pandas()
 
-        return self._load_pandas_df(self._table_name, pandas_df)
+        return self._load_pandas_df(pandas_df)
 
     def _load_result_set(self, result_set):
         cudf_df = result_set.columns
 
-        return self._load_cudf_df(self._table_name, cudf_df)
+        return self._load_cudf_df(cudf_df)
 
     def _load_distributed_result_set(self, distributed_result_set):
         print(distributed_result_set)
