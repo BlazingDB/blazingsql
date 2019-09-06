@@ -21,7 +21,10 @@ class Table:
 
         if len(self.datasource_files()) > 0:
             output += "%sData source URI: %s\n" % (ident, self.datasource_uri())
-            output += "%sData source files:\n" % ident
+            if len(self.datasource_files()) == 1:
+                output += "%sData source file:\n" % ident
+            else:
+                output += "%sData source files:\n" % ident
             for file in self.datasource_files():
                 output += "%s%s%s\n" % (ident, ident, file)
 
