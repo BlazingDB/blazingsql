@@ -348,7 +348,7 @@ class DataSource:
             self._table_name,
             type = internal_api.FileSchemaType.JSON,
             path = self._descriptor.files(),
-            lines = lines
+            lines = json_lines
         )
 
         return self._create_table_status_to_bool(return_result)
