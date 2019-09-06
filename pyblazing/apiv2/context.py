@@ -34,8 +34,9 @@ def checkSocket(socketNum):
 
 def runEngine(network_interface = 'lo', processes = None):
     process = None
-    if(checkSocket(9100)):
-        process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface])
+    devnull = open(os.devnull, 'w')
+    if(checkSocket(9001)):
+        process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface], stdout = devnull, stderr = devnull)
     else:
         print("WARNING: blazingsql-engine was not automativally started, its probably already running")
 
@@ -50,11 +51,12 @@ def setupDask(dask_client):
 
 def runAlgebra(processes = None):
     process = None
+    devnull = open(os.devnull, 'w')
     if(checkSocket(8890)):
         if(os.getenv("CONDA_PREFIX") == None):
             process = subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
-            process = subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'])
+            process = subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'], stdout = devnull, stderr = devnull)
     else:
         print("WARNING: blazingsql-algebra was not automativally started, its probably already running")
 
@@ -65,8 +67,9 @@ def runAlgebra(processes = None):
 
 def runOrchestrator(processes = None):
     process = None
-    if(checkSocket(8889)):
-        process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
+    devnull = open(os.devnull, 'w')
+    if(checkSocket(9100)):
+        process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'], stdout = devnull, stderr = devnull)
     else:
         print("WARNING: blazingsql-orchestrator was not automativally started, its probably already running")
 
@@ -89,7 +92,7 @@ class BlazingContext(object):
         if(dask_client is None):
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
-                time.sleep(1)  # lets the orchestrator start before we start the other processes
+                time.sleep(2)  # lets the orchestrator start before we start the other processes
             if run_engine:
                 processes = runEngine(network_interface = network_interface, processes = processes)
             if run_algebra:
