@@ -124,6 +124,14 @@ class Descriptor:
     def is_parquet(self):
         return self._type == Type.parquet
 
+    # parquet file on filesystem
+    def is_json(self):
+        return self._type == Type.json
+
+    # parquet file on filesystem
+    def is_orc(self):
+        return self._type == Type.orc
+
     # blazing result set handle
     def is_result_set(self):
         return self._type == Type.result_set
@@ -145,6 +153,12 @@ class Descriptor:
 
         if path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
             return Type.csv
+
+        if path.suffix == '.json':
+            return Type.json
+
+        if path.suffix == '.orc':
+            return Type.orc
 
         return None
 
@@ -186,10 +200,10 @@ class Descriptor:
 
 class DataSource:
 
-    def __init__(self, client, descriptor, **kwargs):
+    def __init__(self, client, table_name, descriptor, **kwargs):
         self._client = client
+        self._table_name = table_name
         self._descriptor = descriptor
-        self._table_name = kwargs.get('table_name', None)
 
         # init the data source
         self._valid = self._load(**kwargs)
@@ -222,17 +236,13 @@ class DataSource:
             result_set = kwargs.get('result_set', None)
             return self._load_distributed_result_set(result_set)
         elif type == Type.csv:
-            csv_args = kwargs.get('csv_args', None)
-            return self._load_csv(csv_args)
+            return self._load_csv(**kwargs)
         elif type == Type.parquet:
-            path = kwargs.get('path', None)
             return self._load_parquet()
         elif type == Type.json:
-            json_lines = kwargs.get('json_lines', True)
-            return self._load_json(json_lines)
+            return self._load_json(**kwargs)
         elif type == Type.orc:
-            orc_args = kwargs.get('orc_args', None)
-            return self._load_orc(orc_args)
+            return self._load_orc(**kwargs)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -294,13 +304,16 @@ class DataSource:
 
         return self._create_table_status_to_bool(return_result)
 
-    def _load_csv(self, csv_args):
+    def _load_csv(self, **kwargs):
         # TODO percy manage datasource load errors
         if self._descriptor.files() == None:
             return False
 
+        csv_args = internal_api._CsvArgs(self._descriptor.files(), **kwargs)
+        csv_args.validation()
+
         return_result = internal_api.create_table(
-            self.client,
+            self._client,
             self._table_name,
             type = internal_api.FileSchemaType.CSV,
             path = self._descriptor.files(),
@@ -323,10 +336,12 @@ class DataSource:
 
         return self._create_table_status_to_bool(return_result)
 
-    def _load_json(self, lines):
+    def _load_json(self, **kwargs):
         # TODO percy manage datasource load errors
         if self._descriptor.files() == None:
             return False
+
+        json_lines = kwargs.get('json_lines', True)
 
         return_result = internal_api.create_table(
             self._client,
@@ -338,10 +353,13 @@ class DataSource:
 
         return self._create_table_status_to_bool(return_result)
 
-    def _load_orc(self, orc_args):
+    def _load_orc(self, **kwargs):
         # TODO percy manage datasource load errors
         if self._descriptor.files() == None:
             return False
+
+        orc_args = internal_api._OrcArgs(**kwargs)
+        orc_args.validation()
 
         return_result = internal_api.create_table(
             self._client,
@@ -352,48 +370,6 @@ class DataSource:
         )
 
         return self._create_table_status_to_bool(return_result)
-
-# BEGIN DataSource builders
-
-
-def from_cudf(cudf_df, table_name, descriptor):
-    return DataSource(None, descriptor, table_name = table_name, cudf_df = cudf_df)
-
-
-def from_pandas(pandas_df, table_name, descriptor):
-    return DataSource(None, descriptor, table_name = table_name, pandas_df = pandas_df)
-
-
-def from_arrow(arrow_table, table_name, descriptor):
-    return DataSource(None, descriptor, table_name = table_name, arrow_table = arrow_table)
-
-
-def from_result_set(result_set, table_name, descriptor):
-    return DataSource(None, descriptor, table_name = table_name, result_set = result_set)
-
-
-def from_distributed_result_set(result_set, table_name, descriptor):
-    return DataSource(None, descriptor, table_name = table_name, result_set = result_set)
-
-
-def from_csv(client, table_name, descriptor, csv_args):
-    return DataSource(client, descriptor,
-        table_name = table_name,
-        csv_args = csv_args
-    )
-
-
-def from_parquet(client, table_name, descriptor):
-    return DataSource(client, descriptor, table_name = table_name)
-
-
-def from_json(client, table_name, descriptor, lines):
-    return DataSource(client, descriptor, table_name = table_name, json_lines = lines)
-
-
-def from_orc(client, table_name, descriptor, orc_args):
-    return DataSource(client, descriptor, table_name = table_name, orc_args = orc_args)
-# END DataSource builders
 
 # BEGIN DataSource utils
 
@@ -409,19 +385,17 @@ def build_datasource(client, input, table_name, **kwargs):
     descriptor = Descriptor(input)
 
     if descriptor.is_cudf():
-        ds = from_cudf(input, table_name, descriptor)
+        ds = DataSource(None, table_name, descriptor, cudf_df = input)
     elif descriptor.is_pandas():
-        ds = from_pandas(input, table_name, descriptor)
+        ds = DataSource(None, table_name, descriptor, pandas_df = input)
     elif descriptor.is_arrow():
-        ds = from_arrow(input, table_name, descriptor)
+        ds = DataSource(None, table_name, descriptor, arrow_table = input)
     elif descriptor.is_result_set():
-        ds = from_result_set(input, table_name, descriptor)
+        ds = DataSource(None, table_name, descriptor, result_set = input)
     elif descriptor.is_distributed_result_set():
-        ds = from_distributed_result_set(input.metaToken, table_name, descriptor)
-    elif descriptor.is_parquet():
-        ds = from_parquet(client, table_name, descriptor)
-    elif descriptor.is_csv():
-        ds = from_csv(client, table_name, descriptor, **kwargs)
+        ds = DataSource(None, table_name, descriptor, result_set = input.metaToken)
+    elif descriptor.is_parquet() or descriptor.is_csv() or descriptor.is_json() or descriptor.is_orc():
+        ds = DataSource(client, table_name, descriptor, **kwargs)
 
     # TODO percy raise error if ds is None
 

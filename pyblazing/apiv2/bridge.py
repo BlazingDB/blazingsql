@@ -7,7 +7,7 @@ class internal_api:
 
     # Type wrappers
     Status = pyblazing.Status
-    
+
     FileSchemaType = pyblazing.FileSchemaType
     DriverType = pyblazing.DriverType
     S3EncryptionType = pyblazing.EncryptionType
@@ -17,6 +17,9 @@ class internal_api:
     gdf_dtype = pyblazing.gdf_dtype
     get_dtype_values = pyblazing.get_dtype_values
     get_np_dtype_to_gdf_dtype = pyblazing.get_np_dtype_to_gdf_dtype
+
+    _CsvArgs = pyblazing._CsvArgs
+    _OrcArgs = pyblazing._OrcArgs
 
     # Function/Method wrappers
 
@@ -44,8 +47,8 @@ class internal_api:
         return pyblazing.run_query_get_concat_results(metaToken, startTime)
 
     @staticmethod
-    def convert_to_dask(metaToken,connection):
-        return pyblazing.convert_to_dask(metaToken,connection)
+    def convert_to_dask(metaToken, connection):
+        return pyblazing.convert_to_dask(metaToken, connection)
 
     @staticmethod
     def scan_datasource(client, directory, wildcard):
