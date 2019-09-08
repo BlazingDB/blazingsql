@@ -25,21 +25,26 @@ requirements:
         - python
         - cudf
         - pip
+        - cudatoolkit
         - blazingsql-protocol
         - nvstrings
         - rmm
         - dask-cudf
         - dask
+        - cudatoolkit {{ cuda_version }}.*
+        
 
     run:
         - python
+        - cudf
         - pip
+        - cudatoolkit
         - blazingsql-protocol
         - nvstrings
         - rmm
-        - cudf
         - dask-cudf
         - dask
+       
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
