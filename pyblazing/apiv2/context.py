@@ -389,6 +389,9 @@ class BlazingContext(object):
     def s3(self, prefix, **kwargs):
         return self.fs.s3(self.client, prefix, **kwargs)
 
+    def gcs(self, prefix, **kwargs):
+        return self.fs.gcs(self.client, prefix, **kwargs)
+
     def show_filesystems(self):
         print(self.fs)
 
