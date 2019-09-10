@@ -11,14 +11,12 @@ pipeline {
     string(name: 'BRANCH', defaultValue: 'develop', description: 'Branch from compile')
     choice(name: 'CUDA_VERSION', choices: '10.0\n9.2', description: 'Cuda Version')
     choice(name: 'PYTHON_VERSION', choices: '3.7\n3.6', description: 'Python Version')
-    string(name: 'CREDENTIALS', defaultValue: 'mario21ic-conda', description: '')
+    string(name: 'CONDA_TOKEN', defaultValue: 'conda-token', description: '')
     booleanParam(name: 'CONDA_PUBLISH', defaultValue: false, description: 'Publish to Anaconda Cloud')
     string(name: 'SLACK_CHANNEL', defaultValue: 'jenkins-blazingsql', description: '')
   }
   
   environment {
-    ARTIFACT_PYBLAZING = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-python*.tar.bz2"
-    ARTIFACT_DEV = "cuda${params.CUDA_VERSION}_py${params.PYTHON_VERSION}/linux-64/blazingsql-dev*.tar.bz2"
     SLACK_MESSAGE=" - Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}: ${env.BUILD_URL}"
   }
 
@@ -32,7 +30,7 @@ pipeline {
 
     stage("Compile") {
       steps {
-        sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${params.PYTHON_VERSION} ${env.BUILD_NUMBER}"
+        sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${params.PYTHON_VERSION}"
       }
     }
 
@@ -43,9 +41,8 @@ pipeline {
         }
       }
       steps {
-        withCredentials([usernamePassword(credentialsId: "${params.CREDENTIALS}", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-          sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_PYBLAZING}"
-          sh "./conda-upload-docker.sh $USERNAME $PASSWORD ${params.CUDA_VERSION} ${env.ARTIFACT_DEV}"
+        withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
+          sh "./conda-upload-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
         }
       }
     }
