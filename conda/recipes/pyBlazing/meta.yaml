@@ -1,9 +1,5 @@
 {% set cuda_version='.'.join(environ.get('CUDA_VERSION', '9.2').split('.')[:2]) %}
 {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0.dev').lstrip('v') %}
-{% set git_revision_count=environ.get('GIT_DESCRIBE_NUMBER', 0) %}
-{% set py_version=environ.get('CONDA_PY', 36) %}
-
-{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0.dev').lstrip('v') %}
 {% set minor_version =  version.split('.')[0] + '.' + version.split('.')[1] %}
 {% set git_revision_count=environ.get('GIT_DESCRIBE_NUMBER', 0) %}
 {% set py_version=environ.get('CONDA_PY', 36) %}
@@ -34,6 +30,7 @@ requirements:
         - dask-cudf
         - dask
         - cudatoolkit {{ cuda_version }}.*
+        - cmake
         
 
     run:
@@ -46,6 +43,7 @@ requirements:
         - rmm
         - dask-cudf
         - dask
+        - cmake
        
 about:
     home: http://www.blazingsql.com/

@@ -4,7 +4,7 @@ set -e
 
 export PYBLAZING_FILE=`conda build conda/recipes/pyBlazing --python=$PYTHON --output`
 
-LABEL_OPTION="--label main --label cuda9.2 --label cuda10.0"
+LABEL_OPTION="--label main --label cuda"$CUDA_VER
 echo "LABEL_OPTION=${LABEL_OPTION}"
 
 if [ -z "$MY_UPLOAD_KEY" ]; then

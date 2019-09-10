@@ -36,9 +36,8 @@ pipeline {
           }
 
           steps {
-            sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION}"
             withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-              sh "./conda-upload-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
+              sh "./conda-build-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
             }
           }
         }
@@ -50,9 +49,8 @@ pipeline {
           }
 
           steps {
-            sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION}"
             withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-              sh "./conda-upload-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
+              sh "./conda-build-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
             }
           }
         }
@@ -64,9 +62,8 @@ pipeline {
           }
 
           steps {
-            sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION}"
             withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-              sh "./conda-upload-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
+              sh "./conda-build-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
             }
           }
         }
@@ -78,7 +75,6 @@ pipeline {
           }
 
           steps {
-            sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${env.PYTHON_VERSION}"
             withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
               sh "./conda-upload-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
             }

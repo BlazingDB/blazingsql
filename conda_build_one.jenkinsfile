@@ -12,7 +12,6 @@ pipeline {
     choice(name: 'CUDA_VERSION', choices: '10.0\n9.2', description: 'Cuda Version')
     choice(name: 'PYTHON_VERSION', choices: '3.7\n3.6', description: 'Python Version')
     string(name: 'CONDA_TOKEN', defaultValue: 'conda-token', description: '')
-    booleanParam(name: 'CONDA_PUBLISH', defaultValue: false, description: 'Publish to Anaconda Cloud')
     string(name: 'SLACK_CHANNEL', defaultValue: 'jenkins-blazingsql', description: '')
   }
   
@@ -28,25 +27,11 @@ pipeline {
       }
     }
 
-    stage("Compile") {
+    stage("Compile & Publish") {
       steps {
         sh "./conda-build-docker.sh ${env.CUDA_VERSION} ${params.PYTHON_VERSION}"
       }
     }
-
-    stage("Publish") {
-      when {
-        expression {
-          params.CONDA_PUBLISH ==~ /(?i)(Y|YES|T|TRUE|ON|RUN)/
-        }
-      }
-      steps {
-        withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-          sh "./conda-upload-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
-        }
-      }
-    }
-
   }
 
   // Method to post jenkinsfile
