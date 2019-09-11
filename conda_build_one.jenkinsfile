@@ -28,8 +28,10 @@ pipeline {
     }
 
     stage("Compile & Publish") {
-      withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-        sh "./conda-build-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
+      steps {
+        withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
+          sh "./conda-build-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN"
+        }
       }
     }
   }
