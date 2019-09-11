@@ -13,4 +13,4 @@ if [ ! -z $2 ]; then
     PYTHON_VERSION=$2
 fi
 
- docker run -e CUDA_VER=${CUDA_VERSION} -e PYTHON=$PYTHON_VERSION -e MY_UPLOAD_KEY=$3 --rm -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} gpuci/miniconda-cuda:${CUDA_VERSION}-devel-ubuntu16.04 ./ci/cpu/build.sh
+docker run -e CUDA_VER=${CUDA_VERSION} -e PYTHON=$PYTHON_VERSION -e MY_UPLOAD_KEY=$3 --rm -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} gpuci/miniconda-cuda:${CUDA_VERSION}-devel-ubuntu16.04 ./ci/cpu/build.sh
