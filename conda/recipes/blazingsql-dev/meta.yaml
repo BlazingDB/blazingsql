@@ -7,7 +7,7 @@ package:
 
 build:
     number: {{ build }}
-    string: cuda{{ cuda_version + '_py' + CONDA_PY + '_0' }}
+    string: cuda{{ cuda_version + '_py' + CONDA_PY + '_' + build }}
 
 source:
     path: ../../../
@@ -46,7 +46,6 @@ requirements:
         - cmake
         - maven
         - zeromq
-        - blazingdb-toolchain
     run:
         - python
         - cudf
@@ -77,7 +76,6 @@ requirements:
         - cmake
         - maven
         - zeromq
-        - blazingdb-toolchain
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
