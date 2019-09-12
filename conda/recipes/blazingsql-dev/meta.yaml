@@ -7,7 +7,7 @@ package:
 
 build:
     number: {{ build }}
-    string: cuda{{ cuda_version + '_py' + CONDA_PY + '_' + build }}
+    string: cuda{{ cuda_version + '_py' + CONDA_PY + '_0' }}
 
 source:
     path: ../../../
