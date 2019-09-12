@@ -86,10 +86,10 @@ class FileSystem(object):
 
         root = kwargs.get('root', '/')
 
-        bucket_name = kwargs.get('project_id', '')
-        access_key_id = kwargs.get('bucket_name', '')
-        secret_key = kwargs.get('use_default_adc_json_file', True)
-        session_token = kwargs.get('adc_json_file', '')
+        project_id = kwargs.get('project_id', '')
+        bucket_name = kwargs.get('bucket_name', '')
+        use_default_adc_json_file = kwargs.get('use_default_adc_json_file', True)
+        adc_json_file = kwargs.get('adc_json_file', '')
 
         fs = OrderedDict()
         fs['type'] = 'gcs'
