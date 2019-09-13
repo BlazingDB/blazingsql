@@ -1,13 +1,16 @@
 {% set cuda_version='.'.join(environ.get('CUDA_VERSION', '9.2').split('.')[:2]) %}
-{% set build = environ.get('BUILD', '0').lstrip('v') %}
+{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0.dev').lstrip('v') %}
+{% set minor_version =  version.split('.')[0] + '.' + version.split('.')[1] %}
+{% set git_revision_count=environ.get('GIT_DESCRIBE_NUMBER', 0) %}
+{% set py_version=environ.get('CONDA_PY', 36) %}
 
 package:
     name: blazingsql-python
     version: 0.4.0
 
 build:
-    number: {{ build }}
-    string: cuda{{ cuda_version + '_py' + CONDA_PY + '_' + build }}
+    number: {{ git_revision_count }}
+    string: py{{ py_version }}_{{ git_revision_count }}
 
 source:
     path: ../../../
@@ -20,21 +23,28 @@ requirements:
         - python
         - cudf
         - pip
+        - cudatoolkit
         - blazingsql-protocol
         - nvstrings
         - rmm
         - dask-cudf
         - dask
+        - cudatoolkit {{ cuda_version }}.*
+        - cmake
+        
 
     run:
         - python
+        - cudf
         - pip
+        - cudatoolkit
         - blazingsql-protocol
         - nvstrings
         - rmm
-        - cudf
         - dask-cudf
         - dask
+        - cmake
+       
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
