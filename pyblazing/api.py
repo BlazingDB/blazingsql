@@ -61,8 +61,10 @@ class PyConnector(metaclass=Singleton):
         self._accessToken = None
 
     def __del__(self):
-        self.close_connection()
-
+        try:
+            self.close_connection()
+        except:
+            pass
 
     def connect(self, orchestrator_path, orchestrator_port):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -307,7 +309,11 @@ class ResultSetHandle:
             for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
             del self.handle
-            self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
+            try :
+                self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
+            except:
+                pass
+                
 
 
     def __str__(self):
