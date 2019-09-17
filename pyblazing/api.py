@@ -842,13 +842,14 @@ def convert_result_msg(metaToken,connection):
                            result['result'].resultToken,
                            result['result'].nodeConnection.path.decode('utf8'),
                            result['result'].nodeConnection.port,
-                                               result['ipchandles'],
-                                               connection,
-                                               result['result'].calciteTime,
-                                               result['resultSet'].metadata.time,
-                                               totalTime,
-                                               ''
-                                               )
+                           result['ipchandles'],
+                           connection,
+                           result['result'].calciteTime,
+                           result['resultSet'].metadata.time,
+                           totalTime,
+                           '',
+                           1,  # TODO: Use connection to get total_nodes
+                           0)  # and n_crashed_nodes
 
 
 def convert_to_dask(metaToken,connection):
