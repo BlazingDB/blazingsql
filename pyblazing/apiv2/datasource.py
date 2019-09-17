@@ -17,6 +17,7 @@ class Type(IntEnum):
     distributed_result_set = 6
     json = 7
     orc = 8
+    dask_cudf = 9
 
 
 class DataSource:
@@ -51,7 +52,8 @@ class DataSource:
             Type.parquet: 'parquet',
             Type.json: 'json',
             Type.orc: 'orc',
-            Type.result_set: 'result_set'
+            Type.result_set: 'result_set',
+            Type.dask_cudf: 'dask_cudf'
         }
 
         # TODO percy path and stuff
@@ -171,6 +173,9 @@ class DataSource:
             path = kwargs.get('path', None)
             orc_args = kwargs.get('orc_args', None)
             return self._load_orc(table_name, path, orc_args)
+        elif type == Type.dask_cudf:
+            dask_cudf = kwargs.get('dask_cudf', None)
+            return self._load_dask_cudf(table_name, dask_cudf)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -364,4 +369,9 @@ def from_json(client, table_name, path, lines):
 
 def from_orc(client, table_name, path, orc_args):
     return DataSource(client, Type.orc, table_name = table_name, path = path, orc_args = orc_args)
+
+# TODO
+def from_dask_cudf(dask_df, table_name):
+    return DataSource(None, Type.dask_cudf, table_name=table_name, dask_cudf=dask_df)
+
 # END DataSource builders
