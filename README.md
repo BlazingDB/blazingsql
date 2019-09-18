@@ -45,33 +45,74 @@ print(result_gdf)
 ## Documentation
 You can find our full documentation at [the following site](https://docs.blazingdb.com/docs/)
 
-## Build/Install from Source
-See build [instructions](https://docs.blazingdb.com/docs/build-from-source).
-For additional information, browse our complete [documentation](https://docs.blazingdb.com/docs/)
 
 ## Quick Start
 
 Too see all the ways you can get started with BlazingSQL checkout out our [Getting Started Page](https://blazingsql.com/#/getstarted)
+
+## Install Using Conda
+BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.html), or the full [Anaconda distribution](https://www.anaconda.com/download)) from the [blazingsql](https://anaconda.org/blazingsql/) channel:
+
+*For CUDA 9.2:*
+```bash
+mkdir /blazingsql
+
+conda create -n blazingsql python=3.7
+conda activate blazingsql
+conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda9.2 -c blazingsql blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=9.2
+
+pip install flatbuffers && \
+    pip install jupyterlab
+```
+
+*For CUDA 10.0:*
+```bash
+mkdir /blazingsql
+
+conda create -n blazingsql python=3.7
+conda activate blazingsql
+conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda10.0 -c blazingsql blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=10.0
+
+pip install flatbuffers && \
+    pip install jupyterlab
+```
+
+## Build/Install from Source (Conda Environment)
+This is the recommended way of building all of the BlazingSQL components and dependencies from source. It ensures that all the dependencies are available to the build process.
+
+*For CUDA 9.2:*
+```bash
+conda create -n blazingsql-build python=3.7
+conda activate blazingsql-build
+conda install -c conda-forge -c rapidsai -c  blazingsql/label/cuda9.2 blazingsql-dev
+
+cd $CONDA_PREFIX
+git clone -b develop https://github.com/BlazingDB/pyBlazing.git
+cd pyBlazing/scripts
+build-all.sh
+```
+
+*For CUDA 10.0:*
+```bash
+conda create -n blazingsql-build python=3.7
+conda activate blazingsql-build
+conda install -c conda-forge -c rapidsai -c  blazingsql/label/cuda10.0 blazingsql-dev
+
+cd $CONDA_PREFIX
+git clone -b develop https://github.com/BlazingDB/pyBlazing.git
+cd pyBlazing/scripts
+build-all.sh
+```
+
+The build-all.sh script will checkout every BlazingSQL repository, build and install into the conda environment.
+$CONDA_PREFIX now has a folder for every blazingsql repository. If you want to build any component individually, inside each repo you can run in conda/recipes/{repo name}/build.sh from the root folder of the repository.
+
 
 ## Build Conda Package
 Navigate to the folder
 ```
 cd conda/recipes/pyblazing
 conda build  -c blazingsql -c conda-forge -c rapidsai-nightly blazingsql-dev .
-```
-
-## Build/Install from Source (Conda Environment)
-This is the recommended way of building pyblazing and other dependencies from source. It ensures that all the dependencies are available to the build process.
-```
-conda install -c blazingsql -c conda-forge -c rapidsai-nightly blazingsql-dev
-```
-$CONDA_PREFIX now has a folder for every blazingsql repository. Inside each repo you can run in conda/recipes/{repo name}/build.sh from the root folder of the repository.
-
-## Build/Install from Source (github)
-```
-git clone https://github.com/blazingdb/pyblazing
-cd pyblazing
-pip install .
 ```
 
 

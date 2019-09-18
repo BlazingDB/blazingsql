@@ -46,7 +46,7 @@ def runEngine(network_interface = 'lo', processes = None):
 
 
 def setupDask(dask_client):
-    dask_client.run(runEngine)
+    dask_client.run(runEngine,network_interface = 'eth0', processes = None)
 
 
 def runAlgebra(processes = None):
