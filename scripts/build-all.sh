@@ -1,10 +1,16 @@
 #!/bin/bash
-# Usage ./build-all.sh branch
+# Usage   ./build-all.sh branch clean_build
+# Example ./build-all.sh feature/conda true
 
 repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-orchestrator blazingdb-ral pyBlazing blazingdb-calcite)
 branch="develop"
 if [ ! -z $1 ]; then
   branch=$1
+fi
+
+clean_build="false"
+if [ ! -z $2 ]; then
+  clean_build="true"
 fi
 
 #assumes that you have installed blazingsql-dev into the current conda Environment
@@ -26,7 +32,9 @@ do
       cd ..
     fi
   fi
-  cd $repo && git reset --hard && git checkout $branch && git pull origin $branch
+  if [ "$clean_build" -eq "true" ]; then
+    cd $repo && git reset --hard && git checkout $branch && git pull origin $branch
+  fi
   i=$(($i+1))
 
   chmod +x conda/recipes/$repo/build.sh
