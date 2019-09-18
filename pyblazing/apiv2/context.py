@@ -105,8 +105,8 @@ class BlazingContext(object):
                 time.sleep(1)  # lets the orchestrator start before we start the other processes
             setupDask(dask_client)
             if run_algebra:
-                processes = runAlgebra(network_interface = network_interface, processes = processes)
-                time.sleep(3)  # lets the engine and algebra processes start before we continue
+                processes = runAlgebra(processes=processes)
+                time.sleep(3) # lets the engine and algebra processes start before we continue
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
