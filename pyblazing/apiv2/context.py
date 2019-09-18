@@ -55,7 +55,7 @@ def runEngine(network_interface = 'lo', processes = None):
     return processes
 
 def setupDask(dask_client):
-    dask_client.run(runEngine)
+    dask_client.run(runEngine,network_interface = 'eth0', processes = None)
 
 def runAlgebra(processes = None):
     process = None
@@ -342,7 +342,7 @@ class BlazingContext(object):
                 time.sleep(1)  # lets the orchestrator start before we start the other processes
             setupDask(dask_client)
             if run_algebra:
-                processes = runAlgebra(network_interface=network_interface, processes=processes)
+                processes = runAlgebra(processes=processes)
                 time.sleep(3) # lets the engine and algebra processes start before we continue
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
