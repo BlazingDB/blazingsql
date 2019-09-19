@@ -81,6 +81,28 @@ class FileSystem(object):
 
         return fs
 
+    def gcs(self, client, prefix, **kwargs):
+        self._verify_prefix(prefix)
+
+        root = kwargs.get('root', '/')
+
+        project_id = kwargs.get('project_id', '')
+        bucket_name = kwargs.get('bucket_name', '')
+        use_default_adc_json_file = kwargs.get('use_default_adc_json_file', True)
+        adc_json_file = kwargs.get('adc_json_file', '')
+
+        fs = OrderedDict()
+        fs['type'] = 'gcs'
+        fs['project_id'] = project_id
+        fs['bucket_name'] = bucket_name
+        fs['use_default_adc_json_file'] = use_default_adc_json_file
+        fs['adc_json_file'] = adc_json_file
+
+        # TODO percy manage exceptions here ?
+        self._register_gcs(client, prefix, root, fs)
+
+        return fs
+
     def _verify_prefix(self, prefix):
         # TODO percy throw exception
         if prefix in self.file_systems:
@@ -127,6 +149,22 @@ class FileSystem(object):
                 "sessionToken": fs['session_token'],
                 "encryptionType": fs['encryption_type'],
                 "kmsKeyAmazonResourceName": fs['kms_key_amazon_resource_name']
+            }
+        )
+
+        self._verify_filesystem(prefix, fs, fs_status)
+
+    def _register_gcs(self, client, prefix, root, fs):
+        fs_status = internal_api.register_file_system(
+            client,
+            authority = prefix,
+            type = internal_api.FileSystemType.GCS,
+            root = root,
+            params = {
+                "projectId": fs['project_id'],
+                "bucketName": fs['bucket_name'],
+                "useDefaultAdcJsonFile": fs['use_default_adc_json_file'],
+                "adcJsonFile": fs['adc_json_file']
             }
         )
 
