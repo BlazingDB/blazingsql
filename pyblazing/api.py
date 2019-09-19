@@ -853,8 +853,9 @@ def convert_result_msg(metaToken,connection):
 
 
 def convert_to_dask(metaToken,connection):
-    result_set = convert_result_msg(metaToken,connection)
-    return result_set.columns.copy(deep=True)
+  if metaToken:  # TODO: check why metaToken can equals None (check RAL)
+        result_set = convert_result_msg(metaToken,connection)
+        return result_set.columns.copy(deep=True)
 
 def run_query_get_concat_results(metaToken, startTime):
     return _run_query_get_concat_results(metaToken, startTime)
@@ -987,7 +988,8 @@ def create_table(tableName, **kwargs):
     if dask_cudf is None:
         dask_tables = []
     else:
-        dask_tables = dask_cudf_to_BlazingDaskTable(dask_cudf)
+        dask_client = kwargs['dask_client']
+        dask_tables = dask_cudf_to_BlazingDaskTable(dask_cudf, dask_client)
 
     if (len(columnTypes) > 0):
         columnTypes = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
@@ -1070,19 +1072,16 @@ def tableSchemaFrom(dask_cudf):
                               resultToken=dask_cudf['resultToken'])
 
 
-def dask_cudf_to_BlazingDaskTable(dask_cudf):
-    from dask.distributed import Client
-    # TODO: manage from blazingContext creation dask sheduler connection
-    client = Client('127.0.0.1:8786')
-
+def dask_cudf_to_BlazingDaskTable(dask_cudf, dask_client):
     # TODO: check persisted dask_cudf
-    persisted_cudf = client.persist(dask_cudf)
-    client.compute(persisted_cudf)
+    # persisted_cudf = client.persist(dask_cudf)
+    # client.compute(persisted_cudf)
+    persisted_cudf = dask_cudf
 
     distributedBlazingTables = persisted_cudf.map_partitions(
         gdf_to_BlazingTable).compute()
 
-    who_has = client.who_has()
+    who_has = dask_client.who_has()
     ips = [re.findall(r'(?:\d+\.){3}\d+', who_has[str(k)][0])[0]
            for k in dask_cudf.dask.keys()]
 
