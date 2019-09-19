@@ -59,7 +59,7 @@ mkdir /blazingsql
 
 conda create -n blazingsql python=3.7
 conda activate blazingsql
-conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda9.2 blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=9.2
+conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda9.2 -c blazingsql blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=9.2
 
 pip install flatbuffers && \
     pip install jupyterlab
@@ -71,7 +71,7 @@ mkdir /blazingsql
 
 conda create -n blazingsql python=3.7
 conda activate blazingsql
-conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda10.0 blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=10.0
+conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda10.0 -c blazingsql blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=10.0
 
 pip install flatbuffers && \
     pip install jupyterlab

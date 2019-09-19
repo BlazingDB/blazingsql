@@ -1,7 +1,7 @@
 #!/bin/bash
 #usage is
-# ./build-all-conda.sh 3.6 9.2 cuda10.0 felipeblazing dev|main
-#  ./build-all-conda.sh [python version] [cuda toolkit version] [channel] [label (optional)]
+# ./build-all-conda.sh 3.6 9.2 cuda10.0 felipeblazing dev|main clean_build
+# ./build-all-conda.sh [python version] [cuda toolkit version] [channel] [label (optional)] true
 
 python=$1
 toolkit=$2
@@ -13,6 +13,10 @@ if [ -z "$4" ]
     label=$4
 fi
 
+clean_build="false"
+if [ ! -z $5 ]; then
+  clean_build="true"
+fi
 
 echo "$CONDA_PREFIX: "$CONDA_PREFIX
 cd $CONDA_PREFIX
@@ -39,8 +43,8 @@ do
     fi
   fi
   cd $repo
-  if [ ${branches[i]} != "latest" ]; then
-    git fetch
+  if [ "$clean_build" -eq "true" ]; then
+    git fetch origin
     git checkout ${branches[i]}
     git pull origin ${branches[i]}
   fi

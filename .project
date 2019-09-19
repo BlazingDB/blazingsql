@@ -3,6 +3,7 @@
 	<name>pyBlazing</name>
 	<comment></comment>
 	<projects>
+		<project>blazingdb-protocol-python</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
