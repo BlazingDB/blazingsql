@@ -1073,9 +1073,6 @@ def tableSchemaFrom(dask_cudf):
 
 
 def dask_cudf_to_BlazingDaskTable(dask_cudf, dask_client):
-    # TODO: check persisted dask_cudf
-    # persisted_cudf = client.persist(dask_cudf)
-    # client.compute(persisted_cudf)
     persisted_cudf = dask_cudf
 
     distributedBlazingTables = persisted_cudf.map_partitions(
@@ -1085,10 +1082,8 @@ def dask_cudf_to_BlazingDaskTable(dask_cudf, dask_client):
     ips = [re.findall(r'(?:\d+\.){3}\d+', who_has[str(k)][0])[0]
            for k in dask_cudf.dask.keys()]
 
-    dask_cudf_ret = [
-        # {'ip':p[0], 'gdf':p[1]}
-        NodeTableSchema(ip=p[0], gdf=tableSchemaFrom(p[1]))
-        for p in zip(ips, distributedBlazingTables)]
+    dask_cudf_ret = [NodeTableSchema(ip=p[0], gdf=tableSchemaFrom(p[1]))
+                     for p in zip(ips, distributedBlazingTables)]
 
     return dask_cudf_ret
 
