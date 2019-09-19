@@ -175,7 +175,8 @@ class DataSource:
             return self._load_orc(table_name, path, orc_args)
         elif type == Type.dask_cudf:
             dask_cudf = kwargs.get('dask_cudf', None)
-            return self._load_dask_cudf(table_name, dask_cudf)
+            dask_client = kwargs.get('dask_client', None)
+            return self._load_dask_cudf(table_name, dask_cudf, dask_client)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -184,7 +185,7 @@ class DataSource:
         # here we need to use low level api pyblazing.create_table
         return False
 
-    def _load_dask_cudf(self, table_name, dask_cudf):
+    def _load_dask_cudf(self, table_name, dask_cudf, dask_client):
         self.dask_cudf = dask_cudf
 
         column_names = list(dask_cudf.dtypes.index)
@@ -195,7 +196,8 @@ class DataSource:
             type = internal_api.SchemaFrom.Dask,
             names = column_names,
             dtypes = column_dtypes,
-            dask_cudf = dask_cudf
+            dask_cudf = dask_cudf,
+            dask_client = dask_client
         )
 
         # TODO percy see if we need to perform sanity check for cudf_df object
@@ -371,7 +373,7 @@ def from_orc(client, table_name, path, orc_args):
     return DataSource(client, Type.orc, table_name = table_name, path = path, orc_args = orc_args)
 
 # TODO
-def from_dask_cudf(dask_df, table_name):
-    return DataSource(None, Type.dask_cudf, table_name=table_name, dask_cudf=dask_df)
+def from_dask_cudf(dask_df, table_name, dask_client):
+    return DataSource(None, Type.dask_cudf, table_name=table_name, dask_cudf=dask_df, dask_client=dask_client)
 
 # END DataSource builders

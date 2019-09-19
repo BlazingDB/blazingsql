@@ -411,7 +411,7 @@ class BlazingContext(object):
         elif type(input) == internal_api.ResultSetHandle:
             datasource = from_result_set(input, table_name)
         elif type(input) == dask_cudf.core.DataFrame:
-            datasource = from_dask_cudf(input, table_name)
+            datasource = from_dask_cudf(input, table_name, self.dask_client)
         elif hasattr(input, 'metaToken'):
             datasource = from_distributed_result_set(input.metaToken,table_name)
         elif type(input) == str or type(input) == list:
