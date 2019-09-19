@@ -748,6 +748,7 @@ def get_dtype_values(dtypes):
             'int': gdf_dtype.GDF_INT32,
             'int32': gdf_dtype.GDF_INT32,
             'int64': gdf_dtype.GDF_INT64,
+            'boolean':gdf_dtype.GDF_BOOL8
         }
         if dicc.get(type_name):
             return dicc[type_name]
