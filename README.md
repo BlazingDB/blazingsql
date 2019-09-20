@@ -53,24 +53,24 @@ Too see all the ways you can get started with BlazingSQL checkout out our [Getti
 ## Install Using Conda
 BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.html), or the full [Anaconda distribution](https://www.anaconda.com/download)) from the [blazingsql](https://anaconda.org/blazingsql/) channel:
 
-*For CUDA 9.2:*
+*For CUDA 9.2 and Python 3.7:*
 ```bash
-mkdir /blazingsql
+mkdir /blazingsql # Make a blazingsql directory in root folder for Apache Calcite schema management. This will requirement will be removed soon.
 
-conda create -n blazingsql python=3.7
-conda activate blazingsql
+chown <user_name> /blazingsql
+
 conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda9.2 -c blazingsql blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=9.2
 
 pip install flatbuffers && \
     pip install jupyterlab
 ```
 
-*For CUDA 10.0:*
+*For CUDA 10.0 and Python 3.7:*
 ```bash
-mkdir /blazingsql
+mkdir /blazingsql # Make a blazingsql directory in root folder for Apache Calcite schema management. This will requirement will be removed soon.
 
-conda create -n blazingsql python=3.7
-conda activate blazingsql
+chown <user_name> /blazingsql
+
 conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda10.0 -c blazingsql blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=10.0
 
 pip install flatbuffers && \
