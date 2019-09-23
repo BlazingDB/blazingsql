@@ -45,8 +45,8 @@ def runEngine(network_interface = 'lo', processes = None):
     return processes
 
 
-def setupDask(dask_client):
-    dask_client.run(runEngine,network_interface = 'eth0', processes = None)
+def setupDask(dask_client, network_interface='eth0'):
+    dask_client.run(runEngine, network_interface, processes=None)
 
 
 def runAlgebra(processes = None):
@@ -103,7 +103,7 @@ class BlazingContext(object):
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
                 time.sleep(1)  # lets the orchestrator start before we start the other processes
-            setupDask(dask_client)
+            setupDask(dask_client, network_interface)
             if run_algebra:
                 processes = runAlgebra(processes=processes)
                 time.sleep(3) # lets the engine and algebra processes start before we continue
@@ -184,11 +184,19 @@ class BlazingContext(object):
     # END SQL interface
 
 
-def make_context(connection = 'localhost:8889', dask_client = None):
+def make_context(connection='localhost:8889',
+                 dask_client=None,
+                 network_interface='lo',
+                 run_orchestrator=True,
+                 run_algebra=True):
     """
     :param connection: BlazingSQL cluster URL to connect to
            (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
     """
-    bc = BlazingContext(connection, dask_client)
+    bc = BlazingContext(connection,
+                        dask_client=dask_client,
+                        network_interface=network_interface,
+                        run_orchestrator=run_orchestrator,
+                        run_algebra=run_algebra)
     return bc
 
