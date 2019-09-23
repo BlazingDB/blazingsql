@@ -163,7 +163,11 @@ class BlazingContext(object):
 
     # remove
     def create_table(self, table_name, input, **kwargs):
-        ds = build_datasource(self.client, input, table_name, **kwargs)
+        ds = build_datasource(self.client,
+                              input,
+                              table_name,
+                              dask_client=self.dask_client,
+                              **kwargs)
         table = self.sqlObject.create_table(ds)
 
         return table

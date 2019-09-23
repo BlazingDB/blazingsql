@@ -8,6 +8,7 @@ import pandas
 import pyarrow
 
 import cudf
+import dask_cudf
 
 from .bridge import internal_api
 
@@ -23,6 +24,7 @@ class Type(Enum):
     distributed_result_set = "BlazingSQL Distributed ResultSet"
     json = "JSON"
     orc = "Apache ORC"
+    dask_cudf = "Dask CUDF"
 
 
 # NOTE This is only for parsing the input, will call the scan_datasource service if necessary
@@ -85,6 +87,8 @@ class Descriptor:
                 self._files = [input]
 
             self._uri = input
+        elif type(input) == dask_cudf.core.DataFrame:
+            self._type = Type.dask_cudf
 
     def in_directory(self):
         return self._in_directory
@@ -103,11 +107,6 @@ class Descriptor:
 
     def files(self):
         return self._files
-
-
-    #dask_cudf.Dataframe in gpu-memory distributed_result_set
-    def is_dask(self):
-        return self.type == Type.dask_cudf
 
     # cudf.DataFrame in-gpu-memory
     def is_cudf(self):
@@ -136,6 +135,10 @@ class Descriptor:
     # parquet file on filesystem
     def is_orc(self):
         return self._type == Type.orc
+
+    # dask_cudf in gpu-memory distributed_result_set
+    def is_dask_cudf(self):
+        return self._type == Type.dask_cudf
 
     # blazing result set handle
     def is_result_set(self):
@@ -248,6 +251,8 @@ class DataSource:
             return self._load_json(**kwargs)
         elif type == Type.orc:
             return self._load_orc(**kwargs)
+        elif type == Type.dask_cudf:
+            return self._load_dask_cudf(**kwargs)
         else:
             # TODO percy manage errors
             raise Exception("invalid datasource type")
@@ -376,6 +381,26 @@ class DataSource:
 
         return self._create_table_status_to_bool(return_result)
 
+    def _load_dask_cudf(self, **kwargs):
+        dask_client = kwargs['dask_client']
+        dask_cudf = kwargs['dask_cudf']
+
+        column_names = list(dask_cudf.dtypes.index)
+        column_dtypes = [internal_api.get_np_dtype_to_gdf_dtype(x)
+                         for x in dask_cudf.dtypes]
+
+        return_result = internal_api.create_table(
+            self._client,
+            self._table_name,
+            type=internal_api.FileSchemaType.DASK,
+            names=column_names,
+            dtypes=column_dtypes,
+            dask_cudf=dask_cudf,
+            dask_client=dask_client
+        )
+
+        return self._create_table_status_to_bool(return_result)
+
 # BEGIN DataSource utils
 
 
@@ -401,6 +426,12 @@ def build_datasource(client, input, table_name, **kwargs):
         ds = DataSource(None, table_name, descriptor, result_set = input.metaToken)
     elif descriptor.is_parquet() or descriptor.is_csv() or descriptor.is_json() or descriptor.is_orc():
         ds = DataSource(client, table_name, descriptor, **kwargs)
+    elif descriptor.is_dask_cudf():
+        ds = DataSource(client,
+                        table_name,
+                        descriptor,
+                        dask_cudf=input,
+                        **kwargs)
 
     # TODO percy raise error if ds is None
 

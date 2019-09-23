@@ -21,7 +21,7 @@ from blazingdb.protocol.transport.channel import ResponseErrorSchema
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDeregisterRequestSchema
 from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
- 
+
 from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType, NodeTableSchema
 from blazingdb.protocol.gdf import gdf_columnSchema
@@ -1227,15 +1227,6 @@ import numpy as np
 import pandas as pd
 import pyblazing
 
-class SchemaFrom:
-    CsvFile = 0
-    ParquetFile = 1
-    Gdf = 2
-    Distributed = 3
-    JsonFile = 4
-    OrcFile = 5
-    Dask = 6
-
 
 #cambiar para success or failed
 def create_table(tableName, **kwargs):
@@ -1424,7 +1415,7 @@ def scan_datasource(directory, wildcard):
     return_result = None
     error_message = ''
     files = None
-    
+
     try:
         client = _get_client()
         files = client.run_scan_datasource(directory, wildcard)
