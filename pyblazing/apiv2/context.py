@@ -48,7 +48,7 @@ def runEngine(network_interface='lo', processes=None, orchestrator_ip='127.0.0.1
 
 
 def setupDask(dask_client, network_interface='eth0', orchestrator_port='9100'):
-    orchestrator_ip = re.findall(r'(?:\d+\.){3}\d+', dask_client.scheduler.address)[0]
+    orchestrator_ip = re.findall(r'(?:\d+\.){3}\d+', dask_client.scheduler_info().get('address'))[0]
     dask_client.run(runEngine, network_interface, processes=None, orchestrator_ip=orchestrator_ip, orchestrator_port=orchestrator_port)
 
 
