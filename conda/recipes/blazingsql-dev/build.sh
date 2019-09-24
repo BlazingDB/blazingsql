@@ -8,8 +8,6 @@ echo -e '
 #!/bin/bash
 cd $CONDA_PREFIX
 git clone -b develop https://github.com/BlazingDB/pyBlazing.git
-#cd pyBlazing && git checkout feature/conda
-#cd ..
 pyBlazing/scripts/build-all.sh
 ' > build-repos.sh
 

@@ -27,7 +27,6 @@ do
   echo "Clean: "$clean_build
 
   if [ ! -d "$repo" ]; then
-    echo "git clone -b $branch https://github.com/BlazingDB/$repo"
     git clone -b $branch https://github.com/BlazingDB/$repo
   else
     cd $repo
