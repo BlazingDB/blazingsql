@@ -6,7 +6,7 @@
 
 package:
     name: blazingsql-python
-    version: 0.4.0
+    version: {{ version }}
 
 build:
     number: {{ git_revision_count }}
@@ -32,7 +32,6 @@ requirements:
         - cudatoolkit {{ cuda_version }}.*
         - cmake
         
-
     run:
         - python
         - cudf
