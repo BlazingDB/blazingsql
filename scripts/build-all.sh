@@ -1,15 +1,15 @@
 #!/bin/bash
-# Usage   ./build-all.sh branch clean_build
-# Example ./build-all.sh feature/conda true
+# Usage   ./build-all.sh clean_build
+# Example ./build-all.sh true
 
 repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-orchestrator blazingdb-ral pyBlazing blazingdb-calcite)
-branch="develop"
-if [ ! -z $1 ]; then
-  branch=$1
-fi
+branches=(develop develop develop develop develop develop develop)
+# Release or DEBUG
+types=(Release Release Release Release Release Release Release)
+
 
 clean_build="false"
-if [ ! -z $2 ]; then
+if [ ! -z $1 ]; then
   clean_build="true"
 fi
 
@@ -20,7 +20,14 @@ do
   cd $CONDA_PREFIX
 
   echo "### Start $repo ###"
+  branch=${branches[i]}
+  type=${types[i]}
+  echo "Branch: "$branch
+  echo "Type: "$type
+  echo "Clean: "$clean_build
+
   if [ ! -d "$repo" ]; then
+    echo "git clone -b $branch https://github.com/BlazingDB/$repo"
     git clone -b $branch https://github.com/BlazingDB/$repo
   else
     cd $repo
@@ -32,18 +39,28 @@ do
       cd ..
     fi
   fi
-  if [ "$clean_build" -eq "true" ]; then
-    cd $repo && git reset --hard && git checkout $branch && git pull origin $branch
+
+  cd $repo
+
+  if [ "$clean_build" == "true" ]; then
+    git reset --hard && git checkout $branch && git pull origin $branch
   fi
-  i=$(($i+1))
 
   chmod +x conda/recipes/$repo/build.sh
+
   status="Cloned and built"
-  conda/recipes/$repo/build.sh
+  failed=0
+  conda/recipes/$repo/build.sh $type
   if [ $? != 0 ]; then
     status="Build failed"
+    failed=1
   fi
 
   echo "######################################################################### ${status} ${repo} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+  if [ $failed != 0 ]; then
+    exit 1
+  fi
+
+  i=$(($i+1))
 
 done
