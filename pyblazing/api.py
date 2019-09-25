@@ -1107,7 +1107,9 @@ def convert_result_msg(metaToken,connection):
                                                result['result'].calciteTime,
                                                result['resultSet'].metadata.time,
                                                totalTime,
-                                               ''
+                                               '',
+                                               1,
+                                               0
                                                )
 
 
