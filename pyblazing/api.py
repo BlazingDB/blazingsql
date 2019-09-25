@@ -20,6 +20,7 @@ from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, Fi
 from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
+from blazingdb.messages.blazingdb.protocol.gdf.gdf_time_unit import gdf_time_unit
 
 import pyarrow as pa
 from cudf._lib.cudf import *
@@ -729,6 +730,15 @@ def get_np_dtype_to_gdf_dtype(dtype):
     }
     return dtypes[dtype]
 
+def get_gdf_timeunit_to_np_dtype(time_unit):
+    time_unit_to_dtype_map = {
+        gdf_time_unit.TIME_UNIT_s: np.dtype('datetime64[s]'),
+        gdf_time_unit.TIME_UNIT_ms: np.dtype('datetime64[ms]'),
+        gdf_time_unit.TIME_UNIT_us: np.dtype('datetime64[us]'),
+        gdf_time_unit.TIME_UNIT_ns: np.dtype('datetime64[ns]')
+    }
+    return time_unit_to_dtype_map[time_unit]
+
 def get_dtype_values(dtypes):
     values = []
     def gdf_type(type_name):
@@ -864,6 +874,8 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
 
         if c.dtype == gdf_dtype.GDF_DATE64:
             np_dtype = np.dtype('datetime64[ms]')
+        elif c.dtype == gdf_dtype.GDF_TIMESTAMP:
+            np_dtype = get_gdf_timeunit_to_np_dtype(c.dtype_info.time_unit)
         else:
             np_dtype = gdf_to_np_dtype(c.dtype)
 
