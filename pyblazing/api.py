@@ -16,7 +16,7 @@ from blazingdb.protocol.transport.channel import ResponseErrorSchema
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDeregisterRequestSchema
 from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
-
+ 
 from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
@@ -573,7 +573,7 @@ class ResultSetHandle:
         self.totalTime = totalTime
         self.error_message = error_message
         self.total_nodes =  total_nodes
-        self.n_crashed_nodes = n_crashed_nodes
+        self.n_crashed_nodes = n_crashed_nodes 
 
     def __del__(self):
         for key in self._buffer_ids:
@@ -588,7 +588,7 @@ class ResultSetHandle:
                 self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
             except:
                 pass
-
+                
 
 
     def __str__(self):
@@ -957,7 +957,7 @@ def _run_query_get_results(distMetaToken, startTime):
     totalTime = 0
     total_nodes = 1
     n_crashed_nodes = 0
-
+            
     result_list = []
     for result in distMetaToken:
         try:
@@ -965,32 +965,32 @@ def _run_query_get_results(distMetaToken, startTime):
                                                         result.nodeConnection.path.decode('utf8'),
                                                         result.nodeConnection.port,
                                                         result.calciteTime)
-
+            
             totalTime = (time.time() - startTime) * 1000  # in milliseconds
-
+            
             result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles, 'totalTime':totalTime, 'error_message':''})
-
+            
         except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
             error_message = error
         except Error as error:
             error_message = str(error)
         except Exception as error:
             error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
-
+            
         if error_message is not '':
             print(error_message)
             result_list.append({'result': result, 'resultSet': None, 'ipchandles': None, 'totalTime':0, 'error_message':error_message})
-
-        if error_message is not '':
+                    
+        if error_message is not '':            
             print(error_message)
-            n_crashed_nodes = n_crashed_nodes + 1
+            n_crashed_nodes = n_crashed_nodes + 1 
 
     result_set_list = []
-
+    
     for result in result_list:
         if result['error_message'] is not '':
             result_set_list.append(ResultSetHandle(None,
-                                                   None,
+                                                   None, 
                                                    result['result'].resultToken,
                                                    result['result'].nodeConnection.path.decode('utf8'),
                                                    result['result'].nodeConnection.port,
@@ -1115,10 +1115,7 @@ def convert_result_msg(metaToken,connection):
 
 def convert_to_dask(metaToken,connection):
     result_set = convert_result_msg(metaToken,connection)
-    gdf = result_set.columns.copy(deep=True)
-    if not hasattr(gdf, '_meta'):
-        setattr(gdf, '_meta', gdf.iloc[:0])
-    return gdf
+    return result_set.columns.copy(deep=True)
 
 def run_query_get_concat_results(metaToken, startTime):
     return _run_query_get_concat_results(metaToken, startTime)
@@ -1136,8 +1133,8 @@ def _run_query_get_concat_results(distMetaToken, startTime):
     sum_ral_time = 0
     sum_total_time = 0
     total_nodes = 0
-    n_crashed_nodes = 0
-
+    n_crashed_nodes = 0 
+    
     for result in distMetaToken:
         ral_count = ral_count + 1
         error_message = ''
@@ -1149,11 +1146,11 @@ def _run_query_get_concat_results(distMetaToken, startTime):
                                                         result.calciteTime)
 
             totalTime = (time.time() - startTime) * 1000  # in milliseconds
-
+            
             sum_calcite_time = sum_calcite_time + result.calciteTime
             sum_ral_time =  sum_ral_time  + resultSet.metadata.time
             sum_total_time =  sum_total_time + totalTime
-
+            
             result_list.append(resultSet)
         except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
             error_message = error
@@ -1161,21 +1158,21 @@ def _run_query_get_concat_results(distMetaToken, startTime):
             error_message = str(error)
         except Exception as error:
             error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
-
+    
         total_nodes = total_nodes + 1
-
-        if error_message is not '':
+        
+        if error_message is not '':            
             print(error_message)
             all_error_messages = all_error_messages + " Node " + str(ral_count) + ":" + str(error_message)
             n_crashed_nodes = n_crashed_nodes + 1
-
+            
     need_to_concat = sum([len(result.columns) > 0 for result in result_list]) > 1
 
     gdf =  None
-
+    
     if (need_to_concat):
         all_gdfs = [result.columns for result in result_list]
-        gdf =  concat(all_gdfs, ignore_index=True)
+        gdf =  concat(all_gdfs, ignore_index=True)        
     else:
         for result in result_list:  # if we dont need to concatenate, likely we only have one, or only one that has data
             if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings.
@@ -1199,7 +1196,7 @@ def _run_query_get_concat_results(distMetaToken, startTime):
                                        n_crashed_nodes  #n_crashed_nodes
                                        )
 
-    return resultSetHandle
+    return resultSetHandle 
 
 
 
@@ -1333,7 +1330,7 @@ def scan_datasource(directory, wildcard):
     return_result = None
     error_message = ''
     files = None
-
+    
     try:
         client = _get_client()
         files = client.run_scan_datasource(directory, wildcard)
