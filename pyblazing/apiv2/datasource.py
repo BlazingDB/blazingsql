@@ -30,7 +30,7 @@ class Type(Enum):
 # NOTE This is only for parsing the input, will call the scan_datasource service if necessary
 class Descriptor:
 
-    def __init__(self, input):
+    def __init__(self, input, file_format):
         self._in_directory = False
         self._has_wildcard = False
         self._wildcard = ""
@@ -50,11 +50,11 @@ class Descriptor:
         elif hasattr(input, 'metaToken'):
             self._type = Type.distributed_result_set
         elif type(input) == list:
-            self._parse_list(input)
+            self._parse_list(input, file_format)
         elif type(input) == str:
             if self._is_dir(input):
                 list_input = scan_datasource(None, input, "")
-                self._parse_list(list_input)
+                self._parse_list(list_input, file_format)
                 self._in_directory = True
             elif self._is_wildcard(input):
                 url = self._to_url(input)
@@ -73,16 +73,16 @@ class Descriptor:
                 directory = directory.geturl() + '/'
 
                 list_input = scan_datasource(None, directory, wildcard)
-                self._parse_list(list_input)
+                self._parse_list(list_input, file_format)
                 self._has_wildcard = True
                 self._wildcard = wildcard
             else:
                 url = self._to_url(input)
                 path = self._to_path(url)
-                self._type = self._type_from_path(path)
+                self._type = self._type_from_path(path, file_format)
 
                 if self._type == None:
-                    raise Exception("If input into create_table is a file path string, it is expecting a valid file extension")
+                    raise Exception("If input into create_table is a file path string, it is expecting a valid file extension. Alternatively you can set the optional parameter 'file_format' to one of the supported types: 'parquet','orc','csv','json' ")
 
                 self._files = [input]
 
@@ -155,17 +155,22 @@ class Descriptor:
         path = PurePath(url.path)
         return path
 
-    def _type_from_path(self, path):
-        if path.suffix == '.parquet':
+    def _type_from_path(self, path, file_format):
+
+        if file_format is not None:
+            if not any([type == file_format for type in ['parquet','orc','csv','json']]):
+                print("WARNING: file_format does not match any of the supported types: 'parquet','orc','csv','json'")
+
+        if file_format == 'parquet' or path.suffix == '.parquet':
             return Type.parquet
 
-        if path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
+        if file_format == 'csv' or path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
             return Type.csv
 
-        if path.suffix == '.json':
+        if file_format == 'json' or path.suffix == '.json':
             return Type.json
 
-        if path.suffix == '.orc':
+        if file_format == 'orc' or path.suffix == '.orc':
             return Type.orc
 
         return None
@@ -182,7 +187,7 @@ class Descriptor:
     def _get_parent_dir(self, path):
         return path.parents[0]
 
-    def _parse_list(self, list_input):
+    def _parse_list(self, list_input, file_format):
         if len(list_input) == 0:
             raise Exception("Input into create_table was an empty list")
 
@@ -193,10 +198,10 @@ class Descriptor:
 
             url = self._to_url(file)
             path = self._to_path(url)
-            self._type = self._type_from_path(path)
+            self._type = self._type_from_path(path, file_format)
 
             if self._type == None:
-                error_msg = "If input into create_table is a list, it is expecting a list of valid %s files. Invalid file: %s"
+                error_msg = "If input into create_table is a list of file path string, it is expecting the strings to have a valid file extension. Alternatively you can set the optional parameter 'file_format' to one of the supported types: 'parquet','orc','csv','json'. Invalid file: %s"
                 error_msg = error_msg % (last_valid_type.value, file)
                 raise Exception(error_msg)
 
@@ -412,7 +417,8 @@ def scan_datasource(client, directory, wildcard):
 def build_datasource(client, input, table_name, **kwargs):
     ds = None
 
-    descriptor = Descriptor(input)
+    file_format = kwargs.get('file_format', None)
+    descriptor = Descriptor(input, file_format)
 
     if descriptor.is_cudf():
         ds = DataSource(None, table_name, descriptor, cudf_df = input)
