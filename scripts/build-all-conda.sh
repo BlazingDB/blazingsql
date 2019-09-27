@@ -43,7 +43,7 @@ do
     fi
   fi
   cd $repo
-  if [ "$clean_build" -eq "true" ]; then
+  if [ "$clean_build" == "true" ]; then
     git fetch origin
     git checkout ${branches[i]}
     git pull origin ${branches[i]}
