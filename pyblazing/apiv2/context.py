@@ -92,21 +92,19 @@ class BlazingContext(object):
         if(dask_client is None):
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
-                time.sleep(2)  # lets the orchestrator start before we start the other processes
             if run_engine:
                 processes = runEngine(network_interface = network_interface, processes = processes)
             if run_algebra:
                 processes = runAlgebra(processes = processes)
             if run_engine or run_algebra:
-                time.sleep(3)  # lets the engine and algebra processes start before we continue
+                time.sleep(4)  # lets the engine and algebra processes start before we continue
         else:
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
-                time.sleep(1)  # lets the orchestrator start before we start the other processes
             setupDask(dask_client)
             if run_algebra:
                 processes = runAlgebra(processes=processes)
-                time.sleep(3) # lets the engine and algebra processes start before we continue
+                time.sleep(4) # lets the engine and algebra processes start before we continue
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
@@ -131,6 +129,7 @@ class BlazingContext(object):
             for process in self.processes:
                 if (process is not None):
                     process.terminate()
+                    print("terminated")
 
         pass
 
