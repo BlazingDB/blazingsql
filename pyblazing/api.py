@@ -22,12 +22,12 @@ from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.gdf import gdf_columnSchema
 
 import pyarrow as pa
-from cudf.bindings.cudf_cpp import *
+from cudf._lib.cudf import *
 
-from cudf.dataframe.string import StringColumn
+from cudf.core.dataframe import StringColumn
 from cudf import DataFrame
-from cudf.dataframe.buffer import Buffer
-from cudf.dataframe.columnops import build_column
+from cudf.core.buffer import Buffer
+from cudf.core.column.column import build_column
 from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
 
 import numpy as np
