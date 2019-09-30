@@ -1129,9 +1129,11 @@ def convert_result_msg(metaToken,connection):
 
 
 def convert_to_dask(metaToken,connection):
-  if metaToken:  # TODO: check why metaToken can equals None (check RAL)
-        result_set = convert_result_msg(metaToken,connection)
-        return result_set.columns.copy(deep=True)
+    result_set = convert_result_msg(metaToken,connection)
+    gdf = result_set.columns.copy(deep=True)
+    if not hasattr(gdf, '_meta'):
+        setattr(gdf, '_meta', gdf.iloc[:0])
+    return gdf
 
 def run_query_get_concat_results(metaToken, startTime):
     return _run_query_get_concat_results(metaToken, startTime)
