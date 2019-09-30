@@ -538,6 +538,37 @@ class PyConnector(metaclass=Singleton):
 
         return queryResult
 
+    def ping(self):
+        print("pinging")
+        try:
+            response = self.run_system_command("ping")
+            if (response == "ping"):
+                print("pingsuccess")
+                return True
+            else:
+                print("pingfail")
+                return False
+        except:
+            print("pingerror")
+            return False
+    
+    def run_system_command(self, command):
+        systemCommandSchema = blazingdb.protocol.orchestrator.BuildSystemCommandRequestSchema(command = command)
+
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.SystemCommand, self._accessToken, systemCommandSchema)
+
+        responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+
+        if response.status == Status.Error:
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
+            raise RuntimeError(errorResponse.errors.decode("utf-8"))
+
+        system_command_response = blazingdb.protocol.orchestrator.SystemCommandResponseSchema.From(response.payload)
+        response = system_command_response.decode("utf-8")
+        return response
+        
+
 
 def _get_client():
     return PyConnector()
