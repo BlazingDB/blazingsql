@@ -77,6 +77,16 @@ def runOrchestrator(processes = None):
         processes.append(process)
     return processes
 
+def waitForPingSuccess(client):
+    ping_success = False
+    num_tries = 0
+    while (num_tries < 60 and not ping_success):
+        ping_success = client.ping()
+        num_tries = num_tries + 1
+        if not ping_success:
+            time.sleep(0.5)
+
+
 
 class BlazingContext(object):
 
@@ -115,6 +125,7 @@ class BlazingContext(object):
         # TODO percy handle errors (see above)
         self.connection = connection
         self.client = internal_api._get_client()
+        waitForPingSuccess(self.client)
         self.fs = FileSystem()
         self.sqlObject = SQL()
         self.dask_client = dask_client
