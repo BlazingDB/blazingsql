@@ -322,12 +322,16 @@ class PyConnector(metaclass=Singleton):
         self._orchestrator_path = '127.0.0.1'
         self._orchestrator_port = 8889
         self._accessToken = None
+        self.is_dask = False
 
     def __del__(self):
-        try:
-            self.close_connection()
-        except:
-            pass
+        if not self.is_dask:
+            try:
+                self.close_connection()
+            except:
+                pass
+        else:
+            self.is_dask = False
 
     def connect(self, orchestrator_path, orchestrator_port):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -560,7 +564,7 @@ def _get_client():
 
 class ResultSetHandle:
 
-    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message, total_nodes, n_crashed_nodes):
+    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message, total_nodes, n_crashed_nodes, is_dask=False):
         self.columns = columns
         self.columnTokens = columnTokens
 
@@ -590,13 +594,16 @@ class ResultSetHandle:
         self.error_message = error_message
         self.total_nodes =  total_nodes
         self.n_crashed_nodes = n_crashed_nodes
+        self.is_dask = is_dask
 
     def __del__(self):
         for key in self._buffer_ids:
             dataColumnTokens.pop(key, None)
             validColumnTokens.pop(key, None)
 
-        if self.handle is not None:
+        # TODO: Create a type (class hierarchy) for result handles of dask_cudf
+        #       and remove `is_dask` member
+        if (self.handle is not None) and (not self.is_dask):
             for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
             del self.handle
@@ -1105,7 +1112,7 @@ def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTim
     resultSet.columns = gdf
     return resultSet, ipchandles
 
-def convert_result_msg(metaToken,connection):
+def convert_result_msg(metaToken, connection, is_dask=False):
 
     resultSet, ipchandles = _get_result_dask(metaToken[0].resultToken,"127.0.0.1",8891,0,connection)
 
@@ -1125,12 +1132,14 @@ def convert_result_msg(metaToken,connection):
                            totalTime,
                            '',
                            1,  # TODO: Use connection to get total_nodes
-                           0)  # and n_crashed_nodes
+                           0,  # and n_crashed_nodes
+                           is_dask=is_dask)
 
 
 def convert_to_dask(metaToken, connection):
     if metaToken:  # TODO: check why metaToken can equals None (check RAL)
-        result_set = convert_result_msg(metaToken,connection)
+        connection.is_dask = True  # TODO(gcca, percy): go to pyconnector and rewrite is_dask
+        result_set = convert_result_msg(metaToken, connection, True)
         gdf = result_set.columns.copy(deep=True)
         if not hasattr(gdf, '_meta'):
             setattr(gdf, '_meta', gdf.iloc[:0])
