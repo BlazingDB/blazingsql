@@ -47,4 +47,4 @@ logger "Build conda pkg for pyblazing..."
 source ci/cpu/pyblazing/conda-build.sh
 
 logger "Upload conda pkg for pyblazing..."
-source ci/cpu/upload_anaconda.sh
+#source ci/cpu/upload_anaconda.sh
