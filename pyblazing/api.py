@@ -1122,7 +1122,7 @@ def run_query_get_concat_results(metaToken, startTime):
 
 def _run_query_get_concat_results(distMetaToken, startTime):
 
-    from cudf.multi import concat
+    from cudf import concat
 
     client = _get_client()
 
