@@ -192,7 +192,8 @@ def make_context(connection='localhost:8889',
                  dask_client=None,
                  network_interface='lo',
                  run_orchestrator=True,
-                 run_algebra=True):
+                 run_algebra=True,
+                 run_engine=True):
     """
     :param connection: BlazingSQL cluster URL to connect to
            (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -201,6 +202,7 @@ def make_context(connection='localhost:8889',
                         dask_client=dask_client,
                         network_interface=network_interface,
                         run_orchestrator=run_orchestrator,
-                        run_algebra=run_algebra)
+                        run_algebra=run_algebra,
+                        run_engine=run_engine)
     return bc
 
