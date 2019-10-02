@@ -36,9 +36,7 @@ def runEngine(network_interface = 'lo', processes = None):
     process = None
     devnull = open(os.devnull, 'w')
     if(checkSocket(9001)):
-        print("runningEngine")
-        # process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface], stdout = devnull, stderr = devnull)
-        process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface])
+        process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface], stdout = devnull, stderr = devnull)        
     else:
         print("WARNING: blazingsql-engine was not automativally started, its probably already running")
 
@@ -58,7 +56,6 @@ def runAlgebra(processes = None):
         if(os.getenv("CONDA_PREFIX") == None):
             process = subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
-            print("runningAlgebra")
             process = subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'], stdout = devnull, stderr = devnull)
     else:
         print("WARNING: blazingsql-algebra was not automativally started, its probably already running")
@@ -72,9 +69,7 @@ def runOrchestrator(processes = None):
     process = None
     devnull = open(os.devnull, 'w')
     if(checkSocket(9100)):
-        print("runningOrchestrator")
-        # process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'], stdout = devnull, stderr = devnull)
-        process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
+        process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'], stdout = devnull, stderr = devnull)        
     else:
         print("WARNING: blazingsql-orchestrator was not automativally started, its probably already running")
 
@@ -122,8 +117,6 @@ class BlazingContext(object):
         parse_result = urlparse("//" + connection)
         orchestrator_host_ip = parse_result.hostname
         orchestrator_port = parse_result.port
-
-        # time.sleep(0.5)
         internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
         
         # TODO percy handle errors (see above)
@@ -137,12 +130,11 @@ class BlazingContext(object):
 
     def shutdown(self):
         if (self.processes is not None):
-            # call_shutdown(self.client, list(self.processes.keys()))
             self.client.call_shutdown(list(self.processes.keys()))
-            time.sleep(1)
-            # for process in list(self.processes.values()):
-            #     if (process is not None):
-            #         process.terminate()
+            time.sleep(1) # lets give it a sec before we guarantee the processes are shutdown
+            for process in list(self.processes.values()): # this should not be necessary, but it guarantees that the processes are shutdown
+                if (process is not None):
+                    process.terminate()
                     
 
     def __del__(self):
