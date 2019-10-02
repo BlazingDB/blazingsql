@@ -354,7 +354,6 @@ class PyConnector(metaclass=Singleton):
         responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(
             response.payload)
 
-        print('connection established')
         self._accessToken = responsePayload.accessToken
 
     def close_connection(self):
@@ -539,19 +538,13 @@ class PyConnector(metaclass=Singleton):
         return queryResult
 
     def ping(self):
-        print("pinging")
         try:
             response = self.run_system_command("ping", expect_response=True)
             if (response == "ping"):
-                print("pingsuccess")
                 return True
             else:
-                print("pingfail")
-                print("response")
                 return False
         except Exception as ex:
-            print("ping exception")
-            print(ex)
             return False
 
     def call_shutdown(self, process_names):
