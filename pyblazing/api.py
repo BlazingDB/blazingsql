@@ -302,11 +302,8 @@ def _make_default_csv_arg(**kwargs):
 
 # connection_path is a ip/host when tcp and can be unix socket when ipc
 def _send_request(connection_path, connection_port, requestBuffer, expect_response=True):
-    print("_send_request start")
     connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
-    print("_send_request have connection")
     client = blazingdb.protocol.Client(connection)
-    print("_send_request have client")
     return client.send(requestBuffer, expect_response)
 
 class Singleton(type):
@@ -358,7 +355,6 @@ class PyConnector(metaclass=Singleton):
             response.payload)
 
         print('connection established')
-        print(responsePayload.accessToken)
         self._accessToken = responsePayload.accessToken
 
     def close_connection(self):
@@ -567,23 +563,17 @@ class PyConnector(metaclass=Singleton):
 
     
     def run_system_command(self, command, expect_response):
-        print("run_system_command start")
         systemCommandSchema = blazingdb.protocol.orchestrator.BuildSystemCommandRequestSchema(command = command)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.SystemCommand, self._accessToken, systemCommandSchema)
-        print("run_system_command about to send request")
         responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer, expect_response)
-        print("run_system_command sent request")
         if (expect_response):
-            print("run_system_command about getting response")
             response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
 
             if response.status == Status.Error:
-                print("run_system_command response status is error")
                 errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
                 raise RuntimeError(errorResponse.errors.decode("utf-8"))
 
-            print("run_system_command response converting reposne")
             system_command_response = blazingdb.protocol.orchestrator.SystemCommandResponseSchema.From(response.payload)
             response = system_command_response.response.decode("utf-8")
             return response
