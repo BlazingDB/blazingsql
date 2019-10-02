@@ -99,7 +99,6 @@ class BlazingContext(object):
             processes = {}
 
         if(dask_client is None):
-            print("about to start services")
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
             if run_engine:
@@ -127,6 +126,7 @@ class BlazingContext(object):
         self.sqlObject = SQL()
         self.dask_client = dask_client
         self.processes = processes
+        print("BlazingContext ready")
 
     def shutdown(self):
         if (self.processes is not None):
