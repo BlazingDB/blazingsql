@@ -121,12 +121,20 @@ class BlazingContext(object):
         # TODO percy handle errors (see above)
         self.connection = connection
         self.client = internal_api._get_client()
-        waitForPingSuccess(self.client)
         self.fs = FileSystem()
         self.sqlObject = SQL()
         self.dask_client = dask_client
         self.processes = processes
+        self.need_shutdown= not leave_processes_running
+        waitForPingSuccess(self.client)        
         print("BlazingContext ready")
+
+    def ready(self, wait=False):
+        if wait:
+            waitForPingSuccess(self.client)
+            return True
+        else:
+            return self.client.ping()
 
     def shutdown(self):
         if (self.processes is not None):
@@ -135,10 +143,12 @@ class BlazingContext(object):
             for process in list(self.processes.values()): # this should not be necessary, but it guarantees that the processes are shutdown
                 if (process is not None):
                     process.terminate()
+        self.need_shutdown=False
                     
 
     def __del__(self):
-        self.shutdown()
+        if self.need_shutdown:
+            self.shutdown()
         pass
 
     def __repr__(self):
