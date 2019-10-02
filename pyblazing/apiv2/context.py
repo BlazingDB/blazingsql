@@ -36,12 +36,14 @@ def runEngine(network_interface = 'lo', processes = None):
     process = None
     devnull = open(os.devnull, 'w')
     if(checkSocket(9001)):
-        process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface], stdout = devnull, stderr = devnull)
+        print("runningEngine")
+        # process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface], stdout = devnull, stderr = devnull)
+        process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface])
     else:
         print("WARNING: blazingsql-engine was not automativally started, its probably already running")
 
     if (processes is not None):
-        processes.append(process)
+        processes['engine'] = process
     return processes
 
 
@@ -56,12 +58,13 @@ def runAlgebra(processes = None):
         if(os.getenv("CONDA_PREFIX") == None):
             process = subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
+            print("runningAlgebra")
             process = subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'], stdout = devnull, stderr = devnull)
     else:
         print("WARNING: blazingsql-algebra was not automativally started, its probably already running")
 
     if (processes is not None):
-        processes.append(process)
+        processes['algebra'] = process
     return processes
 
 
@@ -69,12 +72,14 @@ def runOrchestrator(processes = None):
     process = None
     devnull = open(os.devnull, 'w')
     if(checkSocket(9100)):
-        process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'], stdout = devnull, stderr = devnull)
+        print("runningOrchestrator")
+        # process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'], stdout = devnull, stderr = devnull)
+        process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'])
     else:
         print("WARNING: blazingsql-orchestrator was not automativally started, its probably already running")
 
     if (processes is not None):
-        processes.append(process)
+        processes['orchestrator'] = process
     return processes
 
 def waitForPingSuccess(client):
@@ -84,8 +89,7 @@ def waitForPingSuccess(client):
         ping_success = client.ping()
         num_tries = num_tries + 1
         if not ping_success:
-            time.sleep(0.5)
-
+            time.sleep(0.4)
 
 
 class BlazingContext(object):
@@ -97,31 +101,31 @@ class BlazingContext(object):
         """
         processes = None
         if not leave_processes_running:
-            processes = []
+            processes = {}
 
         if(dask_client is None):
+            print("about to start services")
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
             if run_engine:
                 processes = runEngine(network_interface = network_interface, processes = processes)
             if run_algebra:
-                processes = runAlgebra(processes = processes)
-            if run_engine or run_algebra:
-                time.sleep(4)  # lets the engine and algebra processes start before we continue
+                processes = runAlgebra(processes = processes)            
         else:
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
             setupDask(dask_client)
             if run_algebra:
-                processes = runAlgebra(processes=processes)
-                time.sleep(4) # lets the engine and algebra processes start before we continue
+                processes = runAlgebra(processes=processes)                
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
         orchestrator_host_ip = parse_result.hostname
         orchestrator_port = parse_result.port
-        internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
 
+        # time.sleep(0.5)
+        internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
+        
         # TODO percy handle errors (see above)
         self.connection = connection
         self.client = internal_api._get_client()
@@ -131,17 +135,18 @@ class BlazingContext(object):
         self.dask_client = dask_client
         self.processes = processes
 
-    def __del__(self):
-        # TODO percy clean next time
-        # del self.sqlObject
-        # del self.fs
-        # del self.client
+    def shutdown(self):
         if (self.processes is not None):
-            for process in self.processes:
-                if (process is not None):
-                    process.terminate()
-                    print("terminated")
+            # call_shutdown(self.client, list(self.processes.keys()))
+            self.client.call_shutdown(list(self.processes.keys()))
+            time.sleep(1)
+            # for process in list(self.processes.values()):
+            #     if (process is not None):
+            #         process.terminate()
+                    
 
+    def __del__(self):
+        self.shutdown()
         pass
 
     def __repr__(self):

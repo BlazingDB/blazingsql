@@ -301,10 +301,13 @@ def _make_default_csv_arg(**kwargs):
 # END DataSource internal utils
 
 # connection_path is a ip/host when tcp and can be unix socket when ipc
-def _send_request(connection_path, connection_port, requestBuffer):
+def _send_request(connection_path, connection_port, requestBuffer, expect_response=True):
+    print("_send_request start")
     connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
+    print("_send_request have connection")
     client = blazingdb.protocol.Client(connection)
-    return client.send(requestBuffer)
+    print("_send_request have client")
+    return client.send(requestBuffer, expect_response)
 
 class Singleton(type):
     _instances = {}
@@ -355,6 +358,7 @@ class PyConnector(metaclass=Singleton):
             response.payload)
 
         print('connection established')
+        print(responsePayload.accessToken)
         self._accessToken = responsePayload.accessToken
 
     def close_connection(self):
@@ -541,32 +545,48 @@ class PyConnector(metaclass=Singleton):
     def ping(self):
         print("pinging")
         try:
-            response = self.run_system_command("ping")
+            response = self.run_system_command("ping", expect_response=True)
             if (response == "ping"):
                 print("pingsuccess")
                 return True
             else:
                 print("pingfail")
+                print("response")
                 return False
-        except:
-            print("pingerror")
+        except Exception as ex:
+            print("ping exception")
+            print(ex)
             return False
+
+    def call_shutdown(self, process_names):
+        command = 'shutdown'
+        for key in process_names:
+            command = command + " " + key
+
+        self.run_system_command(command, expect_response=False)        
+
     
-    def run_system_command(self, command):
+    def run_system_command(self, command, expect_response):
+        print("run_system_command start")
         systemCommandSchema = blazingdb.protocol.orchestrator.BuildSystemCommandRequestSchema(command = command)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.SystemCommand, self._accessToken, systemCommandSchema)
+        print("run_system_command about to send request")
+        responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer, expect_response)
+        print("run_system_command sent request")
+        if (expect_response):
+            print("run_system_command about getting response")
+            response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
 
-        responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
-        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+            if response.status == Status.Error:
+                print("run_system_command response status is error")
+                errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
+                raise RuntimeError(errorResponse.errors.decode("utf-8"))
 
-        if response.status == Status.Error:
-            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
-            raise RuntimeError(errorResponse.errors.decode("utf-8"))
-
-        system_command_response = blazingdb.protocol.orchestrator.SystemCommandResponseSchema.From(response.payload)
-        response = system_command_response.decode("utf-8")
-        return response
+            print("run_system_command response converting reposne")
+            system_command_response = blazingdb.protocol.orchestrator.SystemCommandResponseSchema.From(response.payload)
+            response = system_command_response.response.decode("utf-8")
+            return response
         
 
 
