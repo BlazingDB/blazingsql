@@ -1,4 +1,10 @@
 #!/bin/bash
-echo "conda build -c blazingsql/label/main -c rapidsai -c conda-forge -c defaults --python=$PYTHON conda/recipes/pyBlazing/"
-conda build -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults --python=$PYTHON conda/recipes/pyBlazing/
+
+# Nightly seccion
+echo "IS_NIGHTLY" $IS_NIGHTLY
+if [ $IS_NIGHTLY == "true" ]; then
+      NIGHTLY="-nightly"
+fi
+
+conda build -c editha$NIGHTLY -c rapidsai$NIGHTLY -c conda-forge -c defaults --python=$PYTHON conda/recipes/pyBlazing/
 
