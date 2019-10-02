@@ -13,7 +13,7 @@ build:
     string: cuda{{ cuda_version + '_py' + py_version + '_' + git_revision_count }}
 
 source:
-    path: ../../../
+    path: ../../..
 
 requirements:
     build:
@@ -24,7 +24,7 @@ requirements:
         - cudf
         - pip
         - cudatoolkit
-        - blazingsql-protocol
+        - blazingsql-protocol {{ minor_version }}.*
         - nvstrings
         - rmm
         - dask-cudf
@@ -37,7 +37,7 @@ requirements:
         - cudf
         - pip
         - cudatoolkit
-        - blazingsql-protocol
+        - blazingsql-protocol {{ minor_version }}.*
         - nvstrings
         - rmm
         - dask-cudf
