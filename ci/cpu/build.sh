@@ -20,6 +20,12 @@ cd $WORKSPACE
 export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
+# Nightly seccion
+echo "IS_NIGHTLY" $IS_NIGHTLY
+if [ $IS_NIGHTLY == "true" ]; then
+    NIGHTLY="-nightly"
+fi
+
 ################################################################################
 # SETUP - Check environment
 ################################################################################

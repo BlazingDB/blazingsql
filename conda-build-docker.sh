@@ -1,6 +1,6 @@
 #!/bin/bash
-# usage:   ./conda-build-docker.sh cuda_version python_version
-# example: ./conda-build-docker.sh 9.2|10.0 3.6|3.7
+# usage:   ./conda-build-docker.sh cuda_version python_version token nightly
+# example: ./conda-build-docker.sh 9.2|10.0 3.6|3.7 123 true
 export WORKSPACE=$PWD
 
 CUDA_VERSION="9.2"
