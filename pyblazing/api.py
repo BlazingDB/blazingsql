@@ -25,14 +25,15 @@ from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, Fi
 from blazingdb.protocol.interpreter import InterpreterMessage
 from blazingdb.protocol.orchestrator import OrchestratorMessageType, NodeTableSchema
 from blazingdb.protocol.gdf import gdf_columnSchema
+from blazingdb.messages.blazingdb.protocol.gdf.gdf_time_unit import gdf_time_unit
 
 import pyarrow as pa
-from cudf.bindings.cudf_cpp import *
+from cudf._lib.cudf import *
 
-from cudf.dataframe.string import StringColumn
+from cudf.core.dataframe import StringColumn
 from cudf import DataFrame
-from cudf.dataframe.buffer import Buffer
-from cudf.dataframe.columnops import build_column
+from cudf.core.buffer import Buffer
+from cudf.core.column.column import build_column
 from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
 
 import numpy as np
@@ -752,6 +753,15 @@ def get_np_dtype_to_gdf_dtype(dtype):
     }
     return dtypes[dtype]
 
+def get_gdf_timeunit_to_np_dtype(time_unit):
+    time_unit_to_dtype_map = {
+        gdf_time_unit.TIME_UNIT_s: np.dtype('datetime64[s]'),
+        gdf_time_unit.TIME_UNIT_ms: np.dtype('datetime64[ms]'),
+        gdf_time_unit.TIME_UNIT_us: np.dtype('datetime64[us]'),
+        gdf_time_unit.TIME_UNIT_ns: np.dtype('datetime64[ns]')
+    }
+    return time_unit_to_dtype_map[time_unit]
+
 def get_dtype_values(dtypes):
     values = []
     def gdf_type(type_name):
@@ -887,6 +897,8 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
 
         if c.dtype == gdf_dtype.GDF_DATE64:
             np_dtype = np.dtype('datetime64[ms]')
+        elif c.dtype == gdf_dtype.GDF_TIMESTAMP:
+            np_dtype = get_gdf_timeunit_to_np_dtype(c.dtype_info.time_unit)
         else:
             np_dtype = gdf_to_np_dtype(c.dtype)
 
@@ -1150,8 +1162,7 @@ def run_query_get_concat_results(metaToken, startTime):
     return _run_query_get_concat_results(metaToken, startTime)
 
 
-def _run_query_get_concat_results(distMetaToken, startTime):
-    from cudf.multi import concat
+    from cudf import concat
 
     client = _get_client()
 
