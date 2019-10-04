@@ -8,8 +8,6 @@ pipeline {
   }
 
   parameters {
-    string(name: 'BRANCH', defaultValue: 'develop', description: 'Branch from compile')
-
     choice(name: 'CUDA_VERSION', choices: '10.0\n9.2', description: 'Cuda Version')
     booleanParam(name: 'IS_NIGHTLY', defaultValue: false, description: 'If is true use blazingsql-nightly channel')
     choice(name: 'PYTHON_VERSION', choices: '3.7\n3.6', description: 'Python Version')
