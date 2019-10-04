@@ -136,9 +136,13 @@ class BlazingContext(object):
         else:
             return self.client.ping()
 
-    def shutdown(self):
+    def shutdown(self, process_names=None):
+        if (process_names is not None):
+            self.client.call_shutdown(process_names)
+
         if (self.processes is not None):
-            self.client.call_shutdown(list(self.processes.keys()))
+            if (process_names is None):
+                self.client.call_shutdown(list(self.processes.keys()))
             time.sleep(1) # lets give it a sec before we guarantee the processes are shutdown
             for process in list(self.processes.values()): # this should not be necessary, but it guarantees that the processes are shutdown
                 if (process is not None):
