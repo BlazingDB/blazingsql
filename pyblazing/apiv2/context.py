@@ -13,6 +13,7 @@ import time
 import socket, errno
 import subprocess
 import os
+import re
 
 
 def checkSocket(socketNum):
@@ -32,11 +33,12 @@ def checkSocket(socketNum):
     return socket_free
 
 
-def runEngine(network_interface = 'lo', processes = None):
+def runEngine(network_interface='lo', processes=None, orchestrator_ip='127.0.0.1', orchestrator_port='9100'):
     process = None
     devnull = open(os.devnull, 'w')
     if(checkSocket(9001)):
-        process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface], stdout = devnull, stderr = devnull)
+        process = subprocess.Popen(['blazingsql-engine', '1', '0' , orchestrator_ip, orchestrator_port, '127.0.0.1', '9001', '8891', network_interface],
+                                   stdout=devnull, stderr=devnull)
     else:
         print("WARNING: blazingsql-engine was not automativally started, its probably already running")
 
@@ -45,8 +47,9 @@ def runEngine(network_interface = 'lo', processes = None):
     return processes
 
 
-def setupDask(dask_client):
-    dask_client.run(runEngine,network_interface = 'eth0', processes = None)
+def setupDask(dask_client, network_interface='eth0', orchestrator_port='9100'):
+    orchestrator_ip = re.findall(r'(?:\d+\.){3}\d+', dask_client.scheduler_info().get('address'))[0]
+    dask_client.run(runEngine, network_interface, processes=None, orchestrator_ip=orchestrator_ip, orchestrator_port=orchestrator_port)
 
 
 def runAlgebra(processes = None):
@@ -103,7 +106,8 @@ class BlazingContext(object):
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
                 time.sleep(1)  # lets the orchestrator start before we start the other processes
-            setupDask(dask_client)
+            setupDask(dask_client, network_interface)
+            time.sleep(2)
             if run_algebra:
                 processes = runAlgebra(processes=processes)
                 time.sleep(3) # lets the engine and algebra processes start before we continue
@@ -163,7 +167,11 @@ class BlazingContext(object):
 
     # remove
     def create_table(self, table_name, input, **kwargs):
-        ds = build_datasource(self.client, input, table_name, **kwargs)
+        ds = build_datasource(self.client,
+                              input,
+                              table_name,
+                              dask_client=self.dask_client,
+                              **kwargs)
         table = self.sqlObject.create_table(ds)
 
         return table
@@ -180,11 +188,21 @@ class BlazingContext(object):
     # END SQL interface
 
 
-def make_context(connection = 'localhost:8889'):
+def make_context(connection='localhost:8889',
+                 dask_client=None,
+                 network_interface='lo',
+                 run_orchestrator=True,
+                 run_algebra=True,
+                 run_engine=True):
     """
     :param connection: BlazingSQL cluster URL to connect to
            (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
     """
-    bc = BlazingContext(connection)
+    bc = BlazingContext(connection,
+                        dask_client=dask_client,
+                        network_interface=network_interface,
+                        run_orchestrator=run_orchestrator,
+                        run_algebra=run_algebra,
+                        run_engine=run_engine)
     return bc
 
