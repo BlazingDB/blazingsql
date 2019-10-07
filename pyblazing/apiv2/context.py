@@ -32,11 +32,11 @@ def checkSocket(socketNum):
     return socket_free
 
 
-def runEngine(network_interface = 'lo', processes = None):
+def runEngine(network_interface = 'lo', processes = None, orchestrator_ip = '127.0.0.1', orchestrator_port=9100):
     process = None
     devnull = open(os.devnull, 'w')
     if(checkSocket(9001)):
-        process = subprocess.Popen(['blazingsql-engine', '1', '0' , '127.0.0.1', '9100', '127.0.0.1', '9001', '8891', network_interface], stdout = devnull, stderr = devnull)        
+        process = subprocess.Popen(['blazingsql-engine', '1', '0' , orchestrator_ip, str(orchestrator_port), '127.0.0.1', '9001', '8891', network_interface], stdout = devnull, stderr = devnull)        
     else:
         print("WARNING: blazingsql-engine was not automativally started, its probably already running")
 
@@ -45,8 +45,8 @@ def runEngine(network_interface = 'lo', processes = None):
     return processes
 
 
-def setupDask(dask_client):
-    dask_client.run(runEngine,network_interface = 'eth0', processes = None)
+def setupDask(dask_client, network_interface = 'eth0', orchestrator_ip = '127.0.0.1', orchestrator_port=9100):
+    dask_client.run(runEngine,network_interface = network_interface, processes = None, orchestrator_ip=orchestrator_ip, orchestrator_port=orchestrator_port)
 
 
 def runAlgebra(processes = None):
@@ -89,7 +89,7 @@ def waitForPingSuccess(client):
 
 class BlazingContext(object):
 
-    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = 'lo', leave_processes_running = False):
+    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = None, leave_processes_running = False, orchestrator_ip = None, orchestrator_port = None):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -99,6 +99,8 @@ class BlazingContext(object):
             processes = {}
 
         if(dask_client is None):
+            if network_interface is None:
+                network_interface = 'lo'
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
             if run_engine:
@@ -106,9 +108,11 @@ class BlazingContext(object):
             if run_algebra:
                 processes = runAlgebra(processes = processes)            
         else:
+            if network_interface is None:
+                network_interface = 'eth0'
             if run_orchestrator:
                 processes = runOrchestrator(processes = processes)
-            setupDask(dask_client)
+            setupDask(dask_client, network_interface)
             if run_algebra:
                 processes = runAlgebra(processes=processes)                
 
