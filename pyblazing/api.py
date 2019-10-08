@@ -305,10 +305,10 @@ def _make_default_csv_arg(**kwargs):
 # END DataSource internal utils
 
 # connection_path is a ip/host when tcp and can be unix socket when ipc
-def _send_request(connection_path, connection_port, requestBuffer):
+def _send_request(connection_path, connection_port, requestBuffer, expect_response=True):
     connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
     client = blazingdb.protocol.Client(connection)
-    return client.send(requestBuffer)
+    return client.send(requestBuffer, expect_response)
 
 class Singleton(type):
     _instances = {}
@@ -362,7 +362,6 @@ class PyConnector(metaclass=Singleton):
         responsePayload = blazingdb.protocol.orchestrator.AuthResponseSchema.From(
             response.payload)
 
-        print('connection established')
         self._accessToken = responsePayload.accessToken
 
     def close_connection(self):
@@ -558,6 +557,41 @@ class PyConnector(metaclass=Singleton):
             raise RuntimeError(queryResult.metadata.message.decode('utf-8'))
 
         return queryResult
+
+    def ping(self):
+        try:
+            response = self.run_system_command("ping", expect_response=True)
+            if (response == "ping"):
+                return True
+            else:
+                return False
+        except Exception as ex:
+            return False
+
+    def call_shutdown(self, process_names):
+        command = 'shutdown'
+        for key in process_names:
+            command = command + " " + key
+
+        self.run_system_command(command, expect_response=False)        
+
+    
+    def run_system_command(self, command, expect_response):
+        systemCommandSchema = blazingdb.protocol.orchestrator.BuildSystemCommandRequestSchema(command = command)
+
+        requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.SystemCommand, self._accessToken, systemCommandSchema)
+        responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer, expect_response)
+        if (expect_response):
+            response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+
+            if response.status == Status.Error:
+                errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
+                raise RuntimeError(errorResponse.errors.decode("utf-8"))
+
+            system_command_response = blazingdb.protocol.orchestrator.SystemCommandResponseSchema.From(response.payload)
+            response = system_command_response.response.decode("utf-8")
+            return response
+        
 
 
 def _get_client():
