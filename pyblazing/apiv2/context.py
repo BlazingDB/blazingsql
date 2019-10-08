@@ -151,8 +151,9 @@ class BlazingContext(object):
             if run_orchestrator:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
                 processes = runOrchestrator(processes = processes, log_path = path)
-            path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_engine")
-            setupDask(dask_client, network_interface=network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
+            if run_engine:
+                path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_engine")
+                setupDask(dask_client, network_interface=network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
             if run_algebra:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_algebra")
                 processes = runAlgebra(processes=processes, log_path = path)
@@ -182,13 +183,17 @@ class BlazingContext(object):
             return self.client.ping()
 
     def shutdown(self, process_names=None):
-        if (process_names is not None):
-            self.client.call_shutdown(process_names)
 
-        if (self.processes is not None):
-            if (process_names is None):
-                self.client.call_shutdown(list(self.processes.keys()))
+        if process_names is None:
+            process_names = list(self.processes.keys())
+            if self.dask_client is not None:
+                process_names.append("engine")
+
+        if process_names is not None:
+            self.client.call_shutdown(process_names)
             time.sleep(1) # lets give it a sec before we guarantee the processes are shutdown
+
+        if self.processes is not None:
             for process in list(self.processes.values()): # this should not be necessary, but it guarantees that the processes are shutdown
                 if (process is not None):
                     process.terminate()
