@@ -1,3 +1,8 @@
+import time
+import re
+
+from collections import OrderedDict
+
 import cudf as gd
 
 from collections import namedtuple
@@ -16,9 +21,9 @@ from blazingdb.protocol.transport.channel import ResponseErrorSchema
 from blazingdb.protocol.orchestrator import OrchestratorMessageType
 from blazingdb.protocol.io  import FileSystemRegisterRequestSchema, FileSystemDeregisterRequestSchema
 from blazingdb.protocol.io import DriverType, FileSystemType, EncryptionType, FileSchemaType
- 
+
 from blazingdb.protocol.interpreter import InterpreterMessage
-from blazingdb.protocol.orchestrator import OrchestratorMessageType
+from blazingdb.protocol.orchestrator import OrchestratorMessageType, NodeTableSchema
 from blazingdb.protocol.gdf import gdf_columnSchema
 from blazingdb.messages.blazingdb.protocol.gdf.gdf_time_unit import gdf_time_unit
 
@@ -34,9 +39,7 @@ from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
 import numpy as np
 import pandas as pd
 
-import time
 import nvstrings
-from collections import OrderedDict
 
 # NDarray device helper
 from numba import cuda
@@ -320,12 +323,16 @@ class PyConnector(metaclass=Singleton):
         self._orchestrator_path = '127.0.0.1'
         self._orchestrator_port = 8889
         self._accessToken = None
+        self.is_dask = False
 
     def __del__(self):
-        try:
-            self.close_connection()
-        except:
-            pass
+        if not self.is_dask:
+            try:
+                self.close_connection()
+            except:
+                pass
+        else:
+            self.is_dask = False
 
     def connect(self, orchestrator_path, orchestrator_port):
         # TODO find a way to print only for debug mode (add verbose arg)
@@ -382,7 +389,19 @@ class PyConnector(metaclass=Singleton):
     def is_connected(self):
         return self._accessToken is not None
 
-    def run_ddl_create_table(self, tableName, columnNames, columnTypes, dbName, schemaType, blazing_table, files, resultToken, csv_args, jsonLines, orc_args):
+    def run_ddl_create_table(self,
+                             tableName,
+                             columnNames,
+                             columnTypes,
+                             dbName,
+                             schemaType,
+                             blazing_table,
+                             files,
+                             resultToken,
+                             csv_args,
+                             jsonLines,
+                             orc_args,
+                             daskTables):
 
         dmlRequestSchema = blazingdb.protocol.orchestrator.BuildDDLCreateTableRequestSchema(name=tableName,
                                                                                        dbName=dbName,
@@ -417,7 +436,8 @@ class PyConnector(metaclass=Singleton):
                                                                                        orcStripe=orc_args.stripe,
                                                                                        orcSkipRows=orc_args.skip_rows,
                                                                                        orcNumRows=orc_args.num_rows,
-                                                                                       orcUseIndex=orc_args.use_index)
+                                                                                       orcUseIndex=orc_args.use_index,
+                                                                                       daskTables=daskTables)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.DDL_CREATE_TABLE,
                                                                                self._accessToken, dmlRequestSchema)
@@ -579,7 +599,7 @@ def _get_client():
 
 class ResultSetHandle:
 
-    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message, total_nodes, n_crashed_nodes):
+    def __init__(self, columns, columnTokens, resultToken, interpreter_path, interpreter_port, handle, client, calciteTime, ralTime, totalTime, error_message, total_nodes, n_crashed_nodes, is_dask=False):
         self.columns = columns
         self.columnTokens = columnTokens
 
@@ -608,14 +628,17 @@ class ResultSetHandle:
         self.totalTime = totalTime
         self.error_message = error_message
         self.total_nodes =  total_nodes
-        self.n_crashed_nodes = n_crashed_nodes 
+        self.n_crashed_nodes = n_crashed_nodes
+        self.is_dask = is_dask
 
     def __del__(self):
         for key in self._buffer_ids:
             dataColumnTokens.pop(key, None)
             validColumnTokens.pop(key, None)
 
-        if self.handle is not None:
+        # TODO: Create a type (class hierarchy) for result handles of dask_cudf
+        #       and remove `is_dask` member
+        if (self.handle is not None) and (not self.is_dask):
             for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
             del self.handle
@@ -623,7 +646,7 @@ class ResultSetHandle:
                 self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
             except:
                 pass
-                
+
 
 
     def __str__(self):
@@ -1003,7 +1026,7 @@ def _run_query_get_results(distMetaToken, startTime):
     totalTime = 0
     total_nodes = 1
     n_crashed_nodes = 0
-            
+
     result_list = []
     for result in distMetaToken:
         try:
@@ -1011,32 +1034,32 @@ def _run_query_get_results(distMetaToken, startTime):
                                                         result.nodeConnection.path.decode('utf8'),
                                                         result.nodeConnection.port,
                                                         result.calciteTime)
-            
+
             totalTime = (time.time() - startTime) * 1000  # in milliseconds
-            
+
             result_list.append({'result': result, 'resultSet': resultSet, 'ipchandles': ipchandles, 'totalTime':totalTime, 'error_message':''})
-            
+
         except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
             error_message = error
         except Error as error:
             error_message = str(error)
         except Exception as error:
             error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
-            
+
         if error_message is not '':
             print(error_message)
             result_list.append({'result': result, 'resultSet': None, 'ipchandles': None, 'totalTime':0, 'error_message':error_message})
-                    
-        if error_message is not '':            
+
+        if error_message is not '':
             print(error_message)
-            n_crashed_nodes = n_crashed_nodes + 1 
+            n_crashed_nodes = n_crashed_nodes + 1
 
     result_set_list = []
-    
+
     for result in result_list:
         if result['error_message'] is not '':
             result_set_list.append(ResultSetHandle(None,
-                                                   None, 
+                                                   None,
                                                    result['result'].resultToken,
                                                    result['result'].nodeConnection.path.decode('utf8'),
                                                    result['result'].nodeConnection.port,
@@ -1135,7 +1158,7 @@ def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTim
     resultSet.columns = gdf
     return resultSet, ipchandles
 
-def convert_result_msg(metaToken,connection):
+def convert_result_msg(metaToken, connection, is_dask=False):
 
     resultSet, ipchandles = _get_result_dask(metaToken[0].resultToken,"127.0.0.1",8891,0,connection)
 
@@ -1148,29 +1171,32 @@ def convert_result_msg(metaToken,connection):
                            result['result'].resultToken,
                            result['result'].nodeConnection.path.decode('utf8'),
                            result['result'].nodeConnection.port,
-                                               result['ipchandles'],
-                                               connection,
-                                               result['result'].calciteTime,
-                                               result['resultSet'].metadata.time,
-                                               totalTime,
-                                               '',
-                                               1,
-                                               0
-                                               )
+                           result['ipchandles'],
+                           connection,
+                           result['result'].calciteTime,
+                           result['resultSet'].metadata.time,
+                           totalTime,
+                           '',
+                           1,  # TODO: Use connection to get total_nodes
+                           0,  # and n_crashed_nodes
+                           is_dask=is_dask)
 
 
-def convert_to_dask(metaToken,connection):
-    result_set = convert_result_msg(metaToken,connection)
-    gdf = result_set.columns.copy(deep=True)
-    if not hasattr(gdf, '_meta'):
-        setattr(gdf, '_meta', gdf.iloc[:0])
-    return gdf
+def convert_to_dask(metaToken, connection):
+    if metaToken:  # TODO: check why metaToken can equals None (check RAL)
+        connection.is_dask = True  # TODO(gcca, percy): go to pyconnector and rewrite is_dask
+        result_set = convert_result_msg(metaToken, connection, True)
+        gdf = result_set.columns.copy(deep=True)
+        if not hasattr(gdf, '_meta'):
+            setattr(gdf, '_meta', gdf.iloc[:0])
+        return gdf
+
 
 def run_query_get_concat_results(metaToken, startTime):
     return _run_query_get_concat_results(metaToken, startTime)
 
-def _run_query_get_concat_results(distMetaToken, startTime):
 
+def _run_query_get_concat_results(distMetaToken, startTime):
     from cudf import concat
 
     client = _get_client()
@@ -1182,8 +1208,8 @@ def _run_query_get_concat_results(distMetaToken, startTime):
     sum_ral_time = 0
     sum_total_time = 0
     total_nodes = 0
-    n_crashed_nodes = 0 
-    
+    n_crashed_nodes = 0
+
     for result in distMetaToken:
         ral_count = ral_count + 1
         error_message = ''
@@ -1195,11 +1221,11 @@ def _run_query_get_concat_results(distMetaToken, startTime):
                                                         result.calciteTime)
 
             totalTime = (time.time() - startTime) * 1000  # in milliseconds
-            
+
             sum_calcite_time = sum_calcite_time + result.calciteTime
             sum_ral_time =  sum_ral_time  + resultSet.metadata.time
             sum_total_time =  sum_total_time + totalTime
-            
+
             result_list.append(resultSet)
         except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
             error_message = error
@@ -1207,21 +1233,21 @@ def _run_query_get_concat_results(distMetaToken, startTime):
             error_message = str(error)
         except Exception as error:
             error_message = "Unexpected error on " + _run_query_get_results.__name__ + ", " + str(error)
-    
+
         total_nodes = total_nodes + 1
-        
-        if error_message is not '':            
+
+        if error_message is not '':
             print(error_message)
             all_error_messages = all_error_messages + " Node " + str(ral_count) + ":" + str(error_message)
             n_crashed_nodes = n_crashed_nodes + 1
-            
+
     need_to_concat = sum([len(result.columns) > 0 for result in result_list]) > 1
 
     gdf =  None
-    
+
     if (need_to_concat):
         all_gdfs = [result.columns for result in result_list]
-        gdf =  concat(all_gdfs, ignore_index=True)        
+        gdf =  concat(all_gdfs, ignore_index=True)
     else:
         for result in result_list:  # if we dont need to concatenate, likely we only have one, or only one that has data
             if (len(result.columns) > 0): # this is the one we want to return, but we need to deep copy it first. We only need to deepcopy the non strings.
@@ -1245,7 +1271,7 @@ def _run_query_get_concat_results(distMetaToken, startTime):
                                        n_crashed_nodes  #n_crashed_nodes
                                        )
 
-    return resultSetHandle 
+    return resultSetHandle
 
 
 
@@ -1260,14 +1286,6 @@ import numpy as np
 import pandas as pd
 import pyblazing
 
-class SchemaFrom:
-    CsvFile = 0
-    ParquetFile = 1
-    Gdf = 2
-    Distributed = 3
-    JsonFile = 4
-    OrcFile = 5
-
 
 #cambiar para success or failed
 def create_table(tableName, **kwargs):
@@ -1278,6 +1296,7 @@ def create_table(tableName, **kwargs):
     dbName = 'main'
     schemaType = kwargs.get('type', None)
     gdf = kwargs.get('gdf', None)
+    dask_cudf = kwargs.get('dask_cudf', None)
     files = kwargs.get('path', [])
     resultToken = kwargs.get('resultToken', 0)
     csv_args = kwargs.get('csv_args', None)
@@ -1292,6 +1311,12 @@ def create_table(tableName, **kwargs):
     else:
         blazing_table = gdf_to_BlazingTable(gdf)
 
+    if dask_cudf is None:
+        dask_tables = []
+    else:
+        dask_client = kwargs['dask_client']
+        dask_tables = dask_cudf_to_BlazingDaskTable(dask_cudf, dask_client)
+
     if (len(columnTypes) > 0):
         columnTypes = gdf_dtypes_to_gdf_dtype_strs(columnTypes)
 
@@ -1304,8 +1329,18 @@ def create_table(tableName, **kwargs):
 
     try:
         client = _get_client()
-        return_result = client.run_ddl_create_table(tableName,columnNames,columnTypes,
-                        dbName,schemaType,blazing_table,files,resultToken,csv_args,jsonLines,orc_args)
+        return_result = client.run_ddl_create_table(tableName,
+                                                    columnNames,
+                                                    columnTypes,
+                                                    dbName,
+                                                    schemaType,
+                                                    blazing_table,
+                                                    files,
+                                                    resultToken,
+                                                    csv_args,
+                                                    jsonLines,
+                                                    orc_args,
+                                                    dask_tables)
 
     except (SyntaxError, RuntimeError, ValueError, ConnectionRefusedError, AttributeError) as error:
         error_message = error
@@ -1322,6 +1357,64 @@ def create_table(tableName, **kwargs):
     return return_result
 
 
+def get_machine_and_blazing_table(partition):
+    return socket.gethostname(), gdf_to_BlazingTable(gdf)
+
+
+def columnSchemaFrom(dask_column):
+    from blazingdb.protocol.gdf import (cudaIpcMemHandle_tSchema,
+                                        gdf_dtype_extra_infoSchema,
+                                        custringsData_tSchema,
+                                        gdf_columnSchema)
+
+    raw_data = dask_column['data']
+    data = cudaIpcMemHandle_tSchema(reserved=raw_data if raw_data else b'')
+
+    raw_valid = dask_column['valid']
+    valid = cudaIpcMemHandle_tSchema(reserved=raw_valid if raw_valid else b'')
+
+    raw_custrings_data = (dask_column['custrings_data']
+                          if 'custrings_data' in dask_column
+                          else None)
+    custrings_data = custringsData_tSchema(
+        reserved=raw_custrings_data if raw_custrings_data else b'')
+
+    dtype_info = gdf_dtype_extra_infoSchema(time_unit=0)
+
+    return gdf_columnSchema(data=data,
+                            valid=valid,
+                            size=dask_column['size'],
+                            dtype=dask_column['dtype'],
+                            dtype_info=dtype_info,
+                            null_count=dask_column['null_count'],
+                            custrings_data=custrings_data)
+
+
+def tableSchemaFrom(dask_cudf):
+    from blazingdb.protocol.orchestrator import BlazingTableSchema
+    return BlazingTableSchema(columns=[columnSchemaFrom(dask_column)
+                                       for dask_column in dask_cudf['columns']],
+                              columnTokens=dask_cudf['columnTokens'],
+                              resultToken=dask_cudf['resultToken'])
+
+
+def dask_cudf_to_BlazingDaskTable(dask_cudf, dask_client):
+    persisted_cudf = dask_cudf
+
+    distributedBlazingTables = persisted_cudf.map_partitions(
+        gdf_to_BlazingTable).compute()
+
+    who_has = dask_client.who_has()
+    ips = [re.findall(r'(?:\d+\.){3}\d+', who_has[str(k)][0])[0]
+           for k in dask_cudf.dask.keys()]
+
+    dask_cudf_ret = [NodeTableSchema(ip=p[0], gdf=tableSchemaFrom(p[1]))
+                     for p in zip(ips, distributedBlazingTables)]
+
+    return dask_cudf_ret
+
+
+
 def register_file_system(authority, type, root, params = None):
     if params is not None:
         params = namedtuple("FileSystemConnection", params.keys())(*params.values())
@@ -1336,6 +1429,7 @@ def register_file_system(authority, type, root, params = None):
         raise RuntimeError(ResponseErrorSchema.From(response.payload).errors)
     return response.status
 
+
 def deregister_file_system(authority):
     schema = FileSystemDeregisterRequestSchema(authority)
     client = _get_client()
@@ -1347,6 +1441,7 @@ def deregister_file_system(authority):
     if response.status == Status.Error:
         raise RuntimeError(ResponseErrorSchema.From(response.payload).errors)
     return response.status
+
 
 def _create_dummy_table_group():
     database_name = 'main'
@@ -1379,7 +1474,7 @@ def scan_datasource(directory, wildcard):
     return_result = None
     error_message = ''
     files = None
-    
+
     try:
         client = _get_client()
         files = client.run_scan_datasource(directory, wildcard)

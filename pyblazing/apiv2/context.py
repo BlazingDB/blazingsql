@@ -14,6 +14,7 @@ import datetime
 import socket, errno
 import subprocess
 import os
+import re
 
 
 def checkSocket(socketNum):
@@ -52,7 +53,9 @@ def runEngine(processes = None, network_interface = 'lo', orchestrator_ip = '127
     return processes
 
 
-def setupDask(dask_client, network_interface = 'eth0', orchestrator_ip = '127.0.0.1', orchestrator_port=9100, log_path=None):
+def setupDask(dask_client, network_interface = 'eth0', orchestrator_ip = None, orchestrator_port=9100, log_path=None):
+    if (orchestrator_ip is None):
+        orchestrator_ip = re.findall(r'(?:\d+\.){3}\d+', dask_client.scheduler_info().get('address'))[0]
     dask_client.run(runEngine, processes = None, network_interface = network_interface, orchestrator_ip=orchestrator_ip, orchestrator_port=orchestrator_port, log_path = log_path)
 
 
@@ -109,7 +112,7 @@ def waitForPingSuccess(client):
 
 class BlazingContext(object):
 
-    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = None, leave_processes_running = False, orchestrator_ip = '127.0.0.1', orchestrator_port=9100, logs_destination = None):
+    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = None, leave_processes_running = False, orchestrator_ip = None, orchestrator_port=9100, logs_destination = None):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -137,6 +140,9 @@ class BlazingContext(object):
         if(dask_client is None):
             if network_interface is None:
                 network_interface = 'lo'
+            if orchestrator_ip is None:
+                orchestrator_ip = '127.0.0.1'
+
             if run_orchestrator:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
                 processes = runOrchestrator(processes = processes, log_path = path)
@@ -149,6 +155,7 @@ class BlazingContext(object):
         else:
             if network_interface is None:
                 network_interface = 'eth0'
+                
             if run_orchestrator:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
                 processes = runOrchestrator(processes = processes, log_path = path)
@@ -235,7 +242,11 @@ class BlazingContext(object):
 
     # remove
     def create_table(self, table_name, input, **kwargs):
-        ds = build_datasource(self.client, input, table_name, **kwargs)
+        ds = build_datasource(self.client,
+                              input,
+                              table_name,
+                              dask_client=self.dask_client,
+                              **kwargs)
         table = self.sqlObject.create_table(ds)
 
         return table
@@ -252,11 +263,21 @@ class BlazingContext(object):
     # END SQL interface
 
 
-def make_context(connection = 'localhost:8889'):
+def make_context(connection='localhost:8889',
+                 dask_client=None,
+                 network_interface='lo',
+                 run_orchestrator=True,
+                 run_algebra=True,
+                 run_engine=True):
     """
     :param connection: BlazingSQL cluster URL to connect to
            (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
     """
-    bc = BlazingContext(connection)
+    bc = BlazingContext(connection,
+                        dask_client=dask_client,
+                        network_interface=network_interface,
+                        run_orchestrator=run_orchestrator,
+                        run_algebra=run_algebra,
+                        run_engine=run_engine)
     return bc
 
