@@ -65,7 +65,8 @@ def runAlgebra(processes = None, log_path=None):
         process_stderr = open(os.devnull, 'w')
 
     process = None    
-    if(checkSocket(8890)):
+    # if(checkSocket(8890)):
+    if True:  # the socket for some reason stays supposedly in use for 60 sec after calcite closes. So we will stop checking for now. If you launch calcite and its already running it will timeout after about 10 sec
         if(os.getenv("CONDA_PREFIX") == None):
             process = subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
