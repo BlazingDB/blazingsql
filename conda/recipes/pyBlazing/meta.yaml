@@ -25,10 +25,10 @@ requirements:
         - pip
         - cudatoolkit
         - blazingsql-protocol {{ minor_version }}.*
-        - libcudf=0.10
-        - nvstrings=0.10
+        - libcudf
+        - nvstrings
         - rmm
-        - dask-cudf=0.10
+        - dask-cudf
         - dask
         - cudatoolkit {{ cuda_version }}.*
         - cmake
@@ -39,10 +39,10 @@ requirements:
         - pip
         - cudatoolkit
         - blazingsql-protocol {{ minor_version }}.*
-        - libcudf=0.10
-        - nvstrings=0.10
+        - libcudf
+        - nvstrings
         - rmm
-        - dask-cudf=0.10
+        - dask-cudf
         - dask
         - cmake
        
