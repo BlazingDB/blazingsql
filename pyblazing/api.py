@@ -1245,7 +1245,7 @@ def _run_query_get_concat_results(distMetaToken, startTime):
 
     gdf =  None
 
-    if (need_to_concat):
+    if need_to_concat or total_nodes > 1:
         all_gdfs = [result.columns for result in result_list]
         gdf =  concat(all_gdfs, ignore_index=True)
     else:
