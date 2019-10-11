@@ -311,7 +311,7 @@ class DataSource:
     def _load_distributed_result_set(self, distributed_result_set):
         print(distributed_result_set)
         return_result = internal_api.create_table(
-            self.client,
+            self._client,
             self._table_name,
             type = internal_api.FileSchemaType.DISTRIBUTED,
             resultToken = distributed_result_set[0].resultToken
