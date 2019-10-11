@@ -47,6 +47,7 @@ requirements:
         - cmake
         - maven
         - zeromq
+        - cppzmq
     run:
         - python
         - cudf
@@ -75,6 +76,7 @@ requirements:
         - cmake
         - maven
         - zeromq
+        - cppzmq
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
