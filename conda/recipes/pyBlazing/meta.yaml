@@ -25,6 +25,7 @@ requirements:
         - pip
         - cudatoolkit
         - blazingsql-protocol {{ minor_version }}.*
+        - libcudf
         - nvstrings
         - rmm
         - dask-cudf
@@ -38,6 +39,7 @@ requirements:
         - pip
         - cudatoolkit
         - blazingsql-protocol {{ minor_version }}.*
+        - libcudf
         - nvstrings
         - rmm
         - dask-cudf

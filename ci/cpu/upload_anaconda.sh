@@ -15,4 +15,13 @@ fi
 test -e ${PYBLAZING_FILE}
 echo "Upload pyblazing"
 echo ${PYBLAZING_FILE}
-anaconda -t ${MY_UPLOAD_KEY} upload -u blazingsql ${LABEL_OPTION} --force ${PYBLAZING_FILE}
+
+
+# Nightly seccion
+echo "IS_NIGHTLY" $IS_NIGHTLY
+if [ $IS_NIGHTLY == "true" ]; then
+      NIGHTLY="-nightly"
+fi
+
+anaconda -t ${MY_UPLOAD_KEY} upload -u blazingsql$NIGHTLY ${LABEL_OPTION} --force ${PYBLAZING_FILE}
+
