@@ -20,6 +20,25 @@ cd $WORKSPACE
 export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
+# Nightly seccion
+echo "IS_NIGHTLY" $IS_NIGHTLY
+if [ $IS_NIGHTLY == "true" ]; then
+      NIGHTLY="-nightly"
+     # CUDF="cudf=0.10"
+
+      libcudf="libcudf=0.10.0a191009"
+      nvstrings="nvstrings=0.10.0a191009"
+      rmm="rmm=0.10.0a191009"
+      daskcudf="dask-cudf=0.10.0a191009"
+      #Replazing cudf version
+
+      echo "Replacing cudf version into meta.yaml"
+      sed -ie "s/libcudf/$libcudf/g" conda/recipes/pyBlazing/meta.yaml
+      sed -ie "s/nvstrings/$nvstrings/g" conda/recipes/pyBlazing/meta.yaml
+      sed -ie "s/rmm/$rmm/g" conda/recipes/pyBlazing/meta.yaml
+      sed -ie "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
+fi
+
 ################################################################################
 # SETUP - Check environment
 ################################################################################
