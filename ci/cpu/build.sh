@@ -26,10 +26,10 @@ if [ $IS_NIGHTLY == "true" ]; then
       NIGHTLY="-nightly"
      # CUDF="cudf=0.10"
 
-      libcudf="libcudf=0.10.0a191009"
-      nvstrings="nvstrings=0.10.0a191009"
-      rmm="rmm=0.10.0a191009"
-      daskcudf="dask-cudf=0.10.0a191009"
+      libcudf="libcudf=0.10"
+      nvstrings="nvstrings=0.10"
+      rmm="rmm=0.10"
+      daskcudf="dask-cudf=0.10"
       #Replazing cudf version
 
       echo "Replacing cudf version into meta.yaml"
