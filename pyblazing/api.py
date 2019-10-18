@@ -789,7 +789,7 @@ def get_np_dtype_to_gdf_dtype(dtype):
 
 def get_gdf_timeunit_to_np_dtype(time_unit):
     time_unit_to_dtype_map = {
-        gdf_time_unit.TIME_UNIT_NONE: np.dtype('int32'), #default dtype
+        gdf_time_unit.TIME_UNIT_NONE: np.dtype('datetime64[ms]'), #default dtype
         gdf_time_unit.TIME_UNIT_s: np.dtype('datetime64[s]'),
         gdf_time_unit.TIME_UNIT_ms: np.dtype('datetime64[ms]'),
         gdf_time_unit.TIME_UNIT_us: np.dtype('datetime64[us]'),
@@ -919,13 +919,10 @@ def _open_ipc_array(handle, shape, dtype, strides=None, offset=0):
 def _private_get_result(resultToken, interpreter_path, interpreter_port, calciteTime):
     client = _get_client()
 
-    print("1!")
     resultSet = client._get_result(resultToken, interpreter_path, interpreter_port)
-    print("2!")
     gdf_columns = []
     ipchandles = []
     for i, c in enumerate(resultSet.columns):
-        print("3!")
         # todo: remove this if when C gdf struct is replaced by pyarrow object
         # this workaround is only for the python object. The RAL knows the column_token and will know what its dtype actually is
         if c.dtype == gdf_dtype.GDF_DATE32:
@@ -938,15 +935,12 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
         else:
             np_dtype = gdf_to_np_dtype(c.dtype)
 
-        print("4!")
-
         if c.size != 0 :
             if c.dtype == gdf_dtype.GDF_STRING:
                 new_strs = nvstrings.create_from_ipc(c.custrings_data)
                 newcol = StringColumn(new_strs)
 
                 gdf_columns.append(newcol.view(StringColumn, dtype='object'))
-                print("5!")
             else:
                 if c.dtype == gdf_dtype.GDF_STRING_CATEGORY:
                     print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
@@ -968,7 +962,6 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                     gdf_columns.append(build_column(Buffer(data_ptr), np_dtype))
                 else:
                     gdf_columns.append(build_column(Buffer(data_ptr), np_dtype, Buffer(valid_ptr)))
-            print("6!")
         else:
             if c.dtype == gdf_dtype.GDF_STRING:
                 gdf_columns.append(StringColumn(nvstrings.to_device([])))
@@ -977,14 +970,12 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
                     c.dtype = gdf_dtype.GDF_INT32
 
                 gdf_columns.append(build_column(Buffer.null(np_dtype), np_dtype))
-            print("7!")
 
-    print("8!")
     gdf = DataFrame()
     for k, v in zip(resultSet.columnNames, gdf_columns):
         assert k != "", "Column name was an empty string"
         gdf[k.decode("utf-8")] = v
-    print("9!")
+
     resultSet.columns = gdf
     return resultSet, ipchandles
 
@@ -1222,16 +1213,11 @@ def _run_query_get_concat_results(distMetaToken, startTime):
         error_message = ''
         try:
             totalTime = 0
-            print("Node: "+ str(ral_count))
-            print("Port: "+ str(result.nodeConnection.port))
-            print("Token: "+ str(result.resultToken))
 
             resultSet, ipchandles = _private_get_result(result.resultToken,
                                                         result.nodeConnection.path.decode('utf8'),
                                                         result.nodeConnection.port,
                                                         result.calciteTime)
-
-            print("Got OK")
 
             totalTime = (time.time() - startTime) * 1000  # in milliseconds
 
