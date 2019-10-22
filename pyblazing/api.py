@@ -573,9 +573,9 @@ class PyConnector(metaclass=Singleton):
         for key in process_names:
             command = command + " " + key
 
-        self.run_system_command(command, expect_response=False)        
+        self.run_system_command(command, expect_response=False)
 
-    
+
     def run_system_command(self, command, expect_response):
         systemCommandSchema = blazingdb.protocol.orchestrator.BuildSystemCommandRequestSchema(command = command)
 
@@ -591,7 +591,7 @@ class PyConnector(metaclass=Singleton):
             system_command_response = blazingdb.protocol.orchestrator.SystemCommandResponseSchema.From(response.payload)
             response = system_command_response.response.decode("utf-8")
             return response
-        
+
 
 
 def _get_client():
@@ -641,6 +641,8 @@ class ResultSetHandle:
         if (self.handle is not None) and (not self.is_dask):
             for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
+            for column in self.columns:
+                del column
             del self.handle
             try :
                 self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
@@ -922,6 +924,7 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
 
     gdf_columns = []
     ipchandles = []
+
     for i, c in enumerate(resultSet.columns):
 
         # todo: remove this if when C gdf struct is replaced by pyarrow object
@@ -938,10 +941,10 @@ def _private_get_result(resultToken, interpreter_path, interpreter_port, calcite
 
         if c.size != 0 :
             if c.dtype == gdf_dtype.GDF_STRING:
-                new_strs = nvstrings.create_from_ipc(c.custrings_data)
+                new_strs = nvstrings.create_from_ipc(c.custrings_data).copy()
                 newcol = StringColumn(new_strs)
 
-                gdf_columns.append(newcol.view(StringColumn, dtype='object'))
+                gdf_columns.append(newcol)
             else:
                 if c.dtype == gdf_dtype.GDF_STRING_CATEGORY:
                     print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
@@ -1114,10 +1117,10 @@ def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTim
 
         if c.size != 0 :
             if c.dtype == gdf_dtype.GDF_STRING:
-                new_strs = nvstrings.create_from_ipc(c.custrings_data)
+                new_strs = nvstrings.create_from_ipc(c.custrings_data).copy()
                 newcol = StringColumn(new_strs)
 
-                gdf_columns.append(newcol.view(StringColumn, dtype='object'))
+                gdf_columns.append(newcol)
             else:
                 if c.dtype == gdf_dtype.GDF_STRING_CATEGORY:
                     print("ERROR _private_get_result received a GDF_STRING_CATEGORY")
