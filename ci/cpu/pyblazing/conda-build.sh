@@ -19,5 +19,5 @@ if [ $IS_NIGHTLY == "true" ]; then
       sed -ie "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
 fi
 
-conda build -c blazingsql${NIGHTLY} -c rapidsai${NIGHTLY} -c conda-forge -c defaults --python=$PYTHON conda/recipes/pyBlazing/
+conda build -c blazingsql${NIGHTLY}/label/main/ -c rapidsai${NIGHTLY} -c conda-forge -c defaults --python=$PYTHON conda/recipes/pyBlazing/
 
