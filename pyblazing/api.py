@@ -1117,7 +1117,7 @@ def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTim
 
         if c.size != 0 :
             if c.dtype == gdf_dtype.GDF_STRING:
-                new_strs = nvstrings.create_from_ipc(c.custrings_data).copy()
+                new_strs = nvstrings.create_from_ipc(c.custrings_data)
                 newcol = StringColumn(new_strs)
 
                 gdf_columns.append(newcol)
