@@ -29,7 +29,6 @@ requirements:
         - nvstrings
         - rmm
         - dask-cudf
-        - dask
         - cudatoolkit {{ cuda_version }}.*
         - cmake
         
@@ -43,7 +42,6 @@ requirements:
         - nvstrings
         - rmm
         - dask-cudf
-        - dask
         - cmake
        
 about:
