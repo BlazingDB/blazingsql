@@ -42,9 +42,24 @@ def runEngine(processes = None, network_interface = 'lo', orchestrator_ip = '127
         process_stdout = open(os.devnull, 'w')
         process_stderr = open(os.devnull, 'w')
 
-    process = None    
+    process = None
     if(checkSocket(9001)):
-        process = subprocess.Popen(['blazingsql-engine', '1', '0' , orchestrator_ip, str(orchestrator_port), '127.0.0.1', '9001', '8891', network_interface], stdout = process_stdout, stderr = process_stderr)
+        cuda_visible_devices_value = 0
+        if 'CUDA_VISIBLE_DEVICES' in os.environ:
+            cuda_visible_devices_value = os.environ['CUDA_VISIBLE_DEVICES']
+            del os.environ['CUDA_VISIBLE_DEVICES']
+
+        process = subprocess.Popen(['blazingsql-engine',
+                                    '1',
+                                    cuda_visible_devices_value,
+                                    orchestrator_ip,
+                                    str(orchestrator_port),
+                                    '127.0.0.1',
+                                    '9001',
+                                    '8891',
+                                    network_interface],
+                                   stdout=process_stdout,
+                                   stderr=process_stderr)
     else:
         print("WARNING: blazingsql-engine was not automativally started, its probably already running")
 
@@ -67,7 +82,7 @@ def runAlgebra(processes = None, log_path=None):
         process_stdout = open(os.devnull, 'w')
         process_stderr = open(os.devnull, 'w')
 
-    process = None    
+    process = None
     # if(checkSocket(8890)):
     if True:  # the socket for some reason stays supposedly in use for 60 sec after calcite closes. So we will stop checking for now. If you launch calcite and its already running it will timeout after about 10 sec
         if(os.getenv("CONDA_PREFIX") == None):
@@ -90,7 +105,7 @@ def runOrchestrator(processes = None, log_path=None):
         process_stdout = open(os.devnull, 'w')
         process_stderr = open(os.devnull, 'w')
 
-    process = None    
+    process = None
     if(checkSocket(9100)):
         process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'], stdout = process_stdout, stderr = process_stderr)
     else:
@@ -123,15 +138,15 @@ class BlazingContext(object):
             logs_folder = logs_destination # right now logs would go into files in a folder, but evetually we can use the same variable to define a network address for logging to be sent to
             try :
                 if not os.path.isabs(logs_folder)  and os.getenv("CONDA_PREFIX") is not None:  # lets manage relative paths
-                    logs_folder = os.path.join(os.getenv("CONDA_PREFIX"), logs_folder)   
+                    logs_folder = os.path.join(os.getenv("CONDA_PREFIX"), logs_folder)
 
                 if not os.path.exists(logs_folder): # if folder does not exist, lets create it
                     os.mkdir(logs_folder)
             except Exception as error:
                 print("WARNING: could not establish logs_folder. " + str(error))
                 logs_folder = None
-        
-        timestamp_str = str(datetime.datetime.now()).replace(' ','_')        
+
+        timestamp_str = str(datetime.datetime.now()).replace(' ','_')
 
         processes = None
         if not leave_processes_running:
@@ -155,7 +170,7 @@ class BlazingContext(object):
         else:
             if network_interface is None:
                 network_interface = 'eth0'
-                
+
             if run_orchestrator:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
                 processes = runOrchestrator(processes = processes, log_path = path)
@@ -165,13 +180,13 @@ class BlazingContext(object):
             if run_algebra:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_algebra")
                 processes = runAlgebra(processes=processes, log_path = path)
-        
+
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
         orchestrator_host_ip = parse_result.hostname
         orchestrator_port = parse_result.port
         internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
-        
+
         # TODO percy handle errors (see above)
         self.connection = connection
         self.client = internal_api._get_client()
@@ -180,7 +195,7 @@ class BlazingContext(object):
         self.dask_client = dask_client
         self.processes = processes
         self.need_shutdown= not leave_processes_running
-        waitForPingSuccess(self.client)        
+        waitForPingSuccess(self.client)
         print("BlazingContext ready")
 
     def ready(self, wait=False):
@@ -206,7 +221,7 @@ class BlazingContext(object):
                 if (process is not None):
                     process.terminate()
         self.need_shutdown=False
-                    
+
 
     def __del__(self):
         if self.need_shutdown:
