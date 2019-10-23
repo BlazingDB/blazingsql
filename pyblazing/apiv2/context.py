@@ -44,10 +44,13 @@ def runEngine(processes = None, network_interface = 'lo', orchestrator_ip = '127
 
     process = None
     if(checkSocket(9001)):
-        cuda_visible_devices_value = 0
+        cuda_visible_devices_value = '0'
         if 'CUDA_VISIBLE_DEVICES' in os.environ:
             cuda_visible_devices_value = os.environ['CUDA_VISIBLE_DEVICES']
             del os.environ['CUDA_VISIBLE_DEVICES']
+
+            if -1 != cuda_visible_devices_value.find(','):
+                raise EnvironmentError('CUDA_VISIBLE_DEVICES must have only a device id')
 
         process = subprocess.Popen(['blazingsql-engine',
                                     '1',
