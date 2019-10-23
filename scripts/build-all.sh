@@ -35,6 +35,7 @@ do
       rm -r $repo
       git clone -b $branch https://github.com/BlazingDB/$repo
     else
+      git pull
       cd ..
     fi
   fi

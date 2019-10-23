@@ -1161,9 +1161,9 @@ def _get_result_dask(resultToken, interpreter_path, interpreter_port, calciteTim
     resultSet.columns = gdf
     return resultSet, ipchandles
 
-def convert_result_msg(metaToken, connection, is_dask=False):
+def convert_result_msg(metaToken, connection,workerPort, is_dask=False):
 
-    resultSet, ipchandles = _get_result_dask(metaToken[0].resultToken,"127.0.0.1",8891,0,connection)
+    resultSet, ipchandles = _get_result_dask(metaToken[0].resultToken,"127.0.0.1",workerPort,0,connection)
 
     totalTime = 0  # in milliseconds
 
@@ -1185,10 +1185,10 @@ def convert_result_msg(metaToken, connection, is_dask=False):
                            is_dask=is_dask)
 
 
-def convert_to_dask(metaToken, connection):
+def convert_to_dask(metaToken, connection,workerPort):
     if metaToken:  # TODO: check why metaToken can equals None (check RAL)
         connection.is_dask = True  # TODO(gcca, percy): go to pyconnector and rewrite is_dask
-        result_set = convert_result_msg(metaToken, connection, True)
+        result_set = convert_result_msg(metaToken, connection,workerPort, True)
         gdf = result_set.columns.copy(deep=True)
         if not hasattr(gdf, '_meta'):
             setattr(gdf, '_meta', gdf.iloc[:0])

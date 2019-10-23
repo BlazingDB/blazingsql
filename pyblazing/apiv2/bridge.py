@@ -47,8 +47,8 @@ class internal_api:
         return pyblazing.run_query_get_concat_results(metaToken, startTime)
 
     @staticmethod
-    def convert_to_dask(metaToken, connection):
-        return pyblazing.convert_to_dask(metaToken, connection)
+    def convert_to_dask(metaToken, connection,workerPort):
+        return pyblazing.convert_to_dask(metaToken, connection,workerPort)
 
     @staticmethod
     def scan_datasource(client, directory, wildcard):

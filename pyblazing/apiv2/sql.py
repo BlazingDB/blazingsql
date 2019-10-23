@@ -63,7 +63,9 @@ class ResultSet:
         else:
             dask_futures = []
             for worker in list(self.dask_client.scheduler_info()["workers"]):
-                dask_futures.append(self.dask_client.submit(internal_api.convert_to_dask, self.metaToken, self.client, workers = [worker]))
+                #a hacky way, we are setting dask-port to be 100 more than ral port
+                workerPort = int(worker[worker.rindex(':')+1:]) - 100
+                dask_futures.append(self.dask_client.submit(internal_api.convert_to_dask, self.metaToken, self.client,workerPort, workers = [worker]))
             temp = dd.from_delayed(dask_futures)
 
         return temp
