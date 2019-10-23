@@ -44,6 +44,9 @@ def runEngine(processes = None, network_interface = 'lo', orchestrator_ip = '127
 
     process = None
     if(checkSocket(9001)):
+        if not os.environ:
+            raise LookupError('Do not have os.environ support')
+
         cuda_visible_devices_value = '0'
         if 'CUDA_VISIBLE_DEVICES' in os.environ:
             cuda_visible_devices_value = os.environ['CUDA_VISIBLE_DEVICES']
