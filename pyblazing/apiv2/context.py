@@ -64,6 +64,7 @@ def runEngine(processes = None, network_interface = 'lo', orchestrator_ip = '127
                                     '9001',
                                     '8891',
                                     network_interface],
+                                   env=os.environ,
                                    stdout=process_stdout,
                                    stderr=process_stderr)
     else:
