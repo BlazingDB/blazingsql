@@ -10,7 +10,7 @@ package:
 
 build:
     number: {{ git_revision_count }}
-    string: cuda{{ cuda_version + '_py' + py_version + '_' + git_revision_count }}
+    string: py{{ py_version }}_{{ git_revision_count }}
 
 source:
     path: ../../..
@@ -21,18 +21,18 @@ requirements:
         - {{ compiler('cxx') }}
         - python
         - pip
-        - blazingsql-protocol  {{ version }}
+        - blazingsql-protocol  {{ version }}.*
         - dask-cudf
     host:
         - python
         - pip
-        - blazingsql-protocol  {{ version }}
+        - blazingsql-protocol  {{ version }}.*
         - dask-cudf
         
     run:
         - python
         - pip
-        - blazingsql-protocol  {{ version }}
+        - blazingsql-protocol  {{ version }}.*
         - dask-cudf
        
 about:
