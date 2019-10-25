@@ -41,6 +41,7 @@ class FileSystem(object):
         host = kwargs.get('host', '127.0.0.1')
         port = kwargs.get('port', 8020)
         user = kwargs.get('user', '')
+        driver = kwargs.get('driver', 'libhdfs')
         kerberos_ticket = kwargs.get('kerberos_ticket', '')
 
         fs = OrderedDict()
@@ -48,6 +49,7 @@ class FileSystem(object):
         fs['host'] = host
         fs['port'] = port
         fs['user'] = user
+        fs['driver'] = driver
         fs['kerberos_ticket'] = kerberos_ticket
 
         # TODO percy manage exceptions here ?
@@ -120,6 +122,12 @@ class FileSystem(object):
         self._verify_filesystem(prefix, fs, fs_status)
 
     def _register_hdfs(self, client, prefix, root, fs):
+
+        if(fs['driver']=='libhdfs3'):
+            driver = internal_api.DriverType.LIBHDFS3
+        elif(fs['driver']=='libhdfs'):
+            driver = internal_api.DriverType.LIBHDFS
+
         fs_status = internal_api.register_file_system(
             client,
             authority = prefix,
@@ -129,7 +137,7 @@ class FileSystem(object):
                 'host': fs['host'],
                 'port': fs['port'],
                 'user': fs['user'],
-                'driverType': internal_api.DriverType.LIBHDFS3,
+                'driverType': driver,
                 'kerberosTicket': fs['kerberos_ticket']
             }
         )
