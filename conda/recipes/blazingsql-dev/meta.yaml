@@ -48,6 +48,7 @@ requirements:
         - maven
         - zeromq
         - cppzmq
+        - blazingsql-toolchain
     run:
         - python
         - cudf
@@ -77,6 +78,7 @@ requirements:
         - maven
         - zeromq
         - cppzmq
+        - blazingsql-toolchain
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
