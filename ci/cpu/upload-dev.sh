@@ -2,7 +2,7 @@
 
 set -e
 
-export ZIP_FILE=`conda build conda/recipes/blazingsql-dev/ --python=$PYTHON --output`
+export ZIP_FILE=`conda build conda/recipes/blazingsql-dev --python=$PYTHON --output`
 
 LABEL_OPTION="--label main --label cuda"$CUDA_VER
 echo "LABEL_OPTION=${LABEL_OPTION}"
@@ -12,9 +12,9 @@ if [ -z "$MY_UPLOAD_KEY" ]; then
     return 0
 fi
 
-test -e ${PYBLAZING_FILE}
+test -e ${ZIP_FILE}
 echo "Upload pyblazing"
-echo ${PYBLAZING_FILE}
+echo ${ZIP_FILE}
 
-anaconda -t ${MY_UPLOAD_KEY} upload -u blazingsql$NIGHTLY ${LABEL_OPTION} --force ${PYBLAZING_FILE}
+anaconda -t ${MY_UPLOAD_KEY} upload -u blazingsql${NIGHTLY} ${LABEL_OPTION} --force ${ZIP_FILE}
 
