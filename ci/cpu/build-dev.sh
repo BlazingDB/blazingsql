@@ -49,8 +49,8 @@ conda install -y conda-build anaconda-client
 # BUILD - Conda package builds
 ################################################################################
 
-logger "Build conda pkg for pyblazing..."
+logger "Build conda pkg for blazingsql-dev..."
 source ci/cpu/blazingsql-dev/conda-build.sh
 
-logger "Upload conda pkg for pyblazing..."
+logger "Upload conda pkg for blazingsql-dev..."
 source ci/cpu/upload-dev.sh
