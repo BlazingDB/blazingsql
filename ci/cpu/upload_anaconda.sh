@@ -23,5 +23,5 @@ if [ $IS_NIGHTLY == "true" ]; then
       NIGHTLY="-nightly"
 fi
 
-anaconda -t ${MY_UPLOAD_KEY} upload -u editha$NIGHTLY ${LABEL_OPTION} --force ${PYBLAZING_FILE}
+anaconda -t ${MY_UPLOAD_KEY} upload -u editha${NIGHTLY} ${LABEL_OPTION} --force ${PYBLAZING_FILE}
 
