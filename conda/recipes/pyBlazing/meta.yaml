@@ -19,10 +19,10 @@ requirements:
     build:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - python
-        - pip
-        - blazingsql-protocol  {{ version }}.*
-        - dask-cudf
+        #- python
+        #- pip
+        #- blazingsql-protocol  {{ version }}.*
+        #- dask-cudf
     host:
         - python
         - pip
