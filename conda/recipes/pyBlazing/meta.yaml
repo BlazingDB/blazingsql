@@ -28,6 +28,8 @@ requirements:
         - pip
         - blazingsql-protocol  {{ version }}.*
         - dask-cudf
+        - cudatoolkit {{ cuda_version }}.*
+        - cmake
         
     run:
         - python
