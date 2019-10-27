@@ -202,7 +202,7 @@ class Descriptor:
 
             if self._type == None:
                 error_msg = "If input into create_table is a list of file path string, it is expecting the strings to have a valid file extension. Alternatively you can set the optional parameter 'file_format' to one of the supported types: 'parquet','orc','csv','json'. Invalid file: %s"
-                error_msg = error_msg % (last_valid_type.value, file)
+                error_msg = error_msg % file
                 raise Exception(error_msg)
 
             last_valid_type = self._type
