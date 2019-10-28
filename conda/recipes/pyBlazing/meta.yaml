@@ -10,7 +10,7 @@ package:
 
 build:
     number: {{ git_revision_count }}
-    string: cuda{{ cuda_version + '_py' + py_version + '_' + git_revision_count }}
+    string: py{{ py_version }}_{{ git_revision_count }}
 
 source:
     path: ../../..
@@ -19,30 +19,20 @@ requirements:
     build:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
+
     host:
         - python
-        - cudf
         - pip
-        - cudatoolkit
-        - blazingsql-protocol {{ minor_version }}.*
-        - libcudf
-        - nvstrings
-        - rmm
+        - blazingsql-protocol  {{ version }}.*
         - dask-cudf
         - cudatoolkit {{ cuda_version }}.*
         - cmake
         
     run:
         - python
-        - cudf
         - pip
-        - cudatoolkit
-        - blazingsql-protocol {{ minor_version }}.*
-        - libcudf
-        - nvstrings
-        - rmm
+        - blazingsql-protocol  {{ version }}.*
         - dask-cudf
-        - cmake
        
 about:
     home: http://www.blazingsql.com/
