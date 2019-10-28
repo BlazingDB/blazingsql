@@ -35,7 +35,7 @@ requirements:
         - maven
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
-        #- blazingsql-toolchain  {{ version }}.*
+        - blazingsql-toolchain  {{ version }}.*
     run:
         - python
         - pip
@@ -52,7 +52,7 @@ requirements:
         - maven
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
-        #- blazingsql-toolchain  {{ version }}.*
+        - blazingsql-toolchain  {{ version }}.*
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
