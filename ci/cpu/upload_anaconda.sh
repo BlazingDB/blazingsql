@@ -16,5 +16,5 @@ test -e ${PYBLAZING_FILE}
 echo "Upload pyblazing"
 echo ${PYBLAZING_FILE}
 
-anaconda -t ${MY_UPLOAD_KEY} upload -u editha$NIGHTLY ${LABEL_OPTION} --force ${PYBLAZING_FILE}
+anaconda -t ${MY_UPLOAD_KEY} upload -u blazingsql$NIGHTLY ${LABEL_OPTION} --force ${PYBLAZING_FILE}
 
