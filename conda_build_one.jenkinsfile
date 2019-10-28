@@ -8,7 +8,6 @@ pipeline {
   }
 
   parameters {
-    choice(name: 'CUDA_VERSION', choices: '10.0\n9.2', description: 'Cuda Version')
     booleanParam(name: 'IS_NIGHTLY', defaultValue: false, description: 'If is true use blazingsql-nightly channel')
     choice(name: 'PYTHON_VERSION', choices: '3.7\n3.6', description: 'Python Version')
     string(name: 'CONDA_TOKEN', defaultValue: 'conda-token', description: '')
@@ -30,7 +29,7 @@ pipeline {
     stage("Compile & Publish") {
       steps {
         withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-          sh "./conda-build-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN ${params.IS_NIGHTLY}"
+          sh "./conda-build-docker.sh ${params.PYTHON_VERSION} $TOKEN ${params.IS_NIGHTLY}"
         }
       }
     }
