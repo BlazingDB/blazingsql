@@ -135,9 +135,9 @@ class BlazingContext(object):
         
         timestamp_str = str(datetime.datetime.now()).replace(' ','_')        
 
-        processes = None
+        self.processes = None
         if not leave_processes_running:
-            processes = {}
+            self.processes = {}
 
         if(dask_client is None):
             if network_interface is None:
@@ -147,26 +147,26 @@ class BlazingContext(object):
 
             if run_orchestrator:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
-                processes = runOrchestrator(processes = processes, log_path = path)
+                self.processes = runOrchestrator(processes = self.processes, log_path = path)
             if run_engine:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_engine")
-                processes = runEngine(processes = processes, network_interface = network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
+                self.processes = runEngine(processes = self.processes, network_interface = network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
             if run_algebra:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_algebra")
-                processes = runAlgebra(processes = processes, log_path = path)
+                self.processes = runAlgebra(processes = self.processes, log_path = path)
         else:
             if network_interface is None:
                 network_interface = 'eth0'
                 
             if run_orchestrator:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
-                processes = runOrchestrator(processes = processes, log_path = path)
+                self.processes = runOrchestrator(processes = self.processes, log_path = path)
             if run_engine:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_engine")
                 setupDask(dask_client, network_interface=network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
             if run_algebra:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_algebra")
-                processes = runAlgebra(processes=processes, log_path = path)
+                self.processes = runAlgebra(processes=self.processes, log_path = path)
         
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
@@ -180,7 +180,6 @@ class BlazingContext(object):
         self.fs = FileSystem()
         self.sqlObject = SQL()
         self.dask_client = dask_client
-        self.processes = processes
         services_ready = waitForPingSuccess(self.client)
         if services_ready:
             print("BlazingContext ready")
