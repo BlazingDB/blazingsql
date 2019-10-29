@@ -68,8 +68,7 @@ def runAlgebra(processes = None, log_path=None):
         process_stderr = open(os.devnull, 'w')
 
     process = None    
-    # if(checkSocket(8890)):
-    if True:  # the socket for some reason stays supposedly in use for 60 sec after calcite closes. So we will stop checking for now. If you launch calcite and its already running it will timeout after about 10 sec
+    if(checkSocket(8890)):
         if(os.getenv("CONDA_PREFIX") == None):
             process = subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
@@ -108,6 +107,7 @@ def waitForPingSuccess(client):
         num_tries = num_tries + 1
         if not ping_success:
             time.sleep(0.4)
+    return ping_success
 
 
 class BlazingContext(object):
@@ -117,6 +117,8 @@ class BlazingContext(object):
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
+
+        self.need_shutdown= (not leave_processes_running) and (run_orchestrator or run_engine or run_algebra)
 
         logs_folder = None
         if logs_destination is not None:
@@ -179,9 +181,11 @@ class BlazingContext(object):
         self.sqlObject = SQL()
         self.dask_client = dask_client
         self.processes = processes
-        self.need_shutdown= not leave_processes_running
-        waitForPingSuccess(self.client)        
-        print("BlazingContext ready")
+        services_ready = waitForPingSuccess(self.client)
+        if services_ready:
+            print("BlazingContext ready")
+        else:
+            print("Timedout waiting for services to be ready")
 
     def ready(self, wait=False):
         if wait:
