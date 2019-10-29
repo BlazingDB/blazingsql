@@ -119,6 +119,12 @@ class BlazingContext(object):
         """
 
         self.need_shutdown= (not leave_processes_running) and (run_orchestrator or run_engine or run_algebra)
+        self.processes = None
+        self.connection = connection
+        self.client = internal_api._get_client()
+        self.fs = FileSystem()
+        self.sqlObject = SQL()
+        self.dask_client = dask_client
 
         logs_folder = None
         if logs_destination is not None:
@@ -135,7 +141,6 @@ class BlazingContext(object):
         
         timestamp_str = str(datetime.datetime.now()).replace(' ','_')        
 
-        self.processes = None
         if not leave_processes_running:
             self.processes = {}
 
@@ -175,11 +180,6 @@ class BlazingContext(object):
         internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
         
         # TODO percy handle errors (see above)
-        self.connection = connection
-        self.client = internal_api._get_client()
-        self.fs = FileSystem()
-        self.sqlObject = SQL()
-        self.dask_client = dask_client
         services_ready = waitForPingSuccess(self.client)
         if services_ready:
             print("BlazingContext ready")
