@@ -76,7 +76,7 @@ This is the recommended way of building all of the BlazingSQL components and dep
 ```bash
 conda create -n blazingsql-build python=3.7
 conda activate blazingsql-build
-conda install -c conda-forge -c rapidsai -c  blazingsql/label/cuda9.2 blazingsql-dev
+conda install -c conda-forge -c rapidsai -c blazingsql -c blazingsql/label/cuda9.2 blazingsql-dev
 conda install -c blazingsql blazingsql-toolchain
 
 cd $CONDA_PREFIX
@@ -89,7 +89,7 @@ build-all.sh
 ```bash
 conda create -n blazingsql-build python=3.7
 conda activate blazingsql-build
-conda install -c conda-forge -c rapidsai -c  blazingsql/label/cuda10.0 blazingsql-dev
+conda install -c conda-forge -c rapidsai -c blazingsql -c  blazingsql/label/cuda10.0 blazingsql-dev
 conda install -c blazingsql blazingsql-toolchain
 
 cd $CONDA_PREFIX
