@@ -25,15 +25,15 @@ requirements:
         - gtest
         - gmock
         - cmake
-        - librmm
-        - libcudf
-        - libnvstrings
+        - dask-cudf
         - libhdfs3
         - openssl
-        - arrow-cpp =0.14.1
+        - arrow-cpp=0.14.1
         - cmake
+        - openjdk=8.0
         - maven
         - cppzmq
+        - flatbuffers
         - cudatoolkit {{ cuda_version }}.*
         - blazingsql-toolchain  {{ version }}.*
     run:
@@ -41,16 +41,15 @@ requirements:
         - pip
         - gtest
         - gmock
-        - cmake
-        - librmm
-        - libcudf
-        - libnvstrings
+        - dask-cudf
         - libhdfs3
         - openssl
-        - arrow-cpp =0.14.1
+        - arrow-cpp=0.14.1
         - cmake
+        - openjdk=8.0
         - maven
         - cppzmq
+        - flatbuffers
         - cudatoolkit {{ cuda_version }}.*
         - blazingsql-toolchain  {{ version }}.*
 about:
