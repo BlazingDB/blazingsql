@@ -81,8 +81,7 @@ conda install -c blazingsql blazingsql-toolchain
 
 cd $CONDA_PREFIX
 git clone -b develop https://github.com/BlazingDB/pyBlazing.git
-cd pyBlazing/scripts
-build-all.sh
+./pyBlazing/scripts/build-all.sh
 ```
 
 *For CUDA 10.0:*
@@ -94,8 +93,7 @@ conda install -c blazingsql blazingsql-toolchain
 
 cd $CONDA_PREFIX
 git clone -b develop https://github.com/BlazingDB/pyBlazing.git
-cd pyBlazing/scripts
-build-all.sh
+./pyBlazing/scripts/build-all.sh
 ```
 
 The build-all.sh script will checkout every BlazingSQL repository, build and install into the conda environment.
