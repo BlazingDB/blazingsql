@@ -18,7 +18,8 @@ import re
 
 
 def checkSocket(socketNum):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     socket_free = False
     try:
         s.bind(("127.0.0.1", socketNum))
