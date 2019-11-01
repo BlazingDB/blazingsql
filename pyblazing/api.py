@@ -308,7 +308,9 @@ def _make_default_csv_arg(**kwargs):
 def _send_request(connection_path, connection_port, requestBuffer):
     connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
     client = blazingdb.protocol.Client(connection)
-    return client.send(requestBuffer)
+    response = client.send(requestBuffer)
+    del connection
+    return response
 
 class Singleton(type):
     _instances = {}
