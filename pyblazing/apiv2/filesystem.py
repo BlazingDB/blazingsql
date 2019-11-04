@@ -21,20 +21,25 @@ class FileSystem(object):
             print(fs_str)
 
     def localfs(self, client, prefix, **kwargs):
-        self._verify_prefix(prefix)
+        result, error_msg = self._verify_prefix(prefix)
+        
+        if result == False:
+            return (result, error_msg)
 
         root = kwargs.get('root', '/')
 
         fs = OrderedDict()
         fs['type'] = 'local'
 
-        # TODO percy manage exceptions here ?
-        self._register_localfs(client, prefix, root, fs)
+        result, error_msg = self._register_localfs(client, prefix, root, fs)
 
-        return fs
+        return result, error_msg, fs
 
     def hdfs(self, client, prefix, **kwargs):
-        self._verify_prefix(prefix)
+        result, error_msg = self._verify_prefix(prefix)
+        
+        if result == False:
+            return (result, error_msg)
 
         root = kwargs.get('root', '/')
 
@@ -52,13 +57,15 @@ class FileSystem(object):
         fs['driver'] = driver
         fs['kerberos_ticket'] = kerberos_ticket
 
-        # TODO percy manage exceptions here ?
-        self._register_hdfs(client, prefix, root, fs)
+        result, error_msg = self._register_hdfs(client, prefix, root, fs)
 
-        return fs
+        return result, error_msg, fs
 
     def s3(self, client, prefix, **kwargs):
-        self._verify_prefix(prefix)
+        result, error_msg = self._verify_prefix(prefix)
+        
+        if result == False:
+            return (result, error_msg)
 
         root = kwargs.get('root', '/')
 
@@ -78,13 +85,15 @@ class FileSystem(object):
         fs['encryption_type'] = encryption_type
         fs['kms_key_amazon_resource_name'] = kms_key_amazon_resource_name
 
-        # TODO percy manage exceptions here ?
-        self._register_s3(client, prefix, root, fs)
+        result, error_msg = self._register_s3(client, prefix, root, fs)
 
-        return fs
+        return result, error_msg, fs
 
     def gcs(self, client, prefix, **kwargs):
-        self._verify_prefix(prefix)
+        result, error_msg = self._verify_prefix(prefix)
+        
+        if result == False:
+            return (result, error_msg)
 
         root = kwargs.get('root', '/')
 
@@ -100,35 +109,39 @@ class FileSystem(object):
         fs['use_default_adc_json_file'] = use_default_adc_json_file
         fs['adc_json_file'] = adc_json_file
 
-        # TODO percy manage exceptions here ?
-        self._register_gcs(client, prefix, root, fs)
+        result, error_msg = self._register_gcs(client, prefix, root, fs)
 
-        return fs
+        return result, error_msg, fs
 
     def _verify_prefix(self, prefix):
-        # TODO percy throw exception
+        result = True
         if prefix in self.file_systems:
-            # TODO percy improve this one add the fs type so we can raise a nice exeption
-            raise Exception('Fail add fs')
+            result = False
+            error_msg = "File system %s already exists!" % prefix
+            return error_msg
+        
+        return result, error_msg
 
     def _register_localfs(self, client, prefix, root, fs):
-        fs_status = internal_api.register_file_system(
+        result, error_msg = internal_api.register_file_system(
             client,
             authority = prefix,
             type = internal_api.FileSystemType.POSIX,
             root = root
         )
 
-        self._verify_filesystem(prefix, fs, fs_status)
+        if result == True:
+            self.file_systems[prefix] = fs
+
+        return (result, error_msg) 
 
     def _register_hdfs(self, client, prefix, root, fs):
-
         if(fs['driver']=='libhdfs3'):
             driver = internal_api.DriverType.LIBHDFS3
         elif(fs['driver']=='libhdfs'):
             driver = internal_api.DriverType.LIBHDFS
 
-        fs_status = internal_api.register_file_system(
+        result, error_msg = internal_api.register_file_system(
             client,
             authority = prefix,
             type = internal_api.FileSystemType.HDFS,
@@ -142,10 +155,13 @@ class FileSystem(object):
             }
         )
 
-        self._verify_filesystem(prefix, fs, fs_status)
+        if result == True:
+            self.file_systems[prefix] = fs
+
+        return (result, error_msg) 
 
     def _register_s3(self, client, prefix, root, fs):
-        fs_status = internal_api.register_file_system(
+        result, error_msg = internal_api.register_file_system(
             client,
             authority = prefix,
             type = internal_api.FileSystemType.S3,
@@ -160,10 +176,13 @@ class FileSystem(object):
             }
         )
 
-        self._verify_filesystem(prefix, fs, fs_status)
+        if result == True:
+            self.file_systems[prefix] = fs
+
+        return (result, error_msg) 
 
     def _register_gcs(self, client, prefix, root, fs):
-        fs_status = internal_api.register_file_system(
+        result, error_msg = internal_api.register_file_system(
             client,
             authority = prefix,
             type = internal_api.FileSystemType.GCS,
@@ -176,12 +195,7 @@ class FileSystem(object):
             }
         )
 
-        self._verify_filesystem(prefix, fs, fs_status)
+        if result == True:
+            self.file_systems[prefix] = fs
 
-    def _verify_filesystem(self, prefix, fs, fs_status):
-        if fs_status != 1:
-            # TODO percy better error  message
-            raise Exception("coud not register the s3")
-
-        self.file_systems[prefix] = fs
-
+        return (result, error_msg) 
