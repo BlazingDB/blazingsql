@@ -58,7 +58,7 @@ BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.h
 conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda9.2 -c blazingsql blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=9.2
 
 pip install flatbuffers && \
-    pip install jupyterlab
+    pip install jupyterlab==0.34
 ```
 
 *For CUDA 10.0 and Python 3.7:*
@@ -66,7 +66,7 @@ pip install flatbuffers && \
 conda install -y -c conda-forge -c defaults -c nvidia -c rapidsai -c blazingsql/label/cuda10.0 -c blazingsql blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=10.0
 
 pip install flatbuffers && \
-    pip install jupyterlab
+    pip install jupyterlab==0.34
 ```
 
 ## Build/Install from Source (Conda Environment)
@@ -81,8 +81,7 @@ conda install -c blazingsql blazingsql-toolchain
 
 cd $CONDA_PREFIX
 git clone -b develop https://github.com/BlazingDB/pyBlazing.git
-cd pyBlazing/scripts
-build-all.sh
+./pyBlazing/scripts/build-all.sh
 ```
 
 *For CUDA 10.0:*
@@ -94,8 +93,7 @@ conda install -c blazingsql blazingsql-toolchain
 
 cd $CONDA_PREFIX
 git clone -b develop https://github.com/BlazingDB/pyBlazing.git
-cd pyBlazing/scripts
-build-all.sh
+./pyBlazing/scripts/build-all.sh
 ```
 
 The build-all.sh script will checkout every BlazingSQL repository, build and install into the conda environment.
