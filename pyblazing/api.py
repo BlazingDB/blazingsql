@@ -1431,9 +1431,15 @@ def register_file_system(authority, type, root, params = None):
                                        schema)
     response_buffer = _send_request( client._orchestrator_path, client._orchestrator_port, request_buffer)
     response = ResponseSchema.From(response_buffer)
-    if response.status == Status.Error:
-        raise RuntimeError(ResponseErrorSchema.From(response.payload).errors)
-    return response.status
+    
+    result = False if response.status == Status.Error else True
+    
+    error_msg = ""
+    
+    if result == False:
+        error_msg = ResponseErrorSchema.From(response.payload).errors
+    
+    return (result, error_msg)
 
 
 def deregister_file_system(authority):
