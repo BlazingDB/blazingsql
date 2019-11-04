@@ -203,7 +203,7 @@ class BlazingContext(object):
 
         if process_names is not None:
             self.client.call_shutdown(process_names)
-            time.sleep(1) # lets give it a sec before we guarantee the processes are shutdown
+            time.sleep(2) # lets give it a sec before we guarantee the processes are shutdown
 
         if self.processes is not None:
             for process in list(self.processes.values()): # this should not be necessary, but it guarantees that the processes are shutdown
