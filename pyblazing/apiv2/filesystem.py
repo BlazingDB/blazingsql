@@ -124,6 +124,7 @@ class FileSystem(object):
 
     def _verify_prefix(self, prefix):
         result = True
+        error_msg = ""
         if prefix in self.file_systems:
             result = False
             error_msg = "File system %s already exists!" % prefix
