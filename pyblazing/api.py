@@ -642,8 +642,7 @@ class ResultSetHandle:
         if (self.handle is not None) and (not self.is_dask):
             for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
-            for column in self.columns:
-                del column
+            del self.columns                
             del self.handle
             try :
                 self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
