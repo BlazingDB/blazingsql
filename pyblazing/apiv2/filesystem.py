@@ -59,6 +59,9 @@ class FileSystem(object):
 
         result, error_msg = self._register_hdfs(client, prefix, root, fs)
 
+        if result == False:
+            fs = None 
+
         return result, error_msg, fs
 
     def s3(self, client, prefix, **kwargs):
@@ -87,6 +90,9 @@ class FileSystem(object):
 
         result, error_msg = self._register_s3(client, prefix, root, fs)
 
+        if result == False:
+            fs = None
+
         return result, error_msg, fs
 
     def gcs(self, client, prefix, **kwargs):
@@ -110,6 +116,9 @@ class FileSystem(object):
         fs['adc_json_file'] = adc_json_file
 
         result, error_msg = self._register_gcs(client, prefix, root, fs)
+
+        if result == False:
+            fs = None
 
         return result, error_msg, fs
 
