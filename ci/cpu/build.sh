@@ -23,20 +23,20 @@ export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 # Nightly seccion
 echo "IS_NIGHTLY" $IS_NIGHTLY
 if [ $IS_NIGHTLY == "true" ]; then
-      NIGHTLY="-nightly"
-     # CUDF="cudf=0.10"
+    NIGHTLY="-nightly"
+    # CUDF="cudf=0.10"
 
-      libcudf="libcudf=0.10"
-      nvstrings="nvstrings=0.10"
-      rmm="rmm=0.10"
-      daskcudf="dask-cudf=0.10"
-      #Replazing cudf version
+    libcudf="libcudf=0.10"
+    nvstrings="nvstrings=0.10"
+    rmm="rmm=0.10"
+    daskcudf="dask-cudf=0.10"
 
-      echo "Replacing cudf version into meta.yaml"
-      sed -ie "s/libcudf/$libcudf/g" conda/recipes/pyBlazing/meta.yaml
-      sed -ie "s/nvstrings/$nvstrings/g" conda/recipes/pyBlazing/meta.yaml
-      sed -ie "s/rmm/$rmm/g" conda/recipes/pyBlazing/meta.yaml
-      sed -ie "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
+    #Replazing cudf version
+    echo "Replacing cudf version into meta.yaml"
+    sed -ie "s/libcudf/$libcudf/g" conda/recipes/pyBlazing/meta.yaml
+    sed -ie "s/nvstrings/$nvstrings/g" conda/recipes/pyBlazing/meta.yaml
+    sed -ie "s/rmm/$rmm/g" conda/recipes/pyBlazing/meta.yaml
+    sed -ie "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
 fi
 
 ################################################################################
