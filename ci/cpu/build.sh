@@ -21,8 +21,7 @@ export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
 # Nightly seccion
-echo "IS_NIGHTLY" $IS_NIGHTLY
-if [ $IS_NIGHTLY == "true" ]; then
+if [ $CONDA_BUILD =~ "nightly" ]; then
     NIGHTLY="-nightly"
     # CUDF="cudf=0.10"
 
@@ -38,6 +37,7 @@ if [ $IS_NIGHTLY == "true" ]; then
     sed -ie "s/rmm/$rmm/g" conda/recipes/pyBlazing/meta.yaml
     sed -ie "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
 fi
+echo "IS_NIGHTLY "$NIGHTLY
 
 ################################################################################
 # SETUP - Check environment
