@@ -21,7 +21,8 @@ export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
 # Nightly seccion
-if [ $CONDA_BUILD =~ "nightly" ]; then
+NIGHTLY=""
+if [[ "$CONDA_BUILD" == *"nightly"* ]]; then
     NIGHTLY="-nightly"
     # CUDF="cudf=0.10"
 
