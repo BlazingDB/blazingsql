@@ -9,7 +9,8 @@ pipeline {
 
   parameters {
     string(name: 'BRANCH', defaultValue: 'develop', description: '')
-    choice(name: 'PYTHON_VERSION', choices: '3.7\n3.6', description: 'Python Version')
+    choice(name: 'CUDA_VERSION', choices: '10.0\n9.2', description: 'Cuda version')
+    choice(name: 'PYTHON_VERSION', choices: '3.7\n3.6', description: 'Python version')
     string(name: 'CONDA_BUILD', defaultValue: 'blazingsql-nightly', description: '')
     string(name: 'CONDA_UPLOAD', defaultValue: 'blazingsql-nightly', description: '')
     string(name: 'CONDA_TOKEN', defaultValue: 'conda-token', description: '')
@@ -31,7 +32,7 @@ pipeline {
     stage("Compile & Publish") {
       steps {
         withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-          sh "./conda-build-docker.sh ${params.PYTHON_VERSION} ${params.CONDA_BUILD} ${params.CONDA_UPLOAD} $TOKEN"
+          sh "./conda-build-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} ${params.CONDA_BUILD} ${params.CONDA_UPLOAD} $TOKEN"
         }
       }
     }
