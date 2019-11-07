@@ -1,9 +1,5 @@
 #!/bin/bash
 
-if [ -z "$CONDA_BUILD" ]; then
-    CONDA_BUILD="blazingsql"
-fi
-
-echo "CMD: conda build -c ${CONDA_BUILD} -c rapidsai -c conda-forge -c defaults --python=$PYTHON conda/recipes/pyBlazing/"
-conda build -c ${CONDA_BUILD} -c rapidsai -c conda-forge -c defaults --python=$PYTHON conda/recipes/pyBlazing/
+echo "CMD: conda build ${CONDA_CH} -c blazingsql -c rapidsai -c conda-forge -c defaults --python=$PYTHON conda/recipes/pyBlazing/"
+conda build ${CONDA_CH} -c blazingsql -c rapidsai -c conda-forge -c defaults --python=$PYTHON conda/recipes/pyBlazing/
 
