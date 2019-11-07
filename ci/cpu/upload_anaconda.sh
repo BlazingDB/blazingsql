@@ -12,10 +12,6 @@ if [ -z "$MY_UPLOAD_KEY" ]; then
     return 0
 fi
 
-if [ -z "$CONDA_UPLOAD" ]; then
-    CONDA_UPLOAD="blazingsql"
-fi
-
 test -e ${PYBLAZING_FILE}
 echo "Upload pyblazing"
 echo ${PYBLAZING_FILE}

@@ -40,6 +40,21 @@ if [[ "$CONDA_BUILD" == *"nightly"* ]]; then
 fi
 echo "IS_NIGHTLY "$NIGHTLY
 
+CONDA_CH=""
+if [ ! -z "$CONDA_BUILD" ]; then
+    IFS=', ' read -r -a array <<< "$CONDA_BUILD"
+    for item in "${array[@]}"
+    do
+        CONDA_CH=$CONDA_CH" -c "$item
+    done
+fi
+export CONDA_CH
+
+if [ -z "$CONDA_UPLOAD" ]; then
+    CONDA_UPLOAD="blazingsql"
+fi
+export CONDA_UPLOAD
+
 ################################################################################
 # SETUP - Check environment
 ################################################################################
