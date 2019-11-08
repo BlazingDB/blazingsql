@@ -1,5 +1,8 @@
 pipeline {
-  agent any
+  //agent any
+  agent {
+      label 'slave-gpu'
+  }
 
   options {
     ansiColor('xterm')
