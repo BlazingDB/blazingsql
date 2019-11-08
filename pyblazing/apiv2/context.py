@@ -18,7 +18,8 @@ import re
 
 
 def checkSocket(socketNum):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     socket_free = False
     try:
         s.bind(("127.0.0.1", socketNum))
@@ -68,8 +69,7 @@ def runAlgebra(processes = None, log_path=None):
         process_stderr = open(os.devnull, 'w')
 
     process = None    
-    # if(checkSocket(8890)):
-    if True:  # the socket for some reason stays supposedly in use for 60 sec after calcite closes. So we will stop checking for now. If you launch calcite and its already running it will timeout after about 10 sec
+    if(checkSocket(8890)):
         if(os.getenv("CONDA_PREFIX") == None):
             process = subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
         else:
@@ -108,6 +108,7 @@ def waitForPingSuccess(client):
         num_tries = num_tries + 1
         if not ping_success:
             time.sleep(0.4)
+    return ping_success
 
 
 class BlazingContext(object):
@@ -117,6 +118,14 @@ class BlazingContext(object):
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
+
+        self.need_shutdown= (not leave_processes_running) and (run_orchestrator or run_engine or run_algebra)
+        self.processes = None
+        self.connection = connection
+        self.client = internal_api._get_client()
+        self.fs = FileSystem()
+        self.sqlObject = SQL()
+        self.dask_client = dask_client
 
         logs_folder = None
         if logs_destination is not None:
@@ -133,9 +142,8 @@ class BlazingContext(object):
         
         timestamp_str = str(datetime.datetime.now()).replace(' ','_')        
 
-        processes = None
         if not leave_processes_running:
-            processes = {}
+            self.processes = {}
 
         if(dask_client is None):
             if network_interface is None:
@@ -145,26 +153,26 @@ class BlazingContext(object):
 
             if run_orchestrator:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
-                processes = runOrchestrator(processes = processes, log_path = path)
+                self.processes = runOrchestrator(processes = self.processes, log_path = path)
             if run_engine:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_engine")
-                processes = runEngine(processes = processes, network_interface = network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
+                self.processes = runEngine(processes = self.processes, network_interface = network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
             if run_algebra:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_algebra")
-                processes = runAlgebra(processes = processes, log_path = path)
+                self.processes = runAlgebra(processes = self.processes, log_path = path)
         else:
             if network_interface is None:
                 network_interface = 'eth0'
                 
             if run_orchestrator:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
-                processes = runOrchestrator(processes = processes, log_path = path)
+                self.processes = runOrchestrator(processes = self.processes, log_path = path)
             if run_engine:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_engine")
                 setupDask(dask_client, network_interface=network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
             if run_algebra:
                 path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_algebra")
-                processes = runAlgebra(processes=processes, log_path = path)
+                self.processes = runAlgebra(processes=self.processes, log_path = path)
         
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         parse_result = urlparse("//" + connection)
@@ -173,15 +181,11 @@ class BlazingContext(object):
         internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
         
         # TODO percy handle errors (see above)
-        self.connection = connection
-        self.client = internal_api._get_client()
-        self.fs = FileSystem()
-        self.sqlObject = SQL()
-        self.dask_client = dask_client
-        self.processes = processes
-        self.need_shutdown= not leave_processes_running
-        waitForPingSuccess(self.client)        
-        print("BlazingContext ready")
+        services_ready = waitForPingSuccess(self.client)
+        if services_ready:
+            print("BlazingContext ready")
+        else:
+            print("Timedout waiting for services to be ready")
 
     def ready(self, wait=False):
         if wait:
@@ -199,7 +203,7 @@ class BlazingContext(object):
 
         if process_names is not None:
             self.client.call_shutdown(process_names)
-            time.sleep(1) # lets give it a sec before we guarantee the processes are shutdown
+            time.sleep(2) # lets give it a sec before we guarantee the processes are shutdown
 
         if self.processes is not None:
             for process in list(self.processes.values()): # this should not be necessary, but it guarantees that the processes are shutdown
