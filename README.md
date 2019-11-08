@@ -115,7 +115,7 @@ Have questions or feedback? Post a [new github issue](https://github.com/Blazing
 Please see our [guide for contributing to BlazingSQL](CONTRIBUTING.md).
 
 ## Contact
-Feel free to join our Slack chat room: [RAPIDS Slack Channel](https://join.slack.com/t/rapids-goai/shared_invite/enQtMjE0Njg5NDQ1MDQxLTViZWFiYTY5MDA4NWY3OWViODg0YWM1MGQ1NzgzNTQwOWI1YjE3NGFlOTVhYjQzYWQ4YjI4NzljYzhiOGZmMGM)
+Feel free to join our Slack chat room: [RAPIDS Slack Channel](https://join.slack.com/t/rapids-goai/shared_invite/enQtMjE0Njg5NDQ1MDQxLTJiN2FkNTFkYmQ2YjY1OGI4NTc5Y2NlODQ3ZDdiODEwYmRiNTFhMzNlNTU5ZWJhZjA3NTg4NDZkMThkNTkxMGQ)
 
 You may also email us at [info@blazingsql.com](info@blazingsql.com) or find out more details on the [BlazingSQL site](https://blazingsql.com)
 
