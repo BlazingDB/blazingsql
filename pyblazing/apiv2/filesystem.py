@@ -47,7 +47,7 @@ class FileSystem(object):
         port = kwargs.get('port', 8020)
         user = kwargs.get('user', '')
         driver = kwargs.get('driver', 'libhdfs')
-        kerberos_ticket = kwargs.get('kerberos_ticket', '')
+        kerberos_ticket = kwargs.get('kerb_ticket', '')
 
         fs = OrderedDict()
         fs['type'] = 'hdfs'
