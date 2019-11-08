@@ -8,9 +8,11 @@ pipeline {
   }
 
   parameters {
+    string(name: 'BRANCH', defaultValue: 'develop', description: '')
     choice(name: 'CUDA_VERSION', choices: '10.0\n9.2', description: 'Cuda Version')
-    booleanParam(name: 'IS_NIGHTLY', defaultValue: false, description: 'If is true use blazingsql-nightly channel')
     choice(name: 'PYTHON_VERSION', choices: '3.7\n3.6', description: 'Python Version')
+    string(name: 'CONDA_BUILD', defaultValue: 'blazingsql-nightly', description: 'Channels from build, example: blazingsql-nightly,rapidsai-nightly')
+    string(name: 'CONDA_UPLOAD', defaultValue: 'blazingsql-nightly', description: 'The Anaconda repository could be: blazingsql, blazingsql-nightly, mario21ic, etc')
     string(name: 'CONDA_TOKEN', defaultValue: 'conda-token', description: '')
     string(name: 'SLACK_CHANNEL', defaultValue: 'jenkins-blazingsql', description: '')
   }
@@ -30,7 +32,7 @@ pipeline {
     stage("Compile & Publish") {
       steps {
         withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-          sh "./build-blazingsql-dev.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN ${params.IS_NIGHTLY}"
+          sh "./build-blazingsql-dev.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} ${params.CONDA_BUILD} ${params.CONDA_UPLOAD} $TOKEN"
         }
       }
     }
