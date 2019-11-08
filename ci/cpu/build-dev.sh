@@ -20,11 +20,20 @@ cd $WORKSPACE
 export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
-# Nightly seccion
-echo "IS_NIGHTLY" $IS_NIGHTLY
-if [ $IS_NIGHTLY == "true" ]; then
-    NIGHTLY="-nightly"
+CONDA_CH=""
+if [ ! -z "$CONDA_BUILD" ]; then
+    IFS=', ' read -r -a array <<< "$CONDA_BUILD"
+    for item in "${array[@]}"
+    do
+        CONDA_CH=$CONDA_CH" -c "$item
+    done
 fi
+export CONDA_CH
+
+if [ -z "$CONDA_UPLOAD" ]; then
+    CONDA_UPLOAD="blazingsql"
+fi
+export CONDA_UPLOAD
 
 ################################################################################
 # SETUP - Check environment
