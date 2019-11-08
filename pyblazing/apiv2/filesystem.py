@@ -2,6 +2,25 @@ from collections import OrderedDict
 from enum import Enum
 
 from .bridge import internal_api
+import cio
+
+def registerFileSystem(client,fs,root,prefix):
+    if client is None:
+        ok = cio.registerFileSystemCaller(fs,root,prefix)
+        if ok == False:
+            print("Could not register filesystem")
+    else:
+        dask_futures = []
+        i = 0
+        for worker in list(client.scheduler_info()["workers"]):
+            dask_futures.append(client.submit(cio.registerFileSystemCaller, fs, root, prefix, workers = [worker]))
+            i = i + 1
+        for connection in dask_futures:
+            ok = connection.result()
+            if ok == False:
+                print("Could not register filesystem with worker ")
+                print(worker)
+    return fs
 
 
 class FileSystem(object):
@@ -27,11 +46,8 @@ class FileSystem(object):
 
         fs = OrderedDict()
         fs['type'] = 'local'
+        return registerFileSystem(client,fs,root,prefix)
 
-        # TODO percy manage exceptions here ?
-        self._register_localfs(client, prefix, root, fs)
-
-        return fs
 
     def hdfs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -49,11 +65,7 @@ class FileSystem(object):
         fs['port'] = port
         fs['user'] = user
         fs['kerberos_ticket'] = kerberos_ticket
-
-        # TODO percy manage exceptions here ?
-        self._register_hdfs(client, prefix, root, fs)
-
-        return fs
+        return registerFileSystem(client,fs,root,prefix)
 
     def s3(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -75,11 +87,7 @@ class FileSystem(object):
         fs['session_token'] = session_token
         fs['encryption_type'] = encryption_type
         fs['kms_key_amazon_resource_name'] = kms_key_amazon_resource_name
-
-        # TODO percy manage exceptions here ?
-        self._register_s3(client, prefix, root, fs)
-
-        return fs
+        return registerFileSystem(client,fs,root,prefix)
 
     def gcs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -97,83 +105,10 @@ class FileSystem(object):
         fs['bucket_name'] = bucket_name
         fs['use_default_adc_json_file'] = use_default_adc_json_file
         fs['adc_json_file'] = adc_json_file
-
-        # TODO percy manage exceptions here ?
-        self._register_gcs(client, prefix, root, fs)
-
-        return fs
+        return registerFileSystem(client,fs,root,prefix)
 
     def _verify_prefix(self, prefix):
         # TODO percy throw exception
         if prefix in self.file_systems:
             # TODO percy improve this one add the fs type so we can raise a nice exeption
             raise Exception('Fail add fs')
-
-    def _register_localfs(self, client, prefix, root, fs):
-        fs_status = internal_api.register_file_system(
-            client,
-            authority = prefix,
-            type = internal_api.FileSystemType.POSIX,
-            root = root
-        )
-
-        self._verify_filesystem(prefix, fs, fs_status)
-
-    def _register_hdfs(self, client, prefix, root, fs):
-        fs_status = internal_api.register_file_system(
-            client,
-            authority = prefix,
-            type = internal_api.FileSystemType.HDFS,
-            root = root,
-            params = {
-                'host': fs['host'],
-                'port': fs['port'],
-                'user': fs['user'],
-                'driverType': internal_api.DriverType.LIBHDFS3,
-                'kerberosTicket': fs['kerberos_ticket']
-            }
-        )
-
-        self._verify_filesystem(prefix, fs, fs_status)
-
-    def _register_s3(self, client, prefix, root, fs):
-        fs_status = internal_api.register_file_system(
-            client,
-            authority = prefix,
-            type = internal_api.FileSystemType.S3,
-            root = root,
-            params = {
-                "bucketName": fs['bucket_name'],
-                "accessKeyId": fs['access_key_id'],
-                "secretKey": fs['secret_key'],
-                "sessionToken": fs['session_token'],
-                "encryptionType": fs['encryption_type'],
-                "kmsKeyAmazonResourceName": fs['kms_key_amazon_resource_name']
-            }
-        )
-
-        self._verify_filesystem(prefix, fs, fs_status)
-
-    def _register_gcs(self, client, prefix, root, fs):
-        fs_status = internal_api.register_file_system(
-            client,
-            authority = prefix,
-            type = internal_api.FileSystemType.GCS,
-            root = root,
-            params = {
-                "projectId": fs['project_id'],
-                "bucketName": fs['bucket_name'],
-                "useDefaultAdcJsonFile": fs['use_default_adc_json_file'],
-                "adcJsonFile": fs['adc_json_file']
-            }
-        )
-
-        self._verify_filesystem(prefix, fs, fs_status)
-
-    def _verify_filesystem(self, prefix, fs, fs_status):
-        if fs_status != 1:
-            # TODO percy better error  message
-            raise Exception("coud not register the s3")
-
-        self.file_systems[prefix] = fs
-
