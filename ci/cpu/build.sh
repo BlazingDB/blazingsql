@@ -45,7 +45,11 @@ if [ ! -z "$CONDA_BUILD" ]; then
     IFS=', ' read -r -a array <<< "$CONDA_BUILD"
     for item in "${array[@]}"
     do
-        CONDA_CH=$CONDA_CH" -c "$item
+        if [ $item == "blazingsql" ]; then
+            CONDA_CH=$CONDA_CH" -c blazingsql/label/main"
+        else
+            CONDA_CH=$CONDA_CH" -c "$item
+        fi
     done
 fi
 export CONDA_CH
