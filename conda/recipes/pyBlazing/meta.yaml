@@ -33,6 +33,7 @@ requirements:
         - pip
         - blazingsql-protocol  {{ version }}.*
         - jpype1
+        - netifaces
         - dask-cudf
        
 about:
