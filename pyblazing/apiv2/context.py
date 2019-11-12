@@ -52,7 +52,8 @@ seed(11243)
 
 
 def checkSocket(socketNum):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     socket_free = False
     try:
         s.bind(("127.0.0.1", socketNum))
@@ -109,7 +110,6 @@ class BlazingTable(object):
 
 
 
-
 class BlazingContext(object):
 
     def __init__(self, dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = None, leave_processes_running = False, orchestrator_ip = None, orchestrator_port=9100, logs_destination = None):
@@ -124,6 +124,7 @@ class BlazingContext(object):
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
+
             dask_futures = []
             masterIndex = 0
             i = 0
@@ -169,8 +170,6 @@ class BlazingContext(object):
             return True
         else:
             return self.client.ping()
-
-
 
     def __del__(self):
         pass
