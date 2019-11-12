@@ -2,10 +2,10 @@
 # Usage   ./build-all.sh clean_build
 # Example ./build-all.sh true
 
-repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-orchestrator blazingdb-ral pyBlazing blazingdb-calcite)
-branches=(develop develop develop develop develop develop develop)
+repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-ral pyBlazing blazingdb-calcite)
+branches=(develop develop develop develop develop develop)
 # Release or DEBUG
-types=(Release Release Release Release Release Release Release)
+types=(Release Release Release Release Release Release)
 
 
 clean_build="false"
