@@ -21,62 +21,37 @@ requirements:
         - {{ compiler('cxx') }}
     host:
         - python
-        - cudf
         - pip
-        - nvstrings
-        - rmm
-        - dask-cudf
-        - dask
         - gtest
         - gmock
-        - setuptools
-        - boost-cpp >=1.70.0
-        - openssl
-        - rapidjson
-        - cudatoolkit
-        - flatbuffers
-        - zlib
-        - curl
-        - arrow-cpp >=0.14.1
-        - libcudf
-        - libnvstrings
-        - librmm
-        - parquet-cpp
-        - libhdfs3
-        - cudatoolkit {{ cuda_version }}.*
         - cmake
+        - dask-cudf
+        - libhdfs3
+        - openssl
+        - arrow-cpp=0.14.1
+        - cmake
+        - openjdk=8.0
         - maven
-        - zeromq
         - cppzmq
+        - flatbuffers
+        - cudatoolkit {{ cuda_version }}.*
+        - blazingsql-toolchain  {{ version }}.*
     run:
         - python
-        - cudf
         - pip
-        - nvstrings
-        - rmm
-        - dask-cudf
-        - dask
         - gtest
         - gmock
-        - setuptools
-        - boost-cpp >=1.70.0
-        - openssl
-        - rapidjson
-        - cudatoolkit
-        - flatbuffers
-        - zlib
-        - curl
-        - arrow-cpp >=0.14.1
-        - libcudf
-        - libnvstrings
-        - librmm
-        - parquet-cpp
+        - dask-cudf
         - libhdfs3
-        - cudatoolkit {{ cuda_version }}.*
+        - openssl
+        - arrow-cpp=0.14.1
         - cmake
+        - openjdk=8.0
         - maven
-        - zeromq
         - cppzmq
+        - flatbuffers
+        - cudatoolkit {{ cuda_version }}.*
+        - blazingsql-toolchain  {{ version }}.*
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
