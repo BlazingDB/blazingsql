@@ -78,12 +78,13 @@ def initializeBlazing(ralId = 0, networkInterface = 'lo'):
 
 
 class BlazingTable(object):
-    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None):
+    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None,args={}):
         self.input = input
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
         self.num_row_groups = num_row_groups
         self.fileType = fileType
+        self.args = args
 
     def getSlices(self,numSlices):
         nodeFilesList = []
@@ -264,6 +265,7 @@ class BlazingContext(object):
 
     def create_table(self, table_name, input, **kwargs):
         table = None
+        args = {}
         if type(input) == str:
             input = [input,]
         file_format = kwargs.get('file_format', None)
@@ -275,8 +277,8 @@ class BlazingContext(object):
             table = BlazingTable(input,self.CUDF_TYPE)
         elif type(input) == list:
             file_type = self.type_from_path(input[0],file_format)
-            parsedSchema = cio.parseSchemaCaller(input,file_type)
-            table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'])
+            parsedSchema = cio.parseSchemaCaller(input,file_type,kwargs)
+            table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'])
         elif type(input) == dask_cudf.core.DataFrame:
             print("not supported")
         if table is not None:
