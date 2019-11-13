@@ -228,6 +228,7 @@ class BlazingContext(object):
     def localfs(self, prefix, **kwargs):
         return self.fs.localfs(self.client, prefix, **kwargs)
 
+    # Use result, error_msg = hdfs(args) where result can be True|False
     def hdfs(self, prefix, **kwargs):
         return self.fs.hdfs(self.client, prefix, **kwargs)
 
