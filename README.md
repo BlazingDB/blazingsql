@@ -96,15 +96,6 @@ The build-all.sh script will checkout every BlazingSQL repository, build and ins
 $CONDA_PREFIX now has a folder for every blazingsql repository. If you want to build any component individually, inside each repo you can run in conda/recipes/{repo name}/build.sh from the root folder of the repository.
 
 
-## Build Conda Package
-Navigate to the folder
-```
-cd conda/recipes/pyblazing
-conda build  -c blazingsql -c conda-forge -c rapidsai-nightly blazingsql-dev .
-```
-
-
-
 ## Contributing
 Have questions or feedback? Post a [new github issue](https://github.com/BlazingDB/pyBlazing/issues/new/choose).
 
