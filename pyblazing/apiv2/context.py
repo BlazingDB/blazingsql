@@ -28,8 +28,8 @@ import dask_cudf
 import dask
 import jpype
 import netifaces as ni
-from random import seed
-from random import randint
+
+import random
 
 jpype.addClassPath( os.path.join(os.getenv("CONDA_PREFIX"), 'lib/blazingsql-algebra.jar'))
 jpype.addClassPath(os.path.join(os.getenv("CONDA_PREFIX"), 'lib/blazingsql-algebra-core.jar'))
@@ -46,7 +46,7 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass('com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
 
-seed(11243)
+
 
 
 
@@ -71,9 +71,9 @@ def checkSocket(socketNum):
 def initializeBlazing(ralId = 0, networkInterface = 'lo'):
     print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
-    ralCommunicationPort = randint(10000,40000)
+    ralCommunicationPort = random.randint(10000,40000) + ralId
     while checkSocket(ralCommunicationPort) == False:
-        ralCommunicationPort = randint(10000,40000)
+        ralCommunicationPort = random.randint(10000,40000)+ ralId
     cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort)
     return ralCommunicationPort, workerIp
 
@@ -137,6 +137,8 @@ class BlazingContext(object):
                 node = {}
                 node['ip'] = ralIp
                 node['communication_port'] = ralPort
+                print("ralport is")
+                print(ralPort)
                 self.nodes.append(node)
         else:
             ralPort, ralIp = initializeBlazing(ralId = 0, networkInterface = 'lo')
@@ -301,7 +303,7 @@ class BlazingContext(object):
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
 
-        ctxToken = randint(0,64000)
+        ctxToken = random.randint(0,64000)
         accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
