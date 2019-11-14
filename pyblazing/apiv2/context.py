@@ -27,6 +27,7 @@ import cudf
 import dask_cudf
 import dask
 import jpype
+import dask.distributed
 import netifaces as ni
 
 import random
@@ -71,21 +72,61 @@ def checkSocket(socketNum):
 def initializeBlazing(ralId = 0, networkInterface = 'lo'):
     print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
-    ralCommunicationPort = random.randint(10000,40000) + ralId
+    ralCommunicationPort = random.randint(10000,32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
-        ralCommunicationPort = random.randint(10000,40000)+ ralId
+        ralCommunicationPort = random.randint(10000,32000)+ ralId
     cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort)
     return ralCommunicationPort, workerIp
 
+def getNodePartitions(df,client):
+    df = df.persist()
+    dask.distributed.wait(df)
+    print(client.who_has(df))
+    worker_part = client.who_has(df)
+    worker_partitions = {}
+    for key in worker_part:
+        worker = worker_part[key][0]
+        partition = int(key[key.find(",")+2:(len(key)-1)])
+        if worker not in worker_partitions:
+            worker_partitions[worker] = []
+        worker_partitions[worker].append(partition)
+    print("worker partitions")
+    print(worker_partitions)
+    return worker_partitions
+
+
+def collectPartitionsRunQuery(masterIndex,nodes,tables,fileTypes,ctxToken,algebra,accessToken):
+    import dask.distributed
+    worker_name = dask.distributed.get_worker().name
+    for table_name in tables:
+        if(isinstance(tables[table_name].input,dask_cudf.core.DataFrame)):
+            partitions = tables[table_name].get_partitions(worker_name)
+            if (len(partitions) == 0):
+                tables[table_name].input = tables[table_name].input.head(0)
+            elif (len(partitions) == 1):
+                tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute()
+            else:
+                new_df  = tables[table_name].input.head(0)
+                for partition in partitions:
+                    new_df.concat(tables[table_name].input.get_partition(partition).compute())
+                tables[table_name].input = new_df
+    return cio.runQueryCaller(masterIndex,nodes,tables,fileTypes,ctxToken,algebra,accessToken)
 
 class BlazingTable(object):
-    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None,args={}):
+    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None,args={}, convert_gdf_to_dask=False, convert_gdf_to_dask_partitions=1,client=None):
         self.input = input
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
         self.num_row_groups = num_row_groups
         self.fileType = fileType
         self.args = args
+        if fileType > 3:
+            if(convert_gdf_to_dask and isinstance(self.input,cudf.DataFrame)):
+                self.input = dask_cudf.from_cudf(self.input,npartitions = convert_gdf_to_dask_partitions)
+            if(isinstance(self.input,dask_cudf.core.DataFrame)):
+                self.dask_mapping = getNodePartitions(self.input,client)
+
+
 
     def getSlices(self,numSlices):
         nodeFilesList = []
@@ -108,6 +149,8 @@ class BlazingTable(object):
             remaining = remaining - batchSize
         return nodeFilesList
 
+    def get_partitions(self,worker):
+        return self.dask_mapping[worker]
 
 
 class BlazingContext(object):
@@ -125,21 +168,26 @@ class BlazingContext(object):
             if network_interface is None:
                 network_interface = 'eth0'
 
+            worker_list = []
             dask_futures = []
             masterIndex = 0
             i = 0
             print(network_interface)
             for worker in list(self.dask_client.scheduler_info()["workers"]):
                 dask_futures.append(self.dask_client.submit(  initializeBlazing,ralId = i, networkInterface = network_interface, workers = [worker]))
+                worker_list.append(worker)
                 i = i + 1
+            i = 0
             for connection in dask_futures:
                 ralPort, ralIp = connection.result()
                 node = {}
+                node['worker'] = worker_list[i]
                 node['ip'] = ralIp
                 node['communication_port'] = ralPort
                 print("ralport is")
                 print(ralPort)
                 self.nodes.append(node)
+                i = i + 1
         else:
             ralPort, ralIp = initializeBlazing(ralId = 0, networkInterface = 'lo')
             node = {}
@@ -243,7 +291,10 @@ class BlazingContext(object):
                 arr = ArrayClass()
                 order = 0
                 for column in table.input.columns:
-                    dataframe_column = table.input._cols[column]
+                    if(isinstance(table.input,dask_cudf.core.DataFrame)):
+                        dataframe_column = table.input.head(0)._cols[column]
+                    else:
+                        dataframe_column = table.input._cols[column]
                     data_sz = len(dataframe_column)
                     dtype = pyblazing.api.get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
                     dataType = ColumnTypeClass.fromString(dtype)
@@ -275,13 +326,16 @@ class BlazingContext(object):
         elif type(input) == pyarrow.Table:
             table = BlazingTable(cudf.DataFrame.from_arrow(input),self.CUDF_TYPE)
         elif type(input) == cudf.DataFrame:
-            table = BlazingTable(input,self.CUDF_TYPE)
+            if (self.dask_client is not None):
+                table = BlazingTable(input,self.DASK_CUDF_TYPE,convert_gdf_to_dask=True,convert_gdf_to_dask_partitions=len(self.nodes),client=self.dask_client)
+            else:
+                table = BlazingTable(input,self.CUDF_TYPE)
         elif type(input) == list:
             file_type = self.type_from_path(input[0],file_format)
             parsedSchema = cio.parseSchemaCaller(input,file_type,kwargs)
             table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'])
         elif type(input) == dask_cudf.core.DataFrame:
-            print("not supported")
+            table = BlazingTable(input,self.DASK_CUDF_TYPE,client=self.dask_client)
         if table is not None:
             self.add_remove_table(table_name,True,table)
         return table
@@ -295,14 +349,25 @@ class BlazingContext(object):
         masterIndex = 0
         nodeTableList =  [{} for _ in range(len(self.nodes))]
         fileTypes = []
+        #a list, same size as tables, when we have a dask_cudf
+        #table , tells us partitions that map to that table
+
         for table in self.tables:
             fileTypes.append(self.tables[table].fileType)
-            currentTableNodes = self.tables[table].getSlices(len(self.nodes))
+            if(self.tables[table].fileType <= 3):
+                currentTableNodes = self.tables[table].getSlices(len(self.nodes))
+            elif(self.tables[table].fileType == self.DASK_CUDF_TYPE):
+                currentTableNodes = []
+                for node in self.nodes:
+                    currentTableNodes.append(self.tables[table])
+            elif(self.tables[table].fileType == self.CUDF_TYPE):
+                currentTableNodes = []
+                for node in self.nodes:
+                    currentTableNodes.append(self.tables[table])
             j = 0
             for nodeList in nodeTableList:
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
-
         ctxToken = random.randint(0,64000)
         accessToken = 0
         if (len(table_list) > 0):
@@ -313,8 +378,9 @@ class BlazingContext(object):
         else:
             dask_futures = []
             i = 0
-            for worker in list(self.dask_client.scheduler_info()["workers"]):
-                dask_futures.append(self.dask_client.submit(    cio.runQueryCaller,masterIndex,self.nodes,nodeTableList[i],fileTypes,ctxToken,algebra,accessToken, workers = [worker]))
+            for node in self.nodes:
+                worker = node['worker']
+                dask_futures.append(self.dask_client.submit(  collectPartitionsRunQuery,masterIndex,self.nodes,nodeTableList[i],fileTypes,ctxToken,algebra,accessToken, workers = [worker]))
                 i = i + 1
             result = dask.dataframe.from_delayed(dask_futures)
         return result
