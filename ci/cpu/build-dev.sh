@@ -20,26 +20,6 @@ cd $WORKSPACE
 export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
-# Nightly seccion
-NIGHTLY=""
-if [[ "$CONDA_BUILD" == *"nightly"* ]]; then
-    NIGHTLY="-nightly"
-    # CUDF="cudf=0.10"
-
-    libcudf="libcudf=0.10"
-    nvstrings="nvstrings=0.10"
-    rmm="rmm=0.10"
-    daskcudf="dask-cudf=0.10"
-
-    #Replazing cudf version
-    echo "Replacing cudf version into meta.yaml"
-    sed -ie "s/libcudf/$libcudf/g" conda/recipes/pyBlazing/meta.yaml
-    sed -ie "s/nvstrings/$nvstrings/g" conda/recipes/pyBlazing/meta.yaml
-    sed -ie "s/rmm/$rmm/g" conda/recipes/pyBlazing/meta.yaml
-    sed -ie "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
-fi
-echo "IS_NIGHTLY "$NIGHTLY
-
 CONDA_CH=""
 if [ ! -z "$CONDA_BUILD" ]; then
     IFS=', ' read -r -a array <<< "$CONDA_BUILD"
@@ -82,8 +62,8 @@ conda install -y conda-build anaconda-client
 # BUILD - Conda package builds
 ################################################################################
 
-logger "Build conda pkg for pyblazing..."
-source ci/cpu/pyblazing/conda-build.sh
+logger "Build conda pkg for blazingsql-dev..."
+source ci/cpu/blazingsql-dev/conda-build.sh
 
-logger "Upload conda pkg for pyblazing..."
-source ci/cpu/upload_anaconda.sh
+logger "Upload conda pkg for blazingsql-dev..."
+source ci/cpu/upload-dev.sh
