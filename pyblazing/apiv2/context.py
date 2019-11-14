@@ -9,7 +9,7 @@ from threading import  Lock
 from .filesystem import FileSystem
 from .sql import SQL
 from .sql import ResultSet
-from .datasource import build_datasource
+from .datasource import *
 import time
 import datetime
 import socket, errno
@@ -28,8 +28,8 @@ import dask_cudf
 import dask
 import jpype
 import netifaces as ni
-from random import seed
-from random import randint
+
+import random
 
 jpype.addClassPath( os.path.join(os.getenv("CONDA_PREFIX"), 'lib/blazingsql-algebra.jar'))
 jpype.addClassPath(os.path.join(os.getenv("CONDA_PREFIX"), 'lib/blazingsql-algebra-core.jar'))
@@ -46,13 +46,14 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass('com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
 
-seed(11243)
+
 
 
 
 
 def checkSocket(socketNum):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     socket_free = False
     try:
         s.bind(("127.0.0.1", socketNum))
@@ -70,20 +71,21 @@ def checkSocket(socketNum):
 def initializeBlazing(ralId = 0, networkInterface = 'lo'):
     print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
-    ralCommunicationPort = randint(10000,40000)
+    ralCommunicationPort = random.randint(10000,40000) + ralId
     while checkSocket(ralCommunicationPort) == False:
-        ralCommunicationPort = randint(10000,40000)
+        ralCommunicationPort = random.randint(10000,40000)+ ralId
     cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort)
     return ralCommunicationPort, workerIp
 
 
 class BlazingTable(object):
-    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None):
+    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None,args={}):
         self.input = input
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
         self.num_row_groups = num_row_groups
         self.fileType = fileType
+        self.args = args
 
     def getSlices(self,numSlices):
         nodeFilesList = []
@@ -108,7 +110,6 @@ class BlazingTable(object):
 
 
 
-
 class BlazingContext(object):
 
     def __init__(self, dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = None, leave_processes_running = False, orchestrator_ip = None, orchestrator_port=9100, logs_destination = None):
@@ -123,6 +124,7 @@ class BlazingContext(object):
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
+
             dask_futures = []
             masterIndex = 0
             i = 0
@@ -135,6 +137,8 @@ class BlazingContext(object):
                 node = {}
                 node['ip'] = ralIp
                 node['communication_port'] = ralPort
+                print("ralport is")
+                print(ralPort)
                 self.nodes.append(node)
         else:
             ralPort, ralIp = initializeBlazing(ralId = 0, networkInterface = 'lo')
@@ -153,12 +157,6 @@ class BlazingContext(object):
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
         self.tables = {}
 
-        self.PARQUET_FILE_TYPE = 0
-        self.ORC_FILE_TYPE = 1
-        self.CSV_FILE_TYPE = 2
-        self.JSON_FILE_TYPE = 3
-        self.CUDF_TYPE = 4
-        self.DASK_CUDF_TYPE = 5
         #waitForPingSuccess(self.client)
         print("BlazingContext ready")
 
@@ -168,8 +166,6 @@ class BlazingContext(object):
             return True
         else:
             return self.client.ping()
-
-
 
     def __del__(self):
         pass
@@ -205,30 +201,9 @@ class BlazingContext(object):
     def _to_path(self, url):
         path = PurePath(url.path)
         return path
+
+
     # BEGIN SQL interface
-    def type_from_path(self, file, file_format):
-
-        url = self._to_url(file)
-        path = self._to_path(url)
-
-        if file_format is not None:
-            if not any([type == file_format for type in ['parquet','orc','csv','json']]):
-                print("WARNING: file_format does not match any of the supported types: 'parquet','orc','csv','json'")
-
-        if file_format == 'parquet' or path.suffix == '.parquet':
-            return self.PARQUET_FILE_TYPE
-
-        if file_format == 'csv' or path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
-            return self.CSV_FILE_TYPE
-
-        if file_format == 'json' or path.suffix == '.json':
-            return self.JSON_FILE_TYPE
-
-        if file_format == 'orc' or path.suffix == '.orc':
-            return self.ORC_FILE_TYPE
-
-        return None
-
     def explain(self,sql):
         return str(self.generator.getRelationalAlgebraString(sql))
 
@@ -266,7 +241,7 @@ class BlazingContext(object):
         table = None
         if type(input) == str:
             input = [input,]
-        file_format = kwargs.get('file_format', None)
+        file_format_hint = kwargs.get('file_format', 'undefined') # See datasource.file_format
         if type(input) == pandas.DataFrame:
             table = BlazingTable(cudf.DataFrame.from_pandas(input),self.CUDF_TYPE)
         elif type(input) == pyarrow.Table:
@@ -274,9 +249,9 @@ class BlazingContext(object):
         elif type(input) == cudf.DataFrame:
             table = BlazingTable(input,self.CUDF_TYPE)
         elif type(input) == list:
-            file_type = self.type_from_path(input[0],file_format)
-            parsedSchema = cio.parseSchemaCaller(input,file_type)
-            table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'])
+            parsedSchema = cio.parseSchemaCaller(input,file_format_hint,kwargs)
+            file_type = parsedSchema['file_type']
+            table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'])
         elif type(input) == dask_cudf.core.DataFrame:
             print("not supported")
         if table is not None:
@@ -300,7 +275,7 @@ class BlazingContext(object):
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
 
-        ctxToken = randint(0,64000)
+        ctxToken = random.randint(0,64000)
         accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")

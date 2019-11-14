@@ -305,10 +305,12 @@ def _make_default_csv_arg(**kwargs):
 # END DataSource internal utils
 
 # connection_path is a ip/host when tcp and can be unix socket when ipc
-def _send_request(connection_path, connection_port, requestBuffer, expect_response=True):
+def _send_request(connection_path, connection_port, requestBuffer):
     connection = blazingdb.protocol.TcpSocketConnection(connection_path, connection_port)
     client = blazingdb.protocol.Client(connection)
-    return client.send(requestBuffer, expect_response)
+    response = client.send(requestBuffer)
+    del connection
+    return response
 
 class Singleton(type):
     _instances = {}
@@ -560,7 +562,7 @@ class PyConnector(metaclass=Singleton):
 
     def ping(self):
         try:
-            response = self.run_system_command("ping", expect_response=True)
+            response = self.run_system_command("ping")
             if (response == "ping"):
                 return True
             else:
@@ -573,24 +575,23 @@ class PyConnector(metaclass=Singleton):
         for key in process_names:
             command = command + " " + key
 
-        self.run_system_command(command, expect_response=False)
+        self.run_system_command(command)
 
 
-    def run_system_command(self, command, expect_response):
+    def run_system_command(self, command):
         systemCommandSchema = blazingdb.protocol.orchestrator.BuildSystemCommandRequestSchema(command = command)
 
         requestBuffer = blazingdb.protocol.transport.channel.MakeRequestBuffer(OrchestratorMessageType.SystemCommand, self._accessToken, systemCommandSchema)
-        responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer, expect_response)
-        if (expect_response):
-            response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
+        responseBuffer = _send_request(self._orchestrator_path, self._orchestrator_port, requestBuffer)
+        response = blazingdb.protocol.transport.channel.ResponseSchema.From(responseBuffer)
 
-            if response.status == Status.Error:
-                errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
-                raise RuntimeError(errorResponse.errors.decode("utf-8"))
+        if response.status == Status.Error:
+            errorResponse = blazingdb.protocol.transport.channel.ResponseErrorSchema.From(response.payload)
+            raise RuntimeError(errorResponse.errors.decode("utf-8"))
 
-            system_command_response = blazingdb.protocol.orchestrator.SystemCommandResponseSchema.From(response.payload)
-            response = system_command_response.response.decode("utf-8")
-            return response
+        system_command_response = blazingdb.protocol.orchestrator.SystemCommandResponseSchema.From(response.payload)
+        response = system_command_response.response.decode("utf-8")
+        return response
 
 
 
@@ -641,8 +642,7 @@ class ResultSetHandle:
         if (self.handle is not None) and (not self.is_dask):
             for ipch in self.handle: #todo add NVStrings handles
                 ipch.close()
-            for column in self.columns:
-                del column
+            del self.columns                
             del self.handle
             try :
                 self.client.free_result(self.resultToken,self.interpreter_path,self.interpreter_port)
@@ -781,7 +781,10 @@ def get_np_dtype_to_gdf_dtype(dtype):
         np.dtype('int16'):      gdf_dtype.GDF_INT16,
         np.dtype('int8'):       gdf_dtype.GDF_INT8,
         np.dtype('bool_'):      gdf_dtype.GDF_BOOL8,
-        np.dtype('datetime64[ms]'): gdf_dtype.GDF_DATE64,
+        np.dtype('datetime64[s]'): gdf_dtype.GDF_TIMESTAMP,
+        np.dtype('datetime64[ms]'): gdf_dtype.GDF_TIMESTAMP,
+        np.dtype('datetime64[us]'): gdf_dtype.GDF_TIMESTAMP,
+        np.dtype('datetime64[ns]'): gdf_dtype.GDF_TIMESTAMP,
         np.dtype('datetime64'): gdf_dtype.GDF_DATE64,
         np.dtype('object_'):    gdf_dtype.GDF_STRING,
         np.dtype('str_'):       gdf_dtype.GDF_STRING,
