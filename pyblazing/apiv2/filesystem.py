@@ -89,7 +89,7 @@ class FileSystem(object):
         fs['kms_key_amazon_resource_name'] = kms_key_amazon_resource_name
         return registerFileSystem(client,fs,root,prefix)
 
-    def gcs(self, client, prefix, **kwargs):
+    def gs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
 
         root = kwargs.get('root', '/')
@@ -100,7 +100,7 @@ class FileSystem(object):
         adc_json_file = kwargs.get('adc_json_file', '')
 
         fs = OrderedDict()
-        fs['type'] = 'gcs'
+        fs['type'] = 'gs'
         fs['project_id'] = project_id
         fs['bucket_name'] = bucket_name
         fs['use_default_adc_json_file'] = use_default_adc_json_file

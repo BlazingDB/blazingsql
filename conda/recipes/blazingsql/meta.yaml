@@ -5,7 +5,7 @@
 {% set py_version=environ.get('CONDA_PY', 36) %}
 
 package:
-    name: blazingsql-python
+    name: blazingsql
     version: {{ version }}
 
 build:
@@ -17,24 +17,22 @@ source:
 
 requirements:
     build:
-        - {{ compiler('c') }}
-        - {{ compiler('cxx') }}
-
-    host:
         - python
         - pip
-        - blazingsql-protocol  {{ version }}.*
         - dask-cudf
-        - cudatoolkit {{ cuda_version }}.*
-        - cmake
+        - bsql-algebra {{ version }}.*
+        - bsql-engine  {{ version }}.*
+        - cudatoolkit  {{ cuda_version }}.*
         
     run:
         - python
-        - pip
-        - blazingsql-protocol  {{ version }}.*
+        #- pip
         - jpype1
         - netifaces
         - dask-cudf
+        - bsql-algebra {{ version }}.*
+        - bsql-engine  {{ version }}.*
+        - cudatoolkit  {{ cuda_version }}.*
        
 about:
     home: http://www.blazingsql.com/
