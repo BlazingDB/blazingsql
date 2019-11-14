@@ -205,12 +205,12 @@ class BlazingContext(object):
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
         self.tables = {}
 
-        self.PARQUET_FILE_TYPE = 1
-        self.ORC_FILE_TYPE = 2
-        self.CSV_FILE_TYPE = 3
-        self.JSON_FILE_TYPE = 4
-        self.CUDF_TYPE = 5
-        self.DASK_CUDF_TYPE = 6
+        self.PARQUET_FILE_TYPE = 0
+        self.ORC_FILE_TYPE = 1
+        self.CSV_FILE_TYPE = 2
+        self.JSON_FILE_TYPE = 3
+        self.CUDF_TYPE = 4
+        self.DASK_CUDF_TYPE = 5
 
         #waitForPingSuccess(self.client)
         print("BlazingContext ready")
