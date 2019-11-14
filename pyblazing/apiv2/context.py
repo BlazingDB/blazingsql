@@ -9,7 +9,7 @@ from threading import  Lock
 from .filesystem import FileSystem
 from .sql import SQL
 from .sql import ResultSet
-from .datasource import build_datasource
+from .datasource import *
 import time
 import datetime
 import socket, errno
@@ -157,12 +157,6 @@ class BlazingContext(object):
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
         self.tables = {}
 
-        self.PARQUET_FILE_TYPE = 0
-        self.ORC_FILE_TYPE = 1
-        self.CSV_FILE_TYPE = 2
-        self.JSON_FILE_TYPE = 3
-        self.CUDF_TYPE = 4
-        self.DASK_CUDF_TYPE = 5
         #waitForPingSuccess(self.client)
         print("BlazingContext ready")
 
@@ -207,30 +201,9 @@ class BlazingContext(object):
     def _to_path(self, url):
         path = PurePath(url.path)
         return path
+
+
     # BEGIN SQL interface
-    def type_from_path(self, file, file_format):
-
-        url = self._to_url(file)
-        path = self._to_path(url)
-
-        if file_format is not None:
-            if not any([type == file_format for type in ['parquet','orc','csv','json']]):
-                print("WARNING: file_format does not match any of the supported types: 'parquet','orc','csv','json'")
-
-        if file_format == 'parquet' or path.suffix == '.parquet':
-            return self.PARQUET_FILE_TYPE
-
-        if file_format == 'csv' or path.suffix == '.csv' or path.suffix == '.psv' or path.suffix == '.tbl':
-            return self.CSV_FILE_TYPE
-
-        if file_format == 'json' or path.suffix == '.json':
-            return self.JSON_FILE_TYPE
-
-        if file_format == 'orc' or path.suffix == '.orc':
-            return self.ORC_FILE_TYPE
-
-        return None
-
     def explain(self,sql):
         return str(self.generator.getRelationalAlgebraString(sql))
 
@@ -266,10 +239,9 @@ class BlazingContext(object):
 
     def create_table(self, table_name, input, **kwargs):
         table = None
-        args = {}
         if type(input) == str:
             input = [input,]
-        file_format = kwargs.get('file_format', None)
+        file_format_hint = kwargs.get('file_format', 'undefined') # See datasource.file_format
         if type(input) == pandas.DataFrame:
             table = BlazingTable(cudf.DataFrame.from_pandas(input),self.CUDF_TYPE)
         elif type(input) == pyarrow.Table:
@@ -277,8 +249,8 @@ class BlazingContext(object):
         elif type(input) == cudf.DataFrame:
             table = BlazingTable(input,self.CUDF_TYPE)
         elif type(input) == list:
-            file_type = self.type_from_path(input[0],file_format)
-            parsedSchema = cio.parseSchemaCaller(input,file_type,kwargs)
+            parsedSchema = cio.parseSchemaCaller(input,file_format_hint,kwargs)
+            file_type = parsedSchema['file_type']
             table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'])
         elif type(input) == dask_cudf.core.DataFrame:
             print("not supported")
