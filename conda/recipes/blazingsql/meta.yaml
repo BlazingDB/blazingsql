@@ -5,7 +5,7 @@
 {% set py_version=environ.get('CONDA_PY', 36) %}
 
 package:
-    name: blazingsql-python
+    name: blazingsql
     version: {{ version }}
 
 build:
@@ -23,7 +23,7 @@ requirements:
     host:
         - python
         - pip
-        - blazingsql-protocol  {{ version }}.*
+        - bsql-protocol  {{ version }}.*
         - dask-cudf
         - cudatoolkit {{ cuda_version }}.*
         - cmake
@@ -31,7 +31,7 @@ requirements:
     run:
         - python
         - pip
-        - blazingsql-protocol  {{ version }}.*
+        - bsql-protocol  {{ version }}.*
         - jpype1
         - netifaces
         - dask-cudf
