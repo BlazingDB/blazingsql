@@ -63,6 +63,10 @@ export CONDA_UPLOAD
 # SETUP - Check environment
 ################################################################################
 
+logger "Creating bsql-rbuilder"
+conda create -n bsql-builder python=3.7.4 -y
+source activate bsql-builder
+
 logger "Get env..."
 env
 
