@@ -24,19 +24,19 @@ export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 NIGHTLY=""
 if [[ "$CONDA_BUILD" == *"nightly"* ]]; then
     NIGHTLY="-nightly"
-    # CUDF="cudf=0.10"
+    # CUDF="cudf=0.11"
 
-    libcudf="libcudf=0.10"
-    nvstrings="nvstrings=0.10"
-    rmm="rmm=0.10"
-    daskcudf="dask-cudf=0.10"
+    #libcudf="libcudf=0.11"
+    #nvstrings="nvstrings=0.11"
+    #rmm="rmm=0.11"
+    #daskcudf="dask-cudf=0.11"
 
     #Replazing cudf version
-    echo "Replacing cudf version into meta.yaml"
-    sed -ie "s/libcudf/$libcudf/g" conda/recipes/pyBlazing/meta.yaml
-    sed -ie "s/nvstrings/$nvstrings/g" conda/recipes/pyBlazing/meta.yaml
-    sed -ie "s/rmm/$rmm/g" conda/recipes/pyBlazing/meta.yaml
-    sed -ie "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
+    #echo "Replacing cudf version into meta.yaml"
+    #sed -i "s/libcudf/$libcudf/g" conda/recipes/pyBlazing/meta.yaml
+    #sed -i "s/nvstrings/$nvstrings/g" conda/recipes/pyBlazing/meta.yaml
+    #sed -i "s/rmm/$rmm/g" conda/recipes/pyBlazing/meta.yaml
+    #sed -i "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
 fi
 echo "IS_NIGHTLY "$NIGHTLY
 
@@ -83,7 +83,7 @@ conda install -y conda-build anaconda-client
 ################################################################################
 
 logger "Build conda pkg for pyblazing..."
-source ci/cpu/pyblazing/conda-build.sh
+source ci/cpu/blazingsql/conda-build.sh
 
 logger "Upload conda pkg for pyblazing..."
 source ci/cpu/upload_anaconda.sh
