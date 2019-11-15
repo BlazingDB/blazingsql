@@ -223,7 +223,9 @@ class BlazingContext(object):
             return self.client.ping()
 
     def __del__(self):
-        pass
+        # TODO: fix errors stoping communication server
+        #       Possible errors when using more then one context instance
+        cio.finalizeCaller()
 
     def __repr__(self):
         return "BlazingContext('%s')" % (self.connection)
