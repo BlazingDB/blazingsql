@@ -64,4 +64,15 @@ do
 
   i=$(($i+1))
 
+  if [ "$pkg_name" == "bsql-engine" ]; then
+    chmod +x conda/recipes/libbsql-engine/build.sh
+    status="Cloned and built"
+    failed=0
+    conda/recipes/libbsql-engine/build.sh $type
+    if [ $? != 0 ]; then
+      status="Build failed"
+      failed=1
+    fi
+  fi
+
 done
