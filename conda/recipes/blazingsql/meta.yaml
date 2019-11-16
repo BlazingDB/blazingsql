@@ -19,14 +19,10 @@ requirements:
     build:
         - python
         - pip
-        - dask-cudf
-        - bsql-algebra {{ version }}.*
-        - bsql-engine  {{ version }}.*
+    host:
         - cudatoolkit  {{ cuda_version }}.*
-        
     run:
         - python
-        #- pip
         - jpype1
         - netifaces
         - dask-cudf
