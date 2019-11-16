@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='PyBlazing',
+    name='blazingsql',
     version='0.1',
     author='BlazingDB',
     packages=find_packages(),
