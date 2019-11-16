@@ -5,10 +5,13 @@ from .bridge import internal_api
 import cio
 
 def registerFileSystem(client,fs,root,prefix):
+    ok = False
+    msg = ""
     if client is None:
-        ok = cio.registerFileSystemCaller(fs,root,prefix)
+        ok,msg = cio.registerFileSystemCaller(fs,root,prefix)
+        msg = msg.decode("utf-8")
         if ok == False:
-            print("Could not register filesystem")
+            print(msg)
     else:
         dask_futures = []
         i = 0
@@ -16,11 +19,12 @@ def registerFileSystem(client,fs,root,prefix):
             dask_futures.append(client.submit(cio.registerFileSystemCaller, fs, root, prefix, workers = [worker]))
             i = i + 1
         for connection in dask_futures:
-            ok = connection.result()
+            ok,msg = connection.result()
+            msg = msg.decode("utf-8")
             if ok == False:
-                print("Could not register filesystem with worker ")
+                print(msg + " with dask worker")
                 print(worker)
-    return fs
+    return ok,msg,fs
 
 
 class FileSystem(object):
