@@ -25,11 +25,9 @@ requirements:
         - python
         - jpype1
         - netifaces
-        - dask-cudf
-        - bsql-algebra {{ version }}.*
-        - bsql-engine  {{ version }}.*
         - cudatoolkit  {{ cuda_version }}.*
-       
+        - bsql-engine  {{ version }}.*
+        - bsql-algebra {{ version }}.*       
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
