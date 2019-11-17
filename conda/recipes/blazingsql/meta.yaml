@@ -16,18 +16,21 @@ source:
     path: ../../..
 
 requirements:
-    build:
-        - python
-        - pip
     host:
         - cudatoolkit  {{ cuda_version }}.*
+        - python
+        - pip
+        - setuptools
     run:
         - python
+        - pip
+        - setuptools
         - jpype1
         - netifaces
         - cudatoolkit  {{ cuda_version }}.*
         - bsql-engine  {{ version }}.*
-        - bsql-algebra {{ version }}.*       
+        - bsql-algebra {{ version }}.*
+
 about:
     home: http://www.blazingsql.com/
     license: Apache-2.0
