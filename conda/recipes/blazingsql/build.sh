@@ -2,5 +2,5 @@
 
 echo "### start build.sh ### "
 
-echo "pip install ."
-pip install .
+python setup.py build_ext --inplace
+python setup.py install --single-version-externally-managed --record=record.txt
