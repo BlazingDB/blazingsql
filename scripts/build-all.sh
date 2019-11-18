@@ -4,7 +4,7 @@
 
 repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-ral pyBlazing blazingdb-calcite)
 branches=(develop develop develop develop develop develop)
-pkg_names=(bsql-protocol bsql-comms bsql-io bsql-engine blazingsql bsql-algebra)
+pkg_names=(bsql-protocol bsql-comms bsql-io libbsql-engine blazingsql bsql-algebra)
 
 # Release or DEBUG
 types=(Release Release Release Release Release Release)
@@ -63,5 +63,15 @@ do
   fi
 
   i=$(($i+1))
+
+  if [ "$pkg_name" == "libbsql-engine" ]; then
+    chmod +x conda/recipes/sql-engine/build.sh
+    failed=0
+    conda/recipes/sql-engine/build.sh $type
+    if [ $? != 0 ]; then
+      status="Build failed"
+      failed=1
+    fi
+  fi
 
 done
