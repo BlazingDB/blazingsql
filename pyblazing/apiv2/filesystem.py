@@ -5,10 +5,13 @@ from .bridge import internal_api
 import cio
 
 def registerFileSystem(client,fs,root,prefix):
+    ok = False
+    msg = ""
     if client is None:
-        ok = cio.registerFileSystemCaller(fs,root,prefix)
+        ok,msg = cio.registerFileSystemCaller(fs,root,prefix)
+        msg = msg.decode("utf-8")
         if ok == False:
-            print("Could not register filesystem")
+            print(msg)
     else:
         dask_futures = []
         i = 0
@@ -16,11 +19,12 @@ def registerFileSystem(client,fs,root,prefix):
             dask_futures.append(client.submit(cio.registerFileSystemCaller, fs, root, prefix, workers = [worker]))
             i = i + 1
         for connection in dask_futures:
-            ok = connection.result()
+            ok,msg = connection.result()
+            msg = msg.decode("utf-8")
             if ok == False:
-                print("Could not register filesystem with worker ")
+                print(msg + " with dask worker")
                 print(worker)
-    return fs
+    return ok,msg,fs
 
 
 class FileSystem(object):
@@ -40,7 +44,10 @@ class FileSystem(object):
             print(fs_str)
 
     def localfs(self, client, prefix, **kwargs):
-        self._verify_prefix(prefix)
+        result, error_msg = self._verify_prefix(prefix)
+        
+        if result == False:
+            return (result, error_msg)
 
         root = kwargs.get('root', '/')
 
@@ -48,27 +55,34 @@ class FileSystem(object):
         fs['type'] = 'local'
         return registerFileSystem(client,fs,root,prefix)
 
-
     def hdfs(self, client, prefix, **kwargs):
-        self._verify_prefix(prefix)
+        result, error_msg = self._verify_prefix(prefix)
+        
+        if result == False:
+            return (result, error_msg)
 
         root = kwargs.get('root', '/')
 
         host = kwargs.get('host', '127.0.0.1')
         port = kwargs.get('port', 8020)
         user = kwargs.get('user', '')
-        kerberos_ticket = kwargs.get('kerberos_ticket', '')
+        driver = kwargs.get('driver', 'libhdfs')
+        kerberos_ticket = kwargs.get('kerb_ticket', '')
 
         fs = OrderedDict()
         fs['type'] = 'hdfs'
         fs['host'] = host
         fs['port'] = port
         fs['user'] = user
+        fs['driver'] = driver
         fs['kerberos_ticket'] = kerberos_ticket
         return registerFileSystem(client,fs,root,prefix)
 
     def s3(self, client, prefix, **kwargs):
-        self._verify_prefix(prefix)
+        result, error_msg = self._verify_prefix(prefix)
+        
+        if result == False:
+            return (result, error_msg)
 
         root = kwargs.get('root', '/')
 
@@ -91,7 +105,6 @@ class FileSystem(object):
 
     def gs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
-
         root = kwargs.get('root', '/')
 
         project_id = kwargs.get('project_id', '')
@@ -108,7 +121,8 @@ class FileSystem(object):
         return registerFileSystem(client,fs,root,prefix)
 
     def _verify_prefix(self, prefix):
-        # TODO percy throw exception
+        result = True
+        error_msg = ""
         if prefix in self.file_systems:
             # TODO percy improve this one add the fs type so we can raise a nice exeption
             raise Exception('Fail add fs')

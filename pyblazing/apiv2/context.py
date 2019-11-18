@@ -80,6 +80,10 @@ def initializeBlazing(ralId = 0, networkInterface = 'lo'):
 
 def getNodePartitions(df,client):
     df = df.persist()
+    workers = client.scheduler_info()['workers']
+    connectionToId = {}
+    for worker in workers:
+        connectionToId[worker] = workers[worker]['name']
     dask.distributed.wait(df)
     print(client.who_has(df))
     worker_part = client.who_has(df)
@@ -87,9 +91,9 @@ def getNodePartitions(df,client):
     for key in worker_part:
         worker = worker_part[key][0]
         partition = int(key[key.find(",")+2:(len(key)-1)])
-        if worker not in worker_partitions:
-            worker_partitions[worker] = []
-        worker_partitions[worker].append(partition)
+        if connectionToId[worker] not in worker_partitions:
+            worker_partitions[connectionToId[worker]] = []
+        worker_partitions[connectionToId[worker]].append(partition)
     print("worker partitions")
     print(worker_partitions)
     return worker_partitions
@@ -97,19 +101,19 @@ def getNodePartitions(df,client):
 
 def collectPartitionsRunQuery(masterIndex,nodes,tables,fileTypes,ctxToken,algebra,accessToken):
     import dask.distributed
-    worker_name = dask.distributed.get_worker().name
+    worker_id = dask.distributed.get_worker().name
     for table_name in tables:
         if(isinstance(tables[table_name].input,dask_cudf.core.DataFrame)):
-            partitions = tables[table_name].get_partitions(worker_name)
+            partitions = tables[table_name].get_partitions(worker_id)
             if (len(partitions) == 0):
                 tables[table_name].input = tables[table_name].input.head(0)
             elif (len(partitions) == 1):
                 tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute()
             else:
-                new_df  = tables[table_name].input.head(0)
+                table_partitions = []
                 for partition in partitions:
-                    new_df.concat(tables[table_name].input.get_partition(partition).compute())
-                tables[table_name].input = new_df
+                    table_partitions.append(tables[table_name].input.get_partition(partition).compute())
+                tables[table_name].input = cudf.concat(table_partitions)
     return cio.runQueryCaller(masterIndex,nodes,tables,fileTypes,ctxToken,algebra,accessToken)
 
 class BlazingTable(object):
@@ -238,6 +242,7 @@ class BlazingContext(object):
     def localfs(self, prefix, **kwargs):
         return self.fs.localfs(self.dask_client, prefix, **kwargs)
 
+    # Use result, error_msg = hdfs(args) where result can be True|False
     def hdfs(self, prefix, **kwargs):
         return self.fs.hdfs(self.dask_client, prefix, **kwargs)
 
