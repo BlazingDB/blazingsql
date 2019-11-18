@@ -3,12 +3,12 @@ from enum import Enum
 
 from urllib.parse import urlparse
 
-from .bridge import internal_api
+# from .bridge import internal_api
 
 from threading import  Lock
 from .filesystem import FileSystem
-from .sql import SQL
-from .sql import ResultSet
+#from .sql import SQL
+#from .sql import ResultSet
 from .datasource import *
 import time
 import datetime
