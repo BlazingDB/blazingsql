@@ -178,7 +178,7 @@ class BlazingTable(object):
 
 class BlazingContext(object):
 
-    def __init__(self, dask_client = None):
+    def __init__(self, dask_client = None, network_interface = None):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
