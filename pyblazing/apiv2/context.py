@@ -143,7 +143,7 @@ class BlazingTable(object):
         self.num_row_groups = num_row_groups
         self.fileType = fileType
         self.args = args
-        if fileType > 3:
+        if fileType == DataType.CUDF or DataType.DASK_CUDF:
             if(convert_gdf_to_dask and isinstance(self.input,cudf.DataFrame)):
                 self.input = dask_cudf.from_cudf(self.input,npartitions = convert_gdf_to_dask_partitions)
             if(isinstance(self.input,dask_cudf.core.DataFrame)):
