@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from enum import Enum
 
-#from .bridge import internal_api
 import cio
 
 def registerFileSystem(client,fs,root,prefix):
