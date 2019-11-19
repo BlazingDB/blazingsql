@@ -124,7 +124,7 @@ class BlazingTable(object):
         self.num_row_groups = num_row_groups
         self.fileType = fileType
         self.args = args
-        if fileType > 3:
+        if fileType > 3:  # CUDF or DASK_CUDF
             if(convert_gdf_to_dask and isinstance(self.input,cudf.DataFrame)):
                 self.input = dask_cudf.from_cudf(self.input,npartitions = convert_gdf_to_dask_partitions)
             if(isinstance(self.input,dask_cudf.core.DataFrame)):
@@ -209,6 +209,7 @@ class BlazingContext(object):
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
         self.tables = {}
 
+        # TODO: convert to enum
         self.PARQUET_FILE_TYPE = 0
         self.ORC_FILE_TYPE = 1
         self.CSV_FILE_TYPE = 2
@@ -338,7 +339,7 @@ class BlazingContext(object):
 
         for table in self.tables:
             fileTypes.append(self.tables[table].fileType)
-            if(self.tables[table].fileType <= 3):
+            if(self.tables[table].fileType <= 3):  # PARQUET, ORC, CSV, JSON
                 currentTableNodes = self.tables[table].getSlices(len(self.nodes))
             elif(self.tables[table].fileType == self.DASK_CUDF_TYPE):
                 currentTableNodes = []
