@@ -1,5 +1,2 @@
-from pyblazing.apiv2 import context
-
-BlazingContext = context.BlazingContext
-
-import pyblazing.apiv2
+from pyblazing.apiv2 import DataType
+from pyblazing.apiv2.context import BlazingContext
