@@ -7,7 +7,8 @@ from enum import Enum
 from urllib.parse import urlparse
 
 from threading import  Lock
-from .filesystem import FileSystem
+from pyblazing.apiv2.filesystem import FileSystem
+from pyblazing.apiv2 import DataType
 
 import time
 import datetime
@@ -227,13 +228,6 @@ class BlazingContext(object):
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
         self.tables = {}
 
-        self.PARQUET_FILE_TYPE = 0
-        self.ORC_FILE_TYPE = 1
-        self.CSV_FILE_TYPE = 2
-        self.JSON_FILE_TYPE = 3
-        self.CUDF_TYPE = 4
-        self.DASK_CUDF_TYPE = 5
-
         #waitForPingSuccess(self.client)
         print("BlazingContext ready")
 
@@ -324,20 +318,20 @@ class BlazingContext(object):
             input = [input,]
         file_format_hint = kwargs.get('file_format', 'undefined')
         if type(input) == pandas.DataFrame:
-            table = BlazingTable(cudf.DataFrame.from_pandas(input),self.CUDF_TYPE)
+            table = BlazingTable(cudf.DataFrame.from_pandas(input),DataType.CUDF)
         elif type(input) == pyarrow.Table:
-            table = BlazingTable(cudf.DataFrame.from_arrow(input),self.CUDF_TYPE)
+            table = BlazingTable(cudf.DataFrame.from_arrow(input),DataType.CUDF)
         elif type(input) == cudf.DataFrame:
             if (self.dask_client is not None):
-                table = BlazingTable(input,self.DASK_CUDF_TYPE,convert_gdf_to_dask=True,convert_gdf_to_dask_partitions=len(self.nodes),client=self.dask_client)
+                table = BlazingTable(input,DataType.DASK_CUDF,convert_gdf_to_dask=True,convert_gdf_to_dask_partitions=len(self.nodes),client=self.dask_client)
             else:
-                table = BlazingTable(input,self.CUDF_TYPE)
+                table = BlazingTable(input,DataType.CUDF)
         elif type(input) == list:
             parsedSchema = cio.parseSchemaCaller(input,file_format_hint,kwargs)
             file_type = parsedSchema['file_type']
             table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'])
         elif type(input) == dask_cudf.core.DataFrame:
-            table = BlazingTable(input,self.DASK_CUDF_TYPE,client=self.dask_client)
+            table = BlazingTable(input,DataType.DASK_CUDF,client=self.dask_client)
         if table is not None:
             self.add_remove_table(table_name,True,table)
         return table
@@ -358,11 +352,11 @@ class BlazingContext(object):
             fileTypes.append(self.tables[table].fileType)
             if(self.tables[table].fileType <= 3):
                 currentTableNodes = self.tables[table].getSlices(len(self.nodes))
-            elif(self.tables[table].fileType == self.DASK_CUDF_TYPE):
+            elif(self.tables[table].fileType == DataType.DASK_CUDF):
                 currentTableNodes = []
                 for node in self.nodes:
                     currentTableNodes.append(self.tables[table])
-            elif(self.tables[table].fileType == self.CUDF_TYPE):
+            elif(self.tables[table].fileType == DataType.CUDF):
                 currentTableNodes = []
                 for node in self.nodes:
                     currentTableNodes.append(self.tables[table])
