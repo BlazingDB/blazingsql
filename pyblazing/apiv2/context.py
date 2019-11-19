@@ -350,7 +350,8 @@ class BlazingContext(object):
 
         for table in self.tables:
             fileTypes.append(self.tables[table].fileType)
-            if(self.tables[table].fileType <= 3):
+            ftype = self.tables[table].fileType
+            if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
                 currentTableNodes = self.tables[table].getSlices(len(self.nodes))
             elif(self.tables[table].fileType == DataType.DASK_CUDF):
                 currentTableNodes = []
