@@ -1,3 +1,6 @@
+# NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
+import cudf
+
 from collections import OrderedDict
 from enum import Enum
 
@@ -17,6 +20,7 @@ import subprocess
 import os
 import re
 import pandas
+import numpy as np
 import pyarrow
 from urllib.parse import urlparse
 from urllib.parse import ParseResult
@@ -48,6 +52,24 @@ RelationalAlgebraGeneratorClass = jpype.JClass('com.blazingdb.calcite.applicatio
 
 
 
+
+# TODO Rommel Percy
+def get_np_dtype_to_gdf_dtype_str(dtype):
+    dtypes = {
+        np.dtype('float64'):    'GDF_FLOAT64',
+        np.dtype('float32'):    'GDF_FLOAT32',
+        np.dtype('int64'):      'GDF_INT64',
+        np.dtype('int32'):      'GDF_INT32',
+        np.dtype('int16'):      'GDF_INT16',
+        np.dtype('int8'):       'GDF_INT8',
+        np.dtype('bool_'):      'GDF_BOOL8',
+        np.dtype('datetime64[ms]'): 'GDF_DATE64',
+        np.dtype('datetime64'): 'GDF_DATE64',
+        np.dtype('object_'):    'GDF_STRING',
+        np.dtype('str_'):       'GDF_STRING',
+        np.dtype('<M8[ms]'):    'GDF_DATE64',
+    }
+    return dtypes[dtype]
 
 
 
@@ -281,7 +303,7 @@ class BlazingContext(object):
                     else:
                         dataframe_column = table.input._cols[column]
                     data_sz = len(dataframe_column)
-                    dtype = pyblazing.api.get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
+                    dtype = get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
                     dataType = ColumnTypeClass.fromString(dtype)
                     column = ColumnClass(column,dataType,order);
                     arr.add(column)
