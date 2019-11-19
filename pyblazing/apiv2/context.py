@@ -6,13 +6,9 @@ from enum import Enum
 
 from urllib.parse import urlparse
 
-# from .bridge import internal_api
-
 from threading import  Lock
 from .filesystem import FileSystem
-#from .sql import SQL
-#from .sql import ResultSet
-from .datasource import *
+
 import time
 import datetime
 import socket, errno
@@ -181,7 +177,7 @@ class BlazingTable(object):
 
 class BlazingContext(object):
 
-    def __init__(self, dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = None, leave_processes_running = False, orchestrator_ip = None, orchestrator_port=9100, logs_destination = None):
+    def __init__(self, dask_client = None):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -326,7 +322,7 @@ class BlazingContext(object):
         table = None
         if type(input) == str:
             input = [input,]
-        file_format_hint = kwargs.get('file_format', 'undefined') # See datasource.file_format
+        file_format_hint = kwargs.get('file_format', 'undefined')
         if type(input) == pandas.DataFrame:
             table = BlazingTable(cudf.DataFrame.from_pandas(input),self.CUDF_TYPE)
         elif type(input) == pyarrow.Table:
@@ -392,22 +388,3 @@ class BlazingContext(object):
         return result
 
     # END SQL interface
-
-
-def make_context(connection='localhost:8889',
-                 dask_client=None,
-                 network_interface='lo',
-                 run_orchestrator=True,
-                 run_algebra=True,
-                 run_engine=True):
-    """
-    :param connection: BlazingSQL cluster URL to connect to
-           (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
-    """
-    bc = BlazingContext(connection,
-                        dask_client=dask_client,
-                        network_interface=network_interface,
-                        run_orchestrator=run_orchestrator,
-                        run_algebra=run_algebra,
-                        run_engine=run_engine)
-    return bc
