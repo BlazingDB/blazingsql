@@ -1,15 +1,14 @@
+# NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
+import cudf
+
 from collections import OrderedDict
 from enum import Enum
 
 from urllib.parse import urlparse
 
-from .bridge import internal_api
-
 from threading import  Lock
 from .filesystem import FileSystem
-from .sql import SQL
-from .sql import ResultSet
-from .datasource import *
+
 import time
 import datetime
 import socket, errno
@@ -17,6 +16,7 @@ import subprocess
 import os
 import re
 import pandas
+import numpy as np
 import pyarrow
 from urllib.parse import urlparse
 from urllib.parse import ParseResult
@@ -48,6 +48,24 @@ RelationalAlgebraGeneratorClass = jpype.JClass('com.blazingdb.calcite.applicatio
 
 
 
+
+# TODO Rommel Percy
+def get_np_dtype_to_gdf_dtype_str(dtype):
+    dtypes = {
+        np.dtype('float64'):    'GDF_FLOAT64',
+        np.dtype('float32'):    'GDF_FLOAT32',
+        np.dtype('int64'):      'GDF_INT64',
+        np.dtype('int32'):      'GDF_INT32',
+        np.dtype('int16'):      'GDF_INT16',
+        np.dtype('int8'):       'GDF_INT8',
+        np.dtype('bool_'):      'GDF_BOOL8',
+        np.dtype('datetime64[ms]'): 'GDF_DATE64',
+        np.dtype('datetime64'): 'GDF_DATE64',
+        np.dtype('object_'):    'GDF_STRING',
+        np.dtype('str_'):       'GDF_STRING',
+        np.dtype('<M8[ms]'):    'GDF_DATE64',
+    }
+    return dtypes[dtype]
 
 
 
@@ -159,7 +177,7 @@ class BlazingTable(object):
 
 class BlazingContext(object):
 
-    def __init__(self, dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = None, leave_processes_running = False, orchestrator_ip = None, orchestrator_port=9100, logs_destination = None):
+    def __init__(self, dask_client = None):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -281,7 +299,7 @@ class BlazingContext(object):
                     else:
                         dataframe_column = table.input._cols[column]
                     data_sz = len(dataframe_column)
-                    dtype = pyblazing.api.get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
+                    dtype = get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
                     dataType = ColumnTypeClass.fromString(dtype)
                     column = ColumnClass(column,dataType,order);
                     arr.add(column)
@@ -304,7 +322,7 @@ class BlazingContext(object):
         table = None
         if type(input) == str:
             input = [input,]
-        file_format_hint = kwargs.get('file_format', 'undefined') # See datasource.file_format
+        file_format_hint = kwargs.get('file_format', 'undefined')
         if type(input) == pandas.DataFrame:
             table = BlazingTable(cudf.DataFrame.from_pandas(input),self.CUDF_TYPE)
         elif type(input) == pyarrow.Table:
@@ -370,22 +388,3 @@ class BlazingContext(object):
         return result
 
     # END SQL interface
-
-
-def make_context(connection='localhost:8889',
-                 dask_client=None,
-                 network_interface='lo',
-                 run_orchestrator=True,
-                 run_algebra=True,
-                 run_engine=True):
-    """
-    :param connection: BlazingSQL cluster URL to connect to
-           (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
-    """
-    bc = BlazingContext(connection,
-                        dask_client=dask_client,
-                        network_interface=network_interface,
-                        run_orchestrator=run_orchestrator,
-                        run_algebra=run_algebra,
-                        run_engine=run_engine)
-    return bc

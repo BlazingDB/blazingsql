@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from enum import Enum
 
-from .bridge import internal_api
 import cio
 
 def registerFileSystem(client,fs,root,prefix):
@@ -78,7 +77,7 @@ class FileSystem(object):
         access_key_id = kwargs.get('access_key_id', '')
         secret_key = kwargs.get('secret_key', '')
         session_token = kwargs.get('session_token', '')
-        encryption_type = kwargs.get('encryption_type', internal_api.S3EncryptionType.NONE)
+        # encryption_type = kwargs.get('encryption_type', internal_api.S3EncryptionType.NONE)
         kms_key_amazon_resource_name = kwargs.get('kms_key_amazon_resource_name', '')
 
         fs = OrderedDict()
