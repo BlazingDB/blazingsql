@@ -13,7 +13,7 @@ class DataType(IntEnum):
 
 # NOTE Same values from io
 @unique
-class S3EncryptionType(object):
+class S3EncryptionType(IntEnum):
     UNDEFINED = 0
     NONE = 1
     AES_256 = 2
