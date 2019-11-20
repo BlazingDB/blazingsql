@@ -241,7 +241,6 @@ class BlazingContext(object):
             return self.client.ping()
 
     def __del__(self):
-        print('finalizeCaller')
         cio.finalizeCaller()
 
     def __repr__(self):
