@@ -6,7 +6,8 @@ from enum import Enum
 
 from urllib.parse import urlparse
 
-from threading import  Lock
+from threading import Lock
+from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 
@@ -177,7 +178,6 @@ class BlazingTable(object):
     def get_partitions(self,worker):
         return self.dask_mapping[worker]
 
-
 class BlazingContext(object):
 
     def __init__(self, dask_client = None, network_interface = None):
@@ -229,6 +229,7 @@ class BlazingContext(object):
         self.schema = BlazingSchemaClass(self.db)
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
         self.tables = {}
+        self.finalizeCaller = ref(cio.finalizeCaller)
 
         #waitForPingSuccess(self.client)
         print("BlazingContext ready")
@@ -241,7 +242,7 @@ class BlazingContext(object):
             return self.client.ping()
 
     def __del__(self):
-        cio.finalizeCaller()
+        self.finalizeCaller()
 
     def __repr__(self):
         return "BlazingContext('%s')" % (self.connection)
