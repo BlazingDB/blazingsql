@@ -48,9 +48,6 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass('com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
 
-
-
-# TODO Rommel Percy
 def get_np_dtype_to_gdf_dtype_str(dtype):
     dtypes = {
         np.dtype('float64'):    'GDF_FLOAT64',
@@ -60,15 +57,20 @@ def get_np_dtype_to_gdf_dtype_str(dtype):
         np.dtype('int16'):      'GDF_INT16',
         np.dtype('int8'):       'GDF_INT8',
         np.dtype('bool_'):      'GDF_BOOL8',
-        np.dtype('datetime64[ms]'): 'GDF_DATE64',
+        np.dtype('datetime64[s]'): 'GDF_TIMESTAMP',
+        np.dtype('datetime64[ms]'): 'GDF_TIMESTAMP',
+        np.dtype('datetime64[ns]'): 'GDF_TIMESTAMP',
+        np.dtype('datetime64[us]'): 'GDF_TIMESTAMP',
         np.dtype('datetime64'): 'GDF_DATE64',
         np.dtype('object_'):    'GDF_STRING',
         np.dtype('str_'):       'GDF_STRING',
-        np.dtype('<M8[ms]'):    'GDF_DATE64',
+        np.dtype('<M8[s]'):    'GDF_TIMESTAMP',
+        np.dtype('<M8[ms]'):    'GDF_TIMESTAMP',
+        np.dtype('<M8[ns]'):    'GDF_TIMESTAMP',
+        np.dtype('<M8[us]'):    'GDF_TIMESTAMP'
     }
-    return dtypes[dtype]
-
-
+    ret = dtypes[np.dtype(dtype)]
+    return ret
 
 
 def checkSocket(socketNum):
