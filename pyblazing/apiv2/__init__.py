@@ -10,3 +10,11 @@ class DataType(IntEnum):
     JSON = 3,
     CUDF = 4,
     DASK_CUDF = 5
+
+# NOTE Same values from io
+@unique
+class S3EncryptionType(object):
+    UNDEFINED = 0
+    NONE = 1
+    AES_256 = 2
+    AWS_KMS = 3
