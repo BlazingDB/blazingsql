@@ -90,13 +90,13 @@ def checkSocket(socketNum):
     s.close()
     return socket_free
 
-def initializeBlazing(ralId = 0, networkInterface = 'lo'):
+def initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = False):
     print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000,32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000,32000)+ ralId
-    cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort)
+    cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort, singleNode)
     return ralCommunicationPort, workerIp
 
 def getNodePartitions(df,client):
@@ -163,8 +163,8 @@ class BlazingTable(object):
         startIndex = 0
         for i in range(0,numSlices):
             batchSize = int(remaining / (numSlices - i))
-            print(batchSize)
-            print(startIndex)
+            # print(batchSize)
+            # print(startIndex)
             tempFiles=self.files[startIndex : startIndex + batchSize]
             if self.num_row_groups is not None:
                 nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize]))
@@ -199,7 +199,7 @@ class BlazingContext(object):
             i = 0
             print(network_interface)
             for worker in list(self.dask_client.scheduler_info()["workers"]):
-                dask_futures.append(self.dask_client.submit(  initializeBlazing,ralId = i, networkInterface = network_interface, workers = [worker]))
+                dask_futures.append(self.dask_client.submit(  initializeBlazing,ralId = i, networkInterface = network_interface, singleNode = False, workers = [worker]))
                 worker_list.append(worker)
                 i = i + 1
             i = 0
@@ -214,7 +214,7 @@ class BlazingContext(object):
                 self.nodes.append(node)
                 i = i + 1
         else:
-            ralPort, ralIp = initializeBlazing(ralId = 0, networkInterface = 'lo')
+            ralPort, ralIp = initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = True )
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
