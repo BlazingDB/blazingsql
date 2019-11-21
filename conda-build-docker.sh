@@ -24,6 +24,7 @@ if [ ! -z $2 ]; then
 fi
 
 docker run --rm \
+    --runtime=nvidia \
     -u $(id -u):$(id -g) \
     -e CUDA_VER=${CUDA_VERSION} -e PYTHON=$PYTHON_VERSION \
     -e CONDA_BUILD=$3 -e CONDA_UPLOAD=$4 -e MY_UPLOAD_KEY=$5 \
