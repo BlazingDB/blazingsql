@@ -58,15 +58,15 @@ def get_np_dtype_to_gdf_dtype_str(dtype):
         np.dtype('int16'):      'GDF_INT16',
         np.dtype('int8'):       'GDF_INT8',
         np.dtype('bool_'):      'GDF_BOOL8',
-        np.dtype('datetime64[s]'): 'GDF_TIMESTAMP',
-        np.dtype('datetime64[ms]'): 'GDF_TIMESTAMP',
+        np.dtype('datetime64[s]'): 'GDF_DATE64',
+        np.dtype('datetime64[ms]'): 'GDF_DATE64',
         np.dtype('datetime64[ns]'): 'GDF_TIMESTAMP',
         np.dtype('datetime64[us]'): 'GDF_TIMESTAMP',
         np.dtype('datetime64'): 'GDF_DATE64',
         np.dtype('object_'):    'GDF_STRING',
         np.dtype('str_'):       'GDF_STRING',
-        np.dtype('<M8[s]'):    'GDF_TIMESTAMP',
-        np.dtype('<M8[ms]'):    'GDF_TIMESTAMP',
+        np.dtype('<M8[s]'):    'GDF_DATE64',
+        np.dtype('<M8[ms]'):    'GDF_DATE64',
         np.dtype('<M8[ns]'):    'GDF_TIMESTAMP',
         np.dtype('<M8[us]'):    'GDF_TIMESTAMP'
     }
@@ -130,7 +130,7 @@ def collectPartitionsRunQuery(masterIndex,nodes,tables,fileTypes,ctxToken,algebr
             if (len(partitions) == 0):
                 tables[table_name].input = tables[table_name].input.get_partition(0).head(0)
             elif (len(partitions) == 1):
-                tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute()
+                tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute(scheduler='threads')
             else:
                 table_partitions = []
                 for partition in partitions:
@@ -168,9 +168,9 @@ class BlazingTable(object):
             # print(startIndex)
             tempFiles=self.files[startIndex : startIndex + batchSize]
             if self.num_row_groups is not None:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize]))
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], args=self.args))
             else:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices))
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, args=self.args))
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
         return nodeFilesList
