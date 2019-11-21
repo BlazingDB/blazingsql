@@ -65,7 +65,7 @@ def get_np_dtype_to_gdf_dtype_str(dtype):
         np.dtype('object_'):    'GDF_STRING',
         np.dtype('str_'):       'GDF_STRING',
         np.dtype('<M8[s]'):    'GDF_TIMESTAMP',
-        np.dtype('<M8[ms]'):    'GDF_TIMESTAMP',
+        np.dtype('<M8[ms]'):    'GDF_DATE64',
         np.dtype('<M8[ns]'):    'GDF_TIMESTAMP',
         np.dtype('<M8[us]'):    'GDF_TIMESTAMP'
     }
@@ -297,7 +297,7 @@ class BlazingContext(object):
                     data_sz = len(dataframe_column)
                     dtype = get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
                     dataType = ColumnTypeClass.fromString(dtype)
-                    column = ColumnClass(column,dataType,order);
+                    column = ColumnClass(column, dataType, order)
                     arr.add(column)
                     order = order + 1
                 tableJava = TableClass(tableName,self.db,arr)
