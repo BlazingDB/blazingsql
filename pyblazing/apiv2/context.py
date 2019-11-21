@@ -130,7 +130,7 @@ def collectPartitionsRunQuery(masterIndex,nodes,tables,fileTypes,ctxToken,algebr
             if (len(partitions) == 0):
                 tables[table_name].input = tables[table_name].input.get_partition(0).head(0)
             elif (len(partitions) == 1):
-                tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute()
+                tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute(scheduler='threads')
             else:
                 table_partitions = []
                 for partition in partitions:
