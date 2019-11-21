@@ -168,9 +168,9 @@ class BlazingTable(object):
             # print(startIndex)
             tempFiles=self.files[startIndex : startIndex + batchSize]
             if self.num_row_groups is not None:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize]))
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], args=self.args))
             else:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices))
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, args=self.args))
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
         return nodeFilesList
