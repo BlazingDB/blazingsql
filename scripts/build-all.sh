@@ -2,11 +2,12 @@
 # Usage   ./build-all.sh clean_build
 # Example ./build-all.sh true
 
-repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-orchestrator blazingdb-ral pyBlazing blazingdb-calcite)
-branches=(develop develop develop develop develop develop develop)
-# Release or DEBUG
-types=(Release Release Release Release Release Release Release)
+repos=(blazingdb-communication blazingdb-io blazingdb-ral pyBlazing blazingdb-calcite)
+branches=(develop develop develop develop develop)
+pkg_names=(bsql-comms bsql-io libbsql-engine blazingsql bsql-algebra)
 
+# Release or DEBUG
+types=(Release Release Release Release Release Release)
 
 clean_build="false"
 if [ ! -z $1 ]; then
@@ -22,6 +23,7 @@ do
   echo "### Start $repo ###"
   branch=${branches[i]}
   type=${types[i]}
+  pkg_name=${pkg_names[i]}
   echo "Branch: "$branch
   echo "Type: "$type
   echo "Clean: "$clean_build
@@ -45,11 +47,11 @@ do
     git reset --hard && git checkout $branch && git pull origin $branch
   fi
 
-  chmod +x conda/recipes/$repo/build.sh
+  chmod +x conda/recipes/$pkg_name/build.sh
 
   status="Cloned and built"
   failed=0
-  conda/recipes/$repo/build.sh $type
+  conda/recipes/$pkg_name/build.sh $type
   if [ $? != 0 ]; then
     status="Build failed"
     failed=1
@@ -61,5 +63,15 @@ do
   fi
 
   i=$(($i+1))
+
+  if [ "$pkg_name" == "libbsql-engine" ]; then
+    chmod +x conda/recipes/sql-engine/build.sh
+    failed=0
+    conda/recipes/sql-engine/build.sh $type
+    if [ $? != 0 ]; then
+      status="Build failed"
+      failed=1
+    fi
+  fi
 
 done
