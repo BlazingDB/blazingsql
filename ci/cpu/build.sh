@@ -20,26 +20,6 @@ cd $WORKSPACE
 export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
-# Nightly seccion
-NIGHTLY=""
-if [[ "$CONDA_BUILD" == *"nightly"* ]]; then
-    NIGHTLY="-nightly"
-    # CUDF="cudf=0.10"
-
-    libcudf="libcudf=0.10"
-    nvstrings="nvstrings=0.10"
-    rmm="rmm=0.10"
-    daskcudf="dask-cudf=0.10"
-
-    #Replazing cudf version
-    echo "Replacing cudf version into meta.yaml"
-    sed -ie "s/libcudf/$libcudf/g" conda/recipes/pyBlazing/meta.yaml
-    sed -ie "s/nvstrings/$nvstrings/g" conda/recipes/pyBlazing/meta.yaml
-    sed -ie "s/rmm/$rmm/g" conda/recipes/pyBlazing/meta.yaml
-    sed -ie "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
-fi
-echo "IS_NIGHTLY "$NIGHTLY
-
 CONDA_CH=""
 if [ ! -z "$CONDA_BUILD" ]; then
     IFS=', ' read -r -a array <<< "$CONDA_BUILD"
@@ -63,6 +43,10 @@ export CONDA_UPLOAD
 # SETUP - Check environment
 ################################################################################
 
+logger "Creating bsql-rbuilder"
+conda create -n bsql-builder python=3.7.4 -y
+source activate bsql-builder
+
 logger "Get env..."
 env
 
@@ -83,7 +67,7 @@ conda install -y conda-build anaconda-client
 ################################################################################
 
 logger "Build conda pkg for pyblazing..."
-source ci/cpu/pyblazing/conda-build.sh
+source ci/cpu/blazingsql/conda-build.sh
 
 logger "Upload conda pkg for pyblazing..."
 source ci/cpu/upload_anaconda.sh

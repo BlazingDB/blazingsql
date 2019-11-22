@@ -1,6 +1,6 @@
 #!/bin/bash
 # usage:   ./conda-build-docker.sh cuda_version python_version conda_build conda_upload token
-# example: ./conda-build-docker.sh 9.2|10.0 3.6|3.7 blazingsql-nightly blazingsql-nightly 123
+# example: ./conda-build-docker.sh 9.2|10.0 3.6|3.7 blazingsql-nightly,rapidsai-nightly blazingsql-nightly 123
 
 export WORKSPACE=$PWD
 

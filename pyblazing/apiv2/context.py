@@ -1,20 +1,77 @@
+# NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
+import cudf
+
 from collections import OrderedDict
 from enum import Enum
 
 from urllib.parse import urlparse
 
-from .bridge import internal_api
+from threading import Lock
+from weakref import ref
+from pyblazing.apiv2.filesystem import FileSystem
+from pyblazing.apiv2 import DataType
 
-from .filesystem import FileSystem
-from .sql import SQL
-from .sql import ResultSet
-from .datasource import build_datasource
 import time
 import datetime
 import socket, errno
 import subprocess
 import os
 import re
+import pandas
+import numpy as np
+import pyarrow
+from urllib.parse import urlparse
+from urllib.parse import ParseResult
+from pathlib import PurePath
+import cio
+import pyblazing
+import cudf
+import dask_cudf
+import dask
+import jpype
+import dask.distributed
+import netifaces as ni
+
+import random
+
+jpype.addClassPath( os.path.join(os.getenv("CONDA_PREFIX"), 'lib/blazingsql-algebra.jar'))
+jpype.addClassPath(os.path.join(os.getenv("CONDA_PREFIX"), 'lib/blazingsql-algebra-core.jar'))
+
+jpype.startJVM(jpype.getDefaultJVMPath(), '-ea',convertStrings=False)
+
+ArrayClass = jpype.JClass('java.util.ArrayList')
+ColumnTypeClass = jpype.JClass('com.blazingdb.calcite.catalog.domain.CatalogColumnDataType')
+dataType = ColumnTypeClass.fromString("GDF_INT8")
+ColumnClass = jpype.JClass('com.blazingdb.calcite.catalog.domain.CatalogColumnImpl')
+TableClass = jpype.JClass('com.blazingdb.calcite.catalog.domain.CatalogTableImpl')
+DatabaseClass = jpype.JClass('com.blazingdb.calcite.catalog.domain.CatalogDatabaseImpl')
+BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
+RelationalAlgebraGeneratorClass = jpype.JClass('com.blazingdb.calcite.application.RelationalAlgebraGenerator')
+
+
+def get_np_dtype_to_gdf_dtype_str(dtype):
+    dtypes = {
+        np.dtype('float64'):    'GDF_FLOAT64',
+        np.dtype('float32'):    'GDF_FLOAT32',
+        np.dtype('int64'):      'GDF_INT64',
+        np.dtype('int32'):      'GDF_INT32',
+        np.dtype('int16'):      'GDF_INT16',
+        np.dtype('int8'):       'GDF_INT8',
+        np.dtype('bool_'):      'GDF_BOOL8',
+        np.dtype('datetime64[s]'): 'GDF_DATE64',
+        np.dtype('datetime64[ms]'): 'GDF_DATE64',
+        np.dtype('datetime64[ns]'): 'GDF_TIMESTAMP',
+        np.dtype('datetime64[us]'): 'GDF_TIMESTAMP',
+        np.dtype('datetime64'): 'GDF_DATE64',
+        np.dtype('object_'):    'GDF_STRING',
+        np.dtype('str_'):       'GDF_STRING',
+        np.dtype('<M8[s]'):    'GDF_DATE64',
+        np.dtype('<M8[ms]'):    'GDF_DATE64',
+        np.dtype('<M8[ns]'):    'GDF_TIMESTAMP',
+        np.dtype('<M8[us]'):    'GDF_TIMESTAMP'
+    }
+    ret = dtypes[np.dtype(dtype)]
+    return ret
 
 
 def checkSocket(socketNum):
@@ -34,158 +91,148 @@ def checkSocket(socketNum):
     s.close()
     return socket_free
 
+def initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = False):
+    print(networkInterface)
+    workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
+    ralCommunicationPort = random.randint(10000,32000) + ralId
+    while checkSocket(ralCommunicationPort) == False:
+        ralCommunicationPort = random.randint(10000,32000)+ ralId
+    cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort, singleNode)
+    return ralCommunicationPort, workerIp
 
-def runEngine(processes = None, network_interface = 'lo', orchestrator_ip = '127.0.0.1', orchestrator_port=9100, log_path=None):
-    if log_path is not None:
-        process_stdout= open(log_path + "_stdout.log", "w")
-        process_stderr= open(log_path + "_stderr.log", "w")
-    else:
-        process_stdout = open(os.devnull, 'w')
-        process_stderr = open(os.devnull, 'w')
-
-    process = None    
-    if(checkSocket(9001)):
-        process = subprocess.Popen(['blazingsql-engine', '1', '0' , orchestrator_ip, str(orchestrator_port), '127.0.0.1', '9001', '8891', network_interface], stdout = process_stdout, stderr = process_stderr)
-    else:
-        print("WARNING: blazingsql-engine was not automativally started, its probably already running")
-
-    if (processes is not None):
-        processes['engine'] = process
-    return processes
-
-
-def setupDask(dask_client, network_interface = 'eth0', orchestrator_ip = None, orchestrator_port=9100, log_path=None):
-    if (orchestrator_ip is None):
-        orchestrator_ip = re.findall(r'(?:\d+\.){3}\d+', dask_client.scheduler_info().get('address'))[0]
-    dask_client.run(runEngine, processes = None, network_interface = network_interface, orchestrator_ip=orchestrator_ip, orchestrator_port=orchestrator_port, log_path = log_path)
-
-
-def runAlgebra(processes = None, log_path=None):
-    if log_path is not None:
-        process_stdout= open(log_path + "_stdout.log", "w")
-        process_stderr= open(log_path + "_stderr.log", "w")
-    else:
-        process_stdout = open(os.devnull, 'w')
-        process_stderr = open(os.devnull, 'w')
-
-    process = None    
-    if(checkSocket(8890)):
-        if(os.getenv("CONDA_PREFIX") == None):
-            process = subprocess.Popen(['java', '-jar', '/usr/local/lib/blazingsql-algebra.jar', '-p', '8890'])
-        else:
-            process = subprocess.Popen(['java', '-jar', os.getenv("CONDA_PREFIX") + '/lib/blazingsql-algebra.jar', '-p', '8890'], stdout = process_stdout, stderr = process_stderr)
-    else:
-        print("WARNING: blazingsql-algebra was not automativally started, its probably already running")
-
-    if (processes is not None):
-        processes['algebra'] = process
-    return processes
+def getNodePartitions(df,client):
+    df = df.persist()
+    workers = client.scheduler_info()['workers']
+    connectionToId = {}
+    for worker in workers:
+        connectionToId[worker] = workers[worker]['name']
+    dask.distributed.wait(df)
+    print(client.who_has(df))
+    worker_part = client.who_has(df)
+    worker_partitions = {}
+    for key in worker_part:
+        worker = worker_part[key][0]
+        partition = int(key[key.find(",")+2:(len(key)-1)])
+        if connectionToId[worker] not in worker_partitions:
+            worker_partitions[connectionToId[worker]] = []
+        worker_partitions[connectionToId[worker]].append(partition)
+    print("worker partitions")
+    print(worker_partitions)
+    return worker_partitions
 
 
-def runOrchestrator(processes = None, log_path=None):
-    if log_path is not None:
-        process_stdout= open(log_path + "_stdout.log", "w")
-        process_stderr= open(log_path + "_stderr.log", "w")
-    else:
-        process_stdout = open(os.devnull, 'w')
-        process_stderr = open(os.devnull, 'w')
+def collectPartitionsRunQuery(masterIndex,nodes,tables,fileTypes,ctxToken,algebra,accessToken):
+    import dask.distributed
+    worker_id = dask.distributed.get_worker().name
+    for table_name in tables:
+        if(isinstance(tables[table_name].input,dask_cudf.core.DataFrame)):
+            partitions = tables[table_name].get_partitions(worker_id)
+            if (len(partitions) == 0):
+                tables[table_name].input = tables[table_name].input.get_partition(0).head(0)
+            elif (len(partitions) == 1):
+                tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute(scheduler='threads')
+            else:
+                table_partitions = []
+                for partition in partitions:
+                    table_partitions.append(tables[table_name].input.get_partition(partition).compute())
+                tables[table_name].input = cudf.concat(table_partitions)
+    return cio.runQueryCaller(masterIndex,nodes,tables,fileTypes,ctxToken,algebra,accessToken)
 
-    process = None    
-    if(checkSocket(9100)):
-        process = subprocess.Popen(['blazingsql-orchestrator', '9100', '8889', '127.0.0.1', '8890'], stdout = process_stdout, stderr = process_stderr)
-    else:
-        print("WARNING: blazingsql-orchestrator was not automativally started, its probably already running")
+class BlazingTable(object):
+    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None,args={}, convert_gdf_to_dask=False, convert_gdf_to_dask_partitions=1,client=None):
+        self.input = input
+        self.calcite_to_file_indices = calcite_to_file_indices
+        self.files = files
+        self.num_row_groups = num_row_groups
+        self.fileType = fileType
+        self.args = args
+        if fileType == DataType.CUDF or DataType.DASK_CUDF:
+            if(convert_gdf_to_dask and isinstance(self.input,cudf.DataFrame)):
+                self.input = dask_cudf.from_cudf(self.input,npartitions = convert_gdf_to_dask_partitions)
+            if(isinstance(self.input,dask_cudf.core.DataFrame)):
+                self.dask_mapping = getNodePartitions(self.input,client)
 
-    if (processes is not None):
-        processes['orchestrator'] = process
-    return processes
 
-def waitForPingSuccess(client):
-    ping_success = False
-    num_tries = 0
-    while (num_tries < 60 and not ping_success):
-        ping_success = client.ping()
-        num_tries = num_tries + 1
-        if not ping_success:
-            time.sleep(0.4)
-    return ping_success
 
+    def getSlices(self,numSlices):
+        nodeFilesList = []
+        if self.files is None:
+            for i in range(0,numSlices):
+                nodeFilesList.append(BlazingTable(self.input,self.fileType))
+            return nodeFilesList
+        remaining = len(self.files)
+        startIndex = 0
+        for i in range(0,numSlices):
+            batchSize = int(remaining / (numSlices - i))
+            # print(batchSize)
+            # print(startIndex)
+            tempFiles=self.files[startIndex : startIndex + batchSize]
+            if self.num_row_groups is not None:
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], args=self.args))
+            else:
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, args=self.args))
+            startIndex = startIndex + batchSize
+            remaining = remaining - batchSize
+        return nodeFilesList
+
+    def get_partitions(self,worker):
+        return self.dask_mapping[worker]
 
 class BlazingContext(object):
 
-    def __init__(self, connection = 'localhost:8889', dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = None, leave_processes_running = False, orchestrator_ip = None, orchestrator_port=9100, logs_destination = None):
+    def __init__(self, dask_client = None, network_interface = None):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
-
-        self.need_shutdown= (not leave_processes_running) and (run_orchestrator or run_engine or run_algebra)
-        self.processes = None
-        self.connection = connection
-        self.client = internal_api._get_client()
-        self.fs = FileSystem()
-        self.sqlObject = SQL()
+        self.lock = Lock()
+        self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
+        self.nodes = []
 
-        logs_folder = None
-        if logs_destination is not None:
-            logs_folder = logs_destination # right now logs would go into files in a folder, but evetually we can use the same variable to define a network address for logging to be sent to
-            try :
-                if not os.path.isabs(logs_folder)  and os.getenv("CONDA_PREFIX") is not None:  # lets manage relative paths
-                    logs_folder = os.path.join(os.getenv("CONDA_PREFIX"), logs_folder)   
-
-                if not os.path.exists(logs_folder): # if folder does not exist, lets create it
-                    os.mkdir(logs_folder)
-            except Exception as error:
-                print("WARNING: could not establish logs_folder. " + str(error))
-                logs_folder = None
-        
-        timestamp_str = str(datetime.datetime.now()).replace(' ','_')        
-
-        if not leave_processes_running:
-            self.processes = {}
-
-        if(dask_client is None):
-            if network_interface is None:
-                network_interface = 'lo'
-            if orchestrator_ip is None:
-                orchestrator_ip = '127.0.0.1'
-
-            if run_orchestrator:
-                path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
-                self.processes = runOrchestrator(processes = self.processes, log_path = path)
-            if run_engine:
-                path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_engine")
-                self.processes = runEngine(processes = self.processes, network_interface = network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
-            if run_algebra:
-                path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_algebra")
-                self.processes = runAlgebra(processes = self.processes, log_path = path)
-        else:
+        if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
-                
-            if run_orchestrator:
-                path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_orchestrator")
-                self.processes = runOrchestrator(processes = self.processes, log_path = path)
-            if run_engine:
-                path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_engine")
-                setupDask(dask_client, network_interface=network_interface, orchestrator_ip = orchestrator_ip, orchestrator_port = orchestrator_port, log_path = path)
-            if run_algebra:
-                path = None if logs_folder is None else os.path.join(logs_folder, timestamp_str + "_blazingsql_algebra")
-                self.processes = runAlgebra(processes=self.processes, log_path = path)
-        
-        # NOTE ("//"+) is a neat trick to handle ip:port cases
-        parse_result = urlparse("//" + connection)
-        orchestrator_host_ip = parse_result.hostname
-        orchestrator_port = parse_result.port
-        internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
-        
-        # TODO percy handle errors (see above)
-        services_ready = waitForPingSuccess(self.client)
-        if services_ready:
-            print("BlazingContext ready")
+
+            worker_list = []
+            dask_futures = []
+            masterIndex = 0
+            i = 0
+            print(network_interface)
+            for worker in list(self.dask_client.scheduler_info()["workers"]):
+                dask_futures.append(self.dask_client.submit(  initializeBlazing,ralId = i, networkInterface = network_interface, singleNode = False, workers = [worker]))
+                worker_list.append(worker)
+                i = i + 1
+            i = 0
+            for connection in dask_futures:
+                ralPort, ralIp = connection.result()
+                node = {}
+                node['worker'] = worker_list[i]
+                node['ip'] = ralIp
+                node['communication_port'] = ralPort
+                print("ralport is")
+                print(ralPort)
+                self.nodes.append(node)
+                i = i + 1
         else:
-            print("Timedout waiting for services to be ready")
+            ralPort, ralIp = initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = True )
+            node = {}
+            node['ip'] = ralIp
+            node['communication_port'] = ralPort
+            self.nodes.append(node)
+
+        # NOTE ("//"+) is a neat trick to handle ip:port cases
+        #internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
+
+        self.fs = FileSystem()
+
+        self.db = DatabaseClass("main")
+        self.schema = BlazingSchemaClass(self.db)
+        self.generator = RelationalAlgebraGeneratorClass(self.schema)
+        self.tables = {}        
+
+        #waitForPingSuccess(self.client)
+        print("BlazingContext ready")
 
     def ready(self, wait=False):
         if wait:
@@ -194,28 +241,8 @@ class BlazingContext(object):
         else:
             return self.client.ping()
 
-    def shutdown(self, process_names=None):
-
-        if process_names is None:
-            process_names = list(self.processes.keys())
-            if self.dask_client is not None:
-                process_names.append("engine")
-
-        if process_names is not None:
-            self.client.call_shutdown(process_names)
-            time.sleep(2) # lets give it a sec before we guarantee the processes are shutdown
-
-        if self.processes is not None:
-            for process in list(self.processes.values()): # this should not be necessary, but it guarantees that the processes are shutdown
-                if (process is not None):
-                    process.terminate()
-        self.need_shutdown=False
-                    
-
     def __del__(self):
-        if self.need_shutdown:
-            self.shutdown()
-        pass
+        self.finalizeCaller()
 
     def __repr__(self):
         return "BlazingContext('%s')" % (self.connection)
@@ -226,63 +253,136 @@ class BlazingContext(object):
     # BEGIN FileSystem interface
 
     def localfs(self, prefix, **kwargs):
-        return self.fs.localfs(self.client, prefix, **kwargs)
+        return self.fs.localfs(self.dask_client, prefix, **kwargs)
 
     # Use result, error_msg = hdfs(args) where result can be True|False
     def hdfs(self, prefix, **kwargs):
-        return self.fs.hdfs(self.client, prefix, **kwargs)
+        return self.fs.hdfs(self.dask_client, prefix, **kwargs)
 
     def s3(self, prefix, **kwargs):
-        return self.fs.s3(self.client, prefix, **kwargs)
+        return self.fs.s3(self.dask_client, prefix, **kwargs)
 
-    def gcs(self, prefix, **kwargs):
-        return self.fs.gcs(self.client, prefix, **kwargs)
+    def gs(self, prefix, **kwargs):
+        return self.fs.gs(self.dask_client, prefix, **kwargs)
 
     def show_filesystems(self):
         print(self.fs)
 
     # END  FileSystem interface
+    def _to_url(self, str_input):
+        url = urlparse(str_input)
+        return url
+
+    def _to_path(self, url):
+        path = PurePath(url.path)
+        return path
+
 
     # BEGIN SQL interface
+    def explain(self,sql):
+        return str(self.generator.getRelationalAlgebraString(sql))
 
-    # remove
+    def add_remove_table(self,tableName,addTable,table=None):
+        self.lock.acquire()
+        try:
+            if(addTable):
+                self.db.removeTable(tableName)
+                self.tables[tableName] = table
+                arr = ArrayClass()
+                order = 0
+                for column in table.input.columns:
+                    if(isinstance(table.input,dask_cudf.core.DataFrame)):
+                        dataframe_column = table.input.head(0)._cols[column]
+                    else:
+                        dataframe_column = table.input._cols[column]
+                    data_sz = len(dataframe_column)
+                    dtype = get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
+                    dataType = ColumnTypeClass.fromString(dtype)
+                    column = ColumnClass(column,dataType,order);
+                    arr.add(column)
+                    order = order + 1
+                tableJava = TableClass(tableName,self.db,arr)
+                self.db.addTable(tableJava)
+                self.schema = BlazingSchemaClass(self.db)
+                self.generator = RelationalAlgebraGeneratorClass(self.schema)
+            else:
+                self.db.removeTable(tableName)
+                self.schema = BlazingSchemaClass(self.db)
+                self.generator = RelationalAlgebraGeneratorClass(self.schema)
+                del self.tables[tableName]
+        finally:
+            self.lock.release()
+
+
+
     def create_table(self, table_name, input, **kwargs):
-        ds = build_datasource(self.client,
-                              input,
-                              table_name,
-                              dask_client=self.dask_client,
-                              **kwargs)
-        table = self.sqlObject.create_table(ds)
-
+        table = None
+        if type(input) == str:
+            input = [input,]
+        file_format_hint = kwargs.get('file_format', 'undefined')
+        if type(input) == pandas.DataFrame:
+            table = BlazingTable(cudf.DataFrame.from_pandas(input),DataType.CUDF)
+        elif type(input) == pyarrow.Table:
+            table = BlazingTable(cudf.DataFrame.from_arrow(input),DataType.CUDF)
+        elif type(input) == cudf.DataFrame:
+            if (self.dask_client is not None):
+                table = BlazingTable(input,DataType.DASK_CUDF,convert_gdf_to_dask=True,convert_gdf_to_dask_partitions=len(self.nodes),client=self.dask_client)
+            else:
+                table = BlazingTable(input,DataType.CUDF)
+        elif type(input) == list:
+            parsedSchema = cio.parseSchemaCaller(input,file_format_hint,kwargs)
+            file_type = parsedSchema['file_type']
+            table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'])
+        elif type(input) == dask_cudf.core.DataFrame:
+            table = BlazingTable(input,DataType.DASK_CUDF,client=self.dask_client)
+        if table is not None:
+            self.add_remove_table(table_name,True,table)
         return table
 
     def drop_table(self, table_name):
-        return self.sqlObject.drop_table(table_name)
+        self.add_remove_table(table_name,False)
 
-    # async
+
     def sql(self, sql, table_list = []):
+        # TODO: remove hardcoding
+        masterIndex = 0
+        nodeTableList =  [{} for _ in range(len(self.nodes))]
+        fileTypes = []
+        #a list, same size as tables, when we have a dask_cudf
+        #table , tells us partitions that map to that table
+
+        for table in self.tables:
+            fileTypes.append(self.tables[table].fileType)
+            ftype = self.tables[table].fileType
+            if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
+                currentTableNodes = self.tables[table].getSlices(len(self.nodes))
+            elif(self.tables[table].fileType == DataType.DASK_CUDF):
+                currentTableNodes = []
+                for node in self.nodes:
+                    currentTableNodes.append(self.tables[table])
+            elif(self.tables[table].fileType == DataType.CUDF):
+                currentTableNodes = []
+                for node in self.nodes:
+                    currentTableNodes.append(self.tables[table])
+            j = 0
+            for nodeList in nodeTableList:
+                nodeList[table] = currentTableNodes[j]
+                j = j + 1
+        ctxToken = random.randint(0,64000)
+        accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
-        return self.sqlObject.run_query(self.client, sql, self.dask_client)
+        algebra = self.explain(sql)
+        if self.dask_client is None:
+            result = cio.runQueryCaller(masterIndex,self.nodes,self.tables,fileTypes,ctxToken,algebra,accessToken)
+        else:
+            dask_futures = []
+            i = 0
+            for node in self.nodes:
+                worker = node['worker']
+                dask_futures.append(self.dask_client.submit(  collectPartitionsRunQuery,masterIndex,self.nodes,nodeTableList[i],fileTypes,ctxToken,algebra,accessToken, workers = [worker]))
+                i = i + 1
+            result = dask.dataframe.from_delayed(dask_futures)
+        return result
 
     # END SQL interface
-
-
-def make_context(connection='localhost:8889',
-                 dask_client=None,
-                 network_interface='lo',
-                 run_orchestrator=True,
-                 run_algebra=True,
-                 run_engine=True):
-    """
-    :param connection: BlazingSQL cluster URL to connect to
-           (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
-    """
-    bc = BlazingContext(connection,
-                        dask_client=dask_client,
-                        network_interface=network_interface,
-                        run_orchestrator=run_orchestrator,
-                        run_algebra=run_algebra,
-                        run_engine=run_engine)
-    return bc
-

@@ -21,8 +21,8 @@ fi
 echo "$CONDA_PREFIX: "$CONDA_PREFIX
 cd $CONDA_PREFIX
 #set branch to latest to just build develop
-repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-orchestrator blazingdb-ral pyBlazing blazingdb-calcite)
-branches=(develop develop develop develop develop develop develop)
+repos=(blazingdb-communication blazingdb-io blazingdb-ral pyBlazing blazingdb-calcite)
+branches=(develop develop develop develop develop)
 #assumes that you have installed blazingsql-dev into the current conda Environment
 mkdir $CONDA_PREFIX/blazing-build/py${python}_cuda${toolkit} -p
 i=0
