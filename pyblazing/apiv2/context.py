@@ -188,6 +188,7 @@ class BlazingContext(object):
         self.lock = Lock()
         self.dask_client = dask_client
         self.nodes = []
+        self.finalizeCaller = lambda: NotImplemented
 
         if(dask_client is not None):
             if network_interface is None:
