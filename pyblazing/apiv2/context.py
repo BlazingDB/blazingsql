@@ -186,6 +186,7 @@ class BlazingContext(object):
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
         self.lock = Lock()
+        self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
         self.finalizeCaller = lambda: NotImplemented
@@ -229,8 +230,7 @@ class BlazingContext(object):
         self.db = DatabaseClass("main")
         self.schema = BlazingSchemaClass(self.db)
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
-        self.tables = {}
-        self.finalizeCaller = ref(cio.finalizeCaller)
+        self.tables = {}        
 
         #waitForPingSuccess(self.client)
         print("BlazingContext ready")
