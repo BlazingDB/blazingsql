@@ -230,7 +230,7 @@ class BlazingContext(object):
         self.db = DatabaseClass("main")
         self.schema = BlazingSchemaClass(self.db)
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
-        self.tables = {}        
+        self.tables = {}
 
         #waitForPingSuccess(self.client)
         print("BlazingContext ready")
@@ -331,7 +331,7 @@ class BlazingContext(object):
             else:
                 table = BlazingTable(input,DataType.CUDF)
         elif type(input) == list:
-            parsedSchema = cio.parseSchemaCaller(input,file_format_hint,kwargs)
+            parsedSchema = self._parseSchema(input, file_format_hint, kwargs)
             file_type = parsedSchema['file_type']
             table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'])
         elif type(input) == dask_cudf.core.DataFrame:
@@ -343,6 +343,13 @@ class BlazingContext(object):
     def drop_table(self, table_name):
         self.add_remove_table(table_name,False)
 
+    def _parseSchema(self, input, file_format_hint, kwargs):
+        if self.dask_client:
+            worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
+            connection = self.dask_client.submit(cio.parseSchemaCaller, input, file_format_hint, kwargs, workers=[worker])
+            return connection.result()
+        else:
+            return cio.parseSchemaCaller(input, file_format_hint, kwargs)
 
     def sql(self, sql, table_list = []):
         # TODO: remove hardcoding

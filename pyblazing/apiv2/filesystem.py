@@ -17,7 +17,8 @@ def registerFileSystem(client,fs,root,prefix):
         dask_futures = []
         i = 0
         for worker in list(client.scheduler_info()["workers"]):
-            dask_futures.append(client.submit(cio.registerFileSystemCaller, fs, root, prefix, workers = [worker]))
+            # REMARK: pure argument is neccesary for this case to ensure each dask worker executes registerFileSystemCaller
+            dask_futures.append(client.submit(cio.registerFileSystemCaller, fs, root, prefix, pure=False, workers=[worker]))
             i = i + 1
         for connection in dask_futures:
             ok,msg = connection.result()
