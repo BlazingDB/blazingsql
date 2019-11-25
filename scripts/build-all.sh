@@ -65,9 +65,9 @@ do
   i=$(($i+1))
 
   if [ "$pkg_name" == "libbsql-engine" ]; then
-    chmod +x conda/recipes/sql-engine/build.sh
+    chmod +x conda/recipes/bsql-engine/build.sh
     failed=0
-    conda/recipes/sql-engine/build.sh $type
+    conda/recipes/bsql-engine/build.sh $type
     if [ $? != 0 ]; then
       status="Build failed"
       failed=1
