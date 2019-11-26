@@ -343,7 +343,7 @@ class BlazingContext(object):
         self.add_remove_table(table_name,False)
 
 
-    def sql(self, sql, table_list = []):
+    def sql(self, sql, table_list = [], algebra=None):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList =  [{} for _ in range(len(self.nodes))]
@@ -372,7 +372,8 @@ class BlazingContext(object):
         accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
-        algebra = self.explain(sql)
+        if (algebra is None):
+            algebra = self.explain(sql)
         if self.dask_client is None:
             result = cio.runQueryCaller(masterIndex,self.nodes,self.tables,fileTypes,ctxToken,algebra,accessToken)
         else:
