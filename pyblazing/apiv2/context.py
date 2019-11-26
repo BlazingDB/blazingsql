@@ -98,7 +98,8 @@ def initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = False):
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000,32000)+ ralId
     cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort, singleNode)
-    return ralCommunicationPort, workerIp
+    cwd = os.getcwd()
+    return ralCommunicationPort, workerIp, cwd
 
 def getNodePartitions(df,client):
     df = df.persist()
@@ -189,6 +190,7 @@ class BlazingContext(object):
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
+        self.node_cwds = []
 
         if(dask_client is not None):
             if network_interface is None:
@@ -205,7 +207,7 @@ class BlazingContext(object):
                 i = i + 1
             i = 0
             for connection in dask_futures:
-                ralPort, ralIp = connection.result()
+                ralPort, ralIp, cwd = connection.result()
                 node = {}
                 node['worker'] = worker_list[i]
                 node['ip'] = ralIp
@@ -213,13 +215,15 @@ class BlazingContext(object):
                 print("ralport is")
                 print(ralPort)
                 self.nodes.append(node)
+                self.node_cwds.append(cwd)
                 i = i + 1
         else:
-            ralPort, ralIp = initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = True )
+            ralPort, ralIp, cwd = initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = True )
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
             self.nodes.append(node)
+            self.node_cwds.append(cwd)
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         #internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
@@ -229,7 +233,8 @@ class BlazingContext(object):
         self.db = DatabaseClass("main")
         self.schema = BlazingSchemaClass(self.db)
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
-        self.tables = {}        
+        self.tables = {}   
+        self.logs_initialized = False     
 
         #waitForPingSuccess(self.client)
         print("BlazingContext ready")
@@ -371,7 +376,7 @@ class BlazingContext(object):
         ctxToken = random.randint(0,64000)
         accessToken = 0
         if (len(table_list) > 0):
-            print("NOTE: You no longer need to send a table list to the .sql() funtion")
+            print("NOTE: You no longer need to send a table list to the .sql() function")
         algebra = self.explain(sql)
         if self.dask_client is None:
             result = cio.runQueryCaller(masterIndex,self.nodes,self.tables,fileTypes,ctxToken,algebra,accessToken)
@@ -386,3 +391,19 @@ class BlazingContext(object):
         return result
 
     # END SQL interface
+
+    # BEGIN LOG interface
+    def log(self, query, logs_table_name='bsql_logs'):
+        if not self.logs_initialized:
+            self.logs_table_name = logs_table_name
+            log_files=[self.node_cwds[i] + '/RAL.' + str(i) + '.log' for i in range(0,len(self.node_cwds))]
+            print(log_files)
+            dtypes=['date64','int32','str','int32','int16','int16','str','float32','str','int32','str','int32']
+            names=['log_time','node_id','type','query_id','step','substep','info','duration','extra1','data1','extra2','data2']
+            t = self.create_table(self.logs_table_name, log_files, delimiter='|', dtype=dtypes, names=names, file_format='csv')
+            print("table created")
+            print(t)
+            self.logs_initialized=True
+        
+        return self.sql(query)
+
