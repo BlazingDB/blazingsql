@@ -20,26 +20,6 @@ cd $WORKSPACE
 export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
-# Nightly seccion
-NIGHTLY=""
-if [[ "$CONDA_BUILD" == *"nightly"* ]]; then
-    NIGHTLY="-nightly"
-    # CUDF="cudf=0.11"
-
-    #libcudf="libcudf=0.11"
-    #nvstrings="nvstrings=0.11"
-    #rmm="rmm=0.11"
-    #daskcudf="dask-cudf=0.11"
-
-    #Replazing cudf version
-    #echo "Replacing cudf version into meta.yaml"
-    #sed -i "s/libcudf/$libcudf/g" conda/recipes/pyBlazing/meta.yaml
-    #sed -i "s/nvstrings/$nvstrings/g" conda/recipes/pyBlazing/meta.yaml
-    #sed -i "s/rmm/$rmm/g" conda/recipes/pyBlazing/meta.yaml
-    #sed -i "s/dask-cudf/$daskcudf/g" conda/recipes/pyBlazing/meta.yaml
-fi
-echo "IS_NIGHTLY "$NIGHTLY
-
 CONDA_CH=""
 if [ ! -z "$CONDA_BUILD" ]; then
     IFS=', ' read -r -a array <<< "$CONDA_BUILD"

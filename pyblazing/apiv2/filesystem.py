@@ -1,8 +1,9 @@
 from collections import OrderedDict
 from enum import Enum
 
-from .bridge import internal_api
 import cio
+
+from pyblazing.apiv2 import S3EncryptionType
 
 def registerFileSystem(client,fs,root,prefix):
     ok = False
@@ -44,11 +45,7 @@ class FileSystem(object):
             print(fs_str)
 
     def localfs(self, client, prefix, **kwargs):
-        result, error_msg = self._verify_prefix(prefix)
-        
-        if result == False:
-            return (result, error_msg)
-
+        self._verify_prefix(prefix)
         root = kwargs.get('root', '/')
 
         fs = OrderedDict()
@@ -56,11 +53,7 @@ class FileSystem(object):
         return registerFileSystem(client,fs,root,prefix)
 
     def hdfs(self, client, prefix, **kwargs):
-        result, error_msg = self._verify_prefix(prefix)
-        
-        if result == False:
-            return (result, error_msg)
-
+        self._verify_prefix(prefix)
         root = kwargs.get('root', '/')
 
         host = kwargs.get('host', '127.0.0.1')
@@ -79,18 +72,14 @@ class FileSystem(object):
         return registerFileSystem(client,fs,root,prefix)
 
     def s3(self, client, prefix, **kwargs):
-        result, error_msg = self._verify_prefix(prefix)
-        
-        if result == False:
-            return (result, error_msg)
-
+        self._verify_prefix(prefix)
         root = kwargs.get('root', '/')
 
         bucket_name = kwargs.get('bucket_name', '')
         access_key_id = kwargs.get('access_key_id', '')
         secret_key = kwargs.get('secret_key', '')
         session_token = kwargs.get('session_token', '')
-        encryption_type = kwargs.get('encryption_type', internal_api.S3EncryptionType.NONE)
+        encryption_type = kwargs.get('encryption_type', S3EncryptionType.NONE)
         kms_key_amazon_resource_name = kwargs.get('kms_key_amazon_resource_name', '')
 
         fs = OrderedDict()
@@ -121,8 +110,5 @@ class FileSystem(object):
         return registerFileSystem(client,fs,root,prefix)
 
     def _verify_prefix(self, prefix):
-        result = True
-        error_msg = ""
         if prefix in self.file_systems:
-            # TODO percy improve this one add the fs type so we can raise a nice exeption
-            raise Exception('Fail add fs')
+            raise Exception('Could not add a duplicated file system')

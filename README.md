@@ -53,43 +53,59 @@ Too see all the ways you can get started with BlazingSQL checkout out our [Getti
 ## Install Using Conda
 BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.html), or the full [Anaconda distribution](https://www.anaconda.com/download)) from the [blazingsql](https://anaconda.org/blazingsql/) channel:
 
+### Nightly (Recommended) Version
+We are undergoing an architecture transition that has made the engine more stable and performant. For that reason we recommend our *Nightly* release over our stable, *Stable* will be updated with the latest cuDF v0.11 release.
+
+```bash
+# for CUDA 9.2
+conda install -c blazingsql-nightly/label/cuda9.2 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.6
+
+# for CUDA 10.0
+conda install -c blazingsql-nightly/label/cuda10.0 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.6
+```
+Note: BlazingSQL-Nightly is supported only on Linux, and with Python versions 3.6 or 3.7.
+
+### Stable Version ###
 *For CUDA 9.2 and Python 3.7:*
 ```bash
 conda install -c blazingsql/label/cuda9.2 -c blazingsql -c rapidsai -c conda-forge -c defaults blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=9.2
-
-pip install jupyterlab==0.34
 ```
 
 *For CUDA 10.0 and Python 3.7:*
 ```bash
 conda install -c blazingsql/label/cuda10.0 -c blazingsql -c rapidsai -c conda-forge -c defaults blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=10.0
-
-pip install jupyterlab==0.34
 ```
+Note: BlazingSQL (stable) is supported only on Linux, and with Python version 3.7.
 
 ## Build/Install from Source (Conda Environment)
 This is the recommended way of building all of the BlazingSQL components and dependencies from source. It ensures that all the dependencies are available to the build process.
 
 *For CUDA 9.2:*
 ```bash
-conda create -n blazingsql-build python=3.7
-conda activate blazingsql-build
-conda install -c blazingsql/label/cuda9.2 -c blazingsql -c rapidsai -c conda-forge -c defaults blazingsql-dev 
+conda create -n bsql python=3.7
+conda activate bsql
+conda install --yes -c conda-forge openjdk=8.0 maven cmake flatbuffers gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces
+conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
+conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda9.2 libcudf cudf dask-cudf
 
 cd $CONDA_PREFIX
-git clone -b develop https://github.com/BlazingDB/pyBlazing.git
-./pyBlazing/scripts/build-all.sh
+git clone https://github.com/BlazingDB/pyBlazing.git
+cd pyBlazing
+scripts/build-all.sh
 ```
 
 *For CUDA 10.0:*
 ```bash
-conda create -n blazingsql-build python=3.7
-conda activate blazingsql-build
-conda install -c blazingsql/label/cuda10.0 -c blazingsql -c rapidsai -c conda-forge -c defaults blazingsql-dev 
+conda create -n bsql python=3.7
+conda activate bsql
+conda install --yes -c conda-forge openjdk=8.0 maven cmake flatbuffers gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces
+conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
+conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda10.0 libcudf cudf dask-cudf
 
 cd $CONDA_PREFIX
-git clone -b develop https://github.com/BlazingDB/pyBlazing.git
-./pyBlazing/scripts/build-all.sh
+git clone https://github.com/BlazingDB/pyBlazing.git
+cd pyBlazing
+scripts/build-all.sh
 ```
 
 The build-all.sh script will checkout every BlazingSQL repository, build and install into the conda environment.

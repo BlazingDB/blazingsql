@@ -2,9 +2,9 @@
 # Usage   ./build-all.sh clean_build
 # Example ./build-all.sh true
 
-repos=(blazingdb-protocol blazingdb-communication blazingdb-io blazingdb-ral pyBlazing blazingdb-calcite)
-branches=(develop develop develop develop develop develop)
-pkg_names=(bsql-protocol bsql-comms bsql-io libbsql-engine blazingsql bsql-algebra)
+repos=(blazingdb-communication blazingdb-io blazingdb-ral pyBlazing blazingdb-calcite)
+branches=(develop develop develop develop develop)
+pkg_names=(bsql-comms bsql-io libbsql-engine blazingsql bsql-algebra)
 
 # Release or DEBUG
 types=(Release Release Release Release Release Release)
@@ -65,9 +65,9 @@ do
   i=$(($i+1))
 
   if [ "$pkg_name" == "libbsql-engine" ]; then
-    chmod +x conda/recipes/sql-engine/build.sh
+    chmod +x conda/recipes/bsql-engine/build.sh
     failed=0
-    conda/recipes/sql-engine/build.sh $type
+    conda/recipes/bsql-engine/build.sh $type
     if [ $? != 0 ]; then
       status="Build failed"
       failed=1
