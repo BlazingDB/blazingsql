@@ -1,16 +1,25 @@
+# NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
+import cudf
+
 from collections import OrderedDict
 from enum import Enum
 
 from urllib.parse import urlparse
 
-from .bridge import internal_api
+from threading import Lock
+from weakref import ref
+from pyblazing.apiv2.filesystem import FileSystem
+from pyblazing.apiv2 import DataType
 
+<<<<<<< HEAD
 from threading import  Lock
 from .filesystem import FileSystem
 from .sql import SQL
 from .sql import ResultSet
 from .datasource import *
 from .hive import *
+=======
+>>>>>>> develop
 import time
 import datetime
 import socket, errno
@@ -18,6 +27,7 @@ import subprocess
 import os
 import re
 import pandas
+import numpy as np
 import pyarrow
 from urllib.parse import urlparse
 from urllib.parse import ParseResult
@@ -48,9 +58,29 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass('com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
 
-
-
-
+def get_np_dtype_to_gdf_dtype_str(dtype):
+    dtypes = {
+        np.dtype('float64'):    'GDF_FLOAT64',
+        np.dtype('float32'):    'GDF_FLOAT32',
+        np.dtype('int64'):      'GDF_INT64',
+        np.dtype('int32'):      'GDF_INT32',
+        np.dtype('int16'):      'GDF_INT16',
+        np.dtype('int8'):       'GDF_INT8',
+        np.dtype('bool_'):      'GDF_BOOL8',
+        np.dtype('datetime64[s]'): 'GDF_DATE64',
+        np.dtype('datetime64[ms]'): 'GDF_DATE64',
+        np.dtype('datetime64[ns]'): 'GDF_TIMESTAMP',
+        np.dtype('datetime64[us]'): 'GDF_TIMESTAMP',
+        np.dtype('datetime64'): 'GDF_DATE64',
+        np.dtype('object_'):    'GDF_STRING',
+        np.dtype('str_'):       'GDF_STRING',
+        np.dtype('<M8[s]'):    'GDF_DATE64',
+        np.dtype('<M8[ms]'):    'GDF_DATE64',
+        np.dtype('<M8[ns]'):    'GDF_TIMESTAMP',
+        np.dtype('<M8[us]'):    'GDF_TIMESTAMP'
+    }
+    ret = dtypes[np.dtype(dtype)]
+    return ret
 
 
 def checkSocket(socketNum):
@@ -70,13 +100,13 @@ def checkSocket(socketNum):
     s.close()
     return socket_free
 
-def initializeBlazing(ralId = 0, networkInterface = 'lo'):
+def initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = False):
     print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000,32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000,32000)+ ralId
-    cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort)
+    cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort, singleNode)
     return ralCommunicationPort, workerIp
 
 def getNodePartitions(df,client):
@@ -107,9 +137,9 @@ def collectPartitionsRunQuery(masterIndex,nodes,tables,fileTypes,ctxToken,algebr
         if(isinstance(tables[table_name].input,dask_cudf.core.DataFrame)):
             partitions = tables[table_name].get_partitions(worker_id)
             if (len(partitions) == 0):
-                tables[table_name].input = tables[table_name].input.head(0)
+                tables[table_name].input = tables[table_name].input.get_partition(0).head(0)
             elif (len(partitions) == 1):
-                tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute()
+                tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute(scheduler='threads')
             else:
                 table_partitions = []
                 for partition in partitions:
@@ -125,7 +155,7 @@ class BlazingTable(object):
         self.num_row_groups = num_row_groups
         self.fileType = fileType
         self.args = args
-        if fileType > 3:
+        if fileType == DataType.CUDF or DataType.DASK_CUDF:
             if(convert_gdf_to_dask and isinstance(self.input,cudf.DataFrame)):
                 self.input = dask_cudf.from_cudf(self.input,npartitions = convert_gdf_to_dask_partitions)
             if(isinstance(self.input,dask_cudf.core.DataFrame)):
@@ -144,15 +174,21 @@ class BlazingTable(object):
         startIndex = 0
         for i in range(0,numSlices):
             batchSize = int(remaining / (numSlices - i))
-            print(batchSize)
-            print(startIndex)
+            # print(batchSize)
+            # print(startIndex)
             tempFiles=self.files[startIndex : startIndex + batchSize]
             uri_values = self.uri_values[startIndex : startIndex + batchSize]
 
             if self.num_row_groups is not None:
+<<<<<<< HEAD
                 nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], uri_values=uri_values))
             else:
                 nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, uri_values=uri_values))
+=======
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], args=self.args))
+            else:
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, args=self.args))
+>>>>>>> develop
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
         return nodeFilesList
@@ -160,15 +196,15 @@ class BlazingTable(object):
     def get_partitions(self,worker):
         return self.dask_mapping[worker]
 
-
 class BlazingContext(object):
 
-    def __init__(self, dask_client = None, run_orchestrator = True, run_engine = True, run_algebra = True, network_interface = None, leave_processes_running = False, orchestrator_ip = None, orchestrator_port=9100, logs_destination = None):
+    def __init__(self, dask_client = None, network_interface = None):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
         """
         self.lock = Lock()
+        self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
 
@@ -182,7 +218,7 @@ class BlazingContext(object):
             i = 0
             print(network_interface)
             for worker in list(self.dask_client.scheduler_info()["workers"]):
-                dask_futures.append(self.dask_client.submit(  initializeBlazing,ralId = i, networkInterface = network_interface, workers = [worker]))
+                dask_futures.append(self.dask_client.submit(  initializeBlazing,ralId = i, networkInterface = network_interface, singleNode = False, workers = [worker]))
                 worker_list.append(worker)
                 i = i + 1
             i = 0
@@ -197,7 +233,7 @@ class BlazingContext(object):
                 self.nodes.append(node)
                 i = i + 1
         else:
-            ralPort, ralIp = initializeBlazing(ralId = 0, networkInterface = 'lo')
+            ralPort, ralIp = initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = True )
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
@@ -213,13 +249,6 @@ class BlazingContext(object):
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
         self.tables = {}
 
-        self.PARQUET_FILE_TYPE = 0
-        self.ORC_FILE_TYPE = 1
-        self.CSV_FILE_TYPE = 2
-        self.JSON_FILE_TYPE = 3
-        self.CUDF_TYPE = 4
-        self.DASK_CUDF_TYPE = 5
-
         #waitForPingSuccess(self.client)
         print("BlazingContext ready")
 
@@ -231,7 +260,7 @@ class BlazingContext(object):
             return self.client.ping()
 
     def __del__(self):
-        cio.finalizeCaller()
+        self.finalizeCaller()
 
     def __repr__(self):
         return "BlazingContext('%s')" % (self.connection)
@@ -285,7 +314,7 @@ class BlazingContext(object):
                     else:
                         dataframe_column = table.input._cols[column]
                     data_sz = len(dataframe_column)
-                    dtype = pyblazing.api.get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
+                    dtype = get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
                     dataType = ColumnTypeClass.fromString(dtype)
                     column = ColumnClass(column,dataType,order);
                     arr.add(column)
@@ -320,20 +349,20 @@ class BlazingContext(object):
             input = [input,]
 
         if type(input) == pandas.DataFrame:
-            table = BlazingTable(cudf.DataFrame.from_pandas(input),self.CUDF_TYPE)
+            table = BlazingTable(cudf.DataFrame.from_pandas(input),DataType.CUDF)
         elif type(input) == pyarrow.Table:
-            table = BlazingTable(cudf.DataFrame.from_arrow(input),self.CUDF_TYPE)
+            table = BlazingTable(cudf.DataFrame.from_arrow(input),DataType.CUDF)
         elif type(input) == cudf.DataFrame:
             if (self.dask_client is not None):
-                table = BlazingTable(input,self.DASK_CUDF_TYPE,convert_gdf_to_dask=True,convert_gdf_to_dask_partitions=len(self.nodes),client=self.dask_client)
+                table = BlazingTable(input,DataType.DASK_CUDF,convert_gdf_to_dask=True,convert_gdf_to_dask_partitions=len(self.nodes),client=self.dask_client)
             else:
-                table = BlazingTable(input,self.CUDF_TYPE)
+                table = BlazingTable(input,DataType.CUDF)
         elif type(input) == list:
             parsedSchema = cio.parseSchemaCaller(input,file_format_hint,kwargs,extra_columns)
             file_type = parsedSchema['file_type']
             table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'],uri_values=uri_values,in_file=in_file)
         elif type(input) == dask_cudf.core.DataFrame:
-            table = BlazingTable(input,self.DASK_CUDF_TYPE,client=self.dask_client)
+            table = BlazingTable(input,DataType.DASK_CUDF,client=self.dask_client)
         if table is not None:
             self.add_remove_table(table_name,True,table)
         return table
@@ -352,13 +381,14 @@ class BlazingContext(object):
 
         for table in self.tables:
             fileTypes.append(self.tables[table].fileType)
-            if(self.tables[table].fileType <= 3):
+            ftype = self.tables[table].fileType
+            if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
                 currentTableNodes = self.tables[table].getSlices(len(self.nodes))
-            elif(self.tables[table].fileType == self.DASK_CUDF_TYPE):
+            elif(self.tables[table].fileType == DataType.DASK_CUDF):
                 currentTableNodes = []
                 for node in self.nodes:
                     currentTableNodes.append(self.tables[table])
-            elif(self.tables[table].fileType == self.CUDF_TYPE):
+            elif(self.tables[table].fileType == DataType.CUDF):
                 currentTableNodes = []
                 for node in self.nodes:
                     currentTableNodes.append(self.tables[table])
@@ -387,22 +417,3 @@ class BlazingContext(object):
         return result
 
     # END SQL interface
-
-
-def make_context(connection='localhost:8889',
-                 dask_client=None,
-                 network_interface='lo',
-                 run_orchestrator=True,
-                 run_algebra=True,
-                 run_engine=True):
-    """
-    :param connection: BlazingSQL cluster URL to connect to
-           (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
-    """
-    bc = BlazingContext(connection,
-                        dask_client=dask_client,
-                        network_interface=network_interface,
-                        run_orchestrator=run_orchestrator,
-                        run_algebra=run_algebra,
-                        run_engine=run_engine)
-    return bc
