@@ -11,15 +11,8 @@ from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 
-<<<<<<< HEAD
-from threading import  Lock
-from .filesystem import FileSystem
-from .sql import SQL
-from .sql import ResultSet
-from .datasource import *
+
 from .hive import *
-=======
->>>>>>> develop
 import time
 import datetime
 import socket, errno
@@ -180,15 +173,9 @@ class BlazingTable(object):
             uri_values = self.uri_values[startIndex : startIndex + batchSize]
 
             if self.num_row_groups is not None:
-<<<<<<< HEAD
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], uri_values=uri_values))
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], uri_values=uri_values,args=self.args))
             else:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, uri_values=uri_values))
-=======
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], args=self.args))
-            else:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, args=self.args))
->>>>>>> develop
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, uri_values=uri_values,args=self.args))
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
         return nodeFilesList
@@ -402,10 +389,7 @@ class BlazingContext(object):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
         algebra = self.explain(sql)
         if self.dask_client is None:
-            print("running query")
             result = cio.runQueryCaller(masterIndex,self.nodes,self.tables,fileTypes,ctxToken,algebra,accessToken)
-            print(result)
-            print("ran query")
         else:
             dask_futures = []
             i = 0
