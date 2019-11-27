@@ -194,6 +194,7 @@ class BlazingContext(object):
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
+        self.finalizeCaller = lambda: NotImplemented
 
         if(dask_client is not None):
             if network_interface is None:
@@ -345,7 +346,7 @@ class BlazingContext(object):
             else:
                 table = BlazingTable(input,DataType.CUDF)
         elif type(input) == list:
-            parsedSchema = cio.parseSchemaCaller(input,file_format_hint,kwargs,extra_columns)
+            parsedSchema = self._parseSchema(input, file_format_hint, kwargs, extra_columns)
             file_type = parsedSchema['file_type']
             table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'],uri_values=uri_values,in_file=in_file)
         elif type(input) == dask_cudf.core.DataFrame:
@@ -357,8 +358,15 @@ class BlazingContext(object):
     def drop_table(self, table_name):
         self.add_remove_table(table_name,False)
 
+    def _parseSchema(self, input, file_format_hint, kwargs, extra_columns):
+        if self.dask_client:
+            worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
+            connection = self.dask_client.submit(cio.parseSchemaCaller, input, file_format_hint, kwargs, extra_columns, workers=[worker])
+            return connection.result()
+        else:
+            return cio.parseSchemaCaller(input, file_format_hint, kwargs)
 
-    def sql(self, sql, table_list = []):
+    def sql(self, sql, table_list = [], algebra=None):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList =  [{} for _ in range(len(self.nodes))]
@@ -387,7 +395,8 @@ class BlazingContext(object):
         accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
-        algebra = self.explain(sql)
+        if (algebra is None):
+            algebra = self.explain(sql)
         if self.dask_client is None:
             result = cio.runQueryCaller(masterIndex,self.nodes,self.tables,fileTypes,ctxToken,algebra,accessToken)
         else:
