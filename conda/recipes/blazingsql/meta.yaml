@@ -27,6 +27,7 @@ requirements:
         - setuptools
         - jpype1
         - netifaces
+        - pyhive
         - cudatoolkit  {{ cuda_version }}.*
         - bsql-engine  {{ version }}.*
         - bsql-algebra {{ version }}.*
