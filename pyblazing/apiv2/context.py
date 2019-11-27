@@ -364,7 +364,7 @@ class BlazingContext(object):
             connection = self.dask_client.submit(cio.parseSchemaCaller, input, file_format_hint, kwargs, extra_columns, workers=[worker])
             return connection.result()
         else:
-            return cio.parseSchemaCaller(input, file_format_hint, kwargs)
+            return cio.parseSchemaCaller(input, file_format_hint, kwargs, extra_columns)
 
     def sql(self, sql, table_list = [], algebra=None):
         # TODO: remove hardcoding
