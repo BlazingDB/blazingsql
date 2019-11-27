@@ -11,6 +11,8 @@ from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 
+
+from .hive import *
 import time
 import datetime
 import socket, errno
@@ -139,7 +141,7 @@ def collectPartitionsRunQuery(masterIndex,nodes,tables,fileTypes,ctxToken,algebr
     return cio.runQueryCaller(masterIndex,nodes,tables,fileTypes,ctxToken,algebra,accessToken)
 
 class BlazingTable(object):
-    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None,args={}, convert_gdf_to_dask=False, convert_gdf_to_dask_partitions=1,client=None):
+    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None,args={}, convert_gdf_to_dask=False, convert_gdf_to_dask_partitions=1,client=None,uri_values=[], in_file=[]):
         self.input = input
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
@@ -151,7 +153,8 @@ class BlazingTable(object):
                 self.input = dask_cudf.from_cudf(self.input,npartitions = convert_gdf_to_dask_partitions)
             if(isinstance(self.input,dask_cudf.core.DataFrame)):
                 self.dask_mapping = getNodePartitions(self.input,client)
-
+        self.uri_values = uri_values
+        self.in_file = in_file
 
 
     def getSlices(self,numSlices):
@@ -167,10 +170,12 @@ class BlazingTable(object):
             # print(batchSize)
             # print(startIndex)
             tempFiles=self.files[startIndex : startIndex + batchSize]
+            uri_values = self.uri_values[startIndex : startIndex + batchSize]
+
             if self.num_row_groups is not None:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], args=self.args))
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], uri_values=uri_values,args=self.args))
             else:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, args=self.args))
+                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, uri_values=uri_values,args=self.args))
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
         return nodeFilesList
@@ -318,9 +323,19 @@ class BlazingContext(object):
 
     def create_table(self, table_name, input, **kwargs):
         table = None
+        extra_columns = []
+        uri_values = []
+        file_format_hint = kwargs.get('file_format', 'undefined') # See datasource.file_format
+        extra_kwargs = {}
+        in_file = []
+        if(type(input) == hive.Cursor):
+            hive_table_name = kwargs.get('hive_table_name', table_name)
+            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file = get_hive_table(input,hive_table_name)
+            kwargs.update(extra_kwargs)
+            input = folder_list
         if type(input) == str:
             input = [input,]
-        file_format_hint = kwargs.get('file_format', 'undefined')
+
         if type(input) == pandas.DataFrame:
             table = BlazingTable(cudf.DataFrame.from_pandas(input),DataType.CUDF)
         elif type(input) == pyarrow.Table:
@@ -331,9 +346,9 @@ class BlazingContext(object):
             else:
                 table = BlazingTable(input,DataType.CUDF)
         elif type(input) == list:
-            parsedSchema = self._parseSchema(input, file_format_hint, kwargs)
+            parsedSchema = self._parseSchema(input, file_format_hint, kwargs, extra_columns)
             file_type = parsedSchema['file_type']
-            table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'])
+            table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'],uri_values=uri_values,in_file=in_file)
         elif type(input) == dask_cudf.core.DataFrame:
             table = BlazingTable(input,DataType.DASK_CUDF,client=self.dask_client)
         if table is not None:
@@ -343,10 +358,10 @@ class BlazingContext(object):
     def drop_table(self, table_name):
         self.add_remove_table(table_name,False)
 
-    def _parseSchema(self, input, file_format_hint, kwargs):
+    def _parseSchema(self, input, file_format_hint, kwargs, extra_columns):
         if self.dask_client:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
-            connection = self.dask_client.submit(cio.parseSchemaCaller, input, file_format_hint, kwargs, workers=[worker])
+            connection = self.dask_client.submit(cio.parseSchemaCaller, input, file_format_hint, kwargs, extra_columns, workers=[worker])
             return connection.result()
         else:
             return cio.parseSchemaCaller(input, file_format_hint, kwargs)
