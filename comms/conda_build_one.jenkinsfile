@@ -1,0 +1,66 @@
+pipeline {
+  agent any
+
+  options {
+    ansiColor('xterm')
+    timestamps()
+    timeout(time: 2, unit: 'HOURS')
+  }
+
+  parameters {
+    string(name: 'BRANCH', defaultValue: 'develop', description: '')
+    choice(name: 'CUDA_VERSION', choices: '10.0\n9.2', description: 'Cuda Version')
+    string(name: 'RAPIDS_BUILD_VERSION', defaultValue: '0.11', description: 'Version of Rapids dependencies, example: 0.10')
+    string(name: 'CONDA_BUILD', defaultValue: 'rapidsai-nightly', description: 'Channels from build, example: blazingsql-nightly,rapidsai-nightly')
+    string(name: 'CONDA_UPLOAD', defaultValue: 'blazingsql-nightly', description: 'The Anaconda repository could be: blazingsql, blazingsql-nightly, mario21ic, etc')
+    string(name: 'CONDA_TOKEN', defaultValue: 'conda-token', description: '')
+    string(name: 'SLACK_CHANNEL', defaultValue: 'jenkins-blazingsql', description: '')
+  }
+  
+  environment {
+    SLACK_MESSAGE=" - Job '${env.JOB_NAME}' - Build #${env.BUILD_NUMBER}: ${env.BUILD_URL}"
+  }
+
+  stages {
+
+    stage("Repository") {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage("Compile & Publish") {
+      steps {
+        withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
+          sh "./conda-build-docker.sh ${params.CUDA_VERSION} ${params.RAPIDS_BUILD_VERSION} ${params.CONDA_BUILD} ${params.CONDA_UPLOAD} $TOKEN"
+        }
+      }
+    }
+
+  }
+
+  // Method to post jenkinsfile
+  post {
+    always {
+      echo "Job has finished"
+    }
+    success {
+      slackSendMessage("Success", "good")
+    }
+    failure {
+      slackSendMessage("Failure", "danger")
+    }
+    unstable {
+      slackSendMessage("Warning", "warning")
+    }
+  }
+
+}
+
+// Method to send notifications for slack
+def slackSendMessage(String status="Started", String color){
+  slackSend channel: "${params.SLACK_CHANNEL}",
+            color: color,
+            failOnError: true,
+            message: "${status}" + "${env.SLACK_MESSAGE}"
+}

@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.blazingdb</groupId>
+		<artifactId>blazingdb-calcite-parent</artifactId>
+		<version>1.0.0.RC</version>
+	</parent>
+
+	<artifactId>blazingdb-calcite-core</artifactId>
+	<packaging>jar</packaging>
+
+	<properties>
+		<sourceEncoding>UTF-8</sourceEncoding>
+		<project.build.sourceEncoding>${sourceEncoding}</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${sourceEncoding}</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+		<org.slf4j-version>1.5.10</org.slf4j-version>
+		<junit.version>4.12</junit.version>
+		<org.testng.version>6.14.3</org.testng.version>
+		<org.apache.calcite-version>1.21.0</org.apache.calcite-version>
+		<org.apache.calcite.avatica-version>1.15.0</org.apache.calcite.avatica-version>
+	</properties>
+
+	<dependencies>
+		<!-- Apache Calcite -->
+		<dependency>
+			<groupId>org.apache.calcite</groupId>
+			<artifactId>calcite-core</artifactId>
+			<version>${org.apache.calcite-version}</version>
+			<type>jar</type>
+		</dependency>
+		<!-- Test Dependencies -->
+		<dependency>
+			<groupId>org.apache.calcite</groupId>
+			<artifactId>calcite-core</artifactId>
+			<version>${org.apache.calcite-version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<!-- Java version -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+			<!-- Apache Calcite -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				
+				<executions>
+					<execution>
+						<id>add-generated-sources</id>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Add generated Calcite sources to Eclipse source code model -->
+			<!-- You need to install install Eclipse Apt M2E Connector -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources/</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<!-- CALCITE-538: workaround for https://github.com/freemarker/fmpp/issues/11 
+				FMPP always overwrites destination file, however we do not want recompile 
+				the whole module every time. -->
+			<id>generate-parser</id>
+			<activation>
+				<property>
+					<name>!skipGenerateCalciteParser</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<!-- Apache Calcite -->
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>copy-fmpp-resources</id>
+								<phase>initialize</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${project.build.directory}/codegen</outputDirectory>
+									<resources>
+										<resource>
+											<directory>src/main/codegen</directory>
+											<filtering>false</filtering>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+							<execution>
+								<id>copy-java-sources</id>
+								<phase>process-sources</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${basedir}/target/classes/</outputDirectory>
+									<resources>
+										<resource>
+											<directory>src/jvm</directory>
+											<filtering>true</filtering>
+										</resource>
+										<resource>
+											<directory>src/test</directory>
+											<filtering>true</filtering>
+										</resource>
+										<resource>
+											<directory>target/generated-sources</directory>
+											<!-- <include>*/org</include> -->
+											<filtering>true</filtering>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>2.2</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>test-jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-checkstyle-plugin</artifactId>
+						<!--Note - the version would be inherited -->
+						<configuration>
+							<maxAllowedViolations>1286</maxAllowedViolations>
+						</configuration>
+					</plugin>
+					<plugin>
+						<!-- Extract parser grammar template from calcite-core.jar and put 
+							it under ${project.build.directory} where all freemarker templates are. -->
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<version>2.8</version>
+						<executions>
+							
+						</executions>
+					</plugin>
+					<!-- using appassembler-maven-plugin instead of maven-dependency-plugin 
+						to copy dependencies as copy and unpack goal are not working together -->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>appassembler-maven-plugin</artifactId>
+						<version>1.9</version>
+						<executions>
+							<execution>
+								<id>create-repo</id>
+								<goals>
+									<goal>create-repository</goal>
+								</goals>
+								<configuration>
+									<assembleDirectory>${project.build.directory}/app-assembler</assembleDirectory>
+									<repositoryLayout>flat</repositoryLayout>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>com.googlecode.fmpp-maven-plugin</groupId>
+						<artifactId>fmpp-maven-plugin</artifactId>
+						<version>1.0</version>
+						<dependencies>
+							<dependency>
+								<groupId>org.freemarker</groupId>
+								<artifactId>freemarker</artifactId>
+								<version>2.3.25-incubating</version>
+							</dependency>
+						</dependencies>
+						<executions>
+							
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>javacc-maven-plugin</artifactId>
+						<version>2.4</version>
+						<executions>
+							<execution>
+								<phase>generate-sources</phase>
+								<id>javacc</id>
+								<goals>
+									<goal>javacc</goal>
+								</goals>
+								<configuration>
+									<sourceDirectory>${project.build.directory}/generated-sources/</sourceDirectory>
+									<includes>
+										<include>**/Parser.jj</include>
+									</includes>
+									<lookAhead>2</lookAhead>
+									<isStatic>false</isStatic>
+									<outputDirectory>${project.build.directory}/generated-sources/</outputDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>
