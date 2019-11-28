@@ -1,0 +1,76 @@
+{% set cuda_version='.'.join(environ.get('CUDA_VERSION', '9.2').split('.')[:2]) %}
+{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0.dev').lstrip('v') %}
+{% set minor_version =  version.split('.')[0] + '.' + version.split('.')[1] %}
+{% set git_revision_count=environ.get('GIT_DESCRIBE_NUMBER', '0') %}
+{% set py_version=environ.get('CONDA_PY', '36') %}
+{% set rapids_build_version=environ.get('RAPIDS_BUILD_VERSION', '0.10') %}
+
+package:
+    name: blazingsql
+    version: {{ version }}
+
+build:
+    number: {{ git_revision_count }}
+    string: cuda{{ cuda_version + '_py' + py_version + '_' + git_revision_count }}
+    script_env:
+      - CUDA_VERSION
+      - CUDACXX
+
+source:
+    path: ../../..
+
+requirements:
+    build:
+        - gtest
+        - gmock
+        - arrow-cpp=0.15.0
+        - cmake
+        - bsql-toolchain  #{{ version }}.*
+        - cppzmq
+        - cudatoolkit {{ cuda_version }}.*
+        - librmm {{ rapids_build_version }}.*
+        - libnvstrings {{ rapids_build_version }}.*
+        - libcudf {{ rapids_build_version }}.*
+        - libhdfs3
+        - python
+        - pip
+        - setuptools
+        - cython >=0.29,<0.30
+        - dask-cudf {{ rapids_build_version }}.*
+        - openjdk=8.0
+        - maven
+    host:
+        - cudatoolkit {{ cuda_version }}.*
+        - python
+        - pip
+        - setuptools
+        - cython >=0.29,<0.30
+        - dask-cudf {{ rapids_build_version }}.*
+        - openjdk=8.0
+        - maven
+    run:
+        - arrow-cpp=0.15.0
+        - bsql-toolchain  #{{ version }}.*
+        - cppzmq
+        - cudatoolkit {{ cuda_version }}.*
+        - librmm {{ rapids_build_version }}.*
+        - libnvstrings {{ rapids_build_version }}.*
+        - libcudf {{ rapids_build_version }}.*
+        - libhdfs3
+        - python
+        - pip
+        - setuptools
+        - dask-cudf {{ rapids_build_version }}.*
+        - openjdk=8.0
+        - jpype1
+        - netifaces
+        - pyhive
+
+test:
+    commands:
+        python -c "import cio"
+
+about:
+    home: http://www.blazingsql.com/
+    license: Apache-2.0
+    license_family: Apache
