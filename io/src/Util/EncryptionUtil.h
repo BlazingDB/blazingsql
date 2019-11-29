@@ -10,8 +10,8 @@
 #include <string>
 
 namespace EncryptionUtil {
-	std::string encrypt(const std::string &toEncrypt);
-	std::string decrypt(const std::string &toDecrypt);
-}
+std::string encrypt(const std::string & toEncrypt);
+std::string decrypt(const std::string & toDecrypt);
+}  // namespace EncryptionUtil
 
 #endif /* _BZ_ENCRYPTUTIL__H_ */

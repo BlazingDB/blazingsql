@@ -9,8 +9,8 @@ TEST_F(HadoopFileSystemTest, Write) {
 	out->Flush();
 	out->Close();
 
-	//TODO use test subject api here
+	// TODO use test subject api here
 	EXPECT_EQ("writeable", nativeHdfs.readTextFile("/writeable"));
 
-  nativeHdfs.remove("/writeable");
+	nativeHdfs.remove("/writeable");
 }

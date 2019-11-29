@@ -6,11 +6,11 @@
 
 namespace SystemEnvironment {
 
-std::string getConnectionPropertyEnvValue(const std::string &connectionPropertyEnvName) {
-	const char *envValue = std::getenv(connectionPropertyEnvName.c_str());
+std::string getConnectionPropertyEnvValue(const std::string & connectionPropertyEnvName) {
+	const char * envValue = std::getenv(connectionPropertyEnvName.c_str());
 	const bool isDefined = (envValue != nullptr);
 
-	if (isDefined == false) {
+	if(isDefined == false) {
 		const std::string error = "FATAL: You need to define the environment variable: " + connectionPropertyEnvName;
 		throw std::invalid_argument(error);
 	}
@@ -63,4 +63,4 @@ const FileSystemConnection getLocalHadoopFileSystemConnection() {
 	return fileSystemConnection;
 }
 
-}
+}  // namespace SystemEnvironment

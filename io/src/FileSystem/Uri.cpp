@@ -5,43 +5,43 @@
 
 #include "Uri.h"
 
-#include <iostream>
 #include "Util/StringUtil.h"
+#include <iostream>
 
 static const std::string SCHEME_AUTH_SPLITTER = "://";
 
 const std::string Uri::fileSystemTypeToScheme(FileSystemType fileSystemType) {
-	switch (fileSystemType) {
-		case FileSystemType::LOCAL: return "file"; break;
-		case FileSystemType::HDFS: return "hdfs"; break;
-		case FileSystemType::S3: return "s3"; break;
-        case FileSystemType::GOOGLE_CLOUD_STORAGE: return "gcs"; break;
+	switch(fileSystemType) {
+	case FileSystemType::LOCAL: return "file"; break;
+	case FileSystemType::HDFS: return "hdfs"; break;
+	case FileSystemType::S3: return "s3"; break;
+	case FileSystemType::GOOGLE_CLOUD_STORAGE: return "gcs"; break;
 	}
 
 	return "unknown";
 }
 
-FileSystemType Uri::schemeToFileSystemType(const std::string &scheme) {
-	if (scheme == "file") {
+FileSystemType Uri::schemeToFileSystemType(const std::string & scheme) {
+	if(scheme == "file") {
 		return FileSystemType::LOCAL;
 	}
 
-	if (scheme == "hdfs") {
+	if(scheme == "hdfs") {
 		return FileSystemType::HDFS;
 	}
 
-	if (scheme == "s3") {
+	if(scheme == "s3") {
 		return FileSystemType::S3;
 	}
 
-    if (scheme == "gcs") {
-        return FileSystemType::GOOGLE_CLOUD_STORAGE;
-    }
+	if(scheme == "gcs") {
+		return FileSystemType::GOOGLE_CLOUD_STORAGE;
+	}
 
-	return FileSystemType::UNDEFINED; // return invalid
+	return FileSystemType::UNDEFINED;  // return invalid
 }
 
-//BEGIN TODO move this to pimpl class
+// BEGIN TODO move this to pimpl class
 
 struct MatchResult {
 	bool valid;
@@ -51,33 +51,33 @@ struct MatchResult {
 	Path path;
 };
 
-//check if uri has absolute linux path and is valid: return the 3 components
+// check if uri has absolute linux path and is valid: return the 3 components
 static MatchResult checkMatch(const std::string uri) {
 	MatchResult result;
 	result.valid = false;
 
-	std::string mutableUri = uri; //TODO ugly
+	std::string mutableUri = uri;  // TODO ugly
 	std::vector<std::string> tokens = StringUtil::split(mutableUri, SCHEME_AUTH_SPLITTER);
 
-	if (tokens.size() != 2) {
+	if(tokens.size() != 2) {
 		return result;
 	}
 
 	std::string scheme = tokens[0];
 
-	if (StringUtil::contains(scheme, " ") || scheme.empty()) {
+	if(StringUtil::contains(scheme, " ") || scheme.empty()) {
 		return result;
 	}
 
 	std::vector<std::string> authPath = StringUtil::split(tokens[1], "/");
 
-	if (authPath.size() == 1) {
+	if(authPath.size() == 1) {
 		return result;
 	}
 
 	std::string authority = authPath[0];
 
-	if (StringUtil::contains(authority, " ")) {
+	if(StringUtil::contains(authority, " ")) {
 		return result;
 	}
 
@@ -85,12 +85,15 @@ static MatchResult checkMatch(const std::string uri) {
 	const std::string pathPart = uri.substr(schemaAuthPos, uri.size() - schemaAuthPos);
 	const Path path(pathPart, true);
 
-	if (path.isValid() == false) {
+	if(path.isValid() == false) {
 		return result;
 	}
 
 	std::string normalizedScheme = scheme;
-	std::transform(normalizedScheme.begin(), normalizedScheme.end(), normalizedScheme.begin(), ::tolower); //TODO percy do we need to do this?
+	std::transform(normalizedScheme.begin(),
+		normalizedScheme.end(),
+		normalizedScheme.begin(),
+		::tolower);  // TODO percy do we need to do this?
 
 	result.valid = true;
 	result.scheme = scheme;
@@ -101,31 +104,29 @@ static MatchResult checkMatch(const std::string uri) {
 	return result;
 }
 
-//END
+// END
 
-Uri::Uri() : valid(false) {
-}
+Uri::Uri() : valid(false) {}
 
-//TODO too many branches, duplicated code
-Uri::Uri(const std::string &uri, bool strict) {
-	if (uri.empty()) {
+// TODO too many branches, duplicated code
+Uri::Uri(const std::string & uri, bool strict) {
+	if(uri.empty()) {
 		this->valid = false;
 		return;
 	}
 
-	//first check if Uri string is a default path (like /some/path/a.txt)
+	// first check if Uri string is a default path (like /some/path/a.txt)
 	const Path localPath(uri, true);
 
 
-	if (localPath.isValid()) {
-
-		 *this = Uri(Uri::fileSystemTypeToScheme(FileSystemType::LOCAL), "local", localPath);
-		 return;
+	if(localPath.isValid()) {
+		*this = Uri(Uri::fileSystemTypeToScheme(FileSystemType::LOCAL), "local", localPath);
+		return;
 	}
 
 	const MatchResult matchResult = checkMatch(uri);
 
-	if (matchResult.valid) {
+	if(matchResult.valid) {
 		this->fileSystemType = matchResult.fileSystemType;
 		this->scheme = matchResult.scheme;
 		this->authority = matchResult.authority;
@@ -133,8 +134,8 @@ Uri::Uri(const std::string &uri, bool strict) {
 		this->valid = true;
 	} else {
 		this->path = localPath;
-		if (strict) {
-			//TODO percy error handling
+		if(strict) {
+			// TODO percy error handling
 			this->valid = false;
 
 			return;
@@ -142,11 +143,14 @@ Uri::Uri(const std::string &uri, bool strict) {
 	}
 }
 
-Uri::Uri(const std::string &scheme, const std::string &authority, const Path &path, bool strict) {
+Uri::Uri(const std::string & scheme, const std::string & authority, const Path & path, bool strict) {
 	std::string normalizedScheme = scheme;
-	std::transform(normalizedScheme.begin(), normalizedScheme.end(), normalizedScheme.begin(), ::tolower); //TODO percy do we need to do this?
+	std::transform(normalizedScheme.begin(),
+		normalizedScheme.end(),
+		normalizedScheme.begin(),
+		::tolower);  // TODO percy do we need to do this?
 
-	if (strict) { //TODO check scheme and pass strict to path object
+	if(strict) {  // TODO check scheme and pass strict to path object
 	}
 
 	this->fileSystemType = Uri::schemeToFileSystemType(normalizedScheme);
@@ -156,71 +160,49 @@ Uri::Uri(const std::string &scheme, const std::string &authority, const Path &pa
 	this->valid = true;
 }
 
-Uri::Uri(FileSystemType fileSystemType, const std::string &authority, const Path &path, bool strict)
-	: Uri(Uri::fileSystemTypeToScheme(fileSystemType), authority, path, strict) {
-}
+Uri::Uri(FileSystemType fileSystemType, const std::string & authority, const Path & path, bool strict)
+	: Uri(Uri::fileSystemTypeToScheme(fileSystemType), authority, path, strict) {}
 
-Uri::Uri(const Uri &other)
-	: fileSystemType(other.fileSystemType)
-	, scheme(other.scheme)
-	, authority(other.authority)
-	, path(other.path)
-	, valid(other.valid) {
+Uri::Uri(const Uri & other)
+	: fileSystemType(other.fileSystemType), scheme(other.scheme), authority(other.authority), path(other.path),
+	  valid(other.valid) {}
 
-}
+Uri::Uri(Uri && other)
+	: fileSystemType(std::move(other.fileSystemType)), scheme(std::move(other.scheme)),
+	  authority(std::move(other.authority)), path(std::move(other.path)), valid(std::move(other.valid)) {}
 
-Uri::Uri(Uri &&other)
-	: fileSystemType(std::move(other.fileSystemType))
-	, scheme(std::move(other.scheme))
-	, authority(std::move(other.authority))
-	, path(std::move(other.path))
-	, valid(std::move(other.valid)) {
+Uri::~Uri() {}
 
-}
+FileSystemType Uri::getFileSystemType() const noexcept { return this->fileSystemType; }
 
-Uri::~Uri() {
-}
+std::string Uri::getScheme() const noexcept { return this->scheme; }
 
-FileSystemType Uri::getFileSystemType() const noexcept {
-	return this->fileSystemType;
-}
+std::string Uri::getAuthority() const noexcept { return this->authority; }
 
-std::string Uri::getScheme() const noexcept {
-	return this->scheme;
-}
-
-std::string Uri::getAuthority() const noexcept {
-	return this->authority;
-}
-
-Path Uri::getPath() const noexcept {
-	return this->path;
-}
+Path Uri::getPath() const noexcept { return this->path; }
 
 bool Uri::isEmpty() const noexcept {
 	const bool result = (this->scheme.empty() && this->authority.empty() && this->path.isEmpty());
 	return result;
 }
 
-bool Uri::isValid() const noexcept {
-	return this->valid;
-}
+bool Uri::isValid() const noexcept { return this->valid; }
 
-bool Uri::isParentOf(const Uri &child) const {
-	//TODO validations
+bool Uri::isParentOf(const Uri & child) const {
+	// TODO validations
 
-	if (this->scheme != child.scheme) {
+	if(this->scheme != child.scheme) {
 		return false;
 	}
 
-	if (this->authority != child.authority) {
+	if(this->authority != child.authority) {
 		return false;
 	}
 
 	return this->path.isParentOf(child.path);
 }
 
-Uri Uri::replaceParentUri(const Uri &currentParent, const Uri &newParent) const {
+Uri Uri::replaceParentUri(const Uri & currentParent, const Uri & newParent) const {
 	Uri newUri = *this;
 	newUri.fileSystemType = newParent.fileSystemType;
 	newUri.scheme = newParent.scheme;
@@ -231,11 +213,13 @@ Uri Uri::replaceParentUri(const Uri &currentParent, const Uri &newParent) const 
 }
 
 std::string Uri::toString(bool normalize) const {
-	if (this->valid) {
-		if (this->fileSystemType == FileSystemType::LOCAL && this->scheme == Uri::fileSystemTypeToScheme(this->fileSystemType) && this->authority == "local"){ // WSM TODO may want to get rid of this once its all working
+	if(this->valid) {
+		if(this->fileSystemType == FileSystemType::LOCAL &&
+			this->scheme == Uri::fileSystemTypeToScheme(this->fileSystemType) &&
+			this->authority == "local") {  // WSM TODO may want to get rid of this once its all working
 			return this->path.toString(normalize);
 		} else {
-			//TODO percy avoid hard coded strings
+			// TODO percy avoid hard coded strings
 			return this->scheme + SCHEME_AUTH_SPLITTER + this->authority + this->path.toString(normalize);
 		}
 	} else {
@@ -243,11 +227,11 @@ std::string Uri::toString(bool normalize) const {
 	}
 }
 
-//TODO percy duplicated code with the ctor version
-Uri & Uri::operator=(const std::string &uri) {
+// TODO percy duplicated code with the ctor version
+Uri & Uri::operator=(const std::string & uri) {
 	const MatchResult matchResult = checkMatch(uri);
 
-	if (matchResult.valid) {
+	if(matchResult.valid) {
 		this->fileSystemType = matchResult.fileSystemType;
 		this->scheme = matchResult.scheme;
 		this->authority = matchResult.authority;
@@ -256,11 +240,11 @@ Uri & Uri::operator=(const std::string &uri) {
 	} else {
 		this->path = Path(uri, true);
 
-		if (this->path.isValid()) {
+		if(this->path.isValid()) {
 			*this = Uri(uri, true);
 		} else {
-			//TODO percy error handling
-			//TODO check if is path
+			// TODO percy error handling
+			// TODO check if is path
 			this->valid = false;
 		}
 	}
@@ -268,7 +252,7 @@ Uri & Uri::operator=(const std::string &uri) {
 	return *this;
 }
 
-Uri &Uri::operator=(const Uri &other) {
+Uri & Uri::operator=(const Uri & other) {
 	this->fileSystemType = other.fileSystemType;
 	this->scheme = other.scheme;
 	this->authority = other.authority;
@@ -278,7 +262,7 @@ Uri &Uri::operator=(const Uri &other) {
 	return *this;
 }
 
-Uri &Uri::operator=(Uri && other) {
+Uri & Uri::operator=(Uri && other) {
 	this->fileSystemType = std::move(other.fileSystemType);
 	this->scheme = std::move(other.scheme);
 	this->authority = std::move(other.authority);
@@ -288,11 +272,11 @@ Uri &Uri::operator=(Uri && other) {
 	return *this;
 }
 
-bool Uri::operator==(const Uri &other) const {
+bool Uri::operator==(const Uri & other) const {
 	// empty is a class invariant so we can optimize a little here
 	const bool selfEmpty = (this->scheme.empty() && this->authority.empty() && this->path.isEmpty());
 	const bool otherEmpty = (other.scheme.empty() && other.authority.empty() && other.path.isEmpty());
-	if (selfEmpty && otherEmpty) {
+	if(selfEmpty && otherEmpty) {
 		return true;
 	}
 
@@ -307,11 +291,9 @@ bool Uri::operator==(const Uri &other) const {
 	return equals;
 }
 
-bool Uri::operator!=(const Uri &other) const {
-	return !(*this == other);
-}
+bool Uri::operator!=(const Uri & other) const { return !(*this == other); }
 
-Uri Uri::operator+(const std::string &path) const {
+Uri Uri::operator+(const std::string & path) const {
 	Uri newUri = Uri(*this);
 	newUri.path = this->path + path;
 

@@ -2,12 +2,11 @@
 
 #include "gdf_wrapper/gdf_types.cuh"
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
 
 
-static std::map<std::string, gdf_unary_operator> gdf_unary_operator_map = {
-	{"NOT", BLZ_NOT},
+static std::map<std::string, gdf_unary_operator> gdf_unary_operator_map = {{"NOT", BLZ_NOT},
 	{"SIN", BLZ_SIN},
 	{"ASIN", BLZ_ASIN},
 	{"COS", BLZ_COS},
@@ -33,12 +32,10 @@ static std::map<std::string, gdf_unary_operator> gdf_unary_operator_map = {
 	{"CAST_DOUBLE", BLZ_CAST_DOUBLE},
 	{"CAST_DATE", BLZ_CAST_DATE},
 	{"CAST_TIMESTAMP", BLZ_CAST_TIMESTAMP},
-	{"CAST_VARCHAR", BLZ_CAST_VARCHAR}
-};
+	{"CAST_VARCHAR", BLZ_CAST_VARCHAR}};
 
 
-static std::map<std::string, gdf_binary_operator_exp> gdf_binary_operator_map = {
-	{"=", BLZ_EQUAL},
+static std::map<std::string, gdf_binary_operator_exp> gdf_binary_operator_map = {{"=", BLZ_EQUAL},
 	{"<>", BLZ_NOT_EQUAL},
 	{">", BLZ_GREATER},
 	{">=", BLZ_GREATER_EQUAL},
@@ -57,41 +54,33 @@ static std::map<std::string, gdf_binary_operator_exp> gdf_binary_operator_map = 
 	{"MAGIC_IF_NOT", BLZ_MAGIC_IF_NOT},
 	{"LIKE", BLZ_STR_LIKE},
 	{"SUBSTRING", BLZ_STR_SUBSTRING},
-	{"||", BLZ_STR_CONCAT}
-};
+	{"||", BLZ_STR_CONCAT}};
 
 static std::vector<std::string> SQL_DATA_TYPES = {
-	"INTEGER",
-	"BIGINT",
-	"FLOAT",
-	"DOUBLE",
-	"DATE",
-	"TIMESTAMP",
-	"VARCHAR"
-};
+	"INTEGER", "BIGINT", "FLOAT", "DOUBLE", "DATE", "TIMESTAMP", "VARCHAR"};
 
-bool is_binary_operator_token(const std::string& token);
+bool is_binary_operator_token(const std::string & token);
 
-bool is_unary_operator_token(const std::string& token);
+bool is_unary_operator_token(const std::string & token);
 
-bool is_number(const std::string& token);
+bool is_number(const std::string & token);
 
-bool is_null(const std::string& token);
+bool is_null(const std::string & token);
 
-bool is_date(const std::string& token);
+bool is_date(const std::string & token);
 
-bool is_hour(const std::string& token);
+bool is_hour(const std::string & token);
 
-bool is_timestamp(const std::string& token);
+bool is_timestamp(const std::string & token);
 
-bool is_string(const std::string& token);
+bool is_string(const std::string & token);
 
-bool is_bool(const std::string& token);
+bool is_bool(const std::string & token);
 
-bool is_SQL_data_type(const std::string& token);
+bool is_SQL_data_type(const std::string & token);
 
-bool is_operator_token(const std::string& token);
+bool is_operator_token(const std::string & token);
 
-bool is_literal(const std::string& token);
+bool is_literal(const std::string & token);
 
-bool is_var_column(const std::string& token);
+bool is_var_column(const std::string & token);

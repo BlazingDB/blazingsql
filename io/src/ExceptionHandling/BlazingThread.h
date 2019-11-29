@@ -15,50 +15,47 @@
 
 class BlazingThread {
 public:
-    template <class... Args>
-    explicit BlazingThread(Args&&... args) {
-        auto holder = std::make_shared<BlazingExceptionHolder>();
-        exceptionHolder = holder;
+	template <class... Args>
+	explicit BlazingThread(Args &&... args) {
+		auto holder = std::make_shared<BlazingExceptionHolder>();
+		exceptionHolder = holder;
 
-        thread = std::thread([holder, args...]() {
-            try {
-                std::bind(args...)();
-            }
-            catch (...) {
-                holder->setException(std::current_exception());
-            }
-        });
-    }
+		thread = std::thread([holder, args...]() {
+			try {
+				std::bind(args...)();
+			} catch(...) {
+				holder->setException(std::current_exception());
+			}
+		});
+	}
 
-    BlazingThread();
+	BlazingThread();
 
-    virtual ~BlazingThread();
+	virtual ~BlazingThread();
 
 public:
-    BlazingThread(BlazingThread && other) noexcept;
+	BlazingThread(BlazingThread && other) noexcept;
 
-    BlazingThread& operator=(BlazingThread && other) noexcept;
+	BlazingThread & operator=(BlazingThread && other) noexcept;
 
-    BlazingThread(const BlazingThread& other) = delete;
+	BlazingThread(const BlazingThread & other) = delete;
 
-    BlazingThread& operator=(const BlazingThread&) = delete;
+	BlazingThread & operator=(const BlazingThread &) = delete;
 
 public:
 	void join();
 	void detach();
 
-	static unsigned int hardware_concurrency(){
-		return std::thread::hardware_concurrency();
-	}
+	static unsigned int hardware_concurrency() { return std::thread::hardware_concurrency(); }
 
 public:
-    bool hasException();
+	bool hasException();
 
-    void throwException();
+	void throwException();
 
 private:
-    std::thread thread;
-    std::shared_ptr<BlazingExceptionHolder> exceptionHolder;
+	std::thread thread;
+	std::shared_ptr<BlazingExceptionHolder> exceptionHolder;
 };
 
 #endif /* BLAZINGTHREAD_H_ */
