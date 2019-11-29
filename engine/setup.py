@@ -9,7 +9,7 @@ from Cython.Build import cythonize
 from setuptools import find_packages, setup
 from setuptools.extension import Extension
 
-install_requires = ["numba", "cython"]
+install_requires = ["arrow-cpp", "cudatoolkit", "numba", "cython", "cppzmq"]
 
 conda_env_dir = os.environ["CONDA_PREFIX"]
 
