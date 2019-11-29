@@ -12,7 +12,6 @@ namespace io {
 
 FileReaderInterface::FileReaderInterface() {
 	// TODO Auto-generated constructor stub
-
 }
 
 FileReaderInterface::~FileReaderInterface() {

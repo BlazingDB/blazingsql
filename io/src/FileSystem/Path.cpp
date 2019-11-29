@@ -10,49 +10,45 @@
 const char SLASH = '/';
 
 // check if path is equals to "/"
-static bool hasBeginSlashChar(const std::string &path) {
-	return (path.front() == SLASH);
-}
+static bool hasBeginSlashChar(const std::string & path) { return (path.front() == SLASH); }
 
-static bool hasEndSlashChar(const std::string &path) {
-	return (path.back() == SLASH);
-}
+static bool hasEndSlashChar(const std::string & path) { return (path.back() == SLASH); }
 
 // check if path is valid absolute path
-static bool isValidPath(const std::string &path) {
-	if (path.empty()) { //TODO percy duplicated check
+static bool isValidPath(const std::string & path) {
+	if(path.empty()) {  // TODO percy duplicated check
 		return false;
 	} else {
-		if (hasBeginSlashChar(path) == false) {
+		if(hasBeginSlashChar(path) == false) {
 			return false;
 		}
 	}
 
-	std::string mutablePath = path; //TODO ugly
+	std::string mutablePath = path;  // TODO ugly
 
-	if (StringUtil::contains(mutablePath, "..")) {
+	if(StringUtil::contains(mutablePath, "..")) {
 		return false;
 	}
 
 	return true;
 }
 
-static bool isRootOrInvalidPath(const Path &path) {
+static bool isRootOrInvalidPath(const Path & path) {
 	const bool isRoot = path.isRoot();
 	const bool isInvalid = (path.isValid() == false);
 
 	return (isRoot || isInvalid);
 }
 
-static int countEndSlashChars(const std::string &path) {
+static int countEndSlashChars(const std::string & path) {
 	int endSlashCount = 0;
 
 	// if this->path has the pattern /some/dir// (note the slash / chars at the end)
 	// then we need to know how many slash / chars we have at the end of the path
-	for (int i = 0; i < path.size(); ++i) {
+	for(int i = 0; i < path.size(); ++i) {
 		const int index = path.size() - 1 - i;
 
-		if (path.at(index) == SLASH) {
+		if(path.at(index) == SLASH) {
 			++endSlashCount;
 		} else {
 			break;
@@ -62,13 +58,13 @@ static int countEndSlashChars(const std::string &path) {
 	return endSlashCount;
 }
 
-static int countBeginSlashChars(const std::string &path) {
+static int countBeginSlashChars(const std::string & path) {
 	int beginSlashCount = 0;
 
 	// if this->path has the pattern //some///dir// (note the slash / chars in the sub root)
 	// then we need to know how many slash / chars we have at the begining of the path
-	for (int i = 0; i < path.size(); ++i) {
-		if (path.at(i) == SLASH) {
+	for(int i = 0; i < path.size(); ++i) {
+		if(path.at(i) == SLASH) {
 			++beginSlashCount;
 		} else {
 			break;
@@ -78,22 +74,20 @@ static int countBeginSlashChars(const std::string &path) {
 	return beginSlashCount;
 }
 
-Path::Path()
-	: valid(false), root(false) {
-}
+Path::Path() : valid(false), root(false) {}
 
-Path::Path(const std::string& path, bool strict) {
-	if (path.empty()) {
+Path::Path(const std::string & path, bool strict) {
+	if(path.empty()) {
 		this->valid = false;
 		return;
 	}
 
 	this->path = path;
-	if (strict) {
+	if(strict) {
 		this->valid = isValidPath(path);
 
-		if (this->valid == false) {
-			//TODO percy error handling
+		if(this->valid == false) {
+			// TODO percy error handling
 			return;
 		}
 	}
@@ -102,30 +96,19 @@ Path::Path(const std::string& path, bool strict) {
 	this->root = (this->toString(true) == std::string(1, SLASH));
 }
 
-Path::Path(const Path &other)
-	: path(other.path), valid(other.valid), root(other.root) {
-}
+Path::Path(const Path & other) : path(other.path), valid(other.valid), root(other.root) {}
 
-Path::Path(Path &&other)
-	: path(std::move(other.path)), valid(std::move(other.valid)), root(std::move(other.root)) {
-}
+Path::Path(Path && other) : path(std::move(other.path)), valid(std::move(other.valid)), root(std::move(other.root)) {}
 
-Path::~Path() {
-}
+Path::~Path() {}
 
-bool Path::isEmpty() const noexcept {
-	return this->path.empty();
-}
+bool Path::isEmpty() const noexcept { return this->path.empty(); }
 
-bool Path::isValid() const noexcept {
-	return this->valid;
-}
+bool Path::isValid() const noexcept { return this->valid; }
 
-bool Path::isRoot() const noexcept {
-	return this->root;
-}
+bool Path::isRoot() const noexcept { return this->root; }
 
-bool Path::isParentOf(const Path &child) const {
+bool Path::isParentOf(const Path & child) const {
 	const std::string normalizedParent = this->toString(true);
 	const std::string normalizedChild = child.toString(true);
 	const bool isParent = StringUtil::beginsWith(normalizedChild, normalizedParent);
@@ -137,26 +120,26 @@ std::string Path::getResourceName() const noexcept {
 	const int endSlashCount = countEndSlashChars(this->path);
 	const std::vector<std::string> tokens = StringUtil::split(this->path, std::string(1, SLASH));
 	const int index = tokens.size() - 1 - endSlashCount;
-	std::string fileName = tokens.at(index); //TODO should be const
+	std::string fileName = tokens.at(index);  // TODO should be const
 
 	return fileName;
 }
 
 std::string Path::getFileExtension() const noexcept {
-    std::string rname = this->getResourceName();
-    
-    if (StringUtil::contains(rname, ".") == false) {
-        return "";
-    }
-    
-    const std::vector<std::string> parts = StringUtil::split(rname, ".");
-    return parts.back();
+	std::string rname = this->getResourceName();
+
+	if(StringUtil::contains(rname, ".") == false) {
+		return "";
+	}
+
+	const std::vector<std::string> parts = StringUtil::split(rname, ".");
+	return parts.back();
 }
 
 Path Path::getSubRootPath() const noexcept {
 	const std::string normalized = this->toString(true);
 	const Path testRoot(normalized);
-	if (testRoot.isRoot()) {
+	if(testRoot.isRoot()) {
 		return testRoot;
 	}
 
@@ -178,8 +161,8 @@ Path Path::getParentPath() const noexcept {
 	return Path(parent, true);
 }
 
-Path Path::replaceParentPath(const Path &currentParent, const Path &newParent) const {
-	if (currentParent.isParentOf(*this) == false) {
+Path Path::replaceParentPath(const Path & currentParent, const Path & newParent) const {
+	if(currentParent.isParentOf(*this) == false) {
 		return Path();
 	}
 
@@ -195,14 +178,14 @@ Path Path::replaceParentPath(const Path &currentParent, const Path &newParent) c
 Path Path::getPathWithNormalizedFolderConvention() const {
 	Path normalized = *this;
 
-	if (normalized.path[normalized.path.size() - 1] == SLASH) {
+	if(normalized.path[normalized.path.size() - 1] == SLASH) {
 		return normalized;
 	}
 
 	int dotPos = normalized.path.find_last_of('.');
 	int slashPos = normalized.path.find_last_of(SLASH);
 
-	if (dotPos > slashPos) { // its a file
+	if(dotPos > slashPos) {  // its a file
 		return normalized;
 	} else {
 		normalized.path = normalized.path + SLASH;
@@ -222,22 +205,22 @@ bool Path::hasWildcard() const {
 }
 
 std::string Path::toString(bool normalize) const {
-	if (normalize == false) {
+	if(normalize == false) {
 		return this->path;
 	}
 
 	std::string mutablePath = path;
 
-	while (StringUtil::contains(mutablePath, "//")) {
+	while(StringUtil::contains(mutablePath, "//")) {
 		mutablePath = StringUtil::replace(mutablePath, "//", "/");
 	}
 
 	return mutablePath;
 }
 
-//NOTE this operation is always using strict mode
-Path & Path::operator=(const std::string &path) {
-	if (path.empty()) {
+// NOTE this operation is always using strict mode
+Path & Path::operator=(const std::string & path) {
+	if(path.empty()) {
 		this->path = std::string();
 		this->valid = false;
 		this->root = false;
@@ -254,7 +237,7 @@ Path & Path::operator=(const std::string &path) {
 	return *this;
 }
 
-Path & Path::operator=(const Path &other) {
+Path & Path::operator=(const Path & other) {
 	this->path = other.path;
 	this->valid = other.valid;
 	this->root = other.root;
@@ -262,7 +245,7 @@ Path & Path::operator=(const Path &other) {
 	return *this;
 }
 
-Path & Path::operator=(Path &&other) {
+Path & Path::operator=(Path && other) {
 	this->path = std::move(other.path);
 	this->valid = std::move(other.valid);
 	this->root = std::move(other.root);
@@ -270,9 +253,9 @@ Path & Path::operator=(Path &&other) {
 	return *this;
 }
 
-bool Path::operator==(const Path &other) const {
+bool Path::operator==(const Path & other) const {
 	// empty is a class invariant so we can optimize a little here
-	if (this->isEmpty() && other.isEmpty()) {
+	if(this->isEmpty() && other.isEmpty()) {
 		return true;
 	}
 
@@ -284,23 +267,21 @@ bool Path::operator==(const Path &other) const {
 	return equals;
 }
 
-bool Path::operator!=(const Path &other) const {
-	return !(*this == other);
-}
+bool Path::operator!=(const Path & other) const { return !(*this == other); }
 
-Path Path::operator+(const std::string &path) const {
-	if (path.size() == 0) {
+Path Path::operator+(const std::string & path) const {
+	if(path.size() == 0) {
 		Path newPath = *this;
 		return newPath;
 	}
 
-	if (this->path.size() == 0) {
+	if(this->path.size() == 0) {
 		Path newPath(path);
 		return newPath;
 	}
 
-	if (this->path.at(this->path.size() - 1) == SLASH) {
-		if (path.at(0) == '/') {
+	if(this->path.at(this->path.size() - 1) == SLASH) {
+		if(path.at(0) == '/') {
 			Path newPath = Path(this->path + path.substr(1));
 			return newPath;
 		} else {
@@ -308,7 +289,7 @@ Path Path::operator+(const std::string &path) const {
 			return newPath;
 		}
 	} else {
-		if (path.at(0) == '/') {
+		if(path.at(0) == '/') {
 			Path newPath = Path(this->path + path);
 			return newPath;
 		} else {

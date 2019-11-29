@@ -18,7 +18,12 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    packages=find_packages(include=["pyblazing", "pyblazing.*", "blazingsql", "blazingsql.*"]),
+    packages=find_packages(
+        include=[
+            "pyblazing",
+            "pyblazing.*",
+            "blazingsql",
+            "blazingsql.*"]),
     install_requires=install_requires,
     zip_safe=False,
 )

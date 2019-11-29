@@ -22,8 +22,7 @@
  * directory appears as a table.  Full SQL operations are available on
  * those tables.</p>
  */
-@PackageMarker
-package com.blazingdb.calcite.schema;
+@PackageMarker package com.blazingdb.calcite.schema;
 
 import org.apache.calcite.avatica.util.PackageMarker;
 

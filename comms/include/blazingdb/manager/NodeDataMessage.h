@@ -1,10 +1,10 @@
 #pragma once
-#include "blazingdb/transport/Message.h"
-#include "blazingdb/transport/Node.h"
-#include "blazingdb/transport/common/macros.hpp"
 #include <cassert>
 #include <memory>
 #include <vector>
+#include "blazingdb/transport/Message.h"
+#include "blazingdb/transport/Node.h"
+#include "blazingdb/transport/common/macros.hpp"
 
 namespace blazingdb {
 namespace manager {
@@ -22,5 +22,5 @@ public:
   DefineClassName(NodeDataMessage);
 };
 
-} // namespace manager
-} // namespace blazingdb
+}  // namespace manager
+}  // namespace blazingdb

@@ -5,8 +5,7 @@
  * "core" module only supports SELECT and standard DML.
  */
 
-@PackageMarker
-package com.blazingdb.calcite.sql.dml;
+@PackageMarker package com.blazingdb.calcite.sql.dml;
 
 import org.apache.calcite.avatica.util.PackageMarker;
 

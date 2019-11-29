@@ -1,12 +1,12 @@
 #pragma once
 
-#include "blazingdb/transport/Message.h"
-#include "MessageQueue.h"
 #include <functional>
 #include <map>
 #include <memory>
 #include <shared_mutex>
 #include <string>
+#include "MessageQueue.h"
+#include "blazingdb/transport/Message.h"
 
 namespace blazingdb {
 namespace transport {
@@ -15,20 +15,22 @@ public:
   /**
    * Alias of the message class used in the implementation of the server.
    */
-  using MakeCallback = std::function<std::shared_ptr<GPUMessage>(const Message::MetaData&, const Address::MetaData&, const std::vector<ColumnTransport>&, const std::vector<char *>&)>;
+  using MakeCallback = std::function<std::shared_ptr<GPUMessage>(
+      const Message::MetaData &, const Address::MetaData &,
+      const std::vector<ColumnTransport> &, const std::vector<char *> &)>;
 
 public:
   virtual ~Server() = default;
 
   /**
-   * It is used to map an endpoint with the static deserialize function (Make) implemented
-   * in the different messages.
+   * It is used to map an endpoint with the static deserialize function (Make)
+   * implemented in the different messages.
    *
    * @param end_point     name of the endpoint.
    * @param deserializer  function used to deserialize the message.
    */
-  virtual void registerMessageForEndPoint(MakeCallback deserializer, const std::string& end_point);
-
+  virtual void registerMessageForEndPoint(MakeCallback deserializer,
+                                          const std::string &end_point);
 
 public:
   /**
@@ -72,7 +74,7 @@ public:
 
   virtual void Close() = 0;
 
-  virtual void SetDevice(int)  = 0;
+  virtual void SetDevice(int) = 0;
 
 public:
   /**
@@ -86,8 +88,8 @@ public:
    * @param context_token  identifier for the message queue using ContextToken.
    * @return               a shared pointer of a base message class.
    */
-  virtual std::shared_ptr<GPUMessage>
-  getMessage(const uint32_t context_token, const std::string &messageToken);
+  virtual std::shared_ptr<GPUMessage> getMessage(
+      const uint32_t context_token, const std::string &messageToken);
 
   /**
    * It stores the message in the message queue and it uses the ContextToken to
@@ -103,16 +105,14 @@ public:
   virtual void putMessage(const uint32_t context_token,
                           std::shared_ptr<GPUMessage> &message);
 
-
   //
-  Server::MakeCallback getDeserializationFunction(const std::string &endpoint) ;
-
+  Server::MakeCallback getDeserializationFunction(const std::string &endpoint);
 
 protected:
   /**
    * Defined in 'shared_mutex' header file.
-   * It allows access of multiple threads (shared) or only one thread (exclusive).
-   * It will be used to protect access to context_messages_map_.
+   * It allows access of multiple threads (shared) or only one thread
+   * (exclusive). It will be used to protect access to context_messages_map_.
    */
   std::shared_timed_mutex context_messages_mutex_;
 
@@ -127,10 +127,9 @@ protected:
   std::vector<std::string> end_points_;
 
   /**
-  * It associate the endpoint with a unique deserialize message function.
-  */
+   * It associate the endpoint with a unique deserialize message function.
+   */
   std::map<std::string, MakeCallback> deserializer_;
-
 
 public:
   /**
@@ -139,8 +138,7 @@ public:
    * @return  unique pointer of the TCP server.
    */
   static std::unique_ptr<Server> TCP(unsigned short port);
-
 };
 
-} // namespace transport
-} // namespace blazingdb
+}  // namespace transport
+}  // namespace blazingdb

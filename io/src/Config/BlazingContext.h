@@ -4,26 +4,25 @@
 
 
 #include "FileSystem/FileSystemManager.h"
+#include <mutex>  //TODO:remove
 #include <string>
-#include <mutex> //TODO:remove
-
 
 
 class BlazingContext {
-	public:
-		static void initExternalSystems();
-		static void shutDownExternalSystems();
+public:
+	static void initExternalSystems();
+	static void shutDownExternalSystems();
 
-		std::shared_ptr<FileSystemManager> getFileSystemManager();
-		static BlazingContext* getInstance();
-		virtual ~BlazingContext();
+	std::shared_ptr<FileSystemManager> getFileSystemManager();
+	static BlazingContext * getInstance();
+	virtual ~BlazingContext();
 
 
-	private:
-		BlazingContext();
-		static BlazingContext* instance;
+private:
+	BlazingContext();
+	static BlazingContext * instance;
 
-		std::shared_ptr<FileSystemManager> fileSystemManager;
+	std::shared_ptr<FileSystemManager> fileSystemManager;
 };
 
 #endif

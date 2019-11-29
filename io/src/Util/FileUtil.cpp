@@ -1,22 +1,22 @@
 #include "FileUtil.h"
 
-#include <iostream>
-#include <fstream>
 #include "ExceptionHandling/BlazingThread.h"
-#include <string.h>
-#include <chrono>
 #include <cerrno>
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <string.h>
 
 #include <dirent.h>
 #include <fcntl.h>  // O_RDONLY
-#include <unistd.h> // read
+#include <libgen.h>
+#include <stddef.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
-#include <stddef.h>
-#include <libgen.h>
+#include <unistd.h>  // read
+#include <unistd.h>
 
 #include "FileUtil.h"
 
@@ -26,7 +26,7 @@
 #include "Util/StringUtil.h"
 
 #include "Config/BlazingContext.h"
-#include  "FileSystem/FileSystemInterface.h"
+#include "FileSystem/FileSystemInterface.h"
 
 #include "Library/Logging/Logger.h"
 namespace Logging = Library::Logging;
@@ -34,15 +34,14 @@ namespace Logging = Library::Logging;
 static const unsigned int SLEEP_BASE_TIME = 16;
 const int FILE_RETRY_DELAY = 1000;
 
-bool FileUtilv2::filePathContainsWildcards(std::string & filePath){
+bool FileUtilv2::filePathContainsWildcards(std::string & filePath) {
 	std::string wildOption1 = "*";
 	std::string wildOption2 = "?";
 	return StringUtil::contains(filePath, wildOption1) || StringUtil::contains(filePath, wildOption2);
 }
 
 
-std::vector<Uri> FileUtilv2::getFilesWithWildcard(std::string & filePathWithWildCard){
-
+std::vector<Uri> FileUtilv2::getFilesWithWildcard(std::string & filePathWithWildCard) {
 	Path pathWithWildCard = Path(filePathWithWildCard, false);
 
 	std::string pattern = pathWithWildCard.getResourceName();
@@ -50,11 +49,11 @@ std::vector<Uri> FileUtilv2::getFilesWithWildcard(std::string & filePathWithWild
 	Path path = pathWithWildCard.getParentPath();
 	std::string pathStr = path.toString();
 
-	if (FileUtilv2::filePathContainsWildcards(pathStr)){
+	if(FileUtilv2::filePathContainsWildcards(pathStr)) {
 		std::vector<Uri> folders = FileUtilv2::getFilesWithWildcard(pathStr);
 
 		std::vector<Uri> urisToReturn;
-		for (Uri folder : folders){
+		for(Uri folder : folders) {
 			std::vector<Uri> urisFound = BlazingContext::getInstance()->getFileSystemManager()->list(folder, pattern);
 			urisToReturn.insert(urisToReturn.end(), urisFound.begin(), urisFound.end());
 		}
@@ -63,16 +62,15 @@ std::vector<Uri> FileUtilv2::getFilesWithWildcard(std::string & filePathWithWild
 		Uri folder = Uri(path.toString());
 		return BlazingContext::getInstance()->getFileSystemManager()->list(folder, pattern);
 	}
-
 }
 
-std::vector<Uri> FileUtilv2::listFolders(Uri & baseFolder){
-
-	std::vector<FileStatus> fileStatusList = BlazingContext::getInstance()->getFileSystemManager()->list(baseFolder, DirsFilter());
+std::vector<Uri> FileUtilv2::listFolders(Uri & baseFolder) {
+	std::vector<FileStatus> fileStatusList =
+		BlazingContext::getInstance()->getFileSystemManager()->list(baseFolder, DirsFilter());
 
 	std::vector<Uri> uriList;
-	for (FileStatus status : fileStatusList){
-		if (status.isDirectory()){
+	for(FileStatus status : fileStatusList) {
+		if(status.isDirectory()) {
 			uriList.push_back(status.getUri());
 		}
 	}
@@ -80,11 +78,10 @@ std::vector<Uri> FileUtilv2::listFolders(Uri & baseFolder){
 }
 
 
-bool FileUtilv2::moveAndReplace(const Uri & src, const Uri & dest){
-
+bool FileUtilv2::moveAndReplace(const Uri & src, const Uri & dest) {
 	bool success = true;
-	if (BlazingContext::getInstance()->getFileSystemManager()->exists(src)){
-		if (BlazingContext::getInstance()->getFileSystemManager()->exists(dest)){
+	if(BlazingContext::getInstance()->getFileSystemManager()->exists(src)) {
+		if(BlazingContext::getInstance()->getFileSystemManager()->exists(dest)) {
 			success = success && BlazingContext::getInstance()->getFileSystemManager()->remove(dest);
 		}
 		success = success && BlazingContext::getInstance()->getFileSystemManager()->move(src, dest);
@@ -92,19 +89,22 @@ bool FileUtilv2::moveAndReplace(const Uri & src, const Uri & dest){
 	return success;
 }
 
-void moveAndReplaceFilesThread(long long & fileInd, std::mutex & completionMutex, std::vector<Uri> & srcFiles, std::vector<Uri> & destFiles, int & successCount, int & errorCount){
-
-	int finalFileInd = srcFiles.size()-1;
+void moveAndReplaceFilesThread(long long & fileInd,
+	std::mutex & completionMutex,
+	std::vector<Uri> & srcFiles,
+	std::vector<Uri> & destFiles,
+	int & successCount,
+	int & errorCount) {
+	int finalFileInd = srcFiles.size() - 1;
 	completionMutex.lock();
 	int curFile = fileInd;
 	fileInd++;
 	completionMutex.unlock();
-	while(curFile <= finalFileInd){
-
+	while(curFile <= finalFileInd) {
 		bool tempSuccess = false;
 		try {
-			tempSuccess = FileUtilv2::moveAndReplace(srcFiles[curFile],destFiles[curFile]);
-		} catch (...) {
+			tempSuccess = FileUtilv2::moveAndReplace(srcFiles[curFile], destFiles[curFile]);
+		} catch(...) {
 			tempSuccess = false;
 			completionMutex.lock();
 			errorCount++;
@@ -114,7 +114,7 @@ void moveAndReplaceFilesThread(long long & fileInd, std::mutex & completionMutex
 		completionMutex.lock();
 		curFile = fileInd;
 		fileInd++;
-		if (tempSuccess){
+		if(tempSuccess) {
 			successCount++;
 		}
 		completionMutex.unlock();
@@ -122,8 +122,7 @@ void moveAndReplaceFilesThread(long long & fileInd, std::mutex & completionMutex
 }
 
 
-bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Uri> & destFiles){
-
+bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Uri> & destFiles) {
 	int numThreads = BlazingThread::hardware_concurrency();
 	numThreads = numThreads < srcFiles.size() ? numThreads : srcFiles.size();
 	int maxThreads = 8;
@@ -139,50 +138,61 @@ bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Ur
 #ifdef SINGLE_THREADED
 	moveAndReplaceFilesThread(fileInd, completionMutex, srcFiles, destFiles, successCount, errorCount);
 #else
-	for(int j = 0; j < numThreads; ++j){
-		filesThread[j] = BlazingThread(&moveAndReplaceFilesThread,std::ref(fileInd), std::ref(completionMutex), std::ref(srcFiles),std::ref(destFiles), std::ref(successCount), std::ref(errorCount));
+	for(int j = 0; j < numThreads; ++j) {
+		filesThread[j] = BlazingThread(&moveAndReplaceFilesThread,
+			std::ref(fileInd),
+			std::ref(completionMutex),
+			std::ref(srcFiles),
+			std::ref(destFiles),
+			std::ref(successCount),
+			std::ref(errorCount));
 	}
-	for(int j = 0; j < numThreads; ++j){
+	for(int j = 0; j < numThreads; ++j) {
 		filesThread[j].join();
 	}
 #endif
 
-	if (errorCount > 0){
-		Library::Logging::Logger().logError("Caught " + std::to_string(errorCount) + " in moveAndReplaceFiles when moving " + std::to_string(srcFiles.size()) + " files");
+	if(errorCount > 0) {
+		Library::Logging::Logger().logError("Caught " + std::to_string(errorCount) +
+											" in moveAndReplaceFiles when moving " + std::to_string(srcFiles.size()) +
+											" files");
 	}
 
 	return successCount == srcFiles.size();
 }
 
 
-void _createTableFolderCreationThread(std::vector<Uri> & sequentialDrives, Uri & baseFolder, int & driveInd, std::mutex & completionMutex,
-		Uri & tableFolder, std::vector<std::string> & colNames, bool & success ){
-
-	int lastDrive = sequentialDrives.size()-1;
+void _createTableFolderCreationThread(std::vector<Uri> & sequentialDrives,
+	Uri & baseFolder,
+	int & driveInd,
+	std::mutex & completionMutex,
+	Uri & tableFolder,
+	std::vector<std::string> & colNames,
+	bool & success) {
+	int lastDrive = sequentialDrives.size() - 1;
 	completionMutex.lock();
 	int curDrive = driveInd;
 	driveInd++;
 	completionMutex.unlock();
 
-	while(curDrive <= lastDrive){
-
+	while(curDrive <= lastDrive) {
 		const Uri sequentialDriveUri1 = tableFolder.replaceParentUri(baseFolder, sequentialDrives[curDrive]);
 
 		const bool ok = BlazingContext::getInstance()->getFileSystemManager()->makeDirectory(sequentialDriveUri1);
 
-		if (ok == false){
+		if(ok == false) {
 			success = false;
 			return;
 		}
 
-		for (int col = 0; col < colNames.size(); col++){
+		for(int col = 0; col < colNames.size(); col++) {
 			Uri colFolder = tableFolder + ("/" + colNames[col]);
 
 			const Uri sequentialDriveUri2 = colFolder.replaceParentUri(baseFolder, sequentialDrives[curDrive]);
 
 			const bool ok = BlazingContext::getInstance()->getFileSystemManager()->makeDirectory(sequentialDriveUri2);
 
-			if (ok == false){
+			if(ok == false) {
 				success = false;
 				return;
 			}
@@ -197,41 +207,45 @@ void _createTableFolderCreationThread(std::vector<Uri> & sequentialDrives, Uri &
 	success = true;
 }
 
-bool FileUtilv2::createFoldersForTable(Uri & tableFolder, std::vector<std::string> & column_names ){
-/*
-	std::vector<Uri> sequentialDrives = BlazingConfig::getInstance()->getSequentialFolders();
-	Uri baseFolder = BlazingConfig::getInstance()->getBaseFolder();
-	sequentialDrives.push_back(baseFolder); // here we are including the baseFolder so that we make folders in there too
+bool FileUtilv2::createFoldersForTable(Uri & tableFolder, std::vector<std::string> & column_names) {
+	/*
+		std::vector<Uri> sequentialDrives = BlazingConfig::getInstance()->getSequentialFolders();
+		Uri baseFolder = BlazingConfig::getInstance()->getBaseFolder();
+		sequentialDrives.push_back(baseFolder); // here we are including the baseFolder so that we make folders in there
+	   too
 
-	int numThreads = BlazingThread::hardware_concurrency() * 2;
-	numThreads = sequentialDrives.size() < numThreads ? sequentialDrives.size() : numThreads;
-	int driveInd = 0;
-	bool success = true;
-	std::mutex completionMutex;
-	std::vector<BlazingThread> mkdirThreads(numThreads);
-	for (int i = 0; i < numThreads; i++){
-		mkdirThreads[i] = BlazingThread(&_createTableFolderCreationThread, std::ref(sequentialDrives), std::ref(baseFolder), std::ref(driveInd), std::ref(completionMutex),
-				std::ref(tableFolder), std::ref(column_names), std::ref(success));
-	}
-	for (int i = 0; i < numThreads; i++){
-		mkdirThreads[i].join();
-	}*/
+		int numThreads = BlazingThread::hardware_concurrency() * 2;
+		numThreads = sequentialDrives.size() < numThreads ? sequentialDrives.size() : numThreads;
+		int driveInd = 0;
+		bool success = true;
+		std::mutex completionMutex;
+		std::vector<BlazingThread> mkdirThreads(numThreads);
+		for (int i = 0; i < numThreads; i++){
+			mkdirThreads[i] = BlazingThread(&_createTableFolderCreationThread, std::ref(sequentialDrives),
+	   std::ref(baseFolder), std::ref(driveInd), std::ref(completionMutex), std::ref(tableFolder),
+	   std::ref(column_names), std::ref(success));
+		}
+		for (int i = 0; i < numThreads; i++){
+			mkdirThreads[i].join();
+		}*/
 	return true;
 }
 
-void _removeThread(long long & fileInd, std::mutex & completionMutex, std::vector<Uri> & fileList, int & successCount, int & errorCount){
-
-	int finalFileInd = fileList.size()-1;
+void _removeThread(long long & fileInd,
+	std::mutex & completionMutex,
+	std::vector<Uri> & fileList,
+	int & successCount,
+	int & errorCount) {
+	int finalFileInd = fileList.size() - 1;
 	completionMutex.lock();
 	int curFile = fileInd;
 	fileInd++;
 	completionMutex.unlock();
-	while(curFile <= finalFileInd){
-
+	while(curFile <= finalFileInd) {
 		bool tempSuccess = false;
 		try {
 			tempSuccess = BlazingContext::getInstance()->getFileSystemManager()->remove(fileList[curFile]);
-		} catch (...) {
+		} catch(...) {
 			tempSuccess = false;
 			completionMutex.lock();
 			errorCount++;
@@ -241,7 +255,7 @@ void _removeThread(long long & fileInd, std::mutex & completionMutex, std::vecto
 		completionMutex.lock();
 		curFile = fileInd;
 		fileInd++;
-		if (tempSuccess){
+		if(tempSuccess) {
 			successCount++;
 		}
 		completionMutex.unlock();
@@ -249,10 +263,9 @@ void _removeThread(long long & fileInd, std::mutex & completionMutex, std::vecto
 }
 
 
-bool FileUtilv2::batchRemove(std::vector<Uri> & fileList){
-
+bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
 	int numThreads = BlazingThread::hardware_concurrency();
-	numThreads = numThreads < (fileList.size()+9)/10 ? numThreads : (fileList.size()+9)/10;
+	numThreads = numThreads < (fileList.size() + 9) / 10 ? numThreads : (fileList.size() + 9) / 10;
 	int maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
 	std::vector<BlazingThread> filesThread(numThreads);
@@ -266,35 +279,40 @@ bool FileUtilv2::batchRemove(std::vector<Uri> & fileList){
 #ifdef SINGLE_THREADED
 	_removeThread(fileInd, completionMutex, fileList, successCount, errorCount);
 #else
-	for(int j = 0; j < numThreads; ++j){
-		filesThread[j] = BlazingThread(&_removeThread,std::ref(fileInd), std::ref(completionMutex), std::ref(fileList), std::ref(successCount), std::ref(errorCount));
+	for(int j = 0; j < numThreads; ++j) {
+		filesThread[j] = BlazingThread(&_removeThread,
+			std::ref(fileInd),
+			std::ref(completionMutex),
+			std::ref(fileList),
+			std::ref(successCount),
+			std::ref(errorCount));
 	}
-	for(int j = 0; j < numThreads; ++j){
+	for(int j = 0; j < numThreads; ++j) {
 		filesThread[j].join();
 	}
 #endif
 
-	if (errorCount > 0){
-		Library::Logging::Logger().logError("Caught " + std::to_string(errorCount) + " in batchRemove() when removing " + std::to_string(fileList.size()) + " files");
+	if(errorCount > 0) {
+		Library::Logging::Logger().logError("Caught " + std::to_string(errorCount) +
+											" in batchRemove() when removing " + std::to_string(fileList.size()) +
+											" files");
 	}
 
 	return successCount == fileList.size();
 }
 
 
-bool FileUtilv2::removeFolderTree(Uri rootFolder){
-
+bool FileUtilv2::removeFolderTree(Uri rootFolder) {
 	bool success = true;
 
-	if (BlazingContext::getInstance()->getFileSystemManager()->exists(rootFolder)){
-
+	if(BlazingContext::getInstance()->getFileSystemManager()->exists(rootFolder)) {
 		FileOrFolderFilter filter;
 		std::vector<FileStatus> list = BlazingContext::getInstance()->getFileSystemManager()->list(rootFolder, filter);
 
 		std::vector<Uri> toRemove;
 
-		for (FileStatus status : list){
-			if (status.isDirectory()){
+		for(FileStatus status : list) {
+			if(status.isDirectory()) {
 				success = success && FileUtilv2::removeFolderTree(status.getUri());
 			}
 			toRemove.push_back(status.getUri());
@@ -307,79 +325,79 @@ bool FileUtilv2::removeFolderTree(Uri rootFolder){
 }
 
 
-
-unsigned long long FileUtilv2::getFileSize(Uri & filePath){
-
+unsigned long long FileUtilv2::getFileSize(Uri & filePath) {
 	FileStatus status = BlazingContext::getInstance()->getFileSystemManager()->getFileStatus(filePath);
 
 	return status.getFileSize();
-
 }
-ssize_t FileUtilv2::writeToSocket(int socket, std::shared_ptr<arrow::Buffer> &buffer) {
+ssize_t FileUtilv2::writeToSocket(int socket, std::shared_ptr<arrow::Buffer> & buffer) {
 	return FileUtilv2::writeToSocket(
-		socket,
-		static_cast<char *>((void *)(buffer->data())),
-		static_cast<std::size_t>(buffer->size()));
+		socket, static_cast<char *>((void *) (buffer->data())), static_cast<std::size_t>(buffer->size()));
 }
 
-ssize_t FileUtilv2::writeToSocket(int socket, char *buf, size_t nbyte){
-
+ssize_t FileUtilv2::writeToSocket(int socket, char * buf, size_t nbyte) {
 	size_t fail = -1;
 	size_t amountWrote = 0;
 	size_t bytesWrote = write(socket, buf, nbyte);
 	int countInvalids = 0;
 
-	if (bytesWrote != fail){
+	if(bytesWrote != fail) {
 		amountWrote = bytesWrote;
 	} else {
 		const std::string sysError(std::strerror(errno));
-		Library::Logging::Logger().logError("FileUtilv2::writeToSocket fails writing to a socket on first write. Error was: " + sysError + " (" + std::to_string(errno) + ")");
+		Library::Logging::Logger().logError(
+			"FileUtilv2::writeToSocket fails writing to a socket on first write. Error was: " + sysError + " (" +
+			std::to_string(errno) + ")");
 	}
 
-	while(amountWrote < nbyte){
+	while(amountWrote < nbyte) {
+		bytesWrote = write(socket, buf + amountWrote, nbyte - amountWrote);
 
-		bytesWrote = write(socket, buf + amountWrote, nbyte-amountWrote);
-
-		if (bytesWrote != fail){
+		if(bytesWrote != fail) {
 			amountWrote += bytesWrote;
 			countInvalids = 0;
 		} else {
-			if (errno == 9){ // Bad socket number
+			if(errno == 9) {  // Bad socket number
 				const std::string sysError(std::strerror(errno));
-				Library::Logging::Logger().logError("FileUtilv2::writeToSocket fails writing to a socket. Error was: " + sysError + " (" + std::to_string(errno) + ")");
+				Library::Logging::Logger().logError("FileUtilv2::writeToSocket fails writing to a socket. Error was: " +
+													sysError + " (" + std::to_string(errno) + ")");
 				return fail;
 			}
 
 			int fileRetryDelay = FILE_RETRY_DELAY;
-			const int sleep_milliseconds = (countInvalids+1)*fileRetryDelay;
+			const int sleep_milliseconds = (countInvalids + 1) * fileRetryDelay;
 			std::this_thread::sleep_for(std::chrono::milliseconds(sleep_milliseconds));
-			if (countInvalids < 300){
+			if(countInvalids < 300) {
 				countInvalids++;
 			}
 
-			if (countInvalids % 5 == 0){
+			if(countInvalids % 5 == 0) {
 				const std::string sysError(std::strerror(errno));
-				Library::Logging::Logger().logError("FileUtilv2::writeToSocket fails writing to a socket. Error was: " + sysError + " (" + std::to_string(errno) + ")");
+				Library::Logging::Logger().logError("FileUtilv2::writeToSocket fails writing to a socket. Error was: " +
+													sysError + " (" + std::to_string(errno) + ")");
 			}
 		}
 	}
 	return amountWrote;
-
 }
 
-void _moveThread(long long & fileInd, std::mutex & completionMutex, std::vector<Uri> & srcFiles, std::vector<Uri> & destFiles, int & successCount, int & errorCount){
-
-	int finalFileInd = srcFiles.size()-1;
+void _moveThread(long long & fileInd,
+	std::mutex & completionMutex,
+	std::vector<Uri> & srcFiles,
+	std::vector<Uri> & destFiles,
+	int & successCount,
+	int & errorCount) {
+	int finalFileInd = srcFiles.size() - 1;
 	completionMutex.lock();
 	int curFile = fileInd;
 	fileInd++;
 	completionMutex.unlock();
-	while(curFile <= finalFileInd){
-
+	while(curFile <= finalFileInd) {
 		bool tempSuccess = false;
 		try {
-			tempSuccess = BlazingContext::getInstance()->getFileSystemManager()->move(srcFiles[curFile], destFiles[curFile]);
-		} catch (...) {
+			tempSuccess =
+				BlazingContext::getInstance()->getFileSystemManager()->move(srcFiles[curFile], destFiles[curFile]);
+		} catch(...) {
 			tempSuccess = false;
 			completionMutex.lock();
 			errorCount++;
@@ -389,7 +407,7 @@ void _moveThread(long long & fileInd, std::mutex & completionMutex, std::vector<
 		completionMutex.lock();
 		curFile = fileInd;
 		fileInd++;
-		if (tempSuccess){
+		if(tempSuccess) {
 			successCount++;
 		}
 		completionMutex.unlock();
@@ -397,15 +415,14 @@ void _moveThread(long long & fileInd, std::mutex & completionMutex, std::vector<
 }
 
 
-bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destFiles){
-
-	if (srcFiles.size() != destFiles.size()){
+bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destFiles) {
+	if(srcFiles.size() != destFiles.size()) {
 		Library::Logging::Logger().logError("FileUtilv2::batchMove source and destination set are not the same size");
 		return false;
 	}
 
 	int numThreads = BlazingThread::hardware_concurrency();
-	numThreads = numThreads < (srcFiles.size()+9)/10 ? numThreads : (srcFiles.size()+9)/10;
+	numThreads = numThreads < (srcFiles.size() + 9) / 10 ? numThreads : (srcFiles.size() + 9) / 10;
 	int maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
 	std::vector<BlazingThread> filesThread(numThreads);
@@ -419,78 +436,85 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 #ifdef SINGLE_THREADED
 	_moveThread(fileInd, completionMutex, srcFiles, destFiles, successCount, errorCount);
 #else
-	for(int j = 0; j < numThreads; ++j){
-		filesThread[j] = BlazingThread(&_moveThread,std::ref(fileInd), std::ref(completionMutex), std::ref(srcFiles), std::ref(destFiles), std::ref(successCount), std::ref(errorCount));
+	for(int j = 0; j < numThreads; ++j) {
+		filesThread[j] = BlazingThread(&_moveThread,
+			std::ref(fileInd),
+			std::ref(completionMutex),
+			std::ref(srcFiles),
+			std::ref(destFiles),
+			std::ref(successCount),
+			std::ref(errorCount));
 	}
-	for(int j = 0; j < numThreads; ++j){
+	for(int j = 0; j < numThreads; ++j) {
 		filesThread[j].join();
 	}
 #endif
-	if (errorCount > 0){
-		Library::Logging::Logger().logError("Caught " + std::to_string(errorCount) + " in batchMove() when moving " + std::to_string(srcFiles.size()) + " files");
+	if(errorCount > 0) {
+		Library::Logging::Logger().logError("Caught " + std::to_string(errorCount) + " in batchMove() when moving " +
+											std::to_string(srcFiles.size()) + " files");
 	}
 
 	return successCount == srcFiles.size();
 }
 
 bool FileUtilv2::copyFile(const Uri & src, const Uri & dst) {
-
 	try {
-		std::shared_ptr<arrow::io::RandomAccessFile> file = BlazingContext::getInstance()->getFileSystemManager()->openReadable(src);
+		std::shared_ptr<arrow::io::RandomAccessFile> file =
+			BlazingContext::getInstance()->getFileSystemManager()->openReadable(src);
 		int64_t fileSize;
 		file->GetSize(&fileSize);
 
 		uint8_t * origData = new uint8_t[fileSize];
-		bool success = FileUtilv2::readCompletely(file,fileSize, origData);
-		if (!success){
+		bool success = FileUtilv2::readCompletely(file, fileSize, origData);
+		if(!success) {
 			file->Close();
 			delete[] origData;
 			return success;
 		}
 		success = FileUtilv2::writeCompletely(dst, origData, fileSize);
 		delete[] origData;
-		if (!success){
+		if(!success) {
 			return success;
 		}
 
-	} catch (BlazingException & ex){
+	} catch(BlazingException & ex) {
 		ex.append("Caught error in FileUtilv2::copyFile");
 		throw;
 	}
-
 }
 
 
-bool FileUtilv2::readCompletely(std::shared_ptr<arrow::io::RandomAccessFile> file, int64_t bytesToRead, uint8_t* buffer){
-
-	if (bytesToRead > 0){
-
+bool FileUtilv2::readCompletely(
+	std::shared_ptr<arrow::io::RandomAccessFile> file, int64_t bytesToRead, uint8_t * buffer) {
+	if(bytesToRead > 0) {
 		int64_t totalRead;
-		arrow::Status status = file->Read(bytesToRead,&totalRead, buffer);
+		arrow::Status status = file->Read(bytesToRead, &totalRead, buffer);
 
-		if (!status.ok()){
+		if(!status.ok()) {
 			Library::Logging::Logger().logError("In FileUtilv2::readCompletely on first read: " + status.ToString());
 			return false;
 		}
 
-		if (totalRead < bytesToRead){
+		if(totalRead < bytesToRead) {
 			int totalReadTries = 0;
 			int emptyReads = 0;
 
-			while (totalRead < bytesToRead && totalReadTries < 100 && emptyReads < 10){
+			while(totalRead < bytesToRead && totalReadTries < 100 && emptyReads < 10) {
 				int64_t bytesRead;
-				status = file->Read(bytesToRead-totalRead,&bytesRead, buffer + totalRead);
-				if (!status.ok()){
-					Library::Logging::Logger().logError("In FileUtilv2::readCompletely on read " + std::to_string(totalRead) + "  status : " + status.ToString());
+				status = file->Read(bytesToRead - totalRead, &bytesRead, buffer + totalRead);
+				if(!status.ok()) {
+					Library::Logging::Logger().logError("In FileUtilv2::readCompletely on read " +
+														std::to_string(totalRead) + "  status : " + status.ToString());
 					return false;
 				}
-				if (bytesRead == 0){
+				if(bytesRead == 0) {
 					emptyReads++;
 				}
 				totalRead += bytesRead;
 			}
-			if (totalRead < bytesToRead){
-				Library::Logging::Logger().logError("In FileUtilv2::readCompletely could not read. Tried too many times");
+			if(totalRead < bytesToRead) {
+				Library::Logging::Logger().logError(
+					"In FileUtilv2::readCompletely could not read. Tried too many times");
 				return false;
 			} else {
 				return true;
@@ -503,31 +527,32 @@ bool FileUtilv2::readCompletely(std::shared_ptr<arrow::io::RandomAccessFile> fil
 	}
 }
 
-bool FileUtilv2::writeCompletely(const Uri & uri, uint8_t * data, unsigned long long dataSize){
-
+bool FileUtilv2::writeCompletely(const Uri & uri, uint8_t * data, unsigned long long dataSize) {
 	int count = 0;
 	int errorCount = 0;
 	arrow::Status status;
-	if (dataSize > 0){
-
-		while(count < 10){
-
+	if(dataSize > 0) {
+		while(count < 10) {
 			try {
-				std::shared_ptr<arrow::io::OutputStream> outputStream = BlazingContext::getInstance()->getFileSystemManager()->openWriteable(uri);
+				std::shared_ptr<arrow::io::OutputStream> outputStream =
+					BlazingContext::getInstance()->getFileSystemManager()->openWriteable(uri);
 
-				if (outputStream) {
-
+				if(outputStream) {
 					status = outputStream->Write((uint8_t *) data, dataSize);
 
-					if (status.ok()){
+					if(status.ok()) {
 						outputStream->Flush();
 						status = outputStream->Close();
 
-						if (status.ok()){
-							if (errorCount > 0){								
-								Logging::Logger().logWarn("Caught " + std::to_string(errorCount) + " errors when trying to write. But did write completely in the end");
-							} else if (count > 0){
-								Logging::Logger().logWarn("Write failed " + std::to_string(count) + " times when trying to write. But did write completely in the end");
+						if(status.ok()) {
+							if(errorCount > 0) {
+								Logging::Logger().logWarn(
+									"Caught " + std::to_string(errorCount) +
+									" errors when trying to write. But did write completely in the end");
+							} else if(count > 0) {
+								Logging::Logger().logWarn(
+									"Write failed " + std::to_string(count) +
+									" times when trying to write. But did write completely in the end");
 							}
 							return true;
 						}
@@ -535,26 +560,28 @@ bool FileUtilv2::writeCompletely(const Uri & uri, uint8_t * data, unsigned long 
 				}
 
 
-			} catch (std::exception & e){
-				if (count > 8 || errorCount > 8){
+			} catch(std::exception & e) {
+				if(count > 8 || errorCount > 8) {
 					throw e;
 				}
 				errorCount++;
 			}
 
 			int fileRetryDelay = FILE_RETRY_DELAY;
-			const int sleep_milliseconds = (count+1)*fileRetryDelay;
+			const int sleep_milliseconds = (count + 1) * fileRetryDelay;
 			std::this_thread::sleep_for(std::chrono::milliseconds(sleep_milliseconds));
 			count++;
 		}
 	}
 
-	if (errorCount > 0){
-		Library::Logging::Logger().logError("Caught " + std::to_string(errorCount) + " errors when trying to write. Was unable to write.");
-	} else if (count > 0){
-		Library::Logging::Logger().logError("Write failed " + std::to_string(count) + " times when trying to write. Was unable to write.");
+	if(errorCount > 0) {
+		Library::Logging::Logger().logError(
+			"Caught " + std::to_string(errorCount) + " errors when trying to write. Was unable to write.");
+	} else if(count > 0) {
+		Library::Logging::Logger().logError(
+			"Write failed " + std::to_string(count) + " times when trying to write. Was unable to write.");
 	}
-	if (!status.ok()){
+	if(!status.ok()) {
 		Logging::Logger().logTrace(status.ToString());
 	}
 	return false;

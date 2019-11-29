@@ -8,11 +8,11 @@
 #ifndef DATAPARSER_H_
 #define DATAPARSER_H_
 
-#include <vector>
-#include <memory>
-#include "arrow/io/interfaces.h"
-#include "GDFColumn.cuh"
 #include "../Schema.h"
+#include "GDFColumn.cuh"
+#include "arrow/io/interfaces.h"
+#include <memory>
+#include <vector>
 
 namespace ral {
 namespace io {
@@ -25,15 +25,14 @@ public:
 	 * in there so we can preserve column index like access e.g. $3 $1 from the logical plan
 	 */
 	virtual void parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-			const std::string & user_readable_file_handle,
-			std::vector<gdf_column_cpp> & columns,
-			const Schema & schema,
-			std::vector<size_t> column_indices) = 0;
+		const std::string & user_readable_file_handle,
+		std::vector<gdf_column_cpp> & columns,
+		const Schema & schema,
+		std::vector<size_t> column_indices) = 0;
 
 
-	virtual void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile> > files,
-			ral::io::Schema & schema) = 0;
-
+	virtual void parse_schema(
+		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) = 0;
 };
 
 } /* namespace io */
@@ -45,4 +44,3 @@ public:
 	virtual ~DataParser();
 };
 #endif /* DATAPARSER_H_ */
-

@@ -7,29 +7,21 @@
 
 #include "private/FileSystemRepository_p.h"
 
-FileSystemRepository::FileSystemRepository(const Path &dataFile, bool encrypted)
-	: pimpl(new FileSystemRepository::Private(dataFile, encrypted)) {
-}
+FileSystemRepository::FileSystemRepository(const Path & dataFile, bool encrypted)
+	: pimpl(new FileSystemRepository::Private(dataFile, encrypted)) {}
 
-FileSystemRepository::~FileSystemRepository() {
-}
+FileSystemRepository::~FileSystemRepository() {}
 
-const Path FileSystemRepository::getDataFile() const noexcept {
-	return this->pimpl->dataFile;
-}
+const Path FileSystemRepository::getDataFile() const noexcept { return this->pimpl->dataFile; }
 
-bool FileSystemRepository::isEncrypted() const noexcept {
-	return this->pimpl->encrypted;
-}
+bool FileSystemRepository::isEncrypted() const noexcept { return this->pimpl->encrypted; }
 
-std::vector<FileSystemEntity> FileSystemRepository::findAll() const {
-	return this->pimpl->findAll();
-}
+std::vector<FileSystemEntity> FileSystemRepository::findAll() const { return this->pimpl->findAll(); }
 
-bool FileSystemRepository::add(const FileSystemEntity &fileSystemEntity) const {
+bool FileSystemRepository::add(const FileSystemEntity & fileSystemEntity) const {
 	return this->pimpl->add(fileSystemEntity);
 }
 
-bool FileSystemRepository::deleteByAuthority(const std::string &authority) const {
+bool FileSystemRepository::deleteByAuthority(const std::string & authority) const {
 	return this->pimpl->deleteByAuthority(authority);
 }
