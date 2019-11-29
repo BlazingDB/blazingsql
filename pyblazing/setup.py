@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-install_requires = ["pyhive", "arrow", "cudf", "dask-cudf", "dask", "distributed"]
+install_requires = ["pyhive", "cudf", "dask-cudf", "dask", "distributed"]
 
 setup(
     name='blazingsql',
