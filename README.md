@@ -1,8 +1,8 @@
 > A lightweight, GPU accelerated, SQL engine built on the [RAPIDS.ai](https://rapids.ai) ecosystem.
 
-<a href='https://colab.research.google.com/drive/1r7S15Ie33yRw8cmET7_bjCpvjJiDOdub'> <p align="center"><img src="https://github.com/BlazingDB/pyBlazing/blob/roaramburu-readme-update/img/bsql_rapids.PNG"/></p></a>
+<a href='https://colab.research.google.com/drive/1r7S15Ie33yRw8cmET7_bjCpvjJiDOdub'> <p align="center"><img src="https://github.com/BlazingDB/blazingsql/blob/roaramburu-readme-update/img/bsql_rapids.PNG"/></p></a>
 
-[Getting Started](https://github.com/BlazingDB/pyBlazing#getting-started) | [Documentation](https://docs.blazingdb.com) | [Examples](https://github.com/BlazingDB/pyBlazing#examples) | [Contributing](https://github.com/BlazingDB/pyBlazing#contributing) | [License](https://github.com/BlazingDB/pyBlazing/blob/develop/LICENSE) | [Blog](https://blog.blazingdb.com)
+[Getting Started](https://github.com/BlazingDB/blazingsql#getting-started) | [Documentation](https://docs.blazingdb.com) | [Examples](https://github.com/BlazingDB/blazingsql#examples) | [Contributing](https://github.com/BlazingDB/blazingsql#contributing) | [License](https://github.com/BlazingDB/blazingsql/blob/develop/LICENSE) | [Blog](https://blog.blazingdb.com)
 
 BlazingSQL is a GPU accelerated SQL engine built on top of the RAPIDS ecosystem. RAPIDS is based on the [Apache Arrow](http://arrow.apache.org) columnar memory format, and [cuDF](https://github.com/rapidsai/cudf) is a GPU DataFrame library for loading, joining, aggregating, filtering, and otherwise manipulating data.
 
@@ -80,40 +80,41 @@ Note: BlazingSQL (stable) is supported only on Linux, and with Python version 3.
 ## Build/Install from Source (Conda Environment)
 This is the recommended way of building all of the BlazingSQL components and dependencies from source. It ensures that all the dependencies are available to the build process.
 
+### Install dependencies
 *For CUDA 9.2:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
-conda install --yes -c conda-forge openjdk=8.0 maven cmake flatbuffers gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces
+conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
-conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda9.2 libcudf cudf dask-cudf
-
-cd $CONDA_PREFIX
-git clone https://github.com/BlazingDB/pyBlazing.git
-cd pyBlazing
-scripts/build-all.sh
+conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda9.2 libcudf=0.11 cudf=0.11 dask-cudf=0.11
 ```
 
 *For CUDA 10.0:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
-conda install --yes -c conda-forge openjdk=8.0 maven cmake flatbuffers gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces
+conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
-conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda10.0 libcudf cudf dask-cudf
-
-cd $CONDA_PREFIX
-git clone https://github.com/BlazingDB/pyBlazing.git
-cd pyBlazing
-scripts/build-all.sh
+conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda10.0 libcudf=0.11 cudf=0.11 dask-cudf=0.11
 ```
 
-The build-all.sh script will checkout every BlazingSQL repository, build and install into the conda environment.
-$CONDA_PREFIX now has a folder for every blazingsql repository. If you want to build any component individually, inside each repo you can run in conda/recipes/{repo name}/build.sh from the root folder of the repository.
+## Build
+The build process will checkout the BlazingSQL repository and will build and install into the conda environment.
 
+```bash
+cd $CONDA_PREFIX
+git clone https://github.com/BlazingDB/blazingsql.git
+cd blazingsql
+export CUDACXX=/usr/local/cuda/bin/nvcc
+conda/recipes/blazingsql/build.sh
+```
+
+$CONDA_PREFIX now has a folder for the blazingsql repository.
+If you want to build any component individually, inside each component folder you can run conda/recipes/{component name}/build.sh (the components are: io, comms, engine, algebra and pyblazing).
 
 ## Contributing
-Have questions or feedback? Post a [new github issue](https://github.com/BlazingDB/pyBlazing/issues/new/choose).
+Have questions or feedback? Post a [new github issue](https://github.com/BlazingDB/blazingsql/issues/new).
 
 Please see our [guide for contributing to BlazingSQL](CONTRIBUTING.md).
 
@@ -123,7 +124,7 @@ Feel free to join our Slack chat room: [RAPIDS Slack Channel](https://join.slack
 You may also email us at [info@blazingsql.com](info@blazingsql.com) or find out more details on the [BlazingSQL site](https://blazingsql.com)
 
 ## License
-[Apache License 2.0](https://github.com/BlazingDB/pyBlazing/blob/develop/LICENSE)
+[Apache License 2.0](https://github.com/BlazingDB/blazingsql/blob/develop/LICENSE)
 
 ## RAPIDS AI - Open GPU Data Science
 
