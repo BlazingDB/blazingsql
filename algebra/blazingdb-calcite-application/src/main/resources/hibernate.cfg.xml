@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+  "-//Hibernate/Hibernate Configuration DTD//EN"
+  "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+	<session-factory>
+
+		<property name="connection.driver_class">org.h2.Driver</property>
+<!-- NOTE: The property name="connection.url" will be added dynamically -->
+		<property name="connection.username">blazing</property>
+		<property name="connection.password">blazing</property>
+		
+       
+		<!-- JDBC connection pool (use the built-in) -->
+		<property name="connection.pool_size">10</property>
+
+		<!-- SQL dialect -->
+		<property name="dialect">org.hibernate.dialect.HSQLDialect</property>
+
+		<!-- Enable Hibernate's automatic session context management -->
+		<property name="current_session_context_class">thread</property>
+
+		<!-- Disable the second-level cache -->
+		<property name="cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>
+		<!-- Echo all executed SQL to stdout -->
+		<property name="show_sql">true</property>
+
+
+		<!-- <property name="hibernate.search.default.directory_provider">filesystem</property> 
+			<property name="hibernate.search.default.indexBase">target/indexes</property> -->
+		<!-- <mapping package="com.blazingdb.calcite.catalog.domain" /> -->
+		<mapping class="com.blazingdb.calcite.catalog.domain.CatalogColumnImpl" />
+		<mapping class="com.blazingdb.calcite.catalog.domain.CatalogTableImpl" />
+		<mapping class="com.blazingdb.calcite.catalog.domain.CatalogDatabaseImpl" />
+
+		<mapping class="com.blazingdb.calcite.catalog.domain.CatalogColumnDataType" />
+
+	</session-factory>
+</hibernate-configuration>
+
+
