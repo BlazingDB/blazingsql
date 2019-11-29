@@ -80,7 +80,7 @@ Note: BlazingSQL (stable) is supported only on Linux, and with Python version 3.
 ## Build/Install from Source (Conda Environment)
 This is the recommended way of building all of the BlazingSQL components and dependencies from source. It ensures that all the dependencies are available to the build process.
 
-### Install dependencies
+### Install build dependencies
 *For CUDA 9.2:*
 ```bash
 conda create -n bsql python=3.7
