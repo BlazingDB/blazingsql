@@ -824,6 +824,8 @@ std::string replace_calcite_regex(std::string expression){
 	StringUtil::findAndReplaceAll(expression,"EXTRACT(FLAG(SECOND), ","BL_SECOND(");
 	StringUtil::findAndReplaceAll(expression,"FLOOR(","BL_FLOUR(");
 
+	StringUtil::findAndReplaceAll(expression,"/INT(","/(");
+
 	return expression;
 }
 
