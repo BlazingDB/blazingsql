@@ -50,6 +50,8 @@ struct operator_node : parse_node {
       return transform_cast();
     } else if (this->value == "SUBSTRING") {
       return transform_substring();
+    } else if (this->value == "Reinterpret") {
+      return remove_reinterpret();
     }
 
     return this;
@@ -108,6 +110,12 @@ struct operator_node : parse_node {
     substring_op->children.push_back(std::unique_ptr<parse_node>(start_end_params));
 
     return substring_op;
+  }
+
+  parse_node *remove_reinterpret() {
+    assert(this->children.size() == 1);
+
+    return this->children[0].release();
   }
 };
 
