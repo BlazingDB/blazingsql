@@ -1,0 +1,35 @@
+{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0.dev').lstrip('v') %}
+{% set minor_version =  version.split('.')[0] + '.' + version.split('.')[1] %}
+{% set git_revision_count=environ.get('GIT_DESCRIBE_NUMBER', 0) %}
+
+package:
+    name: bsql-algebra
+    version: {{ version }}
+
+build:
+    number: {{ git_revision_count }}
+    string: {{ git_revision_count }}
+
+source:
+    path: ../../..
+
+requirements:
+    build:
+        - openjdk=8.0
+        - maven
+    host:
+        - python
+        - pip
+        - setuptools
+        - openjdk=8.0
+        - maven
+    run:
+        - pip
+        - setuptools
+        - openjdk=8.0
+
+about:
+    home: http://www.blazingsql.com/
+    license: Apache-2.0
+    license_family: Apache
+    license_file: LICENSE
