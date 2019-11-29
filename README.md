@@ -111,7 +111,6 @@ conda/recipes/blazingsql/build.sh
 ```
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
-If you want to build any component individually, inside each component folder you can run conda/recipes/{component name}/build.sh (the components are: io, comms, engine, algebra and pyblazing).
 
 ## Contributing
 Have questions or feedback? Post a [new github issue](https://github.com/blazingdb/blazingsql/issues/new/choose).
