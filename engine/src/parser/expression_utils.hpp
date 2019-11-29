@@ -95,3 +95,5 @@ bool is_operator_token(const std::string& token);
 bool is_literal(const std::string& token);
 
 bool is_var_column(const std::string& token);
+
+bool is_inequality(const std::string& token);
