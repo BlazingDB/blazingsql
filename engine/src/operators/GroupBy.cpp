@@ -249,6 +249,9 @@ void aggregations_with_groupby(std::vector<gdf_column_cpp> & group_by_columns, s
 	cudf::table aggrgation_output_table;
 	std::tie(group_by_output_table, aggrgation_output_table) = cudf::groupby::hash::groupby(keys,
                                             values, ops, options);
+	
+	init_string_category_if_null(group_by_output_table);
+    init_string_category_if_null(aggrgation_output_table);
 
 	group_by_output_columns.resize(group_by_output_table.num_columns());
 	for (size_t i = 0; i < group_by_output_columns.size(); i++){
