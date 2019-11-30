@@ -228,10 +228,82 @@ public:
 		}
 	}
 
-	std::string rebuildExpression() {
-		assert(!!this->root);
-		return rebuild_helper(this->root.get());
-	}
+  void split_inequality_join_into_join_and_filter(std::string & join_out, std::string & filter_out)  {
+    assert(!!this->root);
+    assert(this->root.get()->type == OPERATOR);
+
+    if (this->root.get()->value == "="){
+      // this would be a regular single equality join
+      join_out = this->rebuildExpression();  // the join_out is the same as the original input
+      filter_out = "";  // no filter out
+    } else if (this->root.get()->value == "AND"){
+      int num_equalities = 0;
+      for (auto &&c : this->root.get()->children) {
+        if (c.get()->value == "=") {
+          num_equalities++;
+        }
+      }
+      if (num_equalities == this->root.get()->children.size()) { // all are equalities. this would be a regular multiple equality join
+        join_out = this->rebuildExpression();  // the join_out is the same as the original input
+        filter_out = "";  // no filter out
+      } else if (num_equalities > 0) {  // i can split this into an equality join and a filter
+        if (num_equalities == 1){ // if there is only one equality, then the root for join_out wont be an AND, and we will just have this equality as the root
+          if (this->root.get()->children.size() == 2){
+            for (auto &&c : this->root.get()->children) {
+              if (c.get()->value == "=") {
+                join_out = rebuild_helper(c.get());
+              } else {
+                filter_out = rebuild_helper(c.get());
+              }
+            }
+          } else {
+            parse_node *filter_root = new operator_node{"AND"};
+            for (auto &&c : this->root.get()->children) {
+              if (c.get()->value == "=") {
+                join_out = rebuild_helper(c.get());
+              } else {
+                filter_root->children.push_back( std::unique_ptr<parse_node>(c.release()) );
+              }
+            }
+            filter_out = rebuild_helper(filter_root);
+          }
+        } else if (num_equalities == this->root.get()->children.size() - 1){ // only one that does not have an inequality and therefore will be in the filter (without an and at the root)
+          parse_node *join_out_root = new operator_node{"AND"};
+          for (auto &&c : this->root.get()->children) {
+            if (c.get()->value == "=") {
+              join_out_root->children.push_back( std::unique_ptr<parse_node>(c.release()) );                 
+            } else {
+              filter_out = rebuild_helper(c.get());
+            }
+          }
+          join_out = rebuild_helper(join_out_root);
+        } else {
+          parse_node *join_out_root = new operator_node{"AND"};
+          parse_node *filter_root = new operator_node{"AND"};
+            for (auto &&c : this->root.get()->children) {
+              if (c.get()->value == "=") {
+                join_out_root->children.push_back( std::unique_ptr<parse_node>(c.release()) );     
+              } else {
+                filter_root->children.push_back( std::unique_ptr<parse_node>(c.release()) ); 
+              }
+            }
+            join_out = rebuild_helper(join_out_root);
+            filter_out = rebuild_helper(filter_root);
+        }
+      } else {  // this is not supported. Throw error
+        std::string original_join_condition = this->rebuildExpression();
+        throw std::runtime_error("Join condition is currently not supported. Join received: " + original_join_condition);
+      }
+    } else { // this is not supported. Throw error 
+      std::string original_join_condition = this->rebuildExpression();
+      throw std::runtime_error("Join condition is currently not supported. Join received: " + original_join_condition);
+    }
+  }
+
+  std::string rebuildExpression() {
+    assert(!!this->root);
+    return rebuild_helper(this->root.get());
+  }
 };
 
 }  // namespace parser

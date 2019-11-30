@@ -53,4 +53,10 @@ bool is_literal(const std::string & token) {
 		   is_timestamp(token);
 }
 
-bool is_var_column(const std::string & token) { return token[0] == '$'; }
+bool is_var_column(const std::string& token){
+	return token[0] == '$';
+}
+
+bool is_inequality(const std::string& token){
+	return token == "<" || token == "<=" || token == ">" || token == ">=" || token == "<>";
+}

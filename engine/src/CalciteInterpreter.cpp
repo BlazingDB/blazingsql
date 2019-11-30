@@ -35,7 +35,7 @@
 #include <cudf/legacy/filling.hpp>
 #include <cudf/legacy/table.hpp>
 #include <rmm/thrust_rmm_allocator.h>
-
+#include "parser/expression_tree.hpp"
 
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
@@ -402,8 +402,58 @@ std::vector<int> get_group_columns(std::string query_part) {
 }
 
 
-// TODO: this does not compact the allocations which would be nice if it could
-void process_filter(Context * context, blazing_frame & input, std::string query_part) {
+/*
+This function will take a join_statement and if it contains anything that is not an equijoin, it will try to break it up into an equijoin (new_join_statement) and a filter (filter_statement)
+If its just an equijoin, then the new_join_statement will just be join_statement and filter_statement will be empty
+
+Examples:
+Basic case:
+join_statement = LogicalJoin(condition=[=($3, $0)], joinType=[inner])
+new_join_statement = LogicalJoin(condition=[=($3, $0)], joinType=[inner])
+filter_statement = ""
+
+Simple case:
+join_statement = LogicalJoin(condition=[AND(=($3, $0), >($5, $2))], joinType=[inner])
+new_join_statement = LogicalJoin(condition=[=($3, $0)], joinType=[inner])
+filter_statement = LogicalFilter(condition=[>($5, $2)])
+
+Complex case:
+join_statement = LogicalJoin(condition=[AND(=($7, $0), OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5)))], joinType=[inner])
+new_join_statement = LogicalJoin(condition=[=($7, $0)], joinType=[inner])
+filter_statement = LogicalFilter(condition=[OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))])
+
+Error case:
+join_statement = LogicalJoin(condition=[OR(=($7, $0), AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))], joinType=[inner])
+Should throw an error
+
+Error case:
+join_statement = LogicalJoin(condition=[AND(<($7, $0), >($7, $1)], joinType=[inner])
+Should throw an error
+
+*/
+void split_inequality_join_into_join_and_filter(const std::string & join_statement, std::string & new_join_statement, std::string & filter_statement){
+	new_join_statement = join_statement;
+	filter_statement = "";
+
+	std::string condition = get_named_expression(join_statement, "condition");
+	std::string join_type = get_named_expression(join_statement, "joinType");
+
+	ral::parser::parse_tree condition_tree;
+	condition_tree.build(condition);
+	std::string new_join_statement_expression, filter_statement_expression;
+	condition_tree.split_inequality_join_into_join_and_filter(new_join_statement_expression, filter_statement_expression);
+
+	new_join_statement = "LogicalJoin(condition=[" + new_join_statement_expression + "], joinType=[" + join_type + "])";
+	if (filter_statement_expression != ""){
+		filter_statement = "LogicalFilter(condition=[" + filter_statement_expression + "])";
+	} else {
+		filter_statement = "";
+	}
+}
+
+
+//TODO: this does not compact the allocations which would be nice if it could
+void process_filter(Context * context, blazing_frame & input, std::string query_part){
 	static CodeTimer timer;
 	timer.reset();
 
@@ -743,17 +793,20 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			int numLeft = left_frame.get_num_rows_in_table(0);
 			int numRight = right_frame.get_num_rows_in_table(0);
 			left_frame.add_table(right_frame.get_table(0));
-			/// left_frame.consolidate_tables();
-			result_frame = ral::operators::process_join(queryContext, left_frame, query[0]);
-			std::string extraInfo =
-				"left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
-			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-				"evaluate_split_query process_join",
-				"num rows result",
-				result_frame.get_num_rows_in_table(0),
-				extraInfo));
+			///left_frame.consolidate_tables();
+			std::string new_join_statement, filter_statement;
+			split_inequality_join_into_join_and_filter(query[0], new_join_statement, filter_statement);
+			result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);
+			std::string extraInfo = "left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
+			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame.get_num_rows_in_table(0), extraInfo));	
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
+			if (filter_statement != ""){
+				process_filter(queryContext, result_frame,filter_statement);
+				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame.get_num_rows_in_table(0)));			
+				blazing_timer.reset();
+				queryContext->incrementQueryStep();
+			}			
 			return result_frame;
 		} else if(is_union(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
@@ -924,18 +977,4 @@ blazing_frame evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 
 			GDFRefCounter::getInstance()->deregister_column(output_frame.get_column(i).get_gdf_column());
 		}
-
-		double duration = blazing_timer.getDuration();
-		Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
-
-		return output_frame;
-	} catch(const std::exception & e) {
-		std::string err = "ERROR: in evaluate_split_query " + std::string(e.what());
-		Library::Logging::Logger().logError(
-			ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()),
-				std::to_string(queryContext.getQueryStep()),
-				std::to_string(queryContext.getQuerySubstep()),
-				err));
-		throw;
-	}
 }
