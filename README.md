@@ -98,7 +98,7 @@ conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
 conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda10.0 libcudf=0.11 cudf=0.11 dask-cudf=0.11
 ```
 
-## Build
+### Build
 The build process will checkout the BlazingSQL repository and will build and install into the conda environment.
 
 ```bash
