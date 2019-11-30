@@ -30,8 +30,7 @@ bc.s3('dir_name', bucket_name='bucket_name', access_key_id='access_key', secret_
 bc.create_table('taxi', '/dir_name/taxi.csv')
 
 # Query
-result = bc.sql('SELECT count(*) FROM taxi GROUP BY year(key)').get()
-result_gdf = result.columns
+result_gdf = bc.sql('SELECT count(*) FROM taxi GROUP BY year(key)')
 
 #Print GDF
 print(result_gdf)
