@@ -25,7 +25,7 @@ requirements:
         - gmock
         - arrow-cpp=0.15.0
         - cmake
-        - bsql-toolchain  #{{ version }}.*
+        - bsql-toolchain {{ version }}.*
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ rapids_build_version }}.*
@@ -50,7 +50,7 @@ requirements:
         - maven
     run:
         - arrow-cpp=0.15.0
-        - bsql-toolchain  #{{ version }}.*
+        - bsql-toolchain {{ version }}.*
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ rapids_build_version }}.*
