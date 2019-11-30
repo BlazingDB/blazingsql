@@ -54,4 +54,7 @@ blazing_frame evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 	connection_id_t connection,
 	Context & queryContext);
 
+void split_inequality_join_into_join_and_filter(const std::string & join_statement, 
+ 					std::string & new_join_statement, std::string & filter_statement);
+           
 #endif /* CALCITEINTERPRETER_H_ */
