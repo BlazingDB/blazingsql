@@ -20,7 +20,8 @@ if os.environ.get('CONDA_BUILD') is not None:
 conda_env_inc = os.path.join(conda_env_dir, "include")
 # TODO percy c.gonzales fix blazingdb-io headers
 conda_env_inc_io = os.path.join(conda_env_inc, "blazingdb/io")
-conda_env_inc_communication = os.path.join(conda_env_inc, "blazingdb/communication")
+conda_env_inc_communication = os.path.join(
+    conda_env_inc, "blazingdb/communication")
 conda_env_lib = os.path.join(conda_env_dir, "lib")
 
 print("Using CONDA_PREFIX : " + conda_env_dir)
@@ -38,15 +39,20 @@ extensions = [
             conda_env_inc_io,
             conda_env_inc_communication,
             "/usr/local/cuda/include",
-            os.path.dirname(sysconfig.get_path("include")),
+            os.path.dirname(
+                sysconfig.get_path("include")),
             np.get_include(),
         ],
-        library_dirs=[get_python_lib(), conda_env_lib, os.path.join(os.sys.prefix, "lib")],
+        library_dirs=[
+            get_python_lib(),
+            conda_env_lib,
+            os.path.join(
+                os.sys.prefix,
+                "lib")],
         libraries=["blazingsql-engine"],
         language="c++",
         extra_compile_args=["-std=c++14"],
-    )
-]
+    )]
 
 setup(
     name="bsql_engine",

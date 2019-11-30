@@ -13,5 +13,5 @@ TEST_F(HadoopFileSystemTest, Creation) {
 
 	EXPECT_TRUE(created);
 
-  nativeHdfs.removeDirectory("/new_directory");
+	nativeHdfs.removeDirectory("/new_directory");
 }

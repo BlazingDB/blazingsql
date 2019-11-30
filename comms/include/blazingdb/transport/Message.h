@@ -1,11 +1,11 @@
 #pragma once
 
-#include "ColumnTransport.h"
-#include "blazingdb/transport/Node.h"
-#include "blazingdb/transport/common/macros.hpp"
 #include <cassert>
 #include <memory>
 #include <vector>
+#include "ColumnTransport.h"
+#include "blazingdb/transport/Node.h"
+#include "blazingdb/transport/common/macros.hpp"
 
 namespace blazingdb {
 namespace transport {
@@ -17,16 +17,17 @@ namespace transport {
 class Message {
 public:
   struct MetaData {
-    char      messageToken[128]{}; // use  uses '\0' for string ending
-    uint32_t   contextToken{};
-    int32_t   total_row_size{}; // used by SampleToNodeMasterMessage
+    char messageToken[128]{};  // use  uses '\0' for string ending
+    uint32_t contextToken{};
+    int32_t total_row_size{};  // used by SampleToNodeMasterMessage
 
-//    int32_t num_columns{}; // used by: writeBuffersFromGPUTCP, readBuffersIntoGPUTCP, update everywhere!
-//    int32_t num_buffers{};
+    //    int32_t num_columns{}; // used by: writeBuffersFromGPUTCP,
+    //    readBuffersIntoGPUTCP, update everywhere! int32_t num_buffers{};
   };
 
 protected:
-  explicit Message(std::string const &messageToken, uint32_t const &contextToken,
+  explicit Message(std::string const &messageToken,
+                   uint32_t const &contextToken,
                    std::shared_ptr<blazingdb::transport::Node> &sender_node)
       : node_{sender_node} {
     set_metadata(messageToken, contextToken);
@@ -35,8 +36,8 @@ protected:
 public:
   void set_metadata(std::string const &messageToken,
                     uint32_t const &contextToken) {
-    assert(messageToken.size() < 127); // max buffer size of internal metadata
-                                       // representation for messageToken
+    assert(messageToken.size() < 127);  // max buffer size of internal metadata
+                                        // representation for messageToken
     strcpy(this->metadata_.messageToken, messageToken.c_str());
     this->metadata_.contextToken = contextToken;
   }
@@ -66,9 +67,9 @@ public:
                                 std::vector<ColumnTransport>>;
 
 public:
-  explicit GPUMessage(
-      std::string const &messageToken, uint32_t const &contextToken,
-      std::shared_ptr<blazingdb::transport::Node> &sender_node)
+  explicit GPUMessage(std::string const &messageToken,
+                      uint32_t const &contextToken,
+                      std::shared_ptr<blazingdb::transport::Node> &sender_node)
       : Message{messageToken, contextToken, sender_node} {}
 
   virtual raw_buffer GetRawColumns() = 0;
@@ -76,5 +77,5 @@ public:
   BZ_INTERFACE(GPUMessage);
 };
 
-} // namespace transport
-} // namespace blazingdb
+}  // namespace transport
+}  // namespace blazingdb

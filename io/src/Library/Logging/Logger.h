@@ -4,9 +4,9 @@
 #include "Library/Logging/BlazingLogger.h"
 
 namespace Library {
-    namespace Logging {
-        BlazingLogger Logger();
-    }
+namespace Logging {
+BlazingLogger Logger();
 }
+}  // namespace Library
 
 #endif

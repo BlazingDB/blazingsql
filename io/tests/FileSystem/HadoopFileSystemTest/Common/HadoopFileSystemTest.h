@@ -9,27 +9,27 @@
 #include "SystemEnvironment.h"
 #include "TestResources.h"
 
-//TODO percy docs
-//NOTE this class is the base for all hadoopfs tests
+// TODO percy docs
+// NOTE this class is the base for all hadoopfs tests
 class HadoopFileSystemBaseTest {
-	protected:
-		void init(); // init hadoopFileSystem instance and test resources
-		void shutdown(); // delete hadoopFileSystem instance and test resources
+protected:
+	void init();	  // init hadoopFileSystem instance and test resources
+	void shutdown();  // delete hadoopFileSystem instance and test resources
 
-	protected:
-		Uri uri(const std::string path) const;
+protected:
+	Uri uri(const std::string path) const;
 
-	protected:
-		std::unique_ptr<HadoopFileSystem> hadoopFileSystem;
+protected:
+	std::unique_ptr<HadoopFileSystem> hadoopFileSystem;
 };
 
-//Classic test fixture
+// Classic test fixture
 class HadoopFileSystemTest : public HadoopFileSystemBaseTest, public testing::Test {
-	protected:
-		virtual void SetUp();
-		virtual void TearDown();
+protected:
+	virtual void SetUp();
+	virtual void TearDown();
 
-    NativeHdfs nativeHdfs;
+	NativeHdfs nativeHdfs;
 };
 
 /**
@@ -68,4 +68,4 @@ class HadoopFileSystemTest : public HadoopFileSystemBaseTest, public testing::Te
  *                          +-------------------+
  */
 
-#endif // _TEST_FILESYSTEM_HADOOP_BASE_TEST_H_
+#endif  // _TEST_FILESYSTEM_HADOOP_BASE_TEST_H_

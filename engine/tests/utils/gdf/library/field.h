@@ -18,96 +18,84 @@
 #ifndef GDF_TESTS_BINARY_OPERATION_UTIL_FIELD_H
 #define GDF_TESTS_BINARY_OPERATION_UTIL_FIELD_H
 
-#include <vector>
 #include <algorithm>
 #include <cuda_runtime.h>
+#include <vector>
 
 namespace gdf {
 namespace library {
 
-    template <typename Type>
-    class Field {
-    public:
-        ~Field() {
-            destroy();
-        }
+template <typename Type>
+class Field {
+public:
+	~Field() { destroy(); }
 
-    public:
-        void clear() {
-            mCpuData.clear();
-            destroy();
-        }
+public:
+	void clear() {
+		mCpuData.clear();
+		destroy();
+	}
 
-        void resize(int size) {
-            int sizeBytes = size * sizeof(Type);
-            if (sizeBytes != mSizeAllocBytes) {
-                mCpuData.resize(size);
-                destroy();
-                create(size);
-            }
-        }
+	void resize(int size) {
+		int sizeBytes = size * sizeof(Type);
+		if(sizeBytes != mSizeAllocBytes) {
+			mCpuData.resize(size);
+			destroy();
+			create(size);
+		}
+	}
 
-    public:
-        auto getGpuData() -> Type* {
-            return mGpuData;
-        }
+public:
+	auto getGpuData() -> Type * { return mGpuData; }
 
-    public:
-        auto begin() -> typename std::vector<Type>::iterator {
-            return mCpuData.begin();
-        }
+public:
+	auto begin() -> typename std::vector<Type>::iterator { return mCpuData.begin(); }
 
-        auto end() -> typename std::vector<Type>::iterator {
-            return mCpuData.end();
-        }
+	auto end() -> typename std::vector<Type>::iterator { return mCpuData.end(); }
 
-        auto back() -> typename std::vector<Type>::reference {
-            return mCpuData.back();
-        }
+	auto back() -> typename std::vector<Type>::reference { return mCpuData.back(); }
 
-    public:
-        auto size() -> std::size_t {
-            return mCpuData.size();
-        }
+public:
+	auto size() -> std::size_t { return mCpuData.size(); }
 
-        auto operator[](int index) -> Type& {
-            assert(index < mCpuData.size());
-            return mCpuData[index];
-        }
+	auto operator[](int index) -> Type & {
+		assert(index < mCpuData.size());
+		return mCpuData[index];
+	}
 
-    public:
-        void write() {
-            if (mSizeAllocBytes) {
-                cudaMemcpy(mGpuData, mCpuData.data(), mSizeAllocBytes, cudaMemcpyHostToDevice);
-            }
-        }
+public:
+	void write() {
+		if(mSizeAllocBytes) {
+			cudaMemcpy(mGpuData, mCpuData.data(), mSizeAllocBytes, cudaMemcpyHostToDevice);
+		}
+	}
 
-        void read() {
-            if (mSizeAllocBytes) {
-                cudaMemcpy(mCpuData.data(), mGpuData, mSizeAllocBytes, cudaMemcpyDeviceToHost);
-            }
-        }
+	void read() {
+		if(mSizeAllocBytes) {
+			cudaMemcpy(mCpuData.data(), mGpuData, mSizeAllocBytes, cudaMemcpyDeviceToHost);
+		}
+	}
 
-    protected:
-        void create(int size) {
-            mSizeAllocBytes = size * sizeof(Type);
-            cudaMalloc((void**)&(mGpuData), mSizeAllocBytes);
-        }
+protected:
+	void create(int size) {
+		mSizeAllocBytes = size * sizeof(Type);
+		cudaMalloc((void **) &(mGpuData), mSizeAllocBytes);
+	}
 
-        void destroy() {
-            if (mSizeAllocBytes) {
-                mSizeAllocBytes = 0;
-                cudaFree(mGpuData);
-            }
-        }
+	void destroy() {
+		if(mSizeAllocBytes) {
+			mSizeAllocBytes = 0;
+			cudaFree(mGpuData);
+		}
+	}
 
-    private:
-        int mSizeAllocBytes {0};
-        Type* mGpuData {nullptr};
-        std::vector<Type> mCpuData;
-    };
+private:
+	int mSizeAllocBytes{0};
+	Type * mGpuData{nullptr};
+	std::vector<Type> mCpuData;
+};
 
-} // namespace library
-} // namespace gdf
+}  // namespace library
+}  // namespace gdf
 
 #endif

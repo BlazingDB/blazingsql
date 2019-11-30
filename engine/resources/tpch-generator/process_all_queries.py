@@ -14,7 +14,8 @@ if __name__ == '__main__':
     if not drill.is_active():
         raise Exception('Please run Drill first')
 
-    parser = argparse.ArgumentParser(description='Generate Input Generator for UnitTestGenerator.')
+    parser = argparse.ArgumentParser(
+        description='Generate Input Generator for UnitTestGenerator.')
     parser.add_argument('tpch_path', type=str,
                         help='use complete path, ex /tmp/tpch/1mb/')
     parser.add_argument('-O', '--output', type=str, default='-',
@@ -87,14 +88,42 @@ if __name__ == '__main__':
     #     'select count(c_custkey), c_nationkey, count(c_acctbal) from customer group by c_nationkey'
     # ]
 
-    generator.generate_json_input(drill, tpch_path, where_queries, 'json_inputs/where_queries.json')
+    generator.generate_json_input(
+        drill,
+        tpch_path,
+        where_queries,
+        'json_inputs/where_queries.json')
     # generator.generate_json_input(drill, tpch_path, union_queries, 'json_inputs/union_queries.json')
-    generator.generate_json_input(drill, tpch_path, join_queries, 'json_inputs/join_queries.json')
-    generator.generate_json_input(drill, tpch_path, orderby_queries, 'json_inputs/orderby_queries.json')
-    generator.generate_json_input(drill, tpch_path, groupby_queries, 'json_inputs/groupby_queries.json')
-    generator.generate_json_input(drill, tpch_path, groupby_no_agg_queries, 'json_inputs/groupby_no_agg_queries.json')
-    generator.generate_json_input(drill, tpch_path, aggregration_queries, 'json_inputs/aggregration_queries.json')
-    
-    all_queries = where_queries + join_queries + orderby_queries + groupby_queries + aggregration_queries
-    generator.generate_json_input(drill, tpch_path, all_queries, 'json_inputs/all_queries.json')
-    
+    generator.generate_json_input(
+        drill,
+        tpch_path,
+        join_queries,
+        'json_inputs/join_queries.json')
+    generator.generate_json_input(
+        drill,
+        tpch_path,
+        orderby_queries,
+        'json_inputs/orderby_queries.json')
+    generator.generate_json_input(
+        drill,
+        tpch_path,
+        groupby_queries,
+        'json_inputs/groupby_queries.json')
+    generator.generate_json_input(
+        drill,
+        tpch_path,
+        groupby_no_agg_queries,
+        'json_inputs/groupby_no_agg_queries.json')
+    generator.generate_json_input(
+        drill,
+        tpch_path,
+        aggregration_queries,
+        'json_inputs/aggregration_queries.json')
+
+    all_queries = where_queries + join_queries + \
+        orderby_queries + groupby_queries + aggregration_queries
+    generator.generate_json_input(
+        drill,
+        tpch_path,
+        all_queries,
+        'json_inputs/all_queries.json')

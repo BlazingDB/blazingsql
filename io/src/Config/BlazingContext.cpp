@@ -8,13 +8,13 @@
 #include <aws/core/Aws.h>
 
 #include "Config/BlazingContext.h"
-#include "Util/StringUtil.h"
-#include "Util/FileUtil.h"
-#include "arrow/status.h"
 #include "Library/Logging/Logger.h"
+#include "Util/FileUtil.h"
+#include "Util/StringUtil.h"
+#include "arrow/status.h"
 namespace Logging = Library::Logging;
 
-BlazingContext* BlazingContext::instance = nullptr;
+BlazingContext * BlazingContext::instance = nullptr;
 
 void BlazingContext::initExternalSystems() {
 	Aws::SDKOptions sdkOptions;
@@ -26,30 +26,21 @@ void BlazingContext::shutDownExternalSystems() {
 	Aws::ShutdownAPI(sdkOptions);
 }
 
-BlazingContext::BlazingContext()
-:  fileSystemManager(new FileSystemManager()){
-
-}
+BlazingContext::BlazingContext() : fileSystemManager(new FileSystemManager()) {}
 
 BlazingContext::~BlazingContext() {
-	if(instance != nullptr){
+	if(instance != nullptr) {
 		delete instance;
 	}
-
 }
 
 
-std::shared_ptr<FileSystemManager> BlazingContext::getFileSystemManager(){
-	return this->fileSystemManager;
-}
+std::shared_ptr<FileSystemManager> BlazingContext::getFileSystemManager() { return this->fileSystemManager; }
 
 
-
-BlazingContext * BlazingContext::getInstance(){
-	if(instance == NULL){
+BlazingContext * BlazingContext::getInstance() {
+	if(instance == NULL) {
 		instance = new BlazingContext();
 	}
 	return instance;
 }
-
-

@@ -37,33 +37,44 @@ def make_plans(items, calcite_jar):
     def inputjson(item):
         json_obj = json.dumps({'query': item.query, 'tables': item.tables})
         print(json_obj)
-        return re.findall('non optimized\\n(.*)\\n\\noptimized',
-                          subprocess.Popen(('java', '-jar', calcite_jar),
-                                           stdin=subprocess.PIPE,
-                                           stdout=subprocess.PIPE).communicate(json_obj.encode())[0].decode('utf-8'), re.M | re.S)[0]
+        return re.findall(
+            'non optimized\\n(.*)\\n\\noptimized',
+            subprocess.Popen(
+                ('java',
+                 '-jar',
+                 calcite_jar),
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE).communicate(
+                json_obj.encode())[0].decode('utf-8'),
+            re.M | re.S)[0]
 
     return [inputjson(item) for item in items]
 
 
 def item_from(dct):
     return type('json_object', (), {
-        key: item_from(value) if type(value) is dict else value
+        key: item_from(value) if isinstance(value, dict) else value
         for key, value in dct.items()})
 
 
 def make_unit_test(item, plan):
-    return ('TEST_F(EvaluateQueryTest, %(test_name)s) {'
-            'auto input = %(input)s;'
-            'auto logical_plan = input.logicalPlan;'
-            'auto input_tables = ToBlazingFrame(input.filePaths, input.columnNames, input.columnTypes);'
-            'auto table_names = input.tableNames;'
-            'auto column_names = input.columnNames;'
-            'std::vector<gdf_column_cpp> outputs;'
-            'gdf_error err = evaluate_query(input_tables, table_names, column_names, logical_plan, outputs);'
-            'EXPECT_TRUE(err == GDF_SUCCESS);'
-            'auto output_table = GdfColumnCppsTableBuilder{"output_table", outputs}.Build();'
-            'CHECK_RESULT(output_table, input.resultTable);'
-            '}') % {'test_name': item.testName, 'input': Φ(item, plan)}
+    return (
+        'TEST_F(EvaluateQueryTest, %(test_name)s) {'
+        'auto input = %(input)s;'
+        'auto logical_plan = input.logicalPlan;'
+        'auto input_tables = ToBlazingFrame(input.filePaths, input.columnNames, input.columnTypes);'
+        'auto table_names = input.tableNames;'
+        'auto column_names = input.columnNames;'
+        'std::vector<gdf_column_cpp> outputs;'
+        'gdf_error err = evaluate_query(input_tables, table_names, column_names, logical_plan, outputs);'
+        'EXPECT_TRUE(err == GDF_SUCCESS);'
+        'auto output_table = GdfColumnCppsTableBuilder{"output_table", outputs}.Build();'
+        'CHECK_RESULT(output_table, input.resultTable);'
+        '}') % {
+        'test_name': item.testName,
+        'input': Φ(
+            item,
+            plan)}
 
 
 def get_file_paths(tables):
@@ -95,15 +106,15 @@ def get_column_types(tables):
         }[val]
 
     def get_list(columnTypes):
-        return '{%s}' % (','.join(['"%s"' % native_type(val) for val in columnTypes]))
+        return '{%s}' % (
+            ','.join(['"%s"' % native_type(val) for val in columnTypes]))
 
     items = [get_list(table['columnTypes']) for table in tables]
     return '{%s}' % (','.join(items))
 
 
 def Φ(item, plan):
-    return (
-        '''InputTestItem{
+    return ('''InputTestItem{
         .query = "%(query)s",
         .logicalPlan ="%(plan)s",
         .filePaths = %(filePaths)s,
@@ -113,12 +124,21 @@ def Φ(item, plan):
         .resultTable = %(resultTable)s}
   ''') % {
         'query': item.query,
-        'plan': '\\n'.join(line for line in plan.split('\n')),
-        'filePaths': get_file_paths(item.tables),
-        'tableNames': get_table_names(item.tables),
-        'columnNames': get_column_names(item.tables),
-        'columnTypes': get_column_types(item.tables),
-        'resultTable': make_table(item.result, 'ResultSet', item.resultTypes, item.resultTypes),
+        'plan': '\\n'.join(
+            line for line in plan.split('\n')),
+        'filePaths': get_file_paths(
+            item.tables),
+        'tableNames': get_table_names(
+            item.tables),
+        'columnNames': get_column_names(
+            item.tables),
+        'columnTypes': get_column_types(
+            item.tables),
+        'resultTable': make_table(
+            item.result,
+            'ResultSet',
+            item.resultTypes,
+            item.resultTypes),
     }
 
 

@@ -10,105 +10,102 @@
 
 #include "FileSystem/S3FileSystem.h"
 
-//TODO remove this (create a static method in S3Fiklesystem or ... somewhere)
+// TODO remove this (create a static method in S3Fiklesystem or ... somewhere)
 #include <aws/core/Aws.h>
 
-const std::string AUTHORITY = "jack_s3_1"; // the file system namespace used for this test
+const std::string AUTHORITY = "jack_s3_1";  // the file system namespace used for this test
 
 using namespace S3FileSystemConnection;
 
 class ParquetOnS3Test : public testing::Test {
-	protected:
-		ParquetOnS3Test() {
-			Aws::SDKOptions sdkOptions;
-			Aws::InitAPI(sdkOptions);
+protected:
+	ParquetOnS3Test() {
+		Aws::SDKOptions sdkOptions;
+		Aws::InitAPI(sdkOptions);
 
-			const std::string bucketName = getBucketNameEnvValue();
-			const EncryptionType encryptionType = getEncryptionTypeEnvValue();
-			const std::string kmsKeyAmazonResourceName = getKmsKeyAmazonResourceNameEnvValue();
-			const std::string accessKeyId = getAccessKeyIdEnvValue();
-			const std::string secretKey = getSecretKeyEnvValue();
-			const std::string sessionToken = getSessionTokenEnvValue();
-			const FileSystemConnection fileSystemConnection(bucketName, encryptionType, kmsKeyAmazonResourceName, accessKeyId, secretKey, sessionToken);
+		const std::string bucketName = getBucketNameEnvValue();
+		const EncryptionType encryptionType = getEncryptionTypeEnvValue();
+		const std::string kmsKeyAmazonResourceName = getKmsKeyAmazonResourceNameEnvValue();
+		const std::string accessKeyId = getAccessKeyIdEnvValue();
+		const std::string secretKey = getSecretKeyEnvValue();
+		const std::string sessionToken = getSessionTokenEnvValue();
+		const FileSystemConnection fileSystemConnection(
+			bucketName, encryptionType, kmsKeyAmazonResourceName, accessKeyId, secretKey, sessionToken);
 
-			Path root;
+		Path root;
 
-			s3FileSystem.reset(new S3FileSystem(fileSystemConnection, root));
+		s3FileSystem.reset(new S3FileSystem(fileSystemConnection, root));
+	}
+
+	virtual ~ParquetOnS3Test() {
+		Aws::SDKOptions sdkOptions;
+		Aws::ShutdownAPI(sdkOptions);
+	}
+
+	virtual void SetUp() {}
+
+	virtual void TearDown() {
+		// S3FileSystem->disconnect();
+	}
+
+private:
+	// TODO percy duplicated code with HadoopFileSystemTest, create common test abstraccions for this kind of stuff
+	std::string getConnectionPropertyEnvValue(ConnectionProperty connectionProperty) const {
+		const std::string propertyEnvName = connectionPropertyEnvName(connectionProperty);
+		const char * envValue = std::getenv(propertyEnvName.c_str());
+		const bool isDefined = (envValue != nullptr);
+
+		if(isDefined == false) {
+			const std::string error = "FATAL: You need to define the environment variable: " + propertyEnvName;
+			throw std::invalid_argument(error);
 		}
 
-		virtual ~ParquetOnS3Test() {
-			Aws::SDKOptions sdkOptions;
-			Aws::ShutdownAPI(sdkOptions);
-		}
+		const std::string propertyEnvValue = isDefined ? std::string(envValue) : std::string();
 
-		virtual void SetUp() {
+		return propertyEnvValue;
+	}
 
-		}
+	const std::string getBucketNameEnvValue() const {
+		const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::BUCKET_NAME);
+		return value;
+	}
 
-		virtual void TearDown() {
-			//S3FileSystem->disconnect();
-		}
+	const EncryptionType getEncryptionTypeEnvValue() const {
+		const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::ENCRYPTION_TYPE);
+		const EncryptionType encryptionType = encryptionTypeFromName(value);
+		return encryptionType;
+	}
 
-	private:
-		//TODO percy duplicated code with HadoopFileSystemTest, create common test abstraccions for this kind of stuff
-		std::string getConnectionPropertyEnvValue(ConnectionProperty connectionProperty) const {
-			const std::string propertyEnvName = connectionPropertyEnvName(connectionProperty);
-			const char *envValue = std::getenv(propertyEnvName.c_str());
-			const bool isDefined = (envValue != nullptr);
+	const std::string getKmsKeyAmazonResourceNameEnvValue() const {
+		const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::KMS_KEY_AMAZON_RESOURCE_NAME);
+		return value;
+	}
 
-			if (isDefined == false) {
-				const std::string error = "FATAL: You need to define the environment variable: " + propertyEnvName;
-				throw std::invalid_argument(error);
-			}
+	const std::string getAccessKeyIdEnvValue() const {
+		const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::ACCESS_KEY_ID);
+		return value;
+	}
 
-			const std::string propertyEnvValue = isDefined? std::string(envValue) : std::string();
+	const std::string getSecretKeyEnvValue() const {
+		const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::SECRET_KEY);
+		return value;
+	}
 
-			return propertyEnvValue;
-		}
+	const std::string getSessionTokenEnvValue() const {
+		const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::SESSION_TOKEN);
+		return value;
+	}
 
-		const std::string getBucketNameEnvValue() const {
-			const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::BUCKET_NAME);
-			return value;
-		}
-
-		const EncryptionType getEncryptionTypeEnvValue() const {
-			const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::ENCRYPTION_TYPE);
-			const EncryptionType encryptionType = encryptionTypeFromName(value);
-			return encryptionType;
-		}
-
-		const std::string getKmsKeyAmazonResourceNameEnvValue() const {
-			const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::KMS_KEY_AMAZON_RESOURCE_NAME);
-			return value;
-		}
-
-		const std::string getAccessKeyIdEnvValue() const {
-			const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::ACCESS_KEY_ID);
-			return value;
-		}
-
-		const std::string getSecretKeyEnvValue() const {
-			const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::SECRET_KEY);
-			return value;
-		}
-
-		const std::string getSessionTokenEnvValue() const {
-			const std::string value = getConnectionPropertyEnvValue(ConnectionProperty::SESSION_TOKEN);
-			return value;
-		}
-
-	protected:
-		std::unique_ptr<S3FileSystem> s3FileSystem;
+protected:
+	std::unique_ptr<S3FileSystem> s3FileSystem;
 };
 
 const std::string rootDirectoryName = "/test";
 
 TEST_F(ParquetOnS3Test, ReadParquetOnS3) {
-
 	Uri parquetFileLocation = Uri(FileSystemType::S3, AUTHORITY, Path("/tpch1gb-withnulls/lineitem_0_0.parquet"));
 
 	try {
-
 		std::shared_ptr<arrow::io::RandomAccessFile> randomAccessFile = s3FileSystem->openReadable(parquetFileLocation);
 		std::unique_ptr<parquet::ParquetFileReader> parquet_reader = parquet::ParquetFileReader::Open(randomAccessFile);
 
@@ -120,35 +117,35 @@ TEST_F(ParquetOnS3Test, ReadParquetOnS3) {
 
 		std::vector<unsigned long long> numRowsPerGroup(numRowGroups);
 
-		for(int j = 0; j < numRowGroups; j++){
-
+		for(int j = 0; j < numRowGroups; j++) {
 			std::shared_ptr<parquet::RowGroupReader> groupReader = parquet_reader->RowGroup(j);
-			const parquet::RowGroupMetaData* rowGroupMetadata = groupReader->metadata();
-			numRowsPerGroup[j] =rowGroupMetadata->num_rows();
+			const parquet::RowGroupMetaData * rowGroupMetadata = groupReader->metadata();
+			numRowsPerGroup[j] = rowGroupMetadata->num_rows();
 		}
 		parquet_reader->Close();
 		randomAccessFile->Close();
 
-		for(int rowGroupIndex  = 0; rowGroupIndex < numRowGroups; rowGroupIndex++){
+		for(int rowGroupIndex = 0; rowGroupIndex < numRowGroups; rowGroupIndex++) {
 			std::shared_ptr<parquet::RowGroupReader> groupReader = parquet_reader->RowGroup(rowGroupIndex);
-			const parquet::RowGroupMetaData* rowGroupMetadata = groupReader->metadata();
-			for(int blazingColumnIndex = 0; blazingColumnIndex < 15; blazingColumnIndex++){
-
+			const parquet::RowGroupMetaData * rowGroupMetadata = groupReader->metadata();
+			for(int blazingColumnIndex = 0; blazingColumnIndex < 15; blazingColumnIndex++) {
 				const parquet::ColumnDescriptor * column = schema->Column(blazingColumnIndex);
 
-				std::unique_ptr<parquet::ColumnChunkMetaData> columnMetaData = rowGroupMetadata->ColumnChunk(blazingColumnIndex);
+				std::unique_ptr<parquet::ColumnChunkMetaData> columnMetaData =
+					rowGroupMetadata->ColumnChunk(blazingColumnIndex);
 
 				parquet::Type::type type = column->physical_type();
 
-				if(columnMetaData->is_stats_set()){
+				if(columnMetaData->is_stats_set()) {
 					std::shared_ptr<parquet::RowGroupStatistics> statistics = columnMetaData->statistics();
 					EXPECT_TRUE(statistics->HasMinMax());
 				}
 
-				if ( type ==  parquet::Type::BYTE_ARRAY ){
+				if(type == parquet::Type::BYTE_ARRAY) {
 					const std::shared_ptr<parquet::ColumnReader> columnReader = groupReader->Column(blazingColumnIndex);
 
-					const std::shared_ptr<parquet::ByteArrayReader> parquetTypeReader = std::static_pointer_cast<parquet::ByteArrayReader>(columnReader);
+					const std::shared_ptr<parquet::ByteArrayReader> parquetTypeReader =
+						std::static_pointer_cast<parquet::ByteArrayReader>(columnReader);
 
 
 					int64_t valid_bits_offset = 0;
@@ -161,24 +158,30 @@ TEST_F(ParquetOnS3Test, ReadParquetOnS3) {
 
 					std::vector<parquet::ByteArray> valuesBuffer(amountToRead);
 					std::vector<int16_t> dresult(amountToRead, -1);
-					std::vector<int16_t> rresult(amountToRead, -1); // repetition levels must not be nullptr in order to avoid skipping null values
+					std::vector<int16_t> rresult(amountToRead,
+						-1);  // repetition levels must not be nullptr in order to avoid skipping null values
 					std::vector<uint8_t> valid_bits(amountToRead, 255);
 
-					int64_t rows_read = parquetTypeReader->ReadBatchSpaced(amountToRead, dresult.data(), rresult.data(), &(valuesBuffer[0]), valid_bits.data(), valid_bits_offset, &levels_read, &values_read, &null_count);
-
+					int64_t rows_read = parquetTypeReader->ReadBatchSpaced(amountToRead,
+						dresult.data(),
+						rresult.data(),
+						&(valuesBuffer[0]),
+						valid_bits.data(),
+						valid_bits_offset,
+						&levels_read,
+						&values_read,
+						&null_count);
 				}
-
 			}
 		}
-		EXPECT_TRUE(numRowsPerGroup.size() ==1);
-	} catch (parquet::ParquetException& e) {
+		EXPECT_TRUE(numRowsPerGroup.size() == 1);
+	} catch(parquet::ParquetException & e) {
 		std::string errorMessage = std::string(e.what());
 		EXPECT_TRUE(errorMessage == "");
 
 
-	} catch (std::exception& e) {
+	} catch(std::exception & e) {
 		std::string errorMessage = std::string(e.what());
 		EXPECT_TRUE(errorMessage == "");
 	}
-
 }

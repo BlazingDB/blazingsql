@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 
 tables = OrderedDict([
@@ -94,15 +95,17 @@ tables['supplier']['s_nationkey'] = 'short'
 
 tableNames = [tableName for tableName, tableColumns in tables.items()]
 
-import os
+
 def init_schema(drill, tpch_dir):
-  dir_path = os.path.dirname(os.path.realpath(__file__))
-  print(dir_path)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(dir_path)
 
-  for name in tableNames:
-    drill.query('DROP TABLE IF EXISTS dfs.tmp.`%(table)s`' % {'table': name})
+    for name in tableNames:
+        drill.query(
+            'DROP TABLE IF EXISTS dfs.tmp.`%(table)s`' % {
+                'table': name})
 
-  drill.query('''
+    drill.query('''
   create table dfs.tmp.`orders/` as
     select cast(columns[0] as bigint) as o_orderkey,
           cast(columns[1] as int) as o_custkey,
@@ -114,9 +117,9 @@ def init_schema(drill, tpch_dir):
           cast(columns[7] as int) as o_shippriority,
           columns[8] as o_comment
   FROM table(dfs.`%(tpch_dir)s/orders.psv`(type => 'text', fieldDelimiter => '|'))
-  ''' % {'tpch_dir': tpch_dir} )
+  ''' % {'tpch_dir': tpch_dir})
 
-  drill.query('''
+    drill.query('''
   create table dfs.tmp.`lineitem/` as
   select cast(columns[0] as bigint) as l_orderkey,
          cast(columns[1] as int) as l_partkey,
@@ -135,19 +138,18 @@ def init_schema(drill, tpch_dir):
          columns[14] as l_shipmode,
          columns[15] as l_comment
 FROM table(dfs.`%(tpch_dir)s/lineitem.psv`(type => 'text', fieldDelimiter => '|'))
-  ''' % {'tpch_dir': tpch_dir} )
+  ''' % {'tpch_dir': tpch_dir})
 
-
-  drill.query('''
+    drill.query('''
   create table dfs.tmp.`nation/` as
     select cast(columns[0] as int) as n_nationkey,
           columns[1] as n_name,
           cast(columns[2] as int) as n_regionkey,
           columns[3] as n_comment
   FROM table(dfs.`%(tpch_dir)s/nation.psv`(type => 'text', fieldDelimiter => '|'))
-  ''' % {'tpch_dir': tpch_dir} )
+  ''' % {'tpch_dir': tpch_dir})
 
-  drill.query('''
+    drill.query('''
   create table dfs.tmp.`customer` as
           select cast(columns[0] as int) as c_custkey,
           columns[1] as c_name,
@@ -158,9 +160,9 @@ FROM table(dfs.`%(tpch_dir)s/lineitem.psv`(type => 'text', fieldDelimiter => '|'
           columns[6] as c_mktsegment,
           columns[7] as c_comment
   FROM table(dfs.`%(tpch_dir)s/customer.psv`(type => 'text', fieldDelimiter => '|'))
-  ''' % {'tpch_dir': tpch_dir} )
+  ''' % {'tpch_dir': tpch_dir})
 
-  drill.query('''
+    drill.query('''
   create table dfs.tmp.`part/` as
   select cast(columns[0] as int) as p_partkey,
           columns[1] as p_name,
@@ -172,9 +174,9 @@ FROM table(dfs.`%(tpch_dir)s/lineitem.psv`(type => 'text', fieldDelimiter => '|'
           cast(columns[7] as double) as p_retailprice,
           columns[8] as p_comment
   FROM table(dfs.`%(tpch_dir)s/part.psv`(type => 'text', fieldDelimiter => '|'))
-  ''' % {'tpch_dir': tpch_dir} )
+  ''' % {'tpch_dir': tpch_dir})
 
-  drill.query('''
+    drill.query('''
   create table dfs.tmp.`partsupp/` as
     select cast(columns[0] as int) as ps_partkey,
           cast(columns[1] as int) as ps_suppkey,
@@ -182,11 +184,9 @@ FROM table(dfs.`%(tpch_dir)s/lineitem.psv`(type => 'text', fieldDelimiter => '|'
           cast(columns[3] as double) as ps_supplycost,
           columns[4] as ps_comment
   FROM table(dfs.`%(tpch_dir)s/partsupp.psv`(type => 'text', fieldDelimiter => '|'))
-  ''' % {'tpch_dir': tpch_dir} )
+  ''' % {'tpch_dir': tpch_dir})
 
-
-
-  drill.query('''
+    drill.query('''
   create table dfs.tmp.`supplier/` as
   select cast(columns[0] as int) as s_suppkey,
           columns[1] as s_name,
@@ -196,13 +196,12 @@ FROM table(dfs.`%(tpch_dir)s/lineitem.psv`(type => 'text', fieldDelimiter => '|'
           cast(columns[5] as double) as s_acctbal,
           columns[6] as s_comment
   FROM table(dfs.`%(tpch_dir)s/supplier.psv`(type => 'text', fieldDelimiter => '|'))
-    ''' % {'tpch_dir': tpch_dir} )
+    ''' % {'tpch_dir': tpch_dir})
 
-
-  drill.query('''
+    drill.query('''
   CREATE TABLE dfs.tmp.`region/` AS
   SELECT cast(columns[0] as int) as `r_regionkey`,
           columns[1] as `r_name`,
           columns[2] as `r_comment`
   FROM table(dfs.`%(tpch_dir)s/region.psv`(type => 'text', fieldDelimiter => '|'))
-  ''' % {'tpch_dir': tpch_dir} )
+  ''' % {'tpch_dir': tpch_dir})

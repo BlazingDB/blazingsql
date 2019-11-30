@@ -7,7 +7,7 @@ public class ProcessRequestResult {
 	public boolean shutdown;
 
 	ProcessRequestResult(ByteBuffer responseBuffer, boolean shutdown) {
-		this.responseBuffer = responseBuffer; 
-		this.shutdown = shutdown; 
+		this.responseBuffer = responseBuffer;
+		this.shutdown = shutdown;
 	}
 }
