@@ -23,14 +23,16 @@ def replace_all(text, dic):
 def get_blazingsql_query(db_name, query):
     new_query = query
     for table_name in get_table_occurrences(query):
-        new_query = replace_all(new_query, {table_name: ' %(table)s ' % {'table': db_name + '.' + table_name}})
+        new_query = replace_all(new_query, {table_name: ' %(table)s ' % {
+                                'table': db_name + '.' + table_name}})
     return new_query
 
 
 def get_drill_query(query):
     new_query = query
     for table_name in get_table_occurrences(query):
-        new_query = replace_all(new_query, {table_name: ' dfs.tmp.`%(table)s` ' % {'table': table_name}})
+        new_query = replace_all(
+            new_query, {table_name: ' dfs.tmp.`%(table)s` ' % {'table': table_name}})
     return new_query
 
 
@@ -66,18 +68,31 @@ def get_reference_input(drill, root_path, test_name, query):
       "resultTypes": %(result_types)s,
       "resultColumnNames": %(result_names)s
   }
-  ''') % {'test_name': test_name,
-          'query': get_blazingsql_query(db_name, query),
-          'table_inputs': ','.join(table_inputs),
-          'result': get_reference_result(drill, table, drill_query),
-          'result_types': get_reference_result_types(drill, table, drill_query),
-          'result_names': get_reference_result_names(drill, table, drill_query),
-          }
+  ''') % {
+        'test_name': test_name,
+        'query': get_blazingsql_query(
+            db_name,
+            query),
+        'table_inputs': ','.join(table_inputs),
+        'result': get_reference_result(
+            drill,
+            table,
+            drill_query),
+        'result_types': get_reference_result_types(
+            drill,
+            table,
+            drill_query),
+        'result_names': get_reference_result_names(
+            drill,
+            table,
+            drill_query),
+    }
 
 
 def get_reference_result_names(drill, table, query_str):
     query_result = drill.query(query_str)
-    return '[%s]' % (','.join(['"%s"' % name for name in query_result.columns]))
+    return '[%s]' % (
+        ','.join(['"%s"' % name for name in query_result.columns]))
 
 
 def get_reference_result(drill, table, query_str):
@@ -85,7 +100,8 @@ def get_reference_result(drill, table, query_str):
     df = query_result.to_dataframe()
     items = []
     for column in query_result.columns:
-        s = '[%s]' % (','.join(['-1' if item is None else '1' if item is True else '0' if item is False else item for item in np.asarray(df[column])]))
+        s = '[%s]' % (','.join(
+            ['-1' if item is None else '1' if item is True else '0' if item is False else item for item in np.asarray(df[column])]))
         items.append(s)
 
     return '[%s]' % (','.join(items))
@@ -97,7 +113,7 @@ def get_reference_result_types(drill, table, query_str):
 
     for col in query_result.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
-        
+
     items = []
 
     def get_dtype(dtype):
@@ -118,7 +134,8 @@ def get_reference_result_types(drill, table, query_str):
             return dicc[_type]
         return 'GDF_INT64'
 
-    return '[%s]' % (','.join(['"%s"' % get_dtype(df[column].dtype) for column in query_result.columns]))
+    return '[%s]' % (','.join(['"%s"' % get_dtype(df[column].dtype)
+                               for column in query_result.columns]))
 
 
 def get_gdf_type(table, column_name):
@@ -138,14 +155,16 @@ def get_gdf_type(table, column_name):
 
 
 def get_column_names(table):
-    return '[%s]' % (','.join(['"%s"' % _name for _name, _type in table.items()]))
+    return '[%s]' % (
+        ','.join(['"%s"' % _name for _name, _type in table.items()]))
 
 
 def get_column_types(table):
-    return '[%s]' % (','.join(['"%s"' % gdf_type(native_type(_type)) for _name, _type in table.items()]))
+    return '[%s]' % (','.join(['"%s"' % gdf_type(native_type(_type))
+                               for _name, _type in table.items()]))
 
 
-def native_type(type_name): # to conver string(xyz) to string 
+def native_type(type_name):  # to conver string(xyz) to string
     if type_name.find('string') != -1:
         return 'string'
     else:
@@ -167,7 +186,10 @@ def gdf_type(type_name):
 
 def get_selected_columns(table):
     # [ y for y in a if y not in b]
-    return [_name for _name, _type in table.items() if _type.find('string') == -1]
+    return [
+        _name for _name,
+        _type in table.items() if _type.find('string') == -
+        1]
 
 
 def write(json_list):
@@ -178,23 +200,26 @@ def write(json_list):
     return type('writer', (), dict(to=to))
 
 
-def generate_json_input(drill, tpch_path, your_queries, output):        
+def generate_json_input(drill, tpch_path, your_queries, output):
     print('# OUTPUT \t', output)
-    
+
     json_list = []
     for index, query in enumerate(your_queries):
         print('## processing...\t', query)
-        json_text = get_reference_input(drill, tpch_path, 'TEST_0%s' % index, query)
+        json_text = get_reference_input(
+            drill, tpch_path, 'TEST_0%s' %
+            index, query)
         json_list.append(json_text)
     write(json_list).to(output)
 
-     
+
 if __name__ == '__main__':
     drill = PyDrill(host='localhost', port=8047)
     if not drill.is_active():
         raise Exception('Please run Drill first')
 
-    parser = argparse.ArgumentParser(description='Generate Input Generator for UnitTestGenerator.')
+    parser = argparse.ArgumentParser(
+        description='Generate Input Generator for UnitTestGenerator.')
     parser.add_argument('tpch_path', type=str,
                         help='use complete path, ex /tmp/tpch/1mb/')
     parser.add_argument('-O', '--output', type=str, default='-',
@@ -204,10 +229,8 @@ if __name__ == '__main__':
     tpch_path = args.tpch_path
     tpch.init_schema(drill, tpch_path)
 
-    
     your_queries = [
-        'select c_custkey, c_nationkey, c_acctbal from customer where c_custkey < 15', 
+        'select c_custkey, c_nationkey, c_acctbal from customer where c_custkey < 15',
     ]
 
-    generate_json_input(drill, tpch_path, your_queries, args.output) 
-    
+    generate_json_input(drill, tpch_path, your_queries, args.output)

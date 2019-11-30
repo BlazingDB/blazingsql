@@ -1,10 +1,10 @@
 #pragma once
 
-#include "blazingdb/transport/common/macros.hpp"
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
+#include "blazingdb/transport/common/macros.hpp"
 
 namespace blazingdb {
 namespace transport {
@@ -36,8 +36,8 @@ public:
 
 protected:
   explicit Address(Type type, const std::string &ip,
-          const std::int16_t communication_port,
-          const std::int16_t protocol_port);
+                   const std::int16_t communication_port,
+                   const std::int16_t protocol_port);
 
 public:
   static std::shared_ptr<Address> TCP(const std::string &ip,
@@ -52,5 +52,5 @@ protected:
   BZ_INTERFACE(Address);
 };
 
-} // namespace transport
-} // namespace blazingdb
+}  // namespace transport
+}  // namespace blazingdb

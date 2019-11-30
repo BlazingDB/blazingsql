@@ -23,8 +23,8 @@ void Node::print() const {
   std::string isAvailable = isAvailable_ ? "true" : "false";
   auto metadata = this->address()->metadata();
   std::cout << "NODE: isAvailable_: " << isAvailable << "|" << metadata.ip
-            << "|comunication_port: " << metadata.comunication_port<< "|protocol_port:"
-            <<  metadata.protocol_port << "\n";
+            << "|comunication_port: " << metadata.comunication_port
+            << "|protocol_port:" << metadata.protocol_port << "\n";
 }
 
 std::shared_ptr<blazingdb::transport::Node> Node::Make(

@@ -1,6 +1,6 @@
 #include "Common/HadoopFileSystemTest.h"
 
-//TODO percy use the result pattern
+// TODO percy use the result pattern
 
 TEST_F(HadoopFileSystemTest, RemoveDirectory) {
 	EXPECT_TRUE(nativeHdfs.exists("/resources/directory01"));

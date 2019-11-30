@@ -5,40 +5,39 @@
 #include "FileSystem/FileSystemRepository.h"
 
 class FileSystemRepositoryTest {
-	public:
-		FileSystemRepositoryTest(bool encrypted) {
-			const std::string dataFile = "/tmp/filesystemrepositorytest";
-			this->fileSystemRepository = std::unique_ptr<FileSystemRepository>(new FileSystemRepository(std::move(dataFile), encrypted));
-		}
+public:
+	FileSystemRepositoryTest(bool encrypted) {
+		const std::string dataFile = "/tmp/filesystemrepositorytest";
+		this->fileSystemRepository =
+			std::unique_ptr<FileSystemRepository>(new FileSystemRepository(std::move(dataFile), encrypted));
+	}
 
-	protected:
-		std::unique_ptr<FileSystemRepository> fileSystemRepository;
+protected:
+	std::unique_ptr<FileSystemRepository> fileSystemRepository;
 };
 
 class UnencryptedFileSystemRepositoryTest : public FileSystemRepositoryTest {
-	public:
-		UnencryptedFileSystemRepositoryTest() : FileSystemRepositoryTest(false) {
-		}
+public:
+	UnencryptedFileSystemRepositoryTest() : FileSystemRepositoryTest(false) {}
 };
 
 class EncryptedFileSystemRepositoryTest : public FileSystemRepositoryTest {
-	public:
-		EncryptedFileSystemRepositoryTest() : FileSystemRepositoryTest(true) {
-		}
+public:
+	EncryptedFileSystemRepositoryTest() : FileSystemRepositoryTest(true) {}
 };
 
 class AddFileSystemTest : public testing::TestWithParam<FileSystemEntity> {
-	protected:
-		virtual void SetUp() {
-			const FileSystemEntity param = GetParam(); // test parameter
+protected:
+	virtual void SetUp() {
+		const FileSystemEntity param = GetParam();  // test parameter
 
-			this->fileSystemEntity = param;
-		}
+		this->fileSystemEntity = param;
+	}
 
-		virtual void TearDown() {}
+	virtual void TearDown() {}
 
-	protected:
-		FileSystemEntity fileSystemEntity;
+protected:
+	FileSystemEntity fileSystemEntity;
 };
 
 class AddUnencryptedFileSystemTest : public AddFileSystemTest, public UnencryptedFileSystemRepositoryTest {};
@@ -51,190 +50,167 @@ class AddInvalidUnencryptedFileSystemTest : public AddUnencryptedFileSystemTest 
 class AddInvalidEncryptedFileSystemTest : public AddEncryptedFileSystemTest {};
 
 class FindAllFileSystemTest : public testing::Test {
-	protected:
-		virtual void SetUp() {}
-		virtual void TearDown() {}
+protected:
+	virtual void SetUp() {}
+	virtual void TearDown() {}
 };
 
 class FindAllUnencryptedFileSystemTest : public FindAllFileSystemTest, public UnencryptedFileSystemRepositoryTest {};
 class FindAllEncryptedFileSystemTest : public FindAllFileSystemTest, public EncryptedFileSystemRepositoryTest {};
 
 class DeleteFileSystemTest : public testing::Test {
-	protected:
-		virtual void SetUp() {}
-		virtual void TearDown() {}
+protected:
+	virtual void SetUp() {}
+	virtual void TearDown() {}
 };
 
 class DeleteUnencryptedFileSystemTest : public DeleteFileSystemTest, public UnencryptedFileSystemRepositoryTest {};
 class DeleteEncryptedFileSystemTest : public DeleteFileSystemTest, public EncryptedFileSystemRepositoryTest {};
 
 const std::vector<FileSystemEntity> validFileSystems = {
-	//BEGIN LOCAL
+	// BEGIN LOCAL
 
-	FileSystemEntity(
-		"local_disk1", // authority
-		FileSystemConnection(  // valid FileSystemConnection instance
-			FileSystemType::LOCAL
+	FileSystemEntity("local_disk1",  // authority
+		FileSystemConnection(		 // valid FileSystemConnection instance
+			FileSystemType::LOCAL),
+		Path("/hi/")  // root
 		),
-		Path("/hi/") // root
-	),
 
-	//END LOCAL
+	// END LOCAL
 
-	//BEGIN HDFS
+	// BEGIN HDFS
 
-	FileSystemEntity(
-		"hdf_disk1", // authority
-		FileSystemConnection(  // valid FileSystemConnection instance
+	FileSystemEntity("hdf_disk1",  // authority
+		FileSystemConnection(	  // valid FileSystemConnection instance
 			"127.0.0.1",
 			457,
 			"percy",
 			HadoopFileSystemConnection::DriverType::LIBHDFS3,
-			"kerberosTicket33"
+			"kerberosTicket33"),
+		Path("/hola/a")  // root
 		),
-		Path("/hola/a") // root
-	),
 
-	//END HDFS
+	// END HDFS
 
-	//BEGIN S3
+	// BEGIN S3
 
-	FileSystemEntity(
-		"percy_s3_b1", // authority
-		FileSystemConnection(  // valid FileSystemConnection instance
+	FileSystemEntity("percy_s3_b1",  // authority
+		FileSystemConnection(		 // valid FileSystemConnection instance
 			"simply-test",
 			S3FileSystemConnection::EncryptionType::NONE,
 			"",
 			"accessKeyId2",
 			"secretKey33",
-			"sessionToken11"
+			"sessionToken11"),
+		Path("/")  // root
 		),
-		Path("/") // root
-	),
 
-	FileSystemEntity(
-		"percy_s3_aes256", // authority
-		FileSystemConnection(  // valid FileSystemConnection instance
+	FileSystemEntity("percy_s3_aes256",  // authority
+		FileSystemConnection(			 // valid FileSystemConnection instance
 			"simply-test",
 			S3FileSystemConnection::EncryptionType::AES_256,
 			"",
 			"accessKeyId2",
 			"secretKey33",
-			"sessionToken11"
+			"sessionToken11"),
+		Path("/hi/")  // root
 		),
-		Path("/hi/") // root
-	),
 
-	FileSystemEntity(
-		"percy_s3_awskms", // authority
-		FileSystemConnection(  // valid FileSystemConnection instance
+	FileSystemEntity("percy_s3_awskms",  // authority
+		FileSystemConnection(			 // valid FileSystemConnection instance
 			"simply-test",
 			S3FileSystemConnection::EncryptionType::AWS_KMS,
 			"arn:aws:a3sdmasterkey",
 			"accessKeyId2",
 			"secretKey33",
-			""
-		),
-		Path("/hi/hello/") // root
-	)
+			""),
+		Path("/hi/hello/")  // root
+		)
 
-	//END S3
+	// END S3
 };
 
 const std::vector<FileSystemEntity> invalidFileSystems = {
-	FileSystemEntity(
-		"local_disk1", // authority
-		FileSystemConnection(  // invalid FileSystemConnection instance
-			FileSystemType::S3
+	FileSystemEntity("local_disk1",  // authority
+		FileSystemConnection(		 // invalid FileSystemConnection instance
+			FileSystemType::S3),
+		Path("/hi/")  // root
 		),
-		Path("/hi/") // root
-	),
 
-	//BEGIN HDFS
+	// BEGIN HDFS
 
-	FileSystemEntity(
-		"hdf_disk1", // authority
-		FileSystemConnection(  // invalid FileSystemConnection instance
+	FileSystemEntity("hdf_disk1",  // authority
+		FileSystemConnection(	  // invalid FileSystemConnection instance
 			"127.0.0.1",
 			-457,
 			"percy",
 			HadoopFileSystemConnection::DriverType::LIBHDFS3,
-			"kerberosTicket33"
+			"kerberosTicket33"),
+		Path("/hola/a")  // root
 		),
-		Path("/hola/a") // root
-	),
 
-	FileSystemEntity(
-		"hdf_disk1", // authority
-		FileSystemConnection(  // invalid FileSystemConnection instance
+	FileSystemEntity("hdf_disk1",  // authority
+		FileSystemConnection(	  // invalid FileSystemConnection instance
 			"127.0.0.1",
 			457,
 			"percy",
 			HadoopFileSystemConnection::DriverType::UNDEFINED,
-			"kerberosTicket33"
+			"kerberosTicket33"),
+		Path("/hola/a")  // root
 		),
-		Path("/hola/a") // root
-	),
 
-	FileSystemEntity(
-		"hdf_disk1", // authority
-		FileSystemConnection(  // invalid FileSystemConnection instance
+	FileSystemEntity("hdf_disk1",  // authority
+		FileSystemConnection(	  // invalid FileSystemConnection instance
 			"127.0.0.1",
 			457,
 			"percy",
 			HadoopFileSystemConnection::DriverType::LIBHDFS,
-			"kerberosTicket33"
+			"kerberosTicket33"),
+		Path("invalid asd")  // root
 		),
-		Path("invalid asd") // root
-	),
 
-	//END HDFS
+	// END HDFS
 
-	//BEGIN S3
+	// BEGIN S3
 
-	FileSystemEntity(
-		"percy_s3_b1", // authority
-		FileSystemConnection(  // invalid FileSystemConnection instance
+	FileSystemEntity("percy_s3_b1",  // authority
+		FileSystemConnection(		 // invalid FileSystemConnection instance
 			"simply-test",
 			S3FileSystemConnection::EncryptionType::UNDEFINED,
 			"",
 			"accessKeyId2",
 			"secretKey33",
-			"sessionToken11"
+			"sessionToken11"),
+		Path("/")  // root
 		),
-		Path("/") // root
-	),
 
-	FileSystemEntity(
-		"percy_s3_aes256", // authority
-		FileSystemConnection(  // invalid FileSystemConnection instance
+	FileSystemEntity("percy_s3_aes256",  // authority
+		FileSystemConnection(			 // invalid FileSystemConnection instance
 			"simply-test",
 			S3FileSystemConnection::EncryptionType::AWS_KMS,
-			"", // if EncryptionType::AWS_KMS this field should not be empty
+			"",  // if EncryptionType::AWS_KMS this field should not be empty
 			"accessKeyId2",
 			"secretKey33",
-			"sessionToken11"
+			"sessionToken11"),
+		Path("/hi/")  // root
 		),
-		Path("/hi/") // root
-	),
 
-	FileSystemEntity(
-		"percy_s3_awskms", // authority
-		FileSystemConnection(  // invalid FileSystemConnection instance
+	FileSystemEntity("percy_s3_awskms",  // authority
+		FileSystemConnection(			 // invalid FileSystemConnection instance
 			"simply-test",
 			S3FileSystemConnection::EncryptionType::AWS_KMS,
 			"arn:aws:a3sdmasterkey",
 			"",
 			"",
-			""
-		),
-		Path("/hi/hello/") // root
-	)
+			""),
+		Path("/hi/hello/")  // root
+		)
 
-	//END S3
+	// END S3
 };
 
-static void checkAddValidFileSystem(const std::unique_ptr<FileSystemRepository> &fileSystemRepository, const FileSystemEntity &fileSystemEntity) {
+static void checkAddValidFileSystem(
+	const std::unique_ptr<FileSystemRepository> & fileSystemRepository, const FileSystemEntity & fileSystemEntity) {
 	const std::string dataFile = fileSystemRepository->getDataFile().toString(true);
 
 	std::remove(dataFile.c_str());
@@ -253,7 +229,8 @@ static void checkAddValidFileSystem(const std::unique_ptr<FileSystemRepository> 
 	std::remove(dataFile.c_str());
 }
 
-static void checkAddInvalidFileSystem(const std::unique_ptr<FileSystemRepository> &fileSystemRepository, const FileSystemEntity &fileSystemEntity) {
+static void checkAddInvalidFileSystem(
+	const std::unique_ptr<FileSystemRepository> & fileSystemRepository, const FileSystemEntity & fileSystemEntity) {
 	const std::string dataFile = fileSystemRepository->getDataFile().toString(true);
 
 	std::remove(dataFile.c_str());
@@ -271,12 +248,12 @@ static void checkAddInvalidFileSystem(const std::unique_ptr<FileSystemRepository
 	std::remove(dataFile.c_str());
 }
 
-static void checkFindAllFileSystem(const std::unique_ptr<FileSystemRepository> &fileSystemRepository) {
+static void checkFindAllFileSystem(const std::unique_ptr<FileSystemRepository> & fileSystemRepository) {
 	const std::string dataFile = fileSystemRepository->getDataFile().toString(true);
 
 	std::remove(dataFile.c_str());
 
-	for (const FileSystemEntity &fileSystemEntity : validFileSystems) {
+	for(const FileSystemEntity & fileSystemEntity : validFileSystems) {
 		fileSystemRepository->add(fileSystemEntity);
 	}
 
@@ -284,24 +261,24 @@ static void checkFindAllFileSystem(const std::unique_ptr<FileSystemRepository> &
 
 	EXPECT_EQ(all.size(), validFileSystems.size());
 
-	for (int i = 0; i < all.size(); ++i) {
+	for(int i = 0; i < all.size(); ++i) {
 		EXPECT_EQ(all[i], validFileSystems[i]);
 	}
 
 	std::remove(dataFile.c_str());
 }
 
-static void checkDeleteFileSystem(const std::unique_ptr<FileSystemRepository> &fileSystemRepository) {
+static void checkDeleteFileSystem(const std::unique_ptr<FileSystemRepository> & fileSystemRepository) {
 	const std::string dataFile = fileSystemRepository->getDataFile().toString(true);
 
 	std::remove(dataFile.c_str());
 
-	for (const FileSystemEntity &fileSystemEntity : validFileSystems) {
+	for(const FileSystemEntity & fileSystemEntity : validFileSystems) {
 		fileSystemRepository->add(fileSystemEntity);
 	}
 
-	const int deletedIndex = 0; // we will delete the first element
-	const std::string &authority = validFileSystems.at(deletedIndex).getAuthority();
+	const int deletedIndex = 0;  // we will delete the first element
+	const std::string & authority = validFileSystems.at(deletedIndex).getAuthority();
 	const bool ok = fileSystemRepository->deleteByAuthority(authority);
 
 	EXPECT_TRUE(ok);
@@ -311,8 +288,8 @@ static void checkDeleteFileSystem(const std::unique_ptr<FileSystemRepository> &f
 	EXPECT_EQ(all.size(), validFileSystems.size() - 1);
 
 	int loadedIndex = 0;
-	for (int i = 0; i < validFileSystems.size(); ++i) {
-		if (i == loadedIndex) {
+	for(int i = 0; i < validFileSystems.size(); ++i) {
+		if(i == loadedIndex) {
 			continue;
 		}
 
@@ -352,12 +329,15 @@ TEST_F(DeleteUnencryptedFileSystemTest, CheckDeleteUnencryptedFileSystem) {
 	checkDeleteFileSystem(fileSystemRepository);
 }
 
-TEST_F(DeleteEncryptedFileSystemTest, CheckDeleteEncryptedFileSystem) {
-	checkDeleteFileSystem(fileSystemRepository);
-}
+TEST_F(DeleteEncryptedFileSystemTest, CheckDeleteEncryptedFileSystem) { checkDeleteFileSystem(fileSystemRepository); }
 
-INSTANTIATE_TEST_CASE_P(AddValidUnencryptedFileSystemTestCase, AddValidUnencryptedFileSystemTest, testing::ValuesIn(validFileSystems));
-INSTANTIATE_TEST_CASE_P(AddValidEncryptedFileSystemTestCase, AddValidEncryptedFileSystemTest, testing::ValuesIn(validFileSystems));
+INSTANTIATE_TEST_CASE_P(
+	AddValidUnencryptedFileSystemTestCase, AddValidUnencryptedFileSystemTest, testing::ValuesIn(validFileSystems));
+INSTANTIATE_TEST_CASE_P(
+	AddValidEncryptedFileSystemTestCase, AddValidEncryptedFileSystemTest, testing::ValuesIn(validFileSystems));
 
-INSTANTIATE_TEST_CASE_P(AddInvalidUnencryptedFileSystemTestCase, AddInvalidUnencryptedFileSystemTest, testing::ValuesIn(invalidFileSystems));
-INSTANTIATE_TEST_CASE_P(AddInvalidEncryptedFileSystemTestCase, AddInvalidEncryptedFileSystemTest, testing::ValuesIn(invalidFileSystems));
+INSTANTIATE_TEST_CASE_P(AddInvalidUnencryptedFileSystemTestCase,
+	AddInvalidUnencryptedFileSystemTest,
+	testing::ValuesIn(invalidFileSystems));
+INSTANTIATE_TEST_CASE_P(
+	AddInvalidEncryptedFileSystemTestCase, AddInvalidEncryptedFileSystemTest, testing::ValuesIn(invalidFileSystems));

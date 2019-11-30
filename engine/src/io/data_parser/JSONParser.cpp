@@ -6,9 +6,9 @@
  */
 
 #include "JSONParser.h"
-#include <cudf/legacy/io_functions.hpp>
-#include <cudf/legacy/column.hpp>
 #include <blazingdb/io/Util/StringUtil.h>
+#include <cudf/legacy/column.hpp>
+#include <cudf/legacy/io_functions.hpp>
 
 #include <arrow/io/file.h>
 #include <arrow/status.h>
@@ -26,9 +26,7 @@
 namespace ral {
 namespace io {
 
-json_parser::json_parser(cudf::json_read_arg args) : args(args) {
-
-}
+json_parser::json_parser(cudf::json_read_arg args) : args(args) {}
 
 json_parser::~json_parser() {
 	// TODO Auto-generated destructor stub
@@ -40,12 +38,16 @@ json_parser::~json_parser() {
  * Read in a JSON file, extract all fields, and return a GDF (array of gdf_columns) using arrow interface
  **/
 
-cudf::table read_json_arrow(std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle, bool lines,cudf::json_read_arg args, bool first_row_only = false)
-{
-	int64_t 	num_bytes;
+cudf::table read_json_arrow(std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
+	bool lines,
+	cudf::json_read_arg args,
+	bool first_row_only = false) {
+	int64_t num_bytes;
 	arrow_file_handle->GetSize(&num_bytes);
 
-	if (first_row_only && num_bytes > 48192) // lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
+	if(first_row_only &&
+		num_bytes >
+			48192)  // lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
 		num_bytes = 48192;
 
 	std::string buffer;
@@ -53,7 +55,7 @@ cudf::table read_json_arrow(std::shared_ptr<arrow::io::RandomAccessFile> arrow_f
 
 	args.source = cudf::source_info(arrow_file_handle);
 
-	if (first_row_only) {
+	if(first_row_only) {
 		args.byte_range_offset = 0;
 		args.byte_range_size = num_bytes;
 	}
@@ -69,38 +71,39 @@ void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	std::vector<gdf_column_cpp> & columns_out,
 	const Schema & schema,
-	std::vector<size_t> column_indices){
-
-	if (column_indices.size() == 0){ // including all columns by default
+	std::vector<size_t> column_indices) {
+	if(column_indices.size() == 0) {  // including all columns by default
 		column_indices.resize(schema.get_num_columns());
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 	}
 
-	if (file == nullptr){
-		columns_out = create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
+	if(file == nullptr) {
+		columns_out =
+			create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
 		return;
 	}
 
-	if (column_indices.size() > 0){
-		//NOTE: All json columns will be read, we need to delete the unselected columns
-		cudf::table table_out = read_json_arrow(file, this->args.lines,this->args);
+	if(column_indices.size() > 0) {
+		// NOTE: All json columns will be read, we need to delete the unselected columns
+		cudf::table table_out = read_json_arrow(file, this->args.lines, this->args);
 		assert(table_out.num_columns() > 0);
 
 		columns_out.resize(column_indices.size());
-		for(size_t sel_idx = 0; sel_idx < columns_out.size(); sel_idx++){
-			if (table_out.get_column(column_indices[sel_idx])->dtype == GDF_STRING){
-				NVStrings* strs = static_cast<NVStrings*>(table_out.get_column(column_indices[sel_idx])->data);
-				NVCategory* category = NVCategory::create_from_strings(*strs);
+		for(size_t sel_idx = 0; sel_idx < columns_out.size(); sel_idx++) {
+			if(table_out.get_column(column_indices[sel_idx])->dtype == GDF_STRING) {
+				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(column_indices[sel_idx])->data);
+				NVCategory * category = NVCategory::create_from_strings(*strs);
 				std::string column_name(table_out.get_column(column_indices[sel_idx])->col_name);
-				columns_out[sel_idx].create_gdf_column(category, table_out.get_column(column_indices[sel_idx])->size, column_name);
+				columns_out[sel_idx].create_gdf_column(
+					category, table_out.get_column(column_indices[sel_idx])->size, column_name);
 				gdf_column_free(table_out.get_column(column_indices[sel_idx]));
 			} else {
 				columns_out[sel_idx].create_gdf_column(table_out.get_column(column_indices[sel_idx]));
 			}
 		}
 
-		//Releasing the unselected columns
-		for(size_t idx = 0; idx < table_out.num_columns() && column_indices.size() > 0 ; idx++){
+		// Releasing the unselected columns
+		for(size_t idx = 0; idx < table_out.num_columns() && column_indices.size() > 0; idx++) {
 			if(std::find(column_indices.begin(), column_indices.end(), idx) == column_indices.end()) {
 				gdf_column_free(table_out.get_column(idx));
 			}
@@ -108,17 +111,16 @@ void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	}
 }
 
-void json_parser::parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile> > files, ral::io::Schema & schema_out)  {
-
-
-	cudf::table table_out = read_json_arrow(files[0], this->args.lines,this->args, true );
+void json_parser::parse_schema(
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema_out) {
+	cudf::table table_out = read_json_arrow(files[0], this->args.lines, this->args, true);
 	assert(table_out.num_columns() > 0);
 
-	for(size_t i = 0; i < table_out.num_columns(); i++ ){
+	for(size_t i = 0; i < table_out.num_columns(); i++) {
 		gdf_column_cpp c;
 		c.create_gdf_column(table_out.get_column(i));
 		c.set_name(table_out.get_column(i)->col_name);
-		schema_out.add_column(c,i);
+		schema_out.add_column(c, i);
 	}
 }
 

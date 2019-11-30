@@ -19,22 +19,19 @@ public:
 
   virtual void Close() = 0;
 
-  virtual void SetDevice(int)  = 0;
-
+  virtual void SetDevice(int) = 0;
 };
 
 class ClientTCP : public Client {
 public:
-
-  virtual Status Send(GPUMessage &message) = 0;
+  virtual Status Send(GPUMessage& message) = 0;
 
   virtual void Close() = 0;
 
   virtual void SetDevice(int) = 0;
 
   static std::shared_ptr<Client> Make(const std::string& ip, int16_t port);
-
 };
 
-} // namespace transport
-} // namespace blazingdb
+}  // namespace transport
+}  // namespace blazingdb
