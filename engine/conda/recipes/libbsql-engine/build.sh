@@ -21,7 +21,7 @@ export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
 
 echo "cmake -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=$build_type .."
-cmake -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
+cmake -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
 
 echo "make -j blazingsql-engine"
 make -j blazingsql-engine
