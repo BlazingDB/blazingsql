@@ -936,54 +936,55 @@ query_token_t evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 }
 
 
-blazing_frame evaluate_query(std::vector<ral::io::data_loader> input_loaders,
-	std::vector<ral::io::Schema> schemas,
-	std::vector<std::string> table_names,
-	std::string logicalPlan,
-	connection_id_t connection,
-	Context & queryContext) {
-	CodeTimer blazing_timer;
-	ral::config::GPUManager::getInstance().setDevice();
 
-	Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "\"Query Start\n" + logicalPlan + "\""));
+blazing_frame evaluate_query(
+		std::vector<ral::io::data_loader > input_loaders,
+		std::vector<ral::io::Schema> schemas,
+		std::vector<std::string> table_names,
+		std::string logicalPlan,
+		connection_id_t connection,
+		Context& queryContext
+		){
 
-	std::vector<std::string> splitted = StringUtil::split(logicalPlan, "\n");
-	if(splitted[splitted.size() - 1].length() == 0) {
-		splitted.erase(splitted.end() - 1);
-	}
+		CodeTimer blazing_timer;
+		ral::config::GPUManager::getInstance().setDevice();
 
-	try {
-		blazing_frame output_frame = evaluate_split_query(input_loaders, schemas, table_names, splitted, &queryContext);
-		for(size_t i = 0; i < output_frame.get_width(); i++) {
-			if(output_frame.get_column(i).dtype() == GDF_STRING_CATEGORY) {
-				NVStrings * new_strings = nullptr;
-				if(output_frame.get_column(i).size() > 0) {
-					NVCategory * new_category =
-						static_cast<NVCategory *>(output_frame.get_column(i).dtype_info().category)
-							->gather_and_remap(static_cast<int *>(output_frame.get_column(i).data()),
-								output_frame.get_column(i).size());
-					new_strings = new_category->to_strings();
-					NVCategory::destroy(new_category);
-				} else {
-					new_strings = NVStrings::create_from_array(nullptr, 0);
+		Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "\"Query Start\n" + logicalPlan + "\""));
+
+		std::vector<std::string> splitted = StringUtil::split(logicalPlan, "\n");
+		if (splitted[splitted.size() - 1].length() == 0) {
+			splitted.erase(splitted.end() -1);
+		}
+
+		try {
+			blazing_frame output_frame = evaluate_split_query(input_loaders, schemas,table_names, splitted, &queryContext);
+			for (size_t i=0;i<output_frame.get_width();i++) {
+				if (output_frame.get_column(i).dtype() == GDF_STRING_CATEGORY) {
+					NVStrings * new_strings = nullptr;
+					if (output_frame.get_column(i).size() > 0) {
+						NVCategory* new_category = static_cast<NVCategory *> (output_frame.get_column(i).dtype_info().category)->gather_and_remap( static_cast<int *>(output_frame.get_column(i).data()), output_frame.get_column(i).size());												
+						new_strings = new_category->to_strings();
+						NVCategory::destroy(new_category);
+					} else {
+						new_strings = NVStrings::create_from_array(nullptr, 0);
+					}
+					
+					gdf_column_cpp string_column;
+					string_column.create_gdf_column(new_strings, output_frame.get_column(i).size(), output_frame.get_column(i).name());
+					
+					output_frame.set_column(i, string_column);
 				}
 
-				gdf_column_cpp string_column;
-				string_column.create_gdf_column(
-					new_strings, output_frame.get_column(i).size(), output_frame.get_column(i).name());
-
-				output_frame.set_column(i, string_column);
+				GDFRefCounter::getInstance()->deregister_column(output_frame.get_column(i).get_gdf_column());
 			}
 
-			GDFRefCounter::getInstance()->deregister_column(output_frame.get_column(i).get_gdf_column());
+			double duration = blazing_timer.getDuration();
+			Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
 
-      double duration = blazing_timer.getDuration();
-      Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
-
-      return output_frame;
-    } catch(const std::exception& e) {
-      std::string err = "ERROR: in evaluate_split_query " + std::string(e.what());
-      Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
-      throw;
-    }
+			return output_frame;
+		} catch(const std::exception& e) {
+			std::string err = "ERROR: in evaluate_split_query " + std::string(e.what());
+			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
+			throw;
+		}
 }
