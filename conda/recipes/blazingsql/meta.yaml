@@ -37,6 +37,7 @@ requirements:
         - setuptools
         - cython >=0.29,<0.30
         - dask-cudf {{ rapids_build_version }}.*
+        - dask-cuda {{ rapids_build_version }}.*
         - openjdk=8.0
         - maven
     host:
@@ -46,6 +47,7 @@ requirements:
         - setuptools
         - cython >=0.29,<0.30
         - dask-cudf {{ rapids_build_version }}.*
+        - dask-cuda {{ rapids_build_version }}.*
         - openjdk=8.0
         - maven
     run:
@@ -61,6 +63,7 @@ requirements:
         - pip
         - setuptools
         - dask-cudf {{ rapids_build_version }}.*
+        - dask-cuda {{ rapids_build_version }}.*
         - openjdk=8.0
         - jpype1
         - netifaces
