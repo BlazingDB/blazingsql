@@ -86,7 +86,7 @@ conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
-conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda9.2 libcudf=0.11 cudf=0.11 dask-cudf=0.11
+conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda9.2 libcudf=0.11 cudf=0.11 dask-cudf=0.11 dask-cuda=0.11
 ```
 
 *For CUDA 10.0:*
@@ -95,7 +95,7 @@ conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
-conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda10.0 libcudf=0.11 cudf=0.11 dask-cudf=0.11
+conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda10.0 libcudf=0.11 cudf=0.11 dask-cudf=0.11 dask-cuda=0.11
 ```
 
 ### Build
