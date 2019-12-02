@@ -976,5 +976,14 @@ blazing_frame evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 			}
 
 			GDFRefCounter::getInstance()->deregister_column(output_frame.get_column(i).get_gdf_column());
-		}
+
+      double duration = blazing_timer.getDuration();
+      Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
+
+      return output_frame;
+    } catch(const std::exception& e) {
+      std::string err = "ERROR: in evaluate_split_query " + std::string(e.what());
+      Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
+      throw;
+    }
 }
