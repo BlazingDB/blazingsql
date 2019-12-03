@@ -145,7 +145,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
         extra_columns_cpp.push_back(extra_column_cpp)
     temp = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
-    return_object['files'] = files
+    return_object['files'] = temp.expanded_files
     return_object['file_type'] = temp.data_type
     return_object['args'] = args
     return_object['columns'] = cudf.DataFrame()

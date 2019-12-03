@@ -16,6 +16,7 @@ struct ReaderArgs {
 
 struct TableSchema {
 	std::vector<gdf_column *> columns;
+	std::vector<std::string> expanded_files;
 	std::vector<std::string> names;
 	std::vector<size_t> calcite_to_file_indices;
 	std::vector<size_t> num_row_groups;

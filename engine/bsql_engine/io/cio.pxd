@@ -200,6 +200,7 @@ cdef extern from "../include/io/io.h":
     cdef struct TableSchema:
         vector[gdf_column_ptr] columns
         vector[string]  names
+        vector[string]  expanded_files
         vector[unsigned long] calcite_to_file_indices
         vector[unsigned long] num_row_groups
         vector[bool] in_file
