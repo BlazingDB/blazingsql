@@ -148,12 +148,13 @@ void data_loader::load_data(const Context & context,
 	timer.reset();
 }
 
-void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns) {
+void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns, std::vector<std::string> & expanded_paths) {
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
 	bool firstIteration = true;
 	std::vector<data_handle> handles = this->provider->get_all();
 	for(auto handle : handles) {
 		files.push_back(handle.fileHandle);
+		expanded_paths.push_back(handle.uri.getPath().toString());
 	}
 	this->parser->parse_schema(files, schema);
 
