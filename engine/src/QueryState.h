@@ -8,19 +8,18 @@
 #ifndef QUERYSTATE_H_
 #define QUERYSTATE_H_
 
-#include <vector>
 #include "gdf_wrapper/gdf_wrapper.cuh"
+#include <vector>
 
 class QueryState {
 public:
-
-
 	QueryState();
 	virtual ~QueryState();
+
 private:
-	std::vector<std::vector<gdf_column * > > data_frame;
-	std::vector<size_t > cummulative_sum_sizes;
-	//for every join
+	std::vector<std::vector<gdf_column *>> data_frame;
+	std::vector<size_t> cummulative_sum_sizes;
+	// for every join
 };
 
 #endif /* QUERYSTATE_H_ */

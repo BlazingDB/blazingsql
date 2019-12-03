@@ -5,28 +5,37 @@ import cio
 
 from pyblazing.apiv2 import S3EncryptionType
 
-def registerFileSystem(client,fs,root,prefix):
+
+def registerFileSystem(client, fs, root, prefix):
     ok = False
     msg = ""
     if client is None:
-        ok,msg = cio.registerFileSystemCaller(fs,root,prefix)
+        ok, msg = cio.registerFileSystemCaller(fs, root, prefix)
         msg = msg.decode("utf-8")
-        if ok == False:
+        if not ok:
             print(msg)
     else:
         dask_futures = []
         i = 0
         for worker in list(client.scheduler_info()["workers"]):
-            # REMARK: pure argument is neccesary for this case to ensure each dask worker executes registerFileSystemCaller
-            dask_futures.append(client.submit(cio.registerFileSystemCaller, fs, root, prefix, pure=False, workers=[worker]))
+            # REMARK: pure argument is neccesary for this case to ensure each
+            # dask worker executes registerFileSystemCaller
+            dask_futures.append(
+                client.submit(
+                    cio.registerFileSystemCaller,
+                    fs,
+                    root,
+                    prefix,
+                    pure=False,
+                    workers=[worker]))
             i = i + 1
         for connection in dask_futures:
-            ok,msg = connection.result()
+            ok, msg = connection.result()
             msg = msg.decode("utf-8")
-            if ok == False:
+            if not ok:
                 print(msg + " with dask worker")
                 print(worker)
-    return ok,msg,fs
+    return ok, msg, fs
 
 
 class FileSystem(object):
@@ -51,7 +60,7 @@ class FileSystem(object):
 
         fs = OrderedDict()
         fs['type'] = 'local'
-        return registerFileSystem(client,fs,root,prefix)
+        return registerFileSystem(client, fs, root, prefix)
 
     def hdfs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -70,7 +79,7 @@ class FileSystem(object):
         fs['user'] = user
         fs['driver'] = driver
         fs['kerberos_ticket'] = kerberos_ticket
-        return registerFileSystem(client,fs,root,prefix)
+        return registerFileSystem(client, fs, root, prefix)
 
     def s3(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -81,7 +90,8 @@ class FileSystem(object):
         secret_key = kwargs.get('secret_key', '')
         session_token = kwargs.get('session_token', '')
         encryption_type = kwargs.get('encryption_type', S3EncryptionType.NONE)
-        kms_key_amazon_resource_name = kwargs.get('kms_key_amazon_resource_name', '')
+        kms_key_amazon_resource_name = kwargs.get(
+            'kms_key_amazon_resource_name', '')
 
         fs = OrderedDict()
         fs['type'] = 's3'
@@ -91,7 +101,7 @@ class FileSystem(object):
         fs['session_token'] = session_token
         fs['encryption_type'] = encryption_type
         fs['kms_key_amazon_resource_name'] = kms_key_amazon_resource_name
-        return registerFileSystem(client,fs,root,prefix)
+        return registerFileSystem(client, fs, root, prefix)
 
     def gs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -99,7 +109,8 @@ class FileSystem(object):
 
         project_id = kwargs.get('project_id', '')
         bucket_name = kwargs.get('bucket_name', '')
-        use_default_adc_json_file = kwargs.get('use_default_adc_json_file', True)
+        use_default_adc_json_file = kwargs.get(
+            'use_default_adc_json_file', True)
         adc_json_file = kwargs.get('adc_json_file', '')
 
         fs = OrderedDict()
@@ -108,7 +119,7 @@ class FileSystem(object):
         fs['bucket_name'] = bucket_name
         fs['use_default_adc_json_file'] = use_default_adc_json_file
         fs['adc_json_file'] = adc_json_file
-        return registerFileSystem(client,fs,root,prefix)
+        return registerFileSystem(client, fs, root, prefix)
 
     def _verify_prefix(self, prefix):
         if prefix in self.file_systems:

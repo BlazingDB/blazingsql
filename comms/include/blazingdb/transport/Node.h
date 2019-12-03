@@ -7,10 +7,11 @@
 namespace blazingdb {
 namespace transport {
 
-/// \brief A Node is the representation of a RAL component used in the transport process.
+/// \brief A Node is the representation of a RAL component used in the transport
+/// process.
 class Node {
 public:
-  //TODO define clear constructors
+  // TODO define clear constructors
   Node(const std::shared_ptr<Address>& address, bool isAvailable = true);
 
   bool operator==(const Node& rhs) const;
@@ -26,7 +27,8 @@ public:
 
   void print() const;
 
-  static std::shared_ptr<blazingdb::transport::Node> Make(const std::shared_ptr<Address>& address);
+  static std::shared_ptr<blazingdb::transport::Node> Make(
+      const std::shared_ptr<Address>& address);
 
 protected:
   std::shared_ptr<Address> address_;

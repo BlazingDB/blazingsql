@@ -15,7 +15,8 @@ from pyblazing.apiv2 import DataType
 from .hive import *
 import time
 import datetime
-import socket, errno
+import socket
+import errno
 import subprocess
 import os
 import re
@@ -36,41 +37,52 @@ import netifaces as ni
 
 import random
 
-jpype.addClassPath( os.path.join(os.getenv("CONDA_PREFIX"), 'lib/blazingsql-algebra.jar'))
-jpype.addClassPath(os.path.join(os.getenv("CONDA_PREFIX"), 'lib/blazingsql-algebra-core.jar'))
+jpype.addClassPath(
+    os.path.join(
+        os.getenv("CONDA_PREFIX"),
+        'lib/blazingsql-algebra.jar'))
+jpype.addClassPath(
+    os.path.join(
+        os.getenv("CONDA_PREFIX"),
+        'lib/blazingsql-algebra-core.jar'))
 
-jpype.startJVM(jpype.getDefaultJVMPath(), '-ea',convertStrings=False)
+jpype.startJVM(jpype.getDefaultJVMPath(), '-ea', convertStrings=False)
 
 ArrayClass = jpype.JClass('java.util.ArrayList')
-ColumnTypeClass = jpype.JClass('com.blazingdb.calcite.catalog.domain.CatalogColumnDataType')
+ColumnTypeClass = jpype.JClass(
+    'com.blazingdb.calcite.catalog.domain.CatalogColumnDataType')
 dataType = ColumnTypeClass.fromString("GDF_INT8")
-ColumnClass = jpype.JClass('com.blazingdb.calcite.catalog.domain.CatalogColumnImpl')
-TableClass = jpype.JClass('com.blazingdb.calcite.catalog.domain.CatalogTableImpl')
-DatabaseClass = jpype.JClass('com.blazingdb.calcite.catalog.domain.CatalogDatabaseImpl')
+ColumnClass = jpype.JClass(
+    'com.blazingdb.calcite.catalog.domain.CatalogColumnImpl')
+TableClass = jpype.JClass(
+    'com.blazingdb.calcite.catalog.domain.CatalogTableImpl')
+DatabaseClass = jpype.JClass(
+    'com.blazingdb.calcite.catalog.domain.CatalogDatabaseImpl')
 BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
-RelationalAlgebraGeneratorClass = jpype.JClass('com.blazingdb.calcite.application.RelationalAlgebraGenerator')
+RelationalAlgebraGeneratorClass = jpype.JClass(
+    'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
 
 def get_np_dtype_to_gdf_dtype_str(dtype):
     dtypes = {
-        np.dtype('float64'):    'GDF_FLOAT64',
-        np.dtype('float32'):    'GDF_FLOAT32',
-        np.dtype('int64'):      'GDF_INT64',
-        np.dtype('int32'):      'GDF_INT32',
-        np.dtype('int16'):      'GDF_INT16',
-        np.dtype('int8'):       'GDF_INT8',
-        np.dtype('bool_'):      'GDF_BOOL8',
+        np.dtype('float64'): 'GDF_FLOAT64',
+        np.dtype('float32'): 'GDF_FLOAT32',
+        np.dtype('int64'): 'GDF_INT64',
+        np.dtype('int32'): 'GDF_INT32',
+        np.dtype('int16'): 'GDF_INT16',
+        np.dtype('int8'): 'GDF_INT8',
+        np.dtype('bool_'): 'GDF_BOOL8',
         np.dtype('datetime64[s]'): 'GDF_DATE64',
         np.dtype('datetime64[ms]'): 'GDF_DATE64',
         np.dtype('datetime64[ns]'): 'GDF_TIMESTAMP',
         np.dtype('datetime64[us]'): 'GDF_TIMESTAMP',
         np.dtype('datetime64'): 'GDF_DATE64',
-        np.dtype('object_'):    'GDF_STRING',
-        np.dtype('str_'):       'GDF_STRING',
-        np.dtype('<M8[s]'):    'GDF_DATE64',
-        np.dtype('<M8[ms]'):    'GDF_DATE64',
-        np.dtype('<M8[ns]'):    'GDF_TIMESTAMP',
-        np.dtype('<M8[us]'):    'GDF_TIMESTAMP'
+        np.dtype('object_'): 'GDF_STRING',
+        np.dtype('str_'): 'GDF_STRING',
+        np.dtype('<M8[s]'): 'GDF_DATE64',
+        np.dtype('<M8[ms]'): 'GDF_DATE64',
+        np.dtype('<M8[ns]'): 'GDF_TIMESTAMP',
+        np.dtype('<M8[us]'): 'GDF_TIMESTAMP'
     }
     ret = dtypes[np.dtype(dtype)]
     return ret
@@ -88,22 +100,32 @@ def checkSocket(socketNum):
             socket_free = False
         else:
             # something else raised the socket.error exception
-            print("ERROR: Something happened when checking socket " + str(socketNum))
+            print(
+                "ERROR: Something happened when checking socket " +
+                str(socketNum))
             print(e)
     s.close()
     return socket_free
 
-def initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = False):
+
+def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False):
     print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
-    ralCommunicationPort = random.randint(10000,32000) + ralId
+    ralCommunicationPort = random.randint(10000, 32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
-        ralCommunicationPort = random.randint(10000,32000)+ ralId
-    cio.initializeCaller(ralId, 0, networkInterface.encode(), workerIp.encode(), ralCommunicationPort, singleNode)
+        ralCommunicationPort = random.randint(10000, 32000) + ralId
+    cio.initializeCaller(
+        ralId,
+        0,
+        networkInterface.encode(),
+        workerIp.encode(),
+        ralCommunicationPort,
+        singleNode)
     cwd = os.getcwd()
     return ralCommunicationPort, workerIp, cwd
 
-def getNodePartitions(df,client):
+
+def getNodePartitions(df, client):
     df = df.persist()
     workers = client.scheduler_info()['workers']
     connectionToId = {}
@@ -115,7 +137,7 @@ def getNodePartitions(df,client):
     worker_partitions = {}
     for key in worker_part:
         worker = worker_part[key][0]
-        partition = int(key[key.find(",")+2:(len(key)-1)])
+        partition = int(key[key.find(",") + 2:(len(key) - 1)])
         if connectionToId[worker] not in worker_partitions:
             worker_partitions[connectionToId[worker]] = []
         worker_partitions[connectionToId[worker]].append(partition)
@@ -124,25 +146,55 @@ def getNodePartitions(df,client):
     return worker_partitions
 
 
-def collectPartitionsRunQuery(masterIndex,nodes,tables,fileTypes,ctxToken,algebra,accessToken):
+def collectPartitionsRunQuery(
+        masterIndex,
+        nodes,
+        tables,
+        fileTypes,
+        ctxToken,
+        algebra,
+        accessToken):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     for table_name in tables:
-        if(isinstance(tables[table_name].input,dask_cudf.core.DataFrame)):
+        if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
             partitions = tables[table_name].get_partitions(worker_id)
             if (len(partitions) == 0):
-                tables[table_name].input = tables[table_name].input.get_partition(0).head(0)
+                tables[table_name].input = tables[table_name].input.get_partition(
+                    0).head(0)
             elif (len(partitions) == 1):
-                tables[table_name].input = tables[table_name].input.get_partition(partitions[0]).compute(scheduler='threads')
+                tables[table_name].input = tables[table_name].input.get_partition(
+                    partitions[0]).compute(scheduler='threads')
             else:
                 table_partitions = []
                 for partition in partitions:
-                    table_partitions.append(tables[table_name].input.get_partition(partition).compute())
+                    table_partitions.append(
+                        tables[table_name].input.get_partition(partition).compute())
                 tables[table_name].input = cudf.concat(table_partitions)
-    return cio.runQueryCaller(masterIndex,nodes,tables,fileTypes,ctxToken,algebra,accessToken)
+    return cio.runQueryCaller(
+        masterIndex,
+        nodes,
+        tables,
+        fileTypes,
+        ctxToken,
+        algebra,
+        accessToken)
+
 
 class BlazingTable(object):
-    def __init__(self, input,fileType, files=None, calcite_to_file_indices=None, num_row_groups=None,args={}, convert_gdf_to_dask=False, convert_gdf_to_dask_partitions=1,client=None,uri_values=[], in_file=[]):
+    def __init__(
+            self,
+            input,
+            fileType,
+            files=None,
+            calcite_to_file_indices=None,
+            num_row_groups=None,
+            args={},
+            convert_gdf_to_dask=False,
+            convert_gdf_to_dask_partitions=1,
+            client=None,
+            uri_values=[],
+            in_file=[]):
         self.input = input
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
@@ -150,43 +202,57 @@ class BlazingTable(object):
         self.fileType = fileType
         self.args = args
         if fileType == DataType.CUDF or DataType.DASK_CUDF:
-            if(convert_gdf_to_dask and isinstance(self.input,cudf.DataFrame)):
-                self.input = dask_cudf.from_cudf(self.input,npartitions = convert_gdf_to_dask_partitions)
-            if(isinstance(self.input,dask_cudf.core.DataFrame)):
-                self.dask_mapping = getNodePartitions(self.input,client)
+            if(convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame)):
+                self.input = dask_cudf.from_cudf(
+                    self.input, npartitions=convert_gdf_to_dask_partitions)
+            if(isinstance(self.input, dask_cudf.core.DataFrame)):
+                self.dask_mapping = getNodePartitions(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
 
-
-    def getSlices(self,numSlices):
+    def getSlices(self, numSlices):
         nodeFilesList = []
         if self.files is None:
-            for i in range(0,numSlices):
-                nodeFilesList.append(BlazingTable(self.input,self.fileType))
+            for i in range(0, numSlices):
+                nodeFilesList.append(BlazingTable(self.input, self.fileType))
             return nodeFilesList
         remaining = len(self.files)
         startIndex = 0
-        for i in range(0,numSlices):
+        for i in range(0, numSlices):
             batchSize = int(remaining / (numSlices - i))
             # print(batchSize)
             # print(startIndex)
-            tempFiles=self.files[startIndex : startIndex + batchSize]
-            uri_values = self.uri_values[startIndex : startIndex + batchSize]
+            tempFiles = self.files[startIndex: startIndex + batchSize]
+            uri_values = self.uri_values[startIndex: startIndex + batchSize]
 
             if self.num_row_groups is not None:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, num_row_groups=self.num_row_groups[startIndex : startIndex + batchSize], uri_values=uri_values,args=self.args))
+                nodeFilesList.append(BlazingTable(self.input,
+                                                  self.fileType,
+                                                  files=tempFiles,
+                                                  calcite_to_file_indices=self.calcite_to_file_indices,
+                                                  num_row_groups=self.num_row_groups[startIndex: startIndex + batchSize],
+                                                  uri_values=uri_values,
+                                                  args=self.args))
             else:
-                nodeFilesList.append(BlazingTable(self.input,self.fileType,files=tempFiles, calcite_to_file_indices=self.calcite_to_file_indices, uri_values=uri_values,args=self.args))
+                nodeFilesList.append(
+                    BlazingTable(
+                        self.input,
+                        self.fileType,
+                        files=tempFiles,
+                        calcite_to_file_indices=self.calcite_to_file_indices,
+                        uri_values=uri_values,
+                        args=self.args))
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
         return nodeFilesList
 
-    def get_partitions(self,worker):
+    def get_partitions(self, worker):
         return self.dask_mapping[worker]
+
 
 class BlazingContext(object):
 
-    def __init__(self, dask_client = None, network_interface = None):
+    def __init__(self, dask_client=None, network_interface=None):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -208,7 +274,13 @@ class BlazingContext(object):
             i = 0
             print(network_interface)
             for worker in list(self.dask_client.scheduler_info()["workers"]):
-                dask_futures.append(self.dask_client.submit(  initializeBlazing,ralId = i, networkInterface = network_interface, singleNode = False, workers = [worker]))
+                dask_futures.append(
+                    self.dask_client.submit(
+                        initializeBlazing,
+                        ralId=i,
+                        networkInterface=network_interface,
+                        singleNode=False,
+                        workers=[worker]))
                 worker_list.append(worker)
                 i = i + 1
             i = 0
@@ -224,7 +296,8 @@ class BlazingContext(object):
                 self.node_cwds.append(cwd)
                 i = i + 1
         else:
-            ralPort, ralIp, cwd = initializeBlazing(ralId = 0, networkInterface = 'lo', singleNode = True )
+            ralPort, ralIp, cwd = initializeBlazing(
+                ralId=0, networkInterface='lo', singleNode=True)
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
@@ -239,10 +312,10 @@ class BlazingContext(object):
         self.db = DatabaseClass("main")
         self.schema = BlazingSchemaClass(self.db)
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
-        self.tables = {}   
-        self.logs_initialized = False     
+        self.tables = {}
+        self.logs_initialized = False
 
-        #waitForPingSuccess(self.client)
+        # waitForPingSuccess(self.client)
         print("BlazingContext ready")
 
     def ready(self, wait=False):
@@ -288,12 +361,12 @@ class BlazingContext(object):
         path = PurePath(url.path)
         return path
 
-
     # BEGIN SQL interface
-    def explain(self,sql):
+
+    def explain(self, sql):
         return str(self.generator.getRelationalAlgebraString(sql))
 
-    def add_remove_table(self,tableName,addTable,table=None):
+    def add_remove_table(self, tableName, addTable, table=None):
         self.lock.acquire()
         try:
             if(addTable):
@@ -302,17 +375,18 @@ class BlazingContext(object):
                 arr = ArrayClass()
                 order = 0
                 for column in table.input.columns:
-                    if(isinstance(table.input,dask_cudf.core.DataFrame)):
+                    if(isinstance(table.input, dask_cudf.core.DataFrame)):
                         dataframe_column = table.input.head(0)._cols[column]
                     else:
                         dataframe_column = table.input._cols[column]
                     data_sz = len(dataframe_column)
-                    dtype = get_np_dtype_to_gdf_dtype_str(dataframe_column.dtype)
+                    dtype = get_np_dtype_to_gdf_dtype_str(
+                        dataframe_column.dtype)
                     dataType = ColumnTypeClass.fromString(dtype)
-                    column = ColumnClass(column,dataType,order);
+                    column = ColumnClass(column, dataType, order)
                     arr.add(column)
                     order = order + 1
-                tableJava = TableClass(tableName,self.db,arr)
+                tableJava = TableClass(tableName, self.db, arr)
                 self.db.addTable(tableJava)
                 self.schema = BlazingSchemaClass(self.db)
                 self.generator = RelationalAlgebraGeneratorClass(self.schema)
@@ -324,66 +398,96 @@ class BlazingContext(object):
         finally:
             self.lock.release()
 
-
-
     def create_table(self, table_name, input, **kwargs):
         table = None
         extra_columns = []
         uri_values = []
-        file_format_hint = kwargs.get('file_format', 'undefined') # See datasource.file_format
+        file_format_hint = kwargs.get(
+            'file_format', 'undefined')  # See datasource.file_format
         extra_kwargs = {}
         in_file = []
-        if(type(input) == hive.Cursor):
+        if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
-            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file = get_hive_table(input,hive_table_name)
+            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file = get_hive_table(
+                input, hive_table_name)
             kwargs.update(extra_kwargs)
             input = folder_list
-        if type(input) == str:
-            input = [input,]
+        if isinstance(input, str):
+            input = [input, ]
 
-        if type(input) == pandas.DataFrame:
-            table = BlazingTable(cudf.DataFrame.from_pandas(input),DataType.CUDF)
-        elif type(input) == pyarrow.Table:
-            table = BlazingTable(cudf.DataFrame.from_arrow(input),DataType.CUDF)
-        elif type(input) == cudf.DataFrame:
+        if isinstance(input, pandas.DataFrame):
+            table = BlazingTable(
+                cudf.DataFrame.from_pandas(input),
+                DataType.CUDF)
+        elif isinstance(input, pyarrow.Table):
+            table = BlazingTable(
+                cudf.DataFrame.from_arrow(input),
+                DataType.CUDF)
+        elif isinstance(input, cudf.DataFrame):
             if (self.dask_client is not None):
-                table = BlazingTable(input,DataType.DASK_CUDF,convert_gdf_to_dask=True,convert_gdf_to_dask_partitions=len(self.nodes),client=self.dask_client)
+                table = BlazingTable(
+                    input,
+                    DataType.DASK_CUDF,
+                    convert_gdf_to_dask=True,
+                    convert_gdf_to_dask_partitions=len(
+                        self.nodes),
+                    client=self.dask_client)
             else:
-                table = BlazingTable(input,DataType.CUDF)
-        elif type(input) == list:
-            parsedSchema = self._parseSchema(input, file_format_hint, kwargs, extra_columns)
+                table = BlazingTable(input, DataType.CUDF)
+        elif isinstance(input, list):
+            parsedSchema = self._parseSchema(
+                input, file_format_hint, kwargs, extra_columns)
             file_type = parsedSchema['file_type']
-            table = BlazingTable(parsedSchema['columns'],file_type,files=parsedSchema['files'],calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],num_row_groups=parsedSchema['num_row_groups'],args=parsedSchema['args'],uri_values=uri_values,in_file=in_file)
-        elif type(input) == dask_cudf.core.DataFrame:
-            table = BlazingTable(input,DataType.DASK_CUDF,client=self.dask_client)
+            table = BlazingTable(
+                parsedSchema['columns'],
+                file_type,
+                files=parsedSchema['files'],
+                calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],
+                num_row_groups=parsedSchema['num_row_groups'],
+                args=parsedSchema['args'],
+                uri_values=uri_values,
+                in_file=in_file)
+        elif isinstance(input, dask_cudf.core.DataFrame):
+            table = BlazingTable(
+                input,
+                DataType.DASK_CUDF,
+                client=self.dask_client)
         if table is not None:
-            self.add_remove_table(table_name,True,table)
+            self.add_remove_table(table_name, True, table)
         return table
 
     def drop_table(self, table_name):
-        self.add_remove_table(table_name,False)
+        self.add_remove_table(table_name, False)
 
     def _parseSchema(self, input, file_format_hint, kwargs, extra_columns):
         if self.dask_client:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
-            connection = self.dask_client.submit(cio.parseSchemaCaller, input, file_format_hint, kwargs, extra_columns, workers=[worker])
+            connection = self.dask_client.submit(
+                cio.parseSchemaCaller,
+                input,
+                file_format_hint,
+                kwargs,
+                extra_columns,
+                workers=[worker])
             return connection.result()
         else:
-            return cio.parseSchemaCaller(input, file_format_hint, kwargs, extra_columns)
+            return cio.parseSchemaCaller(
+                input, file_format_hint, kwargs, extra_columns)
 
-    def sql(self, sql, table_list = [], algebra=None):
+    def sql(self, sql, table_list=[], algebra=None):
         # TODO: remove hardcoding
         masterIndex = 0
-        nodeTableList =  [{} for _ in range(len(self.nodes))]
+        nodeTableList = [{} for _ in range(len(self.nodes))]
         fileTypes = []
-        #a list, same size as tables, when we have a dask_cudf
-        #table , tells us partitions that map to that table
+        # a list, same size as tables, when we have a dask_cudf
+        # table , tells us partitions that map to that table
 
         for table in self.tables:
             fileTypes.append(self.tables[table].fileType)
             ftype = self.tables[table].fileType
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
-                currentTableNodes = self.tables[table].getSlices(len(self.nodes))
+                currentTableNodes = self.tables[table].getSlices(
+                    len(self.nodes))
             elif(self.tables[table].fileType == DataType.DASK_CUDF):
                 currentTableNodes = []
                 for node in self.nodes:
@@ -396,20 +500,37 @@ class BlazingContext(object):
             for nodeList in nodeTableList:
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
-        ctxToken = random.randint(0,64000)
+        ctxToken = random.randint(0, 64000)
         accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
         if (algebra is None):
             algebra = self.explain(sql)
         if self.dask_client is None:
-            result = cio.runQueryCaller(masterIndex,self.nodes,self.tables,fileTypes,ctxToken,algebra,accessToken)
+            result = cio.runQueryCaller(
+                masterIndex,
+                self.nodes,
+                self.tables,
+                fileTypes,
+                ctxToken,
+                algebra,
+                accessToken)
         else:
             dask_futures = []
             i = 0
             for node in self.nodes:
                 worker = node['worker']
-                dask_futures.append(self.dask_client.submit(  collectPartitionsRunQuery,masterIndex,self.nodes,nodeTableList[i],fileTypes,ctxToken,algebra,accessToken, workers = [worker]))
+                dask_futures.append(
+                    self.dask_client.submit(
+                        collectPartitionsRunQuery,
+                        masterIndex,
+                        self.nodes,
+                        nodeTableList[i],
+                        fileTypes,
+                        ctxToken,
+                        algebra,
+                        accessToken,
+                        workers=[worker]))
                 i = i + 1
             result = dask.dataframe.from_delayed(dask_futures)
         return result
@@ -420,14 +541,44 @@ class BlazingContext(object):
     def log(self, query, logs_table_name='bsql_logs'):
         if not self.logs_initialized:
             self.logs_table_name = logs_table_name
-            log_files=[self.node_cwds[i] + '/RAL.' + str(i) + '.log' for i in range(0,len(self.node_cwds))]
+            log_files = [self.node_cwds[i] + '/RAL.' + \
+                str(i) + '.log' for i in range(0, len(self.node_cwds))]
             print(log_files)
-            dtypes=['date64','int32','str','int32','int16','int16','str','float32','str','int32','str','int32']
-            names=['log_time','node_id','type','query_id','step','substep','info','duration','extra1','data1','extra2','data2']
-            t = self.create_table(self.logs_table_name, log_files, delimiter='|', dtype=dtypes, names=names, file_format='csv')
+            dtypes = [
+                'date64',
+                'int32',
+                'str',
+                'int32',
+                'int16',
+                'int16',
+                'str',
+                'float32',
+                'str',
+                'int32',
+                'str',
+                'int32']
+            names = [
+                'log_time',
+                'node_id',
+                'type',
+                'query_id',
+                'step',
+                'substep',
+                'info',
+                'duration',
+                'extra1',
+                'data1',
+                'extra2',
+                'data2']
+            t = self.create_table(
+                self.logs_table_name,
+                log_files,
+                delimiter='|',
+                dtype=dtypes,
+                names=names,
+                file_format='csv')
             print("table created")
             print(t)
-            self.logs_initialized=True
-        
-        return self.sql(query)
+            self.logs_initialized = True
 
+        return self.sql(query)

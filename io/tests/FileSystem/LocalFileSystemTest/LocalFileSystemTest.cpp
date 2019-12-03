@@ -7,26 +7,23 @@
 #include "FileSystem/LocalFileSystem.h"
 
 class LocalFileSystemTest : public testing::Test {
-	protected:
-		LocalFileSystemTest() : localFileSystem(new LocalFileSystem()) {
-		}
+protected:
+	LocalFileSystemTest() : localFileSystem(new LocalFileSystem()) {}
 
-		virtual ~LocalFileSystemTest() {
+	virtual ~LocalFileSystemTest() {}
 
-		}
+	virtual void SetUp() {
+		// TODO just a dummy call for the case of local fs
+		// localFileSystem->connect();
+	}
 
-		virtual void SetUp() {
-			//TODO just a dummy call for the case of local fs
-			//localFileSystem->connect();
-		}
+	virtual void TearDown() {
+		// TODO just a dummy call for the case of local fs
+		// localFileSystem->disconnect();
+	}
 
-		virtual void TearDown() {
-			//TODO just a dummy call for the case of local fs
-			//localFileSystem->disconnect();
-		}
-
-	protected:
-		const std::unique_ptr<LocalFileSystem> localFileSystem;
+protected:
+	const std::unique_ptr<LocalFileSystem> localFileSystem;
 };
 
 TEST_F(LocalFileSystemTest, GetFileStatusLinuxRegularFile) {
@@ -56,15 +53,15 @@ TEST_F(LocalFileSystemTest, CanListLinuxRootDirectories) {
 
 	int foundCount = 0;
 
-	for (const Uri &uri : files) {
+	for(const Uri & uri : files) {
 		const Path path = uri.getPath();
 
-		//TODO create a STD common code (for test only?) where we can put helpers like find(value, container)
+		// TODO create a STD common code (for test only?) where we can put helpers like find(value, container)
 		const bool found = (dirs.find(path.toString()) != dirs.end());
 
-		if (found) {
-			//TODO improve this part of the test
-			//EXPECT_TRUE(path.isDirectory());
+		if(found) {
+			// TODO improve this part of the test
+			// EXPECT_TRUE(path.isDirectory());
 			++foundCount;
 		}
 	}
@@ -75,10 +72,10 @@ TEST_F(LocalFileSystemTest, CanListLinuxRootDirectories) {
 TEST_F(LocalFileSystemTest, CheckIgnoreDotAnd2DotsWhenListLinuxRoot) {
 	const std::vector<Uri> files = localFileSystem->list(Uri("/"));
 
-	for (const Uri &uri : files) {
+	for(const Uri & uri : files) {
 		const Path path = uri.getPath();
 		const std::string test = path.toString(true);
-		const bool found1DotOr2Dots =  (test == "/.") || (test == "/..");
+		const bool found1DotOr2Dots = (test == "/.") || (test == "/..");
 		EXPECT_FALSE(found1DotOr2Dots);
 	}
 }

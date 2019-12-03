@@ -10,56 +10,56 @@
 
 using namespace GoogleCloudStorageConnection;
 
-const std::string AUTHORITY = "jack_gcs_1"; // the file system namespace used for this test
+const std::string AUTHORITY = "jack_gcs_1";  // the file system namespace used for this test
 
 class GoogleCloudStorageTest : public testing::Test {
-    protected:
-        GoogleCloudStorageTest() {
-            const std::string projectId = "blazingdb-jenkins";
-            const std::string bucketName = "blazingsql-test";
-            const std::string useDefaultAdcJsonFile = "true";
-            const std::string adcJsonFile = "";
-            const FileSystemConnection fileSystemConnection(projectId, bucketName, true, "");
+protected:
+	GoogleCloudStorageTest() {
+		const std::string projectId = "blazingdb-jenkins";
+		const std::string bucketName = "blazingsql-test";
+		const std::string useDefaultAdcJsonFile = "true";
+		const std::string adcJsonFile = "";
+		const FileSystemConnection fileSystemConnection(projectId, bucketName, true, "");
 
-            Path root;
+		Path root;
 
-            googleCloudStorage.reset(new GoogleCloudStorage(fileSystemConnection, root));
-        }
+		googleCloudStorage.reset(new GoogleCloudStorage(fileSystemConnection, root));
+	}
 
-        virtual ~GoogleCloudStorageTest() {
-        }
+	virtual ~GoogleCloudStorageTest() {}
 
-        virtual void SetUp() {
+	virtual void SetUp() {}
 
-        }
+	virtual void TearDown() {
+		// S3FileSystem->disconnect();
+	}
 
-        virtual void TearDown() {
-            //S3FileSystem->disconnect();
-        }
-
-    protected:
-        std::unique_ptr<GoogleCloudStorage> googleCloudStorage;
+protected:
+	std::unique_ptr<GoogleCloudStorage> googleCloudStorage;
 };
 
-//TEST_F(GoogleCloudStorageTest, FileExistForFileThatIsThere) {
-//    bool exists = googleCloudStorage->exists(Uri(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY, Path("/cudf.ultrabasic.py")));
+// TEST_F(GoogleCloudStorageTest, FileExistForFileThatIsThere) {
+//    bool exists = googleCloudStorage->exists(Uri(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY,
+//    Path("/cudf.ultrabasic.py")));
 
 //    EXPECT_TRUE(exists);
 //}
 
-//TEST_F(GoogleCloudStorageTest, DirectoryExist) {
-//    bool exists = googleCloudStorage->exists(Uri(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY, Path("/new_folder_1/folder_child1/")));
+// TEST_F(GoogleCloudStorageTest, DirectoryExist) {
+//    bool exists = googleCloudStorage->exists(Uri(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY,
+//    Path("/new_folder_1/folder_child1/")));
 
 //    EXPECT_TRUE(exists);
 //}
 
-//TEST_F(GoogleCloudStorageTest, FileExistForFileThatIsThereInSubSubDirectory) {
-//    bool exists = googleCloudStorage->exists(Uri(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY, Path("/new_folder_1/folder_child1/orders.tbl")));
+// TEST_F(GoogleCloudStorageTest, FileExistForFileThatIsThereInSubSubDirectory) {
+//    bool exists = googleCloudStorage->exists(Uri(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY,
+//    Path("/new_folder_1/folder_child1/orders.tbl")));
 
 //    EXPECT_TRUE(exists);
 //}
 
-//TEST_F(GoogleCloudStorageTest, FileStatusOfPythonFile) {
+// TEST_F(GoogleCloudStorageTest, FileStatusOfPythonFile) {
 //    const Uri uri = Uri(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY, Path("/cudf.ultrabasic.py"));
 //    const FileStatus fileStatus = googleCloudStorage->getFileStatus(uri);
 
@@ -68,7 +68,7 @@ class GoogleCloudStorageTest : public testing::Test {
 //    EXPECT_EQ(fileStatus.getFileSize(), 175);
 //}
 
-//TEST_F(GoogleCloudStorageTest, FileStatusOfDirectory) {
+// TEST_F(GoogleCloudStorageTest, FileStatusOfDirectory) {
 //    const Uri uri = Uri(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY, Path("/new_folder_1/binfiles"));
 //    const FileStatus fileStatus = googleCloudStorage->getFileStatus(uri);
 
@@ -77,7 +77,7 @@ class GoogleCloudStorageTest : public testing::Test {
 //    EXPECT_EQ(fileStatus.getFileSize(), 11);
 //}
 
-//TEST_F(GoogleCloudStorageTest, CanListResources) {
+// TEST_F(GoogleCloudStorageTest, CanListResources) {
 //    const std::vector<std::string> expected = {
 //        "customer.tbl",
 //        "lineitem.tbl",
@@ -95,26 +95,25 @@ class GoogleCloudStorageTest : public testing::Test {
 //}
 
 TEST_F(GoogleCloudStorageTest, CanListUris) {
-    const std::string target = "/new_folder_1/folder_child1";
-    const Uri dir(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY, Path(target));
+	const std::string target = "/new_folder_1/folder_child1";
+	const Uri dir(FileSystemType::GOOGLE_CLOUD_STORAGE, AUTHORITY, Path(target));
 
-    const std::vector<Uri> expected = {
-        Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/customer.tbl")),
-        Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/lineitem.tbl")),
-        Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/nation.tbl")),
-        Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/orders.tbl")),
-        Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/part.tbl")),
-        Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/partsupp.tbl")),
-        Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/region.tbl")),
-        Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/supplier.tbl"))};
-    // TODO percy simple case is with / at the end
+	const std::vector<Uri> expected = {Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/customer.tbl")),
+		Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/lineitem.tbl")),
+		Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/nation.tbl")),
+		Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/orders.tbl")),
+		Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/part.tbl")),
+		Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/partsupp.tbl")),
+		Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/region.tbl")),
+		Uri(dir.getFileSystemType(), dir.getAuthority(), Path(target + "/supplier.tbl"))};
+	// TODO percy simple case is with / at the end
 
-    const std::vector<Uri> result = googleCloudStorage->list(dir);
+	const std::vector<Uri> result = googleCloudStorage->list(dir);
 
-    EXPECT_EQ(result, expected);
+	EXPECT_EQ(result, expected);
 }
 
-//TEST_F(GoogleCloudStorageTest, CreateDirecotriesTest) {
+// TEST_F(GoogleCloudStorageTest, CreateDirecotriesTest) {
 //    const std::string parent_folder = "/folder_container";
 
 //    const std::vector<std::string> dirs = {
@@ -144,25 +143,11 @@ TEST_F(GoogleCloudStorageTest, CanListUris) {
 //}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // TODO percy
 ///// ref old code delete later
 ////#include "FileSystem/LocalFileSystem.h"
 
-//class LocalFileSystemTest : public testing::Test {
+// class LocalFileSystemTest : public testing::Test {
 //	protected:
 //        //LocalFileSystemTest() : localFileSystem(new LocalFileSystem()) {
 //        LocalFileSystemTest() {
@@ -190,9 +175,10 @@ TEST_F(GoogleCloudStorageTest, CanListUris) {
 
 //#include "google/cloud/storage/client.h"
 
-//namespace gcs = google::cloud::storage;
+// namespace gcs = google::cloud::storage;
 
-//void GetObjectMetadata(google::cloud::storage::Client client, const std::string &bucket_name, const std::string &object_name) {
+// void GetObjectMetadata(google::cloud::storage::Client client, const std::string &bucket_name, const std::string
+// &object_name) {
 //  //! [get object metadata] [START storage_get_metadata]
 //  namespace gcs = google::cloud::storage;
 //  using ::google::cloud::StatusOr;
@@ -212,7 +198,8 @@ TEST_F(GoogleCloudStorageTest, CanListUris) {
 //  (std::move(client), bucket_name, object_name);
 //}
 
-//void ReadObject(google::cloud::storage::Client client, const std::string &bucket_name, const std::string &object_name) {
+// void ReadObject(google::cloud::storage::Client client, const std::string &bucket_name, const std::string
+// &object_name) {
 //  //! [read object] [START storage_download_file]
 //  namespace gcs = google::cloud::storage;
 //  [](gcs::Client client, std::string bucket_name, std::string object_name) {
@@ -235,7 +222,7 @@ TEST_F(GoogleCloudStorageTest, CanListUris) {
 //  (std::move(client), bucket_name, object_name);
 //}
 
-//TEST_F(LocalFileSystemTest, GetFileStatusLinuxRegularFile) {
+// TEST_F(LocalFileSystemTest, GetFileStatusLinuxRegularFile) {
 
 //    std::string const project_id = "blazingdb-jenkins";
 //    std::string const bucket = "blazingsql-test";
@@ -261,7 +248,6 @@ TEST_F(GoogleCloudStorageTest, CanListUris) {
 
 //    std::cout << "OBJECT DATA:" << std::endl;
 //    ReadObject(client, bucket, object);
-
 
 
 ////	const std::string currentExe = "/proc/self/exe";

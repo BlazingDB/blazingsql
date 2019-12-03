@@ -1,9 +1,9 @@
 #pragma once
 
-#include "blazingdb/transport/Node.h"
 #include <memory>
 #include <mutex>
 #include <vector>
+#include "blazingdb/transport/Node.h"
 
 namespace blazingdb {
 namespace manager {
@@ -27,5 +27,5 @@ private:
   std::mutex condition_mutex;
 };
 
-} // namespace manager
-} // namespace blazingdb
+}  // namespace manager
+}  // namespace blazingdb

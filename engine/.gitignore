@@ -78,13 +78,16 @@ RAL.*.log
 dist/
 
 #cython generated files
+blazing-cython/io/io.h
 blazing-cython/io/io.cpp
 blazing-cython/io/SchemaDef.cpp
 blazing-cython/io/data_parser/ParquetParserDef.cpp
+bsql_engine/io/io.h
 bsql_engine/io/io.cpp
 bsql_engine/io/SchemaDef.cpp
 bsql_engine/io/data_parser/ParquetParserDef.cpp
 bsql_engine/io/errors.cpp
+record.txt
 
 #python temp files
 # Byte-compiled / optimized / DLL files

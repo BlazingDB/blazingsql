@@ -1,6 +1,6 @@
+#include "blazingdb/manager/NodeDataMessage.h"
 #include "blazingdb/transport/ColumnTransport.h"
 #include "blazingdb/transport/Message.h"
-#include "blazingdb/manager/NodeDataMessage.h"
 
 namespace blazingdb {
 namespace manager {
