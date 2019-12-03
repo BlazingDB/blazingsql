@@ -53,10 +53,9 @@ TableSchema parseSchema(std::vector<std::string> files,
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 
 	ral::io::Schema schema;
-	std::vector<std::string> expanded_paths;
 
 	try {
-		loader->get_schema(schema, extra_columns, expanded_paths);
+		loader->get_schema(schema, extra_columns);
 	} catch(std::exception & e) {
 		throw;
 	}
@@ -67,12 +66,12 @@ TableSchema parseSchema(std::vector<std::string> files,
 	auto columns_cpp =
 		ral::io::create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
 
-	tableSchema.expanded_files = expanded_paths;
 	for(auto column_cpp : columns_cpp) {
 		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
 		tableSchema.columns.push_back(column_cpp.get_gdf_column());
 		tableSchema.names.push_back(column_cpp.name());
 	}
+	tableSchema.files = schema.get_files();
 	tableSchema.num_row_groups = schema.get_num_row_groups();
 	tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
 	tableSchema.in_file = schema.get_in_file();
