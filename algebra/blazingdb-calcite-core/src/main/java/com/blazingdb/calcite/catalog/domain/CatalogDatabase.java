@@ -3,11 +3,12 @@ package com.blazingdb.calcite.catalog.domain;
 import java.util.Set;
 
 public interface CatalogDatabase {
+	public String
+	getDatabaseName();
 
-	public String getDatabaseName();
+	public CatalogTable
+	getTable(String tableName);
 
-	public CatalogTable getTable(String tableName);
-
-	public Set<String> getTableNames();
-
+	public Set<String>
+	getTableNames();
 }

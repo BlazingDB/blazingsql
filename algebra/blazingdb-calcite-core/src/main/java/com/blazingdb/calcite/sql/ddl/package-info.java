@@ -27,8 +27,7 @@
  * the parser and its supporting classes into your own module, rather than try
  * to extend this one.
  */
-@PackageMarker
-package com.blazingdb.calcite.sql.ddl;
+@PackageMarker package com.blazingdb.calcite.sql.ddl;
 
 import org.apache.calcite.avatica.util.PackageMarker;
 

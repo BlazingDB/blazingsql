@@ -5,15 +5,15 @@
 namespace blazingdb {
 namespace transport {
 
-std::shared_ptr<GPUMessage> MessageQueue::getMessage(const std::string &messageToken) {
+std::shared_ptr<GPUMessage> MessageQueue::getMessage(
+    const std::string &messageToken) {
   std::unique_lock<std::mutex> lock(mutex_);
   condition_variable_.wait(lock, [&, this] {
-                             return std::any_of(this->message_queue_.cbegin(),
-                                                this->message_queue_.cend(),
-                                                [&](const auto &e) {
-                                                  return e->getMessageTokenValue() == messageToken;
-                                                });
-                           });
+    return std::any_of(this->message_queue_.cbegin(),
+                       this->message_queue_.cend(), [&](const auto &e) {
+                         return e->getMessageTokenValue() == messageToken;
+                       });
+  });
 
   return getMessageQueue(messageToken);
 }
@@ -25,9 +25,12 @@ void MessageQueue::putMessage(std::shared_ptr<GPUMessage> &message) {
   condition_variable_.notify_one();
 }
 
-std::shared_ptr<GPUMessage> MessageQueue::getMessageQueue(const std::string &messageToken) {
+std::shared_ptr<GPUMessage> MessageQueue::getMessageQueue(
+    const std::string &messageToken) {
   auto it = std::partition(message_queue_.begin(), message_queue_.end(),
-                           [&messageToken](const auto &e) { return e->getMessageTokenValue() != messageToken; });
+                           [&messageToken](const auto &e) {
+                             return e->getMessageTokenValue() != messageToken;
+                           });
   assert(it != message_queue_.end());
 
   std::shared_ptr<GPUMessage> message = *it;

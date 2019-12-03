@@ -18,8 +18,8 @@
 #ifndef UTIL_MISCELLANY_HPP_
 #define UTIL_MISCELLANY_HPP_
 
-#include <cstdlib> // for std::div
-#include <type_traits> // for std::enable_if
+#include <cstdlib>		// for std::div
+#include <type_traits>  // for std::enable_if
 
 extern "C" {
 #include <cudf/types.h>
@@ -30,63 +30,59 @@ namespace gdf {
 namespace util {
 
 /**
-* Divides the left-hand-side by the right-hand-side, rounding up
-* to an integral multiple of the right-hand-side, e.g. (9,5) -> 2 , (10,5) -> 2, (11,5) -> 3.
-*
-* @param dividend the number to divide
-* @param divisor the number of by which to divide
-* @return The least integer multiple of {@link divisor} which is greater-or-equal to
-* the non-integral division dividend/divisor.
-*
-* @note sensitive to overflow, i.e. if dividend > std::numeric_limits<S>::max() - divisor,
-* the result will be incorrect
-*/
+ * Divides the left-hand-side by the right-hand-side, rounding up
+ * to an integral multiple of the right-hand-side, e.g. (9,5) -> 2 , (10,5) -> 2, (11,5) -> 3.
+ *
+ * @param dividend the number to divide
+ * @param divisor the number of by which to divide
+ * @return The least integer multiple of {@link divisor} which is greater-or-equal to
+ * the non-integral division dividend/divisor.
+ *
+ * @note sensitive to overflow, i.e. if dividend > std::numeric_limits<S>::max() - divisor,
+ * the result will be incorrect
+ */
 template <typename S, typename T>
-constexpr inline S div_rounding_up_unsafe(const S& dividend, const T& divisor) {
-    return (dividend + divisor - 1) / divisor;
+constexpr inline S div_rounding_up_unsafe(const S & dividend, const T & divisor) {
+	return (dividend + divisor - 1) / divisor;
 }
 
 
 /**
-* Divides the left-hand-side by the right-hand-side, rounding up
-* to an integral multiple of the right-hand-side, e.g. (9,5) -> 2 , (10,5) -> 2, (11,5) -> 3.
-*
-* @param dividend the number to divide
-* @param divisor the number of by which to divide
-* @return The least integer multiple of {@link divisor} which is greater-or-equal to
-* the non-integral division dividend/divisor.
-*
-* @note will not overflow, and may _or may not_ be slower than the intuitive
-* approach of using (dividend + divisor - 1) / divisor
-*/
+ * Divides the left-hand-side by the right-hand-side, rounding up
+ * to an integral multiple of the right-hand-side, e.g. (9,5) -> 2 , (10,5) -> 2, (11,5) -> 3.
+ *
+ * @param dividend the number to divide
+ * @param divisor the number of by which to divide
+ * @return The least integer multiple of {@link divisor} which is greater-or-equal to
+ * the non-integral division dividend/divisor.
+ *
+ * @note will not overflow, and may _or may not_ be slower than the intuitive
+ * approach of using (dividend + divisor - 1) / divisor
+ */
 template <typename I>
 constexpr inline I div_rounding_up_safe(I dividend, I divisor);
 
 template <typename I>
-constexpr inline typename std::enable_if<std::is_signed<I>::value, I>::type
-div_rounding_up_safe(I dividend, I divisor)
-{
+constexpr inline typename std::enable_if<std::is_signed<I>::value, I>::type div_rounding_up_safe(
+	I dividend, I divisor) {
 #if cplusplus >= 201402L
-    auto div_result = std::div(dividend, divisor);
-    return div_result.quot + !(!div_result.rem);
+	auto div_result = std::div(dividend, divisor);
+	return div_result.quot + !(!div_result.rem);
 #else
-    // Hopefully the compiler will optimize the two calls away.
-    return std::div(dividend, divisor).quot + !(!std::div(dividend, divisor).rem);
+	// Hopefully the compiler will optimize the two calls away.
+	return std::div(dividend, divisor).quot + !(!std::div(dividend, divisor).rem);
 #endif
 }
 
 // This variant will be used for unsigned types
 template <typename I>
-constexpr inline I div_rounding_up_safe(I dividend, I divisor)
-{
-    // TODO: This could probably be implemented faster
-    return (dividend > divisor) ?
-        1 + div_rounding_up_unsafe(dividend - divisor, divisor) :
-        (dividend > 0);
+constexpr inline I div_rounding_up_safe(I dividend, I divisor) {
+	// TODO: This could probably be implemented faster
+	return (dividend > divisor) ? 1 + div_rounding_up_unsafe(dividend - divisor, divisor) : (dividend > 0);
 }
 
-} // namespace util
-} // namespace gdf
+}  // namespace util
+}  // namespace gdf
 
 
-#endif // UTIL_MISCELLANY_HPP_
+#endif  // UTIL_MISCELLANY_HPP_

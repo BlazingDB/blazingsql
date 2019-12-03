@@ -31,8 +31,7 @@ std::vector<std::shared_ptr<Node>> Cluster::getAvailableNodes(int clusterSize) {
   auto iterFirst = nodes_.begin();
   auto iterLast = nodes_.end();
   while (iterFirst != iterLast && clusterSize > 0) {
-    if ((*iterFirst)->isAvailable())
-      *copyIter++ = *iterFirst;
+    if ((*iterFirst)->isAvailable()) *copyIter++ = *iterFirst;
     ++iterFirst;
     --clusterSize;
   }
@@ -40,5 +39,5 @@ std::vector<std::shared_ptr<Node>> Cluster::getAvailableNodes(int clusterSize) {
   return availableNodes;
 }
 
-} // namespace manager
-} // namespace blazingdb
+}  // namespace manager
+}  // namespace blazingdb

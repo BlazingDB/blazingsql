@@ -1,13 +1,13 @@
 #ifndef BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H
 #define BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H
 
-#include <vector>
-#include "GDFColumn.cuh"
 #include "DataFrame.h"
+#include "GDFColumn.cuh"
 #include "blazingdb/manager/Context.h"
+#include "communication/factory/MessageFactory.h"
 #include "distribution/NodeColumns.h"
 #include "distribution/NodeSamples.h"
-#include "communication/factory/MessageFactory.h"
+#include <vector>
 
 namespace ral {
 namespace distribution {
@@ -16,25 +16,19 @@ namespace sampling {
 
 constexpr double THRESHOLD_FOR_SUBSAMPLING = 0.01;
 
-double
-calculateSampleRatio(gdf_size_type tableSize);
+double calculateSampleRatio(gdf_size_type tableSize);
 
-std::vector<gdf_column_cpp>
-generateSample(const std::vector<gdf_column_cpp> &table, double ratio);
+std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, double ratio);
 
-std::vector<std::vector<gdf_column_cpp>>
-generateSamples(const std::vector<std::vector<gdf_column_cpp>> &tables,
-                const std::vector<double> &               ratios);
+std::vector<std::vector<gdf_column_cpp>> generateSamples(
+	const std::vector<std::vector<gdf_column_cpp>> & tables, const std::vector<double> & ratios);
 
-std::vector<gdf_column_cpp>
-generateSample(const std::vector<gdf_column_cpp> &table, std::size_t quantity);
+std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, std::size_t quantity);
 
-std::vector<std::vector<gdf_column_cpp>>
-generateSamples(const std::vector<std::vector<gdf_column_cpp>> &input_tables,
-                std::vector<std::size_t> &                quantities);
+std::vector<std::vector<gdf_column_cpp>> generateSamples(
+	const std::vector<std::vector<gdf_column_cpp>> & input_tables, std::vector<std::size_t> & quantities);
 
-void
-normalizeSamples(std::vector<NodeSamples>& samples);
+void normalizeSamples(std::vector<NodeSamples> & samples);
 
 }  // namespace sampling
 }  // namespace distribution
@@ -45,18 +39,19 @@ namespace distribution {
 
 namespace {
 using Context = blazingdb::manager::Context;
-} // namespace
+}  // namespace
 
-void sendSamplesToMaster(const Context& context, std::vector<gdf_column_cpp>& samples, std::size_t total_row_size);
+void sendSamplesToMaster(const Context & context, std::vector<gdf_column_cpp> & samples, std::size_t total_row_size);
 
 
-std::vector<NodeSamples> collectSamples(const Context& context);
+std::vector<NodeSamples> collectSamples(const Context & context);
 
-std::vector<gdf_column_cpp> generatePartitionPlans(const Context& context, std::vector<NodeSamples>& samples, std::vector<int8_t>& sortOrderTypes);
+std::vector<gdf_column_cpp> generatePartitionPlans(
+	const Context & context, std::vector<NodeSamples> & samples, std::vector<int8_t> & sortOrderTypes);
 
-void distributePartitionPlan(const Context& context, std::vector<gdf_column_cpp>& pivots);
+void distributePartitionPlan(const Context & context, std::vector<gdf_column_cpp> & pivots);
 
-std::vector<gdf_column_cpp> getPartitionPlan(const Context& context);
+std::vector<gdf_column_cpp> getPartitionPlan(const Context & context);
 
 /**
  * The implementation of the partition must be changed with the 'split' or 'slice' function in cudf.
@@ -78,36 +73,43 @@ std::vector<gdf_column_cpp> getPartitionPlan(const Context& context);
  * table = { { 10, 12, 14, 16, 18, 20 } }
  * output = { {10} , {12, 14, 16}, {18, 20} }
  */
-std::vector<NodeColumns> partitionData(const Context& context,
-                                       std::vector<gdf_column_cpp>& table,
-                                       std::vector<int>& searchColIndices,
-                                       std::vector<gdf_column_cpp>& pivots,
-                                       bool isTableSorted,
-                                       std::vector<int8_t> sortOrderTypes = {});
+std::vector<NodeColumns> partitionData(const Context & context,
+	std::vector<gdf_column_cpp> & table,
+	std::vector<int> & searchColIndices,
+	std::vector<gdf_column_cpp> & pivots,
+	bool isTableSorted,
+	std::vector<int8_t> sortOrderTypes = {});
 
-void distributePartitions(const Context& context, std::vector<NodeColumns>& partitions);
+void distributePartitions(const Context & context, std::vector<NodeColumns> & partitions);
 
-std::vector<NodeColumns> collectPartitions(const Context& context);
-std::vector<NodeColumns> collectSomePartitions(const Context& context, int num_partitions);
+std::vector<NodeColumns> collectPartitions(const Context & context);
+std::vector<NodeColumns> collectSomePartitions(const Context & context, int num_partitions);
 
 // this functions sends the data in table to all nodes except itself
-void scatterData(const Context& context, std::vector<gdf_column_cpp>& table);
+void scatterData(const Context & context, std::vector<gdf_column_cpp> & table);
 
-void sortedMerger(std::vector<NodeColumns>& columns, std::vector<int8_t>& sortOrderTypes, std::vector<int>& sortColIndices, blazing_frame& output);
+void sortedMerger(std::vector<NodeColumns> & columns,
+	std::vector<int8_t> & sortOrderTypes,
+	std::vector<int> & sortColIndices,
+	blazing_frame & output);
 
-std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context& context, std::vector<NodeSamples>& samples);
+std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & context, std::vector<NodeSamples> & samples);
 
-void groupByWithoutAggregationsMerger(std::vector<NodeColumns>& groups, const std::vector<int>& groupColIndices, blazing_frame& output);
+void groupByWithoutAggregationsMerger(
+	std::vector<NodeColumns> & groups, const std::vector<int> & groupColIndices, blazing_frame & output);
 
-void distributeRowSize(const Context& context, std::size_t total_row_size);
+void distributeRowSize(const Context & context, std::size_t total_row_size);
 
-std::vector<gdf_size_type> collectRowSize(const Context& context);
+std::vector<gdf_size_type> collectRowSize(const Context & context);
 
-void distributeLeftRightNumRows(const Context& context, std::size_t left_num_rows, std::size_t right_num_rows);
-void collectLeftRightNumRows(const Context& context, std::vector<gdf_size_type> & node_num_rows_left, std::vector<gdf_size_type> & node_num_rows_right);
+void distributeLeftRightNumRows(const Context & context, std::size_t left_num_rows, std::size_t right_num_rows);
+void collectLeftRightNumRows(const Context & context,
+	std::vector<gdf_size_type> & node_num_rows_left,
+	std::vector<gdf_size_type> & node_num_rows_right);
 
 // multi-threaded message sender
-void broadcastMessage(std::vector<std::shared_ptr<Node>> nodes, std::shared_ptr<communication::messages::Message> message);
+void broadcastMessage(
+	std::vector<std::shared_ptr<Node>> nodes, std::shared_ptr<communication::messages::Message> message);
 
 }  // namespace distribution
 }  // namespace ral
@@ -128,11 +130,10 @@ namespace distribution {
  * @return std::vector<NodeColumns> represents an array of NodeColumn (@see NodeColumn), which contains
  * a node with their corresponding partition table.
  */
-std::vector<NodeColumns> generateJoinPartitions(const Context& context,
-                                                std::vector<gdf_column_cpp>& table,
-                                                std::vector<int>& columnIndices);
+std::vector<NodeColumns> generateJoinPartitions(
+	const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices);
 
-} // namespace distribution
-} // namespace ral
+}  // namespace distribution
+}  // namespace ral
 
-#endif  //BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H
+#endif  // BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H

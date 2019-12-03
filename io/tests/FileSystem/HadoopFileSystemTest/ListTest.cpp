@@ -6,9 +6,9 @@
 using std::string;
 using std::vector;
 
-bool search_in(const std::vector<std::string> &filenames, const std::string &s) {
-	for (std::string filename : filenames) {
-		if (filename == s) {
+bool search_in(const std::vector<std::string> & filenames, const std::string & s) {
+	for(std::string filename : filenames) {
+		if(filename == s) {
 			return true;
 		}
 	}
@@ -20,7 +20,7 @@ TEST_F(HadoopFileSystemTest, ResourcesDirectory) {
 
 	const vector<Uri> uris = hadoopFileSystem->list(uri("/resources"));
 
-	for (const Uri &uri : uris) {
+	for(const Uri & uri : uris) {
 		filenames.push_back(uri.getPath().toString());
 	}
 
@@ -34,7 +34,7 @@ TEST_F(HadoopFileSystemTest, RootDirectory) {
 
 	const vector<Uri> uris = hadoopFileSystem->list(uri("/"));
 
-	for (const Uri &uri : uris) {
+	for(const Uri & uri : uris) {
 		filenames.push_back(uri.getPath().toString(true));
 	}
 

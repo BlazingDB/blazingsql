@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "blazingdb/transport/Node.h"
 #include <vector>
+#include "blazingdb/transport/Node.h"
 
 namespace blazingdb {
 namespace manager {
@@ -26,11 +26,11 @@ public:
 
   std::vector<std::shared_ptr<Node>> getAllOtherNodes(int selfNodeIndex) const;
 
-    /// RAL instances that will run the query
+  /// RAL instances that will run the query
   std::vector<std::shared_ptr<Node>> getWorkerNodes() const;
 
-  /// A single unique RAL instance that helps to the messages transmition and processesing between worker RAL's
-  /// e.g.: see SampleToNodeMasterMessage
+  /// A single unique RAL instance that helps to the messages transmition and
+  /// processesing between worker RAL's e.g.: see SampleToNodeMasterMessage
   const Node& getMasterNode() const;
 
   /// @deprecated: not used anymore
@@ -42,12 +42,8 @@ public:
   void incrementQueryStep();
   void incrementQuerySubstep();
 
-  uint32_t getQueryStep() const{
-    return query_step;
-  };
-  uint32_t getQuerySubstep() const{
-    return query_substep;
-  };
+  uint32_t getQueryStep() const { return query_step; };
+  uint32_t getQuerySubstep() const { return query_substep; };
 
   int getNodeIndex(const Node& node) const;
   bool isMasterNode(const Node& node) const;

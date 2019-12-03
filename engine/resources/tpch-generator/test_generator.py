@@ -23,7 +23,8 @@ def main():
 
     plans = make_plans(items, args.calcite_jar)
 
-    strings_classes = (make_unit_test(item, plan) for item, plan in zip(items, plans))
+    strings_classes = (make_unit_test(item, plan)
+                       for item, plan in zip(items, plans))
     header_text = '\n'.join(strings_classes)
 
     write(header_text).to(args.output)
@@ -37,34 +38,44 @@ def make_items(filename):
 def make_plans(items, calcite_jar):
     def inputjson(item):
         json_obj = json.dumps({'query': item.query, 'tables': item.tables})
-        return re.findall('non optimized\\n(.*)\\n\\noptimized',
-                          subprocess.Popen(('java', '-jar', calcite_jar),
-                                           stdin=subprocess.PIPE,
-                                           stdout=subprocess.PIPE).communicate(json_obj.encode())[0].decode('utf-8'),
-                          re.M | re.S)[0]
+        return re.findall(
+            'non optimized\\n(.*)\\n\\noptimized',
+            subprocess.Popen(
+                ('java',
+                 '-jar',
+                 calcite_jar),
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE).communicate(
+                json_obj.encode())[0].decode('utf-8'),
+            re.M | re.S)[0]
 
     return [inputjson(item) for item in items]
 
 
 def item_from(dct):
     return type('json_object', (), {
-        key: item_from(value) if type(value) is dict else value
+        key: item_from(value) if isinstance(value, dict) else value
         for key, value in dct.items()})
 
 
 def make_unit_test(item, plan):
-    return ('TEST_F(EvaluateQueryTest, %(test_name)s) {'
-            'auto input = %(input)s;'
-            'auto logical_plan = input.logicalPlan;'
-            'auto input_tables = input.tableGroup.ToBlazingFrame();'
-            'auto table_names = input.tableGroup.table_names();'
-            'auto column_names = input.tableGroup.column_names();'
-            'std::vector<gdf_column_cpp> outputs;'
-            'gdf_error err = evaluate_query(input_tables, table_names, column_names, logical_plan, outputs);'
-            'EXPECT_TRUE(err == GDF_SUCCESS);'
-            'auto output_table = GdfColumnCppsTableBuilder{"output_table", outputs}.Build();'
-            'CHECK_RESULT(output_table, input.resultTable);'
-            '}') % {'test_name': item.testName, 'input': Φ(item, plan)}
+    return (
+        'TEST_F(EvaluateQueryTest, %(test_name)s) {'
+        'auto input = %(input)s;'
+        'auto logical_plan = input.logicalPlan;'
+        'auto input_tables = input.tableGroup.ToBlazingFrame();'
+        'auto table_names = input.tableGroup.table_names();'
+        'auto column_names = input.tableGroup.column_names();'
+        'std::vector<gdf_column_cpp> outputs;'
+        'gdf_error err = evaluate_query(input_tables, table_names, column_names, logical_plan, outputs);'
+        'EXPECT_TRUE(err == GDF_SUCCESS);'
+        'auto output_table = GdfColumnCppsTableBuilder{"output_table", outputs}.Build();'
+        'CHECK_RESULT(output_table, input.resultTable);'
+        '}') % {
+        'test_name': item.testName,
+        'input': Φ(
+            item,
+            plan)}
 
 
 def get_file_paths(tables):
@@ -110,6 +121,7 @@ def get_gdf_type(val):
         'object': 'GDF_INT64'
     }[val]
 
+
 def Φ(item, plan):
     tableNames = get_table_names(item.tables)
     columnNames = get_column_names(item.tables)
@@ -118,38 +130,48 @@ def Φ(item, plan):
     print(columnTypes)
     filePaths = get_file_paths(item.tables)
 
-    return ('InputTestItem{.query = "%(query)s", .logicalPlan ="%(plan)s",'
-            ' .tableGroup = %(tableGroup)s, .resultTable = %(resultTable)s}') % {
-               'query': item.query,
-               'plan': '\\n'.join(line for line in plan.split('\n')),
-               'tableGroup': make_table_group(filePaths, tableNames, columnNames, columnTypes),
-               'resultTable': make_table(item.result, 'ResultSet', item.resultTypes, item.resultTypes),
-           }
+    return (
+        'InputTestItem{.query = "%(query)s", .logicalPlan ="%(plan)s",'
+        ' .tableGroup = %(tableGroup)s, .resultTable = %(resultTable)s}') % {
+        'query': item.query,
+        'plan': '\\n'.join(
+            line for line in plan.split('\n')),
+        'tableGroup': make_table_group(
+            filePaths,
+            tableNames,
+            columnNames,
+            columnTypes),
+        'resultTable': make_table(
+            item.result,
+            'ResultSet',
+            item.resultTypes,
+            item.resultTypes),
+    }
 
 
 def make_table(data, tableName, columnNames, columnTypes):
     return ('LiteralTableBuilder{"%(tableName)s",'
             ' %(literals)s}.Build()') % {
-               'tableName': tableName,
-               'literals': make_literals(data, columnNames, columnTypes),
-           }
+        'tableName': tableName,
+        'literals': make_literals(data, columnNames, columnTypes),
+    }
 
 
 def make_table_pandas(data, tableName, columnNames, columnTypes):
     return ('{"%(tableName)s",'
             ' %(literals)s}') % {
-               'tableName': tableName,
-               'literals': make_literals_pandas(data, columnNames, columnTypes),
-           }
+        'tableName': tableName,
+        'literals': make_literals_pandas(data, columnNames, columnTypes),
+    }
 
 
 def get_csv_data(csv_path, column_names, column_types):
     dtypes = {}
-    for name, t in zip(column_names, column_types) :
+    for name, t in zip(column_names, column_types):
         dtypes[name] = t
     print(dtypes)
 
-    dfA = pd.read_csv(csv_path, delimiter='|',   names=column_names)
+    dfA = pd.read_csv(csv_path, delimiter='|', names=column_names)
     print(dfA)
     return dfA.transpose().values.tolist()
 
@@ -159,20 +181,22 @@ def make_table_group(filePaths, tableNames, columnNames, columnTypes):
         [make_table_pandas(get_csv_data(cvs_path, c_names, c_types), name, c_names, c_types) for
          cvs_path, name, c_names, c_types in zip(filePaths, tableNames, columnNames, columnTypes)])
 
-def cast_val (_type, x):
+
+def cast_val(_type, x):
     return {
-        'float64': lambda x : float(x),
-        'float32': lambda x : float(x),
-        'int': lambda x : int(x),
-        'int32': lambda x : int(x),
-        'int64': lambda x : int(x), #@todo  casting prolemas (python to c++)
-        'object': lambda x : 0
+        'float64': lambda x: float(x),
+        'float32': lambda x: float(x),
+        'int': lambda x: int(x),
+        'int32': lambda x: int(x),
+        'int64': lambda x: int(x),  # @todo  casting prolemas (python to c++)
+        'object': lambda x: 0
     }[_type](x)
+
 
 def make_literals_pandas(data, columnNames, columnTypes):
     return '{%s}' % (
         ','.join(['{"%s", Literals<%s>{%s} }'
-                  % (name, get_gdf_type(_type), ','.join(str(  cast_val(_type, x) ) for x in values))
+                  % (name, get_gdf_type(_type), ','.join(str(cast_val(_type, x)) for x in values))
                   for name, _type, values in zip(columnNames, columnTypes, data)]))
 
 

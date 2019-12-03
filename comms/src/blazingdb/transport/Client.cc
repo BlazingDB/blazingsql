@@ -21,7 +21,7 @@ public:
                  "\" with buffer size = " + std::to_string(bufferSize_) +
                  " and data = " + data_} {}
 
-  const char *what() const noexcept override { return message_.c_str(); }
+  const char* what() const noexcept override { return message_.c_str(); }
 
 private:
   const std::string endpoint_;
@@ -30,25 +30,19 @@ private:
   const std::string message_;
 };
 
-template<typename MetadataType>
+template <typename MetadataType>
 void write_metadata(void* file_descriptor, const MetadataType& metadata) {
-  blazingdb::transport::io::writeToSocket(file_descriptor, (char *)&metadata, sizeof(MetadataType));
+  blazingdb::transport::io::writeToSocket(file_descriptor, (char*)&metadata,
+                                          sizeof(MetadataType));
 }
 
 class ConcreteClientTCP : public ClientTCP {
 public:
   ConcreteClientTCP(const std::string& ip, int16_t port)
-    : client_socket{ip, port}
-  {
+      : client_socket{ip, port} {}
+  void Close() override { client_socket.close(); }
 
-  }
-  void Close() override {
-    client_socket.close();
-  }
-
-  void SetDevice(int gpuId) override {
-    this->gpuId = gpuId;
-  }
+  void SetDevice(int gpuId) override { this->gpuId = gpuId; }
 
   Status Send(GPUMessage& message) override {
     cudaError_t status = cudaSetDevice(this->gpuId);
@@ -64,36 +58,42 @@ public:
 
     // send message content (gpu buffers)
     std::vector<int> buffer_sizes;
-    std::vector<char *> buffers;
+    std::vector<char*> buffers;
     std::vector<ColumnTransport> column_offsets;
     std::tie(buffer_sizes, buffers, column_offsets) = message.GetRawColumns();
 
     write_metadata(fd, (int32_t)column_offsets.size());
-    blazingdb::transport::io::writeToSocket(fd, (char *)column_offsets.data(), sizeof(ColumnTransport) * column_offsets.size());
+    blazingdb::transport::io::writeToSocket(
+        fd, (char*)column_offsets.data(),
+        sizeof(ColumnTransport) * column_offsets.size());
 
     write_metadata(fd, (int32_t)buffer_sizes.size());
-    blazingdb::transport::io::writeToSocket(fd, (char *)buffer_sizes.data(), sizeof(int) * buffer_sizes.size());
+    blazingdb::transport::io::writeToSocket(fd, (char*)buffer_sizes.data(),
+                                            sizeof(int) * buffer_sizes.size());
 
-    blazingdb::transport::io::writeBuffersFromGPUTCP(column_offsets, buffer_sizes, buffers, fd, gpuId);
+    blazingdb::transport::io::writeBuffersFromGPUTCP(
+        column_offsets, buffer_sizes, buffers, fd, gpuId);
     blazingdb::transport::io::writeToSocket(fd, "OK", 2, false);
 
     zmq::socket_t* socket_ptr = (zmq::socket_t*)fd;
 
     int data_past_topic{0};
     auto data_past_topic_size{sizeof(data_past_topic)};
-    socket_ptr->getsockopt(ZMQ_RCVMORE, &data_past_topic, &data_past_topic_size);
+    socket_ptr->getsockopt(ZMQ_RCVMORE, &data_past_topic,
+                           &data_past_topic_size);
     if (data_past_topic == 0 || data_past_topic_size == 0) {
-      std::cerr <<  "Client: No data inside message." << std::endl;
+      std::cerr << "Client: No data inside message." << std::endl;
     }
     // receive the ok
     zmq::message_t local_message;
     auto success = socket_ptr->recv(local_message);
-    if (success.value() == false || local_message.size() == 0) { 
-       std::cerr <<  "Client:   throw zmq::error_t()" << std::endl;
-      throw zmq::error_t(); 
-      }
+    if (success.value() == false || local_message.size() == 0) {
+      std::cerr << "Client:   throw zmq::error_t()" << std::endl;
+      throw zmq::error_t();
+    }
 
-    std::string end_message(static_cast<char*>(local_message.data()), local_message.size());
+    std::string end_message(static_cast<char*>(local_message.data()),
+                            local_message.size());
     assert(end_message == "END");
     return Status{true};
   }

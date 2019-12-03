@@ -1,7 +1,8 @@
 #include "Common/HadoopFileSystemTest.h"
 
 TEST(DisconnectTest, AfterConnection) {
-	const std::unique_ptr<HadoopFileSystem> hadoopFileSystem = std::unique_ptr<HadoopFileSystem>(new HadoopFileSystem());
+	const std::unique_ptr<HadoopFileSystem> hadoopFileSystem =
+		std::unique_ptr<HadoopFileSystem>(new HadoopFileSystem());
 	const FileSystemConnection fileSystemConnection = SystemEnvironment::getLocalHadoopFileSystemConnection();
 	const bool connected = hadoopFileSystem->connect(fileSystemConnection);
 

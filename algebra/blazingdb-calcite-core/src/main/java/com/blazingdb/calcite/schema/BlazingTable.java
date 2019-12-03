@@ -5,14 +5,9 @@
 
 package com.blazingdb.calcite.schema;
 
-import com.blazingdb.calcite.catalog.domain.CatalogTable;
 import com.blazingdb.calcite.catalog.domain.CatalogColumn;
 import com.blazingdb.calcite.catalog.domain.CatalogColumnDataType;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.blazingdb.calcite.catalog.domain.CatalogTable;
 
 import org.apache.calcite.DataContext;
 import org.apache.calcite.config.CalciteConnectionConfig;
@@ -21,6 +16,7 @@ import org.apache.calcite.linq4j.tree.Expression;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.schema.FilterableTable;
 import org.apache.calcite.schema.Function;
 import org.apache.calcite.schema.ProjectableFilterableTable;
 import org.apache.calcite.schema.Schema;
@@ -29,27 +25,29 @@ import org.apache.calcite.schema.SchemaVersion;
 import org.apache.calcite.schema.Statistic;
 import org.apache.calcite.schema.Statistics;
 import org.apache.calcite.schema.Table;
-import org.apache.calcite.schema.FilterableTable;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.util.ConversionUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class BlazingTable implements ProjectableFilterableTable {
-
-
 	final static Logger LOGGER = LoggerFactory.getLogger(BlazingTable.class);
 
 	private final CatalogTable catalogTable;
 
-	public BlazingTable(CatalogTable catalogTable) {
-		this.catalogTable = catalogTable;
-	}
+	public BlazingTable(CatalogTable catalogTable) { this.catalogTable = catalogTable; }
 
 	@Override
-	public RelDataType getRowType(RelDataTypeFactory rdtf) {
+	public RelDataType
+	getRowType(RelDataTypeFactory rdtf) {
 		RelDataTypeFactory.FieldInfoBuilder builder = rdtf.builder();
 		// for (TColumnType tct : rowInfo.getRow_desc()) {
 		// // MAPDLOGGER.debug("'" + tct.col_name + "'" + " \t" + tct.getCol_type().getEncoding() + " \t"
@@ -66,68 +64,69 @@ public class BlazingTable implements ProjectableFilterableTable {
 		// builder.add(col_name, col_type);
 		// }
 		for(CatalogColumn column : catalogTable.getColumns()) {
-			builder.add(column.getColumnName(),convertToSqlType(column.getColumnDataType(),rdtf));
+			builder.add(column.getColumnName(), convertToSqlType(column.getColumnDataType(), rdtf));
 			builder.nullable(true);
 		}
 		return builder.build();
 	}
 
 	@Override
-	public Statistic getStatistic() {
+	public Statistic
+	getStatistic() {
 		return Statistics.UNKNOWN;
 	}
 
 	@Override
-	public Schema.TableType getJdbcTableType() {
+	public Schema.TableType
+	getJdbcTableType() {
 		return Schema.TableType.TABLE;
 	}
 
-	private RelDataType convertToSqlType(CatalogColumnDataType dataType,RelDataTypeFactory typeFactory) {
+	private RelDataType
+	convertToSqlType(CatalogColumnDataType dataType, RelDataTypeFactory typeFactory) {
 		RelDataType temp = null;
 		switch(dataType) {
-		case GDF_INT8 :
-			temp = typeFactory.createSqlType(SqlTypeName.TINYINT);
-			break;
-		case GDF_INT16 :
-			temp = typeFactory.createSqlType(SqlTypeName.SMALLINT);
-			break;
-		case GDF_INT32 :
-			temp = typeFactory.createSqlType(SqlTypeName.INTEGER);
-			break;
-		case GDF_INT64 :
-			temp = typeFactory.createSqlType(SqlTypeName.BIGINT);
-			break; 
-		case GDF_FLOAT32 :
-			temp = typeFactory.createSqlType(SqlTypeName.FLOAT);
-			break;
-		case GDF_FLOAT64 :
-			temp = typeFactory.createSqlType(SqlTypeName.DOUBLE);
-			break;
-		case GDF_BOOL8 :
-			temp = typeFactory.createSqlType(SqlTypeName.BOOLEAN);
-			break;
-		case GDF_DATE32 :
-			temp = typeFactory.createSqlType(SqlTypeName.DATE);
-			break;
-		case GDF_DATE64 :
-			temp = typeFactory.createSqlType(SqlTypeName.DATE);
-			break;
-		case GDF_TIMESTAMP :
-			temp = typeFactory.createSqlType(SqlTypeName.TIMESTAMP);
-			break;
-		case GDF_CATEGORY :
-			temp = null;
-			break;
-		case GDF_STRING:
-			temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);
-			break;
-		case GDF_STRING_CATEGORY:
-			temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);
-			break;
-		default:
-			temp = null;
-		
-		
+			case GDF_INT8:
+				temp = typeFactory.createSqlType(SqlTypeName.TINYINT);
+				break;
+			case GDF_INT16:
+				temp = typeFactory.createSqlType(SqlTypeName.SMALLINT);
+				break;
+			case GDF_INT32:
+				temp = typeFactory.createSqlType(SqlTypeName.INTEGER);
+				break;
+			case GDF_INT64:
+				temp = typeFactory.createSqlType(SqlTypeName.BIGINT);
+				break;
+			case GDF_FLOAT32:
+				temp = typeFactory.createSqlType(SqlTypeName.FLOAT);
+				break;
+			case GDF_FLOAT64:
+				temp = typeFactory.createSqlType(SqlTypeName.DOUBLE);
+				break;
+			case GDF_BOOL8:
+				temp = typeFactory.createSqlType(SqlTypeName.BOOLEAN);
+				break;
+			case GDF_DATE32:
+				temp = typeFactory.createSqlType(SqlTypeName.DATE);
+				break;
+			case GDF_DATE64:
+				temp = typeFactory.createSqlType(SqlTypeName.DATE);
+				break;
+			case GDF_TIMESTAMP:
+				temp = typeFactory.createSqlType(SqlTypeName.TIMESTAMP);
+				break;
+			case GDF_CATEGORY:
+				temp = null;
+				break;
+			case GDF_STRING:
+				temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);
+				break;
+			case GDF_STRING_CATEGORY:
+				temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);
+				break;
+			default:
+				temp = null;
 		}
 		return temp;
 	}
@@ -195,19 +194,22 @@ public class BlazingTable implements ProjectableFilterableTable {
 	// }
 
 	@Override
-	public boolean isRolledUp(String string) {
+	public boolean
+	isRolledUp(String string) {
 		// will set to false by default
 		return false;
 	}
 
 	@Override
-	public boolean rolledUpColumnValidInsideAgg(String string, SqlCall sc, SqlNode sn, CalciteConnectionConfig ccc) {
+	public boolean
+	rolledUpColumnValidInsideAgg(String string, SqlCall sc, SqlNode sn, CalciteConnectionConfig ccc) {
 		throw new UnsupportedOperationException("rolledUpColumnValidInsideAgg Not supported yet.");
 	}
 
 
 	@Override
-	public Enumerable<Object[]> scan(DataContext root, List<RexNode> filters, int[] projects) {
+	public Enumerable<Object[]>
+	scan(DataContext root, List<RexNode> filters, int[] projects) {
 		// TODO Auto-generated method stub
 
 		return null;

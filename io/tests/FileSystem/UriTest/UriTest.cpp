@@ -6,9 +6,8 @@
 
 #include "FileSystem/Uri.h"
 
-//TODO import test data from PathTest
-static const std::vector<std::string> validDefaultUris = {
-	"/",
+// TODO import test data from PathTest
+static const std::vector<std::string> validDefaultUris = {"/",
 	"/a/b/c/v/b/n/m/",
 	"/a/b/c/v/b/n",
 	"/root/blazing/data.1.parquet",
@@ -17,21 +16,16 @@ static const std::vector<std::string> validDefaultUris = {
 	"/home/user34/dat.csv",
 	"/home/user_45.g3/Desktop/fodlers/this spaced folder/",
 	"/home/user_45.g3/Desktop/fodlers/this spaced folder/has_a_file.txt",
-	"/home/user_45.g3///Desktop/fodlers///this spaced folder//has_a_file.txt"
-};
+	"/home/user_45.g3///Desktop/fodlers///this spaced folder//has_a_file.txt"};
 
 static const std::vector<std::string> validLocalUris = {
 	"file://default/home/percy/Desktop/cat_images/",
 };
 
 static const std::vector<std::string> validHdfsUris = {
-	"hdfs://percy_node_1_spark_warehouse/temp/",
-	"hdfs://percy_node_1_spark_warehouse/temp/"
-};
+	"hdfs://percy_node_1_spark_warehouse/temp/", "hdfs://percy_node_1_spark_warehouse/temp/"};
 
-static const std::vector<std::string> validS3Uris = {
-	"s3://william_node/root/"
-};
+static const std::vector<std::string> validS3Uris = {"s3://william_node/root/"};
 
 static std::vector<std::string> getValidUris() {
 	std::vector<std::string> result;
@@ -44,7 +38,7 @@ static std::vector<std::string> getValidUris() {
 
 const std::vector<std::string> validUris = getValidUris();
 
-//validDefaultUris + validLocalUris + validHdfsUris + validS3Uris;
+// validDefaultUris + validLocalUris + validHdfsUris + validS3Uris;
 
 static const std::vector<std::string> invalidUris = {
 	"",
@@ -63,32 +57,26 @@ static const std::vector<std::string> invalidUris = {
 };
 
 class UriTest : public testing::TestWithParam<std::string> {
-	protected:
-		virtual void TearDown() {}
+protected:
+	virtual void TearDown() {}
 
-	protected:
-		Uri uri;
+protected:
+	Uri uri;
 };
 
 class UriStringConstructorTest : public UriTest {
-	protected:
-		virtual void SetUp() {
-			uri = Uri(GetParam(), true);
-		}
+protected:
+	virtual void SetUp() { uri = Uri(GetParam(), true); }
 };
 
 class UriStringNonStrictConstructorTest : public UriTest {
-	protected:
-		virtual void SetUp() {
-			uri = Uri(GetParam(), false);
-		}
+protected:
+	virtual void SetUp() { uri = Uri(GetParam(), false); }
 };
 
 class UriStringAssignmentTest : public UriTest {
-	protected:
-		virtual void SetUp() {
-			uri = GetParam();
-		}
+protected:
+	virtual void SetUp() { uri = GetParam(); }
 };
 
 class ValidDefaultUriStringConstructorTest : public UriStringConstructorTest {};
@@ -101,14 +89,14 @@ class ValidUriStringAssignmentTest : public UriStringAssignmentTest {};
 
 class InvalidUriStringConstructorTest : public UriStringConstructorTest {};
 class InvalidUriStringNonStrictConstructorTest : public UriStringNonStrictConstructorTest {};
-class InvalidUriStringAssignmentTest : public UriStringAssignmentTest{};
+class InvalidUriStringAssignmentTest : public UriStringAssignmentTest {};
 
-void checkValidDefaultUriTest(const Uri &uri, const std::string &param) {
+void checkValidDefaultUriTest(const Uri & uri, const std::string & param) {
 	const Uri other(param, true);
 
 	EXPECT_TRUE(uri.isValid());
 	EXPECT_FALSE(uri.isEmpty());
-	//TODO percy add global static const Uri::DEFAULT_FILE_SYSTEM_TYPE
+	// TODO percy add global static const Uri::DEFAULT_FILE_SYSTEM_TYPE
 	EXPECT_EQ(uri.getFileSystemType(), FileSystemType::LOCAL);
 	EXPECT_EQ(uri.getScheme(), Uri::fileSystemTypeToScheme(uri.getFileSystemType()));
 	EXPECT_EQ(uri.getAuthority(), "local");
@@ -116,15 +104,13 @@ void checkValidDefaultUriTest(const Uri &uri, const std::string &param) {
 	EXPECT_EQ(uri.toString(), other.toString());
 }
 
-void checkValidUriTest(const Uri &uri, const std::string &param) {
+void checkValidUriTest(const Uri & uri, const std::string & param) {
 	EXPECT_TRUE(uri.isValid());
 	EXPECT_FALSE(uri.isEmpty());
 	EXPECT_EQ(uri.toString(), param);
 }
 
-void checkInvalidTest(const Uri &uri) {
-	EXPECT_FALSE(uri.isValid());
-}
+void checkInvalidTest(const Uri & uri) { EXPECT_FALSE(uri.isValid()); }
 
 TEST_P(ValidDefaultUriStringConstructorTest, CheckValidDefaultUrisUsingStringConstructor) {
 	checkValidDefaultUriTest(uri, GetParam());
@@ -138,38 +124,40 @@ TEST_P(ValidDefaultUriStringAssignmentTest, CheckValidDefaultUrisUsingStringAssi
 	checkValidDefaultUriTest(uri, GetParam());
 }
 
-TEST_P(ValidUriStringConstructorTest, CheckValidUrisUsingStringConstructor) {
-	checkValidUriTest(uri, GetParam());
-}
+TEST_P(ValidUriStringConstructorTest, CheckValidUrisUsingStringConstructor) { checkValidUriTest(uri, GetParam()); }
 
 TEST_P(ValidUriStringNonStrictConstructorTest, CheckValidUrisUsingStringNonStrictConstructor) {
 	checkValidUriTest(uri, GetParam());
 }
 
-TEST_P(ValidUriStringAssignmentTest, CheckValidUrisUsingStringAssignment) {
-	checkValidUriTest(uri, GetParam());
-}
+TEST_P(ValidUriStringAssignmentTest, CheckValidUrisUsingStringAssignment) { checkValidUriTest(uri, GetParam()); }
 
-TEST_P(InvalidUriStringConstructorTest, CheckInvalidUrisUsingStringConstructor) {
-	checkInvalidTest(uri);
-}
+TEST_P(InvalidUriStringConstructorTest, CheckInvalidUrisUsingStringConstructor) { checkInvalidTest(uri); }
 
 TEST_P(InvalidUriStringNonStrictConstructorTest, CheckInvalidUrisUsingStringNonStrictConstructor) {
 	checkInvalidTest(uri);
 }
 
-TEST_P(InvalidUriStringAssignmentTest, CheckInvalidUrisUsingStringAssignment) {
-	checkInvalidTest(uri);
-}
+TEST_P(InvalidUriStringAssignmentTest, CheckInvalidUrisUsingStringAssignment) { checkInvalidTest(uri); }
 
-INSTANTIATE_TEST_CASE_P(ValidDefaultUrisForStringConstructorTest, ValidDefaultUriStringConstructorTest, testing::ValuesIn(validDefaultUris));
-INSTANTIATE_TEST_CASE_P(ValidDefaultUrisForStringNonStrictConstructorTest, ValidDefaultUriStringNonStrictConstructorTest, testing::ValuesIn(validDefaultUris));
-INSTANTIATE_TEST_CASE_P(ValidDefaultUrisForStringAssignmentTest, ValidDefaultUriStringAssignmentTest, testing::ValuesIn(validDefaultUris));
+INSTANTIATE_TEST_CASE_P(ValidDefaultUrisForStringConstructorTest,
+	ValidDefaultUriStringConstructorTest,
+	testing::ValuesIn(validDefaultUris));
+INSTANTIATE_TEST_CASE_P(ValidDefaultUrisForStringNonStrictConstructorTest,
+	ValidDefaultUriStringNonStrictConstructorTest,
+	testing::ValuesIn(validDefaultUris));
+INSTANTIATE_TEST_CASE_P(
+	ValidDefaultUrisForStringAssignmentTest, ValidDefaultUriStringAssignmentTest, testing::ValuesIn(validDefaultUris));
 
 INSTANTIATE_TEST_CASE_P(ValidUrisForStringConstructorTest, ValidUriStringConstructorTest, testing::ValuesIn(validUris));
-INSTANTIATE_TEST_CASE_P(ValidUrisForStringNonStrictConstructorTest, ValidUriStringNonStrictConstructorTest, testing::ValuesIn(validUris));
+INSTANTIATE_TEST_CASE_P(
+	ValidUrisForStringNonStrictConstructorTest, ValidUriStringNonStrictConstructorTest, testing::ValuesIn(validUris));
 INSTANTIATE_TEST_CASE_P(ValidUrisForStringAssignmentTest, ValidUriStringAssignmentTest, testing::ValuesIn(validUris));
 
-INSTANTIATE_TEST_CASE_P(InvalidUrisForStringConstructorTest, InvalidUriStringConstructorTest, testing::ValuesIn(invalidUris));
-INSTANTIATE_TEST_CASE_P(InvalidUrisForStringNonStrictConstructorTest, InvalidUriStringNonStrictConstructorTest, testing::ValuesIn(invalidUris));
-INSTANTIATE_TEST_CASE_P(InvalidUrisStringAssignmentTest, InvalidUriStringAssignmentTest, testing::ValuesIn(invalidUris));
+INSTANTIATE_TEST_CASE_P(
+	InvalidUrisForStringConstructorTest, InvalidUriStringConstructorTest, testing::ValuesIn(invalidUris));
+INSTANTIATE_TEST_CASE_P(InvalidUrisForStringNonStrictConstructorTest,
+	InvalidUriStringNonStrictConstructorTest,
+	testing::ValuesIn(invalidUris));
+INSTANTIATE_TEST_CASE_P(
+	InvalidUrisStringAssignmentTest, InvalidUriStringAssignmentTest, testing::ValuesIn(invalidUris));
