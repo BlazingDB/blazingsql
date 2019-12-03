@@ -1,7 +1,7 @@
 #include "Common/HadoopFileSystemTest.h"
 
-#include "arrow/status.h"
 #include "arrow/buffer.h"
+#include "arrow/status.h"
 
 TEST_F(HadoopFileSystemTest, NoExistent) {
 	std::shared_ptr<arrow::io::RandomAccessFile> file = hadoopFileSystem->openReadable(uri("/no_existent"));

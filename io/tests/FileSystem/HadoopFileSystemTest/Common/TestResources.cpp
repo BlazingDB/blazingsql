@@ -35,4 +35,4 @@ void removeTestResources() {
 	hdfs.disconnect();
 }
 
-} // namespace TestResources
+}  // namespace TestResources

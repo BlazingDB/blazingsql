@@ -10,8 +10,7 @@ namespace transport {
 Address::Address(Type type, const std::string &ip,
                  const std::int16_t communication_port,
                  const std::int16_t protocol_port)
-                  :  metadata_{}
-{
+    : metadata_{} {
   this->metadata_.type = type;
   assert(ip.size() < ADDRSTRLEN - 1);
   memcpy(this->metadata_.ip, ip.c_str(), ip.size());
@@ -21,23 +20,19 @@ Address::Address(Type type, const std::string &ip,
 
 class TCPAddress : public Address {
 public:
-  TCPAddress(const std::string &ip,
-             const std::int16_t communication_port,
+  TCPAddress(const std::string &ip, const std::int16_t communication_port,
              const std::int16_t protocol_port)
       : Address(Type::TCP_TYPE, ip, communication_port, protocol_port) {}
 
   virtual ~TCPAddress() = default;
-
 };
-std::shared_ptr<Address>
-Address::TCP(const std::string &ip,
-                       const std::int16_t communication_port,
-                       const std::int16_t protocol_port) {
-  return std::make_shared<TCPAddress>(ip, communication_port,
-                                      protocol_port);
+std::shared_ptr<Address> Address::TCP(const std::string &ip,
+                                      const std::int16_t communication_port,
+                                      const std::int16_t protocol_port) {
+  return std::make_shared<TCPAddress>(ip, communication_port, protocol_port);
 }
 
-} // namespace transport
-} // namespace blazingdb
+}  // namespace transport
+}  // namespace blazingdb
 
 #endif

@@ -33,9 +33,9 @@ def convertHiveTypeToCudfType(hiveType):
         return np.datetime64
 
 
-def getPartitions(tableName, schema,cursor):
+def getPartitions(tableName, schema, cursor):
     query = "show partitions " + tableName
-    result = runHiveQuery(cursor,query)
+    result = runHiveQuery(cursor, query)
     partitions = {}
     for partition in result[0]:
         columnPartitions = []
@@ -44,69 +44,73 @@ def getPartitions(tableName, schema,cursor):
                 columnName = columnData.split("=")[0]
                 for column in schema['columns']:
                     if column[0] == columnName:
-                        columnValue = np.fromstring(columnData.split("=")[1],column[1],sep=' ')[0]
-                        columnPartitions.append((columnName,columnValue))
-        partitions[partition[0]]= columnPartitions
+                        columnValue = np.fromstring(
+                            columnData.split("=")[1], column[1], sep=' ')[0]
+                        columnPartitions.append((columnName, columnValue))
+        partitions[partition[0]] = columnPartitions
     return partitions
 
-def get_hive_table(cursor,tableName):
+
+def get_hive_table(cursor, tableName):
     query = 'describe formatted ' + tableName
-    result, description = runHiveQuery(cursor,query)
+    result, description = runHiveQuery(cursor, query)
     schema = {}
     schema['columns'] = []
     i = 0
-    #print(result)
+    # print(result)
     parsingColumns = False
     parsingPartitionColumns = False
     startParsingPartitionRows = 0
     schema['delimiter'] = chr(1)
     for triple in result:
-        #print(triple)
+        # print(triple)
         if triple[0] is not None:
             if(i == 2):
                 parsingColumns = True
             if(parsingColumns):
-                #print(triple)
+                # print(triple)
                 if triple[0] == '':
                     parsingColumns = False
                 else:
-                    schema['columns'].append((triple[0],convertHiveTypeToCudfType(triple[1]),False))
-            elif isinstance(triple[0],str) and triple[0].startswith('Location:'):
+                    schema['columns'].append(
+                        (triple[0], convertHiveTypeToCudfType(triple[1]), False))
+            elif isinstance(triple[0], str) and triple[0].startswith('Location:'):
                 if triple[1].startswith("file:"):
-                    schema['location'] = triple[1].replace("file:","")
+                    schema['location'] = triple[1].replace("file:", "")
                 else:
                     schema['location'] = triple[1]
-            elif isinstance(triple[0],str) and triple[0].startswith('InputFormat:'):
+            elif isinstance(triple[0], str) and triple[0].startswith('InputFormat:'):
                 if "TextInputFormat" in triple[1]:
-  #                  schema['fileType'] = self.CSV_FILE_TYPE
+                  #                  schema['fileType'] = self.CSV_FILE_TYPE
                     schema['fileType'] = 'csv'
                 if "ParquetInputFormat" in triple[1]:
-  #                  schema['fileType'] = self.PARQUET_FILE_TYPE
+                  #                  schema['fileType'] = self.PARQUET_FILE_TYPE
                     schema['fileType'] = 'parquet'
                 if "OrcInputFormat" in triple[1]:
-  #                  schema['fileType'] = self.ORC_FILE_TYPE
+                  #                  schema['fileType'] = self.ORC_FILE_TYPE
                     schema['fileType'] = 'orc'
                 if "JsonInputFormat" in triple[1]:
-  #                  schema['fileType'] = self.JSON_FILE_TYPE
+                  #                  schema['fileType'] = self.JSON_FILE_TYPE
                     schema['fileType'] = 'json'
-            elif isinstance(triple[1],str) and triple[1].startswith("field.delim"):
+            elif isinstance(triple[1], str) and triple[1].startswith("field.delim"):
                 schema['delimiter'] = triple[2][0]
             elif triple[0] == "# Partition Information":
                 parsingPartitionColumns = True
                 startParsingPartitionRows = i + 2
-            elif parsingPartitionColumns == True and i > startParsingPartitionRows:
+            elif parsingPartitionColumns and i > startParsingPartitionRows:
                 if triple[0] == "# Detailed Table Information":
                     parsingPartitionColumns = False
                 elif triple[0] != "":
-                    schema['columns'].append((triple[0],convertHiveTypeToCudfType(triple[1]),True))
+                    schema['columns'].append(
+                        (triple[0], convertHiveTypeToCudfType(triple[1]), True))
         i = i + 1
     hasPartitions = False
     for column in schema['columns']:
-        if column[2] == True:
+        if column[2]:
             hasPartitions = True
     file_list = []
-    if hasPartitions == True:
-        schema['partitions'] = getPartitions(tableName,schema,cursor)
+    if hasPartitions:
+        schema['partitions'] = getPartitions(tableName, schema, cursor)
     else:
         schema['partitions'] = {}
         file_list.append(schema['location'])
@@ -118,8 +122,8 @@ def get_hive_table(cursor,tableName):
     in_file = []
     for column in schema['columns']:
         in_file.append(column[2] == False)
-        if(column[2] == True):
-            extra_columns.append((column[0],column[1]))
+        if(column[2]):
+            extra_columns.append((column[0], column[1]))
     for partitionName in schema['partitions']:
         partition = schema['partitions'][partitionName]
         file_list.append(schema['location'] + "/" + partitionName)
@@ -127,22 +131,28 @@ def get_hive_table(cursor,tableName):
     return file_list, uri_values, schema['fileType'], extra_kwargs, extra_columns, in_file
 
 
-def runHiveDDL(cursor,query):
+def runHiveDDL(cursor, query):
     cursor.execute(query, async_=True)
     status = cursor.poll().operationState
-    while status in (TOperationState.INITIALIZED_STATE, TOperationState.RUNNING_STATE):
+    while status in (
+            TOperationState.INITIALIZED_STATE,
+            TOperationState.RUNNING_STATE):
         status = cursor.poll().operationState
 
-def runHiveQuery(cursor,query):
+
+def runHiveQuery(cursor, query):
     cursor.execute(query, async_=True)
     status = cursor.poll().operationState
-    while status in (TOperationState.INITIALIZED_STATE, TOperationState.RUNNING_STATE):
+    while status in (
+            TOperationState.INITIALIZED_STATE,
+            TOperationState.RUNNING_STATE):
         status = cursor.poll().operationState
     return cursor.fetchall(), cursor.description
 
-def convertHiveToCudf(cursor,query):
+
+def convertHiveToCudf(cursor, query):
     df = cudf.DataFrame()
-    result, description = runHiveQuery(cursor,query)
+    result, description = runHiveQuery(cursor, query)
     arrays = [[] for i in repeat(None, len(result[0]))]
     for row in result:
         i = 0

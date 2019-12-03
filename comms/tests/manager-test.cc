@@ -7,11 +7,11 @@
 //  Binds REP socket to tcp://*:5555
 //  Expects "Hello" from client, replies with "World"
 //
-#include <zmq.hpp>
-#include <string>
-#include <iostream>
 #include <gtest/gtest.h>
+#include <iostream>
+#include <string>
 #include <thread>
+#include <zmq.hpp>
 namespace blazingdb {
 namespace manager {
 
@@ -45,15 +45,14 @@ TEST(TestManager, ConnectionAndGenerateContext) {
 
   EXPECT_EQ(manager->getCluster().getTotalNodes(), 1);
 
-  Context *context =
-      manager->generateContext("plan", 99, 1);
+  Context *context = manager->generateContext("plan", 99, 1);
 
   EXPECT_EQ("plan", context->getLogicalPlan());
 
   manager->Close();
 }
 
-void ExecWorker(std::shared_ptr<transport::Address> &address){
+void ExecWorker(std::shared_ptr<transport::Address> &address) {
   using Status = blazingdb::transport::Status;
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -64,7 +63,8 @@ void ExecWorker(std::shared_ptr<transport::Address> &address){
     std::shared_ptr<Node> node = Node::Make(address);
     node->print();
     auto message = NodeDataMessage::Make(node);
-    auto client = Manager::MakeClient(address->metadata().ip, address->metadata().comunication_port);
+    auto client = Manager::MakeClient(address->metadata().ip,
+                                      address->metadata().comunication_port);
     const Status status = client->Send(*message);
     EXPECT_TRUE(status.IsOk());
   } catch (const std::exception &error) {
@@ -72,7 +72,7 @@ void ExecWorker(std::shared_ptr<transport::Address> &address){
   }
 }
 
-TEST(TestManager, Test2){
+TEST(TestManager, Test2) {
   auto address = transport::Address::TCP("localhost", 9999, 1234);
 
   std::unique_ptr<Manager> manager = Manager::MakeServer(9999);
@@ -81,8 +81,7 @@ TEST(TestManager, Test2){
   ExecWorker(address);
 
   EXPECT_EQ(manager->getCluster().getTotalNodes(), 1);
-  Context *context =
-      manager->generateContext("plan", 99, 1);
+  Context *context = manager->generateContext("plan", 99, 1);
   EXPECT_EQ("plan", context->getLogicalPlan());
   auto nodes = context->getAllNodes();
   std::cout << "getAllNodes:\n";
@@ -91,7 +90,7 @@ TEST(TestManager, Test2){
   }
 }
 //
-//TEST(TestManager, Server) {
+// TEST(TestManager, Server) {
 //  void* context = zmq_ctx_new();
 //  void* respond = zmq_socket(context, ZMQ_REP);
 //  zmq_bind(respond, "tcp://*:4040");
@@ -145,7 +144,7 @@ TEST(TestManager, Test2){
 //
 //}
 //
-//TEST(TestManager, Client) {
+// TEST(TestManager, Client) {
 //
 //  void* context = zmq_ctx_new();
 //
@@ -176,7 +175,7 @@ TEST(TestManager, Test2){
 //
 //}
 //
-//TEST(TestManager, Server) {
+// TEST(TestManager, Server) {
 //    //  Prepare our context and socket
 //    zmq::context_t context (1);
 //    zmq::socket_t receiver (context, ZMQ_PULL);
@@ -186,15 +185,14 @@ TEST(TestManager, Test2){
 //      std::string string(2048*2048, 'a' + request_nbr % 10);
 //      zmq::message_t message;
 //      receiver.recv(&message);
-//      std::string smessage(static_cast<char*>(message.data()), message.size());
-//      assert(smessage == string);
-//      std::cout << smessage.substr(0, 2) << std::endl;
-//      request_nbr++;
+//      std::string smessage(static_cast<char*>(message.data()),
+//      message.size()); assert(smessage == string); std::cout <<
+//      smessage.substr(0, 2) << std::endl; request_nbr++;
 //    }
 //}
 //
 //
-//TEST(TestManager, Client) {
+// TEST(TestManager, Client) {
 //  //  Socket to send messages to
 //  //  Do 10 requests, waiting each time for a response
 //  zmq::context_t context(1);
@@ -213,6 +211,5 @@ TEST(TestManager, Test2){
 //  }
 //}
 
-
-} // namespace transport
-} // namespace blazingdb
+}  // namespace manager
+}  // namespace blazingdb

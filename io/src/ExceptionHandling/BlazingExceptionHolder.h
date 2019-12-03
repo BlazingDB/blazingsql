@@ -5,42 +5,42 @@
 
 class BlazingExceptionHolder {
 public:
-    BlazingExceptionHolder();
+	BlazingExceptionHolder();
 
-    ~BlazingExceptionHolder();
-
-public:
-    BlazingExceptionHolder(BlazingExceptionHolder&&) = delete;
-
-    BlazingExceptionHolder(const BlazingExceptionHolder&) = delete;
-
-    BlazingExceptionHolder& operator=(BlazingExceptionHolder&&) = delete;
-
-    BlazingExceptionHolder& operator=(const BlazingExceptionHolder&) = delete;
+	~BlazingExceptionHolder();
 
 public:
-    bool hasDetached();
+	BlazingExceptionHolder(BlazingExceptionHolder &&) = delete;
 
-    bool hasCompleted();
+	BlazingExceptionHolder(const BlazingExceptionHolder &) = delete;
+
+	BlazingExceptionHolder & operator=(BlazingExceptionHolder &&) = delete;
+
+	BlazingExceptionHolder & operator=(const BlazingExceptionHolder &) = delete;
 
 public:
-    void setDetached(bool value);
+	bool hasDetached();
 
-    void setCompleted(bool value);
+	bool hasCompleted();
 
 public:
-    bool hasException();
+	void setDetached(bool value);
 
-    void throwException();
+	void setCompleted(bool value);
 
-    void setException(std::exception_ptr&& value);
+public:
+	bool hasException();
+
+	void throwException();
+
+	void setException(std::exception_ptr && value);
 
 private:
-    bool detached;
-    bool completed;
+	bool detached;
+	bool completed;
 
 private:
-    std::exception_ptr exception;
+	std::exception_ptr exception;
 };
 
 #endif

@@ -19,89 +19,69 @@
 #define GDF_TESTS_BINARY_OPERATION_UTIL_SCALAR_H
 
 
-#include <cudf.h>
 #include "types.h"
+#include <cudf.h>
 
 namespace gdf {
 namespace library {
 
-    template <typename Type>
-    class Scalar {
-    public:
-        Scalar& setValue(Type value) {
-            mScalar.dtype = gdf::library::GdfDataType<Type>::Value;
-            gdf::library::setScalar(mScalar, value);
-            mScalar.is_valid = true;
-            return *this;
-        }
+template <typename Type>
+class Scalar {
+public:
+	Scalar & setValue(Type value) {
+		mScalar.dtype = gdf::library::GdfDataType<Type>::Value;
+		gdf::library::setScalar(mScalar, value);
+		mScalar.is_valid = true;
+		return *this;
+	}
 
-        Scalar& setValid(bool value) {
-            mScalar.is_valid = value;
-            return *this;
-        }
+	Scalar & setValid(bool value) {
+		mScalar.is_valid = value;
+		return *this;
+	}
 
-    public:
-        Type getValue() {
-            return (Type)*this;
-        }
+public:
+	Type getValue() { return (Type) * this; }
 
-        gdf_dtype getType() {
-            return mScalar.dtype;
-        }
+	gdf_dtype getType() { return mScalar.dtype; }
 
-        bool isValid() {
-            return mScalar.is_valid;
-        }
+	bool isValid() { return mScalar.is_valid; }
 
-    public:
-        gdf_scalar* scalar() {
-            return &mScalar;
-        }
+public:
+	gdf_scalar * scalar() { return &mScalar; }
 
-    public:
-        operator int8_t() const {
-            return mScalar.data.si08;
-        }
+public:
+	operator int8_t() const { return mScalar.data.si08; }
 
-        operator int16_t() const {
-            return mScalar.data.si16;
-        }
+	operator int16_t() const { return mScalar.data.si16; }
 
-        operator int32_t() const {
-            return mScalar.data.si32;
-        }
+	operator int32_t() const { return mScalar.data.si32; }
 
-        operator int64_t() const {
-            return mScalar.data.si64;
-        }
+	operator int64_t() const { return mScalar.data.si64; }
 
-        // operator uint8_t() const {
-        //     return mScalar.data.ui08;
-        // }
+	// operator uint8_t() const {
+	//     return mScalar.data.ui08;
+	// }
 
-        // operator uint16_t() const {
-        //     return mScalar.data.ui16;
-        // }
+	// operator uint16_t() const {
+	//     return mScalar.data.ui16;
+	// }
 
-        // operator uint32_t() const {
-        //     return mScalar.data.ui32;
-        // }
+	// operator uint32_t() const {
+	//     return mScalar.data.ui32;
+	// }
 
-        // operator uint64_t() const {
-        //     return mScalar.data.ui64;
-        // }
+	// operator uint64_t() const {
+	//     return mScalar.data.ui64;
+	// }
 
-        operator float() const {
-            return mScalar.data.fp32;
-        }
+	operator float() const { return mScalar.data.fp32; }
 
-        operator double() const {
-            return mScalar.data.fp64;
-        }
+	operator double() const { return mScalar.data.fp64; }
 
-    private:
-        gdf_scalar mScalar;
-    };
+private:
+	gdf_scalar mScalar;
+};
 
 }  // namespace library
 }  // namespace gdf

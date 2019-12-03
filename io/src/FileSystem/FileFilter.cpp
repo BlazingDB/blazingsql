@@ -7,60 +7,50 @@
 
 #include <fnmatch.h>
 
-//BEGIN FilesFilter
+// BEGIN FilesFilter
 
-bool FilesFilter::operator()(const FileStatus &fileStatus) const {
-	return fileStatus.isFile();
-}
+bool FilesFilter::operator()(const FileStatus & fileStatus) const { return fileStatus.isFile(); }
 
-//END FilesFilter
+// END FilesFilter
 
-//BEGIN DirsFilter
+// BEGIN DirsFilter
 
-bool DirsFilter::operator()(const FileStatus &fileStatus) const {
-	return fileStatus.isDirectory();
-}
+bool DirsFilter::operator()(const FileStatus & fileStatus) const { return fileStatus.isDirectory(); }
 
-//END DirsFilter
+// END DirsFilter
 
-//BEGIN WildcardFilter
+// BEGIN WildcardFilter
 
-bool WildcardFilter::match(const std::string &input, const std::string &wildcard) {
+bool WildcardFilter::match(const std::string & input, const std::string & wildcard) {
 	const int flags = FNM_EXTMATCH;
-    const int match = fnmatch(wildcard.c_str(), input.c_str(), flags);
-    return (match == 0);
+	const int match = fnmatch(wildcard.c_str(), input.c_str(), flags);
+	return (match == 0);
 }
 
-WildcardFilter::WildcardFilter(const std::string& wildcard)
-	: wildcard(wildcard) {
-}
+WildcardFilter::WildcardFilter(const std::string & wildcard) : wildcard(wildcard) {}
 
-bool WildcardFilter::operator()(const FileStatus &fileStatus) const {
+bool WildcardFilter::operator()(const FileStatus & fileStatus) const {
 	return WildcardFilter::match(fileStatus.getUri().getPath().toString(), this->wildcard);
 }
 
-//END WildcardFilter
+// END WildcardFilter
 
-//BEGIN FileTypeWildcardFilter
+// BEGIN FileTypeWildcardFilter
 
-FileTypeWildcardFilter::FileTypeWildcardFilter(FileType fileType, const std::string& wildcard)
-	: fileType(fileType)
-	, wildcard(wildcard) {
-}
+FileTypeWildcardFilter::FileTypeWildcardFilter(FileType fileType, const std::string & wildcard)
+	: fileType(fileType), wildcard(wildcard) {}
 
-bool FileTypeWildcardFilter::operator()(const FileStatus &fileStatus) const {
+bool FileTypeWildcardFilter::operator()(const FileStatus & fileStatus) const {
 	FileFilter fileFilter;
 
-	switch (fileType) {
-		case FileType::FILE: {
-			fileFilter = FilesFilter();
-		}
-		break;
+	switch(fileType) {
+	case FileType::FILE: {
+		fileFilter = FilesFilter();
+	} break;
 
-		case FileType::DIRECTORY: {
-			fileFilter = DirsFilter();
-		}
-		break;
+	case FileType::DIRECTORY: {
+		fileFilter = DirsFilter();
+	} break;
 	}
 
 	WildcardFilter wildcardFilter(wildcard);
@@ -72,12 +62,12 @@ bool FileTypeWildcardFilter::operator()(const FileStatus &fileStatus) const {
 	return match;
 }
 
-//END FileTypeWildcardFilter
+// END FileTypeWildcardFilter
 
-//BEGIN FileOrFolderFilter
+// BEGIN FileOrFolderFilter
 
-bool FileOrFolderFilter::operator()(const FileStatus &fileStatus) const {
+bool FileOrFolderFilter::operator()(const FileStatus & fileStatus) const {
 	return fileStatus.isFile() || fileStatus.isDirectory();
 }
 
-//END FileOrFolderFilter
+// END FileOrFolderFilter
