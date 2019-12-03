@@ -154,9 +154,12 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	std::vector<data_handle> handles = this->provider->get_all();
 	for(auto handle : handles) {
 		files.push_back(handle.fileHandle);
-		schema.add_file(handle.uri.getPath().toString(true));
 	}
 	this->parser->parse_schema(files, schema);
+
+	for(auto handle : handles) {
+		schema.add_file(handle.uri.getPath().toString(true));
+	}
 
 	for(auto extra_column : non_file_columns) {
 		schema.add_column(extra_column.first, extra_column.second, 0, false);

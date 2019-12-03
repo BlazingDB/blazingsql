@@ -85,9 +85,7 @@ std::vector<std::string> Schema::get_types() const {
 	return string_types;
 }
 
-std::vector<std::string> Schema::get_files() const {
-	return files;
-}
+std::vector<std::string> Schema::get_files() const { return this->files; }
 
 std::vector<gdf_dtype> Schema::get_dtypes() const { return this->types; }
 
