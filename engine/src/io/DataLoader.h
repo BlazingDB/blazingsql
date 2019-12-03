@@ -51,7 +51,7 @@ public:
 		std::vector<gdf_column_cpp> & columns,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
-	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns, std::vector<std::string> & expanded_paths);
+	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
 
 private:
 	/**

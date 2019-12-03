@@ -85,6 +85,10 @@ std::vector<std::string> Schema::get_types() const {
 	return string_types;
 }
 
+std::vector<std::string> Schema::get_files() const {
+	return files;
+}
+
 std::vector<gdf_dtype> Schema::get_dtypes() const { return this->types; }
 
 std::vector<gdf_time_unit> Schema::get_time_units() const { return this->time_units; }
@@ -119,6 +123,10 @@ void Schema::add_column(std::string name, gdf_dtype type, size_t file_index, boo
 	this->time_units.push_back(time_unit);
 	this->calcite_to_file_indices.push_back(file_index);
 	this->in_file.push_back(is_in_file);
+}
+
+void Schema::add_file(std::string file){
+	this->files.push_back(file);
 }
 
 Schema Schema::fileSchema() const {
