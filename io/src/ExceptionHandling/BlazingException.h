@@ -8,19 +8,17 @@
 #ifndef BLAZINGEXCEPTION_H_
 #define BLAZINGEXCEPTION_H_
 
-#include <string>
-#include <exception>
 #include "FileSystem/Uri.h"
+#include <exception>
+#include <string>
 
 class BlazingException : public std::exception {
 public:
-
 	BlazingException(const std::string & details);
 	virtual ~BlazingException();
-	virtual const char* what() const throw (){
-	       return this->details.c_str();
-	    }
+	virtual const char * what() const throw() { return this->details.c_str(); }
 	virtual void append(const std::string & newDetails);
+
 protected:
 	std::string details;
 };
@@ -40,7 +38,7 @@ public:
 	BlazingOutOfRangeException(const std::string & details);
 };
 
-class BlazingSocketException : public BlazingIOException{
+class BlazingSocketException : public BlazingIOException {
 public:
 	BlazingSocketException(const std::string & details);
 };
@@ -50,34 +48,26 @@ public:
 	BlazingFileSystemException(const std::string & details);
 };
 
-class BlazingFileNotFoundException : public BlazingFileSystemException{
+class BlazingFileNotFoundException : public BlazingFileSystemException {
 public:
 	BlazingFileNotFoundException(const Uri & uri);
 };
 
-class BlazingInvalidPathException : public BlazingFileSystemException{
+class BlazingInvalidPathException : public BlazingFileSystemException {
 public:
 	BlazingInvalidPathException(const Uri & uri);
 };
 
-class BlazingInvalidPermissionsFileException : public BlazingFileSystemException{
+class BlazingInvalidPermissionsFileException : public BlazingFileSystemException {
 public:
 	BlazingInvalidPermissionsFileException(const Uri & uri);
 };
-
 
 
 class BlazingS3Exception : public BlazingFileSystemException {
 public:
 	BlazingS3Exception(const std::string & details);
 };
-
-
-
-
-
-
-
 
 
 #endif /* BLAZINGEXCEPTION_H_ */

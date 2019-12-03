@@ -16,8 +16,8 @@ cd ../engine
 ./conda/recipes/libbsql-engine/build.sh Release $INSTALL_PREFIX
 ./conda/recipes/bsql-engine/build.sh $INSTALL_PREFIX
 
-cd ../algebra
-./conda/recipes/bsql-algebra/build.sh $INSTALL_PREFIX
-
 cd ../pyblazing
 ./conda/recipes/pyblazing/build.sh
+
+cd ../algebra
+./conda/recipes/bsql-algebra/build.sh $INSTALL_PREFIX

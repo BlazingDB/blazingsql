@@ -7,17 +7,15 @@
 
 #include "Util/EncryptionUtil.h"
 
-FileSystemEntity::FileSystemEntity() {
-}
+FileSystemEntity::FileSystemEntity() {}
 
-FileSystemEntity::FileSystemEntity(const std::string &authority, const FileSystemConnection &fileSystemConnection, const Path &root)
-	: authority(authority)
-	, fileSystemConnection(fileSystemConnection)
-	, root(root){
-}
+FileSystemEntity::FileSystemEntity(
+	const std::string & authority, const FileSystemConnection & fileSystemConnection, const Path & root)
+	: authority(authority), fileSystemConnection(fileSystemConnection), root(root) {}
 
-FileSystemEntity::FileSystemEntity(const std::string &authority, const std::string &fileSystemConnection, const std::string &root, bool encrypted) {
-	if (encrypted) {
+FileSystemEntity::FileSystemEntity(
+	const std::string & authority, const std::string & fileSystemConnection, const std::string & root, bool encrypted) {
+	if(encrypted) {
 		this->authority = EncryptionUtil::decrypt(authority);
 		this->fileSystemConnection = FileSystemConnection(EncryptionUtil::decrypt(fileSystemConnection));
 		this->root = Path(EncryptionUtil::decrypt(root), true);
@@ -28,52 +26,38 @@ FileSystemEntity::FileSystemEntity(const std::string &authority, const std::stri
 	}
 }
 
-FileSystemEntity::FileSystemEntity(const FileSystemEntity &other)
-	: authority(other.authority)
-	, fileSystemConnection(other.fileSystemConnection)
-	, root(other.root){
-}
+FileSystemEntity::FileSystemEntity(const FileSystemEntity & other)
+	: authority(other.authority), fileSystemConnection(other.fileSystemConnection), root(other.root) {}
 
-FileSystemEntity::FileSystemEntity(FileSystemEntity &&other)
-	: authority(std::move(other.authority))
-	, fileSystemConnection(std::move(other.fileSystemConnection))
-	, root(std::move(other.root)){
-}
+FileSystemEntity::FileSystemEntity(FileSystemEntity && other)
+	: authority(std::move(other.authority)), fileSystemConnection(std::move(other.fileSystemConnection)),
+	  root(std::move(other.root)) {}
 
-FileSystemEntity::~FileSystemEntity() {
-}
+FileSystemEntity::~FileSystemEntity() {}
 
 bool FileSystemEntity::isValid() const noexcept {
-	if (this->authority.empty()) {
+	if(this->authority.empty()) {
 		return false;
 	}
 
-	if (this->fileSystemConnection.isValid() == false) {
+	if(this->fileSystemConnection.isValid() == false) {
 		return false;
 	}
 
-	if (this->root.isValid() == false) {
+	if(this->root.isValid() == false) {
 		return false;
 	}
 
 	return true;
 }
 
-const std::string FileSystemEntity::getAuthority() const {
-	return this->authority;
-}
+const std::string FileSystemEntity::getAuthority() const { return this->authority; }
 
-const FileSystemConnection FileSystemEntity::getFileSystemConnection() const {
-	return this->fileSystemConnection;
-}
+const FileSystemConnection FileSystemEntity::getFileSystemConnection() const { return this->fileSystemConnection; }
 
-const Path FileSystemEntity::getRoot() const {
-	return this->root;
-}
+const Path FileSystemEntity::getRoot() const { return this->root; }
 
-const std::string FileSystemEntity::getEncryptedAuthority() const {
-	return EncryptionUtil::encrypt(this->authority);
-}
+const std::string FileSystemEntity::getEncryptedAuthority() const { return EncryptionUtil::encrypt(this->authority); }
 
 const std::string FileSystemEntity::getEncryptedFileSystemConnection() const {
 	return EncryptionUtil::encrypt(this->fileSystemConnection.toString());
@@ -84,31 +68,31 @@ const std::string FileSystemEntity::getEncryptedRoot() const {
 }
 
 std::string FileSystemEntity::toString() const {
-	//TODO
-//	std::string fileSystemType;
-//
-//	//TODO percy avoid hardstring (should we put this in FileType.h? as map or function?)
-//	switch (this->fileSystemType) {
-//		case FileSystemType::LOCAL: fileSystemType = "LOCAL"; break;
-//		case FileSystemType::HDFS: fileSystemType = "HDFS"; break;
-//		case FileSystemType::S3: fileSystemType = "S3"; break;
-//		default: fileSystemType = "UNSUPPORTED"; break; //TODO see TODO above
-//	}
-//
-//	std::string connectionProperties = "[";
-//
-//	for (const auto &connectionProperty : this->connectionProperties) {
-//		connectionProperties += connectionProperty.first + " :" + connectionProperty.second;
-//	}
-//
-//	connectionProperties += "]";
-//
-//	return fileSystemType + " => " + connectionProperties;
+	// TODO
+	//	std::string fileSystemType;
+	//
+	//	//TODO percy avoid hardstring (should we put this in FileType.h? as map or function?)
+	//	switch (this->fileSystemType) {
+	//		case FileSystemType::LOCAL: fileSystemType = "LOCAL"; break;
+	//		case FileSystemType::HDFS: fileSystemType = "HDFS"; break;
+	//		case FileSystemType::S3: fileSystemType = "S3"; break;
+	//		default: fileSystemType = "UNSUPPORTED"; break; //TODO see TODO above
+	//	}
+	//
+	//	std::string connectionProperties = "[";
+	//
+	//	for (const auto &connectionProperty : this->connectionProperties) {
+	//		connectionProperties += connectionProperty.first + " :" + connectionProperty.second;
+	//	}
+	//
+	//	connectionProperties += "]";
+	//
+	//	return fileSystemType + " => " + connectionProperties;
 
 	return std::string();
 }
 
-FileSystemEntity & FileSystemEntity::operator=(const FileSystemEntity &other) {
+FileSystemEntity & FileSystemEntity::operator=(const FileSystemEntity & other) {
 	this->authority = other.authority;
 	this->fileSystemConnection = other.fileSystemConnection;
 	this->root = other.root;
@@ -116,7 +100,7 @@ FileSystemEntity & FileSystemEntity::operator=(const FileSystemEntity &other) {
 	return *this;
 }
 
-FileSystemEntity & FileSystemEntity::operator=(FileSystemEntity &&other) {
+FileSystemEntity & FileSystemEntity::operator=(FileSystemEntity && other) {
 	this->authority = std::move(other.authority);
 	this->fileSystemConnection = std::move(other.fileSystemConnection);
 	this->root = std::move(other.root);
@@ -124,7 +108,7 @@ FileSystemEntity & FileSystemEntity::operator=(FileSystemEntity &&other) {
 	return *this;
 }
 
-bool FileSystemEntity::operator==(const FileSystemEntity &other) const {
+bool FileSystemEntity::operator==(const FileSystemEntity & other) const {
 	const bool authorityEquals = (this->authority == other.authority);
 	const bool fileSystemConnectionEquals = (this->fileSystemConnection == other.fileSystemConnection);
 	const bool rootEquals = (this->root == other.root);
@@ -134,6 +118,4 @@ bool FileSystemEntity::operator==(const FileSystemEntity &other) const {
 	return equals;
 }
 
-bool FileSystemEntity::operator!=(const FileSystemEntity &other) const {
-	return !(*this == other);
-}
+bool FileSystemEntity::operator!=(const FileSystemEntity & other) const { return !(*this == other); }

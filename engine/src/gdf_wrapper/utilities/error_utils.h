@@ -8,16 +8,17 @@
 
 #include <rmm/rmm.h>
 
-#define RMM_TRY(call)                                             \
-  do {                                                            \
-    rmmError_t const status = (call);                             \
-    if (RMM_SUCCESS != status) {                                  \
-      cudf::detail::throw_rmm_error(status, __FILE__, __LINE__);  \
-    }                                                             \
-  } while (0);
+#define RMM_TRY(call)                                                                                                  \
+	do {                                                                                                               \
+		rmmError_t const status = (call);                                                                              \
+		if(RMM_SUCCESS != status) {                                                                                    \
+			cudf::detail::throw_rmm_error(status, __FILE__, __LINE__);                                                 \
+		}                                                                                                              \
+	} while(0);
 
-#define RMM_TRY_CUDAERROR(x) \
-  if ((x) != RMM_SUCCESS) CUDA_TRY(cudaPeekAtLastError());
+#define RMM_TRY_CUDAERROR(x)                                                                                           \
+	if((x) != RMM_SUCCESS)                                                                                             \
+		CUDA_TRY(cudaPeekAtLastError());
 
 
 /**---------------------------------------------------------------------------*
@@ -30,8 +31,9 @@
  * Instead, CUDF_EXPECTS() should be used.
  *
  *---------------------------------------------------------------------------**/
-#define GDF_REQUIRE(F, S) \
-  if (!(F)) return (S);
+#define GDF_REQUIRE(F, S)                                                                                              \
+	if(!(F))                                                                                                           \
+		return (S);
 
 /**---------------------------------------------------------------------------*
  * @brief a version of GDF_REQUIRE for expressions of type `gdf_error` rather
@@ -40,10 +42,12 @@
  * This macro is sort-of DEPRECATED.
  *
  *---------------------------------------------------------------------------**/
-#define GDF_TRY(_expression) do { \
-    gdf_error _gdf_try_result = ( _expression ) ; \
-    if (_gdf_try_result != GDF_SUCCESS) return _gdf_try_result ; \
-} while(0)
+#define GDF_TRY(_expression)                                                                                           \
+	do {                                                                                                               \
+		gdf_error _gdf_try_result = (_expression);                                                                     \
+		if(_gdf_try_result != GDF_SUCCESS)                                                                             \
+			return _gdf_try_result;                                                                                    \
+	} while(0)
 
 
 namespace cudf {
@@ -55,19 +59,19 @@ namespace cudf {
  *
  *---------------------------------------------------------------------------**/
 struct logic_error : public std::logic_error {
-  logic_error(char const* const message) : std::logic_error(message) {}
+	logic_error(char const * const message) : std::logic_error(message) {}
 
-  logic_error(std::string const& message) : std::logic_error(message) {}
+	logic_error(std::string const & message) : std::logic_error(message) {}
 
-  // TODO Add an error code member? This would be useful for translating an
-  // exception to an error code in a pure-C API
+	// TODO Add an error code member? This would be useful for translating an
+	// exception to an error code in a pure-C API
 };
 /**---------------------------------------------------------------------------*
  * @brief Exception thrown when a CUDA error is encountered.
  *
  *---------------------------------------------------------------------------**/
 struct cuda_error : public std::runtime_error {
-  cuda_error(std::string const& message) : std::runtime_error(message) {}
+	cuda_error(std::string const & message) : std::runtime_error(message) {}
 };
 }  // namespace cudf
 
@@ -75,11 +79,11 @@ struct cuda_error : public std::runtime_error {
 #define CUDF_STRINGIFY(x) STRINGIFY_DETAIL(x)
 
 /**---------------------------------------------------------------------------*
- * @brief Macro for checking (pre-)conditions that throws an exception when  
+ * @brief Macro for checking (pre-)conditions that throws an exception when
  * a condition is violated.
- * 
+ *
  * Example usage:
- * 
+ *
  * @code
  * CUDF_EXPECTS(lhs->dtype == rhs->dtype, "Column type mismatch");
  * @endcode
@@ -89,30 +93,31 @@ struct cuda_error : public std::runtime_error {
  * expected to be true
  * @throw cudf::logic_error if the condition evaluates to false.
  *---------------------------------------------------------------------------**/
-#define CUDF_EXPECTS(cond, reason)                           \
-  (!!(cond))                                                 \
-      ? static_cast<void>(0)                                 \
-      : throw cudf::logic_error("cuDF failure at: " __FILE__ \
-                                ":" CUDF_STRINGIFY(__LINE__) ": " reason)
+#define CUDF_EXPECTS(cond, reason)                                                                                     \
+	(!!(cond)) ? static_cast<void>(0)                                                                                  \
+			   : throw cudf::logic_error("cuDF failure at: " __FILE__ ":" CUDF_STRINGIFY(__LINE__) ": " reason)
 
 /**---------------------------------------------------------------------------*
  * @brief Try evaluation an expression with a gdf_error type,
  * and throw an appropriate exception if it fails.
  *---------------------------------------------------------------------------**/
-#define CUDF_TRY(_gdf_error_expression) do { \
-    auto _evaluated = _gdf_error_expression; \
-    if (_evaluated == GDF_SUCCESS) { break; } \
-    throw cudf::logic_error( \
-        ("cuDF error " + std::string(gdf_error_get_name(_evaluated)) + " at " \
-       __FILE__ ":"  \
-        CUDF_STRINGIFY(__LINE__) " evaluating " CUDF_STRINGIFY(#_gdf_error_expression)).c_str() ); \
-} while(0)
+#define CUDF_TRY(_gdf_error_expression)                                                                                \
+	do {                                                                                                               \
+		auto _evaluated = _gdf_error_expression;                                                                       \
+		if(_evaluated == GDF_SUCCESS) {                                                                                \
+			break;                                                                                                     \
+		}                                                                                                              \
+		throw cudf::logic_error(                                                                                       \
+			("cuDF error " + std::string(gdf_error_get_name(_evaluated)) +                                             \
+				" at " __FILE__ ":" CUDF_STRINGIFY(__LINE__) " evaluating " CUDF_STRINGIFY(#_gdf_error_expression))    \
+				.c_str());                                                                                             \
+	} while(0)
 
 /**---------------------------------------------------------------------------*
  * @brief Error macro that throws an exception
- * 
+ *
  * Example usage:
- * 
+ *
  * @code
  * CUDF_FAIL("Non-arithmetic operation is not supported");
  * @endcode
@@ -120,42 +125,34 @@ struct cuda_error : public std::runtime_error {
  * @param[in] reason String literal description of the reason
  * @throw cudf::logic_error if the condition evaluates to false.
  *---------------------------------------------------------------------------**/
-#define CUDF_FAIL(reason)      				     \
-    throw cudf::logic_error("cuDF failure at: " __FILE__     \
-                            ":" CUDF_STRINGIFY(__LINE__) ": " reason)
+#define CUDF_FAIL(reason) throw cudf::logic_error("cuDF failure at: " __FILE__ ":" CUDF_STRINGIFY(__LINE__) ": " reason)
 
 namespace cudf {
 namespace detail {
 
-inline void throw_rmm_error(rmmError_t error, const char* file,
-                             unsigned int line) {
-  // todo: throw cuda_error if the error is from cuda
-  throw cudf::logic_error(
-      std::string{"RMM error encountered at: " + std::string{file} + ":" +
-                  std::to_string(line) + ": " + std::to_string(error) + " " +
-                  rmmGetErrorString(error)});
+inline void throw_rmm_error(rmmError_t error, const char * file, unsigned int line) {
+	// todo: throw cuda_error if the error is from cuda
+	throw cudf::logic_error(std::string{"RMM error encountered at: " + std::string{file} + ":" + std::to_string(line) +
+										": " + std::to_string(error) + " " + rmmGetErrorString(error)});
 }
 
-inline void throw_cuda_error(cudaError_t error, const char* file,
-                             unsigned int line) {
-  throw cudf::cuda_error(
-      std::string{"CUDA error encountered at: " + std::string{file} + ":" +
-                  std::to_string(line) + ": " + std::to_string(error) + " " +
-                  cudaGetErrorName(error) + " " + cudaGetErrorString(error)});
+inline void throw_cuda_error(cudaError_t error, const char * file, unsigned int line) {
+	throw cudf::cuda_error(
+		std::string{"CUDA error encountered at: " + std::string{file} + ":" + std::to_string(line) + ": " +
+					std::to_string(error) + " " + cudaGetErrorName(error) + " " + cudaGetErrorString(error)});
 }
 
-inline void check_stream(cudaStream_t stream, const char* file,
-                         unsigned int line) {
-  cudaError_t error{cudaSuccess};
-  error = cudaStreamSynchronize(stream);
-  if (cudaSuccess != error) {
-    throw_cuda_error(error, file, line);
-  }
+inline void check_stream(cudaStream_t stream, const char * file, unsigned int line) {
+	cudaError_t error{cudaSuccess};
+	error = cudaStreamSynchronize(stream);
+	if(cudaSuccess != error) {
+		throw_cuda_error(error, file, line);
+	}
 
-  error = cudaGetLastError();
-  if (cudaSuccess != error) {
-    throw_cuda_error(error, file, line);
-  }
+	error = cudaGetLastError();
+	if(cudaSuccess != error) {
+		throw_cuda_error(error, file, line);
+	}
 }
 }  // namespace detail
 }  // namespace cudf
@@ -170,13 +167,13 @@ inline void check_stream(cudaStream_t stream, const char* file,
  * GDF_REQUIRE should be considered deprecated.
  *
  *---------------------------------------------------------------------------**/
-#define CUDA_TRY(call)                                            \
-  do {                                                            \
-    cudaError_t const status = (call);                            \
-    if (cudaSuccess != status) {                                  \
-      cudf::detail::throw_cuda_error(status, __FILE__, __LINE__); \
-    }                                                             \
-  } while (0);
+#define CUDA_TRY(call)                                                                                                 \
+	do {                                                                                                               \
+		cudaError_t const status = (call);                                                                             \
+		if(cudaSuccess != status) {                                                                                    \
+			cudf::detail::throw_cuda_error(status, __FILE__, __LINE__);                                                \
+		}                                                                                                              \
+	} while(0);
 #endif
 
 #define CUDA_CHECK_LAST() CUDA_TRY(cudaPeekAtLastError())
@@ -197,10 +194,7 @@ inline void check_stream(cudaStream_t stream, const char* file,
  *
  *---------------------------------------------------------------------------**/
 #ifndef NDEBUG
-#define CHECK_STREAM(stream) \
-  cudf::detail::check_stream((stream), __FILE__, __LINE__)
+#define CHECK_STREAM(stream) cudf::detail::check_stream((stream), __FILE__, __LINE__)
 #else
 #define CHECK_STREAM(stream) static_cast<void>(0)
 #endif
-
-

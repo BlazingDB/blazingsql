@@ -3,15 +3,15 @@
  *
  *  Created on: Nov 29, 2018
  *      Author: felipe
-*/
+ */
 
 #ifndef DATAPROVIDER_H_
 #define DATAPROVIDER_H_
 
 #include <arrow/io/interfaces.h>
-#include <memory>
-#include <map>
 #include <cudf/cudf.h>
+#include <map>
+#include <memory>
 #include <vector>
 
 #include <blazingdb/io/FileSystem/Uri.h>
@@ -19,13 +19,13 @@
 namespace ral {
 namespace io {
 
-struct data_handle{
+struct data_handle {
 	std::shared_ptr<arrow::io::RandomAccessFile> fileHandle;
 	std::map<std::string, std::string> string_values;
 	std::map<std::string, bool> is_column_string;
 
-	std::map<std::string, gdf_scalar> column_values; //allows us to add hive values
-  Uri uri; //in case the data was loaded from a file
+	std::map<std::string, gdf_scalar> column_values;  // allows us to add hive values
+	Uri uri;										  // in case the data was loaded from a file
 };
 
 /**
@@ -54,10 +54,9 @@ public:
 	virtual std::vector<std::string> get_errors() = 0;
 	virtual std::string get_current_user_readable_file_handle() = 0;
 
-	virtual std::vector<data_handle>  get_all() = 0;
+	virtual std::vector<data_handle> get_all() = 0;
+
 private:
-
-
 };
 
 } /* namespace io */

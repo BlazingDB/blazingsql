@@ -99,11 +99,8 @@ struct nonesuch {
 template <typename...>
 using void_t = void;
 
-template <class Default,
-    class AlwaysVoid,
-    template <class...>
-    class Op,
-    class... Args>
+template <class Default, class AlwaysVoid, template <class...> class Op,
+          class... Args>
 struct detector {
   using value_t = std::false_type;
   using type = Default;
@@ -118,8 +115,9 @@ struct detector<Default, void_t<Op<Args...>>, Op, Args...> {
 }  // namespace detail_detector
 
 template <template <class...> class Op, class... Args>
-using is_detected = typename detail_detector::
-detector<detail_detector::nonesuch, void, Op, Args...>::value_t;
+using is_detected =
+    typename detail_detector::detector<detail_detector::nonesuch, void, Op,
+                                       Args...>::value_t;
 
 template <typename T>
 using detect_begin_t = decltype(begin(std::declval<T>()));
@@ -141,8 +139,7 @@ struct has_begin_end_size {
 
 template <typename T>
 typename std::enable_if<!has_begin_end_size<T>::value, bool>::type prettyPrint(
-    std::ostream& stream,
-    const T& value) {
+    std::ostream& stream, const T& value) {
   stream << value;
   return true;
 }
@@ -227,9 +224,7 @@ bool prettyPrint(std::ostream& stream, const std::string& value) {
 
 class DebugOutput {
 public:
-  DebugOutput(const char* filepath,
-              int line,
-              const char* function_name,
+  DebugOutput(const char* filepath, int line, const char* function_name,
               const char* expression)
       : m_stderr_is_a_tty(isatty(fileno(stderr))),
         m_filepath(filepath),
@@ -297,6 +292,6 @@ private:
 
 // We use a variadic macro to support commas inside expressions (e.g.
 // initializer lists):
-#define debug_log(...)                                                     \
+#define debug_log(...)                                               \
   dbg_macro::DebugOutput(__FILE__, __LINE__, __func__, #__VA_ARGS__) \
       .print((__VA_ARGS__))

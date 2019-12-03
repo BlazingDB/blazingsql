@@ -8,14 +8,7 @@
 
 #include <string>
 
-enum class FileSystemType : char {
-	UNDEFINED,
-	LOCAL,
-	HDFS,
-	S3,
-    NFS4,
-    GOOGLE_CLOUD_STORAGE
-};
+enum class FileSystemType : char { UNDEFINED, LOCAL, HDFS, S3, NFS4, GOOGLE_CLOUD_STORAGE };
 
 enum class FileType : char {
 	UNDEFINED,
@@ -23,10 +16,10 @@ enum class FileType : char {
 	DIRECTORY,
 };
 
-//returns string representation of FileSystemType
+// returns string representation of FileSystemType
 const std::string fileSystemTypeName(FileSystemType fileSystemType);
 
-//returns string representation of FileType
+// returns string representation of FileType
 const std::string fileTypeName(FileType fileType);
 
 #endif /* _BZ_FILESYSTEM_TYPE_H_ */
