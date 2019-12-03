@@ -94,10 +94,8 @@ void initialize(int ralId,
 	// }
 
 	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
-	if(env_cuda_device) {
-		ral::config::GPUManager::getInstance().initialize(std::atoi(env_cuda_device));
-		std::cout << "Using GPU: " << ral::config::GPUManager::getInstance().getDeviceId() << std::endl;
-	}
+	ral::config::GPUManager::getInstance().initialize(env_cuda_device ? std::atoi(env_cuda_device) : 0);
+	std::cout << "Using GPU: " << ral::config::GPUManager::getInstance().getDeviceId() << std::endl;
 
 	size_t total_gpu_mem_size = ral::config::GPUManager::getInstance().gpuMemorySize();
 	assert(total_gpu_mem_size > 0);
