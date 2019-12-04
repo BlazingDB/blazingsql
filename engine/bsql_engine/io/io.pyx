@@ -236,6 +236,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         columns.push_back(column_view_from_column(table.input[col]._column))
       currentTableSchemaCpp.columns = columns
       currentTableSchemaCpp.names = names
+      currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
       if table.num_row_groups is not None:
