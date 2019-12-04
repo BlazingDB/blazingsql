@@ -49,6 +49,8 @@ struct operator_node : parse_node {
 			return transform_cast();
 		} else if(this->value == "SUBSTRING") {
 			return transform_substring();
+		} else if(this->value == "Reinterpret") {
+			return remove_reinterpret();
 		}
 
 		return this;
