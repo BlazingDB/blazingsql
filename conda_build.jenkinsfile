@@ -16,7 +16,7 @@ pipeline {
     string(name: 'RAPIDS_BUILD_VERSION', defaultValue: '0.11', description: 'Version of Rapids dependencies, example: 0.10')
     string(name: 'CONDA_BUILD', defaultValue: 'blazingsql-nightly,rapidsai-nightly', description: 'Channels from build, example: blazingsql-nightly,rapidsai-nightly')
     string(name: 'CONDA_UPLOAD', defaultValue: 'blazingsql-nightly', description: 'The Anaconda repository could be: blazingsql, blazingsql-nightly, mario21ic, etc')
-    string(name: 'CONDA_TOKEN', defaultValue: 'conda-token-nightly', description: 'Anaconda account's token')
+    string(name: 'CONDA_TOKEN', defaultValue: 'conda-token-nightly', description: 'Anaconda account token')
     string(name: 'SLACK_CHANNEL', defaultValue: 'jenkins-blazingsql', description: 'Slack channel to post notifications')
   }
   
