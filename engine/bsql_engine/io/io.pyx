@@ -100,7 +100,7 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         hdfs.host = str.encode(fs['host'])
         hdfs.port = fs['port']
         hdfs.user = str.encode(fs['user'])
-        hdfs.DriverType = 2
+        hdfs.DriverType = 1
         hdfs.kerberosTicket = str.encode(fs['kerberos_ticket'])
         return cio.registerFileSystemHDFS( hdfs, str.encode( root), str.encode(authority))
     if fs['type'] == 's3':
