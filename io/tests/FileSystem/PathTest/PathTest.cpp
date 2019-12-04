@@ -198,8 +198,9 @@ const std::vector<std::string> validPaths = {"/",
 	"/.",						// equals to /
 	"/home/user34/./Desktop/",  // equals to /home/user34/Desktop/
 	"/home/user_45.g3/Desktop/fodlers/this spaced folder/*",
-	"/home/user_45.g3/Desktop/fodlers/this spaced folder/has_a_*.txt"
-	"/home/user_45.g3/Desktop/fodlers/this spaced folder/has.*"};
+	"/home/user_45.g3/Desktop/fodlers/this spaced folder/has_a_*.txt",
+	"/home/user_45.g3/Desktop/fodlers/this spaced folder/has.*",
+	"/home/kharoly/blazingsql/workspace/DataSet100MB2Part/customer_[0-9]*.csv"};
 
 const std::vector<std::string> invalidPaths = {"",
 	"cat",
