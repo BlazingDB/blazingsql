@@ -291,8 +291,16 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 
 	// op.update_columns_null_count(output_columns);
 
-	cuDF::Allocator::deallocate(temp_space,stream);
 	CheckCudaErrors(cudaStreamSynchronize(stream));
-    CheckCudaErrors(cudaGetLastError());
+	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", "after cudaStreamSynchronize"));
+
+	cuDF::Allocator::deallocate(temp_space,stream);
+	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", "after deallocate"));
+
+	CheckCudaErrors(cudaGetLastError());
+	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", "after cudaGetLastError"));
+
 	CheckCudaErrors(cudaStreamDestroy(stream));
+	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", "after cudaStreamDestroy"));
+
 }
