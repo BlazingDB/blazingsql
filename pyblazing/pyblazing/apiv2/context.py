@@ -187,6 +187,7 @@ class BlazingTable(object):
             input,
             fileType,
             files=None,
+            datasource=[],
             calcite_to_file_indices=None,
             num_row_groups=None,
             args={},
@@ -198,6 +199,7 @@ class BlazingTable(object):
         self.input = input
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
+        self.datasource = datasource
         self.num_row_groups = num_row_groups
         self.fileType = fileType
         self.args = args
@@ -442,6 +444,7 @@ class BlazingContext(object):
                 parsedSchema['columns'],
                 file_type,
                 files=parsedSchema['files'],
+                datasource=parsedSchema['datasource'],
                 calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],
                 num_row_groups=parsedSchema['num_row_groups'],
                 args=parsedSchema['args'],
