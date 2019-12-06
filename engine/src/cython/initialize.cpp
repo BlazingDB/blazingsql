@@ -92,7 +92,18 @@ void initialize(int ralId,
 	std::cout << "is singleNode? " << singleNode << std::endl;
 
 	// }
+
+	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
+	gpuId = 0; // NOTE: This is the default value
+	if (env_cuda_device){
+		gpuId = std::atoi(env_cuda_device);
+		std::cout << "CUDA_VISIBLE_DEVICES is set to: " << gpuId << std::endl; 
+	} else {
+		std::cout << "CUDA_VISIBLE_DEVICES is not set, using default GPU: " << gpuId << std::endl;
+	}
 	ral::config::GPUManager::getInstance().initialize(gpuId);
+	std::cout << "Using GPU: " << ral::config::GPUManager::getInstance().getDeviceId() << std::endl;
+
 	size_t total_gpu_mem_size = ral::config::GPUManager::getInstance().gpuMemorySize();
 	assert(total_gpu_mem_size > 0);
 	auto nthread = 4;

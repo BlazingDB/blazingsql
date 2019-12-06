@@ -48,6 +48,7 @@ public:
 
 	std::vector<std::string> get_names() const;
 	std::vector<std::string> get_types() const;
+	std::vector<std::string> get_files() const;
 	std::vector<bool> get_in_file() const;
 	std::vector<gdf_dtype> get_dtypes() const;
 	std::vector<gdf_time_unit> get_time_units() const;
@@ -63,6 +64,8 @@ public:
 	size_t get_num_columns() const;
 
 	void add_column(gdf_column_cpp column, size_t file_index);
+
+	void add_file(std::string file);
 
 	void add_column(std::string name,
 		gdf_dtype type,
@@ -83,6 +86,7 @@ private:
 	std::vector<gdf_time_unit> time_units;
 	std::vector<size_t> num_row_groups;
 	std::vector<bool> in_file;
+	std::vector<std::string> files;
 };
 
 } /* namespace io */
