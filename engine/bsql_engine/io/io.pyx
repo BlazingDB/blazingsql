@@ -17,6 +17,7 @@ from libcpp.map cimport map
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
+from pyarrow.lib cimport *
 
 import numpy as np
 import pandas as pd
@@ -236,6 +237,8 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         columns.push_back(column_view_from_column(table.input[col]._column))
       currentTableSchemaCpp.columns = columns
       currentTableSchemaCpp.names = names
+      if table.arrow_table is not None:
+        currentTableSchemaCpp.arrow_table = pyarrow.pyarrow_unwrap_table(table.arrow_table)
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
@@ -259,7 +262,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
     temp = runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all)
-    
+
     df = cudf.DataFrame()
     i = 0
     for column in temp.columns:
