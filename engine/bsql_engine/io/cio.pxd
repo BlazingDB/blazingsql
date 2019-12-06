@@ -6,6 +6,8 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.map cimport map
 from libcpp cimport bool
+from pyarrow.lib cimport *
+
 
 from libc.stdint cimport (  # noqa: E211
     uint8_t,
@@ -207,6 +209,7 @@ cdef extern from "../include/io/io.h":
         vector[bool] in_file
         int data_type
         ReaderArgs args
+        shared_ptr[CTable] arrow_table
     cdef struct HDFS:
         string host
         int port
