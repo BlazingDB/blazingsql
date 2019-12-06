@@ -100,7 +100,7 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         hdfs.host = str.encode(fs['host'])
         hdfs.port = fs['port']
         hdfs.user = str.encode(fs['user'])
-        driver = str.encode(fs['driver'])
+        driver = fs['driver']
         if 'libhdfs' == driver:
             hdfs.DriverType = 1
         elif 'libhdfs3' == driver:
