@@ -53,6 +53,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 
 	ral::io::Schema schema;
+
 	try {
 		loader->get_schema(schema, extra_columns);
 	} catch(std::exception & e) {
@@ -70,6 +71,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 		tableSchema.columns.push_back(column_cpp.get_gdf_column());
 		tableSchema.names.push_back(column_cpp.name());
 	}
+	tableSchema.files = schema.get_files();
 	tableSchema.num_row_groups = schema.get_num_row_groups();
 	tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
 	tableSchema.in_file = schema.get_in_file();
