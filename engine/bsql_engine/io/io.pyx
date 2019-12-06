@@ -100,7 +100,13 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         hdfs.host = str.encode(fs['host'])
         hdfs.port = fs['port']
         hdfs.user = str.encode(fs['user'])
-        hdfs.DriverType = 1
+        driver = fs['driver']
+        if 'libhdfs' == driver:
+            hdfs.DriverType = 1
+        elif 'libhdfs3' == driver:
+            hdfs.DriverType = 2
+        else:
+            raise ValueError('Invalid hdfs driver: ' + driver)
         hdfs.kerberosTicket = str.encode(fs['kerberos_ticket'])
         return cio.registerFileSystemHDFS( hdfs, str.encode( root), str.encode(authority))
     if fs['type'] == 's3':
@@ -259,7 +265,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
     temp = runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all)
-    
+
     df = cudf.DataFrame()
     i = 0
     for column in temp.columns:
