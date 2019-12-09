@@ -285,6 +285,9 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 			right_scalars
 			,stream,
 			temp_space,max_output,block_size);
+
+	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);  // 12 MB
+
 	transformKernel<<<min_grid_size
 					,block_size,
 					//	transformKernel<<<1
