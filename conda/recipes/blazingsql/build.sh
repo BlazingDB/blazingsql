@@ -20,7 +20,6 @@ fi
 echo "install_prefix: "$INSTALL_PREFIX
 echo "build_type: "$build_type
 echo "run_test: "$run_test
-exit
 
 echo '### Building bsql-io ###'
 cd io
