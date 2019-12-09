@@ -20,6 +20,7 @@
 #include <nvstrings/NVCategory.h>
 #include <nvstrings/NVStrings.h>
 #include <nvstrings/ipc_transfer.h>
+#include "../DataFrame.h"
 
 namespace ral {
 namespace io {
@@ -51,7 +52,10 @@ public:
 		std::vector<gdf_column_cpp> & columns,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
+
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
+
+	std::vector<gdf_column> get_metadata();
 
 private:
 	/**

@@ -33,6 +33,7 @@ public:
 
 	virtual void parse_schema(
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) = 0;
+
 };
 
 } /* namespace io */
