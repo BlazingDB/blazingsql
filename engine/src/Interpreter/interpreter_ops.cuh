@@ -281,9 +281,6 @@ private:
 	gdf_size_type * null_counts_inputs;
 	gdf_size_type * null_counts_outputs;
 	
-	int64_t* temp_valids_in_buffer;
-	int64_t* temp_valids_out_buffer;
-
 
 	template<typename LocalStorageType, typename BufferType>
 	__device__ __forceinline__
@@ -1034,8 +1031,6 @@ public:
 			std::vector<gdf_scalar> & right_scalars//,
 			,cudaStream_t stream,
 			char * temp_space,
-			int64_t * temp_valids_in_buffer,
-			int64_t * temp_valids_out_buffer,
 			int BufferSize, int ThreadBlockSize
 			//char * temp_space
 	){
@@ -1051,9 +1046,6 @@ public:
 		this->stream = stream;
 		num_columns = columns.size();
 		num_rows = columns[0]->size;
-
-		this->temp_valids_in_buffer = temp_valids_in_buffer;
-		this->temp_valids_out_buffer = temp_valids_out_buffer;
 
 		//added this to class
 		//fuck this allocating is easier and i didnt see a significant differnece in tmie when i tried
@@ -1367,7 +1359,7 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 	}
 }
 
-	__device__ __forceinline__ void operator()(const IndexT row_index, int64_t total_buffer[], gdf_size_type size) {
+	__device__ __forceinline__ void operator()(const IndexT row_index, int64_t total_buffer[], int64_t * valids_in_buffer, int64_t * valids_out_buffer, gdf_size_type size) {
 		//		__shared__ char buffer[BufferSize * THREADBLOCK_SIZE];
 
 		int64_t cur_row_valids;
@@ -1378,16 +1370,16 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 
 			if(this->valid_ptrs[cur_column] == nullptr || this->null_counts_inputs[cur_column] == 0){
 
-				this->temp_valids_in_buffer[cur_column] = -1;
+				valids_in_buffer[cur_column] = -1;
 			}else{
-				read_valid_data(cur_column,this->temp_valids_in_buffer, row_index);
+				read_valid_data(cur_column, valids_in_buffer, row_index);
 			}
 
 		}
 
 		for(gdf_size_type row = 0; row < 64 && row_index + row < size; row++){
 
-			load_cur_row_valids(this->temp_valids_in_buffer,row,cur_row_valids,this->num_columns);
+			load_cur_row_valids(valids_in_buffer,row,cur_row_valids,this->num_columns);
 
 			for(short cur_column = 0; cur_column < this->num_columns; cur_column++ ){
 				read_data(cur_column,total_buffer, row_index + row);
@@ -1403,11 +1395,11 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 				write_data(out_index,this->final_output_positions[out_index],total_buffer,row_index + row);
 			}
 
-			copyRowValidsIntoBuffer(cur_row_valids,this->temp_valids_out_buffer,row);
+			copyRowValidsIntoBuffer(cur_row_valids,valids_out_buffer,row);
 		}
 
 		//write out valids here
-		copyRowValidsIntoGlobal(this->temp_valids_out_buffer, row_index);
+		copyRowValidsIntoGlobal(valids_out_buffer, row_index);
 	}
 
 };
@@ -1455,16 +1447,19 @@ gdf_column create_gdf_column(gdf_dtype type, size_t num_values, void * input_dat
 //TODO: consider running valids at the same time as the normal
 // operations to increase throughput
 template<typename interpreted_operator>
-__global__ void transformKernel(interpreted_operator op, gdf_size_type size)
+__global__ void transformKernel(interpreted_operator op, gdf_size_type size, int64_t* temp_valids_in_buffer, int64_t* temp_valids_out_buffer)
 {
 
 	extern __shared__  int64_t  total_buffer[];
+
+	int64_t * valids_in_buffer = temp_valids_in_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * op.num_columns;
+	int64_t * valids_out_buffer = temp_valids_out_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * op.num_final_outputs;
 
 	for (gdf_size_type i = (blockIdx.x * blockDim.x + threadIdx.x) * 64;
 			i < size;
 			i += blockDim.x * gridDim.x * 64)
 	{
-			op(i,total_buffer,size);
+			op(i,total_buffer, valids_in_buffer, valids_out_buffer, size);
 	}
 
 	return;
