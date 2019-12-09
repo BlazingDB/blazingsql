@@ -21,6 +21,7 @@ fi
 mkdir -p build
 cd build
 
+export LD_LIBRARY_PATH=$INSTALL_PREFIX/lib
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
 
