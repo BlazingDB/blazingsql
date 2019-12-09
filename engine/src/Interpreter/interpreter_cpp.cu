@@ -260,9 +260,6 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 	CheckCudaErrors(cudaStreamSynchronize(stream));
 
 
-	// Hardcoding grid size to 12
-	//min_grid_size = 12;
-
 	std::string kernelInfo = "min_grid_size: " + std::to_string(min_grid_size) + "   block_size: " + std::to_string(block_size) + "   shared_memory_per_thread: " + std::to_string(shared_memory_per_thread) + "   num_rows: " + std::to_string(num_rows);
 	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", kernelInfo));
 
@@ -272,6 +269,14 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", allocInfo));
 
 	cuDF::Allocator::allocate((void **)&temp_space,temp_size, stream);
+
+	int64_t * temp_valids_in_buffer, *temp_valids_out_buffer;
+	size_t temp_valids_in_size = min_grid_size * block_size * input_columns.size() * sizeof(int64_t);
+	size_t temp_valids_out_size = min_grid_size * block_size * final_output_positions.size() * sizeof(int64_t);
+
+	cuDF::Allocator::allocate((void **)&temp_valids_in_buffer,temp_valids_in_size, stream);
+	cuDF::Allocator::allocate((void **)&temp_valids_out_buffer,temp_valids_out_size, stream);
+
 	interpreter_functor_8 op(input_columns,
 			output_columns,
 			left_inputs.size(),
@@ -284,9 +289,11 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 			left_scalars,
 			right_scalars
 			,stream,
-			temp_space,max_output,block_size);
-
-	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);  // 12 MB
+			temp_space,
+			temp_valids_in_buffer,
+			temp_valids_out_buffer,
+			max_output,
+			block_size);
 
 	transformKernel<<<min_grid_size
 					,block_size,
@@ -299,15 +306,12 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 	// op.update_columns_null_count(output_columns);
 
 	CheckCudaErrors(cudaStreamSynchronize(stream));
-	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", "after cudaStreamSynchronize"));
 
 	cuDF::Allocator::deallocate(temp_space,stream);
-	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", "after deallocate"));
+	cuDF::Allocator::deallocate(temp_valids_in_buffer,stream);
+	cuDF::Allocator::deallocate(temp_valids_out_buffer,stream);
 
 	CheckCudaErrors(cudaGetLastError());
-	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", "after cudaGetLastError"));
 
 	CheckCudaErrors(cudaStreamDestroy(stream));
-	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", "after cudaStreamDestroy"));
-
 }
