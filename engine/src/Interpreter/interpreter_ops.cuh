@@ -280,6 +280,9 @@ private:
 
 	gdf_size_type * null_counts_inputs;
 	gdf_size_type * null_counts_outputs;
+	
+	int64_t* temp_valids_in_buffer;
+	int64_t* temp_valids_out_buffer;
 
 
 	template<typename LocalStorageType, typename BufferType>
@@ -549,9 +552,6 @@ private:
 	//allows us to avoid branch divergence on setting bits on and off
 	__device__//TODO: careful you might have to cast bool value to int64_t for this to actually work
 	__forceinline__ void setColumnValid(int64_t & row_valid, const column_index_type & cur_column,bool value){
-			if (cur_column > 63){
-				printf("====> setColumnValid() cur_column: %d blockIdx.x: %d threadIdx.x: %d\n", cur_column, blockIdx.x, threadIdx.x);
-			}
 
 			row_valid ^= ((-value) ^ row_valid) & (1UL << cur_column);
 		}
@@ -1034,6 +1034,8 @@ public:
 			std::vector<gdf_scalar> & right_scalars//,
 			,cudaStream_t stream,
 			char * temp_space,
+			int64_t * temp_valids_in_buffer,
+			int64_t * temp_valids_out_buffer,
 			int BufferSize, int ThreadBlockSize
 			//char * temp_space
 	){
@@ -1049,6 +1051,9 @@ public:
 		this->stream = stream;
 		num_columns = columns.size();
 		num_rows = columns[0]->size;
+
+		this->temp_valids_in_buffer = temp_valids_in_buffer;
+		this->temp_valids_out_buffer = temp_valids_out_buffer;
 
 		//added this to class
 		//fuck this allocating is easier and i didnt see a significant differnece in tmie when i tried
@@ -1362,54 +1367,30 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 	}
 }
 
-	__device__ __forceinline__ void operator()(const IndexT row_index, int64_t total_buffer[], int64_t * valids_in_buffer, int64_t * valids_out_buffer, gdf_size_type size) {
+	__device__ __forceinline__ void operator()(const IndexT row_index, int64_t total_buffer[], gdf_size_type size) {
 		//		__shared__ char buffer[BufferSize * THREADBLOCK_SIZE];
 
 		int64_t cur_row_valids;
 //TODO: enable when we process null counts in this kernel
 //		gdf_size_type null_counts[this->num_final_outputs];
 
-		bool is64Thread = blockIdx.x == 0 && threadIdx.x == 64;
-		if (is64Thread){
-			printf("====> operator() blockIdx: %d threadIdx: %d row_index: %d\n", blockIdx.x, threadIdx.x, row_index);
-		}
-
-
 		for(column_index_type cur_column = 0; cur_column < this->num_columns; cur_column++ ){
 
 			if(this->valid_ptrs[cur_column] == nullptr || this->null_counts_inputs[cur_column] == 0){
 
-				valids_in_buffer[cur_column] = -1;
+				this->temp_valids_in_buffer[cur_column] = -1;
 			}else{
-				if (is64Thread) {
-					printf("====> operator() -- Inside loop read_valid_data: %d\n", cur_column);
-				}
-				
-				read_valid_data(cur_column,valids_in_buffer, row_index);
+				read_valid_data(cur_column,this->temp_valids_in_buffer, row_index);
 			}
 
-		}
-
-		if (is64Thread){
-			printf("====> operator() -- after read_valid_data()\n");
 		}
 
 		for(gdf_size_type row = 0; row < 64 && row_index + row < size; row++){
 
-			if (is64Thread){
-				gdf_size_type temp = (row_index + row);
-				printf("====> operator() -- Inside loop -- before -- load_cur_row_valids(): row: %d (row_index+row): %d\n", row, temp);
-			}
-
-			load_cur_row_valids(valids_in_buffer,row,cur_row_valids,this->num_columns);
-
-			if (is64Thread){
-				printf("====> operator() -- Inside loop -- after -- load_cur_row_valids(): %d\n", row);
-			}
+			load_cur_row_valids(this->temp_valids_in_buffer,row,cur_row_valids,this->num_columns);
 
 			for(short cur_column = 0; cur_column < this->num_columns; cur_column++ ){
 				read_data(cur_column,total_buffer, row_index + row);
-
 			}
 
 
@@ -1422,31 +1403,12 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 				write_data(out_index,this->final_output_positions[out_index],total_buffer,row_index + row);
 			}
 
-			if (is64Thread){
-				printf("====> operator() -- Inside loop -- before -- copyRowValidsIntoBuffer(): %d\n", row);
-			}
-			copyRowValidsIntoBuffer(cur_row_valids,valids_out_buffer,row);
-
-			if (is64Thread){
-				printf("====> operator() -- Inside loop -- after -- copyRowValidsIntoBuffer(): %d\n", row);
-			}
-
-			copyRowValidsIntoBuffer(cur_row_valids,valids_out_buffer,row);
-		}
-
-		if (is64Thread){
-			printf("====> operator() -- before copyRowValidsIntoGlobal\n");
+			copyRowValidsIntoBuffer(cur_row_valids,this->temp_valids_out_buffer,row);
 		}
 
 		//write out valids here
-		copyRowValidsIntoGlobal( valids_out_buffer, row_index);
-
-		if (is64Thread){
-			printf("====> operator() -- after copyRowValidsIntoGlobal\n");
-		}
-
+		copyRowValidsIntoGlobal(this->temp_valids_out_buffer, row_index);
 	}
-
 
 };
 
@@ -1498,30 +1460,12 @@ __global__ void transformKernel(interpreted_operator op, gdf_size_type size)
 
 	extern __shared__  int64_t  total_buffer[];
 
-	//TODO: this is sort of lazy to do this really nicely we should allocate this space before hand
-	//and let every thread get some offset based on the number of elements each thread needs
-	int64_t * valids_in_buffer = new int64_t[op.num_columns];
-	int64_t * valids_out_buffer = new int64_t[op.num_final_outputs]; //my thinking here is by putting it into a temp buffer that is small
-													//we will be able to ensure that most accesses to this buffer happen in cache
-													//this way its only every 64 rows that we copy it out to global
-	
-	if (valids_in_buffer == nullptr) {
-		printf("valids_in_buffer is nullptr in blockIdx.x: %d threadIdx.x: %d\n", blockIdx.x, threadIdx.x);
-	}
-	
-	if (valids_out_buffer == nullptr) {
-		printf("valids_out_buffer is nullptr in blockIdx.x: %d threadIdx.x: %d\n", blockIdx.x, threadIdx.x);
-	}
-
 	for (gdf_size_type i = (blockIdx.x * blockDim.x + threadIdx.x) * 64;
 			i < size;
 			i += blockDim.x * gridDim.x * 64)
 	{
-			op(i,total_buffer,valids_in_buffer, valids_out_buffer,size);
+			op(i,total_buffer,size);
 	}
-
-	delete[] valids_in_buffer;
-	delete[] valids_out_buffer;
 
 	return;
 }
