@@ -22,11 +22,45 @@ function(configure_test TEST_NAME Tests_SRCS)
         gmock_main
         gmock
         gtest
-        arrow
-        blazingdb-io
-        blazingdb-transport
+        
         blazingsql-engine
-        ${PYTHON_LIBRARIES}
+        
+        blazingdb-io
+        Threads::Threads
+        blazingdb-transport
+    
+        cudf
+        NVCategory
+        NVStrings
+        rmm
+        zmq
+        cudart
+        cuda
+        ${CUDA_CUDA_LIBRARY}
+        ${CUDA_NVRTC_LIBRARY}
+        ${CUDA_NVTX_LIBRARY}
+    
+        parquet
+        arrow
+        thrift
+        snappy
+    
+        zstd
+        lz4
+    
+        aws-cpp-sdk-s3
+        aws-cpp-sdk-s3-encryption
+    
+        storage_client
+        google_cloud_cpp_common
+        crc32c
+    
+        libboost_filesystem.a
+        libboost_system.a
+        libboost_regex.a
+    
+        # Library needed for blazing communication repository (debug)
+        gcov
     )
 
     set_target_properties(${TEST_NAME} PROPERTIES
