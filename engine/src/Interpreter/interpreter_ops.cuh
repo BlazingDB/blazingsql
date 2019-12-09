@@ -1382,7 +1382,7 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 				valids_in_buffer[cur_column] = -1;
 			}else{
 				if (is64Thread) {
-					printf("====> Inside loop read_valid_data: %d\n", cur_column);
+					printf("====> operator() -- Inside loop read_valid_data: %d\n", cur_column);
 				}
 				
 				read_valid_data(cur_column,valids_in_buffer, row_index);
@@ -1391,18 +1391,21 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 		}
 
 		if (is64Thread){
-			printf("====> After read_valid_data()\n");
+			printf("====> operator() -- after read_valid_data()\n");
 		}
 
 		for(gdf_size_type row = 0; row < 64 && row_index + row < size; row++){
 
 			if (is64Thread){
 				gdf_size_type temp = (row_index + row);
-				printf("====> Inside loop before load_cur_row_valids: row: %d (row_index+row): %d\n", row, temp);
+				printf("====> operator() -- Inside loop -- before -- load_cur_row_valids(): row: %d (row_index+row): %d\n", row, temp);
 			}
 
 			load_cur_row_valids(valids_in_buffer,row,cur_row_valids,this->num_columns);
 
+			if (is64Thread){
+				printf("====> operator() -- Inside loop -- after -- load_cur_row_valids(): %d\n", row);
+			}
 
 			for(short cur_column = 0; cur_column < this->num_columns; cur_column++ ){
 				read_data(cur_column,total_buffer, row_index + row);
@@ -1420,20 +1423,27 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 			}
 
 			if (is64Thread){
-				printf("====> Inside loop before copyRowValidsIntoBuffer: %d\n", row);
+				printf("====> operator() -- Inside loop -- before -- copyRowValidsIntoBuffer(): %d\n", row);
+			}
+			copyRowValidsIntoBuffer(cur_row_valids,valids_out_buffer,row);
+
+			if (is64Thread){
+				printf("====> operator() -- Inside loop -- after -- copyRowValidsIntoBuffer(): %d\n", row);
 			}
 
 			copyRowValidsIntoBuffer(cur_row_valids,valids_out_buffer,row);
 		}
 
 		if (is64Thread){
-			printf("====> After main op loop\n");
+			printf("====> operator() -- before copyRowValidsIntoGlobal\n");
 		}
 
 		//write out valids here
 		copyRowValidsIntoGlobal( valids_out_buffer, row_index);
 
-
+		if (is64Thread){
+			printf("====> operator() -- after copyRowValidsIntoGlobal\n");
+		}
 
 	}
 

@@ -261,7 +261,7 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 
 
 	// Hardcoding grid size to 12
-	min_grid_size = 12;
+	//min_grid_size = 12;
 
 	std::string kernelInfo = "min_grid_size: " + std::to_string(min_grid_size) + "   block_size: " + std::to_string(block_size) + "   shared_memory_per_thread: " + std::to_string(shared_memory_per_thread) + "   num_rows: " + std::to_string(num_rows);
 	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("-1", "-1", "-1", kernelInfo));
