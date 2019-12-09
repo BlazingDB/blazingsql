@@ -58,6 +58,8 @@ function(configure_test TEST_NAME Tests_SRCS)
         libboost_filesystem.a
         libboost_system.a
         libboost_regex.a
+        
+        libprotobuf.a
     
         # Library needed for blazing communication repository (debug)
         gcov
