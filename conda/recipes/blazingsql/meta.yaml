@@ -69,6 +69,7 @@ requirements:
         - jpype1
         - netifaces
         - pyhive
+        - sasl=0.2.1
 
 test:
     commands:
