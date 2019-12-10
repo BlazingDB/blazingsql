@@ -280,7 +280,7 @@ private:
 
 	gdf_size_type * null_counts_inputs;
 	gdf_size_type * null_counts_outputs;
-
+	
 
 	template<typename LocalStorageType, typename BufferType>
 	__device__ __forceinline__
@@ -549,6 +549,7 @@ private:
 	//allows us to avoid branch divergence on setting bits on and off
 	__device__//TODO: careful you might have to cast bool value to int64_t for this to actually work
 	__forceinline__ void setColumnValid(int64_t & row_valid, const column_index_type & cur_column,bool value){
+
 			row_valid ^= ((-value) ^ row_valid) & (1UL << cur_column);
 		}
 
@@ -1365,29 +1366,23 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 //TODO: enable when we process null counts in this kernel
 //		gdf_size_type null_counts[this->num_final_outputs];
 
-
-
-
 		for(column_index_type cur_column = 0; cur_column < this->num_columns; cur_column++ ){
 
 			if(this->valid_ptrs[cur_column] == nullptr || this->null_counts_inputs[cur_column] == 0){
 
 				valids_in_buffer[cur_column] = -1;
 			}else{
-				read_valid_data(cur_column,valids_in_buffer, row_index);
+				read_valid_data(cur_column, valids_in_buffer, row_index);
 			}
 
 		}
-
 
 		for(gdf_size_type row = 0; row < 64 && row_index + row < size; row++){
 
 			load_cur_row_valids(valids_in_buffer,row,cur_row_valids,this->num_columns);
 
-
 			for(short cur_column = 0; cur_column < this->num_columns; cur_column++ ){
 				read_data(cur_column,total_buffer, row_index + row);
-
 			}
 
 
@@ -1402,13 +1397,10 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 
 			copyRowValidsIntoBuffer(cur_row_valids,valids_out_buffer,row);
 		}
+
 		//write out valids here
-		copyRowValidsIntoGlobal( valids_out_buffer, row_index);
-
-
-
+		copyRowValidsIntoGlobal(valids_out_buffer, row_index);
 	}
-
 
 };
 
@@ -1455,27 +1447,20 @@ gdf_column create_gdf_column(gdf_dtype type, size_t num_values, void * input_dat
 //TODO: consider running valids at the same time as the normal
 // operations to increase throughput
 template<typename interpreted_operator>
-__global__ void transformKernel(interpreted_operator op, gdf_size_type size)
+__global__ void transformKernel(interpreted_operator op, gdf_size_type size, int64_t* temp_valids_in_buffer, int64_t* temp_valids_out_buffer)
 {
 
 	extern __shared__  int64_t  total_buffer[];
 
-	//TODO: this is sort of lazy to do this really nicely we should allocate this space before hand
-	//and let every thread get some offset based on the number of elements each thread needs
-	int64_t * valids_in_buffer = new int64_t[op.num_columns];
-	int64_t * valids_out_buffer = new int64_t[op.num_final_outputs]; //my thinking here is by putting it into a temp buffer that is small
-													//we will be able to ensure that most accesses to this buffer happen in cache
-													//this way its only every 64 rows that we copy it out to global
+	int64_t * valids_in_buffer = temp_valids_in_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * op.num_columns;
+	int64_t * valids_out_buffer = temp_valids_out_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * op.num_final_outputs;
 
 	for (gdf_size_type i = (blockIdx.x * blockDim.x + threadIdx.x) * 64;
 			i < size;
 			i += blockDim.x * gridDim.x * 64)
 	{
-			op(i,total_buffer,valids_in_buffer, valids_out_buffer,size);
+			op(i,total_buffer, valids_in_buffer, valids_out_buffer, size);
 	}
-
-	delete[] valids_in_buffer;
-	delete[] valids_out_buffer;
 
 	return;
 }
