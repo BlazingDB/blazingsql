@@ -993,7 +993,7 @@ blazing_frame evaluate_query(
 void getTableScanInfo(std::string & logicalPlan_in, 
 						std::vector<std::string> & relational_algebra_steps_out,
 						std::vector<std::string> & table_names_out,
-						std::vector<std::vector<std::string>> & table_columns_out){
+						std::vector<std::vector<int>> & table_columns_out){
 
 	std::vector<std::string> splitted = StringUtil::split(logicalPlan_in, "\n");
 	if (splitted[splitted.size() - 1].length() == 0) {
@@ -1009,10 +1009,13 @@ void getTableScanInfo(std::string & logicalPlan_in,
 				table_name = table_name.substr(5);
 			}
 			table_names_out.push_back(table_name);
-			
+
 			if (is_bindable_scan(step)) {
-				std::string project_string = get_named_expression(step, "projects");
-				table_columns_out.push_back(get_expressions_from_expression_list(project_string, true));
+				std::string projects = get_named_expression(step, "projects");
+				std::vector<std::string> column_index_strings = get_expressions_from_expression_list(projects, true);
+				std::vector<int> column_indeces;
+				std::transform(column_index_strings.begin(), column_index_strings.end(), std::back_inserter(column_indeces), [](const std::string& str) { return std::stoi(str); });
+				table_columns_out.push_back(column_indeces);
 			}
 		}
 	}

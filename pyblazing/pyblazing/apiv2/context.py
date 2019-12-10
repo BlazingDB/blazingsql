@@ -180,6 +180,43 @@ def collectPartitionsRunQuery(
         algebra,
         accessToken)
 
+# returns a map of table names to the indices of the columns needed. If there are more than one table scan for one table, it merged the needed columns
+# if the column list is empty, it means we want all columns
+def mergeTableScans(tableScanInfo):
+    table_names = list(set(tableScanInfo['table_names']))
+    table_columns = {}
+    for table_name in table_names:
+        table_columns[table_name] = []
+
+    for index, table_name in enumerate(tableScanInfo['table_names']):
+        if len(tableScanInfo['table_columns'][index]) > 0: # if the column list is empty, it means we want all columns
+            table_columns[table_name] = list(set(table_columns[table_name] + tableScanInfo['table_columns'][index]))
+            table_columns[table_name].sort()
+        else:
+            table_columns[table_name] = []
+
+    return table_columns
+
+def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo, table_columns):
+    for index, table_name in enumerate(tableScanInfo['table_names']):
+        orig_scan = tableScanInfo['table_scans'][index]
+        orig_col_indexes = tableScanInfo['table_columns'][index]
+        merged_col_indexes = table_columns[table_name]
+
+        new_col_indexes = []
+        if len(merged_col_indexes) > 0:
+            if orig_col_indexes == merged_col_indexes:
+                new_col_indexes = list(range(0, len(orig_col_indexes)))
+            else:
+                for new_index, merged_col_index in enumerate(merged_col_indexes):
+                    if merged_col_index in orig_col_indexes:
+                        new_col_indexes.append(new_index)
+
+        orig_project = 'projects=[' + str(orig_col_indexes) + ']'
+        new_project = 'projects=[' + str(new_col_indexes) + ']'
+        new_scan = orig_scan.replace(orig_project, new_project)
+        algebra = algebra.replace(orig_scan, new_scan)
+    return algebra
 
 class BlazingTable(object):
     def __init__(
@@ -498,15 +535,21 @@ class BlazingContext(object):
                 workers=[worker])
             tableScanInfo = connection.result()
 
+        # These comments are here to show what is in tableScanInfo which will be used for skip-data. remove when skip-data is implemented
         # for index, scan in enumerate(tableScanInfo['table_scans']):
         #     print('Table Scan: ' + scan)
         #     print('Table Name: ' + tableScanInfo['table_names'][index])
         #     columnsStr = 'Table Columns: '
-        #     for colName in tableScanInfo['table_columns'][index]:
-        #         columnsStr = columnsStr + colName + ' '
+        #     for colIdx in tableScanInfo['table_columns'][index]:
+        #         columnsStr = columnsStr + str(colIdx) + ' '
         #     print(columnsStr)
-
-        for table in tableScanInfo['table_names']:
+        
+        # this is to be used for Arrow Provider
+        # table_columns = mergeTableScans(tableScanInfo)
+        # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo, table_columns)
+        
+        distinct_query_table_names = list(set(tableScanInfo['table_names']))
+        for table in distinct_query_table_names:
             fileTypes.append(self.tables[table].fileType)
             ftype = self.tables[table].fileType
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
@@ -605,3 +648,5 @@ class BlazingContext(object):
             self.logs_initialized = True
 
         return self.sql(query)
+
+   
