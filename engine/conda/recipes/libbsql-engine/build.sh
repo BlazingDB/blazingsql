@@ -28,11 +28,11 @@ export CFLAGS=$CXXFLAGS
 echo "CMD: cmake -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_EXE_LINKER_FLAGS=\"$CXXFLAGS\" .."
 cmake -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
 
-echo "make -j blazingsql-engine"
 if [ "$run_test" == "ON" ]; then
-  make -j all
-  ctest
+  echo "make -j all && ctest"
+  make -j all && ctest
 else
+  echo "make -j blazingsql-engine"
   make -j blazingsql-engine
 fi
 
