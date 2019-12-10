@@ -27,3 +27,12 @@ ResultSet runQuery(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, gdf_scalar>>> uri_values,
 	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
 	std::vector<std::vector<std::map<std::string, bool>>> is_column_string);
+
+
+struct TableScanInfo {
+	std::vector<std::string> relational_algebra_steps;
+	std::vector<std::string> table_names;
+	std::vector<std::vector<std::string>> table_columns;
+};
+
+TableScanInfo getTableScanInfo(std::string logicalPlan);

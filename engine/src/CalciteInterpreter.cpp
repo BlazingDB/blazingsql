@@ -988,3 +988,32 @@ blazing_frame evaluate_query(
 			throw;
 		}
 }
+
+
+void getTableScanInfo(std::string & logicalPlan_in, 
+						std::vector<std::string> & relational_algebra_steps_out,
+						std::vector<std::string> & table_names_out,
+						std::vector<std::vector<std::string>> & table_columns_out){
+
+	std::vector<std::string> splitted = StringUtil::split(logicalPlan_in, "\n");
+	if (splitted[splitted.size() - 1].length() == 0) {
+		splitted.erase(splitted.end() -1);
+	}
+	
+	for (auto step : splitted){
+		if (is_scan(step)) {
+			relational_algebra_steps_out.push_back(step);
+
+			std::string table_name = extract_table_name(step);
+			if(StringUtil::beginsWith(table_name, "main.")) {
+				table_name = table_name.substr(5);
+			}
+			table_names_out.push_back(table_name);
+			
+			if (is_bindable_scan(step)) {
+				std::string project_string = get_named_expression(step, "projects");
+				table_columns_out.push_back(get_expressions_from_expression_list(project_string, true));
+			}
+		}
+	}
+}
