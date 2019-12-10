@@ -342,24 +342,25 @@ TEST_F(MinMaxParquetTest, UsingRalIO) {
   std::vector<Uri> uris;
   uris.push_back(Uri{this->filename});
 
-//  ral::io::Schema schema;
-//  {
-//    //TODO: error with the api, you can't get schema and load_data with the same provider
-//    auto parser = std::make_shared<ral::io::parquet_parser>();
-//    auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
-//    ral::io::data_loader loader(parser, provider);
-//    try {
-//      loader.get_schema(schema);
-//    } catch (std::exception &e) {
-//      return;
-//    }
-//  }
+ ral::io::Schema schema;
+ {
+   //TODO: error with the api, you can't get schema and load_data with the same provider
+   auto parser = std::make_shared<ral::io::parquet_parser>();
+   auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+   ral::io::data_loader loader(parser, provider);
+   try {
+     loader.get_schema(schema, {});
+   } catch (std::exception &e) {
+     return;
+   }
+ }
 //  std::vector<gdf_column_cpp> input_table;
-//  auto parser = std::make_shared<ral::io::parquet_parser>();
-//  auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+ auto parser = std::make_shared<ral::io::parquet_parser>();
+ auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+
 //  ral::io::data_loader loader(parser, provider);
 //  loader.load_data(input_table, {}, schema);
-//
+
 //  for (size_t column_index = 0; column_index < input_table.size();
 //       column_index++) {
 //    std::cout << "col_name: "
