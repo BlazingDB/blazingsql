@@ -11,7 +11,7 @@ if [ -z ${2+x} ]
 then
    INSTALL_PREFIX=$CONDA_PREFIX
 else
-   INSTALL_PREFIX=$2
+   INSTALL_PREFIX=$1
 fi
 
 mkdir -p build
