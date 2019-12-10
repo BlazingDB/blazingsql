@@ -282,8 +282,7 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 				columns[i] = output;
 			} else {
 				int index = get_index(expression);
-				// TODO: Keep track if we use the same column more than once to avoid an unnecessary clone
-				gdf_column_cpp output = input.get_column(index).clone();
+				gdf_column_cpp output = input_used_in_output[index] ? input.get_column(index).clone() : input.get_column(index);
 				output.set_name(name);
 				input_used_in_output[index] = true;
 				columns[i] = output;
