@@ -60,6 +60,6 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 void getTableScanInfo(std::string & logicalPlan_in, 
 						std::vector<std::string> & relational_algebra_steps_out,
 						std::vector<std::string> & table_names_out,
-						std::vector<std::vector<std::string>> & table_columns_out);
+						std::vector<std::vector<int>> & table_columns_out);
 
 #endif /* CALCITEINTERPRETER_H_ */

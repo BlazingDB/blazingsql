@@ -32,7 +32,7 @@ ResultSet runQuery(int32_t masterIndex,
 struct TableScanInfo {
 	std::vector<std::string> relational_algebra_steps;
 	std::vector<std::string> table_names;
-	std::vector<std::vector<std::string>> table_columns;
+	std::vector<std::vector<int>> table_columns;
 };
 
 TableScanInfo getTableScanInfo(std::string logicalPlan);

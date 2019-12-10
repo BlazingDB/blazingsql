@@ -246,7 +246,7 @@ cdef extern from "../include/engine/engine.h":
         cdef struct TableScanInfo:
             vector[string] relational_algebra_steps
             vector[string] table_names
-            vector[vector[string]] table_columns
+            vector[vector[int]] table_columns
         TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h":

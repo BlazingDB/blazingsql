@@ -284,7 +284,5 @@ cpdef getTableScanInfoCaller(logicalPlan):
     return_object = {}
     return_object['table_scans'] = [step.decode('utf-8') for step in temp.relational_algebra_steps]
     return_object['table_names'] = [name.decode('utf-8') for name in temp.table_names]
-    return_object['table_columns'] = []
-    for table_columns in temp.table_columns:
-        return_object['table_columns'].append([columnName.decode('utf-8') for columnName in table_columns])
+    return_object['table_columns'] = temp.table_columns
     return return_object
