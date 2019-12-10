@@ -41,6 +41,7 @@ requirements:
         - openjdk=8.0
         - maven
     host:
+        - cmake
         - cudatoolkit {{ cuda_version }}.*
         - python
         - pip
