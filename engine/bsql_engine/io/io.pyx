@@ -86,6 +86,10 @@ cdef cio.ResultSet runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMe
     temp = cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string)
     return temp
 
+cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
+    temp = cio.getTableScanInfo(logicalPlan)
+    return temp
+
 cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except *:
     cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode)
 
@@ -274,3 +278,13 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
       i = i + 1
     return df
+
+cpdef getTableScanInfoCaller(logicalPlan):
+    temp = getTableScanInfoPython(str.encode(logicalPlan))
+    return_object = {}
+    return_object['table_scans'] = [step.decode('utf-8') for step in temp.relational_algebra_steps]
+    return_object['table_names'] = [name.decode('utf-8') for name in temp.table_names]
+    return_object['table_columns'] = []
+    for table_columns in temp.table_columns:
+        return_object['table_columns'].append([columnName.decode('utf-8') for columnName in table_columns])
+    return return_object

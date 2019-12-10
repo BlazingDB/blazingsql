@@ -243,6 +243,12 @@ cdef extern from "../include/engine/engine.h":
             int communication_port
         ResultSet runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
 
+        cdef struct TableScanInfo:
+            vector[string] relational_algebra_steps
+            vector[string] table_names
+            vector[vector[string]] table_columns
+        TableScanInfo getTableScanInfo(string logicalPlan)
+
 cdef extern from "../include/engine/initialize.h":
     cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError

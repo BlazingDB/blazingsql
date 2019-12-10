@@ -485,7 +485,28 @@ class BlazingContext(object):
         # a list, same size as tables, when we have a dask_cudf
         # table , tells us partitions that map to that table
 
-        for table in self.tables:
+        if (algebra is None):
+            algebra = self.explain(sql)
+
+        if self.dask_client is None:
+            tableScanInfo = cio.getTableScanInfoCaller(algebra)
+        else:
+            worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
+            connection = self.dask_client.submit(
+                cio.getTableScanInfoCaller,
+                algebra,
+                workers=[worker])
+            tableScanInfo = connection.result()
+
+        # for index, scan in enumerate(tableScanInfo['table_scans']):
+        #     print('Table Scan: ' + scan)
+        #     print('Table Name: ' + tableScanInfo['table_names'][index])
+        #     columnsStr = 'Table Columns: '
+        #     for colName in tableScanInfo['table_columns'][index]:
+        #         columnsStr = columnsStr + colName + ' '
+        #     print(columnsStr)
+
+        for table in tableScanInfo['table_names']:
             fileTypes.append(self.tables[table].fileType)
             ftype = self.tables[table].fileType
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
@@ -507,8 +528,7 @@ class BlazingContext(object):
         accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
-        if (algebra is None):
-            algebra = self.explain(sql)
+        
         if self.dask_client is None:
             result = cio.runQueryCaller(
                 masterIndex,
