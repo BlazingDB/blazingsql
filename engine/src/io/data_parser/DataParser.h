@@ -8,6 +8,7 @@
 #ifndef DATAPARSER_H_
 #define DATAPARSER_H_
 
+#include "../Metadata.h"
 #include "../Schema.h"
 #include "GDFColumn.cuh"
 #include "arrow/io/interfaces.h"
@@ -34,8 +35,9 @@ public:
 	virtual void parse_schema(
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) = 0;
 
-	// TODO:
-	//		virtual void get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Metadata & metadata);
+	virtual void get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Metadata & metadata) {
+
+	}
 };
 
 } /* namespace io */

@@ -439,6 +439,10 @@ class BlazingContext(object):
         elif isinstance(input, list):
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
+
+            parsedMetadata = self._getMetadata(
+                input, file_format_hint, kwargs, extra_columns)
+
             file_type = parsedSchema['file_type']
             table = BlazingTable(
                 parsedSchema['columns'],
@@ -472,6 +476,22 @@ class BlazingContext(object):
                 kwargs,
                 extra_columns,
                 workers=[worker])
+            return connection.result()
+        else:
+            return cio.parseSchemaCaller(
+                input, file_format_hint, kwargs, extra_columns)
+
+
+    def _parseMetadata(self, input, file_format_hint, kwargs, extra_columns):
+        if self.dask_client:
+            workers = tuple(self.dask_client.scheduler_info()['workers'])
+            connection = self.dask_client.submit(
+                cio.parseMetadataCaller,
+                input,
+                file_format_hint,
+                kwargs,
+                extra_columns,
+                workers=workers)
             return connection.result()
         else:
             return cio.parseSchemaCaller(

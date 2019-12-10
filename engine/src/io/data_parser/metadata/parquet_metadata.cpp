@@ -210,6 +210,7 @@ std::vector<gdf_column*> get_minmax_metadata(
 	// initialize minmax_metadata_table
 	// T(min, max), (file_handle, row_group)
 	minmax_metadata_table.resize(file_metadata->num_columns() * 2 + 2);
+	minmax_metadata_gdf_table.resize(file_metadata->num_columns() * 2 + 2);
 
 	int num_row_groups = file_metadata->num_row_groups();
 	const parquet::SchemaDescriptor *schema = file_metadata->schema();
@@ -228,9 +229,9 @@ std::vector<gdf_column*> get_minmax_metadata(
 			gdf_dtype dtype;
 			gdf_dtype_extra_info extra_info;
 			std::tie(dtype, extra_info) = to_dtype(physical_type, logical_type);
-			auto col_name_min = "min_" + column->name();
+			auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
 			minmax_metadata_gdf_table[2 * colIndex] = create_gdf_column(dtype, extra_info, col_name_min);
-			auto col_name_max = "max_" + column->name();
+			auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
 			minmax_metadata_gdf_table[2 * colIndex + 1] = create_gdf_column(dtype, extra_info, col_name_max);
 		}
 		minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 2] = create_gdf_column(GDF_STRING, gdf_dtype_extra_info{

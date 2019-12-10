@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "io/Metadata.h"
 #include "io/DataLoader.h"
 #include "io/data_parser/DataParser.h"
 #include "io/data_parser/ParquetParser.h"
@@ -65,6 +66,8 @@ struct MinMaxParquetTest : public testing::Test {
   }
 
   void SetUp() final {
+  	rmmInitialize(nullptr);
+	
     static constexpr std::size_t kGroups = 3;
     static constexpr std::size_t kRowsPerGroup = 5;
     try {
@@ -342,34 +345,40 @@ TEST_F(MinMaxParquetTest, UsingRalIO) {
   std::vector<Uri> uris;
   uris.push_back(Uri{this->filename});
 
- ral::io::Schema schema;
- {
-   //TODO: error with the api, you can't get schema and load_data with the same provider
-   auto parser = std::make_shared<ral::io::parquet_parser>();
-   auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
-   ral::io::data_loader loader(parser, provider);
-   try {
-     loader.get_schema(schema, {});
-   } catch (std::exception &e) {
-     return;
-   }
- }
-//  std::vector<gdf_column_cpp> input_table;
+//  ral::io::Schema schema;
+//  {
+//    //TODO: error with the api, you can't get schema and load_data with the same provider
+//    auto parser = std::make_shared<ral::io::parquet_parser>();
+//    auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+//    ral::io::data_loader loader(parser, provider);
+//    try {
+//      loader.get_schema(schema, {});
+//    } catch (std::exception &e) {
+//       std::cout << "error: " << e.what() << std::endl;
+
+//      return;
+//    }
+//  }
  auto parser = std::make_shared<ral::io::parquet_parser>();
  auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
-//  ral::io::data_loader loader(parser, provider);
-//  loader.load_data(input_table, {}, schema);
+ ral::io::data_loader loader(parser, provider);
 
-//  for (size_t column_index = 0; column_index < input_table.size();
-//       column_index++) {
-//    std::cout << "col_name: "
-//              << input_table[column_index].get_gdf_column()->col_name
-//              << "|"
-//              << input_table[column_index].get_gdf_column()->size
-//              << std::endl;
-//    print_gdf_column(input_table[column_index].get_gdf_column());
-//  }
+ ral::io::Metadata metadata({});
+ loader.get_metadata(metadata, {});
+ std::vector<gdf_column*> input_table = metadata.metadata_;
+
+ std::cout << "metadata: " << input_table.size() << std::endl;
+ 
+ for (size_t column_index = 0; column_index < input_table.size();
+      column_index++) {
+   std::cout << "col_name: "
+             << input_table[column_index]->col_name
+             << "|"
+             << input_table[column_index]->size
+             << std::endl;
+   print_gdf_column(input_table[column_index]);
+ }
 }
 
 TEST_F(MinMaxParquetTest, GetStats) { print_minmax(this->filename); }
