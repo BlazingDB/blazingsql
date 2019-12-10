@@ -13,6 +13,7 @@
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
+#include "../Metadata.h"
 
 namespace ral {
 namespace io {
@@ -28,6 +29,10 @@ public:
 		std::vector<size_t> column_indices_requested);
 
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, Schema & schema);
+
+	//	void get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Metadata & metadata);
+	void get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, std::vector<std::string> user_readable_file_handles, ral::io::Metadata & metadata);
+
 };
 
 } /* namespace io */

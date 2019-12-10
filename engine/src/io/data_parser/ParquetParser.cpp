@@ -21,6 +21,9 @@
 #include <GDFCounter.cuh>
 
 #include "../Schema.h"
+#include "../Metadata.h"
+#include "metadata/parquet_metadata.h"
+
 #include "io/data_parser/ParserUtil.h"
 
 #include <numeric>
@@ -83,6 +86,7 @@ void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	}
 }
 
+
 // This function is copied and adapted from cudf
 constexpr std::pair<gdf_dtype, gdf_dtype_extra_info> to_dtype(parquet::Type::type physical,
 	parquet::ConvertedType::type logical,
@@ -128,17 +132,18 @@ constexpr std::pair<gdf_dtype, gdf_dtype_extra_info> to_dtype(parquet::Type::typ
 
 void parquet_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema_out) {
+
 	std::vector<size_t> num_row_groups(files.size());
 	std::thread threads[files.size()];
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads[file_index] = std::thread([&, file_index]() {
-			ral::config::GPUManager::getInstance().setDevice();
-			std::unique_ptr<parquet::ParquetFileReader> parquet_reader =
-				parquet::ParquetFileReader::Open(files[file_index]);
-			std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_reader->metadata();
-			const parquet::SchemaDescriptor * schema = file_metadata->schema();
-			num_row_groups[file_index] = file_metadata->num_row_groups();
-			parquet_reader->Close();
+		  ral::config::GPUManager::getInstance().setDevice();
+		  std::unique_ptr<parquet::ParquetFileReader> parquet_reader =
+			  parquet::ParquetFileReader::Open(files[file_index]);
+		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_reader->metadata();
+		  const parquet::SchemaDescriptor * schema = file_metadata->schema();
+		  num_row_groups[file_index] = file_metadata->num_row_groups();
+		  parquet_reader->Close();
 		});
 	}
 
@@ -167,8 +172,42 @@ void parquet_parser::parse_schema(
 
 	std::vector<std::size_t> column_indices(column_names_out.size());
 	std::iota(column_indices.begin(), column_indices.end(), 0);
+}
 
-	schema_out = ral::io::Schema(column_names_out, column_indices, dtypes_out, time_units_out, num_row_groups);
+
+void parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, std::vector<std::string> user_readable_file_handles, ral::io::Metadata & metadata){
+	std::vector<size_t> num_row_groups(files.size());
+	std::thread threads[files.size()];
+	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
+	for(int file_index = 0; file_index < files.size(); file_index++) {
+		threads[file_index] = std::thread([&, file_index]() {
+		  ral::config::GPUManager::getInstance().setDevice();
+		  parquet_readers[file_index] =
+			  parquet::ParquetFileReader::Open(files[file_index]);
+		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
+		  const parquet::SchemaDescriptor * schema = file_metadata->schema();
+		  num_row_groups[file_index] = file_metadata->num_row_groups();
+		});
+	}
+
+	for(int file_index = 0; file_index < files.size(); file_index++) {
+		threads[file_index].join();
+	}
+
+	size_t total_num_row_groups =
+		std::accumulate(num_row_groups.begin(), num_row_groups.end(), size_t(0));
+
+	std::vector<gdf_column*> minmax_metadata_table = get_minmax_metadata(parquet_readers, user_readable_file_handles, total_num_row_groups);
+	for (auto &reader : parquet_readers) {
+		reader->Close();
+	}
+
+//	std::vector<std::size_t> column_indices(column_names_out.size());
+//	std::iota(column_indices.begin(), column_indices.end(), 0);
+//	schema_out = ral::io::Schema(column_names_out, column_indices, dtypes_out, time_units_out, num_row_groups);
+
+//TODO:
+//	metadata = ral::io::Metadata(minmax_metadata_table);
 }
 
 } /* namespace io */

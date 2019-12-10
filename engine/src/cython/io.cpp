@@ -79,6 +79,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	return tableSchema;
 }
 
+
 std::pair<bool, std::string> registerFileSystem(
 	FileSystemConnection fileSystemConnection, std::string root, std::string authority) {
 	Path rootPath(root);
