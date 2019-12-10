@@ -35,7 +35,7 @@ public:
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) = 0;
 
 	// TODO:
-	//	virtual void get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, std::vector<std::string> user_readable_file_handles, ral::io::Metadata & metadata);
+	//		virtual void get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Metadata & metadata);
 };
 
 } /* namespace io */

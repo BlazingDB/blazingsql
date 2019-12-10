@@ -1,9 +1,5 @@
-/*
- * ParquetParser.cpp
- *
- *  Created on: Nov 29, 2018
- *      Author: felipe
- */
+
+#include "metadata/parquet_metadata.h"
 
 #include "ParquetParser.h"
 #include "config/GPUManager.cuh"
@@ -11,18 +7,38 @@
 #include <cudf/legacy/column.hpp>
 #include <cudf/legacy/io_functions.hpp>
 
+
+#include <algorithm>
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include <memory>
+#include <algorithm>
+#include <numeric>
+#include <string>
+#include <cudf/cudf.h>
+
+#include <unordered_map>
+#include <vector>
 #include <arrow/io/file.h>
 #include <parquet/file_reader.h>
 #include <parquet/schema.h>
 #include <parquet/types.h>
 #include <thread>
 
+#include <parquet/column_writer.h>
+#include <parquet/file_writer.h>
+#include <parquet/properties.h>
+#include <parquet/schema.h>
+#include <parquet/types.h>
+
+#include <parquet/api/reader.h>
+#include <parquet/api/writer.h>
 #include <GDFColumn.cuh>
 #include <GDFCounter.cuh>
 
 #include "../Schema.h"
 #include "../Metadata.h"
-#include "metadata/parquet_metadata.h"
 
 #include "io/data_parser/ParserUtil.h"
 
@@ -175,7 +191,7 @@ void parquet_parser::parse_schema(
 }
 
 
-void parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, std::vector<std::string> user_readable_file_handles, ral::io::Metadata & metadata){
+void parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Metadata & metadata){
 	std::vector<size_t> num_row_groups(files.size());
 	std::thread threads[files.size()];
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
@@ -197,17 +213,11 @@ void parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomA
 	size_t total_num_row_groups =
 		std::accumulate(num_row_groups.begin(), num_row_groups.end(), size_t(0));
 
-	std::vector<gdf_column*> minmax_metadata_table = get_minmax_metadata(parquet_readers, user_readable_file_handles, total_num_row_groups);
+	std::vector<gdf_column*> minmax_metadata_table = get_minmax_metadata(parquet_readers, total_num_row_groups);
 	for (auto &reader : parquet_readers) {
 		reader->Close();
 	}
-
-//	std::vector<std::size_t> column_indices(column_names_out.size());
-//	std::iota(column_indices.begin(), column_indices.end(), 0);
-//	schema_out = ral::io::Schema(column_names_out, column_indices, dtypes_out, time_units_out, num_row_groups);
-
-//TODO:
-//	metadata = ral::io::Metadata(minmax_metadata_table);
+	metadata.metadata_ =  minmax_metadata_table;
 }
 
 } /* namespace io */
