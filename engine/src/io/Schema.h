@@ -87,6 +87,11 @@ private:
 	std::vector<size_t> num_row_groups;
 	std::vector<bool> in_file;
 	std::vector<std::string> files;
+	// TODO, @percy, @alex, 
+	//  vector<vector<size_t>> row_groups_id;
+	// one vector per file
+	// 5 files => 5 vectors
+
 };
 
 } /* namespace io */

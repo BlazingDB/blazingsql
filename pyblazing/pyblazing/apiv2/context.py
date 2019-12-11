@@ -456,6 +456,7 @@ class BlazingContext(object):
                 in_file=in_file)
 
             table.slices = table.getSlices(len(self.nodes))
+            
             parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, kwargs, extra_columns)
 
 
@@ -492,16 +493,17 @@ class BlazingContext(object):
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
+            worker_id = 0
             for worker in workers: 
                 connection = self.dask_client.submit(
                     cio.parseMetadataCaller,
-                    input,
+                    currentTableNodes[worker_id].files,
                     file_format_hint,
                     kwargs,
                     extra_columns,
                     workers=[worker])
                 dask_futures.append(connection)
-
+                worker_id += 1
             return dask.dataframe.from_delayed(dask_futures)
 
         else:
@@ -513,6 +515,11 @@ class BlazingContext(object):
         masterIndex = 0
         nodeTableList = [{} for _ in range(len(self.nodes))]
         fileTypes = []
+
+        # TODO: skip_data processing, @percy
+        # TableScanString = get_table_scan(sql, ...)
+        # distributed_set_of_fileindices_and_rowgroupindices = process_skip_data(daskcudf_metadata, TableScanString)
+
         # a list, same size as tables, when we have a dask_cudf
         # table , tells us partitions that map to that table
         #TODO: Use scan tables here, cc @percy, @alexander    
