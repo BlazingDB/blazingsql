@@ -44,7 +44,13 @@ def getPartitions(tableName, schema, cursor):
                 columnName = columnData.split("=")[0]
                 for column in schema['columns']:
                     if column[0] == columnName:
-                        columnValue = np.fromstring(
+                        #print(columnData.split("=")[1])
+                        if(column[1] == np.str):
+                            columnValue = columnData.split("=")[1]
+                        elif(column[1] == np.datetime64):
+                            columnValue = np.datetime64(columnData.split("=")[1])
+                        else:
+                            columnValue = np.fromstring(
                             columnData.split("=")[1], column[1], sep=' ')[0]
                         columnPartitions.append((columnName, columnValue))
         partitions[partition[0]] = columnPartitions
@@ -113,7 +119,7 @@ def get_hive_table(cursor, tableName):
         schema['partitions'] = getPartitions(tableName, schema, cursor)
     else:
         schema['partitions'] = {}
-        file_list.append(schema['location'])
+        file_list.append(schema['location'] + "/*")
 
     uri_values = []
     extra_kwargs = {}
@@ -126,7 +132,7 @@ def get_hive_table(cursor, tableName):
             extra_columns.append((column[0], column[1]))
     for partitionName in schema['partitions']:
         partition = schema['partitions'][partitionName]
-        file_list.append(schema['location'] + "/" + partitionName)
+        file_list.append(schema['location'] + "/" + partitionName + "/*")
         uri_values.append(partition)
     return file_list, uri_values, schema['fileType'], extra_kwargs, extra_columns, in_file
 

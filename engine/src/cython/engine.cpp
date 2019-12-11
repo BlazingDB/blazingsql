@@ -139,7 +139,7 @@ ResultSet runQuery(int32_t masterIndex,
 		std::vector<gdf_column *> columns;
 		std::vector<std::string> names;
 		for(int i = 0; i < frame.get_width(); i++) {
-			auto column = frame.get_column(i);
+			auto& column = frame.get_column(i);
 			columns.push_back(column.get_gdf_column());
 			names.push_back(column.name());
 		}
