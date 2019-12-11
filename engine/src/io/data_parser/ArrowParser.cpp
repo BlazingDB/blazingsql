@@ -42,7 +42,7 @@ void arrow_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		column_indices_requested.resize(schema.get_num_columns());
 		std::iota(column_indices_requested.begin(), column_indices_requested.end(), 0);
 	}
-
+/*
 	std::vector<gdf_column_cpp> column_indices_requested(column_indices_requested.size());
 	for(auto column_index : column_indices_requested){
 			auto column = table->column(column_index);
@@ -63,6 +63,7 @@ void arrow_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 	std::shared_ptr< arrow::RecordBatch > out;
 	reader.ReadNext (&out);
+	gdf_size_type row = 0;
 	while(out != nullptr){
 
 		for(auto column_index : column_indices_requested) {
@@ -80,31 +81,14 @@ void arrow_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 		}
 
-		//	const std::string column_name = this->tableSchema.names[column_index];
 
-	/*		auto column = this->tableSchema.columns[column_index];
-			gdf_column_cpp col;
-			if(column->dtype == GDF_STRING){
-				NVCategory* category = NVCategory::create_from_strings(*(NVStrings *)column->data);
-				col.create_gdf_column(category,column->size,column_name);
-			}else if(column->dtype == GDF_STRING_CATEGORY){
-				// The RAL can change the category during execution and the Python side won't
-				// realize update the category so we have to make a copy
-				// this shouldn't be not longer neccesary with the new cudf columns
-				NVCategory* new_category = static_cast<NVCategory*>(column->dtype_info.category)->copy();
-				col.create_gdf_column(new_category, column->size, column_name);
-			}
-			else{
-				col.create_gdf_column(column,false);
-			}
-
-			columns.push_back(col);*/
 		}
 
 		reader.ReadNext (&out);
 	}
+columns_out = columns;
+*/
 
-	columns_out = columns;
 }
 
 void arrow_parser::parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile> > files,
@@ -113,17 +97,6 @@ void arrow_parser::parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAcc
 	std::vector<gdf_dtype> types;
 	std::vector<gdf_time_unit> time_units;
 
-/*	std::for_each(this->tableSchema.columns.begin(),this->tableSchema.columns.end(),
-		[&types, &time_units](gdf_column * column)
-		{
-			types.push_back( column->dtype );
-			time_units.push_back( column->dtype_info.time_unit );
-		});
-
-	names = this->tableSchema.names;
-	ral::io::Schema temp_schema(names, types, time_units);
-	schema = temp_schema;*/
-	//generate schema from message here
 }
 
 

@@ -19,6 +19,7 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
 from pyarrow.lib cimport *
 
+import enum
 
 import numpy as np
 import pandas as pd
@@ -248,8 +249,6 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         columns.push_back(column_view_from_column(table.input[col]._column))
       currentTableSchemaCpp.columns = columns
       currentTableSchemaCpp.names = names
-      if table.arrow_table is not None:
-        currentTableSchemaCpp.arrow_table = pyarrow_unwrap_table(table.arrow_table)
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
@@ -268,7 +267,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       tableIndex = tableIndex + 1
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        print(currentMetadata['communication_port'])
+        #print(currentMetadata['communication_port'])
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
@@ -283,10 +282,36 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       i = i + 1
     return df
 
-cpdef getTableScanInfoCaller(logicalPlan):
+cpdef getTableScanInfoCaller(logicalPlan,tables):
     temp = getTableScanInfoPython(str.encode(logicalPlan))
-    return_object = {}
-    return_object['table_scans'] = [step.decode('utf-8') for step in temp.relational_algebra_steps]
-    return_object['table_names'] = [name.decode('utf-8') for name in temp.table_names]
-    return_object['table_columns'] = temp.table_columns
-    return return_object
+    #print(temp)
+    new_tables = {}
+    table_names = [name.decode('utf-8') for name in temp.table_names]
+
+    relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
+    relational_algebra_steps = {}
+    for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
+
+        new_table = tables[table_name]
+
+        if new_table.fileType.value == 6:
+          if table_name in new_tables:
+            #TODO: this is not yet implemented the function unionColumns needs to be NotImplemented
+            #for this to work
+            temp_table = new_tables[table_name].filterAndRemapColumns(table_columns)
+            new_tables[table_name] = temp_table.unionColumns(new_tables[table_name])
+          else:
+            if len(table_columns) != 0:
+              new_table = new_table.filterAndRemapColumns(table_columns)
+            else:
+              new_table = new_table.convertForQuery()
+        if table_name in relational_algebra_steps:
+          relational_algebra_steps[table_name]['table_scans'].append(scan_string)
+          relational_algebra_steps[table_name]['table_columns'].append(table_columns)
+        else:
+          relational_algebra_steps[table_name] = {}
+          relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
+          relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
+
+        new_tables[table_name] = new_table
+    return new_tables, relational_algebra_steps
