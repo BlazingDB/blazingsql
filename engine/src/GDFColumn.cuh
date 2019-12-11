@@ -53,8 +53,6 @@ class gdf_column_cpp
 
 	gdf_column_cpp(const gdf_column_cpp& col);
 
-	gdf_column_cpp(gdf_column_cpp& col);
-
 	void operator=(const gdf_column_cpp& col);
 
 	gdf_column_cpp clone(std::string name = "", bool registerColumn = true);
