@@ -196,9 +196,15 @@ class BlazingTable(object):
             client=None,
             uri_values=[],
             in_file=[]):
-        self.input = input
+        if fileType == DataType.ARROW:
+            self.input = cudf.DataFrame.from_arrow(input.schema.empty_table())
+            self.arrow_table = input
+        else:
+            self.input = input
+
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
+
         self.datasource = datasource
         self.num_row_groups = num_row_groups
         self.fileType = fileType
@@ -418,14 +424,17 @@ class BlazingContext(object):
             input = [input, ]
 
         if isinstance(input, pandas.DataFrame):
-            table = BlazingTable(
-                cudf.DataFrame.from_pandas(input),
-                DataType.CUDF)
-        elif isinstance(input, pyarrow.Table):
-            table = BlazingTable(
-                cudf.DataFrame.from_arrow(input),
-                DataType.CUDF)
-        elif isinstance(input, cudf.DataFrame):
+            input = cudf.DataFrame.from_pandas(input)
+
+        if isinstance(input, pyarrow.Table):
+            if (self.dask_client is not None):
+                input = cudf.DataFrame.from_arrow(input)
+            else:
+                table = BlazingTable(
+                input,
+                DataType.ARROW)
+
+        if isinstance(input, cudf.DataFrame):
             if (self.dask_client is not None):
                 table = BlazingTable(
                     input,
@@ -495,7 +504,7 @@ class BlazingContext(object):
                 currentTableNodes = []
                 for node in self.nodes:
                     currentTableNodes.append(self.tables[table])
-            elif(self.tables[table].fileType == DataType.CUDF):
+            elif(self.tables[table].fileType == DataType.CUDF or self.tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:
                     currentTableNodes.append(self.tables[table])

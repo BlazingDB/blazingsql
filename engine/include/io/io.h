@@ -4,6 +4,9 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <arrow/table.h>
+#include <memory>
+
 #pragma once
 
 typedef ral::io::DataType DataType;

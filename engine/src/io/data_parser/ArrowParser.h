@@ -1,7 +1,7 @@
 
 
-#ifndef GDFPARSER_H_
-#define GDFPARSER_H_
+#ifndef ARROWPARSER_H_
+#define ARROWPARSER_H_
 
 #include "DataParser.h"
 #include <vector>
@@ -16,10 +16,10 @@
 namespace ral {
 namespace io {
 
-class arrow_parser: public data_parser {
+class arrow_parser : public data_parser {
 public:
 	arrow_parser( std::shared_ptr< arrow::Table > table);
-	
+
 	virtual ~arrow_parser();
 
 
@@ -43,4 +43,4 @@ private:
 } /* namespace io */
 } /* namespace ral */
 
-#endif /* GDFPARSER_H_ */
+#endif /* ARROWPARSER_H_ */

@@ -5,10 +5,15 @@
  *      Author: felipe
  */
 
-#include "GDFParser.h"
+#include "ArrowParser.h"
 #include "ral-message.cuh"
 
 #include "io/data_parser/ParserUtil.h"
+
+#include "arrow/api.h"
+#include "arrow/array.h"
+#include "arrow/table.h"
+#include "arrow/record_batch.h"
 
 namespace ral {
 namespace io {
@@ -38,29 +43,67 @@ void arrow_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		std::iota(column_indices_requested.begin(), column_indices_requested.end(), 0);
 	}
 
-	std::vector<gdf_column_cpp> columns;
-	for(auto column_index : column_indices_requested) {
+	std::vector<gdf_column_cpp> column_indices_requested(column_indices_requested.size());
+	for(auto column_index : column_indices_requested){
+			auto column = table->column(column_index);
+			if(schema.get_dtypes()[column_index] == GDF_STRING || schema.get_dtypes()[column_index] == GDF_CATEGORY){
 
-	//	const std::string column_name = this->tableSchema.names[column_index];
-
-/*		auto column = this->tableSchema.columns[column_index];
-		gdf_column_cpp col;
-		if(column->dtype == GDF_STRING){
-			NVCategory* category = NVCategory::create_from_strings(*(NVStrings *)column->data);
-			col.create_gdf_column(category,column->size,column_name);
-		}else if(column->dtype == GDF_STRING_CATEGORY){
-			// The RAL can change the category during execution and the Python side won't
-			// realize update the category so we have to make a copy
-			// this shouldn't be not longer neccesary with the new cudf columns
-			NVCategory* new_category = static_cast<NVCategory*>(column->dtype_info.category)->copy();
-			col.create_gdf_column(new_category, column->size, column_name);
-		}
-		else{
-			col.create_gdf_column(column,false);
-		}
-
-		columns.push_back(col);*/
+			}else{
+				column.create_gdf_column(schema.get_dtypes()[column_index],
+					gdf_dtype_extra_info{TIME_UNIT_ms},
+					num_rows,
+					nullptr,
+					ral::traits::get_dtype_size_in_bytes(scalar.dtype),
+					name,
+					true);
+			}
 	}
+
+	arrow::TableBatchReader reader(*this->table);
+
+	std::shared_ptr< arrow::RecordBatch > out;
+	reader.ReadNext (&out);
+	while(out != nullptr){
+
+		for(auto column_index : column_indices_requested) {
+
+		auto column = out->column(column_index);
+
+
+		if(column->type->id() == arrow::Type::type::INT64 || column->type->id() == arrow::Type::type::UINT64){
+
+		}else if(column->type->id() == arrow::Type::type::INT32 || column->type->id() == arrow::Type::type::UINT32){
+
+		}else if(column->type->id() == arrow::Type::type::INT16 || column->type->id() == arrow::Type::type::UINT16){
+
+		}else if(column->type->id() == arrow::Type::type::INT8 || column->type->id() == arrow::Type::type::UINT8){
+
+		}
+
+		//	const std::string column_name = this->tableSchema.names[column_index];
+
+	/*		auto column = this->tableSchema.columns[column_index];
+			gdf_column_cpp col;
+			if(column->dtype == GDF_STRING){
+				NVCategory* category = NVCategory::create_from_strings(*(NVStrings *)column->data);
+				col.create_gdf_column(category,column->size,column_name);
+			}else if(column->dtype == GDF_STRING_CATEGORY){
+				// The RAL can change the category during execution and the Python side won't
+				// realize update the category so we have to make a copy
+				// this shouldn't be not longer neccesary with the new cudf columns
+				NVCategory* new_category = static_cast<NVCategory*>(column->dtype_info.category)->copy();
+				col.create_gdf_column(new_category, column->size, column_name);
+			}
+			else{
+				col.create_gdf_column(column,false);
+			}
+
+			columns.push_back(col);*/
+		}
+
+		reader.ReadNext (&out);
+	}
+
 	columns_out = columns;
 }
 
