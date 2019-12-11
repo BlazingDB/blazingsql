@@ -230,7 +230,6 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 		std::vector<gdf_scalar> & right_scalars,
 		std::vector<column_index_type> new_input_indices){
 
-
 	//find maximum register used
 	column_index_type max_output = 0;
 	for(std::size_t i = 0; i < outputs.size(); i++){
@@ -254,8 +253,17 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 
 	calculate_grid(&min_grid_size, &block_size, max_output+1);
 
+	size_t temp_size = interpreter_functor_8::get_temp_size(input_columns.size(),left_inputs.size(),final_output_positions.size());
 
-	cuDF::Allocator::allocate((void **)&temp_space,interpreter_functor_8::get_temp_size(input_columns.size(),left_inputs.size(),final_output_positions.size()), stream);
+	cuDF::Allocator::allocate((void **)&temp_space,temp_size, stream);
+
+	int64_t * temp_valids_in_buffer, *temp_valids_out_buffer;
+	size_t temp_valids_in_size = min_grid_size * block_size * input_columns.size() * sizeof(int64_t);
+	size_t temp_valids_out_size = min_grid_size * block_size * final_output_positions.size() * sizeof(int64_t);
+
+	cuDF::Allocator::allocate((void **)&temp_valids_in_buffer,temp_valids_in_size, stream);
+	cuDF::Allocator::allocate((void **)&temp_valids_out_buffer,temp_valids_out_size, stream);
+
 	interpreter_functor_8 op(input_columns,
 			output_columns,
 			left_inputs.size(),
@@ -268,19 +276,27 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 			left_scalars,
 			right_scalars
 			,stream,
-			temp_space,max_output,block_size);
+			temp_space,
+			max_output,
+			block_size);
+
 	transformKernel<<<min_grid_size
 					,block_size,
 					//	transformKernel<<<1
 					//	,1,
 					shared_memory_per_thread * block_size,
-					stream>>>(op, num_rows);
+					stream>>>(op, num_rows, temp_valids_in_buffer, temp_valids_out_buffer);
 
 
 	// op.update_columns_null_count(output_columns);
 
-	cuDF::Allocator::deallocate(temp_space,stream);
 	CheckCudaErrors(cudaStreamSynchronize(stream));
-  CheckCudaErrors(cudaGetLastError());
+
+	cuDF::Allocator::deallocate(temp_space,stream);
+	cuDF::Allocator::deallocate(temp_valids_in_buffer,stream);
+	cuDF::Allocator::deallocate(temp_valids_out_buffer,stream);
+
+	CheckCudaErrors(cudaGetLastError());
+
 	CheckCudaErrors(cudaStreamDestroy(stream));
 }
