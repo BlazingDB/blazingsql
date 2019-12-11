@@ -155,3 +155,12 @@ ResultSet runQuery(int32_t masterIndex,
 		throw;
 	}
 }
+
+
+TableScanInfo getTableScanInfo(std::string logicalPlan){
+
+	std::vector<std::string> relational_algebra_steps, table_names;
+	std::vector<std::vector<int>> table_columns;
+	getTableScanInfo(logicalPlan, relational_algebra_steps, table_names, table_columns);
+	return TableScanInfo{relational_algebra_steps, table_names, table_columns};
+}
