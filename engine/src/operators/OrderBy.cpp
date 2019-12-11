@@ -4,9 +4,7 @@
 #include "ColumnManipulation.cuh"
 #include "GDFColumn.cuh"
 #include "cudf.h"
-#include "cuDF/Allocator.h"
 #include "cudf/legacy/copying.hpp"
-#include <cudf/legacy/bitmask.hpp>
 #include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
 #include "config/GPUManager.cuh"
@@ -50,41 +48,21 @@ void limit_table(blazing_frame & input, gdf_size_type limitRows) {
 			if(input_col.dtype() == GDF_STRING_CATEGORY) {
 				ral::truncate_nvcategory(input_col.get_gdf_column(), limitRows);
 			} else {
-        // copying first `N = limitRows` elements into new gdf column
-        // and reduce reference counter of `input_col`
-				gdf_column * limitedColumn = new gdf_column{};
-
-				void * data = nullptr;
-				gdf_valid_type * valid = nullptr;
-
+				gdf_column_cpp limitedCpp;
 				gdf_column * sourceColumn = input_col.get_gdf_column();
-				*limitedColumn = *sourceColumn;
-
 				gdf_size_type width_per_value = ral::traits::get_dtype_size_in_bytes(sourceColumn);
+				limitedCpp.create_gdf_column(sourceColumn->dtype,
+					sourceColumn->dtype_info,
+					limitRows,
+					nullptr,
+					nullptr,
+					width_per_value,
+					sourceColumn->col_name);
 
-				cuDF::Allocator::allocate(&data, limitRows * width_per_value);
-				assert(nullptr != data);
-
-        if (sourceColumn->valid && sourceColumn->null_count != 0) {
-          cuDF::Allocator::allocate(reinterpret_cast<void **>(&valid), gdf_valid_allocation_size(limitRows));
-          assert(nullptr != valid);
-        }
-
-				limitedColumn->data = data;
-				limitedColumn->valid = valid;
-				limitedColumn->size = limitRows;
-
-        int count;
-        gdf_error status = gdf_count_nonzero_mask(limitedColumn->valid, limitedColumn->size, &count);
-        assert(status == GDF_SUCCESS);
-        limitedColumn->null_count = limitedColumn->size - static_cast<gdf_size_type>(count);
-
+				gdf_column * limitedColumn = limitedCpp.get_gdf_column();
 				cudf::copy_range(limitedColumn, *sourceColumn, 0, limitRows, 0);
 
-        gdf_column_cpp limitedCpp;
-        limitedCpp.create_gdf_column(limitedColumn);
-
-        input.set_column(i, limitedCpp);
+				input.set_column(i, limitedCpp);
 			}
 		}
 	}
