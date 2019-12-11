@@ -1,4 +1,4 @@
-> A lightweight, GPU accelerated, SQL engine built on the [RAPIDS.ai](https://rapids.ai) ecosystem.
+> A lightweight, GPU accelerated, SQL engine built on the [RAPIDS.ai](https://rapids.ai) ecosystem!
 
 <a href='https://colab.research.google.com/drive/1r7S15Ie33yRw8cmET7_bjCpvjJiDOdub'> <p align="center"><img src="https://github.com/BlazingDB/blazingsql/blob/roaramburu-readme-update/img/bsql_rapids.PNG"/></p></a>
 
