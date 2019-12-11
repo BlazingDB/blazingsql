@@ -958,6 +958,7 @@ blazing_frame evaluate_query(
 
 		try {
 			blazing_frame output_frame = evaluate_split_query(input_loaders, schemas,table_names, splitted, &queryContext);
+			output_frame.deduplicate();
 			for (size_t i=0;i<output_frame.get_width();i++) {
 				if (output_frame.get_column(i).dtype() == GDF_STRING_CATEGORY) {
 					NVStrings * new_strings = nullptr;

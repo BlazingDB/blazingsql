@@ -41,18 +41,6 @@ gdf_column_cpp::gdf_column_cpp(const gdf_column_cpp& col)
 
 }
 
-gdf_column_cpp::gdf_column_cpp(gdf_column_cpp& col)
-{
-	column = col.column;
-    this->allocated_size_data = col.allocated_size_data;
-    this->allocated_size_valid = col.allocated_size_valid;
-    this->set_name(col.column_name);
-    this->is_ipc_column = col.is_ipc_column;
-    this->column_token = col.column_token;
-    GDFRefCounter::getInstance()->increment(const_cast<gdf_column*>(col.column));
-
-}
-
 void gdf_column_cpp::set_name(std::string name){
 	this->column_name = name;
     if(this->column){
