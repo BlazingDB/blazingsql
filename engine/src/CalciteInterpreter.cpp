@@ -282,7 +282,7 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 				columns[i] = output;
 			} else {
 				int index = get_index(expression);
-				gdf_column_cpp output = input_used_in_output[index] ? input.get_column(index).clone() : input.get_column(index);
+				gdf_column_cpp output = input.get_column(index);
 				output.set_name(name);
 				input_used_in_output[index] = true;
 				columns[i] = output;
@@ -958,6 +958,7 @@ blazing_frame evaluate_query(
 
 		try {
 			blazing_frame output_frame = evaluate_split_query(input_loaders, schemas,table_names, splitted, &queryContext);
+			output_frame.deduplicate();
 			for (size_t i=0;i<output_frame.get_width();i++) {
 				if (output_frame.get_column(i).dtype() == GDF_STRING_CATEGORY) {
 					NVStrings * new_strings = nullptr;
