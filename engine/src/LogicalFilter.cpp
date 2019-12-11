@@ -202,25 +202,22 @@ gdf_column_cpp handle_match_regex(gdf_column * input_col, const std::string & re
 }
 
 gdf_column_cpp handle_substring(gdf_column * input_col, const std::string & str_params) {
+	size_t pos = str_params.find(":");
+	int start = std::max(std::stoi(str_params.substr(0, pos)), 1) - 1;
+	int end = pos != std::string::npos ? start + std::stoi(str_params.substr(pos + 1)) : -1;
+
+	NVCategory * nv_category = static_cast<NVCategory *>(input_col->dtype_info.category);
+	NVStrings * nv_strings =
+		nv_category->gather_strings(static_cast<nv_category_index_type *>(input_col->data), input_col->size);
+
+	NVStrings * new_strings = nv_strings->slice(start, end);
+	NVCategory * new_category = NVCategory::create_from_strings(*new_strings);
+
 	gdf_column_cpp new_input_col;
+	new_input_col.create_gdf_column(new_category, new_category->size(), "");
 
-	if(input_col->size > 0) {
-		size_t pos = str_params.find(":");
-		int start = std::max(std::stoi(str_params.substr(0, pos)), 1) - 1;
-		int end = pos != std::string::npos ? start + std::stoi(str_params.substr(pos + 1)) : -1;
-
-		NVCategory * nv_category = static_cast<NVCategory *>(input_col->dtype_info.category);
-		NVStrings * nv_strings =
-			nv_category->gather_strings(static_cast<nv_category_index_type *>(input_col->data), input_col->size);
-
-		NVStrings * new_strings = nv_strings->slice(start, end);
-		NVCategory * new_category = NVCategory::create_from_strings(*new_strings);
-
-		new_input_col.create_gdf_column(new_category, new_category->size(), "");
-
-		NVStrings::destroy(nv_strings);
-		NVStrings::destroy(new_strings);
-	}
+	NVStrings::destroy(nv_strings);
+	NVStrings::destroy(new_strings);
 
 	return new_input_col;
 }
@@ -339,10 +336,10 @@ void add_expression_to_plan(blazing_frame & inputs,
 					// both are literal have to deduce types, nuts
 					// TODO: this is not working yet becuase we have to deduce the types..
 					//					gdf_scalar left =
-					//get_scalar_from_string(left_operand,inputs.get_column(right_index).dtype());
+					// get_scalar_from_string(left_operand,inputs.get_column(right_index).dtype());
 					//					left_scalars.push_back(left);
 					//					gdf_scalar right =
-					//get_scalar_from_string(right_operand,inputs.get_column(right_index).dtype());
+					// get_scalar_from_string(right_operand,inputs.get_column(right_index).dtype());
 					//					right_scalars.push_back(left);
 
 					left_inputs.push_back(SCALAR_INDEX);  //
@@ -395,72 +392,70 @@ void add_expression_to_plan(blazing_frame & inputs,
 					assert(mapped_index != -1);
 					gdf_column * left_column = input_columns[mapped_index];
 
-					if(left_column != nullptr) {
-						if(operation == BLZ_STR_LIKE) {
-							std::string regex = like_expression_to_regex_str(literal_operand);
-							gdf_column_cpp new_input_col = handle_match_regex(left_column, regex);
+					if(operation == BLZ_STR_LIKE) {
+						std::string regex = like_expression_to_regex_str(literal_operand);
+						gdf_column_cpp new_input_col = handle_match_regex(left_column, regex);
 
-							inputs.add_column(new_input_col);
-							input_columns.push_back(new_input_col.get_gdf_column());
+						inputs.add_column(new_input_col);
+						input_columns.push_back(new_input_col.get_gdf_column());
 
-							left_index = num_inputs;
-							new_input_col_added = true;
+						left_index = num_inputs;
+						new_input_col_added = true;
 
-							right_scalars.push_back(dummy_scalar);
-							left_scalars.push_back(dummy_scalar);
-							right_inputs.push_back(SCALAR_NULL_INDEX);
-							left_inputs.push_back(left_index);
-						} else if(operation == BLZ_STR_SUBSTRING) {
-							gdf_column_cpp new_input_col = handle_substring(left_column, literal_operand);
+						right_scalars.push_back(dummy_scalar);
+						left_scalars.push_back(dummy_scalar);
+						right_inputs.push_back(SCALAR_NULL_INDEX);
+						left_inputs.push_back(left_index);
+					} else if(operation == BLZ_STR_SUBSTRING) {
+						gdf_column_cpp new_input_col = handle_substring(left_column, literal_operand);
 
-							inputs.add_column(new_input_col);
-							input_columns.push_back(new_input_col.get_gdf_column());
+						inputs.add_column(new_input_col);
+						input_columns.push_back(new_input_col.get_gdf_column());
 
-							src_str_col_map[num_inputs] = num_inputs;
-							src_str_col_idx = num_inputs;
+						src_str_col_map[num_inputs] = num_inputs;
+						src_str_col_idx = num_inputs;
 
-							left_index = num_inputs;
-							new_input_col_added = true;
+						left_index = num_inputs;
+						new_input_col_added = true;
 
-							right_scalars.push_back(dummy_scalar);
-							left_scalars.push_back(dummy_scalar);
-							right_inputs.push_back(SCALAR_NULL_INDEX);
-							left_inputs.push_back(left_index);
-						} else if(operation == BLZ_STR_CONCAT) {
-							gdf_column_cpp new_input_col =
-								handle_concat_str_literal(left_column, literal_operand, is_string(left_operand));
+						right_scalars.push_back(dummy_scalar);
+						left_scalars.push_back(dummy_scalar);
+						right_inputs.push_back(SCALAR_NULL_INDEX);
+						left_inputs.push_back(left_index);
+					} else if(operation == BLZ_STR_CONCAT) {
+						gdf_column_cpp new_input_col =
+							handle_concat_str_literal(left_column, literal_operand, is_string(left_operand));
 
-							inputs.add_column(new_input_col);
-							input_columns.push_back(new_input_col.get_gdf_column());
+						inputs.add_column(new_input_col);
+						input_columns.push_back(new_input_col.get_gdf_column());
 
-							src_str_col_map[num_inputs] = num_inputs;
-							src_str_col_idx = num_inputs;
+						src_str_col_map[num_inputs] = num_inputs;
+						src_str_col_idx = num_inputs;
 
-							left_index = num_inputs;
-							new_input_col_added = true;
+						left_index = num_inputs;
+						new_input_col_added = true;
 
-							right_scalars.push_back(dummy_scalar);
-							left_scalars.push_back(dummy_scalar);
-							right_inputs.push_back(SCALAR_NULL_INDEX);
-							left_inputs.push_back(left_index);
-						} else {
-							int idx_position = static_cast<NVCategory *>(left_column->dtype_info.category)
-												   ->get_value(literal_operand.c_str());
-							if(idx_position == -1) {
-								idx_position = insert_string_into_column_nvcategory(left_column, literal_operand);
-							}
-							assert(idx_position != -1);
-
-							src_str_col_idx = mapped_index;
-
-							gdf_data data;
-							data.si32 = idx_position;
-							gdf_scalar right = {data, GDF_INT32, true};
-							right_scalars.push_back(right);
-							left_scalars.push_back(dummy_scalar);
-							right_inputs.push_back(right.is_valid ? SCALAR_INDEX : SCALAR_NULL_INDEX);
-							left_inputs.push_back(left_index);
+						right_scalars.push_back(dummy_scalar);
+						left_scalars.push_back(dummy_scalar);
+						right_inputs.push_back(SCALAR_NULL_INDEX);
+						left_inputs.push_back(left_index);
+					} else {
+						int idx_position = static_cast<NVCategory *>(left_column->dtype_info.category)
+											   ->get_value(literal_operand.c_str());
+						if(idx_position == -1) {
+							idx_position = insert_string_into_column_nvcategory(left_column, literal_operand);
 						}
+						assert(idx_position != -1);
+
+						src_str_col_idx = mapped_index;
+
+						gdf_data data;
+						data.si32 = idx_position;
+						gdf_scalar right = {data, GDF_INT32, true};
+						right_scalars.push_back(right);
+						left_scalars.push_back(dummy_scalar);
+						right_inputs.push_back(right.is_valid ? SCALAR_INDEX : SCALAR_NULL_INDEX);
+						left_inputs.push_back(left_index);
 					}
 				} else {
 					size_t left_index = get_index(left_operand);
@@ -468,7 +463,7 @@ void add_expression_to_plan(blazing_frame & inputs,
 
 					column_index_type mapped_left_index = src_str_col_map[left_index];
 					column_index_type mapped_right_index = src_str_col_map[right_index];
-					src_str_col_idx = mapped_left_index;
+					src_str_col_idx = mapped_left_index >= 0 ? mapped_left_index : mapped_right_index;
 					if(mapped_left_index >= 0 && mapped_right_index >= 0 && mapped_left_index != mapped_right_index) {
 						gdf_column * left_column = input_columns[mapped_left_index];
 						gdf_column * right_column = input_columns[mapped_right_index];
@@ -538,8 +533,7 @@ void add_expression_to_plan(blazing_frame & inputs,
 					} else if(operation == BLZ_CAST_INTEGER || operation == BLZ_CAST_BIGINT ||
 							  operation == BLZ_CAST_FLOAT || operation == BLZ_CAST_DOUBLE ||
 							  operation == BLZ_CAST_DATE || operation == BLZ_CAST_TIMESTAMP) {
-						if(mapped_left_index >= 0 && input_columns[mapped_left_index] != nullptr &&
-							input_columns[mapped_left_index]->size > 0) {
+						if(mapped_left_index >= 0) {
 							gdf_column * left_column = input_columns[mapped_left_index];
 							gdf_column_cpp new_input_col = handle_cast_from_string(operation, left_column);
 
@@ -608,7 +602,8 @@ void add_expression_to_plan(blazing_frame & inputs,
 			if(token_ind == tokens.size() - 1) {  // last one
 				// write to final output
 				outputs.push_back(expression_position + num_inputs);
-				if(output_column && output_column->dtype == GDF_STRING_CATEGORY && output_column->size > 0) {
+				if(output_column && output_column->dtype == GDF_STRING_CATEGORY) {
+					assert(src_str_col_idx != -1);
 					NVCategory::destroy(static_cast<NVCategory *>(output_column->dtype_info.category));
 					gdf_column * src_col = input_columns[src_str_col_idx];
 					output_column->dtype_info.category =
