@@ -38,13 +38,15 @@ int count_string_occurrence(std::string haystack, std::string needle) {
 
 void limit_table(blazing_frame & input, gdf_size_type limitRows) {
 	gdf_size_type rowSize = input.get_num_rows_in_table(0);
+
 	limitRows = std::min(limitRows, rowSize);
+
 	for(size_t i = 0; i < input.get_size_column(0); ++i) {
 		auto & input_col = input.get_column(i);
 		if(input_col.dtype() == GDF_STRING_CATEGORY) {
 			ral::truncate_nvcategory(input_col.get_gdf_column(), limitRows);
 		} else {
-			input_col.get_gdf_column()->size = limitRows;
+			input_col.resize(limitRows);
 		}
 	}
 }
