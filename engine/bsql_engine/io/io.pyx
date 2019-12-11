@@ -77,9 +77,12 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
-
 cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,gdf_dtype]] extra_columns):
     temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns)
+    return temp
+
+cdef cio.TableSchema parseMetadataPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,gdf_dtype]] extra_columns):
+    temp = cio.parseMetadata(files,file_format_hint,arg_keys,arg_values,extra_columns)
     return temp
 
 cdef cio.ResultSet runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
@@ -150,6 +153,41 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
         extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
         extra_columns_cpp.push_back(extra_column_cpp)
     temp = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
+    return_object = {}
+    return_object['datasource'] = files
+    return_object['files'] = temp.files
+    return_object['file_type'] = temp.data_type
+    return_object['args'] = args
+    return_object['columns'] = cudf.DataFrame()
+    return_object['names'] = temp.names
+    return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
+    return_object['num_row_groups']= temp.num_row_groups
+    i = 0
+    for column in temp.columns:
+      column.col_name = return_object['names'][i]
+      return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
+      i = i + 1
+    return return_object
+
+
+cpdef parseMetadataCaller(fileList, file_format_hint, args, extra_columns):
+    cdef vector[string] files
+    for file in fileList:
+      files.push_back(str.encode(file))
+
+    cdef vector[string] arg_keys
+    cdef vector[string] arg_values
+
+    for key, value in args.items():
+      arg_keys.push_back(str.encode(key))
+      arg_values.push_back(str.encode(str(value)))
+
+    cdef vector[pair[string,gdf_dtype]] extra_columns_cpp
+    cdef pair[string,gdf_dtype] extra_column_cpp
+    for extra_column in extra_columns:
+        extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
+        extra_columns_cpp.push_back(extra_column_cpp)
+    temp = parseMetadataPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
     return_object['datasource'] = files
     return_object['files'] = temp.files

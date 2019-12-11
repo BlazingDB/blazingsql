@@ -211,6 +211,9 @@ class BlazingTable(object):
                 self.dask_mapping = getNodePartitions(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
+        
+        # slices, this is computed in create table, and then reused in sql method
+        self.slices = None 
 
     def getSlices(self, numSlices):
         nodeFilesList = []
@@ -440,9 +443,6 @@ class BlazingContext(object):
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
 
-            parsedMetadata = self._getMetadata(
-                input, file_format_hint, kwargs, extra_columns)
-
             file_type = parsedSchema['file_type']
             table = BlazingTable(
                 parsedSchema['columns'],
@@ -454,6 +454,11 @@ class BlazingContext(object):
                 args=parsedSchema['args'],
                 uri_values=uri_values,
                 in_file=in_file)
+
+            table.slices = table.getSlices(len(self.nodes))
+            parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, kwargs, extra_columns)
+
+
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
                 input,
@@ -482,19 +487,25 @@ class BlazingContext(object):
                 input, file_format_hint, kwargs, extra_columns)
 
 
-    def _parseMetadata(self, input, file_format_hint, kwargs, extra_columns):
+
+    def _parseMetadata(self, input, file_format_hint, currentTableNodes, kwargs, extra_columns):
         if self.dask_client:
+            dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
-            connection = self.dask_client.submit(
-                cio.parseMetadataCaller,
-                input,
-                file_format_hint,
-                kwargs,
-                extra_columns,
-                workers=workers)
-            return connection.result()
+            for worker in workers: 
+                connection = self.dask_client.submit(
+                    cio.parseMetadataCaller,
+                    input,
+                    file_format_hint,
+                    kwargs,
+                    extra_columns,
+                    workers=[worker])
+                dask_futures.append(connection)
+
+            return dask.dataframe.from_delayed(dask_futures)
+
         else:
-            return cio.parseSchemaCaller(
+            return cio.parseMetadataCaller(
                 input, file_format_hint, kwargs, extra_columns)
 
     def sql(self, sql, table_list=[], algebra=None):
@@ -504,13 +515,12 @@ class BlazingContext(object):
         fileTypes = []
         # a list, same size as tables, when we have a dask_cudf
         # table , tells us partitions that map to that table
-
+        #TODO: Use scan tables here, cc @percy, @alexander    
         for table in self.tables:
             fileTypes.append(self.tables[table].fileType)
             ftype = self.tables[table].fileType
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
-                currentTableNodes = self.tables[table].getSlices(
-                    len(self.nodes))
+                currentTableNodes = self.tables[table].slices
             elif(self.tables[table].fileType == DataType.DASK_CUDF):
                 currentTableNodes = []
                 for node in self.nodes:
