@@ -65,7 +65,7 @@ class gdf_column_cpp
 
 	void create_gdf_column(NVStrings* strings, size_t num_values, std::string column_name);
 
-	void create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name = "");
+	void create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name = "", bool allocate_valid_buffer = false);
 
 	void create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, gdf_valid_type * host_valid, size_t width_per_value, const std::string &column_name = "");
 

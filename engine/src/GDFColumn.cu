@@ -305,7 +305,7 @@ void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtyp
 }
 
 //Todo: Verificar que al llamar mas de una vez al create_gdf_column se desaloque cualquier memoria alocada anteriormente
-void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name)
+void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name, bool allocate_valid_buffer )
 {
     assert(type != GDF_invalid);
     decrement_counter(column);
@@ -332,6 +332,9 @@ void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtyp
         cuDF::Allocator::allocate((void**)&data, allocated_size_data);
     }
 
+		if(allocate_valid_buffer){
+			this->allocate_set_valid();
+		}
     gdf_column_view(this->column, (void *) data, valid_device, num_values, type);
     this->column->dtype_info = {dtype_info.time_unit, nullptr};
 

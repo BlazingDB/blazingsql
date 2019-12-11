@@ -5,6 +5,8 @@ from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.map cimport map
+from libcpp.memory cimport shared_ptr
+
 from libcpp cimport bool
 from pyarrow.lib cimport *
 

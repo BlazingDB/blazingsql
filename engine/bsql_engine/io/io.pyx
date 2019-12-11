@@ -19,6 +19,7 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
 from pyarrow.lib cimport *
 
+
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -27,7 +28,7 @@ import cudf
 from cudf.utils import cudautils
 from cudf.utils.dtypes import is_categorical_dtype
 from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
-from cudf.core.buffer import Buffer
+
 from cudf.core.column.column import build_column
 import rmm
 import nvstrings
@@ -238,7 +239,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       currentTableSchemaCpp.columns = columns
       currentTableSchemaCpp.names = names
       if table.arrow_table is not None:
-        currentTableSchemaCpp.arrow_table = pyarrow.pyarrow_unwrap_table(table.arrow_table)
+        currentTableSchemaCpp.arrow_table = pyarrow_unwrap_table(table.arrow_table)
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices

@@ -8,6 +8,7 @@
 #include "../io/data_parser/GDFParser.h"
 #include "../io/data_parser/JSONParser.h"
 #include "../io/data_parser/OrcParser.h"
+#include "../io/data_parser/ArrowParser.h"
 #include "../io/data_parser/ParquetParser.h"
 #include "../io/data_parser/ParserUtil.h"
 #include "../io/data_provider/DummyProvider.h"
@@ -97,6 +98,8 @@ ResultSet runQuery(int32_t masterIndex,
 			parser = std::make_shared<ral::io::json_parser>(tableSchema.args.jsonReaderArg);
 		} else if(fileType == ral::io::DataType::CSV) {
 			parser = std::make_shared<ral::io::csv_parser>(tableSchema.args.csvReaderArg);
+		}else if(fileType == ral::io::DataType::ARROW){
+     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		}
 
 		std::shared_ptr<ral::io::data_provider> provider;
