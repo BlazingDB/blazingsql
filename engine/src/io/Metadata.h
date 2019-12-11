@@ -23,6 +23,10 @@ public:
 	{
 	}
 
+	std::vector<gdf_column*> get_columns() {
+		return metadata_;
+	}
+
 public:
 	//	[T_1(min), T_1(max), T_2(min), T_2(max), ... T_n(min), T_n(max), file_path_index, row_group]
 	// pair-wise elements are min, evens
