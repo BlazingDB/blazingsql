@@ -196,7 +196,8 @@ cdef extern from "../include/io/io.h":
         CSV = 2,
         JSON = 3,
         CUDF = 4,
-        DASK_CUDF = 5
+        DASK_CUDF = 5,
+        ARROW = 6
     cdef struct ReaderArgs:
         orc_read_arg orcReaderArg
         json_read_arg jsonReaderArg

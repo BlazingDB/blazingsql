@@ -59,15 +59,18 @@ ResultSet runQuery(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, gdf_scalar>>> uri_values,
 	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
 	std::vector<std::vector<std::map<std::string, bool>>> is_column_string) {
+
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 
 	for(int i = 0; i < tableSchemas.size(); i++) {
+
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
 		std::vector<gdf_dtype> types;
 		std::vector<gdf_time_unit> time_units;
+
 
 		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
@@ -91,7 +94,7 @@ ResultSet runQuery(int32_t masterIndex,
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			parser = std::make_shared<ral::io::gdf_parser>(tableSchema);
+				parser = std::make_shared<ral::io::gdf_parser>(tableSchema);
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(tableSchema.args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {
