@@ -1,22 +1,21 @@
 #!/bin/bash
-# usage: ./build.sh prefix build_type test
-# example: ./build.sh $CONDA_PREFIX Release|Debug ON|OFF
-
-INSTALL_PREFIX=$CONDA_PREFIX
-if [ ! -z $1 ]; then
-   INSTALL_PREFIX=$1
-fi
+# usage: ./build.sh build_type test prefix
+# example: ./build.sh Release|Debug ON|OFF $CONDA_PREFIX
 
 build_type="Release"
-if [ ! -z $2 ]; then
-  build_type=$2
+if [ ! -z $1 ]; then
+  build_type=$1
 fi
 
 run_test="ON"
-if [ ! -z $3 ]; then
-  run_test=$3
+if [ ! -z $2 ]; then
+  run_test=$2
 fi
 
+INSTALL_PREFIX=$CONDA_PREFIX
+if [ ! -z $3 ]; then
+   INSTALL_PREFIX=$3
+fi
 
 mkdir -p build
 cd build
