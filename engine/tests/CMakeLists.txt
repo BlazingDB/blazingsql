@@ -24,6 +24,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         gtest
         
         blazingsql-engine
+        ${PYTHON_LIBRARIES}
         
         blazingdb-io
         Threads::Threads
@@ -59,7 +60,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         libboost_system.a
         libboost_regex.a
         
-        libprotobuf.a
+        protobuf
     
         # Library needed for blazing communication repository (debug)
         gcov

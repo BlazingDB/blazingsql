@@ -1,13 +1,19 @@
 #!/bin/bash
+# usage: ./build.sh prefix run_test
+# example: ./build.sh $CONDA_PREFIX ON|OFF
 
-if [ -z ${1+x} ]
-then
-   INSTALL_PREFIX=$CONDA_PREFIX
-else
-   INSTALL_PREFIX=$1
+INSTALL_PREFIX=$CONDA_PREFIX
+if [ ! -z $1 ]; then
+  INSTALL_PREFIX=$1
 fi
 
-mvn clean install -Dmaven.test.skip=true -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/
+run_test="false"
+if [ ! -z $2 ]; then
+  run_test="true"
+fi
+
+echo "CMD: mvn clean install -Dmaven.test.skip=$run_test -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/"
+mvn clean install -Dmaven.test.skip=$run_test -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/
 
 
 cp blazingdb-calcite-application/target/BlazingCalcite.jar $INSTALL_PREFIX/lib/blazingsql-algebra.jar
