@@ -458,7 +458,7 @@ class BlazingContext(object):
             table.slices = table.getSlices(len(self.nodes))
             
             parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, kwargs, extra_columns)
-
+            print(parsedMetadata)
 
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
@@ -495,9 +495,10 @@ class BlazingContext(object):
             workers = tuple(self.dask_client.scheduler_info()['workers'])
             worker_id = 0
             for worker in workers: 
+                file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
                 connection = self.dask_client.submit(
                     cio.parseMetadataCaller,
-                    currentTableNodes[worker_id].files,
+                    file_subset,
                     file_format_hint,
                     kwargs,
                     extra_columns,

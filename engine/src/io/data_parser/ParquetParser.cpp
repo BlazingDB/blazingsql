@@ -213,7 +213,7 @@ void parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomA
 	size_t total_num_row_groups =
 		std::accumulate(num_row_groups.begin(), num_row_groups.end(), size_t(0));
 
-	std::vector<gdf_column*> minmax_metadata_table = get_minmax_metadata(parquet_readers, total_num_row_groups);
+	std::vector<gdf_column_cpp> minmax_metadata_table = get_minmax_metadata(parquet_readers, total_num_row_groups);
 	for (auto &reader : parquet_readers) {
 		reader->Close();
 	}

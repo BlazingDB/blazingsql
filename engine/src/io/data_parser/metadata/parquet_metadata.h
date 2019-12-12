@@ -10,8 +10,9 @@
 #include <cudf/cudf.h>
 
 #include <parquet/api/reader.h>
+#include "GDFColumn.cuh"
 
-std::vector<gdf_column*> get_minmax_metadata(
+std::vector<gdf_column_cpp> get_minmax_metadata(
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> &parquet_readers,
 	size_t total_num_row_groups);
 

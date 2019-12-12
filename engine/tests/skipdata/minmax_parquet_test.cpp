@@ -366,18 +366,18 @@ TEST_F(MinMaxParquetTest, UsingRalIO) {
 
  ral::io::Metadata metadata({});
  loader.get_metadata(metadata, {});
- std::vector<gdf_column*> input_table = metadata.metadata_;
+ std::vector<gdf_column_cpp> input_table = metadata.get_columns();
 
  std::cout << "metadata: " << input_table.size() << std::endl;
  
  for (size_t column_index = 0; column_index < input_table.size();
       column_index++) {
    std::cout << "col_name: "
-             << input_table[column_index]->col_name
+             << input_table[column_index].name()
              << "|"
-             << input_table[column_index]->size
+             << input_table[column_index].get_gdf_column()->size
              << std::endl;
-   print_gdf_column(input_table[column_index]);
+   print_gdf_column(input_table[column_index].get_gdf_column());
  }
 }
 

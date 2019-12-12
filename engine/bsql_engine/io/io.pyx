@@ -173,6 +173,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
 cpdef parseMetadataCaller(fileList, file_format_hint, args, extra_columns):
     cdef vector[string] files
     for file in fileList:
+      print('file', file)
       files.push_back(str.encode(file))
 
     cdef vector[string] arg_keys
@@ -197,12 +198,28 @@ cpdef parseMetadataCaller(fileList, file_format_hint, args, extra_columns):
     return_object['names'] = temp.names
     # return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
     # return_object['num_row_groups']= temp.num_row_groups
+
+    # i = 0
+    # for column in temp.columns:
+    #   column.col_name = return_object['names'][i]
+    #   return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
+    #   i = i + 1
+    # return return_object['columns']
+
+
+    df = cudf.DataFrame()
     i = 0
+    print("col_size: ", temp.columns.size())
     for column in temp.columns:
-      column.col_name = return_object['names'][i]
-      return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
+      print(" column.data == NULL?",  column.data == NULL)
+      print("col:", column.col_name, column.dtype, column.size, column.size, column.null_count, column.dtype_info.time_unit);
+      column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
+      strcpy(column.col_name, temp.names[i].c_str())
+      df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
       i = i + 1
-    return return_object
+    return df
+
+
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query

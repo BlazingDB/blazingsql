@@ -11,19 +11,19 @@
 #include <cudf/cudf.h>
 #include <string>
 #include <vector>
-
+#include "GDFColumn.cuh"
 
 namespace ral {
 namespace io {
 
 class Metadata {
 public:
-	Metadata(std::vector<gdf_column*> metadata)
+	Metadata(std::vector<gdf_column_cpp> metadata)
 		: metadata_{metadata}
 	{
 	}
 
-	std::vector<gdf_column*> get_columns() {
+	std::vector<gdf_column_cpp> get_columns() {
 		return metadata_;
 	}
 
@@ -33,7 +33,7 @@ public:
 	// impar-wise elements are max, odds
 	// file_path_index
 	// row_group
-	std::vector<gdf_column*> metadata_; // for all files in that node!
+	std::vector<gdf_column_cpp> metadata_; // for all files in that node!
 };
 
 } /* namespace io */

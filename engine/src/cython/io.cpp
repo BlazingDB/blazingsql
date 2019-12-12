@@ -117,6 +117,7 @@ TableSchema parseMetadata(std::vector<std::string> files,
 
 	try {
 		// loader->get_schema(schema, extra_columns);
+
 		 loader->get_metadata(metadata, extra_columns);
 
 	} catch(std::exception & e) {
@@ -124,11 +125,13 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	}
 
 	auto gdf_columns = metadata.get_columns();
+ 
+	for(auto column_cpp : gdf_columns) {
+		std::cout << "get_metadata: " << column_cpp.get_gdf_column()->data << " | " <<  column_cpp.get_gdf_column()->dtype << " | " << column_cpp.get_gdf_column()->col_name << std::endl;
 
-	for(gdf_column *column : gdf_columns) {
-		// GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-		tableSchema.columns.push_back(column);
-		tableSchema.names.push_back(column->col_name);
+		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
+		tableSchema.columns.push_back(column_cpp.get_gdf_column());
+		tableSchema.names.push_back(column_cpp.name());
 	}
 	//TODO: Alexander
 	// tableSchema.files = schema.get_files();

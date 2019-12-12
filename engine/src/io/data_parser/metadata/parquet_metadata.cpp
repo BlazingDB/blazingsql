@@ -110,9 +110,9 @@ void set_min_max(
 	case parquet::Type::type::FIXED_LEN_BYTE_ARRAY: {
 		auto convertedStats =
 			std::static_pointer_cast<parquet::FLBAStatistics>(statistics);
-		// TODO: willian
-		std::string min = "";
-		std::string max = "";
+		// No min max for String columns
+		// minmax_metadata_table[col_index].push_back(-1);
+		// minmax_metadata_table[col_index + 1].push_back(-1);
 		break;
 	}
 	case parquet::Type::type::INT96: {
@@ -169,6 +169,7 @@ to_dtype(parquet::Type::type physical, parquet::ConvertedType::type logical) {
 	case parquet::Type::type::BYTE_ARRAY:
 	case parquet::Type::type::FIXED_LEN_BYTE_ARRAY:
 		// Can be mapped to GDF_CATEGORY (32-bit hash) or GDF_STRING (nvstring)
+		// TODO: check GDF_STRING_CATEGORY
 		return std::make_pair(strings_to_categorical ? GDF_CATEGORY : GDF_STRING,
 							  gdf_dtype_extra_info{TIME_UNIT_NONE});
 	case parquet::Type::type::INT96:
@@ -181,21 +182,27 @@ to_dtype(parquet::Type::type physical, parquet::ConvertedType::type logical) {
 	return std::make_pair(GDF_invalid, gdf_dtype_extra_info{TIME_UNIT_NONE});
 }
 
-gdf_column* create_gdf_column(gdf_dtype dtype, gdf_dtype_extra_info dtype_info, const std::string &name) {
-	auto column = new gdf_column{};
-	std::string *clone_str = new std::string(name);
-	gdf_error err = gdf_column_view_augmented(column, nullptr, nullptr, 0, dtype, 0, dtype_info, clone_str->c_str());
-	return column;
+// gdf_column* create_gdf_column(gdf_dtype dtype, gdf_dtype_extra_info dtype_info, const std::string &name) {
+// 	auto column = new gdf_column{};
+// 	std::string *clone_str = new std::string(name);
+// 	gdf_error err = gdf_column_view_augmented(column, nullptr, nullptr, 0, dtype, 0, dtype_info, clone_str->c_str());
+// 	return column;
+// }
+
+void set_gdf_column(gdf_column_cpp &p_column, std::vector<int64_t> & vector, unsigned long size) {
+	size_t width_per_value = ral::traits::get_dtype_size_in_bytes(p_column.dtype());
+	if (vector.size() != 0) {
+		RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&p_column.get_gdf_column()->data),  width_per_value * size, 0));
+		CheckCudaErrors(cudaMemcpy(p_column.get_gdf_column()->data, vector.data(), width_per_value * size, cudaMemcpyHostToDevice));
+		p_column.get_gdf_column()->size = size;
+	} else {
+		RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&p_column.get_gdf_column()->data),  width_per_value * size, 0));
+		// CheckCudaErrors(cudaMemcpy(p_column.get_gdf_column()->data, vector.data(), width_per_value * size, cudaMemcpyHostToDevice));
+		p_column.get_gdf_column()->size = size;
+	}
 }
 
-void set_gdf_column(gdf_column *& p_column, std::vector<int64_t> & vector, unsigned long size) {
-	size_t width_per_value = ral::traits::get_dtype_size_in_bytes(p_column->dtype);
-	RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&p_column->data),  width_per_value * size, 0));
-	CheckCudaErrors(cudaMemcpy(p_column->data, vector.data(), width_per_value * size, cudaMemcpyHostToDevice));
-	p_column->size = size;
-}
-
-std::vector<gdf_column*> get_minmax_metadata(
+std::vector<gdf_column_cpp> get_minmax_metadata(
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> &parquet_readers,
 	size_t total_num_row_groups) {
 
@@ -203,7 +210,7 @@ std::vector<gdf_column*> get_minmax_metadata(
 		return {};
 
 	std::vector<std::vector<int64_t>> minmax_metadata_table;
-	std::vector<gdf_column*> minmax_metadata_gdf_table;
+	std::vector<gdf_column_cpp> minmax_metadata_gdf_table;
 
 	std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[0]->metadata();
 
@@ -219,9 +226,7 @@ std::vector<gdf_column*> get_minmax_metadata(
 		auto row_group_index = 0;
 		auto groupReader = parquet_readers[0]->RowGroup(row_group_index);
 		auto *rowGroupMetadata = groupReader->metadata();
-
 		for (int colIndex = 0; colIndex < file_metadata->num_columns(); colIndex++) {
-			std::cout << "colIndex: " << colIndex << std::endl;
 			const parquet::ColumnDescriptor *column = schema->Column(colIndex);
 			auto columnMetaData = rowGroupMetadata->ColumnChunk(colIndex);
 			auto physical_type = column->physical_type();
@@ -229,15 +234,21 @@ std::vector<gdf_column*> get_minmax_metadata(
 			gdf_dtype dtype;
 			gdf_dtype_extra_info extra_info;
 			std::tie(dtype, extra_info) = to_dtype(physical_type, logical_type);
-			auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
-			minmax_metadata_gdf_table[2 * colIndex] = create_gdf_column(dtype, extra_info, col_name_min);
-			auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
-			minmax_metadata_gdf_table[2 * colIndex + 1] = create_gdf_column(dtype, extra_info, col_name_max);
-		}
-		minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 2] = create_gdf_column(GDF_STRING, gdf_dtype_extra_info{
-				TIME_UNIT_NONE}, "file_handle"); // file_handle
+			std::cout << "colIndex: " << colIndex  << "|"<< dtype << std::endl;
 
-		minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 1] = create_gdf_column( GDF_INT32, gdf_dtype_extra_info{TIME_UNIT_NONE}, "row_group"); // row_group
+			if (dtype == GDF_CATEGORY || dtype == GDF_STRING || dtype == GDF_STRING_CATEGORY)
+				dtype = GDF_INT32;
+
+			auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
+			minmax_metadata_gdf_table[2 * colIndex].create_empty(dtype, col_name_min, extra_info.time_unit);
+			
+			auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
+			minmax_metadata_gdf_table[2 * colIndex + 1].create_empty(dtype, col_name_max, extra_info.time_unit);
+		}
+
+		
+		minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 2].create_empty(GDF_INT32, "file_handle_index", TIME_UNIT_NONE);
+		minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 1].create_empty(GDF_INT32, "row_group_index", TIME_UNIT_NONE);
 	}
 
 	size_t file_index = 0;
@@ -273,7 +284,7 @@ std::vector<gdf_column*> get_minmax_metadata(
 				  }
 			  }
 			  guard.lock();
-			  //TODO change to file_handle index
+			  //TODO change to file_handle index, Use file_handle_offset,  row_group_index_offset?
 			  minmax_metadata_table[minmax_metadata_table.size() - 2].push_back(file_index);
 			  minmax_metadata_table[minmax_metadata_table.size() - 1].push_back(row_group_index);
 			  guard.unlock();
@@ -285,7 +296,7 @@ std::vector<gdf_column*> get_minmax_metadata(
 		threads[file_index].join();
 	}
 	for (size_t index = 0; index < 	minmax_metadata_table.size(); index++) {
-		set_gdf_column(minmax_metadata_gdf_table[index], minmax_metadata_table[index], minmax_metadata_table[index].size());
+		set_gdf_column(minmax_metadata_gdf_table[index], minmax_metadata_table[index], num_row_groups);
 	}
 	return minmax_metadata_gdf_table;
 }
