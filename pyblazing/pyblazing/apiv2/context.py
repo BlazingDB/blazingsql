@@ -225,31 +225,35 @@ class BlazingTable(object):
         startIndex = 0
         for i in range(0, numSlices):
             batchSize = int(remaining / (numSlices - i))
-            # print(batchSize)
-            # print(startIndex)
+            print("batchSize: ", batchSize)
+            print("startIndex: ", startIndex)
+            print("startIndex + batchSize: ", startIndex + batchSize)
             tempFiles = self.files[startIndex: startIndex + batchSize]
             uri_values = self.uri_values[startIndex: startIndex + batchSize]
-
+            
             if self.num_row_groups is not None:
-                nodeFilesList.append(BlazingTable(self.input,
+                bt = BlazingTable(self.input,
                                                   self.fileType,
                                                   files=tempFiles,
                                                   calcite_to_file_indices=self.calcite_to_file_indices,
                                                   num_row_groups=self.num_row_groups[startIndex: startIndex + batchSize],
                                                   uri_values=uri_values,
-                                                  args=self.args))
+                                                  args=self.args)
+                bt.offset = (startIndex, batchSize)
+                nodeFilesList.append(bt)
             else:
-                nodeFilesList.append(
-                    BlazingTable(
+                bt = BlazingTable(
                         self.input,
                         self.fileType,
                         files=tempFiles,
                         calcite_to_file_indices=self.calcite_to_file_indices,
                         uri_values=uri_values,
-                        args=self.args))
+                        args=self.args)
+                bt.offset = (startIndex, batchSize)
+                nodeFilesList.append(bt)
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
-        return nodeFilesList
+        return nodeFilesList 
 
     def get_partitions(self, worker):
         return self.dask_mapping[worker]
@@ -456,9 +460,11 @@ class BlazingContext(object):
                 in_file=in_file)
 
             table.slices = table.getSlices(len(self.nodes))
-            
             parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, kwargs, extra_columns)
-            print(parsedMetadata)
+            if isinstance(parsedMetadata, cudf.DataFrame): 
+                print(parsedMetadata)
+            else:
+                print(parsedMetadata.compute())
 
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
@@ -496,9 +502,13 @@ class BlazingContext(object):
             worker_id = 0
             for worker in workers: 
                 file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
+                print("worker_id: ", worker_id)
+                print("file_subset: ", file_subset)
+                
                 connection = self.dask_client.submit(
                     cio.parseMetadataCaller,
                     file_subset,
+                    currentTableNodes[worker_id].offset,
                     file_format_hint,
                     kwargs,
                     extra_columns,
@@ -509,7 +519,7 @@ class BlazingContext(object):
 
         else:
             return cio.parseMetadataCaller(
-                input, file_format_hint, kwargs, extra_columns)
+                input, currentTableNodes[0].offset, file_format_hint, kwargs, extra_columns)
 
     def sql(self, sql, table_list=[], algebra=None):
         # TODO: remove hardcoding

@@ -82,6 +82,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 
 
 TableSchema parseMetadata(std::vector<std::string> files,
+	std::pair<int, int> offset,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
 	std::vector<std::string> arg_values,
@@ -105,7 +106,7 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	} else if(fileType == ral::io::DataType::CSV) {
 		parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
 	}
-
+	std::cout << "offset: " << offset.first << "|" << offset.second << std::endl;
 	std::vector<Uri> uris;
 	for(auto file_path : files) {
 		uris.push_back(Uri{file_path});
@@ -113,7 +114,7 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 
-	ral::io::Metadata metadata({});
+	ral::io::Metadata metadata({}, offset);
 
 	try {
 		// loader->get_schema(schema, extra_columns);

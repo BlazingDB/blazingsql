@@ -81,8 +81,8 @@ cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_
     temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns)
     return temp
 
-cdef cio.TableSchema parseMetadataPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,gdf_dtype]] extra_columns):
-    temp = cio.parseMetadata(files,file_format_hint,arg_keys,arg_values,extra_columns)
+cdef cio.TableSchema parseMetadataPython(vector[string] files, pair[int,int] offset, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,gdf_dtype]] extra_columns):
+    temp = cio.parseMetadata(files, offset, file_format_hint,arg_keys,arg_values,extra_columns)
     return temp
 
 cdef cio.ResultSet runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
@@ -170,7 +170,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     return return_object
 
 
-cpdef parseMetadataCaller(fileList, file_format_hint, args, extra_columns):
+cpdef parseMetadataCaller(fileList, offset, file_format_hint, args, extra_columns):
     cdef vector[string] files
     for file in fileList:
       print('file', file)
@@ -188,7 +188,7 @@ cpdef parseMetadataCaller(fileList, file_format_hint, args, extra_columns):
     for extra_column in extra_columns:
         extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
         extra_columns_cpp.push_back(extra_column_cpp)
-    temp = parseMetadataPython(files,str.encode(file_format_hint), arg_keys,arg_values, extra_columns_cpp)
+    temp = parseMetadataPython(files, offset, str.encode(file_format_hint), arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
     return_object['datasource'] = files
     # return_object['files'] = temp.files

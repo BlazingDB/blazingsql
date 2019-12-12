@@ -67,6 +67,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::vector<std::pair<std::string, gdf_dtype>> extra_columns);
 
 TableSchema parseMetadata(std::vector<std::string> files,
+	std::pair<int, int> offset,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
 	std::vector<std::string> arg_values,

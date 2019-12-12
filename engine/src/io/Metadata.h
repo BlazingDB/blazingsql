@@ -18,8 +18,8 @@ namespace io {
 
 class Metadata {
 public:
-	Metadata(std::vector<gdf_column_cpp> metadata)
-		: metadata_{metadata}
+	Metadata(std::vector<gdf_column_cpp> metadata, std::pair<int, int> offset)
+		: metadata_{metadata}, offset_{offset}
 	{
 	}
 
@@ -27,6 +27,13 @@ public:
 		return metadata_;
 	}
 
+	int offset(){
+		return offset_.first;
+	}
+
+	int offset_size(){
+		return offset_.first;
+	}
 public:
 	//	[T_1(min), T_1(max), T_2(min), T_2(max), ... T_n(min), T_n(max), file_path_index, row_group]
 	// pair-wise elements are min, evens
@@ -34,6 +41,7 @@ public:
 	// file_path_index
 	// row_group
 	std::vector<gdf_column_cpp> metadata_; // for all files in that node!
+	std::pair<int, int> offset_;
 };
 
 } /* namespace io */
