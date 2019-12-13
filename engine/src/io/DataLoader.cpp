@@ -178,7 +178,7 @@ void data_loader::get_metadata(Metadata & metadata, std::vector<std::pair<std::s
 	}
 	this->parser->get_metadata(files,  metadata);
 
-	//TODO, non_file_columns hive feature
+	//TODO, non_file_columns hive feature, @percy
 	// ... 
 
 }

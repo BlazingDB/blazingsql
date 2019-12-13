@@ -363,8 +363,9 @@ TEST_F(MinMaxParquetTest, UsingRalIO) {
  auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
  ral::io::data_loader loader(parser, provider);
-
- ral::io::Metadata metadata({});
+ 
+ auto nfiles = 1;
+ ral::io::Metadata metadata({}, std::make_pair(0, nfiles));
  loader.get_metadata(metadata, {});
  std::vector<gdf_column_cpp> input_table = metadata.get_columns();
 

@@ -460,7 +460,7 @@ class BlazingContext(object):
                 in_file=in_file)
 
             table.slices = table.getSlices(len(self.nodes))
-            parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, kwargs, extra_columns)
+            parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
             if isinstance(parsedMetadata, cudf.DataFrame): 
                 print(parsedMetadata)
             else:
@@ -495,7 +495,7 @@ class BlazingContext(object):
 
 
 
-    def _parseMetadata(self, input, file_format_hint, currentTableNodes, kwargs, extra_columns):
+    def _parseMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns):
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
@@ -504,11 +504,12 @@ class BlazingContext(object):
                 file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
                 print("worker_id: ", worker_id)
                 print("file_subset: ", file_subset)
-                
+                print("schema: ", schema)
                 connection = self.dask_client.submit(
                     cio.parseMetadataCaller,
                     file_subset,
                     currentTableNodes[worker_id].offset,
+                    schema,
                     file_format_hint,
                     kwargs,
                     extra_columns,
@@ -519,7 +520,7 @@ class BlazingContext(object):
 
         else:
             return cio.parseMetadataCaller(
-                input, currentTableNodes[0].offset, file_format_hint, kwargs, extra_columns)
+                input, currentTableNodes[0].offset, schema, file_format_hint, kwargs, extra_columns)
 
     def sql(self, sql, table_list=[], algebra=None):
         # TODO: remove hardcoding

@@ -188,6 +188,8 @@ void parquet_parser::parse_schema(
 
 	std::vector<std::size_t> column_indices(column_names_out.size());
 	std::iota(column_indices.begin(), column_indices.end(), 0);
+
+	schema_out = ral::io::Schema(column_names_out, column_indices, dtypes_out, time_units_out, num_row_groups);
 }
 
 
