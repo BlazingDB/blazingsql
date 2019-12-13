@@ -132,6 +132,9 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/GDFCounter.cu
               ${CMAKE_SOURCE_DIR}/src/GDFColumn.cu
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
+              ${CMAKE_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
+              ${CMAKE_SOURCE_DIR}/src/skip_data/utils.cpp
+              ${CMAKE_SOURCE_DIR}/src/skip_data/expression_tree.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/initialize.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp

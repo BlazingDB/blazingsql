@@ -463,8 +463,11 @@ class BlazingContext(object):
             parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
             if isinstance(parsedMetadata, cudf.DataFrame): 
                 print(parsedMetadata)
+                print(parsedMetadata['min_3_c_nationkey'])
+                print(parsedMetadata['max_3_c_nationkey'])
             else:
                 print(parsedMetadata.compute())
+            table.metadata = parsedMetadata
 
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
@@ -522,6 +525,14 @@ class BlazingContext(object):
             return cio.parseMetadataCaller(
                 input, currentTableNodes[0].offset, schema, file_format_hint, kwargs, extra_columns)
 
+
+    def _get_table_scan(self, sql):
+        return self.explain(sql)
+    
+
+    def _process_skip_data(self, tables, tablescan_str):
+        return (None, None)
+
     def sql(self, sql, table_list=[], algebra=None):
         # TODO: remove hardcoding
         masterIndex = 0
@@ -529,8 +540,7 @@ class BlazingContext(object):
         fileTypes = []
 
         # TODO: skip_data processing, @percy
-        # TableScanString = get_table_scan(sql, ...)
-        # distributed_set_of_fileindices_and_rowgroupindices = process_skip_data(daskcudf_metadata, TableScanString)
+        tablescan_str = self._get_table_scan(sql)
 
         # a list, same size as tables, when we have a dask_cudf
         # table , tells us partitions that map to that table
@@ -559,6 +569,9 @@ class BlazingContext(object):
         if (algebra is None):
             algebra = self.explain(sql)
         if self.dask_client is None:
+            
+            file_indices, rowgroup_indices = cio.runSkipData(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
+
             result = cio.runQueryCaller(
                 masterIndex,
                 self.nodes,
