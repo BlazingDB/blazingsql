@@ -20,12 +20,12 @@ fi
 mkdir -p build
 cd build
 
+echo "cmake .. -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}"
 cmake .. -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
 
 if [ "$run_test" == "ON" ]; then
   echo "make -j all && make -j install && ctest"
-  # TODO percy alex c.gonzales
-  #make -j all && make -j install && ctest
+  make -j all && make -j install && ctest
 else
   echo "make -j install"
   make -j install
