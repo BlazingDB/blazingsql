@@ -158,7 +158,7 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	this->parser->parse_schema(files, schema);
 
 	for(auto handle : handles) {
-		schema.add_file(handle.uri.getPath().toString(true));
+		schema.add_file(handle.uri.toString(true));
 	}
 
 	for(auto extra_column : non_file_columns) {
