@@ -1,8 +1,6 @@
 pipeline {
    
-  agent {
-      label 'slave-gpu'
-  }
+  agent any
 
   options {
     timestamps()
