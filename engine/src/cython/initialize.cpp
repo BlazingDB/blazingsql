@@ -72,7 +72,7 @@ void initialize(int ralId,
 	bool singleNode) {
   // ---------------------------------------------------------------------------
   // DISCLAIMER
-  // TODO: Percy, JeanPierre be carefull with not english locale
+  // TODO: Support proper locale support for non-US cases (percy)
   std::setlocale(LC_ALL, "en_US.UTF-8");
   std::setlocale(LC_NUMERIC, "en_US.UTF-8");
   // ---------------------------------------------------------------------------
