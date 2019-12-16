@@ -12,6 +12,7 @@
 #include "../io/data_parser/ParserUtil.h"
 #include "../io/data_provider/DummyProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
+#include "../skip_data/SkipDataProcessor.h"
 #include "communication/network/Server.h"
 #include <numeric>
 
@@ -154,7 +155,7 @@ ResultSet runQuery(int32_t masterIndex,
 }
 
 
-ResultSet runSkipData(int32_t masterIndex,
+SkipDataResultSet runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -170,6 +171,9 @@ ResultSet runSkipData(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, bool>>> is_column_string) {
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
+	
+	std::vector<std::vector<gdf_column*>> minmax_metadata_tables;
+
 
 	for(int i = 0; i < tableSchemas.size(); i++) {
 		auto tableSchema = tableSchemas[i];
@@ -188,6 +192,12 @@ ResultSet runSkipData(int32_t masterIndex,
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
 			time_units.push_back(tableSchemas[i].columns[col]->dtype_info.time_unit);
 		}
+		std::vector<gdf_column*> minmax_metadata_table;
+		std::cout << "tableSchemas[i].metadata.size(): " << tableSchemas[i].metadata.size() << std::endl;
+		for(int col = 0; col < tableSchemas[i].metadata.size(); col++) {
+			minmax_metadata_table.push_back(tableSchemas[i].metadata[col]);
+		}
+		minmax_metadata_tables.push_back(minmax_metadata_table);
 
 		auto schema = ral::io::Schema(tableSchema.names,
 			tableSchema.calcite_to_file_indices,
@@ -243,18 +253,11 @@ ResultSet runSkipData(int32_t masterIndex,
 		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
-
-		blazing_frame frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
-		make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
-		std::vector<gdf_column *> columns;
-		std::vector<std::string> names;
-		for(int i = 0; i < frame.get_width(); i++) {
-			auto& column = frame.get_column(i);
-			columns.push_back(column.get_gdf_column());
-			names.push_back(column.name());
-		}
-
-		ResultSet result = {columns, names};
+		// 		skipdata_output_t 
+		//TODO: fix this @alex, input_loaders[0]
+		auto res = ral::skip_data::process_skipdata_for_table(input_loaders[0], minmax_metadata_tables[0], query, queryContext);
+		 
+		SkipDataResultSet result = {res.first, res.second};
 		//    std::cout<<"result looks ok"<<std::endl;
 		return result;
 	} catch(const std::exception & e) {

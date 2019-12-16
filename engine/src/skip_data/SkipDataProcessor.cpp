@@ -33,13 +33,17 @@ namespace skip_data {
 //      projects=[[0, 3, 5]]
 // minmax_metadata_table => use these indices [[0, 3, 5]]
 // minmax_metadata_table => minmax_metadata_table[[0, 1,  6, 7,  10, 11, size - 2, size - 1]]
-skipdata_output_t process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column_cpp> new_minmax_metadata_table, std::string table_scan, const Context& context) {
+skipdata_output_t process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column*> new_minmax_metadata_table, std::string table_scan, const Context& context) {
      
     // convert minmax_metadata_table to blazing_frame minmax_metadata_frame which we will use to apply evaluate_expression
     blazing_frame minmax_metadata_frame;
+    std::vector<gdf_column_cpp> new_minmax_metadata_table_cpp;
     for (auto column : new_minmax_metadata_table){
-        minmax_metadata_frame.add_column(column);
+        gdf_column_cpp gdf_col;
+        gdf_col.create_gdf_column(column, false);
+        new_minmax_metadata_table_cpp.push_back(gdf_col);
     }
+    minmax_metadata_frame.add_table(new_minmax_metadata_table_cpp);
      
     if (minmax_metadata_frame.get_width() == 0){
         return skipdata_output_t();
@@ -56,7 +60,7 @@ skipdata_output_t process_skipdata_for_table(ral::io::data_loader & input_loader
     if (tree.build(filter_string)){
         // lets drop all columns that do not have skip data
         for (size_t i = 0; i < minmax_metadata_frame.get_width()/2 - 1; i++){ // here we are assuming that minmax_metadata_table is 2N+2 columns
-            if (minmax_metadata_frame.get_column(i*2).size() == 0){ // if this column has no metadata lets drop it from the expression tree
+            if (minmax_metadata_frame.get_column(i*2).size() == 0) { // if this column has no metadata lets drop it from the expression tree
                 tree.drop({"$" + std::to_string(i)});
             }
         }
@@ -69,6 +73,7 @@ skipdata_output_t process_skipdata_for_table(ral::io::data_loader & input_loader
     if (filter_string.empty()) {
         return skipdata_output_t();
     }
+    std::cout << "[SKIP_DATA_PROCESSOR]: filter_string: " << filter_string << std::endl;
 
     // then we follow a similar pattern to process_filter
     gdf_column_cpp stencil;

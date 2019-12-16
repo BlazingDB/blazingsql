@@ -8,7 +8,7 @@ from dask.distributed import Client
 
 bc = BlazingContext()
 
-dir_data_fs = '/home/aocsa/tpch/DataSet5Part100MB'
+dir_data_fs = '/home/aocsa/tpch/DataSet10Parts'
 nfiles = 4
 
 bc.create_table('customer', [dir_data_fs + '/customer_0_0.parquet', dir_data_fs + '/customer_1_0.parquet', dir_data_fs + '/customer_2_0.parquet'])

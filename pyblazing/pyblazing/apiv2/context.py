@@ -195,7 +195,8 @@ class BlazingTable(object):
             convert_gdf_to_dask_partitions=1,
             client=None,
             uri_values=[],
-            in_file=[]):
+            in_file=[],
+            metadata=None):
         self.input = input
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
@@ -214,6 +215,8 @@ class BlazingTable(object):
         
         # slices, this is computed in create table, and then reused in sql method
         self.slices = None 
+        # metadata, this is computed in create table, after call get_metadata
+        self.metadata = metadata 
 
     def getSlices(self, numSlices):
         nodeFilesList = []
@@ -238,7 +241,8 @@ class BlazingTable(object):
                                                   calcite_to_file_indices=self.calcite_to_file_indices,
                                                   num_row_groups=self.num_row_groups[startIndex: startIndex + batchSize],
                                                   uri_values=uri_values,
-                                                  args=self.args)
+                                                  args=self.args,
+                                                  metadata=self.metadata)
                 bt.offset = (startIndex, batchSize)
                 nodeFilesList.append(bt)
             else:
@@ -248,7 +252,8 @@ class BlazingTable(object):
                         files=tempFiles,
                         calcite_to_file_indices=self.calcite_to_file_indices,
                         uri_values=uri_values,
-                        args=self.args)
+                        args=self.args,
+                        metadata=self.metadata)
                 bt.offset = (startIndex, batchSize)
                 nodeFilesList.append(bt)
             startIndex = startIndex + batchSize
@@ -467,6 +472,7 @@ class BlazingContext(object):
                 print(parsedMetadata['max_3_c_nationkey'])
             else:
                 print(parsedMetadata.compute())
+                parsedMetadata = parsedMetadata.compute()
             table.metadata = parsedMetadata
 
         elif isinstance(input, dask_cudf.core.DataFrame):
@@ -570,7 +576,9 @@ class BlazingContext(object):
             algebra = self.explain(sql)
         if self.dask_client is None:
             
-            file_indices, rowgroup_indices = cio.runSkipData(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
+            # file_indices, rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
+            file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
+            print("file_indices_and_rowgroup_indices: ", file_indices_and_rowgroup_indices)
 
             result = cio.runQueryCaller(
                 masterIndex,

@@ -24,6 +24,8 @@ struct TableSchema {
 	std::vector<bool> in_file;
 	int data_type;
 	ReaderArgs args;
+
+	std::vector<gdf_column *> metadata;
 };
 
 struct HDFS {
