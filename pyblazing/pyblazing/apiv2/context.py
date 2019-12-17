@@ -470,11 +470,12 @@ class BlazingContext(object):
                 print(parsedMetadata)
                 print(parsedMetadata['min_3_c_nationkey'])
                 print(parsedMetadata['max_3_c_nationkey'])
+                table.metadata = parsedMetadata
             else:
-                print(parsedMetadata.compute())
-                parsedMetadata = parsedMetadata.compute()
-            table.metadata = parsedMetadata
-
+                for index in range(len(table.slices)):
+                    print(parsedMetadata.get_partition(index).compute())
+                    table.slices[index].metadata = parsedMetadata.get_partition(index).compute()
+                
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
                 input,
@@ -575,10 +576,9 @@ class BlazingContext(object):
         if (algebra is None):
             algebra = self.explain(sql)
         if self.dask_client is None:
-            
             # file_indices, rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
             file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
-            print("file_indices_and_rowgroup_indices: ", file_indices_and_rowgroup_indices)
+            print("file_indices_and_rowgroup_indices:\n ", file_indices_and_rowgroup_indices)
 
             result = cio.runQueryCaller(
                 masterIndex,
@@ -589,6 +589,26 @@ class BlazingContext(object):
                 algebra,
                 accessToken)
         else:
+            dask_futures = []
+            i = 0
+            for node in self.nodes:
+                worker = node['worker']
+                dask_futures.append(
+                    self.dask_client.submit(
+                        cio.runSkipDataCaller,
+                        masterIndex,
+                        self.nodes,
+                        nodeTableList[i],
+                        fileTypes,
+                        ctxToken,
+                        tablescan_str,
+                        accessToken,
+                        workers=[worker]))
+                i = i + 1
+            result = dask.dataframe.from_delayed(dask_futures)
+            
+            print("file_indices_and_rowgroup_indices:\n ", result.compute())
+
             dask_futures = []
             i = 0
             for node in self.nodes:

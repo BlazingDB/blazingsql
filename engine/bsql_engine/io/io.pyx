@@ -89,7 +89,7 @@ cdef cio.ResultSet runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMe
     temp = cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string)
     return temp
 
-cdef cio.SkipDataResultSet runSkipDataPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
+cdef cio.ResultSet runSkipDataPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
     temp = cio.runSkipData( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string)
     return temp
 
@@ -446,5 +446,12 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fil
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
     temp = runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all)
- 
-    return (temp.files, temp.row_groups)
+
+    df = cudf.DataFrame()
+    i = 0
+    for column in temp.columns:
+      column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
+      strcpy(column.col_name, temp.names[i].c_str())
+      df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
+      i = i + 1
+    return df

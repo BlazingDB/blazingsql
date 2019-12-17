@@ -33,7 +33,7 @@ ResultSet runQuery(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
 	std::vector<std::vector<std::map<std::string, bool>>> is_column_string);
 
-SkipDataResultSet runSkipData(int32_t masterIndex,
+ResultSet runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,

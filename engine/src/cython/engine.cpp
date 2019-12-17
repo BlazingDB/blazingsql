@@ -155,7 +155,7 @@ ResultSet runQuery(int32_t masterIndex,
 }
 
 
-SkipDataResultSet runSkipData(int32_t masterIndex,
+ResultSet runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -255,10 +255,21 @@ SkipDataResultSet runSkipData(int32_t masterIndex,
 		// Execute query
 		// 		skipdata_output_t 
 		//TODO: fix this @alex, input_loaders[0]
-		auto res = ral::skip_data::process_skipdata_for_table(input_loaders[0], minmax_metadata_tables[0], query, queryContext);
+		auto row_groups_cols = ral::skip_data::process_skipdata_for_table(input_loaders[0], minmax_metadata_tables[0], query, queryContext);
 		 
-		SkipDataResultSet result = {res.first, res.second};
+		std::vector<gdf_column *> columns;
+		std::vector<std::string> names;
+		for(int i = 0; i < row_groups_cols.size(); i++) {
+			auto& column = row_groups_cols[i];
+			columns.push_back(column.get_gdf_column());
+			GDFRefCounter::getInstance()->deregister_column(column.get_gdf_column());
+
+			names.push_back(column.name());
+		}
+
+		ResultSet result = {columns, names};
 		//    std::cout<<"result looks ok"<<std::endl;
+		return result;
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;

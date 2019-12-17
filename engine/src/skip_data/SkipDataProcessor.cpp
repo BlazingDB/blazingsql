@@ -33,7 +33,7 @@ namespace skip_data {
 //      projects=[[0, 3, 5]]
 // minmax_metadata_table => use these indices [[0, 3, 5]]
 // minmax_metadata_table => minmax_metadata_table[[0, 1,  6, 7,  10, 11, size - 2, size - 1]]
-skipdata_output_t process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column*> new_minmax_metadata_table, std::string table_scan, const Context& context) {
+std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column*> new_minmax_metadata_table, std::string table_scan, const Context& context) {
      
     // convert minmax_metadata_table to blazing_frame minmax_metadata_frame which we will use to apply evaluate_expression
     blazing_frame minmax_metadata_frame;
@@ -46,12 +46,12 @@ skipdata_output_t process_skipdata_for_table(ral::io::data_loader & input_loader
     minmax_metadata_frame.add_table(new_minmax_metadata_table_cpp);
      
     if (minmax_metadata_frame.get_width() == 0){
-        return skipdata_output_t();
+        return {};
     } 
 
     std::string filter_string = get_filter_expression(table_scan);
     if (filter_string.empty()) {
-        return skipdata_output_t();
+        return {};
     }
     filter_string = clean_calcite_expression(filter_string);
 
@@ -68,10 +68,10 @@ skipdata_output_t process_skipdata_for_table(ral::io::data_loader & input_loader
         filter_string =  tree.prefix();
 
     } else { // something happened and could not process
-        return skipdata_output_t();
+        return {};
     }
     if (filter_string.empty()) {
-        return skipdata_output_t();
+        return {};
     }
     std::cout << "[SKIP_DATA_PROCESSOR]: filter_string: " << filter_string << std::endl;
 
@@ -123,11 +123,10 @@ skipdata_output_t process_skipdata_for_table(ral::io::data_loader & input_loader
         }
         curStart = curEnd;        
     }
-    std::vector<int> distinctLocalUserReadableFilePaths;
-    std::vector<std::vector<int>> localRowgroupSets;
-    //TODO complete the vectors before! @alex
-
-    return std::make_pair(distinctLocalUserReadableFilePaths, localRowgroupSets);
+    if (localEnd - localStart > 0){
+        return row_group_identifiers;
+    }
+    return {};
 }
 
 
