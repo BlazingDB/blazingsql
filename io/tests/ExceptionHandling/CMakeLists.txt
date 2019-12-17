@@ -7,4 +7,4 @@ set(BlazingThreadTest_SRCS
     BlazingThreadTest.cpp
 )
 
-configure_test(BlazingThreadTest "${BlazingThreadTest_SRCS}")
+#configure_test(BlazingThreadTest "${BlazingThreadTest_SRCS}")

@@ -3,6 +3,8 @@
 #include "CodeTimer.h"
 #include "ColumnManipulation.cuh"
 #include "GDFColumn.cuh"
+#include "cudf.h"
+#include "cudf/legacy/copying.hpp"
 #include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
 #include "config/GPUManager.cuh"
@@ -16,6 +18,7 @@
 #include <iostream>
 #include <numeric>
 #include <thread>
+
 namespace ral {
 namespace operators {
 
@@ -38,13 +41,29 @@ int count_string_occurrence(std::string haystack, std::string needle) {
 
 void limit_table(blazing_frame & input, gdf_size_type limitRows) {
 	gdf_size_type rowSize = input.get_num_rows_in_table(0);
-	limitRows = std::min(limitRows, rowSize);
-	for(size_t i = 0; i < input.get_size_column(0); ++i) {
-		auto & input_col = input.get_column(i);
-		if(input_col.dtype() == GDF_STRING_CATEGORY) {
-			ral::truncate_nvcategory(input_col.get_gdf_column(), limitRows);
-		} else {
-			input_col.get_gdf_column()->size = limitRows;
+
+	if(limitRows < rowSize) {
+		for(size_t i = 0; i < input.get_size_column(0); ++i) {
+			auto & input_col = input.get_column(i);
+			if(input_col.dtype() == GDF_STRING_CATEGORY) {
+				ral::truncate_nvcategory(input_col.get_gdf_column(), limitRows);
+			} else {
+				gdf_column_cpp limitedCpp;
+				gdf_column * sourceColumn = input_col.get_gdf_column();
+				gdf_size_type width_per_value = ral::traits::get_dtype_size_in_bytes(sourceColumn);
+				limitedCpp.create_gdf_column(sourceColumn->dtype,
+					sourceColumn->dtype_info,
+					limitRows,
+					nullptr,
+					nullptr,
+					width_per_value,
+					sourceColumn->col_name);
+
+				gdf_column * limitedColumn = limitedCpp.get_gdf_column();
+				cudf::copy_range(limitedColumn, *sourceColumn, 0, limitRows, 0);
+
+				input.set_column(i, limitedCpp);
+			}
 		}
 	}
 }
