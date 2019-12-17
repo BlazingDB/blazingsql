@@ -86,8 +86,7 @@ void initialize(int ralId,
 	initLogMsg = initLogMsg + "RAL Host: " + ralHost + ":" + std::to_string(ralCommunicationPort) + ", ";
 	initLogMsg = initLogMsg + "Network Interface: " + network_iface_name + ", ";
 	initLogMsg = initLogMsg + (singleNode ? ", Is Single Node, " : ", Is Not Single Node, ");
-	int gpuIdIn = gpuId;
-
+	
 	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	gpuId = 0; // NOTE: This is the default value
@@ -126,9 +125,7 @@ void initialize(int ralId,
 
 	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",
 		initLogMsg));
-	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",
-		"gpuIdIn: " + std::to_string(gpuIdIn)));
-
+	
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
 }
