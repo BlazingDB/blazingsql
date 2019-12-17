@@ -294,7 +294,8 @@ cpdef getTableScanInfoCaller(logicalPlan,tables):
 
         new_table = tables[table_name]
 
-        if new_table.fileType.value == 6:
+        # TODO percy c.gonzales felipe
+        if new_table.fileType == 6:
           if table_name in new_tables:
             #TODO: this is not yet implemented the function unionColumns needs to be NotImplemented
             #for this to work
