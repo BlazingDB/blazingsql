@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h> /* for strncpy */
 #include <unistd.h>
+#include <clocale>
 
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -70,7 +71,13 @@ void initialize(int ralId,
 	std::string ralHost,
 	int ralCommunicationPort,
 	bool singleNode) {
-	
+  // ---------------------------------------------------------------------------
+  // DISCLAIMER
+  // TODO: Support proper locale support for non-US cases (percy)
+  std::setlocale(LC_ALL, "en_US.UTF-8");
+  std::setlocale(LC_NUMERIC, "en_US.UTF-8");
+  // ---------------------------------------------------------------------------
+
 	ralHost = get_ip(network_iface_name);
 
 	std::string loggingName = "RAL." + std::to_string(ralId) + ".log";
