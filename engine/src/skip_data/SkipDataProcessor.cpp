@@ -48,9 +48,13 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
     if (minmax_metadata_frame.get_width() == 0){
         return {};
     } 
-
-    std::string filter_string = get_filter_expression(table_scan);
-    if (filter_string.empty()) {
+    std::string filter_string;
+    try {
+        filter_string = get_filter_expression(table_scan);
+        if (filter_string.empty()) {
+            return {};
+        }
+    } catch (...) {
         return {};
     }
     filter_string = clean_calcite_expression(filter_string);

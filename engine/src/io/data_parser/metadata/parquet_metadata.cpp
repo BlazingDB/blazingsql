@@ -286,7 +286,6 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 			gdf_dtype dtype;
 			gdf_dtype_extra_info extra_info;
 			std::tie(dtype, extra_info) = to_dtype(physical_type, logical_type);
-			std::cout << "colIndex: " << colIndex  << "|"<< dtype << std::endl;
 
 			if (dtype == GDF_CATEGORY || dtype == GDF_STRING || dtype == GDF_STRING_CATEGORY)
 				dtype = GDF_INT32;
@@ -313,8 +312,7 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 		  int num_row_groups = file_metadata->num_row_groups();
 		  const parquet::SchemaDescriptor *schema = file_metadata->schema();
 
-		  for (int row_group_index = 0; row_group_index < num_row_groups;
-			   row_group_index++) {
+		  for (int row_group_index = 0; row_group_index < num_row_groups; row_group_index++) {
 			  auto groupReader = parquet_readers[file_index]->RowGroup(row_group_index);
 			  auto *rowGroupMetadata = groupReader->metadata();
 			  for (int colIndex = 0; colIndex < file_metadata->num_columns();
@@ -346,15 +344,11 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 		threads[file_index].join();
 	}
 
-	std::cout << "minmax_metadata_table: " << minmax_metadata_table.size()  << " | " << num_row_groups << std::endl;
-	for(auto v : minmax_metadata_table[minmax_metadata_table.size() - 2]) {
-		std::cout << v << std::endl;
-	}
 	for (size_t index = 0; index < 	minmax_metadata_table.size(); index++) {
 		auto vector = minmax_metadata_table[index];
 		auto dtype = minmax_metadata_gdf_table[index].dtype();
 		auto content =  get_typed_vector_content(dtype, vector);
-		set_gdf_column(minmax_metadata_gdf_table[index], content, parquet_readers.size());
+		set_gdf_column(minmax_metadata_gdf_table[index], content, total_num_row_groups);
 	}
 	return minmax_metadata_gdf_table;
 }

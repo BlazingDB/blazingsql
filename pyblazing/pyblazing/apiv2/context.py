@@ -468,8 +468,6 @@ class BlazingContext(object):
             parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
             if isinstance(parsedMetadata, cudf.DataFrame): 
                 print(parsedMetadata)
-                print(parsedMetadata['min_3_c_nationkey'])
-                print(parsedMetadata['max_3_c_nationkey'])
                 table.metadata = parsedMetadata
             else:
                 for index in range(len(table.slices)):
@@ -583,7 +581,6 @@ class BlazingContext(object):
         if (algebra is None):
             algebra = self.explain(sql)
         if self.dask_client is None:
-            # file_indices, rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
             file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
             print("file_indices_and_rowgroup_indices:\n ", file_indices_and_rowgroup_indices)
 
