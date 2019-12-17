@@ -322,6 +322,9 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
           tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
           tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
 
+      if table.num_row_groups is not None:
+        currentTableSchemaCpp.rowgroups = table.rowgroups
+
       tableSchemaCpp.push_back(currentTableSchemaCpp);
       tableIndex = tableIndex + 1
     for currentMetadata in tcpMetadata:

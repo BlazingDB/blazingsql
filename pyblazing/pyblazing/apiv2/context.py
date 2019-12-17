@@ -201,6 +201,8 @@ class BlazingTable(object):
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
         self.datasource = datasource
+        # TODO, cc @percy, @cristian!
+        # num_row_groups: this property is computed in create_table.parse_schema, but not used in run_query.
         self.num_row_groups = num_row_groups
         self.fileType = fileType
         self.args = args
@@ -218,6 +220,9 @@ class BlazingTable(object):
         # metadata, this is computed in create table, after call get_metadata
         self.metadata = metadata 
 
+        self.rowgroups = []
+
+        
     def getSlices(self, numSlices):
         nodeFilesList = []
         if self.files is None:
@@ -581,8 +586,20 @@ class BlazingContext(object):
         if (algebra is None):
             algebra = self.explain(sql)
         if self.dask_client is None:
-            file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
-            print("file_indices_and_rowgroup_indices:\n ", file_indices_and_rowgroup_indices)
+
+            j = 0
+            # TODO process skip_data caller for each table!
+            for table in self.tables:
+                file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
+                print("file_indices_and_rowgroup_indices:\n ", file_indices_and_rowgroup_indices)
+                print("num_row_groups: ", self.tables[table].num_row_groups)
+                rowgroups = file_indices_and_rowgroup_indices['row_group_index'].to_pandas()
+                file_indices = file_indices_and_rowgroup_indices['file_handle_index'].to_pandas()
+                print(rowgroups, file_indices)
+                self.tables[table].rowgroups = rowgroups.values.tolist() 
+                print("num_row_groups: ", rowgroups.values.tolist())
+
+                # TODO update .file property!!
 
             result = cio.runQueryCaller(
                 masterIndex,
@@ -612,6 +629,11 @@ class BlazingContext(object):
             result = dask.dataframe.from_delayed(dask_futures)
             
             print("file_indices_and_rowgroup_indices:\n ", result.compute())
+
+            j = 0
+            for nodeList in nodeTableList:
+                for table_key in nodeList:
+                    print("nodeTableList: ", table_key, nodeList[table_key])
 
             dask_futures = []
             i = 0

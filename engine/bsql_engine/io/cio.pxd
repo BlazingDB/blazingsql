@@ -208,6 +208,7 @@ cdef extern from "../include/io/io.h":
         int data_type
         ReaderArgs args
         vector[gdf_column_ptr] metadata
+        vector[unsigned long] rowgroups
 
     cdef struct HDFS:
         string host
