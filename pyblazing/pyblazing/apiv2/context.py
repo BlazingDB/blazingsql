@@ -551,7 +551,14 @@ class BlazingContext(object):
 
         # a list, same size as tables, when we have a dask_cudf
         # table , tells us partitions that map to that table
-        #TODO: Use scan tables here, cc @percy, @alexander    
+        #TODO: Use scan tables here, cc @percy, @alexander
+        # FOR table in tables:
+        #   if table.hasMetadata():  
+        #       file_indices_and_rowgroup_indices = cio.runSkipDataCaller(table)
+        #       currentTableNodes = update based on `file_indices_and_rowgroup_indices` 
+        #   else:
+        #       currentTableNodes = use as normal 
+        #     ...  
         for table in self.tables:
             fileTypes.append(self.tables[table].fileType)
             ftype = self.tables[table].fileType

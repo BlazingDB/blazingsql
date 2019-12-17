@@ -23,13 +23,12 @@ bc.create_table('customer', [dir_data_fs + '/customer_0_0.parquet',
 # "BindableTableScan(table=[[main, customer]], 
 # filters=[[OR(AND(<($0, 15000), =($1, 5)), =($0, *($1, $1)), >=($1, 10), <=($2, 500))]], 
 # projects=[[0, 3, 5]], aliases=[[c_custkey, c_nationkey, c_acctbal]])"
-query = """select c_custkey, c_nationkey, c_acctbal
-            from 
-              customer
-            where 
-              c_custkey > 2990 and c_custkey < 3010 
-            """
-
+# query = """select c_custkey, c_nationkey, c_acctbal
+#             from 
+#               customer
+#             where 
+#               c_custkey > 2990 and c_custkey < 3010 
+#             """
 
 query = """select c_custkey, c_nationkey, c_acctbal
             from 
@@ -41,4 +40,5 @@ query = """select c_custkey, c_nationkey, c_acctbal
 lp = bc.explain(query)
 print(lp)
 ddf = bc.sql(query)
-print(ddf)
+print(query)
+print(ddf.compute())
