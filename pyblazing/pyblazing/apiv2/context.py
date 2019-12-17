@@ -109,11 +109,20 @@ def checkSocket(socketNum):
 
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False):
-    print(networkInterface)
+
+    if not singleNode:
+        cuda_visible_devices = os.getenv('CUDA_VISIBLE_DEVICES')
+        if cuda_visible_devices is None:
+            from numba import cuda
+            num_gpus = len(cuda.gpus)
+            if num_gpus > 1:
+                print("WARNING: there is more than one gpu available and CUDA_VISIBLE_DEVICES is not set")
+
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
+
     cio.initializeCaller(
         ralId,
         0,
@@ -171,6 +180,7 @@ def collectPartitionsRunQuery(
                     table_partitions.append(
                         tables[table_name].input.get_partition(partition).compute())
                 tables[table_name].input = cudf.concat(table_partitions)
+    
     return cio.runQueryCaller(
         masterIndex,
         nodes,
@@ -211,7 +221,7 @@ class BlazingTable(object):
                 self.dask_mapping = getNodePartitions(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
-
+        
     def getSlices(self, numSlices):
         nodeFilesList = []
         if self.files is None:
@@ -274,7 +284,6 @@ class BlazingContext(object):
             dask_futures = []
             masterIndex = 0
             i = 0
-            print(network_interface)
             for worker in list(self.dask_client.scheduler_info()["workers"]):
                 dask_futures.append(
                     self.dask_client.submit(
@@ -439,6 +448,7 @@ class BlazingContext(object):
         elif isinstance(input, list):
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
+
             file_type = parsedSchema['file_type']
             table = BlazingTable(
                 parsedSchema['columns'],
@@ -450,6 +460,7 @@ class BlazingContext(object):
                 args=parsedSchema['args'],
                 uri_values=uri_values,
                 in_file=in_file)
+
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
                 input,
@@ -477,20 +488,20 @@ class BlazingContext(object):
             return cio.parseSchemaCaller(
                 input, file_format_hint, kwargs, extra_columns)
 
+
     def sql(self, sql, table_list=[], algebra=None):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [{} for _ in range(len(self.nodes))]
         fileTypes = []
+        
         # a list, same size as tables, when we have a dask_cudf
         # table , tells us partitions that map to that table
-
         for table in self.tables:
             fileTypes.append(self.tables[table].fileType)
             ftype = self.tables[table].fileType
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
-                currentTableNodes = self.tables[table].getSlices(
-                    len(self.nodes))
+                currentTableNodes = self.tables[table].getSlices(len(self.nodes))
             elif(self.tables[table].fileType == DataType.DASK_CUDF):
                 currentTableNodes = []
                 for node in self.nodes:
