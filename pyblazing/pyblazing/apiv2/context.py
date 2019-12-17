@@ -100,9 +100,7 @@ def checkSocket(socketNum):
             socket_free = False
         else:
             # something else raised the socket.error exception
-            #print(
-                "ERROR: Something happened when checking socket " +
-                str(socketNum))
+            print("ERROR: Something happened when checking socket " + str(socketNum))
             #print(e)
     s.close()
     return socket_free
@@ -602,7 +600,7 @@ class BlazingContext(object):
         ctxToken = random.randint(0, 64000)
         accessToken = 0
         if (len(table_list) > 0):
-            #print("NOTE: You no longer need to send a table list to the .sql() funtion")
+            print("NOTE: You no longer need to send a table list to the .sql() funtion")
         #print(nodeTableList[0])
         #print(self.nodes)
         if self.dask_client is None:
