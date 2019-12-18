@@ -101,8 +101,9 @@ void initialize(int ralId,
 	ral::config::GPUManager::getInstance().initialize(gpuId); // THis is no longer really being used
 	initLogMsg = initLogMsg + "Using GPU: " + std::to_string(ral::config::GPUManager::getInstance().getDeviceId()) + ", ";
 	
-	size_t total_gpu_mem_size = ral::config::GPUManager::getInstance().gpuMemorySize();
-	assert(total_gpu_mem_size > 0);
+	size_t total_gpu_mem_size = 16 * 1024 * 1024 * 1024;	 	// 16 GB
+	//size_t total_gpu_mem_size = ral::config::GPUManager::getInstance().gpuMemorySize();
+	//assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 

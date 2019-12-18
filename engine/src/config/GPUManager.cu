@@ -23,12 +23,12 @@ GPUManager& GPUManager::getInstance() {
 }
 
 void GPUManager::initialize(int deviceId) {
-  if (deviceId < 0 || deviceId >= totalDevices) {
-    throw std::runtime_error("In GPUManager::initialize function: Invalid deviceId");
-  }
+  // if (deviceId < 0 || deviceId >= totalDevices) {
+  //   throw std::runtime_error("In GPUManager::initialize function: Invalid deviceId");
+  // }
 
-  currentDeviceId = deviceId;
-  setDevice();
+  // currentDeviceId = deviceId;
+  // setDevice();
 }
 
 void GPUManager::setDevice() {
