@@ -56,5 +56,10 @@ blazing_frame evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 
 void split_inequality_join_into_join_and_filter(const std::string & join_statement, 
  					std::string & new_join_statement, std::string & filter_statement);
-           
+
+void getTableScanInfo(std::string & logicalPlan_in, 
+						std::vector<std::string> & relational_algebra_steps_out,
+						std::vector<std::string> & table_names_out,
+						std::vector<std::vector<int>> & table_columns_out);
+
 #endif /* CALCITEINTERPRETER_H_ */

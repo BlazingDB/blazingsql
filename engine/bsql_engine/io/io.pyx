@@ -17,6 +17,9 @@ from libcpp.map cimport map
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
+from pyarrow.lib cimport *
+
+import enum
 
 import numpy as np
 import pandas as pd
@@ -26,7 +29,7 @@ import cudf
 from cudf.utils import cudautils
 from cudf.utils.dtypes import is_categorical_dtype
 from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
-from cudf.core.buffer import Buffer
+
 from cudf.core.column.column import build_column
 import rmm
 import nvstrings
@@ -84,6 +87,10 @@ cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_
 
 cdef cio.ResultSet runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
     temp = cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string)
+    return temp
+
+cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
+    temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
 cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except *:
@@ -260,7 +267,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       tableIndex = tableIndex + 1
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        print(currentMetadata['communication_port'])
+        #print(currentMetadata['communication_port'])
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
@@ -274,3 +281,38 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
       i = i + 1
     return df
+
+cpdef getTableScanInfoCaller(logicalPlan,tables):
+    temp = getTableScanInfoPython(str.encode(logicalPlan))
+    #print(temp)
+    new_tables = {}
+    table_names = [name.decode('utf-8') for name in temp.table_names]
+
+    relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
+    relational_algebra_steps = {}
+    for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
+
+        new_table = tables[table_name]
+
+        # TODO percy c.gonzales felipe
+        if new_table.fileType == 6:
+          if table_name in new_tables:
+            #TODO: this is not yet implemented the function unionColumns needs to be NotImplemented
+            #for this to work
+            temp_table = new_tables[table_name].filterAndRemapColumns(table_columns)
+            new_tables[table_name] = temp_table.unionColumns(new_tables[table_name])
+          else:
+            if len(table_columns) != 0:
+              new_table = new_table.filterAndRemapColumns(table_columns)
+            else:
+              new_table = new_table.convertForQuery()
+        if table_name in relational_algebra_steps:
+          relational_algebra_steps[table_name]['table_scans'].append(scan_string)
+          relational_algebra_steps[table_name]['table_columns'].append(table_columns)
+        else:
+          relational_algebra_steps[table_name] = {}
+          relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
+          relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
+
+        new_tables[table_name] = new_table
+    return new_tables, relational_algebra_steps
