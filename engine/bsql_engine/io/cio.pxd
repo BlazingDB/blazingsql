@@ -5,7 +5,11 @@ from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.map cimport map
+from libcpp.memory cimport shared_ptr
+
 from libcpp cimport bool
+from pyarrow.lib cimport *
+
 
 from libc.stdint cimport (  # noqa: E211
     uint8_t,
@@ -192,7 +196,8 @@ cdef extern from "../include/io/io.h":
         CSV = 2,
         JSON = 3,
         CUDF = 4,
-        DASK_CUDF = 5
+        DASK_CUDF = 5,
+        ARROW = 6
     cdef struct ReaderArgs:
         orc_read_arg orcReaderArg
         json_read_arg jsonReaderArg
@@ -207,6 +212,7 @@ cdef extern from "../include/io/io.h":
         vector[bool] in_file
         int data_type
         ReaderArgs args
+        shared_ptr[CTable] arrow_table
     cdef struct HDFS:
         string host
         int port
@@ -242,6 +248,12 @@ cdef extern from "../include/engine/engine.h":
             string ip
             int communication_port
         ResultSet runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
+
+        cdef struct TableScanInfo:
+            vector[string] relational_algebra_steps
+            vector[string] table_names
+            vector[vector[int]] table_columns
+        TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h":
     cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except +raiseInitializeError
