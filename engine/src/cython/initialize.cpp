@@ -87,23 +87,9 @@ void initialize(int ralId,
 	initLogMsg = initLogMsg + "Network Interface: " + network_iface_name + ", ";
 	initLogMsg = initLogMsg + (singleNode ? ", Is Single Node, " : ", Is Not Single Node, ");
 	
-	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
-	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
-	gpuId = 0; // NOTE: This is the default value
-	if (env_cuda_device){
-		// gpuId = std::atoi(env_cuda_device);
-		initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
-		std::cout << "CUDA_VISIBLE_DEVICES is set to: " << env_cuda_device_str << std::endl; 
-	} else {
-		initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is not set, using default GPU: " + std::to_string(gpuId) + ", ";
-		std::cout << "CUDA_VISIBLE_DEVICES is not set, using default GPU: " << gpuId << std::endl;
-	}
-	ral::config::GPUManager::getInstance().initialize(gpuId); // THis is no longer really being used
-	initLogMsg = initLogMsg + "Using GPU: " + std::to_string(ral::config::GPUManager::getInstance().getDeviceId()) + ", ";
+	// TODO alexander felipe percy
+	long total_gpu_mem_size = 1 * 1024 * 1024 * 1024;	 	// 16 GB
 	
-	size_t total_gpu_mem_size = 16 * 1024 * 1024 * 1024;	 	// 16 GB
-	//size_t total_gpu_mem_size = ral::config::GPUManager::getInstance().gpuMemorySize();
-	//assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
