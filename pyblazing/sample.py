@@ -2,11 +2,11 @@ import time
 import pprint
 from blazingsql import BlazingContext
 from dask.distributed import Client
-client = Client('127.0.0.1:8786')
-client.restart()
-bc = BlazingContext(dask_client=client, network_interface="lo")
+# client = Client('127.0.0.1:8786')
+# client.restart()
+# bc = BlazingContext(dask_client=client, network_interface="lo")
 
-# bc = BlazingContext()
+bc = BlazingContext()
 
 dir_data_fs = '/home/aocsa/tpch/DataSet5Part100MB'
 nfiles = 4
@@ -41,4 +41,4 @@ lp = bc.explain(query)
 print(lp)
 ddf = bc.sql(query)
 print(query)
-print(ddf.compute())
+print(ddf)

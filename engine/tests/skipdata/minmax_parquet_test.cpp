@@ -165,9 +165,9 @@ struct MinMaxParquetTest : public testing::Test {
   }
 
   void TearDown() final {
-    if (std::remove(filename.c_str())) {
-      FAIL() << "Remove file";
-    }
+    // if (std::remove(filename.c_str())) {
+    //   FAIL() << "Remove file";
+    // }
   }
 
   void checkNulls(/*const */ gdf_column &column) {

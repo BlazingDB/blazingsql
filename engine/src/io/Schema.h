@@ -33,7 +33,9 @@ public:
 		std::vector<size_t> calcite_to_file_indices,
 		std::vector<gdf_dtype> types,
 		std::vector<gdf_time_unit> time_units,
-		std::vector<size_t> num_row_groups);
+		std::vector<size_t> num_row_groups,
+		std::vector<std::vector<size_t>> row_groups_ids = {}
+		);
 
 	Schema(std::vector<std::string> names,
 		std::vector<size_t> calcite_to_file_indices,
@@ -88,11 +90,8 @@ private:
 	std::vector<bool> in_file;
 	std::vector<std::string> files;
 	
-	// TODO, @percy, @alex, 
-	//  	std::vector<std::vector<size_t>> row_groups_ids;
-
-	// one vector per file
-	// 5 files => 5 vectors
+	std::vector<std::vector<size_t>> row_groups_ids;
+	// one vector of row_groups per file
 
 };
 

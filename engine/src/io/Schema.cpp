@@ -42,9 +42,10 @@ Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
 	std::vector<gdf_dtype> types,
 	std::vector<gdf_time_unit> time_units,
-	std::vector<size_t> num_row_groups)
+	std::vector<size_t> num_row_groups,
+	std::vector<std::vector<size_t>> row_group_ids)
 	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), time_units(time_units),
-	  num_row_groups(num_row_groups) {
+	  num_row_groups(num_row_groups), row_groups_ids{row_groups_ids} {
 	// TODO Auto-generated constructor stub
 
 	in_file.resize(names.size(), true);

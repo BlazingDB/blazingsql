@@ -220,7 +220,8 @@ class BlazingTable(object):
         # metadata, this is computed in create table, after call get_metadata
         self.metadata = metadata 
 
-        self.rowgroups = []
+        # row groups ids, vector < vector <int> >, one vector of row_groups per each file
+        self.row_groups_ids = []
 
         
     def getSlices(self, numSlices):
@@ -579,6 +580,7 @@ class BlazingContext(object):
             for nodeList in nodeTableList:
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
+
         ctxToken = random.randint(0, 64000)
         accessToken = 0
         if (len(table_list) > 0):
@@ -593,13 +595,15 @@ class BlazingContext(object):
                 file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
                 print("file_indices_and_rowgroup_indices:\n ", file_indices_and_rowgroup_indices)
                 print("num_row_groups: ", self.tables[table].num_row_groups)
-                rowgroups = file_indices_and_rowgroup_indices['row_group_index'].to_pandas()
-                file_indices = file_indices_and_rowgroup_indices['file_handle_index'].to_pandas()
-                print(rowgroups, file_indices)
-                self.tables[table].rowgroups = rowgroups.values.tolist() 
-                print("num_row_groups: ", rowgroups.values.tolist())
+                file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
 
-                # TODO update .file property!!
+                # file_indices = file_and_rowgroup_indices['file_handle_index'].to_pandas()
+                # current_row_groups_ids = rowgroups.values.tolist() 
+                # print("num_row_groups: ", current_row_groups_ids)
+                # print("current_files: ", self.tables[table].files)
+                self.tables[table].files = [self.tables[table].files[index] for index in file_and_rowgroup_indices['file_handle_index']]
+                grouped = file_and_rowgroup_indices.groupby('file_handle_index')
+                print(grouped)
 
             result = cio.runQueryCaller(
                 masterIndex,
