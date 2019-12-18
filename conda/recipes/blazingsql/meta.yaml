@@ -11,7 +11,7 @@ package:
 
 build:
     number: {{ git_revision_count }}
-    string: cuda{{ cuda_version + '_py' + py_version + '_' + git_revision_count }}
+    string: py{{ py_version }}_{{ git_revision_count }}
     script_env:
       - CUDA_VERSION
       - CUDACXX
@@ -55,7 +55,6 @@ requirements:
         - arrow-cpp=0.15.0
         - bsql-toolchain {{ version }}.*
         - cppzmq
-        - cudatoolkit {{ cuda_version }}.*
         - librmm {{ rapids_build_version }}.*
         - libnvstrings {{ rapids_build_version }}.*
         - libcudf {{ rapids_build_version }}.*

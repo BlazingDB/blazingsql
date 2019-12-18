@@ -4,7 +4,7 @@ set -e
 
 export TAR_FILE=`conda build conda/recipes/blazingsql/ --python=$PYTHON --output`
 
-LABEL_OPTION="--label main --label cuda"$CUDA_VER
+LABEL_OPTION="--label main"
 echo "LABEL_OPTION=${LABEL_OPTION}"
 
 if [ -z "$MY_UPLOAD_KEY" ]; then
