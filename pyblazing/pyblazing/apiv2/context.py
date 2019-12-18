@@ -100,16 +100,14 @@ def checkSocket(socketNum):
             socket_free = False
         else:
             # something else raised the socket.error exception
-            print(
-                "ERROR: Something happened when checking socket " +
-                str(socketNum))
-            print(e)
+            print("ERROR: Something happened when checking socket " + str(socketNum))
+            #print(e)
     s.close()
     return socket_free
 
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False):
-    print(networkInterface)
+    #print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
@@ -132,7 +130,7 @@ def getNodePartitions(df, client):
     for worker in workers:
         connectionToId[worker] = workers[worker]['name']
     dask.distributed.wait(df)
-    print(client.who_has(df))
+    #print(client.who_has(df))
     worker_part = client.who_has(df)
     worker_partitions = {}
     for key in worker_part:
@@ -141,8 +139,8 @@ def getNodePartitions(df, client):
         if connectionToId[worker] not in worker_partitions:
             worker_partitions[connectionToId[worker]] = []
         worker_partitions[connectionToId[worker]].append(partition)
-    print("worker partitions")
-    print(worker_partitions)
+    #print("worker partitions")
+    #print(worker_partitions)
     return worker_partitions
 
 
@@ -180,6 +178,45 @@ def collectPartitionsRunQuery(
         algebra,
         accessToken)
 
+# returns a map of table names to the indices of the columns needed. If there are more than one table scan for one table, it merged the needed columns
+# if the column list is empty, it means we want all columns
+def mergeTableScans(tableScanInfo):
+    table_names = list(set(tableScanInfo['table_names']))
+    table_columns = {}
+    for table_name in table_names:
+        table_columns[table_name] = []
+
+    for index, table_name in enumerate(tableScanInfo['table_names']):
+        if len(tableScanInfo['table_columns'][index]) > 0: # if the column list is empty, it means we want all columns
+            table_columns[table_name] = list(set(table_columns[table_name] + tableScanInfo['table_columns'][index]))
+            table_columns[table_name].sort()
+        else:
+            table_columns[table_name] = []
+
+    return table_columns
+
+def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,originalTables):
+    for table_name in tableScanInfo:
+        #TODO: handle situation with multiple tables being joined twice
+        if originalTables[table_name].fileType == DataType.ARROW:
+            orig_scan = tableScanInfo[table_name]['table_scans'][0]
+            orig_col_indexes = tableScanInfo[table_name]['table_columns'][0]
+            merged_col_indexes = list(range(len(orig_col_indexes)))
+
+            new_col_indexes = []
+            if len(merged_col_indexes) > 0:
+                if orig_col_indexes == merged_col_indexes:
+                    new_col_indexes = list(range(0, len(orig_col_indexes)))
+                else:
+                    for new_index, merged_col_index in enumerate(merged_col_indexes):
+                        if merged_col_index in orig_col_indexes:
+                            new_col_indexes.append(new_index)
+
+            orig_project = 'projects=[' + str(orig_col_indexes) + ']'
+            new_project = 'projects=[' + str(new_col_indexes) + ']'
+            new_scan = orig_scan.replace(orig_project, new_project)
+            algebra = algebra.replace(orig_scan, new_scan)
+    return algebra
 
 class BlazingTable(object):
     def __init__(
@@ -195,13 +232,26 @@ class BlazingTable(object):
             convert_gdf_to_dask_partitions=1,
             client=None,
             uri_values=[],
-            in_file=[]):
-        self.input = input
+            in_file=[],
+            force_conversion=False):
+        self.fileType = fileType
+        if fileType == DataType.ARROW:
+            if force_conversion:
+                #converts to cudf for querying
+                self.input = cudf.DataFrame.from_arrow(input)
+                self.fileType = DataType.CUDF
+            else:
+                self.input = cudf.DataFrame.from_arrow(input.schema.empty_table())
+                self.arrow_table = input
+        else:
+            self.input = input
+
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
+
         self.datasource = datasource
         self.num_row_groups = num_row_groups
-        self.fileType = fileType
+
         self.args = args
         if fileType == DataType.CUDF or DataType.DASK_CUDF:
             if(convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame)):
@@ -211,6 +261,31 @@ class BlazingTable(object):
                 self.dask_mapping = getNodePartitions(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
+
+    def filterAndRemapColumns(self,tableColumns):
+        #only used for arrow
+        new_table = self.arrow_table
+
+        columns = []
+        names = []
+        i = 0
+        for column in new_table.itercolumns():
+            for index in tableColumns:
+                if i == index:
+                    names.append(self.arrow_table.field(i).name)
+                    columns.append(column)
+            i = i + 1
+        new_table = pyarrow.Table.from_arrays(columns,names=names)
+        new_table = BlazingTable(new_table,DataType.ARROW,force_conversion=True)
+
+
+        return new_table
+
+    def convertForQuery(self):
+        return BlazingTable(self.arrow_table,DataType.ARROW,force_conversion=True)
+
+# until this is implemented we cant do self join with arrow tables
+#    def unionColumns(self,otherTable):
 
     def getSlices(self, numSlices):
         nodeFilesList = []
@@ -222,8 +297,8 @@ class BlazingTable(object):
         startIndex = 0
         for i in range(0, numSlices):
             batchSize = int(remaining / (numSlices - i))
-            # print(batchSize)
-            # print(startIndex)
+            # #print(batchSize)
+            # #print(startIndex)
             tempFiles = self.files[startIndex: startIndex + batchSize]
             uri_values = self.uri_values[startIndex: startIndex + batchSize]
 
@@ -274,7 +349,7 @@ class BlazingContext(object):
             dask_futures = []
             masterIndex = 0
             i = 0
-            print(network_interface)
+            ##print(network_interface)
             for worker in list(self.dask_client.scheduler_info()["workers"]):
                 dask_futures.append(
                     self.dask_client.submit(
@@ -292,8 +367,8 @@ class BlazingContext(object):
                 node['worker'] = worker_list[i]
                 node['ip'] = ralIp
                 node['communication_port'] = ralPort
-                print("ralport is")
-                print(ralPort)
+                #print("ralport is")
+                #print(ralPort)
                 self.nodes.append(node)
                 self.node_cwds.append(cwd)
                 i = i + 1
@@ -418,14 +493,17 @@ class BlazingContext(object):
             input = [input, ]
 
         if isinstance(input, pandas.DataFrame):
-            table = BlazingTable(
-                cudf.DataFrame.from_pandas(input),
-                DataType.CUDF)
-        elif isinstance(input, pyarrow.Table):
-            table = BlazingTable(
-                cudf.DataFrame.from_arrow(input),
-                DataType.CUDF)
-        elif isinstance(input, cudf.DataFrame):
+            input = cudf.DataFrame.from_pandas(input)
+
+        if isinstance(input, pyarrow.Table):
+            if (self.dask_client is not None):
+                input = cudf.DataFrame.from_arrow(input)
+            else:
+                table = BlazingTable(
+                input,
+                DataType.ARROW)
+
+        if isinstance(input, cudf.DataFrame):
             if (self.dask_client is not None):
                 table = BlazingTable(
                     input,
@@ -485,20 +563,36 @@ class BlazingContext(object):
         # a list, same size as tables, when we have a dask_cudf
         # table , tells us partitions that map to that table
 
-        for table in self.tables:
-            fileTypes.append(self.tables[table].fileType)
-            ftype = self.tables[table].fileType
+        if (algebra is None):
+            algebra = self.explain(sql)
+
+        if self.dask_client is None:
+            new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
+        else:
+            worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
+            connection = self.dask_client.submit(
+                cio.getTableScanInfoCaller,
+                algebra,
+                self.tables,
+                workers=[worker])
+            new_tables, relational_algebra_steps = connection.result()
+
+        algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
+        #print (new_tables)
+        for table in new_tables:
+            fileTypes.append(new_tables[table].fileType)
+            ftype = new_tables[table].fileType
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
-                currentTableNodes = self.tables[table].getSlices(
+                currentTableNodes = new_tables[table].getSlices(
                     len(self.nodes))
-            elif(self.tables[table].fileType == DataType.DASK_CUDF):
+            elif(new_tables[table].fileType == DataType.DASK_CUDF):
                 currentTableNodes = []
                 for node in self.nodes:
-                    currentTableNodes.append(self.tables[table])
-            elif(self.tables[table].fileType == DataType.CUDF):
+                    currentTableNodes.append(new_tables[table])
+            elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:
-                    currentTableNodes.append(self.tables[table])
+                    currentTableNodes.append(new_tables[table])
             j = 0
             for nodeList in nodeTableList:
                 nodeList[table] = currentTableNodes[j]
@@ -507,17 +601,17 @@ class BlazingContext(object):
         accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
-        if (algebra is None):
-            algebra = self.explain(sql)
+        #print(nodeTableList[0])
+        #print(self.nodes)
         if self.dask_client is None:
             result = cio.runQueryCaller(
-                masterIndex,
-                self.nodes,
-                self.tables,
-                fileTypes,
-                ctxToken,
-                algebra,
-                accessToken)
+                        masterIndex,
+                        self.nodes,
+                        nodeTableList[0],
+                        fileTypes,
+                        ctxToken,
+                        algebra,
+                        accessToken,)
         else:
             dask_futures = []
             i = 0
@@ -546,7 +640,7 @@ class BlazingContext(object):
             self.logs_table_name = logs_table_name
             log_files = [self.node_cwds[i] + '/RAL.' + \
                 str(i) + '.log' for i in range(0, len(self.node_cwds))]
-            print(log_files)
+            #print(log_files)
             dtypes = [
                 'date64',
                 'int32',
@@ -580,8 +674,8 @@ class BlazingContext(object):
                 dtype=dtypes,
                 names=names,
                 file_format='csv')
-            print("table created")
-            print(t)
+            #print("table created")
+            #print(t)
             self.logs_initialized = True
 
         return self.sql(query)

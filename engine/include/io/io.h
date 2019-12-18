@@ -4,6 +4,9 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <arrow/table.h>
+#include <memory>
+
 #pragma once
 
 typedef ral::io::DataType DataType;
@@ -24,6 +27,7 @@ struct TableSchema {
 	std::vector<bool> in_file;
 	int data_type;
 	ReaderArgs args;
+	std::shared_ptr<arrow::Table> arrow_table;
 };
 
 struct HDFS {

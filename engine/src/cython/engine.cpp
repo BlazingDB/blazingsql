@@ -8,6 +8,7 @@
 #include "../io/data_parser/GDFParser.h"
 #include "../io/data_parser/JSONParser.h"
 #include "../io/data_parser/OrcParser.h"
+#include "../io/data_parser/ArrowParser.h"
 #include "../io/data_parser/ParquetParser.h"
 #include "../io/data_parser/ParserUtil.h"
 #include "../io/data_provider/DummyProvider.h"
@@ -58,15 +59,18 @@ ResultSet runQuery(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, gdf_scalar>>> uri_values,
 	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
 	std::vector<std::vector<std::map<std::string, bool>>> is_column_string) {
+
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 
 	for(int i = 0; i < tableSchemas.size(); i++) {
+
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
 		std::vector<gdf_dtype> types;
 		std::vector<gdf_time_unit> time_units;
+
 
 		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
@@ -90,13 +94,15 @@ ResultSet runQuery(int32_t masterIndex,
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			parser = std::make_shared<ral::io::gdf_parser>(tableSchema);
+				parser = std::make_shared<ral::io::gdf_parser>(tableSchema);
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(tableSchema.args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {
 			parser = std::make_shared<ral::io::json_parser>(tableSchema.args.jsonReaderArg);
 		} else if(fileType == ral::io::DataType::CSV) {
 			parser = std::make_shared<ral::io::csv_parser>(tableSchema.args.csvReaderArg);
+		}else if(fileType == ral::io::DataType::ARROW){
+     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		}
 
 		std::shared_ptr<ral::io::data_provider> provider;
@@ -151,4 +157,13 @@ ResultSet runQuery(int32_t masterIndex,
 		std::cerr << e.what() << std::endl;
 		throw;
 	}
+}
+
+
+TableScanInfo getTableScanInfo(std::string logicalPlan){
+
+	std::vector<std::string> relational_algebra_steps, table_names;
+	std::vector<std::vector<int>> table_columns;
+	getTableScanInfo(logicalPlan, relational_algebra_steps, table_names, table_columns);
+	return TableScanInfo{relational_algebra_steps, table_names, table_columns};
 }
