@@ -64,19 +64,6 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 	return the_ip;
 }
 
-long gpuMemorySize() {
-	int gpuId = 0;
-	
-	// To get the total size of the current
-	struct cudaDeviceProp props;
-	CheckCudaErrors( cudaSetDevice(gpuId) );
-	cudaGetDeviceProperties(&props, gpuId);
-	size_t free, total;
-	cudaMemGetInfo(&free, &total);
-
-	return total;
-}
-
 void initialize(int ralId,
 	int gpuId,
 	std::string network_iface_name,
