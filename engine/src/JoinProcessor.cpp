@@ -10,7 +10,6 @@
 //#include <cub/cub.cuh>
 #include "DataFrame.h"
 #include "utilities/CommonOperations.h"
-#include "cuDF/safe_nvcategory_gather.hpp"
 #include <algorithm>
 #include <cudf/legacy/join.hpp>
 #include <numeric>
@@ -111,8 +110,6 @@ void evaluate_join(std::string condition,
 
 	cudf::table left_table = cudf::table{left_columns};
 	cudf::table right_table = cudf::table{right_columns};
-	ral::gather_and_remap_nvcategory(left_table);
-	ral::gather_and_remap_nvcategory(right_table);
 
 	std::vector<gdf_column *> result_idx_cols = {left_result, right_result};
 	cudf::table result_idx_table(result_idx_cols);
