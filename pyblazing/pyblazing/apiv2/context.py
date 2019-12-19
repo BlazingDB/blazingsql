@@ -112,6 +112,12 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False):
     ralCommunicationPort = random.randint(10000, 32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
+
+    cudf.set_allocator(allocator="managed",
+                        pool=True,
+                        initial_pool_size=None,# Default is 1/2 total GPU memory
+                        enable_logging=False)
+
     cio.initializeCaller(
         ralId,
         0,
