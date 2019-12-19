@@ -55,7 +55,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	ral::io::Schema schema;
 
 	try {
-		loader->get_schema(schema, extra_columns);
+		tableSchema.data_handles = reinterpret_cast<long long>(loader->get_schema(schema, extra_columns));
 	} catch(std::exception & e) {
 		throw;
 	}

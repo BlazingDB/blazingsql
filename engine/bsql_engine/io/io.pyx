@@ -157,8 +157,9 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     return_object['args'] = args
     return_object['columns'] = cudf.DataFrame()
     return_object['names'] = temp.names
-    return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
-    return_object['num_row_groups']= temp.num_row_groups
+    return_object['calcite_to_file_indices'] = temp.calcite_to_file_indices
+    return_object['num_row_groups'] = temp.num_row_groups
+    return_object['data_handles'] = temp.data_handles
     i = 0
     for column in temp.columns:
       column.col_name = return_object['names'][i]
@@ -243,6 +244,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       currentTableSchemaCpp.columns = columns
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.datasource = table.datasource
+      currentTableSchemaCpp.data_handles = table.data_handles if table.data_handles else 0
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
       if table.num_row_groups is not None:

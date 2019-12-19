@@ -110,8 +110,11 @@ ResultSet runQuery(int32_t masterIndex,
 			provider = std::make_shared<ral::io::dummy_data_provider>();
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)
-			provider = std::make_shared<ral::io::uri_data_provider>(
-				uris, uri_values[i], string_values[i], is_column_string[i]);
+			provider = std::make_shared<ral::io::uri_data_provider>(uris,
+				uri_values[i],
+				string_values[i],
+				is_column_string[i],
+				reinterpret_cast<std::vector<ral::io::data_handle> *>(tableSchema.data_handles));
 		}
 		ral::io::data_loader loader(parser, provider);
 		input_loaders.push_back(loader);
@@ -146,6 +149,15 @@ ResultSet runQuery(int32_t masterIndex,
 
 		ResultSet result = {columns, names};
 		//    std::cout<<"result looks ok"<<std::endl;
+
+		for(auto & tableSchema : tableSchemas) {
+			std::vector<ral::io::data_handle> * data_handles =
+				reinterpret_cast<std::vector<ral::io::data_handle> *>(tableSchema.data_handles);
+			if(nullptr != data_handles) {
+				delete data_handles;
+			}
+		}
+
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;

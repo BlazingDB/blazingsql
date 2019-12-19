@@ -195,7 +195,8 @@ class BlazingTable(object):
             convert_gdf_to_dask_partitions=1,
             client=None,
             uri_values=[],
-            in_file=[]):
+            in_file=[],
+            data_handles=None):
         self.input = input
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
@@ -211,6 +212,7 @@ class BlazingTable(object):
                 self.dask_mapping = getNodePartitions(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
+        self.data_handles = data_handles
 
     def getSlices(self, numSlices):
         nodeFilesList = []
@@ -449,7 +451,8 @@ class BlazingContext(object):
                 num_row_groups=parsedSchema['num_row_groups'],
                 args=parsedSchema['args'],
                 uri_values=uri_values,
-                in_file=in_file)
+                in_file=in_file,
+                data_handles=parsedSchema['data_handles'])
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
                 input,

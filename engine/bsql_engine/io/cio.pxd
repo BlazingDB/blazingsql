@@ -207,6 +207,7 @@ cdef extern from "../include/io/io.h":
         vector[bool] in_file
         int data_type
         ReaderArgs args
+        long long data_handles
     cdef struct HDFS:
         string host
         int port

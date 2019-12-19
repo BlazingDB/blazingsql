@@ -28,7 +28,8 @@ public:
 	uri_data_provider(std::vector<Uri> uris,
 		std::vector<std::map<std::string, gdf_scalar>> uri_scalars,
 		std::vector<std::map<std::string, std::string>> string_scalars,
-		std::vector<std::map<std::string, bool>> is_column_string);
+		std::vector<std::map<std::string, bool>> is_column_string,
+		std::vector<data_handle> * data_handles = nullptr);
 	uri_data_provider(std::vector<Uri> uris);
 	virtual ~uri_data_provider();
 	/**
@@ -67,6 +68,10 @@ public:
 	 */
 	size_t get_file_index();
 
+	std::vector<data_handle> * data_handles() const noexcept final { return data_handles_; }
+
+	void step() noexcept final { current_file++; };
+
 private:
 	/**
 	 * stores the list of uris that will be used by the provider
@@ -95,6 +100,7 @@ private:
 	std::vector<std::map<std::string, gdf_scalar>> uri_scalars;
 	std::vector<std::map<std::string, std::string>> string_scalars;
 	std::vector<std::map<std::string, bool>> is_column_string;
+	std::vector<data_handle> *data_handles_;
 	std::vector<Uri> directory_uris;
 	size_t directory_current_file;
 };

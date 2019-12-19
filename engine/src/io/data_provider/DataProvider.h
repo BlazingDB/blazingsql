@@ -56,6 +56,10 @@ public:
 
 	virtual std::vector<data_handle> get_all() = 0;
 
+  virtual std::vector<data_handle> * data_handles() const noexcept = 0;
+
+  virtual void step() noexcept = 0;
+
 private:
 };
 

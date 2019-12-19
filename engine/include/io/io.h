@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <io/data_provider/DataProvider.h>
 #pragma once
 
 typedef ral::io::DataType DataType;
@@ -24,6 +25,7 @@ struct TableSchema {
 	std::vector<bool> in_file;
 	int data_type;
 	ReaderArgs args;
+	long long data_handles;
 };
 
 struct HDFS {

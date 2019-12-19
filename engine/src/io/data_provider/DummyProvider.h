@@ -52,6 +52,15 @@ public:
 
 	size_t get_file_index() { return 0; }
 
+	std::vector<data_handle> * data_handles() const noexcept final /* __attribute__((noreturn)) */ {
+		// NOTE: You shouldn't have arrived here. This is only valid for queries from files.
+		// You must be validate you are no calling this function when there is not data_handles container
+		// throw std::runtime_error("no data handles in dummy");
+		return nullptr;
+	}
+
+	void step() noexcept final{};
+
 private:
 };
 

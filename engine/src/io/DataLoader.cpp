@@ -35,14 +35,41 @@ void data_loader::load_data(const Context & context,
 	std::vector<std::string> user_readable_file_handles;
 	std::vector<data_handle> files;
 
-	// iterates through files and parses them into columns
-	while(this->provider->has_next()) {
-		// std::cout<<"pushing back files!"<<std::endl;
-		// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-		user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
-		files.push_back(this->provider->get_next());
+	std::vector<data_handle> * data_handles = provider->data_handles();
+
+	// TODO: For now, we are using the environment variable for testing purposes.
+	const std::string fsCacheValue = std::getenv("BLAZINGSQL_FS_CACHE");
+	bool fsCacheEnabled = true;
+	if(!fsCacheValue.empty()) {
+		if("OFF" == fsCacheValue) {
+			fsCacheEnabled = false;
+		} else {
+			if("ON" != fsCacheValue) {
+				throw std::runtime_error("Invalid value for BLAZINGSQL_FS_CACHE (ON or OFF): " + fsCacheValue);
+			}
+		}
+
+		if(nullptr != data_handles && !fsCacheEnabled) {
+			std::cout << "no effect for fs cache" << std::endl;
+		}
 	}
-	// std::cout<<"pushed back"<<std::endl;
+
+	if(nullptr != data_handles && fsCacheEnabled) {
+		files = *data_handles;
+		while(this->provider->has_next()) {
+			user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
+			provider->step();
+		}
+	} else {
+		// iterates through files and parses them into columns
+		while(this->provider->has_next()) {
+			// std::cout<<"pushing back files!"<<std::endl;
+			// a file handle that we can use in case errors occur to tell the user which file had parsing issues
+			user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
+			files.push_back(this->provider->get_next());
+		}
+		// std::cout<<"pushed back"<<std::endl;
+	}
 
 	columns_per_file.resize(files.size());
 	// TODO NOTE percy c.gonzales rommel fix our concurrent reads here (better use of thread)
@@ -148,10 +175,11 @@ void data_loader::load_data(const Context & context,
 	timer.reset();
 }
 
-void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns) {
+std::vector<data_handle> * data_loader::get_schema(
+	Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns) {
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
-	bool firstIteration = true;
 	std::vector<data_handle> handles = this->provider->get_all();
+
 	for(auto handle : handles) {
 		files.push_back(handle.fileHandle);
 	}
@@ -164,6 +192,12 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	for(auto extra_column : non_file_columns) {
 		schema.add_column(extra_column.first, extra_column.second, 0, false);
 	}
+
+	// This pointers are released in the end of runquery (see engine.cpp)
+	std::vector<data_handle> * argument_handles = new std::vector<data_handle>;
+	*argument_handles = std::move(handles);
+
+	return argument_handles;
 }
 
 } /* namespace io */

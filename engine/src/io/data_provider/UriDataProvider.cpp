@@ -24,9 +24,10 @@ uri_data_provider::uri_data_provider(std::vector<Uri> uris)
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
 	std::vector<std::map<std::string, gdf_scalar>> uri_scalars,
 	std::vector<std::map<std::string, std::string>> string_scalars,
-	std::vector<std::map<std::string, bool>> is_column_string)
+	std::vector<std::map<std::string, bool>> is_column_string,
+	std::vector<data_handle> * data_handles)
 	: data_provider(), file_uris(uris), uri_scalars(uri_scalars), string_scalars(string_scalars),
-	  is_column_string(is_column_string), opened_files({}), current_file(0), errors({}), directory_uris({}),
+	  is_column_string(is_column_string), data_handles_(data_handles), opened_files({}), current_file(0), errors({}), directory_uris({}),
 	  directory_current_file(0) {
 	// thanks to c++11 we no longer have anything interesting to do here :)
 }
@@ -86,7 +87,9 @@ data_handle uri_data_provider::get_next() {
 			handle.is_column_string = this->is_column_string[this->current_file];
 		}
 
-		this->opened_files.push_back(file);
+		if(nullptr == data_handles_) {
+			this->opened_files.push_back(file);
+		}
 
 		this->directory_current_file++;
 		if(this->directory_current_file >= directory_uris.size()) {
@@ -167,7 +170,9 @@ data_handle uri_data_provider::get_next() {
 			std::shared_ptr<arrow::io::RandomAccessFile> file =
 				BlazingContext::getInstance()->getFileSystemManager()->openReadable(current_uri);
 
-			this->opened_files.push_back(file);
+			if(nullptr == data_handles_) {
+				this->opened_files.push_back(file);
+			}
 			data_handle handle;
 			handle.uri = current_uri;
 			handle.fileHandle = file;
