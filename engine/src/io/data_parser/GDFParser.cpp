@@ -6,7 +6,6 @@
  */
 
 #include "GDFParser.h"
-#include "ral-message.cuh"
 
 #include "io/data_parser/ParserUtil.h"
 
