@@ -24,7 +24,10 @@ GPUManager& GPUManager::getInstance() {
 
 void GPUManager::initialize(int deviceId) {
 	if (deviceId < 0 || deviceId >= totalDevices) {
-		throw std::runtime_error("In GPUManager::initialize function: Invalid deviceId");
+		const std::string dev_id = std::to_string(deviceId);
+		const std::string total_devs = std::to_string(totalDevices);
+		const std::string error_msg = "In GPUManager::initialize function: Invalid deviceId " + dev_id + " Total: " + total_devs;
+		throw std::runtime_error(error_msg);
 	}
 
 	currentDeviceId = deviceId;
