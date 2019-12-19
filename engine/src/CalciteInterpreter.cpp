@@ -903,11 +903,10 @@ query_token_t evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 			Context context = queryContext;
 			blazing_frame output_frame = evaluate_split_query(input_loaders, schemas, table_names, splitted, &context);
 
-			// REMOVE any columns that were ipcd to put into the result set
 			for(size_t index = 0; index < output_frame.get_size_column(); index++) {
 				gdf_column_cpp output_column = output_frame.get_column(index);
 
-				if(output_column.is_ipc() || output_column.has_token()) {
+				if(output_column.has_token()) {
 					output_frame.set_column(index, output_column.clone(output_column.name()));
 				}
 			}

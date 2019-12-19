@@ -24,7 +24,6 @@ gdf_column_cpp::gdf_column_cpp()
 	column = nullptr;
     this->allocated_size_data = 0;
     this->allocated_size_valid = 0;
-    this->is_ipc_column = false;
     this->column_token = 0;
 }
 
@@ -35,7 +34,6 @@ gdf_column_cpp::gdf_column_cpp(const gdf_column_cpp& col)
     this->allocated_size_data = col.allocated_size_data;
     this->allocated_size_valid = col.allocated_size_valid;
     this->set_name(col.column_name);
-    this->is_ipc_column = col.is_ipc_column;
     this->column_token = col.column_token;
     GDFRefCounter::getInstance()->increment(const_cast<gdf_column*>(col.column));
 
@@ -93,7 +91,6 @@ gdf_column_cpp gdf_column_cpp::clone(std::string name, bool register_column)
         }
     }
 
-    col1.is_ipc_column = false;
     col1.column_token = 0;
 	if(name == ""){
 		col1.set_name(this->column_name);
@@ -119,7 +116,6 @@ void gdf_column_cpp::operator=(const gdf_column_cpp& col)
     this->allocated_size_data = col.allocated_size_data;
     this->allocated_size_valid = col.allocated_size_valid;
     this->set_name(col.column_name);
-    this->is_ipc_column = col.is_ipc_column;
     this->column_token = col.column_token;
     GDFRefCounter::getInstance()->increment(const_cast<gdf_column*>(col.column));
 
@@ -166,35 +162,6 @@ gdf_valid_type * gdf_column_cpp::allocate_valid(){
 	return valid_device;
 }
 
-void gdf_column_cpp::create_gdf_column_for_ipc(gdf_dtype type, gdf_dtype_extra_info dtype_info, void * col_data,gdf_valid_type * valid_data, gdf_size_type num_values, gdf_size_type null_count, std::string column_name){
-    assert(type != GDF_invalid);
-    decrement_counter(column);
-
-    //TODO crate column here
-    this->column = new gdf_column{};
-    gdf_column_view(this->column, col_data, valid_data, num_values, type);
-    this->column->dtype_info = {dtype_info.time_unit, nullptr};
-    this->column->null_count = null_count;
-    int width = ral::traits::get_dtype_size_in_bytes(this->column);
-    this->allocated_size_data = num_values * width;
-
-    if(col_data == nullptr){
-        // std::cout<<"WARNING: create_gdf_column_for_ipc received null col_data"<<std::endl;
-        cuDF::Allocator::allocate((void**)&this->column->data, this->allocated_size_data);
-    }
-    if (valid_data == nullptr){
-        this->allocate_set_valid();
-    } else {
-        this->allocated_size_valid = gdf_valid_allocation_size(num_values);
-    }
-
-    is_ipc_column = true;
-    this->column_token = 0;
-    this->set_name(column_name);
-
-    //Todo: deprecated? or need to register the nvstrings pointers?
-}
-
 void gdf_column_cpp::create_gdf_column(NVCategory* category, size_t num_values,std::string column_name){
 
     decrement_counter(column);
@@ -224,7 +191,6 @@ void gdf_column_cpp::create_gdf_column(NVCategory* category, size_t num_values,s
         this->column->null_count = category->set_null_bitarray((gdf_valid_type*)this->column->valid);
     }
 
-    this->is_ipc_column = false;
     this->column_token = 0;
     this->set_name(column_name);
 
@@ -242,7 +208,6 @@ void gdf_column_cpp::create_gdf_column(NVStrings* strings, size_t num_values, st
     this->allocated_size_data = 0; // TODO: do we care? what should be put there?
     this->allocated_size_valid = 0;
 
-    this->is_ipc_column = false;
     this->column_token = 0;
     this->set_name(column_name);
 
@@ -260,7 +225,6 @@ void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtyp
     //needing to not require numvalues so it can be called rom outside
     this->get_gdf_column()->size = num_values;
     char * data = nullptr;
-    this->is_ipc_column = false;
     this->column_token = 0;
 
     this->allocated_size_data = (width_per_value * num_values);
@@ -304,7 +268,6 @@ void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtyp
     //needing to not require numvalues so it can be called rom outside
     this->get_gdf_column()->size = num_values;
     char * data = nullptr;
-    this->is_ipc_column = false;
     this->column_token = 0;
 
     this->allocated_size_data = (width_per_value * num_values);
@@ -354,7 +317,6 @@ void gdf_column_cpp::create_gdf_column(gdf_column * column, bool registerColumn)
         } else {
             this->allocated_size_valid = 0;
         }
-        this->is_ipc_column = false;
         this->column_token = 0;
         if (column->col_name)
             this->set_name(std::string(column->col_name));
@@ -378,7 +340,6 @@ void gdf_column_cpp::create_gdf_column(const gdf_scalar & scalar, const std::str
     this->get_gdf_column()->size = 1;
     this->get_gdf_column()->dtype = type;
     char * data;
-    this->is_ipc_column = false;
     this->column_token = 0;
     size_t width_per_value = ral::traits::get_dtype_size_in_bytes(type);
 
@@ -445,7 +406,6 @@ void gdf_column_cpp::allocate_like(const gdf_column_cpp& other){
 
     this->column = new gdf_column{};
 
-    this->is_ipc_column = false;
     this->column_token = 0;
 
     this->allocated_size_data = other.allocated_size_data;
@@ -490,17 +450,7 @@ gdf_error gdf_column_cpp::gdf_column_view(gdf_column *column, void *data, gdf_va
 
 gdf_column_cpp::~gdf_column_cpp()
 {
-	if(this->is_ipc_column){
-		//TODO: this is a big memory leak. we probably just need to have anothe reference
-		//counter, the valid pointer was allocated on our side
-		//we cant free it here because we dont know if this ipc column is used somewhere else
-	}else{
-	    GDFRefCounter::getInstance()->decrement(this->column);
-	}
-
-}
-bool gdf_column_cpp::is_ipc() const {
-	return this->is_ipc_column;
+	GDFRefCounter::getInstance()->decrement(this->column);
 }
 
 bool gdf_column_cpp::has_token(){

@@ -43,13 +43,11 @@ class gdf_column_cpp
 	void set_column_token(column_token_t column_token);
 
 	void set_dtype(gdf_dtype dtype);
-	bool is_ipc() const;
 
 	bool has_token();
 
 	gdf_column_cpp();
 	void create_gdf_column(gdf_column * column, bool registerColumn = true);
-    void create_gdf_column_for_ipc(gdf_dtype type, gdf_dtype_extra_info dtype_info, void * col_data,gdf_valid_type * valid_data, gdf_size_type num_values, gdf_size_type null_count, std::string column_name);
 
 	gdf_column_cpp(const gdf_column_cpp& col);
 
@@ -87,7 +85,7 @@ public:
     std::size_t get_valid_size() const;
 
     inline void decrement_counter(gdf_column* column) {
-        if ((column != nullptr) && (is_ipc_column == false)) {
+        if (column != nullptr) {
             GDFRefCounter::getInstance()->decrement(column);
         }
     }
@@ -101,7 +99,6 @@ private:
     std::size_t allocated_size_data{};
     std::size_t allocated_size_valid{};
     std::string column_name{};
-    bool is_ipc_column{};
     column_token_t column_token{};
 };
 

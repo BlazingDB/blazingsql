@@ -127,9 +127,6 @@ bool operator==(const gdf_column& lhs, const gdf_column& rhs) {
 }
 
 bool operator==(const gdf_column_cpp& lhs, const gdf_column_cpp& rhs) {
-    if (lhs.is_ipc() != rhs.is_ipc()) {
-        return false;
-    }
     if (lhs.get_column_token() != rhs.get_column_token()) {
         return false;
     }
