@@ -10,23 +10,23 @@ namespace config {
 class GPUManager
 {
 public:
-  static GPUManager& getInstance();
-  
-  void initialize(int deviceId);
-  void setDevice();
-  size_t gpuMemorySize();
-  int getDeviceId();
+	static GPUManager& getInstance();
+	
+	void initialize(int deviceId);
+	void setDevice();
+	size_t gpuMemorySize();
+	int getDeviceId();
 
-  GPUManager(GPUManager&&) = delete;
-  GPUManager(const GPUManager&) = delete;
-  GPUManager& operator=(GPUManager&&) = delete;
-  GPUManager& operator=(const GPUManager&) = delete;
+	GPUManager(GPUManager&&) = delete;
+	GPUManager(const GPUManager&) = delete;
+	GPUManager& operator=(GPUManager&&) = delete;
+	GPUManager& operator=(const GPUManager&) = delete;
 
 private:
-  GPUManager();
+	GPUManager();
 
-  int currentDeviceId;
-  int totalDevices;
+	int currentDeviceId;
+	int totalDevices;
 };
 
 } // namespace config
