@@ -274,6 +274,14 @@ class BlazingTable(object):
         # a pair of values with the startIndex and batchSize info for each slice
         self.offset = (0,0)
 
+
+    def has_metadata(self) :
+        if isinstance(self.metadata, dask_cudf.core.DataFrame):
+            return not self.metadata.compute().empty
+        if self.metadata is not None :
+            return not self.metadata.empty
+        return False
+
     def filterAndRemapColumns(self,tableColumns):
         #only used for arrow
         new_table = self.arrow_table
@@ -658,6 +666,8 @@ class BlazingContext(object):
                 result = dask.dataframe.from_delayed(dask_futures)
                 for index in range(len(self.nodes)):
                     file_indices_and_rowgroup_indices = result.get_partition(index).compute()
+                    if file_indices_and_rowgroup_indices.empty :
+                        continue
                     print("file_indices_and_rowgroup_indices\n", file_indices_and_rowgroup_indices)
                     file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
@@ -713,7 +723,8 @@ class BlazingContext(object):
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
             scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-            self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
+            if new_tables[table].has_metadata():
+                self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
 
         ctxToken = random.randint(0, 64000)
         accessToken = 0
