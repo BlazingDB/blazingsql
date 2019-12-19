@@ -29,6 +29,7 @@ bc.create_table('simple', path_parquet)
 query = """select *
             from 
               simple
+              where int64_field < 300000 or  int64_field > 900000 
             """
 # [b'c_custkey', b'c_name', b'c_address', b'c_nationkey', b'c_phone', b'c_acctbal', b'c_mktsegment', b'c_comment']
 lp = bc.explain(query)

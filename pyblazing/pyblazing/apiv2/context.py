@@ -593,17 +593,24 @@ class BlazingContext(object):
             # TODO process skip_data caller for each table!
             for table in self.tables:
                 file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, self.tables, fileTypes, ctxToken, tablescan_str, accessToken)
-                print("file_indices_and_rowgroup_indices:\n ", file_indices_and_rowgroup_indices)
-                print("num_row_groups: ", self.tables[table].num_row_groups)
                 file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
+                files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
+                print("self.tables[table].files: ", self.tables[table].files)
 
-                # file_indices = file_and_rowgroup_indices['file_handle_index'].to_pandas()
-                # current_row_groups_ids = rowgroups.values.tolist() 
-                # print("num_row_groups: ", current_row_groups_ids)
-                # print("current_files: ", self.tables[table].files)
-                self.tables[table].files = [self.tables[table].files[index] for index in file_and_rowgroup_indices['file_handle_index']]
                 grouped = file_and_rowgroup_indices.groupby('file_handle_index')
-                print(grouped)
+
+                actual_files = []
+
+                self.tables[table].row_groups_ids = []
+                for index in range(len(grouped.groups)):
+                    row_indices = grouped.groups[index].values.tolist()
+                    actual_files.append(self.tables[table].files[index])
+                    row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
+                    row_group_ids = [row_groups_col[i] for i in row_indices]
+                    self.tables[table].row_groups_ids.append(row_group_ids)
+                self.tables[table].files = actual_files
+                print("self.tables[table].files: ", self.tables[table].files)
+                print("self.tables[table].row_groups_ids: ", self.tables[table].row_groups_ids)
 
             result = cio.runQueryCaller(
                 masterIndex,

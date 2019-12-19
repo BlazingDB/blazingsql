@@ -58,8 +58,7 @@ ResultSet runQuery(int32_t masterIndex,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, gdf_scalar>>> uri_values,
 	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
-	std::vector<std::vector<std::map<std::string, bool>>> is_column_string,
-	std::vector<std::vector<int>> rowGroupAll) {
+	std::vector<std::vector<std::map<std::string, bool>>> is_column_string) {
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 
@@ -80,13 +79,15 @@ ResultSet runQuery(int32_t masterIndex,
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
 			time_units.push_back(tableSchemas[i].columns[col]->dtype_info.time_unit);
 		}
-
+		
 		auto schema = ral::io::Schema(tableSchema.names,
 			tableSchema.calcite_to_file_indices,
 			types,
 			tableSchema.num_row_groups,
 			time_units,
-			tableSchema.in_file);
+			tableSchema.in_file,
+			tableSchema.row_groups_ids
+			);
 
 		std::shared_ptr<ral::io::data_parser> parser;
 		if(fileType == ral::io::DataType::PARQUET) {

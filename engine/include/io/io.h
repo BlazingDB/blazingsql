@@ -26,6 +26,7 @@ struct TableSchema {
 	ReaderArgs args;
 
 	std::vector<gdf_column *> metadata;
+	std::vector<std::vector<int>> row_groups_ids;
 };
 
 struct HDFS {

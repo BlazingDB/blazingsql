@@ -60,7 +60,7 @@ void data_loader::load_data(const Context & context,
 				// std::cout<<"get num columns==>"<<schema.get_num_columns()<<std::endl;
 				// std::cout<<"file is "<< user_readable_file_handles[file_index]<<" with uri
 				// "<<files[file_index].uri.getPath().toString()<<std::endl;
-				Schema fileSchema = schema.fileSchema();
+				Schema fileSchema = schema.fileSchema(file_index);
 				parser->parse(files[file_index].fileHandle,
 					user_readable_file_handles[file_index],
 					converted_data,

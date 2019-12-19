@@ -85,8 +85,8 @@ cdef cio.TableSchema parseMetadataPython(vector[string] files, pair[int,int] off
     temp = cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values,extra_columns)
     return temp
 
-cdef cio.ResultSet runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string, vector[vector[int]] rowGroupAll) except *:
-    temp = cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string, rowGroupAll)
+cdef cio.ResultSet runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
+    temp = cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string)
     return temp
 
 cdef cio.ResultSet runSkipDataPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
@@ -247,10 +247,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef TableSchema currentTableSchemaCpp
     cdef NodeMetaDataTCP currentMetadataCpp
     cdef vector[vector[string]] filesAll
-    cdef vector[string] currentFilesAll
-
-    cdef vector[vector[int]] rowGroupAll
-    cdef vector[int] currentRowGroup
+    cdef vector[string] currentFilesAll 
 
     cdef vector[vector[map[string,gdf_scalar]]] uri_values_cpp_all
     cdef vector[map[string,gdf_scalar]] uri_values_cpp
@@ -324,12 +321,11 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       for key, value in table.args.items():
           tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
           tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
-
-      currentRowGroup.resize(0)
-      if table.num_row_groups is not None:
-        for row_group in table.row_groups_ids:
-          currentRowGroup.push_back(row_group)
-      rowGroupAll.push_back(currentRowGroup)
+ 
+      if table.row_groups_ids is not None:
+        currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
+      else:
+        currentTableSchemaCpp.row_groups_ids = []
 
       tableSchemaCpp.push_back(currentTableSchemaCpp);
       tableIndex = tableIndex + 1
@@ -339,7 +335,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    temp = runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all, rowGroupAll)
+    temp = runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all)
 
     df = cudf.DataFrame()
     i = 0

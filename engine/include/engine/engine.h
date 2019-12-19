@@ -31,8 +31,7 @@ ResultSet runQuery(int32_t masterIndex,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, gdf_scalar>>> uri_values,
 	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
-	std::vector<std::vector<std::map<std::string, bool>>> is_column_string,
-	std::vector<std::vector<int>> rowGroupAll);
+	std::vector<std::vector<std::map<std::string, bool>>> is_column_string);
 
 ResultSet runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
