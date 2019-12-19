@@ -40,6 +40,7 @@
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
 #include <blazingdb/manager/Context.h>
+#include "Utils.cuh"
 
 
 std::string get_ip(const std::string & iface_name = "eth0") {
@@ -65,6 +66,38 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 	return the_ip;
 }
 
+std::pair<int, long> gpuMemorySize() {
+
+	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
+	int gpuId = -1;
+
+	if (env_cuda_device){
+		if (env_cuda_device[0] == '[' || std::string(env_cuda_device).find(',') != std::string::npos) {
+			throw std::runtime_error("CUDA_VISIBLE_DEVICES shoul be a unique value");
+		}
+
+		gpuId = std::atoi(env_cuda_device);
+		std::cout << "CUDA_VISIBLE_DEVICES is set to: " << gpuId << std::endl; 
+	} else {
+		gpuId = 0;
+		std::cout << "CUDA_VISIBLE_DEVICES is not set, using default GPU: " << gpuId << std::endl;
+	}
+
+	std::pair<int, long> pairValue;
+	pairValue.first = gpuId;
+	
+	// To get the total size of the current
+	struct cudaDeviceProp props;
+	CheckCudaErrors( cudaSetDevice(gpuId) );
+	cudaGetDeviceProperties(&props, gpuId);
+	size_t free, total;
+	cudaMemGetInfo(&free, &total);
+
+	pairValue.second = total;
+
+	return pairValue;
+}
+
 void initialize(int ralId,
 	int gpuId,
 	std::string network_iface_name,
@@ -88,7 +121,9 @@ void initialize(int ralId,
 	initLogMsg = initLogMsg + (singleNode ? ", Is Single Node, " : ", Is Not Single Node, ");
 	
 	// TODO alexander felipe percy
-	long total_gpu_mem_size = 1 * 1024 * 1024 * 1024;	 	// 16 GB
+	std::pair<int, long> valuesByNode = gpuMemorySize();
+	long total_gpu_mem_size = valuesByNode.second;  
+	std::cout << "---Total GPU mem size: " << total_gpu_mem_size << " bytes" << std::endl;
 	
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
