@@ -102,16 +102,17 @@ void initialize(int ralId,
 	// }
 
 	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
-
+	gpuId = 0; // NOTE: This is the default value
 	if (env_cuda_device){
-		std::string devsinfo(env_cuda_device);
-		std::cout << "CUDA_VISIBLE_DEVICES is set to: " << devsinfo << std::endl;
+		gpuId = std::atoi(env_cuda_device);
+		std::cout << "CUDA_VISIBLE_DEVICES is set to: " << gpuId << std::endl;
 	} else {
-		std::cout << "CUDA_VISIBLE_DEVICES is not set, using default GPU: 0" << std::endl;
+		std::cout << "CUDA_VISIBLE_DEVICES is not set, using default GPU: " << gpuId << std::endl;
 	}
+	ral::config::GPUManager::getInstance().initialize(gpuId);
+	std::cout << "Using GPU: " << ral::config::GPUManager::getInstance().getDeviceId() << std::endl;
 
-	long total_gpu_mem_size = gpuMemorySize();
-	std::cout << "---Total GPU mem size: " << total_gpu_mem_size << " bytes" << std::endl;
+	size_t total_gpu_mem_size = ral::config::GPUManager::getInstance().gpuMemorySize();
 	assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
