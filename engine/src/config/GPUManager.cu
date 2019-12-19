@@ -27,7 +27,7 @@ void GPUManager::initialize(int deviceId) {
 }
 
 void GPUManager::setDevice() {
-	CheckCudaErrors( cudaSetDevice(currentDeviceId) );
+	//CheckCudaErrors( cudaSetDevice(currentDeviceId) );
 }
 
 size_t GPUManager::gpuMemorySize() {
