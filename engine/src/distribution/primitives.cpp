@@ -7,7 +7,6 @@
 #include "communication/messages/ComponentMessages.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
-#include "config/GPUManager.cuh"
 #include "cuDF/generator/sample_generator.h"
 #include "cuDF/safe_nvcategory_gather.hpp"
 #include "distribution/Exception.h"
@@ -538,7 +537,6 @@ void distributePartitions(const Context & context, std::vector<NodeColumns> & pa
 		std::vector<gdf_column_cpp> columns = nodeColumn.getColumns();
 		auto destination_node = nodeColumn.getNode();
 		threads.push_back(std::thread([message_id, context_token, self_node, destination_node, columns]() mutable {
-			ral::config::GPUManager::getInstance().setDevice();
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
 		}));
@@ -1040,7 +1038,6 @@ void broadcastMessage(
 	for(size_t i = 0; i < nodes.size(); i++) {
 		std::shared_ptr<Node> node = nodes[i];
 		threads[i] = std::thread([node, message]() {
-			ral::config::GPUManager::getInstance().setDevice();
 			ral::communication::network::Client::send(*node, *message);
 		});
 	}
