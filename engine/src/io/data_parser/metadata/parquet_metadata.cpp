@@ -306,7 +306,7 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 	std::vector<std::thread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
-		threads[file_index] = std::thread([&guard, &metadata_offset,  &parquet_readers, file_index, &minmax_metadata_table ](){
+		threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, &minmax_metadata_table ](){
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 
 		  int num_row_groups = file_metadata->num_row_groups();

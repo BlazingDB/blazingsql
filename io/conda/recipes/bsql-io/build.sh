@@ -20,7 +20,7 @@ fi
 mkdir -p build
 cd build
 
-echo "cmake .. -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}"
+echo "cmake .. -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}"
 cmake .. -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
 
 if [ "$run_test" == "ON" ]; then

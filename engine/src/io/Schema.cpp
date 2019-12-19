@@ -139,7 +139,8 @@ Schema Schema::fileSchema(size_t current_file_index) const {
 		}
 	}
 	// Just get the associated row_groups for current_file_index
-	schema.row_groups_ids.push_back(this->row_groups_ids.at(current_file_index));
+	// TODO, @alex
+	// schema.row_groups_ids.push_back(this->row_groups_ids.at(current_file_index));
 	return schema;
 }
 

@@ -33,6 +33,15 @@ ResultSet runQuery(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
 	std::vector<std::vector<std::map<std::string, bool>>> is_column_string);
 
+
+struct TableScanInfo {
+	std::vector<std::string> relational_algebra_steps;
+	std::vector<std::string> table_names;
+	std::vector<std::vector<int>> table_columns;
+};
+
+TableScanInfo getTableScanInfo(std::string logicalPlan);
+
 ResultSet runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,

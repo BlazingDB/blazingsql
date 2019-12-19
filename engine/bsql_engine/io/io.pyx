@@ -17,6 +17,9 @@ from libcpp.map cimport map
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
+from pyarrow.lib cimport *
+
+import enum
 
 import numpy as np
 import pandas as pd
@@ -26,7 +29,7 @@ import cudf
 from cudf.utils import cudautils
 from cudf.utils.dtypes import is_categorical_dtype
 from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
-from cudf.core.buffer import Buffer
+
 from cudf.core.column.column import build_column
 import rmm
 import nvstrings
@@ -91,6 +94,10 @@ cdef cio.ResultSet runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMe
 
 cdef cio.ResultSet runSkipDataPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
     temp = cio.runSkipData( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string)
+    return temp
+
+cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
+    temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
 cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except *:
@@ -184,8 +191,6 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
     cdef vector[string] arg_values
     cdef TableSchema cpp_schema
 
-    print("schema['names']: ", schema['names'])
-    
     for col in schema['columns']:
         cpp_schema.columns.push_back(column_view_from_column(schema['columns'][col]._column))
         cpp_schema.names.push_back(col.encode())
@@ -220,10 +225,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
 
     df = cudf.DataFrame()
     i = 0
-    print("col_size: ", temp.columns.size())
     for column in temp.columns:
-      print(" column.data == NULL?",  column.data == NULL)
-      print("col:", column.col_name, column.dtype, column.size, column.size, column.null_count, column.dtype_info.time_unit);
       column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
       strcpy(column.col_name, temp.names[i].c_str())
       df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
@@ -322,16 +324,16 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
           tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
           tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
  
-      if table.row_groups_ids is not None:
-        currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
-      else:
-        currentTableSchemaCpp.row_groups_ids = []
+      # if table.row_groups_ids is not None:
+      #   currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
+      # else:
+      #   currentTableSchemaCpp.row_groups_ids = []
 
       tableSchemaCpp.push_back(currentTableSchemaCpp);
       tableIndex = tableIndex + 1
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        print(currentMetadata['communication_port'])
+        #print(currentMetadata['communication_port'])
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
@@ -348,7 +350,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
 
 
 
-cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
+cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
     query = str.encode(queryPy)
     cdef vector[NodeMetaDataTCP] tcpMetadataCpp
@@ -381,76 +383,75 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fil
     cdef gdf_scalar_ptr scalar_ptr
     cdef gdf_scalar scalar
 
+    tableName, table = table_obj
 
     tableIndex = 0
-    for tableName in tables:
-      string_values_cpp.empty()
-      uri_values_cpp.empty()
-      for uri_value in tables[tableName].uri_values:
-        cur_uri_values.clear()
-        cur_string_values.clear()
-        for column_tuple in uri_value:
-          key = column_tuple[0]
-          value = column_tuple[1]
-          if type(value) == np.str:
-            cur_is_string_column[key.encode()] = True
-            cur_string_values[key.encode()] = value.encode()
-          else:
-            scalar_ptr = gdf_scalar_from_scalar(value)
-            scalar = scalar_ptr[0]
-            free(scalar_ptr)
-            cur_is_string_column[key.encode()] = False
-            cur_uri_values[key.encode()] = scalar
-        uri_values_cpp.push_back(cur_uri_values)
-        string_values_cpp.push_back(cur_string_values)
-        is_string_column.push_back(cur_is_string_column)
-      uri_values_cpp_all.push_back(uri_values_cpp)
-      string_values_cpp_all.push_back(string_values_cpp)
-      is_string_column_all.push_back(is_string_column)
-
+    string_values_cpp.empty()
+    uri_values_cpp.empty()
+    for uri_value in table.uri_values:
+      cur_uri_values.clear()
+      cur_string_values.clear()
+      for column_tuple in uri_value:
+        key = column_tuple[0]
+        value = column_tuple[1]
+        if type(value) == np.str:
+          cur_is_string_column[key.encode()] = True
+          cur_string_values[key.encode()] = value.encode()
+        else:
+          scalar_ptr = gdf_scalar_from_scalar(value)
+          scalar = scalar_ptr[0]
+          free(scalar_ptr)
+          cur_is_string_column[key.encode()] = False
+          cur_uri_values[key.encode()] = scalar
+      uri_values_cpp.push_back(cur_uri_values)
+      string_values_cpp.push_back(cur_string_values)
       is_string_column.push_back(cur_is_string_column)
-      tableNames.push_back(str.encode(tableName))
-      table = tables[tableName]
-      currentFilesAll.resize(0)
-      if table.files is not None:
-        for file in table.files:
-          currentFilesAll.push_back(file)
-      filesAll.push_back(currentFilesAll)
-      columns.resize(0)
-      names.resize(0)
-      fileType = fileTypes[tableIndex]
-      for col in table.input:
-        names.push_back(col.encode())
-        columns.push_back(column_view_from_column(table.input[col]._column))
-      currentTableSchemaCpp.columns = columns
-      currentTableSchemaCpp.names = names
-      currentTableSchemaCpp.datasource = table.datasource
-      if table.calcite_to_file_indices is not None:
-        currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
-      if table.num_row_groups is not None:
-        currentTableSchemaCpp.num_row_groups = table.num_row_groups
-      currentTableSchemaCpp.in_file = table.in_file
-      currentTableSchemaCppArgKeys.resize(0)
-      currentTableSchemaCppArgValues.resize(0)
-      tableSchemaCppArgKeys.push_back(currentTableSchemaCppArgKeys)
-      tableSchemaCppArgValues.push_back(currentTableSchemaCppArgValues)
-      for key, value in table.args.items():
-          tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
-          tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
+    uri_values_cpp_all.push_back(uri_values_cpp)
+    string_values_cpp_all.push_back(string_values_cpp)
+    is_string_column_all.push_back(is_string_column)
 
+    is_string_column.push_back(cur_is_string_column)
+    tableNames.push_back(str.encode(tableName))
+    currentFilesAll.resize(0)
+    if table.files is not None:
+      for file in table.files:
+        currentFilesAll.push_back(file)
+    filesAll.push_back(currentFilesAll)
+    columns.resize(0)
+    names.resize(0)
+    fileType = fileTypes[tableIndex]
+    for col in table.input:
+      names.push_back(col.encode())
+      columns.push_back(column_view_from_column(table.input[col]._column))
+    currentTableSchemaCpp.columns = columns
+    currentTableSchemaCpp.names = names
+    currentTableSchemaCpp.datasource = table.datasource
+    if table.calcite_to_file_indices is not None:
+      currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
+    if table.num_row_groups is not None:
+      currentTableSchemaCpp.num_row_groups = table.num_row_groups
+    currentTableSchemaCpp.in_file = table.in_file
+    currentTableSchemaCppArgKeys.resize(0)
+    currentTableSchemaCppArgValues.resize(0)
+    tableSchemaCppArgKeys.push_back(currentTableSchemaCppArgKeys)
+    tableSchemaCppArgValues.push_back(currentTableSchemaCppArgValues)
+    for key, value in table.args.items():
+        tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
+        tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
 
-      for col in table.metadata:
-        currentTableSchemaCpp.metadata.push_back(column_view_from_column(table.metadata[col]._column))
+    for col in table.metadata:
+      currentTableSchemaCpp.metadata.push_back(column_view_from_column(table.metadata[col]._column))
 
-      tableSchemaCpp.push_back(currentTableSchemaCpp);
-      tableIndex = tableIndex + 1
+    tableSchemaCpp.push_back(currentTableSchemaCpp);
+
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
         print(currentMetadata['communication_port'])
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
-
+    print(">>> runSkipDataPython")
     temp = runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all)
+    print("<<< runSkipDataPython")
 
     df = cudf.DataFrame()
     i = 0
@@ -460,3 +461,38 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fil
       df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
       i = i + 1
     return df
+
+cpdef getTableScanInfoCaller(logicalPlan,tables):
+    temp = getTableScanInfoPython(str.encode(logicalPlan))
+    #print(temp)
+    new_tables = {}
+    table_names = [name.decode('utf-8') for name in temp.table_names]
+
+    relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
+    relational_algebra_steps = {}
+    for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
+
+        new_table = tables[table_name]
+
+        # TODO percy c.gonzales felipe
+        if new_table.fileType == 6:
+          if table_name in new_tables:
+            #TODO: this is not yet implemented the function unionColumns needs to be NotImplemented
+            #for this to work
+            temp_table = new_tables[table_name].filterAndRemapColumns(table_columns)
+            new_tables[table_name] = temp_table.unionColumns(new_tables[table_name])
+          else:
+            if len(table_columns) != 0:
+              new_table = new_table.filterAndRemapColumns(table_columns)
+            else:
+              new_table = new_table.convertForQuery()
+        if table_name in relational_algebra_steps:
+          relational_algebra_steps[table_name]['table_scans'].append(scan_string)
+          relational_algebra_steps[table_name]['table_columns'].append(table_columns)
+        else:
+          relational_algebra_steps[table_name] = {}
+          relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
+          relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
+
+        new_tables[table_name] = new_table
+    return new_tables, relational_algebra_steps

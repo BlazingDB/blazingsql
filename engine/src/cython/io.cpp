@@ -90,7 +90,7 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	std::vector<std::pair<std::string, gdf_dtype>> extra_columns) {
 	if (offset.second == 0) {
 		// cover case for empty files to parse
-		std::cout << "empty offset: " << std::endl;
+		// std::cout << "empty offset: " << std::endl;
 		
 		std::vector<size_t> column_indices(2 * schema.columns.size() + 2);
 		std::iota(column_indices.begin(), column_indices.end(), 0);
@@ -127,13 +127,10 @@ TableSchema parseMetadata(std::vector<std::string> files,
 		time_units[2*index + 1] = TIME_UNIT_NONE;
 		names[2*index + 1] = "row_group_index";
 				
-		std::cout << "create_empty_columns: " << std::endl;
 		auto columns_cpp = ral::io::create_empty_columns(names, dtypes, time_units, column_indices);
 		TableSchema tableSchema;
 
 		for(auto column_cpp : columns_cpp) {
-			std::cout << "get_metadata: " << column_cpp.get_gdf_column()->data << " | " <<  column_cpp.get_gdf_column()->dtype << " | " << column_cpp.get_gdf_column()->col_name << std::endl;
-
 			GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
 			tableSchema.columns.push_back(column_cpp.get_gdf_column());
 			tableSchema.names.push_back(column_cpp.name());
@@ -160,7 +157,6 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	} else if(fileType == ral::io::DataType::CSV) {
 		parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
 	}
-	std::cout << "offset: " << offset.first << "|" << offset.second << std::endl;
 	std::vector<Uri> uris;
 	for(auto file_path : files) {
 		uris.push_back(Uri{file_path});
@@ -182,8 +178,6 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	auto gdf_columns = metadata.get_columns();
  
 	for(auto column_cpp : gdf_columns) {
-		std::cout << "get_metadata: " << column_cpp.get_gdf_column()->data << " | " <<  column_cpp.get_gdf_column()->dtype << " | " << column_cpp.get_gdf_column()->col_name << std::endl;
-
 		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
 		tableSchema.columns.push_back(column_cpp.get_gdf_column());
 		tableSchema.names.push_back(column_cpp.name());

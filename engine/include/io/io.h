@@ -4,6 +4,9 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <arrow/table.h>
+#include <memory>
+
 #pragma once
 
 typedef ral::io::DataType DataType;
@@ -27,6 +30,7 @@ struct TableSchema {
 
 	std::vector<gdf_column *> metadata;
 	std::vector<std::vector<int>> row_groups_ids;
+	std::shared_ptr<arrow::Table> arrow_table;
 };
 
 struct HDFS {
