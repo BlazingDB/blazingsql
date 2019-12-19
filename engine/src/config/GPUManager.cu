@@ -9,7 +9,6 @@ namespace ral {
 namespace config {
 
 GPUManager::GPUManager() : currentDeviceId{0} {
-	CheckCudaErrors( cudaGetDeviceCount(&totalDevices) );
 }
 
 int GPUManager::getDeviceId() {
@@ -23,13 +22,6 @@ GPUManager& GPUManager::getInstance() {
 }
 
 void GPUManager::initialize(int deviceId) {
-	if (deviceId < 0 || deviceId >= totalDevices) {
-		const std::string dev_id = std::to_string(deviceId);
-		const std::string total_devs = std::to_string(totalDevices);
-		const std::string error_msg = "In GPUManager::initialize function: Invalid deviceId " + dev_id + " Total: " + total_devs;
-		throw std::runtime_error(error_msg);
-	}
-
 	currentDeviceId = deviceId;
 	setDevice();
 }
