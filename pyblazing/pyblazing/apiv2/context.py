@@ -233,7 +233,8 @@ class BlazingTable(object):
             client=None,
             uri_values=[],
             in_file=[],
-            force_conversion=False):
+            force_conversion=False,
+            data_handles=None):
         self.fileType = fileType
         if fileType == DataType.ARROW:
             if force_conversion:

@@ -6,6 +6,7 @@
 #include <vector>
 #include <arrow/table.h>
 #include <memory>
+#include <io/data_provider/DataProvider.h>
 
 #pragma once
 
@@ -28,6 +29,7 @@ struct TableSchema {
 	int data_type;
 	ReaderArgs args;
 	std::shared_ptr<arrow::Table> arrow_table;
+	long long data_handles;
 };
 
 struct HDFS {

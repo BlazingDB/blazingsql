@@ -213,6 +213,7 @@ cdef extern from "../include/io/io.h":
         int data_type
         ReaderArgs args
         shared_ptr[CTable] arrow_table
+        long long data_handles
     cdef struct HDFS:
         string host
         int port
