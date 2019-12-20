@@ -73,7 +73,7 @@ void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 		columns_out.resize(column_indices.size());
 		for(size_t i = 0; i < table_and_metadata.tbl->num_columns(); i++) {
-			if(table_and_metadata.tbl->get_column(i).type() == cudf::type_id::STRING) {
+			if(table_and_metadata.tbl->get_column(i).type().id() == cudf::type_id::STRING) {
 				std::cout<<"String!!!!\n\n";
 				/*NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
 				NVCategory * category = NVCategory::create_from_strings(*strs);

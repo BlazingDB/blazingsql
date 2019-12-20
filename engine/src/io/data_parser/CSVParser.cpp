@@ -15,6 +15,10 @@
 #include <iostream>
 #include <numeric>
 
+#include <cudf/table/table.hpp>
+#include <cudf/io/functions.hpp>
+#include <blazingdb/io/Library/Logging/Logger.h>
+
 #include <algorithm>
 #include <numeric>
 #define checkError(error, txt)                                                                                         \
@@ -57,6 +61,49 @@ csv_parser::csv_parser(cudf::csv_read_arg arg) : csv_arg{arg} {}
 
 csv_parser::~csv_parser() {}
 
+
+cudf::experimental::io::read_csv_args das_BOT(std::shared_ptr<arrow::io::RandomAccessFile> file, cudf::csv_read_arg old) {
+	cudf::experimental::io::read_csv_args readerArg{cudf::experimental::io::source_info(file)};
+
+	// TODO rommel One of: `none`, `infer`, `bz2`, `gz`, `xz`, `zip`; default detects from file extension
+	readerArg.compression = cudf::experimental::io::compression_type::NONE;
+	readerArg.lineterminator = old.lineterminator;
+	readerArg.delimiter = old.delimiter;
+	readerArg.windowslinetermination = old.windowslinetermination;
+	readerArg.delim_whitespace = old.delim_whitespace;
+	readerArg.skipinitialspace = old.skipinitialspace;
+	readerArg.skip_blank_lines = old.skip_blank_lines;
+	readerArg.nrows = old.nrows;
+	readerArg.skiprows = old.skiprows;
+	readerArg.skipfooter = old.skipfooter;
+//} else {
+	// NOTE check this default value percy c.cordova
+	readerArg.header = -1;
+//}
+	readerArg.names = old.names;
+	readerArg.dtype = old.dtype;
+	readerArg.use_cols_indexes = old.use_cols_indexes;
+	readerArg.use_cols_names = old.use_cols_names;
+	readerArg.true_values = old.true_values;
+	readerArg.false_values = old.false_values;
+	readerArg.na_values = old.na_values;
+	readerArg.keep_default_na = old.keep_default_na;
+	readerArg.na_filter = old.na_filter;
+	readerArg.prefix = old.prefix;
+	readerArg.mangle_dupe_cols = old.mangle_dupe_cols;
+	readerArg.dayfirst = old.dayfirst;
+	readerArg.thousands = old.thousands;
+	readerArg.decimal = old.decimal;
+	readerArg.comment = old.comment;
+	readerArg.quotechar = old.quotechar;
+// if (in("quoting", args)) {
+//    readerArg.quoting = old.quoting"]
+	readerArg.doublequote = old.doublequote;
+	readerArg.byte_range_offset = old.byte_range_offset;
+	readerArg.byte_range_size = old.byte_range_size;
+	// TODO
+	// readerArg.out_time_unit = old.out_time_unit"]
+}
 // schema is not really necessary yet here, but we want it to maintain compatibility
 void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
@@ -80,9 +127,11 @@ void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		csv_arg.use_cols_indexes.resize(column_indices.size());
 		csv_arg.use_cols_indexes.assign(column_indices.begin(), column_indices.end());
 
-		cudf::table table_out = read_csv_arg_arrow(csv_arg, file);
+		cudf::experimental::io::read_csv_args csv_args = das_BOT(file, csv_arg);
+		cudf::experimental::io::table_with_metadata table_and_metadata = cudf::experimental::io::read_csv(csv_args);
 
-		assert(table_out.num_columns() > 0);
+		if(table_and_metadata.tbl->num_columns() <= 0)
+			Library::Logging::Logger().logWarn("parquet_parser::parse no columns were read");
 
 		// column_indices may be requested in a specific order (not necessarily sorted), but read_csv will output the
 		// columns in the sorted order, so we need to put them back into the order we want
@@ -94,15 +143,15 @@ void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		});
 
 		columns_out.resize(column_indices.size());
-		for(size_t i = 0; i < columns_out.size(); i++) {
-			if(table_out.get_column(i)->dtype == GDF_STRING) {
-				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
-				NVCategory * category = NVCategory::create_from_strings(*strs);
-				std::string column_name(table_out.get_column(i)->col_name);
-				columns_out[idx[i]].create_gdf_column(category, table_out.get_column(i)->size, column_name);
-				gdf_column_free(table_out.get_column(i));
+		for(size_t i = 0; i < table_and_metadata.tbl->num_columns(); i++) {
+			if(table_and_metadata.tbl->get_column(i).type().id() == cudf::type_id::STRING) {
+//				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
+//				NVCategory * category = NVCategory::create_from_strings(*strs);
+//				std::string column_name(table_out.get_column(i)->col_name);
+//				columns_out[idx[i]].create_gdf_column(category, table_out.get_column(i)->size, column_name);
+//				gdf_column_free(table_out.get_column(i));
 			} else {
-				columns_out[idx[i]].create_gdf_column(table_out.get_column(i));
+				columns_out[i].create_gdf_column(table_and_metadata.tbl->get_column(i), table_and_metadata.metadata.column_names[i]);
 			}
 		}
 	}
