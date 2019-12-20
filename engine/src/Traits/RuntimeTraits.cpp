@@ -2,41 +2,17 @@
 #include "GDFColumn.cuh"
 #include <cudf.h>
 
+#include <cudf/types.hpp>
+
 namespace ral {
 namespace traits {
 
-gdf_size_type get_dtype_size_in_bytes(gdf_dtype dtype) {
-	gdf_size_type size = 0;
-	switch(dtype) {
-	case GDF_BOOL8: size = sizeof(gdf_bool8); break;
-	case GDF_INT8: size = sizeof(int8_t); break;
-	case GDF_INT16: size = sizeof(int16_t); break;
-	case GDF_INT32: size = sizeof(int32_t); break;
-	case GDF_INT64: size = sizeof(int64_t); break;
-	case GDF_FLOAT32: size = sizeof(float); break;
-	case GDF_FLOAT64: size = sizeof(double); break;
-	case GDF_DATE32: size = sizeof(gdf_date32); break;
-	case GDF_DATE64: size = sizeof(gdf_date64); break;
-	case GDF_TIMESTAMP: size = sizeof(gdf_timestamp); break;
-	case GDF_CATEGORY: size = sizeof(gdf_category); break;
-	case GDF_STRING_CATEGORY: size = sizeof(gdf_nvstring_category); break;
-	default: size = 0; break;
-	}
-	return size;
+std::size_t get_data_size_in_bytes(cudf::column_view column) {
+	return (column.size()) * cudf::size_of(column.type());
 }
 
-gdf_size_type get_dtype_size_in_bytes(const gdf_column * column) { return get_dtype_size_in_bytes(column->dtype); }
-
-gdf_size_type get_data_size_in_bytes(const gdf_column * column) {
-	return (column->size * get_dtype_size_in_bytes(column->dtype));
-}
-
-gdf_size_type get_data_size_in_bytes(const gdf_column_cpp & column) {
-	return (column.size()) * get_dtype_size_in_bytes(column.dtype());
-}
-
-gdf_size_type get_data_size_in_bytes(gdf_size_type quantity, gdf_dtype dtype) {
-	return (quantity * get_dtype_size_in_bytes(dtype));
+gdf_size_type get_data_size_in_bytes(gdf_size_type quantity, cudf::data_type dtype) {
+	return quantity * cudf::size_of(dtype);
 }
 
 gdf_size_type get_bitmask_size_in_bytes(const gdf_column * column) { return gdf_valid_allocation_size(column->size); }

@@ -52,6 +52,8 @@ include(CTest)
 # Configure CUDA
 include(ConfigureCUDA)
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wfatal-errors")
+
 # NOTE Do not change the inclusion order
 include(ConfigureAWSSDK)
 include(ConfigureGoogleCloudCPP)

@@ -4,7 +4,7 @@
 #include "ColumnManipulation.cuh"
 #include "GDFColumn.cuh"
 #include "cudf.h"
-#include "cudf/legacy/copying.hpp"
+#include <cudf/copying.hpp>
 #include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
 #include "config/GPUManager.cuh"
@@ -50,21 +50,11 @@ void limit_table(blazing_frame & input, gdf_size_type limitRows) {
 			if (false) {
 				//ral::truncate_nvcategory(input_col.get_gdf_column(), limitRows);
 			} else {
-				cudf::column_view limitedCpp;
-				gdf_column * sourceColumn = input_col.get_gdf_column();
-				gdf_size_type width_per_value = ral::traits::get_dtype_size_in_bytes(sourceColumn);
-				limitedCpp.create_gdf_column(sourceColumn->dtype,
-					sourceColumn->dtype_info,
-					limitRows,
-					nullptr,
-					nullptr,
-					width_per_value,
-					sourceColumn->col_name);
+				cudf::column limitedColumn(input_col.type(), limitRows );
+				//name?
+				cudf::experimental::copy_range(input_col, limitedColumn, 0, limitRows, 0);
 
-				gdf_column * limitedColumn = limitedCpp.get_gdf_column();
-				cudf::copy_range(limitedColumn, *sourceColumn, 0, limitRows, 0);
-
-				input.set_column(i, limitedCpp);
+				input.set_column(i, limitedColumn);
 			}
 		}
 	}

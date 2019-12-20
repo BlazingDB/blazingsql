@@ -11,7 +11,6 @@ struct ColumnTransport {
     cudf::data_type dtype{};
     cudf::size_type size{};
     cudf::size_type null_count{};
-    int32_t time_unit{};
     char col_name[128]{};
   };
   MetaData metadata{};
