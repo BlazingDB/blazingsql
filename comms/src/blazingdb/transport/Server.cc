@@ -178,8 +178,6 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
 void ServerTCP::Run() {
   thread = std::thread([this]() {
     server_socket.run([this](void *fd) {
-      cudaError_t status = cudaSetDevice(this->gpuId);
-      assert(status == cudaSuccess);
       connectionHandler(this, fd, this->gpuId);
     });
   });
