@@ -44,11 +44,13 @@ void limit_table(blazing_frame & input, gdf_size_type limitRows) {
 
 	if(limitRows < rowSize) {
 		for(size_t i = 0; i < input.get_size_column(0); ++i) {
-			auto & input_col = input.get_column(i);
-			if(input_col.dtype() == GDF_STRING_CATEGORY) {
-				ral::truncate_nvcategory(input_col.get_gdf_column(), limitRows);
+			cudf::column_view input_col = input.get_column(i);
+			// TODO rommel cudf0.12
+			//if(input_col.type().id() == cudf::experimental::GDF_STRING_CATEGORY) {
+			if (false) {
+				//ral::truncate_nvcategory(input_col.get_gdf_column(), limitRows);
 			} else {
-				gdf_column_cpp limitedCpp;
+				cudf::column_view limitedCpp;
 				gdf_column * sourceColumn = input_col.get_gdf_column();
 				gdf_size_type width_per_value = ral::traits::get_dtype_size_in_bytes(sourceColumn);
 				limitedCpp.create_gdf_column(sourceColumn->dtype,

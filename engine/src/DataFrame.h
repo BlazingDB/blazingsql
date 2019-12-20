@@ -13,6 +13,18 @@
 #include "gdf_wrapper/gdf_wrapper.cuh"
 #include <GDFColumn.cuh>
 #include <vector>
+
+#include <cudf/table/table.hpp>
+#include "cuDF/utilities/column_utilities.hpp"
+
+// TODO cudf0.12
+cudf::column_view my_clone(cudf::column_view input_view) {
+	cudf::column input_col(input_view);
+	cudf::column output_col(input_col); // deep copy
+	cudf::column_view output_view = output_col;
+	return output_view;
+}
+
 typedef struct blazing_frame {
 public:
 	// @todo: constructor copia, operator =
@@ -32,7 +44,7 @@ public:
 		return *this;
 	}
 
-	gdf_size_type get_num_rows_in_table(int table_index) {
+	cudf::size_type get_num_rows_in_table(int table_index) {
 		if(table_index >= this->columns.size())
 			return 0;
 		else if(this->columns[table_index].size() == 0)
@@ -41,8 +53,7 @@ public:
 			return this->columns[table_index][0].size();
 	}
 
-
-	gdf_column_cpp & get_column(int column_index) {
+	cudf::column_view get_column(int column_index) {
 		int cur_count = 0;
 		for(std::size_t i = 0; i < columns.size(); i++) {
 			if(column_index < cur_count + static_cast<int>(columns[i].size())) {
@@ -54,20 +65,20 @@ public:
 		assert(false);
 	}
 
-	std::vector<std::vector<gdf_column_cpp>> & get_columns() { return columns; }
+	std::vector<std::vector<cudf::column_view>> & get_columns() { return columns; }
 
-	std::vector<gdf_column_cpp> get_table(int table_index) { return columns[table_index]; }
+	std::vector<cudf::column_view> get_table(int table_index) { return columns[table_index]; }
 
-	void add_table(std::vector<gdf_column_cpp> & columns_to_add) {
+	void add_table(std::vector<cudf::column_view> & columns_to_add) {
 		columns.push_back(columns_to_add);
 		if(columns_to_add.size() > 0) {
 			// fill row_indeces with 0 to n
 		}
 	}
 
-	void add_table(std::vector<gdf_column_cpp> && column_array) { columns.emplace_back(std::move(column_array)); }
+	void add_table(std::vector<cudf::column_view> && column_array) { columns.emplace_back(std::move(column_array)); }
 
-	void set_column(size_t column_index, gdf_column_cpp column) {
+	void set_column(size_t column_index, cudf::column_view column) {
 		size_t cur_count = 0;
 		for(std::size_t i = 0; i < columns.size(); i++) {
 			if(column_index < cur_count + columns[i].size()) {
@@ -80,7 +91,7 @@ public:
 	}
 
 	void consolidate_tables() {
-		std::vector<gdf_column_cpp> new_tables;
+		std::vector<cudf::column_view> new_tables;
 		for(std::size_t table_index = 0; table_index < columns.size(); table_index++) {
 			new_tables.insert(new_tables.end(), columns[table_index].begin(), columns[table_index].end());
 		}
@@ -88,13 +99,13 @@ public:
 		this->columns[0] = new_tables;
 	}
 
-	void add_column(gdf_column_cpp column_to_add, int table_index = 0) {
+	void add_column(cudf::column_view column_to_add, int table_index = 0) {
 		columns[table_index].push_back(column_to_add);
 	}
 
 	void remove_table(size_t table_index) { columns.erase(columns.begin() + table_index); }
 
-	void swap_table(std::vector<gdf_column_cpp> columns_to_add, size_t index) { columns[index] = columns_to_add; }
+	void swap_table(std::vector<cudf::column_view> columns_to_add, size_t index) { columns[index] = columns_to_add; }
 
 	size_t get_size_column(int table_index = 0) { return columns[table_index].size(); }
 
@@ -117,37 +128,27 @@ public:
 
 	void clear() { this->columns.resize(0); }
 
-	void empty_columns() {
-		for(std::size_t i = 0; i < columns.size(); i++) {
-			for(std::size_t j = 0; j < columns[i].size(); j++) {
-				columns[i][j].resize(0);
-			}
-		}
-	}
-
 	void print(std::string title) {
 		std::cout << "---> " << title << std::endl;
 		for(std::size_t table_index = 0; table_index < columns.size(); table_index++) {
 			std::cout << "Table: " << table_index << "\n";
 			for(std::size_t column_index = 0; column_index < columns[table_index].size(); column_index++)
-				print_gdf_column(columns[table_index][column_index].get_gdf_column());
+				cudf::test::print(columns[table_index][column_index]);
 		}
 	}
 
 	// This function goes over all columns in the data frame and makes sure that no two columns are actually pointing to
 	// the same data, and if so, clones the data so that they are all pointing to unique data pointers
 	void deduplicate() {
-		std::map<void *, std::pair<int, int>>
-			dataPtrs;  // keys are the pointers, value is the table and column index it came from
+		std::map<cudf::column_view, std::pair<int, int>> dataPtrs;  // keys are the pointers, value is the table and column index it came from
 		for(std::size_t table_index = 0; table_index < columns.size(); table_index++) {
 			for(std::size_t column_index = 0; column_index < columns[table_index].size(); column_index++) {
-				if(columns[table_index][column_index].data() != nullptr) {
-					auto it = dataPtrs.find(columns[table_index][column_index].data());
+				if(false == columns[table_index][column_index].is_empty()) {
+					auto it = dataPtrs.find(columns[table_index][column_index]);
 					if(it != dataPtrs.end()) {  // found a duplicate
-						columns[table_index][column_index] = columns[table_index][column_index].clone();
+						columns[table_index][column_index] = my_clone(columns[table_index][column_index]);
 					}
-					dataPtrs[columns[table_index][column_index].get_gdf_column()->data] =
-						std::make_pair(table_index, column_index);
+					dataPtrs[columns[table_index][column_index]] = std::make_pair(table_index, column_index);
 				}
 			}
 		}
@@ -156,9 +157,9 @@ public:
 	blazing_frame clone() {
 		blazing_frame new_frame;
 		for(auto table : this->get_columns()) {
-			std::vector<gdf_column_cpp> table_columns;
+			std::vector<cudf::column_view> table_columns;
 			for(auto column : table) {
-				table_columns.push_back(column.clone());
+				table_columns.push_back(my_clone(column));
 			}
 			new_frame.add_table(table_columns);
 		}
@@ -166,9 +167,9 @@ public:
 	}
 
 private:
-	std::vector<std::vector<gdf_column_cpp>> columns;
+	std::vector<std::vector<cudf::column_view>> columns;
+
 	// std::vector<gdf_column *> row_indeces; //per table row indexes used for materializing
 } blazing_frame;
-
 
 #endif /* DATAFRAME_H_ */

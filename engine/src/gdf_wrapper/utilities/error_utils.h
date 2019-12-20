@@ -50,7 +50,7 @@
 	} while(0)
 
 
-namespace cudf {
+namespace cudf_wrapper {
 /**---------------------------------------------------------------------------*
  * @brief Exception thrown when logical precondition is violated.
  *
@@ -127,17 +127,17 @@ struct cuda_error : public std::runtime_error {
  *---------------------------------------------------------------------------**/
 #define CUDF_FAIL(reason) throw cudf::logic_error("cuDF failure at: " __FILE__ ":" CUDF_STRINGIFY(__LINE__) ": " reason)
 
-namespace cudf {
+namespace cudf_wrapper {
 namespace detail {
 
 inline void throw_rmm_error(rmmError_t error, const char * file, unsigned int line) {
 	// todo: throw cuda_error if the error is from cuda
-	throw cudf::logic_error(std::string{"RMM error encountered at: " + std::string{file} + ":" + std::to_string(line) +
+	throw cudf_wrapper::logic_error(std::string{"RMM error encountered at: " + std::string{file} + ":" + std::to_string(line) +
 										": " + std::to_string(error) + " " + rmmGetErrorString(error)});
 }
 
 inline void throw_cuda_error(cudaError_t error, const char * file, unsigned int line) {
-	throw cudf::cuda_error(
+	throw cudf_wrapper::cuda_error(
 		std::string{"CUDA error encountered at: " + std::string{file} + ":" + std::to_string(line) + ": " +
 					std::to_string(error) + " " + cudaGetErrorName(error) + " " + cudaGetErrorString(error)});
 }
@@ -171,7 +171,7 @@ inline void check_stream(cudaStream_t stream, const char * file, unsigned int li
 	do {                                                                                                               \
 		cudaError_t const status = (call);                                                                             \
 		if(cudaSuccess != status) {                                                                                    \
-			cudf::detail::throw_cuda_error(status, __FILE__, __LINE__);                                                \
+			cudf_wrapper::detail::throw_cuda_error(status, __FILE__, __LINE__);                                                \
 		}                                                                                                              \
 	} while(0);
 #endif

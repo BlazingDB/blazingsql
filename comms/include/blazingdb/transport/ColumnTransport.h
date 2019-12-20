@@ -1,14 +1,16 @@
 #pragma once
 #include <cstdint>
 
+#include <cudf/types.hpp>
+
 namespace blazingdb {
 namespace transport {
 
 struct ColumnTransport {
   struct MetaData {
-    int32_t dtype{};
-    int32_t size{};
-    int32_t null_count{};
+    cudf::data_type dtype{};
+    cudf::size_type size{};
+    cudf::size_type null_count{};
     int32_t time_unit{};
     char col_name[128]{};
   };

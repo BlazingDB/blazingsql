@@ -136,6 +136,9 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
+              
+              ${CMAKE_SOURCE_DIR}/src/cuDF/utilities/column_utilities.cu
+              
               ${cudf_adapter_source_files}
               ${binary_operation_source_files}
               ${communication_source_files}
