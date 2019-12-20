@@ -11,6 +11,10 @@
 #include <cudf/legacy/column.hpp>
 #include <cudf/legacy/io_functions.hpp>
 
+#include <cudf/table/table.hpp>
+#include <cudf/io/functions.hpp>
+#include <blazingdb/io/Library/Logging/Logger.h>
+
 #include <arrow/io/file.h>
 #include <parquet/file_reader.h>
 #include <parquet/schema.h>
@@ -54,7 +58,7 @@ void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 	if(column_indices.size() > 0) {
 		// Fill data to pq_args
-		cudf::io::parquet::reader_options pq_args;
+		cudf::experimental::io::read_parquet_args pq_args{cudf::experimental::io::source_info(file)};
 		pq_args.strings_to_categorical = false;
 		pq_args.columns.resize(column_indices.size());
 
@@ -62,22 +66,22 @@ void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		cudf::io::parquet::reader parquet_reader(file, pq_args);
+		cudf::experimental::io::table_with_metadata table_and_metadata = cudf::experimental::io::read_parquet(pq_args);
 
-		cudf::table table_out = parquet_reader.read_all();
-
-		assert(table_out.num_columns() > 0);
+		if(table_and_metadata.tbl->num_columns() <= 0)
+			Library::Logging::Logger().logWarn("parquet_parser::parse no columns were read");
 
 		columns_out.resize(column_indices.size());
-		for(size_t i = 0; i < columns_out.size(); i++) {
-			if(table_out.get_column(i)->dtype == GDF_STRING) {
-				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
+		for(size_t i = 0; i < table_and_metadata.tbl->num_columns(); i++) {
+			if(table_and_metadata.tbl->get_column(i).type() == cudf::type_id::STRING) {
+				std::cout<<"String!!!!\n\n";
+				/*NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
 				NVCategory * category = NVCategory::create_from_strings(*strs);
 				std::string column_name(table_out.get_column(i)->col_name);
 				columns_out[i].create_gdf_column(category, table_out.get_column(i)->size, column_name);
-				gdf_column_free(table_out.get_column(i));
+				gdf_column_free(table_out.get_column(i));*/
 			} else {
-				columns_out[i].create_gdf_column(table_out.get_column(i));
+				columns_out[i].create_gdf_column(table_and_metadata.tbl->get_column(i), table_and_metadata.metadata.column_names[i]);
 			}
 		}
 	}

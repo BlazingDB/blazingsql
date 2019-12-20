@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-#include <cudf.h>
 #include <nvstrings/NVCategory.h>
 #include <nvstrings/NVStrings.h>
 #include <algorithm>

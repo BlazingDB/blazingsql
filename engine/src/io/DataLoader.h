@@ -19,7 +19,6 @@
 #include <memory>
 #include <nvstrings/NVCategory.h>
 #include <nvstrings/NVStrings.h>
-#include <nvstrings/ipc_transfer.h>
 
 namespace ral {
 namespace io {

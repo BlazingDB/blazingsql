@@ -19,7 +19,7 @@
 
 #include <cudf/legacy/bitmask.hpp>
 
-gdf_column_cpp::gdf_column_cpp()
+gdf_column_cpp2::gdf_column_cpp2()
 {
 	column = nullptr;
     this->allocated_size_data = 0;
@@ -27,8 +27,7 @@ gdf_column_cpp::gdf_column_cpp()
     this->column_token = 0;
 }
 
-
-gdf_column_cpp::gdf_column_cpp(const gdf_column_cpp& col)
+gdf_column_cpp2::gdf_column_cpp2(const gdf_column_cpp2& col)
 {
     column = col.column;
     this->allocated_size_data = col.allocated_size_data;
@@ -39,28 +38,28 @@ gdf_column_cpp::gdf_column_cpp(const gdf_column_cpp& col)
 
 }
 
-void gdf_column_cpp::set_name(std::string name){
+void gdf_column_cpp2::set_name(std::string name){
 	this->column_name = name;
     if(this->column){
 	    this->column->col_name = const_cast<char*>(this->column_name.c_str());
     }
 }
 
-void gdf_column_cpp::set_name_cpp_only(std::string name){
+void gdf_column_cpp2::set_name_cpp_only(std::string name){
 	this->column_name = name;
 }
 
-std::string gdf_column_cpp::name() const{
+std::string gdf_column_cpp2::name() const{
 	return this->column_name;
 }
 
-gdf_column_cpp gdf_column_cpp::clone(std::string name, bool register_column)
+gdf_column_cpp2 gdf_column_cpp2::clone(std::string name, bool register_column)
 {
 	char * data_dev = nullptr;
 	char * valid_dev = nullptr;
 
     if (this->column->dtype == GDF_STRING){
-        throw std::runtime_error("In gdf_column_cpp::clone unsupported data type GDF_STRING");
+        throw std::runtime_error("In gdf_column_cpp2::clone unsupported data type GDF_STRING");
     }
 
     cuDF::Allocator::allocate((void**)&data_dev, allocated_size_data);
@@ -74,7 +73,7 @@ gdf_column_cpp gdf_column_cpp::clone(std::string name, bool register_column)
 	    CheckCudaErrors(cudaMemcpy(valid_dev, this->column->valid, this->allocated_size_valid, cudaMemcpyDeviceToDevice));
     }
 
-	gdf_column_cpp col1;
+	gdf_column_cpp2 col1;
     col1.column = new gdf_column{};
 	*col1.column = *this->column;
 	col1.column->data = (void *) data_dev;
@@ -105,7 +104,7 @@ gdf_column_cpp gdf_column_cpp::clone(std::string name, bool register_column)
 	return col1;
 }
 
-void gdf_column_cpp::operator=(const gdf_column_cpp& col)
+void gdf_column_cpp2::operator=(const gdf_column_cpp2& col)
 {
     if (column == col.column) {
         return;
@@ -121,16 +120,16 @@ void gdf_column_cpp::operator=(const gdf_column_cpp& col)
 
 }
 
-gdf_column* gdf_column_cpp::get_gdf_column() const
+gdf_column* gdf_column_cpp2::get_gdf_column() const
 {
     return column;
 }
 
-void gdf_column_cpp::resize(size_t new_size){
+void gdf_column_cpp2::resize(size_t new_size){
 	this->column->size = new_size;
 }
 //TODO: needs to be implemented for efficiency though not strictly necessary
-gdf_error gdf_column_cpp::compact(){
+gdf_error gdf_column_cpp2::compact(){
     if( this->allocated_size_valid != static_cast<std::size_t>(gdf_valid_allocation_size(this->size()) )){
     	//compact valid allcoation
     }
@@ -142,15 +141,15 @@ gdf_error gdf_column_cpp::compact(){
     return GDF_SUCCESS;
 }
 
-void gdf_column_cpp::update_null_count()
+void gdf_column_cpp2::update_null_count()
 {
     update_null_count(column);
 }
 
-void gdf_column_cpp::allocate_set_valid(){
+void gdf_column_cpp2::allocate_set_valid(){
 	this->column->valid = allocate_valid();
 }
-gdf_valid_type * gdf_column_cpp::allocate_valid(){
+gdf_valid_type * gdf_column_cpp2::allocate_valid(){
 	size_t num_values = this->size();
     gdf_valid_type * valid_device;
 	this->allocated_size_valid = gdf_valid_allocation_size(num_values); //so allocations are supposed to be 64byte aligned
@@ -162,7 +161,12 @@ gdf_valid_type * gdf_column_cpp::allocate_valid(){
 	return valid_device;
 }
 
-void gdf_column_cpp::create_gdf_column(NVCategory* category, size_t num_values,std::string column_name){
+void gdf_column_cpp2::create_gdf_column(cudf::column col, std::string column_name){
+    this->mycolumn = col;
+    this->column_name = column_name;
+}
+
+void gdf_column_cpp2::create_gdf_column(NVCategory* category, size_t num_values,std::string column_name){
 
     decrement_counter(column);
 
@@ -198,7 +202,7 @@ void gdf_column_cpp::create_gdf_column(NVCategory* category, size_t num_values,s
 
 }
 
-void gdf_column_cpp::create_gdf_column(NVStrings* strings, size_t num_values, std::string column_name) {
+void gdf_column_cpp2::create_gdf_column(NVStrings* strings, size_t num_values, std::string column_name) {
     decrement_counter(column);
 
     //TODO crate column here
@@ -214,7 +218,7 @@ void gdf_column_cpp::create_gdf_column(NVStrings* strings, size_t num_values, st
     GDFRefCounter::getInstance()->register_column(this->column);
 }
 
-void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, gdf_valid_type * host_valids, size_t width_per_value, const std::string &column_name)
+void gdf_column_cpp2::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, gdf_valid_type * host_valids, size_t width_per_value, const std::string &column_name)
 {
     assert(type != GDF_invalid);
     decrement_counter(column);
@@ -257,7 +261,7 @@ void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtyp
 }
 
 //Todo: Verificar que al llamar mas de una vez al create_gdf_column se desaloque cualquier memoria alocada anteriormente
-void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name, bool allocate_valid_buffer )
+void gdf_column_cpp2::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name, bool allocate_valid_buffer )
 {
     assert(type != GDF_invalid);
     decrement_counter(column);
@@ -297,9 +301,9 @@ void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtyp
     GDFRefCounter::getInstance()->register_column(this->column);
 }
 
-void gdf_column_cpp::create_gdf_column(gdf_column * column, bool registerColumn){
+void gdf_column_cpp2::create_gdf_column(gdf_column * column, bool registerColumn){
 
-    if (column != this->column) { // if this gdf_column_cpp already represented this gdf_column, we dont want to do anything. Especially do decrement_counter, since it might actually free the gdf_column we are trying to use
+    if (column != this->column) { // if this gdf_column_cpp2 already represented this gdf_column, we dont want to do anything. Especially do decrement_counter, since it might actually free the gdf_column we are trying to use
         decrement_counter(this->column);
 
         this->column = column;
@@ -327,7 +331,7 @@ void gdf_column_cpp::create_gdf_column(gdf_column * column, bool registerColumn)
     }
 }
 
-void gdf_column_cpp::create_gdf_column(const gdf_scalar & scalar, const std::string &column_name){
+void gdf_column_cpp2::create_gdf_column(const gdf_scalar & scalar, const std::string &column_name){
     assert(scalar.dtype != GDF_invalid);
     decrement_counter(column);
 
@@ -385,7 +389,7 @@ void gdf_column_cpp::create_gdf_column(const gdf_scalar & scalar, const std::str
     GDFRefCounter::getInstance()->register_column(this->column);
 }
 
-void gdf_column_cpp::create_empty(const gdf_dtype     dtype,
+void gdf_column_cpp2::create_empty(const gdf_dtype     dtype,
                                   const std::string & column_name,
                                   const gdf_time_unit     time_unit) {
     if (GDF_STRING == dtype || GDF_STRING_CATEGORY == dtype ) {  // cudf::size_of doesn't support GDF_STRING
@@ -397,11 +401,11 @@ void gdf_column_cpp::create_empty(const gdf_dtype     dtype,
     }
 }
 
-void gdf_column_cpp::create_empty(const gdf_dtype dtype) {
+void gdf_column_cpp2::create_empty(const gdf_dtype dtype) {
     create_empty(dtype, "");
 }
 
-void gdf_column_cpp::allocate_like(const gdf_column_cpp& other){
+void gdf_column_cpp2::allocate_like(const gdf_column_cpp2& other){
     decrement_counter(column);
 
     this->column = new gdf_column{};
@@ -431,14 +435,14 @@ void gdf_column_cpp::allocate_like(const gdf_column_cpp& other){
 }
 
 /*
-void gdf_column_cpp::realloc_gdf_column(gdf_dtype type, size_t size, size_t width){
+void gdf_column_cpp2::realloc_gdf_column(gdf_dtype type, size_t size, size_t width){
 	const std::string col_name = this->column_name;
     GDFRefCounter::getInstance()->decrement(&this->column); //decremeting reference, deallocating space
 
 	this->create_gdf_column(type, size, nullptr, width, col_name);
 }*/
 
-gdf_error gdf_column_cpp::gdf_column_view(gdf_column *column, void *data, gdf_valid_type *valid, gdf_size_type size, gdf_dtype dtype)
+gdf_error gdf_column_cpp2::gdf_column_view(gdf_column *column, void *data, gdf_valid_type *valid, gdf_size_type size, gdf_dtype dtype)
 {
     column->data = data;
     column->valid = valid;
@@ -448,55 +452,55 @@ gdf_error gdf_column_cpp::gdf_column_view(gdf_column *column, void *data, gdf_va
     return GDF_SUCCESS;
 }
 
-gdf_column_cpp::~gdf_column_cpp()
+gdf_column_cpp2::~gdf_column_cpp2()
 {
 	GDFRefCounter::getInstance()->decrement(this->column);
 }
 
-bool gdf_column_cpp::has_token(){
+bool gdf_column_cpp2::has_token(){
     return (this->column_token != 0);
 }
 
-void* gdf_column_cpp::data() const{
+void* gdf_column_cpp2::data() const{
     return column->data;
 }
 
-gdf_valid_type* gdf_column_cpp::valid() const {
+gdf_valid_type* gdf_column_cpp2::valid() const {
     return column->valid;
 }
-gdf_size_type gdf_column_cpp::size() const {
+gdf_size_type gdf_column_cpp2::size() const {
     return column->size;
 }
 
-gdf_dtype gdf_column_cpp::dtype() const {
+gdf_dtype gdf_column_cpp2::dtype() const {
     return column->dtype;
 }
 
-gdf_size_type gdf_column_cpp::null_count(){
+gdf_size_type gdf_column_cpp2::null_count(){
     return column->null_count;
 }
 
-gdf_dtype_extra_info gdf_column_cpp::dtype_info() const {
+gdf_dtype_extra_info gdf_column_cpp2::dtype_info() const {
     return column->dtype_info;
 }
 
-void gdf_column_cpp::set_dtype(gdf_dtype dtype){
+void gdf_column_cpp2::set_dtype(gdf_dtype dtype){
     column->dtype=dtype;
 }
 
-std::size_t gdf_column_cpp::get_valid_size() const {
+std::size_t gdf_column_cpp2::get_valid_size() const {
     return allocated_size_valid;
 }
 
-column_token_t gdf_column_cpp::get_column_token() const {
+column_token_t gdf_column_cpp2::get_column_token() const {
     return this->column_token;
 }
 
-void gdf_column_cpp::set_column_token(column_token_t column_token){
+void gdf_column_cpp2::set_column_token(column_token_t column_token){
     this->column_token = column_token;
 }
 
-void gdf_column_cpp::update_null_count(gdf_column* column) const {
+void gdf_column_cpp2::update_null_count(gdf_column* column) const {
     if (column->size == 0 || column->valid == nullptr) {
         column->null_count = 0;
     }

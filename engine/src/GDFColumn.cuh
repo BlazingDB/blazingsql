@@ -14,6 +14,8 @@
 #include "Types.h"
 #include <string>
 
+#include <cudf/column/column.hpp>
+
 class gdf_column_cpp
 {
 	private:
@@ -57,6 +59,8 @@ class gdf_column_cpp
 
 	gdf_column* get_gdf_column() const;
 
+	void create_gdf_column(cudf::column col, std::string column_name);
+
 	void create_gdf_column(NVCategory* category, size_t num_values, std::string column_name);
 
 	void create_gdf_column(NVStrings* strings, size_t num_values, std::string column_name);
@@ -95,6 +99,7 @@ protected:
     void update_null_count(gdf_column* column) const;
 
 private:
+	cudf::column_view mycolumn;
     gdf_column* column{};
     std::size_t allocated_size_data{};
     std::size_t allocated_size_valid{};
