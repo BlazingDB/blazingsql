@@ -45,8 +45,6 @@ public:
   void SetDevice(int gpuId) override { this->gpuId = gpuId; }
 
   Status Send(GPUMessage& message) override {
-    cudaError_t status = cudaSetDevice(this->gpuId);
-    assert(status == cudaSuccess);
     void* fd = client_socket.fd();
     auto node = message.getSenderNode();
     auto message_metadata = message.metadata();
