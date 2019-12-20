@@ -8,34 +8,9 @@
 namespace ral {
 namespace config {
 
-GPUManager::GPUManager() : currentDeviceId{0} {
-	CheckCudaErrors( cudaGetDeviceCount(&totalDevices) );
-}
-
-int GPUManager::getDeviceId() {
-	return this->currentDeviceId;
-}
-
-
-GPUManager& GPUManager::getInstance() {
-	static GPUManager instance;
-	return instance;
-}
-
-void GPUManager::initialize(int deviceId) {
-	if (deviceId < 0 || deviceId >= totalDevices) {
-		throw std::runtime_error("In GPUManager::initialize function: Invalid deviceId");
-	}
-
-	currentDeviceId = deviceId;
-	setDevice();
-}
-
-void GPUManager::setDevice() {
-	CheckCudaErrors( cudaSetDevice(currentDeviceId) );
-}
-
-size_t GPUManager::gpuMemorySize() {
+size_t gpuMemorySize() {
+	// NOTE if CUDA_VISIBLE_DEVICES is 6 and we use 0 here it means we take 6
+	int currentDeviceId = 0;
 	struct cudaDeviceProp props;
 	CheckCudaErrors( cudaSetDevice(currentDeviceId) );
 	cudaGetDeviceProperties(&props, currentDeviceId);
