@@ -4,13 +4,10 @@
 #include "GPUManager.cuh"
 #include "Utils.cuh"
 
-
 namespace ral {
 namespace config {
 
-size_t gpuMemorySize() {
-	// NOTE if CUDA_VISIBLE_DEVICES is 6 and we use 0 here it means we take 6
-	int currentDeviceId = 0;
+size_t GPUManager::gpuMemorySize() {
 	struct cudaDeviceProp props;
 	CheckCudaErrors( cudaSetDevice(currentDeviceId) );
 	cudaGetDeviceProperties(&props, currentDeviceId);
