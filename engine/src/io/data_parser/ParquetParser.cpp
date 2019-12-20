@@ -132,7 +132,6 @@ void parquet_parser::parse_schema(
 	std::thread threads[files.size()];
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads[file_index] = std::thread([&, file_index]() {
-			ral::config::GPUManager::getInstance().setDevice();
 			std::unique_ptr<parquet::ParquetFileReader> parquet_reader =
 				parquet::ParquetFileReader::Open(files[file_index]);
 			std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_reader->metadata();

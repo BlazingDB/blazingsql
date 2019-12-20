@@ -57,24 +57,24 @@ We always recommend using our *Nightly* release since it will always have the la
 
 ```bash
 # for CUDA 9.2
-conda install -c blazingsql-nightly/label/cuda9.2 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.6
+conda install -c blazingsql-nightly/label/cuda9.2 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.7
 
-# for CUDA 10.0
-conda install -c blazingsql-nightly/label/cuda10.0 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.6
+# for CUDA 10.0  
+conda install -c blazingsql-nightly/label/cuda10.0 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.7
 ```
 Note: BlazingSQL-Nightly is supported only on Linux, and with Python versions 3.6 or 3.7.
 
 ### Stable Version ###
 *For CUDA 9.2 and Python 3.7:*
 ```bash
-conda install -c blazingsql/label/cuda9.2 -c blazingsql -c rapidsai -c conda-forge -c defaults blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=9.2
+conda install -c blazingsql/label/cuda9.2 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=9.2
 ```
 
 *For CUDA 10.0 and Python 3.7:*
 ```bash
-conda install -c blazingsql/label/cuda10.0 -c blazingsql -c rapidsai -c conda-forge -c defaults blazingsql-calcite blazingsql-orchestrator blazingsql-ral blazingsql-python python=3.7 cudatoolkit=10.0
+conda install -c blazingsql/label/cuda10.0 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=10.0
 ```
-Note: BlazingSQL (stable) is supported only on Linux, and with Python version 3.7.
+Note: BlazingSQL (stable) is supported only on Linux, and with Python version 3.6 or 3.7.
 
 ## Build/Install from Source (Conda Environment)
 This is the recommended way of building all of the BlazingSQL components and dependencies from source. It ensures that all the dependencies are available to the build process.

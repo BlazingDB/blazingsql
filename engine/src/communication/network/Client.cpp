@@ -14,7 +14,6 @@ namespace network {
 blazingdb::transport::Status Client::send(const Node & node, GPUMessage & message) {
 	const auto & metadata = node.address()->metadata();
 	auto ral_client = blazingdb::transport::ClientTCP::Make(metadata.ip, metadata.comunication_port);
-	ral_client->SetDevice(ral::config::GPUManager::getInstance().getDeviceId());
 	return ral_client->Send(message);
 }
 
