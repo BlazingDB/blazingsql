@@ -18,8 +18,8 @@ namespace ral {
 namespace io {
 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris)
-	: data_provider(), file_uris(uris), uri_scalars({}), string_scalars({}), is_column_string({}), opened_files({}),
-	  current_file(0), errors({}), directory_uris({}), directory_current_file(0) {}
+	: data_provider(), file_uris(uris), uri_scalars({}), string_scalars({}), is_column_string({}), data_handles_{nullptr},
+    opened_files({}), current_file(0), errors({}), directory_uris({}), directory_current_file(0) {}
 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
 	std::vector<std::map<std::string, gdf_scalar>> uri_scalars,
@@ -87,7 +87,7 @@ data_handle uri_data_provider::get_next() {
 			handle.is_column_string = this->is_column_string[this->current_file];
 		}
 
-		if(nullptr == data_handles_) {
+		if(nullptr != data_handles_) {
 			this->opened_files.push_back(file);
 		}
 
@@ -170,7 +170,7 @@ data_handle uri_data_provider::get_next() {
 			std::shared_ptr<arrow::io::RandomAccessFile> file =
 				BlazingContext::getInstance()->getFileSystemManager()->openReadable(current_uri);
 
-			if(nullptr == data_handles_) {
+			if(nullptr != data_handles_) {
 				this->opened_files.push_back(file);
 			}
 			data_handle handle;

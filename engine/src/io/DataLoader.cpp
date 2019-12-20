@@ -37,10 +37,11 @@ void data_loader::load_data(const Context & context,
 
 	std::vector<data_handle> * data_handles = provider->data_handles();
 
-	// TODO: For now, we are using the environment variable for testing purposes.
-	const std::string fsCacheValue = std::getenv("BLAZINGSQL_FS_CACHE");
+	// TODO: Now, we are using the environment variable only for testing purposes.
+	const char * fsCacheRaw = std::getenv("BLAZINGSQL_FS_CACHE");
 	bool fsCacheEnabled = true;
-	if(!fsCacheValue.empty()) {
+	if(nullptr != fsCacheRaw) {
+		const std::string fsCacheValue = fsCacheRaw;
 		if("OFF" == fsCacheValue) {
 			fsCacheEnabled = false;
 		} else {
@@ -55,7 +56,7 @@ void data_loader::load_data(const Context & context,
 	}
 
 	if(nullptr != data_handles && fsCacheEnabled) {
-		files = *data_handles;
+		files = std::move(*data_handles);
 		while(this->provider->has_next()) {
 			user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
 			provider->step();
@@ -193,9 +194,25 @@ std::vector<data_handle> * data_loader::get_schema(
 		schema.add_column(extra_column.first, extra_column.second, 0, false);
 	}
 
+	const char * fsCacheRaw = std::getenv("BLAZINGSQL_FS_CACHE");
+	bool fsCacheEnabled = true;
+	if(nullptr != fsCacheRaw) {
+		const std::string fsCacheValue = fsCacheRaw;
+		if("OFF" == fsCacheValue) {
+			fsCacheEnabled = false;
+		} else {
+			if("ON" != fsCacheValue) {
+				throw std::runtime_error("Invalid value for BLAZINGSQL_FS_CACHE (ON or OFF): " + fsCacheValue);
+			}
+		}
+	}
+
 	// This pointers are released in the end of runquery (see engine.cpp)
-	std::vector<data_handle> * argument_handles = new std::vector<data_handle>;
-	*argument_handles = std::move(handles);
+	std::vector<data_handle> * argument_handles = nullptr;
+	if(fsCacheEnabled) {
+		argument_handles = new std::vector<data_handle>;
+		*argument_handles = std::move(handles);
+	}
 
 	return argument_handles;
 }

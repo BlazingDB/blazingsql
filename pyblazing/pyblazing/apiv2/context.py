@@ -317,7 +317,8 @@ class BlazingTable(object):
                                                   calcite_to_file_indices=self.calcite_to_file_indices,
                                                   num_row_groups=self.num_row_groups[startIndex: startIndex + batchSize],
                                                   uri_values=uri_values,
-                                                  args=self.args))
+                                                  args=self.args,
+                                                  data_handles=self.data_handles))
             else:
                 nodeFilesList.append(
                     BlazingTable(
@@ -326,7 +327,8 @@ class BlazingTable(object):
                         files=tempFiles,
                         calcite_to_file_indices=self.calcite_to_file_indices,
                         uri_values=uri_values,
-                        args=self.args))
+                        args=self.args,
+                        data_handles=self.data_handles))
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
         return nodeFilesList
@@ -585,7 +587,6 @@ class BlazingContext(object):
                 self.tables,
                 workers=[worker])
             new_tables, relational_algebra_steps = connection.result()
-
         algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
         #print (new_tables)
         for table in new_tables:
