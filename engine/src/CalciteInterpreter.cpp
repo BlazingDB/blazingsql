@@ -524,7 +524,7 @@ size_t get_table_index(std::vector<std::string> table_names, std::string table_n
 	if(it != table_names.end()) {
 		return std::distance(table_names.begin(), it);
 	} else {
-		throw std::invalid_argument("table name does not exists");
+		throw std::invalid_argument("table name does not exists ==>" + table_name);
 	}
 }
 
@@ -798,15 +798,15 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			split_inequality_join_into_join_and_filter(query[0], new_join_statement, filter_statement);
 			result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);
 			std::string extraInfo = "left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
-			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame.get_num_rows_in_table(0), extraInfo));	
+			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame.get_num_rows_in_table(0), extraInfo));
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
 			if (filter_statement != ""){
 				process_filter(queryContext, result_frame,filter_statement);
-				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame.get_num_rows_in_table(0)));			
+				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame.get_num_rows_in_table(0)));
 				blazing_timer.reset();
 				queryContext->incrementQueryStep();
-			}			
+			}
 			return result_frame;
 		} else if(is_union(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
@@ -892,7 +892,6 @@ query_token_t evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 	query_token_t token) {
 	std::thread t([=] {
 		CodeTimer blazing_timer;
-		ral::config::GPUManager::getInstance().setDevice();
 
 		std::vector<std::string> splitted = StringUtil::split(logicalPlan, "\n");
 		if(splitted[splitted.size() - 1].length() == 0) {
@@ -947,7 +946,6 @@ blazing_frame evaluate_query(
 		){
 
 		CodeTimer blazing_timer;
-		ral::config::GPUManager::getInstance().setDevice();
 
 		Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "\"Query Start\n" + logicalPlan + "\""));
 
@@ -963,16 +961,16 @@ blazing_frame evaluate_query(
 				if (output_frame.get_column(i).dtype() == GDF_STRING_CATEGORY) {
 					NVStrings * new_strings = nullptr;
 					if (output_frame.get_column(i).size() > 0) {
-						NVCategory* new_category = static_cast<NVCategory *> (output_frame.get_column(i).dtype_info().category)->gather_and_remap( static_cast<int *>(output_frame.get_column(i).data()), output_frame.get_column(i).size());												
+						NVCategory* new_category = static_cast<NVCategory *> (output_frame.get_column(i).dtype_info().category)->gather_and_remap( static_cast<int *>(output_frame.get_column(i).data()), output_frame.get_column(i).size());
 						new_strings = new_category->to_strings();
 						NVCategory::destroy(new_category);
 					} else {
 						new_strings = NVStrings::create_from_array(nullptr, 0);
 					}
-					
+
 					gdf_column_cpp string_column;
 					string_column.create_gdf_column(new_strings, output_frame.get_column(i).size(), output_frame.get_column(i).name());
-					
+
 					output_frame.set_column(i, string_column);
 				}
 
@@ -988,4 +986,38 @@ blazing_frame evaluate_query(
 			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
 			throw;
 		}
+}
+
+
+void getTableScanInfo(std::string & logicalPlan_in,
+						std::vector<std::string> & relational_algebra_steps_out,
+						std::vector<std::string> & table_names_out,
+						std::vector<std::vector<int>> & table_columns_out){
+
+	std::vector<std::string> splitted = StringUtil::split(logicalPlan_in, "\n");
+	if (splitted[splitted.size() - 1].length() == 0) {
+		splitted.erase(splitted.end() -1);
+	}
+
+	for (auto step : splitted){
+		if (is_scan(step)) {
+			relational_algebra_steps_out.push_back(step);
+
+			std::string table_name = extract_table_name(step);
+			if(StringUtil::beginsWith(table_name, "main.")) {
+				table_name = table_name.substr(5);
+			}
+			table_names_out.push_back(table_name);
+
+			if (is_bindable_scan(step)) {
+				std::string projects = get_named_expression(step, "projects");
+				std::vector<std::string> column_index_strings = get_expressions_from_expression_list(projects, true);
+				std::vector<int> column_indeces;
+				std::transform(column_index_strings.begin(), column_index_strings.end(), std::back_inserter(column_indeces), [](const std::string& str) { return std::stoi(str); });
+				table_columns_out.push_back(column_indeces);
+			}else if (is_scan(step)){
+				table_columns_out.push_back({});
+			}
+		}
+	}
 }

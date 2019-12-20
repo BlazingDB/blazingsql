@@ -52,7 +52,6 @@ void data_loader::load_data(const Context & context,
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads.push_back(std::thread([&, file_index]() {
 			// std::cout<<"starting file thread"<<std::endl;
-			ral::config::GPUManager::getInstance().setDevice();
 			std::vector<gdf_column_cpp> converted_data;
 			// std::cout<<"converted data"<<std::endl;
 

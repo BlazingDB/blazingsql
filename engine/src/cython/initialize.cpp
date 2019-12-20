@@ -25,9 +25,8 @@
 #include <blazingdb/io/Config/BlazingContext.h>
 #include <blazingdb/io/Library/Logging/FileOutput.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
-// #include <blazingdb/io/Library/Logging/TcpOutput.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
-// #include "blazingdb/io/Library/Network/NormalSyncSocket.h"
+#include "utilities/StringUtils.h"
 
 #include "Traits/RuntimeTraits.h"
 
@@ -77,42 +76,20 @@ void initialize(int ralId,
   std::setlocale(LC_NUMERIC, "en_US.UTF-8");
   // ---------------------------------------------------------------------------
 
-	// std::cout << "Using the network interface: " + network_iface_name << std::endl;
 	ralHost = get_ip(network_iface_name);
 
-	//  std::cout << "RAL ID: " << ralId << std::endl;
-	//  std::cout << "GPU ID: " << gpuId << std::endl;
-
-	//  std::cout << "RAL HTTP communication host: " << ralHost << std::endl;
-	//  std::cout << "RAL HTTP communication port: " << ralCommunicationPort << std::endl;
-
-	// std::string loggingHost = "";
-	// std::string loggingPort = 0;
-	std::string loggingName = "";
-	// if (argc == 11) {
-	//   loggingHost = std::string(argv[9]);
-	//   loggingPort = std::string(argv[10]);
-	//   std::cout << "Logging host: " << ralHost << std::endl;
-	//   std::cout << "Logging port: " << ralCommunicationPort << std::endl;
-	// } else {
-	loggingName = "RAL." + std::to_string(ralId) + ".log";
-	std::cout << "Logging to " << loggingName << std::endl;
-	std::cout << "is singleNode? " << singleNode << std::endl;
-
-	// }
-
+	std::string loggingName = "RAL." + std::to_string(ralId) + ".log";
+	
+	std::string initLogMsg = "INITIALIZING RAL. RAL ID: " + std::to_string(ralId)  + ", ";
+	initLogMsg = initLogMsg + "RAL Host: " + ralHost + ":" + std::to_string(ralCommunicationPort) + ", ";
+	initLogMsg = initLogMsg + "Network Interface: " + network_iface_name + ", ";
+	initLogMsg = initLogMsg + (singleNode ? ", Is Single Node, " : ", Is Not Single Node, ");
+	
 	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
-	gpuId = 0; // NOTE: This is the default value
-	if (env_cuda_device){
-		gpuId = std::atoi(env_cuda_device);
-		std::cout << "CUDA_VISIBLE_DEVICES is set to: " << gpuId << std::endl;
-	} else {
-		std::cout << "CUDA_VISIBLE_DEVICES is not set, using default GPU: " << gpuId << std::endl;
-	}
-	ral::config::GPUManager::getInstance().initialize(gpuId);
-	std::cout << "Using GPU: " << ral::config::GPUManager::getInstance().getDeviceId() << std::endl;
+	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
+	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 
-	size_t total_gpu_mem_size = ral::config::GPUManager::getInstance().gpuMemorySize();
+	size_t total_gpu_mem_size = ral::config::gpuMemorySize();
 	assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
@@ -130,19 +107,12 @@ void initialize(int ralId,
 	// NOTE IMPORTANT PERCY aqui es que pyblazing se entera que este es el ip del RAL en el _send de pyblazing
 	config.setLogName(loggingName).setSocketPath(ralHost);
 
-	// std::cout << "Socket Name: " << config.getSocketPath() << std::endl;
-
-	// if (loggingName != ""){
 	auto output = new Library::Logging::FileOutput(config.getLogName(), false);
 	Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
 	Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(ralId);
-	// } else {
-	//   auto output = new Library::Logging::TcpOutput();
-	//   std::shared_ptr<Library::Network::NormalSyncSocket> loggingSocket =
-	//   std::make_shared<Library::Network::NormalSyncSocket>(); loggingSocket->connect(loggingHost.c_str(),
-	//   loggingPort.c_str()); output.setSocket(loggingSocket);
-	//   Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
-	// }
+	
+	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",
+		initLogMsg));
 
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();

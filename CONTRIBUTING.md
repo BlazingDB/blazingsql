@@ -19,7 +19,7 @@ Contributions to blazingSQL fall into the following three categories.
 
 ## Code contributions
 
-1. Follow the guide in our documentation for [Building From Source](https://docs.blazingdb.com/docs/build-from-source).
+1. Follow the guide in our documentation for [Building From Source](https://github.com/BlazingDB/blazingsql#buildinstall-from-source-conda-environment).
 2. Comment on the issue stating that you are going to work on it.
 3. Code! Make sure to update unit tests!
 4. When done, [create your pull request](https://github.com/blazingdb/blazingsql/compare).
