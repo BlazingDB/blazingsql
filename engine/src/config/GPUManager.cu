@@ -8,6 +8,7 @@ namespace ral {
 namespace config {
 
 size_t gpuMemorySize() {
+	int currentDeviceId = 0;
 	struct cudaDeviceProp props;
 	CheckCudaErrors( cudaSetDevice(currentDeviceId) );
 	cudaGetDeviceProperties(&props, currentDeviceId);
