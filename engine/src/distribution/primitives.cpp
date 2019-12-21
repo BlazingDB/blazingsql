@@ -908,10 +908,10 @@ void collectLeftRightNumRows(const Context & context,
 namespace ral {
 namespace distribution {
 
-std::vector<gdf_column_cpp> generateOutputColumns(
+std::vector<std::pair<std::string, cudf::column>> generateOutputColumns(
 	gdf_size_type column_quantity, gdf_size_type column_size, std::vector<gdf_column_cpp> & table) {
 	// Create outcome
-	std::vector<gdf_column_cpp> result(column_quantity);
+	std::vector<std::pair<std::string, cudf::column>> result(column_quantity);
 
 	// Create columns
 	for(gdf_size_type k = 0; k < column_quantity; ++k) {
@@ -977,7 +977,7 @@ std::vector<NodeColumns> generateJoinPartitions(
 	std::vector<gdf_index_type> partition_offset(number_nodes);
 
 	// Preallocate output columns
-	std::vector<gdf_column_cpp> output_columns =
+	std::vector<std::pair<std::string, cudf::column>> output_columns =
 		generateOutputColumns(input_table_wrapper.num_columns(), input_table_wrapper.num_rows(), temp_input_table);
 
 	// copy over nvcategory to output

@@ -13,21 +13,21 @@ using Node = blazingdb::transport::Node;
 
 class NodeSamples {
 public:
-	NodeSamples(std::size_t total_row_size, const Node & node, const std::vector<gdf_column_cpp> & columns);
+	NodeSamples(std::size_t total_row_size, const Node & node, const std::vector<std::pair<std::string, cudf::column>> & columns);
 
 public:
 	const std::size_t getTotalRowSize() const;
 
 	const Node & getSenderNode() const;
 
-	std::vector<gdf_column_cpp> getColumns();
+	std::vector<std::pair<std::string, cudf::column>> getColumns();
 
-	void setColumns(const std::vector<gdf_column_cpp> & columns);
+	void setColumns(const std::vector<std::pair<std::string, cudf::column>> & columns);
 
 private:
 	const std::size_t total_row_size_;
 	const Node sender_node_;
-	std::vector<gdf_column_cpp> columns_;
+	std::vector<std::pair<std::string, cudf::column>> columns_;
 };
 
 }  // namespace distribution

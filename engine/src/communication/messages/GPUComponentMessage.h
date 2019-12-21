@@ -40,7 +40,7 @@ public:
 	GPUComponentMessage(std::string const & messageToken,
 		uint32_t contextToken,
 		std::shared_ptr<Node> & sender_node,
-		std::vector<gdf_column_cpp> & samples,
+		std::vector<std::pair<std::string, cudf::column>> & samples,
 		std::uint64_t total_row_size = 0)
 		: GPUMessage(messageToken, contextToken, sender_node), samples{samples} {
 		this->metadata().total_row_size = total_row_size;
@@ -178,10 +178,10 @@ public:
 			received_samples,
 			message_metadata.total_row_size);
 	}
-	std::vector<gdf_column_cpp> getSamples() { return samples; }
+	std::vector<std::pair<std::string, cudf::column>> getSamples() { return samples; }
 
 protected:
-	std::vector<gdf_column_cpp> samples;
+	std::vector<std::pair<std::string, cudf::column>> samples;
 
 	std::map<gdf_column *, StrDataPtrTuple> strDataColToPtrMap;
 
