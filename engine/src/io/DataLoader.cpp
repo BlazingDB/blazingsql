@@ -10,6 +10,8 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <thread>
 
+#include <cudf/filling.hpp>
+
 namespace ral {
 namespace io {
 
@@ -25,13 +27,13 @@ data_loader::~data_loader() {}
 
 
 void data_loader::load_data(const Context & context,
-	std::vector<gdf_column_cpp> & columns,
+	std::vector<cudf::column_view> & columns,
 	const std::vector<size_t> & column_indices,
 	const Schema & schema) {
 	static CodeTimer timer;
 	timer.reset();
 
-	std::vector<std::vector<gdf_column_cpp>> columns_per_file;  // stores all of the columns parsed from each file
+	std::vector<std::vector<cudf::column_view>> columns_per_file;  // stores all of the columns parsed from each file
 	std::vector<std::string> user_readable_file_handles;
 	std::vector<data_handle> files;
 
@@ -52,7 +54,7 @@ void data_loader::load_data(const Context & context,
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads.push_back(std::thread([&, file_index]() {
 			// std::cout<<"starting file thread"<<std::endl;
-			std::vector<gdf_column_cpp> converted_data;
+			std::vector<cudf::column_view> converted_data;
 			// std::cout<<"converted data"<<std::endl;
 
 			if(files[file_index].fileHandle != nullptr) {
@@ -72,23 +74,18 @@ void data_loader::load_data(const Context & context,
 						auto num_rows = converted_data[0].size();
 						std::string name = schema.get_name(i);
 						if(files[file_index].is_column_string[name]) {
-							std::string string_value = files[file_index].string_values[name];
-							NVCategory * category = repeated_string_category(string_value, num_rows);
-							gdf_column_cpp column;
-							column.create_gdf_column(category, num_rows, name);
-							converted_data.push_back(column);
+							// TODO cudf 0.12 rommel
+//							std::string string_value = files[file_index].string_values[name];
+//							NVCategory * category = repeated_string_category(string_value, num_rows);
+//							gdf_column_cpp column;
+//							column.create_gdf_column(category, num_rows, name);
+//							converted_data.push_back(column);
 						} else {
-							gdf_scalar scalar = files[file_index].column_values[name];
-
-							gdf_column_cpp column;
-							column.create_gdf_column(scalar.dtype,
-								gdf_dtype_extra_info{TIME_UNIT_ms},
-								num_rows,
-								nullptr,
-								ral::traits::get_dtype_size_in_bytes(scalar.dtype),
-								name);
-							cudf::fill(column.get_gdf_column(), scalar, 0, num_rows);
-							converted_data.push_back(column);
+							cudf::scalar scalar = files[file_index].column_values[name];
+							// TODO percy cudf 0.12 was zcudf::column column(scalar.dtype, num_rows, {}, {}, ral::traits::get_dtype_size_in_bytes(scalar.dtype)
+							cudf::column column(scalar.type(), num_rows);
+							cudf::experimental::fill(column.mutable_view(), 0, num_rows, scalar);
+							converted_data.push_back(std::move(aa));
 						}
 						// std::cout<<"created column!"<<std::endl;
 					}
@@ -131,8 +128,7 @@ void data_loader::load_data(const Context & context,
 	// std::cout<<"reset provider num cols is "<<num_columns<<std::endl;
 	// be replacing no longer needed gdf_column_cpp with this dummy column we can
 	// make columns go out of scope while still preserving the size of the vector
-	gdf_column_cpp dummy_column;
-
+	cudf::column_view dummy_column;
 
 	if(num_files == 1) {  // we have only one file so we can just return the columns we parsed from that file
 		columns = columns_per_file[0];

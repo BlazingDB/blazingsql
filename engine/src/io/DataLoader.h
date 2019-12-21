@@ -47,7 +47,7 @@ public:
 	 */
 
 	void load_data(const Context & context,
-		std::vector<gdf_column_cpp> & columns,
+		std::vector<cudf::column_view> & columns,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);

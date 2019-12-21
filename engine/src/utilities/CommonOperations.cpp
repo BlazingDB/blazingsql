@@ -11,17 +11,16 @@
 namespace ral {
 namespace utilities {
 
-
-std::vector<gdf_column_cpp> concatTables(const std::vector<std::vector<gdf_column_cpp>> & tables) {
+std::vector<cudf::column_view> concatTables(const std::vector<std::vector<cudf::column_view>> & tables) {
 	assert(tables.size() > 0);
 
-	gdf_size_type num_columns = 0;
-	gdf_size_type output_row_size = 0;
-	gdf_size_type num_tables_with_data = 0;
-	std::vector<std::vector<gdf_column_cpp>> columnsToConcatArray;
+	cudf::size_type num_columns = 0;
+	cudf::size_type output_row_size = 0;
+	cudf::size_type num_tables_with_data = 0;
+	std::vector<std::vector<cudf::column_view>> columnsToConcatArray;
 	for(size_t i = 0; i < tables.size(); i++) {
 		if(tables[i].size() > 0) {
-			const std::vector<gdf_column_cpp> & table = tables[i];
+			const std::vector<cudf::column_view> & table = tables[i];
 			if(num_columns == 0) {
 				num_columns = table.size();
 				columnsToConcatArray.resize(num_columns);
@@ -33,14 +32,14 @@ std::vector<gdf_column_cpp> concatTables(const std::vector<std::vector<gdf_colum
 				assert(table.size() == num_columns);
 			}
 
-			gdf_size_type table_rows = table[0].size();
+			cudf::size_type table_rows = table[0].size();
 			if(table_rows == 0) {
 				continue;
 			}
 
 			num_tables_with_data++;
 			output_row_size += table_rows;
-			for(gdf_size_type j = 0; j < num_columns; j++) {
+			for(cudf::size_type j = 0; j < num_columns; j++) {
 				columnsToConcatArray[j].push_back(table[j]);
 			}
 		}
@@ -52,7 +51,7 @@ std::vector<gdf_column_cpp> concatTables(const std::vector<std::vector<gdf_colum
 				return tables[i];
 			}
 		}
-		return std::vector<gdf_column_cpp>();
+		return std::vector<cudf::column_view>();
 	}
 	if(num_tables_with_data == 1) {  // if only one table has data, lets return it
 		for(size_t i = 0; i < tables.size(); i++) {
@@ -62,24 +61,28 @@ std::vector<gdf_column_cpp> concatTables(const std::vector<std::vector<gdf_colum
 		}
 	}
 
-	std::vector<gdf_column_cpp> output_table(num_columns);
+	std::vector<cudf::column_view> output_table(num_columns);
 	for(size_t i = 0; i < num_columns; i++) {
 		columnsToConcatArray[i] = normalizeColumnTypes(columnsToConcatArray[i]);
 
-		std::vector<gdf_column *> raw_columns_to_concat(columnsToConcatArray[i].size());
+		std::vector<cudf::column_view> raw_columns_to_concat(columnsToConcatArray[i].size());
 		for(size_t j = 0; j < columnsToConcatArray[i].size(); j++) {
-			raw_columns_to_concat[j] = columnsToConcatArray[i][j].get_gdf_column();
+			raw_columns_to_concat[j] = columnsToConcatArray[i][j];
 		}
 
-		if(std::any_of(raw_columns_to_concat.cbegin(), raw_columns_to_concat.cend(), [](const gdf_column * c) {
-			   return c->valid != nullptr;
+		if(std::any_of(raw_columns_to_concat.cbegin(), raw_columns_to_concat.cend(), [](cudf::column_view c) {
+				return c.has_nulls();
 		   })) {
-			output_table[i].create_gdf_column(raw_columns_to_concat[0]->dtype,
-				raw_columns_to_concat[0]->dtype_info,
-				output_row_size,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(raw_columns_to_concat[0]->dtype),
-				std::string(raw_columns_to_concat[0]->col_name));
+						
+			cudf::data_type dtype = raw_columns_to_concat[0].type();
+			cudf::size_type size = output_row_size;
+			rmm::device_buffer data = rmm::device_buffer();
+			rmm::device_buffer null_mask = rmm::device_buffer();
+			cudf::size_type null_count = cudf::UNKNOWN_NULL_COUNT;
+			                                                           
+			cudf::column new_col(dtype, size, data, null_mask, null_count);
+			cudf::column_view new_view = new_col;
+			output_table[i] = new_view;
 		} else {
 			output_table[i].create_gdf_column(raw_columns_to_concat[0]->dtype,
 				raw_columns_to_concat[0]->dtype_info,
@@ -89,7 +92,6 @@ std::vector<gdf_column_cpp> concatTables(const std::vector<std::vector<gdf_colum
 				ral::traits::get_dtype_size_in_bytes(raw_columns_to_concat[0]->dtype),
 				std::string(raw_columns_to_concat[0]->col_name));
 		}
-
 
 		CUDF_CALL(gdf_column_concat(
 			output_table[i].get_gdf_column(), raw_columns_to_concat.data(), raw_columns_to_concat.size()));
