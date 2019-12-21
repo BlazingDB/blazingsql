@@ -14,16 +14,16 @@ using Node = blazingdb::transport::Node;
 
 class NodeColumns {
 public:
-	NodeColumns(const Node & node, const std::vector<gdf_column_cpp> & columns);
+	NodeColumns(const Node & node, const std::vector<std::pair<std::string, cudf::column>> & columns);
 
 public:
 	const Node & getNode() const;
 
-	std::vector<gdf_column_cpp> getColumns();
+	std::vector<std::pair<std::string, cudf::column>> getColumns();
 
 private:
 	const Node node_;
-	std::vector<gdf_column_cpp> columns_;
+	std::vector<std::pair<std::string, cudf::column>> columns_;
 };
 
 }  // namespace distribution

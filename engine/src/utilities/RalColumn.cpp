@@ -3,26 +3,15 @@
 #include "Traits/RuntimeTraits.h"
 #include <algorithm>
 
+#include <cudf/column.hpp>
+
 namespace ral {
 namespace utilities {
 
-gdf_column_cpp create_column(const gdf_size_type size, const gdf_dtype dtype, const std::string name) {
-	// create gdf_column_cpp
-	gdf_column_cpp column;
+std::pair<std:string, cudf::column> create_column(const size_type size, const data_dtype dtype, const std::string name) {
+	cudf::column column(dtype, size);
 
-	// TODO Percy Rommel Jean Pierre improve timestamp resolution
-	gdf_dtype_extra_info extra_info;
-	extra_info.category = nullptr;
-	extra_info.time_unit =
-		(dtype == GDF_DATE64 || dtype == GDF_TIMESTAMP ? TIME_UNIT_ms
-													   : TIME_UNIT_NONE);  // TODO this should not be hardcoded
-
-	// populate gdf_column_cpp
-	auto width = ral::traits::get_dtype_size_in_bytes(dtype);
-	column.create_gdf_column(dtype, extra_info, size, nullptr, width, name);
-
-	// done
-	return column;
+	return std::make_pair(name, column);
 }
 
 gdf_column_cpp create_zero_column(const gdf_size_type size, const gdf_dtype dtype, std::string && name) {
