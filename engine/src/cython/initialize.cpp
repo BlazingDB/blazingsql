@@ -30,6 +30,7 @@
 // #include "blazingdb/io/Library/Network/NormalSyncSocket.h"
 
 #include "Traits/RuntimeTraits.h"
+#include "io/DataLoader.h"
 
 
 #include "config/BlazingConfig.h"
@@ -111,7 +112,7 @@ void initialize(int ralId,
 			cuda_devices.pop_back();
 		}
 		std::vector<std::string> tokens = StringUtil::split(cuda_devices, ",");
-		
+
 		gpuId = std::atoi(tokens.at(0).c_str());
 		std::cout << "CUDA_VISIBLE_DEVICES is set to: " << cuda_devices << std::endl;
 	} else {
@@ -157,6 +158,11 @@ void initialize(int ralId,
 }
 
 void finalize() {
+	//for(std::vector<ral::io::data_handle> * data_handles : ral::io::data_loader::data_handles_bucket) {
+		//if(nullptr != data_handles) {
+			//delete data_handles;
+		//}
+	//}
 	ral::communication::network::Client::closeConnections();
 	ral::communication::network::Server::getInstance().close();
 	cudaDeviceReset();

@@ -160,7 +160,9 @@ ResultSet runQuery(int32_t masterIndex,
 			std::vector<ral::io::data_handle> * data_handles =
 				reinterpret_cast<std::vector<ral::io::data_handle> *>(tableSchema.data_handles);
 			if(nullptr != data_handles) {
-				delete data_handles;
+				std::for_each(data_handles->begin(), data_handles->end(), [](ral::io::data_handle & dataHandle) {
+					dataHandle.fileHandle->Seek(0);
+				});
 			}
 		}
 

@@ -51,7 +51,10 @@ public:
 		std::vector<gdf_column_cpp> & columns,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
-  std::vector<data_handle> *get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
+	std::vector<data_handle> * get_schema(
+		Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
+
+	static std::vector<std::vector<data_handle> *> data_handles_bucket;
 
 private:
 	/**
