@@ -480,10 +480,16 @@ void add_expression_to_plan(blazing_frame & inputs,
 							left_index = num_inputs;
 							new_input_col_added = true;
 						} else {
+							NVCategory * old_category1 = static_cast<NVCategory *>(left_column->dtype_info.category);
+							NVCategory * old_category2 = static_cast<NVCategory *>(right_column->dtype_info.category);
+
 							gdf_column * process_columns[2] = {left_column, right_column};
 							gdf_column * output_columns[2] = {left_column, right_column};
 
 							CUDF_CALL(sync_column_categories(process_columns, output_columns, 2));
+
+							NVCategory::destroy(old_category1);
+							NVCategory::destroy(old_category2);
 						}
 					}
 
