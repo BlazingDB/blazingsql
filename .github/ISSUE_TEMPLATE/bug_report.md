@@ -29,3 +29,10 @@ Please run and paste the output of the `print_env.sh` script here, to gather any
 
 **Additional context**
 Add any other context about the problem here.
+
+**----For BlazingSQL Developers----**
+**Suspected source of the issue**
+Where and what are potential sources of the issue
+
+**Other design considerations**
+What components of the engine could be affected by this?
