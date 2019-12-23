@@ -18,3 +18,13 @@ A clear and concise description of any alternative solutions or features you've 
 
 **Additional context**
 Add any other context or screenshots about the feature request here.
+
+**----For BlazingSQL Developers----**
+**How and where should this be implemented?**
+What part of the code should be feature be implemented? What should the APIs and/or classes look like?
+
+**Other design considerations **
+What components of the engine could be affected by this? What functions should we make sure we use/reuse?
+
+**Testing considerations?**
+What sort of unit tests and/or End to End tests be implemented to test this?
