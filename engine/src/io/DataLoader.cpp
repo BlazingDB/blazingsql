@@ -9,6 +9,7 @@
 #include <CodeTimer.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <thread>
+#include <arrow/status.h>
 
 namespace ral {
 namespace io {
@@ -176,6 +177,36 @@ void data_loader::load_data(const Context & context,
 	timer.reset();
 }
 
+class RandomAccessFileForSchema : public arrow::io::RandomAccessFile {
+public:
+	explicit RandomAccessFileForSchema(std::shared_ptr<arrow::io::RandomAccessFile> & file) : file_{file} {}
+
+	arrow::Status Close() final {
+		// NOTE: Do nothing to avoid close the file after read schema.
+    // This class only acts for the schema creation process.
+		return arrow::Status::OK();
+	}
+
+  arrow::Status Tell(std::int64_t * position) const final { return file_->Tell(position); }
+
+  bool closed() const final { return file_->closed(); }
+
+  arrow::Status Seek(std::int64_t position) final { return file_->Seek(position); }
+
+  arrow::Status Read(std::int64_t nbytes, std::int64_t * bytes_read, void * out) final {
+    return file_->Read(nbytes, bytes_read, out);
+  }
+
+  arrow::Status Read(std::int64_t nbytes, std::shared_ptr<arrow::Buffer> * out) final {
+    return file_->Read(nbytes, out);
+  }
+
+  arrow::Status GetSize(std::int64_t * size) final { return file_->GetSize(size); }
+
+private:
+	std::shared_ptr<arrow::io::RandomAccessFile> & file_;
+};
+
 std::vector<data_handle> * data_loader::get_schema(
 	Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns) {
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
@@ -184,7 +215,20 @@ std::vector<data_handle> * data_loader::get_schema(
 	for(auto handle : handles) {
 		files.push_back(handle.fileHandle);
 	}
-	this->parser->parse_schema(files, schema);
+
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> filesForSchema;
+	filesForSchema.reserve(files.size());
+	std::transform(files.begin(),
+		files.end(),
+		std::back_inserter(filesForSchema),
+		[](std::shared_ptr<arrow::io::RandomAccessFile> & file) {
+			return std::make_shared<RandomAccessFileForSchema>(file);
+		});
+
+	this->parser->parse_schema(filesForSchema, schema);
+
+	std::for_each(
+		files.begin(), files.end(), [](std::shared_ptr<arrow::io::RandomAccessFile> & file) { file->Seek(0); });
 
 	for(auto handle : handles) {
 		schema.add_file(handle.uri.toString(true));
