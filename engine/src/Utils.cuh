@@ -79,7 +79,7 @@ using gdf_col_pointer = typename std::unique_ptr<gdf_column,
 
 template <typename col_type>
 void print_typed_column(col_type * col_data,
-                        gdf_valid_type * validity_mask,
+                        cudf::valid_type * validity_mask,
                         const size_t num_rows)
 {
 
@@ -88,10 +88,10 @@ void print_typed_column(col_type * col_data,
 
 
   const size_t num_masks = valid_size(num_rows);
-  std::vector<gdf_valid_type> h_mask(num_masks);
+  std::vector<cudf::valid_type> h_mask(num_masks);
   if(nullptr != validity_mask)
   {
-    CheckCudaErrors(cudaMemcpy((int *) h_mask.data(), validity_mask, num_masks * sizeof(gdf_valid_type), cudaMemcpyDeviceToHost));
+    CheckCudaErrors(cudaMemcpy((int *) h_mask.data(), validity_mask, num_masks * sizeof(cudf::valid_type), cudaMemcpyDeviceToHost));
   }
 
   if (validity_mask == nullptr) {

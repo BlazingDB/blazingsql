@@ -27,7 +27,7 @@ protected:
 public:
 	gdf_column ** getColumns();
 
-	gdf_size_type getQuantity();
+	cudf::size_type getQuantity();
 
 private:
 	std::vector<gdf_column *> columns_;

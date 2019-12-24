@@ -38,7 +38,7 @@ namespace ral {
 namespace distribution {
 namespace sampling {
 
-double calculateSampleRatio(gdf_size_type tableSize) { return std::ceil(1.0 - std::pow(tableSize / 1.0E11, 8E-4)); }
+double calculateSampleRatio(cudf::size_type tableSize) { return std::ceil(1.0 - std::pow(tableSize / 1.0E11, 8E-4)); }
 
 std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, double ratio) {
 	std::size_t quantity = std::ceil(table[0].size() * ratio);
@@ -185,7 +185,7 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 
 	std::vector<gdf_column_cpp> concatSamples = ral::utilities::concatTables(tables);
 
-	gdf_size_type outputRowSize = concatSamples[0].size();
+	cudf::size_type outputRowSize = concatSamples[0].size();
 
 	std::vector<gdf_column *> rawConcatSamples(concatSamples.size());
 	std::transform(
@@ -245,7 +245,7 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 	}
 
 	// Gather
-	gdf_size_type pivotsSize = outputRowSize > 0 ? context.getTotalNodes() - 1 : 0;
+	cudf::size_type pivotsSize = outputRowSize > 0 ? context.getTotalNodes() - 1 : 0;
 	std::vector<gdf_column_cpp> pivots(sortedSamples.size());
 	for(size_t i = 0; i < sortedSamples.size(); i++) {
 		auto & col = sortedSamples[i];
@@ -381,7 +381,7 @@ std::vector<NodeColumns> partitionData(const Context & context,
 		}
 	}
 
-	gdf_size_type table_row_size = table[0].size();
+	cudf::size_type table_row_size = table[0].size();
 	if(table_row_size == 0) {
 		std::vector<NodeColumns> array_node_columns;
 		auto nodes = context.getAllNodes();
@@ -463,7 +463,7 @@ std::vector<NodeColumns> partitionData(const Context & context,
 		return table[index];
 	});
 	std::vector<gdf_column_cpp> sync_needles(pivots);
-	for(gdf_size_type i = 0; i < sync_haystack.size(); i++) {
+	for(cudf::size_type i = 0; i < sync_haystack.size(); i++) {
 		gdf_column_cpp & left_col = sync_haystack[i];
 		gdf_column_cpp & right_col = sync_needles[i];
 
@@ -715,10 +715,10 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 		sortedSamples[i].update_null_count();
 	}
 
-	gdf_size_type outputRowSize = sortedSamples[0].size();
+	cudf::size_type outputRowSize = sortedSamples[0].size();
 
 	// Gather
-	gdf_size_type pivotsSize = outputRowSize > 0 ? context.getTotalNodes() - 1 : 0;
+	cudf::size_type pivotsSize = outputRowSize > 0 ? context.getTotalNodes() - 1 : 0;
 	std::vector<gdf_column_cpp> pivots{sortedSamples.size()};
 	for(size_t i = 0; i < sortedSamples.size(); i++) {
 		auto & col = sortedSamples[i];
@@ -795,13 +795,13 @@ void distributeRowSize(const Context & context, std::size_t total_row_size) {
 	broadcastMessage(context.getAllOtherNodes(self_node_idx), message);
 }
 
-std::vector<gdf_size_type> collectRowSize(const Context & context) {
+std::vector<cudf::size_type> collectRowSize(const Context & context) {
 	using ral::communication::CommunicationData;
 	using ral::communication::messages::SampleToNodeMasterMessage;
 	using ral::communication::network::Server;
 
 	int num_nodes = context.getTotalNodes();
-	std::vector<gdf_size_type> node_row_sizes(num_nodes);
+	std::vector<cudf::size_type> node_row_sizes(num_nodes);
 	std::vector<bool> received(num_nodes, false);
 
 	const uint32_t context_comm_token = context.getContextCommunicationToken();
@@ -809,7 +809,7 @@ std::vector<gdf_size_type> collectRowSize(const Context & context) {
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
 
 	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	for(gdf_size_type i = 0; i < num_nodes - 1; ++i) {
+	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
 		if(message->getMessageTokenValue() != message_id) {
 			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
@@ -854,8 +854,8 @@ void distributeLeftRightNumRows(const Context & context, std::size_t left_num_ro
 }
 
 void collectLeftRightNumRows(const Context & context,
-	std::vector<gdf_size_type> & node_num_rows_left,
-	std::vector<gdf_size_type> & node_num_rows_right) {
+	std::vector<cudf::size_type> & node_num_rows_left,
+	std::vector<cudf::size_type> & node_num_rows_right) {
 	using ral::communication::CommunicationData;
 	using ral::communication::messages::SampleToNodeMasterMessage;
 	using ral::communication::network::Server;
@@ -870,7 +870,7 @@ void collectLeftRightNumRows(const Context & context,
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
 
 	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	for(gdf_size_type i = 0; i < num_nodes - 1; ++i) {
+	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
 		if(message->getMessageTokenValue() != message_id) {
 			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
@@ -909,12 +909,12 @@ namespace ral {
 namespace distribution {
 
 std::vector<gdf_column_cpp> generateOutputColumns(
-	gdf_size_type column_quantity, gdf_size_type column_size, std::vector<gdf_column_cpp> & table) {
+	cudf::size_type column_quantity, cudf::size_type column_size, std::vector<gdf_column_cpp> & table) {
 	// Create outcome
 	std::vector<gdf_column_cpp> result(column_quantity);
 
 	// Create columns
-	for(gdf_size_type k = 0; k < column_quantity; ++k) {
+	for(cudf::size_type k = 0; k < column_quantity; ++k) {
 		result[k] = ral::utilities::create_column(column_size, table[k].dtype(), table[k].name());
 	}
 
@@ -929,7 +929,7 @@ std::vector<NodeColumns> generateJoinPartitions(
 	if(table[0].size() == 0) {
 		std::vector<NodeColumns> result;
 		auto nodes = context.getAllNodes();
-		for(gdf_size_type k = 0; k < nodes.size(); ++k) {
+		for(cudf::size_type k = 0; k < nodes.size(); ++k) {
 			std::vector<gdf_column_cpp> columns = table;
 			result.emplace_back(*nodes[k], columns);
 		}
@@ -973,7 +973,7 @@ std::vector<NodeColumns> generateJoinPartitions(
 	cudf::table input_table_wrapper(raw_input_table_col_ptrs);
 
 	// Generate partition offset vector
-	gdf_size_type number_nodes = context.getTotalNodes();
+	cudf::size_type number_nodes = context.getTotalNodes();
 	std::vector<gdf_index_type> partition_offset(number_nodes);
 
 	// Preallocate output columns

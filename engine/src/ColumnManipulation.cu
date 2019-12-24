@@ -21,6 +21,7 @@
 #include <cudf/legacy/bitmask.hpp>
 #include "Traits/RuntimeTraits.h"
 
+#include <cudf/types.hpp>
 
 const size_t NUM_ELEMENTS_PER_THREAD_GATHER_BITS = 32;
 template <typename BitContainer, typename Index>
@@ -28,7 +29,7 @@ __global__ void gather_bits(
 		const Index*        __restrict__ indices,
 		const BitContainer* __restrict__ bit_data,
 		BitContainer* __restrict__ gathered_bits,
-		gdf_size_type                    num_indices
+		cudf::size_type                    num_indices
 ){
 	size_t thread_index = blockIdx.x * blockDim.x + threadIdx.x ;
 	size_t element_index = NUM_ELEMENTS_PER_THREAD_GATHER_BITS * thread_index;
@@ -112,7 +113,7 @@ void materialize_templated_2(gdf_column * input, gdf_column * output, gdf_column
 			if (output->valid) {
 				gdf_error result = gdf_count_nonzero_mask(output->valid, output->size, &count);
 				assert(result == GDF_SUCCESS);
-				output->null_count = output->size - static_cast<gdf_size_type>(count);
+				output->null_count = output->size - static_cast<cudf::size_type>(count);
 			} else{
 				output->null_count = 0;
 			}

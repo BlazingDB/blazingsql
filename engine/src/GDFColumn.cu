@@ -80,7 +80,7 @@ gdf_column_cpp gdf_column_cpp::clone(std::string name, bool register_column)
     col1.column = new gdf_column{};
 	*col1.column = *this->column;
 	col1.column->data = (void *) data_dev;
-	col1.column->valid =(gdf_valid_type *) valid_dev;
+	col1.column->valid =(cudf::valid_type *) valid_dev;
 	col1.allocated_size_data = this->allocated_size_data;
 	col1.allocated_size_valid = this->allocated_size_valid;
 
@@ -154,19 +154,19 @@ void gdf_column_cpp::update_null_count()
 void gdf_column_cpp::allocate_set_valid(){
 	this->column->valid = allocate_valid();
 }
-gdf_valid_type * gdf_column_cpp::allocate_valid(){
+cudf::valid_type * gdf_column_cpp::allocate_valid(){
 	size_t num_values = this->size();
-    gdf_valid_type * valid_device;
+    cudf::valid_type * valid_device;
 	this->allocated_size_valid = gdf_valid_allocation_size(num_values); //so allocations are supposed to be 64byte aligned
 
     cuDF::Allocator::allocate((void**)&valid_device, allocated_size_valid);
 
 //TODO: this will fail gloriously whenever the valid type cahnges
-    CheckCudaErrors(cudaMemset(valid_device, (gdf_valid_type)255, allocated_size_valid)); //assume all relevant bits are set to on
+    CheckCudaErrors(cudaMemset(valid_device, (cudf::valid_type)255, allocated_size_valid)); //assume all relevant bits are set to on
 	return valid_device;
 }
 
-void gdf_column_cpp::create_gdf_column_for_ipc(gdf_dtype type, gdf_dtype_extra_info dtype_info, void * col_data,gdf_valid_type * valid_data, gdf_size_type num_values, gdf_size_type null_count, std::string column_name){
+void gdf_column_cpp::create_gdf_column_for_ipc(gdf_dtype type, gdf_dtype_extra_info dtype_info, void * col_data,cudf::valid_type * valid_data, cudf::size_type num_values, cudf::size_type null_count, std::string column_name){
     assert(type != GDF_invalid);
     decrement_counter(column);
 
@@ -221,7 +221,7 @@ void gdf_column_cpp::create_gdf_column(NVCategory* category, size_t num_values,s
 
     if (category->has_nulls()) {
         this->column->valid = allocate_valid();
-        this->column->null_count = category->set_null_bitarray((gdf_valid_type*)this->column->valid);
+        this->column->null_count = category->set_null_bitarray((cudf::valid_type*)this->column->valid);
     }
 
     this->is_ipc_column = false;
@@ -249,7 +249,7 @@ void gdf_column_cpp::create_gdf_column(NVStrings* strings, size_t num_values, st
     GDFRefCounter::getInstance()->register_column(this->column);
 }
 
-void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, gdf_valid_type * host_valids, size_t width_per_value, const std::string &column_name)
+void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, cudf::valid_type * host_valids, size_t width_per_value, const std::string &column_name)
 {
     assert(type != GDF_invalid);
     decrement_counter(column);
@@ -266,7 +266,7 @@ void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtyp
     this->allocated_size_data = (width_per_value * num_values);
     this->allocated_size_valid = 0;
 
-    gdf_valid_type * valid_device = nullptr;
+    cudf::valid_type * valid_device = nullptr;
 
     if (num_values > 0) {
         cuDF::Allocator::allocate((void**)&data, allocated_size_data);
@@ -310,7 +310,7 @@ void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtyp
     this->allocated_size_data = (width_per_value * num_values);
     this->allocated_size_valid = 0;
 
-    gdf_valid_type * valid_device = nullptr;
+    cudf::valid_type * valid_device = nullptr;
 
     if (num_values > 0) {
         if (type != GDF_STRING){
@@ -386,7 +386,7 @@ void gdf_column_cpp::create_gdf_column(const gdf_scalar & scalar, const std::str
 
     cuDF::Allocator::allocate((void**)&data, allocated_size_data);
 
-    gdf_valid_type * valid_device = nullptr;
+    cudf::valid_type * valid_device = nullptr;
     if(!scalar.is_valid){
         valid_device = allocate_valid();
         CheckCudaErrors(cudaMemset(valid_device, 0, this->allocated_size_valid));
@@ -456,7 +456,7 @@ void gdf_column_cpp::allocate_like(const gdf_column_cpp& other){
         cuDF::Allocator::allocate((void**)&data, this->allocated_size_data);
     }
 
-    gdf_valid_type * valid_device = nullptr;
+    cudf::valid_type * valid_device = nullptr;
     if(this->allocated_size_valid > 0) {
         cuDF::Allocator::allocate((void**)&valid_device,  this->allocated_size_valid);
     }
@@ -478,7 +478,7 @@ void gdf_column_cpp::realloc_gdf_column(gdf_dtype type, size_t size, size_t widt
 	this->create_gdf_column(type, size, nullptr, width, col_name);
 }*/
 
-gdf_error gdf_column_cpp::gdf_column_view(gdf_column *column, void *data, gdf_valid_type *valid, gdf_size_type size, gdf_dtype dtype)
+gdf_error gdf_column_cpp::gdf_column_view(gdf_column *column, void *data, cudf::valid_type *valid, cudf::size_type size, gdf_dtype dtype)
 {
     column->data = data;
     column->valid = valid;
@@ -511,10 +511,10 @@ void* gdf_column_cpp::data() const{
     return column->data;
 }
 
-gdf_valid_type* gdf_column_cpp::valid() const {
+cudf::valid_type* gdf_column_cpp::valid() const {
     return column->valid;
 }
-gdf_size_type gdf_column_cpp::size() const {
+cudf::size_type gdf_column_cpp::size() const {
     return column->size;
 }
 
@@ -522,7 +522,7 @@ gdf_dtype gdf_column_cpp::dtype() const {
     return column->dtype;
 }
 
-gdf_size_type gdf_column_cpp::null_count(){
+cudf::size_type gdf_column_cpp::null_count(){
     return column->null_count;
 }
 
@@ -554,6 +554,6 @@ void gdf_column_cpp::update_null_count(gdf_column* column) const {
         int count;
         gdf_error result = gdf_count_nonzero_mask(column->valid, column->size, &count);
         assert(result == GDF_SUCCESS);
-        column->null_count = column->size - static_cast<gdf_size_type>(count);
+        column->null_count = column->size - static_cast<cudf::size_type>(count);
     }
 }

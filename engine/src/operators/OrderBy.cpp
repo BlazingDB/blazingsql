@@ -39,8 +39,8 @@ int count_string_occurrence(std::string haystack, std::string needle) {
 	return count;
 }
 
-void limit_table(blazing_frame & input, gdf_size_type limitRows) {
-	gdf_size_type rowSize = input.get_num_rows_in_table(0);
+void limit_table(blazing_frame & input, cudf::size_type limitRows) {
+	cudf::size_type rowSize = input.get_num_rows_in_table(0);
 
 	if(limitRows < rowSize) {
 		for(size_t i = 0; i < input.get_size_column(0); ++i) {
@@ -50,7 +50,7 @@ void limit_table(blazing_frame & input, gdf_size_type limitRows) {
 			} else {
 				gdf_column_cpp limitedCpp;
 				gdf_column * sourceColumn = input_col.get_gdf_column();
-				gdf_size_type width_per_value = ral::traits::get_dtype_size_in_bytes(sourceColumn);
+				cudf::size_type width_per_value = ral::traits::get_dtype_size_in_bytes(sourceColumn);
 				limitedCpp.create_gdf_column(sourceColumn->dtype,
 					sourceColumn->dtype_info,
 					limitRows,
@@ -68,19 +68,19 @@ void limit_table(blazing_frame & input, gdf_size_type limitRows) {
 	}
 }
 
-void distributed_limit(Context & queryContext, blazing_frame & input, gdf_size_type limitRows) {
+void distributed_limit(Context & queryContext, blazing_frame & input, cudf::size_type limitRows) {
 	using ral::communication::CommunicationData;
 	using ral::distribution::NodeSamples;
 
-	gdf_size_type rowSize = input.get_num_rows_in_table(0);
+	cudf::size_type rowSize = input.get_num_rows_in_table(0);
 
 	queryContext.incrementQuerySubstep();
 	ral::distribution::distributeRowSize(queryContext, rowSize);
-	std::vector<gdf_size_type> nodesRowSize = ral::distribution::collectRowSize(queryContext);
+	std::vector<cudf::size_type> nodesRowSize = ral::distribution::collectRowSize(queryContext);
 
 	int self_node_idx = queryContext.getNodeIndex(CommunicationData::getInstance().getSelfNode());
 
-	gdf_size_type prevTotalRows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, 0);
+	cudf::size_type prevTotalRows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, 0);
 
 	if(prevTotalRows + rowSize > limitRows) {
 		limit_table(input, std::max(limitRows - prevTotalRows, 0));

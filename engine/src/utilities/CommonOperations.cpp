@@ -15,9 +15,9 @@ namespace utilities {
 std::vector<gdf_column_cpp> concatTables(const std::vector<std::vector<gdf_column_cpp>> & tables) {
 	assert(tables.size() > 0);
 
-	gdf_size_type num_columns = 0;
-	gdf_size_type output_row_size = 0;
-	gdf_size_type num_tables_with_data = 0;
+	cudf::size_type num_columns = 0;
+	cudf::size_type output_row_size = 0;
+	cudf::size_type num_tables_with_data = 0;
 	std::vector<std::vector<gdf_column_cpp>> columnsToConcatArray;
 	for(size_t i = 0; i < tables.size(); i++) {
 		if(tables[i].size() > 0) {
@@ -33,14 +33,14 @@ std::vector<gdf_column_cpp> concatTables(const std::vector<std::vector<gdf_colum
 				assert(table.size() == num_columns);
 			}
 
-			gdf_size_type table_rows = table[0].size();
+			cudf::size_type table_rows = table[0].size();
 			if(table_rows == 0) {
 				continue;
 			}
 
 			num_tables_with_data++;
 			output_row_size += table_rows;
-			for(gdf_size_type j = 0; j < num_columns; j++) {
+			for(cudf::size_type j = 0; j < num_columns; j++) {
 				columnsToConcatArray[j].push_back(table[j]);
 			}
 		}

@@ -278,8 +278,8 @@ private:
 	int ThreadBlockSize;
 	short maxPosition;
 
-	gdf_size_type * null_counts_inputs;
-	gdf_size_type * null_counts_outputs;
+	cudf::size_type * null_counts_inputs;
+	cudf::size_type * null_counts_outputs;
 	
 
 	template<typename LocalStorageType, typename BufferType>
@@ -958,16 +958,16 @@ public:
 		space += (sizeof(gdf_dtype) * num_final_outputs); //space for pointers to types for each input_index, e.g. if input_index = 1 then this value should contain column_1 type
 		space += sizeof(gdf_binary_operator_exp) * _num_operations;
 		space += sizeof(gdf_unary_operator) * _num_operations;
-		space += sizeof(gdf_size_type) * num_inputs; //space for null_counts_inputs
-		space += sizeof(gdf_size_type) * num_final_outputs; //space for null count outputs
+		space += sizeof(cudf::size_type) * num_inputs; //space for null_counts_inputs
+		space += sizeof(cudf::size_type) * num_final_outputs; //space for null count outputs
 		space += sizeof(int64_t) * _num_operations * 2; //space for scalar inputs
 		return space;
 	}
 
 	// DO NOT USE THIS. This is currently not working due to strange race condition
 	// void update_columns_null_count(std::vector<gdf_column *> output_columns){
-	// 	gdf_size_type * outputs = new gdf_size_type[output_columns.size()];
-	// 	CheckCudaErrors(cudaMemcpyAsync(outputs,this->null_counts_outputs,sizeof(gdf_size_type) * output_columns.size(),cudaMemcpyDeviceToHost,this->stream));
+	// 	cudf::size_type * outputs = new cudf::size_type[output_columns.size()];
+	// 	CheckCudaErrors(cudaMemcpyAsync(outputs,this->null_counts_outputs,sizeof(cudf::size_type) * output_columns.size(),cudaMemcpyDeviceToHost,this->stream));
 	//	CheckCudaErrors(cudaStreamSynchronize(this->stream));
 	// 	for(int i = 0; i < output_columns.size(); i++){
 	// 		//std::cout<<"outputs["<<i<<"] = "<<outputs[i]<<std::endl;
@@ -1072,10 +1072,10 @@ public:
 		cur_temp_space += sizeof(temp_gdf_valid_type *) * num_columns;
 		valid_ptrs_out = (temp_gdf_valid_type **) cur_temp_space;
 		cur_temp_space += sizeof(temp_gdf_valid_type *) * num_final_outputs;
-		null_counts_inputs = (gdf_size_type *) cur_temp_space;
-		cur_temp_space += sizeof(gdf_size_type) * num_columns;
-		null_counts_outputs = (gdf_size_type *) cur_temp_space;
-		cur_temp_space += sizeof(gdf_size_type) * num_final_outputs;
+		null_counts_inputs = (cudf::size_type *) cur_temp_space;
+		cur_temp_space += sizeof(cudf::size_type) * num_columns;
+		null_counts_outputs = (cudf::size_type *) cur_temp_space;
+		cur_temp_space += sizeof(cudf::size_type) * num_final_outputs;
 		input_column_types = (gdf_dtype *) cur_temp_space;
 		cur_temp_space += sizeof(gdf_dtype) * num_columns;
 		input_types_left = (gdf_dtype *) cur_temp_space;
@@ -1104,8 +1104,8 @@ public:
 
 		std::vector<void *> host_data_ptrs(num_columns);
 		std::vector<temp_gdf_valid_type *> host_valid_ptrs(num_columns);
-		std::vector<gdf_size_type> host_null_counts(num_columns);
-		std::vector<gdf_size_type> host_null_counts_output(num_final_outputs,0);
+		std::vector<cudf::size_type> host_null_counts(num_columns);
+		std::vector<cudf::size_type> host_null_counts_output(num_final_outputs,0);
 
 		for(std::size_t i = 0; i < num_columns; i++){
 			host_data_ptrs[i] = columns[i]->data;
@@ -1118,8 +1118,8 @@ public:
 		//	std::cout<<"about to copy host valid"<<error<<std::endl;
 		//	CheckCudaErrors(cudaMemcpy(this->valid_ptrs,&host_valid_ptrs[0],sizeof(void *) * num_columns,cudaMemcpyHostToDevice));
 		CheckCudaErrors(cudaMemcpyAsync(this->valid_ptrs,&host_valid_ptrs[0],sizeof(void *) * num_columns,cudaMemcpyHostToDevice,stream));
-		CheckCudaErrors(cudaMemcpyAsync(this->null_counts_inputs,&host_null_counts[0],sizeof(gdf_size_type) * num_columns,cudaMemcpyHostToDevice,stream));
-		CheckCudaErrors(cudaMemcpyAsync(this->null_counts_outputs,&host_null_counts_output[0],sizeof(gdf_size_type) * num_final_outputs,cudaMemcpyHostToDevice,stream));
+		CheckCudaErrors(cudaMemcpyAsync(this->null_counts_inputs,&host_null_counts[0],sizeof(cudf::size_type) * num_columns,cudaMemcpyHostToDevice,stream));
+		CheckCudaErrors(cudaMemcpyAsync(this->null_counts_outputs,&host_null_counts_output[0],sizeof(cudf::size_type) * num_final_outputs,cudaMemcpyHostToDevice,stream));
 		//	std::cout<<"copied data and valid"<<error<<std::endlnum_final_outputs
 
 
@@ -1331,7 +1331,7 @@ public:
 		return this->num_final_outputs;
 	}
 
-__device__ __forceinline__ void copyRowValidsIntoBuffer(const int64_t & row_valid, int64_t * valids_out_buffer, const gdf_size_type & row_index){
+__device__ __forceinline__ void copyRowValidsIntoBuffer(const int64_t & row_valid, int64_t * valids_out_buffer, const cudf::size_type & row_index){
 	for(column_index_type out_index = 0; out_index < this->num_final_outputs; out_index++ ){
 		if(this->valid_ptrs_out[out_index] != nullptr){
 
@@ -1341,7 +1341,7 @@ __device__ __forceinline__ void copyRowValidsIntoBuffer(const int64_t & row_vali
 
 	}
 }
-__device__ __forceinline__ void copyRowValidsIntoGlobal( int64_t * valids_out_buffer, const gdf_size_type & row_index){
+__device__ __forceinline__ void copyRowValidsIntoGlobal( int64_t * valids_out_buffer, const cudf::size_type & row_index){
 	for(column_index_type out_index = 0; out_index < this->num_final_outputs; out_index++ ){
 		if(this->valid_ptrs_out[out_index] != nullptr){
 
@@ -1352,19 +1352,19 @@ __device__ __forceinline__ void copyRowValidsIntoGlobal( int64_t * valids_out_bu
 	}
 }
 __device__ __forceinline__
-void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & cur_row_valids, column_index_type num_columns){
+void load_cur_row_valids(int64_t valids_in_buffer[],cudf::size_type row,int64_t & cur_row_valids, column_index_type num_columns){
 	for(column_index_type cur_column = 0; cur_column < num_columns; cur_column++ ){
 		setColumnValid(cur_row_valids,cur_column,
 			getColumnValid(valids_in_buffer[cur_column],row));
 	}
 }
 
-	__device__ __forceinline__ void operator()(const IndexT row_index, int64_t total_buffer[], int64_t * valids_in_buffer, int64_t * valids_out_buffer, gdf_size_type size) {
+	__device__ __forceinline__ void operator()(const IndexT row_index, int64_t total_buffer[], int64_t * valids_in_buffer, int64_t * valids_out_buffer, cudf::size_type size) {
 		//		__shared__ char buffer[BufferSize * THREADBLOCK_SIZE];
 
 		int64_t cur_row_valids;
 //TODO: enable when we process null counts in this kernel
-//		gdf_size_type null_counts[this->num_final_outputs];
+//		cudf::size_type null_counts[this->num_final_outputs];
 
 		for(column_index_type cur_column = 0; cur_column < this->num_columns; cur_column++ ){
 
@@ -1377,7 +1377,7 @@ void load_cur_row_valids(int64_t valids_in_buffer[],gdf_size_type row,int64_t & 
 
 		}
 
-		for(gdf_size_type row = 0; row < 64 && row_index + row < size; row++){
+		for(cudf::size_type row = 0; row < 64 && row_index + row < size; row++){
 
 			load_cur_row_valids(valids_in_buffer,row,cur_row_valids,this->num_columns);
 
@@ -1447,7 +1447,7 @@ gdf_column create_gdf_column(gdf_dtype type, size_t num_values, void * input_dat
 //TODO: consider running valids at the same time as the normal
 // operations to increase throughput
 template<typename interpreted_operator>
-__global__ void transformKernel(interpreted_operator op, gdf_size_type size, int64_t* temp_valids_in_buffer, int64_t* temp_valids_out_buffer)
+__global__ void transformKernel(interpreted_operator op, cudf::size_type size, int64_t* temp_valids_in_buffer, int64_t* temp_valids_out_buffer)
 {
 
 	extern __shared__  int64_t  total_buffer[];
@@ -1455,7 +1455,7 @@ __global__ void transformKernel(interpreted_operator op, gdf_size_type size, int
 	int64_t * valids_in_buffer = temp_valids_in_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * op.num_columns;
 	int64_t * valids_out_buffer = temp_valids_out_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * op.num_final_outputs;
 
-	for (gdf_size_type i = (blockIdx.x * blockDim.x + threadIdx.x) * 64;
+	for (cudf::size_type i = (blockIdx.x * blockDim.x + threadIdx.x) * 64;
 			i < size;
 			i += blockDim.x * gridDim.x * 64)
 	{

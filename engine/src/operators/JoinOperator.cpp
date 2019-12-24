@@ -230,17 +230,17 @@ blazing_frame DistributedJoinOperator::process_distribution(blazing_frame & fram
 	int self_node_idx = context_->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
 
 	context_->incrementQuerySubstep();
-	gdf_size_type local_num_rows_left = frame.get_num_rows_in_table(0);
-	gdf_size_type local_num_rows_right = frame.get_num_rows_in_table(1);
+	cudf::size_type local_num_rows_left = frame.get_num_rows_in_table(0);
+	cudf::size_type local_num_rows_right = frame.get_num_rows_in_table(1);
 	ral::distribution::distributeLeftRightNumRows(*context_, local_num_rows_left, local_num_rows_right);
-	std::vector<gdf_size_type> nodes_num_rows_left;
-	std::vector<gdf_size_type> nodes_num_rows_right;
+	std::vector<cudf::size_type> nodes_num_rows_left;
+	std::vector<cudf::size_type> nodes_num_rows_right;
 	ral::distribution::collectLeftRightNumRows(*context_, nodes_num_rows_left, nodes_num_rows_right);
 	nodes_num_rows_left[self_node_idx] = local_num_rows_left;
 	nodes_num_rows_right[self_node_idx] = local_num_rows_right;
 
-	gdf_size_type total_rows_left = std::accumulate(nodes_num_rows_left.begin(), nodes_num_rows_left.end(), 0);
-	gdf_size_type total_rows_right = std::accumulate(nodes_num_rows_right.begin(), nodes_num_rows_right.end(), 0);
+	cudf::size_type total_rows_left = std::accumulate(nodes_num_rows_left.begin(), nodes_num_rows_left.end(), 0);
+	cudf::size_type total_rows_right = std::accumulate(nodes_num_rows_right.begin(), nodes_num_rows_right.end(), 0);
 
 	size_t row_width_bytes_left = 0;
 	size_t row_width_bytes_right = 0;

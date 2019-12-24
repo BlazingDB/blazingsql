@@ -25,13 +25,13 @@ using Node = blazingdb::transport::Node;
 using Address = blazingdb::transport::Address;
 using ColumnTransport = blazingdb::transport::ColumnTransport;
 using GPUMessage = blazingdb::transport::GPUMessage;
-using StrDataPtrTuple = std::tuple<char *, gdf_size_type, int *, gdf_size_type, unsigned char *, gdf_size_type>;
+using StrDataPtrTuple = std::tuple<char *, cudf::size_type, int *, cudf::size_type, unsigned char *, cudf::size_type>;
 
 inline bool isGdfString(const gdf_column * column) {
 	return GDF_STRING == column->dtype || GDF_STRING_CATEGORY == column->dtype;
 }
 
-inline gdf_size_type getValidCapacity(const gdf_column * column) {
+inline cudf::size_type getValidCapacity(const gdf_column * column) {
 	return column->null_count > 0 ? ral::traits::get_bitmask_size_in_bytes(column->size) : 0;
 }
 
@@ -77,24 +77,24 @@ public:
 		std::string output;
 		NVCategory * category = static_cast<NVCategory *>(category_ptr);
 		NVStrings * nvStrings_ = category->gather_strings(category->values_cptr(), category->size(), true);
-		gdf_size_type stringsLength_ = nvStrings_->size();
+		cudf::size_type stringsLength_ = nvStrings_->size();
 		auto offsetsLength_ = stringsLength_ + 1;
 
 		int * const lengthPerStrings = new int[stringsLength_];
 		nvStrings_->byte_count(lengthPerStrings, false);
-		gdf_size_type stringsSize_ =
+		cudf::size_type stringsSize_ =
 			std::accumulate(lengthPerStrings,
 				lengthPerStrings + stringsLength_,
 				0,
 				[](int accumulator, int currentValue) { return accumulator + std::max(currentValue, 0); }) *
 			sizeof(char);
 		char * stringsPointer_ = nullptr;
-		gdf_size_type offsetsSize_ = offsetsLength_ * sizeof(int);
+		cudf::size_type offsetsSize_ = offsetsLength_ * sizeof(int);
 		int * offsetsPointer_ = nullptr;
 		RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&stringsPointer_), stringsSize_, 0));
 		RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&offsetsPointer_), offsetsSize_, 0));
 
-		gdf_size_type nullMaskSize_ = 0;
+		cudf::size_type nullMaskSize_ = 0;
 		unsigned char * nullBitmask_ = nullptr;
 		if(null_count > 0) {
 			nullMaskSize_ = ral::traits::get_bitmask_size_in_bytes(stringsLength_);
@@ -136,11 +136,11 @@ public:
 			strcpy(col_transport.metadata.col_name, column->col_name);
 			if(isGdfString(column)) {
 				char * stringsPointer;
-				gdf_size_type stringsSize;
+				cudf::size_type stringsSize;
 				int * offsetsPointer;
-				gdf_size_type offsetsSize;
+				cudf::size_type offsetsSize;
 				unsigned char * nullBitmask;
-				gdf_size_type nullMaskSize;
+				cudf::size_type nullMaskSize;
 				std::tie(stringsPointer, stringsSize, offsetsPointer, offsetsSize, nullBitmask, nullMaskSize) =
 					get_raw_pointers(column);
 
@@ -214,18 +214,18 @@ public:
 				RMM_TRY(RMM_FREE(offsetsPointer, 0));
 				RMM_TRY(RMM_FREE(nullMaskPointer, 0));
 			} else {
-				gdf_valid_type * valid_ptr = nullptr;
+				cudf::valid_type * valid_ptr = nullptr;
 				if(columns_offsets[i].valid != -1) {
 					// this is a valid
 					auto valid_offset = columns_offsets[i].valid;
-					valid_ptr = (gdf_valid_type *) raw_buffers[valid_offset];
+					valid_ptr = (cudf::valid_type *) raw_buffers[valid_offset];
 				}
 				gdf_error err = gdf_column_view_augmented(column,
 					(void *) raw_buffers[data_offset],
 					valid_ptr,
-					(gdf_size_type) columns_offsets[i].metadata.size,
+					(cudf::size_type) columns_offsets[i].metadata.size,
 					(gdf_dtype) columns_offsets[i].metadata.dtype,
-					(gdf_size_type) columns_offsets[i].metadata.null_count,
+					(cudf::size_type) columns_offsets[i].metadata.null_count,
 					gdf_dtype_extra_info{
 						.time_unit = (gdf_time_unit) columns_offsets[i].metadata.time_unit, .category = nullptr},
 					(char *) columns_offsets[i].metadata.col_name);

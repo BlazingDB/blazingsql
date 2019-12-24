@@ -12,7 +12,7 @@ namespace generator {
 
 gdf_error generate_sample(const std::vector<gdf_column_cpp>& data_frame,
                           std::vector<gdf_column_cpp>& sampled_data,
-                          gdf_size_type num_samples) {
+                          cudf::size_type num_samples) {
     if (data_frame.size() == 0) {
         return GDF_DATASET_EMPTY;
     }

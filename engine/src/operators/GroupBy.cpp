@@ -77,7 +77,7 @@ cudf::groupby::operators gdf_agg_op_to_groupby_operators(const gdf_agg_op agg_op
 
 std::vector<gdf_column_cpp> groupby_without_aggregations(
 	std::vector<gdf_column_cpp> & input, const std::vector<int> & group_column_indices) {
-	gdf_size_type num_group_columns = group_column_indices.size();
+	cudf::size_type num_group_columns = group_column_indices.size();
 
 	gdf_context ctxt;
 	ctxt.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  //  Nulls are are treated as largest

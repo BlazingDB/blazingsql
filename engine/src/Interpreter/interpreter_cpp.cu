@@ -241,7 +241,7 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 
 	char * temp_space;
 
-	gdf_size_type num_rows = input_columns[0]->size;
+	cudf::size_type num_rows = input_columns[0]->size;
 
 	cudaStream_t stream;
 	CheckCudaErrors(cudaStreamCreate(&stream));

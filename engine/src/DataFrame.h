@@ -32,7 +32,7 @@ public:
 		return *this;
 	}
 
-	gdf_size_type get_num_rows_in_table(int table_index) {
+	cudf::size_type get_num_rows_in_table(int table_index) {
 		if(table_index >= this->columns.size())
 			return 0;
 		else if(this->columns[table_index].size() == 0)

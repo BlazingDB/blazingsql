@@ -5,8 +5,8 @@
 namespace ral {
 namespace traits {
 
-gdf_size_type get_dtype_size_in_bytes(gdf_dtype dtype) {
-	gdf_size_type size = 0;
+cudf::size_type get_dtype_size_in_bytes(gdf_dtype dtype) {
+	cudf::size_type size = 0;
 	switch(dtype) {
 	case GDF_BOOL8: size = sizeof(gdf_bool8); break;
 	case GDF_INT8: size = sizeof(int8_t); break;
@@ -25,23 +25,23 @@ gdf_size_type get_dtype_size_in_bytes(gdf_dtype dtype) {
 	return size;
 }
 
-gdf_size_type get_dtype_size_in_bytes(const gdf_column * column) { return get_dtype_size_in_bytes(column->dtype); }
+cudf::size_type get_dtype_size_in_bytes(const gdf_column * column) { return get_dtype_size_in_bytes(column->dtype); }
 
-gdf_size_type get_data_size_in_bytes(const gdf_column * column) {
+cudf::size_type get_data_size_in_bytes(const gdf_column * column) {
 	return (column->size * get_dtype_size_in_bytes(column->dtype));
 }
 
-gdf_size_type get_data_size_in_bytes(const gdf_column_cpp & column) {
+cudf::size_type get_data_size_in_bytes(const gdf_column_cpp & column) {
 	return (column.size()) * get_dtype_size_in_bytes(column.dtype());
 }
 
-gdf_size_type get_data_size_in_bytes(gdf_size_type quantity, gdf_dtype dtype) {
+cudf::size_type get_data_size_in_bytes(cudf::size_type quantity, gdf_dtype dtype) {
 	return (quantity * get_dtype_size_in_bytes(dtype));
 }
 
-gdf_size_type get_bitmask_size_in_bytes(const gdf_column * column) { return gdf_valid_allocation_size(column->size); }
+cudf::size_type get_bitmask_size_in_bytes(const gdf_column * column) { return gdf_valid_allocation_size(column->size); }
 
-gdf_size_type get_bitmask_size_in_bytes(gdf_size_type quantity) { return gdf_valid_allocation_size(quantity); }
+cudf::size_type get_bitmask_size_in_bytes(cudf::size_type quantity) { return gdf_valid_allocation_size(quantity); }
 
 gdf_dtype convert_string_dtype(std::string str) {
 	if(str == "GDF_INT8") {

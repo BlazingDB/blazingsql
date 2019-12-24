@@ -63,7 +63,7 @@ void arrow_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 	std::shared_ptr< arrow::RecordBatch > out;
 	reader.ReadNext (&out);
-	gdf_size_type row = 0;
+	cudf::size_type row = 0;
 	while(out != nullptr){
 
 		for(auto column_index : column_indices_requested) {

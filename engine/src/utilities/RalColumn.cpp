@@ -6,7 +6,7 @@
 namespace ral {
 namespace utilities {
 
-gdf_column_cpp create_column(const gdf_size_type size, const gdf_dtype dtype, const std::string name) {
+gdf_column_cpp create_column(const cudf::size_type size, const gdf_dtype dtype, const std::string name) {
 	// create gdf_column_cpp
 	gdf_column_cpp column;
 
@@ -25,11 +25,11 @@ gdf_column_cpp create_column(const gdf_size_type size, const gdf_dtype dtype, co
 	return column;
 }
 
-gdf_column_cpp create_zero_column(const gdf_size_type size, const gdf_dtype dtype, std::string && name) {
+gdf_column_cpp create_zero_column(const cudf::size_type size, const gdf_dtype dtype, std::string && name) {
 	return create_zero_column(size, dtype, name);
 }
 
-gdf_column_cpp create_zero_column(const gdf_size_type size, const gdf_dtype dtype, const std::string & name) {
+gdf_column_cpp create_zero_column(const cudf::size_type size, const gdf_dtype dtype, const std::string & name) {
 	// create data array
 	std::size_t data_size = ral::traits::get_data_size_in_bytes(size, dtype);
 	std::vector<std::uint8_t> data(data_size, 0);

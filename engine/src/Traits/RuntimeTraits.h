@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cudf/types.h>
+#include <cudf/types.hpp>
 #include <string>
 
 namespace Ral {
@@ -53,21 +54,21 @@ constexpr std::size_t BYTE_SIZE_IN_BITS = 8;
 constexpr std::size_t BITMASK_SIZE_IN_BYTES = 64;
 
 
-gdf_size_type get_dtype_size_in_bytes(const gdf_column * column);
+cudf::size_type get_dtype_size_in_bytes(const gdf_column * column);
 
-gdf_size_type get_dtype_size_in_bytes(gdf_dtype dtype);
-
-
-gdf_size_type get_data_size_in_bytes(const gdf_column_cpp & column);
-
-gdf_size_type get_data_size_in_bytes(const gdf_column * column);
-
-gdf_size_type get_data_size_in_bytes(gdf_size_type quantity, gdf_dtype dtype);
+cudf::size_type get_dtype_size_in_bytes(gdf_dtype dtype);
 
 
-gdf_size_type get_bitmask_size_in_bytes(const gdf_column * column);
+cudf::size_type get_data_size_in_bytes(const gdf_column_cpp & column);
 
-gdf_size_type get_bitmask_size_in_bytes(gdf_size_type quantity);
+cudf::size_type get_data_size_in_bytes(const gdf_column * column);
+
+cudf::size_type get_data_size_in_bytes(cudf::size_type quantity, gdf_dtype dtype);
+
+
+cudf::size_type get_bitmask_size_in_bytes(const gdf_column * column);
+
+cudf::size_type get_bitmask_size_in_bytes(cudf::size_type quantity);
 
 gdf_dtype convert_string_dtype(std::string str);
 
