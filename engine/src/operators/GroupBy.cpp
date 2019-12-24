@@ -274,7 +274,7 @@ void aggregations_with_groupby(std::vector<gdf_column_cpp> & group_by_columns,
 void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 	std::vector<gdf_column_cpp> & aggregation_inputs,
 	std::vector<gdf_column_cpp> & output_columns,
-	const std::vector<gdf_dtype> & output_types,
+	const std::vector<cudf::type_id> & output_types,
 	const std::vector<std::string> & output_column_names) {
 	for(size_t i = 0; i < agg_ops.size(); i++) {
 		switch(agg_ops[i]) {
@@ -285,13 +285,13 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 				// Set output_column data to invalid
 				gdf_scalar null_value;
 				null_value.is_valid = false;
-				null_value.dtype = output_types[i];
+				null_value.dtype = to_gdf_type(output_types[i]);
 				output_columns[i].create_gdf_column(null_value, output_column_names[i]);
 				break;
 			} else {
 				cudf::reduction::operators reduction_op = gdf_agg_op_to_reduction_operators(agg_ops[i]);
 				gdf_scalar reduction_out =
-					cudf::reduce(aggregation_inputs[i].get_gdf_column(), reduction_op, output_types[i]);
+					cudf::reduce(aggregation_inputs[i].get_gdf_column(), reduction_op, to_gdf_type(output_types[i]));
 				output_columns[i].create_gdf_column(reduction_out, output_column_names[i]);
 				break;
 			}
@@ -301,13 +301,13 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 				// Set output_column data to invalid
 				gdf_scalar null_value;
 				null_value.is_valid = false;
-				null_value.dtype = output_types[i];
+				null_value.dtype = to_gdf_type(output_types[i]);
 				output_columns[i].create_gdf_column(null_value, output_column_names[i]);
 				break;
 			} else {
-				gdf_dtype sum_output_type = get_aggregation_output_type(aggregation_inputs[i].dtype(), GDF_SUM, false);
+				cudf::type_id sum_output_type = get_aggregation_output_type(aggregation_inputs[i].dtype(), GDF_SUM, false);
 				gdf_scalar avg_sum_scalar = cudf::reduce(
-					aggregation_inputs[i].get_gdf_column(), cudf::reduction::operators::SUM, sum_output_type);
+					aggregation_inputs[i].get_gdf_column(), cudf::reduction::operators::SUM, to_gdf_type(sum_output_type));
 				long avg_count =
 					aggregation_inputs[i].get_gdf_column()->size - aggregation_inputs[i].get_gdf_column()->null_count;
 
@@ -355,7 +355,7 @@ std::vector<gdf_column_cpp> compute_aggregations(blazing_frame & input,
 	}
 
 	std::vector<gdf_column_cpp> aggregation_inputs(aggregation_types.size());
-	std::vector<gdf_dtype> output_types(aggregation_types.size());
+	std::vector<cudf::type_id> output_types(aggregation_types.size());
 	std::vector<std::string> output_column_names(aggregation_types.size());
 
 	for(size_t i = 0; i < aggregation_types.size(); i++) {
@@ -369,18 +369,20 @@ std::vector<gdf_column_cpp> compute_aggregations(blazing_frame & input,
 			extra_info.time_unit = TIME_UNIT_NONE;
 			std::vector<int8_t> temp(row_size, 0);
 			aggregation_inputs[i].create_gdf_column(
-				GDF_INT8, extra_info, row_size, temp.data(), ral::traits::get_dtype_size_in_bytes(GDF_INT8), "");
+				cudf::type_id::INT8, extra_info, row_size, temp.data(), ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT8), "");
 		} else {
 			if(contains_evaluation(expression)) {
 				// we dont knwo what the size of this input will be so allcoate max size
 				// TODO de donde saco el nombre de la columna aqui???
-				gdf_dtype unused;
-				gdf_dtype agg_input_type = get_output_type_expression(&input, &unused, expression);
+				cudf::type_id unused;
+				cudf::type_id agg_input_type = get_output_type_expression(&input, &unused, expression);
 
 				// TODO Percy Rommel Jean Pierre improve timestamp resolution
 				gdf_dtype_extra_info extra_info;
 				extra_info.category = nullptr;
-				extra_info.time_unit = (agg_input_type == GDF_DATE64 || agg_input_type == GDF_TIMESTAMP
+				// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+				// percy also was date64 here
+				extra_info.time_unit = (agg_input_type == cudf::type_id::TIMESTAMP_MILLISECONDS
 											? TIME_UNIT_ms
 											: TIME_UNIT_NONE);  // TODO this should not be hardcoded
 
@@ -460,7 +462,7 @@ void aggregationsMerger(std::vector<ral::distribution::NodeColumns> & aggregatio
 	}
 
 	std::vector<gdf_column_cpp> aggregation_inputs(modAggregationTypes.size());
-	std::vector<gdf_dtype> aggregation_dtypes(modAggregationTypes.size());
+	std::vector<cudf::type_id> aggregation_dtypes(modAggregationTypes.size());
 	std::vector<std::string> aggregation_names(modAggregationTypes.size());
 	for(size_t i = 0; i < modAggregationTypes.size(); i++) {
 		aggregation_inputs[i] = concatAggregations[groupColIndices.size() + i];

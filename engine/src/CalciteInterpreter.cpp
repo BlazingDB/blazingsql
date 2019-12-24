@@ -140,8 +140,9 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 	// TODO: some of this code could be used to extract columns
 	// that will be projected to make the csv and parquet readers
 	// be able to ignore columns that are not
-	gdf_dtype max_temp_type = GDF_invalid;
-	std::vector<gdf_dtype> output_type_expressions(
+	// TODO percy cudf0.12 was invalid here, should we consider empty?
+	cudf::type_id max_temp_type = cudf::type_id::EMPTY;
+	std::vector<cudf::type_id> output_type_expressions(
 		expressions.size());  // contains output types for columns that are expressions, if they are not expressions we
 							  // skip over it
 
@@ -249,7 +250,7 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 
 			if(is_literal_col) {
 				int index = i;
-				gdf_dtype col_type = infer_dtype_from_literal(cleaned_expression);
+				cudf::type_id col_type = infer_dtype_from_literal(cleaned_expression);
 
 				// NOTE percy this is a literal so the extra info it doesnt matters
 				gdf_dtype_extra_info extra_info;
@@ -258,7 +259,7 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 				output_type_expressions[i] = col_type;
 				gdf_column_cpp output;
 
-				if(col_type == GDF_STRING_CATEGORY) {
+				if(col_type == cudf::type_id::CATEGORY) {
 					const std::string literal_expression = cleaned_expression.substr(1, cleaned_expression.size() - 2);
 					NVCategory * new_category = repeated_string_category(literal_expression, size);
 					output.create_gdf_column(new_category, size, name);
@@ -266,7 +267,8 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 					// TODO Percy Rommel Jean Pierre improve timestamp resolution
 					gdf_dtype_extra_info extra_info;
 					extra_info.category = nullptr;
-					extra_info.time_unit = (col_type == GDF_DATE64 || col_type == GDF_TIMESTAMP
+					// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+					extra_info.time_unit = (col_type == cudf::type_id::TIMESTAMP_MILLISECONDS
 												? TIME_UNIT_ms
 												: TIME_UNIT_NONE);  // TODO this should not be hardcoded
 
@@ -464,11 +466,11 @@ void process_filter(Context * context, blazing_frame & input, std::string query_
 
 	// TODO de donde saco el nombre de la columna aqui???
 	gdf_column_cpp stencil;
-	stencil.create_gdf_column(GDF_BOOL8,
+	stencil.create_gdf_column(cudf::type_id::BOOL8,
 		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		input.get_num_rows_in_table(0),
 		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_BOOL8),
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::BOOL8),
 		"");
 
 	Library::Logging::Logger().logInfo(
@@ -488,11 +490,11 @@ void process_filter(Context * context, blazing_frame & input, std::string query_
 
 	gdf_column_cpp index_col;
 	std::string empty = "";
-	index_col.create_gdf_column(GDF_INT32,
+	index_col.create_gdf_column(cudf::type_id::INT32,
 		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		input.get_num_rows_in_table(0),
 		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_INT32),
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 		empty);
 	gdf_sequence(static_cast<int32_t *>(index_col.get_gdf_column()->data), input.get_num_rows_in_table(0), 0);
 

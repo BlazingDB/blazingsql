@@ -84,7 +84,7 @@ void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 }
 
 // This function is copied and adapted from cudf
-constexpr std::pair<gdf_dtype, gdf_dtype_extra_info> to_dtype(parquet::Type::type physical,
+constexpr std::pair<cudf::type_id, gdf_dtype_extra_info> to_dtype(parquet::Type::type physical,
 	parquet::ConvertedType::type logical,
 	bool strings_to_categorical,
 	gdf_time_unit ts_unit = TIME_UNIT_NONE) {
@@ -92,38 +92,40 @@ constexpr std::pair<gdf_dtype, gdf_dtype_extra_info> to_dtype(parquet::Type::typ
 	// is superceded by 'logical' type whenever available.
 	switch(logical) {
 	case parquet::ConvertedType::type::UINT_8:
-	case parquet::ConvertedType::type::INT_8: return std::make_pair(GDF_INT8, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	case parquet::ConvertedType::type::INT_8: return std::make_pair(cudf::type_id::INT8, gdf_dtype_extra_info{TIME_UNIT_NONE});
 	case parquet::ConvertedType::type::UINT_16:
-	case parquet::ConvertedType::type::INT_16: return std::make_pair(GDF_INT16, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::ConvertedType::type::DATE: return std::make_pair(GDF_DATE32, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	case parquet::ConvertedType::type::INT_16: return std::make_pair(cudf::type_id::INT16, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+	case parquet::ConvertedType::type::DATE: return std::make_pair(cudf::type_id::TIMESTAMP_DAYS, gdf_dtype_extra_info{TIME_UNIT_NONE});
 	case parquet::ConvertedType::type::TIMESTAMP_MICROS:
-		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{ts_unit})
-										   : std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{TIME_UNIT_us});
+		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(cudf::type_id::TIMESTAMP_MICROSECONDS, gdf_dtype_extra_info{ts_unit})
+										   : std::make_pair(cudf::type_id::TIMESTAMP_MICROSECONDS, gdf_dtype_extra_info{TIME_UNIT_us});
 	case parquet::ConvertedType::type::TIMESTAMP_MILLIS:
-		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{ts_unit})
-										   : std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{TIME_UNIT_ms});
+		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(cudf::type_id::TIMESTAMP_MILLISECONDS, gdf_dtype_extra_info{ts_unit})
+										   : std::make_pair(cudf::type_id::TIMESTAMP_MILLISECONDS, gdf_dtype_extra_info{TIME_UNIT_ms});
 	default: break;
 	}
 
 	// Physical storage type supported by Parquet; controls the on-disk storage
 	// format in combination with the encoding type.
 	switch(physical) {
-	case parquet::Type::type::BOOLEAN: return std::make_pair(GDF_BOOL8, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::INT32: return std::make_pair(GDF_INT32, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::INT64: return std::make_pair(GDF_INT64, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::FLOAT: return std::make_pair(GDF_FLOAT32, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::DOUBLE: return std::make_pair(GDF_FLOAT64, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	case parquet::Type::type::BOOLEAN: return std::make_pair(cudf::type_id::BOOL8, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	case parquet::Type::type::INT32: return std::make_pair(cudf::type_id::INT32, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	case parquet::Type::type::INT64: return std::make_pair(cudf::type_id::INT64, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	case parquet::Type::type::FLOAT: return std::make_pair(cudf::type_id::FLOAT32, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	case parquet::Type::type::DOUBLE: return std::make_pair(cudf::type_id::FLOAT64, gdf_dtype_extra_info{TIME_UNIT_NONE});
 	case parquet::Type::type::BYTE_ARRAY:
 	case parquet::Type::type::FIXED_LEN_BYTE_ARRAY:
 		// Can be mapped to GDF_CATEGORY (32-bit hash) or GDF_STRING (nvstring)
-		return std::make_pair(strings_to_categorical ? GDF_CATEGORY : GDF_STRING, gdf_dtype_extra_info{TIME_UNIT_NONE});
+		return std::make_pair(strings_to_categorical ? cudf::type_id::CATEGORY : cudf::type_id::STRING, gdf_dtype_extra_info{TIME_UNIT_NONE});
 	case parquet::Type::type::INT96:
-		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{ts_unit})
-										   : std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{TIME_UNIT_ns});
+		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(cudf::type_id::TIMESTAMP_NANOSECONDS, gdf_dtype_extra_info{ts_unit})
+										   : std::make_pair(cudf::type_id::TIMESTAMP_NANOSECONDS, gdf_dtype_extra_info{TIME_UNIT_ns});
 	default: break;
 	}
 
-	return std::make_pair(GDF_invalid, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	// TODO percy cudf0.12 was invalid here, should we consider empty?
+	return std::make_pair(cudf::type_id::EMPTY, gdf_dtype_extra_info{TIME_UNIT_NONE});
 }
 
 void parquet_parser::parse_schema(
@@ -153,12 +155,12 @@ void parquet_parser::parse_schema(
 
 	// we currently dont support GDF_DATE32 for parquet so lets filter those out
 	std::vector<std::string> column_names_out;
-	std::vector<gdf_dtype> dtypes_out;
+	std::vector<cudf::type_id> dtypes_out;
 	std::vector<gdf_time_unit> time_units_out;
 	for(size_t i = 0; i < table_out.num_columns(); i++) {
 		if(table_out.get_column(i)->dtype != GDF_DATE32) {
 			column_names_out.push_back(table_out.get_column(i)->col_name);
-			dtypes_out.push_back(table_out.get_column(i)->dtype);
+			dtypes_out.push_back(to_type_id(table_out.get_column(i)->dtype));
 			time_units_out.push_back(table_out.get_column(i)->dtype_info.time_unit);
 		}
 	}

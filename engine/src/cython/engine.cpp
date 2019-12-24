@@ -68,7 +68,7 @@ ResultSet runQuery(int32_t masterIndex,
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
-		std::vector<gdf_dtype> types;
+		std::vector<cudf::type_id> types;
 		std::vector<gdf_time_unit> time_units;
 
 
@@ -76,7 +76,7 @@ ResultSet runQuery(int32_t masterIndex,
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			types.push_back(tableSchemas[i].columns[col]->dtype);
+			types.push_back(to_type_id(tableSchemas[i].columns[col]->dtype));
 		}
 
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {

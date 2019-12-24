@@ -6,15 +6,17 @@
 namespace ral {
 namespace utilities {
 
-gdf_column_cpp create_column(const cudf::size_type size, const gdf_dtype dtype, const std::string name) {
+gdf_column_cpp create_column(const cudf::size_type size, const cudf::type_id dtype, const std::string name) {
 	// create gdf_column_cpp
 	gdf_column_cpp column;
 
 	// TODO Percy Rommel Jean Pierre improve timestamp resolution
 	gdf_dtype_extra_info extra_info;
 	extra_info.category = nullptr;
+	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+	// was date64 here
 	extra_info.time_unit =
-		(dtype == GDF_DATE64 || dtype == GDF_TIMESTAMP ? TIME_UNIT_ms
+		(dtype == cudf::type_id::TIMESTAMP_MILLISECONDS ? TIME_UNIT_ms
 													   : TIME_UNIT_NONE);  // TODO this should not be hardcoded
 
 	// populate gdf_column_cpp
@@ -25,11 +27,11 @@ gdf_column_cpp create_column(const cudf::size_type size, const gdf_dtype dtype, 
 	return column;
 }
 
-gdf_column_cpp create_zero_column(const cudf::size_type size, const gdf_dtype dtype, std::string && name) {
+gdf_column_cpp create_zero_column(const cudf::size_type size, const cudf::type_id dtype, std::string && name) {
 	return create_zero_column(size, dtype, name);
 }
 
-gdf_column_cpp create_zero_column(const cudf::size_type size, const gdf_dtype dtype, const std::string & name) {
+gdf_column_cpp create_zero_column(const cudf::size_type size, const cudf::type_id dtype, const std::string & name) {
 	// create data array
 	std::size_t data_size = ral::traits::get_data_size_in_bytes(size, dtype);
 	std::vector<std::uint8_t> data(data_size, 0);
@@ -41,8 +43,10 @@ gdf_column_cpp create_zero_column(const cudf::size_type size, const gdf_dtype dt
 	// TODO Percy Rommel Jean Pierre improve timestamp resolution
 	gdf_dtype_extra_info extra_info;
 	extra_info.category = nullptr;
+	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+	// was date64 here
 	extra_info.time_unit =
-		(dtype == GDF_DATE64 || dtype == GDF_TIMESTAMP ? TIME_UNIT_ms
+		(dtype == cudf::type_id::TIMESTAMP_MILLISECONDS ? TIME_UNIT_ms
 													   : TIME_UNIT_NONE);  // TODO this should not be hardcoded
 
 	// create gdf_column_cpp

@@ -40,7 +40,7 @@ gdf_error generate_sample(const std::vector<gdf_column_cpp>& data_frame,
     cudf::table destTable = ral::utilities::create_table(sampled_data);
 
     gdf_column_cpp gatherMap;
-    gatherMap.create_gdf_column(GDF_INT32, gdf_dtype_extra_info{TIME_UNIT_NONE,nullptr}, arrayIdx.size(), arrayIdx.data(), ral::traits::get_dtype_size_in_bytes(GDF_INT32), "");
+    gatherMap.create_gdf_column(cudf::type_id::INT32, gdf_dtype_extra_info{TIME_UNIT_NONE,nullptr}, arrayIdx.size(), arrayIdx.data(), ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32), "");
 
     cudf::gather(&srcTable, (gdf_index_type*)(gatherMap.get_gdf_column()->data), &destTable);
     ral::init_string_category_if_null(destTable);

@@ -37,14 +37,14 @@ gdf_agg_op get_aggregation_operation(std::string operator_string);
 
 std::string get_string_between_outer_parentheses(std::string operator_string);
 
-gdf_dtype infer_dtype_from_literal(const std::string & token);
+cudf::type_id infer_dtype_from_literal(const std::string & token);
 
-gdf_dtype get_output_type_expression(blazing_frame * input, gdf_dtype * max_temp_type, std::string expression);
+cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * max_temp_type, std::string expression);
 
-gdf_dtype get_aggregation_output_type(gdf_dtype input_type, gdf_agg_op aggregation, bool have_groupby);
+cudf::type_id get_aggregation_output_type(cudf::type_id input_type, gdf_agg_op aggregation, bool have_groupby);
 
-gdf_dtype get_type_from_string(std::string scalar_string);
-gdf_scalar get_scalar_from_string(std::string scalar_string, gdf_dtype type, gdf_dtype_extra_info extra_info);
+cudf::type_id get_type_from_string(std::string scalar_string);
+gdf_scalar get_scalar_from_string(std::string scalar_string, cudf::type_id type, gdf_dtype_extra_info extra_info);
 
 std::string aggregator_to_string(gdf_agg_op operation);
 
@@ -56,23 +56,23 @@ int find_closing_char(const std::string & expression, int start);
 // if the flag trim is true, leading and trailing spaces are removed
 std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expressions, bool trim = true);
 
-bool is_type_signed(gdf_dtype type);
+bool is_type_signed(cudf::type_id type);
 
-bool is_type_float(gdf_dtype type);
-bool is_type_integer(gdf_dtype type);
-bool is_date_type(gdf_dtype type);
-gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_dtype input_right_type, gdf_binary_operator_exp operation);
-gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_unary_operator operation);
+bool is_type_float(cudf::type_id type);
+bool is_type_integer(cudf::type_id type);
+bool is_date_type(cudf::type_id type);
+cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation);
+cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator operation);
 
 // this function takes two data types and returns the a common data type that the both can be losslessly be converted to
 // the function returns true if a common type is possible, or false if there is no common type
 // this function assumes that common types are decimal, float, datetime and string. You cannot convert across these
 // general types.
-void get_common_type(gdf_dtype type1,
+void get_common_type(cudf::type_id type1,
 	gdf_dtype_extra_info info1,
-	gdf_dtype type2,
+	cudf::type_id type2,
 	gdf_dtype_extra_info info2,
-	gdf_dtype & type_out,
+	cudf::type_id & type_out,
 	gdf_dtype_extra_info & info_out);
 
 std::string get_named_expression(std::string query_part, std::string expression_name);

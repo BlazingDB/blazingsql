@@ -81,11 +81,11 @@ void data_loader::load_data(const Context & context,
 							gdf_scalar scalar = files[file_index].column_values[name];
 
 							gdf_column_cpp column;
-							column.create_gdf_column(scalar.dtype,
+							column.create_gdf_column(to_type_id(scalar.dtype),
 								gdf_dtype_extra_info{TIME_UNIT_ms},
 								num_rows,
 								nullptr,
-								ral::traits::get_dtype_size_in_bytes(scalar.dtype),
+								ral::traits::get_dtype_size_in_bytes(to_type_id(scalar.dtype)),
 								name);
 							cudf::fill(column.get_gdf_column(), scalar, 0, num_rows);
 							converted_data.push_back(column);
@@ -161,7 +161,7 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	}
 
 	for(auto extra_column : non_file_columns) {
-		schema.add_column(extra_column.first, extra_column.second, 0, false);
+		schema.add_column(extra_column.first, to_type_id(extra_column.second), 0, false);
 	}
 }
 

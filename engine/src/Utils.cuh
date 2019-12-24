@@ -116,7 +116,7 @@ static void print_gdf_column(gdf_column const * the_column)
 {
   const size_t num_rows = the_column->size;
 
-  const gdf_dtype gdf_col_type = the_column->dtype;
+  const cudf::type_id gdf_col_type = to_type_id(the_column->dtype);
   switch(gdf_col_type)
   {
     case GDF_BOOL8:

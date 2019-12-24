@@ -51,7 +51,7 @@ void limit_table(blazing_frame & input, cudf::size_type limitRows) {
 				gdf_column_cpp limitedCpp;
 				gdf_column * sourceColumn = input_col.get_gdf_column();
 				cudf::size_type width_per_value = ral::traits::get_dtype_size_in_bytes(sourceColumn);
-				limitedCpp.create_gdf_column(sourceColumn->dtype,
+				limitedCpp.create_gdf_column(to_type_id(sourceColumn->dtype),
 					sourceColumn->dtype_info,
 					limitRows,
 					nullptr,
@@ -96,19 +96,19 @@ void sort(const Context & queryContext,
 	timer.reset();
 
 	gdf_column_cpp asc_desc_col;
-	asc_desc_col.create_gdf_column(GDF_INT8,
+	asc_desc_col.create_gdf_column(cudf::type_id::INT8,
 		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		sortOrderTypes.size(),
 		sortOrderTypes.data(),
-		ral::traits::get_dtype_size_in_bytes(GDF_INT8),
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT8),
 		"");
 
 	gdf_column_cpp index_col;
-	index_col.create_gdf_column(GDF_INT32,
+	index_col.create_gdf_column(cudf::type_id::INT32,
 		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		input.get_num_rows_in_table(0),
 		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_INT32),
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 		"");
 
 	gdf_context context;

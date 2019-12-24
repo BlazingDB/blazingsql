@@ -45,32 +45,36 @@ gdf_column_cpp handle_cast_from_string(gdf_unary_operator operation, gdf_column 
 	NVStrings * nv_strings =
 		nv_category->gather_strings(static_cast<nv_category_index_type *>(input_col->data), input_col->size);
 
-	gdf_dtype cast_type = get_output_type(GDF_STRING_CATEGORY, operation);
+	cudf::type_id cast_type = get_output_type(cudf::type_id::CATEGORY, operation);
 
 	// TODO Percy Rommel Jean Pierre improve timestamp resolution
 	gdf_dtype_extra_info extra_info;
 	extra_info.category = nullptr;
+	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
 	extra_info.time_unit =
-		(cast_type == GDF_TIMESTAMP ? TIME_UNIT_ms : TIME_UNIT_NONE);  // TODO this should not be hardcoded
+		(cast_type == cudf::type_id::TIMESTAMP_MILLISECONDS ? TIME_UNIT_ms : TIME_UNIT_NONE);  // TODO this should not be hardcoded
 
 	gdf_column_cpp new_input_col;
 	new_input_col.create_gdf_column(
 		cast_type, extra_info, input_col->size, nullptr, ral::traits::get_dtype_size_in_bytes(cast_type));
 
 	switch(cast_type) {
-	case GDF_INT32: nv_strings->stoi(static_cast<int *>(new_input_col.data())); break;
-	case GDF_INT64: nv_strings->stol(static_cast<long *>(new_input_col.data())); break;
-	case GDF_FLOAT32: nv_strings->stof(static_cast<float *>(new_input_col.data())); break;
-	case GDF_FLOAT64: nv_strings->stod(static_cast<double *>(new_input_col.data())); break;
-	case GDF_DATE32:
+	case cudf::type_id::INT32: nv_strings->stoi(static_cast<int *>(new_input_col.data())); break;
+	case cudf::type_id::INT64: nv_strings->stol(static_cast<long *>(new_input_col.data())); break;
+	case cudf::type_id::FLOAT32: nv_strings->stof(static_cast<float *>(new_input_col.data())); break;
+	case cudf::type_id::FLOAT64: nv_strings->stod(static_cast<double *>(new_input_col.data())); break;
+	case cudf::type_id::TIMESTAMP_DAYS:
 		nv_strings->timestamp2long("%Y-%m-%d", NVStrings::days, static_cast<unsigned long *>(new_input_col.data()));
 		new_input_col.get_gdf_column()->dtype_info.time_unit = TIME_UNIT_NONE;
 		break;
-	case GDF_DATE64:
-		nv_strings->timestamp2long("%Y-%m-%d", NVStrings::ms, static_cast<unsigned long *>(new_input_col.data()));
-		new_input_col.get_gdf_column()->dtype_info.time_unit = TIME_UNIT_NONE;
-		break;
-	case GDF_TIMESTAMP:
+	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+	// percy this was not commented ... clean duplicated logic for timestamps
+//	case cudf::type_id::TIMESTAMP_MILLISECONDS:
+//		nv_strings->timestamp2long("%Y-%m-%d", NVStrings::ms, static_cast<unsigned long *>(new_input_col.data()));
+//		new_input_col.get_gdf_column()->dtype_info.time_unit = TIME_UNIT_NONE;
+//		break;
+	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+	case cudf::type_id::TIMESTAMP_MILLISECONDS:
 		// TODO: Should know when use TIME_UNIT_ns
 		nv_strings->timestamp2long(
 			"%Y-%m-%dT%H:%M:%SZ", NVStrings::ms, static_cast<unsigned long *>(new_input_col.data()));
@@ -97,28 +101,31 @@ gdf_column_cpp handle_cast_to_string(gdf_column * input_col) {
 	NVStrings * nv_strings = nullptr;
 
 	if(input_col->size > 0) {
-		switch(input_col->dtype) {
-		case GDF_INT32:
+		switch(to_type_id(input_col->dtype)) {
+		case cudf::type_id::INT32:
 			nv_strings = NVStrings::itos(static_cast<int *>(input_col->data), input_col->size, input_col->valid);
 			break;
-		case GDF_INT64:
+		case cudf::type_id::INT64:
 			nv_strings = NVStrings::ltos(static_cast<long *>(input_col->data), input_col->size, input_col->valid);
 			break;
-		case GDF_FLOAT32:
+		case cudf::type_id::FLOAT32:
 			nv_strings = NVStrings::ftos(static_cast<float *>(input_col->data), input_col->size, input_col->valid);
 			break;
-		case GDF_FLOAT64:
+		case cudf::type_id::FLOAT64:
 			nv_strings = NVStrings::dtos(static_cast<double *>(input_col->data), input_col->size, input_col->valid);
 			break;
-		case GDF_DATE32:
-		case GDF_DATE64:
+		case cudf::type_id::TIMESTAMP_DAYS:
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		// percy this was not commented
+		//case cudf::type_id::TIMESTAMP_SECONDS:
 			nv_strings = NVStrings::long2timestamp(static_cast<unsigned long *>(input_col->data),
 				input_col->size,
 				NVStrings::days,
 				"%Y-%m-%d",
 				input_col->valid);
 			break;
-		case GDF_TIMESTAMP:
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		case cudf::type_id::TIMESTAMP_MILLISECONDS:
 			if(input_col->dtype_info.time_unit == TIME_UNIT_ns) {
 				nv_strings = NVStrings::long2timestamp(static_cast<unsigned long *>(input_col->data),
 					input_col->size,
@@ -187,12 +194,12 @@ gdf_column_cpp handle_match_regex(gdf_column * input_col, const std::string & re
 		nv_category->gather_strings(static_cast<nv_category_index_type *>(input_col->data), input_col->size);
 
 	gdf_column_cpp new_input_col;
-	new_input_col.create_gdf_column(GDF_BOOL8,
+	new_input_col.create_gdf_column(cudf::type_id::BOOL8,
 		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		input_col->size,
 		nullptr,
 		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_BOOL8));
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::BOOL8));
 
 	nv_strings->contains_re(re.c_str(), static_cast<bool *>(new_input_col.data()));
 
@@ -654,7 +661,7 @@ void evaluate_expression(blazing_frame & inputs, const std::string & expression,
 	output_columns[0] = output.get_gdf_column();
 	std::vector<gdf_column *> input_columns;
 
-	std::vector<gdf_dtype> output_type_expressions(
+	std::vector<cudf::type_id> output_type_expressions(
 		1);  // contains output types for columns that are expressions, if they are not expressions we skip over it
 	output_type_expressions[0] = output.dtype();
 

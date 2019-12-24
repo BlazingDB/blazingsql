@@ -66,7 +66,7 @@ void get_columns_that_were_already_loaded(const std::vector<size_t> & column_ind
 
 
 std::vector<gdf_column_cpp> create_empty_columns(const std::vector<std::string> & column_names,
-	const std::vector<gdf_dtype> & column_types,
+	const std::vector<cudf::type_id> & column_types,
 	const std::vector<gdf_time_unit> & column_time_units,
 	const std::vector<size_t> & column_indices_requested) {
 	std::vector<gdf_column_cpp> columns(column_indices_requested.size());
@@ -74,7 +74,7 @@ std::vector<gdf_column_cpp> create_empty_columns(const std::vector<std::string> 
 	for(size_t i = 0; i < column_indices_requested.size(); i++) {
 		const size_t ind = column_indices_requested[i];
 
-		gdf_dtype dtype = column_types[ind];
+		cudf::type_id dtype = column_types[ind];
 		gdf_time_unit time_unit = column_time_units[ind];
 		const std::string & column_name = column_names[ind];
 

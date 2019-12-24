@@ -10,15 +10,15 @@
 namespace Ral {
 namespace Traits {
 
-inline bool is_dtype_float32(gdf_dtype type) { return type == GDF_FLOAT32; }
+inline bool is_dtype_float32(cudf::type_id type) { return type == cudf::type_id::FLOAT32; }
 
-inline bool is_dtype_float64(gdf_dtype type) { return type == GDF_FLOAT64; }
+inline bool is_dtype_float64(cudf::type_id type) { return type == cudf::type_id::FLOAT64; }
 
-inline bool is_dtype_float(gdf_dtype type) { return (type == GDF_FLOAT32) || (type == GDF_FLOAT64); }
+inline bool is_dtype_float(cudf::type_id type) { return (type == cudf::type_id::FLOAT32) || (type == cudf::type_id::FLOAT64); }
 
-inline bool is_dtype_signed(gdf_dtype type) {
-	return (type == GDF_INT8 || type == GDF_INT16 || type == GDF_INT32 || type == GDF_INT64 || type == GDF_FLOAT32 ||
-			type == GDF_FLOAT64);
+inline bool is_dtype_signed(cudf::type_id type) {
+	return (type == cudf::type_id::INT8 || type == cudf::type_id::INT16 || type == cudf::type_id::INT32 || type == cudf::type_id::INT64 || type == cudf::type_id::FLOAT32 ||
+			type == cudf::type_id::FLOAT64);
 }
 
 // TODO felipe percy noboa see upgrade to uints
@@ -29,14 +29,14 @@ inline bool is_dtype_signed(gdf_dtype type) {
 //            type == GDF_UINT64);
 //}
 
-inline bool is_dtype_integer(gdf_dtype type) {
-	return (type == GDF_INT8 ||
+inline bool is_dtype_integer(cudf::type_id type) {
+	return (type == cudf::type_id::INT8 ||
 			//            type == GDF_UINT8  ||
-			type == GDF_INT16 ||
+			type == cudf::type_id::INT16 ||
 			//            type == GDF_UINT16 ||
-			type == GDF_INT32 ||
+			type == cudf::type_id::INT32 ||
 			//            type == GDF_UINT32 ||
-			type == GDF_INT64  //  ||
+			type == cudf::type_id::INT64  //  ||
 							   //            type == GDF_UINT64
 	);
 }
@@ -56,21 +56,21 @@ constexpr std::size_t BITMASK_SIZE_IN_BYTES = 64;
 
 cudf::size_type get_dtype_size_in_bytes(const gdf_column * column);
 
-cudf::size_type get_dtype_size_in_bytes(gdf_dtype dtype);
+cudf::size_type get_dtype_size_in_bytes(cudf::type_id dtype);
 
 
 cudf::size_type get_data_size_in_bytes(const gdf_column_cpp & column);
 
 cudf::size_type get_data_size_in_bytes(const gdf_column * column);
 
-cudf::size_type get_data_size_in_bytes(cudf::size_type quantity, gdf_dtype dtype);
+cudf::size_type get_data_size_in_bytes(cudf::size_type quantity, cudf::type_id dtype);
 
 
 cudf::size_type get_bitmask_size_in_bytes(const gdf_column * column);
 
 cudf::size_type get_bitmask_size_in_bytes(cudf::size_type quantity);
 
-gdf_dtype convert_string_dtype(std::string str);
+cudf::type_id convert_string_dtype(std::string str);
 
 }  // namespace traits
 }  // namespace ral
@@ -80,51 +80,52 @@ namespace ral {
 namespace traits {
 
 namespace {
-template <gdf_dtype T>
+template <cudf::type_id T>
 struct mapDType;
 
 template <>
-struct mapDType<GDF_INT8> {
+struct mapDType<cudf::type_id::INT8> {
 	using type = std::int8_t;
 };
 
 template <>
-struct mapDType<GDF_INT16> {
+struct mapDType<cudf::type_id::INT16> {
 	using type = std::int16_t;
 };
 
 template <>
-struct mapDType<GDF_INT32> {
+struct mapDType<cudf::type_id::INT32> {
 	using type = std::int32_t;
 };
 
 template <>
-struct mapDType<GDF_INT64> {
+struct mapDType<cudf::type_id::INT64> {
 	using type = std::int64_t;
 };
 
 template <>
-struct mapDType<GDF_FLOAT32> {
+struct mapDType<cudf::type_id::FLOAT32> {
 	using type = float;
 };
 
 template <>
-struct mapDType<GDF_FLOAT64> {
+struct mapDType<cudf::type_id::FLOAT64> {
 	using type = double;
 };
 
+// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
 template <>
-struct mapDType<GDF_DATE32> {
+struct mapDType<cudf::type_id::TIMESTAMP_DAYS> {
 	using type = gdf_date32;
 };
 
 template <>
-struct mapDType<GDF_DATE64> {
+struct mapDType<cudf::type_id::TIMESTAMP_SECONDS> {
 	using type = gdf_date64;
 };
 }  // namespace
 
-template <gdf_dtype T>
+template <cudf::type_id T>
 using type = typename mapDType<T>::type;
 
 
@@ -134,37 +135,37 @@ struct mapType;
 
 template <>
 struct mapType<std::int8_t> {
-	constexpr static gdf_dtype dtype{GDF_INT8};
+	constexpr static cudf::type_id dtype{cudf::type_id::INT8};
 };
 
 template <>
 struct mapType<std::int16_t> {
-	constexpr static gdf_dtype dtype{GDF_INT16};
+	constexpr static cudf::type_id dtype{cudf::type_id::INT16};
 };
 
 template <>
 struct mapType<std::int32_t> {
-	constexpr static gdf_dtype dtype{GDF_INT32};
+	constexpr static cudf::type_id dtype{cudf::type_id::INT32};
 };
 
 template <>
 struct mapType<std::int64_t> {
-	constexpr static gdf_dtype dtype{GDF_INT64};
+	constexpr static cudf::type_id dtype{cudf::type_id::INT64};
 };
 
 template <>
 struct mapType<float> {
-	constexpr static gdf_dtype dtype{GDF_FLOAT32};
+	constexpr static cudf::type_id dtype{cudf::type_id::FLOAT32};
 };
 
 template <>
 struct mapType<double> {
-	constexpr static gdf_dtype dtype{GDF_FLOAT64};
+	constexpr static cudf::type_id dtype{cudf::type_id::FLOAT64};
 };
 }  // namespace
 
 template <typename Type>
-constexpr gdf_dtype dtype = mapType<Type>::dtype;
+constexpr cudf::type_id dtype = mapType<Type>::dtype;
 
 }  // namespace traits
 }  // namespace ral

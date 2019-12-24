@@ -11,28 +11,30 @@ namespace ral {
 namespace io {
 
 
-std::string convert_dtype_to_string(const gdf_dtype & dtype) {
-	if(dtype == GDF_STRING)
+std::string convert_dtype_to_string(const cudf::type_id & dtype) {
+	if(dtype == cudf::type_id::STRING)
 		return "str";
-	if(dtype == GDF_DATE64)
+	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+	if(dtype == cudf::type_id::TIMESTAMP_SECONDS)
 		return "date64";
-	if(dtype == GDF_DATE32)
+	if(dtype == cudf::type_id::TIMESTAMP_SECONDS)
 		return "date32";
-	if(dtype == GDF_TIMESTAMP)
+	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+	if(dtype == cudf::type_id::TIMESTAMP_MILLISECONDS)
 		return "timestamp";
-	if(dtype == GDF_CATEGORY)
+	if(dtype == cudf::type_id::CATEGORY)
 		return "category";
-	if(dtype == GDF_FLOAT32)
+	if(dtype == cudf::type_id::FLOAT32)
 		return "float32";
-	if(dtype == GDF_FLOAT64)
+	if(dtype == cudf::type_id::FLOAT64)
 		return "float64";
-	if(dtype == GDF_INT16)
+	if(dtype == cudf::type_id::INT16)
 		return "short";
-	if(dtype == GDF_INT32)
+	if(dtype == cudf::type_id::INT32)
 		return "int32";
-	if(dtype == GDF_INT64)
+	if(dtype == cudf::type_id::INT64)
 		return "int64";
-	if(dtype == GDF_BOOL8)
+	if(dtype == cudf::type_id::BOOL8)
 		return "bool";
 
 	return "str";
@@ -40,7 +42,7 @@ std::string convert_dtype_to_string(const gdf_dtype & dtype) {
 
 Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
-	std::vector<gdf_dtype> types,
+	std::vector<cudf::type_id> types,
 	std::vector<gdf_time_unit> time_units,
 	std::vector<size_t> num_row_groups)
 	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), time_units(time_units),
@@ -52,7 +54,7 @@ Schema::Schema(std::vector<std::string> names,
 
 Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
-	std::vector<gdf_dtype> types,
+	std::vector<cudf::type_id> types,
 	std::vector<size_t> num_row_groups,
 	std::vector<gdf_time_unit> time_units,
 	std::vector<bool> in_file)
@@ -63,7 +65,7 @@ Schema::Schema(std::vector<std::string> names,
 	}
 }
 
-Schema::Schema(std::vector<std::string> names, std::vector<gdf_dtype> types, std::vector<gdf_time_unit> time_units)
+Schema::Schema(std::vector<std::string> names, std::vector<cudf::type_id> types, std::vector<gdf_time_unit> time_units)
 	: names(names), calcite_to_file_indices({}), types(types), time_units(time_units), num_row_groups({}) {
 	in_file.resize(names.size(), true);
 }
@@ -87,7 +89,7 @@ std::vector<std::string> Schema::get_types() const {
 
 std::vector<std::string> Schema::get_files() const { return this->files; }
 
-std::vector<gdf_dtype> Schema::get_dtypes() const { return this->types; }
+std::vector<cudf::type_id> Schema::get_dtypes() const { return this->types; }
 
 std::vector<gdf_time_unit> Schema::get_time_units() const { return this->time_units; }
 
@@ -115,7 +117,7 @@ void Schema::add_column(gdf_column_cpp column, size_t file_index) {
 	this->in_file.push_back(true);
 }
 
-void Schema::add_column(std::string name, gdf_dtype type, size_t file_index, bool is_in_file, gdf_time_unit time_unit) {
+void Schema::add_column(std::string name, cudf::type_id type, size_t file_index, bool is_in_file, gdf_time_unit time_unit) {
 	this->names.push_back(name);
 	this->types.push_back(type);
 	this->time_units.push_back(time_unit);

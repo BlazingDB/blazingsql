@@ -74,19 +74,19 @@ std::vector<gdf_column_cpp> concatTables(const std::vector<std::vector<gdf_colum
 		if(std::any_of(raw_columns_to_concat.cbegin(), raw_columns_to_concat.cend(), [](const gdf_column * c) {
 			   return c->valid != nullptr;
 		   })) {
-			output_table[i].create_gdf_column(raw_columns_to_concat[0]->dtype,
+			output_table[i].create_gdf_column(to_type_id(raw_columns_to_concat[0]->dtype),
 				raw_columns_to_concat[0]->dtype_info,
 				output_row_size,
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(raw_columns_to_concat[0]->dtype),
+				ral::traits::get_dtype_size_in_bytes(to_type_id(raw_columns_to_concat[0]->dtype)),
 				std::string(raw_columns_to_concat[0]->col_name));
 		} else {
-			output_table[i].create_gdf_column(raw_columns_to_concat[0]->dtype,
+			output_table[i].create_gdf_column(to_type_id(raw_columns_to_concat[0]->dtype),
 				raw_columns_to_concat[0]->dtype_info,
 				output_row_size,
 				nullptr,
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(raw_columns_to_concat[0]->dtype),
+				ral::traits::get_dtype_size_in_bytes(to_type_id(raw_columns_to_concat[0]->dtype)),
 				std::string(raw_columns_to_concat[0]->col_name));
 		}
 
@@ -103,14 +103,15 @@ std::vector<gdf_column_cpp> normalizeColumnTypes(std::vector<gdf_column_cpp> col
 		return columns;
 	}
 
-	gdf_dtype common_type = columns[0].dtype();
+	cudf::type_id common_type = columns[0].dtype();
 	gdf_dtype_extra_info common_info = columns[0].dtype_info();
 	for(size_t j = 1; j < columns.size(); j++) {
-		gdf_dtype type_out;
+		cudf::type_id type_out;
 		gdf_dtype_extra_info info_out;
 		get_common_type(common_type, common_info, columns[j].dtype(), columns[j].dtype_info(), type_out, info_out);
 
-		if(type_out == GDF_invalid) {
+		// TODO percy cudf0.12 was invalid here, should we consider empty?
+		if(type_out == cudf::type_id::EMPTY) {
 			throw std::runtime_error("In normalizeColumnTypes function: no common type between " +
 									 std::to_string(common_type) + " and " + std::to_string(columns[j].dtype()));
 		}
@@ -121,7 +122,8 @@ std::vector<gdf_column_cpp> normalizeColumnTypes(std::vector<gdf_column_cpp> col
 
 	std::vector<gdf_column_cpp> columns_out(columns.size());
 	for(size_t j = 0; j < columns.size(); j++) {
-		if(common_type == GDF_TIMESTAMP) {
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		if(common_type == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 			if(columns[j].dtype() == common_type && columns[j].dtype_info().time_unit == common_info.time_unit) {
 				columns_out[j] = columns[j];
 			} else {
@@ -130,7 +132,7 @@ std::vector<gdf_column_cpp> normalizeColumnTypes(std::vector<gdf_column_cpp> col
 					"",
 					"WARNING: normalizeColumnTypes casting " + std::to_string(columns[j].get_gdf_column()->dtype) +
 						" to " + std::to_string(common_type)));
-				gdf_column raw_column_out = cudf::cast(*(columns[j].get_gdf_column()), common_type, common_info);
+				gdf_column raw_column_out = cudf::cast(*(columns[j].get_gdf_column()), to_gdf_type(common_type), common_info);
 				gdf_column * temp_raw_column = new gdf_column{};
 				*temp_raw_column = raw_column_out;
 				columns_out[j].create_gdf_column(temp_raw_column);
@@ -144,7 +146,7 @@ std::vector<gdf_column_cpp> normalizeColumnTypes(std::vector<gdf_column_cpp> col
 				"",
 				"WARNING: normalizeColumnTypes casting " + std::to_string(columns[j].get_gdf_column()->dtype) + " to " +
 					std::to_string(common_type)));
-			gdf_column raw_column_out = cudf::cast(*(columns[j].get_gdf_column()), common_type);
+			gdf_column raw_column_out = cudf::cast(*(columns[j].get_gdf_column()), to_gdf_type(common_type));
 			gdf_column * temp_raw_column = new gdf_column{};
 			*temp_raw_column = raw_column_out;
 			columns_out[j].create_gdf_column(temp_raw_column);

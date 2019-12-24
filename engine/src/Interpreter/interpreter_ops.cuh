@@ -175,21 +175,21 @@ int64_t extract_day_op_32(int64_t unixDate){
 
 
 static int64_t scale_to_64_bit_return_bytes(gdf_scalar input){
-	gdf_dtype cur_type = input.dtype;
+	cudf::type_id cur_type = to_type_id(input.dtype);
 
 	int64_t data_return;
-	if(cur_type == GDF_INT8 || cur_type == GDF_BOOL8) data_return = input.data.si08;
-	else if(cur_type == GDF_INT16) data_return = input.data.si16;
-	else if(cur_type == GDF_INT32 || cur_type == GDF_STRING_CATEGORY) data_return = input.data.si32;
-	else if(cur_type == GDF_INT64) data_return = input.data.si64;
-	else if(cur_type == GDF_DATE32) data_return = input.data.dt32;
-	else if(cur_type == GDF_DATE64) data_return = input.data.dt64;
-	else if(cur_type == GDF_TIMESTAMP) data_return = input.data.tmst;
-	else if(cur_type == GDF_FLOAT32){
+	if(cur_type == cudf::type_id::INT8 || cur_type == cudf::type_id::BOOL8) data_return = input.data.si08;
+	else if(cur_type == cudf::type_id::INT16) data_return = input.data.si16;
+	else if(cur_type == cudf::type_id::INT32 || cur_type == GDF_STRING_CATEGORY) data_return = input.data.si32;
+	else if(cur_type == cudf::type_id::INT64) data_return = input.data.si64;
+	else if(cur_type == cudf::type_id::TIMESTAMP_DAYS) data_return = input.data.dt32;
+	else if(cur_type == cudf::type_id::TIMESTAMP_SECONDS) data_return = input.data.dt64;
+	else if(cur_type == cudf::type_id::TIMESTAMP_MILLISECONDS) data_return = input.data.tmst;
+	else if(cur_type == cudf::type_id::FLOAT32){
 		double * data_return_ptr = (double *) &data_return;
 		*data_return_ptr = input.data.fp32;
 	}
-	else if(cur_type == GDF_FLOAT64){
+	else if(cur_type == cudf::type_id::FLOAT64){
 		double * data_return_ptr = (double *) &data_return;
 		*data_return_ptr = input.data.fp64;
 	}
@@ -202,31 +202,32 @@ static int64_t scale_to_64_bit_return_bytes(gdf_scalar input){
 }
 
 static __device__ __host__ __forceinline__
-bool isInt(gdf_dtype type){
-	return (type == GDF_INT32) ||
-			(type == GDF_INT64) ||
-			(type == GDF_INT16) ||
-			(type == GDF_INT8) ||
-			(type == GDF_BOOL8) ||
-			(type == GDF_DATE32) ||
-			(type == GDF_DATE64) ||
-			(type == GDF_TIMESTAMP) ||
-			(type == GDF_STRING_CATEGORY);
+bool isInt(cudf::type_id type){
+	return (type == cudf::type_id::INT32) ||
+			(type == cudf::type_id::INT64) ||
+			(type == cudf::type_id::INT16) ||
+			(type == cudf::type_id::INT8) ||
+			(type == cudf::type_id::BOOL8) ||
+			(type == cudf::type_id::TIMESTAMP_DAYS) ||
+			(type == cudf::type_id::TIMESTAMP_SECONDS) ||
+			(type == cudf::type_id::TIMESTAMP_MILLISECONDS) ||
+			(type == cudf::type_id::CATEGORY);
 }
 
 static __device__ __forceinline__
-bool isDate32(gdf_dtype type){
-	return type == GDF_DATE32;
+bool isDate32(cudf::type_id type){
+	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+	return type == cudf::type_id::TIMESTAMP_SECONDS;
 }
 
 static __device__ __forceinline__
-bool isFloat(gdf_dtype type){
-	return (type == GDF_FLOAT64) ||
-			(type == GDF_FLOAT32);
+bool isFloat(cudf::type_id type){
+	return (type == cudf::type_id::FLOAT64) ||
+			(type == cudf::type_id::FLOAT32);
 }
 
 static __device__ __forceinline__
-bool isUnsignedInt(gdf_dtype type){
+bool isUnsignedInt(cudf::type_id type){
 	return false;
 	/* Unsigned types are not currently supported in cudf
 	return (type == GDF_UINT32) ||
@@ -256,7 +257,7 @@ private:
 	temp_gdf_valid_type ** valid_ptrs; //device,
 	temp_gdf_valid_type ** valid_ptrs_out;
 
-	gdf_dtype * input_column_types;
+	cudf::type_id * input_column_types;
 	size_t num_rows;
 	column_index_type *  left_input_positions; //device fuck it we are using -2 for scalars
 	column_index_type * right_input_positions; //device , -1 for unary, -2 for scalars!, fuck it one more, -3 for null scalars
@@ -264,10 +265,10 @@ private:
 	column_index_type * final_output_positions; //should be same size as output_data, e.g. num_outputs
 
 	short num_operations;
-	gdf_dtype * input_types_left; //device
-	gdf_dtype * input_types_right; //device
-	gdf_dtype * output_types; //device
-	gdf_dtype * final_output_types; //size
+	cudf::type_id * input_types_left; //device
+	cudf::type_id * input_types_right; //device
+	cudf::type_id * output_types; //device
+	cudf::type_id * final_output_types; //size
 	gdf_binary_operator_exp * binary_operations; //device
 	gdf_unary_operator * unary_operations; //device
 	int64_t * scalars_left; //if these scalars are not of invalid type we use them instead of input positions
@@ -339,8 +340,8 @@ private:
 	template<typename BufferType>
 	__device__
 	__forceinline__ void write_data(column_index_type cur_column, column_index_type cur_buffer,  BufferType * buffer,const size_t & row_index){
-		gdf_dtype cur_type = this->final_output_types[cur_column];
-		if(cur_type == GDF_INT8 || cur_type == GDF_BOOL8){
+		cudf::type_id cur_type = this->final_output_types[cur_column];
+		if(cur_type == cudf::type_id::INT8 || cur_type == cudf::type_id::BOOL8){
 			device_ptr_write_from_buffer<int8_t,int64_t>(
 
 					row_index,
@@ -349,7 +350,7 @@ private:
 					cur_buffer);
 
 
-		}else if(cur_type == GDF_INT16){
+		}else if(cur_type == cudf::type_id::INT16){
 			device_ptr_write_from_buffer<int16_t,int64_t>(
 
 					row_index,
@@ -358,9 +359,11 @@ private:
 					cur_buffer);
 
 
-		}else if(cur_type == GDF_INT32 ||
-				cur_type == GDF_DATE32 ||
-				cur_type == GDF_STRING_CATEGORY){
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		}else if(cur_type == cudf::type_id::INT32 ||
+				cur_type == cudf::type_id::TIMESTAMP_SECONDS ||
+				 cur_type == cudf::type_id::TIMESTAMP_MILLISECONDS ||
+				cur_type == cudf::type_id::CATEGORY){
 			device_ptr_write_from_buffer<int32_t,int64_t>(
 
 					row_index,
@@ -408,7 +411,7 @@ private:
 	template<typename BufferType>
 	__device__
 	__forceinline__ void read_data(column_index_type cur_column,  BufferType * buffer,const size_t & row_index){
-		gdf_dtype cur_type = this->input_column_types[cur_column];
+		cudf::type_id cur_type = this->input_column_types[cur_column];
 
 		//printf("cur_type: %d\n", cur_type);
 
@@ -510,7 +513,7 @@ private:
 	template<typename BufferType>
 	__device__
 	__forceinline__ void process_operator(size_t op_index,  BufferType * buffer, const IndexT &row_index,int64_t & row_valids){
-		gdf_dtype type = this->input_types_left[op_index];
+		cudf::type_id type = this->input_types_left[op_index];
 		if(isFloat(type)){
 			process_operator_1<double>(op_index,buffer, row_index,row_valids);
 		}else {
@@ -522,7 +525,7 @@ private:
 	template<typename LeftType, typename BufferType>
 	__device__
 	__forceinline__ void process_operator_1(size_t op_index,  BufferType * buffer, const IndexT &row_index,int64_t & row_valids){
-		gdf_dtype type = this->input_types_right[op_index];
+		cudf::type_id type = this->input_types_right[op_index];
 		if(isFloat(type)){
 			process_operator_2<LeftType,double>(op_index,buffer, row_index,row_valids);
 		}else {
@@ -533,7 +536,7 @@ private:
 	template<typename LeftType, typename RightType, typename BufferType>
 	__device__
 	__forceinline__ void process_operator_2(size_t op_index,  BufferType * buffer, const IndexT &row_index,int64_t & row_valids){
-		gdf_dtype type = this->output_types[op_index];
+		cudf::type_id type = this->output_types[op_index];
 		if(isFloat(type)){
 			process_operator_3<LeftType,RightType,double>(op_index,buffer, row_index,row_valids);
 		}else {
@@ -654,7 +657,7 @@ private:
 			}else if(oper == BLZ_POW){
 				//oh god this is where it breaks if we are floats e do one thing
 				OutputTypeOperator data = 1;
-				if(isFloat((gdf_dtype) __ldg((int32_t *) &this->input_types_left[op_index])) || isFloat((gdf_dtype) __ldg((int32_t *) &this->input_types_right[op_index]))){
+				if(isFloat((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index])) || isFloat((cudf::type_id) __ldg((int32_t *) &this->input_types_right[op_index]))){
 					data = pow((double) left_value,
 							(double) right_value);
 
@@ -836,7 +839,7 @@ private:
 			}else if(oper == BLZ_LOG){
 				computed = log10(left_value);
 			}else if(oper == BLZ_YEAR){
-				if(isDate32((gdf_dtype) __ldg((int32_t *) &this->input_types_left[op_index]))){
+				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))){
 					computed = extract_year_op_32(left_value);
 
 				}else{
@@ -844,7 +847,7 @@ private:
 					computed = extract_year_op(left_value);
 				}
 			}else if(oper == BLZ_MONTH){
-				if(isDate32((gdf_dtype) __ldg((int32_t *) &this->input_types_left[op_index]))){
+				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))){
 					computed = extract_month_op_32(left_value);
 
 				}else{
@@ -852,25 +855,25 @@ private:
 					computed = extract_month_op(left_value);
 				}
 			}else if(oper == BLZ_DAY){
-				if(isDate32((gdf_dtype) __ldg((int32_t *) &this->input_types_left[op_index]))){
+				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))){
 					computed = extract_day_op_32(left_value);
 				}else{
 					computed = extract_day_op(left_value);
 				}
 			}else if(oper == BLZ_HOUR){
-				if(isDate32((gdf_dtype) __ldg((int32_t *) &this->input_types_left[op_index]))){
+				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))){
 					computed = 0;
 				}else{
 					computed = extract_hour_op(left_value);
 				}
 			}else if(oper == BLZ_MINUTE){
-				if(isDate32((gdf_dtype) __ldg((int32_t *) &this->input_types_left[op_index]))){
+				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))){
 					computed = 0;
 				}else{
 					computed = extract_minute_op(left_value);
 				}
 			}else if(oper == BLZ_SECOND){
-				if(isDate32((gdf_dtype) __ldg((int32_t *) &this->input_types_left[op_index]))){
+				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))){
 					computed = 0;
 				}else{
 					computed = extract_second_op(left_value);
@@ -951,11 +954,11 @@ public:
 		space += sizeof(void *) * num_final_outputs;
 		space += sizeof(temp_gdf_valid_type *) *num_inputs; //space for array of pointers  to column validity bitmasks
 		space += sizeof(temp_gdf_valid_type *) * num_final_outputs;
-		space += sizeof(gdf_dtype) * num_inputs; //space for pointers to types for of input_columns
+		space += sizeof(cudf::type_id) * num_inputs; //space for pointers to types for of input_columns
 		space += 3 * (sizeof(short) * _num_operations); //space for pointers to indexes to columns e.g. left_input index, right_input index and output_index
-		space += 3 * (sizeof(gdf_dtype) * _num_operations); //space for pointers to types for each input_index, e.g. if input_index = 1 then this value should contain column_1 type
+		space += 3 * (sizeof(cudf::type_id) * _num_operations); //space for pointers to types for each input_index, e.g. if input_index = 1 then this value should contain column_1 type
 		space += (sizeof(short) * num_final_outputs); //space for pointers to indexes to columns e.g. left_input index, right_input index and output_index
-		space += (sizeof(gdf_dtype) * num_final_outputs); //space for pointers to types for each input_index, e.g. if input_index = 1 then this value should contain column_1 type
+		space += (sizeof(cudf::type_id) * num_final_outputs); //space for pointers to types for each input_index, e.g. if input_index = 1 then this value should contain column_1 type
 		space += sizeof(gdf_binary_operator_exp) * _num_operations;
 		space += sizeof(gdf_unary_operator) * _num_operations;
 		space += sizeof(cudf::size_type) * num_inputs; //space for null_counts_inputs
@@ -985,11 +988,11 @@ public:
 			short * right_input_positions, //device
 			short * output_positions, //device
 			short num_operations,
-			gdf_dtype * input_types_left, //device
-			gdf_dtype * input_types_right, //device
-			gdf_dtype * output_types_out, //device
+			cudf::type_id * input_types_left, //device
+			cudf::type_id * input_types_right, //device
+			cudf::type_id * output_types_out, //device
 			gdf_binary_operator_exp * binary_operations, //device
-			gdf_dtype * input_column_types //device
+			cudf::type_id * input_column_types //device
 	){
 		this->column_data = column_data;
 		this->valid_ptrs = valid_ptrs;
@@ -1076,16 +1079,16 @@ public:
 		cur_temp_space += sizeof(cudf::size_type) * num_columns;
 		null_counts_outputs = (cudf::size_type *) cur_temp_space;
 		cur_temp_space += sizeof(cudf::size_type) * num_final_outputs;
-		input_column_types = (gdf_dtype *) cur_temp_space;
-		cur_temp_space += sizeof(gdf_dtype) * num_columns;
-		input_types_left = (gdf_dtype *) cur_temp_space;
-		cur_temp_space += sizeof(gdf_dtype) * num_operations;
-		input_types_right= (gdf_dtype *) cur_temp_space;
-		cur_temp_space += sizeof(gdf_dtype) * num_operations;
-		output_types = (gdf_dtype *) cur_temp_space;
-		cur_temp_space += sizeof(gdf_dtype) * num_operations;
-		final_output_types = (gdf_dtype *) cur_temp_space;
-		cur_temp_space += sizeof(gdf_dtype) * num_final_outputs;
+		input_column_types = (cudf::type_id *) cur_temp_space;
+		cur_temp_space += sizeof(cudf::type_id) * num_columns;
+		input_types_left = (cudf::type_id *) cur_temp_space;
+		cur_temp_space += sizeof(cudf::type_id) * num_operations;
+		input_types_right= (cudf::type_id *) cur_temp_space;
+		cur_temp_space += sizeof(cudf::type_id) * num_operations;
+		output_types = (cudf::type_id *) cur_temp_space;
+		cur_temp_space += sizeof(cudf::type_id) * num_operations;
+		final_output_types = (cudf::type_id *) cur_temp_space;
+		cur_temp_space += sizeof(cudf::type_id) * num_final_outputs;
 		binary_operations = (gdf_binary_operator_exp *) cur_temp_space;
 		cur_temp_space += sizeof(gdf_binary_operator_exp) * num_operations;
 		unary_operations = (gdf_unary_operator *) cur_temp_space;
@@ -1141,10 +1144,10 @@ public:
 
 		//copy over inputs
 
-		std::vector<gdf_dtype> left_input_types_vec(num_operations);
-		std::vector<gdf_dtype> right_input_types_vec(num_operations);
-		std::vector<gdf_dtype> output_types_vec(num_operations);
-		std::vector<gdf_dtype> output_final_types_vec(num_final_outputs);
+		std::vector<cudf::type_id> left_input_types_vec(num_operations);
+		std::vector<cudf::type_id> right_input_types_vec(num_operations);
+		std::vector<cudf::type_id> output_types_vec(num_operations);
+		std::vector<cudf::type_id> output_final_types_vec(num_final_outputs);
 		std::vector<int64_t> left_scalars_host(num_operations);
 		std::vector<int64_t> right_scalars_host(num_operations);
 
@@ -1152,7 +1155,7 @@ public:
 
 
 		//stores index to type map so we can retrieve this if we need to
-		std::map<size_t,gdf_dtype> output_map_type;
+		std::map<size_t,cudf::type_id> output_map_type;
 
 		for(int cur_operation = 0; cur_operation < num_operations; cur_operation++){
 			column_index_type left_index = left_input_positions_vec[cur_operation];
@@ -1160,19 +1163,19 @@ public:
 			column_index_type output_index = output_positions_vec[cur_operation];
 
 			if( left_index < static_cast<column_index_type>(columns.size()) && left_index >= 0){
-				left_input_types_vec[cur_operation] = columns[left_index]->dtype;
+				left_input_types_vec[cur_operation] = to_type_id(columns[left_index]->dtype);
 			}else{
 				if(left_index < 0 ){
 					if(left_index == -3){
 						//this was a null scalar in left weird but ok
-						left_input_types_vec[cur_operation] = left_scalars[cur_operation].dtype;
+						left_input_types_vec[cur_operation] = to_type_id(left_scalars[cur_operation].dtype);
 					}else if(left_index == -2){
 						//get scalars type
-						if(isInt(left_scalars[cur_operation].dtype)){
-							left_input_types_vec[cur_operation] = GDF_INT64;
+						if(isInt(to_type_id(left_scalars[cur_operation].dtype))){
+							left_input_types_vec[cur_operation] = cudf::type_id::INT64;
 
 						}else{
-							left_input_types_vec[cur_operation] = GDF_FLOAT64;
+							left_input_types_vec[cur_operation] = cudf::type_id::FLOAT64;
 						}
 
 						left_scalars_host[cur_operation] = scale_to_64_bit_return_bytes(left_scalars[cur_operation]);
@@ -1185,20 +1188,20 @@ public:
 			}
 
 			if( right_index < static_cast<column_index_type>(columns.size()) && right_index >= 0){
-				right_input_types_vec[cur_operation] = columns[right_index]->dtype;
+				right_input_types_vec[cur_operation] = to_type_id(columns[right_index]->dtype);
 			}else{
 				if(right_index < 0 ){
 					if(right_index == -3){
 						//this was a null scalar weird but ok
 						//TODO: figure out if we have to do anything here, i am sure we will for coalesce
-						right_input_types_vec[cur_operation] = right_scalars[cur_operation].dtype;
+						right_input_types_vec[cur_operation] = to_type_id(right_scalars[cur_operation].dtype);
 					}else if(right_index == -2){
 						//get scalars type
 
-						if(isInt(right_scalars[cur_operation].dtype)){
-							right_input_types_vec[cur_operation] = GDF_INT64;
+						if(isInt(to_type_id(right_scalars[cur_operation].dtype))){
+							right_input_types_vec[cur_operation] = cudf::type_id::INT64;
 						}else{
-							right_input_types_vec[cur_operation] = GDF_FLOAT64;
+							right_input_types_vec[cur_operation] = cudf::type_id::FLOAT64;
 						}
 						right_scalars_host[cur_operation] = scale_to_64_bit_return_bytes(right_scalars[cur_operation]);
 					}else if(right_index == -1){
@@ -1212,7 +1215,7 @@ public:
 				//		std::cout<<"right type was "<<right_input_types_vec[cur_operation]<<std::endl;
 			}
 
-			gdf_dtype type_from_op;
+			cudf::type_id type_from_op;
 			if(right_index == -1){
 				//unary
 				type_from_op = get_output_type(left_input_types_vec[cur_operation],
@@ -1228,9 +1231,9 @@ public:
 
 			//		std::cout<<"type from op was "<<type_from_op<<std::endl;
 			if(is_type_signed(type_from_op) && !(is_type_float(type_from_op))){
-				output_types_vec[cur_operation] = GDF_INT64;
+				output_types_vec[cur_operation] = cudf::type_id::INT64;
 			}else if(is_type_float(type_from_op)){
-				output_types_vec[cur_operation] = GDF_FLOAT64;
+				output_types_vec[cur_operation] = cudf::type_id::FLOAT64;
 			}
 			//		std::cout<<"op will be "<<output_types_vec[cur_operation]<<std::endl;
 
@@ -1242,12 +1245,12 @@ public:
 
 		//put the output final positions
 		for(int output_index = 0; output_index < num_final_outputs; output_index++){
-			output_final_types_vec[output_index] = output_columns[output_index]->dtype;
+			output_final_types_vec[output_index] = to_type_id(output_columns[output_index]->dtype);
 		}
 
-		std::vector<gdf_dtype> input_column_types_vec(num_columns);
+		std::vector<cudf::type_id> input_column_types_vec(num_columns);
 		for(std::size_t column_index = 0; column_index < columns.size(); column_index++){
-			input_column_types_vec[column_index] = columns[column_index]->dtype;
+			input_column_types_vec[column_index] = to_type_id(columns[column_index]->dtype);
 			//		std::cout<<"type was "<<input_column_types_vec[column_index]<<std::endl;
 		}
 
@@ -1287,7 +1290,7 @@ public:
 
 		CheckCudaErrors(cudaMemcpyAsync (input_column_types,
 				&input_column_types_vec[0],
-				input_column_types_vec.size() * sizeof(gdf_dtype),cudaMemcpyHostToDevice,stream));
+				input_column_types_vec.size() * sizeof(cudf::type_id),cudaMemcpyHostToDevice,stream));
 
 
 		//	thrust::copy(input_column_types_vec.begin(), input_column_types_vec.end(), thrust::device_pointer_cast(input_column_types));
@@ -1295,19 +1298,19 @@ public:
 
 		CheckCudaErrors(cudaMemcpyAsync (input_types_left,
 				&left_input_types_vec[0],
-				left_input_types_vec.size() * sizeof(gdf_dtype),cudaMemcpyHostToDevice,stream));
+				left_input_types_vec.size() * sizeof(cudf::type_id),cudaMemcpyHostToDevice,stream));
 
 		CheckCudaErrors(cudaMemcpyAsync (input_types_right,
 				&right_input_types_vec[0],
-				right_input_types_vec.size() * sizeof(gdf_dtype),cudaMemcpyHostToDevice,stream));
+				right_input_types_vec.size() * sizeof(cudf::type_id),cudaMemcpyHostToDevice,stream));
 
 		CheckCudaErrors(cudaMemcpyAsync (output_types,
 				&output_types_vec[0],
-				output_types_vec.size() * sizeof(gdf_dtype),cudaMemcpyHostToDevice,stream));
+				output_types_vec.size() * sizeof(cudf::type_id),cudaMemcpyHostToDevice,stream));
 
 		CheckCudaErrors(cudaMemcpyAsync (final_output_types,
 				&output_final_types_vec[0],
-				output_final_types_vec.size() * sizeof(gdf_dtype),cudaMemcpyHostToDevice,stream));
+				output_final_types_vec.size() * sizeof(cudf::type_id),cudaMemcpyHostToDevice,stream));
 
 		CheckCudaErrors(cudaMemcpyAsync (scalars_left,
 				&left_scalars_host[0],

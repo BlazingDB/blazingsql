@@ -20,7 +20,7 @@ class gdf_column_cpp
 		cudf::valid_type * allocate_valid();
 
 
-	//	gdf_column_cpp(void* _data, cudf::valid_type* _valid, gdf_dtype _dtype, size_t _size, cudf::size_type _null_count, const std::string &column_name = "");
+	//	gdf_column_cpp(void* _data, cudf::valid_type* _valid, cudf::type_id _dtype, size_t _size, cudf::size_type _null_count, const std::string &column_name = "");
 	public:
 
 		void set_name(std::string name);
@@ -32,7 +32,7 @@ class gdf_column_cpp
 
     cudf::size_type size() const;
 
-    gdf_dtype dtype() const;
+    cudf::type_id dtype() const;
 
     cudf::size_type null_count();
 
@@ -42,14 +42,14 @@ class gdf_column_cpp
 
 	void set_column_token(column_token_t column_token);
 
-	void set_dtype(gdf_dtype dtype);
+	void set_dtype(cudf::type_id dtype);
 	bool is_ipc() const;
 
 	bool has_token();
 
 	gdf_column_cpp();
 	void create_gdf_column(gdf_column * column, bool registerColumn = true);
-    void create_gdf_column_for_ipc(gdf_dtype type, gdf_dtype_extra_info dtype_info, void * col_data,cudf::valid_type * valid_data, cudf::size_type num_values, cudf::size_type null_count, std::string column_name);
+    void create_gdf_column_for_ipc(cudf::type_id type, gdf_dtype_extra_info dtype_info, void * col_data,cudf::valid_type * valid_data, cudf::size_type num_values, cudf::size_type null_count, std::string column_name);
 
 	gdf_column_cpp(const gdf_column_cpp& col);
 
@@ -63,19 +63,19 @@ class gdf_column_cpp
 
 	void create_gdf_column(NVStrings* strings, size_t num_values, std::string column_name);
 
-	void create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name = "", bool allocate_valid_buffer = false);
+	void create_gdf_column(cudf::type_id type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name = "", bool allocate_valid_buffer = false);
 
-	void create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, cudf::valid_type * host_valid, size_t width_per_value, const std::string &column_name = "");
+	void create_gdf_column(cudf::type_id type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, cudf::valid_type * host_valid, size_t width_per_value, const std::string &column_name = "");
 
 	void create_gdf_column(const gdf_scalar & scalar, const std::string &column_name);
 
-	void create_empty(const gdf_dtype dtype, const std::string &column_name, const gdf_time_unit = TIME_UNIT_NONE);
+	void create_empty(const cudf::type_id dtype, const std::string &column_name, const gdf_time_unit = TIME_UNIT_NONE);
 
-	void create_empty(const gdf_dtype dtype);
+	void create_empty(const cudf::type_id dtype);
 
 	void allocate_like(const gdf_column_cpp& other);
 
-	gdf_error gdf_column_view(gdf_column *column, void *data, cudf::valid_type *valid, cudf::size_type size, gdf_dtype dtype);
+	gdf_error gdf_column_view(gdf_column *column, void *data, cudf::valid_type *valid, cudf::size_type size, cudf::type_id dtype);
 
 	~gdf_column_cpp();
 

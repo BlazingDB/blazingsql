@@ -61,12 +61,12 @@ void gdf_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 void gdf_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 	std::vector<std::string> names;
-	std::vector<gdf_dtype> types;
+	std::vector<cudf::type_id> types;
 	std::vector<gdf_time_unit> time_units;
 
 	std::for_each(
 		this->tableSchema.columns.begin(), this->tableSchema.columns.end(), [&types, &time_units](gdf_column * column) {
-			types.push_back(column->dtype);
+			types.push_back(to_type_id(column->dtype));
 			time_units.push_back(column->dtype_info.time_unit);
 		});
 

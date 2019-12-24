@@ -195,19 +195,19 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 
 	// Sort
 	gdf_column_cpp ascDescCol;
-	ascDescCol.create_gdf_column(GDF_INT8,
+	ascDescCol.create_gdf_column(cudf::type_id::INT8,
 		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		sortOrderTypes.size(),
 		sortOrderTypes.data(),
-		ral::traits::get_dtype_size_in_bytes(GDF_INT8),
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT8),
 		"");
 
 	gdf_column_cpp sortedIndexCol;
-	sortedIndexCol.create_gdf_column(GDF_INT32,
+	sortedIndexCol.create_gdf_column(cudf::type_id::INT32,
 		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		outputRowSize,
 		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_INT32),
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 		"");
 
 	gdf_context gdfContext;
@@ -273,11 +273,11 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 
 		int step = outputRowSize / context.getTotalNodes();
 		gdf_column_cpp gatherMap;
-		gatherMap.create_gdf_column(GDF_INT32,
+		gatherMap.create_gdf_column(cudf::type_id::INT32,
 			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 			context.getTotalNodes() - 1,
 			nullptr,
-			ral::traits::get_dtype_size_in_bytes(GDF_INT32),
+			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 			"");
 		gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.size(), step, step);
 
@@ -407,19 +407,19 @@ std::vector<NodeColumns> partitionData(const Context & context,
 		});
 
 		gdf_column_cpp asc_desc_col;
-		asc_desc_col.create_gdf_column(GDF_INT8,
+		asc_desc_col.create_gdf_column(cudf::type_id::INT8,
 			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 			sortOrderTypes.size(),
 			sortOrderTypes.data(),
-			ral::traits::get_dtype_size_in_bytes(GDF_INT8),
+			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT8),
 			"");
 
 		gdf_column_cpp index_col;
-		index_col.create_gdf_column(GDF_INT32,
+		index_col.create_gdf_column(cudf::type_id::INT32,
 			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 			table_row_size,
 			nullptr,
-			ral::traits::get_dtype_size_in_bytes(GDF_INT32),
+			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 			"");
 
 		gdf_context gdfcontext;
@@ -677,11 +677,11 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 	}
 
 	gdf_column_cpp sortedIndexCol;
-	sortedIndexCol.create_gdf_column(GDF_INT32,
+	sortedIndexCol.create_gdf_column(cudf::type_id::INT32,
 		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		number_of_groups,
 		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_INT32),
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 		"");
 
 	gdf_context gdfContext;
@@ -746,11 +746,11 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 
 		int step = number_of_groups / context.getTotalNodes();
 		gdf_column_cpp gatherMap;
-		gatherMap.create_gdf_column(GDF_INT32,
+		gatherMap.create_gdf_column(cudf::type_id::INT32,
 			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 			context.getTotalNodes() - 1,
 			nullptr,
-			ral::traits::get_dtype_size_in_bytes(GDF_INT32),
+			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 			"");
 		gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.size(), step, step);
 
@@ -846,7 +846,7 @@ void distributeLeftRightNumRows(const Context & context, std::size_t left_num_ro
 	std::vector<gdf_column_cpp> num_rows(1);
 	std::vector<int64_t> num_rows_host{left_num_rows, right_num_rows};
 	num_rows[0].create_gdf_column(
-		GDF_INT64, gdf_dtype_extra_info{}, 2, &num_rows_host[0], ral::traits::get_dtype_size_in_bytes(GDF_INT64), "");
+		cudf::type_id::INT64, gdf_dtype_extra_info{}, 2, &num_rows_host[0], ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT64), "");
 	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_rows);
 
 	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
@@ -880,11 +880,11 @@ void collectLeftRightNumRows(const Context & context,
 		std::vector<gdf_column_cpp> num_rows_data = concrete_message->getSamples();
 		assert(num_rows_data.size() == 1);
 		assert(num_rows_data[0].size() == 2);
-		assert(num_rows_data[0].dtype() == GDF_INT64);
+		assert(num_rows_data[0].dtype() == cudf::type_id::INT64);
 		std::vector<int64_t> num_rows_host(2);
 		cudaMemcpy(num_rows_host.data(),
 			num_rows_data[0].data(),
-			ral::traits::get_dtype_size_in_bytes(GDF_INT64) * 2,
+			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT64) * 2,
 			cudaMemcpyDeviceToHost);
 		int node_idx = context.getNodeIndex(*node);
 		assert(node_idx >= 0);
@@ -950,12 +950,12 @@ std::vector<NodeColumns> generateJoinPartitions(
 			nvCategory->gather_strings(static_cast<nv_category_index_type *>(col.data()), col.size(), true);
 
 		gdf_column_cpp str_hash;
-		str_hash.create_gdf_column(GDF_INT32,
+		str_hash.create_gdf_column(cudf::type_id::INT32,
 			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 			nvStrings->size(),
 			nullptr,
 			nullptr,
-			ral::traits::get_dtype_size_in_bytes(GDF_INT32),
+			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 			"");
 		nvStrings->hash(static_cast<unsigned int *>(str_hash.data()));
 		NVStrings::destroy(nvStrings);
@@ -1021,12 +1021,12 @@ std::vector<NodeColumns> generateJoinPartitions(
 
 	// lets get the split indices. These are all the partition_offset, except for the first since its just 0
 	gdf_column_cpp indexes;
-	indexes.create_gdf_column(GDF_INT32,
+	indexes.create_gdf_column(cudf::type_id::INT32,
 		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		number_nodes - 1,
 		partition_offset.data() + 1,
 		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_INT32),
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 		"");
 
 	return split_data_into_NodeColumns(context, temp_output_columns, indexes);
