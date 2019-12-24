@@ -82,7 +82,6 @@ void data_loader::load_data(const Context & context,
 
 							gdf_column_cpp column;
 							column.create_gdf_column(to_type_id(scalar.dtype),
-								gdf_dtype_extra_info{TIME_UNIT_ms},
 								num_rows,
 								nullptr,
 								ral::traits::get_dtype_size_in_bytes(to_type_id(scalar.dtype)),

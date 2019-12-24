@@ -249,24 +249,14 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 }
 
 void get_common_type(cudf::type_id type1,
-	gdf_dtype_extra_info info1,
 	cudf::type_id type2,
-	gdf_dtype_extra_info info2,
-	cudf::type_id & type_out,
-	gdf_dtype_extra_info & info_out) {
+	cudf::type_id & type_out) {
 	// TODO percy cudf0.12 was invalid here, should we return empty?
 	type_out = cudf::type_id::EMPTY;
-	info_out.time_unit = TIME_UNIT_NONE;
 	if(type1 == type2) {
 		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
 		if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-			if(info1.time_unit == info2.time_unit) {
-				type_out = type1;
-				info_out.time_unit = info1.time_unit;
-			} else {
-				type_out = type1;
-				info_out.time_unit = gdf_time_unit::TIME_UNIT_ms;
-			}
+			type_out = type1;
 		} else {
 			type_out = type1;
 		}
@@ -282,10 +272,8 @@ void get_common_type(cudf::type_id type1,
 		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 			if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-				info_out.time_unit = gdf_time_unit::TIME_UNIT_ms;
 			} else {
 				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-				info_out.time_unit = info2.time_unit;
 			}
 		} else {
 			// No common type, datetime type and non-datetime type are not compatible
@@ -293,10 +281,8 @@ void get_common_type(cudf::type_id type1,
 	} else if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 		if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 			type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-			info_out.time_unit = gdf_time_unit::TIME_UNIT_ms;
 		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 			type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-			info_out.time_unit = info1.time_unit;
 		} else {
 			// No common type
 		}
@@ -347,7 +333,7 @@ cudf::type_id get_type_from_string(std::string scalar_string) {
 	return cudf::type_id::TIMESTAMP_MILLISECONDS;
 }
 
-gdf_scalar get_scalar_from_string(std::string scalar_string, cudf::type_id type, gdf_dtype_extra_info extra_info) {
+gdf_scalar get_scalar_from_string(std::string scalar_string, cudf::type_id type) {
 	/*
 	 * void*    invd;
 int8_t   si08;
@@ -434,10 +420,11 @@ int64_t  tmst;  // GDF_TIMESTAMP
 		data.tmst = get_timestamp_from_string(scalar_string);  // this returns in ms
 
 		// NOTE percy this fix the time resolution (e.g. orc files)
-		switch(extra_info.time_unit) {
-		case TIME_UNIT_us: data.tmst = data.tmst * 1000; break;
-		case TIME_UNIT_ns: data.tmst = data.tmst * 1000 * 1000; break;
-		}
+		// TODO percy cudf0.12 implement timestamp resolution
+//		switch(extra_info.time_unit) {
+//		case TIME_UNIT_us: data.tmst = data.tmst * 1000; break;
+//		case TIME_UNIT_ns: data.tmst = data.tmst * 1000 * 1000; break;
+//		}
 
 		return {data, to_gdf_type(cudf::type_id::TIMESTAMP_MILLISECONDS), true};
 	}

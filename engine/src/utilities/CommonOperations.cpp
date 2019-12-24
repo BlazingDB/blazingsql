@@ -75,14 +75,12 @@ std::vector<gdf_column_cpp> concatTables(const std::vector<std::vector<gdf_colum
 			   return c->valid != nullptr;
 		   })) {
 			output_table[i].create_gdf_column(to_type_id(raw_columns_to_concat[0]->dtype),
-				raw_columns_to_concat[0]->dtype_info,
 				output_row_size,
 				nullptr,
 				ral::traits::get_dtype_size_in_bytes(to_type_id(raw_columns_to_concat[0]->dtype)),
 				std::string(raw_columns_to_concat[0]->col_name));
 		} else {
 			output_table[i].create_gdf_column(to_type_id(raw_columns_to_concat[0]->dtype),
-				raw_columns_to_concat[0]->dtype_info,
 				output_row_size,
 				nullptr,
 				nullptr,
@@ -104,11 +102,9 @@ std::vector<gdf_column_cpp> normalizeColumnTypes(std::vector<gdf_column_cpp> col
 	}
 
 	cudf::type_id common_type = columns[0].dtype();
-	gdf_dtype_extra_info common_info = columns[0].dtype_info();
 	for(size_t j = 1; j < columns.size(); j++) {
 		cudf::type_id type_out;
-		gdf_dtype_extra_info info_out;
-		get_common_type(common_type, common_info, columns[j].dtype(), columns[j].dtype_info(), type_out, info_out);
+		get_common_type(common_type, columns[j].dtype(), type_out);
 
 		// TODO percy cudf0.12 was invalid here, should we consider empty?
 		if(type_out == cudf::type_id::EMPTY) {
@@ -117,14 +113,13 @@ std::vector<gdf_column_cpp> normalizeColumnTypes(std::vector<gdf_column_cpp> col
 		}
 
 		common_type = type_out;
-		common_info = info_out;
 	}
 
 	std::vector<gdf_column_cpp> columns_out(columns.size());
 	for(size_t j = 0; j < columns.size(); j++) {
 		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
 		if(common_type == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-			if(columns[j].dtype() == common_type && columns[j].dtype_info().time_unit == common_info.time_unit) {
+			if(columns[j].dtype() == common_type) {
 				columns_out[j] = columns[j];
 			} else {
 				Library::Logging::Logger().logWarn(buildLogString("",
@@ -132,7 +127,7 @@ std::vector<gdf_column_cpp> normalizeColumnTypes(std::vector<gdf_column_cpp> col
 					"",
 					"WARNING: normalizeColumnTypes casting " + std::to_string(columns[j].get_gdf_column()->dtype) +
 						" to " + std::to_string(common_type)));
-				gdf_column raw_column_out = cudf::cast(*(columns[j].get_gdf_column()), to_gdf_type(common_type), common_info);
+				gdf_column raw_column_out = cudf::cast(*(columns[j].get_gdf_column()), to_gdf_type(common_type));
 				gdf_column * temp_raw_column = new gdf_column{};
 				*temp_raw_column = raw_column_out;
 				columns_out[j].create_gdf_column(temp_raw_column);

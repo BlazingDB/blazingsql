@@ -112,14 +112,12 @@ void JoinOperator::materialize_column(blazing_frame & input, bool is_inner_join)
 		if(is_inner_join) {
 			if(input.get_column(column_index).valid())
 				output.create_gdf_column(input.get_column(column_index).dtype(),
-					input.get_column(column_index).dtype_info(),
 					left_indices_.size(),
 					nullptr,
 					column_width,
 					input.get_column(column_index).name());
 			else
 				output.create_gdf_column(input.get_column(column_index).dtype(),
-					input.get_column(column_index).dtype_info(),
 					left_indices_.size(),
 					nullptr,
 					nullptr,
@@ -130,7 +128,6 @@ void JoinOperator::materialize_column(blazing_frame & input, bool is_inner_join)
 				input.get_column(column_index).allocate_set_valid();
 
 			output.create_gdf_column(input.get_column(column_index).dtype(),
-				input.get_column(column_index).dtype_info(),
 				left_indices_.size(),
 				nullptr,
 				column_width,

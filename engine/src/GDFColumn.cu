@@ -166,7 +166,7 @@ cudf::valid_type * gdf_column_cpp::allocate_valid(){
 	return valid_device;
 }
 
-void gdf_column_cpp::create_gdf_column_for_ipc(cudf::type_id type, gdf_dtype_extra_info dtype_info, void * col_data,cudf::valid_type * valid_data, cudf::size_type num_values, cudf::size_type null_count, std::string column_name){
+void gdf_column_cpp::create_gdf_column_for_ipc(cudf::type_id type, void * col_data,cudf::valid_type * valid_data, cudf::size_type num_values, cudf::size_type null_count, std::string column_name){
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
     assert(type != cudf::type_id::EMPTY);
     decrement_counter(column);
@@ -174,7 +174,6 @@ void gdf_column_cpp::create_gdf_column_for_ipc(cudf::type_id type, gdf_dtype_ext
     //TODO crate column here
     this->column = new gdf_column{};
     gdf_column_view(this->column, col_data, valid_data, num_values, type);
-    this->column->dtype_info = {dtype_info.time_unit, nullptr};
     this->column->null_count = null_count;
     int width = ral::traits::get_dtype_size_in_bytes(this->column);
     this->allocated_size_data = num_values * width;
@@ -250,7 +249,7 @@ void gdf_column_cpp::create_gdf_column(NVStrings* strings, size_t num_values, st
     GDFRefCounter::getInstance()->register_column(this->column);
 }
 
-void gdf_column_cpp::create_gdf_column(cudf::type_id type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, cudf::valid_type * host_valids, size_t width_per_value, const std::string &column_name)
+void gdf_column_cpp::create_gdf_column(cudf::type_id type, size_t num_values, void * input_data, cudf::valid_type * host_valids, size_t width_per_value, const std::string &column_name)
 {
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
     assert(type != cudf::type_id::EMPTY);
@@ -280,7 +279,6 @@ void gdf_column_cpp::create_gdf_column(cudf::type_id type, gdf_dtype_extra_info 
     }
 
     gdf_column_view(this->column, (void *) data, valid_device, num_values, type);
-    this->column->dtype_info = {dtype_info.time_unit, nullptr};
 
     this->set_name(column_name);
     if(input_data != nullptr){
@@ -295,7 +293,7 @@ void gdf_column_cpp::create_gdf_column(cudf::type_id type, gdf_dtype_extra_info 
 }
 
 //Todo: Verificar que al llamar mas de una vez al create_gdf_column se desaloque cualquier memoria alocada anteriormente
-void gdf_column_cpp::create_gdf_column(cudf::type_id type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name, bool allocate_valid_buffer )
+void gdf_column_cpp::create_gdf_column(cudf::type_id type, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name, bool allocate_valid_buffer )
 {
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
     assert(type != cudf::type_id::EMPTY);
@@ -327,7 +325,6 @@ void gdf_column_cpp::create_gdf_column(cudf::type_id type, gdf_dtype_extra_info 
 			this->allocate_set_valid();
 		}
     gdf_column_view(this->column, (void *) data, valid_device, num_values, type);
-    this->column->dtype_info = {dtype_info.time_unit, nullptr};
 
     this->set_name(column_name);
     if(input_data != nullptr){
@@ -436,7 +433,7 @@ void gdf_column_cpp::create_empty(const cudf::type_id     dtype,
             NVCategory::create_from_array(nullptr, 0), 0, column_name);
     } else {
         create_gdf_column(
-            dtype, gdf_dtype_extra_info{to_gdf_time_unit(dtype),nullptr}, 0, nullptr, ral::traits::get_dtype_size_in_bytes(dtype), column_name);
+            dtype, 0, nullptr, ral::traits::get_dtype_size_in_bytes(dtype), column_name);
     }
 }
 
@@ -528,10 +525,6 @@ cudf::type_id gdf_column_cpp::dtype() const {
 
 cudf::size_type gdf_column_cpp::null_count(){
     return column->null_count;
-}
-
-gdf_dtype_extra_info gdf_column_cpp::dtype_info() const {
-    return column->dtype_info;
 }
 
 void gdf_column_cpp::set_dtype(cudf::type_id dtype){

@@ -36,8 +36,6 @@ class gdf_column_cpp
 
     cudf::size_type null_count();
 
-    gdf_dtype_extra_info dtype_info() const;
-
 	column_token_t get_column_token() const;
 
 	void set_column_token(column_token_t column_token);
@@ -49,7 +47,7 @@ class gdf_column_cpp
 
 	gdf_column_cpp();
 	void create_gdf_column(gdf_column * column, bool registerColumn = true);
-    void create_gdf_column_for_ipc(cudf::type_id type, gdf_dtype_extra_info dtype_info, void * col_data,cudf::valid_type * valid_data, cudf::size_type num_values, cudf::size_type null_count, std::string column_name);
+    void create_gdf_column_for_ipc(cudf::type_id type, void * col_data,cudf::valid_type * valid_data, cudf::size_type num_values, cudf::size_type null_count, std::string column_name);
 
 	gdf_column_cpp(const gdf_column_cpp& col);
 
@@ -63,9 +61,9 @@ class gdf_column_cpp
 
 	void create_gdf_column(NVStrings* strings, size_t num_values, std::string column_name);
 
-	void create_gdf_column(cudf::type_id type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name = "", bool allocate_valid_buffer = false);
+	void create_gdf_column(cudf::type_id type, size_t num_values, void * input_data, size_t width_per_value, const std::string &column_name = "", bool allocate_valid_buffer = false);
 
-	void create_gdf_column(cudf::type_id type, gdf_dtype_extra_info dtype_info, size_t num_values, void * input_data, cudf::valid_type * host_valid, size_t width_per_value, const std::string &column_name = "");
+	void create_gdf_column(cudf::type_id type, size_t num_values, void * input_data, cudf::valid_type * host_valid, size_t width_per_value, const std::string &column_name = "");
 
 	void create_gdf_column(const gdf_scalar & scalar, const std::string &column_name);
 

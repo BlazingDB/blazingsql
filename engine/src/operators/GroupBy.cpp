@@ -107,14 +107,12 @@ std::vector<gdf_column_cpp> groupby_without_aggregations(
 	for(int i = 0; i < num_group_columns; i++) {
 		if(input[i].valid())
 			grouped_output[i].create_gdf_column(input[i].dtype(),
-				input[i].dtype_info(),
 				index_col_ptr->size,
 				nullptr,
 				ral::traits::get_dtype_size_in_bytes(input[i].dtype()),
 				input[i].name());
 		else
 			grouped_output[i].create_gdf_column(input[i].dtype(),
-				input[i].dtype_info(),
 				index_col_ptr->size,
 				nullptr,
 				nullptr,
@@ -364,12 +362,9 @@ std::vector<gdf_column_cpp> compute_aggregations(blazing_frame & input,
 		if(expression == "" &&
 			aggregation_types[i] ==
 				GDF_COUNT) {  // this means we have a COUNT(*). So lets create a simple column with no nulls
-			gdf_dtype_extra_info extra_info;
-			extra_info.category = nullptr;
-			extra_info.time_unit = TIME_UNIT_NONE;
 			std::vector<int8_t> temp(row_size, 0);
 			aggregation_inputs[i].create_gdf_column(
-				cudf::type_id::INT8, extra_info, row_size, temp.data(), ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT8), "");
+				cudf::type_id::INT8, row_size, temp.data(), ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT8), "");
 		} else {
 			if(contains_evaluation(expression)) {
 				// we dont knwo what the size of this input will be so allcoate max size
@@ -377,17 +372,7 @@ std::vector<gdf_column_cpp> compute_aggregations(blazing_frame & input,
 				cudf::type_id unused;
 				cudf::type_id agg_input_type = get_output_type_expression(&input, &unused, expression);
 
-				// TODO Percy Rommel Jean Pierre improve timestamp resolution
-				gdf_dtype_extra_info extra_info;
-				extra_info.category = nullptr;
-				// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-				// percy also was date64 here
-				extra_info.time_unit = (agg_input_type == cudf::type_id::TIMESTAMP_MILLISECONDS
-											? TIME_UNIT_ms
-											: TIME_UNIT_NONE);  // TODO this should not be hardcoded
-
 				aggregation_inputs[i].create_gdf_column(agg_input_type,
-					extra_info,
 					row_size,
 					nullptr,
 					ral::traits::get_dtype_size_in_bytes(agg_input_type),

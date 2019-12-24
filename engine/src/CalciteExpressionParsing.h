@@ -44,7 +44,7 @@ cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, gdf_agg_op aggregation, bool have_groupby);
 
 cudf::type_id get_type_from_string(std::string scalar_string);
-gdf_scalar get_scalar_from_string(std::string scalar_string, cudf::type_id type, gdf_dtype_extra_info extra_info);
+gdf_scalar get_scalar_from_string(std::string scalar_string, cudf::type_id type);
 
 std::string aggregator_to_string(gdf_agg_op operation);
 
@@ -69,11 +69,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator 
 // this function assumes that common types are decimal, float, datetime and string. You cannot convert across these
 // general types.
 void get_common_type(cudf::type_id type1,
-	gdf_dtype_extra_info info1,
 	cudf::type_id type2,
-	gdf_dtype_extra_info info2,
-	cudf::type_id & type_out,
-	gdf_dtype_extra_info & info_out);
+	cudf::type_id & type_out);
 
 std::string get_named_expression(std::string query_part, std::string expression_name);
 

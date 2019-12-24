@@ -10,18 +10,9 @@ gdf_column_cpp create_column(const cudf::size_type size, const cudf::type_id dty
 	// create gdf_column_cpp
 	gdf_column_cpp column;
 
-	// TODO Percy Rommel Jean Pierre improve timestamp resolution
-	gdf_dtype_extra_info extra_info;
-	extra_info.category = nullptr;
-	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-	// was date64 here
-	extra_info.time_unit =
-		(dtype == cudf::type_id::TIMESTAMP_MILLISECONDS ? TIME_UNIT_ms
-													   : TIME_UNIT_NONE);  // TODO this should not be hardcoded
-
 	// populate gdf_column_cpp
 	auto width = ral::traits::get_dtype_size_in_bytes(dtype);
-	column.create_gdf_column(dtype, extra_info, size, nullptr, width, name);
+	column.create_gdf_column(dtype, size, nullptr, width, name);
 
 	// done
 	return column;
@@ -40,19 +31,10 @@ gdf_column_cpp create_zero_column(const cudf::size_type size, const cudf::type_i
 	std::size_t bitmask_size = ral::traits::get_bitmask_size_in_bytes(size);
 	std::vector<std::uint8_t> bitmask(bitmask_size, 0);
 
-	// TODO Percy Rommel Jean Pierre improve timestamp resolution
-	gdf_dtype_extra_info extra_info;
-	extra_info.category = nullptr;
-	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-	// was date64 here
-	extra_info.time_unit =
-		(dtype == cudf::type_id::TIMESTAMP_MILLISECONDS ? TIME_UNIT_ms
-													   : TIME_UNIT_NONE);  // TODO this should not be hardcoded
-
 	// create gdf_column_cpp
 	gdf_column_cpp column;
 	auto width = ral::traits::get_dtype_size_in_bytes(dtype);
-	column.create_gdf_column(dtype, extra_info, size, data.data(), bitmask.data(), width, name);
+	column.create_gdf_column(dtype, size, data.data(), bitmask.data(), width, name);
 
 	// done
 	return column;

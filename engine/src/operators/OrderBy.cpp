@@ -52,7 +52,6 @@ void limit_table(blazing_frame & input, cudf::size_type limitRows) {
 				gdf_column * sourceColumn = input_col.get_gdf_column();
 				cudf::size_type width_per_value = ral::traits::get_dtype_size_in_bytes(sourceColumn);
 				limitedCpp.create_gdf_column(to_type_id(sourceColumn->dtype),
-					sourceColumn->dtype_info,
 					limitRows,
 					nullptr,
 					nullptr,
@@ -97,7 +96,6 @@ void sort(const Context & queryContext,
 
 	gdf_column_cpp asc_desc_col;
 	asc_desc_col.create_gdf_column(cudf::type_id::INT8,
-		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		sortOrderTypes.size(),
 		sortOrderTypes.data(),
 		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT8),
@@ -105,7 +103,6 @@ void sort(const Context & queryContext,
 
 	gdf_column_cpp index_col;
 	index_col.create_gdf_column(cudf::type_id::INT32,
-		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		input.get_num_rows_in_table(0),
 		nullptr,
 		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
@@ -142,14 +139,12 @@ void single_node_sort(const Context & queryContext,
 		auto & input_col = input.get_column(i);
 		if(input_col.valid())
 			sortedTable[i].create_gdf_column(input_col.dtype(),
-				input_col.dtype_info(),
 				input_col.size(),
 				nullptr,
 				ral::traits::get_dtype_size_in_bytes(input_col.dtype()),
 				input_col.name());
 		else
 			sortedTable[i].create_gdf_column(input_col.dtype(),
-				input_col.dtype_info(),
 				input_col.size(),
 				nullptr,
 				nullptr,
@@ -178,14 +173,12 @@ void distributed_sort(Context & queryContext,
 		auto & input_col = input.get_column(i);
 		if(input_col.valid())
 			sortedTable[i].create_gdf_column(input_col.dtype(),
-				input_col.dtype_info(),
 				input_col.size(),
 				nullptr,
 				ral::traits::get_dtype_size_in_bytes(input_col.dtype()),
 				input_col.name());
 		else
 			sortedTable[i].create_gdf_column(input_col.dtype(),
-				input_col.dtype_info(),
 				input_col.size(),
 				nullptr,
 				nullptr,

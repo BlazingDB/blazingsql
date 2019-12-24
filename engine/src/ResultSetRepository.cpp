@@ -68,11 +68,12 @@ void result_set_repository::update_token(
 			// changes we must figure out a way to avoid this when is no needed
 			NVStrings * new_strings = nullptr;
 			if(frame.get_column(i).size() > 0) {
-				NVCategory * new_category =
-					static_cast<NVCategory *>(frame.get_column(i).dtype_info().category)
-						->gather_and_remap(static_cast<int *>(frame.get_column(i).data()), frame.get_column(i).size());
-				new_strings = new_category->to_strings();
-				NVCategory::destroy(new_category);
+				// TODO percy cudf0.12 custrings this was not commented
+//				NVCategory * new_category =
+//					static_cast<NVCategory *>(frame.get_column(i).dtype_info().category)
+//						->gather_and_remap(static_cast<int *>(frame.get_column(i).data()), frame.get_column(i).size());
+//				new_strings = new_category->to_strings();
+//				NVCategory::destroy(new_category);
 			}
 
 			gdf_column_cpp string_column;

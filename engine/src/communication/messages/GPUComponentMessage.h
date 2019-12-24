@@ -225,8 +225,7 @@ public:
 					(cudf::size_type) columns_offsets[i].metadata.size,
 					(gdf_dtype) columns_offsets[i].metadata.dtype,
 					(cudf::size_type) columns_offsets[i].metadata.null_count,
-					gdf_dtype_extra_info{
-						.time_unit = to_gdf_time_unit((cudf::type_id)columns_offsets[i].metadata.dtype), .category = nullptr},
+					gdf_dtype_extra_info(),
 					(char *) columns_offsets[i].metadata.col_name);
 				received_samples[i].create_gdf_column(column);
 			}

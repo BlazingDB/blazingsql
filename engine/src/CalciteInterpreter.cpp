@@ -207,17 +207,10 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 			final_output_positions.push_back(input_columns.size() + final_output_positions.size());
 
 			// TODO Percy Rommel Jean Pierre improve timestamp resolution
-			gdf_dtype_extra_info extra_info;
-			extra_info.category = nullptr;
-			extra_info.time_unit =
-				(output_type_expressions[i] == GDF_TIMESTAMP ? TIME_UNIT_ms
-															 : TIME_UNIT_NONE);  // TODO this should not be hardcoded
-
 			// assumes worst possible case allocation for output
 			// TODO: find a way to know what our output size will be
 			gdf_column_cpp output;
 			output.create_gdf_column(output_type_expressions[i],
-				extra_info,
 				size,
 				nullptr,
 				ral::traits::get_dtype_size_in_bytes(output_type_expressions[i]),
@@ -252,10 +245,6 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 				int index = i;
 				cudf::type_id col_type = infer_dtype_from_literal(cleaned_expression);
 
-				// NOTE percy this is a literal so the extra info it doesnt matters
-				gdf_dtype_extra_info extra_info;
-				extra_info.time_unit = TIME_UNIT_ms;
-
 				output_type_expressions[i] = col_type;
 				gdf_column_cpp output;
 
@@ -264,17 +253,9 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 					NVCategory * new_category = repeated_string_category(literal_expression, size);
 					output.create_gdf_column(new_category, size, name);
 				} else {
-					// TODO Percy Rommel Jean Pierre improve timestamp resolution
-					gdf_dtype_extra_info extra_info;
-					extra_info.category = nullptr;
-					// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-					extra_info.time_unit = (col_type == cudf::type_id::TIMESTAMP_MILLISECONDS
-												? TIME_UNIT_ms
-												: TIME_UNIT_NONE);  // TODO this should not be hardcoded
-
 					int column_width = ral::traits::get_dtype_size_in_bytes(col_type);
-					output.create_gdf_column(col_type, extra_info, size, nullptr, column_width);
-					gdf_scalar literal_scalar = get_scalar_from_string(cleaned_expression, col_type, extra_info);
+					output.create_gdf_column(col_type, size, nullptr, column_width);
+					gdf_scalar literal_scalar = get_scalar_from_string(cleaned_expression, col_type);
 					output.set_name(name);
 					cudf::fill(output.get_gdf_column(), literal_scalar, 0, size);
 				}
@@ -467,7 +448,6 @@ void process_filter(Context * context, blazing_frame & input, std::string query_
 	// TODO de donde saco el nombre de la columna aqui???
 	gdf_column_cpp stencil;
 	stencil.create_gdf_column(cudf::type_id::BOOL8,
-		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		input.get_num_rows_in_table(0),
 		nullptr,
 		ral::traits::get_dtype_size_in_bytes(cudf::type_id::BOOL8),
@@ -491,7 +471,6 @@ void process_filter(Context * context, blazing_frame & input, std::string query_
 	gdf_column_cpp index_col;
 	std::string empty = "";
 	index_col.create_gdf_column(cudf::type_id::INT32,
-		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		input.get_num_rows_in_table(0),
 		nullptr,
 		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
@@ -963,9 +942,10 @@ blazing_frame evaluate_query(
 				if (output_frame.get_column(i).dtype() == GDF_STRING_CATEGORY) {
 					NVStrings * new_strings = nullptr;
 					if (output_frame.get_column(i).size() > 0) {
-						NVCategory* new_category = static_cast<NVCategory *> (output_frame.get_column(i).dtype_info().category)->gather_and_remap( static_cast<int *>(output_frame.get_column(i).data()), output_frame.get_column(i).size());
-						new_strings = new_category->to_strings();
-						NVCategory::destroy(new_category);
+						// TODO percy cudf0.12 custrings this was not commented
+//						NVCategory* new_category = static_cast<NVCategory *> (output_frame.get_column(i).dtype_info().category)->gather_and_remap( static_cast<int *>(output_frame.get_column(i).data()), output_frame.get_column(i).size());
+//						new_strings = new_category->to_strings();
+//						NVCategory::destroy(new_category);
 					} else {
 						new_strings = NVStrings::create_from_array(nullptr, 0);
 					}

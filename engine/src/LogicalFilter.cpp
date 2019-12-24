@@ -47,16 +47,9 @@ gdf_column_cpp handle_cast_from_string(gdf_unary_operator operation, gdf_column 
 
 	cudf::type_id cast_type = get_output_type(cudf::type_id::CATEGORY, operation);
 
-	// TODO Percy Rommel Jean Pierre improve timestamp resolution
-	gdf_dtype_extra_info extra_info;
-	extra_info.category = nullptr;
-	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-	extra_info.time_unit =
-		(cast_type == cudf::type_id::TIMESTAMP_MILLISECONDS ? TIME_UNIT_ms : TIME_UNIT_NONE);  // TODO this should not be hardcoded
-
 	gdf_column_cpp new_input_col;
 	new_input_col.create_gdf_column(
-		cast_type, extra_info, input_col->size, nullptr, ral::traits::get_dtype_size_in_bytes(cast_type));
+		cast_type, input_col->size, nullptr, ral::traits::get_dtype_size_in_bytes(cast_type));
 
 	switch(cast_type) {
 	case cudf::type_id::INT32: nv_strings->stoi(static_cast<int *>(new_input_col.data())); break;
@@ -195,7 +188,6 @@ gdf_column_cpp handle_match_regex(gdf_column * input_col, const std::string & re
 
 	gdf_column_cpp new_input_col;
 	new_input_col.create_gdf_column(cudf::type_id::BOOL8,
-		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
 		input_col->size,
 		nullptr,
 		nullptr,
@@ -356,15 +348,8 @@ void add_expression_to_plan(blazing_frame & inputs,
 					// gdf_scalar right =
 					// get_scalar_from_string(left_operand,inputs.get_column(get_index(right_operand)).dtype());
 
-					// NOTE percy this is a literal so the extra info it doesnt matters
-					gdf_dtype_extra_info extra_info;
-					// TODO percy jp c.cordoba need more testing here in case used with other ops
-					if(right_index < num_inputs) {
-						extra_info = input_columns[right_index]->dtype_info;
-					}
-
 					gdf_scalar left =
-						get_scalar_from_string(left_operand, get_type_from_string(left_operand), extra_info);
+						get_scalar_from_string(left_operand, get_type_from_string(left_operand));
 					left_scalars.push_back(left);
 					right_scalars.push_back(dummy_scalar);
 
@@ -376,15 +361,14 @@ void add_expression_to_plan(blazing_frame & inputs,
 					// gdf_scalar right =
 					// get_scalar_from_string(right_operand,inputs.get_column(get_index(left_operand)).dtype());
 
-					// NOTE percy this is a literal so the extra info it doesnt matters
-					gdf_dtype_extra_info extra_info;
 					// TODO percy jp c.cordoba need more testing here in case used with other ops
 					if(left_index < num_inputs) {
-						extra_info = input_columns[left_index]->dtype_info;
+						// TODO percy cudf0.12 implement timestamp resolution
+						//extra_info = input_columns[left_index]->dtype_info;
 					}
 
 					gdf_scalar right =
-						get_scalar_from_string(right_operand, get_type_from_string(right_operand), extra_info);
+						get_scalar_from_string(right_operand, get_type_from_string(right_operand));
 					right_scalars.push_back(right);
 					left_scalars.push_back(dummy_scalar);
 
