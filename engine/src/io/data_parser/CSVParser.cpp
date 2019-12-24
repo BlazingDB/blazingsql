@@ -71,7 +71,7 @@ void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 	if(file == nullptr) {
 		columns_out =
-			create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
+			create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
 		return;
 	}
 	auto csv_arg = this->csv_arg;

@@ -69,8 +69,6 @@ ResultSet runQuery(int32_t masterIndex,
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
 		std::vector<cudf::type_id> types;
-		std::vector<gdf_time_unit> time_units;
-
 
 		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
@@ -79,15 +77,10 @@ ResultSet runQuery(int32_t masterIndex,
 			types.push_back(to_type_id(tableSchemas[i].columns[col]->dtype));
 		}
 
-		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			time_units.push_back(tableSchemas[i].columns[col]->dtype_info.time_unit);
-		}
-
 		auto schema = ral::io::Schema(tableSchema.names,
 			tableSchema.calcite_to_file_indices,
 			types,
 			tableSchema.num_row_groups,
-			time_units,
 			tableSchema.in_file);
 
 		std::shared_ptr<ral::io::data_parser> parser;
@@ -158,7 +151,6 @@ ResultSet runQuery(int32_t masterIndex,
 		throw;
 	}
 }
-
 
 TableScanInfo getTableScanInfo(std::string logicalPlan){
 

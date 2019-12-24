@@ -46,4 +46,15 @@ inline cudf::type_id to_type_id(gdf_dtype gdf_type_val) {
 	return cudf::type_id::EMPTY;
 }
 
+inline gdf_time_unit to_gdf_time_unit(cudf::type_id type_id) {
+	switch (type_id) {
+		case cudf::type_id::TIMESTAMP_SECONDS: return gdf_time_unit::TIME_UNIT_s; break;
+		case cudf::type_id::TIMESTAMP_MILLISECONDS: return gdf_time_unit::TIME_UNIT_ms; break;
+		case cudf::type_id::TIMESTAMP_MICROSECONDS: return gdf_time_unit::TIME_UNIT_us; break;
+		case cudf::type_id::TIMESTAMP_NANOSECONDS: return gdf_time_unit::TIME_UNIT_ns; break;
+	}
+	
+	return gdf_time_unit::TIME_UNIT_NONE;
+}
+
 #endif /* _BZ_WRAPPER_H_ */

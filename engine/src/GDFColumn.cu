@@ -430,14 +430,13 @@ void gdf_column_cpp::create_gdf_column(const gdf_scalar & scalar, const std::str
 }
 
 void gdf_column_cpp::create_empty(const cudf::type_id     dtype,
-                                  const std::string & column_name,
-                                  const gdf_time_unit     time_unit) {
+                                  const std::string & column_name) {
     if (cudf::type_id::STRING == dtype || cudf::type_id::CATEGORY == dtype ) {  // cudf::size_of doesn't support GDF_STRING
         create_gdf_column(
             NVCategory::create_from_array(nullptr, 0), 0, column_name);
     } else {
         create_gdf_column(
-            dtype, gdf_dtype_extra_info{time_unit,nullptr}, 0, nullptr, ral::traits::get_dtype_size_in_bytes(dtype), column_name);
+            dtype, gdf_dtype_extra_info{to_gdf_time_unit(dtype),nullptr}, 0, nullptr, ral::traits::get_dtype_size_in_bytes(dtype), column_name);
     }
 }
 

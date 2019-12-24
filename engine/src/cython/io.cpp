@@ -64,7 +64,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::iota(column_indices.begin(), column_indices.end(), 0);
 
 	auto columns_cpp =
-		ral::io::create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
+		ral::io::create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
 
 	for(auto column_cpp : columns_cpp) {
 		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());

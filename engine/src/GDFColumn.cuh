@@ -69,7 +69,7 @@ class gdf_column_cpp
 
 	void create_gdf_column(const gdf_scalar & scalar, const std::string &column_name);
 
-	void create_empty(const cudf::type_id dtype, const std::string &column_name, const gdf_time_unit = TIME_UNIT_NONE);
+	void create_empty(const cudf::type_id dtype, const std::string &column_name);
 
 	void create_empty(const cudf::type_id dtype);
 

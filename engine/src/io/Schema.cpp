@@ -43,9 +43,8 @@ std::string convert_dtype_to_string(const cudf::type_id & dtype) {
 Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
 	std::vector<cudf::type_id> types,
-	std::vector<gdf_time_unit> time_units,
 	std::vector<size_t> num_row_groups)
-	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), time_units(time_units),
+	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types),
 	  num_row_groups(num_row_groups) {
 	// TODO Auto-generated constructor stub
 
@@ -56,17 +55,16 @@ Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
 	std::vector<cudf::type_id> types,
 	std::vector<size_t> num_row_groups,
-	std::vector<gdf_time_unit> time_units,
 	std::vector<bool> in_file)
 	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), num_row_groups(num_row_groups),
-	  time_units(time_units), in_file(in_file) {
+	  in_file(in_file) {
 	if(in_file.size() != names.size()) {
 		this->in_file.resize(names.size(), true);
 	}
 }
 
-Schema::Schema(std::vector<std::string> names, std::vector<cudf::type_id> types, std::vector<gdf_time_unit> time_units)
-	: names(names), calcite_to_file_indices({}), types(types), time_units(time_units), num_row_groups({}) {
+Schema::Schema(std::vector<std::string> names, std::vector<cudf::type_id> types)
+	: names(names), calcite_to_file_indices({}), types(types), num_row_groups({}) {
 	in_file.resize(names.size(), true);
 }
 
@@ -91,8 +89,6 @@ std::vector<std::string> Schema::get_files() const { return this->files; }
 
 std::vector<cudf::type_id> Schema::get_dtypes() const { return this->types; }
 
-std::vector<gdf_time_unit> Schema::get_time_units() const { return this->time_units; }
-
 std::string Schema::get_name(size_t schema_index) const { return this->names[schema_index]; }
 
 std::string Schema::get_type(size_t schema_index) const { return convert_dtype_to_string(this->types[schema_index]); }
@@ -112,15 +108,13 @@ std::vector<bool> Schema::get_in_file() const { return this->in_file; }
 void Schema::add_column(gdf_column_cpp column, size_t file_index) {
 	this->names.push_back(column.name());
 	this->types.push_back(column.dtype());
-	this->time_units.push_back(column.dtype_info().time_unit);
 	this->calcite_to_file_indices.push_back(file_index);
 	this->in_file.push_back(true);
 }
 
-void Schema::add_column(std::string name, cudf::type_id type, size_t file_index, bool is_in_file, gdf_time_unit time_unit) {
+void Schema::add_column(std::string name, cudf::type_id type, size_t file_index, bool is_in_file) {
 	this->names.push_back(name);
 	this->types.push_back(type);
-	this->time_units.push_back(time_unit);
 	this->calcite_to_file_indices.push_back(file_index);
 	this->in_file.push_back(is_in_file);
 }

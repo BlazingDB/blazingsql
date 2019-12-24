@@ -62,16 +62,14 @@ void gdf_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 	std::vector<std::string> names;
 	std::vector<cudf::type_id> types;
-	std::vector<gdf_time_unit> time_units;
 
 	std::for_each(
-		this->tableSchema.columns.begin(), this->tableSchema.columns.end(), [&types, &time_units](gdf_column * column) {
+		this->tableSchema.columns.begin(), this->tableSchema.columns.end(), [&types](gdf_column * column) {
 			types.push_back(to_type_id(column->dtype));
-			time_units.push_back(column->dtype_info.time_unit);
 		});
 
 	names = this->tableSchema.names;
-	ral::io::Schema temp_schema(names, types, time_units);
+	ral::io::Schema temp_schema(names, types);
 	schema = temp_schema;
 	// generate schema from message here
 }

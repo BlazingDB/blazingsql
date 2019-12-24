@@ -48,7 +48,7 @@ void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 	if(file == nullptr) {
 		columns_out =
-			create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
+			create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
 		return;
 	}
 
@@ -86,8 +86,7 @@ void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 // This function is copied and adapted from cudf
 constexpr std::pair<cudf::type_id, gdf_dtype_extra_info> to_dtype(parquet::Type::type physical,
 	parquet::ConvertedType::type logical,
-	bool strings_to_categorical,
-	gdf_time_unit ts_unit = TIME_UNIT_NONE) {
+	bool strings_to_categorical) {
 	// Logical type used for actual data interpretation; the legacy converted type
 	// is superceded by 'logical' type whenever available.
 	switch(logical) {
@@ -98,11 +97,9 @@ constexpr std::pair<cudf::type_id, gdf_dtype_extra_info> to_dtype(parquet::Type:
 	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
 	case parquet::ConvertedType::type::DATE: return std::make_pair(cudf::type_id::TIMESTAMP_DAYS, gdf_dtype_extra_info{TIME_UNIT_NONE});
 	case parquet::ConvertedType::type::TIMESTAMP_MICROS:
-		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(cudf::type_id::TIMESTAMP_MICROSECONDS, gdf_dtype_extra_info{ts_unit})
-										   : std::make_pair(cudf::type_id::TIMESTAMP_MICROSECONDS, gdf_dtype_extra_info{TIME_UNIT_us});
+		return std::make_pair(cudf::type_id::TIMESTAMP_MICROSECONDS, gdf_dtype_extra_info{TIME_UNIT_us});
 	case parquet::ConvertedType::type::TIMESTAMP_MILLIS:
-		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(cudf::type_id::TIMESTAMP_MILLISECONDS, gdf_dtype_extra_info{ts_unit})
-										   : std::make_pair(cudf::type_id::TIMESTAMP_MILLISECONDS, gdf_dtype_extra_info{TIME_UNIT_ms});
+		return std::make_pair(cudf::type_id::TIMESTAMP_MILLISECONDS, gdf_dtype_extra_info{TIME_UNIT_ms});
 	default: break;
 	}
 
@@ -119,8 +116,7 @@ constexpr std::pair<cudf::type_id, gdf_dtype_extra_info> to_dtype(parquet::Type:
 		// Can be mapped to GDF_CATEGORY (32-bit hash) or GDF_STRING (nvstring)
 		return std::make_pair(strings_to_categorical ? cudf::type_id::CATEGORY : cudf::type_id::STRING, gdf_dtype_extra_info{TIME_UNIT_NONE});
 	case parquet::Type::type::INT96:
-		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(cudf::type_id::TIMESTAMP_NANOSECONDS, gdf_dtype_extra_info{ts_unit})
-										   : std::make_pair(cudf::type_id::TIMESTAMP_NANOSECONDS, gdf_dtype_extra_info{TIME_UNIT_ns});
+		return std::make_pair(cudf::type_id::TIMESTAMP_NANOSECONDS, gdf_dtype_extra_info{TIME_UNIT_ns});
 	default: break;
 	}
 
@@ -156,12 +152,10 @@ void parquet_parser::parse_schema(
 	// we currently dont support GDF_DATE32 for parquet so lets filter those out
 	std::vector<std::string> column_names_out;
 	std::vector<cudf::type_id> dtypes_out;
-	std::vector<gdf_time_unit> time_units_out;
 	for(size_t i = 0; i < table_out.num_columns(); i++) {
 		if(table_out.get_column(i)->dtype != GDF_DATE32) {
 			column_names_out.push_back(table_out.get_column(i)->col_name);
 			dtypes_out.push_back(to_type_id(table_out.get_column(i)->dtype));
-			time_units_out.push_back(table_out.get_column(i)->dtype_info.time_unit);
 		}
 	}
 	table_out.destroy();
@@ -169,7 +163,7 @@ void parquet_parser::parse_schema(
 	std::vector<std::size_t> column_indices(column_names_out.size());
 	std::iota(column_indices.begin(), column_indices.end(), 0);
 
-	schema_out = ral::io::Schema(column_names_out, column_indices, dtypes_out, time_units_out, num_row_groups);
+	schema_out = ral::io::Schema(column_names_out, column_indices, dtypes_out, num_row_groups);
 }
 
 } /* namespace io */

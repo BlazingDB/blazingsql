@@ -248,20 +248,6 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 	}
 }
 
-gdf_time_unit get_min_time_unit(gdf_time_unit unit1, gdf_time_unit unit2) {
-	gdf_time_unit min_unit = TIME_UNIT_NONE;
-	if(unit1 == TIME_UNIT_ns || unit2 == TIME_UNIT_ns) {
-		min_unit = TIME_UNIT_ns;
-	} else if(unit1 == TIME_UNIT_us || unit2 == TIME_UNIT_us) {
-		min_unit = TIME_UNIT_us;
-	} else if(unit1 == TIME_UNIT_ms || unit2 == TIME_UNIT_ms) {
-		min_unit = TIME_UNIT_ms;
-	} else if(unit1 == TIME_UNIT_s || unit2 == TIME_UNIT_s) {
-		min_unit = TIME_UNIT_s;
-	}
-	return min_unit;
-}
-
 void get_common_type(cudf::type_id type1,
 	gdf_dtype_extra_info info1,
 	cudf::type_id type2,
@@ -279,7 +265,7 @@ void get_common_type(cudf::type_id type1,
 				info_out.time_unit = info1.time_unit;
 			} else {
 				type_out = type1;
-				info_out.time_unit = get_min_time_unit(info1.time_unit, info2.time_unit);
+				info_out.time_unit = gdf_time_unit::TIME_UNIT_ms;
 			}
 		} else {
 			type_out = type1;
@@ -296,7 +282,7 @@ void get_common_type(cudf::type_id type1,
 		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 			if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-				info_out.time_unit = get_min_time_unit(info2.time_unit, TIME_UNIT_ms);
+				info_out.time_unit = gdf_time_unit::TIME_UNIT_ms;
 			} else {
 				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
 				info_out.time_unit = info2.time_unit;
@@ -307,7 +293,7 @@ void get_common_type(cudf::type_id type1,
 	} else if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 		if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 			type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-			info_out.time_unit = get_min_time_unit(info1.time_unit, TIME_UNIT_ms);
+			info_out.time_unit = gdf_time_unit::TIME_UNIT_ms;
 		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 			type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
 			info_out.time_unit = info1.time_unit;

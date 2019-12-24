@@ -125,7 +125,6 @@ public:
 																.dtype = column->dtype,
 																.size = column->size,
 																.null_count = column->null_count,
-																.time_unit = column->dtype_info.time_unit,
 																.col_name = {},
 															},
 				.data = -1,
@@ -227,7 +226,7 @@ public:
 					(gdf_dtype) columns_offsets[i].metadata.dtype,
 					(cudf::size_type) columns_offsets[i].metadata.null_count,
 					gdf_dtype_extra_info{
-						.time_unit = (gdf_time_unit) columns_offsets[i].metadata.time_unit, .category = nullptr},
+						.time_unit = to_gdf_time_unit((cudf::type_id)columns_offsets[i].metadata.dtype), .category = nullptr},
 					(char *) columns_offsets[i].metadata.col_name);
 				received_samples[i].create_gdf_column(column);
 			}

@@ -24,7 +24,6 @@ void get_columns_that_were_already_loaded(const std::vector<size_t> & column_ind
 
 std::vector<gdf_column_cpp> create_empty_columns(const std::vector<std::string> & column_names,
 	const std::vector<cudf::type_id> & column_types,
-	const std::vector<gdf_time_unit> & column_time_units,
 	const std::vector<size_t> & column_indices_requested);
 
 gdf_error read_file_into_buffer(std::shared_ptr<arrow::io::RandomAccessFile> file,

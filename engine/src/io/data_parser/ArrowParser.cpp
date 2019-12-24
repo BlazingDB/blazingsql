@@ -95,10 +95,7 @@ void arrow_parser::parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAcc
 		ral::io::Schema & schema){
 	std::vector<std::string> names;
 	std::vector<cudf::type_id> types;
-	std::vector<gdf_time_unit> time_units;
-
 }
-
 
 }
 }
