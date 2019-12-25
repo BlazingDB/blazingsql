@@ -65,7 +65,7 @@ class gdf_column_cpp
 
 	void create_gdf_column(cudf::type_id type, size_t num_values, void * input_data, cudf::valid_type * host_valid, size_t width_per_value, const std::string &column_name = "");
 
-	void create_gdf_column(const gdf_scalar & scalar, const std::string &column_name);
+	void create_gdf_column(const std::unique_ptr<cudf::scalar> & scalar, const std::string &column_name);
 
 	void create_empty(const cudf::type_id dtype, const std::string &column_name);
 

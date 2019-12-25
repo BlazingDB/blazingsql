@@ -78,16 +78,20 @@ void data_loader::load_data(const Context & context,
 							column.create_gdf_column(category, num_rows, name);
 							converted_data.push_back(column);
 						} else {
-							gdf_scalar scalar = files[file_index].column_values[name];
 
-							gdf_column_cpp column;
-							column.create_gdf_column(to_type_id(scalar.dtype),
-								num_rows,
-								nullptr,
-								ral::traits::get_dtype_size_in_bytes(to_type_id(scalar.dtype)),
-								name);
-							cudf::fill(column.get_gdf_column(), scalar, 0, num_rows);
-							converted_data.push_back(column);
+							// TODO percy cudf0.12 implement proper scalar support
+							//std::unique_ptr<cudf::scalar> scalar = files[file_index].column_values[name];
+
+							// TODO percy cudf0.12 implement proper scalar support
+							//gdf_column_cpp column;
+							//column.create_gdf_column(to_type_id(scalar.dtype),
+							//	num_rows,
+							//	nullptr,
+							//	ral::traits::get_dtype_size_in_bytes(to_type_id(scalar.dtype)),
+							//	name);
+							//cudf::fill(column.get_gdf_column(), scalar, 0, num_rows);
+							//converted_data.push_back(column);
+
 						}
 						// std::cout<<"created column!"<<std::endl;
 					}

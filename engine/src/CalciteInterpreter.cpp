@@ -194,8 +194,8 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 	std::vector<gdf_unary_operator> unary_operators;
 
 
-	std::vector<gdf_scalar> left_scalars;
-	std::vector<gdf_scalar> right_scalars;
+	std::vector<cudf::scalar*> left_scalars;
+	std::vector<cudf::scalar*> right_scalars;
 	size_t cur_expression_out = 0;
 	for(int i = 0; i < expressions.size(); i++) {  // last not an expression
 		std::string expression = expressions[i].substr(
@@ -255,9 +255,9 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 				} else {
 					int column_width = ral::traits::get_dtype_size_in_bytes(col_type);
 					output.create_gdf_column(col_type, size, nullptr, column_width);
-					gdf_scalar literal_scalar = get_scalar_from_string(cleaned_expression, col_type);
+					std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(cleaned_expression, col_type);
 					output.set_name(name);
-					cudf::fill(output.get_gdf_column(), literal_scalar, 0, size);
+					cudf::fill(output.get_gdf_column(), to_gdf_scalar(literal_scalar), 0, size);
 				}
 
 				output_columns.push_back(output.get_gdf_column());

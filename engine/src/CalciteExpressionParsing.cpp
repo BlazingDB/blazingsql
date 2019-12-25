@@ -333,7 +333,7 @@ cudf::type_id get_type_from_string(std::string scalar_string) {
 	return cudf::type_id::TIMESTAMP_MILLISECONDS;
 }
 
-gdf_scalar get_scalar_from_string(std::string scalar_string, cudf::type_id type) {
+std::unique_ptr<cudf::scalar> get_scalar_from_string(std::string scalar_string, cudf::type_id type) {
 	/*
 	 * void*    invd;
 int8_t   si08;
@@ -350,31 +350,55 @@ int32_t  dt32;  // GDF_DATE32
 int64_t  dt64;  // GDF_DATE64
 int64_t  tmst;  // GDF_TIMESTAMP
 };*/
+	
+	//int8_t, int16_t, int32_t, int64_t, float, double, cudf::experimental::bool8
 	if(scalar_string == "null") {
-		gdf_data data;
-		return {data, to_gdf_type(cudf::type_id::INT8), false};
+		cudf::data_type scalar_type(cudf::type_id::INT8);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		ret->set_valid(false);
+		return ret;
 	}
 	if(type == cudf::type_id::INT8) {
-		gdf_data data;
-		data.si08 = stoi(scalar_string);
-		return {data, to_gdf_type(cudf::type_id::INT8), true};
-
+		cudf::data_type scalar_type(cudf::type_id::INT8);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int8_t>*>(ret.get());
+	  	int8_t value = stoi(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 	} else if(type == cudf::type_id::BOOL8) {
-		gdf_data data;
-		data.si08 = scalar_string == "false" ? 0 : 1;
-		return {data, to_gdf_type(cudf::type_id::BOOL8), true};
+		cudf::data_type scalar_type(cudf::type_id::INT8);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::experimental::bool8>*>(ret.get());
+		bool v = scalar_string == "false" ? 0 : 1;
+		cudf::experimental::bool8 value(v);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 	} else if(type == cudf::type_id::INT16) {
-		gdf_data data;
-		data.si16 = stoi(scalar_string);
-		return {data, to_gdf_type(cudf::type_id::INT16), true};
+		cudf::data_type scalar_type(cudf::type_id::INT16);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int16_t>*>(ret.get());
+	  	int16_t value = stoi(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 	} else if(type == cudf::type_id::INT32) {
-		gdf_data data;
-		data.si32 = stoi(scalar_string);
-		return {data, to_gdf_type(cudf::type_id::INT32), true};
+		cudf::data_type scalar_type(cudf::type_id::INT32);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int32_t>*>(ret.get());
+	  	int32_t value = stoi(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 	} else if(type == cudf::type_id::INT64) {
-		gdf_data data;
-		data.si64 = stoll(scalar_string);
-		return {data, to_gdf_type(cudf::type_id::INT64), true};
+		cudf::data_type scalar_type(cudf::type_id::INT64);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int64_t>*>(ret.get());
+	  	int64_t value = stoll(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 	}
 	//	else if(type == GDF_UINT8){
 	//		gdf_data data;
@@ -394,30 +418,56 @@ int64_t  tmst;  // GDF_TIMESTAMP
 	//		return {data, GDF_UINT64, true};
 	//	}
 	else if(type == cudf::type_id::FLOAT32) {
-		gdf_data data;
-		data.fp32 = stof(scalar_string);
-		return {data, to_gdf_type(cudf::type_id::FLOAT32), true};
+		cudf::data_type scalar_type(cudf::type_id::FLOAT32);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<float>*>(ret.get());
+	  	float value = stof(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 	} else if(type == cudf::type_id::FLOAT64) {
-		gdf_data data;
-		data.fp64 = stod(scalar_string);
-		return {data, to_gdf_type(cudf::type_id::FLOAT64), true};
+		cudf::data_type scalar_type(cudf::type_id::FLOAT64);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<double>*>(ret.get());
+	  	double value = stod(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 	} else if(type == cudf::type_id::TIMESTAMP_DAYS) {
-		// TODO: convert date literals!!!!
-		gdf_data data;
-		// string format o
-		data.dt32 = get_date_32_from_string(scalar_string);
-		return {data, to_gdf_type(cudf::type_id::TIMESTAMP_DAYS), true};
-	} else if(type == GDF_DATE64) {
-		gdf_data data;
+		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
+		cudf::data_type scalar_type(cudf::type_id::TIMESTAMP_DAYS);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_timestamp_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::timestamp_D>*>(ret.get());
+		int32_t v = get_date_32_from_string(scalar_string);
+		cudf::timestamp_D value(v);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
+	} else if(type == cudf::type_id::TIMESTAMP_SECONDS) {
+		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
+		cudf::data_type scalar_type(cudf::type_id::TIMESTAMP_SECONDS);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_timestamp_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::timestamp_D>*>(ret.get());
 		scalar_string[10] = 'T';
-		data.dt64 = get_date_64_from_string(scalar_string);
-		return {data, to_gdf_type(cudf::type_id::TIMESTAMP_SECONDS), true};
+		int64_t v = get_date_64_from_string(scalar_string);
+		cudf::timestamp_D value(v);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 	} else if(type == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
+		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
 		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-		gdf_data data;
+		cudf::data_type scalar_type(cudf::type_id::TIMESTAMP_MILLISECONDS);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_timestamp_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::timestamp_D>*>(ret.get());
 		// TODO percy another dirty hack ... we should not use private cudf api in the engine!
 		scalar_string[10] = 'T';
-		data.tmst = get_timestamp_from_string(scalar_string);  // this returns in ms
+		int64_t v = get_timestamp_from_string(scalar_string);  // this returns in ms
+		cudf::timestamp_D value(v);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 
 		// NOTE percy this fix the time resolution (e.g. orc files)
 		// TODO percy cudf0.12 implement timestamp resolution
@@ -425,8 +475,6 @@ int64_t  tmst;  // GDF_TIMESTAMP
 //		case TIME_UNIT_us: data.tmst = data.tmst * 1000; break;
 //		case TIME_UNIT_ns: data.tmst = data.tmst * 1000 * 1000; break;
 //		}
-
-		return {data, to_gdf_type(cudf::type_id::TIMESTAMP_MILLISECONDS), true};
 	}
 }
 

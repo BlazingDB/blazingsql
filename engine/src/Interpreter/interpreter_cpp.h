@@ -32,8 +32,8 @@ void perform_operation(std::vector<gdf_column *> output_columns,
 	std::vector<gdf_unary_operator> & unary_operators,
 
 
-	std::vector<gdf_scalar> & left_scalars,
-	std::vector<gdf_scalar> & right_scalars,
+	std::vector<cudf::scalar*> & left_scalars,
+	std::vector<cudf::scalar*> & right_scalars,
 	std::vector<column_index_type> new_input_indices);
 
 

@@ -44,7 +44,7 @@ cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, gdf_agg_op aggregation, bool have_groupby);
 
 cudf::type_id get_type_from_string(std::string scalar_string);
-gdf_scalar get_scalar_from_string(std::string scalar_string, cudf::type_id type);
+std::unique_ptr<cudf::scalar> get_scalar_from_string(std::string scalar_string, cudf::type_id type);
 
 std::string aggregator_to_string(gdf_agg_op operation);
 

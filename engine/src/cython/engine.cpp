@@ -109,8 +109,10 @@ ResultSet runQuery(int32_t masterIndex,
 			provider = std::make_shared<ral::io::dummy_data_provider>();
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)
+			
+			// TODO percy cudf0.12 implement proper scalar support
 			provider = std::make_shared<ral::io::uri_data_provider>(
-				uris, uri_values[i], string_values[i], is_column_string[i]);
+				uris, /* uri_values[i]*/ std::vector<std::map<std::string, cudf::scalar*>>(), string_values[i], is_column_string[i]);
 		}
 		ral::io::data_loader loader(parser, provider);
 		input_loaders.push_back(loader);

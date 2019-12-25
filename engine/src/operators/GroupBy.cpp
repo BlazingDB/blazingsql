@@ -281,56 +281,70 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 		case GDF_MAX:
 			if(aggregation_inputs[i].size() == 0) {
 				// Set output_column data to invalid
-				gdf_scalar null_value;
-				null_value.is_valid = false;
-				null_value.dtype = to_gdf_type(output_types[i]);
-				output_columns[i].create_gdf_column(null_value, output_column_names[i]);
+				std::unique_ptr<cudf::scalar> null_value;
+				
+				// TODO percy cudf0.12 implement proper scalar support
+				//null_value.is_valid = false;
+				//null_value.dtype = to_gdf_type(output_types[i]);
+				//output_columns[i].create_gdf_column(null_value, output_column_names[i]);
+				
 				break;
 			} else {
-				cudf::reduction::operators reduction_op = gdf_agg_op_to_reduction_operators(agg_ops[i]);
-				gdf_scalar reduction_out =
-					cudf::reduce(aggregation_inputs[i].get_gdf_column(), reduction_op, to_gdf_type(output_types[i]));
-				output_columns[i].create_gdf_column(reduction_out, output_column_names[i]);
+				
+				// TODO percy cudf0.12 implement proper scalar support
+				//cudf::reduction::operators reduction_op = gdf_agg_op_to_reduction_operators(agg_ops[i]);
+				//std::unique_ptr<cudf::scalar> reduction_out =
+				//	cudf::reduce(aggregation_inputs[i].get_gdf_column(), reduction_op, to_gdf_type(output_types[i]));
+				//output_columns[i].create_gdf_column(reduction_out, output_column_names[i]);
+				
 				break;
 			}
 		case GDF_AVG:
 			if(aggregation_inputs[i].size() == 0 ||
 				(aggregation_inputs[i].size() == aggregation_inputs[i].null_count())) {
 				// Set output_column data to invalid
-				gdf_scalar null_value;
-				null_value.is_valid = false;
-				null_value.dtype = to_gdf_type(output_types[i]);
-				output_columns[i].create_gdf_column(null_value, output_column_names[i]);
+				
+				// TODO percy cudf0.12 implement proper scalar support
+				//std::unique_ptr<cudf::scalar> null_value;
+				//null_value.is_valid = false;
+				//null_value.dtype = to_gdf_type(output_types[i]);
+				//output_columns[i].create_gdf_column(null_value, output_column_names[i]);
+				
 				break;
 			} else {
 				cudf::type_id sum_output_type = get_aggregation_output_type(aggregation_inputs[i].dtype(), GDF_SUM, false);
-				gdf_scalar avg_sum_scalar = cudf::reduce(
-					aggregation_inputs[i].get_gdf_column(), cudf::reduction::operators::SUM, to_gdf_type(sum_output_type));
+				
+				// TODO percy cudf0.12 implement proper scalar support
+				//std::unique_ptr<cudf::scalar> avg_sum_scalar = cudf::reduce(
+				//	aggregation_inputs[i].get_gdf_column(), cudf::reduction::operators::SUM, to_gdf_type(sum_output_type));
+				
 				long avg_count =
 					aggregation_inputs[i].get_gdf_column()->size - aggregation_inputs[i].get_gdf_column()->null_count;
 
 				assert(output_types[i] == GDF_FLOAT64);
 				assert(sum_output_type == GDF_INT64 || sum_output_type == GDF_FLOAT64);
 
-				gdf_scalar avg_scalar;
-				avg_scalar.dtype = GDF_FLOAT64;
-				avg_scalar.is_valid = true;
-				if(avg_sum_scalar.dtype == GDF_INT64)
-					avg_scalar.data.fp64 = (double) avg_sum_scalar.data.si64 / (double) avg_count;
-				else
-					avg_scalar.data.fp64 = (double) avg_sum_scalar.data.fp64 / (double) avg_count;
-
-				output_columns[i].create_gdf_column(avg_scalar, output_column_names[i]);
+				// TODO percy cudf0.12 implement proper scalar support
+				//std::unique_ptr<cudf::scalar> avg_scalar;
+				//avg_scalar.dtype = GDF_FLOAT64;
+				//avg_scalar.is_valid = true;
+				//if(avg_sum_scalar.dtype == GDF_INT64)
+				//	avg_scalar.data.fp64 = (double) avg_sum_scalar.data.si64 / (double) avg_count;
+				//else
+				//	avg_scalar.data.fp64 = (double) avg_sum_scalar.data.fp64 / (double) avg_count;
+				//output_columns[i].create_gdf_column(avg_scalar, output_column_names[i]);
+				
 				break;
 			}
 		case GDF_COUNT: {
-			gdf_scalar reduction_out;
-			reduction_out.dtype = GDF_INT64;
-			reduction_out.is_valid = true;
-			reduction_out.data.si64 =
-				aggregation_inputs[i].get_gdf_column()->size - aggregation_inputs[i].get_gdf_column()->null_count;
-
-			output_columns[i].create_gdf_column(reduction_out, output_column_names[i]);
+			// TODO percy cudf0.12 implement proper scalar support
+			//std::unique_ptr<cudf::scalar> reduction_out;
+			//reduction_out.dtype = GDF_INT64;
+			//reduction_out.is_valid = true;
+			//reduction_out.data.si64 =
+			//	aggregation_inputs[i].get_gdf_column()->size - aggregation_inputs[i].get_gdf_column()->null_count;
+			//output_columns[i].create_gdf_column(reduction_out, output_column_names[i]);
+			
 			break;
 		}
 		case GDF_COUNT_DISTINCT: {

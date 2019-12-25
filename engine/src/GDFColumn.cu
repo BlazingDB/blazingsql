@@ -365,14 +365,14 @@ void gdf_column_cpp::create_gdf_column(gdf_column * column, bool registerColumn)
     }
 }
 
-void gdf_column_cpp::create_gdf_column(const gdf_scalar & scalar, const std::string &column_name){
+void gdf_column_cpp::create_gdf_column(const std::unique_ptr<cudf::scalar> & scalar, const std::string &column_name){
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
-    assert(scalar.dtype != to_gdf_type(cudf::type_id::EMPTY));
+    assert(scalar->type().id() != cudf::type_id::EMPTY);
     decrement_counter(column);
 
     this->column = new gdf_column{};
 
-    cudf::type_id type = to_type_id(scalar.dtype);
+    cudf::type_id type = scalar->type().id();
 
     //TODO: this is kind of bad its a chicken and egg situation with column_view requiring a pointer to device and allocate_valid
     //needing to not require numvalues so it can be called rom outside
@@ -388,7 +388,7 @@ void gdf_column_cpp::create_gdf_column(const gdf_scalar & scalar, const std::str
     cuDF::Allocator::allocate((void**)&data, allocated_size_data);
 
     cudf::valid_type * valid_device = nullptr;
-    if(!scalar.is_valid){
+    if(!scalar->is_valid()){
         valid_device = allocate_valid();
         CheckCudaErrors(cudaMemset(valid_device, 0, this->allocated_size_valid));
          this->get_gdf_column()->null_count = 1;
@@ -400,26 +400,35 @@ void gdf_column_cpp::create_gdf_column(const gdf_scalar & scalar, const std::str
     this->get_gdf_column()->valid = valid_device;
 
     this->set_name(column_name);
-    if(scalar.is_valid){
+    if(scalar->is_valid()){
         if(type == cudf::type_id::INT8){
-            CheckCudaErrors(cudaMemcpy(data, &(scalar.data.si08), width_per_value, cudaMemcpyHostToDevice));
+			// TODO percy cudf0.12 implement proper scalar support			
+            //CheckCudaErrors(cudaMemcpy(data, &(scalar.data.si08), width_per_value, cudaMemcpyHostToDevice));
         }else if(type == cudf::type_id::INT16){
-            CheckCudaErrors(cudaMemcpy(data, &(scalar.data.si16), width_per_value, cudaMemcpyHostToDevice));
+			// TODO percy cudf0.12 implement proper scalar support
+            //CheckCudaErrors(cudaMemcpy(data, &(scalar.data.si16), width_per_value, cudaMemcpyHostToDevice));
         }else if(type == cudf::type_id::INT32){
-            CheckCudaErrors(cudaMemcpy(data, &(scalar.data.si32), width_per_value, cudaMemcpyHostToDevice));
+			// TODO percy cudf0.12 implement proper scalar support
+            //CheckCudaErrors(cudaMemcpy(data, &(scalar.data.si32), width_per_value, cudaMemcpyHostToDevice));
 		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
         }else if(type == cudf::type_id::TIMESTAMP_DAYS){
-            CheckCudaErrors(cudaMemcpy(data, &(scalar.data.dt32), width_per_value, cudaMemcpyHostToDevice));
+			// TODO percy cudf0.12 implement proper scalar support
+            //CheckCudaErrors(cudaMemcpy(data, &(scalar.data.dt32), width_per_value, cudaMemcpyHostToDevice));
         }else if(type == cudf::type_id::INT64 ){
-            CheckCudaErrors(cudaMemcpy(data, &(scalar.data.si64), width_per_value, cudaMemcpyHostToDevice));
+			// TODO percy cudf0.12 implement proper scalar support
+            //CheckCudaErrors(cudaMemcpy(data, &(scalar.data.si64), width_per_value, cudaMemcpyHostToDevice));
         }else if(type == cudf::type_id::TIMESTAMP_SECONDS){
-            CheckCudaErrors(cudaMemcpy(data, &(scalar.data.dt64), width_per_value, cudaMemcpyHostToDevice));
+			// TODO percy cudf0.12 implement proper scalar support
+            //CheckCudaErrors(cudaMemcpy(data, &(scalar.data.dt64), width_per_value, cudaMemcpyHostToDevice));
         } else if(type == cudf::type_id::TIMESTAMP_MILLISECONDS){
-            CheckCudaErrors(cudaMemcpy(data, &(scalar.data.tmst), width_per_value, cudaMemcpyHostToDevice));
+			// TODO percy cudf0.12 implement proper scalar support
+            //CheckCudaErrors(cudaMemcpy(data, &(scalar.data.tmst), width_per_value, cudaMemcpyHostToDevice));
         }else if(type == cudf::type_id::FLOAT32){
-            CheckCudaErrors(cudaMemcpy(data, &(scalar.data.fp32), width_per_value, cudaMemcpyHostToDevice));
+			// TODO percy cudf0.12 implement proper scalar support
+            //CheckCudaErrors(cudaMemcpy(data, &(scalar.data.fp32), width_per_value, cudaMemcpyHostToDevice));
         }else if(type == cudf::type_id::FLOAT64){
-            CheckCudaErrors(cudaMemcpy(data, &(scalar.data.fp64), width_per_value, cudaMemcpyHostToDevice));
+			// TODO percy cudf0.12 implement proper scalar support
+            //CheckCudaErrors(cudaMemcpy(data, &(scalar.data.fp64), width_per_value, cudaMemcpyHostToDevice));
         }
     }
 

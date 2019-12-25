@@ -5,6 +5,10 @@
 #include "cudf/cudf.h"
 #include "cudf/types.h"
 #include "cudf/types.hpp"
+#include <cudf/scalar/scalar.hpp>
+#include <cudf/scalar/scalar_factories.hpp>
+#include <cudf/utilities/type_dispatcher.hpp>
+#include <cudf/scalar/scalar_device_view.cuh>
 
 inline gdf_dtype to_gdf_type(cudf::type_id type_id) {
 	switch (type_id) {
@@ -55,6 +59,51 @@ inline gdf_time_unit to_gdf_time_unit(cudf::type_id type_id) {
 	}
 	
 	return gdf_time_unit::TIME_UNIT_NONE;
+}
+
+inline gdf_scalar to_gdf_scalar(const std::unique_ptr<cudf::scalar> &s) {
+	// TODO percy cudf0.12 maybe we don't need at all to imlement this wrapper since gdf_scalar is gonna be obsolete anyways
+	switch (s->type().id()) {
+		case cudf::type_id::BOOL8: {
+			break;
+		}
+		case cudf::type_id::INT8: {
+			break;
+		}
+		case cudf::type_id::INT16: {
+			break;
+		}
+		case cudf::type_id::INT32: {
+			break;
+		}
+		case cudf::type_id::INT64: {
+			break;
+		}
+		case cudf::type_id::FLOAT32: {
+			break;
+		}
+		case cudf::type_id::FLOAT64: {
+			break;
+		}
+		case cudf::type_id::STRING: {
+			break;
+		}
+		case cudf::type_id::CATEGORY: {
+			break;
+		}
+		case cudf::type_id::TIMESTAMP_DAYS: {
+			break;
+		}
+		case cudf::type_id::TIMESTAMP_SECONDS: {
+			break;
+		}
+		case cudf::type_id::TIMESTAMP_MILLISECONDS: {
+			break;
+		}
+		// TODO percy cudf0.12 map more types	}
+	}
+	
+	return gdf_scalar();
 }
 
 #endif /* _BZ_WRAPPER_H_ */

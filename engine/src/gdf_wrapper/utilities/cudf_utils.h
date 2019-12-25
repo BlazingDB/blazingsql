@@ -2,6 +2,7 @@
 #define GDF_UTILS_H
 
 #include "cudf/cudf.h"
+#include "cudf/utilities/error.hpp"
 #include "error_utils.h"
 #include "miscellany.hpp"
 #include <cuda_runtime_api.h>

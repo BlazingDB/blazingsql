@@ -280,8 +280,8 @@ void add_expression_to_plan(blazing_frame & inputs,
 	std::vector<gdf_binary_operator_exp> & operators,
 	std::vector<gdf_unary_operator> & unary_operators,
 
-	std::vector<gdf_scalar> & left_scalars,
-	std::vector<gdf_scalar> & right_scalars,
+	std::vector<cudf::scalar*> & left_scalars,
+	std::vector<cudf::scalar*> & right_scalars,
 	std::vector<column_index_type> & new_input_indices,
 
 	std::vector<column_index_type> & final_output_positions,
@@ -291,7 +291,7 @@ void add_expression_to_plan(blazing_frame & inputs,
 	std::string clean_expression = clean_calcite_expression(expression);
 
 	std::deque<operand_position> operand_stack;
-	gdf_scalar dummy_scalar;
+	std::unique_ptr<cudf::scalar> dummy_scalar;
 
 	std::vector<column_index_type> src_str_col_map(512, -1);  // Used to find the original input nvcategory
 	std::vector<bool> processing_space_free(
@@ -348,13 +348,14 @@ void add_expression_to_plan(blazing_frame & inputs,
 					// gdf_scalar right =
 					// get_scalar_from_string(left_operand,inputs.get_column(get_index(right_operand)).dtype());
 
-					gdf_scalar left =
-						get_scalar_from_string(left_operand, get_type_from_string(left_operand));
-					left_scalars.push_back(left);
-					right_scalars.push_back(dummy_scalar);
-
-					left_inputs.push_back(left.is_valid ? SCALAR_INDEX : SCALAR_NULL_INDEX);
-					right_inputs.push_back(right_index);
+					// TODO percy cudf0.12 implement proper scalar support
+//					cudf::scalar* left =
+//						get_scalar_from_string(left_operand, get_type_from_string(left_operand));
+//					left_scalars.push_back(left);
+//					right_scalars.push_back(dummy_scalar);
+//					left_inputs.push_back(left.is_valid ? SCALAR_INDEX : SCALAR_NULL_INDEX);
+//					right_inputs.push_back(right_index);
+					
 				} else if(is_literal(right_operand) && !is_string(right_operand)) {
 					size_t left_index = get_index(left_operand);
 					// TODO: remove get_type_from_string dirty fix
@@ -367,12 +368,13 @@ void add_expression_to_plan(blazing_frame & inputs,
 						//extra_info = input_columns[left_index]->dtype_info;
 					}
 
-					gdf_scalar right =
-						get_scalar_from_string(right_operand, get_type_from_string(right_operand));
-					right_scalars.push_back(right);
-					left_scalars.push_back(dummy_scalar);
-
-					right_inputs.push_back(right.is_valid ? SCALAR_INDEX : SCALAR_NULL_INDEX);
+					// TODO percy cudf0.12 implement proper scalar support
+//					std::unique_ptr<cudf::scalar> right =
+//						get_scalar_from_string(right_operand, get_type_from_string(right_operand));
+//					right_scalars.push_back(right);
+//					left_scalars.push_back(dummy_scalar);
+//					right_inputs.push_back(right.is_valid ? SCALAR_INDEX : SCALAR_NULL_INDEX);
+					
 					left_inputs.push_back(left_index);
 				} else if(is_string(left_operand) || is_string(right_operand)) {
 					std::string literal_operand = is_string(left_operand)
@@ -393,8 +395,10 @@ void add_expression_to_plan(blazing_frame & inputs,
 						left_index = num_inputs;
 						new_input_col_added = true;
 
-						right_scalars.push_back(dummy_scalar);
-						left_scalars.push_back(dummy_scalar);
+						// TODO percy cudf0.12 implement proper scalar support
+//						right_scalars.push_back(dummy_scalar);
+//						left_scalars.push_back(dummy_scalar);
+						
 						right_inputs.push_back(SCALAR_NULL_INDEX);
 						left_inputs.push_back(left_index);
 					} else if(operation == BLZ_STR_SUBSTRING) {
@@ -409,8 +413,10 @@ void add_expression_to_plan(blazing_frame & inputs,
 						left_index = num_inputs;
 						new_input_col_added = true;
 
-						right_scalars.push_back(dummy_scalar);
-						left_scalars.push_back(dummy_scalar);
+						// TODO percy cudf0.12 implement proper scalar support
+//						right_scalars.push_back(dummy_scalar);
+//						left_scalars.push_back(dummy_scalar);
+						
 						right_inputs.push_back(SCALAR_NULL_INDEX);
 						left_inputs.push_back(left_index);
 					} else if(operation == BLZ_STR_CONCAT) {
@@ -426,8 +432,10 @@ void add_expression_to_plan(blazing_frame & inputs,
 						left_index = num_inputs;
 						new_input_col_added = true;
 
-						right_scalars.push_back(dummy_scalar);
-						left_scalars.push_back(dummy_scalar);
+						// TODO percy cudf0.12 implement proper scalar support
+//						right_scalars.push_back(dummy_scalar);
+//						left_scalars.push_back(dummy_scalar);
+						
 						right_inputs.push_back(SCALAR_NULL_INDEX);
 						left_inputs.push_back(left_index);
 					} else {
@@ -442,10 +450,13 @@ void add_expression_to_plan(blazing_frame & inputs,
 
 						gdf_data data;
 						data.si32 = idx_position;
-						gdf_scalar right = {data, GDF_INT32, true};
-						right_scalars.push_back(right);
-						left_scalars.push_back(dummy_scalar);
-						right_inputs.push_back(right.is_valid ? SCALAR_INDEX : SCALAR_NULL_INDEX);
+						
+						// TODO percy cudf0.12 implement proper scalar support
+//						std::unique_ptr<cudf::scalar> right = {data, GDF_INT32, true};
+//						right_scalars.push_back(right);
+//						left_scalars.push_back(dummy_scalar);
+//						right_inputs.push_back(right.is_valid ? SCALAR_INDEX : SCALAR_NULL_INDEX);
+
 						left_inputs.push_back(left_index);
 					}
 				} else {
@@ -481,8 +492,10 @@ void add_expression_to_plan(blazing_frame & inputs,
 					left_inputs.push_back(left_index);
 					right_inputs.push_back(right_index);
 
-					left_scalars.push_back(dummy_scalar);
-					right_scalars.push_back(dummy_scalar);
+					// TODO percy cudf0.12 implement proper scalar support
+//					left_scalars.push_back(dummy_scalar);
+//					right_scalars.push_back(dummy_scalar);
+
 				}
 			} else if(is_unary_operator_token(token)) {
 				std::string left_operand = operand_stack.back().token;
@@ -542,8 +555,10 @@ void add_expression_to_plan(blazing_frame & inputs,
 					left_inputs.push_back(left_index);
 					right_inputs.push_back(-1);
 
-					left_scalars.push_back(dummy_scalar);
-					right_scalars.push_back(dummy_scalar);
+					// TODO percy cudf0.12 implement proper scalar support
+//					left_scalars.push_back(dummy_scalar);
+//					right_scalars.push_back(dummy_scalar);
+					
 				}
 			}
 
@@ -668,8 +683,9 @@ void evaluate_expression(blazing_frame & inputs, const std::string & expression,
 	std::vector<gdf_unary_operator> unary_operators;
 
 
-	std::vector<gdf_scalar> left_scalars;
-	std::vector<gdf_scalar> right_scalars;
+	// TODO percy cudf0.12 implement proper scalar support
+	std::vector<cudf::scalar*> left_scalars;
+	std::vector<cudf::scalar*> right_scalars;
 
 	std::vector<column_index_type> new_column_indices(input_used_in_expression.size());
 	size_t input_columns_used = 0;

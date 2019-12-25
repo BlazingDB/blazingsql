@@ -32,6 +32,7 @@
 #include "cudf/legacy/merge.hpp"
 #include "cudf/legacy/search.hpp"
 
+
 #include "utilities/CommonOperations.h"
 
 namespace ral {
