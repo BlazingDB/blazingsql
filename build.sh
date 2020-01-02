@@ -22,12 +22,12 @@ VALIDARGS="clean io comms libengine engine pyblazing algebra test -v -g -n -h"
 HELP="$0 [-v] [-g] [-n] [-h]
    clean        - remove all existing build artifacts and configuration (start
                   over)
-   io           - build the nvstrings C++ code only
-   comms        - build the nvstrings Python package
-   libengine    - build the cudf C++ code only
-   engine       - 
-   pyblazing    - build the cudf Python package
-   algebra      - build the dask_cudf Python package
+   io           - build the IO C++ code only
+   comms        - build the communications C++ code only
+   libengine    - build the engine C++ code only
+   engine       - build the engine Python package
+   pyblazing    - build the pyblazing Python package
+   algebra      - build the algebra Python package
    test         - build tests
    -v           - verbose build mode
    -g           - build for debug
@@ -42,7 +42,7 @@ LIBENGINE_BUILD_DIR=${REPODIR}/engine/build
 ENGINE_BUILD_DIR=${REPODIR}/engine
 PYBLAZING_BUILD_DIR=${REPODIR}/pyblazing
 ALGEBRA_BUILD_DIR=${REPODIR}/algebra
-BUILD_DIRS="${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${ENGINE_BUILD_DIR} ${PYBLAZING_BUILD_DIR} ${ALGEBRA_BUILD_DIR}"
+BUILD_DIRS="${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
 
 # Set defaults for vars modified by flags to this script
 VERBOSE=""
