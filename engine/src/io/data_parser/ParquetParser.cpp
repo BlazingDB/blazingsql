@@ -77,7 +77,8 @@ void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 				columns_out[i].create_gdf_column(category, table_out.get_column(i)->size, column_name);
 				gdf_column_free(table_out.get_column(i));
 			} else {
-				columns_out[i].create_gdf_column(table_out.get_column(i));
+				// TODO percy cudf0.12 port cudf::column and io stuff
+				//columns_out[i].create_gdf_column(table_out.get_column(i));
 			}
 		}
 	}

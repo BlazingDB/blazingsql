@@ -87,11 +87,17 @@ std::vector<gdf_column_cpp> groupby_without_aggregations(
 	cudf::table group_by_columns_out_table;
 
 	// We want the index_col_ptr be on the heap because index_col will call delete when it goes out of scope
-	gdf_column * index_col_ptr = new gdf_column{};
-	std::tie(group_by_columns_out_table, *index_col_ptr) = gdf_group_by_without_aggregations(
-		group_by_data_in_table, num_group_columns, group_column_indices.data(), &ctxt);
+	// TODO percy cudf0.12 port to cudf::column
+	cudf::column * index_col_ptr = new cudf::column();
+	
+	// TODO percy cudf0.12 port to cudf::column
+//	std::tie(group_by_columns_out_table, *index_col_ptr) = gdf_group_by_without_aggregations(
+//		group_by_data_in_table, num_group_columns, group_column_indices.data(), &ctxt);
+	
 	gdf_column_cpp index_col;
-	index_col.create_gdf_column(index_col_ptr);
+	
+	// TODO percy cudf0.12 port to cudf::column
+	//index_col.create_gdf_column(index_col_ptr);
 
 	ral::init_string_category_if_null(group_by_columns_out_table);
 
@@ -100,25 +106,29 @@ std::vector<gdf_column_cpp> groupby_without_aggregations(
 		auto * grouped_col = group_by_columns_out_table.get_column(i);
 		grouped_col->col_name =
 			nullptr;  // need to do this because gdf_group_by_without_aggregations is not setting the name properly
-		output_columns_group[i].create_gdf_column(grouped_col);
+		
+		// TODO percy cudf0.12 port to cudf::column
+		//output_columns_group[i].create_gdf_column(grouped_col);
 	}
 
 	std::vector<gdf_column_cpp> grouped_output(num_group_columns);
 	for(int i = 0; i < num_group_columns; i++) {
-		if(input[i].valid())
-			grouped_output[i].create_gdf_column(input[i].dtype(),
-				index_col_ptr->size,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(input[i].dtype()),
-				input[i].name());
-		else
-			grouped_output[i].create_gdf_column(input[i].dtype(),
-				index_col_ptr->size,
-				nullptr,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(input[i].dtype()),
-				input[i].name());
-
+		// TODO percy cudf0.12 port to cudf::column
+//		if(input[i].valid()) {
+//			grouped_output[i].create_gdf_column(input[i].dtype(),
+//				index_col_ptr->size,
+//				nullptr,
+//				ral::traits::get_dtype_size_in_bytes(input[i].dtype()),
+//				input[i].name());
+//		}
+//		else {
+//			grouped_output[i].create_gdf_column(input[i].dtype(),
+//				index_col_ptr->size,
+//				nullptr,
+//				nullptr,
+//				ral::traits::get_dtype_size_in_bytes(input[i].dtype()),
+//				input[i].name());
+//		}
 		materialize_column(output_columns_group[i].get_gdf_column(), grouped_output[i].get_gdf_column(), index_col_ptr);
 	}
 	return grouped_output;
@@ -201,7 +211,7 @@ void distributed_groupby_without_aggregations(
 	std::vector<gdf_column_cpp> groupedTable = groupByTask.get();
 	queryContext.incrementQuerySubstep();
 
-	if(partitionPlan[0].size() == 0) {
+	if(partitionPlan[0].get_gdf_column()->size() == 0) {
 		return;
 	}
 
@@ -258,14 +268,16 @@ void aggregations_with_groupby(std::vector<gdf_column_cpp> & group_by_columns,
 
 	group_by_output_columns.resize(group_by_output_table.num_columns());
 	for(size_t i = 0; i < group_by_output_columns.size(); i++) {
-		group_by_output_columns[i].create_gdf_column(group_by_output_table.get_column(i));
-		group_by_output_columns[i].set_name(group_by_columns[i].name());
+		// TODO percy cudf0.12 port to cudf::column
+//		group_by_output_columns[i].create_gdf_column(group_by_output_table.get_column(i));
+//		group_by_output_columns[i].set_name(group_by_columns[i].name());
 	}
 
 	aggrgation_output_columns.resize(aggrgation_output_table.num_columns());
 	for(size_t i = 0; i < aggrgation_output_columns.size(); i++) {
-		aggrgation_output_columns[i].create_gdf_column(aggrgation_output_table.get_column(i));
-		aggrgation_output_columns[i].set_name(output_column_names[i]);
+		// TODO percy cudf0.12 port to cudf::column
+//		aggrgation_output_columns[i].create_gdf_column(aggrgation_output_table.get_column(i));
+//		aggrgation_output_columns[i].set_name(output_column_names[i]);
 	}
 }
 
@@ -279,7 +291,7 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 		case GDF_SUM:
 		case GDF_MIN:
 		case GDF_MAX:
-			if(aggregation_inputs[i].size() == 0) {
+			if(aggregation_inputs[i].get_gdf_column()->size() == 0) {
 				// Set output_column data to invalid
 				std::unique_ptr<cudf::scalar> null_value;
 				
@@ -300,8 +312,8 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 				break;
 			}
 		case GDF_AVG:
-			if(aggregation_inputs[i].size() == 0 ||
-				(aggregation_inputs[i].size() == aggregation_inputs[i].null_count())) {
+			if(aggregation_inputs[i].get_gdf_column()->size() == 0 ||
+				(aggregation_inputs[i].get_gdf_column()->size() == aggregation_inputs[i].get_gdf_column()->null_count())) {
 				// Set output_column data to invalid
 				
 				// TODO percy cudf0.12 implement proper scalar support
@@ -312,14 +324,14 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 				
 				break;
 			} else {
-				cudf::type_id sum_output_type = get_aggregation_output_type(aggregation_inputs[i].dtype(), GDF_SUM, false);
+				cudf::type_id sum_output_type = get_aggregation_output_type(aggregation_inputs[i].get_gdf_column()->type().id(), GDF_SUM, false);
 				
 				// TODO percy cudf0.12 implement proper scalar support
 				//std::unique_ptr<cudf::scalar> avg_sum_scalar = cudf::reduce(
 				//	aggregation_inputs[i].get_gdf_column(), cudf::reduction::operators::SUM, to_gdf_type(sum_output_type));
 				
 				long avg_count =
-					aggregation_inputs[i].get_gdf_column()->size - aggregation_inputs[i].get_gdf_column()->null_count;
+					aggregation_inputs[i].get_gdf_column()->size() - aggregation_inputs[i].get_gdf_column()->null_count();
 
 				assert(output_types[i] == GDF_FLOAT64);
 				assert(sum_output_type == GDF_INT64 || sum_output_type == GDF_FLOAT64);
@@ -398,7 +410,7 @@ std::vector<gdf_column_cpp> compute_aggregations(blazing_frame & input,
 		}
 
 		output_types[i] = get_aggregation_output_type(
-			aggregation_inputs[i].dtype(), aggregation_types[i], group_column_indices.size() != 0);
+			aggregation_inputs[i].get_gdf_column()->type().id(), aggregation_types[i], group_column_indices.size() != 0);
 
 		// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
 		if(aggregation_column_assigned_aliases[i] == "") {
@@ -465,7 +477,7 @@ void aggregationsMerger(std::vector<ral::distribution::NodeColumns> & aggregatio
 	std::vector<std::string> aggregation_names(modAggregationTypes.size());
 	for(size_t i = 0; i < modAggregationTypes.size(); i++) {
 		aggregation_inputs[i] = concatAggregations[groupColIndices.size() + i];
-		aggregation_dtypes[i] = aggregation_inputs[i].dtype();
+		aggregation_dtypes[i] = aggregation_inputs[i].get_gdf_column()->type().id();
 		aggregation_names[i] = aggregation_inputs[i].name();
 	}
 
@@ -593,7 +605,7 @@ void distributed_aggregations_with_groupby(Context & queryContext,
 	// Wait for aggregationThread
 	std::vector<gdf_column_cpp> aggregatedTable = aggregationTask.get();
 
-	if(partitionPlan[0].size() == 0) {
+	if(partitionPlan[0].get_gdf_column()->size() == 0) {
 		return;
 	}
 
@@ -662,7 +674,7 @@ void distributed_aggregations_without_groupby(Context & queryContext,
 	} else {
 		std::vector<gdf_column_cpp> empty_output_table(aggregatedTable.size());
 		for(size_t i = 0; i < empty_output_table.size(); i++) {
-			empty_output_table[i].create_empty(aggregatedTable[i].dtype(), aggregatedTable[i].name());
+			empty_output_table[i].create_empty(aggregatedTable[i].get_gdf_column()->type().id(), aggregatedTable[i].name());
 		}
 
 		input.clear();

@@ -13,6 +13,9 @@
 #include "gdf_wrapper/gdf_wrapper.cuh"
 #include <GDFColumn.cuh>
 #include <vector>
+
+#include "cuDF/utilities/column_utilities.hpp"
+
 typedef struct blazing_frame {
 public:
 	// @todo: constructor copia, operator =
@@ -38,7 +41,7 @@ public:
 		else if(this->columns[table_index].size() == 0)
 			return 0;
 		else
-			return this->columns[table_index][0].size();
+			return this->columns[table_index][0].get_gdf_column()->size();
 	}
 
 
@@ -120,7 +123,8 @@ public:
 	void empty_columns() {
 		for(std::size_t i = 0; i < columns.size(); i++) {
 			for(std::size_t j = 0; j < columns[i].size(); j++) {
-				columns[i][j].resize(0);
+				// TODO percy cudf0.12 port to cudf::column with auto ptrs
+				//columns[i][j].resize(0);
 			}
 		}
 	}
@@ -130,7 +134,7 @@ public:
 		for(std::size_t table_index = 0; table_index < columns.size(); table_index++) {
 			std::cout << "Table: " << table_index << "\n";
 			for(std::size_t column_index = 0; column_index < columns[table_index].size(); column_index++)
-				print_gdf_column(columns[table_index][column_index].get_gdf_column());
+				cudf::test::print(*columns[table_index][column_index].get_gdf_column());
 		}
 	}
 
@@ -141,13 +145,14 @@ public:
 			dataPtrs;  // keys are the pointers, value is the table and column index it came from
 		for(std::size_t table_index = 0; table_index < columns.size(); table_index++) {
 			for(std::size_t column_index = 0; column_index < columns[table_index].size(); column_index++) {
-				if(columns[table_index][column_index].data() != nullptr) {
-					auto it = dataPtrs.find(columns[table_index][column_index].data());
-					if(it != dataPtrs.end()) {  // found a duplicate
-						columns[table_index][column_index] = columns[table_index][column_index].clone();
-					}
-					dataPtrs[columns[table_index][column_index].get_gdf_column()->data] =
-						std::make_pair(table_index, column_index);
+				if(columns[table_index][column_index].get_gdf_column()->type().id() != cudf::type_id::EMPTY) {
+					// TODO percy cudf0.12 port to cudf::column with auto ptrs
+//					auto it = dataPtrs.find(columns[table_index][column_index].data());
+//					if(it != dataPtrs.end()) {  // found a duplicate
+//						columns[table_index][column_index] = columns[table_index][column_index].clone();
+//					}
+//					dataPtrs[columns[table_index][column_index].get_gdf_column()->data] =
+//						std::make_pair(table_index, column_index);
 				}
 			}
 		}

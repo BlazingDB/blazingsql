@@ -4,6 +4,8 @@
 #include <cudf.h>
 #include <vector>
 
+#include <cudf/column/column.hpp>
+
 class gdf_column_cpp;
 
 namespace ral {
@@ -25,12 +27,12 @@ protected:
 	TableWrapper & operator=(const TableWrapper &) = delete;
 
 public:
-	gdf_column ** getColumns();
+	cudf::column ** getColumns();
 
 	cudf::size_type getQuantity();
 
 private:
-	std::vector<gdf_column *> columns_;
+	std::vector<cudf::column *> columns_;
 };
 
 }  // namespace utilities

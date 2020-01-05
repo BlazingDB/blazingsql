@@ -130,9 +130,10 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/ResultSetRepository.cpp
               ${CMAKE_SOURCE_DIR}/src/JoinProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/LogicalFilter.cpp
-              ${CMAKE_SOURCE_DIR}/src/QueryState.cpp
+              #${CMAKE_SOURCE_DIR}/src/QueryState.cpp
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
               ${CMAKE_SOURCE_DIR}/src/Utils.cu
+			  ${CMAKE_SOURCE_DIR}/src/cuDF/utilities/column_utilities.cu
               ${CMAKE_SOURCE_DIR}/src/GDFCounter.cu
               ${CMAKE_SOURCE_DIR}/src/GDFColumn.cu
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp

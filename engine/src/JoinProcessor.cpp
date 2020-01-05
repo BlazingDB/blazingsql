@@ -73,8 +73,8 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 void evaluate_join(std::string condition,
 	std::string join_type,
 	blazing_frame data_frame,
-	gdf_column * left_result,
-	gdf_column * right_result) {
+	cudf::column * left_result,
+	cudf::column * right_result) {
 	// TODO: right now this only works for equijoins
 	// since this is all that is implemented at the time
 
@@ -88,8 +88,8 @@ void evaluate_join(std::string condition,
 	parseJoinConditionToColumnIndices(condition, column_indices);
 
 	int operator_count = column_indices.size() / 2;
-	std::vector<gdf_column *> left_columns(operator_count);
-	std::vector<gdf_column *> right_columns(operator_count);
+	std::vector<cudf::column *> left_columns(operator_count);
+	std::vector<cudf::column *> right_columns(operator_count);
 	std::vector<std::vector<gdf_column_cpp>> normalized_join_columns(operator_count);
 	for(int i = 0; i < operator_count; i++) {
 		normalized_join_columns[i].push_back(data_frame.get_column(column_indices[2 * i]));
@@ -108,36 +108,42 @@ void evaluate_join(std::string condition,
 		columns_in_common[i].second = i;
 	}
 
-	std::vector<gdf_column *> result_idx_cols = {left_result, right_result};
-	cudf::table result_idx_table(result_idx_cols);
+	std::vector<cudf::column *> result_idx_cols = {left_result, right_result};
+	
+	// TODO percy cudf0.12 port to cudf::column
+	//cudf::table result_idx_table(result_idx_cols);
+	
 	gdf_context ctxt{0, GDF_HASH, 0};
 	if(join_type == INNER_JOIN) {
-		cudf::table result = cudf::inner_join(cudf::table{left_columns},
-			cudf::table{right_columns},
-			join_cols,
-			join_cols,
-			columns_in_common,
-			&result_idx_table,
-			&ctxt);
-		result.destroy();
+		// TODO percy cudf0.12 port to cudf::column
+//		cudf::table result = cudf::inner_join(cudf::table{left_columns},
+//			cudf::table{right_columns},
+//			join_cols,
+//			join_cols,
+//			columns_in_common,
+//			&result_idx_table,
+//			&ctxt);
+//		result.destroy();
 	} else if(join_type == LEFT_JOIN) {
-		cudf::table result = cudf::left_join(cudf::table{left_columns},
-			cudf::table{right_columns},
-			join_cols,
-			join_cols,
-			columns_in_common,
-			&result_idx_table,
-			&ctxt);
-		result.destroy();
+		// TODO percy cudf0.12 port to cudf::column
+//		cudf::table result = cudf::left_join(cudf::table{left_columns},
+//			cudf::table{right_columns},
+//			join_cols,
+//			join_cols,
+//			columns_in_common,
+//			&result_idx_table,
+//			&ctxt);
+//		result.destroy();
 	} else if(join_type == OUTER_JOIN) {
-		cudf::table result = cudf::full_join(cudf::table{left_columns},
-			cudf::table{right_columns},
-			join_cols,
-			join_cols,
-			columns_in_common,
-			&result_idx_table,
-			&ctxt);
-		result.destroy();
+		// TODO percy cudf0.12 port to cudf::column
+//		cudf::table result = cudf::full_join(cudf::table{left_columns},
+//			cudf::table{right_columns},
+//			join_cols,
+//			join_cols,
+//			columns_in_common,
+//			&result_idx_table,
+//			&ctxt);
+//		result.destroy();
 	} else {
 		throw std::runtime_error("In evaluate_join function: unsupported join operator, " + join_type);
 	}

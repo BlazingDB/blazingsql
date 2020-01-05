@@ -69,14 +69,15 @@ void data_loader::load_data(const Context & context,
 				for(int i = 0; i < schema.get_num_columns(); i++) {
 					if(!schema.get_in_file()[i]) {
 						// std::cout<<"creating column!"<<std::endl;
-						auto num_rows = converted_data[0].size();
+						auto num_rows = converted_data[0].get_gdf_column()->size();
 						std::string name = schema.get_name(i);
 						if(files[file_index].is_column_string[name]) {
-							std::string string_value = files[file_index].string_values[name];
-							NVCategory * category = repeated_string_category(string_value, num_rows);
-							gdf_column_cpp column;
-							column.create_gdf_column(category, num_rows, name);
-							converted_data.push_back(column);
+							// TODO percy cudf0.12 port to cudf::column and custrings
+//							std::string string_value = files[file_index].string_values[name];
+//							NVCategory * category = repeated_string_category(string_value, num_rows);
+//							gdf_column_cpp column;
+//							column.create_gdf_column(category, num_rows, name);
+//							converted_data.push_back(column);
 						} else {
 
 							// TODO percy cudf0.12 implement proper scalar support

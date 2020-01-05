@@ -34,12 +34,12 @@ void make_sure_output_is_not_input_gdf(
 		for(size_t index = 0; index < output_frame.get_width(); index++) {
 			// if we find that in the output the data pointer is the same as an input data pointer, we need to clone it.
 			// this can happen when you do something like select * from gdf_table
-			if(std::find(input_data_ptrs.begin(), input_data_ptrs.end(), output_frame.get_column(index).data()) !=
-				input_data_ptrs.end()) {
-				bool register_column = false;
-				output_frame.set_column(index,
-					output_frame.get_column(index).clone(output_frame.get_column(index).name(), register_column));
-			}
+			// TODO percy cudf0.12 port to cudf::column
+//			if(std::find(input_data_ptrs.begin(), input_data_ptrs.end(), output_frame.get_column(index).data()) !=
+//				input_data_ptrs.end()) {
+//				bool register_column = false;
+//				output_frame.set_column(index, output_frame.get_column(index).clone(output_frame.get_column(index).name(), register_column));
+//			}
 		}
 	}
 }
@@ -137,7 +137,7 @@ ResultSet runQuery(int32_t masterIndex,
 
 		blazing_frame frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 		make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
-		std::vector<gdf_column *> columns;
+		std::vector<cudf::column *> columns;
 		std::vector<std::string> names;
 		for(int i = 0; i < frame.get_width(); i++) {
 			auto& column = frame.get_column(i);
@@ -145,9 +145,10 @@ ResultSet runQuery(int32_t masterIndex,
 			names.push_back(column.name());
 		}
 
-		ResultSet result = {columns, names};
-		//    std::cout<<"result looks ok"<<std::endl;
-		return result;
+		// TODO percy cudf0.12 port to cudf::column CIO
+//		ResultSet result = {columns, names};
+//		//    std::cout<<"result looks ok"<<std::endl;
+//		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;
 		throw;

@@ -26,21 +26,17 @@ cudf::size_type get_dtype_size_in_bytes(cudf::type_id dtype) {
 	return size;
 }
 
-cudf::size_type get_dtype_size_in_bytes(const gdf_column * column) { return get_dtype_size_in_bytes(to_type_id(column->dtype)); }
+cudf::size_type get_dtype_size_in_bytes(cudf::column * column) { return get_dtype_size_in_bytes(column->type().id()); }
 
-cudf::size_type get_data_size_in_bytes(const gdf_column * column) {
-	return (column->size * get_dtype_size_in_bytes(to_type_id(column->dtype)));
-}
-
-cudf::size_type get_data_size_in_bytes(const gdf_column_cpp & column) {
-	return (column.size()) * get_dtype_size_in_bytes(column.dtype());
+cudf::size_type get_data_size_in_bytes(cudf::column * column) {
+	return (column->size() * get_dtype_size_in_bytes(column->type().id()));
 }
 
 cudf::size_type get_data_size_in_bytes(cudf::size_type quantity, cudf::type_id dtype) {
 	return (quantity * get_dtype_size_in_bytes(dtype));
 }
 
-cudf::size_type get_bitmask_size_in_bytes(const gdf_column * column) { return gdf_valid_allocation_size(column->size); }
+cudf::size_type get_bitmask_size_in_bytes(cudf::column * column) { return gdf_valid_allocation_size(column->size()); }
 
 cudf::size_type get_bitmask_size_in_bytes(cudf::size_type quantity) { return gdf_valid_allocation_size(quantity); }
 

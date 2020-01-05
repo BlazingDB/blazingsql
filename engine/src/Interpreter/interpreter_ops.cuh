@@ -18,6 +18,8 @@
 #include "cudf/legacy/binaryop.hpp"
 #include "CalciteExpressionParsing.h"
 
+#include "cudf/column/column.hpp"
+
 typedef int64_t temp_gdf_valid_type; //until its an int32 in cudf
 
 __host__ __device__ __forceinline__
@@ -1023,8 +1025,8 @@ public:
 	//This whole phase should take about ~ .1 ms, should
 	//be using a stream for all this
 	InterpreterFunctor(
-			std::vector<gdf_column *> columns,
-			std::vector<gdf_column *> output_columns,
+			std::vector<cudf::column *> columns,
+			std::vector<cudf::column *> output_columns,
 			short _num_operations,
 			std::vector<column_index_type> left_input_positions_vec,
 			std::vector<column_index_type> right_input_positions_vec,
@@ -1050,7 +1052,7 @@ public:
 		this->maxPosition = final_output_positions_vec[final_output_positions_vec.size()-1];
 		this->stream = stream;
 		num_columns = columns.size();
-		num_rows = columns[0]->size;
+		num_rows = columns[0]->size();
 
 		//added this to class
 		//fuck this allocating is easier and i didnt see a significant differnece in tmie when i tried
@@ -1113,9 +1115,11 @@ public:
 		std::vector<cudf::size_type> host_null_counts_output(num_final_outputs,0);
 
 		for(std::size_t i = 0; i < num_columns; i++){
-			host_data_ptrs[i] = columns[i]->data;
-			host_valid_ptrs[i] = (temp_gdf_valid_type *) columns[i]->valid;
-			host_null_counts[i] = columns[i]->null_count;
+			// TODO percy cudf0.12 port to cudf::column
+			//host_data_ptrs[i] = columns[i]->data;
+			//host_valid_ptrs[i] = (temp_gdf_valid_type *) columns[i]->valid;
+			
+			host_null_counts[i] = columns[i]->null_count();
 		}
 
 		CheckCudaErrors(cudaMemcpyAsync(this->column_data,&host_data_ptrs[0],sizeof(void *) * num_columns,cudaMemcpyHostToDevice,stream));
@@ -1132,8 +1136,9 @@ public:
 		host_valid_ptrs.resize(num_final_outputs);
 
 		for(int i = 0; i < num_final_outputs; i++){
-			host_data_ptrs[i] = output_columns[i]->data;
-			host_valid_ptrs[i] = (temp_gdf_valid_type *) output_columns[i]->valid;
+			// TODO percy cudf0.12 port to cudf::column
+			//host_data_ptrs[i] = output_columns[i]->data;
+			//host_valid_ptrs[i] = (temp_gdf_valid_type *) output_columns[i]->valid;
 		}
 		//	CheckCudaErrors(cudaMemcpy(this->output_data,&host_data_ptrs[0],sizeof(void *) * num_final_outputs,cudaMemcpyHostToDevice));
 
@@ -1165,7 +1170,7 @@ public:
 			column_index_type output_index = output_positions_vec[cur_operation];
 
 			if( left_index < static_cast<column_index_type>(columns.size()) && left_index >= 0){
-				left_input_types_vec[cur_operation] = to_type_id(columns[left_index]->dtype);
+				left_input_types_vec[cur_operation] = columns[left_index]->type().id();
 			}else{
 				if(left_index < 0 ){
 					if(left_index == -3){
@@ -1190,7 +1195,7 @@ public:
 			}
 
 			if( right_index < static_cast<column_index_type>(columns.size()) && right_index >= 0){
-				right_input_types_vec[cur_operation] = to_type_id(columns[right_index]->dtype);
+				right_input_types_vec[cur_operation] = columns[right_index]->type().id();
 			}else{
 				if(right_index < 0 ){
 					if(right_index == -3){
@@ -1247,12 +1252,12 @@ public:
 
 		//put the output final positions
 		for(int output_index = 0; output_index < num_final_outputs; output_index++){
-			output_final_types_vec[output_index] = to_type_id(output_columns[output_index]->dtype);
+			output_final_types_vec[output_index] = output_columns[output_index]->type().id();
 		}
 
 		std::vector<cudf::type_id> input_column_types_vec(num_columns);
 		for(std::size_t column_index = 0; column_index < columns.size(); column_index++){
-			input_column_types_vec[column_index] = to_type_id(columns[column_index]->dtype);
+			input_column_types_vec[column_index] = columns[column_index]->type().id();
 			//		std::cout<<"type was "<<input_column_types_vec[column_index]<<std::endl;
 		}
 

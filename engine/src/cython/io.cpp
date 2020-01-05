@@ -67,8 +67,10 @@ TableSchema parseSchema(std::vector<std::string> files,
 		ral::io::create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
 
 	for(auto column_cpp : columns_cpp) {
-		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-		tableSchema.columns.push_back(column_cpp.get_gdf_column());
+		// TODO percy cudf0.12 port to cudf::column
+		//GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
+		//tableSchema.columns.push_back(column_cpp.get_gdf_column());
+		
 		tableSchema.names.push_back(column_cpp.name());
 	}
 	tableSchema.files = schema.get_files();

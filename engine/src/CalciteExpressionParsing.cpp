@@ -578,7 +578,7 @@ cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * 
 			if(is_literal(token)) {
 				operands.push(infer_dtype_from_literal(token));
 			} else {
-				operands.push(input->get_column(get_index(token)).dtype());
+				operands.push(input->get_column(get_index(token)).get_gdf_column()->type().id());
 			}
 		}
 	}
@@ -642,7 +642,7 @@ void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 			auto cp = colss.at(j);
 
 			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-			if(cp.get_gdf_column() != nullptr && cp.dtype() == to_gdf_type(cudf::type_id::TIMESTAMP_MILLISECONDS)) {
+			if(cp.get_gdf_column() != nullptr && cp.get_gdf_column()->type().id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 				has_timestamp = true;
 				break;
 			}

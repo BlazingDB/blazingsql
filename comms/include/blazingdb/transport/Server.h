@@ -17,7 +17,7 @@ public:
    */
   using MakeCallback = std::function<std::shared_ptr<GPUMessage>(
       const Message::MetaData &, const Address::MetaData &,
-      const std::vector<ColumnTransport> &, const std::vector<char *> &)>;
+      const std::vector<ColumnTransport> &, const std::vector<const char *> &)>;
 
 public:
   virtual ~Server() = default;

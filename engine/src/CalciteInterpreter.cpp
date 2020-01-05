@@ -134,8 +134,8 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 
 
 	std::vector<column_index_type> final_output_positions;
-	std::vector<gdf_column *> output_columns;
-	std::vector<gdf_column *> input_columns;
+	std::vector<cudf::column *> output_columns;
+	std::vector<cudf::column *> input_columns;
 
 	// TODO: some of this code could be used to extract columns
 	// that will be projected to make the csv and parquet readers
@@ -192,7 +192,6 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 
 	std::vector<gdf_binary_operator_exp> operators;
 	std::vector<gdf_unary_operator> unary_operators;
-
 
 	std::vector<cudf::scalar*> left_scalars;
 	std::vector<cudf::scalar*> right_scalars;
@@ -257,7 +256,9 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 					output.create_gdf_column(col_type, size, nullptr, column_width);
 					std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(cleaned_expression, col_type);
 					output.set_name(name);
-					cudf::fill(output.get_gdf_column(), to_gdf_scalar(literal_scalar), 0, size);
+					
+					// TODO percy cudf0.12 port to cudf::column
+					//cudf::fill(output.get_gdf_column(), to_gdf_scalar(literal_scalar), 0, size);
 				}
 
 				output_columns.push_back(output.get_gdf_column());
@@ -295,7 +296,7 @@ void execute_project_plan(blazing_frame & input, std::string query_part) {
 
 	// perform operations
 	if(params.num_expressions_out > 0) {
-		size_t size = params.input_columns[0]->size;
+		size_t size = params.input_columns[0]->size();
 
 		if(size > 0) {
 			perform_operation(params.output_columns,
@@ -316,7 +317,8 @@ void execute_project_plan(blazing_frame & input, std::string query_part) {
 	input.add_table(params.columns);
 
 	for(size_t i = 0; i < input.get_width(); i++) {
-		input.get_column(i).update_null_count();
+		// TODO percy cudf0.12 port to cudf::column
+		//input.get_column(i).update_null_count();
 	}
 }
 
@@ -350,7 +352,7 @@ blazing_frame process_union(blazing_frame & left, blazing_frame & right, std::st
 	// Check columns have the same data type
 	size_t ncols = left.get_size_column(0);
 	for(size_t i = 0; i < ncols; i++) {
-		if(left.get_column(i).get_gdf_column()->dtype != right.get_column(i).get_gdf_column()->dtype) {
+		if(left.get_column(i).get_gdf_column()->type().id() != right.get_column(i).get_gdf_column()->type().id()) {
 			throw std::runtime_error{"In process_union function: left column and right column have different dtypes"};
 		}
 	}
@@ -475,20 +477,23 @@ void process_filter(Context * context, blazing_frame & input, std::string query_
 		nullptr,
 		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 		empty);
-	gdf_sequence(static_cast<int32_t *>(index_col.get_gdf_column()->data), input.get_num_rows_in_table(0), 0);
+	
+	// TODO percy cudf0.12 port to cudf::column
+	//gdf_sequence(static_cast<int32_t *>(index_col.get_gdf_column()->data), input.get_num_rows_in_table(0), 0);
 
 	std::vector<gdf_column_cpp> intputToFilterTemp = input.get_table(0);
 	cudf::table inputToFilter = ral::utilities::create_table(intputToFilterTemp);
-	cudf::table filteredData = cudf::apply_boolean_mask(inputToFilter, *(stencil.get_gdf_column()));
-	ral::init_string_category_if_null(filteredData);
-
-	for(int i = 0; i < input.get_width(); i++) {
-		gdf_column * temp_col_view = filteredData.get_column(i);
-		gdf_column_cpp temp;
-		temp.create_gdf_column(filteredData.get_column(i));
-		temp.set_name(input.get_column(i).name());
-		input.set_column(i, temp);
-	}
+	
+	// TODO percy cudf0.12 port to cudf::column and custrings
+//	cudf::table filteredData = cudf::apply_boolean_mask(inputToFilter, *(stencil.get_gdf_column()));
+//	ral::init_string_category_if_null(filteredData);
+//	for(int i = 0; i < input.get_width(); i++) {
+//		gdf_column * temp_col_view = filteredData.get_column(i);
+//		gdf_column_cpp temp;
+//		temp.create_gdf_column(filteredData.get_column(i));
+//		temp.set_name(input.get_column(i).name());
+//		input.set_column(i, temp);
+//	}
 
 	Library::Logging::Logger().logInfo(
 		timer.logDuration(*context, "Filter part 3 apply_boolean_mask", "num rows", input.get_num_rows_in_table(0)));
@@ -700,10 +705,10 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 					// TODO: Rommel, this check is needed when for example the scan has not projects but there are extra
 					// aliases
 					if(col_idx < input_table.size()) {
-						input_table[col_idx].set_name_cpp_only(aliases_string_split[col_idx]);
+						input_table[col_idx].set_name(aliases_string_split[col_idx]);
 					}
 				}
-				int num_rows = input_table.size() > 0 ? input_table[0].size() : 0;
+				int num_rows = input_table.size() > 0 ? input_table[0].get_gdf_column()->size() : 0;
 				Library::Logging::Logger().logInfo(
 					blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
 				blazing_timer.reset();
@@ -722,7 +727,7 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			} else {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 				input_loaders[table_index].load_data(*queryContext, input_table, {}, schemas[table_index]);
-				int num_rows = input_table.size() > 0 ? input_table[0].size() : 0;
+				int num_rows = input_table.size() > 0 ? input_table[0].get_gdf_column()->size() : 0;
 				Library::Logging::Logger().logInfo(
 					blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
 				blazing_timer.reset();
@@ -887,9 +892,10 @@ query_token_t evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 			for(size_t index = 0; index < output_frame.get_size_column(); index++) {
 				gdf_column_cpp output_column = output_frame.get_column(index);
 
-				if(output_column.is_ipc() || output_column.has_token()) {
-					output_frame.set_column(index, output_column.clone(output_column.name()));
-				}
+				// TODO percy cudf0.12 port to cudf::column
+				//if(output_column.is_ipc() || output_column.has_token()) {
+				//	output_frame.set_column(index, output_column.clone(output_column.name()));
+				//}
 			}
 			double duration = blazing_timer.getDuration();
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
@@ -939,9 +945,9 @@ blazing_frame evaluate_query(
 			blazing_frame output_frame = evaluate_split_query(input_loaders, schemas,table_names, splitted, &queryContext);
 			output_frame.deduplicate();
 			for (size_t i=0;i<output_frame.get_width();i++) {
-				if (output_frame.get_column(i).dtype() == GDF_STRING_CATEGORY) {
+				if (output_frame.get_column(i).get_gdf_column()->type().id() == cudf::type_id::STRING) {
 					NVStrings * new_strings = nullptr;
-					if (output_frame.get_column(i).size() > 0) {
+					if (output_frame.get_column(i).get_gdf_column()->size() > 0) {
 						// TODO percy cudf0.12 custrings this was not commented
 //						NVCategory* new_category = static_cast<NVCategory *> (output_frame.get_column(i).dtype_info().category)->gather_and_remap( static_cast<int *>(output_frame.get_column(i).data()), output_frame.get_column(i).size());
 //						new_strings = new_category->to_strings();
@@ -951,12 +957,13 @@ blazing_frame evaluate_query(
 					}
 
 					gdf_column_cpp string_column;
-					string_column.create_gdf_column(new_strings, output_frame.get_column(i).size(), output_frame.get_column(i).name());
+					string_column.create_gdf_column(new_strings, output_frame.get_column(i).get_gdf_column()->size(), output_frame.get_column(i).name());
 
 					output_frame.set_column(i, string_column);
 				}
 
-				GDFRefCounter::getInstance()->deregister_column(output_frame.get_column(i).get_gdf_column());
+				// TODO percy cudf0.12 port to cudf::column
+				//GDFRefCounter::getInstance()->deregister_column(output_frame.get_column(i).get_gdf_column());
 			}
 
 			double duration = blazing_timer.getDuration();

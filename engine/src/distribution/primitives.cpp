@@ -42,7 +42,7 @@ namespace sampling {
 double calculateSampleRatio(cudf::size_type tableSize) { return std::ceil(1.0 - std::pow(tableSize / 1.0E11, 8E-4)); }
 
 std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, double ratio) {
-	std::size_t quantity = std::ceil(table[0].size() * ratio);
+	std::size_t quantity = std::ceil(table[0].get_gdf_column()->size() * ratio);
 	return generateSample(table, quantity);
 }
 
@@ -52,7 +52,7 @@ std::vector<std::vector<gdf_column_cpp>> generateSamples(
 	quantities.reserve(tables.size());
 
 	for(std::size_t i = 0; i < tables.size(); i++) {
-		quantities.push_back(std::ceil(tables[i][0].size() * ratios[i]));
+		quantities.push_back(std::ceil(tables[i][0].get_gdf_column()->size() * ratios[i]));
 	}
 
 	return generateSamples(tables, quantities);
@@ -93,7 +93,7 @@ void normalizeSamples(std::vector<NodeSamples> & samples) {
 	std::vector<double> representativities(samples.size());
 
 	for(std::size_t i = 0; i < samples.size(); i++) {
-		representativities[i] = (double) samples[i].getColumns()[0].size() / samples[i].getTotalRowSize();
+		representativities[i] = (double) samples[i].getColumns()[0].get_gdf_column()->size() / samples[i].getTotalRowSize();
 	}
 
 	const double minimumRepresentativity = *std::min_element(representativities.cbegin(), representativities.cend());
@@ -186,9 +186,9 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 
 	std::vector<gdf_column_cpp> concatSamples = ral::utilities::concatTables(tables);
 
-	cudf::size_type outputRowSize = concatSamples[0].size();
+	cudf::size_type outputRowSize = concatSamples[0].get_gdf_column()->size();
 
-	std::vector<gdf_column *> rawConcatSamples(concatSamples.size());
+	std::vector<cudf::column *> rawConcatSamples(concatSamples.size());
 	std::transform(
 		concatSamples.cbegin(), concatSamples.cend(), rawConcatSamples.begin(), [](const gdf_column_cpp & col) {
 			return col.get_gdf_column();
@@ -212,33 +212,35 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 	gdf_context gdfContext;
 	gdfContext.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  // Nulls are are treated as largest
 
-	CUDF_CALL(gdf_order_by(rawConcatSamples.data(),
-		(int8_t *) (ascDescCol.get_gdf_column()->data),
-		rawConcatSamples.size(),
-		sortedIndexCol.get_gdf_column(),
-		&gdfContext));
+	// TODO percy cudf0.12 port to cudf::column
+//	CUDF_CALL(gdf_order_by(rawConcatSamples.data(),
+//		(int8_t *) (ascDescCol.get_gdf_column()->data),
+//		rawConcatSamples.size(),
+//		sortedIndexCol.get_gdf_column(),
+//		&gdfContext));
 
 	std::vector<gdf_column_cpp> sortedSamples(concatSamples.size());
 	for(size_t i = 0; i < sortedSamples.size(); i++) {
 		auto & col = concatSamples[i];
-		if(col.valid()) {
-			sortedSamples[i].create_gdf_column(col.dtype(),
-				col.size(),
+		if(col.get_gdf_column()->has_nulls()) {
+			sortedSamples[i].create_gdf_column(col.get_gdf_column()->type().id(),
+				col.get_gdf_column()->size(),
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
+				ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 				col.name());
 		} else {
-			sortedSamples[i].create_gdf_column(col.dtype(),
-				col.size(),
+			sortedSamples[i].create_gdf_column(col.get_gdf_column()->type().id(),
+				col.get_gdf_column()->size(),
 				nullptr,
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
+				ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 				col.name());
 		}
 
-		materialize_column(
-			concatSamples[i].get_gdf_column(), sortedSamples[i].get_gdf_column(), sortedIndexCol.get_gdf_column());
-		sortedSamples[i].update_null_count();
+		materialize_column(concatSamples[i].get_gdf_column(), sortedSamples[i].get_gdf_column(), sortedIndexCol.get_gdf_column());
+		
+		// TODO percy cudf0.12 port to cudf::column
+		//sortedSamples[i].update_null_count();
 	}
 
 	// Gather
@@ -246,18 +248,18 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 	std::vector<gdf_column_cpp> pivots(sortedSamples.size());
 	for(size_t i = 0; i < sortedSamples.size(); i++) {
 		auto & col = sortedSamples[i];
-		if(col.valid()) {
-			pivots[i].create_gdf_column(col.dtype(),
+		if(col.get_gdf_column()->has_nulls()) {
+			pivots[i].create_gdf_column(col.get_gdf_column()->type().id(),
 				pivotsSize,
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
+				ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 				col.name());
 		} else {
-			pivots[i].create_gdf_column(col.dtype(),
+			pivots[i].create_gdf_column(col.get_gdf_column()->type().id(),
 				pivotsSize,
 				nullptr,
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
+				ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 				col.name());
 		}
 	}
@@ -273,10 +275,15 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 			nullptr,
 			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 			"");
-		gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.size(), step, step);
+		
+		// TODO percy cudf0.12 port to cudf::column
+		//gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.get_gdf_column()->size(), step, step);
 
-		cudf::gather(&srcTable, (gdf_index_type *) (gatherMap.get_gdf_column()->data), &destTable);
-		ral::init_string_category_if_null(destTable);
+		// TODO percy cudf0.12 port to cudf::column
+		//cudf::gather(&srcTable, (gdf_index_type *) (gatherMap.get_gdf_column()->data), &destTable);
+		
+		// TODO percy cudf0.12 port to cudf::column and custrings
+		//ral::init_string_category_if_null(destTable);
 	}
 
 	return pivots;
@@ -317,10 +324,10 @@ std::vector<gdf_column_cpp> getPartitionPlan(const Context & context) {
 
 std::vector<NodeColumns> split_data_into_NodeColumns(
 	const Context & context, const std::vector<gdf_column_cpp> & table, const gdf_column_cpp & indexes) {
-	std::vector<std::vector<gdf_column *>> split_table(table.size());  // this will be [colInd][splitInd]
+	std::vector<std::vector<cudf::column *>> split_table(table.size());  // this will be [colInd][splitInd]
 	for(std::size_t k = 0; k < table.size(); ++k) {
-		split_table[k] =
-			cudf::split(*(table[k].get_gdf_column()), static_cast<gdf_index_type *>(indexes.data()), indexes.size());
+		// TODO percy cudf0.12 port to cudf::column
+		//split_table[k] = cudf::split(*(table[k].get_gdf_column()), static_cast<gdf_index_type *>(indexes.data()), indexes.get_gdf_column()->size());
 	}
 
 	// get nodes
@@ -331,8 +338,10 @@ std::vector<NodeColumns> split_data_into_NodeColumns(
 	for(std::size_t i = 0; i < nodes.size(); ++i) {
 		std::vector<gdf_column_cpp> columns(table.size());
 		for(std::size_t k = 0; k < table.size(); ++k) {
-			split_table[k][i]->col_name = nullptr;
-			columns[k].create_gdf_column(split_table[k][i]);
+			// TODO percy cudf0.12 port to cudf::column
+			//split_table[k][i]->col_name = nullptr;
+			//columns[k].create_gdf_column(split_table[k][i]);
+			
 			columns[k].set_name(table[k].name());
 		}
 
@@ -359,11 +368,11 @@ std::vector<NodeColumns> partitionData(const Context & context,
 
 	auto & pivot = pivots[0];
 	{
-		std::size_t size = pivot.size();
+		std::size_t size = pivot.get_gdf_column()->size();
 
 		// verify the size of the pivots.
 		for(std::size_t k = 1; k < pivots.size(); ++k) {
-			if(size != pivots[k].size()) {
+			if(size != pivots[k].get_gdf_column()->size()) {
 				throw std::runtime_error("The pivots don't have the same size");
 			}
 		}
@@ -375,7 +384,7 @@ std::vector<NodeColumns> partitionData(const Context & context,
 		}
 	}
 
-	cudf::size_type table_row_size = table[0].size();
+	cudf::size_type table_row_size = table[0].get_gdf_column()->size();
 	if(table_row_size == 0) {
 		std::vector<NodeColumns> array_node_columns;
 		auto nodes = context.getAllNodes();
@@ -395,7 +404,7 @@ std::vector<NodeColumns> partitionData(const Context & context,
 	// Would it be better to use gdf_hash instead or gdf_order_by?
 	std::vector<gdf_column_cpp> sortedTable;
 	if(!isTableSorted) {
-		std::vector<gdf_column *> key_cols_vect(searchColIndices.size());
+		std::vector<cudf::column *> key_cols_vect(searchColIndices.size());
 		std::transform(searchColIndices.cbegin(), searchColIndices.cend(), key_cols_vect.begin(), [&](const int index) {
 			return table[index].get_gdf_column();
 		});
@@ -417,32 +426,35 @@ std::vector<NodeColumns> partitionData(const Context & context,
 		gdf_context gdfcontext;
 		gdfcontext.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  // Nulls are are treated as largest
 
-		CUDF_CALL(gdf_order_by(key_cols_vect.data(),
-			(int8_t *) (asc_desc_col.get_gdf_column()->data),
-			key_cols_vect.size(),
-			index_col.get_gdf_column(),
-			&gdfcontext));
+		// TODO percy cudf0.12 port to cudf::column
+//		CUDF_CALL(gdf_order_by(key_cols_vect.data(),
+//			(int8_t *) (asc_desc_col.get_gdf_column()->data),
+//			key_cols_vect.size(),
+//			index_col.get_gdf_column(),
+//			&gdfcontext));
 
 		sortedTable.resize(table.size());
 		for(size_t i = 0; i < sortedTable.size(); i++) {
 			auto & col = table[i];
-			if(col.valid()) {
-				sortedTable[i].create_gdf_column(col.dtype(),
-					col.size(),
+			if(col.get_gdf_column()->has_nulls()) {
+				sortedTable[i].create_gdf_column(col.get_gdf_column()->type().id(),
+					col.get_gdf_column()->size(),
 					nullptr,
-					ral::traits::get_dtype_size_in_bytes(col.dtype()),
+					ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 					col.name());
 			} else {
-				sortedTable[i].create_gdf_column(col.dtype(),
-					col.size(),
+				sortedTable[i].create_gdf_column(col.get_gdf_column()->type().id(),
+					col.get_gdf_column()->size(),
 					nullptr,
 					nullptr,
-					ral::traits::get_dtype_size_in_bytes(col.dtype()),
+					ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 					col.name());
 			}
 
 			materialize_column(table[i].get_gdf_column(), sortedTable[i].get_gdf_column(), index_col.get_gdf_column());
-			sortedTable[i].update_null_count();
+			
+			// TODO percy cudf0.12 port to cudf::column
+			//sortedTable[i].update_null_count();
 		}
 
 		table = sortedTable;
@@ -457,7 +469,7 @@ std::vector<NodeColumns> partitionData(const Context & context,
 		gdf_column_cpp & left_col = sync_haystack[i];
 		gdf_column_cpp & right_col = sync_needles[i];
 
-		if(left_col.dtype() != GDF_STRING_CATEGORY) {
+		if(left_col.get_gdf_column()->type().id() != GDF_STRING_CATEGORY) {
 			continue;
 		}
 
@@ -466,30 +478,33 @@ std::vector<NodeColumns> partitionData(const Context & context,
 
 		gdf_column_cpp new_left_column;
 		new_left_column.allocate_like(left_col);
-		gdf_column * new_left_column_ptr = new_left_column.get_gdf_column();
+		cudf::column * new_left_column_ptr = new_left_column.get_gdf_column();
 		gdf_column_cpp new_right_column;
 		new_right_column.allocate_like(right_col);
-		gdf_column * new_right_column_ptr = new_right_column.get_gdf_column();
+		cudf::column * new_right_column_ptr = new_right_column.get_gdf_column();
 
-		if(left_col.valid()) {
-			CUDA_TRY(cudaMemcpy(new_left_column_ptr->valid,
-				left_col.valid(),
-				gdf_valid_allocation_size(new_left_column_ptr->size),
-				cudaMemcpyDefault));
-			new_left_column_ptr->null_count = left_col.null_count();
+		if(left_col.get_gdf_column()->has_nulls()) {
+			// TODO percy cudf0.12 port to cudf::column
+//			CUDA_TRY(cudaMemcpy(new_left_column_ptr->valid,
+//				left_col.valid(),
+//				gdf_valid_allocation_size(new_left_column_ptr->size),
+//				cudaMemcpyDefault));
+//			new_left_column_ptr->null_count = left_col.null_count();
 		}
 
-		if(right_col.valid()) {
-			CUDA_TRY(cudaMemcpy(new_right_column_ptr->valid,
-				right_col.valid(),
-				gdf_valid_allocation_size(new_right_column_ptr->size),
-				cudaMemcpyDefault));
-			new_right_column_ptr->null_count = right_col.null_count();
+		if(right_col.get_gdf_column()->has_nulls()) {
+			// TODO percy cudf0.12 port to cudf::column
+//			CUDA_TRY(cudaMemcpy(new_right_column_ptr->valid,
+//				right_col.valid(),
+//				gdf_valid_allocation_size(new_right_column_ptr->size),
+//				cudaMemcpyDefault));
+//			new_right_column_ptr->null_count = right_col.null_count();
 		}
 
-		gdf_column * tmp_arr_input[2] = {left_col.get_gdf_column(), right_col.get_gdf_column()};
-		gdf_column * tmp_arr_output[2] = {new_left_column_ptr, new_right_column_ptr};
-		CUDF_TRY(sync_column_categories(tmp_arr_input, tmp_arr_output, 2));
+		// TODO percy cudf0.12 port to cudf::column
+//		cudf::column * tmp_arr_input[2] = {left_col.get_gdf_column(), right_col.get_gdf_column()};
+//		cudf::column * tmp_arr_output[2] = {new_left_column_ptr, new_right_column_ptr};
+//		CUDF_TRY(sync_column_categories(tmp_arr_input, tmp_arr_output, 2));
 
 		sync_haystack[i] = new_left_column;
 		sync_needles[i] = new_right_column;
@@ -499,14 +514,14 @@ std::vector<NodeColumns> partitionData(const Context & context,
 	cudf::table needles_table = ral::utilities::create_table(sync_needles);
 
 	// We want the raw_indexes be on the heap because indexes will call delete when it goes out of scope
-	gdf_column * raw_indexes = new gdf_column{};
-	*raw_indexes = cudf::upper_bound(haystack_table, needles_table, desc_flags,
-		true);  // nulls_as_largest
-	gdf_column_cpp indexes;
-	indexes.create_gdf_column(raw_indexes);
-	sort_indices(indexes);
-
-	return split_data_into_NodeColumns(context, table, indexes);
+	// TODO percy cudf0.12 port to cudf::column
+//	cudf::column * raw_indexes = new cudf::column{};
+//	*raw_indexes = cudf::upper_bound(haystack_table, needles_table, desc_flags,
+//		true);  // nulls_as_largest
+//	gdf_column_cpp indexes;
+//	indexes.create_gdf_column(raw_indexes);
+//	sort_indices(indexes);
+//	return split_data_into_NodeColumns(context, table, indexes);
 }
 
 void distributePartitions(const Context & context, std::vector<NodeColumns> & partitions) {
@@ -607,7 +622,7 @@ void sortedMerger(std::vector<NodeColumns> & columns,
 	std::vector<std::vector<gdf_column_cpp>> gdfColTables;
 	for(size_t i = 0; i < columns.size(); i++) {
 		std::vector<gdf_column_cpp> cols = columns[i].getColumns();
-		if(cols.size() > 0 && cols[0].size() > 0) {
+		if(cols.size() > 0 && cols[0].get_gdf_column()->size() > 0) {
 			gdfColTables.emplace_back(cols);
 		}
 	}
@@ -634,10 +649,11 @@ void sortedMerger(std::vector<NodeColumns> & columns,
 		cudf::table mergedTable = cudf::merge(leftTable, rightTable, sortColIndices, ascDesc);
 
 		for(size_t j = 0; j < mergedTable.num_columns(); j++) {
-			gdf_column * col = mergedTable.get_column(j);
-			std::string colName = leftCols[j].name();
-			leftCols[j].create_gdf_column(col);
-			leftCols[j].set_name(colName);
+			// TODO percy cudf0.12 port to cudf::column
+			//cudf::column * col = mergedTable.get_column(j);
+			//std::string colName = leftCols[j].name();
+			//leftCols[j].create_gdf_column(col);
+			//leftCols[j].set_name(colName);
 		}
 
 		leftTable = mergedTable;
@@ -658,10 +674,10 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
 	std::vector<gdf_column_cpp> groupedSamples =
 		ral::operators::groupby_without_aggregations(concatSamples, groupColumnIndices);
-	size_t number_of_groups = groupedSamples[0].size();
+	size_t number_of_groups = groupedSamples[0].get_gdf_column()->size();
 
 	// Sort
-	std::vector<gdf_column *> rawGroupedSamples{groupedSamples.size()};
+	std::vector<cudf::column *> rawGroupedSamples{groupedSamples.size()};
 	for(size_t i = 0; i < groupedSamples.size(); i++) {
 		rawGroupedSamples[i] = groupedSamples[i].get_gdf_column();
 	}
@@ -676,51 +692,54 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 	gdf_context gdfContext;
 	gdfContext.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  // Nulls are are treated as largest
 
-	CUDF_CALL(gdf_order_by(
-		rawGroupedSamples.data(), nullptr, rawGroupedSamples.size(), sortedIndexCol.get_gdf_column(), &gdfContext));
+	// TODO percy cudf0.12 port to cudf::column
+//	CUDF_CALL(gdf_order_by(
+//		rawGroupedSamples.data(), nullptr, rawGroupedSamples.size(), sortedIndexCol.get_gdf_column(), &gdfContext));
 
 	std::vector<gdf_column_cpp> sortedSamples(groupedSamples.size());
 	for(size_t i = 0; i < sortedSamples.size(); i++) {
 		auto & col = groupedSamples[i];
-		if(col.valid()) {
-			sortedSamples[i].create_gdf_column(col.dtype(),
-				col.size(),
+		if(col.get_gdf_column()->has_nulls()) {
+			sortedSamples[i].create_gdf_column(col.get_gdf_column()->type().id(),
+				col.get_gdf_column()->size(),
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
+				ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 				col.name());
 		} else {
-			sortedSamples[i].create_gdf_column(col.dtype(),
-				col.size(),
+			sortedSamples[i].create_gdf_column(col.get_gdf_column()->type().id(),
+				col.get_gdf_column()->size(),
 				nullptr,
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
+				ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 				col.name());
 		}
 
 		materialize_column(
 			groupedSamples[i].get_gdf_column(), sortedSamples[i].get_gdf_column(), sortedIndexCol.get_gdf_column());
-		sortedSamples[i].update_null_count();
+		
+		// TODO percy cudf0.12 port to cudf::column
+//		sortedSamples[i].update_null_count();
 	}
 
-	cudf::size_type outputRowSize = sortedSamples[0].size();
+	cudf::size_type outputRowSize = sortedSamples[0].get_gdf_column()->size();
 
 	// Gather
 	cudf::size_type pivotsSize = outputRowSize > 0 ? context.getTotalNodes() - 1 : 0;
 	std::vector<gdf_column_cpp> pivots{sortedSamples.size()};
 	for(size_t i = 0; i < sortedSamples.size(); i++) {
 		auto & col = sortedSamples[i];
-		if(col.valid()) {
-			pivots[i].create_gdf_column(col.dtype(),
+		if(col.get_gdf_column()->has_nulls()) {
+			pivots[i].create_gdf_column(col.get_gdf_column()->type().id(),
 				pivotsSize,
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
+				ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 				col.name());
 		} else {
-			pivots[i].create_gdf_column(col.dtype(),
+			pivots[i].create_gdf_column(col.get_gdf_column()->type().id(),
 				pivotsSize,
 				nullptr,
 				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
+				ral::traits::get_dtype_size_in_bytes(col.get_gdf_column()->type().id()),
 				col.name());
 		}
 	}
@@ -736,10 +755,13 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 			nullptr,
 			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 			"");
-		gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.size(), step, step);
+		
+		// TODO percy cudf0.12 port to cudf::column
+//		gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.get_gdf_column()->size(), step, step);
 
-		cudf::gather(&srcTable, (gdf_index_type *) (gatherMap.get_gdf_column()->data), &destTable);
-		ral::init_string_category_if_null(destTable);
+		// TODO percy cudf0.12 port to cudf::column and custrings
+//		cudf::gather(&srcTable, (gdf_index_type *) (gatherMap.get_gdf_column()->data), &destTable);
+//		ral::init_string_category_if_null(destTable);
 	}
 
 	return pivots;
@@ -863,13 +885,16 @@ void collectLeftRightNumRows(const Context & context,
 		auto node = concrete_message->getSenderNode();
 		std::vector<gdf_column_cpp> num_rows_data = concrete_message->getSamples();
 		assert(num_rows_data.size() == 1);
-		assert(num_rows_data[0].size() == 2);
-		assert(num_rows_data[0].dtype() == cudf::type_id::INT64);
+		assert(num_rows_data[0].get_gdf_column()->size() == 2);
+		assert(num_rows_data[0].get_gdf_column()->type().id() == cudf::type_id::INT64);
 		std::vector<int64_t> num_rows_host(2);
-		cudaMemcpy(num_rows_host.data(),
-			num_rows_data[0].data(),
-			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT64) * 2,
-			cudaMemcpyDeviceToHost);
+		
+		// TODO percy cudf0.12 port to cudf::column
+//		cudaMemcpy(num_rows_host.data(),
+//			num_rows_data[0].data(),
+//			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT64) * 2,
+//			cudaMemcpyDeviceToHost);
+		
 		int node_idx = context.getNodeIndex(*node);
 		assert(node_idx >= 0);
 		if(received[node_idx]) {
@@ -899,7 +924,7 @@ std::vector<gdf_column_cpp> generateOutputColumns(
 
 	// Create columns
 	for(cudf::size_type k = 0; k < column_quantity; ++k) {
-		result[k] = ral::utilities::create_column(column_size, table[k].dtype(), table[k].name());
+		result[k] = ral::utilities::create_column(column_size, table[k].get_gdf_column()->type().id(), table[k].name());
 	}
 
 	// Done
@@ -910,7 +935,7 @@ std::vector<NodeColumns> generateJoinPartitions(
 	const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices) {
 	assert(table.size() != 0);
 
-	if(table[0].size() == 0) {
+	if(table[0].get_gdf_column()->size() == 0) {
 		std::vector<NodeColumns> result;
 		auto nodes = context.getAllNodes();
 		for(cudf::size_type k = 0; k < nodes.size(); ++k) {
@@ -926,79 +951,86 @@ std::vector<NodeColumns> generateJoinPartitions(
 	for(size_t i = 0; i < columnIndices.size(); i++) {
 		gdf_column_cpp & col = table[columnIndices[i]];
 
-		if(col.dtype() != GDF_STRING_CATEGORY)
+		if(col.get_gdf_column()->type().id() != cudf::type_id::STRING)
 			continue;
 
-		NVCategory * nvCategory = static_cast<NVCategory *>(col.get_gdf_column()->dtype_info.category);
-		NVStrings * nvStrings =
-			nvCategory->gather_strings(static_cast<nv_category_index_type *>(col.data()), col.size(), true);
+		// TODO percy cudf0.12 port to cudf::column and custrings
+//		NVCategory * nvCategory = static_cast<NVCategory *>(col.get_gdf_column()->dtype_info.category);
+//		NVStrings * nvStrings =
+//			nvCategory->gather_strings(static_cast<nv_category_index_type *>(col.data()), col.get_gdf_column()->size(), true);
 
-		gdf_column_cpp str_hash;
-		str_hash.create_gdf_column(cudf::type_id::INT32,
-			nvStrings->size(),
-			nullptr,
-			nullptr,
-			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
-			"");
-		nvStrings->hash(static_cast<unsigned int *>(str_hash.data()));
-		NVStrings::destroy(nvStrings);
+//		gdf_column_cpp str_hash;
+//		str_hash.create_gdf_column(cudf::type_id::INT32,
+//			nvStrings->size(),
+//			nullptr,
+//			nullptr,
+//			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
+//			"");
+//		nvStrings->hash(static_cast<unsigned int *>(str_hash.data()));
+//		NVStrings::destroy(nvStrings);
 
-		temp_input_col_indices[i] = temp_input_table.size();
-		temp_input_table.push_back(str_hash);
+//		temp_input_col_indices[i] = temp_input_table.size();
+//		temp_input_table.push_back(str_hash);
 	}
 
 
-	std::vector<gdf_column *> raw_input_table_col_ptrs(temp_input_table.size());
+	std::vector<cudf::column *> raw_input_table_col_ptrs(temp_input_table.size());
 	std::transform(
 		temp_input_table.begin(), temp_input_table.end(), raw_input_table_col_ptrs.begin(), [](auto & cpp_col) {
 			return cpp_col.get_gdf_column();
 		});
-	cudf::table input_table_wrapper(raw_input_table_col_ptrs);
+	
+	// TODO percy cudf0.12 port to cudf::column
+	//cudf::table input_table_wrapper(raw_input_table_col_ptrs);
 
 	// Generate partition offset vector
 	cudf::size_type number_nodes = context.getTotalNodes();
 	std::vector<gdf_index_type> partition_offset(number_nodes);
 
 	// Preallocate output columns
-	std::vector<gdf_column_cpp> output_columns =
-		generateOutputColumns(input_table_wrapper.num_columns(), input_table_wrapper.num_rows(), temp_input_table);
+	// TODO percy cudf0.12 port to cudf::column
+	//std::vector<gdf_column_cpp> output_columns = generateOutputColumns(input_table_wrapper.num_columns(), input_table_wrapper.num_rows(), temp_input_table);
 
 	// copy over nvcategory to output
 	// NOTE that i am having to do this due to an already identified issue: https://github.com/rapidsai/cudf/issues/1474
-	for(size_t i = 0; i < output_columns.size(); i++) {
-		// TODO percy cudf0.12 custrings this was not commented
-//		if(output_columns[i].dtype() == GDF_STRING_CATEGORY && temp_input_table[i].dtype_info().category) {
-//			output_columns[i].get_gdf_column()->dtype_info.category =
-//				static_cast<void *>(static_cast<NVCategory *>(temp_input_table[i].dtype_info().category)->copy());
-//		}
-	}
+	// TODO percy cudf0.12 port to cudf::column
+//	for(size_t i = 0; i < output_columns.size(); i++) {
+//		// TODO percy cudf0.12 custrings this was not commented
+////		if(output_columns[i].dtype() == GDF_STRING_CATEGORY && temp_input_table[i].dtype_info().category) {
+////			output_columns[i].get_gdf_column()->dtype_info.category =
+////				static_cast<void *>(static_cast<NVCategory *>(temp_input_table[i].dtype_info().category)->copy());
+////		}
+//	}
 
-	std::vector<gdf_column *> raw_output_table_col_ptrs(output_columns.size());
-	std::transform(output_columns.begin(), output_columns.end(), raw_output_table_col_ptrs.begin(), [](auto & cpp_col) {
-		return cpp_col.get_gdf_column();
-	});
-	cudf::table output_table_wrapper(raw_output_table_col_ptrs);
+	// TODO percy cudf0.12 port to cudf::column
+//	std::vector<gdf_column *> raw_output_table_col_ptrs(output_columns.size());
+//	std::transform(output_columns.begin(), output_columns.end(), raw_output_table_col_ptrs.begin(), [](auto & cpp_col) {
+//		return cpp_col.get_gdf_column();
+//	});
+//	cudf::table output_table_wrapper(raw_output_table_col_ptrs);
 
 	// Execute operation
-	CUDF_CALL(gdf_hash_partition(input_table_wrapper.num_columns(),
-		input_table_wrapper.begin(),
-		temp_input_col_indices.data(),
-		temp_input_col_indices.size(),
-		number_nodes,
-		output_table_wrapper.begin(),
-		partition_offset.data(),
-		gdf_hash_func::GDF_HASH_MURMUR3));
+	// TODO percy cudf0.12 port to cudf::column
+//	CUDF_CALL(gdf_hash_partition(input_table_wrapper.num_columns(),
+//		input_table_wrapper.begin(),
+//		temp_input_col_indices.data(),
+//		temp_input_col_indices.size(),
+//		number_nodes,
+//		output_table_wrapper.begin(),
+//		partition_offset.data(),
+//		gdf_hash_func::GDF_HASH_MURMUR3));
 
-	std::vector<gdf_column_cpp> temp_output_columns(output_columns.begin(), output_columns.begin() + table.size());
-	for(size_t i = 0; i < table.size(); i++) {
-		gdf_column * srcCol = input_table_wrapper.get_column(i);
-		gdf_column * dstCol = output_table_wrapper.get_column(i);
+	// TODO percy cudf0.12 port to cudf::column
+//	std::vector<gdf_column_cpp> temp_output_columns(output_columns.begin(), output_columns.begin() + table.size());
+//	for(size_t i = 0; i < table.size(); i++) {
+//		gdf_column * srcCol = input_table_wrapper.get_column(i);
+//		gdf_column * dstCol = output_table_wrapper.get_column(i);
 
-		if(srcCol->dtype != GDF_STRING_CATEGORY)
-			continue;
+//		if(srcCol->dtype != GDF_STRING_CATEGORY)
+//			continue;
 
-		ral::safe_nvcategory_gather_for_string_category(dstCol, srcCol->dtype_info.category);
-	}
+//		ral::safe_nvcategory_gather_for_string_category(dstCol, srcCol->dtype_info.category);
+//	}
 
 	// Erase input table
 	table.clear();
@@ -1012,7 +1044,8 @@ std::vector<NodeColumns> generateJoinPartitions(
 		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 		"");
 
-	return split_data_into_NodeColumns(context, temp_output_columns, indexes);
+	// TODO percy cudf0.12 port to cudf::column
+	//return split_data_into_NodeColumns(context, temp_output_columns, indexes);
 }
 
 

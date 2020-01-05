@@ -16,8 +16,8 @@ using blazingdb::manager::Context;
 
 struct project_plan_params {
 	size_t num_expressions_out;
-	std::vector<gdf_column *> output_columns;
-	std::vector<gdf_column *> input_columns;
+	std::vector<cudf::column *> output_columns;
+	std::vector<cudf::column *> input_columns;
 	std::vector<column_index_type> left_inputs;
 	std::vector<column_index_type> right_inputs;
 	std::vector<column_index_type> outputs;

@@ -85,43 +85,47 @@ void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 	if(column_indices.size() > 0) {
 		// NOTE: All json columns will be read, we need to delete the unselected columns
-		cudf::table table_out = read_json_arrow(file, this->args.lines, this->args);
-		assert(table_out.num_columns() > 0);
+		// TODO percy cudf0.12 port cudf::column and io stuff
+//		cudf::table table_out = read_json_arrow(file, this->args.lines, this->args);
+//		assert(table_out.num_columns() > 0);
 
-		columns_out.resize(column_indices.size());
-		for(size_t sel_idx = 0; sel_idx < columns_out.size(); sel_idx++) {
-			if(table_out.get_column(column_indices[sel_idx])->dtype == GDF_STRING) {
-				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(column_indices[sel_idx])->data);
-				NVCategory * category = NVCategory::create_from_strings(*strs);
-				std::string column_name(table_out.get_column(column_indices[sel_idx])->col_name);
-				columns_out[sel_idx].create_gdf_column(
-					category, table_out.get_column(column_indices[sel_idx])->size, column_name);
-				gdf_column_free(table_out.get_column(column_indices[sel_idx]));
-			} else {
-				columns_out[sel_idx].create_gdf_column(table_out.get_column(column_indices[sel_idx]));
-			}
-		}
+//		columns_out.resize(column_indices.size());
+//		for(size_t sel_idx = 0; sel_idx < columns_out.size(); sel_idx++) {
+//			if(table_out.get_column(column_indices[sel_idx])->dtype == GDF_STRING) {
+//				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(column_indices[sel_idx])->data);
+//				NVCategory * category = NVCategory::create_from_strings(*strs);
+//				std::string column_name(table_out.get_column(column_indices[sel_idx])->col_name);
+//				columns_out[sel_idx].create_gdf_column(
+//					category, table_out.get_column(column_indices[sel_idx])->size, column_name);
+//				gdf_column_free(table_out.get_column(column_indices[sel_idx]));
+//			} else {
+//				columns_out[sel_idx].create_gdf_column(table_out.get_column(column_indices[sel_idx]));
+//			}
+//		}
 
 		// Releasing the unselected columns
-		for(size_t idx = 0; idx < table_out.num_columns() && column_indices.size() > 0; idx++) {
-			if(std::find(column_indices.begin(), column_indices.end(), idx) == column_indices.end()) {
-				gdf_column_free(table_out.get_column(idx));
-			}
-		}
+		// TODO percy cudf0.12 port cudf::column and io stuff
+//		for(size_t idx = 0; idx < table_out.num_columns() && column_indices.size() > 0; idx++) {
+//			if(std::find(column_indices.begin(), column_indices.end(), idx) == column_indices.end()) {
+//				gdf_column_free(table_out.get_column(idx));
+//			}
+//		}
 	}
 }
 
 void json_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema_out) {
-	cudf::table table_out = read_json_arrow(files[0], this->args.lines, this->args, true);
-	assert(table_out.num_columns() > 0);
 
-	for(size_t i = 0; i < table_out.num_columns(); i++) {
-		gdf_column_cpp c;
-		c.create_gdf_column(table_out.get_column(i));
-		c.set_name(table_out.get_column(i)->col_name);
-		schema_out.add_column(c, i);
-	}
+	// TODO percy cudf0.12 port cudf::column and io stuff
+//	cudf::table table_out = read_json_arrow(files[0], this->args.lines, this->args, true);
+//	assert(table_out.num_columns() > 0);
+
+//	for(size_t i = 0; i < table_out.num_columns(); i++) {
+//		gdf_column_cpp c;
+//		c.create_gdf_column(table_out.get_column(i));
+//		c.set_name(table_out.get_column(i)->col_name);
+//		schema_out.add_column(c, i);
+//	}
 }
 
 } /* namespace io */

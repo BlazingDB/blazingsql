@@ -56,7 +56,7 @@ public:
 
     // send message content (gpu buffers)
     std::vector<int> buffer_sizes;
-    std::vector<char*> buffers;
+    std::vector<const char *> buffers;
     std::vector<ColumnTransport> column_offsets;
     std::tie(buffer_sizes, buffers, column_offsets) = message.GetRawColumns();
 

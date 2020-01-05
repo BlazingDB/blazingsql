@@ -216,8 +216,8 @@ void calculate_grid(int * min_grid_size, int * block_size, column_index_type max
 	}
 }
 
-void perform_operation(	std::vector<gdf_column *> output_columns,
-		std::vector<gdf_column *> input_columns,
+void perform_operation(	std::vector<cudf::column *> output_columns,
+		std::vector<cudf::column *> input_columns,
 		std::vector<column_index_type> & left_inputs,
 		std::vector<column_index_type> & right_inputs,
 		std::vector<column_index_type> & outputs,
@@ -241,7 +241,7 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 
 	char * temp_space;
 
-	cudf::size_type num_rows = input_columns[0]->size;
+	cudf::size_type num_rows = input_columns[0]->size();
 
 	cudaStream_t stream;
 	CheckCudaErrors(cudaStreamCreate(&stream));

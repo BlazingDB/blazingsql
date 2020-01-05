@@ -110,42 +110,50 @@ void JoinOperator::materialize_column(blazing_frame & input, bool is_inner_join)
 		column_width = ral::traits::get_dtype_size_in_bytes(input.get_column(column_index).get_gdf_column());
 
 		if(is_inner_join) {
-			if(input.get_column(column_index).valid())
-				output.create_gdf_column(input.get_column(column_index).dtype(),
-					left_indices_.size(),
-					nullptr,
-					column_width,
-					input.get_column(column_index).name());
-			else
-				output.create_gdf_column(input.get_column(column_index).dtype(),
-					left_indices_.size(),
-					nullptr,
-					nullptr,
-					column_width,
-					input.get_column(column_index).name());
+			// TODO percy cudf0.12 port to cudf::column
+//			if(input.get_column(column_index).valid()) {
+//				output.create_gdf_column(input.get_column(column_index).dtype(),
+//					left_indices_.size(),
+//					nullptr,
+//					column_width,
+//					input.get_column(column_index).name());
+//			}
+//			else {
+//				output.create_gdf_column(input.get_column(column_index).dtype(),
+//					left_indices_.size(),
+//					nullptr,
+//					nullptr,
+//					column_width,
+//					input.get_column(column_index).name());
+//			}
 		} else {
-			if(!input.get_column(column_index).valid())
-				input.get_column(column_index).allocate_set_valid();
+			// TODO percy cudf0.12 port to cudf::column
+//			if(!input.get_column(column_index).valid()) {
+//				input.get_column(column_index).allocate_set_valid();
+//			}
 
-			output.create_gdf_column(input.get_column(column_index).dtype(),
-				left_indices_.size(),
-				nullptr,
-				column_width,
-				input.get_column(column_index).name());
+			// TODO percy cudf0.12 port to cudf::column
+//			output.create_gdf_column(input.get_column(column_index).dtype(),
+//				left_indices_.size(),
+//				nullptr,
+//				column_width,
+//				input.get_column(column_index).name());
 		}
 
-		if(left_indices_.size() != 0 && right_indices_.size() != 0) {  // Do not materialize if the join output is empty
-			::materialize_column(input.get_column(column_index).get_gdf_column(),
-				output.get_gdf_column(),
-				(column_index < first_table_end_index ? left_indices_.get_gdf_column()
-													  : right_indices_.get_gdf_column()));
-		} else {
-			init_string_category_if_null(output.get_gdf_column());
-		}
+		// TODO percy cudf0.12 port to cudf::column
+//		if(left_indices_.size() != 0 && right_indices_.size() != 0) {  // Do not materialize if the join output is empty
+//			::materialize_column(input.get_column(column_index).get_gdf_column(),
+//				output.get_gdf_column(),
+//				(column_index < first_table_end_index ? left_indices_.get_gdf_column()
+//													  : right_indices_.get_gdf_column()));
+//		} else {
+//			init_string_category_if_null(output.get_gdf_column());
+//		}
 
 		// TODO: On error clean up all the resources
 		// free_gdf_column(input.get_column(column_index));
-		output.update_null_count();
+		// TODO percy cudf0.12 port to cudf::column
+		//output.update_null_count();
 
 		new_columns[column_index] = output;
 	}
@@ -242,22 +250,24 @@ blazing_frame DistributedJoinOperator::process_distribution(blazing_frame & fram
 	size_t row_width_bytes_left = 0;
 	size_t row_width_bytes_right = 0;
 	for(auto & column : tables[0]) {
-		if(column.dtype() == GDF_STRING_CATEGORY)
-			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
-									5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact that
-										// strings can occupy a lot more. We needa better way to easily figure out how
-										// mmuch space a string column actually occupies
-		else
-			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype());
+		// TODO percy cudf0.12 port to cudf::column custring
+//		if(column.dtype() == GDF_STRING_CATEGORY)
+//			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
+//									5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact that
+//										// strings can occupy a lot more. We needa better way to easily figure out how
+//										// mmuch space a string column actually occupies
+//		else
+//			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype());
 	}
 	for(auto & column : tables[1]) {
-		if(column.dtype() == GDF_STRING_CATEGORY)
-			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
-									 5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact
-										 // that strings can occupy a lot more. We needa better way to easily figure out
-										 // how mmuch space a string column actually occupies
-		else
-			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype());
+		// TODO percy cudf0.12 port to cudf::column custring
+//		if(column.dtype() == GDF_STRING_CATEGORY)
+//			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
+//									 5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact
+//										 // that strings can occupy a lot more. We needa better way to easily figure out
+//										 // how mmuch space a string column actually occupies
+//		else
+//			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype());
 	}
 	int num_nodes = context_->getTotalNodes();
 

@@ -41,12 +41,14 @@ gdf_column_cpp create_zero_column(const cudf::size_type size, const cudf::type_i
 }
 
 cudf::table create_table(const std::vector<gdf_column_cpp> & columns) {
-	std::vector<gdf_column *> columns_ptrs(columns.size());
+	std::vector<cudf::column *> columns_ptrs(columns.size());
 	std::transform(columns.begin(), columns.end(), columns_ptrs.begin(), [&](const gdf_column_cpp & el) {
 		return el.get_gdf_column();
 	});
-	cudf::table table(columns_ptrs);
-	return table;
+	
+	// TODO percy cudf0.12 port to cudf::column
+	//cudf::table table(columns_ptrs);
+	//return table;
 }
 
 }  // namespace utilities

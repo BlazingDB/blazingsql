@@ -69,89 +69,92 @@ __global__ void gather_bits(
 	}
 }
 
-void materialize_valid_ptrs(gdf_column * input, gdf_column * output, gdf_column * row_indices){
-    //if (output->valid != nullptr and input->valid != nullptr){
-    if (output->valid != nullptr && row_indices->size > 0) {
-		int grid_size, block_size;
+void materialize_valid_ptrs(cudf::column * input, cudf::column * output, cudf::column * row_indices){
+	// TODO percy cudf0.12 port to cudf::column
+//    //if (output->valid != nullptr and input->valid != nullptr){
+//    if (output->valid != nullptr && row_indices->size > 0) {
+//		int grid_size, block_size;
 
-		CheckCudaErrors(cudaOccupancyMaxPotentialBlockSize(&grid_size,&block_size,gather_bits<unsigned int, int>));
+//		CheckCudaErrors(cudaOccupancyMaxPotentialBlockSize(&grid_size,&block_size,gather_bits<unsigned int, int>));
 
-		gather_bits<<<grid_size, block_size>>>((int *) row_indices->data,(int *) input->valid,(int *) output->valid, row_indices->size);
+//		gather_bits<<<grid_size, block_size>>>((int *) row_indices->data,(int *) input->valid,(int *) output->valid, row_indices->size);
 
-		CheckCudaErrors(cudaGetLastError());
-	}
+//		CheckCudaErrors(cudaGetLastError());
+//	}
 }
 
 //input and output shoudl be the same time
 template <typename ElementIterator, typename IndexIterator>
-void materialize_templated_2(gdf_column * input, gdf_column * output, gdf_column * row_indices){
+void materialize_templated_2(cudf::column * input, cudf::column * output, cudf::column * row_indices){
+	// TODO percy cudf0.12 port to cudf::column
+//		materialize_valid_ptrs(input,output,row_indices);
 
-		materialize_valid_ptrs(input,output,row_indices);
+//		thrust::detail::normal_iterator<thrust::device_ptr<ElementIterator> > element_iter =
+//				thrust::detail::make_normal_iterator(thrust::device_pointer_cast((ElementIterator *) input->data));
 
-		thrust::detail::normal_iterator<thrust::device_ptr<ElementIterator> > element_iter =
-				thrust::detail::make_normal_iterator(thrust::device_pointer_cast((ElementIterator *) input->data));
+//		thrust::detail::normal_iterator<thrust::device_ptr<IndexIterator> > index_iter =
+//				thrust::detail::make_normal_iterator(thrust::device_pointer_cast((IndexIterator *) row_indices->data));
 
-		thrust::detail::normal_iterator<thrust::device_ptr<IndexIterator> > index_iter =
-				thrust::detail::make_normal_iterator(thrust::device_pointer_cast((IndexIterator *) row_indices->data));
+//		thrust::detail::normal_iterator<thrust::device_ptr<ElementIterator> > output_iter =
+//				thrust::detail::make_normal_iterator(thrust::device_pointer_cast((ElementIterator *) output->data));
 
-		thrust::detail::normal_iterator<thrust::device_ptr<ElementIterator> > output_iter =
-				thrust::detail::make_normal_iterator(thrust::device_pointer_cast((ElementIterator *) output->data));
+//		thrust::gather_if(index_iter, index_iter + row_indices->size,
+//											index_iter,
+//											element_iter,
+//											output_iter,
+//											[] __device__ (const IndexIterator x) {
+//												return x >= 0;
+//											});
 
-		thrust::gather_if(index_iter, index_iter + row_indices->size,
-											index_iter,
-											element_iter,
-											output_iter,
-											[] __device__ (const IndexIterator x) {
-												return x >= 0;
-											});
+//		if (output->size == 0 || output->valid == nullptr) {
+//			output->null_count = 0;
+//		}
+//		else {
+//			int count;
+//			if (output->valid) {
+//				gdf_error result = gdf_count_nonzero_mask(output->valid, output->size, &count);
+//				assert(result == GDF_SUCCESS);
+//				output->null_count = output->size - static_cast<cudf::size_type>(count);
+//			} else{
+//				output->null_count = 0;
+//			}
+//		}
 
-		if (output->size == 0 || output->valid == nullptr) {
-			output->null_count = 0;
-		}
-		else {
-			int count;
-			if (output->valid) {
-				gdf_error result = gdf_count_nonzero_mask(output->valid, output->size, &count);
-				assert(result == GDF_SUCCESS);
-				output->null_count = output->size - static_cast<cudf::size_type>(count);
-			} else{
-				output->null_count = 0;
-			}
-		}
-
-	if( input->dtype == GDF_STRING_CATEGORY ){
-    ral::safe_nvcategory_gather_for_string_category(output, input->dtype_info.category);
-	}
+//	if( input->dtype == GDF_STRING_CATEGORY ){
+//    ral::safe_nvcategory_gather_for_string_category(output, input->dtype_info.category);
+//	}
 }
 
 template <typename ElementIterator>
-void materialize_templated_1(gdf_column * input, gdf_column * output, gdf_column * row_indices){
-	int column_width = ral::traits::get_dtype_size_in_bytes(row_indices);
-	if(column_width == 1){
-		return materialize_templated_2<ElementIterator,int8_t>(input,output,row_indices);
-	}else if(column_width == 2){
-		return materialize_templated_2<ElementIterator,int16_t>(input,output,row_indices);
-	}else if(column_width == 4){
-		return materialize_templated_2<ElementIterator,int32_t>(input,output,row_indices);
-	}else if(column_width == 8){
-		return materialize_templated_2<ElementIterator,int64_t>(input,output,row_indices);
-	}
+void materialize_templated_1(cudf::column * input, cudf::column * output, cudf::column * row_indices){
+	// TODO percy cudf0.12 port to cudf::column
+//	int column_width = ral::traits::get_dtype_size_in_bytes(row_indices);
+//	if(column_width == 1){
+//		return materialize_templated_2<ElementIterator,int8_t>(input,output,row_indices);
+//	}else if(column_width == 2){
+//		return materialize_templated_2<ElementIterator,int16_t>(input,output,row_indices);
+//	}else if(column_width == 4){
+//		return materialize_templated_2<ElementIterator,int32_t>(input,output,row_indices);
+//	}else if(column_width == 8){
+//		return materialize_templated_2<ElementIterator,int64_t>(input,output,row_indices);
+//	}
 
-	throw std::runtime_error("In materialize_templated_1 function: unsupported type");
+//	throw std::runtime_error("In materialize_templated_1 function: unsupported type");
 }
 
 
-void materialize_column(gdf_column * input, gdf_column * output, gdf_column * row_indices){
-	int column_width = ral::traits::get_dtype_size_in_bytes(input);
-	if(column_width == 1){
-		return materialize_templated_1<int8_t>(input,output,row_indices);
-	}else if(column_width == 2){
-		return materialize_templated_1<int16_t>(input,output,row_indices);
-	}else if(column_width == 4){
-		return materialize_templated_1<int32_t>(input,output,row_indices);
-	}else if(column_width == 8){
-		return materialize_templated_1<int64_t>(input,output,row_indices);
-	}
+void materialize_column(cudf::column * input, cudf::column * output, cudf::column * row_indices){
+	// TODO percy cudf0.12 port to cudf::column
+//	int column_width = ral::traits::get_dtype_size_in_bytes(input);
+//	if(column_width == 1){
+//		return materialize_templated_1<int8_t>(input,output,row_indices);
+//	}else if(column_width == 2){
+//		return materialize_templated_1<int16_t>(input,output,row_indices);
+//	}else if(column_width == 4){
+//		return materialize_templated_1<int32_t>(input,output,row_indices);
+//	}else if(column_width == 8){
+//		return materialize_templated_1<int64_t>(input,output,row_indices);
+//	}
 
-	throw std::runtime_error("In materialize_column function: unsupported type");
+//	throw std::runtime_error("In materialize_column function: unsupported type");
 }
