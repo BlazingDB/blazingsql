@@ -144,6 +144,7 @@ void evaluate_join(std::string condition,
 //			&result_idx_table,
 //			&ctxt);
 //		result.destroy();
+
 	} else {
 		throw std::runtime_error("In evaluate_join function: unsupported join operator, " + join_type);
 	}

@@ -2,7 +2,7 @@
 name: Documentation request
 about: Report incorrect or needed documentation
 title: "[DOC]"
-labels: ''
+labels: "? - Needs Triage"
 assignees: ''
 
 ---

@@ -96,6 +96,11 @@ void JoinOperator::evaluate_join(blazing_frame & input, const std::string & quer
 	std::string condition = get_named_expression(query, "condition");
 	std::string join_type = get_named_expression(query, "joinType");
 
+	for(auto & table : input.get_columns()) {
+		cudf::table temp_table = ral::utilities::create_table(table);
+		gather_and_remap_nvcategory(temp_table);
+	}
+
 	::evaluate_join(condition, join_type, input, left_indices_.get_gdf_column(), right_indices_.get_gdf_column());
 }
 
@@ -212,6 +217,9 @@ blazing_frame DistributedJoinOperator::operator()(blazing_frame & frame, const s
 
 std::vector<gdf_column_cpp> DistributedJoinOperator::process_distribution_table(
 	std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices) {
+	cudf::table temp_table = ral::utilities::create_table(table);
+	gather_and_remap_nvcategory(temp_table);
+
 	std::vector<NodeColumns> partitions = ral::distribution::generateJoinPartitions(*context_, table, columnIndices);
 
 	context_->incrementQuerySubstep();
