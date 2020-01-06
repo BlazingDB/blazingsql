@@ -63,7 +63,7 @@ protected:
 
 class GPUMessage : public Message {
 public:
-  using raw_buffer = std::tuple<std::vector<int>, std::vector<char *>,
+  using raw_buffer = std::tuple<std::vector<int>, std::vector<const char *>,
                                 std::vector<ColumnTransport>>;
 
 public:

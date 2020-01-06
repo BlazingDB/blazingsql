@@ -134,7 +134,7 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
     blazingdb::transport::io::readFromSocket(
         socket, (char *)buffer_sizes.data(), buffer_sizes_size * sizeof(int));
 
-    std::vector<char *> raw_columns;
+    std::vector<const char *> raw_columns;
     raw_columns = blazingdb::transport::io::readBuffersIntoGPUTCP(
         buffer_sizes, socket, gpuId);
     zmq::socket_t *socket_ptr = (zmq::socket_t *)socket;

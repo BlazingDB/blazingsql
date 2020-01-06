@@ -22,8 +22,8 @@ static const short SCALAR_INDEX = -2;
 static const short SCALAR_NULL_INDEX = -3;
 
 
-void perform_operation(std::vector<gdf_column *> output_columns,
-	std::vector<gdf_column *> input_columns,
+void perform_operation(std::vector<cudf::column *> output_columns,
+	std::vector<cudf::column *> input_columns,
 	std::vector<column_index_type> & left_inputs,
 	std::vector<column_index_type> & right_inputs,
 	std::vector<column_index_type> & outputs,
@@ -32,8 +32,8 @@ void perform_operation(std::vector<gdf_column *> output_columns,
 	std::vector<gdf_unary_operator> & unary_operators,
 
 
-	std::vector<gdf_scalar> & left_scalars,
-	std::vector<gdf_scalar> & right_scalars,
+	std::vector<cudf::scalar*> & left_scalars,
+	std::vector<cudf::scalar*> & right_scalars,
 	std::vector<column_index_type> new_input_indices);
 
 

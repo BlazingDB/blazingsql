@@ -7,7 +7,7 @@
 #include <vector>
 
 
-gdf_error scan_table(std::vector<gdf_column *> columns, )
+gdf_error scan_table(std::vector<cudf::column *> columns, )
 
 
 #endif /* TABLESCANNER_H_ */

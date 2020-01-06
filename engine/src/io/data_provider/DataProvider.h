@@ -10,6 +10,12 @@
 
 #include <arrow/io/interfaces.h>
 #include <cudf/cudf.h>
+#include <cudf/scalar/scalar.hpp>
+#include <cudf/scalar/scalar_factories.hpp>
+#include <cudf/types.hpp>
+#include <cudf/utilities/type_dispatcher.hpp>
+#include <cudf/scalar/scalar_device_view.cuh>
+
 #include <map>
 #include <memory>
 #include <vector>
@@ -24,7 +30,8 @@ struct data_handle {
 	std::map<std::string, std::string> string_values;
 	std::map<std::string, bool> is_column_string;
 
-	std::map<std::string, gdf_scalar> column_values;  // allows us to add hive values
+	// TODO percy cudf0.12 implement proper scalar support
+	std::map<std::string, cudf::scalar*> column_values;  // allows us to add hive values
 	Uri uri;										  // in case the data was loaded from a file
 };
 

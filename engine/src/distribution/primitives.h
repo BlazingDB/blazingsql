@@ -16,7 +16,7 @@ namespace sampling {
 
 constexpr double THRESHOLD_FOR_SUBSAMPLING = 0.01;
 
-double calculateSampleRatio(gdf_size_type tableSize);
+double calculateSampleRatio(cudf::size_type tableSize);
 
 std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, double ratio);
 
@@ -100,12 +100,12 @@ void groupByWithoutAggregationsMerger(
 
 void distributeRowSize(const Context & context, std::size_t total_row_size);
 
-std::vector<gdf_size_type> collectRowSize(const Context & context);
+std::vector<cudf::size_type> collectRowSize(const Context & context);
 
 void distributeLeftRightNumRows(const Context & context, std::size_t left_num_rows, std::size_t right_num_rows);
 void collectLeftRightNumRows(const Context & context,
-	std::vector<gdf_size_type> & node_num_rows_left,
-	std::vector<gdf_size_type> & node_num_rows_right);
+	std::vector<cudf::size_type> & node_num_rows_left,
+	std::vector<cudf::size_type> & node_num_rows_right);
 
 // multi-threaded message sender
 void broadcastMessage(

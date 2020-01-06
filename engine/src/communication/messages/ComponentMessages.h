@@ -23,7 +23,7 @@ struct SampleToNodeMasterMessage : GPUComponentMessage {
 	static std::shared_ptr<GPUMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
-		const std::vector<char *> & raw_buffers) {
+		const std::vector<const char *> & raw_buffers) {
 		return GPUComponentMessage::MakeFrom(message_metadata, address_metadata, columns_offsets, raw_buffers);
 	}
 };
@@ -42,7 +42,7 @@ struct ColumnDataMessage : GPUComponentMessage {
 	static std::shared_ptr<GPUMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
-		const std::vector<char *> & raw_buffers) {
+		const std::vector<const char *> & raw_buffers) {
 		return GPUComponentMessage::MakeFrom(message_metadata, address_metadata, columns_offsets, raw_buffers);
 	}
 };
@@ -61,7 +61,7 @@ struct PartitionPivotsMessage : GPUComponentMessage {
 	static std::shared_ptr<GPUMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
-		const std::vector<char *> & raw_buffers) {
+		const std::vector<const char *> & raw_buffers) {
 		return GPUComponentMessage::MakeFrom(message_metadata, address_metadata, columns_offsets, raw_buffers);
 	}
 };

@@ -63,7 +63,7 @@ void arrow_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 	std::shared_ptr< arrow::RecordBatch > out;
 	reader.ReadNext (&out);
-	gdf_size_type row = 0;
+	cudf::size_type row = 0;
 	while(out != nullptr){
 
 		for(auto column_index : column_indices_requested) {
@@ -94,11 +94,8 @@ columns_out = columns;
 void arrow_parser::parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile> > files,
 		ral::io::Schema & schema){
 	std::vector<std::string> names;
-	std::vector<gdf_dtype> types;
-	std::vector<gdf_time_unit> time_units;
-
+	std::vector<cudf::type_id> types;
 }
-
 
 }
 }

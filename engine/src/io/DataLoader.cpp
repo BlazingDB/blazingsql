@@ -69,26 +69,30 @@ void data_loader::load_data(const Context & context,
 				for(int i = 0; i < schema.get_num_columns(); i++) {
 					if(!schema.get_in_file()[i]) {
 						// std::cout<<"creating column!"<<std::endl;
-						auto num_rows = converted_data[0].size();
+						auto num_rows = converted_data[0].get_gdf_column()->size();
 						std::string name = schema.get_name(i);
 						if(files[file_index].is_column_string[name]) {
-							std::string string_value = files[file_index].string_values[name];
-							NVCategory * category = repeated_string_category(string_value, num_rows);
-							gdf_column_cpp column;
-							column.create_gdf_column(category, num_rows, name);
-							converted_data.push_back(column);
+							// TODO percy cudf0.12 port to cudf::column and custrings
+//							std::string string_value = files[file_index].string_values[name];
+//							NVCategory * category = repeated_string_category(string_value, num_rows);
+//							gdf_column_cpp column;
+//							column.create_gdf_column(category, num_rows, name);
+//							converted_data.push_back(column);
 						} else {
-							gdf_scalar scalar = files[file_index].column_values[name];
 
-							gdf_column_cpp column;
-							column.create_gdf_column(scalar.dtype,
-								gdf_dtype_extra_info{TIME_UNIT_ms},
-								num_rows,
-								nullptr,
-								ral::traits::get_dtype_size_in_bytes(scalar.dtype),
-								name);
-							cudf::fill(column.get_gdf_column(), scalar, 0, num_rows);
-							converted_data.push_back(column);
+							// TODO percy cudf0.12 implement proper scalar support
+							//std::unique_ptr<cudf::scalar> scalar = files[file_index].column_values[name];
+
+							// TODO percy cudf0.12 implement proper scalar support
+							//gdf_column_cpp column;
+							//column.create_gdf_column(to_type_id(scalar.dtype),
+							//	num_rows,
+							//	nullptr,
+							//	ral::traits::get_dtype_size_in_bytes(to_type_id(scalar.dtype)),
+							//	name);
+							//cudf::fill(column.get_gdf_column(), scalar, 0, num_rows);
+							//converted_data.push_back(column);
+
 						}
 						// std::cout<<"created column!"<<std::endl;
 					}
@@ -161,7 +165,7 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	}
 
 	for(auto extra_column : non_file_columns) {
-		schema.add_column(extra_column.first, extra_column.second, 0, false);
+		schema.add_column(extra_column.first, to_type_id(extra_column.second), 0, false);
 	}
 }
 

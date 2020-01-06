@@ -16,8 +16,8 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 void evaluate_join(std::string condition,
 	std::string join_type,
 	blazing_frame data_frame,
-	gdf_column * left_indices,
-	gdf_column * right_indices);
+	cudf::column * left_indices,
+	cudf::column * right_indices);
 
 
 #endif /* JOINPROCESSOR_H_ */
