@@ -8,7 +8,7 @@
 #include "cudf/table/table_view.hpp"
 #include "cudf/column/column_view.hpp"
 
-typedef cudf::table CudfTable;
+typedef cudf::experimental::table CudfTable;
 typedef cudf::table_view CudfTableView;
 typedef cudf::column_view CudfColumnView;
 
@@ -20,8 +20,8 @@ namespace frame{
   	class BlazingTable{
   	public:
   		BlazingTable(std::unique_ptr<CudfTable> table,std::vector<std::string> columnNames);
-  		CudfTableView view();
-  		std::vector<std::string> names();
+  		CudfTableView view() const;
+  		std::vector<std::string> names() const;
   	private:
   		std::vector<std::string> columnNames;
   		std::unique_ptr<CudfTable> table;
@@ -31,8 +31,8 @@ namespace frame{
   class BlazingTableView{
   public:
   	BlazingTableView(CudfTableView table,std::vector<std::string> columnNames);
-  	CudfTableView view();
-  	std::vector<std::string> names();
+  	CudfTableView view() const;
+  	std::vector<std::string> names() const;
   private:
   	std::vector<std::string> columnNames;
   	CudfTableView table;
