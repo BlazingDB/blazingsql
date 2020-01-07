@@ -137,6 +137,8 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/GDFCounter.cu
               ${CMAKE_SOURCE_DIR}/src/GDFColumn.cu
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/initialize.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
