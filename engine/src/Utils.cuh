@@ -2,7 +2,8 @@
 #define UTILS_CUH_
 
 #include "gdf_wrapper/gdf_wrapper.cuh"
-#include "gdf_wrapper/utilities/cudf_utils.h"
+#include "from_cudf/cpp_src/utilities/legacy/cudf_utils.h"
+#include "from_cudf/cpp_src/bitmask/legacy/legacy_bitmask.hpp"
 
 #include <iostream>
 #include <vector>
