@@ -176,8 +176,9 @@ void data_loader::get_metadata(Metadata & metadata, std::vector<std::pair<std::s
 		files.push_back(handle.fileHandle);
 		// user_readable_file_handles.push_back(handle.uri.toString());
 	}
-	this->parser->get_metadata(files,  metadata);
-
+	if (this->parser->get_metadata(files,  metadata) == false) {
+		throw std::runtime_error("No metadata for this data file");
+	}
 	//TODO, non_file_columns hive feature, @percy
 	// ... 
 

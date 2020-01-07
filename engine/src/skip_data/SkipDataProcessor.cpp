@@ -77,8 +77,6 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
     if (filter_string.empty()) {
         return {};
     }
-    std::cout << "[SKIP_DATA_PROCESSOR]: filter_string: " << filter_string << std::endl;
-
     // then we follow a similar pattern to process_filter
     gdf_column_cpp stencil;
     gdf_dtype_extra_info extra_info;

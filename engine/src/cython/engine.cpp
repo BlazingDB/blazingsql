@@ -279,6 +279,7 @@ ResultSet runSkipData(int32_t masterIndex,
 		return result;
 		return result;
 	} catch(const std::exception & e) {
+		std::cerr << "**[runSkipData]** error parsing metadata.\n";
 		std::cerr << e.what() << std::endl;
 		throw;
 	}

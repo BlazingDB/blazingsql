@@ -98,7 +98,6 @@ TableSchema parseMetadata(std::vector<std::string> files,
 		std::vector<std::string> names(2 * schema.columns.size() + 2);
 		std::vector<gdf_dtype> dtypes(2 * schema.columns.size() + 2);
 		std::vector<gdf_time_unit> time_units(2 * schema.columns.size() + 2);
-		std::cout << "schema.columns: " << std::endl;
 
 		size_t index = 0;
 		for(; index < schema.columns.size(); index++) {
@@ -172,7 +171,8 @@ TableSchema parseMetadata(std::vector<std::string> files,
 		 loader->get_metadata(metadata, extra_columns);
 
 	} catch(std::exception & e) {
-		throw;
+		std::cerr << "**[parseMetadata]** error parsing metadata.\n";
+		return tableSchema;
 	}
 
 	auto gdf_columns = metadata.get_columns();

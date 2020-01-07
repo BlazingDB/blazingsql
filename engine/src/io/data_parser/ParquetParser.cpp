@@ -193,7 +193,7 @@ void parquet_parser::parse_schema(
 }
 
 
-void parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Metadata & metadata){
+bool parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Metadata & metadata){
 	std::vector<size_t> num_row_groups(files.size());
 	std::thread threads[files.size()];
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
@@ -220,6 +220,7 @@ void parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomA
 		reader->Close();
 	}
 	metadata.metadata_ =  minmax_metadata_table;
+	return true;
 }
 
 } /* namespace io */

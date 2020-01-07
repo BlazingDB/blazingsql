@@ -560,15 +560,12 @@ class BlazingContext(object):
                 in_file=in_file)
 
             table.slices = table.getSlices(len(self.nodes))
-            parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
-            if isinstance(parsedMetadata, cudf.DataFrame): 
-                table.metadata = parsedMetadata
-                print(table.metadata)
-            else:
-                # this is a dask dataframe
-                table.metadata = parsedMetadata 
-                print(table.metadata.compute())
-                # next needed step is:  update metadata per each worker in the next getSlices call
+            if parsedSchema['file_type'] == DataType.PARQUET :
+                parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
+                if isinstance(parsedMetadata, cudf.DataFrame): 
+                    table.metadata = parsedMetadata
+                else:
+                    table.metadata = parsedMetadata 
             
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
@@ -626,18 +623,9 @@ class BlazingContext(object):
     def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
             if self.dask_client is None:
                 current_table = nodeTableList[0][table_name]
-                table_tuple = (table_name, current_table)
-                print ("skip-data: ",  masterIndex,
-                            self.nodes,
-                            table_tuple,
-                            fileTypes,
-                            0,
-                            scan_table_query,
-                            0)
-
+                table_tuple = (table_name, current_table) 
                 file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0)
                 if not file_indices_and_rowgroup_indices.empty:
-                    print("file_indices_and_rowgroup_indices\n", file_indices_and_rowgroup_indices)
                     file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
                     grouped = file_and_rowgroup_indices.groupby('file_handle_index')
@@ -665,14 +653,12 @@ class BlazingContext(object):
                     i = i + 1
                 result = dask.dataframe.from_delayed(dask_futures)
                 if result.compute().empty:
-                    print("No row_groups for skip-data")
                     return 
 
                 for index in range(len(self.nodes)):
                     file_indices_and_rowgroup_indices = result.get_partition(index).compute()
                     if file_indices_and_rowgroup_indices.empty :
                         continue
-                    print("file_indices_and_rowgroup_indices\n", file_indices_and_rowgroup_indices)
                     file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
                     grouped = file_and_rowgroup_indices.groupby('file_handle_index')
