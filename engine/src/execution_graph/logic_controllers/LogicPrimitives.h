@@ -6,10 +6,11 @@
 #include <string>
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
+#include "cudf/column/column_view.hpp"
 
 typedef cudf::table CudfTable;
 typedef cudf::table_view CudfTableView;
-
+typedef cudf::column_view CudfColumnView;
 
 namespace ral{
 
