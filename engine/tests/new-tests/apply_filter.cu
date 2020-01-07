@@ -28,6 +28,39 @@
 #include <from_cudf/cpp_tests/utilities/legacy/cudf_test_utils.cuh>
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 #include <vector>
+#include <execution_graph/logic_controllers/LogicalFilter.h>
+#include <execution_graph/logic_controllers/LogicPrimitives.h>
+
+template <typename T>
+struct ApplyFilter : public cudf::test::BaseFixture {};
+
+TYPED_TEST_CASE(ApplyFilter, cudf::test::NumericTypes);
+
+TYPED_TEST(ApplyFilter, withNull)
+{
+    using T = TypeParam;
+    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5}, {1, 1, 0, 1, 1, 1}};
+    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d"}, {1, 0, 1, 1, 1, 1});
+    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10}, {0, 1, 1, 1, 1, 1}};
+    CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    CudfTable cudf_table_in(cudf_table_in_view);
+    std::vector<std::string> names({"A", "B", "C"});
+    BlazingTable table_in(input, names);
+
+    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 1, 0, 1, 0}, {1, 1, 0, 1, 1, 1}};
+    cudf::column bool_filter_col(boolMask);
+
+    std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::applyBooleanFilter(
+        table_in.view(),bool_filter_col.view());
+
+
+    cudf::test::expect_tables_equal(expected_sort_by_key_table->view(), table_out->view()->view());
+
+    table_out->view()
+
+
+    
+}
 
 void run_sort_test (cudf::table_view input,
                     cudf::column_view expected_sorted_indices,
