@@ -636,20 +636,20 @@ class BlazingContext(object):
                             0)
 
                 file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0)
-
-                print("file_indices_and_rowgroup_indices\n", file_indices_and_rowgroup_indices)
-                file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
-                files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
-                grouped = file_and_rowgroup_indices.groupby('file_handle_index')
-                actual_files = []
-                current_table.row_groups_ids = []
-                for group_id in grouped.groups:
-                    row_indices = grouped.groups[group_id].values.tolist()
-                    actual_files.append(table_files[group_id])
-                    row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
-                    row_group_ids = [row_groups_col[i] for i in row_indices]
-                    current_table.row_groups_ids.append(row_group_ids)
-                current_table.files = actual_files
+                if not file_indices_and_rowgroup_indices.empty:
+                    print("file_indices_and_rowgroup_indices\n", file_indices_and_rowgroup_indices)
+                    file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
+                    files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
+                    grouped = file_and_rowgroup_indices.groupby('file_handle_index')
+                    actual_files = []
+                    current_table.row_groups_ids = []
+                    for group_id in grouped.groups:
+                        row_indices = grouped.groups[group_id].values.tolist()
+                        actual_files.append(table_files[group_id])
+                        row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
+                        row_group_ids = [row_groups_col[i] for i in row_indices]
+                        current_table.row_groups_ids.append(row_group_ids)
+                    current_table.files = actual_files
             else:
                 dask_futures = []
                 i = 0
