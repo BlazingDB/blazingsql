@@ -99,6 +99,7 @@ add_subdirectory(io-test)
 add_subdirectory(union)
 add_subdirectory(unary)
 add_subdirectory(groupbywoagg)
+add_subdirectory(sort)
 
 # TODO Felipe JP
 #add_subdirectory(interpreter)

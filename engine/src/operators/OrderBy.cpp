@@ -18,6 +18,9 @@
 #include <iostream>
 #include <numeric>
 #include <thread>
+#include "cudf/sorting.hpp"
+#include "cudf/table/table_view.hpp"
+#include <cudf/detail/gather.hpp>
 
 namespace ral {
 namespace operators {
@@ -86,14 +89,12 @@ void distributed_limit(Context & queryContext, blazing_frame & input, cudf::size
 	}
 }
 
-void sort(const Context & queryContext,
-	blazing_frame & input,
-	std::vector<cudf::column *> & rawCols,
+void sort(cudf::table_view & input,
+	std::vector<cudf::column_view> & rawCols,
 	std::vector<int8_t> & sortOrderTypes,
 	std::vector<gdf_column_cpp> & sortedTable) {
-	static CodeTimer timer;
-	timer.reset();
 
+	/*
 	gdf_column_cpp asc_desc_col;
 	asc_desc_col.create_gdf_column(cudf::type_id::INT8,
 		sortOrderTypes.size(),
@@ -109,7 +110,7 @@ void sort(const Context & queryContext,
 		"");
 
 	gdf_context context;
-	context.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  // Nulls are are treated as largest
+	context.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  // Nulls are are treated as largest*/
 
 	// TODO percy cudf0.12 port to cudf::column
 //	CUDF_CALL(gdf_order_by(rawCols.data(),
@@ -118,24 +119,25 @@ void sort(const Context & queryContext,
 //		index_col.get_gdf_column(),
 //		&context));
 
-	Library::Logging::Logger().logInfo(timer.logDuration(queryContext, "sort part 1 gdf_order_by"));
-	timer.reset();
+/*
+	std::unique_ptr<column> sorted_order(
+		table_view input, std::vector<order> const& column_order = {},
+		std::vector<null_order> const& null_precedence = {},
+		rmm::mr::device_memory_resource* mr = rmm::mr::get_default_resource());
+*/
 
-	for(int i = 0; i < sortedTable.size(); i++) {
+	/*for(int i = 0; i < sortedTable.size(); i++) {
 		materialize_column(
 			input.get_column(i).get_gdf_column(), sortedTable[i].get_gdf_column(), index_col.get_gdf_column());
 		
 		// TODO percy cudf0.12 port to cudf::column
 		//sortedTable[i].update_null_count();
-	}
-
-	Library::Logging::Logger().logInfo(timer.logDuration(queryContext, "sort part 2 materialize_column"));
-	timer.reset();
+	}*/
 }
 
 void single_node_sort(const Context & queryContext,
 	blazing_frame & input,
-	std::vector<cudf::column *> & rawCols,
+	std::vector<cudf::column_view> & rawCols,
 	std::vector<int8_t> & sortOrderTypes) {
 	std::vector<gdf_column_cpp> sortedTable(input.get_size_column(0));
 	for(int i = 0; i < sortedTable.size(); i++) {
@@ -159,7 +161,7 @@ void single_node_sort(const Context & queryContext,
 //		}
 	}
 
-	sort(queryContext, input, rawCols, sortOrderTypes, sortedTable);
+	//sort(queryContext, input, rawCols, sortOrderTypes, sortedTable);
 
 	input.clear();
 	input.add_table(sortedTable);
@@ -205,7 +207,7 @@ void distributed_sort(Context & queryContext,
 	Library::Logging::Logger().logInfo(timer.logDuration(queryContext, "distributed_sort part 1 generateSample"));
 	timer.reset();
 
-	std::thread sortThread{[](Context & queryContext,
+	/*std::thread sortThread{[](Context & queryContext,
 							   blazing_frame & input,
 							   std::vector<cudf::column *> & rawCols,
 							   std::vector<int8_t> & sortOrderTypes,
@@ -220,7 +222,7 @@ void distributed_sort(Context & queryContext,
 		std::ref(input),
 		std::ref(rawCols),
 		std::ref(sortOrderTypes),
-		std::ref(sortedTable)};
+		std::ref(sortedTable)};*/
 	// sort(queryContext, input, rawCols, sortOrderTypes, sortedTable);
 
 	std::vector<gdf_column_cpp> partitionPlan;
@@ -248,7 +250,7 @@ void distributed_sort(Context & queryContext,
 	}
 
 	// Wait for sortThread
-	sortThread.join();
+	//sortThread.join();
 	timer.reset();  // lets do the reset here, since  part 2 async is capting the time
 
 	if(partitionPlan[0].get_gdf_column()->size() == 0) {
@@ -289,13 +291,13 @@ void process_sort(blazing_frame & input, std::string query_part, Context * query
 	size_t num_sort_columns = count_string_occurrence(combined_expression, "sort");
 
 	std::vector<gdf_column_cpp> cols(num_sort_columns);
-	std::vector<cudf::column *> rawCols(num_sort_columns);
+	std::vector<cudf::column_view> rawCols(num_sort_columns);
 	std::vector<int8_t> sortOrderTypes(num_sort_columns);
 	std::vector<int> sortColIndices(num_sort_columns);
 	for(int i = 0; i < num_sort_columns; i++) {
 		int sort_column_index = get_index(get_named_expression(combined_expression, "sort" + std::to_string(i)));
 		cols[i] = input.get_column(sort_column_index).clone();
-		rawCols[i] = cols[i].get_gdf_column();
+		//rawCols[i] = cols[i].get_gdf_column();
 		sortOrderTypes[i] =
 			(get_named_expression(combined_expression, "dir" + std::to_string(i)) == DESCENDING_ORDER_SORT_TEXT);
 		sortColIndices[i] = sort_column_index;
@@ -319,13 +321,30 @@ void process_sort(blazing_frame & input, std::string query_part, Context * query
 	}
 }
 
+// esto equivale mas o menos a single_node_sort pero con unos inputs un poco diferentes
 std::unique_ptr<ral::frame::BlazingTable> logicalSort(
-  const ral::frame::BlazingTableView & table, std::vector<int> sortColIndices, std::vector<int8_t> sortOrderTypes)
-  // esto equivale mas o menos a single_node_sort pero con unos inputs un poco diferentes
+  const ral::frame::BlazingTableView & table, std::vector<int> sortColIndices, std::vector<int8_t> sortOrderTypes){
 
-std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
-  const ral::frame::BlazingTableView & table, std::string limitRowsStr)
+	std::vector<cudf::order> column_order;
+	for(auto col_order : sortOrderTypes){
+		if(col_order)
+			column_order.push_back(cudf::order::DESCENDING);
+		else
+			column_order.push_back(cudf::order::ASCENDING);
+	}
+
+	std::unique_ptr<cudf::column> output = cudf::experimental::sorted_order( table.view(), column_order /*, fix null precedence*/ );
+
+	std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::detail::gather( table.view(), output->view() );
+
+	return std::make_unique<ral::frame::BlazingTable>( std::move(gathered), table.names() );
+  }
+
 // esto equivale mas o menos a limit_table pero con unos inputs un poco diferentes
+std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
+  const ral::frame::BlazingTableView & table, std::string limitRowsStr){
+
+  }
 
 }  // namespace operators
 }  // namespace ral

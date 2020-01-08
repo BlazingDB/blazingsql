@@ -1,0 +1,56 @@
+
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "operators/OrderBy.cpp"
+
+#include <execution_graph/logic_controllers/LogicPrimitives.h>
+
+#include <cuDF/utilities/column_wrapper.hpp>
+#include <cuDF/utilities/base_fixture.hpp>
+#include <cuDF/utilities/type_lists.hpp>
+#include <cuDF/utilities/table_utilities.hpp>
+#include <cudf/detail/gather.hpp>
+
+#include <operators/OrderBy.h>
+
+template <typename T>
+struct SortTest : public cudf::test::BaseFixture {};
+
+TYPED_TEST_CASE(SortTest, cudf::test::NumericTypes);
+
+TYPED_TEST(SortTest, withoutNull) {
+
+    using T = TypeParam;
+
+    blazing_frame input;
+    std::vector<cudf::column_view> rawCols;
+    std::vector<gdf_column_cpp> sortedTable;
+
+    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5, 6}, {1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
+
+    CudfTableView cudf_table_in_view {{col1, col3}};
+
+    std::vector<std::string> names({"A", "C"});
+    ral::frame::BlazingTableView table(cudf_table_in_view, names);
+
+    std::vector<int> sortColIndices;
+    std::vector<int8_t> sortOrderTypes{0,1};
+
+    std::unique_ptr<ral::frame::BlazingTable> table_out = ral::operators::logicalSort(table, sortColIndices, sortOrderTypes);
+
+    std::string tab0_string = cudf::test::to_string(table_out->view().column(0), "|");
+    std::cout<<"tab0_string: "<<tab0_string<<std::endl;
+
+    std::string tab3_string = cudf::test::to_string(table_out->view().column(1), "|");
+    std::cout<<"tab3_string: "<<tab3_string<<std::endl;
+
+    cudf::test::fixed_width_column_wrapper<T> expect_col1{{3, 4, 5, 5, 5, 6 ,8}, {1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::fixed_width_column_wrapper<T> expect_col3{{70, 40, 10, 10, 5, 11, 2}, {1, 1, 1, 1, 1, 1, 1}};
+    CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
+
+    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+}
