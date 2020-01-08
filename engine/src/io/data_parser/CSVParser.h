@@ -20,11 +20,10 @@
 namespace ral {
 namespace io {
 
+namespace cudf_io = cudf::experimental::io;
+
 class csv_parser : public data_parser {
 public:
-	// DEPRECATED don't use this constructor
-	csv_parser(cudf::csv_read_arg csv_arg);
-
 	csv_parser(cudf::experimental::io::read_csv_args new_csv_arg);
 
 	virtual ~csv_parser();
@@ -44,8 +43,8 @@ public:
 
 private:
 	// DEPRECATED use csv_args
-	cudf::csv_read_arg csv_arg{cudf::source_info{""}};
-	cudf::experimental::io::read_csv_args csv_args{cudf::experimental::io::source_info("")};
+	// cudf::csv_read_arg csv_arg{cudf::source_info{""}};
+	cudf_io::read_csv_args csv_args{cudf_io::source_info("")};
 };
 
 } /* namespace io */

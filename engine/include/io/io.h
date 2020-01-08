@@ -6,15 +6,17 @@
 #include <vector>
 #include <arrow/table.h>
 #include <memory>
+#include <cudf/io/functions.hpp>
 
 #pragma once
 
 typedef ral::io::DataType DataType;
+namespace cudf_io = cudf::experimental::io;
 
 struct ReaderArgs {
 	cudf::orc_read_arg orcReaderArg = cudf::orc_read_arg(cudf::source_info(""));
 	cudf::json_read_arg jsonReaderArg = cudf::json_read_arg(cudf::source_info(""));
-	cudf::csv_read_arg csvReaderArg = cudf::csv_read_arg(cudf::source_info(""));
+	cudf_io::read_csv_args csvReaderArg = cudf_io::read_csv_args(cudf_io::source_info(""));
 };
 
 struct TableSchema {

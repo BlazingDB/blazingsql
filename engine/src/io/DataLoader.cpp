@@ -160,7 +160,6 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(const Context &
 	timer.reset();
 
 // 	std::vector<std::vector<gdf_column_cpp>> columns_per_file;  // stores all of the columns parsed from each file
-	std::vector<std::unique_ptr<ral::frame::BlazingTable>> columns_per_file;
 	std::vector<std::string> user_readable_file_handles;
 	std::vector<data_handle> files;
 
@@ -171,8 +170,9 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(const Context &
 		user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
 		files.push_back(this->provider->get_next());
 	}
+	std::unique_ptr<ral::frame::BlazingTable> *columns_per_file = new std::unique_ptr<ral::frame::BlazingTable>[files.size()];
 
-	columns_per_file.resize(files.size());
+	// columns_per_file.resize(files.size());
 
 	// TODO NOTE percy c.gonzales rommel fix our concurrent reads here (better use of thread)
 	// make sure cudf supports concurrent reads
@@ -249,7 +249,8 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(const Context &
 
 	this->provider->reset();
 
-	size_t num_columns, num_files = columns_per_file.size();
+	size_t num_columns;
+	size_t num_files = files.size();
 
 	if(num_files > 0)
 		num_columns = columns_per_file[0]->num_columns();
@@ -270,7 +271,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(const Context &
 	timer.reset();
 
 	if(num_files == 1) {  // we have only one file so we can just return the columns we parsed from that file
-		return std::move(columns_per_file[0]);
+		return std::move(columns_per_file[0]); // ->clone()
 
 	} else {  // we have more than one file so we need to concatenate
 			  // std::cout<<"concatting!"<<std::endl;
