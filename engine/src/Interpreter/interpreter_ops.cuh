@@ -742,7 +742,7 @@ private:
 				}
 
 			}else if(oper == BLZ_FIRST_NON_MAGIC){
-				if(left_value == getMagicNumber<OutputTypeOperator>()){
+				if(left_value == getMagicNumber<LeftType>()){
 					store_data_in_buffer<OutputTypeOperator>(
 							right_value,
 							buffer,

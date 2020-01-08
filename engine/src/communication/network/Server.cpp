@@ -28,8 +28,6 @@ Server & Server::getInstance() { return *servers_[port_]; }
 Server::Server() {
 	comm_server = CommServer::TCP(port_);
 	setEndPoints();
-	ral::config::GPUManager::getInstance().setDevice();
-	comm_server->SetDevice(ral::config::GPUManager::getInstance().getDeviceId());
 	comm_server->Run();
 }
 

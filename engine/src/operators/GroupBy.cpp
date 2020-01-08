@@ -162,7 +162,6 @@ void distributed_groupby_without_aggregations(
 	auto groupByTask = std::async(
 		std::launch::async,
 		[](Context & queryContext, std::vector<gdf_column_cpp> & input, const std::vector<int> & group_column_indices) {
-			ral::config::GPUManager::getInstance().setDevice();
 			static CodeTimer timer2;
 			std::vector<gdf_column_cpp> result = groupby_without_aggregations(input, group_column_indices);
 			Library::Logging::Logger().logInfo(timer.logDuration(
@@ -546,7 +545,6 @@ void distributed_aggregations_with_groupby(Context & queryContext,
 			std::vector<gdf_agg_op> & aggregation_types,
 			std::vector<std::string> & aggregation_input_expressions,
 			std::vector<std::string> & aggregation_column_assigned_aliases) {
-			ral::config::GPUManager::getInstance().setDevice();
 			static CodeTimer timer2;
 			std::vector<gdf_column_cpp> result = compute_aggregations(input,
 				group_column_indices,

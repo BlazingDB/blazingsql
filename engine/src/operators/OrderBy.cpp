@@ -206,7 +206,6 @@ void distributed_sort(Context & queryContext,
 							   std::vector<gdf_column *> & rawCols,
 							   std::vector<int8_t> & sortOrderTypes,
 							   std::vector<gdf_column_cpp> & sortedTable) {
-							   ral::config::GPUManager::getInstance().setDevice();
 							   static CodeTimer timer2;
 							   sort(queryContext, input, rawCols, sortOrderTypes, sortedTable);
 							   Library::Logging::Logger().logInfo(

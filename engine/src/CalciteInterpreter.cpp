@@ -892,7 +892,6 @@ query_token_t evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 	query_token_t token) {
 	std::thread t([=] {
 		CodeTimer blazing_timer;
-		ral::config::GPUManager::getInstance().setDevice();
 
 		std::vector<std::string> splitted = StringUtil::split(logicalPlan, "\n");
 		if(splitted[splitted.size() - 1].length() == 0) {
@@ -947,7 +946,6 @@ blazing_frame evaluate_query(
 		){
 
 		CodeTimer blazing_timer;
-		ral::config::GPUManager::getInstance().setDevice();
 
 		Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "\"Query Start\n" + logicalPlan + "\""));
 

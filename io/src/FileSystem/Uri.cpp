@@ -34,7 +34,7 @@ FileSystemType Uri::schemeToFileSystemType(const std::string & scheme) {
 		return FileSystemType::S3;
 	}
 
-	if(scheme == "gcs") {
+	if(scheme == "gcs" || scheme == "gs") {
 		return FileSystemType::GOOGLE_CLOUD_STORAGE;
 	}
 
