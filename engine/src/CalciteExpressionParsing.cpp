@@ -234,13 +234,6 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 	} else if(operation == BLZ_MAGIC_IF_NOT) {
 		return input_right_type;
 	} else if(operation == BLZ_FIRST_NON_MAGIC) {
-		if (is_numeric_type(input_left_type) && is_numeric_type(input_right_type)) {
-			if (is_type_float(input_left_type) && !is_type_float(input_right_type)){
-				return input_left_type;
-			}	else if (!is_type_float(input_left_type) && is_type_float(input_right_type)) {
-				return input_right_type;
-			}
-		}
 		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
 				   ral::traits::get_dtype_size_in_bytes(input_right_type))
 				   ? input_left_type
