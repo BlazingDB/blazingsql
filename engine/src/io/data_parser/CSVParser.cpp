@@ -165,6 +165,64 @@ void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	}
 }
 
+std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+	const std::string & user_readable_file_handle,
+	const Schema & schema,
+	std::vector<size_t> column_indices) 
+{
+
+	// including all columns by default
+	if(column_indices.size() == 0) {
+		column_indices.resize(schema.get_num_columns());
+		std::iota(column_indices.begin(), column_indices.end(), 0);
+	}
+
+	if(file == nullptr) {
+		// TODO columns_out should change
+		//columns_out = create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
+		
+		// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);
+		return nullptr;
+	}
+	auto csv_arg = this->csv_arg;
+	if(column_indices.size() > 0) {
+		// copy column_indices into use_col_indexes (at the moment is ordered only)
+		csv_arg.use_cols_indexes.resize(column_indices.size());
+		csv_arg.use_cols_indexes.assign(column_indices.begin(), column_indices.end());
+
+		cudf::experimental::io::table_with_metadata csv_table = read_csv_arg_arrow(csv_arg, file);
+
+		if(csv_table.tbl->num_columns() <= 0)
+			Library::Logging::Logger().logWarn("csv_parser::parse no columns were read");
+
+		// column_indices may be requested in a specific order (not necessarily sorted), but read_csv will output the
+		// columns in the sorted order, so we need to put them back into the order we want
+		std::vector<size_t> idx(column_indices.size());
+		std::iota(idx.begin(), idx.end(), 0);
+		// sort indexes based on comparing values in column_indices
+		std::sort(idx.begin(), idx.end(), [&column_indices](size_t i1, size_t i2) {
+			return column_indices[i1] < column_indices[i2];
+		});
+
+		// TODO columns_out should change (gdf_column_cpp)
+		//columns_out.resize(column_indices.size());
+		for(size_t i = 0; i < csv_table.tbl->num_columns(); i++) {
+			if(csv_table.tbl->get_column(i).type().id() == cudf::type_id::STRING) {
+//				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
+//				NVCategory * category = NVCategory::create_from_strings(*strs);
+//				std::string column_name(table_out.get_column(i)->col_name);
+//				columns_out[idx[i]].create_gdf_column(category, table_out.get_column(i)->size, column_name);
+//				gdf_column_free(table_out.get_column(i));
+			} else {
+				//TODO create_gdf_column anymore
+				//columns_out[i].create_gdf_column(csv_table.tbl->get_column(i), csv_table.metadata.column_names[i]);
+			}
+		}
+		return std::make_unique<ral::frame::BlazingTable>(std::move(csv_table.tbl), csv_table.metadata.column_names);
+	}
+	return nullptr;
+}
+	
 void csv_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 

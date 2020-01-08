@@ -67,17 +67,11 @@ TEST_F(ParseCSVTest, csv_with_strings) {
   std::ofstream outfile(filename, std::ofstream::out);
   outfile << content << std::endl;
   outfile.close();
-  std::vector<std::string> names{"n_nationkey", "n_name", "n_regionkey",
-                                 "n_comment"};
-  std::vector<std::string> dtypes{"int32", "str", "int32", "str"};
-
-  std::vector<gdf_dtype> types;
-  for (auto val : dtypes) {
-    types.push_back(ral::traits::convert_string_dtype(val));
-  }
+  std::vector<std::string> names{"n_nationkey", "n_name", "n_regionkey", "n_comment"};
+  
   std::vector<std::string> files = {filename}; 
 
- cudf::csv_read_arg args(cudf::source_info{filename});
+  cudf::csv_read_arg args(cudf::source_info{filename});
   args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
   args.dtype = { "int32", "str", "int32", "str" };
   args.header = -1;
@@ -90,22 +84,39 @@ TEST_F(ParseCSVTest, csv_with_strings) {
   ral::io::Schema schema;
   auto parser = std::make_shared<ral::io::csv_parser>(args);
   auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
-  ral::io::data_loader loader(parser, provider);
-  try {
-    loader.get_schema(schema, {});
-  } catch (std::exception &e) {
-    return;
+
+  { 
+    ral::io::data_loader loader(parser, provider);
+    try {
+      loader.get_schema(schema, {});
+      for (auto name : schema.get_names()) {
+        std::cout << name << std::endl;
+      }
+      for (auto type : schema.get_types()) {
+        std::cout << type << std::endl;
+      }
+
+    } catch (std::exception &e) {
+      return;
+    }
   }
 
   Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
-  std::vector<gdf_column_cpp> input_table; 
-  loader.load_data(queryContext, input_table, {}, schema);
+  ral::io::data_loader loader(parser, provider);
 
-  for (size_t column_index = 0; column_index < input_table.size();
-       column_index++) {
-    std::cout << "col_name: "
-              << input_table[column_index].get_gdf_column()->col_name << "|"
-              << input_table[column_index].get_gdf_column()->size << std::endl;
-    print_gdf_column(input_table[column_index].get_gdf_column());
+  auto csv_table = loader.load_data(queryContext, {}, schema);
+  if (csv_table != nullptr) {
+    std::cout << "csv_table != nullptr\n";
+    for (auto name : csv_table->names()) {
+        std::cout << name << std::endl;
+    }
   }
+
+//   for (size_t column_index = 0; column_index < input_table.size();
+//        column_index++) {
+//     std::cout << "col_name: "
+//               << input_table[column_index].get_gdf_column()->col_name << "|"
+//               << input_table[column_index].get_gdf_column()->size << std::endl;
+//     print_gdf_column(input_table[column_index].get_gdf_column());
+//   }
 }

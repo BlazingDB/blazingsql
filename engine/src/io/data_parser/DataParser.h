@@ -30,6 +30,13 @@ public:
 		const Schema & schema,
 		std::vector<size_t> column_indices) = 0;
 
+	virtual std::unique_ptr<ral::frame::BlazingTable> parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+		const std::string & user_readable_file_handle,
+		const Schema & schema,
+		std::vector<size_t> column_indices) {
+			return nullptr;
+	}
+
 
 	virtual void parse_schema(
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) = 0;

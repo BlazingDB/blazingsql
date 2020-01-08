@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/build/gtests/parse_csv-test",
+            "args": [
+              "${workspaceFolder}/pyblazing/sample_m_rowsg.py"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/engine",
+            "environment": [
+              {
+                "name": "JAVA_LD_LIBRARY_PATH",
+                "value": "/home/aocsa/miniconda3/envs/team/jre/lib/amd64/server"
+              }
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+              {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+              }
+            ]
+          }
+    ]
+}
