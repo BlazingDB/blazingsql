@@ -187,7 +187,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(const Context &
 				// std::cout<<"get num columns==>"<<schema.get_num_columns()<<std::endl;
 				// std::cout<<"file is "<< user_readable_file_handles[file_index]<<" with uri
 				// "<<files[file_index].uri.getPath().toString()<<std::endl;
-				Schema fileSchema = schema.fileSchema();
+				auto fileSchema = schema.fileSchema(file_index);
 				std::unique_ptr<ral::frame::BlazingTable> converted_data = parser->parse(files[file_index].fileHandle,
 					user_readable_file_handles[file_index],
 					fileSchema,
