@@ -98,7 +98,7 @@ void expect_columns_equal(cudf::column_view const& lhs, cudf::column_view const&
       std::vector<std::string> h_right_strings = to_strings(diff_table->get_column(1));
 
       for (size_t i = 0 ; i < differences.size() ; ++i) {
-          buffer << "lhs[" << differences[i] << "] = " << h_left_strings[i]
+          std::cout << "lhs[" << differences[i] << "] = " << h_left_strings[i]
                  << ", rhs[" << differences[i] << "] = " << h_right_strings[i] << std::endl;
       }
 

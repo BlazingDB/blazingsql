@@ -30,6 +30,10 @@
 #include <vector>
 #include <execution_graph/logic_controllers/LogicalFilter.h>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
+#include "cudf/stream_compaction.hpp"
+
+using namespace ral::frame;
+using namespace ral::processor;
 
 template <typename T>
 struct ApplyFilter : public cudf::test::BaseFixture {};
@@ -39,267 +43,96 @@ TYPED_TEST_CASE(ApplyFilter, cudf::test::NumericTypes);
 TYPED_TEST(ApplyFilter, withNull)
 {
     using T = TypeParam;
-    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5}, {1, 1, 0, 1, 1, 1}};
-    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d"}, {1, 0, 1, 1, 1, 1});
-    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10}, {0, 1, 1, 1, 1, 1}};
+    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5, 6}, {1, 1, 0, 1, 1, 1, 1}};
+    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d", "l"}, {1, 0, 1, 1, 1, 1, 1});
+    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {0, 1, 1, 1, 1, 1, 0}};
     CudfTableView cudf_table_in_view {{col1, col2, col3}};
-    CudfTable cudf_table_in(cudf_table_in_view);
     std::vector<std::string> names({"A", "B", "C"});
-    BlazingTable table_in(input, names);
-
-    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 1, 0, 1, 0}, {1, 1, 0, 1, 1, 1}};
-    cudf::column bool_filter_col(boolMask);
-
-    std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::applyBooleanFilter(
-        table_in.view(),bool_filter_col.view());
-
-
-    cudf::test::expect_tables_equal(expected_sort_by_key_table->view(), table_out->view()->view());
-
-    table_out->view()
-
-
+    BlazingTableView table_in(cudf_table_in_view, names);
     
+
+    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 1, 0, 1, 0, 0}, {1, 1, 0, 1, 1, 1, 0}};
+    cudf::column_view bool_filter_col(bool_filter);
+
+    std::unique_ptr<ral::frame::BlazingTable> table_out = applyBooleanFilter(
+        table_in,bool_filter_col);
+
+    cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 8}, {1, 1,1}};
+    cudf::test::strings_column_wrapper expect_col2({"d", "e", "k"}, {1, 0, 1});
+    cudf::test::fixed_width_column_wrapper<T> expect_col3{{10, 40, 2}, {0, 1, 1}};
+    CudfTableView expect_cudf_table_view {{expect_col1, expect_col2, expect_col3}};
+
+    std::string col0_string = cudf::test::to_string(table_out->view().column(0), "|");
+    std::cout<<"col0_string: "<<col0_string<<std::endl;
+    std::string col1_string = cudf::test::to_string(table_out->view().column(1), "|");
+    std::cout<<"col1_string: "<<col1_string<<std::endl;
+    std::string col2_string = cudf::test::to_string(table_out->view().column(2), "|");
+    std::cout<<"col2_string: "<<col2_string<<std::endl;
+
+    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
 }
 
-void run_sort_test (cudf::table_view input,
-                    cudf::column_view expected_sorted_indices,
-                    std::vector<cudf::order> column_order = {},
-                    std::vector<cudf::null_order> null_precedence = {}
-                    ) {
+// currently not passing due to issue in apply_boolean_mask. (https://github.com/rapidsai/cudf/issues/3714)
+// TYPED_TEST(ApplyFilter, withOutNull)
+// {
+//     using T = TypeParam;
+//     cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5, 6}};
+//     cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d", "l"});
+//     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}};
+//     CudfTableView cudf_table_in_view {{col1, col2, col3}};
+//     std::vector<std::string> names({"A", "B", "C"});
+//     BlazingTableView table_in(cudf_table_in_view, names);
+    
 
-    // Sorted table
-    auto got_sorted_table = cudf::experimental::sort(input, column_order, null_precedence);
-    auto expected_sorted_table = cudf::experimental::gather(input, expected_sorted_indices);
+//     cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 0, 0, 1, 0, 0}};
+//     cudf::column_view bool_filter_col(bool_filter);
 
-    cudf::test::expect_tables_equal(expected_sorted_table->view(), got_sorted_table->view());
+//     std::unique_ptr<ral::frame::BlazingTable> table_out = applyBooleanFilter(
+//         table_in,bool_filter_col);
 
-    // Sorted by key
-    auto got_sort_by_key_table = cudf::experimental::sort_by_key(input, input, column_order, null_precedence);
-    auto expected_sort_by_key_table = cudf::experimental::gather(input, expected_sorted_indices);
+//     cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 8}};
+//     cudf::test::strings_column_wrapper expect_col2({"d", "e", "k"});
+//     cudf::test::fixed_width_column_wrapper<T> expect_col3{{10, 40, 2}};
+//     CudfTableView expect_cudf_table_view {{expect_col1, expect_col2, expect_col3}};
 
-    cudf::test::expect_tables_equal(expected_sort_by_key_table->view(), got_sort_by_key_table->view());
-}
+//     std::string col0_string = cudf::test::to_string(table_out->view().column(0), "|");
+//     std::cout<<"col0_string: "<<col0_string<<std::endl;
+//     std::string col1_string = cudf::test::to_string(table_out->view().column(1), "|");
+//     std::cout<<"col1_string: "<<col1_string<<std::endl;
+//     std::string col2_string = cudf::test::to_string(table_out->view().column(2), "|");
+//     std::cout<<"col2_string: "<<col2_string<<std::endl;
 
-template <typename T>
-struct Sort : public cudf::test::BaseFixture {};
+//     cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+// }
 
-TYPED_TEST_CASE(Sort, cudf::test::NumericTypes);
-
-TYPED_TEST(Sort, WithNullMax)
+TYPED_TEST(ApplyFilter, withAndWithOutNull)
 {
     using T = TypeParam;
+    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5, 6}, {1, 1, 0, 1, 1, 1, 1}};
+    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d", "l"}, {1, 0, 1, 1, 1, 1, 1});
+    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {0, 1, 1, 1, 1, 1, 0}};
+    CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::vector<std::string> names({"A", "B", "C"});
+    BlazingTableView table_in(cudf_table_in_view, names);
+    
 
-    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5}, {1, 1, 0, 1, 1, 1}};
-    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d"}, {1, 1, 0, 1, 1, 1});
-    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10}, {1, 1, 0, 1, 1, 1}};
-    cudf::table_view input {{col1, col2, col3}};
+    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 0, 0, 1, 0, 0}};
+    cudf::column_view bool_filter_col(bool_filter);
 
-    cudf::test::fixed_width_column_wrapper<int32_t> expected{{1, 0, 5, 3, 4, 2}};
-    std::vector<cudf::order> column_order {cudf::order::ASCENDING, cudf::order::ASCENDING, cudf::order::DESCENDING};
-    std::vector<cudf::null_order> null_precedence {cudf::null_order::AFTER, cudf::null_order::AFTER, cudf::null_order::AFTER};
+    std::unique_ptr<ral::frame::BlazingTable> table_out = applyBooleanFilter(
+        table_in,bool_filter_col);
 
-    // Sorted order
-    auto got = cudf::experimental::sorted_order(input, column_order, null_precedence);
+    cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 8}, {1, 1,1}};
+    cudf::test::strings_column_wrapper expect_col2({"d", "e", "k"}, {1, 0, 1});
+    cudf::test::fixed_width_column_wrapper<T> expect_col3{{10, 40, 2}, {0, 1, 1}};
+    CudfTableView expect_cudf_table_view {{expect_col1, expect_col2, expect_col3}};
 
-    if (!std::is_same<T, cudf::experimental::bool8>::value) {
-        cudf::test::expect_columns_equal(expected, got->view());
+    std::string col0_string = cudf::test::to_string(table_out->view().column(0), "|");
+    std::cout<<"col0_string: "<<col0_string<<std::endl;
+    std::string col1_string = cudf::test::to_string(table_out->view().column(1), "|");
+    std::cout<<"col1_string: "<<col1_string<<std::endl;
+    std::string col2_string = cudf::test::to_string(table_out->view().column(2), "|");
+    std::cout<<"col2_string: "<<col2_string<<std::endl;
 
-        // Run test for cudf::experimental::sort and sort_by_key
-        run_sort_test(input, expected, column_order, null_precedence);
-    } else {
-        // for bools only validate that the null element landed at the back, since
-        // the rest of the values are equivalent and yields random sorted order.
-        auto to_host = [](cudf::column_view const& col) {
-            std::vector<int32_t> h_data(col.size());
-            cudaMemcpy(h_data.data(), col.data<int32_t>(),
-                       h_data.size() * sizeof(int32_t),
-                       cudaMemcpyDefault);
-            return h_data;
-        };
-        std::vector<int32_t> h_exp = to_host(expected);
-        std::vector<int32_t> h_got = to_host(got->view());
-        EXPECT_EQ(h_exp.at(h_exp.size() - 1),
-                  h_got.at(h_got.size() - 1));
-
-        // Run test for cudf::experimental::sort and sort_by_key
-        cudf::test::fixed_width_column_wrapper<int32_t> expected_for_bool{{0, 3, 5, 1, 4, 2}};
-        run_sort_test(input, expected_for_bool, column_order, null_precedence);
-    }
-
-
-}
-
-TYPED_TEST(Sort, WithNullMin)
-{
-    using T = TypeParam;
-
-    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8}, {1, 1, 0, 1, 1}};
-    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k"}, {1, 1, 0, 1, 1});
-    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2}, {1, 1, 0, 1, 1}};
-    cudf::table_view input {{col1, col2, col3}};
-
-    cudf::test::fixed_width_column_wrapper<int32_t> expected{{2, 1, 0, 3, 4}};
-    std::vector<cudf::order> column_order {cudf::order::ASCENDING, cudf::order::ASCENDING, cudf::order::DESCENDING};
-
-    auto got = cudf::experimental::sorted_order(input, column_order);
-
-    if (!std::is_same<T, cudf::experimental::bool8>::value) {
-        cudf::test::expect_columns_equal(expected, got->view());
-
-        // Run test for cudf::experimental::sort and sort_by_key
-        run_sort_test(input, expected, column_order);
-    } else {
-        // for bools only validate that the null element landed at the front, since
-        // the rest of the values are equivalent and yields random sorted order.
-        auto to_host = [](cudf::column_view const& col) {
-            std::vector<int32_t> h_data(col.size());
-            cudaMemcpy(h_data.data(), col.data<int32_t>(),
-                       h_data.size() * sizeof(int32_t),
-                       cudaMemcpyDefault);
-            return h_data;
-        };
-        std::vector<int32_t> h_exp = to_host(expected);
-        std::vector<int32_t> h_got = to_host(got->view());
-        EXPECT_EQ(h_exp.at(0),
-                  h_got.at(0));
-
-        // Run test for cudf::experimental::sort and sort_by_key
-        cudf::test::fixed_width_column_wrapper<int32_t> expected_for_bool{{2, 0, 3, 1, 4}};
-        run_sort_test(input, expected_for_bool, column_order);
-    }
-}
-
-TYPED_TEST(Sort, WithMixedNullOrder)
-{
-    using T = TypeParam;
-
-    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8},    {0, 0, 1, 1, 0}};
-    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k"}, {0, 1, 0, 0, 1});
-    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2}, {1, 0, 1, 0, 1}};
-    cudf::table_view input {{col1, col2, col3}};
-
-    cudf::test::fixed_width_column_wrapper<int32_t> expected{{2, 3, 0, 1, 4}};
-    std::vector<cudf::order> column_order {cudf::order::ASCENDING, cudf::order::ASCENDING, cudf::order::ASCENDING};
-    std::vector<cudf::null_order> null_precedence {cudf::null_order::AFTER, cudf::null_order::BEFORE, cudf::null_order::AFTER};
-
-    auto got = cudf::experimental::sorted_order(input, column_order, null_precedence);
-
-    if (!std::is_same<T, cudf::experimental::bool8>::value) {
-        cudf::test::expect_columns_equal(expected, got->view());
-    } else {
-        // for bools only validate that the null element landed at the front, since
-        // the rest of the values are equivalent and yields random sorted order.
-        auto to_host = [](cudf::column_view const& col) {
-            std::vector<int32_t> h_data(col.size());
-            cudaMemcpy(h_data.data(), col.data<int32_t>(),
-                       h_data.size() * sizeof(int32_t),
-                       cudaMemcpyDefault);
-            return h_data;
-        };
-        std::vector<int32_t> h_exp = to_host(expected);
-        std::vector<int32_t> h_got = to_host(got->view());
-        EXPECT_EQ(h_exp.at(0),
-                  h_got.at(0));
-    }
-
-    // Run test for cudf::experimental::sort and sort_by_key
-    run_sort_test(input, expected, column_order, null_precedence);
-}
-
-TYPED_TEST(Sort, WithAllValid)
-{
-    using T = TypeParam;
-
-    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8}};
-    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k"});
-    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2}};
-    cudf::table_view input {{col1, col2, col3}};
-
-    cudf::test::fixed_width_column_wrapper<int32_t> expected{{2, 1, 0, 3, 4}};
-    std::vector<cudf::order> column_order {cudf::order::ASCENDING, cudf::order::ASCENDING, cudf::order::DESCENDING};
-
-    auto got = cudf::experimental::sorted_order(input, column_order);
-
-    // Skip validating bools order. Valid true bools are all
-    // equivalent, and yield random order after thrust::sort
-    if (!std::is_same<T, cudf::experimental::bool8>::value) {
-        cudf::test::expect_columns_equal(expected, got->view());
-
-        // Run test for cudf::experimental::sort and sort_by_key
-        run_sort_test(input, expected, column_order);
-    } else {
-        // Run test for cudf::experimental::sort and sort_by_key
-        cudf::test::fixed_width_column_wrapper<int32_t> expected_for_bool{{2, 0, 3, 1, 4}};
-        run_sort_test(input, expected_for_bool, column_order);
-    }
-}
-
-TYPED_TEST(Sort, MisMatchInColumnOrderSize)
-{
-    using T = TypeParam;
-
-    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8}};
-    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k"});
-    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2}};
-    cudf::table_view input {{col1, col2, col3}};
-
-    std::vector<cudf::order> column_order {cudf::order::ASCENDING, cudf::order::DESCENDING};
-
-    EXPECT_THROW(cudf::experimental::sorted_order(input, column_order), cudf::logic_error);
-    EXPECT_THROW(cudf::experimental::sort(input, column_order), cudf::logic_error);
-    EXPECT_THROW(cudf::experimental::sort_by_key(input, input, column_order), cudf::logic_error);
-}
-
-TYPED_TEST(Sort, MisMatchInNullPrecedenceSize)
-{
-    using T = TypeParam;
-
-    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8}};
-    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k"});
-    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2}};
-    cudf::table_view input {{col1, col2, col3}};
-
-    std::vector<cudf::order> column_order {cudf::order::ASCENDING, cudf::order::DESCENDING, cudf::order::DESCENDING};
-    std::vector<cudf::null_order>  null_precedence {cudf::null_order::AFTER, cudf::null_order::BEFORE};
-
-    EXPECT_THROW(cudf::experimental::sorted_order(input, column_order, null_precedence), cudf::logic_error);
-    EXPECT_THROW(cudf::experimental::sort(input, column_order, null_precedence), cudf::logic_error);
-    EXPECT_THROW(cudf::experimental::sort_by_key(input, input, column_order, null_precedence), cudf::logic_error);
-}
-
-TYPED_TEST(Sort, ZeroSizedColumns)
-{
-    using T = TypeParam;
-
-    cudf::test::fixed_width_column_wrapper<T> col1{};
-    cudf::table_view input {{col1}};
-
-    cudf::test::fixed_width_column_wrapper<int32_t> expected{};
-    std::vector<cudf::order> column_order {cudf::order::ASCENDING};
-
-    auto got = cudf::experimental::sorted_order(input, column_order);
-
-    cudf::test::expect_columns_equal(expected, got->view());
-
-    // Run test for cudf::experimental::sort and sort_by_key
-    run_sort_test(input, expected, column_order);
-}
-
-struct SortByKey : public cudf::test::BaseFixture {};
-
-TEST_F(SortByKey, ValueKeysSizeMismatch) {
-    using T = int64_t;
-
-    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8}};
-    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k"});
-    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2}};
-    cudf::table_view values {{col1, col2, col3}};
-
-    cudf::test::fixed_width_column_wrapper<T> key_col{{5, 4, 3, 5}};
-    cudf::table_view keys {{key_col}};
-
-    EXPECT_THROW(cudf::experimental::sort_by_key(values, keys), cudf::logic_error);
-
-
+    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
 }
