@@ -19,6 +19,7 @@
 #include "CalciteExpressionParsing.h"
 #include "utilities/CommonOperations.h"
 #include "legacy/stream_compaction.hpp"
+#include "../io/data_parser/ParserUtil.h"
 
 #include <memory> // this is for std::static_pointer_cast
 #include <string>
@@ -28,6 +29,16 @@ using namespace ral::distribution;
 
 namespace ral {
 namespace skip_data {
+
+//  file_handle_index | int32 | -        |
+// | row_group_index   | int32 | -    
+std::vector<gdf_column_cpp> create_empty_result() {
+    std::vector<std::string> names = {"file_handle_index", "row_group_index"};
+    std::vector<gdf_dtype> dtypes = {GDF_INT32, GDF_INT32};
+    std::vector<gdf_time_unit> time_units = {TIME_UNIT_NONE, TIME_UNIT_NONE};
+    std::vector<size_t> column_indices = {0, 1};
+    return ral::io::create_empty_columns(names, dtypes, time_units, column_indices);
+}
 
 // "BindableTableScan(table=[[main, customer]], filters=[[OR(AND(<($0, 15000), =($1, 5)), =($0, *($1, $1)), >=($1, 10), <=($2, 500))]], projects=[[0, 3, 5]], aliases=[[c_custkey, c_nationkey, c_acctbal]])"
 //      projects=[[0, 3, 5]]
@@ -46,16 +57,16 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
     minmax_metadata_frame.add_table(new_minmax_metadata_table_cpp);
      
     if (minmax_metadata_frame.get_width() == 0){
-        return {};
+        return create_empty_result();
     } 
     std::string filter_string;
     try {
         filter_string = get_filter_expression(table_scan);
         if (filter_string.empty()) {
-            return {};
+            return create_empty_result();
         }
     } catch (...) {
-        return {};
+        return create_empty_result();
     }
     filter_string = clean_calcite_expression(filter_string);
 
@@ -72,10 +83,10 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
         filter_string =  tree.prefix();
 
     } else { // something happened and could not process
-        return {};
+        return create_empty_result();
     }
     if (filter_string.empty()) {
-        return {};
+        return create_empty_result();
     }
     // then we follow a similar pattern to process_filter
     gdf_column_cpp stencil;
@@ -128,7 +139,7 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
     if (localEnd - localStart > 0){
         return row_group_identifiers;
     }
-    return {};
+    return create_empty_result();
 }
 
 

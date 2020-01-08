@@ -652,9 +652,7 @@ class BlazingContext(object):
                             workers=[worker]))
                     i = i + 1
                 result = dask.dataframe.from_delayed(dask_futures)
-                if result.compute().empty:
-                    return 
-
+                print("SKIP_DATA+++")
                 for index in range(len(self.nodes)):
                     file_indices_and_rowgroup_indices = result.get_partition(index).compute()
                     if file_indices_and_rowgroup_indices.empty :
