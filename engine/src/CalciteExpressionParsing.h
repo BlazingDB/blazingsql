@@ -76,6 +76,7 @@ void get_common_type(gdf_dtype type1,
 	gdf_dtype_extra_info & info_out);
 
 std::string get_named_expression(std::string query_part, std::string expression_name);
+std::string get_filter_expression(std::string query_part);
 
 bool contains_evaluation(std::string expression);
 
