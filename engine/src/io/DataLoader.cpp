@@ -298,6 +298,7 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	for(auto extra_column : non_file_columns) {
 		schema.add_column(extra_column.first, to_type_id(extra_column.second), 0, false);
 	}
+	this->provider->reset();
 }
 
 } /* namespace io */
