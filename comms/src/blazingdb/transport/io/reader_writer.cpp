@@ -87,7 +87,7 @@ PinnedBufferProvider &getPinnedBufferProvider() { return *global_instance; }
 
 void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
                             std::vector<int> bufferSizes,
-                            std::vector<char *> buffers, void *fileDescriptor,
+                            std::vector<const char *> buffers, void *fileDescriptor,
                             int gpuNum) {
   if (bufferSizes.size() == 0) {
     return;
@@ -228,15 +228,18 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
   getPinnedBufferProvider().freeAll();
 }
 
-std::vector<char *> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
+std::vector<const char *> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
                                           void *fileDescriptor, int gpuNum) {
   std::vector<std::thread> allocationThreads(bufferSizes.size());
   std::vector<std::thread> readThreads(bufferSizes.size());
-  std::vector<char *> tempReadAllocations(bufferSizes.size());
+  std::vector<const char *> tempReadAllocations(bufferSizes.size());
   for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
     cudaSetDevice(gpuNum);
-    RMM_ALLOC(reinterpret_cast<void **>(&tempReadAllocations[bufferIndex]),
-              bufferSizes[bufferIndex], 0);
+	
+	// TODO percy cudf0.12 port to cudf::column and rmm stuff
+    //RMM_ALLOC(reinterpret_cast<const void **>(&tempReadAllocations[bufferIndex]),
+    //          bufferSizes[bufferIndex], 0);
+	
   }
   for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
     std::vector<std::thread> copyThreads;
@@ -260,7 +263,7 @@ std::vector<char *> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
           [&tempReadAllocations, &bufferSizes, &allocationThreads, bufferIndex,
            buffer, amountRead, amountReadTotal, gpuNum]() {
             cudaSetDevice(gpuNum);
-            cudaMemcpyAsync(tempReadAllocations[bufferIndex] + amountReadTotal,
+            cudaMemcpyAsync(const_cast<char *>(tempReadAllocations[bufferIndex] + amountReadTotal),
                             buffer->data, amountRead, cudaMemcpyHostToDevice,
                             nullptr);
             getPinnedBufferProvider().freeBuffer(buffer);

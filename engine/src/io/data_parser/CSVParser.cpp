@@ -71,7 +71,7 @@ void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 
 	if(file == nullptr) {
 		columns_out =
-			create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
+			create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
 		return;
 	}
 	auto csv_arg = this->csv_arg;
@@ -80,9 +80,9 @@ void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		csv_arg.use_cols_indexes.resize(column_indices.size());
 		csv_arg.use_cols_indexes.assign(column_indices.begin(), column_indices.end());
 
-		cudf::table table_out = read_csv_arg_arrow(csv_arg, file);
-
-		assert(table_out.num_columns() > 0);
+		// TODO percy cudf0.12 port cudf::column and io stuff
+//		cudf::table table_out = read_csv_arg_arrow(csv_arg, file);
+//		assert(table_out.num_columns() > 0);
 
 		// column_indices may be requested in a specific order (not necessarily sorted), but read_csv will output the
 		// columns in the sorted order, so we need to put them back into the order we want
@@ -94,34 +94,38 @@ void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		});
 
 		columns_out.resize(column_indices.size());
-		for(size_t i = 0; i < columns_out.size(); i++) {
-			if(table_out.get_column(i)->dtype == GDF_STRING) {
-				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
-				NVCategory * category = NVCategory::create_from_strings(*strs);
-				std::string column_name(table_out.get_column(i)->col_name);
-				columns_out[idx[i]].create_gdf_column(category, table_out.get_column(i)->size, column_name);
-				gdf_column_free(table_out.get_column(i));
-			} else {
-				columns_out[idx[i]].create_gdf_column(table_out.get_column(i));
-			}
-		}
+
+		// TODO percy cudf0.12 port cudf::column and io stuff
+//		for(size_t i = 0; i < columns_out.size(); i++) {
+//			if(table_out.get_column(i)->dtype == GDF_STRING) {
+//				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
+//				NVCategory * category = NVCategory::create_from_strings(*strs);
+//				std::string column_name(table_out.get_column(i)->col_name);
+//				columns_out[idx[i]].create_gdf_column(category, table_out.get_column(i)->size, column_name);
+//				gdf_column_free(table_out.get_column(i));
+//			} else {
+//				columns_out[idx[i]].create_gdf_column(table_out.get_column(i));
+//			}
+//		}
 	}
 }
 
 
 void csv_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
-	cudf::table table_out = read_csv_arg_arrow(csv_arg, files[0], true);
+	
+	// TODO percy cudf0.12 port cudf::column and io stuff
+//	cudf::table table_out = read_csv_arg_arrow(csv_arg, files[0], true);
 
-	assert(table_out.num_columns() > 0);
+//	assert(table_out.num_columns() > 0);
 
-	for(size_t i = 0; i < table_out.num_columns(); i++) {
-		gdf_column_cpp c;
-		c.create_gdf_column(table_out.get_column(i));
-		if(i < csv_arg.names.size())
-			c.set_name(csv_arg.names[i]);
-		schema.add_column(c, i);
-	}
+//	for(size_t i = 0; i < table_out.num_columns(); i++) {
+//		gdf_column_cpp c;
+//		c.create_gdf_column(table_out.get_column(i));
+//		if(i < csv_arg.names.size())
+//			c.set_name(csv_arg.names[i]);
+//		schema.add_column(c, i);
+//	}
 }
 
 } /* namespace io */

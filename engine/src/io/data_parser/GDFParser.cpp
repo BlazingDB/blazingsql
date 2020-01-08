@@ -38,22 +38,23 @@ void gdf_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	for(auto column_index : column_indices_requested) {
 		const std::string column_name = this->tableSchema.names[column_index];
 
-		auto column = this->tableSchema.columns[column_index];
-		gdf_column_cpp col;
-		if(column->dtype == GDF_STRING) {
-			NVCategory * category = NVCategory::create_from_strings(*(NVStrings *) column->data);
-			col.create_gdf_column(category, column->size, column_name);
-		} else if(column->dtype == GDF_STRING_CATEGORY) {
-			// The RAL can change the category during execution and the Python side won't
-			// realize update the category so we have to make a copy
-			// this shouldn't be not longer neccesary with the new cudf columns
-			NVCategory * new_category = static_cast<NVCategory *>(column->dtype_info.category)->copy();
-			col.create_gdf_column(new_category, column->size, column_name);
-		} else {
-			col.create_gdf_column(column, false);
-		}
+		// TODO percy cudf0.12 port cudf::column and io stuff
+//		auto column = this->tableSchema.columns[column_index];
+//		gdf_column_cpp col;
+//		if(column->dtype == GDF_STRING) {
+//			NVCategory * category = NVCategory::create_from_strings(*(NVStrings *) column->data);
+//			col.create_gdf_column(category, column->size, column_name);
+//		} else if(column->dtype == GDF_STRING_CATEGORY) {
+//			// The RAL can change the category during execution and the Python side won't
+//			// realize update the category so we have to make a copy
+//			// this shouldn't be not longer neccesary with the new cudf columns
+//			NVCategory * new_category = static_cast<NVCategory *>(column->dtype_info.category)->copy();
+//			col.create_gdf_column(new_category, column->size, column_name);
+//		} else {
+//			col.create_gdf_column(column, false);
+//		}
 
-		columns.push_back(col);
+//		columns.push_back(col);
 	}
 	columns_out = columns;
 }
@@ -61,17 +62,16 @@ void gdf_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 void gdf_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 	std::vector<std::string> names;
-	std::vector<gdf_dtype> types;
-	std::vector<gdf_time_unit> time_units;
+	std::vector<cudf::type_id> types;
 
-	std::for_each(
-		this->tableSchema.columns.begin(), this->tableSchema.columns.end(), [&types, &time_units](gdf_column * column) {
-			types.push_back(column->dtype);
-			time_units.push_back(column->dtype_info.time_unit);
-		});
+	// TODO percy cudf0.12 port to cudf::column
+	//	std::for_each(
+//		this->tableSchema.columns.begin(), this->tableSchema.columns.end(), [&types](cudf::column * column) {
+//			types.push_back(column->type().id());
+//		});
 
 	names = this->tableSchema.names;
-	ral::io::Schema temp_schema(names, types, time_units);
+	ral::io::Schema temp_schema(names, types);
 	schema = temp_schema;
 	// generate schema from message here
 }

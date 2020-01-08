@@ -13,16 +13,16 @@ std::vector<ColumnType> create_data(std::initializer_list<ColumnType> & list) {
 	return std::vector<ColumnType>(list.begin(), list.end());
 }
 
-std::vector<gdf_valid_type> create_bitmask_set(gdf_size_type size) {
-	gdf_size_type bitmask_size = ral::traits::get_bitmask_size_in_bytes(size);
-	return std::vector<gdf_valid_type>(bitmask_size, 0xFF);
+std::vector<cudf::valid_type> create_bitmask_set(cudf::size_type size) {
+	cudf::size_type bitmask_size = ral::traits::get_bitmask_size_in_bytes(size);
+	return std::vector<cudf::valid_type>(bitmask_size, 0xFF);
 }
 
 }  // namespace
 
 template <gdf_dtype T>
 gdf_column_cpp create_column(std::initializer_list<ral::traits::type<T>> list) {
-	gdf_size_type size = list.size();
+	cudf::size_type size = list.size();
 	auto data = create_data(list);
 	auto bitmask = create_bitmask_set(size);
 
@@ -33,7 +33,7 @@ gdf_column_cpp create_column(std::initializer_list<ral::traits::type<T>> list) {
 
 template <gdf_dtype T>
 gdf_column_cpp create_column(std::vector<ral::traits::type<T>> list) {
-	gdf_size_type size = list.size();
+	cudf::size_type size = list.size();
 	auto bitmask = create_bitmask_set(size);
 
 	gdf_column_cpp output;

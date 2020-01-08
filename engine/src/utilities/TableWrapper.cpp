@@ -18,9 +18,9 @@ TableWrapper::TableWrapper(const std::vector<gdf_column_cpp> & columns, const st
 	}
 }
 
-gdf_column ** TableWrapper::getColumns() { return columns_.data(); }
+cudf::column ** TableWrapper::getColumns() { return columns_.data(); }
 
-gdf_size_type TableWrapper::getQuantity() { return columns_.size(); }
+cudf::size_type TableWrapper::getQuantity() { return columns_.size(); }
 
 }  // namespace utilities
 }  // namespace ral

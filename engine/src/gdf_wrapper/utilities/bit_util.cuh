@@ -36,7 +36,7 @@ using ValidType = uint32_t;
 //}
 
 // Instead of this function, use gdf_is_valid from gdf/utils.h
-///__host__ __device__ __forceinline__ bool get_bit(const gdf_valid_type* const bits, size_t i)
+///__host__ __device__ __forceinline__ bool get_bit(const cudf::valid_type* const bits, size_t i)
 ///{
 ///  return  bits == nullptr? true :  bits[i >> size_t(3)] & (1 << (i & size_t(7)));
 ///}
@@ -57,12 +57,12 @@ __host__ __device__ __forceinline__
   return kFlippedBitmask[i];
 }
 
-__host__ __device__ __forceinline__ void turn_bit_on(gdf_valid_type* const bits, size_t i)
+__host__ __device__ __forceinline__ void turn_bit_on(cudf::valid_type* const bits, size_t i)
 {
   bits[i / 8] |= byte_bitmask(i % 8);
 }
 
-__host__ __device__ __forceinline__ void turn_bit_off(gdf_valid_type* const bits, size_t i)
+__host__ __device__ __forceinline__ void turn_bit_off(cudf::valid_type* const bits, size_t i)
 {
   bits[i / 8] &= flipped_bitmask(i % 8);
 }
@@ -72,7 +72,7 @@ __host__ __device__ __forceinline__ size_t last_byte_index(size_t column_size)
   return (column_size + 8 - 1) / 8;
 }
 
-static inline std::string chartobin(gdf_valid_type c, int size = 8)
+static inline std::string chartobin(cudf::valid_type c, int size = 8)
 {
   std::string bin;
   bin.resize(size);
@@ -86,7 +86,7 @@ static inline std::string chartobin(gdf_valid_type c, int size = 8)
   return bin;
 }
 
-static inline std::string gdf_valid_to_str(gdf_valid_type *valid, size_t column_size)
+static inline std::string gdf_valid_to_str(cudf::valid_type *valid, size_t column_size)
 {
   size_t n_bytes = get_number_of_bytes_for_valid(column_size);
   std::string response;

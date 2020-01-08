@@ -21,7 +21,7 @@ void evaluate_expression(blazing_frame & inputs, const std::string & expression,
 
 
 void add_expression_to_plan(blazing_frame & inputs,
-	std::vector<gdf_column *> & input_columns,
+	std::vector<cudf::column *> & input_columns,
 	std::string expression,
 	column_index_type expression_position,
 	column_index_type num_outputs,
@@ -34,11 +34,11 @@ void add_expression_to_plan(blazing_frame & inputs,
 	std::vector<gdf_unary_operator> & unary_operators,
 
 
-	std::vector<gdf_scalar> & left_scalars,
-	std::vector<gdf_scalar> & right_scalars,
+	std::vector<cudf::scalar*> & left_scalars,
+	std::vector<cudf::scalar*> & right_scalars,
 	std::vector<column_index_type> & new_input_indices,
 
 	std::vector<column_index_type> & final_output_positions,
-	gdf_column * output_column = nullptr);
+	cudf::column * output_column = nullptr);
 
 #endif /* LOGICALFILTER_H_ */

@@ -52,18 +52,18 @@ struct NVCategoryTest : public query_test {
     return ret;
   }
 
-  gdf_column *create_boolean_column(gdf_size_type num_rows) {
+  gdf_column *create_boolean_column(cudf::size_type num_rows) {
     gdf_column *column = new gdf_column;
     int *data;
     bit_mask::bit_mask_t *valid;
     bit_mask::create_bit_mask(&valid, num_rows, 1);
     EXPECT_EQ(RMM_ALLOC(&data, num_rows * sizeof(int8_t), 0), RMM_SUCCESS);
     gdf_error err = gdf_column_view(
-        column, (void *)data, (gdf_valid_type *)valid, num_rows, GDF_INT8);
+        column, (void *)data, (cudf::valid_type *)valid, num_rows, GDF_INT8);
     return column;
   }
 
-  gdf_column *create_column_constant(gdf_size_type num_rows, int value) {
+  gdf_column *create_column_constant(cudf::size_type num_rows, int value) {
     gdf_column *column = new gdf_column;
     int *data;
     bit_mask::bit_mask_t *valid;
@@ -71,22 +71,22 @@ struct NVCategoryTest : public query_test {
     EXPECT_EQ(RMM_ALLOC(&data, num_rows * sizeof(int), 0), RMM_SUCCESS);
     cudaMemset(data, value, sizeof(int) * num_rows);
     gdf_error err = gdf_column_view(
-        column, (void *)data, (gdf_valid_type *)valid, num_rows, GDF_INT32);
+        column, (void *)data, (cudf::valid_type *)valid, num_rows, GDF_INT32);
     return column;
   }
 
-  gdf_column *create_indices_column(gdf_size_type num_rows) {
+  gdf_column *create_indices_column(cudf::size_type num_rows) {
     gdf_column *column = new gdf_column;
     int *data;
     bit_mask::bit_mask_t *valid;
     bit_mask::create_bit_mask(&valid, num_rows, 1);
     EXPECT_EQ(RMM_ALLOC(&data, num_rows * sizeof(int), 0), RMM_SUCCESS);
     gdf_error err = gdf_column_view(
-        column, (void *)data, (gdf_valid_type *)valid, num_rows, GDF_INT32);
+        column, (void *)data, (cudf::valid_type *)valid, num_rows, GDF_INT32);
     return column;
   }
 
-  gdf_column *create_column_ints(int32_t *host_data, gdf_size_type num_rows) {
+  gdf_column *create_column_ints(int32_t *host_data, cudf::size_type num_rows) {
     gdf_column *column = new gdf_column;
     int32_t *data;
     EXPECT_EQ(RMM_ALLOC(&data, num_rows * sizeof(int32_t), 0), RMM_SUCCESS);
@@ -97,16 +97,16 @@ struct NVCategoryTest : public query_test {
     bit_mask::create_bit_mask(&valid, num_rows, 1);
 
     gdf_error err = gdf_column_view(
-        column, (void *)data, (gdf_valid_type *)valid, num_rows, GDF_INT32);
+        column, (void *)data, (cudf::valid_type *)valid, num_rows, GDF_INT32);
     return column;
   }
 
-  gdf_column *create_nv_category_column(gdf_size_type num_rows,
+  gdf_column *create_nv_category_column(cudf::size_type num_rows,
                                         bool repeat_strings) {
 
     const char **string_host_data = new const char *[num_rows];
 
-    for (gdf_size_type row_index = 0; row_index < num_rows; row_index++) {
+    for (cudf::size_type row_index = 0; row_index < num_rows; row_index++) {
       string_host_data[row_index] =
           new char[(num_rows + 25) /
                    26]; // allows string to grow depending on numbe of rows
@@ -135,7 +135,7 @@ struct NVCategoryTest : public query_test {
     bit_mask::create_bit_mask(&valid, num_rows, 1);
 
     gdf_error err =
-        gdf_column_view(column, (void *)data, (gdf_valid_type *)valid, num_rows,
+        gdf_column_view(column, (void *)data, (cudf::valid_type *)valid, num_rows,
                         GDF_STRING_CATEGORY);
     column->dtype_info.category = category;
     return column;
@@ -167,17 +167,17 @@ struct NVCategoryTest : public query_test {
     bit_mask::create_bit_mask(&valid, num_rows, 1);
 
     gdf_error err =
-        gdf_column_view(column, (void *)data, (gdf_valid_type *)valid, num_rows,
+        gdf_column_view(column, (void *)data, (cudf::valid_type *)valid, num_rows,
                         GDF_STRING_CATEGORY);
     column->dtype_info.category = category;
     return column;
   }
 
-  int32_t *generate_int_data(gdf_size_type num_rows, size_t max_value,
+  int32_t *generate_int_data(cudf::size_type num_rows, size_t max_value,
                              bool print = false) {
     int32_t *host_data = new int32_t[num_rows];
 
-    for (gdf_size_type row_index = 0; row_index < num_rows; row_index++) {
+    for (cudf::size_type row_index = 0; row_index < num_rows; row_index++) {
       host_data[row_index] = std::rand() % max_value;
 
       if (print)
@@ -190,7 +190,7 @@ struct NVCategoryTest : public query_test {
   }
 
   gdf_column *create_nv_category_column_strings(const char **string_host_data,
-                                                gdf_size_type num_rows) {
+                                                cudf::size_type num_rows) {
     NVCategory *category =
         NVCategory::create_from_array(string_host_data, num_rows);
 
@@ -204,18 +204,18 @@ struct NVCategoryTest : public query_test {
     bit_mask::create_bit_mask(&valid, num_rows, 1);
 
     gdf_error err =
-        gdf_column_view(column, (void *)data, (gdf_valid_type *)valid, num_rows,
+        gdf_column_view(column, (void *)data, (cudf::valid_type *)valid, num_rows,
                         GDF_STRING_CATEGORY);
     column->dtype_info.category = category;
     column->col_name = nullptr;
     return column;
   }
 
-  const char **generate_string_data(gdf_size_type num_rows, size_t length,
+  const char **generate_string_data(cudf::size_type num_rows, size_t length,
                                     bool print = false) {
     const char **string_host_data = new const char *[num_rows];
 
-    for (gdf_size_type row_index = 0; row_index < num_rows; row_index++) {
+    for (cudf::size_type row_index = 0; row_index < num_rows; row_index++) {
       string_host_data[row_index] = new char[length + 1];
 
       std::string rand_string = random_string(length);

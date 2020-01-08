@@ -21,11 +21,12 @@ uri_data_provider::uri_data_provider(std::vector<Uri> uris)
 	: data_provider(), file_uris(uris), uri_scalars({}), string_scalars({}), is_column_string({}), opened_files({}),
 	  current_file(0), errors({}), directory_uris({}), directory_current_file(0) {}
 
+// TODO percy cudf0.12 implement proper scalar support
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
-	std::vector<std::map<std::string, gdf_scalar>> uri_scalars,
+	std::vector<std::map<std::string, cudf::scalar*>> uri_scalars,
 	std::vector<std::map<std::string, std::string>> string_scalars,
 	std::vector<std::map<std::string, bool>> is_column_string)
-	: data_provider(), file_uris(uris), uri_scalars(uri_scalars), string_scalars(string_scalars),
+	: data_provider(), file_uris(uris), /*uri_scalars(uri_scalars),*/ string_scalars(string_scalars),
 	  is_column_string(is_column_string), opened_files({}), current_file(0), errors({}), directory_uris({}),
 	  directory_current_file(0) {
 	// thanks to c++11 we no longer have anything interesting to do here :)

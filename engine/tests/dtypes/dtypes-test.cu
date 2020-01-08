@@ -22,7 +22,7 @@ protected:
                out_col.size() * sizeof(T),
                cudaMemcpyDeviceToHost);
 
-    for (gdf_size_type i = 0; i < out_col.size(); i++) {
+    for (cudf::size_type i = 0; i < out_col.size(); i++) {
       ASSERT_TRUE(host_output[i] == device_output[i]);
     }
   }

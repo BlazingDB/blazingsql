@@ -25,8 +25,9 @@ namespace io {
  */
 class uri_data_provider : public data_provider {
 public:
+	// TODO percy cudf0.12 implement proper scalar support
 	uri_data_provider(std::vector<Uri> uris,
-		std::vector<std::map<std::string, gdf_scalar>> uri_scalars,
+		std::vector<std::map<std::string, cudf::scalar*>> uri_scalars,
 		std::vector<std::map<std::string, std::string>> string_scalars,
 		std::vector<std::map<std::string, bool>> is_column_string);
 	uri_data_provider(std::vector<Uri> uris);
@@ -92,7 +93,7 @@ private:
 	 * partitioned tables where the files themselves wont have the partition columns
 	 * this gives us a way of passing those in
 	 */
-	std::vector<std::map<std::string, gdf_scalar>> uri_scalars;
+	std::vector<std::map<std::string, cudf::scalar*>> uri_scalars;
 	std::vector<std::map<std::string, std::string>> string_scalars;
 	std::vector<std::map<std::string, bool>> is_column_string;
 	std::vector<Uri> directory_uris;
