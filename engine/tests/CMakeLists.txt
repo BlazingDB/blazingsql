@@ -28,7 +28,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         
         blazingsql-engine
         ${PYTHON_LIBRARIES}
-        
+
         blazingdb-io
         Threads::Threads
         blazingdb-transport

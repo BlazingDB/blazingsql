@@ -29,6 +29,9 @@ struct TableSchema {
 	std::vector<bool> in_file;
 	int data_type;
 	ReaderArgs args;
+
+	std::vector<gdf_column *> metadata;
+	std::vector<std::vector<int>> row_groups_ids;
 	std::shared_ptr<arrow::Table> arrow_table;
 };
 
@@ -72,6 +75,13 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::vector<std::string> arg_values,
 	std::vector<std::pair<std::string, gdf_dtype>> extra_columns);
 
+TableSchema parseMetadata(std::vector<std::string> files,
+	std::pair<int, int> offset,
+	TableSchema schema,
+	std::string file_format_hint,
+	std::vector<std::string> arg_keys,
+	std::vector<std::string> arg_values,
+	std::vector<std::pair<std::string, gdf_dtype>> extra_columns);
 
 std::pair<bool, std::string> registerFileSystemHDFS(HDFS hdfs, std::string root, std::string authority);
 std::pair<bool, std::string> registerFileSystemGCS(GCS gcs, std::string root, std::string authority);

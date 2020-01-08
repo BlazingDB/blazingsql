@@ -8,7 +8,7 @@
 #pragma once
 
 #include <FileSystem/Uri.h>
-
+#include "Metadata.h"
 #include "GDFColumn.cuh"
 #include "data_parser/DataParser.h"
 #include "data_provider/DataProvider.h"
@@ -59,6 +59,8 @@ public:
 
 		
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
+
+	void get_metadata(Metadata & metadata, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
 
 private:
 	/**

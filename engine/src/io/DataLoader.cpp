@@ -60,7 +60,7 @@ void data_loader::load_data(const Context & context,
 				// std::cout<<"get num columns==>"<<schema.get_num_columns()<<std::endl;
 				// std::cout<<"file is "<< user_readable_file_handles[file_index]<<" with uri
 				// "<<files[file_index].uri.getPath().toString()<<std::endl;
-				Schema fileSchema = schema.fileSchema();
+				Schema fileSchema = schema.fileSchema(file_index);
 				parser->parse(files[file_index].fileHandle,
 					user_readable_file_handles[file_index],
 					converted_data,
@@ -300,6 +300,24 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 		schema.add_column(extra_column.first, to_type_id(extra_column.second), 0, false);
 	}
 	this->provider->reset();
+}
+
+void data_loader::get_metadata(Metadata & metadata, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns) {
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
+	// std::vector<std::string> user_readable_file_handles;
+
+	bool firstIteration = true;
+	std::vector<data_handle> handles = this->provider->get_all();
+	for(auto handle : handles) {
+		files.push_back(handle.fileHandle);
+		// user_readable_file_handles.push_back(handle.uri.toString());
+	}
+	if (this->parser->get_metadata(files,  metadata) == false) {
+		throw std::runtime_error("No metadata for this data file");
+	}
+	//TODO, non_file_columns hive feature, @percy
+	// ... 
+
 }
 
 } /* namespace io */
