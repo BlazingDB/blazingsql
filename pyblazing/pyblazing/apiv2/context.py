@@ -105,8 +105,18 @@ def checkSocket(socketNum):
     s.close()
     return socket_free
 
+class AllocatorOptions(object):
+    def __init__(self, 
+        allocator="managed",
+        pool=True,
+        initial_pool_size=None, # Default is 1/2 total GPU memory
+        enable_logging=False):
+        self.allocator = allocator
+        self.pool = pool
+        self.initial_pool_size = initial_pool_size
+        self.enable_logging = enable_logging
 
-def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False, allocator_options=AllocatorOptions):
+def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False, allocator_options=AllocatorOptions()):
     #print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
@@ -361,14 +371,6 @@ class BlazingTable(object):
 
     def get_partitions(self, worker):
         return self.dask_mapping[worker]
-
-
-class AllocatorOptions(object):
-    def __init__(
-        allocator="managed",
-        pool=True,
-        initial_pool_size=None, # Default is 1/2 total GPU memory
-        enable_logging=False):
 
 class BlazingContext(object):
 
