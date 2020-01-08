@@ -308,8 +308,7 @@ void execute_project_plan(blazing_frame & input, std::string query_part) {
 				params.operators,
 				params.unary_operators,
 				params.left_scalars,
-				params.right_scalars,
-				params.new_column_indices);
+				params.right_scalars);
 		}
 	}
 
