@@ -105,28 +105,20 @@ def checkSocket(socketNum):
     s.close()
     return socket_free
 
-class AllocatorOptions(object):
-    def __init__(self, 
-        allocator="managed",
-        pool=True,
-        initial_pool_size=None, # Default is 1/2 total GPU memory
-        enable_logging=False):
-        self.allocator = allocator
-        self.pool = pool
-        self.initial_pool_size = initial_pool_size
-        self.enable_logging = enable_logging
 
-def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False, allocator_options=AllocatorOptions()):
+def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
+        allocator="managed", pool=True,initial_pool_size=None, enable_logging=False):
+
     #print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    cudf.set_allocator(allocator=allocator_options.allocator,
-                        pool=allocator_options.pool,
-                        initial_pool_size=allocator_options.initial_pool_size,# Default is 1/2 total GPU memory
-                        enable_logging=allocator_options.enable_logging)
+    cudf.set_allocator(allocator=allocator,
+                        pool=pool,
+                        initial_pool_size=initial_pool_size,# Default is 1/2 total GPU memory
+                        enable_logging=enable_logging)
 
     cio.initializeCaller(
         ralId,
@@ -374,7 +366,13 @@ class BlazingTable(object):
 
 class BlazingContext(object):
 
-    def __init__(self, dask_client=None, network_interface=None, allocator_options=AllocatorOptions()):
+    def __init__(self, 
+                dask_client=None, # if None, it will run in single node
+                network_interface=None, 
+                allocator="managed", # options are "default" or "managed". Where "managed" uses Unified Virtual Memory (UVM) and may use system memory if GPU memory runs out
+                pool=True, # if True, it will allocate a memory pool in the beginning. This can greatly improve performance
+                initial_pool_size=None, # Initial size of memory pool in bytes (if pool=True). If None, it will default to using half of the GPU memory
+                enable_logging=False): # If set to True the memory allocator logging will be enabled, but can negatively impact perforamance
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -402,7 +400,10 @@ class BlazingContext(object):
                         ralId=i,
                         networkInterface=network_interface,
                         singleNode=False,
-                        allocator_options=allocator_options,
+                        allocator=allocator,
+                        pool=pool,
+                        initial_pool_size=initial_pool_size,
+                        enable_logging=enable_logging,
                         workers=[worker]))
                 worker_list.append(worker)
                 i = i + 1
@@ -420,7 +421,8 @@ class BlazingContext(object):
                 i = i + 1
         else:
             ralPort, ralIp, cwd = initializeBlazing(
-                ralId=0, networkInterface='lo', singleNode=True, allocator_options=allocator_options)
+                ralId=0, networkInterface='lo', singleNode=True, 
+                allocator=allocator, pool=pool, initial_pool_size=initial_pool_size, enable_logging=enable_logging)
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
