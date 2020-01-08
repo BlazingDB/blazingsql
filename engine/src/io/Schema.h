@@ -15,50 +15,9 @@
 #include <vector>
 
 
-// TODO includes from BlazingTable
-//#include <memory>
-//#include <vector>
-#include <string>
-#include "cudf/table/table.hpp"
-#include "cudf/table/table_view.hpp"
 #include "cudf/column/column_view.hpp"
-
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
 namespace ral {
-
-// TODO all this namespace frame should be erased from here
-namespace frame {
-	typedef cudf::experimental::table CudfTable;
-	typedef cudf::table_view CudfTableView;
-	typedef cudf::column_view CudfColumnView;
-class BlazingTable{
-  	public:
-  		BlazingTable(std::unique_ptr<CudfTable> table,std::vector<std::string> columnNames);
-  		CudfTableView view() const;
-
-			cudf::size_type num_columns() const {
-				return table->num_columns();
-			}
-
-			cudf::size_type num_rows() const {
-				return table->num_rows();
-			}
-  		std::vector<std::string> names() const;
-  	private:
-  		std::vector<std::string> columnNames;
-  		std::unique_ptr<CudfTable> table;
-};
-
-class BlazingTableView{
-  	public:
-		BlazingTableView(CudfTableView table,std::vector<std::string> columnNames);
-		CudfTableView view() const;
-		std::vector<std::string> names() const;
-  	private:
-		std::vector<std::string> columnNames;
-		CudfTableView table;
-};
-
-} // namespace frame
 
 namespace io {
 
