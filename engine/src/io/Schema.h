@@ -60,8 +60,9 @@ public:
 
 	size_t get_num_columns() const;
 
+	// DEPRECATED please use add_column(name, type, file_index, is_in_file)
 	void add_column(gdf_column_cpp column, size_t file_index);
-
+	
 	void add_file(std::string file);
 
 	void add_column(std::string name,

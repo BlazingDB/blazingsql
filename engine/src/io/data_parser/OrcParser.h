@@ -7,12 +7,15 @@
 #include <memory>
 #include <vector>
 
+#include <cudf/io/functions.hpp>
+
 namespace ral {
 namespace io {
 
 class orc_parser : public data_parser {
 public:
 	orc_parser(cudf::orc_read_arg orc_args);
+	orc_parser(cudf::experimental::io::read_orc_args orc_args);
 	virtual ~orc_parser();
 	void parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
@@ -23,7 +26,9 @@ public:
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, Schema & schema);
 
 private:
-	cudf::orc_read_arg orc_args{cudf::source_info{""}};
+// DEPRECATED use orc_args
+	cudf::orc_read_arg orc_arg{cudf::source_info{""}};
+	cudf::experimental::io::read_orc_args orc_args{cudf::experimental::io::source_info("")};
 };
 
 } /* namespace io */
