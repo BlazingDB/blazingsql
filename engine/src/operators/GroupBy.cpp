@@ -281,6 +281,45 @@ void aggregations_with_groupby(std::vector<gdf_column_cpp> & group_by_columns,
 	}
 }
 
+void _new_aggregations_with_groupby(std::vector<gdf_column_cpp> & group_by_columns,
+	std::vector<gdf_column_cpp> & aggregation_inputs,
+	const std::vector<gdf_agg_op> & agg_ops,
+	std::vector<gdf_column_cpp> & group_by_output_columns,
+	std::vector<gdf_column_cpp> & aggrgation_output_columns,
+	const std::vector<std::string> & output_column_names) {
+	cudf::table keys = ral::utilities::create_table(group_by_columns);
+	cudf::table values = ral::utilities::create_table(aggregation_inputs);
+
+	std::vector<cudf::groupby::operators> ops(agg_ops.size());
+	std::transform(agg_ops.begin(), agg_ops.end(), ops.begin(), [&](const gdf_agg_op & op) {
+		return gdf_agg_op_to_groupby_operators(op);
+	});
+
+	cudf::groupby::hash::Options options(false);  // options define null behaviour to be SQL style
+
+	cudf::table group_by_output_table;
+	cudf::table aggrgation_output_table;
+	std::tie(group_by_output_table, aggrgation_output_table) = cudf::groupby::hash::groupby(keys,
+                                            values, ops, options);
+	
+	init_string_category_if_null(group_by_output_table);
+    init_string_category_if_null(aggrgation_output_table);
+
+	group_by_output_columns.resize(group_by_output_table.num_columns());
+	for(size_t i = 0; i < group_by_output_columns.size(); i++) {
+		// TODO percy cudf0.12 port to cudf::column
+//		group_by_output_columns[i].create_gdf_column(group_by_output_table.get_column(i));
+//		group_by_output_columns[i].set_name(group_by_columns[i].name());
+	}
+
+	aggrgation_output_columns.resize(aggrgation_output_table.num_columns());
+	for(size_t i = 0; i < aggrgation_output_columns.size(); i++) {
+		// TODO percy cudf0.12 port to cudf::column
+//		aggrgation_output_columns[i].create_gdf_column(aggrgation_output_table.get_column(i));
+//		aggrgation_output_columns[i].set_name(output_column_names[i]);
+	}
+}
+
 void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 	std::vector<gdf_column_cpp> & aggregation_inputs,
 	std::vector<gdf_column_cpp> & output_columns,
