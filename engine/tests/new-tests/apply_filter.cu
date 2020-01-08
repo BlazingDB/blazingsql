@@ -31,9 +31,11 @@
 #include <execution_graph/logic_controllers/LogicalFilter.h>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include "cudf/stream_compaction.hpp"
+#include <cudf/datetime.hpp>
 
 using namespace ral::frame;
 using namespace ral::processor;
+
 
 template <typename T>
 struct ApplyFilter : public cudf::test::BaseFixture {};
@@ -54,7 +56,7 @@ TYPED_TEST(ApplyFilter, withNull)
     cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 1, 0, 1, 0, 0}, {1, 1, 0, 1, 1, 1, 0}};
     cudf::column_view bool_filter_col(bool_filter);
 
-    std::unique_ptr<ral::frame::BlazingTable> table_out = applyBooleanFilter(
+    std::unique_ptr<BlazingTable> table_out = applyBooleanFilter(
         table_in,bool_filter_col);
 
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 8}, {1, 1,1}};
@@ -87,7 +89,7 @@ TYPED_TEST(ApplyFilter, withNull)
 //     cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 0, 0, 1, 0, 0}};
 //     cudf::column_view bool_filter_col(bool_filter);
 
-//     std::unique_ptr<ral::frame::BlazingTable> table_out = applyBooleanFilter(
+//     std::unique_ptr<BlazingTable> table_out = applyBooleanFilter(
 //         table_in,bool_filter_col);
 
 //     cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 8}};
@@ -119,7 +121,7 @@ TYPED_TEST(ApplyFilter, withAndWithOutNull)
     cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 0, 0, 1, 0, 0}};
     cudf::column_view bool_filter_col(bool_filter);
 
-    std::unique_ptr<ral::frame::BlazingTable> table_out = applyBooleanFilter(
+    std::unique_ptr<BlazingTable> table_out = applyBooleanFilter(
         table_in,bool_filter_col);
 
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 8}, {1, 1,1}};
@@ -133,6 +135,75 @@ TYPED_TEST(ApplyFilter, withAndWithOutNull)
     std::cout<<"col1_string: "<<col1_string<<std::endl;
     std::string col2_string = cudf::test::to_string(table_out->view().column(2), "|");
     std::cout<<"col2_string: "<<col2_string<<std::endl;
+
+    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+}
+
+
+using namespace cudf::datetime;
+using namespace simt::std::chrono;
+  
+template <typename T>
+struct ApplyFilterDates : public cudf::test::BaseFixture {};
+
+TYPED_TEST_CASE(ApplyFilterDates, cudf::test::TimestampTypes);
+
+TYPED_TEST(ApplyFilterDates, interatorWithNull)
+{
+    using T = TypeParam;
+    using Rep = typename T::rep;
+    using Period = typename T::period;
+    using ToDuration = simt::std::chrono::duration<Rep, Period>;
+    using time_point_ms =
+    simt::std::chrono::time_point<simt::std::chrono::system_clock,
+                                  simt::std::chrono::milliseconds>;
+
+    auto start_ms = milliseconds(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
+    auto start = simt::std::chrono::time_point_cast<ToDuration>(time_point_ms(start_ms))
+                 .time_since_epoch()
+                 .count();
+    
+    auto stop_ms = milliseconds(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
+    auto stop = simt::std::chrono::time_point_cast<ToDuration>(time_point_ms(stop_ms))
+                 .time_since_epoch()
+                 .count();
+
+    int32_t size = 10;
+
+    auto range = static_cast<Rep>(stop - start);
+    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+      0, [=](auto i) { return start + (range / size) * i; });
+    auto int32_iter = cudf::test::make_counting_transform_iterator(100, [](auto i) { return int32_t(i * 2);});
+    auto valids_iter = cudf::test::make_counting_transform_iterator(0, [](auto i) { return i%2==0? true:false; });
+
+    cudf::test::fixed_width_column_wrapper<T> timestamp_col(timestamp_iter, timestamp_iter + size, valids_iter);    
+    cudf::test::fixed_width_column_wrapper<int32_t> int32_col(int32_iter, int32_iter + size, valids_iter);
+    CudfTableView cudf_table_in_view {{timestamp_col, int32_col}};
+    std::vector<std::string> names({"A", "B"});
+    BlazingTableView table_in(cudf_table_in_view, names);
+    
+
+    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 1, 0, 1, 0, 0, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
+    cudf::column_view bool_filter_col(bool_filter);
+
+    std::unique_ptr<BlazingTable> table_out = applyBooleanFilter(
+        table_in,bool_filter_col);
+
+    std::vector<int64_t> expect_timestamp_ms{-2500000000000,-2000000000000, -1500000000000, -500000000000, 1000000000000};
+    auto expect_timestamp_iter = cudf::test::make_counting_transform_iterator(0, [expect_timestamp_ms](auto i){ return simt::std::chrono::time_point_cast<ToDuration>(time_point_ms(milliseconds(expect_timestamp_ms[i])))
+                 .time_since_epoch()
+                 .count();});
+    std::vector<bool> expect_valids_vect{1, 0, 1, 1, 0};
+    auto expect_valids_iter = cudf::test::make_counting_transform_iterator(0, [expect_valids_vect](auto i){ return expect_valids_vect[i];});
+    cudf::test::fixed_width_column_wrapper<T> expect_col1(expect_timestamp_iter, expect_timestamp_iter + expect_timestamp_ms.size(), expect_valids_iter);
+    
+    cudf::test::fixed_width_column_wrapper<int32_t> expect_col2{{200, 202, 204, 208, 214}, {1, 0, 1, 1, 0}};
+    CudfTableView expect_cudf_table_view {{expect_col1, expect_col2}};
+
+    std::string col0_string = cudf::test::to_string(table_out->view().column(0), "|");
+    std::cout<<"col0_string: "<<col0_string<<std::endl;
+    std::string col1_string = cudf::test::to_string(table_out->view().column(1), "|");
+    std::cout<<"col1_string: "<<col1_string<<std::endl;    
 
     cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
 }
