@@ -23,66 +23,60 @@
 namespace ral {
 namespace io {
 
-orc_parser::orc_parser(cudf::orc_read_arg orc_arg_) : orc_arg{orc_arg_} {}
-
-orc_parser::orc_parser(cudf::experimental::io::read_orc_args orc_arg_) : orc_args{orc_arg_} {}
+orc_parser::orc_parser(cudf_io::read_orc_args arg_) : orc_args{arg_} {}
 
 orc_parser::~orc_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-cudf::experimental::io::table_with_metadata get_new_orc(cudf::orc_read_arg old_orc, 
-	std::shared_ptr<arrow::io::RandomAccessFile> file,
+cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args new_orc_args, 
+	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
 	bool first_row_only = false){
 
-	cudf::experimental::io::read_orc_args new_orc_args{cudf::experimental::io::source_info(file)};
-
-	// copy old orc struct to the new one
-	old_orc.columns = new_orc_args.columns;
-	old_orc.stripe = new_orc_args.stripe;
-	old_orc.skip_rows = new_orc_args.skip_rows;
-	old_orc.num_rows = new_orc_args.num_rows;
-	old_orc.use_index = new_orc_args.use_index;
-	old_orc.use_np_dtypes = new_orc_args.use_np_dtypes;
-	old_orc.decimals_as_float = new_orc_args.decimals_as_float;
-	old_orc.forced_decimals_scale = new_orc_args.forced_decimals_scale;
-	// this param is different for both versions
-	// old_orc.timestamp_unit = new_orc_args.timestamp_type;
+	new_orc_args.source = cudf_io::source_info(arrow_file_handle);
 	
 	if (first_row_only) 
 		new_orc_args.num_rows = 1;
 
-	cudf::experimental::io::table_with_metadata table_orc = cudf::experimental::io::read_orc(new_orc_args);
-	assert(table_orc.tbl->num_columns() > 0);
+	cudf_io::table_with_metadata table_out = cudf_io::read_orc(new_orc_args);
 
-	return table_orc;
+	arrow_file_handle->Close();
+
+	return std::move(table_out);
 }
 
+// DEPRECATED this function should not will be used
 void orc_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	std::vector<gdf_column_cpp> & columns_out, // TODO: should not use anymore gdf_column_cpp
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
+}
 
-	// TODO percy cudf0.12 port cudf::column and io stuff
-	if(column_indices.size() == 0) {  // including all columns by default
+std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+	const std::string & user_readable_file_handle,
+	const Schema & schema,
+	std::vector<size_t> column_indices) {
+
+	// including all columns by default
+	if(column_indices.size() == 0) {
 		column_indices.resize(schema.get_num_columns());
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 	}
 
 	if(file == nullptr) {
-		// TODO columns_out should change
+		// TODO columns_out not exist anymore
 		//columns_out =	create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
-		return;
+		return nullptr;
 	}
-	auto orc_arg = this->orc_arg;  // force a copy
+	auto orc_args = this->orc_args;
 	if(column_indices.size() > 0) {
 
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
-			orc_arg.columns[column_i] = schema.get_name(column_indices[column_i]);
+			orc_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		cudf::experimental::io::table_with_metadata orc_table = get_new_orc(orc_arg, file);
+		cudf_io::table_with_metadata orc_table = get_new_orc(orc_args, file);
 
 		if(orc_table.tbl->num_columns() <= 0)
 			Library::Logging::Logger().logWarn("csv_parser::parse no columns were read");
@@ -101,20 +95,22 @@ void orc_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 //				columns_out[i].create_gdf_column(table_out.get_column(i));
 			}
 		}
+		return std::make_unique<ral::frame::BlazingTable>(std::move(orc_table.tbl), orc_table.metadata.column_names);
 	}
+	return nullptr;
 }
-
 
 void orc_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 	
 	// TODO percy cudf0.12 port cudf::column and io stuff
-	cudf::experimental::io::table_with_metadata table_out = get_new_orc(orc_arg, files[0], true);
+	cudf_io::table_with_metadata table_out = get_new_orc(orc_args, files[0], true);
+	assert(table_out.tbl->num_columns() > 0);
 
 	for(size_t i = 0; i < table_out.tbl->num_columns() ; i++) {
 		std::string name = "";
-		if (orc_arg.columns.size() > 0 && i < orc_arg.columns.size())
-			name = orc_arg.columns[i];
+		if (orc_args.columns.size() > 0 && i < orc_args.columns.size())
+			name = orc_args.columns[i];
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
 		size_t file_index = i;
 		bool is_in_file = true;

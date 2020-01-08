@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <numeric>
+
 #define checkError(error, txt)                                                                                         \
 	if(error != GDF_SUCCESS) {                                                                                         \
 		std::cerr << "ERROR:  " << error << "  in " << txt << std::endl;                                               \
@@ -29,11 +30,12 @@
 
 namespace ral {
 namespace io {
+
 csv_parser::csv_parser(cudf_io::read_csv_args args_) : csv_args{args_} {}
 
 csv_parser::~csv_parser() {}
 
-cudf::experimental::io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_args,
+cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_args,
 	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
 	bool first_row_only = false) {
 	
@@ -47,12 +49,12 @@ cudf::experimental::io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv
 		new_csv_args.skipfooter = 0;
 	}
 
-	new_csv_args.source = cudf::experimental::io::source_info(arrow_file_handle);
+	new_csv_args.source = cudf_io::source_info(arrow_file_handle);
 
 	if(new_csv_args.nrows != -1)
 		new_csv_args.skipfooter = 0;
 
-  // cudf::experimental::io::read_csv_args in_args{cudf::experimental::io::source_info{arrow_file_handle}};
+  // cudf_io::read_csv_args in_args{cudf_io::source_info{arrow_file_handle}};
   // in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
   // in_args.dtype = { "int32", "int64", "int32", "int64"};
   // in_args.delimiter = '|';
@@ -64,22 +66,19 @@ cudf::experimental::io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv
 	return std::move(table_out);
 }
 
-
+// DEPRECATED this function should not will be used
 // schema is not really necessary yet here, but we want it to maintain compatibility
 void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
-	std::vector<gdf_column_cpp> & columns_out,  // TODO c.cordova that should change (gdf_column_cpp)
+	std::vector<gdf_column_cpp> & columns_out,
 	const Schema & schema,
-	std::vector<size_t> column_indices) {
- 
+	std::vector<size_t> column_indices) { 
 }
 
 std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
-	std::vector<size_t> column_indices) 
-{
-
+	std::vector<size_t> column_indices) {
 	// including all columns by default
 	if(column_indices.size() == 0) {
 		column_indices.resize(schema.get_num_columns());
@@ -87,9 +86,7 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(std::shared_ptr<arro
 	}
 
 	if(file == nullptr) {
-		// TODO columns_out should change
-		//columns_out = create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
-		
+		// TODO columns_out not exist anymore
 		// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);
 		return nullptr;
 	}
@@ -135,7 +132,7 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(std::shared_ptr<arro
 void csv_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 
-	cudf::experimental::io::table_with_metadata table_out = read_csv_arg_arrow(csv_args, files[0], true);
+	cudf_io::table_with_metadata table_out = read_csv_arg_arrow(csv_args, files[0], true);
 	assert(table_out.tbl->num_columns() > 0);
 
 	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {

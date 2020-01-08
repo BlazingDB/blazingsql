@@ -58,14 +58,13 @@ R"(0|ALGERIA|0| haggle. carefully final deposits detect slyly agai
 9|INDONESIA|2| slyly express asymptotes. regular deposits haggle slyly. carefully ironic hockey players sleep blithely. carefull
 10|IRAN|4|efully alongside of the slyly final dependencies)";
 
-TEST_F(ParseCSVTest, csv_with_strings) {
-  std::cout << "csv_with_strings\n";
+TEST_F(ParseCSVTest, startingNewVersion) {
   std::string filename = "/tmp/nation.psv";
   std::ofstream outfile(filename, std::ofstream::out);
   outfile << content << std::endl;
   outfile.close();
+
   std::vector<std::string> names{"n_nationkey", "n_name", "n_regionkey", "n_comment"};
-  
   std::vector<std::string> files = {filename}; 
 
   cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
@@ -73,7 +72,6 @@ TEST_F(ParseCSVTest, csv_with_strings) {
   in_args.dtype = { "int32", "int64", "int32", "int64"};
   in_args.delimiter = '|';
   in_args.header = -1;
-  
 
   std::vector<Uri> uris;
 
@@ -92,7 +90,6 @@ TEST_F(ParseCSVTest, csv_with_strings) {
       for (auto type : schema.get_types()) {
         std::cout << type << std::endl;
       }
-
     } catch (std::exception &e) {
       return;
     }
@@ -105,7 +102,7 @@ TEST_F(ParseCSVTest, csv_with_strings) {
   if (csv_table != nullptr) {
     std::cout << "csv_table != nullptr\n";
     for (auto name : csv_table->names()) {
-        std::cout << name << std::endl;
+      std::cout << name << std::endl;
     }
     expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, csv_table->view().column(0));
   }
