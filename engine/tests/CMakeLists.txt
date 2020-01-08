@@ -25,7 +25,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         
         blazingsql-engine
         ${PYTHON_LIBRARIES}
-        
+
         blazingdb-io
         Threads::Threads
         blazingdb-transport
@@ -107,7 +107,7 @@ message(STATUS "******** Configuring tests ********")
 # add_subdirectory(resultset-repository)
 # add_subdirectory(parser)
 # add_subdirectory(transport)
-
+# add_subdirectory(skipdata)
 add_subdirectory(new-tests)
 
 message(STATUS "******** Tests are ready ********")
