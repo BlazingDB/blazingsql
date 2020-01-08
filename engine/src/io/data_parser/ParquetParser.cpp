@@ -198,7 +198,6 @@ bool parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomA
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads[file_index] = std::thread([&, file_index]() {
-		  ral::config::GPUManager::getInstance().setDevice();
 		  parquet_readers[file_index] =
 			  parquet::ParquetFileReader::Open(files[file_index]);
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
