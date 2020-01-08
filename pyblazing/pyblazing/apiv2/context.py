@@ -106,17 +106,17 @@ def checkSocket(socketNum):
     return socket_free
 
 
-def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False):
+def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False, allocator_options=AllocatorOptions):
     #print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    cudf.set_allocator(allocator="managed",
-                        pool=True,
-                        initial_pool_size=None,# Default is 1/2 total GPU memory
-                        enable_logging=False)
+    cudf.set_allocator(allocator=allocator_options.allocator,
+                        pool=allocator_options.pool,
+                        initial_pool_size=allocator_options.initial_pool_size,# Default is 1/2 total GPU memory
+                        enable_logging=allocator_options.enable_logging)
 
     cio.initializeCaller(
         ralId,
@@ -223,6 +223,7 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
             new_scan = orig_scan.replace(orig_project, new_project)
             algebra = algebra.replace(orig_scan, new_scan)
     return algebra
+
 
 class BlazingTable(object):
     def __init__(
@@ -362,9 +363,16 @@ class BlazingTable(object):
         return self.dask_mapping[worker]
 
 
+class AllocatorOptions(object):
+    def __init__(
+        allocator="managed",
+        pool=True,
+        initial_pool_size=None, # Default is 1/2 total GPU memory
+        enable_logging=False):
+
 class BlazingContext(object):
 
-    def __init__(self, dask_client=None, network_interface=None):
+    def __init__(self, dask_client=None, network_interface=None, allocator_options=AllocatorOptions()):
         """
         :param connection: BlazingSQL cluster URL to connect to
             (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
@@ -392,6 +400,7 @@ class BlazingContext(object):
                         ralId=i,
                         networkInterface=network_interface,
                         singleNode=False,
+                        allocator_options=allocator_options,
                         workers=[worker]))
                 worker_list.append(worker)
                 i = i + 1
@@ -409,7 +418,7 @@ class BlazingContext(object):
                 i = i + 1
         else:
             ralPort, ralIp, cwd = initializeBlazing(
-                ralId=0, networkInterface='lo', singleNode=True)
+                ralId=0, networkInterface='lo', singleNode=True, allocator_options=allocator_options)
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
