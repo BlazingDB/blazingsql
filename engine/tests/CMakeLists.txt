@@ -10,7 +10,6 @@ function(configure_test TEST_NAME Tests_SRCS)
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/tests/utils
         ${CMAKE_SOURCE_DIR}/thirdparty/jitify
-
         ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
         $ENV{PREFIX}/include
     )
@@ -18,7 +17,7 @@ function(configure_test TEST_NAME Tests_SRCS)
     add_executable(${TEST_NAME}
                    ${Tests_SRCS}
                    ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp
-                   ${CMAKE_SOURCE_DIR}/src/cuDF/utilities/column_utilities.cu)
+                   ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/column_utilities.cu)
     link_directories($ENV{PREFIX}/lib)
     # TODO percy do not use libgdf.so here and use gdf (the static lib) instead
     target_link_libraries(${TEST_NAME}
