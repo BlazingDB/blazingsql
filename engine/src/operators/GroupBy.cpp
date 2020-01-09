@@ -326,6 +326,7 @@ void _new_aggregations_with_groupby(std::vector<CudfColumnView> & group_by_colum
 	
 }
 
+//ToDo Rommel
 void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 	std::vector<gdf_column_cpp> & aggregation_inputs,
 	std::vector<gdf_column_cpp> & output_columns,
