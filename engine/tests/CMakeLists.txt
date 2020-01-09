@@ -110,5 +110,6 @@ add_subdirectory(utils)
 add_subdirectory(resultset-repository)
 add_subdirectory(parser)
 add_subdirectory(transport)
+add_subdirectory(skipdata)
 
 message(STATUS "******** Tests are ready ********")
