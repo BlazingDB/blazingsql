@@ -10,26 +10,28 @@ function(configure_test TEST_NAME Tests_SRCS)
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/tests/utils
         ${CMAKE_SOURCE_DIR}/thirdparty/jitify
-
         ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
         $ENV{PREFIX}/include
     )
 
-    add_executable(${TEST_NAME} ${Tests_SRCS} ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp)
+    add_executable(${TEST_NAME}
+                   ${Tests_SRCS}
+                   ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp
+                   ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/column_utilities.cu)
     link_directories($ENV{PREFIX}/lib)
     # TODO percy do not use libgdf.so here and use gdf (the static lib) instead
     target_link_libraries(${TEST_NAME}
         gmock_main
         gmock
         gtest
-        
+
         blazingsql-engine
         ${PYTHON_LIBRARIES}
 
         blazingdb-io
         Threads::Threads
         blazingdb-transport
-    
+
         cudf
         NVCategory
         NVStrings
@@ -40,28 +42,28 @@ function(configure_test TEST_NAME Tests_SRCS)
         ${CUDA_CUDA_LIBRARY}
         ${CUDA_NVRTC_LIBRARY}
         ${CUDA_NVTX_LIBRARY}
-    
+
         parquet
         arrow
         thrift
         snappy
-    
+
         zstd
         lz4
-    
+
         aws-cpp-sdk-s3
         aws-cpp-sdk-s3-encryption
-    
+
         storage_client
         google_cloud_cpp_common
         crc32c
-    
+
         libboost_filesystem.a
         libboost_system.a
         libboost_regex.a
-        
+
         protobuf
-    
+
         # Library needed for blazing communication repository (debug)
         gcov
     )
