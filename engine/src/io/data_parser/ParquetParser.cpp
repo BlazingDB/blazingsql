@@ -17,6 +17,7 @@
 #include <numeric>
 #include <string>
 #include <cudf/cudf.h>
+#include <cudf/io/functions.hpp>
 
 #include <unordered_map>
 #include <vector>
@@ -46,6 +47,8 @@
 
 namespace ral {
 namespace io {
+
+namespace cudf_io = cudf::experimental::io;
 
 parquet_parser::parquet_parser() {
 	// TODO Auto-generated constructor stub
@@ -108,11 +111,54 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(std::shared_ptr<
 	const Schema & schema,
 	std::vector<size_t> column_indices) 
 {
-		
-		
-		return nullptr;
-}
+	if(column_indices.size() == 0) {  // including all columns by default
+		column_indices.resize(schema.get_num_columns());
+		std::iota(column_indices.begin(), column_indices.end(), 0);
+	}
 
+	if(file == nullptr) {
+		// columns_out =
+		// create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
+		// @TODO, @alex
+		return nullptr;
+	}
+
+	if(column_indices.size() > 0) {
+		// Fill data to pq_args
+		// cudf::io::parquet::reader_options pq_args;
+		cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
+
+		pq_args.strings_to_categorical = false;
+		pq_args.columns.resize(column_indices.size());
+
+		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
+			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
+		}
+		// TODO: Use schema.row_groups_ids to read only some row_groups
+		// cudf::io::parquet::reader parquet_reader(file, pq_args);
+		// cudf::table table_out = parquet_reader.read_all();
+
+		auto result = cudf_io::read_parquet(pq_args);
+
+
+		// columns_out.resize(column_indices.size());
+
+		// for(size_t i = 0; i < columns_out.size(); i++) {
+		// if(table_out.get_column(i)->dtype == GDF_STRING) {
+		// NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
+		// NVCategory * category = NVCategory::create_from_strings(*strs);
+		// std::string column_name(table_out.get_column(i)->col_name);
+		// columns_out[i].create_gdf_column(category, table_out.get_column(i)->size, column_name);
+		// gdf_column_free(table_out.get_column(i));
+		// } else {
+		// TODO percy cudf0.12 port cudf::column and io stuff
+		//columns_out[i].create_gdf_column(table_out.get_column(i));
+		// }
+		// }
+		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
+	}
+	return nullptr;
+}
 
 // This function is copied and adapted from cudf
 constexpr std::pair<cudf::type_id, gdf_dtype_extra_info> to_dtype(parquet::Type::type physical,

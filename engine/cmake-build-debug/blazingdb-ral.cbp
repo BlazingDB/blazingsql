@@ -1,0 +1,904 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="blazingdb-ral"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\cmake\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\lib\;CMake Files\..\..\lib\cmake\;CMake Files\..\..\lib\cmake\aws-cpp-sdk-core\;CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3\;CMake Files\..\..\lib\cmake\aws-cpp-sdk-kms\;CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3-encryption\;CMake Files\..\..\lib\cmake\storage_client\;CMake Files\..\..\lib\cmake\Crc32c\;CMake Files\..\..\lib\cmake\google_cloud_cpp_common\;CMake Files\src\;CMake Files\src\cuDF\;CMake Files\src\communication\;CMake Files\src\distribution\;CMake Files\tests\;CMake Files\tests\io-test\;CMake Files\tests\new-tests\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 test"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="blazingsql-engine">
+				<Option output="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/libblazingsql-engine.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/gdf_wrapper"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cudf"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cub"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/libcudacxx/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/blazingdb/io"/>
+					<Add directory="/include"/>
+					<Add directory="/include/cudf"/>
+					<Add directory="/include/cub"/>
+					<Add directory="/include/libcudacxx/include"/>
+					<Add directory="/include/blazingdb/io"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/python3.7m"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 blazingsql-engine"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="blazingsql-engine/fast">
+				<Option output="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/libblazingsql-engine.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/gdf_wrapper"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cudf"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cub"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/libcudacxx/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/blazingdb/io"/>
+					<Add directory="/include"/>
+					<Add directory="/include/cudf"/>
+					<Add directory="/include/cub"/>
+					<Add directory="/include/libcudacxx/include"/>
+					<Add directory="/include/blazingdb/io"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/python3.7m"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 blazingsql-engine/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Continuous">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 Continuous"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Experimental">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 Experimental"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Nightly">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 Nightly"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parse_csv-test">
+				<Option output="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/gtests/parse_csv-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/gdf_wrapper"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cudf"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cub"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/libcudacxx/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/blazingdb/io"/>
+					<Add directory="/include"/>
+					<Add directory="/include/cudf"/>
+					<Add directory="/include/cub"/>
+					<Add directory="/include/libcudacxx/include"/>
+					<Add directory="/include/blazingdb/io"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/python3.7m"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/utils"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 parse_csv-test"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parse_csv-test/fast">
+				<Option output="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/gtests/parse_csv-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/gdf_wrapper"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cudf"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cub"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/libcudacxx/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/blazingdb/io"/>
+					<Add directory="/include"/>
+					<Add directory="/include/cudf"/>
+					<Add directory="/include/cub"/>
+					<Add directory="/include/libcudacxx/include"/>
+					<Add directory="/include/blazingdb/io"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/python3.7m"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/utils"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 parse_csv-test/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parse_parquet-test">
+				<Option output="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/gtests/parse_parquet-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DPARQUET_FILE_PATH=&quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/io-test/simple.parquet&quot;"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/gdf_wrapper"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cudf"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cub"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/libcudacxx/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/blazingdb/io"/>
+					<Add directory="/include"/>
+					<Add directory="/include/cudf"/>
+					<Add directory="/include/cub"/>
+					<Add directory="/include/libcudacxx/include"/>
+					<Add directory="/include/blazingdb/io"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/python3.7m"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/utils"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 parse_parquet-test"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parse_parquet-test/fast">
+				<Option output="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/gtests/parse_parquet-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DPARQUET_FILE_PATH=&quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/io-test/simple.parquet&quot;"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/gdf_wrapper"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cudf"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cub"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/libcudacxx/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/blazingdb/io"/>
+					<Add directory="/include"/>
+					<Add directory="/include/cudf"/>
+					<Add directory="/include/cub"/>
+					<Add directory="/include/libcudacxx/include"/>
+					<Add directory="/include/blazingdb/io"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/python3.7m"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/utils"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 parse_parquet-test/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/io-test/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="apply_filter">
+				<Option output="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/gtests/apply_filter" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/gdf_wrapper"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cudf"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cub"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/libcudacxx/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/blazingdb/io"/>
+					<Add directory="/include"/>
+					<Add directory="/include/cudf"/>
+					<Add directory="/include/cub"/>
+					<Add directory="/include/libcudacxx/include"/>
+					<Add directory="/include/blazingdb/io"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/python3.7m"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/utils"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests/Makefile&quot;  VERBOSE=1 apply_filter"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="apply_filter/fast">
+				<Option output="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/gtests/apply_filter" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug"/>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/gdf_wrapper"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cudf"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/cub"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/libcudacxx/include"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/blazingdb/io"/>
+					<Add directory="/include"/>
+					<Add directory="/include/cudf"/>
+					<Add directory="/include/cub"/>
+					<Add directory="/include/libcudacxx/include"/>
+					<Add directory="/include/blazingdb/io"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include/python3.7m"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/utils"/>
+					<Add directory="/home/aocsa/miniconda3/envs/cudf-0.12/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests/Makefile&quot;  VERBOSE=1 apply_filter/fast"/>
+					<CompileFile command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j16 -f &quot;/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake-build-debug/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/CalciteExpressionParsing.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/CalciteExpressionParsing.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/CalciteInterpreter.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/CalciteInterpreter.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/CodeTimer.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/CodeTimer.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/ColumnManipulation.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/Config/Config.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/Config/Config.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/GDFColumn.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/GDFCounter.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/Interpreter/interpreter_cpp.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/Interpreter/interpreter_cpp.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/JoinProcessor.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/JoinProcessor.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/LogicalFilter.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/LogicalFilter.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/ResultSetRepository.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/ResultSetRepository.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/Traits/RuntimeTraits.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/Traits/RuntimeTraits.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/Utils.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/communication/CommunicationData.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/communication/CommunicationData.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/communication/factory/MessageFactory.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/communication/factory/MessageFactory.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/communication/network/Client.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/communication/network/Client.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/communication/network/Server.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/communication/network/Server.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/config/BlazingConfig.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/config/BlazingConfig.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/config/GPUManager.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/cuDF/Allocator.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/cuDF/Allocator.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/cuDF/generator/sample_generator.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/cuDF/generator/sample_generator.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/cython/engine.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/cython/errors.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/cython/initialize.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/cython/io.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/Exception.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/Exception.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/NodeColumns.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/NodeColumns.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/NodeSamples.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/NodeSamples.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/primitives.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/primitives.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/primitives_util.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/exception/RalException.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/exception/RalException.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/from_cudf/cpp_tests/utilities/column_utilities.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/from_cudf/cpp_tests/utilities/column_utilities.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/from_cudf/cpp_tests/utilities/table_utilities.cu">
+			<Option target="apply_filter"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/from_cudf/cpp_tests/utilities/table_utilities.hpp">
+			<Option target="apply_filter"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/DataLoader.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/DataLoader.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/Schema.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/Schema.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/ArgsUtil.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/ArrowParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/ArrowParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/CSVParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/CSVParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/GDFParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/GDFParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/JSONParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/JSONParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/OrcParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/OrcParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/ParquetParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/ParquetParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/ParserUtil.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/ParserUtil.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/metadata/parquet_metadata.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_parser/metadata/parquet_metadata.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_provider/UriDataProvider.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/io/data_provider/UriDataProvider.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/operators/GroupBy.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/operators/GroupBy.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/operators/JoinOperator.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/operators/JoinOperator.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/operators/OrderBy.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/operators/OrderBy.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/parser/expression_utils.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/parser/expression_utils.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/skip_data/SkipDataProcessor.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/skip_data/SkipDataProcessor.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/skip_data/expression_tree.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/skip_data/expression_tree.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/skip_data/utils.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/skip_data/utils.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/utilities/CommonOperations.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/utilities/CommonOperations.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/utilities/RalColumn.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/utilities/RalColumn.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/utilities/StringUtils.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/utilities/StringUtils.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/utilities/TableWrapper.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/utilities/TableWrapper.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/cython_errors_dummy.cpp">
+			<Option target="parse_csv-test"/>
+			<Option target="parse_parquet-test"/>
+			<Option target="apply_filter"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/io-test/parse_csv.cu">
+			<Option target="parse_csv-test"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/io-test/parse_parquet.cu">
+			<Option target="parse_parquet-test"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/new-tests/apply_filter.cu">
+			<Option target="apply_filter"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/cmake/ConfigureCUDA.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/ConfigureAWSSDK.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/ConfigureGoogleCloudCPP.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-core/aws-cpp-sdk-core-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-core\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-core/aws-cpp-sdk-core-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-core\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-core/aws-cpp-sdk-core-targets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-core\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-core/aws-cpp-sdk-core-targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-core\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-s3/aws-cpp-sdk-s3-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-s3/aws-cpp-sdk-s3-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-s3/aws-cpp-sdk-s3-targets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-s3/aws-cpp-sdk-s3-targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-kms/aws-cpp-sdk-kms-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-kms\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-kms/aws-cpp-sdk-kms-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-kms\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-kms/aws-cpp-sdk-kms-targets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-kms\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-kms/aws-cpp-sdk-kms-targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-kms\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-s3-encryption/aws-cpp-sdk-s3-encryption-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3-encryption\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-s3-encryption/aws-cpp-sdk-s3-encryption-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3-encryption\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-s3-encryption/aws-cpp-sdk-s3-encryption-targets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3-encryption\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/aws-cpp-sdk-s3-encryption/aws-cpp-sdk-s3-encryption-targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\aws-cpp-sdk-s3-encryption\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/storage_client/storage-targets-noconfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\storage_client\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/storage_client/storage-targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\storage_client\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/storage_client/storage_client-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\storage_client\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/storage_client/storage_client-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\storage_client\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/Crc32c/Crc32cConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\Crc32c\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/Crc32c/Crc32cConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\Crc32c\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/Crc32c/Crc32cTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\Crc32c\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/Crc32c/Crc32cTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\Crc32c\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/google_cloud_cpp_common/google_cloud_cpp_common-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\google_cloud_cpp_common\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/google_cloud_cpp_common/google_cloud_cpp_common-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\google_cloud_cpp_common\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/google_cloud_cpp_common/google_cloud_cpp_common-targets-noconfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\google_cloud_cpp_common\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/../../lib/cmake/google_cloud_cpp_common/google_cloud_cpp_common-targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\google_cloud_cpp_common\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/cuDF/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\cuDF\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/communication/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\communication\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/src/distribution/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\distribution\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/io-test/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\io-test\"/>
+		</Unit>
+		<Unit filename="/home/aocsa/miniconda3/envs/cudf-0.12/blazingsql/engine/tests/new-tests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\new-tests\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
