@@ -1,20 +1,19 @@
 
-#include <algorithm>
-#include <blazingdb/io/Library/Logging/Logger.h>
-#include <chrono>
 #include <cuda_runtime.h>
 #include <cudf/scalar/scalar.hpp>
 #include <cudf/table/table_view.hpp>
 #include <cudf/utilities/error.hpp>
-#include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/utilities/traits.hpp>
+#include <cudf/utilities/type_dispatcher.hpp>
+#include <thrust/device_vector.h>
+#include <thrust/reduce.h>
 #include <limits>
 #include <map>
 #include <numeric>
-#include <thrust/device_vector.h>
-#include <thrust/reduce.h>
 #include <type_traits>
 #include <vector>
+#include <algorithm>
+#include <chrono>
 
 #include "CalciteExpressionParsing.h"
 #include "gdf_wrapper/gdf_types.cuh"
@@ -134,7 +133,7 @@ static __device__ int64_t extract_day_op_32(int64_t unixDate) {
 }
 
 struct scale_to_64_bit_functor {
-	template <typename T, std::enable_if_t<!cudf::is_simple<T>()>* = nullptr>
+	template <typename T, std::enable_if_t<!cudf::is_simple<T>()> * = nullptr>
 	int64_t operator()(cudf::scalar * s) {
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		auto typed_scalar = static_cast<ScalarType *>(s);
@@ -142,7 +141,7 @@ struct scale_to_64_bit_functor {
 		return 0;
 	}
 
-	template <typename T, std::enable_if_t<std::is_integral<T>::value || cudf::is_boolean<T>()>* = nullptr>
+	template <typename T, std::enable_if_t<std::is_integral<T>::value || cudf::is_boolean<T>()> * = nullptr>
 	int64_t operator()(cudf::scalar * s) {
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		auto typed_scalar = static_cast<ScalarType *>(s);
@@ -150,7 +149,7 @@ struct scale_to_64_bit_functor {
 		return typed_scalar->value();
 	}
 
-	template <typename T, std::enable_if_t<std::is_floating_point<T>::value>* = nullptr>
+	template <typename T, std::enable_if_t<std::is_floating_point<T>::value> * = nullptr>
 	int64_t operator()(cudf::scalar * s) {
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		auto typed_scalar = static_cast<ScalarType *>(s);
@@ -161,7 +160,7 @@ struct scale_to_64_bit_functor {
 		return ret_val;
 	}
 
-	template <typename T, std::enable_if_t<cudf::is_timestamp<T>()>* = nullptr>
+	template <typename T, std::enable_if_t<cudf::is_timestamp<T>()> * = nullptr>
 	int64_t operator()(cudf::scalar * s) {
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		auto typed_scalar = static_cast<ScalarType *>(s);
@@ -171,7 +170,7 @@ struct scale_to_64_bit_functor {
 };
 
 static __device__ __host__ __forceinline__ bool isInt(cudf::type_id type) {
-	return (type == cudf::type_id::INT8) || (type == cudf::type_id::BOOL8) || (type == cudf::type_id::INT16) ||
+	return (type == cudf::type_id::BOOL8) || (type == cudf::type_id::INT8) || (type == cudf::type_id::INT16) ||
 		   (type == cudf::type_id::INT32) || (type == cudf::type_id::INT64) ||
 		   (type == cudf::type_id::TIMESTAMP_DAYS) || (type == cudf::type_id::TIMESTAMP_SECONDS) ||
 		   (type == cudf::type_id::TIMESTAMP_MILLISECONDS) || (type == cudf::type_id::TIMESTAMP_MICROSECONDS) ||
@@ -193,8 +192,8 @@ typedef int16_t column_index_type;
 class InterpreterFunctor {
 public:
 	~InterpreterFunctor() = default;
-	InterpreterFunctor(InterpreterFunctor && other) = delete;
-	InterpreterFunctor(InterpreterFunctor const & other) = delete;
+	InterpreterFunctor(InterpreterFunctor && other) = default;
+	InterpreterFunctor(InterpreterFunctor const & other) = default;
 	InterpreterFunctor & operator=(InterpreterFunctor const & other) = delete;
 	InterpreterFunctor & operator=(InterpreterFunctor && other) = delete;
 
@@ -209,15 +208,19 @@ public:
 		const std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
 		const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars,
 		int threadBlockSize,
-		char * temp_space,
+		void * temp_space,
+		void * temp_valids_in_buffer,
+		void * temp_valids_out_buffer,
 		cudaStream_t stream)
 		: num_columns{table.num_columns()}, num_operations{left_input_positions_vec.size()},
-		  num_final_outputs{final_output_positions_vec.size()}, threadBlockSize{threadBlockSize} {
+		  num_final_outputs{final_output_positions_vec.size()}, temp_valids_in_buffer{static_cast<int64_t *>(
+																	temp_valids_in_buffer)},
+		  temp_valids_out_buffer{static_cast<int64_t *>(temp_valids_out_buffer)}, threadBlockSize{threadBlockSize} {
 		// VERY IMPORTANT!!!!
 		// the temporary space MUST be allocated in space from largest to smallest elements, if you don't follow this
 		// pattern you end up in
 		// a situation where you can makme misaligned accesses to memory.
-		char * cur_temp_space = temp_space;
+		int8_t * cur_temp_space = static_cast<int8_t *>(temp_space);
 		column_data = (void **) cur_temp_space;
 		cur_temp_space += sizeof(void *) * num_columns;
 		output_data = (void **) cur_temp_space;
@@ -467,12 +470,12 @@ public:
 		CUDA_TRY(cudaStreamSynchronize(stream));
 	}
 
-	__device__ __forceinline__ void operator()(cudf::size_type row_index,
-		int64_t total_buffer[],
-		int64_t * valids_in_buffer,
-		int64_t * valids_out_buffer,
-		cudf::size_type size) {
-		int64_t cur_row_valids;
+	__device__ __forceinline__ void operator()(
+		cudf::size_type row_index, int64_t total_buffer[], cudf::size_type size) {
+		int64_t * valids_in_buffer =
+			temp_valids_in_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * this->num_columns;
+		int64_t * valids_out_buffer =
+			temp_valids_out_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * this->num_final_outputs;
 
 		for(column_index_type cur_column = 0; cur_column < this->num_columns; cur_column++) {
 			if(this->valid_ptrs[cur_column] == nullptr || this->null_counts_inputs[cur_column] == 0) {
@@ -482,6 +485,7 @@ public:
 			}
 		}
 
+		int64_t cur_row_valids;
 		for(cudf::size_type row = 0; row < 64 && row_index + row < size; row++) {
 			load_cur_row_valids(valids_in_buffer, row, cur_row_valids, this->num_columns);
 
@@ -503,10 +507,6 @@ public:
 		// write out valids here
 		copy_row_valids_Into_global(valids_out_buffer, row_index);
 	}
-
-	__host__ __device__ cudf::size_type get_num_columns() const { return num_columns; }
-
-	__host__ __device__ cudf::size_type get_num_final_outputs() const { return num_final_outputs; }
 
 	static size_t get_temp_size(int num_inputs, int num_operations, int num_final_outputs) {
 		size_t space = 0;
@@ -566,24 +566,24 @@ private:
 	 * @param buffer the local buffer which storse the information that is to be processed
 	 * @param position the position in the local buffer where this data needs to be written
 	 */
-	template <typename LocalStorageType, typename BufferType>
-	__device__ __forceinline__ LocalStorageType get_data_from_buffer(BufferType * buffer, int position) {
+	template <typename LocalStorageType>
+	__device__ __forceinline__ LocalStorageType get_data_from_buffer(int64_t * buffer, int position) {
 		return *((LocalStorageType *) (buffer + ((position * threadBlockSize) + threadIdx.x)));
 	}
 
-	template <typename LocalStorageType, typename BufferType>
-	__device__ __forceinline__ void store_data_in_buffer(LocalStorageType data, BufferType * buffer, int position) {
+	template <typename LocalStorageType>
+	__device__ __forceinline__ void store_data_in_buffer(LocalStorageType data, int64_t * buffer, int position) {
 		*((LocalStorageType *) (buffer + ((position * threadBlockSize) + threadIdx.x))) = data;
 	}
 
 	/**
 	 * @param buffer the local buffer which storse the information that is to be processed
 	 */
-	template <typename ColType, typename LocalStorageType, typename BufferType>
+	template <typename ColType, typename LocalStorageType>
 	__device__ __forceinline__ void device_ptr_read_into_buffer(column_index_type col_index,
 		cudf::size_type row,
 		const void * const * columns,
-		BufferType * buffer,
+		int64_t * buffer,
 		int position) {
 		const ColType * col_data = static_cast<const ColType *>((columns[col_index]));
 		*((LocalStorageType *) (buffer + ((position * threadBlockSize) + threadIdx.x))) =
@@ -593,20 +593,21 @@ private:
 	/**
 	 * @param buffer the local buffer which storse the information that is to be processed
 	 */
-	template <typename ColType, typename LocalStorageType, typename BufferType>
+	template <typename ColType, typename LocalStorageType>
 	__device__ __forceinline__ void device_ptr_write_from_buffer(
-		cudf::size_type row, void * columns, BufferType * buffer, int position) {
+		cudf::size_type row, void * columns, int64_t * buffer, int position) {
 		const LocalStorageType col_data =
 			*((LocalStorageType *) (buffer + ((position * threadBlockSize) + threadIdx.x)));
 		((ColType *) columns)[row] = (ColType) col_data;
 	}
 
-	template <typename BufferType>
 	__device__ __forceinline__ void write_data(
-		int cur_column, int cur_buffer, BufferType * buffer, cudf::size_type row_index) {
+		int cur_column, int cur_buffer, int64_t * buffer, cudf::size_type row_index) {
 		cudf::type_id cur_type = this->final_output_types[cur_column];
 
-		if(cur_type == cudf::type_id::INT8 || cur_type == cudf::type_id::BOOL8) {
+		if (cur_type == cudf::type_id::BOOL8) {
+			device_ptr_write_from_buffer<cudf::experimental::bool8::value_type, int64_t>(row_index, this->output_data[cur_column], buffer, cur_buffer);
+		}	else if(cur_type == cudf::type_id::INT8) {
 			device_ptr_write_from_buffer<int8_t, int64_t>(row_index, this->output_data[cur_column], buffer, cur_buffer);
 		} else if(cur_type == cudf::type_id::INT16) {
 			device_ptr_write_from_buffer<int16_t, int64_t>(
@@ -633,11 +634,12 @@ private:
 	// things than just read data from some grumpy old buffer, like read in from another one of these that does read
 	// from a boring buffer, or from some perumtation iterartor hmm in fact if it could read permuted data you could
 	// avoi dmaterializing intermeidate filter steps
-	template <typename BufferType>
-	__device__ __forceinline__ void read_data(int cur_column, BufferType * buffer, cudf::size_type row_index) {
+	__device__ __forceinline__ void read_data(int cur_column, int64_t * buffer, cudf::size_type row_index) {
 		cudf::type_id cur_type = this->input_column_types[cur_column];
 
-		if(cur_type == cudf::type_id::INT8 || cur_type == cudf::type_id::BOOL8) {
+		if (cur_type == cudf::type_id::BOOL8) {
+			device_ptr_read_into_buffer<cudf::experimental::bool8::value_type, int64_t>(cur_column, row_index, this->column_data, buffer, cur_column);
+		} else if(cur_type == cudf::type_id::INT8) {
 			device_ptr_read_into_buffer<int8_t, int64_t>(cur_column, row_index, this->column_data, buffer, cur_column);
 		} else if(cur_type == cudf::type_id::INT16) {
 			device_ptr_read_into_buffer<int16_t, int64_t>(cur_column, row_index, this->column_data, buffer, cur_column);
@@ -688,9 +690,8 @@ private:
 		return (OutputType) value;
 	}
 
-	template <typename BufferType>
 	__device__ __forceinline__ void process_operator(
-		size_t op_index, BufferType * buffer, cudf::size_type row_index, int64_t & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, int64_t & row_valids) {
 		cudf::type_id type = this->input_types_left[op_index];
 		if(isFloat(type)) {
 			process_operator_1<double>(op_index, buffer, row_index, row_valids);
@@ -699,9 +700,9 @@ private:
 		}
 	}
 
-	template <typename LeftType, typename BufferType>
+	template <typename LeftType>
 	__device__ __forceinline__ void process_operator_1(
-		size_t op_index, BufferType * buffer, cudf::size_type row_index, int64_t & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, int64_t & row_valids) {
 		cudf::type_id type = this->input_types_right[op_index];
 		if(isFloat(type)) {
 			process_operator_2<LeftType, double>(op_index, buffer, row_index, row_valids);
@@ -710,9 +711,9 @@ private:
 		}
 	}
 
-	template <typename LeftType, typename RightType, typename BufferType>
+	template <typename LeftType, typename RightType>
 	__device__ __forceinline__ void process_operator_2(
-		size_t op_index, BufferType * buffer, cudf::size_type row_index, int64_t & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, int64_t & row_valids) {
 		cudf::type_id type = this->output_types[op_index];
 		if(isFloat(type)) {
 			process_operator_3<LeftType, RightType, double>(op_index, buffer, row_index, row_valids);
@@ -721,9 +722,9 @@ private:
 		}
 	}
 
-	template <typename LeftType, typename RightType, typename OutputTypeOperator, typename BufferType>
+	template <typename LeftType, typename RightType, typename OutputTypeOperator>
 	__device__ __forceinline__ void process_operator_3(
-		size_t op_index, BufferType * buffer, cudf::size_type row_index, int64_t & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, int64_t & row_valids) {
 		column_index_type right_position = this->right_input_positions[op_index];
 		column_index_type left_position = this->left_input_positions[op_index];
 
@@ -980,20 +981,18 @@ private:
 	cudf::size_type * null_counts_inputs;
 	cudf::size_type * null_counts_outputs;
 
+	int64_t * temp_valids_in_buffer;
+	int64_t * temp_valids_out_buffer;
+
 	int threadBlockSize;
 };
 
 // TODO: consider running valids at the same time as the normal
 // operations to increase throughput
-__global__ void transformKernel(
-	InterpreterFunctor & op, cudf::size_type size, int64_t * temp_valids_in_buffer, int64_t * temp_valids_out_buffer) {
+__global__ void transformKernel(InterpreterFunctor op, cudf::size_type size) {
 	extern __shared__ int64_t total_buffer[];
 
-	int64_t * valids_in_buffer = temp_valids_in_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * op.get_num_columns();
-	int64_t * valids_out_buffer =
-		temp_valids_out_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * op.get_num_final_outputs();
-
 	for(cudf::size_type i = (blockIdx.x * blockDim.x + threadIdx.x) * 64; i < size; i += blockDim.x * gridDim.x * 64) {
-		op(i, total_buffer, valids_in_buffer, valids_out_buffer, size);
+		op(i, total_buffer, size);
 	}
 }

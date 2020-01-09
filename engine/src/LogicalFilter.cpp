@@ -728,17 +728,17 @@ void evaluate_expression(blazing_frame & inputs, const std::string & expression,
 		final_output_positions);
 
 
-	perform_operation(output_columns,
-		input_columns,
-		left_inputs,
-		right_inputs,
-		outputs,
-		final_output_positions,
-		operators,
-		unary_operators,
-		left_scalars,
-		right_scalars,
-		new_column_indices);
+	// perform_operation(output_columns,
+	// 	input_columns,
+	// 	left_inputs,
+	// 	right_inputs,
+	// 	outputs,
+	// 	final_output_positions,
+	// 	operators,
+	// 	unary_operators,
+	// 	left_scalars,
+	// 	right_scalars,
+	// 	new_column_indices);
 
 	// Remove any temp column added by add_expression_to_plan
 	inputs.resize_num_columns(num_columns);

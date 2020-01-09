@@ -299,16 +299,16 @@ void execute_project_plan(blazing_frame & input, std::string query_part) {
 		size_t size = params.input_columns[0]->size();
 
 		if(size > 0) {
-			perform_operation(params.output_columns,
-				params.input_columns,
-				params.left_inputs,
-				params.right_inputs,
-				params.outputs,
-				params.final_output_positions,
-				params.operators,
-				params.unary_operators,
-				params.left_scalars,
-				params.right_scalars);
+			// perform_operation(params.output_columns,
+			// 	params.input_columns,
+			// 	params.left_inputs,
+			// 	params.right_inputs,
+			// 	params.outputs,
+			// 	params.final_output_positions,
+			// 	params.operators,
+			// 	params.unary_operators,
+			// 	params.left_scalars,
+			// 	params.right_scalars);
 		}
 	}
 
