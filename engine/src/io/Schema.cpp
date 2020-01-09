@@ -43,9 +43,10 @@ std::string convert_dtype_to_string(const cudf::type_id & dtype) {
 Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
 	std::vector<cudf::type_id> types,
-	std::vector<size_t> num_row_groups)
-	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types),
-	  num_row_groups(num_row_groups) {
+	std::vector<size_t> num_row_groups,
+	std::vector<std::vector<int>> row_groups_ids)
+	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), 
+	  num_row_groups(num_row_groups), row_groups_ids{row_groups_ids} {
 	// TODO Auto-generated constructor stub
 
 	in_file.resize(names.size(), true);
@@ -55,9 +56,10 @@ Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
 	std::vector<cudf::type_id> types,
 	std::vector<size_t> num_row_groups,
-	std::vector<bool> in_file)
+	std::vector<bool> in_file,
+	std::vector<std::vector<int>> row_groups_ids)
 	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), num_row_groups(num_row_groups),
-	  in_file(in_file) {
+	  in_file(in_file), row_groups_ids{row_groups_ids}  {
 	if(in_file.size() != names.size()) {
 		this->in_file.resize(names.size(), true);
 	}
@@ -123,7 +125,7 @@ void Schema::add_file(std::string file){
 	this->files.push_back(file);
 }
 
-Schema Schema::fileSchema() const {
+Schema Schema::fileSchema(size_t current_file_index) const {
 	Schema schema;
 	// std::cout<<"in_file size "<<this->in_file.size()<<std::endl;
 	for(int i = 0; i < this->names.size(); i++) {
@@ -132,6 +134,9 @@ Schema Schema::fileSchema() const {
 			schema.add_column(this->names[i], this->types[i], file_index);
 		}
 	}
+	// Just get the associated row_groups for current_file_index
+	// TODO, @alex
+	// schema.row_groups_ids.push_back(this->row_groups_ids.at(current_file_index));
 	return schema;
 }
 
