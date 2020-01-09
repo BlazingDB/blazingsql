@@ -18,10 +18,11 @@
 #include <iostream>
 #include <numeric>
 #include <thread>
-#include "cudf/sorting.hpp"
-#include "cudf/table/table_view.hpp"
+#include <cudf/sorting.hpp>
+#include <cudf/copying.hpp>
+#include <cudf/table/table_view.hpp>
 #include <cudf/detail/gather.hpp>
-
+#include <cudf/column/column_factories.hpp>
 namespace ral {
 namespace operators {
 
@@ -344,6 +345,28 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
 std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
   const ral::frame::BlazingTableView & table, std::string limitRowsStr){
 
+	cudf::size_type limitRows = 0;
+	
+	if(!limitRowsStr.empty()) {
+		limitRows = std::stoi(limitRowsStr);
+	}
+	
+	cudf::size_type rowSize = table.view().column(0).size();
+
+	std::vector<std::unique_ptr<cudf::column>> output_cols;
+
+	if(limitRows < rowSize) {
+
+		for(size_t i = 0; i < table.view().num_columns(); ++i) {
+			std::unique_ptr<cudf::column> mycolumn = cudf::make_numeric_column( table.view().column(i).type(), limitRows);
+			std::unique_ptr<cudf::column> output = cudf::experimental::copy_range(table.view().column(i), *mycolumn, 0, limitRows, 0);
+			output_cols.push_back(std::move(output));
+		}
+	}
+
+	return std::make_unique<ral::frame::BlazingTable>( 
+		std::make_unique<cudf::experimental::table>( std::move(output_cols) ), table.names() 
+	);
   }
 
 }  // namespace operators

@@ -21,6 +21,9 @@ void process_sort(blazing_frame & input, std::string query_part, Context * query
 std::unique_ptr<ral::frame::BlazingTable> logicalSort(
   const ral::frame::BlazingTableView & table, std::vector<int> sortColIndices, std::vector<int8_t> sortOrderTypes);
 
+std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
+  const ral::frame::BlazingTableView & table, std::string limitRowsStr);
+
 }  // namespace operators
 }  // namespace ral
 
