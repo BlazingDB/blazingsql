@@ -8,10 +8,10 @@
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
-#include <cuDF/utilities/column_wrapper.hpp>
-#include <cuDF/utilities/base_fixture.hpp>
-#include <cuDF/utilities/type_lists.hpp>
-#include <cuDF/utilities/table_utilities.hpp>
+#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
+#include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
+#include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 #include <cudf/detail/gather.hpp>
 
 #include <operators/OrderBy.h>
