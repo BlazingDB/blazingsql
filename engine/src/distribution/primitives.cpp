@@ -1065,3 +1065,101 @@ void broadcastMessage(
 
 }  // namespace distribution
 }  // namespace ral
+
+
+namespace ral {
+
+namespace distribution {
+namespace experimental {
+	using namespace ral::frame;
+
+	void distributePartitions(const Context & context, std::vector<NodeColumnView> & partitions) {
+	using ral::communication::experimental::CommunicationData;
+	using ral::communication::messages::ColumnDataMessage;
+	using ral::communication::messages::Factory;
+	using ral::communication::network::Client;
+
+	const uint32_t context_comm_token = context.getContextCommunicationToken();
+	const uint32_t context_token = context.getContextToken();
+	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	std::vector<std::thread> threads;
+	for(auto & nodeColumn : partitions) {
+		if(nodeColumn.first == self_node) {
+			continue;
+		}
+		BlazingTableView columns = nodeColumn.second;
+		auto destination_node = nodeColumn.first;
+		//TODO WSM waiting on Factory::createColumnDataMessage
+		// threads.push_back(std::thread([message_id, context_token, self_node, destination_node, columns]() mutable {
+		// 	auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
+		// 	Client::send(destination_node, *message);
+		// }));
+	}
+	for(size_t i = 0; i < threads.size(); i++) {
+		threads[i].join();
+	}
+}
+
+std::vector<NodeColumn> collectPartitions(const Context & context) {
+	int num_partitions = context.getTotalNodes() - 1;
+	return collectSomePartitions(context, num_partitions);
+}
+
+std::vector<NodeColumn> collectSomePartitions(const Context & context, int num_partitions) {
+	using ral::communication::messages::ColumnDataMessage;
+	using ral::communication::network::Server;
+
+	// Get the numbers of rals in the query
+	int number_rals = context.getTotalNodes() - 1;
+	std::vector<bool> received(context.getTotalNodes(), false);
+
+	// Create return value
+	std::vector<NodeColumn> node_columns;
+
+	// Get message from the server
+	const uint32_t context_comm_token = context.getContextCommunicationToken();
+	const uint32_t context_token = context.getContextToken();
+	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	while(0 < num_partitions) {
+		auto message = Server::getInstance().getMessage(context_token, message_id);
+		num_partitions--;
+
+		if(message->getMessageTokenValue() != message_id) {
+			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
+		}
+
+		auto column_message = std::static_pointer_cast<ColumnDataMessage>(message);
+		auto node = message->getSenderNode();
+		int node_idx = context.getNodeIndex(*node);
+		if(received[node_idx]) {
+			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+				std::to_string(context.getQueryStep()),
+				std::to_string(context.getQuerySubstep()),
+				"ERROR: Already received collectSomePartitions from node " + std::to_string(node_idx)));
+		}
+		// WSM waiting on getBlazingTable
+		// node_columns.emplace_back(std::make_pair(node, std::move(column_message->getBlazingTable())));
+		received[node_idx] = true;
+	}
+	return node_columns;
+}
+
+void scatterData(const Context & context, BlazingTableView table) {
+	using ral::communication::experimental::CommunicationData;
+
+	std::vector<NodeColumnView> node_columns;
+	auto nodes = context.getAllNodes();
+	for(std::size_t i = 0; i < nodes.size(); ++i) {
+		if(!(nodes[i] == CommunicationData::getInstance().getSelfNode())) {
+			node_columns.emplace_back(nodes[i], table);
+		}
+	}
+	distributePartitions(context, node_columns);
+}
+
+}  // namespace experimental
+}  // namespace distribution
+}  // namespace ral

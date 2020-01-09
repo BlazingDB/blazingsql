@@ -12,18 +12,18 @@
 
 inline gdf_dtype to_gdf_type(cudf::type_id type_id) {
 	switch (type_id) {
-		case cudf::type_id::BOOL8: return gdf_dtype::GDF_BOOL8; break;
-		case cudf::type_id::INT8: return gdf_dtype::GDF_INT8; break;
-		case cudf::type_id::INT16: return gdf_dtype::GDF_INT16; break;
-		case cudf::type_id::INT32: return gdf_dtype::GDF_INT32; break;
-		case cudf::type_id::INT64: return gdf_dtype::GDF_INT64; break;
-		case cudf::type_id::FLOAT32: return gdf_dtype::GDF_FLOAT32; break;
-		case cudf::type_id::FLOAT64: return gdf_dtype::GDF_FLOAT64; break;
-		case cudf::type_id::STRING: return gdf_dtype::GDF_STRING; break;
-		case cudf::type_id::CATEGORY: return gdf_dtype::GDF_STRING_CATEGORY; break;
-		case cudf::type_id::TIMESTAMP_DAYS: return gdf_dtype::GDF_DATE32; break;
-		case cudf::type_id::TIMESTAMP_SECONDS: return gdf_dtype::GDF_DATE64; break;
-		case cudf::type_id::TIMESTAMP_MILLISECONDS: return gdf_dtype::GDF_TIMESTAMP; break;
+		case cudf::type_id::BOOL8: return gdf_dtype::GDF_BOOL8;
+		case cudf::type_id::INT8: return gdf_dtype::GDF_INT8;
+		case cudf::type_id::INT16: return gdf_dtype::GDF_INT16;
+		case cudf::type_id::INT32: return gdf_dtype::GDF_INT32;
+		case cudf::type_id::INT64: return gdf_dtype::GDF_INT64;
+		case cudf::type_id::FLOAT32: return gdf_dtype::GDF_FLOAT32;
+		case cudf::type_id::FLOAT64: return gdf_dtype::GDF_FLOAT64;
+		case cudf::type_id::STRING: return gdf_dtype::GDF_STRING;
+		case cudf::type_id::CATEGORY: return gdf_dtype::GDF_STRING_CATEGORY;
+		case cudf::type_id::TIMESTAMP_DAYS: return gdf_dtype::GDF_DATE32;
+		case cudf::type_id::TIMESTAMP_SECONDS: return gdf_dtype::GDF_DATE64;
+		case cudf::type_id::TIMESTAMP_MILLISECONDS: return gdf_dtype::GDF_TIMESTAMP;
 		// TODO percy cudf0.12 map more types
 		case cudf::type_id::EMPTY:
 		case cudf::type_id::TIMESTAMP_MICROSECONDS:
@@ -36,18 +36,18 @@ inline gdf_dtype to_gdf_type(cudf::type_id type_id) {
 
 inline cudf::type_id to_type_id(gdf_dtype gdf_type_val) {
 	switch (gdf_type_val) {
-		case gdf_dtype::GDF_BOOL8: return cudf::type_id::BOOL8; break;
-		case gdf_dtype::GDF_INT8: return cudf::type_id::INT8; break;
-		case gdf_dtype::GDF_INT16: return cudf::type_id::INT16; break;
-		case gdf_dtype::GDF_INT32: return cudf::type_id::INT32; break;
-		case gdf_dtype::GDF_INT64: return cudf::type_id::INT64; break;
-		case gdf_dtype::GDF_FLOAT32: return cudf::type_id::FLOAT32; break;
-		case gdf_dtype::GDF_FLOAT64: return cudf::type_id::FLOAT64; break;
-		case gdf_dtype::GDF_STRING: return cudf::type_id::STRING; break;
-		case gdf_dtype::GDF_STRING_CATEGORY: return cudf::type_id::CATEGORY; break;
-		case gdf_dtype::GDF_DATE32: return cudf::type_id::TIMESTAMP_DAYS; break;
-		case gdf_dtype::GDF_DATE64: return cudf::type_id::TIMESTAMP_SECONDS; break;
-		case gdf_dtype::GDF_TIMESTAMP: return cudf::type_id::TIMESTAMP_MILLISECONDS; break;
+		case gdf_dtype::GDF_BOOL8: return cudf::type_id::BOOL8; 
+		case gdf_dtype::GDF_INT8: return cudf::type_id::INT8; 
+		case gdf_dtype::GDF_INT16: return cudf::type_id::INT16;
+		case gdf_dtype::GDF_INT32: return cudf::type_id::INT32;
+		case gdf_dtype::GDF_INT64: return cudf::type_id::INT64;
+		case gdf_dtype::GDF_FLOAT32: return cudf::type_id::FLOAT32;
+		case gdf_dtype::GDF_FLOAT64: return cudf::type_id::FLOAT64;
+		case gdf_dtype::GDF_STRING: return cudf::type_id::STRING;
+		case gdf_dtype::GDF_STRING_CATEGORY: return cudf::type_id::CATEGORY;
+		case gdf_dtype::GDF_DATE32: return cudf::type_id::TIMESTAMP_DAYS;
+		case gdf_dtype::GDF_DATE64: return cudf::type_id::TIMESTAMP_SECONDS;
+		case gdf_dtype::GDF_TIMESTAMP: return cudf::type_id::TIMESTAMP_MILLISECONDS;
 		// TODO percy cudf0.12 map more types
 		case gdf_dtype::GDF_invalid:
 		case gdf_dtype::GDF_CATEGORY:
@@ -59,10 +59,10 @@ inline cudf::type_id to_type_id(gdf_dtype gdf_type_val) {
 
 inline gdf_time_unit to_gdf_time_unit(cudf::type_id type_id) {
 	switch (type_id) {
-		case cudf::type_id::TIMESTAMP_SECONDS: return gdf_time_unit::TIME_UNIT_s; break;
-		case cudf::type_id::TIMESTAMP_MILLISECONDS: return gdf_time_unit::TIME_UNIT_ms; break;
-		case cudf::type_id::TIMESTAMP_MICROSECONDS: return gdf_time_unit::TIME_UNIT_us; break;
-		case cudf::type_id::TIMESTAMP_NANOSECONDS: return gdf_time_unit::TIME_UNIT_ns; break;
+		case cudf::type_id::TIMESTAMP_SECONDS: return gdf_time_unit::TIME_UNIT_s;
+		case cudf::type_id::TIMESTAMP_MILLISECONDS: return gdf_time_unit::TIME_UNIT_ms;
+		case cudf::type_id::TIMESTAMP_MICROSECONDS: return gdf_time_unit::TIME_UNIT_us;
+		case cudf::type_id::TIMESTAMP_NANOSECONDS: return gdf_time_unit::TIME_UNIT_ns;
 		// TODO: support types
 		case cudf::type_id::EMPTY:
 		case cudf::type_id::INT8:
