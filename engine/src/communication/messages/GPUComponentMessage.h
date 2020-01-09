@@ -229,7 +229,6 @@ public:
 					auto valid_offset = columns_offsets[i].valid;
 					valid_ptr = (cudf::valid_type *) raw_buffers[valid_offset];
 				}
-
 				// TODO percy cudf0.12 port to cudf::column				
 //				gdf_error err = gdf_column_view_augmented(column,
 //					(void *) raw_buffers[data_offset],
