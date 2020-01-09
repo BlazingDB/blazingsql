@@ -64,9 +64,6 @@ TEST_F(ParseCSVTest, startingNewVersion) {
   outfile << content << std::endl;
   outfile.close();
 
-  std::vector<std::string> names{"n_nationkey", "n_name", "n_regionkey", "n_comment"};
-  std::vector<std::string> files = {filename}; 
-
   cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
   in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
   in_args.dtype = { "int32", "int64", "int32", "int64"};
@@ -79,45 +76,20 @@ TEST_F(ParseCSVTest, startingNewVersion) {
   ral::io::Schema schema;
   auto parser = std::make_shared<ral::io::csv_parser>(in_args);
   auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
-
-  { 
-    ral::io::data_loader loader(parser, provider);
-    try {
-      loader.get_schema(schema, {});
-      for (auto name : schema.get_names()) {
-        std::cout << name << std::endl;
-      }
-      for (auto type : schema.get_types()) {
-        std::cout << type << std::endl;
-      }
-    } catch (std::exception &e) {
-      return;
-    }
-  }
+  ral::io::data_loader loader(parser, provider);
+  loader.get_schema(schema, {});
 
   Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
-  ral::io::data_loader loader(parser, provider);
 
   auto csv_table = loader.load_data(queryContext, {}, schema);
   if (csv_table != nullptr) {
-    std::cout << "csv_table != nullptr\n";
-    for (auto name : csv_table->names()) {
-      std::cout << name << std::endl;
-    }
     expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, csv_table->view().column(0));
+    expect_column_data_equal(std::vector<int32_t>{0, 1, 1, 1, 4, 0, 3, 3, 2, 2, 4},  csv_table->view().column(2));
+    ASSERT_EQ(cudf::type_id::INT32, csv_table->view().column(0).type().id());
+    ASSERT_EQ(cudf::type_id::INT64, csv_table->view().column(1).type().id());
+    ASSERT_EQ(cudf::type_id::INT32, csv_table->view().column(2).type().id());
+    ASSERT_EQ(cudf::type_id::INT64, csv_table->view().column(3).type().id());
   }
-
-  auto result = cudf_io::read_csv(in_args);
-  const auto view = result.tbl->view();
-  
-  EXPECT_EQ(4, view.num_columns());
-  ASSERT_EQ(cudf::type_id::INT32, view.column(0).type().id());
-  ASSERT_EQ(cudf::type_id::INT64, view.column(1).type().id());
-  ASSERT_EQ(cudf::type_id::INT32, view.column(2).type().id());
-  ASSERT_EQ(cudf::type_id::INT64, view.column(3).type().id());
-
-  expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, view.column(0));
-
 
 //   for (size_t column_index = 0; column_index < input_table.size();
 //        column_index++) {
