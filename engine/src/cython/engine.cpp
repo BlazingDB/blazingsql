@@ -77,7 +77,7 @@ ResultSet runQuery(int32_t masterIndex,
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
 			types.push_back(to_type_id(tableSchemas[i].columns[col]->dtype));
 		}
-		
+
 		auto schema = ral::io::Schema(tableSchema.names,
 			tableSchema.calcite_to_file_indices,
 			types,
@@ -111,7 +111,7 @@ ResultSet runQuery(int32_t masterIndex,
 			provider = std::make_shared<ral::io::dummy_data_provider>();
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)
-			
+
 			// TODO percy cudf0.12 implement proper scalar support
 			provider = std::make_shared<ral::io::uri_data_provider>(
 				uris, /* uri_values[i]*/ std::vector<std::map<std::string, cudf::scalar*>>(), string_values[i], is_column_string[i]);
@@ -174,7 +174,7 @@ ResultSet runSkipData(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, bool>>> is_column_string) {
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
-	
+
 	std::vector<std::vector<gdf_column*>> minmax_metadata_tables;
 
 	assert(tableSchemas.size() == 1);
@@ -251,10 +251,10 @@ ResultSet runSkipData(int32_t masterIndex,
 		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
-		// 		skipdata_output_t 
+		// 		skipdata_output_t
 		//TODO: fix this @alex, input_loaders[0]
 		auto row_groups_cols = ral::skip_data::process_skipdata_for_table(input_loaders[0], minmax_metadata_tables[0], query, queryContext);
-		 
+
 		std::vector<cudf::column *> columns;
 		std::vector<std::string> names;
 		for(int i = 0; i < row_groups_cols.size(); i++) {

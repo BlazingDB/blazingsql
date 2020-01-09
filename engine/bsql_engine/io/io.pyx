@@ -249,7 +249,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef TableSchema currentTableSchemaCpp
     cdef NodeMetaDataTCP currentMetadataCpp
     cdef vector[vector[string]] filesAll
-    cdef vector[string] currentFilesAll 
+    cdef vector[string] currentFilesAll
 
     cdef vector[vector[map[string,gdf_scalar]]] uri_values_cpp_all
     cdef vector[map[string,gdf_scalar]] uri_values_cpp
@@ -323,7 +323,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       for key, value in table.args.items():
           tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
           tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
- 
+
       # if table.row_groups_ids is not None:
       #   currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
       # else:
