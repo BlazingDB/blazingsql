@@ -23,7 +23,7 @@
 typedef int64_t temp_gdf_valid_type; //until its an int32 in cudf
 
 __host__ __device__ __forceinline__
-bool gdf_is_valid_32(const temp_gdf_valid_type *valid, gdf_index_type pos) {
+bool gdf_is_valid_32(const temp_gdf_valid_type *valid, gdf_size_type pos) {
 	if ( valid )
 		return (valid[pos / 64] >> (pos % 64)) & 1;
 	else

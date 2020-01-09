@@ -280,7 +280,7 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 		//gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.get_gdf_column()->size(), step, step);
 
 		// TODO percy cudf0.12 port to cudf::column
-		//cudf::gather(&srcTable, (gdf_index_type *) (gatherMap.get_gdf_column()->data), &destTable);
+		//cudf::gather(&srcTable, (gdf_size_type *) (gatherMap.get_gdf_column()->data), &destTable);
 		
 		// TODO percy cudf0.12 port to cudf::column and custrings
 		//ral::init_string_category_if_null(destTable);
@@ -327,7 +327,7 @@ std::vector<NodeColumns> split_data_into_NodeColumns(
 	std::vector<std::vector<cudf::column *>> split_table(table.size());  // this will be [colInd][splitInd]
 	for(std::size_t k = 0; k < table.size(); ++k) {
 		// TODO percy cudf0.12 port to cudf::column
-		//split_table[k] = cudf::split(*(table[k].get_gdf_column()), static_cast<gdf_index_type *>(indexes.data()), indexes.get_gdf_column()->size());
+		//split_table[k] = cudf::split(*(table[k].get_gdf_column()), static_cast<gdf_size_type *>(indexes.data()), indexes.get_gdf_column()->size());
 	}
 
 	// get nodes
@@ -760,7 +760,7 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 //		gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.get_gdf_column()->size(), step, step);
 
 		// TODO percy cudf0.12 port to cudf::column and custrings
-//		cudf::gather(&srcTable, (gdf_index_type *) (gatherMap.get_gdf_column()->data), &destTable);
+//		cudf::gather(&srcTable, (gdf_size_type *) (gatherMap.get_gdf_column()->data), &destTable);
 //		ral::init_string_category_if_null(destTable);
 	}
 
@@ -985,7 +985,7 @@ std::vector<NodeColumns> generateJoinPartitions(
 
 	// Generate partition offset vector
 	cudf::size_type number_nodes = context.getTotalNodes();
-	std::vector<gdf_index_type> partition_offset(number_nodes);
+	std::vector<gdf_size_type> partition_offset(number_nodes);
 
 	// Preallocate output columns
 	// TODO percy cudf0.12 port to cudf::column

@@ -43,7 +43,7 @@ gdf_error generate_sample(const std::vector<gdf_column_cpp>& data_frame,
     gatherMap.create_gdf_column(cudf::type_id::INT32, arrayIdx.size(), arrayIdx.data(), ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32), "");
 
 	// TODO percy cudf0.12 port to cudf::column	and custrings
-//    cudf::gather(&srcTable, (gdf_index_type*)(gatherMap.get_gdf_column()->data), &destTable);
+//    cudf::gather(&srcTable, (gdf_size_type*)(gatherMap.get_gdf_column()->data), &destTable);
 //    ral::init_string_category_if_null(destTable);
 
     return GDF_SUCCESS;

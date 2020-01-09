@@ -13,7 +13,7 @@
 #include <rmm/rmm.h>
 #include <src/DataFrame.h>
 #include <src/Traits/RuntimeTraits.h>
-#include <src/gdf_wrapper/utilities/error_utils.h>
+#include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
 #include <thread>
 //#include "GDFColumn.cuh"
 
