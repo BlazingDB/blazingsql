@@ -15,10 +15,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         $ENV{PREFIX}/include
     )
 
-    add_executable(${TEST_NAME} ${Tests_SRCS} ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp
-            "${CMAKE_SOURCE_DIR}/tests/test_utilities/column_utilities.cu"
-            "${CMAKE_SOURCE_DIR}/tests/test_utilities/table_utilities.cu"
-    )
+    add_executable(${TEST_NAME} ${Tests_SRCS} ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp)
     link_directories($ENV{PREFIX}/lib)
     # TODO percy do not use libgdf.so here and use gdf (the static lib) instead
     target_link_libraries(${TEST_NAME}
@@ -110,5 +107,7 @@ add_subdirectory(io-test)
 # add_subdirectory(resultset-repository)
 # add_subdirectory(parser)
 # add_subdirectory(transport)
+# add_subdirectory(skipdata)
+add_subdirectory(new-tests)
 
 message(STATUS "******** Tests are ready ********")
