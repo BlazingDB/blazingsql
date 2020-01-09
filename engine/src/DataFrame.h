@@ -14,7 +14,7 @@
 #include <GDFColumn.cuh>
 #include <vector>
 
-#include "cuDF/utilities/column_utilities.hpp"
+#include "from_cudf/cpp_tests/utilities/column_utilities.hpp"
 
 typedef struct blazing_frame {
 public:
