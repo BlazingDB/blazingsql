@@ -28,12 +28,18 @@ echo "CMD: cmake -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAK
 cmake -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
 
 if [ "$run_test" == "ON" ]; then
-  echo "make -j all && ctest"
-  make -j all && ctest
+  echo "make -j all"
+  make -j all 
+  echo "cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so"
+  cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
+  echo "ctest"
+  ctest
 else
   echo "make -j blazingsql-engine"
   make -j blazingsql-engine
+
+  echo "cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so"
+  cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
 fi
 
-echo "cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so"
-cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
+

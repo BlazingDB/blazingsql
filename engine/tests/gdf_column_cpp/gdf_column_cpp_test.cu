@@ -1,6 +1,6 @@
 #include "GDFColumn.cuh"
 #include "GDFCounter.cuh"
-#include "gdf_wrapper/utilities/bit_util.cuh"
+#include "from_cudf/cpp_src/utilities/legacy/bit_util.cuh"
 #include "gtest/gtest.h"
 
 namespace {

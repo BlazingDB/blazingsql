@@ -11,7 +11,7 @@
 #include "CalciteExpressionParsing.h"
 #include "DataFrame.h"
 #include "Traits/RuntimeTraits.h"
-#include "cuDF/datetime_parser.hpp"
+#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
 #include "cudf/legacy/binaryop.hpp"
 #include "parser/expression_tree.hpp"
 #include <cudf.h>
@@ -296,16 +296,16 @@ void get_common_type(cudf::type_id type1,
 
 // Todo: unit tests
 int32_t get_date_32_from_string(std::string scalar_string) {
-	return ral::datetime::parseDateFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
+	return parseDateFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
 }
 
 int64_t get_date_64_from_string(std::string scalar_string) {
-	return ral::datetime::parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
+	return parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
 }
 
 // Todo: Consider cases with different unit: ms, us, or ns
 int64_t get_timestamp_from_string(std::string scalar_string) {
-	return ral::datetime::parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
+	return parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
 }
 
 // TODO: Remove this dirty workaround to get the type for the scalar
