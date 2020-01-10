@@ -91,9 +91,6 @@ struct launch_extract_component {
 struct scale_to_64_bit_functor {
 	template <typename T, std::enable_if_t<!cudf::is_simple<T>()> * = nullptr>
 	int64_t operator()(cudf::scalar * s) {
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
-		auto typed_scalar = static_cast<ScalarType *>(s);
-
 		return 0;
 	}
 
@@ -125,15 +122,7 @@ struct scale_to_64_bit_functor {
 	}
 };
 
-static __device__ __host__ __forceinline__ bool isInt(cudf::type_id type) {
-	return (type == cudf::type_id::BOOL8) || (type == cudf::type_id::INT8) || (type == cudf::type_id::INT16) ||
-		   (type == cudf::type_id::INT32) || (type == cudf::type_id::INT64) ||
-		   (type == cudf::type_id::TIMESTAMP_DAYS) || (type == cudf::type_id::TIMESTAMP_SECONDS) ||
-		   (type == cudf::type_id::TIMESTAMP_MILLISECONDS) || (type == cudf::type_id::TIMESTAMP_MICROSECONDS) ||
-		   (type == cudf::type_id::TIMESTAMP_NANOSECONDS) || (type == cudf::type_id::CATEGORY);
-}
-
-static __device__ __forceinline__ bool isFloat(cudf::type_id type) {
+__device__ __forceinline__ bool isFloat(cudf::type_id type) {
 	return (type == cudf::type_id::FLOAT32) || (type == cudf::type_id::FLOAT64);
 }
 
@@ -283,8 +272,7 @@ public:
 					left_input_types_vec[i] = left_scalars[i]->type().id();
 				} else if(left_index == SCALAR_INDEX) {
 					// get scalars type
-					left_input_types_vec[i] =
-						(isInt(left_scalars[i]->type().id()) ? cudf::type_id::INT64 : cudf::type_id::FLOAT64);
+					left_input_types_vec[i] = left_scalars[i]->type().id();
 					left_scalars_host[i] = cudf::experimental::type_dispatcher(
 						left_scalars[i]->type(), scale_to_64_bit_functor{}, left_scalars[i].get());
 				}
@@ -302,8 +290,7 @@ public:
 					right_input_types_vec[i] = right_scalars[i]->type().id();
 				} else if(right_index == SCALAR_INDEX) {
 					// get scalars type
-					right_input_types_vec[i] =
-						(isInt(right_scalars[i]->type().id()) ? cudf::type_id::INT64 : cudf::type_id::FLOAT64);
+					right_input_types_vec[i] = right_scalars[i]->type().id();
 					right_scalars_host[i] = cudf::experimental::type_dispatcher(
 						right_scalars[i]->type(), scale_to_64_bit_functor{}, right_scalars[i].get());
 				} else if(right_index == UNARY_INDEX) {
@@ -322,12 +309,7 @@ public:
 				type_from_op = get_output_type(left_input_types_vec[i], right_input_types_vec[i], operators[i]);
 			}
 
-			if(is_numeric_type(type_from_op) && !is_type_float(type_from_op)) {
-				output_types_vec[i] = cudf::type_id::INT64;
-			} else if(is_type_float(type_from_op)) {
-				output_types_vec[i] = cudf::type_id::FLOAT64;
-			}
-
+			output_types_vec[i] = (is_type_float(type_from_op) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64);
 			output_map_type[output_index] = output_types_vec[i];
 		}
 
