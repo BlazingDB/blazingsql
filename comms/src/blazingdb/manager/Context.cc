@@ -129,6 +129,10 @@ std::vector<Node> Context::getWorkerNodes() const {
   return siblings;
 }
 
+Node Context::getNode(int node_index) const{
+  return taskNodes_[node_index];
+}
+
 const Node &Context::getMasterNode() const { return masterNode_; }
 
 std::string Context::getLogicalPlan() const { return logicalPlan_; }

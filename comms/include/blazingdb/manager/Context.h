@@ -86,6 +86,8 @@ public:
   /// RAL instances that will run the query
   std::vector<Node> getWorkerNodes() const;
 
+  Node getNode(int node_index) const;
+
   /// A single unique RAL instance that helps to the messages transmition and
   /// processesing between worker RAL's e.g.: see SampleToNodeMasterMessage
   const Node& getMasterNode() const;
