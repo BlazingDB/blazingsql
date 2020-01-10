@@ -334,7 +334,12 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
 			column_order.push_back(cudf::order::ASCENDING);
 	}
 
-	std::unique_ptr<cudf::column> output = cudf::experimental::sorted_order( table.view(), column_order /*, fix null precedence*/ );
+	CudfTableView sortColumns = table.view().select(sortColIndices);
+
+	/*ToDo: Edit this according the Calcite output*/
+	std::vector<cudf::null_order> null_orders(sortColIndices.size(), cudf::null_order::AFTER);
+
+	std::unique_ptr<cudf::column> output = cudf::experimental::sorted_order( sortColumns, column_order, null_orders );
 
 	std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::detail::gather( table.view(), output->view() );
 

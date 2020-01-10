@@ -38,14 +38,14 @@ TYPED_TEST(SortTest, withoutNull) {
     std::vector<std::string> names({"A", "B", "C"});
     ral::frame::BlazingTableView table(cudf_table_in_view, names);
 
-    std::vector<int> sortColIndices;
-    std::vector<int8_t> sortOrderTypes{0, 0, 1};
+    std::vector<int> sortColIndices{0,1};
+    std::vector<int8_t> sortOrderTypes{0, 0};
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::operators::logicalSort(table, sortColIndices, sortOrderTypes);
 
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{3, 4, 5, 5, 5, 6 ,8}, {1, 1, 1, 1, 1, 1, 1}};
     cudf::test::strings_column_wrapper expect_col2({"a", "b", "d", "d", "d", "k", "l"}, {1, 1, 1, 1, 1, 1, 1});
-    cudf::test::fixed_width_column_wrapper<T> expect_col3{{70, 10, 40, 10, 5, 11, 2}, {1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::fixed_width_column_wrapper<T> expect_col3{{70, 10, 40, 5, 10, 11, 2}, {1, 1, 1, 1, 1, 1, 1}};
     CudfTableView expect_cudf_table_view {{expect_col1, expect_col2, expect_col3}};
 
     cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
