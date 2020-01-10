@@ -21,7 +21,6 @@
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>
 #include <cudf/table/table_view.hpp>
-#include <cudf/detail/gather.hpp>
 #include <cudf/column/column_factories.hpp>
 namespace ral {
 namespace operators {
@@ -341,7 +340,7 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
 
 	std::unique_ptr<cudf::column> output = cudf::experimental::sorted_order( sortColumns, column_order, null_orders );
 
-	std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::detail::gather( table.view(), output->view() );
+	std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::gather( table.view(), output->view() );
 
 	return std::make_unique<ral::frame::BlazingTable>( std::move(gathered), table.names() );
   }
