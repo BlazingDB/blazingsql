@@ -34,7 +34,6 @@ namespace test {
 struct GpuFunctions {
   using DType = gdf_dtype;
   using DTypeInfo = gdf_dtype_extra_info;
-  using TimeUnit = gdf_time_unit;
 
   using DataTypePointer = void *;
   using ValidTypePointer = gdf_valid_type *;
@@ -114,7 +113,7 @@ struct GpuFunctions {
   }
 };
 
-inline bool gdf_is_valid(const gdf_valid_type *valid, gdf_index_type pos) {
+inline bool gdf_is_valid(const gdf_valid_type *valid, gdf_size_type pos) {
   if (valid)
     return (valid[pos / GDF_VALID_BITSIZE] >> (pos % GDF_VALID_BITSIZE)) & 1;
   else

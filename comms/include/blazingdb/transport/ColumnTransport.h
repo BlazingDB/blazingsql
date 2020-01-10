@@ -9,7 +9,6 @@ struct ColumnTransport {
     int32_t dtype{};
     int32_t size{};
     int32_t null_count{};
-    int32_t time_unit{};
     char col_name[128]{};
   };
   MetaData metadata{};

@@ -16,16 +16,17 @@ using blazingdb::manager::Context;
 
 struct project_plan_params {
 	size_t num_expressions_out;
-	std::vector<gdf_column *> output_columns;
-	std::vector<gdf_column *> input_columns;
+	std::vector<cudf::column *> output_columns;
+	std::vector<cudf::column *> input_columns;
 	std::vector<column_index_type> left_inputs;
 	std::vector<column_index_type> right_inputs;
 	std::vector<column_index_type> outputs;
 	std::vector<column_index_type> final_output_positions;
 	std::vector<gdf_binary_operator_exp> operators;
 	std::vector<gdf_unary_operator> unary_operators;
-	std::vector<gdf_scalar> left_scalars;
-	std::vector<gdf_scalar> right_scalars;
+	// TODO percy cudf0.12 implement proper scalar support
+	std::vector<cudf::scalar*> left_scalars;
+	std::vector<cudf::scalar*> right_scalars;
 	std::vector<column_index_type> new_column_indices;
 	std::vector<gdf_column_cpp> columns;
 	gdf_error error;

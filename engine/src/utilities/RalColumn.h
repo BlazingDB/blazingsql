@@ -9,13 +9,13 @@ namespace ral {
 namespace utilities {
 
 template <typename ColumnType>
-gdf_column_cpp create_column(const std::vector<ColumnType> & data, const gdf_dtype dtype, std::string && name) {
+gdf_column_cpp create_column(const std::vector<ColumnType> & data, const cudf::type_id dtype, std::string && name) {
 	return create_column<ColumnType>(data, dtype, name);
 }
 
 template <typename ColumnType>
 gdf_column_cpp create_column(
-	const std::vector<ColumnType> & data, const gdf_dtype dtype, const std::string & name = "") {
+	const std::vector<ColumnType> & data, const cudf::type_id dtype, const std::string & name = "") {
 	// create data array
 	std::size_t data_size = ral::traits::get_data_size_in_bytes(data.size(), dtype);
 
@@ -32,11 +32,11 @@ gdf_column_cpp create_column(
 	return column;
 }
 
-gdf_column_cpp create_column(const gdf_size_type size, const gdf_dtype dtype, const std::string name = "");
+gdf_column_cpp create_column(const cudf::size_type size, const cudf::type_id dtype, const std::string name = "");
 
-gdf_column_cpp create_zero_column(const gdf_size_type size, const gdf_dtype dtype, std::string && name);
+gdf_column_cpp create_zero_column(const cudf::size_type size, const cudf::type_id dtype, std::string && name);
 
-gdf_column_cpp create_zero_column(const gdf_size_type size, const gdf_dtype dtype, const std::string & name = "");
+gdf_column_cpp create_zero_column(const cudf::size_type size, const cudf::type_id dtype, const std::string & name = "");
 
 cudf::table create_table(const std::vector<gdf_column_cpp> & columns);
 

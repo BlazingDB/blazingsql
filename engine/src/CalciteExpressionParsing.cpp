@@ -11,27 +11,29 @@
 #include "CalciteExpressionParsing.h"
 #include "DataFrame.h"
 #include "Traits/RuntimeTraits.h"
-#include "cuDF/datetime_parser.hpp"
+#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
 #include "cudf/legacy/binaryop.hpp"
 #include "parser/expression_tree.hpp"
 #include <cudf.h>
 
-bool is_type_signed(gdf_dtype type) {
-	return (GDF_INT8 == type || GDF_BOOL8 == type || GDF_INT16 == type || GDF_INT32 == type || GDF_INT64 == type ||
-			GDF_FLOAT32 == type || GDF_FLOAT64 == type || GDF_DATE32 == type || GDF_DATE64 == type ||
-			GDF_TIMESTAMP == type);
+bool is_type_signed(cudf::type_id type) {
+	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type || cudf::type_id::INT64 == type ||
+			cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type ||
+			cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
+			cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type);
 }
 
-bool is_type_float(gdf_dtype type) { return (GDF_FLOAT32 == type || GDF_FLOAT64 == type); }
+bool is_type_float(cudf::type_id type) { return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type); }
 
-bool is_type_integer(gdf_dtype type) {
-	return (GDF_INT8 == type || GDF_INT16 == type || GDF_INT32 == type || GDF_INT64 == type);
+bool is_type_integer(cudf::type_id type) {
+	return (cudf::type_id::INT8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type || cudf::type_id::INT64 == type);
 }
 
-bool is_date_type(gdf_dtype type) { return (GDF_DATE32 == type || GDF_DATE64 == type || GDF_TIMESTAMP == type); }
+bool is_date_type(cudf::type_id type) { return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
+												cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type); }
 
 // TODO percy noboa see upgrade to uints
-// bool is_type_unsigned_numeric(gdf_dtype type){
+// bool is_type_unsigned_numeric(cudf::type_id type){
 //	return (GDF_UINT8 == type ||
 //			GDF_UINT16 == type ||
 //			GDF_UINT32 == type ||
@@ -39,20 +41,20 @@ bool is_date_type(gdf_dtype type) { return (GDF_DATE32 == type || GDF_DATE64 == 
 //}
 
 // TODO percy noboa see upgrade to uints
-bool is_numeric_type(gdf_dtype type) {
+bool is_numeric_type(cudf::type_id type) {
 	// return is_type_signed(type) || is_type_unsigned_numeric(type);
 	return is_type_signed(type);
 }
 
-gdf_dtype get_next_biggest_type(gdf_dtype type) {
-	if(type == GDF_INT8 || type == GDF_BOOL8) {
-		return GDF_INT16;
-	} else if(type == GDF_INT16) {
-		return GDF_INT32;
-	} else if(type == GDF_INT32) {
-		return GDF_INT64;
-	} else if(type == GDF_FLOAT32) {
-		return GDF_FLOAT64;
+cudf::type_id get_next_biggest_type(cudf::type_id type) {
+	if(type == cudf::type_id::INT8 || type == cudf::type_id::BOOL8) {
+		return cudf::type_id::INT16;
+	} else if(type == cudf::type_id::INT16) {
+		return cudf::type_id::INT32;
+	} else if(type == cudf::type_id::INT32) {
+		return cudf::type_id::INT64;
+	} else if(type == cudf::type_id::FLOAT32) {
+		return cudf::type_id::FLOAT64;
 	} else {
 		return type;
 	}
@@ -62,27 +64,28 @@ gdf_dtype get_next_biggest_type(gdf_dtype type) {
 // TODO all these return types need to be revisited later. Right now we have issues with some aggregators that only
 // support returning the same input type. Also pygdf does not currently support unsigned types (for example count should
 // return and unsigned type)
-gdf_dtype get_aggregation_output_type(gdf_dtype input_type, gdf_agg_op aggregation, bool have_groupby) {
+cudf::type_id get_aggregation_output_type(cudf::type_id input_type, gdf_agg_op aggregation, bool have_groupby) {
 	if(aggregation == GDF_COUNT) {
-		return GDF_INT64;
+		return cudf::type_id::INT64;
 	} else if(aggregation == GDF_SUM) {
 		if(have_groupby)
 			return input_type;  // current group by function can only handle this
 		else {
 			// we can assume it is numeric based on the oepration
 			// to be safe we should enlarge to the greatest integer or float representation
-			return is_type_float(input_type) ? GDF_FLOAT64 : GDF_INT64;
+			return is_type_float(input_type) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64;
 		}
 	} else if(aggregation == GDF_MIN) {
 		return input_type;
 	} else if(aggregation == GDF_MAX) {
 		return input_type;
 	} else if(aggregation == GDF_AVG) {
-		return GDF_FLOAT64;
+		return cudf::type_id::FLOAT64;
 	} else if(aggregation == GDF_COUNT_DISTINCT) {
-		return GDF_INT64;
+		return cudf::type_id::INT64;
 	} else {
-		return GDF_invalid;
+		// TODO percy cudf0.12 was invalid here, is ok to return EMPTY?
+		return cudf::type_id::EMPTY;
 	}
 }
 
@@ -108,7 +111,7 @@ bool is_trig_operation(gdf_unary_operator operation) {
 			operation == BLZ_TAN || operation == BLZ_COTAN || operation == BLZ_ATAN);
 }
 
-gdf_dtype get_signed_type_from_unsigned(gdf_dtype type) {
+cudf::type_id get_signed_type_from_unsigned(cudf::type_id type) {
 	return type;
 	// TODO felipe percy noboa see upgrade to uints
 	//	if(type == GDF_UINT8){
@@ -124,38 +127,39 @@ gdf_dtype get_signed_type_from_unsigned(gdf_dtype type) {
 	//	}
 }
 
-gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_unary_operator operation) {
+cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator operation) {
 	if(operation == BLZ_CAST_INTEGER) {
-		return GDF_INT32;
+		return cudf::type_id::INT32;
 	} else if(operation == BLZ_CAST_BIGINT) {
-		return GDF_INT64;
+		return cudf::type_id::INT64;
 	} else if(operation == BLZ_CAST_FLOAT) {
-		return GDF_FLOAT32;
+		return cudf::type_id::FLOAT32;
 	} else if(operation == BLZ_CAST_DOUBLE) {
-		return GDF_FLOAT64;
+		return cudf::type_id::FLOAT64;
 	} else if(operation == BLZ_CAST_DATE) {
-		return GDF_DATE64;
+		return cudf::type_id::TIMESTAMP_SECONDS;
 	} else if(operation == BLZ_CAST_TIMESTAMP) {
-		return GDF_TIMESTAMP;
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		return cudf::type_id::TIMESTAMP_MILLISECONDS;
 	} else if(operation == BLZ_CAST_VARCHAR) {
-		return GDF_STRING_CATEGORY;
+		return cudf::type_id::CATEGORY;
 	} else if(is_date_type(input_left_type)) {
-		return GDF_INT16;
+		return cudf::type_id::INT16;
 	} else if(is_trig_operation(operation) || operation == BLZ_LOG || operation == BLZ_LN) {
-		if(input_left_type == GDF_FLOAT32 || input_left_type == GDF_FLOAT64) {
+		if(input_left_type == cudf::type_id::FLOAT32 || input_left_type == cudf::type_id::FLOAT64) {
 			return input_left_type;
 		} else {
-			return GDF_FLOAT64;
+			return cudf::type_id::FLOAT64;
 		}
 	} else if(is_null_check_operator(operation)) {
-		return GDF_BOOL8;  // TODO: change to bools
+		return cudf::type_id::BOOL8;  // TODO: change to bools
 	} else {
 		return input_left_type;
 	}
 }
 
 // todo: get_output_type: add support to coalesce and date operations!
-gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_dtype input_right_type, gdf_binary_operator_exp operation) {
+cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation) {
 	if(is_arithmetic_operation(operation)) {
 		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
 			// the output shoudl be ther largest float type
@@ -212,18 +216,18 @@ gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_dtype input_right_type,
 		// convert to largest type
 		// if signed and unsigned convert to signed, upgrade unsigned if possible to determine size requirements
 	} else if(is_logical_operation(operation)) {
-		return GDF_BOOL8;
+		return cudf::type_id::BOOL8;
 	} else if(is_exponential_operator(operation)) {
 		// assume biggest type unsigned if left is unsigned, signed if left is signed
 
 		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
-			return GDF_FLOAT64;
+			return cudf::type_id::FLOAT64;
 			//		}else if(is_type_signed(input_left_type)){
 			//			return GDF_INT64;
 		} else {
 			// TODO felipe percy noboa see upgrade to uints
 			// return GDF_UINT64;
-			return GDF_INT64;
+			return cudf::type_id::INT64;
 		}
 	} else if(operation == BLZ_COALESCE) {
 		return input_left_type;
@@ -242,80 +246,56 @@ gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_dtype input_right_type,
 				   ? input_left_type
 				   : input_right_type;
 	} else if(operation == BLZ_STR_LIKE) {
-		return GDF_BOOL8;
+		return cudf::type_id::BOOL8;
 	} else if(operation == BLZ_STR_SUBSTRING || operation == BLZ_STR_CONCAT) {
-		return GDF_STRING_CATEGORY;
+		return cudf::type_id::CATEGORY;
 	} else {
-		return GDF_invalid;
+		// TODO percy cudf0.12 was invalid here, is correct to use empty?
+		return cudf::type_id::EMPTY;
 	}
 }
 
-gdf_time_unit get_min_time_unit(gdf_time_unit unit1, gdf_time_unit unit2) {
-	gdf_time_unit min_unit = TIME_UNIT_NONE;
-	if(unit1 == TIME_UNIT_ns || unit2 == TIME_UNIT_ns) {
-		min_unit = TIME_UNIT_ns;
-	} else if(unit1 == TIME_UNIT_us || unit2 == TIME_UNIT_us) {
-		min_unit = TIME_UNIT_us;
-	} else if(unit1 == TIME_UNIT_ms || unit2 == TIME_UNIT_ms) {
-		min_unit = TIME_UNIT_ms;
-	} else if(unit1 == TIME_UNIT_s || unit2 == TIME_UNIT_s) {
-		min_unit = TIME_UNIT_s;
-	}
-	return min_unit;
-}
-
-void get_common_type(gdf_dtype type1,
-	gdf_dtype_extra_info info1,
-	gdf_dtype type2,
-	gdf_dtype_extra_info info2,
-	gdf_dtype & type_out,
-	gdf_dtype_extra_info & info_out) {
-	type_out = GDF_invalid;
-	info_out.time_unit = TIME_UNIT_NONE;
+void get_common_type(cudf::type_id type1,
+	cudf::type_id type2,
+	cudf::type_id & type_out) {
+	// TODO percy cudf0.12 was invalid here, should we return empty?
+	type_out = cudf::type_id::EMPTY;
 	if(type1 == type2) {
-		if(type1 == GDF_TIMESTAMP) {
-			if(info1.time_unit == info2.time_unit) {
-				type_out = type1;
-				info_out.time_unit = info1.time_unit;
-			} else {
-				type_out = type1;
-				info_out.time_unit = get_min_time_unit(info1.time_unit, info2.time_unit);
-			}
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+			type_out = type1;
 		} else {
 			type_out = type1;
 		}
 	} else if((is_type_float(type1) && is_type_float(type2)) || (is_type_integer(type1) && is_type_integer(type2))) {
 		type_out = (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2)) ? type1
 																												: type2;
-	} else if(type1 == GDF_DATE64 || type1 == GDF_DATE32) {
-		if(type2 == GDF_DATE64 || type2 == GDF_DATE32) {
+	} else if(type1 == cudf::type_id::TIMESTAMP_SECONDS || type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+		if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS || type2 == cudf::type_id::TIMESTAMP_SECONDS) {
 			type_out = (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2))
 						   ? type1
 						   : type2;
-		} else if(type2 == GDF_TIMESTAMP) {
-			if(type1 == GDF_DATE64) {
-				type_out = GDF_TIMESTAMP;
-				info_out.time_unit = get_min_time_unit(info2.time_unit, TIME_UNIT_ms);
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+			if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
 			} else {
-				type_out = GDF_TIMESTAMP;
-				info_out.time_unit = info2.time_unit;
+				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
 			}
 		} else {
 			// No common type, datetime type and non-datetime type are not compatible
 		}
-	} else if(type1 == GDF_TIMESTAMP) {
-		if(type2 == GDF_DATE64) {
-			type_out = GDF_TIMESTAMP;
-			info_out.time_unit = get_min_time_unit(info1.time_unit, TIME_UNIT_ms);
-		} else if(type2 == GDF_DATE32) {
-			type_out = GDF_TIMESTAMP;
-			info_out.time_unit = info1.time_unit;
+	} else if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+		if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+			type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
+		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+			type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
 		} else {
 			// No common type
 		}
-	} else if((type1 == GDF_STRING || type1 == GDF_STRING_CATEGORY) &&
-			  (type2 == GDF_STRING || type2 == GDF_STRING_CATEGORY)) {
-		type_out = GDF_STRING_CATEGORY;
+	} else if((type1 == cudf::type_id::STRING || type1 == cudf::type_id::CATEGORY) &&
+			  (type2 == cudf::type_id::STRING || type2 == cudf::type_id::CATEGORY)) {
+		type_out = cudf::type_id::CATEGORY;
 	} else {
 		// No common type
 	}
@@ -323,43 +303,44 @@ void get_common_type(gdf_dtype type1,
 
 // Todo: unit tests
 int32_t get_date_32_from_string(std::string scalar_string) {
-	return ral::datetime::parseDateFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
+	return parseDateFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
 }
 
 int64_t get_date_64_from_string(std::string scalar_string) {
-	return ral::datetime::parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
+	return parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
 }
 
 // Todo: Consider cases with different unit: ms, us, or ns
 int64_t get_timestamp_from_string(std::string scalar_string) {
-	return ral::datetime::parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
+	return parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
 }
 
 // TODO: Remove this dirty workaround to get the type for the scalar
-gdf_dtype get_type_from_string(std::string scalar_string) {
+cudf::type_id get_type_from_string(std::string scalar_string) {
 	static const std::regex reInt{R""(^[-+]?[0-9]+$)""};
 	static const std::regex reFloat{R""(^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$)""};
 
 	if(std::regex_match(scalar_string, reInt)) {
-		return GDF_INT64;
+		return cudf::type_id::INT64;
 	} else if(std::regex_match(scalar_string, reFloat)) {
-		return GDF_FLOAT64;
+		return cudf::type_id::FLOAT64;
 	} else if(scalar_string == "true" || scalar_string == "false") {
-		return GDF_BOOL8;
+		return cudf::type_id::BOOL8;
 	} else {
 		// check timestamp
 		static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})");
 		bool ret = std::regex_match(scalar_string, re);
 
 		if(ret) {
-			return GDF_TIMESTAMP;
+			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+			return cudf::type_id::TIMESTAMP_MILLISECONDS;
 		}
 	}
 
-	return GDF_DATE64;
+	return cudf::type_id::TIMESTAMP_MILLISECONDS;
 }
 
-gdf_scalar get_scalar_from_string(std::string scalar_string, gdf_dtype type, gdf_dtype_extra_info extra_info) {
+std::unique_ptr<cudf::scalar> get_scalar_from_string(std::string scalar_string, cudf::type_id type) {
 	/*
 	 * void*    invd;
 int8_t   si08;
@@ -376,31 +357,55 @@ int32_t  dt32;  // GDF_DATE32
 int64_t  dt64;  // GDF_DATE64
 int64_t  tmst;  // GDF_TIMESTAMP
 };*/
+	
+	//int8_t, int16_t, int32_t, int64_t, float, double, cudf::experimental::bool8
 	if(scalar_string == "null") {
-		gdf_data data;
-		return {data, GDF_INT8, false};
+		cudf::data_type scalar_type(cudf::type_id::INT8);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		ret->set_valid(false);
+		return ret;
 	}
-	if(type == GDF_INT8) {
-		gdf_data data;
-		data.si08 = stoi(scalar_string);
-		return {data, GDF_INT8, true};
-
-	} else if(type == GDF_BOOL8) {
-		gdf_data data;
-		data.si08 = scalar_string == "false" ? 0 : 1;
-		return {data, GDF_BOOL8, true};
-	} else if(type == GDF_INT16) {
-		gdf_data data;
-		data.si16 = stoi(scalar_string);
-		return {data, GDF_INT16, true};
-	} else if(type == GDF_INT32) {
-		gdf_data data;
-		data.si32 = stoi(scalar_string);
-		return {data, GDF_INT32, true};
-	} else if(type == GDF_INT64) {
-		gdf_data data;
-		data.si64 = stoll(scalar_string);
-		return {data, GDF_INT64, true};
+	if(type == cudf::type_id::INT8) {
+		cudf::data_type scalar_type(cudf::type_id::INT8);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int8_t>*>(ret.get());
+	  	int8_t value = stoi(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
+	} else if(type == cudf::type_id::BOOL8) {
+		cudf::data_type scalar_type(cudf::type_id::INT8);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::experimental::bool8>*>(ret.get());
+		bool v = scalar_string == "false" ? 0 : 1;
+		cudf::experimental::bool8 value(v);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
+	} else if(type == cudf::type_id::INT16) {
+		cudf::data_type scalar_type(cudf::type_id::INT16);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int16_t>*>(ret.get());
+	  	int16_t value = stoi(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
+	} else if(type == cudf::type_id::INT32) {
+		cudf::data_type scalar_type(cudf::type_id::INT32);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int32_t>*>(ret.get());
+	  	int32_t value = stoi(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
+	} else if(type == cudf::type_id::INT64) {
+		cudf::data_type scalar_type(cudf::type_id::INT64);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int64_t>*>(ret.get());
+	  	int64_t value = stoll(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 	}
 	//	else if(type == GDF_UINT8){
 	//		gdf_data data;
@@ -419,87 +424,116 @@ int64_t  tmst;  // GDF_TIMESTAMP
 	//		data.ui64 = stoull(scalar_string);
 	//		return {data, GDF_UINT64, true};
 	//	}
-	else if(type == GDF_FLOAT32) {
-		gdf_data data;
-		data.fp32 = stof(scalar_string);
-		return {data, GDF_FLOAT32, true};
-	} else if(type == GDF_FLOAT64) {
-		gdf_data data;
-		data.fp64 = stod(scalar_string);
-		return {data, GDF_FLOAT64, true};
-	} else if(type == GDF_DATE32) {
-		// TODO: convert date literals!!!!
-		gdf_data data;
-		// string format o
-		data.dt32 = get_date_32_from_string(scalar_string);
-		return {data, GDF_DATE32, true};
-	} else if(type == GDF_DATE64) {
-		gdf_data data;
+	else if(type == cudf::type_id::FLOAT32) {
+		cudf::data_type scalar_type(cudf::type_id::FLOAT32);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<float>*>(ret.get());
+	  	float value = stof(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
+	} else if(type == cudf::type_id::FLOAT64) {
+		cudf::data_type scalar_type(cudf::type_id::FLOAT64);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<double>*>(ret.get());
+	  	double value = stod(scalar_string);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
+	} else if(type == cudf::type_id::TIMESTAMP_DAYS) {
+		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
+		cudf::data_type scalar_type(cudf::type_id::TIMESTAMP_DAYS);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_timestamp_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::timestamp_D>*>(ret.get());
+		int32_t v = get_date_32_from_string(scalar_string);
+		cudf::timestamp_D value(v);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
+	} else if(type == cudf::type_id::TIMESTAMP_SECONDS) {
+		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
+		cudf::data_type scalar_type(cudf::type_id::TIMESTAMP_SECONDS);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_timestamp_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::timestamp_D>*>(ret.get());
 		scalar_string[10] = 'T';
-		data.dt64 = get_date_64_from_string(scalar_string);
-		return {data, GDF_DATE64, true};
-	} else if(type == GDF_TIMESTAMP) {
-		gdf_data data;
+		int64_t v = get_date_64_from_string(scalar_string);
+		cudf::timestamp_D value(v);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
+	} else if(type == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
+		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		cudf::data_type scalar_type(cudf::type_id::TIMESTAMP_MILLISECONDS);
+		std::unique_ptr<cudf::scalar> ret = cudf::make_timestamp_scalar(scalar_type);
+		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::timestamp_D>*>(ret.get());
 		// TODO percy another dirty hack ... we should not use private cudf api in the engine!
 		scalar_string[10] = 'T';
-		data.tmst = get_timestamp_from_string(scalar_string);  // this returns in ms
+		int64_t v = get_timestamp_from_string(scalar_string);  // this returns in ms
+		cudf::timestamp_D value(v);
+		raw_scalar->set_value(value);
+		raw_scalar->set_valid(true);
+		return ret;
 
 		// NOTE percy this fix the time resolution (e.g. orc files)
-		switch(extra_info.time_unit) {
-		case TIME_UNIT_us: data.tmst = data.tmst * 1000; break;
-		case TIME_UNIT_ns: data.tmst = data.tmst * 1000 * 1000; break;
-		}
-
-		return {data, GDF_TIMESTAMP, true};
+		// TODO percy cudf0.12 implement timestamp resolution
+//		switch(extra_info.time_unit) {
+//		case TIME_UNIT_us: data.tmst = data.tmst * 1000; break;
+//		case TIME_UNIT_ns: data.tmst = data.tmst * 1000 * 1000; break;
+//		}
 	}
 }
 
-gdf_dtype infer_dtype_from_literal(const std::string & token) {
+cudf::type_id infer_dtype_from_literal(const std::string & token) {
 	if(is_null(token)) {
-		return GDF_invalid;
+		// TODO percy cudf0.12 was invalid here, should we return empty?
+		return cudf::type_id::EMPTY;
 	} else if(is_bool(token)) {
-		return GDF_BOOL8;
+		return cudf::type_id::BOOL8;
 	} else if(is_number(token)) {
 		if(token.find_first_of(".eE") != std::string::npos) {
 			double parsed_double = std::stod(token);
 			float casted_float = static_cast<float>(parsed_double);
-			return parsed_double == casted_float ? GDF_FLOAT32 : GDF_FLOAT64;
+			return parsed_double == casted_float ? cudf::type_id::FLOAT32 : cudf::type_id::FLOAT64;
 		} else {
 			int64_t parsed_int64 = std::stoll(token);
 			return parsed_int64 > std::numeric_limits<int32_t>::max() ||
 						   parsed_int64 < std::numeric_limits<int32_t>::min()
-					   ? GDF_INT64
+					   ? cudf::type_id::INT64
 					   : parsed_int64 > std::numeric_limits<int16_t>::max() ||
 								 parsed_int64 < std::numeric_limits<int16_t>::min()
-							 ? GDF_INT32
+							 ? cudf::type_id::INT32
 							 : parsed_int64 > std::numeric_limits<int8_t>::max() ||
 									   parsed_int64 < std::numeric_limits<int8_t>::min()
-								   ? GDF_INT16
-								   : GDF_INT8;
+								   ? cudf::type_id::INT16
+								   : cudf::type_id::INT8;
 		}
 	} else if(is_date(token)) {
-		return GDF_DATE64;
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		return cudf::type_id::TIMESTAMP_SECONDS;
 	} else if(is_timestamp(token)) {
-		return GDF_TIMESTAMP;
+		return cudf::type_id::TIMESTAMP_MILLISECONDS;
 	} else if(is_string(token)) {
-		return GDF_STRING_CATEGORY;
+		return cudf::type_id::CATEGORY;
 	}
 
 	assert(false);
 }
 
 // must pass in temp type as invalid if you are not setting it to something to begin with
-gdf_dtype get_output_type_expression(blazing_frame * input, gdf_dtype * max_temp_type, std::string expression) {
+cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * max_temp_type, std::string expression) {
 	std::string clean_expression = clean_calcite_expression(expression);
 
-	if(*max_temp_type == GDF_invalid) {
-		*max_temp_type = GDF_INT8;
+	// TODO percy cudf0.12 was invalid here, should we consider empty?
+	if(*max_temp_type == cudf::type_id::EMPTY) {
+		*max_temp_type = cudf::type_id::INT8;
 	}
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
 	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(*input, tokens);
 
-	std::stack<gdf_dtype> operands;
+	std::stack<cudf::type_id> operands;
 	for(std::string token : tokens) {
 		if(is_operator_token(token)) {
 			if(is_binary_operator_token(token)) {
@@ -508,19 +542,20 @@ gdf_dtype get_output_type_expression(blazing_frame * input, gdf_dtype * max_temp
 						"In function get_output_type_expression, the operator cannot be processed on less than one or "
 						"zero elements");
 
-				gdf_dtype left_operand = operands.top();
+				cudf::type_id left_operand = operands.top();
 				operands.pop();
-				gdf_dtype right_operand = operands.top();
+				cudf::type_id right_operand = operands.top();
 				operands.pop();
 
-				if(left_operand == GDF_invalid) {
-					if(right_operand == GDF_invalid) {
+				// TODO percy cudf0.12 was invalid here, should we consider empty?
+				if(left_operand == cudf::type_id::EMPTY) {
+					if(right_operand == cudf::type_id::EMPTY) {
 						throw std::runtime_error("In get_output_type_expression function: invalid operands");
 					} else {
 						left_operand = right_operand;
 					}
 				} else {
-					if(right_operand == GDF_invalid) {
+					if(right_operand == cudf::type_id::EMPTY) {
 						right_operand = left_operand;
 					}
 				}
@@ -531,7 +566,7 @@ gdf_dtype get_output_type_expression(blazing_frame * input, gdf_dtype * max_temp
 					*max_temp_type = operands.top();
 				}
 			} else if(is_unary_operator_token(token)) {
-				gdf_dtype left_operand = operands.top();
+				cudf::type_id left_operand = operands.top();
 				operands.pop();
 
 				gdf_unary_operator operation = get_unary_operation(token);
@@ -550,7 +585,7 @@ gdf_dtype get_output_type_expression(blazing_frame * input, gdf_dtype * max_temp
 			if(is_literal(token)) {
 				operands.push(infer_dtype_from_literal(token));
 			} else {
-				operands.push(input->get_column(get_index(token)).dtype());
+				operands.push(input->get_column(get_index(token)).get_gdf_column()->type().id());
 			}
 		}
 	}
@@ -613,7 +648,8 @@ void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 		for(int j = 0; j < colss.size(); ++j) {
 			auto cp = colss.at(j);
 
-			if(cp.get_gdf_column() != nullptr && cp.dtype() == gdf_dtype::GDF_TIMESTAMP) {
+			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+			if(cp.get_gdf_column() != nullptr && cp.get_gdf_column()->type().id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 				has_timestamp = true;
 				break;
 			}

@@ -35,12 +35,12 @@ void make_sure_output_is_not_input_gdf(
 		for(size_t index = 0; index < output_frame.get_width(); index++) {
 			// if we find that in the output the data pointer is the same as an input data pointer, we need to clone it.
 			// this can happen when you do something like select * from gdf_table
-			if(std::find(input_data_ptrs.begin(), input_data_ptrs.end(), output_frame.get_column(index).data()) !=
-				input_data_ptrs.end()) {
-				bool register_column = false;
-				output_frame.set_column(index,
-					output_frame.get_column(index).clone(output_frame.get_column(index).name(), register_column));
-			}
+			// TODO percy cudf0.12 port to cudf::column
+//			if(std::find(input_data_ptrs.begin(), input_data_ptrs.end(), output_frame.get_column(index).data()) !=
+//				input_data_ptrs.end()) {
+//				bool register_column = false;
+//				output_frame.set_column(index, output_frame.get_column(index).clone(output_frame.get_column(index).name(), register_column));
+//			}
 		}
 	}
 }
@@ -69,29 +69,21 @@ ResultSet runQuery(int32_t masterIndex,
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
-		std::vector<gdf_dtype> types;
-		std::vector<gdf_time_unit> time_units;
-
+		std::vector<cudf::type_id> types;
 
 		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			types.push_back(tableSchemas[i].columns[col]->dtype);
+			types.push_back(to_type_id(tableSchemas[i].columns[col]->dtype));
 		}
 
-		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			time_units.push_back(tableSchemas[i].columns[col]->dtype_info.time_unit);
-		}
-		
 		auto schema = ral::io::Schema(tableSchema.names,
 			tableSchema.calcite_to_file_indices,
 			types,
 			tableSchema.num_row_groups,
-			time_units,
 			tableSchema.in_file,
-			tableSchema.row_groups_ids
-			);
+			tableSchema.row_groups_ids);
 
 		std::shared_ptr<ral::io::data_parser> parser;
 		if(fileType == ral::io::DataType::PARQUET) {
@@ -119,8 +111,10 @@ ResultSet runQuery(int32_t masterIndex,
 			provider = std::make_shared<ral::io::dummy_data_provider>();
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)
+
+			// TODO percy cudf0.12 implement proper scalar support
 			provider = std::make_shared<ral::io::uri_data_provider>(
-				uris, uri_values[i], string_values[i], is_column_string[i]);
+				uris, /* uri_values[i]*/ std::vector<std::map<std::string, cudf::scalar*>>(), string_values[i], is_column_string[i]);
 		}
 		ral::io::data_loader loader(parser, provider);
 		input_loaders.push_back(loader);
@@ -145,7 +139,7 @@ ResultSet runQuery(int32_t masterIndex,
 
 		blazing_frame frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 		make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
-		std::vector<gdf_column *> columns;
+		std::vector<cudf::column *> columns;
 		std::vector<std::string> names;
 		for(int i = 0; i < frame.get_width(); i++) {
 			auto& column = frame.get_column(i);
@@ -153,9 +147,10 @@ ResultSet runQuery(int32_t masterIndex,
 			names.push_back(column.name());
 		}
 
-		ResultSet result = {columns, names};
-		//    std::cout<<"result looks ok"<<std::endl;
-		return result;
+		// TODO percy cudf0.12 port to cudf::column CIO
+//		ResultSet result = {columns, names};
+//		//    std::cout<<"result looks ok"<<std::endl;
+//		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;
 		throw;
@@ -179,7 +174,7 @@ ResultSet runSkipData(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, bool>>> is_column_string) {
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
-	
+
 	std::vector<std::vector<gdf_column*>> minmax_metadata_tables;
 
 	assert(tableSchemas.size() == 1);
@@ -187,19 +182,15 @@ ResultSet runSkipData(int32_t masterIndex,
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
-		std::vector<gdf_dtype> types;
-		std::vector<gdf_time_unit> time_units;
+		std::vector<cudf::type_id> types;
 
 		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			types.push_back(tableSchemas[i].columns[col]->dtype);
+			types.push_back(to_type_id(tableSchemas[i].columns[col]->dtype));
 		}
 
-		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			time_units.push_back(tableSchemas[i].columns[col]->dtype_info.time_unit);
-		}
 		std::vector<gdf_column*> minmax_metadata_table;
 		for(int col = 0; col < tableSchemas[i].metadata.size(); col++) {
 			minmax_metadata_table.push_back(tableSchemas[i].metadata[col]);
@@ -210,7 +201,6 @@ ResultSet runSkipData(int32_t masterIndex,
 			tableSchema.calcite_to_file_indices,
 			types,
 			tableSchema.num_row_groups,
-			time_units,
 			tableSchema.in_file);
 
 		std::shared_ptr<ral::io::data_parser> parser;
@@ -237,8 +227,9 @@ ResultSet runSkipData(int32_t masterIndex,
 			provider = std::make_shared<ral::io::dummy_data_provider>();
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)
-			provider = std::make_shared<ral::io::uri_data_provider>(
-				uris, uri_values[i], string_values[i], is_column_string[i]);
+			// TODO percy cudf0.12 port to cudf::column
+			// provider = std::make_shared<ral::io::uri_data_provider>(
+			// 	uris, uri_values[i], string_values[i], is_column_string[i]);
 		}
 		ral::io::data_loader loader(parser, provider);
 		input_loaders.push_back(loader);
@@ -260,24 +251,25 @@ ResultSet runSkipData(int32_t masterIndex,
 		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
-		// 		skipdata_output_t 
+		// 		skipdata_output_t
 		//TODO: fix this @alex, input_loaders[0]
 		auto row_groups_cols = ral::skip_data::process_skipdata_for_table(input_loaders[0], minmax_metadata_tables[0], query, queryContext);
-		 
-		std::vector<gdf_column *> columns;
+
+		std::vector<cudf::column *> columns;
 		std::vector<std::string> names;
 		for(int i = 0; i < row_groups_cols.size(); i++) {
 			auto& column = row_groups_cols[i];
 			columns.push_back(column.get_gdf_column());
-			GDFRefCounter::getInstance()->deregister_column(column.get_gdf_column());
+			// TODO percy cudf0.12 port to cudf::column
+			// GDFRefCounter::getInstance()->deregister_column(column.get_gdf_column());
 
 			names.push_back(column.name());
 		}
 
-		ResultSet result = {columns, names};
+		// TODO percy cudf0.12 port to cudf::column CIO
+//		ResultSet result = {columns, names};
 		//    std::cout<<"result looks ok"<<std::endl;
-		return result;
-		return result;
+		// return result;
 	} catch(const std::exception & e) {
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
 		std::cerr << e.what() << std::endl;

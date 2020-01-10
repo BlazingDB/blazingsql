@@ -2,7 +2,8 @@
 #define UTILS_CUH_
 
 #include "gdf_wrapper/gdf_wrapper.cuh"
-#include "gdf_wrapper/utilities/cudf_utils.h"
+#include "from_cudf/cpp_src/utilities/legacy/cudf_utils.h"
+#include "from_cudf/cpp_src/bitmask/legacy/legacy_bitmask.hpp"
 
 #include <iostream>
 #include <vector>
@@ -79,7 +80,7 @@ using gdf_col_pointer = typename std::unique_ptr<gdf_column,
 
 template <typename col_type>
 void print_typed_column(col_type * col_data,
-                        gdf_valid_type * validity_mask,
+                        cudf::valid_type * validity_mask,
                         const size_t num_rows)
 {
 
@@ -88,10 +89,10 @@ void print_typed_column(col_type * col_data,
 
 
   const size_t num_masks = valid_size(num_rows);
-  std::vector<gdf_valid_type> h_mask(num_masks);
+  std::vector<cudf::valid_type> h_mask(num_masks);
   if(nullptr != validity_mask)
   {
-    CheckCudaErrors(cudaMemcpy((int *) h_mask.data(), validity_mask, num_masks * sizeof(gdf_valid_type), cudaMemcpyDeviceToHost));
+    CheckCudaErrors(cudaMemcpy((int *) h_mask.data(), validity_mask, num_masks * sizeof(cudf::valid_type), cudaMemcpyDeviceToHost));
   }
 
   if (validity_mask == nullptr) {
@@ -116,7 +117,7 @@ static void print_gdf_column(gdf_column const * the_column)
 {
   const size_t num_rows = the_column->size;
 
-  const gdf_dtype gdf_col_type = the_column->dtype;
+  const cudf::type_id gdf_col_type = to_type_id(the_column->dtype);
   switch(gdf_col_type)
   {
     case GDF_BOOL8:

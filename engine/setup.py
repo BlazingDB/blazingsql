@@ -25,8 +25,8 @@ conda_env_inc_libcudacxx = os.path.join(conda_env_inc, "bsql-rapids-thirdparty/l
 
 # TODO percy c.gonzales fix blazingdb-io headers
 conda_env_inc_io = os.path.join(conda_env_inc, "blazingdb/io")
-conda_env_inc_communication = os.path.join(
-    conda_env_inc, "blazingdb/communication")
+conda_env_inc_communication = os.path.join(conda_env_inc, "blazingdb/communication")
+
 conda_env_lib = os.path.join(conda_env_dir, "lib")
 
 print("Using CONDA_PREFIX : " + conda_env_dir)

@@ -13,7 +13,7 @@
 #include <rmm/rmm.h>
 #include <src/DataFrame.h>
 #include <src/Traits/RuntimeTraits.h>
-#include <src/gdf_wrapper/utilities/error_utils.h>
+#include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
 #include <thread>
 //#include "GDFColumn.cuh"
 
@@ -243,15 +243,16 @@ std::basic_string<char> get_typed_vector_content(gdf_dtype dtype, const std::vec
 }
 
 void set_gdf_column(gdf_column_cpp &p_column, std::basic_string<char> &vector, unsigned long size) {
-	size_t width_per_value = ral::traits::get_dtype_size_in_bytes(p_column.dtype());
-	if (vector.size() != 0) {
-		RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&p_column.get_gdf_column()->data),  width_per_value * size, 0));
-		CheckCudaErrors(cudaMemcpy(p_column.get_gdf_column()->data, vector.data(), width_per_value * size, cudaMemcpyHostToDevice));
-		p_column.get_gdf_column()->size = size;
-	} else {
-		RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&p_column.get_gdf_column()->data),  width_per_value * size, 0));
-		p_column.get_gdf_column()->size = size;
-	}
+	// TODO percy cudf0.12 port to cudf::column
+	// size_t width_per_value = ral::traits::get_dtype_size_in_bytes(p_column.dtype());
+	// if (vector.size() != 0) {
+	// 	RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&p_column.get_gdf_column()->data),  width_per_value * size, 0));
+	// 	CheckCudaErrors(cudaMemcpy(p_column.get_gdf_column()->data, vector.data(), width_per_value * size, cudaMemcpyHostToDevice));
+	// 	p_column.get_gdf_column()->size = size;
+	// } else {
+	// 	RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&p_column.get_gdf_column()->data),  width_per_value * size, 0));
+	// 	p_column.get_gdf_column()->size = size;
+	// }
 }
 
 std::vector<gdf_column_cpp> get_minmax_metadata(
@@ -290,16 +291,17 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 			if (dtype == GDF_CATEGORY || dtype == GDF_STRING || dtype == GDF_STRING_CATEGORY)
 				dtype = GDF_INT32;
 
-			auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
-			minmax_metadata_gdf_table[2 * colIndex].create_empty(dtype, col_name_min, extra_info.time_unit);
+// TODO percy cudf0.12 port to cudf::column
+			// auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
+			// minmax_metadata_gdf_table[2 * colIndex].create_empty(dtype, col_name_min, extra_info.time_unit);
 			
-			auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
-			minmax_metadata_gdf_table[2 * colIndex + 1].create_empty(dtype, col_name_max, extra_info.time_unit);
+			// auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
+			// minmax_metadata_gdf_table[2 * colIndex + 1].create_empty(dtype, col_name_max, extra_info.time_unit);
 		}
 
-		
-		minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 2].create_empty(GDF_INT32, "file_handle_index", TIME_UNIT_NONE);
-		minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 1].create_empty(GDF_INT32, "row_group_index", TIME_UNIT_NONE);
+		// TODO percy cudf0.12 port to cudf::column
+		// minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 2].create_empty(GDF_INT32, "file_handle_index", TIME_UNIT_NONE);
+		// minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 1].create_empty(GDF_INT32, "row_group_index", TIME_UNIT_NONE);
 	}
 
 	size_t file_index = 0;
@@ -345,10 +347,11 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 	}
 
 	for (size_t index = 0; index < 	minmax_metadata_table.size(); index++) {
-		auto vector = minmax_metadata_table[index];
-		auto dtype = minmax_metadata_gdf_table[index].dtype();
-		auto content =  get_typed_vector_content(dtype, vector);
-		set_gdf_column(minmax_metadata_gdf_table[index], content, total_num_row_groups);
+		// TODO percy cudf0.12 port to cudf::column
+		// auto vector = minmax_metadata_table[index];
+		// auto dtype = minmax_metadata_gdf_table[index].dtype();
+		// auto content =  get_typed_vector_content(dtype, vector);
+		// set_gdf_column(minmax_metadata_gdf_table[index], content, total_num_row_groups);
 	}
 	return minmax_metadata_gdf_table;
 }

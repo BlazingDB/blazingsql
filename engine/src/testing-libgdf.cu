@@ -302,7 +302,7 @@ static result_pair getResultService(uint64_t accessToken, Buffer&& requestPayloa
           col.size = result.result_frame.get_columns()[0][i].size();
           col.dtype =  (gdf_dto::gdf_dtype)result.result_frame.get_columns()[0][i].dtype();
           col.dtype_info = dtype_info;
-          col.null_count = static_cast<gdf_size_type>(result.result_frame.get_columns()[0][i].null_count()),
+          col.null_count = static_cast<cudf::size_type>(result.result_frame.get_columns()[0][i].null_count()),
           // custrings data
           col.custrings_data = libgdf::ConvertIpcByteArray(ipc);
 

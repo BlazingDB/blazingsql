@@ -117,7 +117,7 @@ void getReaderArgOrc(std::map<std::string, std::string> args, ReaderArgs & reade
 
 void getReaderArgCSV(std::map<std::string, std::string> args, ReaderArgs & readerArg) {
 	if(in("compression", args)) {
-		readerArg.csvReaderArg.compression = args["compression"];
+		readerArg.csvReaderArg.compression = (cudf::experimental::io::compression_type) to_int(args["compression"]);
 	}
 	if(in("lineterminator", args)) {
 		readerArg.csvReaderArg.lineterminator = ord(args["lineterminator"]);

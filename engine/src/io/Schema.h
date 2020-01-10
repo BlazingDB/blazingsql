@@ -15,7 +15,10 @@
 #include <vector>
 
 
+#include "cudf/column/column_view.hpp"
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
 namespace ral {
+
 namespace io {
 
 /**
@@ -23,7 +26,7 @@ namespace io {
  * but the cudf::io::csv::reader_options (what a name) currently requires a char * input
  *I have no idea why
  */
-std::string convert_dtype_to_string(const gdf_dtype & dtype);
+std::string convert_dtype_to_string(const cudf::type_id & dtype);
 
 class Schema {
 public:
@@ -31,21 +34,19 @@ public:
 
 	Schema(std::vector<std::string> names,
 		std::vector<size_t> calcite_to_file_indices,
-		std::vector<gdf_dtype> types,
-		std::vector<gdf_time_unit> time_units,
+		std::vector<cudf::type_id> types,
 		std::vector<size_t> num_row_groups,
 		std::vector<std::vector<int>> row_groups_ids = {}
 		);
 
 	Schema(std::vector<std::string> names,
 		std::vector<size_t> calcite_to_file_indices,
-		std::vector<gdf_dtype> types,
+		std::vector<cudf::type_id> types,
 		std::vector<size_t> num_row_groups,
-		std::vector<gdf_time_unit> time_units,
 		std::vector<bool> in_file,
 		std::vector<std::vector<int>> row_groups_ids = {});
 
-	Schema(std::vector<std::string> names, std::vector<gdf_dtype> types, std::vector<gdf_time_unit> time_units);
+	Schema(std::vector<std::string> names, std::vector<cudf::type_id> types);
 
 	virtual ~Schema();
 
@@ -53,8 +54,7 @@ public:
 	std::vector<std::string> get_types() const;
 	std::vector<std::string> get_files() const;
 	std::vector<bool> get_in_file() const;
-	std::vector<gdf_dtype> get_dtypes() const;
-	std::vector<gdf_time_unit> get_time_units() const;
+	std::vector<cudf::type_id> get_dtypes() const;
 	std::string get_name(size_t schema_index) const;
 	std::string get_type(size_t schema_index) const;
 	std::vector<size_t> get_calcite_to_file_indices() const { return this->calcite_to_file_indices; }
@@ -66,18 +66,18 @@ public:
 
 	size_t get_num_columns() const;
 
+	// DEPRECATED please use add_column(name, type, file_index, is_in_file)
 	void add_column(gdf_column_cpp column, size_t file_index);
-
+	
 	void add_file(std::string file);
 
 	void add_column(std::string name,
-		gdf_dtype type,
+		cudf::type_id type,
 		size_t file_index,
-		bool is_in_file = true,
-		gdf_time_unit time_unit = TIME_UNIT_NONE);
+		bool is_in_file = true);
 
 	inline bool operator==(const Schema & rhs) const {
-		return (this->names == rhs.names) && (this->types == rhs.types) && (this->time_units == rhs.time_units);
+		return (this->names == rhs.names) && (this->types == rhs.types);
 	}
 
 	inline bool operator!=(const Schema & rhs) { return !(*this == rhs); }
@@ -85,8 +85,7 @@ public:
 private:
 	std::vector<std::string> names;
 	std::vector<size_t> calcite_to_file_indices;  // maps calcite columns to our columns
-	std::vector<gdf_dtype> types;
-	std::vector<gdf_time_unit> time_units;
+	std::vector<cudf::type_id> types;
 	std::vector<size_t> num_row_groups;
 	std::vector<bool> in_file;
 	std::vector<std::string> files;

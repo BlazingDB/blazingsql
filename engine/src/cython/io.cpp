@@ -65,11 +65,13 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::iota(column_indices.begin(), column_indices.end(), 0);
 
 	auto columns_cpp =
-		ral::io::create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
+		ral::io::create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
 
 	for(auto column_cpp : columns_cpp) {
-		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-		tableSchema.columns.push_back(column_cpp.get_gdf_column());
+		// TODO percy cudf0.12 port to cudf::column
+		//GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
+		//tableSchema.columns.push_back(column_cpp.get_gdf_column());
+		
 		tableSchema.names.push_back(column_cpp.name());
 	}
 	tableSchema.files = schema.get_files();
@@ -92,48 +94,49 @@ TableSchema parseMetadata(std::vector<std::string> files,
 		// cover case for empty files to parse
 		// std::cout << "empty offset: " << std::endl;
 		
-		std::vector<size_t> column_indices(2 * schema.columns.size() + 2);
-		std::iota(column_indices.begin(), column_indices.end(), 0);
+		// TODO cudf0.12 port. Needs to be updated due to new dtypes
+		// std::vector<size_t> column_indices(2 * schema.columns.size() + 2);
+		// std::iota(column_indices.begin(), column_indices.end(), 0);
 
-		std::vector<std::string> names(2 * schema.columns.size() + 2);
-		std::vector<gdf_dtype> dtypes(2 * schema.columns.size() + 2);
-		std::vector<gdf_time_unit> time_units(2 * schema.columns.size() + 2);
+		// std::vector<std::string> names(2 * schema.columns.size() + 2);
+		// std::vector<gdf_dtype> dtypes(2 * schema.columns.size() + 2);
+		// std::vector<gdf_time_unit> time_units(2 * schema.columns.size() + 2);
 
-		size_t index = 0;
-		for(; index < schema.columns.size(); index++) {
-			auto col = schema.columns[index];
-			auto dtype = col->dtype;
-			if (dtype == GDF_CATEGORY || dtype == GDF_STRING || dtype == GDF_STRING_CATEGORY)
-				dtype = GDF_INT32;
+		// size_t index = 0;
+		// for(; index < schema.columns.size(); index++) {
+		// 	auto col = schema.columns[index];
+		// 	auto dtype = col->dtype;
+		// 	if (dtype == GDF_CATEGORY || dtype == GDF_STRING || dtype == GDF_STRING_CATEGORY)
+		// 		dtype = GDF_INT32;
 
-			dtypes[2*index] = dtype;
-			dtypes[2*index + 1] = dtype;
+		// 	dtypes[2*index] = dtype;
+		// 	dtypes[2*index + 1] = dtype;
 			
-			time_units[2*index] = col->dtype_info.time_unit;
-			time_units[2*index + 1] = col->dtype_info.time_unit;
+		// 	time_units[2*index] = col->dtype_info.time_unit;
+		// 	time_units[2*index + 1] = col->dtype_info.time_unit;
 
-			auto col_name_min = "min_" + std::to_string(index) + "_" + schema.names[index];
-			auto col_name_max = "max_" + std::to_string(index)  + "_" + schema.names[index];
+		// 	auto col_name_min = "min_" + std::to_string(index) + "_" + schema.names[index];
+		// 	auto col_name_max = "max_" + std::to_string(index)  + "_" + schema.names[index];
 
-			names[2*index] = col_name_min;
-			names[2*index + 1] = col_name_max;
-		}
-		dtypes[2*index] = GDF_INT32;
-		time_units[2*index] = TIME_UNIT_NONE;
-		names[2*index] = "file_handle_index";
+		// 	names[2*index] = col_name_min;
+		// 	names[2*index + 1] = col_name_max;
+		// }
+		// dtypes[2*index] = GDF_INT32;
+		// time_units[2*index] = TIME_UNIT_NONE;
+		// names[2*index] = "file_handle_index";
 
-		dtypes[2*index + 1] = GDF_INT32;
-		time_units[2*index + 1] = TIME_UNIT_NONE;
-		names[2*index + 1] = "row_group_index";
+		// dtypes[2*index + 1] = GDF_INT32;
+		// time_units[2*index + 1] = TIME_UNIT_NONE;
+		// names[2*index + 1] = "row_group_index";
 				
-		auto columns_cpp = ral::io::create_empty_columns(names, dtypes, time_units, column_indices);
+		// auto columns_cpp = ral::io::create_empty_columns(names, dtypes, time_units, column_indices);
 		TableSchema tableSchema;
 
-		for(auto column_cpp : columns_cpp) {
-			GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-			tableSchema.columns.push_back(column_cpp.get_gdf_column());
-			tableSchema.names.push_back(column_cpp.name());
-		}
+		// for(auto column_cpp : columns_cpp) {
+		// 	GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
+		// 	tableSchema.columns.push_back(column_cpp.get_gdf_column());
+		// 	tableSchema.names.push_back(column_cpp.name());
+		// }
 		//TODO, @alex init tableShema with valid None Values
 		return tableSchema;
 	}
@@ -178,9 +181,10 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	auto gdf_columns = metadata.get_columns();
  
 	for(auto column_cpp : gdf_columns) {
-		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-		tableSchema.columns.push_back(column_cpp.get_gdf_column());
-		tableSchema.names.push_back(column_cpp.name());
+		// TODO percy cudf0.12 port to cudf::column
+		// GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
+		// tableSchema.columns.push_back(column_cpp.get_gdf_column());
+		// tableSchema.names.push_back(column_cpp.name());
 	}
 	//TODO: Alexander
 	// tableSchema.files = schema.get_files();

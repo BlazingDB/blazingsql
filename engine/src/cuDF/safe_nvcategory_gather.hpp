@@ -38,7 +38,7 @@ inline void init_string_category_if_null(gdf_column * column) {
 	}
 }
 
-inline void truncate_nvcategory(gdf_column * column, gdf_size_type new_size) {
+inline void truncate_nvcategory(gdf_column * column, cudf::size_type new_size) {
 	assert(new_size <= column->size);
 	if(new_size == column->size) {
 		return;
