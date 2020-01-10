@@ -143,6 +143,10 @@ namespace ral {
 
 namespace distribution {
 namespace experimental {
+	namespace {
+		using Context = blazingdb::manager::experimental::Context;
+	}  // namespace
+
 	typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
 	typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
 	using namespace ral::frame;

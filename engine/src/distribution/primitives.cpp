@@ -1132,17 +1132,18 @@ std::vector<NodeColumn> collectSomePartitions(const Context & context, int num_p
 		}
 
 		auto column_message = std::static_pointer_cast<ColumnDataMessage>(message);
-		auto node = message->getSenderNode();
-		int node_idx = context.getNodeIndex(*node);
-		if(received[node_idx]) {
-			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context.getQueryStep()),
-				std::to_string(context.getQuerySubstep()),
-				"ERROR: Already received collectSomePartitions from node " + std::to_string(node_idx)));
-		}
+		// WSM TODO waiting on message Node refactor
+		// auto node = message->getSenderNode();
+		// int node_idx = context.getNodeIndex(node);
+		// if(received[node_idx]) {
+		// 	Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+		// 		std::to_string(context.getQueryStep()),
+		// 		std::to_string(context.getQuerySubstep()),
+		// 		"ERROR: Already received collectSomePartitions from node " + std::to_string(node_idx)));
+		// }
 		// WSM waiting on getBlazingTable
 		// node_columns.emplace_back(std::make_pair(node, std::move(column_message->getBlazingTable())));
-		received[node_idx] = true;
+		// received[node_idx] = true;
 	}
 	return node_columns;
 }
