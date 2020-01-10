@@ -80,13 +80,20 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
-
 cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,gdf_dtype]] extra_columns):
     temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns)
     return temp
 
+cdef cio.TableSchema parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,gdf_dtype]] extra_columns):
+    temp = cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values,extra_columns)
+    return temp
+
 cdef cio.ResultSet runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
     temp = cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string)
+    return temp
+
+cdef cio.ResultSet runSkipDataPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
+    temp = cio.runSkipData( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string)
     return temp
 
 cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
@@ -172,6 +179,60 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
       return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
       i = i + 1
     return return_object
+
+
+cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extra_columns):
+    cdef vector[string] files
+    for file in fileList:
+      print('file', file)
+      files.push_back(str.encode(file))
+
+    cdef vector[string] arg_keys
+    cdef vector[string] arg_values
+    cdef TableSchema cpp_schema
+
+    for col in schema['columns']:
+        cpp_schema.columns.push_back(column_view_from_column(schema['columns'][col]._column))
+        cpp_schema.names.push_back(col.encode())
+
+    for key, value in args.items():
+      arg_keys.push_back(str.encode(key))
+      arg_values.push_back(str.encode(str(value)))
+
+    cdef vector[pair[string,gdf_dtype]] extra_columns_cpp
+    cdef pair[string,gdf_dtype] extra_column_cpp
+    for extra_column in extra_columns:
+        extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
+        extra_columns_cpp.push_back(extra_column_cpp)
+    temp = parseMetadataPython(files, offset, cpp_schema, str.encode(file_format_hint), arg_keys,arg_values, extra_columns_cpp)
+    return_object = {}
+    return_object['datasource'] = files
+    # return_object['files'] = temp.files
+    return_object['file_type'] = temp.data_type
+    return_object['args'] = args
+    return_object['columns'] = cudf.DataFrame()
+    return_object['names'] = temp.names
+    # return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
+    # return_object['num_row_groups']= temp.num_row_groups
+
+    # i = 0
+    # for column in temp.columns:
+    #   column.col_name = return_object['names'][i]
+    #   return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
+    #   i = i + 1
+    # return return_object['columns']
+
+
+    df = cudf.DataFrame()
+    i = 0
+    for column in temp.columns:
+      column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
+      strcpy(column.col_name, temp.names[i].c_str())
+      df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
+      i = i + 1
+    return df
+
+
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
@@ -263,6 +324,11 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
           tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
           tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
 
+      # if table.row_groups_ids is not None:
+      #   currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
+      # else:
+      #   currentTableSchemaCpp.row_groups_ids = []
+
       tableSchemaCpp.push_back(currentTableSchemaCpp);
       tableIndex = tableIndex + 1
     for currentMetadata in tcpMetadata:
@@ -272,6 +338,118 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
     temp = runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all)
+
+    df = cudf.DataFrame()
+    i = 0
+    for column in temp.columns:
+      column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
+      strcpy(column.col_name, temp.names[i].c_str())
+      df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
+      i = i + 1
+    return df
+
+
+
+cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
+    cdef string query
+    query = str.encode(queryPy)
+    cdef vector[NodeMetaDataTCP] tcpMetadataCpp
+    cdef vector[TableSchema] tableSchemaCpp
+    cdef vector[vector[string]] tableSchemaCppArgKeys
+    cdef vector[vector[string]] tableSchemaCppArgValues
+    cdef vector[string] currentTableSchemaCppArgKeys
+    cdef vector[string] currentTableSchemaCppArgValues
+    cdef vector[string] tableNames
+    cdef vector[gdf_column_ptr] columns
+    cdef vector[string] names
+    cdef TableSchema currentTableSchemaCpp
+    cdef NodeMetaDataTCP currentMetadataCpp
+    cdef vector[vector[string]] filesAll
+    cdef vector[string] currentFilesAll
+
+    cdef vector[vector[map[string,gdf_scalar]]] uri_values_cpp_all
+    cdef vector[map[string,gdf_scalar]] uri_values_cpp
+    cdef map[string,gdf_scalar] cur_uri_values
+
+
+    cdef vector[vector[map[string,string]]] string_values_cpp_all
+    cdef vector[map[string,string]] string_values_cpp
+    cdef map[string,string] cur_string_values
+
+    cdef vector[vector[map[string,bool]]] is_string_column_all
+    cdef vector[map[string,bool]] is_string_column
+    cdef map[string,bool] cur_is_string_column
+
+    cdef gdf_scalar_ptr scalar_ptr
+    cdef gdf_scalar scalar
+
+    tableName, table = table_obj
+
+    tableIndex = 0
+    string_values_cpp.empty()
+    uri_values_cpp.empty()
+    for uri_value in table.uri_values:
+      cur_uri_values.clear()
+      cur_string_values.clear()
+      for column_tuple in uri_value:
+        key = column_tuple[0]
+        value = column_tuple[1]
+        if type(value) == np.str:
+          cur_is_string_column[key.encode()] = True
+          cur_string_values[key.encode()] = value.encode()
+        else:
+          scalar_ptr = gdf_scalar_from_scalar(value)
+          scalar = scalar_ptr[0]
+          free(scalar_ptr)
+          cur_is_string_column[key.encode()] = False
+          cur_uri_values[key.encode()] = scalar
+      uri_values_cpp.push_back(cur_uri_values)
+      string_values_cpp.push_back(cur_string_values)
+      is_string_column.push_back(cur_is_string_column)
+    uri_values_cpp_all.push_back(uri_values_cpp)
+    string_values_cpp_all.push_back(string_values_cpp)
+    is_string_column_all.push_back(is_string_column)
+
+    is_string_column.push_back(cur_is_string_column)
+    tableNames.push_back(str.encode(tableName))
+    currentFilesAll.resize(0)
+    if table.files is not None:
+      for file in table.files:
+        currentFilesAll.push_back(file)
+    filesAll.push_back(currentFilesAll)
+    columns.resize(0)
+    names.resize(0)
+    fileType = fileTypes[tableIndex]
+    for col in table.input:
+      names.push_back(col.encode())
+      columns.push_back(column_view_from_column(table.input[col]._column))
+    currentTableSchemaCpp.columns = columns
+    currentTableSchemaCpp.names = names
+    currentTableSchemaCpp.datasource = table.datasource
+    if table.calcite_to_file_indices is not None:
+      currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
+    if table.num_row_groups is not None:
+      currentTableSchemaCpp.num_row_groups = table.num_row_groups
+    currentTableSchemaCpp.in_file = table.in_file
+    currentTableSchemaCppArgKeys.resize(0)
+    currentTableSchemaCppArgValues.resize(0)
+    tableSchemaCppArgKeys.push_back(currentTableSchemaCppArgKeys)
+    tableSchemaCppArgValues.push_back(currentTableSchemaCppArgValues)
+    for key, value in table.args.items():
+        tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
+        tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
+
+    for col in table.metadata:
+      currentTableSchemaCpp.metadata.push_back(column_view_from_column(table.metadata[col]._column))
+
+    tableSchemaCpp.push_back(currentTableSchemaCpp);
+
+    for currentMetadata in tcpMetadata:
+        currentMetadataCpp.ip = currentMetadata['ip'].encode()
+        print(currentMetadata['communication_port'])
+        currentMetadataCpp.communication_port = currentMetadata['communication_port']
+        tcpMetadataCpp.push_back(currentMetadataCpp)
+    temp = runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all)
 
     df = cudf.DataFrame()
     i = 0

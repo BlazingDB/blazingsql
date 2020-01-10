@@ -19,8 +19,9 @@ if os.environ.get('CONDA_BUILD') is not None:
 
 conda_env_inc = os.path.join(conda_env_dir, "include")
 
-conda_env_inc_cub = os.path.join(conda_env_inc, "cub")
-conda_env_inc_libcudacxx = os.path.join(conda_env_inc, "libcudacxx/include")
+conda_env_inc_cudf = os.path.join(conda_env_inc, "cudf")
+conda_env_inc_cub = os.path.join(conda_env_inc, "bsql-rapids-thirdparty/cub")
+conda_env_inc_libcudacxx = os.path.join(conda_env_inc, "bsql-rapids-thirdparty/libcudacxx/include")
 
 # TODO percy c.gonzales fix blazingdb-io headers
 conda_env_inc_io = os.path.join(conda_env_inc, "blazingdb/io")
@@ -40,8 +41,9 @@ extensions = [
             "include/",
             "src/",
             conda_env_inc,
-			conda_env_inc_cub,
-			conda_env_inc_libcudacxx,
+            conda_env_inc_cudf,
+            conda_env_inc_cub,
+            conda_env_inc_libcudacxx,
             conda_env_inc_io,
             conda_env_inc_communication,
             "/usr/local/cuda/include",
