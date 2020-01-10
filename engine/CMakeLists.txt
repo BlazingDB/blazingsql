@@ -76,9 +76,13 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
     $ENV{CONDA_PREFIX}/include
     $ENV{CONDA_PREFIX}/include/cudf
+    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/cub
+    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
     $ENV{CONDA_PREFIX}/include/blazingdb/io
     $ENV{PREFIX}/include
     $ENV{PREFIX}/include/cudf
+    $ENV{PREFIX}/include/bsql-rapids-thirdparty/cub
+    $ENV{PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
     $ENV{PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
     )
