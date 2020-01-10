@@ -26,6 +26,9 @@ export CFLAGS=$CXXFLAGS
 
 echo "CMD: cmake -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_EXE_LINKER_FLAGS=\"$CXXFLAGS\" .."
 cmake -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
+if [ $? != 0 ]; then
+  exit 1
+fi
 
 if [ "$run_test" == "ON" ]; then
   echo "make -j all"

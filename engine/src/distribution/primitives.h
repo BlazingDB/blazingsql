@@ -8,6 +8,8 @@
 #include "distribution/NodeColumns.h"
 #include "distribution/NodeSamples.h"
 #include <vector>
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
+
 
 namespace ral {
 namespace distribution {
@@ -133,6 +135,37 @@ namespace distribution {
 std::vector<NodeColumns> generateJoinPartitions(
 	const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices);
 
+}  // namespace distribution
+}  // namespace ral
+
+
+namespace ral {
+
+namespace distribution {
+namespace experimental {
+	namespace {
+		using Context = blazingdb::manager::experimental::Context;
+	}  // namespace
+
+	typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
+	typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
+	using namespace ral::frame;
+
+	std::unique_ptr<BlazingTable> generatePartitionPlans(
+				const Context & context, std::vector<NodeColumnView> & samples, 
+				std::vector<std::size_t> & table_total_rows, std::vector<int8_t> & sortOrderTypes);
+
+	void distributePartitions(const Context & context, std::vector<NodeColumnView> & partitions);
+
+	std::unique_ptr<BlazingTable> getPartitionPlan(const Context & context);
+
+	std::vector<NodeColumn> collectPartitions(const Context & context);
+
+	std::vector<NodeColumn> collectSomePartitions(const Context & context, int num_partitions);
+
+	void scatterData(const Context & context, BlazingTableView table);
+
+}  // namespace experimental
 }  // namespace distribution
 }  // namespace ral
 
