@@ -35,6 +35,10 @@ std::string GetCurrentWorkingDir( void ) {
   char buff[100];
   getcwd( buff, 100 );
   std::string current_working_dir(buff);
+  if (current_working_dir.find("build") != std::string::npos) {
+    current_working_dir.erase( current_working_dir.end()-6, current_working_dir.end());
+  }
+
   return current_working_dir;
 }
 
@@ -49,8 +53,7 @@ TYPED_TEST(OrcTest, multipleColumns)
     using T = TypeParam;
 
     // Loading a simple .orc file
-    std::string last_path = "/tests/io-test/region_0_0.orc";
-    std::string filepath = GetCurrentWorkingDir() + last_path;
+    std::string filepath = GetCurrentWorkingDir() + "/tests/io-test/region_0_0.orc";
 
     cudf::experimental::io::read_orc_args orc_args{cudf::experimental::io::source_info{filepath}};
     orc_args.columns = {"r_regionkey", "r_name", "r_comment"};
