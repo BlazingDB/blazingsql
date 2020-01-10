@@ -151,7 +151,13 @@ namespace experimental {
 	typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
 	using namespace ral::frame;
 
+	std::unique_ptr<BlazingTable> generatePartitionPlans(
+				const Context & context, std::vector<NodeColumnView> & samples, 
+				std::vector<std::size_t> & table_total_rows, std::vector<int8_t> & sortOrderTypes);
+
 	void distributePartitions(const Context & context, std::vector<NodeColumnView> & partitions);
+
+	std::unique_ptr<BlazingTable> getPartitionPlan(const Context & context);
 
 	std::vector<NodeColumn> collectPartitions(const Context & context);
 
