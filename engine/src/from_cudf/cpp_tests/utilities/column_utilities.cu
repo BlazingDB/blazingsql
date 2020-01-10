@@ -49,9 +49,9 @@ class corresponding_rows_unequal {
 public:
   corresponding_rows_unequal(table_device_view d_lhs, table_device_view d_rhs): comp(d_lhs, d_rhs) {
   }
-  
+
   cudf::experimental::row_equality_comparator<true> comp;
-    
+
   __device__ bool operator()(size_type index) {
     return !comp(index, index);
   }
@@ -83,14 +83,14 @@ void expect_columns_equal(cudf::column_view const& lhs, cudf::column_view const&
       //
       std::ostringstream buffer;
       buffer << "differences:" << std::endl;
-      
+
       cudf::table_view source_table ({lhs, rhs});
 
       fixed_width_column_wrapper<int32_t> diff_column(differences.begin(), differences.end());
 
       std::unique_ptr<cudf::experimental::table> diff_table = cudf::experimental::gather(source_table,
 											 diff_column);
-      
+
       //
       //  Need to pull back the differences
       //
@@ -211,7 +211,7 @@ std::vector<std::string> to_strings(cudf::column_view const& col) {
   std::vector<std::string> reply;
 
   cudf::experimental::type_dispatcher(col.type(),
-                                      column_view_printer{}, 
+                                      column_view_printer{},
                                       col,
                                       reply);
 
