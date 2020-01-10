@@ -816,89 +816,11 @@ void process_aggregate(blazing_frame & input, std::string query_part, Context * 
 std::unique_ptr<ral::frame::BlazingTable> _new_groupby_without_aggregations(
 	const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
 
-
-/**
- * @brief Create a new table without duplicate rows
- *
- * Given an `input` table_view, each row is copied to output table if the corresponding
- * row of `keys` columns is unique, where the definition of unique depends on the value of @p keep:
- * - KEEP_FIRST: only the first of a sequence of duplicate rows is copied
- * - KEEP_LAST: only the last of a sequence of duplicate rows is copied
- * - KEEP_NONE: only unique rows are kept
- *
- * @throws cudf::logic_error if The `input` row size mismatches with `keys`.
- *
- * @param[in] input           input table_view to copy only unique rows
- * @param[in] keys            vector of indices representing key columns from `input`
- * @param[in] keep            keep first entry, last entry, or no entries if duplicates found
- * @param[in] nulls_are_equal flag to denote nulls are equal if true,
- * nulls are not equal if false
- * @param[in] mr Optional, The resource to use for all allocations
- * @param[in] stream Optional CUDA stream on which to execute kernels
- *
- * @return unique_ptr<table> Table with unique rows as per specified `keep`.
- */
 	std::unique_ptr<cudf::experimental::table> output = cudf::experimental::drop_duplicates(table.view(),
-                    group_column_indices,
-                    cudf::experimental::duplicate_keep_option::KEEP_FIRST);
+		group_column_indices,
+		cudf::experimental::duplicate_keep_option::KEEP_FIRST);
 
 	return std::make_unique<ral::frame::BlazingTable>( std::move(output), table.names() );
-
-	// cudf::size_type num_group_columns = group_column_indices.size();
-
-	// gdf_context ctxt;
-	// ctxt.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  //  Nulls are are treated as largest
-	// ctxt.flag_groupby_include_nulls = 1;  // Nulls are treated as values in group by keys where NULL == NULL (SQL style)
-
-	// cudf::table group_by_data_in_table = ral::utilities::create_table(input);
-	// cudf::table group_by_columns_out_table;
-
-	// We want the index_col_ptr be on the heap because index_col will call delete when it goes out of scope
-	// TODO percy cudf0.12 port to cudf::column
-	// cudf::column * index_col_ptr = new cudf::column();
-	
-	// TODO percy cudf0.12 port to cudf::column
-//	std::tie(group_by_columns_out_table, *index_col_ptr) = gdf_group_by_without_aggregations(
-//		group_by_data_in_table, num_group_columns, group_column_indices.data(), &ctxt);
-	
-	// gdf_column_cpp index_col;
-	
-	// TODO percy cudf0.12 port to cudf::column
-	//index_col.create_gdf_column(index_col_ptr);
-
-	// ral::init_string_category_if_null(group_by_columns_out_table);
-
-	// std::vector<gdf_column_cpp> output_columns_group(group_by_columns_out_table.num_columns());
-	// for(int i = 0; i < output_columns_group.size(); i++) {
-	// 	auto * grouped_col = group_by_columns_out_table.get_column(i);
-	// 	grouped_col->col_name =
-	// 		nullptr;  // need to do this because gdf_group_by_without_aggregations is not setting the name properly
-		
-		// TODO percy cudf0.12 port to cudf::column
-		//output_columns_group[i].create_gdf_column(grouped_col);
-	// }
-
-	// std::vector<gdf_column_cpp> grouped_output(num_group_columns);
-	// for(int i = 0; i < num_group_columns; i++) {
-		// TODO percy cudf0.12 port to cudf::column
-//		if(input[i].valid()) {
-//			grouped_output[i].create_gdf_column(input[i].dtype(),
-//				index_col_ptr->size,
-//				nullptr,
-//				ral::traits::get_dtype_size_in_bytes(input[i].dtype()),
-//				input[i].name());
-//		}
-//		else {
-//			grouped_output[i].create_gdf_column(input[i].dtype(),
-//				index_col_ptr->size,
-//				nullptr,
-//				nullptr,
-//				ral::traits::get_dtype_size_in_bytes(input[i].dtype()),
-//				input[i].name());
-//		}
-		// materialize_column(output_columns_group[i].get_gdf_column(), grouped_output[i].get_gdf_column(), index_col_ptr);
-	// }
-	// return grouped_output;
 }
 
 }  // namespace operators
