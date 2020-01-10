@@ -35,6 +35,9 @@ void _new_aggregations_with_groupby(std::vector<CudfColumnView> & group_by_colum
 	std::vector<cudf::column_view> & aggrgation_output_columns,
 	const std::vector<std::string> & output_column_names);
 
+// TODO Rommel
+std::unique_ptr<ral::frame::BlazingTable> _new_groupby_without_aggregations(
+	const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices);
 
 }  // namespace operators
 }  // namespace ral

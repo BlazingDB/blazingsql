@@ -838,10 +838,11 @@ std::unique_ptr<ral::frame::BlazingTable> _new_groupby_without_aggregations(
  *
  * @return unique_ptr<table> Table with unique rows as per specified `keep`.
  */
-std::unique_ptr<cudf::experimental::table> output = cudf::experimental::drop_duplicates(table.view(),
+	std::unique_ptr<cudf::experimental::table> output = cudf::experimental::drop_duplicates(table.view(),
                     group_column_indices,
                     cudf::experimental::duplicate_keep_option::KEEP_FIRST);
 
+	return std::make_unique<ral::frame::BlazingTable>( std::move(output), table.names() );
 
 	// cudf::size_type num_group_columns = group_column_indices.size();
 
