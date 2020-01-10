@@ -1,25 +1,31 @@
 
+#include <algorithm>
+#include <chrono>
 #include <cuda_runtime.h>
+#include <cudf/datetime.hpp>
 #include <cudf/scalar/scalar.hpp>
 #include <cudf/table/table_view.hpp>
+#include <cudf/types.hpp>
 #include <cudf/utilities/error.hpp>
 #include <cudf/utilities/traits.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
-#include <thrust/device_vector.h>
-#include <thrust/reduce.h>
 #include <limits>
 #include <map>
 #include <numeric>
+#include <simt/chrono>
+#include <thrust/device_vector.h>
+#include <thrust/reduce.h>
 #include <type_traits>
 #include <vector>
-#include <algorithm>
-#include <chrono>
 
 #include "CalciteExpressionParsing.h"
 #include "gdf_wrapper/gdf_types.cuh"
 #include "interpreter_cpp.h"
 
+namespace interops {
+
 typedef int64_t temp_gdf_valid_type;  // until its an int32 in cudf
+typedef int16_t column_index_type;
 
 template <typename T>
 __device__ __forceinline__ T getMagicNumber() {
@@ -36,101 +42,51 @@ __device__ __forceinline__ double getMagicNumber<double>() {
 	return 1.7976931348623123e+308;
 }
 
-/*
- * TODO find a way to include date time operations from CUDF instead of maintaing it here
- * irequires that the operators can be templated
- */
-__constant__ const int64_t units_per_day = 86400000;
-__constant__ const int64_t units_per_hour = 3600000;
-__constant__ const int64_t units_per_minute = 60000;
-__constant__ const int64_t units_per_second = 1000;
+using cudf::datetime::detail::datetime_component;
+template <typename Timestamp, datetime_component Component>
+struct extract_component_operator {
+	static_assert(cudf::is_timestamp<Timestamp>(), "");
 
-static __device__ int64_t extract_year_op(int64_t unixTime) {
-	const int z = ((unixTime >= 0 ? unixTime : unixTime - (units_per_day - 1)) / units_per_day) + 719468;
-	const int era = (z >= 0 ? z : z - 146096) / 146097;
-	const unsigned doe = static_cast<unsigned>(z - era * 146097);
-	const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-	const int y = static_cast<int>(yoe) + era * 400;
-	const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-	const unsigned mp = (5 * doy + 2) / 153;
-	const unsigned m = mp + (mp < 10 ? 3 : -9);
-	if(m <= 2)
-		return y + 1;
-	else
-		return y;
-}
+	CUDA_DEVICE_CALLABLE int16_t operator()(Timestamp const ts) const {
+		using namespace simt::std::chrono;
 
-static __device__ int64_t extract_month_op(int64_t unixTime) {
-	const int z = ((unixTime >= 0 ? unixTime : unixTime - (units_per_day - 1)) / units_per_day) + 719468;
-	const int era = (z >= 0 ? z : z - 146096) / 146097;
-	const unsigned doe = static_cast<unsigned>(z - era * 146097);
-	const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-	const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-	const unsigned mp = (5 * doy + 2) / 153;
-	return mp + (mp < 10 ? 3 : -9);
-}
+		auto days_since_epoch = floor<days>(ts);
 
-static __device__ int64_t extract_day_op(int64_t unixTime) {
-	const int z = ((unixTime >= 0 ? unixTime : unixTime - (units_per_day - 1)) / units_per_day) + 719468;
-	const int era = (z >= 0 ? z : z - 146096) / 146097;
-	const unsigned doe = static_cast<unsigned>(z - era * 146097);
-	const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-	const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-	const unsigned mp = (5 * doy + 2) / 153;
-	return doy - (153 * mp + 2) / 5 + 1;
-}
+		auto time_since_midnight = ts - days_since_epoch;
 
-static __device__ int64_t extract_hour_op(int64_t unixTime) {
-	return unixTime >= 0 ? ((unixTime % units_per_day) / units_per_hour)
-						 : ((units_per_day + (unixTime % units_per_day)) / units_per_hour);
-}
+		if(time_since_midnight.count() < 0) {
+			time_since_midnight += days(1);
+		}
 
-static __device__ int64_t extract_minute_op(int64_t unixTime) {
-	return unixTime >= 0 ? ((unixTime % units_per_hour) / units_per_minute)
-						 : ((units_per_hour + (unixTime % units_per_hour)) / units_per_minute);
-}
+		auto hrs_ = duration_cast<hours>(time_since_midnight);
+		auto mins_ = duration_cast<minutes>(time_since_midnight - hrs_);
+		auto secs_ = duration_cast<seconds>(time_since_midnight - hrs_ - mins_);
 
-static __device__ int64_t extract_second_op(int64_t unixTime) {
-	return unixTime >= 0 ? ((unixTime % units_per_minute) / units_per_second)
-						 : ((units_per_minute + (unixTime % units_per_minute)) / units_per_second);
-}
+		switch(Component) {
+		case datetime_component::YEAR: return static_cast<int>(year_month_day(days_since_epoch).year());
+		case datetime_component::MONTH: return static_cast<unsigned>(year_month_day(days_since_epoch).month());
+		case datetime_component::DAY: return static_cast<unsigned>(year_month_day(days_since_epoch).day());
+		case datetime_component::WEEKDAY: return year_month_weekday(days_since_epoch).weekday().iso_encoding();
+		case datetime_component::HOUR: return hrs_.count();
+		case datetime_component::MINUTE: return mins_.count();
+		case datetime_component::SECOND: return secs_.count();
+		default: return 0;
+		}
+	}
+};
 
-static __device__ int64_t extract_year_op_32(int64_t unixDate) {
-	const int z = unixDate + 719468;
-	const int era = (z >= 0 ? z : z - 146096) / 146097;
-	const unsigned doe = static_cast<unsigned>(z - era * 146097);
-	const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-	const int y = static_cast<int>(yoe) + era * 400;
-	const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-	const unsigned mp = (5 * doy + 2) / 153;
-	const unsigned m = mp + (mp < 10 ? 3 : -9);
-	if(m <= 2)
-		return y + 1;
-	else
-		return y;
-}
+template <typename PrimitiveType, datetime_component Component>
+struct launch_extract_component {
+	template <typename Element, std::enable_if_t<!cudf::is_timestamp<Element>()> * = nullptr>
+	CUDA_DEVICE_CALLABLE int16_t operator()(PrimitiveType val) {
+		return 0;
+	}
 
-static __device__ int64_t extract_month_op_32(int64_t unixDate) {
-	const int z = unixDate + 719468;
-	const int era = (z >= 0 ? z : z - 146096) / 146097;
-	const unsigned doe = static_cast<unsigned>(z - era * 146097);
-	const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-	const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-	const unsigned mp = (5 * doy + 2) / 153;
-
-	return mp + (mp < 10 ? 3 : -9);
-}
-
-
-static __device__ int64_t extract_day_op_32(int64_t unixDate) {
-	const int z = unixDate + 719468;
-	const int era = (z >= 0 ? z : z - 146096) / 146097;
-	const unsigned doe = static_cast<unsigned>(z - era * 146097);
-	const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-	const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-	const unsigned mp = (5 * doy + 2) / 153;
-	return doy - (153 * mp + 2) / 5 + 1;
-}
+	template <typename Timestamp, std::enable_if_t<cudf::is_timestamp<Timestamp>()> * = nullptr>
+	CUDA_DEVICE_CALLABLE int16_t operator()(PrimitiveType val) {
+		return extract_component_operator<Timestamp, Component>{}(Timestamp{static_cast<typename Timestamp::rep>(val)});
+	}
+};
 
 struct scale_to_64_bit_functor {
 	template <typename T, std::enable_if_t<!cudf::is_simple<T>()> * = nullptr>
@@ -177,13 +133,9 @@ static __device__ __host__ __forceinline__ bool isInt(cudf::type_id type) {
 		   (type == cudf::type_id::TIMESTAMP_NANOSECONDS) || (type == cudf::type_id::CATEGORY);
 }
 
-static __device__ __forceinline__ bool isDate32(cudf::type_id type) { return type == cudf::type_id::TIMESTAMP_DAYS; }
-
 static __device__ __forceinline__ bool isFloat(cudf::type_id type) {
 	return (type == cudf::type_id::FLOAT32) || (type == cudf::type_id::FLOAT64);
 }
-
-typedef int16_t column_index_type;
 
 /**
  * every element that is stored in the local buffer is 8 bytes in local, so signed ints are cast to int64, unsigned to
@@ -605,28 +557,39 @@ private:
 		int cur_column, int cur_buffer, int64_t * buffer, cudf::size_type row_index) {
 		cudf::type_id cur_type = this->final_output_types[cur_column];
 
-		if (cur_type == cudf::type_id::BOOL8) {
-			device_ptr_write_from_buffer<cudf::experimental::bool8::value_type, int64_t>(row_index, this->output_data[cur_column], buffer, cur_buffer);
-		}	else if(cur_type == cudf::type_id::INT8) {
+		if(cur_type == cudf::type_id::BOOL8) {
+			device_ptr_write_from_buffer<cudf::experimental::bool8::value_type, int64_t>(
+				row_index, this->output_data[cur_column], buffer, cur_buffer);
+		} else if(cur_type == cudf::type_id::INT8) {
 			device_ptr_write_from_buffer<int8_t, int64_t>(row_index, this->output_data[cur_column], buffer, cur_buffer);
 		} else if(cur_type == cudf::type_id::INT16) {
 			device_ptr_write_from_buffer<int16_t, int64_t>(
 				row_index, this->output_data[cur_column], buffer, cur_buffer);
-		} else if(cur_type == cudf::type_id::INT32 || cur_type == cudf::type_id::TIMESTAMP_DAYS ||
-				  cur_type == cudf::type_id::CATEGORY) {
-			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		} else if(cur_type == cudf::type_id::INT32 || cur_type == cudf::type_id::CATEGORY) {
 			device_ptr_write_from_buffer<int32_t, int64_t>(
 				row_index, this->output_data[cur_column], buffer, cur_buffer);
-		} else if(cur_type == cudf::type_id::INT64 || cur_type == cudf::type_id::TIMESTAMP_SECONDS ||
-				  cur_type == cudf::type_id::TIMESTAMP_MILLISECONDS ||
-				  cur_type == cudf::type_id::TIMESTAMP_MICROSECONDS ||
-				  cur_type == cudf::type_id::TIMESTAMP_NANOSECONDS) {
+		} else if(cur_type == cudf::type_id::INT64) {
 			device_ptr_write_from_buffer<int64_t, int64_t>(
 				row_index, this->output_data[cur_column], buffer, cur_buffer);
 		} else if(cur_type == cudf::type_id::FLOAT32) {
 			device_ptr_write_from_buffer<float, double>(row_index, this->output_data[cur_column], buffer, cur_buffer);
 		} else if(cur_type == cudf::type_id::FLOAT64) {
 			device_ptr_write_from_buffer<double, double>(row_index, this->output_data[cur_column], buffer, cur_buffer);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_DAYS) {
+			device_ptr_write_from_buffer<cudf::timestamp_D::rep, int64_t>(
+				row_index, this->output_data[cur_column], buffer, cur_buffer);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_SECONDS) {
+			device_ptr_write_from_buffer<cudf::timestamp_s::rep, int64_t>(
+				row_index, this->output_data[cur_column], buffer, cur_buffer);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+			device_ptr_write_from_buffer<cudf::timestamp_ms::rep, int64_t>(
+				row_index, this->output_data[cur_column], buffer, cur_buffer);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_MICROSECONDS) {
+			device_ptr_write_from_buffer<cudf::timestamp_us::rep, int64_t>(
+				row_index, this->output_data[cur_column], buffer, cur_buffer);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_NANOSECONDS) {
+			device_ptr_write_from_buffer<cudf::timestamp_ns::rep, int64_t>(
+				row_index, this->output_data[cur_column], buffer, cur_buffer);
 		}
 	}
 
@@ -637,24 +600,36 @@ private:
 	__device__ __forceinline__ void read_data(int cur_column, int64_t * buffer, cudf::size_type row_index) {
 		cudf::type_id cur_type = this->input_column_types[cur_column];
 
-		if (cur_type == cudf::type_id::BOOL8) {
-			device_ptr_read_into_buffer<cudf::experimental::bool8::value_type, int64_t>(cur_column, row_index, this->column_data, buffer, cur_column);
+		if(cur_type == cudf::type_id::BOOL8) {
+			device_ptr_read_into_buffer<cudf::experimental::bool8::value_type, int64_t>(
+				cur_column, row_index, this->column_data, buffer, cur_column);
 		} else if(cur_type == cudf::type_id::INT8) {
 			device_ptr_read_into_buffer<int8_t, int64_t>(cur_column, row_index, this->column_data, buffer, cur_column);
 		} else if(cur_type == cudf::type_id::INT16) {
 			device_ptr_read_into_buffer<int16_t, int64_t>(cur_column, row_index, this->column_data, buffer, cur_column);
-		} else if(cur_type == cudf::type_id::INT32 || cur_type == cudf::type_id::TIMESTAMP_DAYS ||
-				  cur_type == cudf::type_id::CATEGORY) {
+		} else if(cur_type == cudf::type_id::INT32 || cur_type == cudf::type_id::CATEGORY) {
 			device_ptr_read_into_buffer<int32_t, int64_t>(cur_column, row_index, this->column_data, buffer, cur_column);
-		} else if(cur_type == cudf::type_id::INT64 || cur_type == cudf::type_id::TIMESTAMP_SECONDS ||
-				  cur_type == cudf::type_id::TIMESTAMP_MILLISECONDS ||
-				  cur_type == cudf::type_id::TIMESTAMP_MICROSECONDS ||
-				  cur_type == cudf::type_id::TIMESTAMP_NANOSECONDS) {
+		} else if(cur_type == cudf::type_id::INT64) {
 			device_ptr_read_into_buffer<int64_t, int64_t>(cur_column, row_index, this->column_data, buffer, cur_column);
 		} else if(cur_type == cudf::type_id::FLOAT32) {
 			device_ptr_read_into_buffer<float, double>(cur_column, row_index, this->column_data, buffer, cur_column);
 		} else if(cur_type == cudf::type_id::FLOAT64) {
 			device_ptr_read_into_buffer<double, double>(cur_column, row_index, this->column_data, buffer, cur_column);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_DAYS) {
+			device_ptr_read_into_buffer<cudf::timestamp_D::rep, int64_t>(
+				cur_column, row_index, this->column_data, buffer, cur_column);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_SECONDS) {
+			device_ptr_read_into_buffer<cudf::timestamp_s::rep, int64_t>(
+				cur_column, row_index, this->column_data, buffer, cur_column);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+			device_ptr_read_into_buffer<cudf::timestamp_ms::rep, int64_t>(
+				cur_column, row_index, this->column_data, buffer, cur_column);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_MICROSECONDS) {
+			device_ptr_read_into_buffer<cudf::timestamp_us::rep, int64_t>(
+				cur_column, row_index, this->column_data, buffer, cur_column);
+		} else if(cur_type == cudf::type_id::TIMESTAMP_NANOSECONDS) {
+			device_ptr_read_into_buffer<cudf::timestamp_ns::rep, int64_t>(
+				cur_column, row_index, this->column_data, buffer, cur_column);
 		}
 	}
 
@@ -895,44 +870,34 @@ private:
 			} else if(oper == BLZ_LOG) {
 				computed = log10(left_value);
 			} else if(oper == BLZ_YEAR) {
-				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))) {
-					computed = extract_year_op_32(left_value);
-
-				} else {
-					// assume date64
-					computed = extract_year_op(left_value);
-				}
+				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+					launch_extract_component<LeftType, datetime_component::YEAR>{},
+					left_value);
 			} else if(oper == BLZ_MONTH) {
-				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))) {
-					computed = extract_month_op_32(left_value);
-
-				} else {
-					computed = extract_month_op(left_value);
-				}
+				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+					launch_extract_component<LeftType, datetime_component::MONTH>{},
+					left_value);
 			} else if(oper == BLZ_DAY) {
-				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))) {
-					computed = extract_day_op_32(left_value);
-				} else {
-					computed = extract_day_op(left_value);
-				}
+				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+				computed = cudf::experimental::type_dispatcher(
+					cudf::data_type{typeId}, launch_extract_component<LeftType, datetime_component::DAY>{}, left_value);
 			} else if(oper == BLZ_HOUR) {
-				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))) {
-					computed = 0;
-				} else {
-					computed = extract_hour_op(left_value);
-				}
+				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+					launch_extract_component<LeftType, datetime_component::HOUR>{},
+					left_value);
 			} else if(oper == BLZ_MINUTE) {
-				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))) {
-					computed = 0;
-				} else {
-					computed = extract_minute_op(left_value);
-				}
+				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+					launch_extract_component<LeftType, datetime_component::MINUTE>{},
+					left_value);
 			} else if(oper == BLZ_SECOND) {
-				if(isDate32((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index]))) {
-					computed = 0;
-				} else {
-					computed = extract_second_op(left_value);
-				}
+				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+					launch_extract_component<LeftType, datetime_component::SECOND>{},
+					left_value);
 			} else if(oper == BLZ_CAST_INTEGER || oper == BLZ_CAST_BIGINT) {
 				computed = cast_op<LeftType, OutputTypeOperator>(left_value);
 			} else if(oper == BLZ_CAST_FLOAT || oper == BLZ_CAST_DOUBLE || oper == BLZ_CAST_DATE ||
@@ -996,3 +961,5 @@ __global__ void transformKernel(InterpreterFunctor op, cudf::size_type size) {
 		op(i, total_buffer, size);
 	}
 }
+
+} // namespace interops

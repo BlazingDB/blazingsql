@@ -33,27 +33,12 @@
 #include "from_cudf/cpp_tests/utilities/type_lists.hpp"
 #include "Interpreter/interpreter_cpp.h"
 
-template<typename T, typename Enabled = void>
-struct output_type {};
-
-template<typename T>
-struct output_type<T, typename std::enable_if<!std::is_floating_point<T>::value>::type> {
-    using type = int64_t;
-};
-
-template<typename T>
-struct output_type<T, typename std::enable_if<std::is_floating_point<T>::value>::type> {
-    using type = double;
-};
-
 template <typename T>
-struct InteropsTest : public cudf::test::BaseFixture {};
+struct InteropsTestNumeric : public cudf::test::BaseFixture {};
 
-TYPED_TEST_CASE(InteropsTest, cudf::test::NumericTypes);
-// using TestTypes = cudf::test::Types<cudf::experimental::bool8>;
-// TYPED_TEST_CASE(InteropsTest, TestTypes);
+TYPED_TEST_CASE(InteropsTestNumeric, cudf::test::NumericTypes);
 
-TYPED_TEST(InteropsTest, test_numeric_types)
+TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 {
     using T = TypeParam;
     cudf::size_type inputRows = 10;
@@ -126,4 +111,92 @@ TYPED_TEST(InteropsTest, test_numeric_types)
     cudf::table_view expected_table_view {{expected_col1, expected_col2}};
 
     cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+}
+
+template <typename T>
+struct InteropsTestTimestamp : public cudf::test::BaseFixture {};
+
+TYPED_TEST_CASE(InteropsTestTimestamp, cudf::test::TimestampTypes);
+
+TYPED_TEST(InteropsTestTimestamp, test_timestamp_types)
+{
+    using T = TypeParam;
+    cudf::size_type inputRows = 10;
+
+    using Rep = typename T::rep;
+    using ToDuration = typename T::duration;
+
+    auto start_ms = simt::std::chrono::milliseconds(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
+    auto start = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(start_ms))
+                 .time_since_epoch()
+                 .count();
+    auto stop_ms = simt::std::chrono::milliseconds(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
+    auto stop = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(stop_ms))
+                 .time_since_epoch()
+                 .count();
+    auto range = static_cast<Rep>(stop - start);
+    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+      0, [=](auto i) { return start + (range / inputRows) * i; });
+    cudf::test::fixed_width_column_wrapper<T> col1{timestamp_iter, timestamp_iter + inputRows};
+    
+    cudf::table_view in_table_view {{col1}};
+
+    std::vector<column_index_type> left_inputs =  {0          , 0          , 0          , 0          , 0          , 0};
+    std::vector<column_index_type> right_inputs = {UNARY_INDEX, UNARY_INDEX, UNARY_INDEX, UNARY_INDEX, UNARY_INDEX, UNARY_INDEX};
+    std::vector<column_index_type> outputs =      {1          , 2          , 3          , 4          , 5          , 6};
+
+    std::vector<column_index_type> final_output_positions = {1, 2, 3, 4, 5, 6};
+
+	std::vector<gdf_binary_operator_exp> operators = {BLZ_INVALID_BINARY, BLZ_INVALID_BINARY, BLZ_INVALID_BINARY, BLZ_INVALID_BINARY, BLZ_INVALID_BINARY, BLZ_INVALID_BINARY};
+	std::vector<gdf_unary_operator> unary_operators = {BLZ_YEAR, BLZ_MONTH, BLZ_DAY, BLZ_HOUR, BLZ_MINUTE, BLZ_SECOND};
+
+	auto dtype = cudf::data_type{cudf::experimental::type_to_id<T>()};
+    std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
+    std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
+  
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+          return 0;
+      });
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col1{sequenceOut, sequenceOut + inputRows};
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col2{sequenceOut, sequenceOut + inputRows};
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col3{sequenceOut, sequenceOut + inputRows};
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col4{sequenceOut, sequenceOut + inputRows};
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col5{sequenceOut, sequenceOut + inputRows};
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col6{sequenceOut, sequenceOut + inputRows};
+    cudf::mutable_table_view out_table_view {{out_col1, out_col2, out_col3, out_col4, out_col5, out_col6}};
+
+    perform_operation(out_table_view,
+        in_table_view,
+        left_inputs,
+        right_inputs,
+        outputs,
+        final_output_positions,
+        operators,
+        unary_operators,
+        left_scalars,
+        right_scalars);
+   
+    if (cudf::experimental::type_to_id<T>() == cudf::TIMESTAMP_DAYS){
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col1{{1890,1906,1922,1938,1954,1970,1985,2001,2017,2033}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col2{{10,8,6,4,2,1,11,9,7,5}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col3{{12,17,21,25,27,1,5,9,14,18}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col4{{0,0,0,0,0,0,0,0,0,0}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col5{{0,0,0,0,0,0,0,0,0,0}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col6{{0,0,0,0,0,0,0,0,0,0}};
+        cudf::table_view expected_table_view {{expected_col1, expected_col2, expected_col3, expected_col4, expected_col5, expected_col6}};
+
+        cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+    } else {
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col1{{1890,1906,1922,1938,1954,1970,1985,2001,2017,2033}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col2{{10,8,6,4,2,1,11,9,7,5}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col3{{11,16,20,24,26,1,5,9,14,18}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col4{{19,20,21,22,23,0,0,1,2,3}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col5{{33,26,20,13,6,0,53,46,40,33}};
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col6{{20,40,0,20,40,0,20,40,0,20}};
+        cudf::table_view expected_table_view {{expected_col1, expected_col2, expected_col3, expected_col4, expected_col5, expected_col6}};
+
+        cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+    }
 }
