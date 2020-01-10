@@ -76,13 +76,13 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
     $ENV{CONDA_PREFIX}/include
     $ENV{CONDA_PREFIX}/include/cudf
-	$ENV{CONDA_PREFIX}/include/cub
-	$ENV{CONDA_PREFIX}/include/libcudacxx/include
+    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/cub
+    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
     $ENV{CONDA_PREFIX}/include/blazingdb/io
     $ENV{PREFIX}/include
     $ENV{PREFIX}/include/cudf
-	$ENV{PREFIX}/include/cub
-	$ENV{PREFIX}/include/libcudacxx/include
+    $ENV{PREFIX}/include/bsql-rapids-thirdparty/cub
+    $ENV{PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
     $ENV{PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
     )
@@ -134,7 +134,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               #${CMAKE_SOURCE_DIR}/src/QueryState.cpp
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
               ${CMAKE_SOURCE_DIR}/src/Utils.cu
-			  ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/column_utilities.cu
               ${CMAKE_SOURCE_DIR}/src/GDFCounter.cu
               ${CMAKE_SOURCE_DIR}/src/GDFColumn.cu
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
