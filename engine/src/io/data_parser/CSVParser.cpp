@@ -20,7 +20,6 @@
 #include <cudf/types.hpp>
 
 #include <algorithm>
-#include <numeric>
 
 #define checkError(error, txt)                                                                                         \
 	if(error != GDF_SUCCESS) {                                                                                         \
@@ -54,11 +53,6 @@ cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_a
 	if(new_csv_args.nrows != -1)
 		new_csv_args.skipfooter = 0;
 
-  // cudf_io::read_csv_args in_args{cudf_io::source_info{arrow_file_handle}};
-  // in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
-  // in_args.dtype = { "int32", "int64", "int32", "int64"};
-  // in_args.delimiter = '|';
-  // in_args.header = -1;
 	cudf_io::table_with_metadata table_out = cudf_io::read_csv(new_csv_args);
 
 	arrow_file_handle->Close();
@@ -75,10 +69,12 @@ void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	std::vector<size_t> column_indices) { 
 }
 
-std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
+	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
+
 	// including all columns by default
 	if(column_indices.size() == 0) {
 		column_indices.resize(schema.get_num_columns());
@@ -90,7 +86,8 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(std::shared_ptr<arro
 		// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);
 		return nullptr;
 	}
-	auto csv_arg = this->csv_args;
+
+	cudf_io::read_csv_args csv_arg = this->csv_args;
 	if(column_indices.size() > 0) {
 		// copy column_indices into use_col_indexes (at the moment is ordered only)
 		csv_args.use_cols_indexes.resize(column_indices.size());
@@ -111,7 +108,6 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(std::shared_ptr<arro
 		});
 
 		// TODO columns_out should change (gdf_column_cpp)
-		//columns_out.resize(column_indices.size());
 		for(size_t i = 0; i < csv_table.tbl->num_columns(); i++) {
 			if(csv_table.tbl->get_column(i).type().id() == cudf::type_id::STRING) {
 //				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
@@ -137,7 +133,7 @@ void csv_parser::parse_schema(
 
 	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
 		std::string name = "";
-		if (csv_args.names.size() > 0 && csv_args.names.size()) 
+		if (i < csv_args.names.size()) 
 			name = csv_args.names[i];
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
 		size_t file_index = i;
