@@ -79,7 +79,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(std::shared_ptr<arro
 		cudf_io::table_with_metadata orc_table = get_new_orc(orc_args, file);
 
 		if(orc_table.tbl->num_columns() <= 0)
-			Library::Logging::Logger().logWarn("csv_parser::parse no columns were read");
+			Library::Logging::Logger().logWarn("orc_parser::parse no columns were read");
 
 		// TODO columns_out should change (gdf_column_cpp)
 //		columns_out.resize(column_indices.size());

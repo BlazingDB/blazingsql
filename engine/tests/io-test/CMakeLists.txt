@@ -16,3 +16,9 @@ configure_test(parse_parquet-test "${parse_parquet-test_SRCS}")
 
 target_compile_definitions(parse_parquet-test
     PUBLIC -DPARQUET_FILE_PATH="${PARQUET_FILE_PATH}")
+
+set(parse_orc-test_SRCS
+    parse_orc.cu
+)
+
+configure_test(parse_orc-test "${parse_orc-test_SRCS}")
