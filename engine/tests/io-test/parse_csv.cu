@@ -99,3 +99,51 @@ TEST_F(ParseCSVTest, startingNewVersion) {
 //     print_gdf_column(input_table[column_index].get_gdf_column());
 //   }
 }
+
+
+
+TEST_F(ParseCSVTest, Empty) {
+
+
+  const std::string content =  R"()";
+
+  std::string filename = "/tmp/nation.psv";
+  std::ofstream outfile(filename, std::ofstream::out);
+  outfile << content << std::endl;
+  outfile.close();
+
+  cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
+  in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
+  in_args.dtype = { "int32", "int64", "int32", "int64"};
+  in_args.delimiter = '|';
+  in_args.header = -1;
+
+  std::vector<Uri> uris;
+
+  uris.push_back(Uri{filename});
+  ral::io::Schema schema;
+  auto parser = std::make_shared<ral::io::csv_parser>(in_args);
+  auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+  ral::io::data_loader loader(parser, provider);
+  loader.get_schema(schema, {});
+
+  Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
+
+  auto csv_table = loader.load_data(queryContext, {}, schema);
+  if (csv_table != nullptr) {
+    expect_column_data_equal(std::vector<int32_t>{}, csv_table->view().column(0));
+    expect_column_data_equal(std::vector<int32_t>{},  csv_table->view().column(2));
+    ASSERT_EQ(cudf::type_id::INT32, csv_table->view().column(0).type().id());
+    ASSERT_EQ(cudf::type_id::INT64, csv_table->view().column(1).type().id());
+    ASSERT_EQ(cudf::type_id::INT32, csv_table->view().column(2).type().id());
+    ASSERT_EQ(cudf::type_id::INT64, csv_table->view().column(3).type().id());
+  }
+
+//   for (size_t column_index = 0; column_index < input_table.size();
+//        column_index++) {
+//     std::cout << "col_name: "
+//               << input_table[column_index].get_gdf_column()->col_name << "|"
+//               << input_table[column_index].get_gdf_column()->size << std::endl;
+//     print_gdf_column(input_table[column_index].get_gdf_column());
+//   }
+}
