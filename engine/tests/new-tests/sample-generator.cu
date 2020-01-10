@@ -62,9 +62,8 @@ TEST_F(SampleGeneratorExceptionsTest, WithoutColumns) {
 	EXPECT_THROW(cudf::generator::generate_sample(blazingTableView, 4), std::length_error);
 }
 
-// TODO: There is a issue with cudf::table_view#num_rows. It returns 1 when the columns have not data
-TEST_F(SampleGeneratorExceptionsTest, DISABLED_WithoutRows) {
-	cudf::test::fixed_width_column_wrapper<std::int32_t> column1{{}};
+TEST_F(SampleGeneratorExceptionsTest, WithoutRows) {
+	cudf::test::fixed_width_column_wrapper<std::int32_t> column1{};
 
 	CudfTableView cudfTableView{{column1}};
 

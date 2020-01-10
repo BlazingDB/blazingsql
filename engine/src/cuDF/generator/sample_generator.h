@@ -10,7 +10,7 @@ namespace generator {
 
 gdf_error generate_sample(const std::vector<gdf_column_cpp> & data_frame,
 	std::vector<gdf_column_cpp> & sampled_data,
-	cudf::size_type num_samples);
+	cudf::size_type num_samples) __attribute__((deprecated));
 
 std::unique_ptr<ral::frame::BlazingTable> generate_sample(
 	const ral::frame::BlazingTableView & blazingTableView, std::size_t num_samples);
