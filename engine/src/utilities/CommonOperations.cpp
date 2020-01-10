@@ -157,3 +157,34 @@ std::vector<gdf_column_cpp> normalizeColumnTypes(std::vector<gdf_column_cpp> col
 
 }  // namespace utilities
 }  // namespace ral
+
+namespace ral {
+namespace utilities {
+namespace experimental {
+
+
+std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables) {
+	assert(tables.size() > 0);
+
+
+	std::vector<std::string> names;
+	std::vector<CudfTableView> table_views_to_concat;
+	for(size_t i = 0; i < tables.size(); i++) {
+		if (tables[i].names().size() > 0){ // lets make sure we get the names from a table that is not empty
+			names = tables[i].names();
+		}
+		if(tables[i].view().num_columns() > 0) { // lets make sure we are trying to concatenate tables that are not empty
+			table_views_to_concat.push_back(tables[i].view());
+		}
+	}
+	// TODO want to integrate data type normalization.
+	// Data type normalization means that only some columns from a table would get normalized,
+	// so we would need to manage the lifecycle of only a new columns that get allocated
+
+	std::unique_ptr<CudfTable> concatenated_tables = cudf::experimental::concatenate(table_views_to_concat);
+	return std::make_unique<BlazingTable>(std::move(concatenated_tables), names);
+}
+
+}  // namespace experimental
+}  // namespace utilities
+}  // namespace ral

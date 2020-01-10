@@ -42,12 +42,12 @@ cudf::table read_json_arrow(std::shared_ptr<arrow::io::RandomAccessFile> arrow_f
 	bool lines,
 	cudf::json_read_arg args,
 	bool first_row_only = false) {
+
 	int64_t num_bytes;
 	arrow_file_handle->GetSize(&num_bytes);
 
-	if(first_row_only &&
-		num_bytes >
-			48192)  // lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
+	// lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
+	if(first_row_only && num_bytes > 48192) 
 		num_bytes = 48192;
 
 	std::string buffer;
@@ -72,14 +72,16 @@ void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	std::vector<gdf_column_cpp> & columns_out,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
+
 	if(column_indices.size() == 0) {  // including all columns by default
 		column_indices.resize(schema.get_num_columns());
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 	}
 
 	if(file == nullptr) {
-		columns_out =
-			create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
+		// TODO columns_out should change
+		//columns_out =
+		//	create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
 		return;
 	}
 
@@ -117,15 +119,16 @@ void json_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema_out) {
 
 	// TODO percy cudf0.12 port cudf::column and io stuff
-//	cudf::table table_out = read_json_arrow(files[0], this->args.lines, this->args, true);
-//	assert(table_out.num_columns() > 0);
+	cudf::table table_out = read_json_arrow(files[0], this->args.lines, this->args, true);
+	assert(table_out.num_columns() > 0);
 
-//	for(size_t i = 0; i < table_out.num_columns(); i++) {
+	for(size_t i = 0; i < table_out.num_columns(); i++) {
+		// TODO gdf_column_cpp should not used anymore, how host the name?
 //		gdf_column_cpp c;
 //		c.create_gdf_column(table_out.get_column(i));
 //		c.set_name(table_out.get_column(i)->col_name);
 //		schema_out.add_column(c, i);
-//	}
+	}
 }
 
 } /* namespace io */
