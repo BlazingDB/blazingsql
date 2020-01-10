@@ -285,13 +285,18 @@ void aggregations_with_groupby(std::vector<gdf_column_cpp> & group_by_columns,
 	}
 }
 
-void _new_aggregations_with_groupby(std::vector<CudfColumnView> & group_by_columns,
-	std::vector<cudf::column_view> & aggregation_inputs,
-	const std::vector<std::unique_ptr<cudf::experimental::aggregation>> & agg_ops,
-	std::vector<cudf::column_view> & group_by_output_columns,
-	std::vector<cudf::column_view> & aggrgation_output_columns,
-	const std::vector<std::string> & output_column_names) {
+void _new_aggregations_with_groupby(std::vector<CudfColumnView> const & group_by_columns,
+	std::vector<cudf::column_view> const & aggregation_inputs,
+	std::vector<std::unique_ptr<cudf::experimental::aggregation>> const & agg_ops,
+	std::vector<cudf::mutable_column_view> & group_by_output_columns,
+	std::vector<cudf::mutable_column_view> & aggregation_output_columns,
+	std::vector<std::string> & output_column_names) {
 	
+
+	/*std::pair<std::unique_ptr<table>, std::vector<aggregation_result>> cudf::experimental::groupby(
+    	table_view const& keys, std::vector<aggregation_request> const& requests,
+    	bool ignore_null_keys);*/
+
 	//cudf::experimental::groupby()
 	
 //	cudf::table keys = ral::utilities::create_table(group_by_columns);

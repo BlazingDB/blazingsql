@@ -2,10 +2,10 @@
 
 #include "src/operators/GroupBy.h"
 
-#include <cuDF/utilities/column_wrapper.hpp>
-#include <cuDF/utilities/base_fixture.hpp>
-#include <cuDF/utilities/type_lists.hpp>
-#include <cuDF/utilities/table_utilities.hpp>
+#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
+#include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
+#include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 
 template <typename T>
 struct AggregationTest : public cudf::test::BaseFixture {};
@@ -14,9 +14,22 @@ TYPED_TEST_CASE(AggregationTest, cudf::test::NumericTypes);
 
 TYPED_TEST(AggregationTest, CheckBasicWithGroupby) {
 
-	//this this stuff
-	//ral::operators::_new_aggregations_with_groupby()
-	
+	using T = TypeParam;
+
+	cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5, 6}, {1, 1, 1, 1, 1, 1, 1}};
+	cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
+
+	std::vector<CudfColumnView> group_by_columns{col1};
+	std::vector<cudf::column_view> aggregation_inputs{col3};
+
+	std::vector<cudf::mutable_column_view> group_by_output_columns;
+	std::vector<cudf::mutable_column_view> aggregation_output_columns;
+
+	std::vector<std::string> output_column_names;
+	/*std::vector<std::unique_ptr<cudf::experimental::aggregation>> agg_ops;
+
+	ral::operators::_new_aggregations_with_groupby(group_by_columns, aggregation_inputs, agg_ops,
+		group_by_output_columns, aggregation_output_columns, output_column_names);*/
 }
 
 TYPED_TEST(AggregationTest, GroupbyWithoutAggs) {

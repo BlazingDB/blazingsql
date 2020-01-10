@@ -28,12 +28,12 @@ std::vector<gdf_column_cpp> groupby_without_aggregations(
 	std::vector<gdf_column_cpp> & input, const std::vector<int> & group_column_indices);
 
 // TODO percy cudf0.12 create a detail/internal ns 4 these functions
-void _new_aggregations_with_groupby(std::vector<CudfColumnView> & group_by_columns,
-	std::vector<cudf::column_view> & aggregation_inputs,
-	const std::vector<std::unique_ptr<cudf::experimental::aggregation>> & agg_ops,
-	std::vector<cudf::column_view> & group_by_output_columns,
-	std::vector<cudf::column_view> & aggrgation_output_columns,
-	const std::vector<std::string> & output_column_names);
+void _new_aggregations_with_groupby(std::vector<CudfColumnView> const & group_by_columns,
+	std::vector<cudf::column_view> const & aggregation_inputs,
+	std::vector<std::unique_ptr<cudf::experimental::aggregation>> const & agg_ops,
+	std::vector<cudf::mutable_column_view> & group_by_output_columns,
+	std::vector<cudf::mutable_column_view> & aggregation_output_columns,
+	std::vector<std::string> & output_column_names);
 
 // TODO Rommel
 std::unique_ptr<ral::frame::BlazingTable> _new_groupby_without_aggregations(
