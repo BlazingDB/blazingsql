@@ -111,5 +111,6 @@ message(STATUS "******** Configuring tests ********")
 # add_subdirectory(transport)
 # add_subdirectory(skipdata)
 add_subdirectory(new-tests)
+add_subdirectory(sort)
 
 message(STATUS "******** Tests are ready ********")
