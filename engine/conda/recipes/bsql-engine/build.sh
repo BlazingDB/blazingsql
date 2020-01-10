@@ -14,7 +14,13 @@ export CFLAGS=$CXXFLAGS
 export LDFLAGS=$CXXFLAGS
 
 python setup.py build_ext --inplace
+if [ $? != 0 ]; then
+  exit 1
+fi
 python setup.py install --single-version-externally-managed --record=record.txt
+if [ $? != 0 ]; then
+  exit 1
+fi
 
 if [[ $CONDA_BUILD -eq 1 ]]
 then
