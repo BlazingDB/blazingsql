@@ -63,11 +63,21 @@ TEST_F(SampleGeneratorExceptionsTest, WithoutColumns) {
 }
 
 TEST_F(SampleGeneratorExceptionsTest, WithoutRows) {
-	cudf::test::fixed_width_column_wrapper<std::int32_t> column1{};
+	cudf::test::fixed_width_column_wrapper<std::int32_t> column{};
 
-	CudfTableView cudfTableView{{column1}};
+	CudfTableView cudfTableView{{column}};
 
 	ral::frame::BlazingTableView blazingTableView{cudfTableView, {}};
 
 	EXPECT_THROW(cudf::generator::generate_sample(blazingTableView, 4), std::length_error);
+}
+
+TEST_F(SampleGeneratorExceptionsTest, MoreSamplesThanLength) {
+	cudf::test::fixed_width_column_wrapper<std::int32_t> column{{1, 2, 3}};
+
+	CudfTableView cudfTableView{{column}};
+
+	ral::frame::BlazingTableView blazingTableView{cudfTableView, {}};
+
+	EXPECT_THROW(cudf::generator::generate_sample(blazingTableView, 4), std::out_of_range);
 }
