@@ -496,12 +496,7 @@ class BlazingContext(object):
             input = cudf.DataFrame.from_pandas(input)
 
         if isinstance(input, pyarrow.Table):
-            if (self.dask_client is not None):
-                input = cudf.DataFrame.from_arrow(input)
-            else:
-                table = BlazingTable(
-                input,
-                DataType.ARROW)
+            input = cudf.DataFrame.from_arrow(input)
 
         if isinstance(input, cudf.DataFrame):
             if (self.dask_client is not None):
