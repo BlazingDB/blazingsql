@@ -68,18 +68,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_sample(
 	const ral::frame::BlazingTableView & blazingTableView, std::size_t num_samples) {
 	CudfTableView view = blazingTableView.view();
 
-	if(0 == view.num_columns()) {
-		throw std::length_error("Without columns");
-	}
-
 	cudf::size_type num_rows = view.num_rows();
-	if(0 == num_rows) {
-		throw std::length_error("Without rows");
-	}
-
-	if(view.num_rows() <= num_samples) {
-		throw std::out_of_range("Invalid number of samples");
-	}
 
 	cudf::generator::RandomVectorGenerator<std::int32_t> generator(0L, num_rows);
 	std::vector<std::int32_t> arrayIdx = generator(num_samples);
