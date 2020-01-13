@@ -31,8 +31,8 @@ std::vector<gdf_column_cpp> groupby_without_aggregations(
 void _new_aggregations_with_groupby(std::vector<CudfColumnView> const & group_by_columns,
 	std::vector<cudf::column_view> const & aggregation_inputs,
 	std::vector<std::unique_ptr<cudf::experimental::aggregation>> const & agg_ops,
-	std::vector<cudf::mutable_column_view> & group_by_output_columns,
-	std::vector<cudf::mutable_column_view> & aggregation_output_columns,
+	std::vector<cudf::column_view> & group_by_output_columns,
+	std::vector<cudf::column_view> & aggregation_output_columns,
 	std::vector<std::string> & output_column_names);
 
 // TODO Rommel

@@ -28,6 +28,7 @@
 #include "cuDF/safe_nvcategory_gather.hpp"
 
 #include <cudf/groupby.hpp>
+#include <cudf/detail/aggregation.hpp>
 #include <cudf/stream_compaction.hpp>
 
 namespace ral {
@@ -288,49 +289,29 @@ void aggregations_with_groupby(std::vector<gdf_column_cpp> & group_by_columns,
 void _new_aggregations_with_groupby(std::vector<CudfColumnView> const & group_by_columns,
 	std::vector<cudf::column_view> const & aggregation_inputs,
 	std::vector<std::unique_ptr<cudf::experimental::aggregation>> const & agg_ops,
-	std::vector<cudf::mutable_column_view> & group_by_output_columns,
-	std::vector<cudf::mutable_column_view> & aggregation_output_columns,
+	std::vector<cudf::column_view> & group_by_output_columns,
+	std::vector<cudf::column_view> & aggregation_output_columns,
 	std::vector<std::string> & output_column_names) {
-	
 
-	/*std::pair<std::unique_ptr<table>, std::vector<aggregation_result>> cudf::experimental::groupby(
-    	table_view const& keys, std::vector<aggregation_request> const& requests,
-    	bool ignore_null_keys);*/
+	std::vector<cudf::experimental::groupby::aggregation_request> requests;
+	requests.reserve(agg_ops.size());
 
-	//cudf::experimental::groupby()
-	
-//	cudf::table keys = ral::utilities::create_table(group_by_columns);
-//	cudf::table values = ral::utilities::create_table(aggregation_inputs);
+	for(size_t I = 0 ; I<agg_ops.size() ; ++I){
+		requests.push_back(cudf::experimental::groupby::aggregation_request {.values = aggregation_inputs[I]});
+		requests[I].aggregations.reserve(agg_ops.size());
 
-//	std::vector<cudf::groupby::operators> ops(agg_ops.size());
-//	std::transform(agg_ops.begin(), agg_ops.end(), ops.begin(), [&](const gdf_agg_op & op) {
-//		return gdf_agg_op_to_groupby_operators(op);
-//	});
+		requests[I].aggregations.push_back(std::make_unique<cudf::experimental::aggregation>(*(agg_ops[I])));
 
-//	cudf::groupby::hash::Options options(false);  // options define null behaviour to be SQL style
+		cudf::table_view keys {{group_by_columns}};
+		cudf::experimental::groupby::groupby obj(keys);
+		
+		std::pair<std::unique_ptr<cudf::experimental::table>, std::vector<cudf::experimental::groupby::aggregation_result>> output = obj.aggregate( requests );
 
-//	cudf::table group_by_output_table;
-//	cudf::table aggrgation_output_table;
-//	std::tie(group_by_output_table, aggrgation_output_table) = cudf::groupby::hash::groupby(keys,
-//                                            values, ops, options);
-	
-//	init_string_category_if_null(group_by_output_table);
-//    init_string_category_if_null(aggrgation_output_table);
-
-//	group_by_output_columns.resize(group_by_output_table.num_columns());
-//	for(size_t i = 0; i < group_by_output_columns.size(); i++) {
-//		// TODO percy cudf0.12 port to cudf::column
-////		group_by_output_columns[i].create_gdf_column(group_by_output_table.get_column(i));
-////		group_by_output_columns[i].set_name(group_by_columns[i].name());
-//	}
-
-//	aggrgation_output_columns.resize(aggrgation_output_table.num_columns());
-//	for(size_t i = 0; i < aggrgation_output_columns.size(); i++) {
-//		// TODO percy cudf0.12 port to cudf::column
-////		aggrgation_output_columns[i].create_gdf_column(aggrgation_output_table.get_column(i));
-////		aggrgation_output_columns[i].set_name(output_column_names[i]);
-//	}
-	
+		if (output.first->num_columns()>0) {
+			group_by_output_columns.push_back(output.first->get_column(0));
+			aggregation_output_columns.push_back(*output.second[0].results[0]);
+		}
+	}
 }
 
 void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,

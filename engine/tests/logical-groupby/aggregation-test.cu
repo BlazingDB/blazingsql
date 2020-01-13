@@ -7,6 +7,8 @@
 #include <from_cudf/cpp_tests/utilities/type_lists.hpp>
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 
+#include <cudf/detail/aggregation.hpp>
+
 template <typename T>
 struct AggregationTest : public cudf::test::BaseFixture {};
 
@@ -22,14 +24,37 @@ TYPED_TEST(AggregationTest, CheckBasicWithGroupby) {
 	std::vector<CudfColumnView> group_by_columns{col1};
 	std::vector<cudf::column_view> aggregation_inputs{col3};
 
-	std::vector<cudf::mutable_column_view> group_by_output_columns;
-	std::vector<cudf::mutable_column_view> aggregation_output_columns;
+	std::vector<cudf::column_view> group_by_output_columns;
+	std::vector<cudf::column_view> aggregation_output_columns;
 
-	std::vector<std::string> output_column_names;
-	/*std::vector<std::unique_ptr<cudf::experimental::aggregation>> agg_ops;
+	std::vector<std::string> output_column_names{"A", "B"};
+	std::vector<std::unique_ptr<cudf::experimental::aggregation>> agg_ops;
+	
+	agg_ops.push_back( std::move(cudf::experimental::make_sum_aggregation()) );
 
 	ral::operators::_new_aggregations_with_groupby(group_by_columns, aggregation_inputs, agg_ops,
-		group_by_output_columns, aggregation_output_columns, output_column_names);*/
+		group_by_output_columns, aggregation_output_columns, output_column_names);
+
+
+	if (std::is_same<T, cudf::experimental::bool8>::value) {
+		/*cudf::test::fixed_width_column_wrapper<T> expect_col1{std::initializer_list<T> {1, 1}, {true, true}};
+		cudf::test::fixed_width_column_wrapper<T> expect_col3{std::initializer_list<T> {1, 1}, {true, true}};
+
+		CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
+
+		cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());*/
+	} else {
+		cudf::test::fixed_width_column_wrapper<T> expect_col1{{3, 4, 5, 6, 8}, {1, 1, 1, 1, 1}};
+		cudf::test::fixed_width_column_wrapper<T> expect_col3{{70, 40, 85, 11, 2}, {1, 1, 1, 1, 1}};
+
+		//TODO Rommel fix tests when the implementation were available
+		if(group_by_output_columns.size() > 0 && aggregation_output_columns.size() > 0) {
+			cudf::test::expect_columns_equal(expect_col1, group_by_output_columns[0]);
+			cudf::test::expect_columns_equal(expect_col3, aggregation_output_columns[0]);
+		}
+		else
+			EXPECT_TRUE(false);
+	}
 }
 
 TYPED_TEST(AggregationTest, GroupbyWithoutAggs) {
