@@ -33,7 +33,10 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
   const ral::frame::BlazingTableView & table_right,
   const std::string & expression);
 
-
+  std::unique_ptr<ral::frame::BlazingTable> DistributedJoinOperator::process_distribution(
+    const ral::frame::BlazingTableView & left,
+    const ral::frame::BlazingTableView & right,
+    const std::string & query);
 /**
 Should be able to perform all 3 types of aggregations only locally what comes in
 as a solid chunk, inputs should be columns to aggregate, aggregation type,
