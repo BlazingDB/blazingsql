@@ -22,6 +22,7 @@
 #include <nvstrings/ipc_transfer.h>
 
 namespace ral {
+
 namespace io {
 
 namespace {
@@ -52,6 +53,11 @@ public:
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
 
+	std::unique_ptr<ral::frame::BlazingTable> load_data(const Context & context,
+		const std::vector<size_t> & column_indices,
+		const Schema & schema);
+
+		
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
 
 	void get_metadata(Metadata & metadata, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
