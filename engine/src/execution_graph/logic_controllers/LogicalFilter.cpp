@@ -6,7 +6,7 @@
 #include "../../CalciteExpressionParsing.h"
 #include "../../JoinProcessor.h"
 
-#include "blazingdb/manager/Context.h"
+
 #include "blazingdb/transport/Node.h"
 
 #include "distribution/primitives.h"
@@ -132,10 +132,11 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
 
 
 
-  std::unique_ptr<ral::frame::BlazingTable> DistributedJoinOperator::process_distribution(
+  std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> >  process_distribution(
     const ral::frame::BlazingTableView & left,
     const ral::frame::BlazingTableView & right,
-    const std::string & query) {
+    const std::string & query,
+    blazingdb::manager::Context * context) {
   	// First lets find out if we are joining against a small table. If so, we will want to replicate that small table
   	/*
   	int self_node_idx = context_->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
@@ -259,7 +260,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
   			"join process_distribution hash based distribution"));
   		return process_hash_based_distribution(frame, query);
   	}*/
-    return process_hash_based_distribution(left, right, query);
+    return process_hash_based_distribution(left, right, query, context);
   }
 
 std::unique_ptr<ral::frame::BlazingTable> processJoin(

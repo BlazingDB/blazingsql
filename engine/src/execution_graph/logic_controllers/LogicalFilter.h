@@ -1,7 +1,8 @@
 #pragma once
 
 #include "LogicPrimitives.h"
-
+#include "blazingdb/manager/Context.h"
+#include <utility>
 
 namespace ral{
 
@@ -33,10 +34,11 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
   const ral::frame::BlazingTableView & table_right,
   const std::string & expression);
 
-  std::unique_ptr<ral::frame::BlazingTable> DistributedJoinOperator::process_distribution(
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> >  process_distribution(
     const ral::frame::BlazingTableView & left,
     const ral::frame::BlazingTableView & right,
-    const std::string & query);
+    const std::string & query,
+    blazingdb::manager::Context * context);
 /**
 Should be able to perform all 3 types of aggregations only locally what comes in
 as a solid chunk, inputs should be columns to aggregate, aggregation type,
