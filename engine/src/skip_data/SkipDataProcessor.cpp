@@ -44,16 +44,10 @@ std::vector<gdf_column_cpp> create_empty_result() {
 //      projects=[[0, 3, 5]]
 // minmax_metadata_table => use these indices [[0, 3, 5]]
 // minmax_metadata_table => minmax_metadata_table[[0, 1,  6, 7,  10, 11, size - 2, size - 1]]
-std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column*> new_minmax_metadata_table, std::string table_scan, const Context& context) {
+std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column_cpp> new_minmax_metadata_table_cpp, std::string table_scan, const Context& context) {
      
     // convert minmax_metadata_table to blazing_frame minmax_metadata_frame which we will use to apply evaluate_expression
     blazing_frame minmax_metadata_frame;
-    std::vector<gdf_column_cpp> new_minmax_metadata_table_cpp;
-    for (auto column : new_minmax_metadata_table){
-        gdf_column_cpp gdf_col;
-        gdf_col.create_gdf_column(column, false);
-        new_minmax_metadata_table_cpp.push_back(gdf_col);
-    }
     minmax_metadata_frame.add_table(new_minmax_metadata_table_cpp);
      
     if (minmax_metadata_frame.get_width() == 0){
