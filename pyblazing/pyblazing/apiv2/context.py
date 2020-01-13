@@ -490,7 +490,7 @@ class BlazingContext(object):
                     if(isinstance(table.input, dask_cudf.core.DataFrame)):
                         dataframe_column = table.input.head(0)._data[column]
                     else:
-                        dataframe_column = table.input._data[column]
+                        dataframe_column = table.input._cols[column]
                     data_sz = len(dataframe_column)
                     dtype = get_np_dtype_to_gdf_dtype_str(
                         dataframe_column.dtype)
@@ -531,7 +531,12 @@ class BlazingContext(object):
             input = cudf.DataFrame.from_pandas(input)
 
         if isinstance(input, pyarrow.Table):
-            input = cudf.DataFrame.from_arrow(input)
+            if (self.dask_client is not None):
+                input = cudf.DataFrame.from_arrow(input)
+            else:
+                table = BlazingTable(	
+                input,	
+                DataType.ARROW)
 
         if isinstance(input, cudf.DataFrame):
             if (self.dask_client is not None):
