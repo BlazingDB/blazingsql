@@ -21,6 +21,12 @@ namespace frame{
   	public:
   		BlazingTable(std::unique_ptr<CudfTable> table,std::vector<std::string> columnNames);
   		CudfTableView view() const;
+			cudf::size_type num_columns() const {
+				return table->num_columns();
+			}
+			cudf::size_type num_rows() const {
+				return table->num_rows();
+			}
   		std::vector<std::string> names() const;
   	private:
   		std::vector<std::string> columnNames;

@@ -101,8 +101,8 @@ message(STATUS "******** Configuring tests ********")
 #add_subdirectory(unary)
 #add_subdirectory(groupbywoagg)
 
-# TODO Felipe JP
-#add_subdirectory(interpreter)
+# # TODO Felipe JP
+# #add_subdirectory(interpreter)
 
 #add_subdirectory(utils)
 #add_subdirectory(resultset-repository)
