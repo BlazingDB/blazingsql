@@ -214,8 +214,7 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
                 if orig_col_indexes == merged_col_indexes:
                     new_col_indexes = list(range(0, len(orig_col_indexes)))
                 else:
-                    for new_index, merged_col_index in enumerate(merged_col_indexes):
-                        if merged_col_index in orig_col_indexes:
+                    for new_index in merged_col_indexes:
                             new_col_indexes.append(new_index)
 
             orig_project = 'projects=[' + str(orig_col_indexes) + ']'
@@ -488,7 +487,7 @@ class BlazingContext(object):
                 order = 0
                 for column in table.input.columns:
                     if(isinstance(table.input, dask_cudf.core.DataFrame)):
-                        dataframe_column = table.input.head(0)._data[column]
+                        dataframe_column = table.input.head(0)._cols[column]
                     else:
                         dataframe_column = table.input._cols[column]
                     data_sz = len(dataframe_column)
