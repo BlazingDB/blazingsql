@@ -145,11 +145,22 @@ namespace distribution {
 namespace experimental {
 	namespace {
 		using Context = blazingdb::manager::experimental::Context;
+		using Node = blazingdb::transport::experimental::Node;
 	}  // namespace
 
 	typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
 	typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
 	using namespace ral::frame;
+
+
+// This function locates the pivots in the table and partitions the data on those pivot points. 
+// IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
+// IMPORTANT: The TableViews of the data returned point to the same data that was input.
+	std::vector<NodeColumnView> partitionData(const Context & context,
+											BlazingTableView & table,
+											BlazingTableView & pivots,
+											std::vector<int> & searchColIndices,
+											std::vector<int8_t> sortOrderTypes);
 
 	std::unique_ptr<BlazingTable> generatePartitionPlans(
 				const Context & context, std::vector<NodeColumnView> & samples, 
