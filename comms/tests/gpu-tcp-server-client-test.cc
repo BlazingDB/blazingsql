@@ -401,17 +401,17 @@ static void ExecMaster() {
   blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, 1);
   RalServer::getInstance().registerContext(context_token);
   std::thread([]() {
-    //    while(true){
-    auto message = RalServer::getInstance().getMessage(
-        context_token, GPUComponentMessage::MessageID());
-    auto concreteMessage =
-        std::static_pointer_cast<GPUComponentMessage>(message);
-    std::cout << "***Message begin\n";
-    for (gdf_column *column : concreteMessage->samples) {
-      blazingdb::test::print_gdf_column(column);
-    }
-    std::cout << "***Message end\n";
-    //    }
+    // while(true){
+      auto message = RalServer::getInstance().getMessage(
+          context_token, GPUComponentMessage::MessageID());
+      auto concreteMessage =
+          std::static_pointer_cast<GPUComponentMessage>(message);
+      std::cout << "***Message begin\n";
+      for (gdf_column *column : concreteMessage->samples) {
+        blazingdb::test::print_gdf_column(column);
+      }
+      std::cout << "***Message end\n";
+    // }
     RalServer::getInstance().close();
   }).join();
 }
@@ -440,17 +440,18 @@ static void ExecWorker() {
 // order to be shared by manager and transport
 // TODO: check when the ip, port is busy, return exception!
 // TODO: check when the message is not registered, or the wrong message is
-// registered TEST(SendSamplesTest, MasterAndWorker) {
-//  if (fork() > 0) {
-//    ExecMaster();
-//  } else {
-//    ExecWorker();
-//  }
-//}
+// registered
+TEST(SendSamplesTest, MasterAndWorker) {
+ if (fork() > 0) {
+   ExecMaster();
+ } else {
+   ExecWorker();
+ }
+}
 
-TEST(SendSamplesTest, Master) { ExecMaster(); }
+// TEST(SendSamplesTest, Master) { ExecMaster(); }
 
-TEST(SendSamplesTest, Worker) { ExecWorker(); }
+// TEST(SendSamplesTest, Worker) { ExecWorker(); }
 
 }  // namespace transport
 }  // namespace blazingdb

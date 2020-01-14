@@ -235,10 +235,9 @@ std::vector<const char *> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
   std::vector<const char *> tempReadAllocations(bufferSizes.size());
   for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
     cudaSetDevice(gpuNum);
-	
+    // rmm::device_buffer gpu_buffer(bufferSizes[bufferIndex]);
 	// TODO percy cudf0.12 port to cudf::column and rmm stuff
-    //RMM_ALLOC(reinterpret_cast<const void **>(&tempReadAllocations[bufferIndex]),
-    //          bufferSizes[bufferIndex], 0);
+    RMM_ALLOC((void **)(&tempReadAllocations[bufferIndex]), bufferSizes[bufferIndex], 0);
 	
   }
   for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
