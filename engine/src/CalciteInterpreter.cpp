@@ -157,6 +157,7 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 		std::string name = expressions[i].substr(0, expressions[i].find("=["));
 
 		if(contains_evaluation(expression)) {
+			//TODO port from input to table
 			output_type_expressions[i] = get_output_type_expression(&input, &max_temp_type, expression);
 
 			// todo put this into its own function
