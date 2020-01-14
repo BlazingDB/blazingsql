@@ -12,7 +12,7 @@ using blazingdb::manager::Context;
 namespace ral {
 namespace skip_data {
 
-std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column*> new_minmax_metadata_table, std::string table_scan, const Context& context);
+std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column_cpp> new_minmax_metadata_table, std::string table_scan, const Context& context);
 
 } // namespace skip_data
 } // namespace ral

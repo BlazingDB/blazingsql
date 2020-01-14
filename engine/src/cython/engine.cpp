@@ -202,6 +202,8 @@ ResultSet runSkipData(int32_t masterIndex,
 		}
 		std::vector<gdf_column*> minmax_metadata_table;
 		for(int col = 0; col < tableSchemas[i].metadata.size(); col++) {
+			gdf_column_cpp column;
+			column.create_gdf_column(tableSchemas[i].metadata[col], false);
 			minmax_metadata_table.push_back(tableSchemas[i].metadata[col]);
 		}
 		minmax_metadata_tables.push_back(minmax_metadata_table);
@@ -262,7 +264,24 @@ ResultSet runSkipData(int32_t masterIndex,
 		// Execute query
 		// 		skipdata_output_t 
 		//TODO: fix this @alex, input_loaders[0]
-		auto row_groups_cols = ral::skip_data::process_skipdata_for_table(input_loaders[0], minmax_metadata_tables[0], query, queryContext);
+		std::vector<gdf_column_cpp> metadata;
+		for(gdf_column* col : minmax_metadata_tables[0]) {
+			gdf_column_cpp column;
+			column.create_gdf_column(col, false);
+			metadata.push_back(column);
+		}
+		size_t index = 0;
+		auto tableSchema = tableSchemas[0];
+		for(; index < tableSchema.names.size(); index++) {
+			auto col_name_min = "min_" + std::to_string(index) + "_" + tableSchema.names[index];
+			auto col_name_max = "max_" + std::to_string(index)  + "_" + tableSchema.names[index];
+			metadata[2*index].set_name(col_name_min);
+			metadata[2*index + 1].set_name(col_name_max);
+		}
+		metadata[2*index].set_name("file_handle_index");
+		metadata[2*index + 1].set_name("row_group_index");
+
+		auto row_groups_cols = ral::skip_data::process_skipdata_for_table(input_loaders[0], metadata, query, queryContext);
 		 
 		std::vector<gdf_column *> columns;
 		std::vector<std::string> names;
@@ -275,8 +294,6 @@ ResultSet runSkipData(int32_t masterIndex,
 		}
 
 		ResultSet result = {columns, names};
-		//    std::cout<<"result looks ok"<<std::endl;
-		return result;
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
