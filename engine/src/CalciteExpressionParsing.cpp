@@ -515,7 +515,7 @@ cudf::type_id infer_dtype_from_literal(const std::string & token) {
 }
 
 // must pass in temp type as invalid if you are not setting it to something to begin with
-cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * max_temp_type, std::string expression) {
+cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id * max_temp_type, std::string expression) {
 	std::string clean_expression = clean_calcite_expression(expression);
 
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
@@ -524,7 +524,7 @@ cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * 
 	}
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(*input, tokens);
+	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
 
 	std::stack<cudf::type_id> operands;
 	for(std::string token : tokens) {
@@ -578,7 +578,7 @@ cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * 
 			if(is_literal(token)) {
 				operands.push(infer_dtype_from_literal(token));
 			} else {
-				operands.push(input->get_column(get_index(token)).get_gdf_column()->type().id());
+				operands.push(table.view().column(get_index(token)).type().id());
 			}
 		}
 	}
@@ -633,24 +633,19 @@ std::vector<std::string> get_tokens_in_reverse_order(const std::string & express
 // TODO percy dirty hack ... fix this approach for timestamps
 // out arg: tokens will be modified in case need a fix due timestamp
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	blazing_frame & inputs, std::vector<std::string> & tokens) {
-	auto a = inputs.get_columns();
-	bool has_timestamp = false;
-	for(int i = 0; i < a.size(); ++i) {
-		auto colss = a.at(i);
-		for(int j = 0; j < colss.size(); ++j) {
-			auto cp = colss.at(j);
+	const ral::frame::BlazingTableView & table, std::vector<std::string> & tokens) {
 
-			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-			if(cp.get_gdf_column() != nullptr && cp.get_gdf_column()->type().id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-				has_timestamp = true;
-				break;
-			}
-		}
-		if(has_timestamp) {
+	bool has_timestamp = false;
+	for(int i = 0; i < table.view().num_columns(); ++i) {
+		auto cp = table.view().column(i);
+
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		if( !cp.is_empty() && cp.type().id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+			has_timestamp = true;
 			break;
 		}
 	}
+
 	if(has_timestamp) {
 		bool coms = false;
 		for(int i = 0; i < tokens.size(); ++i) {

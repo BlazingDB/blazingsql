@@ -39,7 +39,7 @@ std::string get_string_between_outer_parentheses(std::string operator_string);
 
 cudf::type_id infer_dtype_from_literal(const std::string & token);
 
-cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * max_temp_type, std::string expression);
+cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id * max_temp_type, std::string expression);
 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, gdf_agg_op aggregation, bool have_groupby);
 
