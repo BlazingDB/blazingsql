@@ -1012,9 +1012,17 @@ void getTableScanInfo(std::string & logicalPlan_in,
 			if (is_bindable_scan(step)) {
 				std::string projects = get_named_expression(step, "projects");
 				std::vector<std::string> column_index_strings = get_expressions_from_expression_list(projects, true);
-				std::vector<int> column_indeces;
-				std::transform(column_index_strings.begin(), column_index_strings.end(), std::back_inserter(column_indeces), [](const std::string& str) { return std::stoi(str); });
-				table_columns_out.push_back(column_indeces);
+				std::vector<int> column_indices;
+				std::transform(column_index_strings.begin(), column_index_strings.end(), std::back_inserter(column_indices), [](const std::string& str) { return std::stoi(str); });
+				if (column_indices.size() == 0) {
+					std::string aliases_string = get_named_expression(step, "aliases");
+					std::vector<std::string> aliases_string_split =
+                    	get_expressions_from_expression_list(aliases_string, true);
+					if (aliases_string_split.size() == 1) {
+						column_indices.push_back(0); // This is for the count(*) case, we don't want to load all the columns
+					}
+				}
+				table_columns_out.push_back(column_indices);
 			}else if (is_scan(step)){
 				table_columns_out.push_back({});
 			}
