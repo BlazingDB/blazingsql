@@ -152,6 +152,9 @@ namespace experimental {
 	typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
 	using namespace ral::frame;
 
+	void sendSamplesToMaster(const Context & context, const BlazingTableView & samples, std::size_t table_total_rows);
+	std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(const Context & context);
+
 
 // This function locates the pivots in the table and partitions the data on those pivot points. 
 // IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes

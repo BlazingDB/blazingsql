@@ -1083,6 +1083,76 @@ namespace {
 	using Node = blazingdb::transport::experimental::Node;
 }  // namespace
 
+
+void sendSamplesToMaster(const Context & context, const BlazingTableView & samples, std::size_t table_total_rows) {
+	using ral::communication::messages::Factory;
+	using ral::communication::messages::SampleToNodeMasterMessage;
+	using ral::communication::experimental::CommunicationData;
+
+	// Get master node
+	const Node & master_node = context.getMasterNode();
+
+	// Get self node	
+	Node self_node = CommunicationData::getInstance().getSelfNode();
+
+	// Get context token
+	const uint32_t context_comm_token = context.getContextCommunicationToken();
+	const uint32_t context_token = context.getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	// WSM TODO cudf0.12 waiting on message Node refactor
+	// auto message =
+	// 	Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, samples);
+
+	// // Send message to master
+	// using Client = ral::communication::network::Client;
+	// Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context_token),
+	// 	std::to_string(context.getQueryStep()),
+	// 	std::to_string(context.getQuerySubstep()),
+	// 	"About to send sendSamplesToMaster message"));
+	// Client::send(master_node, *message);
+}
+
+std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(const Context & context) {
+	using ral::communication::messages::SampleToNodeMasterMessage;
+	using ral::communication::network::Server;
+	using ral::communication::experimental::CommunicationData;
+
+	const uint32_t context_comm_token = context.getContextCommunicationToken();
+	const uint32_t context_token = context.getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	std::vector<NodeColumn> nodeColumns;
+	std::vector<std::size_t> table_total_rows;
+
+	size_t size = context.getWorkerNodes().size();
+	std::vector<bool> received(context.getTotalNodes(), false);
+	for(int k = 0; k < size; ++k) {
+		auto message = Server::getInstance().getMessage(context_token, message_id);
+
+		if(message->getMessageTokenValue() != message_id) {
+			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
+		}
+
+		// WSM TODO cudf0.12
+		// auto concreteMessage = std::static_pointer_cast<SampleToNodeMasterMessage>(message);
+		// auto node = message->getSenderNode();
+		// int node_idx = context.getNodeIndex(node);
+		// if(received[node_idx]) {
+		// 	Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+		// 		std::to_string(context.getQueryStep()),
+		// 		std::to_string(context.getQuerySubstep()),
+		// 		"ERROR: Already received collectSamples from node " + std::to_string(node_idx)));
+		// }
+		// table_total_rows.push_back(concreteMessage->getTotalRowSize());
+		// nodeColumns.emplace_back(std::make_pair(node, std::move(concreteMessage->getSamples()));
+		// received[node_idx] = true;
+	}
+
+	return std::make_pair(std::move(nodeColumns), table_total_rows);
+}
+
+
 std::unique_ptr<BlazingTable> generatePartitionPlans(
 				const Context & context, std::vector<NodeColumnView> & samples, 
 				std::vector<std::size_t> & table_total_rows, std::vector<int8_t> & sortOrderTypes) {
