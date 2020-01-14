@@ -414,7 +414,8 @@ std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableV
 		group_by_columns[i] = table.view().column(group_column_indices[i]);
 	}
 
-	std::vector< std::unique_ptr<cudf::column> > aggregation_inputs(aggregation_types.size());
+	std::vector< CudfColumnView > aggregation_inputs(aggregation_types.size());
+	std::vector< std::unique_ptr<cudf::column> > aggregation_inputs_scope_holder(aggregation_types.size());
 	std::vector<cudf::type_id> output_types(aggregation_types.size());
 	std::vector<std::string> output_column_names(aggregation_types.size());
 
@@ -428,27 +429,27 @@ std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableV
 			auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int8_t>* >(scalar.get());
 			numeric_s->set_value(0);
 			temp = cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *scalar);
-			aggregation_inputs[i] = std::move(temp);
+			aggregation_inputs_scope_holder[i] = std::move(temp);
+			aggregation_inputs[i] = aggregation_inputs_scope_holder[i]->view();
 		} else {
 			if(contains_evaluation(expression)) {
 				// we dont knwo what the size of this input will be so allcoate max size
 				// TODO de donde saco el nombre de la columna aqui???
 				cudf::type_id unused;
-				cudf::type_id agg_input_type = get_output_type_expression(&input, &unused, expression);
+				cudf::type_id agg_input_type = get_output_type_expression(table, &unused, expression);
+				
+				std::unique_ptr<cudf::column> temp = std::make_unique<cudf::column>(cudf::data_type(agg_input_type), row_size);
+				aggregation_inputs_scope_holder[i] = std::move(temp);
+				aggregation_inputs[i] = aggregation_inputs_scope_holder[i]->view();
 
-				aggregation_inputs[i].create_gdf_column(agg_input_type,
-					row_size,
-					nullptr,
-					ral::traits::get_dtype_size_in_bytes(agg_input_type),
-					"");
-				evaluate_expression(input, expression, aggregation_inputs[i]);
+				// TODO percy rommel jp prot evaluate expression
+				//evaluate_expression(table, expression, aggregation_inputs[i]);
 			} else {
-				aggregation_inputs[i] = input.get_column(get_index(expression));
+				aggregation_inputs[i] = table.view().column(get_index(expression));
 			}
 		}
 
-		output_types[i] = get_aggregation_output_type(
-			aggregation_inputs[i].get_gdf_column()->type().id(), aggregation_types[i], group_column_indices.size() != 0);
+		output_types[i] = get_aggregation_output_type(aggregation_inputs[i].type().id(), aggregation_types[i], group_column_indices.size() != 0);
 
 		// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
 		if(aggregation_column_assigned_aliases[i] == "") {
@@ -456,7 +457,7 @@ std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableV
 				output_column_names[i] = aggregator_to_string(aggregation_types[i]) + "(*)";
 			} else {
 				output_column_names[i] =
-					aggregator_to_string(aggregation_types[i]) + "(" + aggregation_inputs[i].name() + ")";
+					aggregator_to_string(aggregation_types[i]) + "(" + table.names().at(i) + ")";
 			}
 		} else {
 			output_column_names[i] = aggregation_column_assigned_aliases[i];
