@@ -113,12 +113,11 @@ std::string extract_table_name(std::string query_part) {
 	return table_name;
 }
 
-project_plan_params parse_project_plan(blazing_frame & input, std::string query_part) {
+project_plan_params parse_project_plan(const ral::frame::BlazingTableView & table, std::string query_part) {
 	using interops::column_index_type;
 	gdf_error err = GDF_SUCCESS;
 
-	size_t size = input.get_num_rows_in_table(0);
-
+	size_t row_size = table.view().column(0).size();
 
 	// LogicalProject(x=[$0], y=[$1], z=[$2], e=[$3], join_x=[$4], y0=[$5], EXPR$6=[+($0, $5)])
 	std::string combined_expression =
@@ -128,15 +127,15 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 
 	// now we have a vector
 	// x=[$0
-	std::vector<bool> input_used_in_output(input.get_width(), false);
+	std::vector<bool> input_used_in_output(table.view().num_columns(), false);
 
 	std::vector<gdf_column_cpp> columns(expressions.size());
 	std::vector<std::string> names(expressions.size());
 
 
 	std::vector<column_index_type> final_output_positions;
-	std::vector<cudf::column *> output_columns;
-	std::vector<cudf::column *> input_columns;
+	std::vector<std::unique_ptr<cudf::column>> output_columns;
+	std::vector<std::unique_ptr<cudf::column>> input_columns;
 
 	// TODO: some of this code could be used to extract columns
 	// that will be projected to make the csv and parquet readers
@@ -148,7 +147,7 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 							  // skip over it
 
 	size_t num_expressions_out = 0;
-	std::vector<bool> input_used_in_expression(input.get_size_column(), false);
+	std::vector<bool> input_used_in_expression(row_size, false);
 
 	for(int i = 0; i < expressions.size(); i++) {  // last not an expression
 		std::string expression = expressions[i].substr(
@@ -157,15 +156,13 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 		std::string name = expressions[i].substr(0, expressions[i].find("=["));
 
 		if(contains_evaluation(expression)) {
-			//TODO port from input to table
-			output_type_expressions[i] = get_output_type_expression(&input, &max_temp_type, expression);
+			output_type_expressions[i] = get_output_type_expression(table, &max_temp_type, expression);
 
 			// todo put this into its own function
 			std::string clean_expression = clean_calcite_expression(expression);
 
 			std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-			// TODO: percy cudf0.12 fix this
-			// fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(input, tokens);
+			fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
 			for(std::string token : tokens) {
 				if(!is_operator_token(token) && !is_literal(token)) {
 					size_t index = get_index(token);
@@ -211,14 +208,9 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 			// TODO Percy Rommel Jean Pierre improve timestamp resolution
 			// assumes worst possible case allocation for output
 			// TODO: find a way to know what our output size will be
-			gdf_column_cpp output;
-			output.create_gdf_column(output_type_expressions[i],
-				size,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(output_type_expressions[i]),
-				name);
 
-			output_columns.push_back(output.get_gdf_column());
+			std::unique_ptr<cudf::column> output_temp = std::make_unique<cudf::column>(cudf::data_type(output_type_expressions[i]), row_size);
+			output_columns.push_back(std::move(output_temp));
 
 			// add_expression_to_plan(input,
 			// 	input_columns,
@@ -252,8 +244,8 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 
 				if(col_type == cudf::type_id::CATEGORY) {
 					const std::string literal_expression = cleaned_expression.substr(1, cleaned_expression.size() - 2);
-					NVCategory * new_category = repeated_string_category(literal_expression, size);
-					output.create_gdf_column(new_category, size, name);
+					NVCategory * new_category = repeated_string_category(literal_expression, row_size);
+					output.create_gdf_column(new_category, row_size, name);
 				} else {
 					int column_width = ral::traits::get_dtype_size_in_bytes(col_type);
 					output.create_gdf_column(col_type, size, nullptr, column_width);
@@ -261,7 +253,7 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 					output.set_name(name);
 					
 					// TODO percy cudf0.12 port to cudf::column
-					//cudf::fill(output.get_gdf_column(), to_gdf_scalar(literal_scalar), 0, size);
+					//cudf::fill(output.get_gdf_column(), to_gdf_scalar(literal_scalar), 0, row_size);
 				}
 
 				output_columns.push_back(output.get_gdf_column());

@@ -396,7 +396,7 @@ std::vector<gdf_column_cpp> compute_aggregations(blazing_frame & input,
 				// we dont knwo what the size of this input will be so allcoate max size
 				// TODO de donde saco el nombre de la columna aqui???
 				cudf::type_id unused;
-				cudf::type_id agg_input_type = get_output_type_expression(&input, &unused, expression);
+				cudf::type_id agg_input_type;// = get_output_type_expression(&input, &unused, expression);
 
 				aggregation_inputs[i].create_gdf_column(agg_input_type,
 					row_size,
