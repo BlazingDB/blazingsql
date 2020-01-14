@@ -718,13 +718,8 @@ class BlazingContext(object):
                 workers=[worker])
             relational_algebra_steps = connection.result()
         
-        table_columns = mergeTableScans(relational_algebra_steps) # tableScanInfro
+        table_columns = mergeTableScans(relational_algebra_steps) 
         new_tables, algebra = modifyAlegebraAndTablesForArrowBasedOnColumnUsage(algebra, relational_algebra_steps,self.tables, table_columns)
-        print("\n\n--------------------- Start new Query-------------------- \nALGEBRA: ")
-        print(algebra)
-        #for table in new_tables:
-        #    print("new_tables")
-        #    print(new_tables[table].input)
 
         for table in new_tables:
             fileTypes.append(new_tables[table].fileType)
