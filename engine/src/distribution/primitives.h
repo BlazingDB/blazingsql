@@ -180,4 +180,20 @@ namespace experimental {
 }  // namespace distribution
 }  // namespace ral
 
+namespace ral {
+namespace distribution {
+namespace sampling {
+namespace experimental {
+
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> generateSamples(
+	const std::vector<ral::frame::BlazingTableView> & tables, const std::vector<double> & ratios);
+
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> generateSamples(
+	const std::vector<ral::frame::BlazingTableView> & tables, std::vector<std::size_t> & quantities);
+
+}  // namespace experimental
+}  // namespace sampling
+}  // namespace distribution
+}  // namespace ral
+
 #endif  // BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H

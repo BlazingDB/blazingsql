@@ -1312,3 +1312,46 @@ void scatterData(const Context & context, BlazingTableView table) {
 }  // namespace experimental
 }  // namespace distribution
 }  // namespace ral
+
+
+
+namespace ral {
+namespace distribution {
+namespace sampling {
+namespace experimental {
+
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> generateSamples(
+	const std::vector<ral::frame::BlazingTableView> & tables, const std::vector<double> & ratios) {
+	std::vector<std::size_t> quantities;
+	quantities.reserve(tables.size());
+
+	for(std::size_t i = 0; i < tables.size(); i++) {
+		quantities.push_back(std::ceil(tables[i].view().num_rows() * ratios[i]));
+	}
+
+	return generateSamples(tables, quantities);
+}
+
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> generateSamples(
+	const std::vector<ral::frame::BlazingTableView> & input_tables, std::vector<std::size_t> & quantities) {
+	// verify
+	if(input_tables.size() != quantities.size()) {
+		throw std::runtime_error("[ERROR] " + std::string{__FUNCTION__} + " -- size mismatch.");
+	}
+
+	// output data
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> result;
+
+	// make sample for each table
+	for(std::size_t k = 0; k < input_tables.size(); ++k) {
+		result.emplace_back(cudf::generator::generate_sample(input_tables[k], quantities[k]));
+	}
+
+	// done
+	return result;
+}
+
+}  // namespace experimental
+}  // namespace sampling
+}  // namespace distribution
+}  // namespace ral
