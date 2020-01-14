@@ -460,30 +460,15 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
       i = i + 1
     return df
 
-cpdef getTableScanInfoCaller(logicalPlan,tables):
+cpdef getTableScanInfoCaller(logicalPlan):
     temp = getTableScanInfoPython(str.encode(logicalPlan))
-    #print(temp)
-    new_tables = {}
+
     table_names = [name.decode('utf-8') for name in temp.table_names]
+    relational_algebras = [step.decode('utf-8') for step in temp.relational_algebra_steps]
 
     relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
     relational_algebra_steps = {}
-    for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
-
-        new_table = tables[table_name]
-
-        # TODO percy c.gonzales felipe
-        if new_table.fileType == 6:
-          if table_name in new_tables:
-            #TODO: this is not yet implemented the function unionColumns needs to be NotImplemented
-            #for this to work
-            temp_table = new_tables[table_name].filterAndRemapColumns(table_columns)
-            new_tables[table_name] = temp_table.unionColumns(new_tables[table_name])
-          else:
-            if len(table_columns) != 0:
-              new_table = new_table.filterAndRemapColumns(table_columns)
-            else:
-              new_table = new_table.convertForQuery()
+    for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebras):
         if table_name in relational_algebra_steps:
           relational_algebra_steps[table_name]['table_scans'].append(scan_string)
           relational_algebra_steps[table_name]['table_columns'].append(table_columns)
@@ -492,5 +477,4 @@ cpdef getTableScanInfoCaller(logicalPlan,tables):
           relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
           relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
 
-        new_tables[table_name] = new_table
-    return new_tables, relational_algebra_steps
+    return relational_algebra_steps

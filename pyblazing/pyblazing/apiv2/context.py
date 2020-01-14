@@ -187,41 +187,49 @@ def collectPartitionsRunQuery(
 # returns a map of table names to the indices of the columns needed. If there are more than one table scan for one table, it merged the needed columns
 # if the column list is empty, it means we want all columns
 def mergeTableScans(tableScanInfo):
-    table_names = list(set(tableScanInfo['table_names']))
+    table_names = tableScanInfo.keys()
     table_columns = {}
     for table_name in table_names:
         table_columns[table_name] = []
 
-    for index, table_name in enumerate(tableScanInfo['table_names']):
-        if len(tableScanInfo['table_columns'][index]) > 0: # if the column list is empty, it means we want all columns
-            table_columns[table_name] = list(set(table_columns[table_name] + tableScanInfo['table_columns'][index]))
-            table_columns[table_name].sort()
-        else:
-            table_columns[table_name] = []
+    for table_name in table_names:
+        for index in range(0, len(tableScanInfo[table_name]['table_columns'])):
+            if len(tableScanInfo[table_name]['table_columns'][index]) > 0:
+                table_columns[table_name] = list(set(table_columns[table_name] + tableScanInfo[table_name]['table_columns'][index]))
+                table_columns[table_name].sort()
+            else: # if the column list is empty, it means we want all columns
+                table_columns[table_name] = []
+                break
 
     return table_columns
 
-def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,originalTables):
+def modifyAlegebraAndTablesForArrowBasedOnColumnUsage(algebra, tableScanInfo, originalTables, table_columns_in_use):
+    newTables={}
     for table_name in tableScanInfo:
-        #TODO: handle situation with multiple tables being joined twice
         if originalTables[table_name].fileType == DataType.ARROW:
-            orig_scan = tableScanInfo[table_name]['table_scans'][0]
-            orig_col_indexes = tableScanInfo[table_name]['table_columns'][0]
-            merged_col_indexes = list(range(len(orig_col_indexes)))
+            newTables[table_name] = originalTables[table_name].filterAndRemapColumns(table_columns_in_use[table_name])
+            for index in range(0,len(tableScanInfo[table_name]['table_scans'])):
+                orig_scan = tableScanInfo[table_name]['table_scans'][index]
+                orig_col_indexes = tableScanInfo[table_name]['table_columns'][index]
+                table_columns_we_want = table_columns_in_use[table_name]
 
-            new_col_indexes = []
-            if len(merged_col_indexes) > 0:
-                if orig_col_indexes == merged_col_indexes:
-                    new_col_indexes = list(range(0, len(orig_col_indexes)))
-                else:
-                    for new_index in merged_col_indexes:
-                            new_col_indexes.append(new_index)
+                new_col_indexes = []
+                if len(table_columns_we_want) > 0:
+                    if orig_col_indexes == table_columns_we_want:
+                        new_col_indexes = list(range(0, len(orig_col_indexes)))
+                    else:
+                        for new_index, merged_col_index in enumerate(table_columns_we_want):
+                            if merged_col_index in orig_col_indexes:
+                                new_col_indexes.append(new_index)
 
-            orig_project = 'projects=[' + str(orig_col_indexes) + ']'
-            new_project = 'projects=[' + str(new_col_indexes) + ']'
-            new_scan = orig_scan.replace(orig_project, new_project)
-            algebra = algebra.replace(orig_scan, new_scan)
-    return algebra
+                orig_project = 'projects=[' + str(orig_col_indexes) + ']'
+                new_project = 'projects=[' + str(new_col_indexes) + ']'
+                new_scan = orig_scan.replace(orig_project, new_project)
+                algebra = algebra.replace(orig_scan, new_scan)
+        else:
+            newTables[table_name] = originalTables[table_name]
+
+    return newTables, algebra
 
 class BlazingTable(object):
     def __init__(
@@ -289,6 +297,9 @@ class BlazingTable(object):
 
     def filterAndRemapColumns(self,tableColumns):
         #only used for arrow
+        if len(tableColumns) == 0: # len = 0 means all columns
+            return BlazingTable(self.arrow_table,DataType.ARROW,force_conversion=True)
+        
         new_table = self.arrow_table
 
         columns = []
@@ -686,17 +697,22 @@ class BlazingContext(object):
             algebra = self.explain(sql)
 
         if self.dask_client is None:
-            new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
+            relational_algebra_steps = cio.getTableScanInfoCaller(algebra)
         else:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
             connection = self.dask_client.submit(
                 cio.getTableScanInfoCaller,
                 algebra,
-                self.tables,
                 workers=[worker])
-            new_tables, relational_algebra_steps = connection.result()
-
-        algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
+            relational_algebra_steps = connection.result()
+        
+        table_columns = mergeTableScans(relational_algebra_steps) # tableScanInfro
+        new_tables, algebra = modifyAlegebraAndTablesForArrowBasedOnColumnUsage(algebra, relational_algebra_steps,self.tables, table_columns)
+        print("\n\n--------------------- Start new Query-------------------- \nALGEBRA: ")
+        print(algebra)
+        #for table in new_tables:
+        #    print("new_tables")
+        #    print(new_tables[table].input)
 
         for table in new_tables:
             fileTypes.append(new_tables[table].fileType)
@@ -715,8 +731,8 @@ class BlazingContext(object):
             for nodeList in nodeTableList:
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
-            scan_table_query = relational_algebra_steps[table]['table_scans'][0]
             if new_tables[table].has_metadata():
+                scan_table_query = relational_algebra_steps[table]['table_scans'][0]
                 self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
 
         ctxToken = random.randint(0, 64000)
