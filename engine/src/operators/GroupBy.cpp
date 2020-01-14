@@ -30,6 +30,9 @@
 #include <cudf/groupby.hpp>
 #include <cudf/detail/aggregation.hpp>
 #include <cudf/stream_compaction.hpp>
+#include <cudf/column/column_factories.hpp>
+#include <cudf/filling.hpp>
+#include <cudf/scalar/scalar_factories.hpp>
 
 namespace ral {
 namespace operators {
@@ -399,31 +402,33 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 	}
 }
 
-std::vector<gdf_column_cpp> compute_aggregations(blazing_frame & input,
+std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableView & table,
 	std::vector<int> & group_column_indices,
 	std::vector<gdf_agg_op> & aggregation_types,
 	std::vector<std::string> & aggregation_input_expressions,
 	std::vector<std::string> & aggregation_column_assigned_aliases) {
-	size_t row_size = input.get_num_rows_in_table(0);
+	size_t row_size = table.view().column(0).size();
 
-	std::vector<gdf_column_cpp> group_by_columns(group_column_indices.size());
+	std::vector<CudfColumnView> group_by_columns(group_column_indices.size());
 	for(size_t i = 0; i < group_column_indices.size(); i++) {
-		group_by_columns[i] = input.get_column(group_column_indices[i]);
+		group_by_columns[i] = table.view().column(group_column_indices[i]);
 	}
 
-	std::vector<gdf_column_cpp> aggregation_inputs(aggregation_types.size());
+	std::vector< std::unique_ptr<cudf::column> > aggregation_inputs(aggregation_types.size());
 	std::vector<cudf::type_id> output_types(aggregation_types.size());
 	std::vector<std::string> output_column_names(aggregation_types.size());
 
 	for(size_t i = 0; i < aggregation_types.size(); i++) {
 		std::string expression = aggregation_input_expressions[i];
 
-		if(expression == "" &&
-			aggregation_types[i] ==
-				GDF_COUNT) {  // this means we have a COUNT(*). So lets create a simple column with no nulls
-			std::vector<int8_t> temp(row_size, 0);
-			aggregation_inputs[i].create_gdf_column(
-				cudf::type_id::INT8, row_size, temp.data(), ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT8), "");
+		// this means we have a COUNT(*). So lets create a simple column with no nulls
+		if(expression == "" && aggregation_types[i] == GDF_COUNT) {
+			std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(cudf::data_type(cudf::type_id::INT8), row_size);
+			std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT8));
+			auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int8_t>* >(scalar.get());
+			numeric_s->set_value(0);
+			temp = cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *scalar);
+			aggregation_inputs[i] = std::move(temp);
 		} else {
 			if(contains_evaluation(expression)) {
 				// we dont knwo what the size of this input will be so allcoate max size
