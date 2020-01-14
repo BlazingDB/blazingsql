@@ -97,13 +97,13 @@ message(STATUS "******** Configuring tests ********")
 # add_subdirectory(where)
 # add_subdirectory(joins)
 # add_subdirectory(tpch)
-# add_subdirectory(io-test)
+add_subdirectory(io-test)
 # add_subdirectory(union)
 # add_subdirectory(unary)
 # add_subdirectory(groupbywoagg)
 
-# TODO Felipe JP
-#add_subdirectory(interpreter)
+# # TODO Felipe JP
+# #add_subdirectory(interpreter)
 
 # add_subdirectory(utils)
 # add_subdirectory(resultset-repository)
