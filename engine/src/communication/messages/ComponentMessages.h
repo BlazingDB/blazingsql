@@ -12,9 +12,9 @@ struct SampleToNodeMasterMessage : GPUComponentMessage {
 	SampleToNodeMasterMessage(const std::string & message_token,
 		const uint32_t & context_token,
 		std::shared_ptr<Node> & sender_node,
-		std::vector<gdf_column_cpp> & samples,
+		std::unique_ptr<ral::frame::BlazingTableView> && samples, 
 		int total_row_size)
-		: GPUComponentMessage(message_token, context_token, sender_node, samples, total_row_size) {}
+		: GPUComponentMessage(message_token, context_token, sender_node, std::move(samples),  total_row_size) {}
 
 	DefineClassName(SampleToNodeMasterMessage);
 
@@ -32,12 +32,12 @@ struct ColumnDataMessage : GPUComponentMessage {
 	ColumnDataMessage(const std::string & message_token,
 		const uint32_t & context_token,
 		std::shared_ptr<Node> & sender_node,
-		std::vector<gdf_column_cpp> & samples)
-		: GPUComponentMessage(message_token, context_token, sender_node, samples) {}
+		std::unique_ptr<ral::frame::BlazingTableView> && samples)
+		: GPUComponentMessage(message_token, context_token, sender_node, std::move(samples)) {}
 
 	DefineClassName(ColumnDataMessage);
 
-	std::vector<gdf_column_cpp> getColumns() { return this->samples; }
+	// std::unique_ptr<ral::frame::BlazingTableView>& getColumns() { return this->table_view; }
 
 	static std::shared_ptr<GPUMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
@@ -51,12 +51,12 @@ struct PartitionPivotsMessage : GPUComponentMessage {
 	PartitionPivotsMessage(const std::string & message_token,
 		const uint32_t & context_token,
 		std::shared_ptr<Node> & sender_node,
-		std::vector<gdf_column_cpp> & samples)
-		: GPUComponentMessage(message_token, context_token, sender_node, samples) {}
+		std::unique_ptr<ral::frame::BlazingTableView> && samples)
+		: GPUComponentMessage(message_token, context_token, sender_node, std::move(samples)) {}
 
 	DefineClassName(PartitionPivotsMessage);
 
-	std::vector<gdf_column_cpp> getColumns() { return this->samples; }
+	// std::unique_ptr<ral::frame::BlazingTableView>& getColumns() { return this->table_view; }
 
 	static std::shared_ptr<GPUMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,

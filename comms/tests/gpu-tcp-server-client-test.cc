@@ -4,9 +4,9 @@
 #include <cuda.h>
 #include <chrono>
 #include "cudf/types.h"
-#include "utils/StringInfo.h"
+// #include "utils/StringInfo.h"
 #include "utils/column_factory.h"
-#include "utils/gpu_functions.h"
+// #include "utils/gpu_functions.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -28,34 +28,34 @@ constexpr uint32_t context_token = 3465;
 using GpuFunctions = blazingdb::test::GpuFunctions;
 using StringsInfo = blazingdb::test::StringsInfo;
 
-static std::string serializeToBinary(std::vector<gdf_column *> &columns) {
-  std::string result;
+// static std::string serializeToBinary(std::vector<gdf_column *> &columns) {
+//   std::string result;
 
-  std::size_t capacity = 0;
-  for (auto column : columns) {
-    if (!GpuFunctions::isGdfString(column)) {
-      capacity += GpuFunctions::getDataCapacity(column);
-      capacity += GpuFunctions::getValidCapacity(column);
-    }
-  }
-  const StringsInfo *stringsInfo = GpuFunctions::createStringsInfo(columns);
-  capacity += GpuFunctions::getStringsCapacity(stringsInfo);
-  result.resize(capacity);
+//   std::size_t capacity = 0;
+//   for (auto column : columns) {
+//     if (!GpuFunctions::isGdfString(column)) {
+//       capacity += GpuFunctions::getDataCapacity(column);
+//       capacity += GpuFunctions::getValidCapacity(column);
+//     }
+//   }
+//   const StringsInfo *stringsInfo = GpuFunctions::createStringsInfo(columns);
+//   capacity += GpuFunctions::getStringsCapacity(stringsInfo);
+//   result.resize(capacity);
 
-  std::size_t binary_pointer = 0;
-  for (const auto &column : columns) {
-    GpuFunctions::copyGpuToCpu(binary_pointer, result, column, stringsInfo);
-  }
+//   std::size_t binary_pointer = 0;
+//   for (const auto &column : columns) {
+//     GpuFunctions::copyGpuToCpu(binary_pointer, result, column, stringsInfo);
+//   }
 
-  GpuFunctions::destroyStringsInfo(stringsInfo);
+//   GpuFunctions::destroyStringsInfo(stringsInfo);
 
-  boost::crc_32_type crc_result;
-  crc_result.process_bytes((char *)result.c_str(), result.size());
-  std::cout << "checksum:" << std::hex << std::uppercase
-            << crc_result.checksum() << std::endl;
+//   boost::crc_32_type crc_result;
+//   crc_result.process_bytes((char *)result.c_str(), result.size());
+//   std::cout << "checksum:" << std::hex << std::uppercase
+//             << crc_result.checksum() << std::endl;
 
-  return result;
-}
+//   return result;
+// }
 typedef int nv_category_index_type;
 
 class GPUComponentMessage : public GPUMessage {
@@ -123,10 +123,10 @@ public:
 
   virtual raw_buffer GetRawColumns() override {
     std::vector<int> buffer_sizes;
-    std::vector<char *> raw_buffers;
+    std::vector<const char *> raw_buffers;
     std::vector<ColumnTransport> column_offset;
 
-    serializeToBinary(samples);
+    // serializeToBinary(samples);
 
     for (int i = 0; i < samples.size(); ++i) {
       auto *column = samples[i];
@@ -135,7 +135,6 @@ public:
                               .dtype = column->dtype,
                               .size = column->size,
                               .null_count = column->null_count,
-                              .time_unit = column->dtype_info.time_unit,
                               .col_name = {},
                           },
                           .data = -1,
@@ -149,11 +148,11 @@ public:
                 << col_transport.metadata.null_count << "|"
                 << col_transport.metadata.col_name << std::endl;
       if (blazingdb::test::GpuFunctions::isGdfString(column)) {
-        char *stringsPointer;
+        const char *stringsPointer;
         gdf_size_type stringsSize;
         int *offsetsPointer;
         gdf_size_type offsetsSize;
-        unsigned char *nullBitmask;
+        const unsigned char *nullBitmask;
         gdf_size_type nullMaskSize;
         std::tie(stringsPointer, stringsSize, offsetsPointer, offsetsSize,
                  nullBitmask, nullMaskSize) = get_raw_pointers(column);
@@ -164,12 +163,12 @@ public:
 
         col_transport.strings_offsets = raw_buffers.size();
         buffer_sizes.push_back(offsetsSize);
-        raw_buffers.push_back((char *)offsetsPointer);
+        raw_buffers.push_back((const char *)offsetsPointer);
 
         if (nullBitmask != nullptr) {
           col_transport.strings_nullmask = raw_buffers.size();
           buffer_sizes.push_back(nullMaskSize);
-          raw_buffers.push_back((char *)nullBitmask);
+          raw_buffers.push_back((const char *)nullBitmask);
         }
       } else if (column->valid and column->null_count > 0) {
         // case: valid
@@ -197,7 +196,7 @@ public:
       const Message::MetaData &message_metadata,
       const Address::MetaData &address_metadata,
       const std::vector<ColumnTransport> &columns_offsets,
-      const std::vector<char *> &raw_buffers) {  // gpu pointer
+      const std::vector<const char *> &raw_buffers) {  // gpu pointer
     auto node = std::make_shared<Node>(
         Address::TCP(address_metadata.ip, address_metadata.comunication_port,
                      address_metadata.protocol_port));
@@ -247,13 +246,12 @@ public:
             (gdf_dtype)columns_offsets[i].metadata.dtype,
             (gdf_size_type)columns_offsets[i].metadata.null_count,
             gdf_dtype_extra_info{
-                .time_unit =
-                    (gdf_time_unit)columns_offsets[i].metadata.time_unit,
+                .time_unit = gdf_time_unit(0), 
                 .category = nullptr},
             (char *)columns_offsets[i].metadata.col_name);
       }
     }
-    serializeToBinary(received_samples);
+    // serializeToBinary(received_samples);
     std::string expected_checksum = "41081C4C";
 
     return std::make_shared<GPUComponentMessage>(
@@ -276,7 +274,7 @@ std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
   std::uint64_t total_row_size = samples[0]->size;
   auto gpu_message = std::make_shared<GPUComponentMessage>(
       context_token, sender_node, total_row_size, samples);
-  std::vector<char *> buffers;
+  std::vector<const char *> buffers;
   std::vector<int> buffer_sizes;
   std::vector<ColumnTransport> column_offsets;
   std::tie(buffer_sizes, buffers, column_offsets) =
@@ -302,10 +300,10 @@ std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
           gpu_message->metadata(),
           gpu_message->getSenderNode()->address()->metadata(), column_offsets,
           buffers));
-  std::cout << "## original_message\n";
-  serializeToBinary(gpu_message->samples);
-  std::cout << "## copy_message\n";
-  serializeToBinary(gpu_message_copy->samples);
+  // std::cout << "## original_message\n";
+  // serializeToBinary(gpu_message->samples);
+  // std::cout << "## copy_message\n";
+  // serializeToBinary(gpu_message_copy->samples);
   return gpu_message;
 }
 
@@ -395,6 +393,7 @@ auto GPU_MEMORY_SIZE = 100;
 
 static void ExecMaster() {
   cuInit(0);
+  ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS);
   // Run server
   RalServer::start(8000);
 
@@ -419,6 +418,7 @@ static void ExecMaster() {
 
 static void ExecWorker() {
   cuInit(0);
+  ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS);
   // todo get GPU_MEMORY_SIZE
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
   auto nthread = 4;

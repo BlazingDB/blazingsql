@@ -797,7 +797,7 @@ void distributeRowSize(const Context & context, std::size_t total_row_size) {
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
 
 	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
-	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, {});
+	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, std::vector<gdf_column_cpp> ());
 
 	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	broadcastMessage(context.getAllOtherNodes(self_node_idx), message);
@@ -1081,8 +1081,9 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 				std::vector<std::size_t> & table_total_rows, std::vector<int8_t> & sortOrderTypes) {
 	
 	std::vector<BlazingTableView> tables;
-	for (auto sample : samples){
-		tables.push_back(sample.second);
+	for (std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > & sample : samples){
+//		TODO: fix this memory model
+//		tables.push_back(sample.second);
 	}
 	
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(tables);
@@ -1320,7 +1321,7 @@ std::unique_ptr<BlazingTable> getPartitionPlan(const Context & context) {
  		if(nodeColumn.first == self_node) {
  			continue;
  		}
- 		BlazingTableView columns = nodeColumn.second;
+ 		BlazingTableView &columns = nodeColumn.second;
  		auto destination_node = nodeColumn.first;
  		//TODO WSM waiting on Factory::createColumnDataMessage
  		// threads.push_back(std::thread([message_id, context_token, self_node, destination_node, columns]() mutable {
