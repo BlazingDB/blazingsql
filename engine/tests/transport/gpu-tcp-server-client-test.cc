@@ -78,8 +78,8 @@ static void ExecMaster() {
 		// 	"", 
 		// 	"",
 		// 	"col10" },
-		table_view.column(4)
-		);
+		// table_view.column(4)
+		// );
 		Server::getInstance().close();
 	}).join();
 }
