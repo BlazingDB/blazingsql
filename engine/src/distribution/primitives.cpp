@@ -1304,34 +1304,34 @@ std::unique_ptr<BlazingTable> getPartitionPlan(const Context & context) {
 // //	return split_data_into_NodeColumns(context, table, indexes);
 // }
 
-// 	void distributePartitions(const Context & context, std::vector<NodeColumnView> & partitions) {
-// 	using ral::communication::experimental::CommunicationData;
-// 	using ral::communication::messages::ColumnDataMessage;
-// 	using ral::communication::messages::Factory;
-// 	using ral::communication::network::Client;
+ 	void distributePartitions(const Context & context, std::vector<NodeColumnView> & partitions) {
+ 	using ral::communication::experimental::CommunicationData;
+ 	using ral::communication::messages::ColumnDataMessage;
+ 	using ral::communication::messages::Factory;
+ 	using ral::communication::network::Client;
 
-// 	const uint32_t context_comm_token = context.getContextCommunicationToken();
-// 	const uint32_t context_token = context.getContextToken();
-// 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
+ 	const uint32_t context_comm_token = context.getContextCommunicationToken();
+ 	const uint32_t context_token = context.getContextToken();
+ 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
 
-// 	auto self_node = CommunicationData::getInstance().getSelfNode();
-// 	std::vector<std::thread> threads;
-// 	for(auto & nodeColumn : partitions) {
-// 		if(nodeColumn.first == self_node) {
-// 			continue;
-// 		}
-// 		BlazingTableView columns = nodeColumn.second;
-// 		auto destination_node = nodeColumn.first;
-// 		//TODO WSM waiting on Factory::createColumnDataMessage
-// 		// threads.push_back(std::thread([message_id, context_token, self_node, destination_node, columns]() mutable {
-// 		// 	auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
-// 		// 	Client::send(destination_node, *message);
-// 		// }));
-// 	}
-// 	for(size_t i = 0; i < threads.size(); i++) {
-// 		threads[i].join();
-// 	}
-// }
+ 	auto self_node = CommunicationData::getInstance().getSelfNode();
+ 	std::vector<std::thread> threads;
+ 	for(auto & nodeColumn : partitions) {
+ 		if(nodeColumn.first == self_node) {
+ 			continue;
+ 		}
+ 		BlazingTableView columns = nodeColumn.second;
+ 		auto destination_node = nodeColumn.first;
+ 		//TODO WSM waiting on Factory::createColumnDataMessage
+ 		// threads.push_back(std::thread([message_id, context_token, self_node, destination_node, columns]() mutable {
+ 		// 	auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
+ 		// 	Client::send(destination_node, *message);
+ 		// }));
+ 	}
+ 	for(size_t i = 0; i < threads.size(); i++) {
+ 		threads[i].join();
+ 	}
+ }
 
 std::vector<NodeColumn> collectPartitions(const Context & context) {
 	int num_partitions = context.getTotalNodes() - 1;
