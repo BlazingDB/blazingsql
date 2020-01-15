@@ -32,19 +32,19 @@ struct Factory {
 
 	static std::shared_ptr<Message> createSampleToNodeMaster(const std::string & message_token,
 															 const ContextToken & context_token,
-															 std::shared_ptr<Node> & sender_node,
+															 Node & sender_node,
 															 std::uint64_t total_row_size,
-															 std::unique_ptr<ral::frame::BlazingTableView>&& samples);
+															 ral::frame::BlazingTableView & samples);
 
 	static std::shared_ptr<Message> createColumnDataMessage(const std::string & message_token,
 															const ContextToken & context_token,
-															std::shared_ptr<Node> & sender_node,
-															std::unique_ptr<ral::frame::BlazingTableView>&& columns);
+															Node & sender_node,
+															ral::frame::BlazingTableView & columns);
 
 	static std::shared_ptr<Message> createPartitionPivotsMessage(const std::string & message_token,
 																 const ContextToken & context_token,
-																 std::shared_ptr<Node> & sender_node,
-																 std::unique_ptr<ral::frame::BlazingTableView>&& columns);
+																 Node & sender_node,
+																 ral::frame::BlazingTableView & columns);
 };
 
 }  // namespace messages

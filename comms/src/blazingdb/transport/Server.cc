@@ -169,8 +169,11 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
     server->putMessage(message->metadata().contextToken, message);
 
     // TODO: write success
-  } catch (const std::exception &exception) {
-    // std::cerr << "[ERROR] " << exception.what() << std::endl;
+  } catch (const zmq::error_t &e) {
+    // TODO: write failure
+  }
+  catch (const std::runtime_error &exception) {
+    std::cerr << "[ERROR] " << exception.what() << std::endl;
     // TODO: write failure
   }
 }

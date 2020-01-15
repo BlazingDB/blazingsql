@@ -11,10 +11,10 @@ namespace messages {
 struct SampleToNodeMasterMessage : GPUComponentMessage {
 	SampleToNodeMasterMessage(const std::string & message_token,
 		const uint32_t & context_token,
-		std::shared_ptr<Node> & sender_node,
-		std::unique_ptr<ral::frame::BlazingTableView> && samples, 
+		Node  & sender_node,
+		ral::frame::BlazingTableView & samples, 
 		int total_row_size)
-		: GPUComponentMessage(message_token, context_token, sender_node, std::move(samples),  total_row_size) {}
+		: GPUComponentMessage(message_token, context_token, sender_node, samples,  total_row_size) {}
 
 	DefineClassName(SampleToNodeMasterMessage);
 
@@ -31,9 +31,9 @@ struct SampleToNodeMasterMessage : GPUComponentMessage {
 struct ColumnDataMessage : GPUComponentMessage {
 	ColumnDataMessage(const std::string & message_token,
 		const uint32_t & context_token,
-		std::shared_ptr<Node> & sender_node,
-		std::unique_ptr<ral::frame::BlazingTableView> && samples)
-		: GPUComponentMessage(message_token, context_token, sender_node, std::move(samples)) {}
+		Node  & sender_node,
+		ral::frame::BlazingTableView & samples)
+		: GPUComponentMessage(message_token, context_token, sender_node, samples) {}
 
 	DefineClassName(ColumnDataMessage);
 
@@ -50,9 +50,9 @@ struct ColumnDataMessage : GPUComponentMessage {
 struct PartitionPivotsMessage : GPUComponentMessage {
 	PartitionPivotsMessage(const std::string & message_token,
 		const uint32_t & context_token,
-		std::shared_ptr<Node> & sender_node,
-		std::unique_ptr<ral::frame::BlazingTableView> && samples)
-		: GPUComponentMessage(message_token, context_token, sender_node, std::move(samples)) {}
+		Node  & sender_node,
+		ral::frame::BlazingTableView & samples)
+		: GPUComponentMessage(message_token, context_token, sender_node, samples) {}
 
 	DefineClassName(PartitionPivotsMessage);
 

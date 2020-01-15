@@ -28,7 +28,7 @@ public:
 protected:
   explicit Message(std::string const &messageToken,
                    uint32_t const &contextToken,
-                   std::shared_ptr<blazingdb::transport::Node> &sender_node)
+                   std::shared_ptr<blazingdb::transport::Node> sender_node)
       : node_{sender_node} {
     set_metadata(messageToken, contextToken);
   }
@@ -71,6 +71,11 @@ public:
                       uint32_t const &contextToken,
                       std::shared_ptr<blazingdb::transport::Node> &sender_node)
       : Message{messageToken, contextToken, sender_node} {}
+
+  explicit GPUMessage(std::string const &messageToken,
+                      uint32_t const &contextToken,
+                      blazingdb::transport::Node &sender_node)
+      : Message{messageToken, contextToken, std::make_shared<Node>(sender_node.address())} {}
 
   virtual raw_buffer GetRawColumns() = 0;
 

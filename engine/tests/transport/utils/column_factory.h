@@ -58,7 +58,7 @@ static ral::frame::BlazingTable build_table() {
 
 	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
 	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
-	in_args.dtype = { "int32", "int64", "int32", "int64"};
+	in_args.dtype = { "int32", "str", "int32", "str"};
 	in_args.delimiter = '|';
 	in_args.header = -1;
 

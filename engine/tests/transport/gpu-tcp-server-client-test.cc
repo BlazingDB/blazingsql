@@ -58,12 +58,14 @@ static void ExecMaster() {
 	Server::getInstance().registerContext(context_token);
 	std::thread([]() {
 		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
-
 		auto message = Server::getInstance().getMessage(context_token, message_token);
 		auto concreteMessage = std::static_pointer_cast<GPUReceivedMessage>(message);
 		std::cout << "message received\n";
 		CudfTableView  table_view = concreteMessage->getSamples();
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table_view.column(0));
+
+		expect_column_data_equal(std::vector<std::string>{"ALGERIA", "ARGENTINA", "BRAZIL", "CANADA", "EGYPT", "ETHIOPIA", "FRANCE", "GERMANY", "INDIA", "INDONESIA"}, table_view.column(1));
+		
 		Server::getInstance().close();
 	}).join();
 }
@@ -74,16 +76,16 @@ static void ExecWorker() {
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
-	auto sender_node = std::make_shared<Node>(Address::TCP("127.0.0.1", 8001, 1234));
-	auto server_node = std::make_shared<Node>(Address::TCP("127.0.0.1", 8000, 1234));
+	auto sender_node = Node(Address::TCP("127.0.0.1", 8001, 1234));
+	auto server_node = Node(Address::TCP("127.0.0.1", 8000, 1234));
 
 	const auto samples = blazingdb::test::build_table();
 	std::uint64_t total_row_size = samples.num_rows();
-	auto table_view = std::make_unique<ral::frame::BlazingTableView>(std::move(samples.view()), samples.names()) ;
+	ral::frame::BlazingTableView table_view(samples.view(), samples.names());
 	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
-	auto message = std::make_shared<SampleToNodeMasterMessage>(message_token, context_token, sender_node, std::move(table_view), total_row_size);
+	auto message = std::make_shared<SampleToNodeMasterMessage>(message_token, context_token, sender_node, table_view, total_row_size);
 
-	Client::send(*server_node, *message);
+	Client::send(server_node, *message);
 	std::this_thread::sleep_for (std::chrono::seconds(1));
 }
 
@@ -99,22 +101,22 @@ struct SendSamplesTest : public ::testing::Test {
 // TODO: move common code of TCP client and server to blazingdb::network in order to be shared by manager and transport
 // TODO: check when the ip, port is busy, return exception!
 // TODO: check when the message is not registered, or the wrong message is registered
-//TEST_F(SendSamplesTest, MasterAndWorker) {
-//	if(fork() > 0) {
-//		ExecMaster();
-//	} else {
-//		ExecWorker();
-//	}
-//}
+TEST_F(SendSamplesTest, MasterAndWorker) {
+	if(fork() > 0) {
+		ExecMaster();
+	} else {
+		ExecWorker();
+	}
+}
 
  // TO use in separate process by:
  // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Master
-TEST_F(SendSamplesTest, Master) {
-   ExecMaster();
- }
+// TEST_F(SendSamplesTest, Master) {
+//    ExecMaster();
+//  }
 
 
- // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Worker
-TEST_F(SendSamplesTest, Worker) {
-   ExecWorker();
- }
+//  // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Worker
+// TEST_F(SendSamplesTest, Worker) {
+//    ExecWorker();
+//  }

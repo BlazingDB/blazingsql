@@ -15,6 +15,7 @@
 #include <cudf/column/column.hpp>
 #include <cudf/column/column_view.hpp>
 #include <cudf/null_mask.hpp>
+#include <cudf/column/column_factories.hpp>
 #include <cudf/types.hpp>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include "Traits/RuntimeTraits.h"
@@ -50,7 +51,7 @@ public:
 
 	GPUReceivedMessage(std::string const & messageToken,
 						uint32_t contextToken,
-						std::shared_ptr<Node> & sender_node,
+						Node  & sender_node,
 					    std::unique_ptr<ral::frame::BlazingTable> && samples,
 						std::uint64_t total_row_size = 0)
 		: GPUMessage(messageToken, contextToken, sender_node),
@@ -77,10 +78,10 @@ class GPUComponentMessage : public GPUMessage {
 public:
 	GPUComponentMessage(std::string const & messageToken,
 		uint32_t contextToken,
-		std::shared_ptr<Node> & sender_node,
-		std::unique_ptr<ral::frame::BlazingTableView> && samples,
+		Node  & sender_node,
+		ral::frame::BlazingTableView & samples,
 		std::uint64_t total_row_size = 0)
-		: GPUMessage(messageToken, contextToken, sender_node), table_view{std::move(samples)} {
+		: GPUMessage(messageToken, contextToken, sender_node), table_view{samples} {
 		this->metadata().total_row_size = total_row_size;
 	}
 
@@ -96,73 +97,14 @@ public:
 	// 		RMM_TRY(RMM_FREE(nullBitmask, 0));
 	// 	}
 	// }
-
-// 	auto get_raw_pointers(cudf::column * column) {
-// 		std::lock_guard<std::mutex> lock(strigDataMutex);
-
-// 		// TODO percy cudf0.12 custrings this was not commented
-// //		auto strDataTupleIt = strDataColToPtrMap.find(column);
-// //		if(strDataTupleIt != strDataColToPtrMap.end()) {
-// //			return strDataTupleIt->second;
-// //		}
-// //		bool deleteCategory = false;
-// //		void * category_ptr = column->dtype_info.category;
-// //		if(!category_ptr) {
-// //			category_ptr = NVCategory::create_from_array(nullptr, 0);
-// //			deleteCategory = true;
-// //		}
-		
-// 		auto size = column->size();
-// 		auto null_count = column->null_count();
-// 		std::string output;
-		
-// 		// TODO percy cudf0.12 custrings this was not commented
-// //		NVCategory * category = static_cast<NVCategory *>(category_ptr);
-// //		NVStrings * nvStrings_ = category->gather_strings(category->values_cptr(), category->size(), true);
-// //		cudf::size_type stringsLength_ = nvStrings_->size();
-// //		auto offsetsLength_ = stringsLength_ + 1;
-
-// //		int * const lengthPerStrings = new int[stringsLength_];
-// //		nvStrings_->byte_count(lengthPerStrings, false);
-// //		cudf::size_type stringsSize_ =
-// //			std::accumulate(lengthPerStrings,
-// //				lengthPerStrings + stringsLength_,
-// //				0,
-// //				[](int accumulator, int currentValue) { return accumulator + std::max(currentValue, 0); }) *
-// //			sizeof(char);
-// //		char * stringsPointer_ = nullptr;
-// //		cudf::size_type offsetsSize_ = offsetsLength_ * sizeof(int);
-// //		int * offsetsPointer_ = nullptr;
-// //		RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&stringsPointer_), stringsSize_, 0));
-// //		RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&offsetsPointer_), offsetsSize_, 0));
-
-// //		cudf::size_type nullMaskSize_ = 0;
-// //		unsigned char * nullBitmask_ = nullptr;
-// //		if(null_count > 0) {
-// //			nullMaskSize_ = ral::traits::get_bitmask_size_in_bytes(stringsLength_);
-// //			RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&nullBitmask_), nullMaskSize_, 0));
-// //		}
-// //		nvStrings_->create_offsets(stringsPointer_, offsetsPointer_, nullBitmask_, true);
-
-// //		delete[] lengthPerStrings;
-// //		NVStrings::destroy(nvStrings_);
-// //		if(deleteCategory) {
-// //			NVCategory::destroy(category);
-// //		}
-
-// //		auto strDataTuple =
-// //			std::make_tuple(stringsPointer_, stringsSize_, offsetsPointer_, offsetsSize_, nullBitmask_, nullMaskSize_);
-// //		strDataColToPtrMap[column] = strDataTuple;
-
-// //		return strDataTuple;
-// 	}
+ 
 
 	virtual raw_buffer GetRawColumns() override {
 		std::vector<int> buffer_sizes;
 		std::vector<const char *> raw_buffers;
 		std::vector<ColumnTransport> column_offset;
-		for(int i = 0; i < table_view->num_columns(); ++i) {
-			const cudf::column_view&column = table_view->column(i);
+		for(int i = 0; i < table_view.num_columns(); ++i) {
+			const cudf::column_view&column = table_view.column(i);
 			ColumnTransport col_transport = ColumnTransport{ColumnTransport::MetaData{
 																.dtype = (int32_t)column.type().id(),
 																.size = column.size(),
@@ -174,7 +116,7 @@ public:
 				.strings_data = -1,
 				.strings_offsets = -1,
 				.strings_nullmask = -1};
-			strcpy(col_transport.metadata.col_name, table_view->names().at(i).c_str());
+			strcpy(col_transport.metadata.col_name, table_view.names().at(i).c_str());
 			if(isGdfString(column)) {
 				auto num_children = column.num_children();
 				assert(num_children == 2);
@@ -184,16 +126,19 @@ public:
 			 	col_transport.strings_data = raw_buffers.size();
 				buffer_sizes.push_back(chars_column.size());
 				raw_buffers.push_back(chars_column.data<char>());
+				col_transport.strings_data_size = chars_column.size();
 
+				cudf::data_type offset_dtype (cudf::type_id::INT32);
 				col_transport.strings_offsets = raw_buffers.size();
-				buffer_sizes.push_back(offsets_column.size());
+				col_transport.strings_offsets_size = offsets_column.size() * cudf::size_of(offset_dtype);
+				buffer_sizes.push_back(col_transport.strings_offsets_size);
 				raw_buffers.push_back(offsets_column.data<char>());
-
-				if(nullBitmask != nullptr) {
-					col_transport.strings_nullmask = raw_buffers.size();
-					buffer_sizes.push_back(getValidCapacity(column));
-					raw_buffers.push_back(column.null_mask());
-				}
+				
+				// if(column.has_nulls()) {
+				// 	col_transport.strings_nullmask = raw_buffers.size();
+				// 	buffer_sizes.push_back(getValidCapacity(column));
+				// 	raw_buffers.push_back((const char *)column.null_mask());
+				// }
 			} else if(column.has_nulls() and column.null_count() > 0) {
 				// case: valid
 				col_transport.data = raw_buffers.size();
@@ -201,7 +146,7 @@ public:
 				raw_buffers.push_back(column.data<char>());
 				col_transport.valid = raw_buffers.size();
 				buffer_sizes.push_back(getValidCapacity(column));
-				raw_buffers.push_back(column.null_mask());
+				raw_buffers.push_back((const char *)column.null_mask());
 			} else {
 				// case: data
 				col_transport.data = raw_buffers.size();
@@ -217,8 +162,7 @@ public:
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<const char *> & raw_buffers) {  // gpu pointer
-		auto node = std::make_shared<Node>(
-			Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port));
+		auto node = Node(Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port));
 		auto num_columns = columns_offsets.size();
 		std::vector<std::unique_ptr<cudf::column>> received_samples(num_columns);
 		std::vector<std::string> column_names(num_columns);
@@ -234,12 +178,11 @@ public:
 				// // auto string_offset = columns_offsets[i].strings_data;
 				// // nvcategory_ptr = (NVCategory *) raw_buffers[string_offset];
 				char * charsPointer = (char *) raw_buffers[columns_offsets[i].strings_data];
-				int * offsetsPointer = (int *) raw_buffers[columns_offsets[i].strings_offsets];
-				unsigned char * nullMaskPointer = nullptr;
+				cudf::size_type * offsetsPointer = (cudf::size_type *) raw_buffers[columns_offsets[i].strings_offsets];
+				cudf::bitmask_type * nullMaskPointer = nullptr;
 				if(columns_offsets[i].strings_nullmask != -1) {
-					nullMaskPointer = (unsigned char *) raw_buffers[columns_offsets[i].strings_nullmask];
+					nullMaskPointer = (cudf::bitmask_type *) raw_buffers[columns_offsets[i].strings_nullmask];
 				}
-
 				// auto nvcategory_ptr = NVCategory::create_from_offsets(reinterpret_cast<const char *>(stringsPointer),
 				// 	columns_offsets[i].metadata.size,
 				// 	reinterpret_cast<const int *>(offsetsPointer),
@@ -254,8 +197,16 @@ public:
 				// RMM_TRY(RMM_FREE(nullMaskPointer, 0));
 
 				// auto unique_column = std::make_unique<cudf::column>(dtype, column_size, data_buff, valid_buff);
+				cudf::size_type column_size  =  (cudf::size_type)columns_offsets[i].metadata.size;
+				
+				rmm::device_vector<char> d_strings(charsPointer, charsPointer + columns_offsets[i].strings_data_size);
+				rmm::device_vector<cudf::size_type> d_offsets(offsetsPointer, offsetsPointer + columns_offsets[i].strings_offsets_size/sizeof(cudf::size_type));
+				rmm::device_vector<cudf::bitmask_type> d_null_mask{};
 
-
+				// rmm::device_vector<cudf::bitmask_type> d_null_mask(nullMaskPointer, nullMaskPointer + );
+				cudf::size_type null_count = columns_offsets[i].metadata.null_count;
+				auto unique_column = cudf::make_strings_column(d_strings, d_offsets, d_null_mask, null_count);
+				received_samples[i] = std::move(unique_column);
 			} else {
 				cudf::data_type dtype = cudf::data_type{cudf::type_id(columns_offsets[i].metadata.dtype)};
 				cudf::size_type column_size  =  (cudf::size_type)columns_offsets[i].metadata.size;
@@ -298,7 +249,7 @@ public:
 	// ral::frame::BlazingTable release() { return std::move(table); }
 
 protected:
-	std::unique_ptr<ral::frame::BlazingTableView> table_view;
+	ral::frame::BlazingTableView table_view;
 
 	std::map<cudf::column *, StrDataPtrTuple> strDataColToPtrMap;
 
