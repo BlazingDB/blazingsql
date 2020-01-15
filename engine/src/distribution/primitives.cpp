@@ -34,6 +34,7 @@
 #include "cudf/search.hpp"
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>
+#include <cudf/merge.hpp>
 #include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 
@@ -1154,15 +1155,10 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(con
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
-				const Context & context, std::vector<NodeColumnView> & samples, 
+				const Context & context, std::vector<BlazingTableView> & samples, 
 				std::vector<std::size_t> & table_total_rows, std::vector<int8_t> & sortOrderTypes) {
 	
-	std::vector<BlazingTableView> tables;
-	for (auto sample : samples){
-		tables.push_back(sample.second);
-	}
-	
-	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(tables);
+	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
 	std::vector<cudf::order> column_order;
 	for(auto col_order : sortOrderTypes){
@@ -1177,17 +1173,16 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 
 	std::unique_ptr<CudfTable> sortedSamples = cudf::experimental::gather( concatSamples->view(), sort_indices->view() );
 
-	cudf::size_type outputRowSize = sortedSamples->view().num_rows();
-	cudf::size_type pivotsSize = outputRowSize > 0 ? context.getTotalNodes() - 1 : 0;
-	
-	int32_t step = outputRowSize / context.getTotalNodes();
+	// lets get names from a non-empty table
+	std::vector<std::string> names;
+	for(size_t i = 0; i < samples.size(); i++) {
+		if (samples[i].names().size() > 0){
+			names = samples[i].names();
+			break;
+		}
+	}
 
-	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});    
-	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);
-	CudfColumnView gather_map(gather_map_wrapper);
-	std::unique_ptr<CudfTable> pivots = cudf::experimental::gather( sortedSamples->view(), gather_map );
-
-	return std::make_unique<BlazingTable>(std::move(pivots), concatSamples->names());	
+	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
 }
 
 void distributePartitionPlan(const Context & context, BlazingTableView & pivots) {
@@ -1378,6 +1373,89 @@ void scatterData(const Context & context, BlazingTableView table) {
 	}
 	distributePartitions(context, node_columns);
 }
+
+std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
+	std::vector<int8_t> & sortOrderTypes,
+	std::vector<int> & sortColIndices) {
+		
+	std::vector<cudf::order> column_order;
+	for(auto col_order : sortOrderTypes){
+		if(col_order)
+			column_order.push_back(cudf::order::DESCENDING);
+		else
+			column_order.push_back(cudf::order::ASCENDING);
+	}
+	// TODO this is just a default setting. Will want to be able to properly set null_order
+	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
+	
+	std::unique_ptr<CudfTable> merged_table;
+	CudfTableView left_table = tables[0].view();
+	for(size_t i = 1; i < tables.size(); i++) {
+		
+		CudfTableView right_table = tables[i].view();
+
+		merged_table = cudf::experimental::merge(left_table, right_table,
+													sortColIndices, column_order, null_orders);
+
+		left_table = merged_table->view();
+	}
+
+	// lets get names from a non-empty table
+	std::vector<std::string> names;
+	for(size_t i = 0; i < tables.size(); i++) {
+		if (tables[i].names().size() > 0){
+			names = tables[i].names();
+			break;
+		}
+	}
+	return std::make_unique<BlazingTable>(std::move(merged_table), names);	
+}
+
+
+std::unique_ptr<BlazingTable> getPivotPointsTable(const Context & context, const BlazingTableView & sortedSamples){
+	cudf::size_type outputRowSize = sortedSamples.view().num_rows();
+	cudf::size_type pivotsSize = outputRowSize > 0 ? context.getTotalNodes() - 1 : 0;
+	
+	int32_t step = outputRowSize / context.getTotalNodes();
+
+	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});    
+	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);
+	CudfColumnView gather_map(gather_map_wrapper);
+	std::unique_ptr<CudfTable> pivots = cudf::experimental::gather( sortedSamples.view(), gather_map );
+
+	return std::make_unique<BlazingTable>(std::move(pivots), sortedSamples.names());
+}
+
+
+std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(const Context & context, std::vector<BlazingTableView> & samples) {
+	
+	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
+
+	std::unique_ptr<BlazingTable> groupedSamples; // replace this with commented below
+	// WSM cudf0.12 waiting on groupby_without_aggregations
+	// std::vector<int> groupColumnIndices(concatSamples.size());
+	// std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
+	// std::unique_ptr<BlazingTable> groupedSamples =
+	// 	ral::operators::groupby_without_aggregations(concatSamples, groupColumnIndices);
+
+	// Sort
+	std::vector<cudf::order> column_order(groupedSamples->view().num_columns(), cudf::order::ASCENDING);
+	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
+	std::unique_ptr<cudf::column> sort_indices = cudf::experimental::sorted_order( groupedSamples->view(), column_order, null_orders);
+	std::unique_ptr<CudfTable> sortedSamples = cudf::experimental::gather( groupedSamples->view(), sort_indices->view() );
+
+	// lets get names from a non-empty table
+	std::vector<std::string> names;
+	for(size_t i = 0; i < samples.size(); i++) {
+		if (samples[i].names().size() > 0){
+			names = samples[i].names();
+			break;
+		}
+	}
+
+	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
+}
+
 
 }  // namespace experimental
 }  // namespace distribution

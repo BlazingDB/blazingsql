@@ -166,7 +166,7 @@ namespace experimental {
 											std::vector<int8_t> sortOrderTypes);
 
 	std::unique_ptr<BlazingTable> generatePartitionPlans(
-				const Context & context, std::vector<NodeColumnView> & samples, 
+				const Context & context, std::vector<std::vector<BlazingTableView>> & samples, 
 				std::vector<std::size_t> & table_total_rows, std::vector<int8_t> & sortOrderTypes);
 
 	void distributePartitions(const Context & context, std::vector<NodeColumnView> & partitions);
@@ -178,6 +178,13 @@ namespace experimental {
 	std::vector<NodeColumn> collectSomePartitions(const Context & context, int num_partitions);
 
 	void scatterData(const Context & context, BlazingTableView table);
+
+	std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
+				std::vector<int8_t> & sortOrderTypes, std::vector<int> & sortColIndices);
+	
+	std::unique_ptr<BlazingTable> getPivotPointsTable(const Context & context, const BlazingTableView & sortedSamples);
+
+	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(const Context & context, std::vector<BlazingTableView> & samples);
 
 }  // namespace experimental
 }  // namespace distribution
