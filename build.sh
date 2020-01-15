@@ -112,48 +112,66 @@ fi
 
 if buildAll || hasArg io; then
 
+    echo ">>>> mkdir -p ${IO_BUILD_DIR}"
     mkdir -p ${IO_BUILD_DIR}
+    echo ">>>> cd ${IO_BUILD_DIR}"
     cd ${IO_BUILD_DIR}
+    echo ">>>> cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .."
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
+        echo ">>>> make -j${PARALLEL_LEVEL} all"
         make -j${PARALLEL_LEVEL} all
+        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     else
+        echo ">>>> make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
     fi
 fi
 
 if buildAll || hasArg comms; then
 
+    echo ">>>> mkdir -p ${COMMS_BUILD_DIR}"
     mkdir -p ${COMMS_BUILD_DIR}
+    echo ">>>> cd ${COMMS_BUILD_DIR}"
     cd ${COMMS_BUILD_DIR}
+    echo ">>>> cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .."
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
+        echo ">>>> make -j${PARALLEL_LEVEL} all"
         make -j${PARALLEL_LEVEL} all
+        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     else
+        echo ">>>> make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
     fi
 fi
 
 if buildAll || hasArg libengine; then
 
+    echo ">>>> mkdir -p ${LIBENGINE_BUILD_DIR}"
     mkdir -p ${LIBENGINE_BUILD_DIR}
+    echo ">>>> cd ${LIBENGINE_BUILD_DIR}"
     cd ${LIBENGINE_BUILD_DIR}
+    echo ">>>> cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .."
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
+        echo ">>>> make -j${PARALLEL_LEVEL} all"
         make -j${PARALLEL_LEVEL} all
+        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     else
+        echo ">>>> make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}
     fi
 fi
