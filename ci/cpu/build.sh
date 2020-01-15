@@ -50,6 +50,7 @@ export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
 logger "Get env..."
 env
+echo "  - blazingsql-nightly" >> /conda/.condarc
 
 logger "Activate conda env..."
 source activate gdf

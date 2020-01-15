@@ -4,5 +4,4 @@
 
 set -e
 
-echo "  - blazingsql-nightly" >> /conda/.condarc
 ${WORKSPACE}/build.sh
