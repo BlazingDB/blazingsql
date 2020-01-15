@@ -162,7 +162,6 @@ ResultSet runQuery(int32_t masterIndex,
 	}
 }
 
-
 ResultSet runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
