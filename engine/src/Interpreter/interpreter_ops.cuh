@@ -1,3 +1,4 @@
+#pragma once
 
 #include <algorithm>
 #include <chrono>
@@ -21,6 +22,7 @@
 #include "CalciteExpressionParsing.h"
 #include "gdf_wrapper/gdf_types.cuh"
 #include "interpreter_cpp.h"
+#include "../Utils.cuh"
 
 namespace interops {
 
@@ -96,6 +98,8 @@ struct scale_to_64_bit_functor {
 
 	template <typename T, std::enable_if_t<std::is_integral<T>::value || cudf::is_boolean<T>()> * = nullptr>
 	int64_t operator()(cudf::scalar * s) {
+		RAL_EXPECTS(s != nullptr, "scalar pointer is null");
+
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		auto typed_scalar = static_cast<ScalarType *>(s);
 
@@ -104,6 +108,8 @@ struct scale_to_64_bit_functor {
 
 	template <typename T, std::enable_if_t<std::is_floating_point<T>::value> * = nullptr>
 	int64_t operator()(cudf::scalar * s) {
+		RAL_EXPECTS(s != nullptr, "scalar pointer is null");
+
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		auto typed_scalar = static_cast<ScalarType *>(s);
 
@@ -115,6 +121,8 @@ struct scale_to_64_bit_functor {
 
 	template <typename T, std::enable_if_t<cudf::is_timestamp<T>()> * = nullptr>
 	int64_t operator()(cudf::scalar * s) {
+		RAL_EXPECTS(s != nullptr, "scalar pointer is null");
+
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		auto typed_scalar = static_cast<ScalarType *>(s);
 
@@ -138,7 +146,7 @@ public:
 	InterpreterFunctor & operator=(InterpreterFunctor const & other) = delete;
 	InterpreterFunctor & operator=(InterpreterFunctor && other) = delete;
 
-	InterpreterFunctor(cudf::mutable_table_view & output_table,
+	InterpreterFunctor(cudf::mutable_table_view & out_table,
 		const cudf::table_view & table,
 		const std::vector<column_index_type> & left_input_positions_vec,
 		const std::vector<column_index_type> & right_input_positions_vec,
@@ -148,10 +156,10 @@ public:
 		const std::vector<gdf_unary_operator> & unary_operators,
 		const std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
 		const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars,
-		int threadBlockSize,
 		void * temp_space,
 		void * temp_valids_in_buffer,
 		void * temp_valids_out_buffer,
+		int threadBlockSize,
 		cudaStream_t stream)
 		: num_columns{table.num_columns()}, num_operations{left_input_positions_vec.size()},
 		  num_final_outputs{final_output_positions_vec.size()}, temp_valids_in_buffer{static_cast<int64_t *>(
@@ -234,7 +242,7 @@ public:
 		std::vector<const void *> host_out_data_ptrs(num_final_outputs);
 		std::vector<const cudf::bitmask_type *> host_out_valid_ptrs(num_final_outputs);
 		for(int i = 0; i < num_final_outputs; i++) {
-			cudf::mutable_column_view & c = output_table.column(i);
+			cudf::mutable_column_view & c = out_table.column(i);
 			host_out_data_ptrs[i] = c.data<void>();
 			host_out_valid_ptrs[i] = c.null_mask();
 		}
@@ -266,16 +274,14 @@ public:
 
 			if(left_index >= 0 && left_index < num_columns) {
 				left_input_types_vec[i] = table.column(left_index).type().id();
-			} else if(left_index < 0) {
-				if(left_index == SCALAR_NULL_INDEX) {
-					// this was a null scalar in left weird but ok
-					left_input_types_vec[i] = left_scalars[i]->type().id();
-				} else if(left_index == SCALAR_INDEX) {
-					// get scalars type
-					left_input_types_vec[i] = left_scalars[i]->type().id();
-					left_scalars_host[i] = cudf::experimental::type_dispatcher(
-						left_scalars[i]->type(), scale_to_64_bit_functor{}, left_scalars[i].get());
-				}
+			} else if(left_index == SCALAR_NULL_INDEX) {
+				left_input_types_vec[i] = cudf::type_id::EMPTY;
+			} else if(left_index == SCALAR_INDEX) {
+				left_input_types_vec[i] = left_scalars[i]->type().id();
+				left_scalars_host[i] = cudf::experimental::type_dispatcher(
+					left_scalars[i]->type(), scale_to_64_bit_functor{}, left_scalars[i].get());
+			} else if(left_index == UNARY_INDEX) {
+					// wont be used its a unary operation
 			} else {
 				// have to get it from the output that generated it
 				left_input_types_vec[i] = output_map_type[left_index];
@@ -283,20 +289,16 @@ public:
 
 			if(right_index >= 0 && right_index < num_columns) {
 				right_input_types_vec[i] = table.column(right_index).type().id();
-			} else if(right_index < 0) {
-				if(right_index == SCALAR_NULL_INDEX) {
-					// this was a null scalar weird but ok
-					// TODO: figure out if we have to do anything here, i am sure we will for coalesce
-					right_input_types_vec[i] = right_scalars[i]->type().id();
-				} else if(right_index == SCALAR_INDEX) {
-					// get scalars type
-					right_input_types_vec[i] = right_scalars[i]->type().id();
-					right_scalars_host[i] = cudf::experimental::type_dispatcher(
-						right_scalars[i]->type(), scale_to_64_bit_functor{}, right_scalars[i].get());
-				} else if(right_index == UNARY_INDEX) {
-					// right wont be used its a unary operation
-				}
+			} else if(right_index == SCALAR_NULL_INDEX) {
+				right_input_types_vec[i] = cudf::type_id::EMPTY;
+			} else if(right_index == SCALAR_INDEX) {
+				right_input_types_vec[i] = right_scalars[i]->type().id();
+				right_scalars_host[i] = cudf::experimental::type_dispatcher(
+					right_scalars[i]->type(), scale_to_64_bit_functor{}, right_scalars[i].get());
+			} else if(right_index == UNARY_INDEX) {
+					// wont be used its a unary operation
 			} else {
+				// have to get it from the output that generated it
 				right_input_types_vec[i] = output_map_type[right_index];
 			}
 
@@ -314,8 +316,8 @@ public:
 		}
 
 		// put the output final positions
-		for(cudf::size_type i = 0; i < output_table.num_columns(); i++) {
-			output_final_types_vec[i] = output_table.column(i).type().id();
+		for(cudf::size_type i = 0; i < out_table.num_columns(); i++) {
+			output_final_types_vec[i] = out_table.column(i).type().id();
 		}
 
 		std::vector<cudf::type_id> input_column_types_vec(num_columns);
@@ -825,66 +827,68 @@ private:
 			}
 
 			OutputTypeOperator computed = left_value;
-			if(oper == BLZ_FLOOR) {
-				computed = floor(left_value);
-			} else if(oper == BLZ_CEIL) {
-				computed = ceil(left_value);
-			} else if(oper == BLZ_SIN) {
-				computed = sin(left_value);
-			} else if(oper == BLZ_COS) {
-				computed = cos(left_value);
-			} else if(oper == BLZ_ASIN) {
-				computed = asin(left_value);
-			} else if(oper == BLZ_ACOS) {
-				computed = acos(left_value);
-			} else if(oper == BLZ_TAN) {
-				computed = tan(left_value);
-			} else if(oper == BLZ_COTAN) {
-				computed = cos(left_value) / sin(left_value);
-			} else if(oper == BLZ_ATAN) {
-				computed = atan(left_value);
-			} else if(oper == BLZ_ABS) {
-				computed = fabs(left_value);
-			} else if(oper == BLZ_NOT) {
-				computed = !left_value;
-			} else if(oper == BLZ_LN) {
-				computed = log(left_value);
-			} else if(oper == BLZ_LOG) {
-				computed = log10(left_value);
-			} else if(oper == BLZ_YEAR) {
-				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
-				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
-					launch_extract_component<LeftType, datetime_component::YEAR>{},
-					left_value);
-			} else if(oper == BLZ_MONTH) {
-				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
-				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
-					launch_extract_component<LeftType, datetime_component::MONTH>{},
-					left_value);
-			} else if(oper == BLZ_DAY) {
-				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
-				computed = cudf::experimental::type_dispatcher(
-					cudf::data_type{typeId}, launch_extract_component<LeftType, datetime_component::DAY>{}, left_value);
-			} else if(oper == BLZ_HOUR) {
-				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
-				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
-					launch_extract_component<LeftType, datetime_component::HOUR>{},
-					left_value);
-			} else if(oper == BLZ_MINUTE) {
-				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
-				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
-					launch_extract_component<LeftType, datetime_component::MINUTE>{},
-					left_value);
-			} else if(oper == BLZ_SECOND) {
-				cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
-				computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
-					launch_extract_component<LeftType, datetime_component::SECOND>{},
-					left_value);
-			} else if(oper == BLZ_CAST_INTEGER || oper == BLZ_CAST_BIGINT) {
-				computed = cast_op<LeftType, OutputTypeOperator>(left_value);
-			} else if(oper == BLZ_CAST_FLOAT || oper == BLZ_CAST_DOUBLE || oper == BLZ_CAST_DATE ||
-					  oper == BLZ_CAST_TIMESTAMP || oper == BLZ_CAST_VARCHAR) {
-				computed = left_value;
+			if (left_valid) {
+				if(oper == BLZ_FLOOR) {
+					computed = floor(left_value);
+				} else if(oper == BLZ_CEIL) {
+					computed = ceil(left_value);
+				} else if(oper == BLZ_SIN) {
+					computed = sin(left_value);
+				} else if(oper == BLZ_COS) {
+					computed = cos(left_value);
+				} else if(oper == BLZ_ASIN) {
+					computed = asin(left_value);
+				} else if(oper == BLZ_ACOS) {
+					computed = acos(left_value);
+				} else if(oper == BLZ_TAN) {
+					computed = tan(left_value);
+				} else if(oper == BLZ_COTAN) {
+					computed = cos(left_value) / sin(left_value);
+				} else if(oper == BLZ_ATAN) {
+					computed = atan(left_value);
+				} else if(oper == BLZ_ABS) {
+					computed = fabs(left_value);
+				} else if(oper == BLZ_NOT) {
+					computed = !left_value;
+				} else if(oper == BLZ_LN) {
+					computed = log(left_value);
+				} else if(oper == BLZ_LOG) {
+					computed = log10(left_value);
+				} else if(oper == BLZ_YEAR) {
+					cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+					computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+						launch_extract_component<LeftType, datetime_component::YEAR>{},
+						left_value);
+				} else if(oper == BLZ_MONTH) {
+					cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+					computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+						launch_extract_component<LeftType, datetime_component::MONTH>{},
+						left_value);
+				} else if(oper == BLZ_DAY) {
+					cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+					computed = cudf::experimental::type_dispatcher(
+						cudf::data_type{typeId}, launch_extract_component<LeftType, datetime_component::DAY>{}, left_value);
+				} else if(oper == BLZ_HOUR) {
+					cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+					computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+						launch_extract_component<LeftType, datetime_component::HOUR>{},
+						left_value);
+				} else if(oper == BLZ_MINUTE) {
+					cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+					computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+						launch_extract_component<LeftType, datetime_component::MINUTE>{},
+						left_value);
+				} else if(oper == BLZ_SECOND) {
+					cudf::type_id typeId = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+					computed = cudf::experimental::type_dispatcher(cudf::data_type{typeId},
+						launch_extract_component<LeftType, datetime_component::SECOND>{},
+						left_value);
+				} else if(oper == BLZ_CAST_INTEGER || oper == BLZ_CAST_BIGINT) {
+					computed = cast_op<LeftType, OutputTypeOperator>(left_value);
+				} else if(oper == BLZ_CAST_FLOAT || oper == BLZ_CAST_DOUBLE || oper == BLZ_CAST_DATE ||
+							oper == BLZ_CAST_TIMESTAMP || oper == BLZ_CAST_VARCHAR) {
+					computed = left_value;
+				}
 			} else if(oper == BLZ_IS_NULL) {
 				computed = !left_valid;
 			} else if(oper == BLZ_IS_NOT_NULL) {
@@ -934,8 +938,6 @@ private:
 	int threadBlockSize;
 };
 
-// TODO: consider running valids at the same time as the normal
-// operations to increase throughput
 __global__ void transformKernel(InterpreterFunctor op, cudf::size_type size) {
 	extern __shared__ int64_t total_buffer[];
 
