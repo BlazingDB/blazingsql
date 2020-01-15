@@ -20,18 +20,18 @@ gdf_binary_operator_exp get_binary_operation(std::string operator_string);
 
 gdf_unary_operator get_unary_operation(std::string operator_string);
 
-size_t get_index(std::string operand_string);
+cudf::size_type get_index(const std::string & operand_string);
 
 // interprets the expression and if is n-ary and logical, then returns their corresponding binary version
 std::string expand_if_logical_op(std::string expression);
 
-std::string clean_calcite_expression(std::string expression);
+std::string clean_calcite_expression(const std::string & expression);
 
 std::vector<std::string> get_tokens_in_reverse_order(const std::string & expression);
 
 // NOTE call this function after use get_tokens_in_reverse_order ... TODO refactos this approach
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	blazing_frame & inputs, std::vector<std::string> & tokens);
+	const cudf::table_view & inputs, std::vector<std::string> & tokens);
 
 gdf_agg_op get_aggregation_operation(std::string operator_string);
 
@@ -43,8 +43,7 @@ cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * 
 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, gdf_agg_op aggregation, bool have_groupby);
 
-cudf::type_id get_type_from_string(std::string scalar_string);
-std::unique_ptr<cudf::scalar> get_scalar_from_string(std::string scalar_string, cudf::type_id type);
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string);
 
 std::string aggregator_to_string(gdf_agg_op operation);
 

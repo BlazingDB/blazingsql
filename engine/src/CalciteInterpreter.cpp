@@ -14,7 +14,6 @@
 #include "ColumnManipulation.cuh"
 #include "Interpreter/interpreter_cpp.h"
 #include "JoinProcessor.h"
-#include "LogicalFilter.h"
 #include "ResultSetRepository.h"
 #include "Traits/RuntimeTraits.h"
 #include "Utils.cuh"
@@ -36,6 +35,7 @@
 #include <cudf/legacy/table.hpp>
 #include <rmm/thrust_rmm_allocator.h>
 #include "parser/expression_tree.hpp"
+#include "Interpreter/interpreter_cpp.h"
 
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
@@ -114,6 +114,7 @@ std::string extract_table_name(std::string query_part) {
 }
 
 project_plan_params parse_project_plan(blazing_frame & input, std::string query_part) {
+	using interops::column_index_type;
 	gdf_error err = GDF_SUCCESS;
 
 	size_t size = input.get_num_rows_in_table(0);
@@ -162,7 +163,8 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 			std::string clean_expression = clean_calcite_expression(expression);
 
 			std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-			fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(input, tokens);
+			// TODO: percy cudf0.12 fix this
+			// fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(input, tokens);
 			for(std::string token : tokens) {
 				if(!is_operator_token(token) && !is_literal(token)) {
 					size_t index = get_index(token);
@@ -217,22 +219,22 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 
 			output_columns.push_back(output.get_gdf_column());
 
-			add_expression_to_plan(input,
-				input_columns,
-				expression,
-				cur_expression_out,
-				num_expressions_out,
-				input_columns.size(),
-				left_inputs,
-				right_inputs,
-				outputs,
-				operators,
-				unary_operators,
-				left_scalars,
-				right_scalars,
-				new_column_indices,
-				final_output_positions,
-				output.get_gdf_column());
+			// add_expression_to_plan(input,
+			// 	input_columns,
+			// 	expression,
+			// 	cur_expression_out,
+			// 	num_expressions_out,
+			// 	input_columns.size(),
+			// 	left_inputs,
+			// 	right_inputs,
+			// 	outputs,
+			// 	operators,
+			// 	unary_operators,
+			// 	left_scalars,
+			// 	right_scalars,
+			// 	new_column_indices,
+			// 	final_output_positions,
+			// 	output.get_gdf_column());
 			cur_expression_out++;
 			columns[i] = output;
 		} else {
@@ -254,7 +256,7 @@ project_plan_params parse_project_plan(blazing_frame & input, std::string query_
 				} else {
 					int column_width = ral::traits::get_dtype_size_in_bytes(col_type);
 					output.create_gdf_column(col_type, size, nullptr, column_width);
-					std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(cleaned_expression, col_type);
+					std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(cleaned_expression);
 					output.set_name(name);
 					
 					// TODO percy cudf0.12 port to cudf::column
@@ -463,7 +465,8 @@ void process_filter(Context * context, blazing_frame & input, std::string query_
 		conditional_expression = get_filter_expression(query_part);
 	}
 
-	evaluate_expression(input, conditional_expression, stencil);
+	// TODO: percy cudf0.12 replace with logical filter
+	// evaluate_expression(input, conditional_expression, stencil);
 
 	Library::Logging::Logger().logInfo(
 		timer.logDuration(*context, "Filter part 2 evaluate expression", "num rows", input.get_num_rows_in_table(0)));

@@ -3,7 +3,7 @@
 #include "CodeTimer.h"
 #include "ColumnManipulation.cuh"
 #include "GDFColumn.cuh"
-#include "LogicalFilter.h"
+#include "../Interpreter/interpreter_cpp.h"
 #include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
 #include "config/GPUManager.cuh"
@@ -403,7 +403,9 @@ std::vector<gdf_column_cpp> compute_aggregations(blazing_frame & input,
 					nullptr,
 					ral::traits::get_dtype_size_in_bytes(agg_input_type),
 					"");
-				evaluate_expression(input, expression, aggregation_inputs[i]);
+				
+				// TODO: percy cudf0.12 replace with logical filter
+				// evaluate_expression(input, expression, aggregation_inputs[i]);
 			} else {
 				aggregation_inputs[i] = input.get_column(get_index(expression));
 			}

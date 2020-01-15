@@ -10,7 +10,7 @@
 #include "io/data_parser/metadata/parquet_metadata.h"
 #include "io/data_provider/UriDataProvider.h"
 #include "io/Schema.h"
-#include "LogicalFilter.h"
+#include "../Interpreter/interpreter_cpp.h"
 #include <cudf/legacy/table.hpp>
 #include "communication/CommunicationData.h"
 #include "distribution/NodeColumns.h"
@@ -97,7 +97,7 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
     extra_info.category = nullptr;
     // TODO percy cudf0.12 port to cudf::column
     // stencil.create_gdf_column(GDF_INT8, extra_info, minmax_metadata_frame.get_num_rows_in_table(0),nullptr,1, "");
-    evaluate_expression(minmax_metadata_frame, filter_string, stencil);
+    // evaluate_expression(minmax_metadata_frame, filter_string, stencil);
 
 // TODO percy cudf0.12 port to cudf::column
     // stencil.get_gdf_column()->dtype = GDF_BOOL8; // apply_boolean_mask expects the stencil to be a GDF_BOOL8 which for our purposes the way we are using the GDF_INT8 is the same as GDF_BOOL8

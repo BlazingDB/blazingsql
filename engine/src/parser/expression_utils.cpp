@@ -21,7 +21,7 @@ bool is_number(const std::string & token) {
 bool is_null(const std::string & token) { return token == "null"; }
 
 bool is_date(const std::string & token) {
-	static const std::regex re{R"([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))"};
+	static const std::regex re{R"([0-9]{4}-[0-9]{2}-[0-9]{2})"};
 	return std::regex_match(token, re);
 }
 

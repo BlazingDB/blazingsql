@@ -16,17 +16,14 @@ std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
   const ral::frame::BlazingTableView & table,
   const CudfColumnView boolValues);
 
+std::unique_ptr<cudf::column> boolean_mask_from_expression(
+  const cudf::table_view & table,
+  const std::string & expression);
+
 std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
     const ral::frame::BlazingTableView & table,
     std::vector<cudf::size_type> const& columns_to_hash,
     int numPartitions);
-
-
-
-
-std::unique_ptr<ral::frame::BlazingTable> evaluateExpression(
-  const ral::frame::BlazingTableView & table,
-  const std::string & expression);
 
 std::unique_ptr<ral::frame::BlazingTable> processJoin(
   const ral::frame::BlazingTableView & table_left,
