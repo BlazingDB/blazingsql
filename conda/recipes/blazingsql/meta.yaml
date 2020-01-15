@@ -24,7 +24,7 @@ requirements:
         - gmock
         - arrow-cpp=0.15.0
         - cmake
-        - bsql-toolchain {{ version }}.*
+        - bsql-toolchain {{ minor_version }}.*
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ minor_version }}.*
