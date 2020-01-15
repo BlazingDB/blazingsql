@@ -212,6 +212,10 @@ cdef extern from "../include/io/io.h":
         vector[bool] in_file
         int data_type
         ReaderArgs args
+        vector[gdf_column_ptr] metadata
+        vector[vector[int]] row_groups_ids
+
+
         shared_ptr[CTable] arrow_table
     cdef struct HDFS:
         string host
@@ -236,6 +240,7 @@ cdef extern from "../include/io/io.h":
     pair[bool, string] registerFileSystemS3( S3 s3, string root, string authority) except +raiseRegisterFileSystemS3Error
     pair[bool, string] registerFileSystemLocal(  string root, string authority) except +raiseRegisterFileSystemLocalError
     TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
+    TableSchema parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
 
 ctypedef gdf_scalar* gdf_scalar_ptr
 
@@ -244,10 +249,12 @@ cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
             vector[gdf_column_ptr] columns
             vector[string]  names
+
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
         ResultSet runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
+        ResultSet runSkipData(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError 
 
         cdef struct TableScanInfo:
             vector[string] relational_algebra_steps

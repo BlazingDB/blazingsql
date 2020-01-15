@@ -1,6 +1,7 @@
 #include "../../include/io/io.h"
 #include "../io/DataLoader.h"
 #include "../io/Schema.h"
+#include "../io/Metadata.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/JSONParser.h"
@@ -78,6 +79,118 @@ TableSchema parseSchema(std::vector<std::string> files,
 
 	return tableSchema;
 }
+
+
+TableSchema parseMetadata(std::vector<std::string> files,
+	std::pair<int, int> offset,
+	TableSchema schema,
+	std::string file_format_hint,
+	std::vector<std::string> arg_keys,
+	std::vector<std::string> arg_values,
+	std::vector<std::pair<std::string, gdf_dtype>> extra_columns) {
+	if (offset.second == 0) {
+		// cover case for empty files to parse
+		// std::cout << "empty offset: " << std::endl;
+		
+		std::vector<size_t> column_indices(2 * schema.columns.size() + 2);
+		std::iota(column_indices.begin(), column_indices.end(), 0);
+
+		std::vector<std::string> names(2 * schema.columns.size() + 2);
+		std::vector<gdf_dtype> dtypes(2 * schema.columns.size() + 2);
+		std::vector<gdf_time_unit> time_units(2 * schema.columns.size() + 2);
+
+		size_t index = 0;
+		for(; index < schema.columns.size(); index++) {
+			auto col = schema.columns[index];
+			auto dtype = col->dtype;
+			if (dtype == GDF_CATEGORY || dtype == GDF_STRING || dtype == GDF_STRING_CATEGORY)
+				dtype = GDF_INT32;
+
+			dtypes[2*index] = dtype;
+			dtypes[2*index + 1] = dtype;
+			
+			time_units[2*index] = col->dtype_info.time_unit;
+			time_units[2*index + 1] = col->dtype_info.time_unit;
+
+			auto col_name_min = "min_" + std::to_string(index) + "_" + schema.names[index];
+			auto col_name_max = "max_" + std::to_string(index)  + "_" + schema.names[index];
+
+			names[2*index] = col_name_min;
+			names[2*index + 1] = col_name_max;
+		}
+		dtypes[2*index] = GDF_INT32;
+		time_units[2*index] = TIME_UNIT_NONE;
+		names[2*index] = "file_handle_index";
+
+		dtypes[2*index + 1] = GDF_INT32;
+		time_units[2*index + 1] = TIME_UNIT_NONE;
+		names[2*index + 1] = "row_group_index";
+				
+		auto columns_cpp = ral::io::create_empty_columns(names, dtypes, time_units, column_indices);
+		TableSchema tableSchema;
+
+		for(auto column_cpp : columns_cpp) {
+			GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
+			tableSchema.columns.push_back(column_cpp.get_gdf_column());
+			tableSchema.names.push_back(column_cpp.name());
+		}
+		//TODO, @alex init tableShema with valid None Values
+		return tableSchema;
+	}
+	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
+	const DataType fileType = inferFileType(files, data_type_hint);
+	ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
+	TableSchema tableSchema;
+	tableSchema.data_type = fileType;
+	tableSchema.args.orcReaderArg = args.orcReaderArg;
+	tableSchema.args.jsonReaderArg = args.jsonReaderArg;
+	tableSchema.args.csvReaderArg = args.csvReaderArg;
+
+	std::shared_ptr<ral::io::data_parser> parser;
+	if(fileType == ral::io::DataType::PARQUET) {
+		parser = std::make_shared<ral::io::parquet_parser>();
+	} else if(fileType == ral::io::DataType::ORC) {
+		parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
+	} else if(fileType == ral::io::DataType::JSON) {
+		parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
+	} else if(fileType == ral::io::DataType::CSV) {
+		parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
+	}
+	std::vector<Uri> uris;
+	for(auto file_path : files) {
+		uris.push_back(Uri{file_path});
+	}
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
+
+	ral::io::Metadata metadata({}, offset);
+
+	try {
+		// loader->get_schema(schema, extra_columns);
+
+		 loader->get_metadata(metadata, extra_columns);
+
+	} catch(std::exception & e) {
+		std::cerr << "**[parseMetadata]** error parsing metadata.\n";
+		return tableSchema;
+	}
+
+	auto gdf_columns = metadata.get_columns();
+ 
+	for(auto column_cpp : gdf_columns) {
+		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
+		tableSchema.columns.push_back(column_cpp.get_gdf_column());
+		tableSchema.names.push_back(column_cpp.name());
+	}
+	//TODO: Alexander
+	// tableSchema.files = schema.get_files();
+	// tableSchema.num_row_groups = schema.get_num_row_groups();
+	// tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
+	// tableSchema.in_file = schema.get_in_file();
+	return tableSchema;
+}
+
+
 
 std::pair<bool, std::string> registerFileSystem(
 	FileSystemConnection fileSystemConnection, std::string root, std::string authority) {
