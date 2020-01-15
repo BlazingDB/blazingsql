@@ -52,7 +52,7 @@ requirements:
         - maven
     run:
         - arrow-cpp=0.15.0
-        - bsql-toolchain {{ version }}.*
+        - bsql-toolchain {{ minor_version }}.*
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ minor_version }}.*
