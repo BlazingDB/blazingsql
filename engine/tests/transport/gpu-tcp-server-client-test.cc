@@ -48,6 +48,7 @@ void expect_column_data_equal(std::vector<T> const& lhs,
   EXPECT_THAT(cudf::test::to_host<T>(rhs).first, lhs);
 }
 
+
 static void ExecMaster() {
 	cuInit(0);
 	// Run server
@@ -63,9 +64,22 @@ static void ExecMaster() {
 		std::cout << "message received\n";
 		CudfTableView  table_view = concreteMessage->getSamples();
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table_view.column(0));
-
 		expect_column_data_equal(std::vector<std::string>{"ALGERIA", "ARGENTINA", "BRAZIL", "CANADA", "EGYPT", "ETHIOPIA", "FRANCE", "GERMANY", "INDIA", "INDONESIA"}, table_view.column(1));
-		
+		// auto tmp = cudf::test::to_host<std::string>(table_view.column(4)).first;
+		// for (auto str : tmp)
+		// 	std::cout << str << std::endl;
+		// expect_column_data_equal(std::vector<std::string>{ "col1",
+		// 	"col2",
+		// 	"", 
+		// 	"",
+		// 	"col5",
+		// 	"col6",
+		// 	"col7",
+		// 	"", 
+		// 	"",
+		// 	"col10" },
+		table_view.column(4)
+		);
 		Server::getInstance().close();
 	}).join();
 }
@@ -80,6 +94,7 @@ static void ExecWorker() {
 	auto server_node = Node(Address::TCP("127.0.0.1", 8000, 1234));
 
 	const auto samples = blazingdb::test::build_table();
+	
 	std::uint64_t total_row_size = samples.num_rows();
 	ral::frame::BlazingTableView table_view(samples.view(), samples.names());
 	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);

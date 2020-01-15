@@ -12,6 +12,13 @@
 #include <vector>
 
 #include <cudf/io/functions.hpp>
+#include <cudf/column/column_factories.hpp> 
+#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
+#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
+#include <cudf/utilities/type_dispatcher.hpp>
+#include <cudf/strings/detail/utilities.hpp>
+#include <string>
+
 #include <cudf/strings/string_view.cuh>
 #include <cudf/strings/strings_column_view.hpp>
 #include <cudf/table/table.hpp>
@@ -67,6 +74,11 @@ static ral::frame::BlazingTable build_table() {
 
 	return ral::frame::BlazingTable(std::move(result.tbl), column_names);
 }
+
+rmm::device_vector<thrust::pair<const char*,cudf::size_type>> create_test_string ();
+
+ral::frame::BlazingTable build_custom_table();
+
 
 }  // namespace test
 }  // namespace blazingdb

@@ -40,11 +40,6 @@ inline bool isGdfString(const cudf::column_view& column) {
 	return ret;
 }
 
-inline cudf::size_type getValidCapacity(const cudf::column_view & column) {
-	return column.null_count() > 0 ? cudf::bitmask_allocation_size_bytes(column.size()) : 0;
-}
-
-
 
 class GPUReceivedMessage : public GPUMessage {
 public:
@@ -134,18 +129,18 @@ public:
 				buffer_sizes.push_back(col_transport.strings_offsets_size);
 				raw_buffers.push_back(offsets_column.data<char>());
 				
-				// if(column.has_nulls()) {
-				// 	col_transport.strings_nullmask = raw_buffers.size();
-				// 	buffer_sizes.push_back(getValidCapacity(column));
-				// 	raw_buffers.push_back((const char *)column.null_mask());
-				// }
+				if(column.has_nulls()) {
+					col_transport.strings_nullmask = raw_buffers.size();
+					buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
+					raw_buffers.push_back((const char *)column.null_mask());
+				}
 			} else if(column.has_nulls() and column.null_count() > 0) {
 				// case: valid
 				col_transport.data = raw_buffers.size();
 				buffer_sizes.push_back(column.size() * cudf::size_of(column.type()));
 				raw_buffers.push_back(column.data<char>());
 				col_transport.valid = raw_buffers.size();
-				buffer_sizes.push_back(getValidCapacity(column));
+				buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
 				raw_buffers.push_back((const char *)column.null_mask());
 			} else {
 				// case: data
@@ -172,38 +167,22 @@ public:
 			auto column = new cudf::column();
 			auto data_offset = columns_offsets[i].data;
 			auto string_offset = columns_offsets[i].strings_data;
-			if(string_offset != -1) {
-				// // this is a string
-				// // NVCategory *nvcategory_ptr = nullptr;
-				// // auto string_offset = columns_offsets[i].strings_data;
-				// // nvcategory_ptr = (NVCategory *) raw_buffers[string_offset];
+			if(string_offset != -1) { 
 				char * charsPointer = (char *) raw_buffers[columns_offsets[i].strings_data];
 				cudf::size_type * offsetsPointer = (cudf::size_type *) raw_buffers[columns_offsets[i].strings_offsets];
 				cudf::bitmask_type * nullMaskPointer = nullptr;
 				if(columns_offsets[i].strings_nullmask != -1) {
 					nullMaskPointer = (cudf::bitmask_type *) raw_buffers[columns_offsets[i].strings_nullmask];
-				}
-				// auto nvcategory_ptr = NVCategory::create_from_offsets(reinterpret_cast<const char *>(stringsPointer),
-				// 	columns_offsets[i].metadata.size,
-				// 	reinterpret_cast<const int *>(offsetsPointer),
-				// 	reinterpret_cast<const unsigned char *>(nullMaskPointer),
-				// 	columns_offsets[i].metadata.null_count,
-				// 	true);
-				// received_samples[i].create_gdf_column(
-				// 	nvcategory_ptr, columns_offsets[i].metadata.size, (char *) columns_offsets[i].metadata.col_name);
-
-				// RMM_TRY(RMM_FREE(stringsPointer, 0));
-				// RMM_TRY(RMM_FREE(offsetsPointer, 0));
-				// RMM_TRY(RMM_FREE(nullMaskPointer, 0));
-
+				} 
 				// auto unique_column = std::make_unique<cudf::column>(dtype, column_size, data_buff, valid_buff);
 				cudf::size_type column_size  =  (cudf::size_type)columns_offsets[i].metadata.size;
 				
 				rmm::device_vector<char> d_strings(charsPointer, charsPointer + columns_offsets[i].strings_data_size);
 				rmm::device_vector<cudf::size_type> d_offsets(offsetsPointer, offsetsPointer + columns_offsets[i].strings_offsets_size/sizeof(cudf::size_type));
 				rmm::device_vector<cudf::bitmask_type> d_null_mask{};
-
-				// rmm::device_vector<cudf::bitmask_type> d_null_mask(nullMaskPointer, nullMaskPointer + );
+				if (nullMaskPointer != nullptr) {
+				 	d_null_mask = rmm::device_vector<cudf::bitmask_type>(nullMaskPointer, nullMaskPointer + cudf::bitmask_allocation_size_bytes(column_size)/sizeof(cudf::bitmask_type));
+				}
 				cudf::size_type null_count = columns_offsets[i].metadata.null_count;
 				auto unique_column = cudf::make_strings_column(d_strings, d_offsets, d_null_mask, null_count);
 				received_samples[i] = std::move(unique_column);
