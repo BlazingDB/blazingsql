@@ -3,7 +3,6 @@
 {% set minor_version =  version.split('.')[0] + '.' + version.split('.')[1] %}
 {% set git_revision_count=environ.get('GIT_DESCRIBE_NUMBER', '0') %}
 {% set py_version=environ.get('CONDA_PY', '36') %}
-{% set rapids_build_version=environ.get('RAPIDS_BUILD_VERSION', '0.10') %}
 
 package:
     name: blazingsql
@@ -28,16 +27,16 @@ requirements:
         - bsql-toolchain {{ version }}.*
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
-        - librmm {{ rapids_build_version }}.*
-        - libnvstrings {{ rapids_build_version }}.*
-        - libcudf {{ rapids_build_version }}.*
+        - librmm {{ minor_version }}.*
+        - libnvstrings {{ minor_version }}.*
+        - libcudf {{ minor_version }}.*
         - libhdfs3
         - python
         - pip
         - setuptools
         - cython >=0.29,<0.30
-        - dask-cudf {{ rapids_build_version }}.*
-        - dask-cuda {{ rapids_build_version }}.*
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
         - openjdk=8.0
         - maven
     host:
@@ -47,8 +46,8 @@ requirements:
         - pip
         - setuptools
         - cython >=0.29,<0.30
-        - dask-cudf {{ rapids_build_version }}.*
-        - dask-cuda {{ rapids_build_version }}.*
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
         - openjdk=8.0
         - maven
     run:
@@ -56,15 +55,15 @@ requirements:
         - bsql-toolchain {{ version }}.*
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
-        - librmm {{ rapids_build_version }}.*
-        - libnvstrings {{ rapids_build_version }}.*
-        - libcudf {{ rapids_build_version }}.*
+        - librmm {{ minor_version }}.*
+        - libnvstrings {{ minor_version }}.*
+        - libcudf {{ minor_version }}.*
         - libhdfs3
         - python
         - pip
         - setuptools
-        - dask-cudf {{ rapids_build_version }}.*
-        - dask-cuda {{ rapids_build_version }}.*
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
         - openjdk=8.0
         - jpype1
         - netifaces
