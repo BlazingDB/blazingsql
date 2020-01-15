@@ -215,12 +215,8 @@ void calculate_grid(int * min_grid_size, int * block_size, column_index_type max
 			min_grid_size, block_size, transformKernel, calculated_shared_memory<64, 8>, 0));
 	}
 }
-	}
-}
 
 }  // namespace
-
-
 
 void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	const cudf::table_view & table,

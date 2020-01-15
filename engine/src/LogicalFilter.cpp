@@ -348,7 +348,7 @@ void add_expression_to_plan(blazing_frame & inputs,
 					// get_scalar_from_string(right_operand,inputs.get_column(right_index).dtype());
 					//					right_scalars.push_back(left);
 
-					left_inputs.push_back(SCALAR_INDEX);  //
+					// left_inputs.push_back(SCALAR_INDEX);  //
 				} else if(is_literal(left_operand) && !is_string(left_operand)) {
 					size_t right_index = get_index(right_operand);
 					// TODO: remove get_type_from_string dirty fix
@@ -406,7 +406,7 @@ void add_expression_to_plan(blazing_frame & inputs,
 //						right_scalars.push_back(dummy_scalar);
 //						left_scalars.push_back(dummy_scalar);
 						
-						right_inputs.push_back(SCALAR_NULL_INDEX);
+						// right_inputs.push_back(SCALAR_NULL_INDEX);
 						left_inputs.push_back(left_index);
 					} else if(operation == BLZ_STR_SUBSTRING) {
 						gdf_column_cpp new_input_col = handle_substring(left_column, literal_operand);
@@ -424,7 +424,7 @@ void add_expression_to_plan(blazing_frame & inputs,
 //						right_scalars.push_back(dummy_scalar);
 //						left_scalars.push_back(dummy_scalar);
 						
-						right_inputs.push_back(SCALAR_NULL_INDEX);
+						// right_inputs.push_back(SCALAR_NULL_INDEX);
 						left_inputs.push_back(left_index);
 					} else if(operation == BLZ_STR_CONCAT) {
 						gdf_column_cpp new_input_col =
@@ -443,7 +443,7 @@ void add_expression_to_plan(blazing_frame & inputs,
 //						right_scalars.push_back(dummy_scalar);
 //						left_scalars.push_back(dummy_scalar);
 						
-						right_inputs.push_back(SCALAR_NULL_INDEX);
+						// right_inputs.push_back(SCALAR_NULL_INDEX);
 						left_inputs.push_back(left_index);
 					} else {
 						// TODO percy cudf0.12 port to cudf::column and custrings
@@ -635,7 +635,7 @@ void add_expression_to_plan(blazing_frame & inputs,
 			}
 		} else {
 			if(is_literal(token) || is_string(token)) {
-				operand_stack.push_back({token, SCALAR_INDEX});
+				// operand_stack.push_back({token, SCALAR_INDEX});
 			} else {
 				column_index_type mapped_idx = new_input_indices[get_index(token)];
 				operand_stack.push_back({"$" + std::to_string(mapped_idx), mapped_idx});
