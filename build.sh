@@ -115,7 +115,6 @@ if buildAll || hasArg io; then
     mkdir -p ${IO_BUILD_DIR}
     cd ${IO_BUILD_DIR}
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-          -DCMAKE_CXX11_ABI=ON \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
@@ -132,7 +131,6 @@ if buildAll || hasArg comms; then
     mkdir -p ${COMMS_BUILD_DIR}
     cd ${COMMS_BUILD_DIR}
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-          -DCMAKE_CXX11_ABI=ON \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
@@ -149,7 +147,6 @@ if buildAll || hasArg libengine; then
     mkdir -p ${LIBENGINE_BUILD_DIR}
     cd ${LIBENGINE_BUILD_DIR}
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-          -DCMAKE_CXX11_ABI=ON \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
