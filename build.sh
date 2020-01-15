@@ -18,8 +18,8 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="clean io comms libengine engine pyblazing algebra test -v -g -n -h"
-HELP="$0 [-v] [-g] [-n] [-h]
+VALIDARGS="clean io comms libengine engine pyblazing algebra -t -v -g -n -h"
+HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean        - remove all existing build artifacts and configuration (start
                   over)
    io           - build the IO C++ code only
@@ -28,7 +28,7 @@ HELP="$0 [-v] [-g] [-n] [-h]
    engine       - build the engine Python package
    pyblazing    - build the pyblazing Python package
    algebra      - build the algebra Python package
-   test         - build tests
+   -t           - exclude test builds
    -v           - verbose build mode
    -g           - build for debug
    -n           - no install step
@@ -48,7 +48,7 @@ BUILD_DIRS="${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
 VERBOSE=""
 BUILD_TYPE=Release
 INSTALL_TARGET=install
-TESTS="OFF"
+TESTS="ON"
 
 # Set defaults for vars that may not have been defined externally
 #  FIXME: if INSTALL_PREFIX is not set, check PREFIX, then check
@@ -105,7 +105,7 @@ if hasArg clean; then
 fi
 
 if hasArg test; then
-    TESTS="ON"
+    TESTS="OFF"
 fi
 
 ################################################################################
