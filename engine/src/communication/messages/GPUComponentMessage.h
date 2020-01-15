@@ -21,6 +21,8 @@
 
 #include "GDFColumn.cuh"
 
+#include "from_cudf/cpp_tests/utilities/column_utilities.hpp"
+
 namespace ral {
 namespace communication {
 namespace messages {
@@ -174,44 +176,37 @@ public:
 				.strings_nullmask = -1};
 			strcpy(col_transport.metadata.col_name, table_view->names().at(i).c_str());
 			if(isGdfString(column)) {
-				// char * stringsPointer;
-				// cudf::size_type stringsSize;
-				// int * offsetsPointer;
-				// cudf::size_type offsetsSize;
-				// unsigned char * nullBitmask;
-				// cudf::size_type nullMaskSize;
+				auto num_children = column.num_children();
+				assert(num_children == 2);
+				auto offsets_column = column.child(0);
+				auto chars_column = column.child(1);
 
-				// // TODO percy cudf0.12 custrings this was not commented
-				// //std::tie(stringsPointer, stringsSize, offsetsPointer, offsetsSize, nullBitmask, nullMaskSize) = get_raw_pointers(column);
+			 	col_transport.strings_data = raw_buffers.size();
+				buffer_sizes.push_back(chars_column.size());
+				raw_buffers.push_back(chars_column.data<char>());
 
-				// col_transport.strings_data = raw_buffers.size();
-				// buffer_sizes.push_back(stringsSize);
-				// raw_buffers.push_back((char *) stringsPointer);
+				col_transport.strings_offsets = raw_buffers.size();
+				buffer_sizes.push_back(offsets_column.size());
+				raw_buffers.push_back(offsets_column.data<char>());
 
-				// col_transport.strings_offsets = raw_buffers.size();
-				// buffer_sizes.push_back(offsetsSize);
-				// raw_buffers.push_back((char *) offsetsPointer);
-
-				// if(nullBitmask != nullptr) {
-				// 	col_transport.strings_nullmask = raw_buffers.size();
-				// 	buffer_sizes.push_back(nullMaskSize);
-				// 	raw_buffers.push_back((char *) nullBitmask);
-				// }
+				if(nullBitmask != nullptr) {
+					col_transport.strings_nullmask = raw_buffers.size();
+					buffer_sizes.push_back(getValidCapacity(column));
+					raw_buffers.push_back(column.null_mask());
+				}
 			} else if(column.has_nulls() and column.null_count() > 0) {
 				// case: valid
 				col_transport.data = raw_buffers.size();
-				buffer_sizes.push_back(ral::traits::get_dtype_size_in_bytes(column.type().id()));
+				buffer_sizes.push_back(column.size() * cudf::size_of(column.type()));
 				raw_buffers.push_back(column.data<char>());
 				col_transport.valid = raw_buffers.size();
 				buffer_sizes.push_back(getValidCapacity(column));
-
-				// TODO percy cudf0.12 support valids
-				//raw_buffers.push_back(col_view.null_mask());
+				raw_buffers.push_back(column.null_mask());
 			} else {
 				// case: data
 				col_transport.data = raw_buffers.size();
-				buffer_sizes.push_back(ral::traits::get_dtype_size_in_bytes(column.type().id()));
-				raw_buffers.push_back((const char *)column.head());
+				buffer_sizes.push_back(column.size() * cudf::size_of(column.type()));
+				raw_buffers.push_back(column.data<char>());
 			}
 			column_offset.push_back(col_transport);
 		}
@@ -238,12 +233,12 @@ public:
 				// // NVCategory *nvcategory_ptr = nullptr;
 				// // auto string_offset = columns_offsets[i].strings_data;
 				// // nvcategory_ptr = (NVCategory *) raw_buffers[string_offset];
-				// char * stringsPointer = (char *) raw_buffers[columns_offsets[i].strings_data];
-				// int * offsetsPointer = (int *) raw_buffers[columns_offsets[i].strings_offsets];
-				// unsigned char * nullMaskPointer = nullptr;
-				// if(columns_offsets[i].strings_nullmask != -1) {
-				// 	nullMaskPointer = (unsigned char *) raw_buffers[columns_offsets[i].strings_nullmask];
-				// }
+				char * charsPointer = (char *) raw_buffers[columns_offsets[i].strings_data];
+				int * offsetsPointer = (int *) raw_buffers[columns_offsets[i].strings_offsets];
+				unsigned char * nullMaskPointer = nullptr;
+				if(columns_offsets[i].strings_nullmask != -1) {
+					nullMaskPointer = (unsigned char *) raw_buffers[columns_offsets[i].strings_nullmask];
+				}
 
 				// auto nvcategory_ptr = NVCategory::create_from_offsets(reinterpret_cast<const char *>(stringsPointer),
 				// 	columns_offsets[i].metadata.size,
@@ -257,20 +252,33 @@ public:
 				// RMM_TRY(RMM_FREE(stringsPointer, 0));
 				// RMM_TRY(RMM_FREE(offsetsPointer, 0));
 				// RMM_TRY(RMM_FREE(nullMaskPointer, 0));
+
+				// auto unique_column = std::make_unique<cudf::column>(dtype, column_size, data_buff, valid_buff);
+
+
 			} else {
+				cudf::data_type dtype = cudf::data_type{cudf::type_id(columns_offsets[i].metadata.dtype)};
+				cudf::size_type column_size  =  (cudf::size_type)columns_offsets[i].metadata.size;
+
 				cudf::valid_type * valid_ptr = nullptr;
+				cudf::size_type valid_size = 0;
 				if(columns_offsets[i].valid != -1) {
 					// this is a valid
 					auto valid_offset = columns_offsets[i].valid;
 					valid_ptr = (cudf::valid_type *) raw_buffers[valid_offset];
+					valid_size = cudf::bitmask_allocation_size_bytes(column_size);
 				}
-				// TODO percy cudf0.12 port to cudf::column
 				assert(raw_buffers[data_offset] != nullptr);
-				cudf::data_type dtype = cudf::data_type{cudf::type_id(columns_offsets[i].metadata.dtype)};
-				cudf::size_type column_size  =  (cudf::size_type)columns_offsets[i].metadata.size;
-				rmm::device_buffer data_buff(raw_buffers[data_offset], ral::traits::get_dtype_size_in_bytes(dtype.id()));
-				rmm::device_buffer valid_buff(valid_ptr, cudf::bitmask_allocation_size_bytes(column_size));
-				received_samples[i] = std::move(std::make_unique<cudf::column>(dtype, column_size, data_buff, valid_buff));
+				try {
+					auto dtype_size = cudf::size_of(dtype);
+					auto buffer_size = column_size * dtype_size;
+					rmm::device_buffer data_buff(raw_buffers[data_offset], buffer_size);
+					rmm::device_buffer valid_buff(valid_ptr, valid_size);
+					auto unique_column = std::make_unique<cudf::column>(dtype, column_size, data_buff, valid_buff);
+					received_samples[i] = std::move(unique_column);
+				} catch(std::exception& e) {
+					std::cerr << e.what() << std::endl;
+				}
 			}
 			column_names[i] = std::string{columns_offsets[i].metadata.col_name};
 		}

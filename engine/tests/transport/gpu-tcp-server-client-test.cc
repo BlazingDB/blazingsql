@@ -62,12 +62,8 @@ static void ExecMaster() {
 		auto message = Server::getInstance().getMessage(context_token, message_token);
 		auto concreteMessage = std::static_pointer_cast<GPUReceivedMessage>(message);
 		std::cout << "message received\n";
-//		auto & table = concreteMessage->getSamples();
-//		if (table) {
-//			expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table.view().column(0));
-//		} else {
-//			std::cout << "no message content received\n";
-//		}
+		CudfTableView  table_view = concreteMessage->getSamples();
+		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table_view.column(0));
 		Server::getInstance().close();
 	}).join();
 }
@@ -88,7 +84,7 @@ static void ExecWorker() {
 	auto message = std::make_shared<SampleToNodeMasterMessage>(message_token, context_token, sender_node, std::move(table_view), total_row_size);
 
 	Client::send(*server_node, *message);
-	std::this_thread::sleep_for (std::chrono::seconds(3));
+	std::this_thread::sleep_for (std::chrono::seconds(1));
 }
 
 
