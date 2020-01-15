@@ -365,6 +365,38 @@ void gdf_column_cpp::create_gdf_column(gdf_column * column, bool registerColumn)
     }
 }
 
+void gdf_column_cpp::create_gdf_column(gdf_column * column, bool registerColumn, std::string column_name){
+
+    if (column != this->column) { // if this gdf_column_cpp already represented this gdf_column, we dont want to do anything. Especially do decrement_counter, since it might actually free the gdf_column we are trying to use
+        decrement_counter(this->column);
+
+        this->column = column;
+
+        if (column->dtype != GDF_STRING){
+            int width_per_value = ral::traits::get_dtype_size_in_bytes(column);
+
+            //TODO: we are assuming they are not padding,
+            this->allocated_size_data = width_per_value * column->size;
+        } else {
+            this->allocated_size_data = 0; // TODO: do we care? what should be put there?
+        }
+        if(column->valid != nullptr){
+            this->allocated_size_valid = gdf_valid_allocation_size(column->size); //so allocations are supposed to be 64byte aligned
+        } else {
+            this->allocated_size_valid = 0;
+        }
+        this->is_ipc_column = false;
+        this->column_token = 0;
+        if (column->col_name) {
+            this->set_name(std::string(column->col_name));
+			if(registerColumn){
+        	    GDFRefCounter::getInstance()->register_column(this->column);
+            }
+        }
+        this->set_name(column_name);
+    }
+}
+
 void gdf_column_cpp::create_gdf_column(const gdf_scalar & scalar, const std::string &column_name){
     assert(scalar.dtype != GDF_invalid);
     decrement_counter(column);
