@@ -57,10 +57,11 @@ int find_closing_char(const std::string & expression, int start);
 std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expressions, bool trim = true);
 
 bool is_type_signed(cudf::type_id type);
-
 bool is_type_float(cudf::type_id type);
 bool is_type_integer(cudf::type_id type);
 bool is_date_type(cudf::type_id type);
+bool is_numeric_type(cudf::type_id type);
+
 cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation);
 cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator operation);
 
