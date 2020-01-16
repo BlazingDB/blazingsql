@@ -4,4 +4,4 @@
 
 set -e
 
-./build.sh tests
+./build.sh -t
