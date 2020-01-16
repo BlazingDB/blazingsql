@@ -184,16 +184,14 @@ blazingdb_artifact(
         src/blazingdb/transport/Node.cc
         src/blazingdb/transport/io/reader_writer.cpp
         src/blazingdb/transport/io/fd_reader_writer.cpp
-        src/blazingdb/manager/Manager.cc
         src/blazingdb/manager/Context.cc
-        src/blazingdb/manager/Cluster.cc
-        src/blazingdb/manager/NodeDataMessage.cc
 
     TESTS
         # tests/utils/StringInfo.cpp
         tests/utils/Traits/RuntimeTraits.cpp
         
         tests/gpu-tcp-server-client-test.cc
+        tests/node-test.cc
 )
 
 # Print the project summary

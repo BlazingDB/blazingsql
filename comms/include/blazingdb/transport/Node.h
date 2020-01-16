@@ -54,7 +54,7 @@ public:
   bool operator==(const Node& rhs) const;
   bool operator!=(const Node& rhs) const;
 
-  Address address() const noexcept;
+  const Address& address() const noexcept;
 
   /// Note: Not implemented yet
   bool isAvailable() const;

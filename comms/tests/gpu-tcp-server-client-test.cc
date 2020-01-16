@@ -19,48 +19,22 @@
 
 namespace blazingdb {
 namespace transport {
+
+namespace experimental {
 // Alias
-using SimpleServer = blazingdb::transport::Server;
-using GPUMessage = blazingdb::transport::GPUMessage;
+using SimpleServer = blazingdb::transport::experimental::Server;
+using GPUMessage = blazingdb::transport::experimental::GPUMessage;
 
 constexpr uint32_t context_token = 3465;
 
 using GpuFunctions = blazingdb::test::GpuFunctions;
 using StringsInfo = blazingdb::test::StringsInfo;
 
-// static std::string serializeToBinary(std::vector<gdf_column *> &columns) {
-//   std::string result;
-
-//   std::size_t capacity = 0;
-//   for (auto column : columns) {
-//     if (!GpuFunctions::isGdfString(column)) {
-//       capacity += GpuFunctions::getDataCapacity(column);
-//       capacity += GpuFunctions::getValidCapacity(column);
-//     }
-//   }
-//   const StringsInfo *stringsInfo = GpuFunctions::createStringsInfo(columns);
-//   capacity += GpuFunctions::getStringsCapacity(stringsInfo);
-//   result.resize(capacity);
-
-//   std::size_t binary_pointer = 0;
-//   for (const auto &column : columns) {
-//     GpuFunctions::copyGpuToCpu(binary_pointer, result, column, stringsInfo);
-//   }
-
-//   GpuFunctions::destroyStringsInfo(stringsInfo);
-
-//   boost::crc_32_type crc_result;
-//   crc_result.process_bytes((char *)result.c_str(), result.size());
-//   std::cout << "checksum:" << std::hex << std::uppercase
-//             << crc_result.checksum() << std::endl;
-
-//   return result;
-// }
 typedef int nv_category_index_type;
 
 class GPUComponentMessage : public GPUMessage {
 public:
-  GPUComponentMessage(uint32_t contextToken, std::shared_ptr<Node> &sender_node,
+  GPUComponentMessage(uint32_t contextToken, const Node &sender_node,
                       std::uint64_t total_row_size,
                       const std::vector<gdf_column *> &samples)
       : GPUMessage(GPUComponentMessage::MessageID(), contextToken, sender_node),
@@ -197,7 +171,7 @@ public:
       const Address::MetaData &address_metadata,
       const std::vector<ColumnTransport> &columns_offsets,
       const std::vector<const char *> &raw_buffers) {  // gpu pointer
-    auto node = std::make_shared<Node>(
+    Node node(
         Address::TCP(address_metadata.ip, address_metadata.comunication_port,
                      address_metadata.protocol_port));
     auto num_columns = columns_offsets.size();
@@ -263,7 +237,7 @@ public:
 };
 
 std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
-    uint32_t context_token, std::shared_ptr<Node> &sender_node) {
+    uint32_t context_token, const Node &sender_node) {
   cudf::table table = blazingdb::test::build_table();
   std::vector<gdf_column *> samples(table.num_columns());
   std::copy(table.begin(), table.end(), samples.begin());
@@ -272,8 +246,7 @@ std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
     blazingdb::test::print_gdf_column(col);
   }
   std::uint64_t total_row_size = samples[0]->size;
-  auto gpu_message = std::make_shared<GPUComponentMessage>(
-      context_token, sender_node, total_row_size, samples);
+  auto gpu_message = std::make_shared<GPUComponentMessage>(context_token, sender_node, total_row_size, samples);
   std::vector<const char *> buffers;
   std::vector<int> buffer_sizes;
   std::vector<ColumnTransport> column_offsets;
@@ -298,7 +271,7 @@ std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
   auto gpu_message_copy = std::dynamic_pointer_cast<GPUComponentMessage>(
       GPUComponentMessage::MakeFrom(
           gpu_message->metadata(),
-          gpu_message->getSenderNode()->address()->metadata(), column_offsets,
+          gpu_message->getSenderNode().address().metadata(), column_offsets,
           buffers));
   // std::cout << "## original_message\n";
   // serializeToBinary(gpu_message->samples);
@@ -358,8 +331,7 @@ private:
     {
       const std::string endpoint = GPUComponentMessage::MessageID();
       comm_server->registerEndPoint(endpoint);
-      comm_server->registerMessageForEndPoint(GPUComponentMessage::MakeFrom,
-                                              endpoint);
+      comm_server->registerMessageForEndPoint(GPUComponentMessage::MakeFrom, endpoint);
     }
   }
 
@@ -375,16 +347,16 @@ class RalClient {
 public:
 public:
   static Status send(const Node &node, GPUMessage &message) {
-    auto client = blazingdb::transport::ClientTCP::Make(
-        node.address()->metadata().ip,
-        node.address()->metadata().comunication_port);
+    auto client = blazingdb::transport::experimental::ClientTCP::Make(
+        node.address().metadata().ip,
+        node.address().metadata().comunication_port);
     std::cout << "send message\n";
     return client->Send(message);
   }
   static Status sendNodeData(const std::string &orchestratorIp,
                              int16_t orchestratorPort, GPUMessage &message) {
     auto client =
-        blazingdb::transport::ClientTCP::Make(orchestratorIp, orchestratorPort);
+        blazingdb::transport::experimental::ClientTCP::Make(orchestratorIp, orchestratorPort);
     return client->Send(message);
   }
 };
@@ -402,10 +374,8 @@ static void ExecMaster() {
   RalServer::getInstance().registerContext(context_token);
   std::thread([]() {
     // while(true){
-      auto message = RalServer::getInstance().getMessage(
-          context_token, GPUComponentMessage::MessageID());
-      auto concreteMessage =
-          std::static_pointer_cast<GPUComponentMessage>(message);
+      auto message = RalServer::getInstance().getMessage(context_token, GPUComponentMessage::MessageID());
+      auto concreteMessage = std::static_pointer_cast<GPUComponentMessage>(message);
       std::cout << "***Message begin\n";
       for (gdf_column *column : concreteMessage->samples) {
         blazingdb::test::print_gdf_column(column);
@@ -422,7 +392,7 @@ static void ExecWorker() {
   // todo get GPU_MEMORY_SIZE
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
   auto nthread = 4;
-  blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
+  blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, nthread);
   // This lines are not necessary!!
   //  RalServer::start(8001);
   //  RalServer::getInstance().registerContext(context_token);
@@ -432,7 +402,7 @@ static void ExecWorker() {
   auto server_node =
       std::make_shared<Node>(Address::TCP("127.0.0.1", 8000, 1234));
 
-  auto message = CreateSampleToNodeMaster(context_token, sender_node);
+  auto message = CreateSampleToNodeMaster(context_token, *sender_node);
   RalClient::send(*server_node, *message);
 }
 
@@ -441,17 +411,18 @@ static void ExecWorker() {
 // TODO: check when the ip, port is busy, return exception!
 // TODO: check when the message is not registered, or the wrong message is
 // registered
-TEST(SendSamplesTest, MasterAndWorker) {
- if (fork() > 0) {
-   ExecMaster();
- } else {
-   ExecWorker();
- }
-}
+// TEST(SendSamplesTest, MasterAndWorker) {
+//  if (fork() > 0) {
+//    ExecMaster();
+//  } else {
+//    ExecWorker();
+//  }
+// }
 
-// TEST(SendSamplesTest, Master) { ExecMaster(); }
+TEST(SendSamplesTest, Master) { ExecMaster(); }
 
-// TEST(SendSamplesTest, Worker) { ExecWorker(); }
+TEST(SendSamplesTest, Worker) { ExecWorker(); }
 
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb
