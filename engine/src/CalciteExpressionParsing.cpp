@@ -408,7 +408,7 @@ cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & ta
 	}
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
+	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table.view(), tokens);
 
 	std::stack<cudf::type_id> operands;
 	for(std::string token : tokens) {
@@ -519,7 +519,7 @@ std::vector<std::string> get_tokens_in_reverse_order(const std::string & express
 // TODO percy dirty hack ... fix this approach for timestamps
 // out arg: tokens will be modified in case need a fix due timestamp
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	const ral::frame::BlazingTableView & table, std::vector<std::string> & tokens) {
+	const cudf::table_view & table, std::vector<std::string> & tokens) {
 
 	bool has_timestamp = false;
 	for (auto &&c : table) {

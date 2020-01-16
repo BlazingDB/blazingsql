@@ -31,7 +31,7 @@
 #include "utilities/CommonOperations.h"
 #include "utilities/RalColumn.h"
 #include "utilities/StringUtils.h"
-#include <cudf/legacy/filling.hpp>
+#include <cudf/filling.hpp>
 #include <cudf/legacy/table.hpp>
 #include <rmm/thrust_rmm_allocator.h>
 #include "parser/expression_tree.hpp"
@@ -164,7 +164,7 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 			std::string clean_expression = clean_calcite_expression(expression);
 
 			std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-			fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
+			fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table.view(), tokens);
 			for(std::string token : tokens) {
 				if(!is_operator_token(token) && !is_literal(token)) {
 					size_t index = get_index(token);
@@ -258,26 +258,29 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 				cudf::type_id col_type = infer_dtype_from_literal(cleaned_expression);
 
 				output_type_expressions[i] = col_type;
-				gdf_column_cpp output;
+				std::vector< std::unique_ptr<cudf::column> > output_holder;
 
 				if(col_type == cudf::type_id::CATEGORY) {
-					const std::string literal_expression = cleaned_expression.substr(1, cleaned_expression.size() - 2);
-					NVCategory * new_category = repeated_string_category(literal_expression, row_size);
-					output.create_gdf_column(new_category, row_size, name);
+					//const std::string literal_expression = cleaned_expression.substr(1, cleaned_expression.size() - 2);
+					//NVCategory * new_category = repeated_string_category(literal_expression, row_size);
+					//output.create_gdf_column(new_category, row_size, name);
 				} else {
 					int column_width = ral::traits::get_dtype_size_in_bytes(col_type);
-					output.create_gdf_column(col_type, size, nullptr, column_width);
-					std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(cleaned_expression);
-					output.set_name(name);
-					
+					//output.create_gdf_column(col_type, size, nullptr, column_width);
+					//std::unique_ptr<cudf::column> output = cudf::make_numeric_column(col_type, row_size);
+					//std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(cleaned_expression);
+					//output.set_name(name);
+
+					//cudf::experimental::fill(output->mutable_view(), 0, output->size(), *literal_scalar);
+					//output_holder.push_back(std::move(output));
 					// TODO percy cudf0.12 port to cudf::column
 					//cudf::fill(output.get_gdf_column(), to_gdf_scalar(literal_scalar), 0, row_size);
 				}
 
 				// TODO percy jp cudf0.12 project
 				//output_columns.push_back(output.get_gdf_column());
-				input_used_in_output[index] = false;
-				columns[i] = output;
+				//input_used_in_output[index] = false;
+				//columns[i] = output;
 			} else {
 				int index = get_index(expression);
 				// TODO percy jp cudf0.12 project
@@ -645,7 +648,7 @@ blazing_frame evaluate_split_query(std::vector<std::vector<gdf_column_cpp>> inpu
 			return child_frame;
 		} else if(ral::operators::is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			ral::operators::process_aggregate(child_frame, query[0], queryContext);
+			//ral::operators::process_aggregate(child_frame, query[0], queryContext);
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_aggregate",
 				"num rows",
@@ -852,7 +855,7 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			return child_frame;
 		} else if(ral::operators::is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			ral::operators::process_aggregate(child_frame, query[0], queryContext);
+			//ral::operators::process_aggregate(child_frame, query[0], queryContext);
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_aggregate",
 				"num rows",

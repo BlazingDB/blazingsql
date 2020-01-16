@@ -32,7 +32,7 @@ std::vector<std::string> get_tokens_in_reverse_order(const std::string & express
 
 // NOTE call this function after use get_tokens_in_reverse_order ... TODO refactos this approach
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	const ral::frame::BlazingTableView & table, std::vector<std::string> & tokens);
+	const cudf::table_view & table, std::vector<std::string> & tokens);
 
 cudf::experimental::aggregation::Kind get_aggregation_operation(std::string operator_string);
 
