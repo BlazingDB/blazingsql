@@ -67,6 +67,7 @@ cudf::table read_json_arrow(std::shared_ptr<arrow::io::RandomAccessFile> arrow_f
 	return table_out;
 }
 
+// Deprecated
 void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	std::vector<gdf_column_cpp> & columns_out,
@@ -113,6 +114,15 @@ void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 //			}
 //		}
 	}
+}
+
+
+std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
+	std::shared_ptr<arrow::io::RandomAccessFile> file,
+	const std::string & user_readable_file_handle,
+	const Schema & schema,
+	std::vector<size_t> column_indices) {
+			return nullptr;
 }
 
 void json_parser::parse_schema(

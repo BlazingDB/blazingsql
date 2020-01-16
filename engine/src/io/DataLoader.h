@@ -47,13 +47,14 @@ public:
 	 * @param include_column the different files we can read from can have more columns than we actual want to read,
 	 * this lest us filter some of them out
 	 */
-
+	// Deprecated
 	void load_data(const Context & context,
 		std::vector<gdf_column_cpp> & columns,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
 
-	std::unique_ptr<ral::frame::BlazingTable> load_data(const Context & context,
+	std::unique_ptr<ral::frame::BlazingTable> load_data(
+		const Context & context,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
 

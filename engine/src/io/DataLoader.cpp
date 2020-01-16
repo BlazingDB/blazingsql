@@ -24,7 +24,7 @@ data_loader::data_loader(std::shared_ptr<data_parser> _parser, std::shared_ptr<d
 
 data_loader::~data_loader() {}
 
-
+// Deprecated
 void data_loader::load_data(const Context & context,
 	std::vector<gdf_column_cpp> & columns,
 	const std::vector<size_t> & column_indices,
@@ -152,7 +152,8 @@ void data_loader::load_data(const Context & context,
 	timer.reset();
 }
 
-std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(const Context & context,
+std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
+		const Context & context,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema) 
 {

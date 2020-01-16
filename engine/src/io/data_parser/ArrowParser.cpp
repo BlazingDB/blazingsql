@@ -18,8 +18,6 @@
 namespace ral {
 namespace io {
 
-
-
 arrow_parser::arrow_parser(std::shared_ptr< arrow::Table > table):  table(table) {
 	// TODO Auto-generated constructor stub
 
@@ -31,7 +29,7 @@ arrow_parser::~arrow_parser() {
 
 }
 
-
+// Deprecated
 void arrow_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
 		std::vector<gdf_column_cpp> & columns_out,
@@ -90,6 +88,14 @@ columns_out = columns;
 */
 
 }
+
+std::unique_ptr<ral::frame::BlazingTable> arrow_parser::parse(
+	std::shared_ptr<arrow::io::RandomAccessFile> file,
+	const std::string & user_readable_file_handle,
+	const Schema & schema,
+	std::vector<size_t> column_indices) {
+		return nullptr;
+}	
 
 void arrow_parser::parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile> > files,
 		ral::io::Schema & schema){

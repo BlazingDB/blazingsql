@@ -25,13 +25,15 @@ public:
 	 * are not going to be parsed, we will still want a gdf_column_cpp of size 0
 	 * in there so we can preserve column index like access e.g. $3 $1 from the logical plan
 	 */
+	// Deprecated
 	virtual void parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
 		std::vector<gdf_column_cpp> & columns,
 		const Schema & schema,
 		std::vector<size_t> column_indices) = 0;
 
-	virtual std::unique_ptr<ral::frame::BlazingTable> parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+	virtual std::unique_ptr<ral::frame::BlazingTable> parse(
+		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
 		const Schema & schema,
 		std::vector<size_t> column_indices) {

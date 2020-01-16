@@ -65,7 +65,10 @@ std::unique_ptr<cudf::column> make_empty_column(cudf::data_type type) {
   return std::make_unique<cudf::column>(type, 0, rmm::device_buffer{});
 }
 
-std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names, const std::vector<cudf::type_id> &dtypes, const std::vector<size_t> &column_indices) {
+std::unique_ptr<ral::frame::BlazingTable> create_empty_table(
+	const std::vector<std::string> &column_names, 
+	const std::vector<cudf::type_id> &dtypes, 
+	const std::vector<size_t> &column_indices) {
 	std::vector<std::unique_ptr<cudf::column>> columns(column_indices.size());
 
 	for (auto idx : column_indices) {
