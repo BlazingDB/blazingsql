@@ -37,6 +37,8 @@
 #include "parser/expression_tree.hpp"
 #include "Interpreter/interpreter_cpp.h"
 
+#include <cudf/column/column_factories.hpp>
+
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
 const std::string LOGICAL_SCAN_TEXT = "LogicalTableScan";
@@ -179,7 +181,8 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 	for(int i = 0; i < input_used_in_expression.size(); i++) {
 		if(input_used_in_expression[i]) {
 			new_column_indices[i] = input_columns.size();
-			input_columns.push_back(input.get_column(i).get_gdf_column());
+			// TODO percy jp cudf0.12 project
+			//input_columns.push_back(table.view().column(i));
 		} else {
 			new_column_indices[i] = -1;  // won't be uesd anyway
 		}
@@ -209,27 +212,42 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 			// assumes worst possible case allocation for output
 			// TODO: find a way to know what our output size will be
 
-			std::unique_ptr<cudf::column> output_temp = std::make_unique<cudf::column>(cudf::data_type(output_type_expressions[i]), row_size);
+			std::unique_ptr<cudf::column> output_temp;
+
+			switch (output_type_expressions[i]) {
+				case cudf::type_id::INT8:
+				case cudf::type_id::INT16:
+				case cudf::type_id::INT32:
+				case cudf::type_id::INT64:
+				case cudf::type_id::FLOAT32:
+				case cudf::type_id::FLOAT64: {
+					output_temp = cudf::make_numeric_column(cudf::data_type(output_type_expressions[i]), row_size);
+					break;
+				}
+				// TODO percy cudf0.12 jp strings and dates cases cc rommel
+			}
+			
 			output_columns.push_back(std::move(output_temp));
 
-			// add_expression_to_plan(input,
-			// 	input_columns,
-			// 	expression,
-			// 	cur_expression_out,
-			// 	num_expressions_out,
-			// 	input_columns.size(),
-			// 	left_inputs,
-			// 	right_inputs,
-			// 	outputs,
-			// 	operators,
-			// 	unary_operators,
-			// 	left_scalars,
-			// 	right_scalars,
-			// 	new_column_indices,
-			// 	final_output_positions,
-			// 	output.get_gdf_column());
-			cur_expression_out++;
-			columns[i] = output;
+			// TODO percy jp cudf0.12 project
+//			add_expression_to_plan(table,
+//				input_columns,
+//				expression,
+//				cur_expression_out,
+//				num_expressions_out,
+//				input_columns.size(),
+//				left_inputs,
+//				right_inputs,
+//				outputs,
+//				operators,
+//				unary_operators,
+//				left_scalars,
+//				right_scalars,
+//				new_column_indices,
+//				final_output_positions,
+//				output.get_gdf_column());
+//			cur_expression_out++;
+//			columns[i] = output;
 		} else {
 			// TODO percy this code is duplicated inside get_index, refactor get_index
 			const std::string cleaned_expression = clean_calcite_expression(expression);
@@ -256,34 +274,37 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 					//cudf::fill(output.get_gdf_column(), to_gdf_scalar(literal_scalar), 0, row_size);
 				}
 
-				output_columns.push_back(output.get_gdf_column());
+				// TODO percy jp cudf0.12 project
+				//output_columns.push_back(output.get_gdf_column());
 				input_used_in_output[index] = false;
 				columns[i] = output;
 			} else {
 				int index = get_index(expression);
-				gdf_column_cpp output = input.get_column(index);
-				output.set_name(name);
-				input_used_in_output[index] = true;
-				columns[i] = output;
+				// TODO percy jp cudf0.12 project
+//				gdf_column_cpp output = input.get_column(index);
+//				output.set_name(name);
+//				input_used_in_output[index] = true;
+//				columns[i] = output;
 			}
 		}
 	}
 
 	// free_gdf_column(&temp);
-	return project_plan_params{num_expressions_out,
-		output_columns,
-		input_columns,
-		left_inputs,
-		right_inputs,
-		outputs,
-		final_output_positions,
-		operators,
-		unary_operators,
-		left_scalars,
-		right_scalars,
-		new_column_indices,
-		columns,
-		err};
+	// TODO percy jp cudf0.12 project
+//	return project_plan_params{num_expressions_out,
+//		output_columns,
+//		input_columns,
+//		left_inputs,
+//		right_inputs,
+//		outputs,
+//		final_output_positions,
+//		operators,
+//		unary_operators,
+//		left_scalars,
+//		right_scalars,
+//		new_column_indices,
+//		columns,
+//		err};
 }
 
 void execute_project_plan(blazing_frame & input, std::string query_part) {
