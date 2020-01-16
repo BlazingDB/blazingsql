@@ -88,13 +88,6 @@ bool is_double_input(std::string query_part) {
 	}
 }
 
-std::string get_filter_expression(std::string query_part) {
-	std::string filter_string = query_part.substr(query_part.find("filters="));
-	size_t start = filter_string.find("[[") + 2;
-	size_t end = filter_string.find("]]");
-	return filter_string.substr(start, end - start);
-}
-
 // Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
 std::string extract_table_name(std::string query_part) {
 	size_t start = query_part.find("[[") + 2;
@@ -340,21 +333,6 @@ void execute_project_plan(blazing_frame & input, std::string query_part) {
 	}
 }
 
-std::string get_named_expression(std::string query_part, std::string expression_name) {
-	if(query_part.find(expression_name + "=[") == query_part.npos) {
-		return "";  // expression not found
-	}
-	int start_position = (query_part.find(expression_name + "=[[")) + 3 + expression_name.length();
-	if(query_part.find(expression_name + "=[[") == query_part.npos) {
-		start_position = (query_part.find(expression_name + "=[")) + 2 + expression_name.length();
-	}
-	int end_position = (query_part.find("]", start_position));
-	return query_part.substr(start_position, end_position - start_position);
-}
-
-std::string get_condition_expression(std::string query_part) { return get_named_expression(query_part, "condition"); }
-
-
 blazing_frame process_union(blazing_frame & left, blazing_frame & right, std::string query_part) {
 	bool isUnionAll = (get_named_expression(query_part, "all") == "true");
 	if(!isUnionAll) {
@@ -452,71 +430,6 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 	} else {
 		filter_statement = "";
 	}
-}
-
-
-//TODO: this does not compact the allocations which would be nice if it could
-void process_filter(Context * context, blazing_frame & input, std::string query_part){
-	static CodeTimer timer;
-	timer.reset();
-
-	size_t size = input.get_num_rows_in_table(0);
-	if(size <= 0) {
-		return;
-	}
-
-	// TODO de donde saco el nombre de la columna aqui???
-	gdf_column_cpp stencil;
-	stencil.create_gdf_column(cudf::type_id::BOOL8,
-		input.get_num_rows_in_table(0),
-		nullptr,
-		ral::traits::get_dtype_size_in_bytes(cudf::type_id::BOOL8),
-		"");
-
-	Library::Logging::Logger().logInfo(
-		timer.logDuration(*context, "Filter part 1 initialize stencil", "num rows", input.get_num_rows_in_table(0)));
-	timer.reset();
-
-	std::string conditional_expression = get_condition_expression(query_part);
-	if(conditional_expression == "") {
-		conditional_expression = get_filter_expression(query_part);
-	}
-
-	// TODO: percy cudf0.12 replace with logical filter
-	// evaluate_expression(input, conditional_expression, stencil);
-
-	Library::Logging::Logger().logInfo(
-		timer.logDuration(*context, "Filter part 2 evaluate expression", "num rows", input.get_num_rows_in_table(0)));
-	timer.reset();
-
-	gdf_column_cpp index_col;
-	std::string empty = "";
-	index_col.create_gdf_column(cudf::type_id::INT32,
-		input.get_num_rows_in_table(0),
-		nullptr,
-		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
-		empty);
-	
-	// TODO percy cudf0.12 port to cudf::column
-	//gdf_sequence(static_cast<int32_t *>(index_col.get_gdf_column()->data), input.get_num_rows_in_table(0), 0);
-
-	std::vector<gdf_column_cpp> intputToFilterTemp = input.get_table(0);
-	cudf::table inputToFilter = ral::utilities::create_table(intputToFilterTemp);
-	
-	// TODO percy cudf0.12 port to cudf::column and custrings
-//	cudf::table filteredData = cudf::apply_boolean_mask(inputToFilter, *(stencil.get_gdf_column()));
-//	ral::init_string_category_if_null(filteredData);
-//	for(int i = 0; i < input.get_width(); i++) {
-//		gdf_column * temp_col_view = filteredData.get_column(i);
-//		gdf_column_cpp temp;
-//		temp.create_gdf_column(filteredData.get_column(i));
-//		temp.set_name(input.get_column(i).name());
-//		input.set_column(i, temp);
-//	}
-
-	Library::Logging::Logger().logInfo(
-		timer.logDuration(*context, "Filter part 3 apply_boolean_mask", "num rows", input.get_num_rows_in_table(0)));
-	timer.reset();
 }
 
 // Returns the index from table if exists
@@ -664,7 +577,7 @@ blazing_frame evaluate_split_query(std::vector<std::vector<gdf_column_cpp>> inpu
 			return child_frame;
 		} else if(is_filter(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			process_filter(queryContext, child_frame, query[0]);
+			// process_filter(queryContext, child_frame, query[0]);
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_filter",
 				"num rows",
@@ -734,7 +647,7 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 
 				if(is_filtered_bindable_scan(query[0])) {
 					scan_frame.add_table(input_table);
-					process_filter(queryContext, scan_frame, query[0]);
+					// process_filter(queryContext, scan_frame, query[0]);
 					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 						"evaluate_split_query process_filter",
 						"num rows",
@@ -807,7 +720,7 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
 			if (filter_statement != ""){
-				process_filter(queryContext, result_frame,filter_statement);
+				// process_filter(queryContext, result_frame,filter_statement);
 				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame.get_num_rows_in_table(0)));
 				blazing_timer.reset();
 				queryContext->incrementQueryStep();
@@ -873,7 +786,7 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			return child_frame;
 		} else if(is_filter(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			process_filter(queryContext, child_frame, query[0]);
+			// process_filter(queryContext, child_frame, query[0]);
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_filter",
 				"num rows",

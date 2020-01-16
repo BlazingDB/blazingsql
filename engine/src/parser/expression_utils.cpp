@@ -1,7 +1,9 @@
-#include "expression_utils.hpp"
-#include "gdf_wrapper/gdf_types.cuh"
 #include <map>
 #include <regex>
+
+#include "expression_utils.hpp"
+#include "gdf_wrapper/gdf_types.cuh"
+#include "Utils.cuh"
 
 bool is_binary_operator_token(const std::string & token) {
 	return (gdf_binary_operator_map.find(token) != gdf_binary_operator_map.end());
@@ -39,7 +41,7 @@ bool is_timestamp(const std::string & token) {
 bool is_bool(const std::string & token) { return (token == "true" || token == "false"); }
 
 bool is_SQL_data_type(const std::string & token) {
-	return std::find(std::begin(SQL_DATA_TYPES), std::end(SQL_DATA_TYPES), token) != std::end(SQL_DATA_TYPES);
+	return std::find(std::begin(CALCITE_DATA_TYPES), std::end(CALCITE_DATA_TYPES), token) != std::end(CALCITE_DATA_TYPES);
 }
 
 bool is_operator_token(const std::string & token) {
@@ -59,4 +61,21 @@ bool is_var_column(const std::string& token){
 
 bool is_inequality(const std::string& token){
 	return token == "<" || token == "<=" || token == ">" || token == ">=" || token == "<>";
+}
+
+std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
+	std::string str_to_search = expression_name + "=[[";
+	size_t start_position = query_part.find(str_to_search);
+	if(start_position == std::string::npos) {
+		str_to_search = expression_name + "=[";
+		start_position = query_part.find(str_to_search);
+	}
+
+	RAL_EXPECTS(start_position != std::string::npos, "Couldn't find expression name in query part" );
+
+	start_position += str_to_search.length();
+
+	size_t end_position = query_part.find("]", start_position);
+	
+	return query_part.substr(start_position, end_position - start_position);
 }

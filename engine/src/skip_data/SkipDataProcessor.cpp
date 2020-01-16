@@ -20,6 +20,7 @@
 #include "utilities/CommonOperations.h"
 #include "legacy/stream_compaction.hpp"
 #include "../io/data_parser/ParserUtil.h"
+#include "../parser/expression_utils.hpp"
 
 #include <memory> // this is for std::static_pointer_cast
 #include <string>
@@ -63,7 +64,7 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
     } 
     std::string filter_string;
     try {
-        filter_string = get_filter_expression(table_scan);
+        filter_string = get_named_expression(table_scan, "filters");
         if (filter_string.empty()) {
             return create_empty_result();
         }

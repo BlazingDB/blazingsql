@@ -40,8 +40,6 @@ blazing_frame evaluate_split_query(std::vector<std::vector<gdf_column_cpp>> inpu
 	Context * queryContext,
 	int call_depth = 0);
 
-std::string get_named_expression(std::string query_part, std::string expression_name);
-
 void execute_project_plan(blazing_frame & input, std::string query_part);
 
 project_plan_params parse_project_plan(blazing_frame & input, std::string query_part);

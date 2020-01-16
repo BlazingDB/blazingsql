@@ -73,9 +73,6 @@ void get_common_type(cudf::type_id type1,
 	cudf::type_id type2,
 	cudf::type_id & type_out);
 
-std::string get_named_expression(std::string query_part, std::string expression_name);
-std::string get_filter_expression(std::string query_part);
-
 bool contains_evaluation(std::string expression);
 
 #endif /* CALCITEEXPRESSIONPARSING_H_ */
