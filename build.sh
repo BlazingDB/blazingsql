@@ -89,7 +89,7 @@ fi
 if hasArg -n; then
     INSTALL_TARGET=""
 fi
-if hasArg test; then
+if hasArg -t; then
     TESTS="OFF"
 fi
 
