@@ -11,6 +11,7 @@
 
 #include "distribution/primitives.h"
 #include "communication/CommunicationData.h"
+#include "utilities/CommonOperations.h"
 
 namespace ral{
 
@@ -55,51 +56,49 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
   }
 
   namespace{
-    typedef std::pair<blazingdb::transport::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
+    typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
+    typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
   }
 
   std::unique_ptr<ral::frame::BlazingTable> process_distribution_table(
   	const ral::frame::BlazingTableView & table,
     std::vector<int> & columnIndices,
-    blazingdb::manager::Context * context) {
+    blazingdb::manager::experimental::Context * context) {
 
     //TODO: CACHE_POINT (ask felipe)
-    auto partitionedData = hashPartition(
+    std::vector<std::unique_ptr<ral::frame::BlazingTable> > partitionedData = hashPartition(
       table,
       columnIndices,
       context->getTotalNodes());
 
-    std::vector<NodeColumn > partitions;
-    std::vector<std::unique_ptr<ral::frame::BlazingTable> > partitions2;
+    std::vector<NodeColumnView > partitions;
     for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-      partitions2.push_back(std::move(partitionedData[nodeIndex]));
       partitions.push_back(
-        std::make_pair(*context->getAllNodes()[nodeIndex].get(),
-         std::move(partitionedData[nodeIndex])));
+        std::make_pair(context->getNode(nodeIndex),
+         partitionedData[nodeIndex]->toBlazingTableView()));
     }
 
   	context->incrementQuerySubstep();
     //TODO: uncomment when implemented
-    //distributePartitions(*context, partitions);
-    //std::vector<NodeColumn> remote_node_columns = ral::distribution::collectPartitions(*context);
-    std::vector<NodeColumn> remote_node_columns;
+    ral::distribution::experimental::distributePartitions(context, partitions);
+    std::vector<NodeColumn> remote_node_columns = ral::distribution::experimental::collectPartitions(context);
 
-  	auto it = std::find_if(partitions.begin(), partitions.end(), [](const auto & e) {
-  		return e.first == ral::communication::CommunicationData::getInstance().getSelfNode();
-  	});
-  	assert(it != partitions.end());
-
-    //concat the table views
-    std::vector<CudfTableView> views;
-    views.push_back(it->second->view());
-    for(auto & nodeColumn : remote_node_columns ){
-      views.push_back(nodeColumn.second->view());
+    std::vector<ral::frame::BlazingTableView> partitions_to_concat;
+    for (int i = 0; i < remote_node_columns.size(); i++){
+      partitions_to_concat.emplace_back(remote_node_columns[i].second->toBlazingTableView());
     }
+    bool found_self_partition = false;
+    for (auto partition : partitions){
+      if (partition.first == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+        partitions_to_concat.emplace_back(partition.second);
+        found_self_partition = true;
+        break;
+      }
+    }
+    assert(found_self_partition);
 
-    auto concatTable =  cudf::experimental::concatenate(views);
-    return std::make_unique<ral::frame::BlazingTable>(
-      std::move(concatTable),
-      table.names());
+    return ral::utilities::experimental::concatTables(partitions_to_concat);
+
   }
 
 
@@ -107,7 +106,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
   	const ral::frame::BlazingTableView & left,
     const ral::frame::BlazingTableView & right,
     const std::string & query,
-    blazingdb::manager::Context * context) {
+    blazingdb::manager::experimental::Context * context) {
 
     std::vector<int> globalColumnIndices;
   	parseJoinConditionToColumnIndices(get_named_expression(query, "condition"), globalColumnIndices);
@@ -130,137 +129,154 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
     );
   }
 
+  std::unique_ptr<ral::frame::BlazingTable> process_logical_join(blazingdb::manager::experimental::Context * context,
+        const ral::frame::BlazingTableView & table_left,
+        const ral::frame::BlazingTableView & table_right,
+        const std::string & expression){
+
+    if(context->getTotalNodes() <= 1) { // if single node
+        return processJoin(table_left, table_right, expression);
+    } else {
+        std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> > distributed_tables = process_hash_based_distribution(
+            table_left, table_right, expression, context);
+
+        return processJoin(distributed_tables.first->toBlazingTableView(), distributed_tables.second->toBlazingTableView(), expression);
+    }
+  }
 
 
+
+// This function can either do a small table scatter distribution or regular hash based. 
   std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> >  process_distribution(
     const ral::frame::BlazingTableView & left,
     const ral::frame::BlazingTableView & right,
     const std::string & query,
-    blazingdb::manager::Context * context) {
+    blazingdb::manager::experimental::Context * context) {
+
   	// First lets find out if we are joining against a small table. If so, we will want to replicate that small table
-  	/*
-  	int self_node_idx = context_->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
+  	
+  // 	int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
 
-  	context_->incrementQuerySubstep();
-  	cudf::size_type local_num_rows_left = left.view().num_rows();
-  	cudf::size_type local_num_rows_right = right.view().num_rows();
-  	ral::distribution::distributeLeftRightNumRows(*context_, local_num_rows_left, local_num_rows_right);
-  	std::vector<cudf::size_type> nodes_num_rows_left;
-  	std::vector<cudf::size_type> nodes_num_rows_right;
-  	ral::distribution::collectLeftRightNumRows(*context_, nodes_num_rows_left, nodes_num_rows_right);
-  	nodes_num_rows_left[self_node_idx] = local_num_rows_left;
-  	nodes_num_rows_right[self_node_idx] = local_num_rows_right;
+  // 	context->incrementQuerySubstep();
+  // 	cudf::size_type local_num_rows_left = left.view().num_rows();
+  // 	cudf::size_type local_num_rows_right = right.view().num_rows();
+  // 	ral::distribution::distributeLeftRightNumRows(context, local_num_rows_left, local_num_rows_right);
+  // 	std::vector<cudf::size_type> nodes_num_rows_left;
+  // 	std::vector<cudf::size_type> nodes_num_rows_right;
+  // 	ral::distribution::collectLeftRightNumRows(context, nodes_num_rows_left, nodes_num_rows_right);
+  // 	nodes_num_rows_left[self_node_idx] = local_num_rows_left;
+  // 	nodes_num_rows_right[self_node_idx] = local_num_rows_right;
 
-  	cudf::size_type total_rows_left = std::accumulate(nodes_num_rows_left.begin(), nodes_num_rows_left.end(), 0);
-  	cudf::size_type total_rows_right = std::accumulate(nodes_num_rows_right.begin(), nodes_num_rows_right.end(), 0);
+  // 	cudf::size_type total_rows_left = std::accumulate(nodes_num_rows_left.begin(), nodes_num_rows_left.end(), 0);
+  // 	cudf::size_type total_rows_right = std::accumulate(nodes_num_rows_right.begin(), nodes_num_rows_right.end(), 0);
 
-  	size_t row_width_bytes_left = 0;
-  	size_t row_width_bytes_right = 0;
-  	for(auto & column : tables[0]) {
-  		// TODO percy cudf0.12 port to cudf::column custring
-  //		if(column.dtype() == GDF_STRING_CATEGORY)
-  //			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
-  //									5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact that
-  //										// strings can occupy a lot more. We needa better way to easily figure out how
-  //										// mmuch space a string column actually occupies
-  //		else
-  //			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype());
-  	}
-  	for(auto & column : tables[1]) {
-  		// TODO percy cudf0.12 port to cudf::column custring
-  //		if(column.dtype() == GDF_STRING_CATEGORY)
-  //			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
-  //									 5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact
-  //										 // that strings can occupy a lot more. We needa better way to easily figure out
-  //										 // how mmuch space a string column actually occupies
-  //		else
-  //			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype());
-  	}
-  	int num_nodes = context_->getTotalNodes();
+  // 	size_t row_width_bytes_left = 0;
+  // 	size_t row_width_bytes_right = 0;
+  // 	for(auto & column : tables[0]) {
+  // 		// TODO percy cudf0.12 port to cudf::column custring
+  // //		if(column.dtype() == GDF_STRING_CATEGORY)
+  // //			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
+  // //									5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact that
+  // //										// strings can occupy a lot more. We needa better way to easily figure out how
+  // //										// mmuch space a string column actually occupies
+  // //		else
+  // //			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype());
+  // 	}
+  // 	for(auto & column : tables[1]) {
+  // 		// TODO percy cudf0.12 port to cudf::column custring
+  // //		if(column.dtype() == GDF_STRING_CATEGORY)
+  // //			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
+  // //									 5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact
+  // //										 // that strings can occupy a lot more. We needa better way to easily figure out
+  // //										 // how mmuch space a string column actually occupies
+  // //		else
+  // //			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype());
+  // 	}
+  // 	int num_nodes = context->getTotalNodes();
 
-  	bool scatter_left = false;
-  	bool scatter_right = false;
-  	size_t estimate_regular_distribution =
-  		(total_rows_left * row_width_bytes_left + total_rows_right * row_width_bytes_right) * (num_nodes - 1) /
-  		num_nodes;
-  	size_t estimate_scatter_left = (total_rows_left * row_width_bytes_left) * (num_nodes - 1);
-  	size_t estimate_scatter_right = (total_rows_right * row_width_bytes_right) * (num_nodes - 1);
-  	size_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
-  												  // WSM TODO get this value from config
-  	if(estimate_scatter_left < estimate_regular_distribution ||
-  		estimate_scatter_right < estimate_regular_distribution) {
-  		if(estimate_scatter_left < estimate_scatter_right &&
-  			total_rows_left * row_width_bytes_left < MAX_SCATTER_MEM_OVERHEAD) {
-  			scatter_left = true;
-  		} else if(estimate_scatter_right < estimate_scatter_left &&
-  				  total_rows_right * row_width_bytes_right < MAX_SCATTER_MEM_OVERHEAD) {
-  			scatter_right = true;
-  		}
-  	}
+  // 	bool scatter_left = false;
+  // 	bool scatter_right = false;
+  // 	size_t estimate_regular_distribution =
+  // 		(total_rows_left * row_width_bytes_left + total_rows_right * row_width_bytes_right) * (num_nodes - 1) /
+  // 		num_nodes;
+  // 	size_t estimate_scatter_left = (total_rows_left * row_width_bytes_left) * (num_nodes - 1);
+  // 	size_t estimate_scatter_right = (total_rows_right * row_width_bytes_right) * (num_nodes - 1);
+  // 	size_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
+  // 												  // WSM TODO get this value from config
+  // 	if(estimate_scatter_left < estimate_regular_distribution ||
+  // 		estimate_scatter_right < estimate_regular_distribution) {
+  // 		if(estimate_scatter_left < estimate_scatter_right &&
+  // 			total_rows_left * row_width_bytes_left < MAX_SCATTER_MEM_OVERHEAD) {
+  // 			scatter_left = true;
+  // 		} else if(estimate_scatter_right < estimate_scatter_left &&
+  // 				  total_rows_right * row_width_bytes_right < MAX_SCATTER_MEM_OVERHEAD) {
+  // 			scatter_right = true;
+  // 		}
+  // 	}
 
-  	if(scatter_left || scatter_right) {
-  		context_->incrementQuerySubstep();
-  		int num_to_collect = 0;
-  		std::vector<gdf_column_cpp> data_to_scatter;
-  		if(scatter_left) {
-  			Library::Logging::Logger().logTrace(
-  				ral::utilities::buildLogString(std::to_string(context_->getContextToken()),
-  					std::to_string(context_->getQueryStep()),
-  					std::to_string(context_->getQuerySubstep()),
-  					"join process_distribution scatter_left"));
-  			data_to_scatter = frame.get_table(0);
-  			if(local_num_rows_left > 0) {
-  				ral::distribution::scatterData(*context_, data_to_scatter);
-  			}
-  			for(size_t i = 0; i < nodes_num_rows_left.size(); i++) {
-  				if(i != self_node_idx && nodes_num_rows_left[i] > 0) {
-  					num_to_collect++;
-  				}
-  			}
-  		} else {
-  			Library::Logging::Logger().logTrace(
-  				ral::utilities::buildLogString(std::to_string(context_->getContextToken()),
-  					std::to_string(context_->getQueryStep()),
-  					std::to_string(context_->getQuerySubstep()),
-  					"join process_distribution scatter_right"));
-  			data_to_scatter = frame.get_table(1);
-  			if(local_num_rows_right > 0) {  // this node has data on the right to scatter
-  				ral::distribution::scatterData(*context_, data_to_scatter);
-  			}
-  			for(size_t i = 0; i < nodes_num_rows_right.size(); i++) {
-  				if(i != self_node_idx && nodes_num_rows_right[i] > 0) {
-  					num_to_collect++;
-  				}
-  			}
-  		}
+  // 	if(scatter_left || scatter_right) {
+  // 		context->incrementQuerySubstep();
+  // 		int num_to_collect = 0;
+  // 		std::vector<gdf_column_cpp> data_to_scatter;
+  // 		if(scatter_left) {
+  // 			Library::Logging::Logger().logTrace(
+  // 				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  // 					std::to_string(context->getQueryStep()),
+  // 					std::to_string(context->getQuerySubstep()),
+  // 					"join process_distribution scatter_left"));
+  // 			data_to_scatter = frame.get_table(0);
+  // 			if(local_num_rows_left > 0) {
+  // 				ral::distribution::scatterData(*context, data_to_scatter);
+  // 			}
+  // 			for(size_t i = 0; i < nodes_num_rows_left.size(); i++) {
+  // 				if(i != self_node_idx && nodes_num_rows_left[i] > 0) {
+  // 					num_to_collect++;
+  // 				}
+  // 			}
+  // 		} else {
+  // 			Library::Logging::Logger().logTrace(
+  // 				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  // 					std::to_string(context->getQueryStep()),
+  // 					std::to_string(context->getQuerySubstep()),
+  // 					"join process_distribution scatter_right"));
+  // 			data_to_scatter = frame.get_table(1);
+  // 			if(local_num_rows_right > 0) {  // this node has data on the right to scatter
+  // 				ral::distribution::experimental::scatterData(context, data_to_scatter);
+  // 			}
+  // 			for(size_t i = 0; i < nodes_num_rows_right.size(); i++) {
+  // 				if(i != self_node_idx && nodes_num_rows_right[i] > 0) {
+  // 					num_to_collect++;
+  // 				}
+  // 			}
+  // 		}
 
-  		blazing_frame join_frame;
-  		std::vector<gdf_column_cpp> cluster_shared_table;
-  		if(num_to_collect > 0) {
-  			std::vector<NodeColumns> collected_partitions =
-  				ral::distribution::collectSomePartitions(*context_, num_to_collect);
-  			cluster_shared_table = concat_columns(data_to_scatter, collected_partitions);
-  		} else {
-  			cluster_shared_table = data_to_scatter;
-  		}
+  // 		blazing_frame join_frame;
+  // 		std::vector<gdf_column_cpp> cluster_shared_table;
+  // 		if(num_to_collect > 0) {
+  // 			std::vector<NodeColumns> collected_partitions =
+  // 				ral::distribution::collectSomePartitions(*context, num_to_collect);
+  // 			cluster_shared_table = concat_columns(data_to_scatter, collected_partitions);
+  // 		} else {
+  // 			cluster_shared_table = data_to_scatter;
+  // 		}
 
-  		if(scatter_left) {
-  			join_frame.add_table(cluster_shared_table);
-  			join_frame.add_table(tables[1]);
-  		} else {
-  			join_frame.add_table(tables[0]);
-  			join_frame.add_table(cluster_shared_table);
-  		}
-  		return join_frame;
+  // 		if(scatter_left) {
+  // 			join_frame.add_table(cluster_shared_table);
+  // 			join_frame.add_table(tables[1]);
+  // 		} else {
+  // 			join_frame.add_table(tables[0]);
+  // 			join_frame.add_table(cluster_shared_table);
+  // 		}
+  // 		return join_frame;
 
-  	} else {
-  		Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context_->getContextToken()),
-  			std::to_string(context_->getQueryStep()),
-  			std::to_string(context_->getQuerySubstep()),
-  			"join process_distribution hash based distribution"));
-  		return process_hash_based_distribution(frame, query);
-  	}*/
-    return process_hash_based_distribution(left, right, query, context);
+  // 	} else {
+  // 		Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  // 			std::to_string(context->getQueryStep()),
+  // 			std::to_string(context->getQuerySubstep()),
+  // 			"join process_distribution hash based distribution"));
+  // 		return process_hash_based_distribution(frame, query);
+  // 	}
+  //   return process_hash_based_distribution(left, right, query, context);
   }
 
 std::unique_ptr<ral::frame::BlazingTable> processJoin(

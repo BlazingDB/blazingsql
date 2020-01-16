@@ -29,6 +29,11 @@ std::unique_ptr<ral::frame::BlazingTable> evaluateExpression(
   const ral::frame::BlazingTableView & table,
   const std::string & expression);
 
+std::unique_ptr<ral::frame::BlazingTable> process_logical_join(blazingdb::manager::experimental::Context * context,
+      const ral::frame::BlazingTableView & table_left,
+      const ral::frame::BlazingTableView & table_right,
+      const std::string & expression);
+
 std::unique_ptr<ral::frame::BlazingTable> processJoin(
   const ral::frame::BlazingTableView & table_left,
   const ral::frame::BlazingTableView & table_right,
@@ -38,7 +43,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame:
     const ral::frame::BlazingTableView & left,
     const ral::frame::BlazingTableView & right,
     const std::string & query,
-    blazingdb::manager::Context * context);
+    blazingdb::manager::experimental::Context * context);
 /**
 Should be able to perform all 3 types of aggregations only locally what comes in
 as a solid chunk, inputs should be columns to aggregate, aggregation type,

@@ -334,7 +334,7 @@ namespace experimental {
 	using Node = blazingdb::transport::experimental::Node;
 	using namespace ral::distribution::experimental;
 
-std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, std::string query_part, Context & context) {
+std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, std::string query_part, Context * context) {
 	auto rangeStart = query_part.find("(");
 	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
@@ -351,7 +351,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			(get_named_expression(combined_expression, "dir" + std::to_string(i)) == DESCENDING_ORDER_SORT_TEXT);		 
 	}
 
-	if(context.getTotalNodes() <= 1) {
+	if(context->getTotalNodes() <= 1) {
 		if(num_sort_columns > 0) {
 			std::unique_ptr<ral::frame::BlazingTable> sorted_table = logicalSort(table, sortColIndices, sortOrderTypes);
 
@@ -383,7 +383,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 	}
 }
 
-std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context & context,
+std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<int8_t> & sortOrderTypes){
 	
 	using ral::communication::experimental::CommunicationData;
@@ -402,7 +402,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context & context,
 	timer.reset();
 
 	std::unique_ptr<ral::frame::BlazingTable> sortedTable;
-	std::thread sortThread{[](Context & context,
+	std::thread sortThread{[](Context * context,
 							   const ral::frame::BlazingTableView & table,
 							   const std::vector<int> & sortColIndices,
 							   const std::vector<int8_t> & sortOrderTypes,
@@ -414,7 +414,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context & context,
 							// 	   timer2.logDuration(context, "distributed_sort part 2 async sort"));
 							   timer2.reset();
 						   },
-		std::ref(context),
+		context,
 		std::ref(table),
 		std::ref(sortColIndices),
 		std::ref(sortOrderTypes),
@@ -423,8 +423,8 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context & context,
 	// std::unique_ptr<ral::frame::BlazingTable> sortedTable = logicalSort(table, sortColIndices, sortOrderTypes);
 	
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
-	if(context.isMasterNode(CommunicationData::getInstance().getSelfNode())) {
-		context.incrementQuerySubstep();
+	if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
+		context->incrementQuerySubstep();
 		std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > samples_pair = collectSamples(context);
 		
 		std::vector<ral::frame::BlazingTableView> samples;
@@ -438,17 +438,17 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context & context,
 		
 		partitionPlan = generatePartitionPlans(context, samples, total_rows_tables, sortOrderTypes);
 
-		context.incrementQuerySubstep();
+		context->incrementQuerySubstep();
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
 
 		// WSM TODO cudf0.12 waiting on logger
 		// Library::Logging::Logger().logInfo(timer.logDuration(
 		// 	context, "distributed_sort part 2 collectSamples generatePartitionPlans distributePartitionPlan"));
 	} else {
-		context.incrementQuerySubstep();
+		context->incrementQuerySubstep();
 		sendSamplesToMaster(context, selfSamples->toBlazingTableView(), total_rows_table);
 
-		context.incrementQuerySubstep();
+		context->incrementQuerySubstep();
 		partitionPlan = getPartitionPlan(context);
 
 		// WSM TODO cudf0.12 waiting on logger
@@ -471,7 +471,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context & context,
 	// Library::Logging::Logger().logInfo(timer.logDuration(context, "distributed_sort part 3 partitionData"));
 	timer.reset();
 
-	context.incrementQuerySubstep();
+	context->incrementQuerySubstep();
 	distributePartitions(context, partitions);
 	std::vector<NodeColumn> collected_partitions = collectPartitions(context);
 
