@@ -14,7 +14,6 @@
 #include "parser/expression_utils.hpp"
 #include <string>
 #include <vector>
-class blazing_frame;
 
 gdf_binary_operator_exp get_binary_operation(std::string operator_string);
 
@@ -31,7 +30,7 @@ std::vector<std::string> get_tokens_in_reverse_order(const std::string & express
 
 // NOTE call this function after use get_tokens_in_reverse_order ... TODO refactos this approach
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	blazing_frame & inputs, std::vector<std::string> & tokens);
+	const ral::frame::BlazingTableView & table, std::vector<std::string> & tokens);
 
 gdf_agg_op get_aggregation_operation(std::string operator_string);
 
@@ -39,7 +38,7 @@ std::string get_string_between_outer_parentheses(std::string operator_string);
 
 cudf::type_id infer_dtype_from_literal(const std::string & token);
 
-cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * max_temp_type, std::string expression);
+cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id * max_temp_type, std::string expression);
 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, gdf_agg_op aggregation, bool have_groupby);
 
