@@ -1156,7 +1156,7 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(con
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
 				const Context & context, std::vector<BlazingTableView> & samples, 
-				std::vector<std::size_t> & table_total_rows, std::vector<int8_t> & sortOrderTypes) {
+				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes) {
 	
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
@@ -1185,7 +1185,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
 }
 
-void distributePartitionPlan(const Context & context, BlazingTableView & pivots) {
+void distributePartitionPlan(const Context & context, const BlazingTableView & pivots) {
 	using ral::communication::experimental::CommunicationData;
 	using ral::communication::messages::Factory;
 	using ral::communication::messages::PartitionPivotsMessage;
@@ -1225,9 +1225,9 @@ std::unique_ptr<BlazingTable> getPartitionPlan(const Context & context) {
 // IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
 // IMPORTANT: The TableViews of the data returned point to the same data that was input.
 std::vector<NodeColumnView> partitionData(const Context & context,
-											BlazingTableView & table,
-											BlazingTableView & pivots,
-											std::vector<int> & searchColIndices,
+											const BlazingTableView & table,
+											const BlazingTableView & pivots,
+											const std::vector<int> & searchColIndices,
 											std::vector<int8_t> sortOrderTypes) {
 	
 	// verify input
@@ -1361,7 +1361,7 @@ std::vector<NodeColumn> collectSomePartitions(const Context & context, int num_p
 	return node_columns;
 }
 
-void scatterData(const Context & context, BlazingTableView table) {
+void scatterData(const Context & context, const BlazingTableView & table) {
 	using ral::communication::experimental::CommunicationData;
 
 	std::vector<NodeColumnView> node_columns;
@@ -1375,8 +1375,8 @@ void scatterData(const Context & context, BlazingTableView table) {
 }
 
 std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
-	std::vector<int8_t> & sortOrderTypes,
-	std::vector<int> & sortColIndices) {
+	const std::vector<int8_t> & sortOrderTypes,
+	const std::vector<int> & sortColIndices) {
 		
 	std::vector<cudf::order> column_order;
 	for(auto col_order : sortOrderTypes){
@@ -1468,35 +1468,16 @@ namespace distribution {
 namespace sampling {
 namespace experimental {
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> generateSamples(
-	const std::vector<ral::frame::BlazingTableView> & tables, const std::vector<double> & ratios) {
-	std::vector<std::size_t> quantities;
-	quantities.reserve(tables.size());
-
-	for(std::size_t i = 0; i < tables.size(); i++) {
-		quantities.push_back(std::ceil(tables[i].view().num_rows() * ratios[i]));
-	}
-
-	return generateSamples(tables, quantities);
+std::unique_ptr<ral::frame::BlazingTable> generateSamples(
+	const ral::frame::BlazingTableView & table, const double ratio) {
+	
+	return generateSamples(table, std::ceil(table.view().num_rows() * ratio));
 }
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> generateSamples(
-	const std::vector<ral::frame::BlazingTableView> & input_tables, std::vector<std::size_t> & quantities) {
-	// verify
-	if(input_tables.size() != quantities.size()) {
-		throw std::runtime_error("[ERROR] " + std::string{__FUNCTION__} + " -- size mismatch.");
-	}
-
-	// output data
-	std::vector<std::unique_ptr<ral::frame::BlazingTable>> result;
-
-	// make sample for each table
-	for(std::size_t k = 0; k < input_tables.size(); ++k) {
-		result.emplace_back(cudf::generator::generate_sample(input_tables[k], quantities[k]));
-	}
-
-	// done
-	return result;
+std::unique_ptr<ral::frame::BlazingTable> generateSamples(
+	const ral::frame::BlazingTableView & table, const size_t quantile) {
+	
+	return cudf::generator::generate_sample(table, quantile);	
 }
 
 }  // namespace experimental

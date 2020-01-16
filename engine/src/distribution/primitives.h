@@ -155,32 +155,33 @@ namespace experimental {
 	void sendSamplesToMaster(const Context & context, const BlazingTableView & samples, std::size_t table_total_rows);
 	std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(const Context & context);
 
+	std::unique_ptr<BlazingTable> generatePartitionPlans(
+				const Context & context, std::vector<BlazingTableView> & samples, 
+				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes);
+	
+	void distributePartitionPlan(const Context & context, const BlazingTableView & pivots);
 
+	std::unique_ptr<BlazingTable> getPartitionPlan(const Context & context);
+	
 // This function locates the pivots in the table and partitions the data on those pivot points. 
 // IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
 // IMPORTANT: The TableViews of the data returned point to the same data that was input.
 	std::vector<NodeColumnView> partitionData(const Context & context,
-											BlazingTableView & table,
-											BlazingTableView & pivots,
-											std::vector<int> & searchColIndices,
+											const BlazingTableView & table,
+											const BlazingTableView & pivots,
+											const std::vector<int> & searchColIndices,
 											std::vector<int8_t> sortOrderTypes);
 
-	std::unique_ptr<BlazingTable> generatePartitionPlans(
-				const Context & context, std::vector<std::vector<BlazingTableView>> & samples, 
-				std::vector<std::size_t> & table_total_rows, std::vector<int8_t> & sortOrderTypes);
-
 	void distributePartitions(const Context & context, std::vector<NodeColumnView> & partitions);
-
-	std::unique_ptr<BlazingTable> getPartitionPlan(const Context & context);
 
 	std::vector<NodeColumn> collectPartitions(const Context & context);
 
 	std::vector<NodeColumn> collectSomePartitions(const Context & context, int num_partitions);
 
-	void scatterData(const Context & context, BlazingTableView table);
+	void scatterData(const Context & context, const BlazingTableView & table);
 
 	std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
-				std::vector<int8_t> & sortOrderTypes, std::vector<int> & sortColIndices);
+				const std::vector<int8_t> & sortOrderTypes, const std::vector<int> & sortColIndices);
 	
 	std::unique_ptr<BlazingTable> getPivotPointsTable(const Context & context, const BlazingTableView & sortedSamples);
 
@@ -195,11 +196,11 @@ namespace distribution {
 namespace sampling {
 namespace experimental {
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> generateSamples(
-	const std::vector<ral::frame::BlazingTableView> & tables, const std::vector<double> & ratios);
+std::unique_ptr<ral::frame::BlazingTable> generateSamples(
+	const ral::frame::BlazingTableView & table, const double ratio);
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> generateSamples(
-	const std::vector<ral::frame::BlazingTableView> & tables, std::vector<std::size_t> & quantities);
+std::unique_ptr<ral::frame::BlazingTable> generateSamples(
+	const ral::frame::BlazingTableView & table, const size_t quantile);
 
 }  // namespace experimental
 }  // namespace sampling
