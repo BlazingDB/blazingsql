@@ -320,8 +320,8 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
     blazingdb::transport::io::readFromSocket(
         socket, (char *)buffer_sizes.data(), buffer_sizes_size * sizeof(int));
 
-    std::vector<const char *> raw_columns;
-    raw_columns = blazingdb::transport::io::readBuffersIntoGPUTCP(buffer_sizes, socket, gpuId);
+    std::vector<std::unique_ptr<rmm::device_buffer>> raw_columns;
+    blazingdb::transport::experimental::io::readBuffersIntoGPUTCP(buffer_sizes, socket, gpuId, raw_columns);
     zmq::socket_t *socket_ptr = (zmq::socket_t *)socket;
 
     int data_past_topic{0};
@@ -348,8 +348,7 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
     std::string messageToken = message_metadata.messageToken;
     auto deserialize_function = server->getDeserializationFunction(
         messageToken.substr(0, messageToken.find('_')));
-    std::shared_ptr<GPUMessage> message = deserialize_function(
-        message_metadata, address_metadata, column_offsets, raw_columns);
+    std::shared_ptr<GPUMessage> message = deserialize_function(message_metadata, address_metadata, column_offsets, raw_columns);
     assert(message != nullptr);
     server->putMessage(message->metadata().contextToken, message);
 

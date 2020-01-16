@@ -16,6 +16,7 @@
 #include <numeric>
 #include <thread>
 #include "rmm/rmm.h"
+#include <rmm/device_buffer.hpp>
 
 namespace blazingdb {
 namespace transport {
@@ -170,7 +171,7 @@ public:
       const Message::MetaData &message_metadata,
       const Address::MetaData &address_metadata,
       const std::vector<ColumnTransport> &columns_offsets,
-      const std::vector<const char *> &raw_buffers) {  // gpu pointer
+      const std::vector<std::unique_ptr<rmm::device_buffer>> &raw_buffers) {  // gpu pointer
     Node node(
         Address::TCP(address_metadata.ip, address_metadata.comunication_port,
                      address_metadata.protocol_port));
@@ -188,13 +189,13 @@ public:
 
       if (string_offset != -1) {
         char *stringsPointer =
-            (char *)raw_buffers[columns_offsets[i].strings_data];
+            (char *)raw_buffers[columns_offsets[i].strings_data]->data();
         int *offsetsPointer =
-            (int *)raw_buffers[columns_offsets[i].strings_offsets];
+            (int *)raw_buffers[columns_offsets[i].strings_offsets]->data();
         unsigned char *nullMaskPointer = nullptr;
         if (columns_offsets[i].strings_nullmask != -1) {
           nullMaskPointer =
-              (unsigned char *)raw_buffers[columns_offsets[i].strings_nullmask];
+              (unsigned char *)raw_buffers[columns_offsets[i].strings_nullmask]->data();
         }
 
         auto nvcategory_ptr = NVCategory::create_from_offsets(
@@ -212,10 +213,10 @@ public:
         if (columns_offsets[i].valid != -1) {
           // this is a valid
           auto valid_offset = columns_offsets[i].valid;
-          valid_ptr = (gdf_valid_type *)raw_buffers[valid_offset];
+          valid_ptr = (gdf_valid_type *)raw_buffers[valid_offset]->data();
         }
         gdf_error err = gdf_column_view_augmented(
-            received_samples[i], (void *)raw_buffers[data_offset], valid_ptr,
+            received_samples[i], (void *)raw_buffers[data_offset]->data(), valid_ptr,
             (gdf_size_type)columns_offsets[i].metadata.size,
             (gdf_dtype)columns_offsets[i].metadata.dtype,
             (gdf_size_type)columns_offsets[i].metadata.null_count,
@@ -225,9 +226,13 @@ public:
             (char *)columns_offsets[i].metadata.col_name);
       }
     }
+
+
     // serializeToBinary(received_samples);
     std::string expected_checksum = "41081C4C";
-
+    for (gdf_column *column : received_samples) {
+        blazingdb::test::print_gdf_column(column);
+    }
     return std::make_shared<GPUComponentMessage>(
         message_metadata.contextToken, node, message_metadata.total_row_size,
         received_samples);
@@ -268,11 +273,11 @@ std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
     std::cout << "\tchecksum_col(" << index << "):" << std::hex
               << std::uppercase << crc_result.checksum() << std::endl;
   }
-  auto gpu_message_copy = std::dynamic_pointer_cast<GPUComponentMessage>(
-      GPUComponentMessage::MakeFrom(
-          gpu_message->metadata(),
-          gpu_message->getSenderNode().address().metadata(), column_offsets,
-          buffers));
+  // auto gpu_message_copy = std::dynamic_pointer_cast<GPUComponentMessage>(
+  //     GPUComponentMessage::MakeFrom(
+  //         gpu_message->metadata(),
+  //         gpu_message->getSenderNode().address().metadata(), column_offsets,
+  //         buffers));
   // std::cout << "## original_message\n";
   // serializeToBinary(gpu_message->samples);
   // std::cout << "## copy_message\n";
@@ -370,16 +375,16 @@ static void ExecMaster() {
   RalServer::start(8000);
 
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
-  blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, 1);
+  blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
   RalServer::getInstance().registerContext(context_token);
   std::thread([]() {
     // while(true){
       auto message = RalServer::getInstance().getMessage(context_token, GPUComponentMessage::MessageID());
       auto concreteMessage = std::static_pointer_cast<GPUComponentMessage>(message);
       std::cout << "***Message begin\n";
-      for (gdf_column *column : concreteMessage->samples) {
-        blazingdb::test::print_gdf_column(column);
-      }
+      // for (gdf_column *column : concreteMessage->samples) {
+      //   blazingdb::test::print_gdf_column(column);
+      // }
       std::cout << "***Message end\n";
     // }
     RalServer::getInstance().close();
@@ -411,17 +416,17 @@ static void ExecWorker() {
 // TODO: check when the ip, port is busy, return exception!
 // TODO: check when the message is not registered, or the wrong message is
 // registered
-// TEST(SendSamplesTest, MasterAndWorker) {
-//  if (fork() > 0) {
-//    ExecMaster();
-//  } else {
-//    ExecWorker();
-//  }
-// }
+TEST(SendSamplesTest, MasterAndWorker) {
+ if (fork() > 0) {
+   ExecMaster();
+ } else {
+   ExecWorker();
+ }
+}
 
-TEST(SendSamplesTest, Master) { ExecMaster(); }
+// TEST(SendSamplesTest, Master) { ExecMaster(); }
 
-TEST(SendSamplesTest, Worker) { ExecWorker(); }
+// TEST(SendSamplesTest, Worker) { ExecWorker(); }
 
 }  // namespace experimental
 }  // namespace transport

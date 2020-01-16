@@ -7,6 +7,7 @@
 #include <string>
 #include "MessageQueue.h"
 #include "blazingdb/transport/Message.h"
+#include <rmm/device_buffer.hpp>
 
 namespace blazingdb {
 namespace transport {
@@ -157,7 +158,7 @@ public:
    */
   using MakeCallback = std::function<std::shared_ptr<GPUMessage>(
       const Message::MetaData &, const Address::MetaData &,
-      const std::vector<ColumnTransport> &, const std::vector<const char *> &)>;
+      const std::vector<ColumnTransport> &, const std::vector<std::unique_ptr<rmm::device_buffer>> &)>;
 
 public:
   virtual ~Server() = default;

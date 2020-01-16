@@ -501,15 +501,15 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
   getPinnedBufferProvider().freeAll();
 }
 
-std::vector<rmm::device_buffer> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
-                                          void *fileDescriptor, int gpuNum) 
+void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
+                                          void *fileDescriptor, int gpuNum, std::vector<std::unique_ptr<rmm::device_buffer>> &tempReadAllocations) 
 {
   std::vector<std::thread> allocationThreads(bufferSizes.size());
   std::vector<std::thread> readThreads(bufferSizes.size());
-  std::vector<rmm::device_buffer> tempReadAllocations;
+  // std::vector<std::unique_ptr<rmm::device_buffer>> tempReadAllocations;
   for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
     cudaSetDevice(gpuNum);
-    tempReadAllocations.emplace_back(rmm::device_buffer(bufferSizes[bufferIndex]));
+    tempReadAllocations.emplace_back(std::make_unique<rmm::device_buffer>(bufferSizes[bufferIndex]));
   }
   for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
     std::vector<std::thread> copyThreads;
@@ -533,7 +533,7 @@ std::vector<rmm::device_buffer> readBuffersIntoGPUTCP(std::vector<int> bufferSiz
           [&tempReadAllocations, &bufferSizes, &allocationThreads, bufferIndex,
            buffer, amountRead, amountReadTotal, gpuNum]() {
             cudaSetDevice(gpuNum);
-            cudaMemcpyAsync(tempReadAllocations[bufferIndex].data() + amountReadTotal,
+            cudaMemcpyAsync(tempReadAllocations[bufferIndex]->data() + amountReadTotal,
                             buffer->data, amountRead, cudaMemcpyHostToDevice,
                             nullptr);
             getPinnedBufferProvider().freeBuffer(buffer);
@@ -546,7 +546,7 @@ std::vector<rmm::device_buffer> readBuffersIntoGPUTCP(std::vector<int> bufferSiz
       copyThreads[threadIndex].join();
     }
   }
-  return tempReadAllocations;
+  // return tempReadAllocations;
 }
 
 
