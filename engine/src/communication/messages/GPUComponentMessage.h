@@ -33,7 +33,7 @@ namespace experimental {
 
 using Node = blazingdb::transport::experimental::Node;
 using Address = blazingdb::transport::experimental::Address;
-using ColumnTransport = blazingdb::transport::ColumnTransport;
+using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
 using GPUMessage = blazingdb::transport::experimental::GPUMessage;
 using GPUReceivedMessage = blazingdb::transport::experimental::GPUReceivedMessage;
 
@@ -42,6 +42,7 @@ inline bool isGdfString(const cudf::column_view& column) {
 	bool ret = (cudf::type_id::STRING == col_type || cudf::type_id::CATEGORY == col_type);
 	return ret;
 }
+
 
 class GPUComponentReveivedMessage : public GPUReceivedMessage {
 public:
@@ -135,7 +136,7 @@ public:
 	static std::shared_ptr<GPUReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
-		const std::vector<const char *> & raw_buffers) {  // gpu pointer
+		const std::vector<rmm::device_buffer> & raw_buffers) {  // gpu pointer
 		auto node = Node(Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port));
 		auto num_columns = columns_offsets.size();
 		std::vector<std::unique_ptr<cudf::column>> received_samples(num_columns);
@@ -147,23 +148,15 @@ public:
 			auto data_offset = columns_offsets[i].data;
 			auto string_offset = columns_offsets[i].strings_data;
 			if(string_offset != -1) { 
-				char * charsPointer = (char *) raw_buffers[columns_offsets[i].strings_data];
-				cudf::size_type * offsetsPointer = (cudf::size_type *) raw_buffers[columns_offsets[i].strings_offsets];
-				cudf::bitmask_type * nullMaskPointer = nullptr;
-				if(columns_offsets[i].strings_nullmask != -1) {
-					nullMaskPointer = (cudf::bitmask_type *) raw_buffers[columns_offsets[i].strings_nullmask];
-				} 
-				// auto unique_column = std::make_unique<cudf::column>(dtype, column_size, data_buff, valid_buff);
-				cudf::size_type column_size  =  (cudf::size_type)columns_offsets[i].metadata.size;
+				cudf::size_type num_strings = columns_offsets[i].metadata.size;
+				std::unique_ptr<cudf::column> offsets_column 
+					= std::make_unique<cudf::column>(cudf::data_type{cudf::INT32}, num_strings, std::move(raw_buffers[columns_offsets[i].strings_offsets]));
 				
-				rmm::device_vector<char> d_strings(charsPointer, charsPointer + columns_offsets[i].strings_data_size);
-				rmm::device_vector<cudf::size_type> d_offsets(offsetsPointer, offsetsPointer + columns_offsets[i].strings_offsets_size/sizeof(cudf::size_type));
-				rmm::device_vector<cudf::bitmask_type> d_null_mask{};
-				if (nullMaskPointer != nullptr) {
-				 	d_null_mask = rmm::device_vector<cudf::bitmask_type>(nullMaskPointer, nullMaskPointer + cudf::bitmask_allocation_size_bytes(column_size)/sizeof(cudf::bitmask_type));
-				}
+				cudf::size_type total_bytes = columns_offsets[i].strings_data_size;
+				std::unique_ptr<cudf::column> chars_column	= std::make_unique<cudf::column>(cudf::data_type{cudf::INT8}, total_bytes, std::move(raw_buffers[columns_offsets[i].strings_data]));
+				rmm::device_buffer null_mask(std::move(raw_buffers[columns_offsets[i].strings_nullmask])); 
 				cudf::size_type null_count = columns_offsets[i].metadata.null_count;
-				auto unique_column = cudf::make_strings_column(d_strings, d_offsets, d_null_mask, null_count);
+				auto unique_column = cudf::make_strings_column(num_strings, std::move(offsets_column), std::move(chars_column), null_count, std::move(null_mask));
 				received_samples[i] = std::move(unique_column);
 			} else {
 				cudf::data_type dtype = cudf::data_type{cudf::type_id(columns_offsets[i].metadata.dtype)};
@@ -174,19 +167,11 @@ public:
 				if(columns_offsets[i].valid != -1) {
 					// this is a valid
 					auto valid_offset = columns_offsets[i].valid;
-					valid_ptr = (cudf::valid_type *) raw_buffers[valid_offset];
-					valid_size = cudf::bitmask_allocation_size_bytes(column_size);
-				}
-				assert(raw_buffers[data_offset] != nullptr);
-				try {
-					auto dtype_size = cudf::size_of(dtype);
-					auto buffer_size = column_size * dtype_size;
-					rmm::device_buffer data_buff(raw_buffers[data_offset], buffer_size);
-					rmm::device_buffer valid_buff(valid_ptr, valid_size);
-					auto unique_column = std::make_unique<cudf::column>(dtype, column_size, data_buff, valid_buff);
+					auto unique_column = std::make_unique<cudf::column>(dtype, column_size, std::move(raw_buffers[data_offset]), std::move(raw_buffers[valid_offset]));
 					received_samples[i] = std::move(unique_column);
-				} catch(std::exception& e) {
-					std::cerr << e.what() << std::endl;
+				} else {
+					auto unique_column = std::make_unique<cudf::column>(dtype, column_size, std::move(raw_buffers[data_offset]));
+					received_samples[i] = std::move(unique_column);
 				}
 			}
 			column_names[i] = std::string{columns_offsets[i].metadata.col_name};
@@ -205,6 +190,7 @@ public:
 protected:
 	ral::frame::BlazingTableView table_view; 
 };
+
 
 }  // namespace experimental
 }  // namespace messages
@@ -239,7 +225,7 @@ public:
 						std::uint64_t total_row_size = 0)
 		: GPUMessage(messageToken, contextToken, sender_node),
 		  table(std::move(samples)) {
-		this->metadata().total_row_size = total_row_size;
+		this->metadata_.total_row_size = total_row_size;
 	}
 	virtual raw_buffer GetRawColumns() {
 		assert(false);
@@ -265,7 +251,7 @@ public:
 		ral::frame::BlazingTableView & samples,
 		std::uint64_t total_row_size = 0)
 		: GPUMessage(messageToken, contextToken, sender_node), table_view{samples} {
-		this->metadata().total_row_size = total_row_size;
+		this->metadata_.total_row_size = total_row_size;
 	}
 
 

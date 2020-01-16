@@ -158,7 +158,7 @@ public:
    */
   using MakeCallback = std::function<std::shared_ptr<GPUMessage>(
       const Message::MetaData &, const Address::MetaData &,
-      const std::vector<ColumnTransport> &, const std::vector<std::unique_ptr<rmm::device_buffer>> &)>;
+      const std::vector<ColumnTransport> &, const std::vector<rmm::device_buffer> &)>;
 
 public:
   virtual ~Server() = default;

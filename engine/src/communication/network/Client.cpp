@@ -25,8 +25,12 @@ void Client::closeConnections() {
 
 
 blazingdb::transport::Status Client::sendNodeData(std::string ip, int16_t port, Message & message) {
-	auto client = blazingdb::manager::Manager::MakeClient(ip, port);
-	return client->Send(message);
+	// TOOO: Remove old code: 
+	// NOTE No more Manager classes
+	assert(false);
+	// auto client = blazingdb::manager::Manager::MakeClient(ip, port);
+	// return client->Send(message);
+	return blazingdb::transport::Status{};
 }
 
 }  // namespace network

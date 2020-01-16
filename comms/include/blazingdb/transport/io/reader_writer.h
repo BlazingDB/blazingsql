@@ -100,7 +100,7 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
                             int gpuNum);
 
 void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
-                                          void *fileDescriptor, int gpuNum, std::vector<std::unique_ptr<rmm::device_buffer>> &);
+                                          void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &);
 
 }  // namespace io
 }  // namespace experimental

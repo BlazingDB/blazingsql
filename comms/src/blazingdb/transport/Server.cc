@@ -320,7 +320,7 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
     blazingdb::transport::io::readFromSocket(
         socket, (char *)buffer_sizes.data(), buffer_sizes_size * sizeof(int));
 
-    std::vector<std::unique_ptr<rmm::device_buffer>> raw_columns;
+    std::vector<rmm::device_buffer> raw_columns;
     blazingdb::transport::experimental::io::readBuffersIntoGPUTCP(buffer_sizes, socket, gpuId, raw_columns);
     zmq::socket_t *socket_ptr = (zmq::socket_t *)socket;
 

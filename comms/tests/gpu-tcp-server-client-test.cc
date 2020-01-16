@@ -171,7 +171,7 @@ public:
       const Message::MetaData &message_metadata,
       const Address::MetaData &address_metadata,
       const std::vector<ColumnTransport> &columns_offsets,
-      const std::vector<std::unique_ptr<rmm::device_buffer>> &raw_buffers) {  // gpu pointer
+      const std::vector<rmm::device_buffer> &raw_buffers) {  // gpu pointer
     Node node(
         Address::TCP(address_metadata.ip, address_metadata.comunication_port,
                      address_metadata.protocol_port));
@@ -189,13 +189,13 @@ public:
 
       if (string_offset != -1) {
         char *stringsPointer =
-            (char *)raw_buffers[columns_offsets[i].strings_data]->data();
+            (char *)raw_buffers[columns_offsets[i].strings_data].data();
         int *offsetsPointer =
-            (int *)raw_buffers[columns_offsets[i].strings_offsets]->data();
+            (int *)raw_buffers[columns_offsets[i].strings_offsets].data();
         unsigned char *nullMaskPointer = nullptr;
         if (columns_offsets[i].strings_nullmask != -1) {
           nullMaskPointer =
-              (unsigned char *)raw_buffers[columns_offsets[i].strings_nullmask]->data();
+              (unsigned char *)raw_buffers[columns_offsets[i].strings_nullmask].data();
         }
 
         auto nvcategory_ptr = NVCategory::create_from_offsets(
@@ -213,10 +213,10 @@ public:
         if (columns_offsets[i].valid != -1) {
           // this is a valid
           auto valid_offset = columns_offsets[i].valid;
-          valid_ptr = (gdf_valid_type *)raw_buffers[valid_offset]->data();
+          valid_ptr = (gdf_valid_type *)raw_buffers[valid_offset].data();
         }
         gdf_error err = gdf_column_view_augmented(
-            received_samples[i], (void *)raw_buffers[data_offset]->data(), valid_ptr,
+            received_samples[i], (void *)raw_buffers[data_offset].data(), valid_ptr,
             (gdf_size_type)columns_offsets[i].metadata.size,
             (gdf_dtype)columns_offsets[i].metadata.dtype,
             (gdf_size_type)columns_offsets[i].metadata.null_count,
