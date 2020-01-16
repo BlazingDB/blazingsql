@@ -547,19 +547,18 @@ void aggregationsMerger(std::vector<ral::distribution::NodeColumns> & aggregatio
 }
 
 
-void single_node_aggregations(blazing_frame & input,
+std::unique_ptr<ral::frame::BlazingTable> single_node_aggregations(const ral::frame::BlazingTableView & table,
 	std::vector<int> & group_column_indices,
 	std::vector<gdf_agg_op> & aggregation_types,
 	std::vector<std::string> & aggregation_input_expressions,
 	std::vector<std::string> & aggregation_column_assigned_aliases) {
-	std::vector<gdf_column_cpp> aggregatedTable = compute_aggregations(input,
+	std::unique_ptr<ral::frame::BlazingTable> aggregatedTable = compute_aggregations(table,
 		group_column_indices,
 		aggregation_types,
 		aggregation_input_expressions,
 		aggregation_column_assigned_aliases);
 
-	input.clear();
-	input.add_table(aggregatedTable);
+	return aggregatedTable;
 }
 
 void distributed_aggregations_with_groupby(Context & queryContext,
@@ -731,7 +730,7 @@ void distributed_aggregations_without_groupby(Context & queryContext,
 	}
 }
 
-void process_aggregate(blazing_frame & input, std::string query_part, Context * queryContext) {
+void process_aggregate(const ral::frame::BlazingTableView & table, std::string query_part, Context * queryContext) {
 	/*
 	 * 			String sql = "select sum(e), sum(z), x, y from hr.emps group by x , y";
 	 * 			generates the following calcite relational algebra
@@ -773,33 +772,34 @@ void process_aggregate(blazing_frame & input, std::string query_part, Context * 
 
 	if(aggregation_types.size() == 0) {
 		if(!queryContext || queryContext->getTotalNodes() <= 1) {
-			single_node_groupby_without_aggregations(input, group_column_indices);
+			single_node_groupby_without_aggregations(table, group_column_indices);
 		} else {
-			distributed_groupby_without_aggregations(*queryContext, input, group_column_indices);
+			distributed_groupby_without_aggregations(*queryContext, table, group_column_indices);
 		}
 	} else {
 		if(!queryContext || queryContext->getTotalNodes() <= 1) {
-			single_node_aggregations(input,
+			single_node_aggregations(table,
 				group_column_indices,
 				aggregation_types,
 				aggregation_input_expressions,
 				aggregation_column_assigned_aliases);
 		} else {
-			if(group_column_indices.size() == 0) {
-				distributed_aggregations_without_groupby(*queryContext,
-					input,
-					group_column_indices,
-					aggregation_types,
-					aggregation_input_expressions,
-					aggregation_column_assigned_aliases);
-			} else {
-				distributed_aggregations_with_groupby(*queryContext,
-					input,
-					group_column_indices,
-					aggregation_types,
-					aggregation_input_expressions,
-					aggregation_column_assigned_aliases);
-			}
+			// TODO percy william alex port distribution
+//			if(group_column_indices.size() == 0) {
+//				distributed_aggregations_without_groupby(*queryContext,
+//					input,
+//					group_column_indices,
+//					aggregation_types,
+//					aggregation_input_expressions,
+//					aggregation_column_assigned_aliases);
+//			} else {
+//				distributed_aggregations_with_groupby(*queryContext,
+//					table,
+//					group_column_indices,
+//					aggregation_types,
+//					aggregation_input_expressions,
+//					aggregation_column_assigned_aliases);
+//			}
 		}
 	}
 }
