@@ -20,13 +20,6 @@ public:
 
 	virtual ~orc_parser();
 
-	// Deprecated
-	void parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const std::string & user_readable_file_handle,
-		std::vector<gdf_column_cpp> & columns_out,
-		const Schema & schema,
-		std::vector<size_t> column_indices_requested);
-
 	std::unique_ptr<ral::frame::BlazingTable> parse(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,

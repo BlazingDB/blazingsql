@@ -45,14 +45,6 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args orc_arg,
 	return std::move(table_out);
 }
 
-// DEPRECATED this function should not will be used
-void orc_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
-	std::vector<gdf_column_cpp> & columns_out, 
-	const Schema & schema,
-	std::vector<size_t> column_indices) {
-}
-
 std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle, // TODO where is this param used?

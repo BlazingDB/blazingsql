@@ -79,15 +79,6 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), column_names);
 }
 
-// DEPRECATED this function should not will be used
-// schema is not really necessary yet here, but we want it to maintain compatibility
-void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
-	std::vector<gdf_column_cpp> & columns_out,
-	const Schema & schema,
-	std::vector<size_t> column_indices) { 
-}
-
 std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,

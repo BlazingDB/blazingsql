@@ -67,7 +67,9 @@ cudf::table read_json_arrow(std::shared_ptr<arrow::io::RandomAccessFile> arrow_f
 	return table_out;
 }
 
-// Deprecated
+// TODO: cordova erase this code when the new GDF parse works well with the new API
+// using UNIT TEST to check when it's ready
+/*
 void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	std::vector<gdf_column_cpp> & columns_out,
@@ -115,6 +117,7 @@ void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 //		}
 	}
 }
+*/
 
 
 std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
@@ -122,7 +125,8 @@ std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
-			return nullptr;
+		// TODO: Implement the new ARROW parser with 0.12 API whether already a new API exists for JSON parse
+		return nullptr;
 }
 
 void json_parser::parse_schema(
