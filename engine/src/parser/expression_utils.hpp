@@ -56,7 +56,7 @@ static std::map<std::string, gdf_binary_operator_exp> gdf_binary_operator_map = 
 	{"SUBSTRING", BLZ_STR_SUBSTRING},
 	{"||", BLZ_STR_CONCAT}};
 
-static std::vector<std::string> SQL_DATA_TYPES = {
+static std::vector<std::string> CALCITE_DATA_TYPES = {
 	"INTEGER", "BIGINT", "FLOAT", "DOUBLE", "DATE", "TIMESTAMP", "VARCHAR"};
 
 bool is_binary_operator_token(const std::string & token);
@@ -86,3 +86,5 @@ bool is_literal(const std::string & token);
 bool is_var_column(const std::string& token);
 
 bool is_inequality(const std::string& token);
+
+std::string get_named_expression(const std::string & query_part, const std::string & expression_name);
