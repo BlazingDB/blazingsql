@@ -82,75 +82,9 @@ cudf::groupby::operators gdf_agg_op_to_groupby_operators(const gdf_agg_op agg_op
 	}
 }
 
-//ToDo Rommel
-std::vector<gdf_column_cpp> groupby_without_aggregations(
-	std::vector<gdf_column_cpp> & input, const std::vector<int> & group_column_indices) {
-	cudf::size_type num_group_columns = group_column_indices.size();
-
-	gdf_context ctxt;
-	ctxt.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  //  Nulls are are treated as largest
-	ctxt.flag_groupby_include_nulls = 1;  // Nulls are treated as values in group by keys where NULL == NULL (SQL style)
-
-	cudf::table group_by_data_in_table = ral::utilities::create_table(input);
-	cudf::table group_by_columns_out_table;
-
-	// We want the index_col_ptr be on the heap because index_col will call delete when it goes out of scope
-	// TODO percy cudf0.12 port to cudf::column
-	cudf::column * index_col_ptr = new cudf::column();
-	
-	// TODO percy cudf0.12 port to cudf::column
-//	std::tie(group_by_columns_out_table, *index_col_ptr) = gdf_group_by_without_aggregations(
-//		group_by_data_in_table, num_group_columns, group_column_indices.data(), &ctxt);
-	
-	gdf_column_cpp index_col;
-	
-	// TODO percy cudf0.12 port to cudf::column
-	//index_col.create_gdf_column(index_col_ptr);
-
-	ral::init_string_category_if_null(group_by_columns_out_table);
-
-	std::vector<gdf_column_cpp> output_columns_group(group_by_columns_out_table.num_columns());
-	for(int i = 0; i < output_columns_group.size(); i++) {
-		auto * grouped_col = group_by_columns_out_table.get_column(i);
-		grouped_col->col_name =
-			nullptr;  // need to do this because gdf_group_by_without_aggregations is not setting the name properly
-		
-		// TODO percy cudf0.12 port to cudf::column
-		//output_columns_group[i].create_gdf_column(grouped_col);
-	}
-
-	std::vector<gdf_column_cpp> grouped_output(num_group_columns);
-	for(int i = 0; i < num_group_columns; i++) {
-		// TODO percy cudf0.12 port to cudf::column
-//		if(input[i].valid()) {
-//			grouped_output[i].create_gdf_column(input[i].dtype(),
-//				index_col_ptr->size,
-//				nullptr,
-//				ral::traits::get_dtype_size_in_bytes(input[i].dtype()),
-//				input[i].name());
-//		}
-//		else {
-//			grouped_output[i].create_gdf_column(input[i].dtype(),
-//				index_col_ptr->size,
-//				nullptr,
-//				nullptr,
-//				ral::traits::get_dtype_size_in_bytes(input[i].dtype()),
-//				input[i].name());
-//		}
-		materialize_column(output_columns_group[i].get_gdf_column(), grouped_output[i].get_gdf_column(), index_col_ptr);
-	}
-	return grouped_output;
-}
-
-void single_node_groupby_without_aggregations(blazing_frame & input, std::vector<int> & group_column_indices) {
-	std::vector<gdf_column_cpp> data_cols_in(input.get_width());
-	for(int i = 0; i < input.get_width(); i++) {
-		data_cols_in[i] = input.get_column(i);
-	}
-	std::vector<gdf_column_cpp> grouped_table = groupby_without_aggregations(data_cols_in, group_column_indices);
-
-	input.clear();
-	input.add_table(grouped_table);
+std::unique_ptr<ral::frame::BlazingTable> single_node_groupby_without_aggregations(const ral::frame::BlazingTableView & table, std::vector<int> & group_column_indices) {
+	std::unique_ptr<ral::frame::BlazingTable> ret = groupby_without_aggregations(table, group_column_indices);
+	return ret;
 }
 
 void distributed_groupby_without_aggregations(
@@ -179,11 +113,12 @@ void distributed_groupby_without_aggregations(
 		std::launch::async,
 		[](Context & queryContext, std::vector<gdf_column_cpp> & input, const std::vector<int> & group_column_indices) {
 			static CodeTimer timer2;
-			std::vector<gdf_column_cpp> result = groupby_without_aggregations(input, group_column_indices);
-			Library::Logging::Logger().logInfo(timer.logDuration(
-				queryContext, "distributed_groupby_without_aggregations part 1 async groupby_without_aggregations"));
-			timer.reset();
-			return result;
+			// TODO percy william alex port distribution
+//			std::vector<gdf_column_cpp> result = groupby_without_aggregations(input, group_column_indices);
+//			Library::Logging::Logger().logInfo(timer.logDuration(
+//				queryContext, "distributed_groupby_without_aggregations part 1 async groupby_without_aggregations"));
+//			timer.reset();
+//			return result;
 		},
 		std::ref(queryContext),
 		std::ref(data_cols_in),
@@ -215,119 +150,82 @@ void distributed_groupby_without_aggregations(
 			queryContext, "distributed_groupby_without_aggregations part 1 sendSamplesToMaster getPartitionPlan"));
 		timer.reset();
 	}
-	// Wait for groupByThread
-	std::vector<gdf_column_cpp> groupedTable = groupByTask.get();
-	queryContext.incrementQuerySubstep();
-
-	if(partitionPlan[0].get_gdf_column()->size() == 0) {
-		return;
-	}
-
-	std::vector<ral::distribution::NodeColumns> partitions =
-		ral::distribution::partitionData(queryContext, groupedTable, group_column_indices, partitionPlan, false);
-	Library::Logging::Logger().logInfo(
-		timer.logDuration(queryContext, "distributed_groupby_without_aggregations part 2 partitionData"));
-	timer.reset();
-
-	queryContext.incrementQuerySubstep();
-	ral::distribution::distributePartitions(queryContext, partitions);
-	std::vector<ral::distribution::NodeColumns> partitionsToMerge = ral::distribution::collectPartitions(queryContext);
-
-	auto it = std::find_if(partitions.begin(), partitions.end(), [&](ral::distribution::NodeColumns & el) {
-		return el.getNode() == CommunicationData::getInstance().getSelfNode();
-	});
-	// Could "it" iterator be partitions.end()?
-	partitionsToMerge.push_back(*it);
-
-	Library::Logging::Logger().logInfo(timer.logDuration(
-		queryContext, "distributed_groupby_without_aggregations part 3 distributePartitions collectPartitions"));
-	timer.reset();
-
-	ral::distribution::groupByWithoutAggregationsMerger(partitionsToMerge, group_column_indices, input);
-
-	Library::Logging::Logger().logInfo(timer.logDuration(
-		queryContext, "distributed_groupby_without_aggregations part 4 groupByWithoutAggregationsMerger"));
-	timer.reset();
-}
-
-void aggregations_with_groupby(std::vector<gdf_column_cpp> & group_by_columns,
-	std::vector<gdf_column_cpp> & aggregation_inputs,
-	const std::vector<gdf_agg_op> & agg_ops,
-	std::vector<gdf_column_cpp> & group_by_output_columns,
-	std::vector<gdf_column_cpp> & aggrgation_output_columns,
-	const std::vector<std::string> & output_column_names) {
-	cudf::table keys = ral::utilities::create_table(group_by_columns);
-	cudf::table values = ral::utilities::create_table(aggregation_inputs);
-
-	std::vector<cudf::groupby::operators> ops(agg_ops.size());
-	std::transform(agg_ops.begin(), agg_ops.end(), ops.begin(), [&](const gdf_agg_op & op) {
-		return gdf_agg_op_to_groupby_operators(op);
-	});
-
-	cudf::groupby::hash::Options options(false);  // options define null behaviour to be SQL style
-
-	cudf::table group_by_output_table;
-	cudf::table aggrgation_output_table;
-	std::tie(group_by_output_table, aggrgation_output_table) = cudf::groupby::hash::groupby(keys,
-                                            values, ops, options);
 	
-	init_string_category_if_null(group_by_output_table);
-    init_string_category_if_null(aggrgation_output_table);
+	// TODO percy william alex port distribution
+//	// Wait for groupByThread
+//	std::vector<gdf_column_cpp> groupedTable = groupByTask.get();
+//	queryContext.incrementQuerySubstep();
 
-	group_by_output_columns.resize(group_by_output_table.num_columns());
-	for(size_t i = 0; i < group_by_output_columns.size(); i++) {
-		// TODO percy cudf0.12 port to cudf::column
-//		group_by_output_columns[i].create_gdf_column(group_by_output_table.get_column(i));
-//		group_by_output_columns[i].set_name(group_by_columns[i].name());
-	}
+//	if(partitionPlan[0].get_gdf_column()->size() == 0) {
+//		return;
+//	}
 
-	aggrgation_output_columns.resize(aggrgation_output_table.num_columns());
-	for(size_t i = 0; i < aggrgation_output_columns.size(); i++) {
-		// TODO percy cudf0.12 port to cudf::column
-//		aggrgation_output_columns[i].create_gdf_column(aggrgation_output_table.get_column(i));
-//		aggrgation_output_columns[i].set_name(output_column_names[i]);
-	}
+//	std::vector<ral::distribution::NodeColumns> partitions =
+//		ral::distribution::partitionData(queryContext, groupedTable, group_column_indices, partitionPlan, false);
+//	Library::Logging::Logger().logInfo(
+//		timer.logDuration(queryContext, "distributed_groupby_without_aggregations part 2 partitionData"));
+//	timer.reset();
+
+//	queryContext.incrementQuerySubstep();
+//	ral::distribution::distributePartitions(queryContext, partitions);
+//	std::vector<ral::distribution::NodeColumns> partitionsToMerge = ral::distribution::collectPartitions(queryContext);
+
+//	auto it = std::find_if(partitions.begin(), partitions.end(), [&](ral::distribution::NodeColumns & el) {
+//		return el.getNode() == CommunicationData::getInstance().getSelfNode();
+//	});
+//	// Could "it" iterator be partitions.end()?
+//	partitionsToMerge.push_back(*it);
+
+//	Library::Logging::Logger().logInfo(timer.logDuration(
+//		queryContext, "distributed_groupby_without_aggregations part 3 distributePartitions collectPartitions"));
+//	timer.reset();
+
+//	ral::distribution::groupByWithoutAggregationsMerger(partitionsToMerge, group_column_indices, input);
+
+//	Library::Logging::Logger().logInfo(timer.logDuration(
+//		queryContext, "distributed_groupby_without_aggregations part 4 groupByWithoutAggregationsMerger"));
+//	timer.reset();
 }
 
-void _new_aggregations_with_groupby(std::vector<CudfColumnView> const & group_by_columns,
-	std::vector<cudf::column_view> const & aggregation_inputs,
-	std::vector<std::unique_ptr<cudf::experimental::aggregation>> const & agg_ops,
-	std::vector<cudf::column_view> & group_by_output_columns,
-	std::vector<cudf::column_view> & aggregation_output_columns,
-	std::vector<std::string> & output_column_names) {
+void aggregations_with_groupby(std::vector<CudfColumnView> const & group_by_columns,
+   std::vector<cudf::column_view> const & aggregation_inputs,
+   std::vector<cudf::experimental::aggregation::Kind> const & agg_ops,
+   std::vector< std::unique_ptr<cudf::column> > & group_by_output_columns,
+   std::vector< std::unique_ptr<cudf::column> > & aggregation_output_columns) {
 
-	std::vector<cudf::experimental::groupby::aggregation_request> requests;
-	requests.reserve(agg_ops.size());
+   std::vector<cudf::experimental::groupby::aggregation_request> requests;
+   requests.reserve(agg_ops.size());
 
-	for(size_t I = 0 ; I<agg_ops.size() ; ++I){
-		requests.push_back(cudf::experimental::groupby::aggregation_request {.values = aggregation_inputs[I]});
-		requests[I].aggregations.reserve(agg_ops.size());
+   for(size_t i = 0 ; i < agg_ops.size() ; ++i){
+	   requests.push_back(cudf::experimental::groupby::aggregation_request {.values = aggregation_inputs[i]});
+	   requests[i].aggregations.reserve(agg_ops.size());
 
-		requests[I].aggregations.push_back(std::make_unique<cudf::experimental::aggregation>(*(agg_ops[I])));
+	   requests[i].aggregations.push_back(std::make_unique<cudf::experimental::aggregation>(agg_ops[i]));
 
-		cudf::table_view keys {{group_by_columns}};
-		cudf::experimental::groupby::groupby obj(keys);
-		
-		std::pair<std::unique_ptr<cudf::experimental::table>, std::vector<cudf::experimental::groupby::aggregation_result>> output = obj.aggregate( requests );
+	   cudf::table_view keys {{group_by_columns}};
+	   cudf::experimental::groupby::groupby obj(keys);
+	   
+	   std::pair<std::unique_ptr<cudf::experimental::table>, std::vector<cudf::experimental::groupby::aggregation_result>> output = obj.aggregate( requests );
 
-		if (output.first->num_columns()>0) {
-			group_by_output_columns.push_back(output.first->get_column(0));
-			aggregation_output_columns.push_back(*output.second[0].results[0]);
-		}
-	}
+	   if (output.first->num_columns()>0) {
+		   std::vector< std::unique_ptr<cudf::column> > gby_cols = output.first->release();
+		   group_by_output_columns.push_back(std::move(gby_cols[0]));
+		   aggregation_output_columns.push_back(std::move(output.second[0].results[0]));
+	   }
+   }
 }
 
-void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
-	std::vector<gdf_column_cpp> & aggregation_inputs,
-	std::vector<gdf_column_cpp> & output_columns,
+void aggregations_without_groupby(const std::vector<cudf::experimental::aggregation::Kind> & agg_ops,
+	std::vector<CudfColumnView> & aggregation_inputs,
+	std::vector< std::unique_ptr<cudf::column> > & output_columns,
 	const std::vector<cudf::type_id> & output_types,
 	const std::vector<std::string> & output_column_names) {
 	for(size_t i = 0; i < agg_ops.size(); i++) {
 		switch(agg_ops[i]) {
-		case GDF_SUM:
-		case GDF_MIN:
-		case GDF_MAX:
-			if(aggregation_inputs[i].get_gdf_column()->size() == 0) {
+		case cudf::experimental::aggregation::Kind::SUM:
+		case cudf::experimental::aggregation::Kind::MIN:
+		case cudf::experimental::aggregation::Kind::MAX:
+			if(aggregation_inputs[i].size() == 0) {
 				// Set output_column data to invalid
 				std::unique_ptr<cudf::scalar> null_value;
 				
@@ -347,9 +245,9 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 				
 				break;
 			}
-		case GDF_AVG:
-			if(aggregation_inputs[i].get_gdf_column()->size() == 0 ||
-				(aggregation_inputs[i].get_gdf_column()->size() == aggregation_inputs[i].get_gdf_column()->null_count())) {
+		case cudf::experimental::aggregation::Kind::MEAN:
+			if(aggregation_inputs[i].size() == 0 ||
+				(aggregation_inputs[i].size() == aggregation_inputs[i].null_count())) {
 				// Set output_column data to invalid
 				
 				// TODO percy cudf0.12 implement proper scalar support
@@ -360,14 +258,13 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 				
 				break;
 			} else {
-				cudf::type_id sum_output_type = get_aggregation_output_type(aggregation_inputs[i].get_gdf_column()->type().id(), GDF_SUM, false);
+				cudf::type_id sum_output_type = get_aggregation_output_type(aggregation_inputs[i].type().id(), cudf::experimental::aggregation::Kind::SUM, false);
 				
 				// TODO percy cudf0.12 implement proper scalar support
 				//std::unique_ptr<cudf::scalar> avg_sum_scalar = cudf::reduce(
 				//	aggregation_inputs[i].get_gdf_column(), cudf::reduction::operators::SUM, to_gdf_type(sum_output_type));
 				
-				long avg_count =
-					aggregation_inputs[i].get_gdf_column()->size() - aggregation_inputs[i].get_gdf_column()->null_count();
+				long avg_count = aggregation_inputs[i].size() - aggregation_inputs[i].null_count();
 
 				assert(output_types[i] == GDF_FLOAT64);
 				assert(sum_output_type == GDF_INT64 || sum_output_type == GDF_FLOAT64);
@@ -384,7 +281,7 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 				
 				break;
 			}
-		case GDF_COUNT: {
+		case cudf::experimental::aggregation::Kind::COUNT: {
 			// TODO percy cudf0.12 implement proper scalar support
 			//std::unique_ptr<cudf::scalar> reduction_out;
 			//reduction_out.dtype = GDF_INT64;
@@ -395,16 +292,17 @@ void aggregations_without_groupby(const std::vector<gdf_agg_op> & agg_ops,
 			
 			break;
 		}
-		case GDF_COUNT_DISTINCT: {
-			throw std::runtime_error("COUNT DISTINCT currently not supported without a group by");
-		}
+		// TODO percy cudf0.12 aggregation COUNT_DISTINCT cases
+//		case GDF_COUNT_DISTINCT: {
+//			throw std::runtime_error("COUNT DISTINCT currently not supported without a group by");
+//		}
 		}
 	}
 }
 
-std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableView & table,
+std::unique_ptr<ral::frame::BlazingTable> compute_aggregations(const ral::frame::BlazingTableView & table,
 	std::vector<int> & group_column_indices,
-	std::vector<gdf_agg_op> & aggregation_types,
+	std::vector<cudf::experimental::aggregation::Kind> const & aggregation_types,
 	std::vector<std::string> & aggregation_input_expressions,
 	std::vector<std::string> & aggregation_column_assigned_aliases) {
 	size_t row_size = table.view().column(0).size();
@@ -423,7 +321,7 @@ std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableV
 		std::string expression = aggregation_input_expressions[i];
 
 		// this means we have a COUNT(*). So lets create a simple column with no nulls
-		if(expression == "" && aggregation_types[i] == GDF_COUNT) {
+		if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT ) {
 			std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(cudf::data_type(cudf::type_id::INT8), row_size);
 			std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT8));
 			auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int8_t>* >(scalar.get());
@@ -438,11 +336,25 @@ std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableV
 				cudf::type_id unused;
 				cudf::type_id agg_input_type = get_output_type_expression(table, &unused, expression);
 				
-				std::unique_ptr<cudf::column> temp = std::make_unique<cudf::column>(cudf::data_type(agg_input_type), row_size);
+				std::unique_ptr<cudf::column> temp;
+				
+				switch (agg_input_type) {
+					case cudf::type_id::INT8:
+					case cudf::type_id::INT16:
+					case cudf::type_id::INT32:
+					case cudf::type_id::INT64:
+					case cudf::type_id::FLOAT32:
+					case cudf::type_id::FLOAT64: {
+						temp = cudf::make_numeric_column(cudf::data_type(agg_input_type), row_size);
+						break;
+					}
+					// TODO percy cudf0.12 jp strings and dates cases
+				}
+				
 				aggregation_inputs_scope_holder[i] = std::move(temp);
 				aggregation_inputs[i] = aggregation_inputs_scope_holder[i]->view();
 
-				// TODO percy rommel jp prot evaluate expression
+				// TODO percy rommel jp port evaluate expression
 				//evaluate_expression(table, expression, aggregation_inputs[i]);
 			} else {
 				aggregation_inputs[i] = table.view().column(get_index(expression));
@@ -453,7 +365,7 @@ std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableV
 
 		// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
 		if(aggregation_column_assigned_aliases[i] == "") {
-			if(expression == "" && aggregation_types[i] == GDF_COUNT) {  // COUNT(*) case
+			if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT) {  // COUNT(*) case
 				output_column_names[i] = aggregator_to_string(aggregation_types[i]) + "(*)";
 			} else {
 				output_column_names[i] =
@@ -464,18 +376,16 @@ std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableV
 		}
 	}
 
-	std::vector<gdf_column_cpp> group_by_output_columns;
-	std::vector<gdf_column_cpp> output_columns_aggregations(aggregation_types.size());
+	std::vector< std::unique_ptr<cudf::column> > group_by_output_columns;
+	std::vector< std::unique_ptr<cudf::column> > output_columns_aggregations(aggregation_types.size());
 	if(group_column_indices.size() == 0) {
-		aggregations_without_groupby(
-			aggregation_types, aggregation_inputs, output_columns_aggregations, output_types, output_column_names);
+		aggregations_without_groupby(aggregation_types, aggregation_inputs, output_columns_aggregations, output_types, output_column_names);
 	} else {
 		aggregations_with_groupby(group_by_columns,
 			aggregation_inputs,
 			aggregation_types,
 			group_by_output_columns,
-			output_columns_aggregations,
-			output_column_names);
+			output_columns_aggregations);
 	}
 
 	// output table is grouped columns and then aggregated columns
@@ -483,7 +393,10 @@ std::vector<gdf_column_cpp> compute_aggregations(const ral::frame::BlazingTableV
 		std::make_move_iterator(output_columns_aggregations.begin()),
 		std::make_move_iterator(output_columns_aggregations.end()));
 
-	return group_by_output_columns;
+	std::unique_ptr<CudfTable> ret_tb = std::make_unique<CudfTable>(std::move(group_by_output_columns));
+	std::unique_ptr<ral::frame::BlazingTable> ret = std::make_unique<ral::frame::BlazingTable>(std::move(ret_tb), output_column_names);
+
+	return ret;	
 }
 
 
@@ -522,20 +435,22 @@ void aggregationsMerger(std::vector<ral::distribution::NodeColumns> & aggregatio
 
 	std::vector<gdf_column_cpp> group_by_output_columns;
 	std::vector<gdf_column_cpp> output_columns_aggregations(modAggregationTypes.size());
-	if(groupColIndices.size() == 0) {
-		aggregations_without_groupby(modAggregationTypes,
-			aggregation_inputs,
-			output_columns_aggregations,
-			aggregation_dtypes,
-			aggregation_names);
-	} else {
-		aggregations_with_groupby(groupByColumns,
-			aggregation_inputs,
-			modAggregationTypes,
-			group_by_output_columns,
-			output_columns_aggregations,
-			aggregation_names);
-	}
+	
+	// TODO percy william alex port distribution
+//	if(groupColIndices.size() == 0) {
+//		aggregations_without_groupby(modAggregationTypes,
+//			aggregation_inputs,
+//			output_columns_aggregations,
+//			aggregation_dtypes,
+//			aggregation_names);
+//	} else {
+//		aggregations_with_groupby(groupByColumns,
+//			aggregation_inputs,
+//			modAggregationTypes,
+//			group_by_output_columns,
+//			output_columns_aggregations,
+//			aggregation_names);
+//	}
 
 	std::vector<gdf_column_cpp> outputTable(group_by_output_columns);
 	outputTable.insert(outputTable.end(),
@@ -549,7 +464,7 @@ void aggregationsMerger(std::vector<ral::distribution::NodeColumns> & aggregatio
 
 std::unique_ptr<ral::frame::BlazingTable> single_node_aggregations(const ral::frame::BlazingTableView & table,
 	std::vector<int> & group_column_indices,
-	std::vector<gdf_agg_op> & aggregation_types,
+	std::vector<cudf::experimental::aggregation::Kind> & aggregation_types,
 	std::vector<std::string> & aggregation_input_expressions,
 	std::vector<std::string> & aggregation_column_assigned_aliases) {
 	std::unique_ptr<ral::frame::BlazingTable> aggregatedTable = compute_aggregations(table,
@@ -597,15 +512,17 @@ void distributed_aggregations_with_groupby(Context & queryContext,
 			std::vector<std::string> & aggregation_input_expressions,
 			std::vector<std::string> & aggregation_column_assigned_aliases) {
 			static CodeTimer timer2;
-			std::vector<gdf_column_cpp> result = compute_aggregations(input,
-				group_column_indices,
-				aggregation_types,
-				aggregation_input_expressions,
-				aggregation_column_assigned_aliases);
-			Library::Logging::Logger().logInfo(
-				timer.logDuration(queryContext, "distributed_aggregations_with_groupby async compute_aggregations"));
-			timer.reset();
-			return result;
+			
+			// TODO percy william alex port distribution
+//			std::vector<gdf_column_cpp> result = compute_aggregations(input,
+//				group_column_indices,
+//				aggregation_types,
+//				aggregation_input_expressions,
+//				aggregation_column_assigned_aliases);
+//			Library::Logging::Logger().logInfo(
+//				timer.logDuration(queryContext, "distributed_aggregations_with_groupby async compute_aggregations"));
+//			timer.reset();
+//			return result;
 		},
 		std::ref(queryContext),
 		std::ref(input),
@@ -640,41 +557,42 @@ void distributed_aggregations_with_groupby(Context & queryContext,
 		timer.reset();
 	}
 
-	// Wait for aggregationThread
-	std::vector<gdf_column_cpp> aggregatedTable = aggregationTask.get();
+	// TODO percy william alex port distribution
+//	// Wait for aggregationThread
+//	std::vector<gdf_column_cpp> aggregatedTable = aggregationTask.get();
 
-	if(partitionPlan[0].get_gdf_column()->size() == 0) {
-		return;
-	}
+//	if(partitionPlan[0].get_gdf_column()->size() == 0) {
+//		return;
+//	}
 
-	std::vector<int> groupColumnIndices(group_column_indices.size());
-	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
+//	std::vector<int> groupColumnIndices(group_column_indices.size());
+//	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
 
-	std::vector<ral::distribution::NodeColumns> partitions =
-		ral::distribution::partitionData(queryContext, aggregatedTable, groupColumnIndices, partitionPlan, false);
-	Library::Logging::Logger().logInfo(
-		timer.logDuration(queryContext, "distributed_aggregations_with_groupby part 2 partitionData"));
-	timer.reset();
+//	std::vector<ral::distribution::NodeColumns> partitions =
+//		ral::distribution::partitionData(queryContext, aggregatedTable, groupColumnIndices, partitionPlan, false);
+//	Library::Logging::Logger().logInfo(
+//		timer.logDuration(queryContext, "distributed_aggregations_with_groupby part 2 partitionData"));
+//	timer.reset();
 
-	queryContext.incrementQuerySubstep();
-	ral::distribution::distributePartitions(queryContext, partitions);
-	std::vector<ral::distribution::NodeColumns> partitionsToMerge = ral::distribution::collectPartitions(queryContext);
+//	queryContext.incrementQuerySubstep();
+//	ral::distribution::distributePartitions(queryContext, partitions);
+//	std::vector<ral::distribution::NodeColumns> partitionsToMerge = ral::distribution::collectPartitions(queryContext);
 
-	auto it = std::find_if(partitions.begin(), partitions.end(), [&](ral::distribution::NodeColumns & el) {
-		return el.getNode() == CommunicationData::getInstance().getSelfNode();
-	});
-	// Could "it" iterator be partitions.end()?
-	partitionsToMerge.push_back(*it);
+//	auto it = std::find_if(partitions.begin(), partitions.end(), [&](ral::distribution::NodeColumns & el) {
+//		return el.getNode() == CommunicationData::getInstance().getSelfNode();
+//	});
+//	// Could "it" iterator be partitions.end()?
+//	partitionsToMerge.push_back(*it);
 
-	Library::Logging::Logger().logInfo(timer.logDuration(
-		queryContext, "distributed_aggregations_with_groupby part 3 distributePartitions collectPartitions"));
-	timer.reset();
+//	Library::Logging::Logger().logInfo(timer.logDuration(
+//		queryContext, "distributed_aggregations_with_groupby part 3 distributePartitions collectPartitions"));
+//	timer.reset();
 
-	aggregationsMerger(partitionsToMerge, groupColumnIndices, aggregation_types, input);
+//	aggregationsMerger(partitionsToMerge, groupColumnIndices, aggregation_types, input);
 
-	Library::Logging::Logger().logInfo(
-		timer.logDuration(queryContext, "distributed_aggregations_with_groupby part 4 aggregationsMerger"));
-	timer.reset();
+//	Library::Logging::Logger().logInfo(
+//		timer.logDuration(queryContext, "distributed_aggregations_with_groupby part 4 aggregationsMerger"));
+//	timer.reset();
 }
 
 void distributed_aggregations_without_groupby(Context & queryContext,
@@ -687,50 +605,53 @@ void distributed_aggregations_without_groupby(Context & queryContext,
 	static CodeTimer timer;
 	timer.reset();
 
-	std::vector<gdf_column_cpp> aggregatedTable = compute_aggregations(input,
-		group_column_indices,
-		aggregation_types,
-		aggregation_input_expressions,
-		aggregation_column_assigned_aliases);
+	// TODO percy william alex port distribution
+//	std::vector<gdf_column_cpp> aggregatedTable = compute_aggregations(input,
+//		group_column_indices,
+//		aggregation_types,
+//		aggregation_input_expressions,
+//		aggregation_column_assigned_aliases);
 
-	Library::Logging::Logger().logInfo(
-		timer.logDuration(queryContext, "distributed_aggregations_without_groupby part 1 compute_aggregations"));
-	timer.reset();
+//	Library::Logging::Logger().logInfo(
+//		timer.logDuration(queryContext, "distributed_aggregations_without_groupby part 1 compute_aggregations"));
+//	timer.reset();
 
-	if(queryContext.isMasterNode(CommunicationData::getInstance().getSelfNode())) {
-		queryContext.incrementQuerySubstep();
-		std::vector<ral::distribution::NodeColumns> partitionsToMerge =
-			ral::distribution::collectPartitions(queryContext);
-		partitionsToMerge.emplace_back(CommunicationData::getInstance().getSelfNode(), aggregatedTable);
+//	if(queryContext.isMasterNode(CommunicationData::getInstance().getSelfNode())) {
+//		queryContext.incrementQuerySubstep();
+//		std::vector<ral::distribution::NodeColumns> partitionsToMerge =
+//			ral::distribution::collectPartitions(queryContext);
+//		partitionsToMerge.emplace_back(CommunicationData::getInstance().getSelfNode(), aggregatedTable);
 
-		std::vector<int> groupColumnIndices(group_column_indices.size());
-		std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
-		aggregationsMerger(partitionsToMerge, groupColumnIndices, aggregation_types, input);
-		Library::Logging::Logger().logInfo(timer.logDuration(
-			queryContext, "distributed_aggregations_without_groupby part 2 collectPartitions aggregationsMerger"));
-		timer.reset();
-	} else {
-		std::vector<gdf_column_cpp> empty_output_table(aggregatedTable.size());
-		for(size_t i = 0; i < empty_output_table.size(); i++) {
-			empty_output_table[i].create_empty(aggregatedTable[i].get_gdf_column()->type().id(), aggregatedTable[i].name());
-		}
+//		std::vector<int> groupColumnIndices(group_column_indices.size());
+//		std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
+//		aggregationsMerger(partitionsToMerge, groupColumnIndices, aggregation_types, input);
+//		Library::Logging::Logger().logInfo(timer.logDuration(
+//			queryContext, "distributed_aggregations_without_groupby part 2 collectPartitions aggregationsMerger"));
+//		timer.reset();
+//	} else {
+//		std::vector<gdf_column_cpp> empty_output_table(aggregatedTable.size());
+//		for(size_t i = 0; i < empty_output_table.size(); i++) {
+//			empty_output_table[i].create_empty(aggregatedTable[i].get_gdf_column()->type().id(), aggregatedTable[i].name());
+//		}
 
-		input.clear();
-		input.add_table(empty_output_table);
+//		input.clear();
+//		input.add_table(empty_output_table);
 
-		std::vector<ral::distribution::NodeColumns> selfPartition;
-		selfPartition.emplace_back(queryContext.getMasterNode(), aggregatedTable);
+//		std::vector<ral::distribution::NodeColumns> selfPartition;
+//		selfPartition.emplace_back(queryContext.getMasterNode(), aggregatedTable);
 
-		queryContext.incrementQuerySubstep();
-		ral::distribution::distributePartitions(queryContext, selfPartition);
+//		queryContext.incrementQuerySubstep();
+//		ral::distribution::distributePartitions(queryContext, selfPartition);
 
-		Library::Logging::Logger().logInfo(
-			timer.logDuration(queryContext, "distributed_aggregations_without_groupby part 2 distributePartitions"));
-		timer.reset();
-	}
+//		Library::Logging::Logger().logInfo(
+//			timer.logDuration(queryContext, "distributed_aggregations_without_groupby part 2 distributePartitions"));
+//		timer.reset();
+//	}
 }
 
-void process_aggregate(const ral::frame::BlazingTableView & table, std::string query_part, Context * queryContext) {
+std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::BlazingTableView & table,
+																std::string query_part, Context * queryContext) {
+
 	/*
 	 * 			String sql = "select sum(e), sum(z), x, y from hr.emps group by x , y";
 	 * 			generates the following calcite relational algebra
@@ -750,14 +671,14 @@ void process_aggregate(const ral::frame::BlazingTableView & table, std::string q
 	std::vector<int> group_column_indices = get_group_columns(combined_expression);
 
 	// Get aggregations
-	std::vector<gdf_agg_op> aggregation_types;
+	std::vector<cudf::experimental::aggregation::Kind> aggregation_types;
 	std::vector<std::string> aggregation_input_expressions;
 	std::vector<std::string> aggregation_column_assigned_aliases;
 	std::vector<std::string> expressions = get_expressions_from_expression_list(combined_expression);
 	for(std::string expr : expressions) {
 		std::string expression = std::regex_replace(expr, std::regex("^ +| +$|( ) +"), "$1");
 		if(expression.find("group=") == std::string::npos) {
-			gdf_agg_op operation = get_aggregation_operation(expression);
+			cudf::experimental::aggregation::Kind operation = get_aggregation_operation(expression);
 			aggregation_types.push_back(operation);
 			aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));
 
@@ -770,15 +691,18 @@ void process_aggregate(const ral::frame::BlazingTableView & table, std::string q
 		}
 	}
 
+	std::unique_ptr<ral::frame::BlazingTable> ret;
+	
 	if(aggregation_types.size() == 0) {
 		if(!queryContext || queryContext->getTotalNodes() <= 1) {
-			single_node_groupby_without_aggregations(table, group_column_indices);
+			ret = single_node_groupby_without_aggregations(table, group_column_indices);
 		} else {
-			distributed_groupby_without_aggregations(*queryContext, table, group_column_indices);
+			// TODO percy william alex port distribution
+			//distributed_groupby_without_aggregations(*queryContext, table, group_column_indices);
 		}
 	} else {
 		if(!queryContext || queryContext->getTotalNodes() <= 1) {
-			single_node_aggregations(table,
+			ret = single_node_aggregations(table,
 				group_column_indices,
 				aggregation_types,
 				aggregation_input_expressions,
@@ -802,11 +726,13 @@ void process_aggregate(const ral::frame::BlazingTableView & table, std::string q
 //			}
 		}
 	}
+	
+	return ret;
 }
 
-//ToDo Rommel
-std::unique_ptr<ral::frame::BlazingTable> _new_groupby_without_aggregations(
-	const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
+//TODO rommel percy
+std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(
+		const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
 
 	std::unique_ptr<cudf::experimental::table> output = cudf::experimental::drop_duplicates(table.view(),
 		group_column_indices,
