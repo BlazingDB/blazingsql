@@ -28,7 +28,7 @@
 #include "cuDF/safe_nvcategory_gather.hpp"
 
 #include <cudf/groupby.hpp>
-#include <cudf/detail/aggregation.hpp>
+#include <cudf/detail/aggregation/aggregation.hpp>
 #include <cudf/stream_compaction.hpp>
 #include <cudf/column/column_factories.hpp>
 #include <cudf/filling.hpp>

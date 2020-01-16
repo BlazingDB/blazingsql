@@ -14,7 +14,7 @@
 #include "parser/expression_utils.hpp"
 #include <string>
 #include <vector>
-#include <cudf/detail/aggregation.hpp>
+#include <cudf/detail/aggregation/aggregation.hpp>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
 gdf_binary_operator_exp get_binary_operation(std::string operator_string);
