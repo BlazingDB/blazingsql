@@ -28,7 +28,7 @@ HELP="$0 [-v] [-g] [-n] [-h] [-t]
    engine       - build the engine Python package
    pyblazing    - build the pyblazing Python package
    algebra      - build the algebra Python package
-   -t           - exclude test builds
+   -t           - skip tests
    -v           - verbose build mode
    -g           - build for debug
    -n           - no install step
@@ -89,6 +89,9 @@ fi
 if hasArg -n; then
     INSTALL_TARGET=""
 fi
+if hasArg test; then
+    TESTS="OFF"
+fi
 
 # If clean given, run it prior to any other steps
 if hasArg clean; then
@@ -104,9 +107,6 @@ if hasArg clean; then
     done
 fi
 
-if hasArg test; then
-    TESTS="OFF"
-fi
 
 ################################################################################
 
@@ -121,14 +121,17 @@ if buildAll || hasArg io; then
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
-    if [[ ${INSTALL_TARGET} != "" ]]; then
+    if [[ ${TESTS} == "ON" ]]; then
         echo ">>>> make -j${PARALLEL_LEVEL} all"
         make -j${PARALLEL_LEVEL} all
-        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
-        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     else
         echo ">>>> make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
+    fi
+
+    if [[ ${INSTALL_TARGET} != "" ]]; then
+        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
+        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     fi
 fi
 
@@ -143,14 +146,17 @@ if buildAll || hasArg comms; then
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
-    if [[ ${INSTALL_TARGET} != "" ]]; then
+    if [[ ${TESTS} == "ON" ]]; then
         echo ">>>> make -j${PARALLEL_LEVEL} all"
         make -j${PARALLEL_LEVEL} all
-        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
-        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     else
         echo ">>>> make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
+    fi
+
+    if [[ ${INSTALL_TARGET} != "" ]]; then
+        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
+        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     fi
 fi
 
@@ -165,14 +171,17 @@ if buildAll || hasArg libengine; then
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
-    if [[ ${INSTALL_TARGET} != "" ]]; then
+    if [[ ${TESTS} == "ON" ]]; then
         echo ">>>> make -j${PARALLEL_LEVEL} all"
         make -j${PARALLEL_LEVEL} all
-        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
-        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     else
         echo ">>>> make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}
+    fi
+
+    if [[ ${INSTALL_TARGET} != "" ]]; then
+        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
+        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     fi
 fi
 
@@ -201,10 +210,14 @@ fi
 if buildAll || hasArg pyblazing; then
 
     cd ${ALGEBRA_BUILD_DIR}
-    if [[ ${TESTS}=="ON" ]]; then
-        mvn clean install -Dmaven.test.skip=true -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/
-    else
+    if [[ ${TESTS} == "ON" ]]; then
         mvn clean install -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/
+    else
+        mvn clean install -Dmaven.test.skip=true -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/
+    fi
+    if [[ ${INSTALL_TARGET} != "" ]]; then
+        cp blazingdb-calcite-application/target/BlazingCalcite.jar $INSTALL_PREFIX/lib/blazingsql-algebra.jar
+        cp blazingdb-calcite-core/target/blazingdb-calcite-core.jar $INSTALL_PREFIX/lib/blazingsql-algebra-core.jar
     fi
 fi
 
