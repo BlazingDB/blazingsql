@@ -4,4 +4,4 @@
 
 set -e
 
-./build.sh io
+./build.sh
