@@ -67,8 +67,6 @@ static void ExecMaster() {
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table_view->view().column(0));
 	    cudf::test::strings_column_wrapper expected({"d", "e", "a", "d", "k", "d", "l", "a", "b", "c"}, {1, 0, 1, 1, 1, 1, 1, 1, 0 , 1});
 		cudf::test::expect_columns_equal(table_view->view().column(4), expected);
-
-		Server::getInstance().close();
 	}).join();
 }
 
@@ -117,8 +115,8 @@ TEST_F(SendSamplesTest, MasterAndWorker) {
 // TEST_F(SendSamplesTest, Master) {
 //    ExecMaster();
 //  }
-
-
+//
+//
 // //  // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Worker
 // TEST_F(SendSamplesTest, Worker) {
 //    ExecWorker();
