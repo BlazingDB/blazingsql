@@ -28,13 +28,8 @@ public:
 
 	virtual ~csv_parser();
 
-	void parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const std::string & user_readable_file_handle,
-		std::vector<gdf_column_cpp> & columns_out,
-		const Schema & schema,
-		std::vector<size_t> column_indices_requested);
-
-	std::unique_ptr<ral::frame::BlazingTable> parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+	std::unique_ptr<ral::frame::BlazingTable> parse(
+		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
 		const Schema & schema,
 		std::vector<size_t> column_indices);
@@ -42,8 +37,6 @@ public:
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema);
 
 private:
-	// DEPRECATED use csv_args
-	// cudf::csv_read_arg csv_arg{cudf::source_info{""}};
 	cudf_io::read_csv_args csv_args{cudf_io::source_info("")};
 };
 

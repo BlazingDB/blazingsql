@@ -299,17 +299,16 @@ void execute_project_plan(blazing_frame & input, std::string query_part) {
 		size_t size = params.input_columns[0]->size();
 
 		if(size > 0) {
-			perform_operation(params.output_columns,
-				params.input_columns,
-				params.left_inputs,
-				params.right_inputs,
-				params.outputs,
-				params.final_output_positions,
-				params.operators,
-				params.unary_operators,
-				params.left_scalars,
-				params.right_scalars,
-				params.new_column_indices);
+			// perform_operation(params.output_columns,
+			// 	params.input_columns,
+			// 	params.left_inputs,
+			// 	params.right_inputs,
+			// 	params.outputs,
+			// 	params.final_output_positions,
+			// 	params.operators,
+			// 	params.unary_operators,
+			// 	params.left_scalars,
+			// 	params.right_scalars);
 		}
 	}
 
@@ -697,8 +696,7 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
 					projections.push_back(0);
 				}
-
-				input_loaders[table_index].load_data(*queryContext, input_table, projections, schemas[table_index]);
+				std::unique_ptr<ral::frame::BlazingTable> new_blaz_table = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
 
 				// Setting the aliases only when is not an empty set
 				for(size_t col_idx = 0; col_idx < aliases_string_split.size(); col_idx++) {
@@ -708,7 +706,7 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 						input_table[col_idx].set_name(aliases_string_split[col_idx]);
 					}
 				}
-				int num_rows = input_table.size() > 0 ? input_table[0].get_gdf_column()->size() : 0;
+				int num_rows = new_blaz_table->num_rows();
 				Library::Logging::Logger().logInfo(
 					blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
 				blazing_timer.reset();
@@ -726,8 +724,8 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 				}
 			} else {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-				input_loaders[table_index].load_data(*queryContext, input_table, {}, schemas[table_index]);
-				int num_rows = input_table.size() > 0 ? input_table[0].get_gdf_column()->size() : 0;
+				std::unique_ptr<ral::frame::BlazingTable> new_blaz_table = input_loaders[table_index].load_data(queryContext, {}, schemas[table_index]);
+				int num_rows = new_blaz_table->num_rows();
 				Library::Logging::Logger().logInfo(
 					blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
 				blazing_timer.reset();
