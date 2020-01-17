@@ -76,7 +76,7 @@ TEST_F(ParquetReaderAPITest, ByIdsInFromInterface) {
 	Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
 	ral::io::data_loader loader(parser, provider);
 
-	auto csv_table = loader.load_data(queryContext, {}, schema);
+	auto csv_table = loader.load_data(&queryContext, {}, schema);
 	if(csv_table != nullptr) {
 		std::cout << "csv_table != nullptr\n";
 		for(auto name : csv_table->names()) {

@@ -23,7 +23,9 @@ gdf_parser::gdf_parser(TableSchema tableSchema) {
 
 gdf_parser::~gdf_parser() {}
 
-
+// TODO: cordova erase this code when the new GDF parse works well with the new API
+// using UNIT TEST to check when it's ready
+/*
 void gdf_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	std::vector<gdf_column_cpp> & columns_out,
@@ -57,6 +59,16 @@ void gdf_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 //		columns.push_back(col);
 	}
 	columns_out = columns;
+}
+*/
+
+std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse(
+	std::shared_ptr<arrow::io::RandomAccessFile> file,
+	const std::string & user_readable_file_handle,
+	const Schema & schema,
+	std::vector<size_t> column_indices) {
+		// TODO: cordova Implements the new GDF parser with 0.12 API
+		return nullptr;
 }
 
 void gdf_parser::parse_schema(
