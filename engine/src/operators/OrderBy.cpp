@@ -330,8 +330,9 @@ namespace ral {
 namespace operators {
 namespace experimental {
 
-	using Context = blazingdb::manager::experimental::Context;
-	using Node = blazingdb::transport::experimental::Node;
+	typedef blazingdb::manager::experimental::Context Context;
+	typedef blazingdb::transport::experimental::Node Node;
+	typedef ral::communication::experimental::CommunicationData CommunicationData;
 	using namespace ral::distribution::experimental;
 
 std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
@@ -389,7 +390,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<int8_t> & sortOrderTypes){
 	
-	using ral::communication::experimental::CommunicationData;
 	static CodeTimer timer;
 	timer.reset();
 
