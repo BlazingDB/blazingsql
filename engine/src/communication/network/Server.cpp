@@ -109,7 +109,7 @@ void Server::registerContext(const ContextToken context_token) { comm_server->re
 
 void Server::deregisterContext(const ContextToken context_token) { comm_server->deregisterContext(context_token); }
 
-std::shared_ptr<GPUMessage> Server::getMessage(
+std::shared_ptr<GPUReceivedMessage> Server::getMessage(
 	const ContextToken & token_value, const MessageTokenType & messageToken) {
 	return comm_server->getMessage(token_value, messageToken);
 }

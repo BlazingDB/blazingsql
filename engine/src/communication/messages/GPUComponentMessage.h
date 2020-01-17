@@ -44,10 +44,10 @@ inline bool isGdfString(const cudf::column_view& column) {
 }
 
 
-class GPUComponentReveivedMessage : public GPUReceivedMessage {
+class GPUComponentReceivedMessage : public GPUReceivedMessage {
 public:
 
-	GPUComponentReveivedMessage(std::string const & messageToken,
+	GPUComponentReceivedMessage(std::string const & messageToken,
 						uint32_t contextToken,
 						Node  & sender_node,
 					    std::unique_ptr<ral::frame::BlazingTable> && samples,
@@ -133,7 +133,7 @@ public:
 		return std::make_tuple(buffer_sizes, raw_buffers, column_offset);
 	}
 
-	static std::shared_ptr<GPUMessage> MakeFrom(const Message::MetaData & message_metadata,
+	static std::shared_ptr<GPUReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<rmm::device_buffer> & raw_buffers) {  // gpu pointer
@@ -178,7 +178,7 @@ public:
 		}
 		auto unique_table = std::make_unique<cudf::experimental::table>(std::move(received_samples));
 		auto received_table = std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), column_names);
-		return std::make_shared<GPUComponentReveivedMessage>(message_metadata.messageToken,
+		return std::make_shared<GPUComponentReceivedMessage>(message_metadata.messageToken,
 			message_metadata.contextToken,
 			node,
 			std::move(received_table),

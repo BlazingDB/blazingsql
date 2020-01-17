@@ -26,7 +26,7 @@
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 
 using ral::communication::messages::experimental::SampleToNodeMasterMessage;
-using ral::communication::messages::experimental::GPUComponentReveivedMessage;
+using ral::communication::messages::experimental::GPUComponentReceivedMessage;
 
 using ral::communication::network::experimental::Client;
 using ral::communication::network::experimental::Node;
@@ -61,7 +61,7 @@ static void ExecMaster() {
 		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
 		auto message = Server::getInstance().getMessage(context_token, message_token);
 		//TODO
-		auto concreteMessage = std::static_pointer_cast<GPUComponentReveivedMessage>(message);
+		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
 		std::cout << "message received\n";
 		auto  table_view = concreteMessage->releaseTableView();
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table_view->view().column(0));
@@ -104,22 +104,22 @@ struct SendSamplesTest : public ::testing::Test {
 // TODO: move common code of TCP client and server to blazingdb::network in order to be shared by manager and transport
 // TODO: check when the ip, port is busy, return exception!
 // TODO: check when the message is not registered, or the wrong message is registered
-// TEST_F(SendSamplesTest, MasterAndWorker) {
-// 	if(fork() > 0) {
-// 		ExecMaster();
-// 	} else {
-// 		ExecWorker();
-// 	}
-// }
+TEST_F(SendSamplesTest, MasterAndWorker) {
+	if(fork() > 0) {
+		ExecMaster();
+	} else {
+		ExecWorker();
+	}
+}
 
-// // TO use in separate process by:
-// // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Master
-TEST_F(SendSamplesTest, Master) {
-   ExecMaster();
- }
+// // // TO use in separate process by:
+// // // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Master
+// TEST_F(SendSamplesTest, Master) {
+//    ExecMaster();
+//  }
 
 
-//  // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Worker
-TEST_F(SendSamplesTest, Worker) {
-   ExecWorker();
- }
+// //  // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Worker
+// TEST_F(SendSamplesTest, Worker) {
+//    ExecWorker();
+//  }

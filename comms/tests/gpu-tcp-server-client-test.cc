@@ -33,6 +33,20 @@ using StringsInfo = blazingdb::test::StringsInfo;
 
 typedef int nv_category_index_type;
 
+struct GPUComponentReceivedMessage : public GPUReceivedMessage {
+	GPUComponentReceivedMessage(uint32_t contextToken, const Node &sender_node,
+		std::uint64_t total_row_size,
+	const std::vector<gdf_column *> &samples)
+	: GPUReceivedMessage(GPUComponentReceivedMessage::MessageID(), contextToken, sender_node),
+	samples{samples} {
+		this->metadata().total_row_size = total_row_size;
+	}
+	DefineClassName(GPUComponentMessage);
+
+	std::vector<gdf_column *> samples;
+
+};
+
 class GPUComponentMessage : public GPUMessage {
 public:
   GPUComponentMessage(uint32_t contextToken, const Node &sender_node,
@@ -167,7 +181,7 @@ public:
     return std::make_tuple(buffer_sizes, raw_buffers, column_offset);
   }
 
-  static std::shared_ptr<GPUMessage> MakeFrom(
+  static std::shared_ptr<GPUReceivedMessage> MakeFrom(
       const Message::MetaData &message_metadata,
       const Address::MetaData &address_metadata,
       const std::vector<ColumnTransport> &columns_offsets,
@@ -233,7 +247,7 @@ public:
     for (gdf_column *column : received_samples) {
         blazingdb::test::print_gdf_column(column);
     }
-    return std::make_shared<GPUComponentMessage>(
+    return std::make_shared<GPUComponentReceivedMessage>(
         message_metadata.contextToken, node, message_metadata.total_row_size,
         received_samples);
   }

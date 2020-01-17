@@ -156,7 +156,7 @@ public:
   /**
    * Alias of the message class used in the implementation of the server.
    */
-  using MakeCallback = std::function<std::shared_ptr<GPUMessage>(
+  using MakeCallback = std::function<std::shared_ptr<GPUReceivedMessage>(
       const Message::MetaData &, const Address::MetaData &,
       const std::vector<ColumnTransport> &, const std::vector<rmm::device_buffer> &)>;
 
@@ -229,7 +229,7 @@ public:
    * @param context_token  identifier for the message queue using ContextToken.
    * @return               a shared pointer of a base message class.
    */
-  virtual std::shared_ptr<GPUMessage> getMessage(
+  virtual std::shared_ptr<GPUReceivedMessage> getMessage(
       const uint32_t context_token, const std::string &messageToken);
 
   /**
@@ -244,7 +244,7 @@ public:
    * queue.
    */
   virtual void putMessage(const uint32_t context_token,
-                          std::shared_ptr<GPUMessage> &message);
+                          std::shared_ptr<GPUReceivedMessage> &message);
 
   //
   Server::MakeCallback getDeserializationFunction(const std::string &endpoint);

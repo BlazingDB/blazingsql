@@ -69,6 +69,7 @@ using CommServer = blazingdb::transport::experimental::Server;
 using ContextToken = uint32_t;
 using MessageTokenType = std::string;
 using GPUMessage = blazingdb::transport::experimental::GPUMessage;
+using GPUReceivedMessage = blazingdb::transport::experimental::GPUReceivedMessage;
 
 class Server {
 public:
@@ -89,7 +90,7 @@ public:
 	void deregisterContext(const ContextToken context_token);
 
 public:
-	std::shared_ptr<GPUMessage> getMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
+	std::shared_ptr<GPUReceivedMessage> getMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
 
 private:
 	Server(Server &&) = delete;

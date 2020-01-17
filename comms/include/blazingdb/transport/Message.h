@@ -159,12 +159,14 @@ public:
   BZ_INTERFACE(GPUMessage);
 };
 
-class GPUReceivedMessage : public GPUMessage  {
+class GPUReceivedMessage : public Message  {
 public:
   explicit GPUReceivedMessage(std::string const &messageToken,
                       uint32_t const &contextToken,
                       const blazingdb::transport::experimental::Node &sender_node)
-      : GPUMessage{messageToken, contextToken, sender_node} {}
+      : Message{messageToken, contextToken, sender_node} {}
+
+  BZ_INTERFACE(GPUReceivedMessage);
 };
 
 } // namespace experimental 
