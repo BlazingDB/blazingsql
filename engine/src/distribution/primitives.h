@@ -187,6 +187,8 @@ namespace experimental {
 
 	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples);
 
+	std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices);
+
 }  // namespace experimental
 }  // namespace distribution
 }  // namespace ral

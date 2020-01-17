@@ -1454,6 +1454,14 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
 }
 
+std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
+	std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices) {
+	
+	std::unique_ptr<BlazingTable> concatGroups = ral::utilities::concatTables(tables);
+
+	return compute_groupby_without_aggregations(concatGroups->toBlazingTableView(),  group_column_indices);	
+}
+
 
 }  // namespace experimental
 }  // namespace distribution
