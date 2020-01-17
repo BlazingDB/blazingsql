@@ -696,7 +696,6 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
 					projections.push_back(0);
 				}
-				// TODO: changed this line with the new API, all related with input_table variable must be rewrite from here
 				std::unique_ptr<ral::frame::BlazingTable> new_blaz_table = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
 
 				// Setting the aliases only when is not an empty set
