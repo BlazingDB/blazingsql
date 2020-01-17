@@ -152,17 +152,19 @@ public:
                       const blazingdb::transport::experimental::Node &sender_node)
       : Message{messageToken, contextToken, sender_node} {}
 
-  virtual raw_buffer GetRawColumns() = 0;
+  virtual raw_buffer GetRawColumns() {
+    assert(true);
+  }
 
   BZ_INTERFACE(GPUMessage);
 };
 
-class GPUReceivedMessage : public Message  {
+class GPUReceivedMessage : public GPUMessage  {
 public:
   explicit GPUReceivedMessage(std::string const &messageToken,
                       uint32_t const &contextToken,
                       const blazingdb::transport::experimental::Node &sender_node)
-      : Message{messageToken, contextToken, sender_node} {}
+      : GPUMessage{messageToken, contextToken, sender_node} {}
 };
 
 } // namespace experimental 

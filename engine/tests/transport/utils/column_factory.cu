@@ -39,7 +39,7 @@ ral::frame::BlazingTable build_custom_table() {
     columns.push_back(std::move(num_column_4));
 
 
-    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d", "l", "a", "b", "c"}, {1, 0, 1, 1, 1, 1, 1, 1, 0 , 1});
+    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d", "l", "a", "b", "c"}, {1, 0, 1, 1, 1, 1, 1, 1, 0, 1});
 
 	std::unique_ptr<cudf::column> str_col = std::make_unique<cudf::column>(std::move(col2));
     columns.push_back(std::move(str_col));

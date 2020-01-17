@@ -133,7 +133,7 @@ public:
 		return std::make_tuple(buffer_sizes, raw_buffers, column_offset);
 	}
 
-	static std::shared_ptr<GPUReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
+	static std::shared_ptr<GPUMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<rmm::device_buffer> & raw_buffers) {  // gpu pointer
@@ -150,7 +150,7 @@ public:
 			if(string_offset != -1) { 
 				cudf::size_type num_strings = columns_offsets[i].metadata.size;
 				std::unique_ptr<cudf::column> offsets_column 
-					= std::make_unique<cudf::column>(cudf::data_type{cudf::INT32}, num_strings, std::move(raw_buffers[columns_offsets[i].strings_offsets]));
+					= std::make_unique<cudf::column>(cudf::data_type{cudf::INT32}, num_strings + 1, std::move(raw_buffers[columns_offsets[i].strings_offsets]));
 				
 				cudf::size_type total_bytes = columns_offsets[i].strings_data_size;
 				std::unique_ptr<cudf::column> chars_column	= std::make_unique<cudf::column>(cudf::data_type{cudf::INT8}, total_bytes, std::move(raw_buffers[columns_offsets[i].strings_data]));
