@@ -143,11 +143,15 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types5)
         query_part,
         context);
 
-    std::string out0_string = cudf::test::to_string(table_out->view().column(0), "|");
-    std::cout<<"out0_string: "<<out0_string<<std::endl;
+    if (std::is_same<T, cudf::experimental::bool8>::value) {
+        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{0, 0, 0, 0, 0, 0, 0}};
+        CudfTableView expect_cudf_table_view {{expect_col1}};
 
-    cudf::test::fixed_width_column_wrapper<T> expect_col1{{4, 5, 5, 8, 5, 6}, {1, 1, 1, 1, 1, 1}};
-    CudfTableView expect_cudf_table_view {{expect_col1}};
-
-    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+        cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+    } else {
+        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{1, 1, 0, 1, 1, 1, 1}};
+        CudfTableView expect_cudf_table_view {{expect_col1}};
+    
+        cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+    }
 }

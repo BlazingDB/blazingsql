@@ -28,7 +28,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<std::unique_ptr<cudf::column>> output_columns;
     std::vector<std::unique_ptr<cudf::column>> input_columns;
 
-
     //size_t num_expressions_out = 0;
     std::vector<bool> col_used_in_expression(table.view().num_columns(), false);
 
@@ -59,15 +58,9 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
 
             // Keep track of which columns are used in the expression
             for(const auto & token : tokens) {
-                std::cout<<"Token: "<<token<<" ";
                 if(is_var_column(token)) {
-                    std::cout<<" is var col."<<std::endl;
                     cudf::size_type index = get_index(token);
                     col_used_in_expression[index] = true;
-                }
-                else
-                {
-                    std::cout<<std::endl;
                 }
             }
 
@@ -76,7 +69,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
             std::map<column_index_type, column_index_type> col_idx_map;
             for(size_t i = 0; i < col_used_in_expression.size(); i++) {
                 if(col_used_in_expression[i]) {
-                    col_idx_map[i] = col_idx_map.size();
+                    col_idx_map.insert({i, col_idx_map.size()});
                     input_col_indices.push_back(i);
                 }
             }
@@ -104,10 +97,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                                                         unary_operators,
                                                         left_scalars,
                                                         right_scalars);
-
-            std::cout<<"Operators: "<<operators.size()<<std::endl;
-            std::cout<<"Left scalar: "<<left_scalars.size()<<std::endl;
-            std::cout<<"Right scalar: "<<right_scalars.size()<<std::endl;
 
             auto ret = cudf::make_numeric_column(cudf::data_type{output_type_expressions[i]}, table.view().num_rows());
             cudf::mutable_table_view ret_view {{ret->mutable_view()}};
