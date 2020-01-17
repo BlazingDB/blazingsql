@@ -1,5 +1,5 @@
 #include "io/Schema.h"
-//#include "io/data_parser/GDFParser.h"   // ERROR when include that header
+#include "io/data_parser/GDFParser.h"   // ERROR when include that header
 #include "io/DataLoader.h"
 #include "io/data_provider/DummyProvider.h"
 
