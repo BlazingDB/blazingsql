@@ -44,7 +44,7 @@ public:
 	 * returns data into a std::unique_ptr<ral::frame::BlazingTable>
 	 */
 	std::unique_ptr<ral::frame::BlazingTable> load_data(
-		const Context & context,
+		Context * context,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
 		
