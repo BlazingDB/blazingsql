@@ -112,7 +112,7 @@ message(STATUS "******** Configuring tests ********")
 add_subdirectory(logical-groupby)
 
 # add_subdirectory(skipdata)
-# add_subdirectory(new-tests)
+add_subdirectory(new-tests)
 # add_subdirectory(sort)
 
 message(STATUS "******** Tests are ready ********")

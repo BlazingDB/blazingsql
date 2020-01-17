@@ -108,11 +108,11 @@ std::string extract_table_name(std::string query_part) {
 	return table_name;
 }
 
-project_plan_params parse_project_plan(const ral::frame::BlazingTableView & table, std::string query_part) {
+project_plan_params parse_project_plan(blazing_frame & input, std::string query_part) {
 	using interops::column_index_type;
 	gdf_error err = GDF_SUCCESS;
 
-	size_t row_size = table.view().column(0).size();
+	size_t size = input.get_num_rows_in_table(0);
 
 	// LogicalProject(x=[$0], y=[$1], z=[$2], e=[$3], join_x=[$4], y0=[$5], EXPR$6=[+($0, $5)])
 	std::string combined_expression =
@@ -122,7 +122,7 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 
 	// now we have a vector
 	// x=[$0
-	std::vector<bool> input_used_in_output(table.view().num_columns(), false);
+	std::vector<bool> input_used_in_output(input.get_width(), false);
 
 	std::vector<gdf_column_cpp> columns(expressions.size());
 	std::vector<std::string> names(expressions.size());
@@ -142,7 +142,7 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 							  // skip over it
 
 	size_t num_expressions_out = 0;
-	std::vector<bool> input_used_in_expression(row_size, false);
+	std::vector<bool> input_used_in_expression(input.get_size_column(), false);
 
 	for(int i = 0; i < expressions.size(); i++) {  // last not an expression
 		std::string expression = expressions[i].substr(
@@ -151,13 +151,13 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 		std::string name = expressions[i].substr(0, expressions[i].find("=["));
 
 		if(contains_evaluation(expression)) {
-			output_type_expressions[i] = get_output_type_expression(table, &max_temp_type, expression);
+			//output_type_expressions[i] = get_output_type_expression(&input, &max_temp_type, expression);
 
 			// todo put this into its own function
 			std::string clean_expression = clean_calcite_expression(expression);
 
 			std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-			fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table.view(), tokens);
+			//fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(input, tokens);
 			for(std::string token : tokens) {
 				if(!is_operator_token(token) && !is_literal(token)) {
 					size_t index = get_index(token);
@@ -214,7 +214,7 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 				case cudf::type_id::INT64:
 				case cudf::type_id::FLOAT32:
 				case cudf::type_id::FLOAT64: {
-					output_temp = cudf::make_numeric_column(cudf::data_type(output_type_expressions[i]), row_size);
+					//output_temp = cudf::make_numeric_column(cudf::data_type(output_type_expressions[i]), row_size);
 					break;
 				}
 				// TODO percy cudf0.12 jp strings and dates cases cc rommel
