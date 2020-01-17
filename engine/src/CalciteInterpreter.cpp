@@ -644,7 +644,8 @@ blazing_frame evaluate_split_query(std::vector<std::vector<gdf_column_cpp>> inpu
 			return child_frame;
 		} else if(ral::operators::is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			ral::operators::process_aggregate(child_frame, query[0], queryContext);
+			// TODO percy cudf0.12 evaluate_query aggregate
+			//ral::operators::process_aggregate(child_frame, query[0], queryContext);
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_aggregate",
 				"num rows",
@@ -851,7 +852,8 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			return child_frame;
 		} else if(ral::operators::is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			ral::operators::process_aggregate(child_frame, query[0], queryContext);
+			// TODO percy cudf0.12 evaluate_query aggregate
+			//ral::operators::process_aggregate(child_frame, query[0], queryContext);
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_aggregate",
 				"num rows",

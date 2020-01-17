@@ -674,8 +674,11 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 
 	std::vector<int> groupColumnIndices(concatSamples.size());
 	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
-	std::vector<gdf_column_cpp> groupedSamples =
-		ral::operators::groupby_without_aggregations(concatSamples, groupColumnIndices);
+	
+	// TODO percy william alex port distribution
+	//std::vector<gdf_column_cpp> groupedSamples = ral::operators::groupby_without_aggregations(concatSamples, groupColumnIndices);
+	std::vector<gdf_column_cpp> groupedSamples;
+	
 	size_t number_of_groups = groupedSamples[0].get_gdf_column()->size();
 
 	// Sort
@@ -778,8 +781,9 @@ void groupByWithoutAggregationsMerger(
 
 	std::vector<gdf_column_cpp> concatGroups = ral::utilities::concatTables(tables);
 
-	std::vector<gdf_column_cpp> groupedOutput =
-		ral::operators::groupby_without_aggregations(concatGroups, groupColIndices);
+	// TODO percy william alex port distribution
+	//std::vector<gdf_column_cpp> groupedOutput = ral::operators::groupby_without_aggregations(concatGroups, groupColIndices);
+	std::vector<gdf_column_cpp> groupedOutput;
 
 	output.clear();
 	output.add_table(groupedOutput);

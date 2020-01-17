@@ -309,7 +309,8 @@ void add_expression_to_plan(blazing_frame & inputs,
 	// pretend they are like registers and we need to know how many registers we need to evaluate this expression
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(inputs, tokens);
+	// TODO percy cudf0.12 evaluate_query aggregate
+	//fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(inputs, tokens);
 
 	for(size_t token_ind = 0; token_ind < tokens.size(); token_ind++) {
 		std::string token = tokens[token_ind];
@@ -674,7 +675,8 @@ void evaluate_expression(blazing_frame & inputs, const std::string & expression,
 
 	std::vector<bool> input_used_in_expression(inputs.get_size_column(), false);
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(inputs, tokens);
+	// TODO percy cudf0.12 evaluate_query aggregate
+	//fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(inputs, tokens);
 
 	for(std::string token : tokens) {
 		if(!is_operator_token(token) && !is_literal(token) && !is_string(token)) {
