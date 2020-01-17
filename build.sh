@@ -55,6 +55,9 @@ TESTS="ON"
 #         CONDA_PREFIX, but there is no fallback from there!
 INSTALL_PREFIX=${INSTALL_PREFIX:=${CONDA_PREFIX}}
 PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
+export LD_LIBRARY_PATH=$INSTALL_PREFIX/lib
+export CXXFLAGS="-L$INSTALL_PREFIX/lib"
+export CFLAGS=$CXXFLAGS
 
 function hasArg {
     (( ${NUMARGS} != 0 )) && (echo " ${ARGS} " | grep -q " $1 ")
@@ -169,7 +172,8 @@ if buildAll || hasArg libengine; then
     echo ">>>> cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .."
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
-          -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
+          -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+          -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
 
     if [[ ${TESTS} == "ON" ]]; then
         echo ">>>> make -j${PARALLEL_LEVEL} all"
