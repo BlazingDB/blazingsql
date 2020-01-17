@@ -58,55 +58,8 @@ parquet_parser::~parquet_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
-	std::vector<gdf_column_cpp> & columns_out,
-	const Schema & schema,
-	std::vector<size_t> column_indices) {
-	if(column_indices.size() == 0) {  // including all columns by default
-		column_indices.resize(schema.get_num_columns());
-		std::iota(column_indices.begin(), column_indices.end(), 0);
-	}
-
-	if(file == nullptr) {
-		columns_out =
-			create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
-		return;
-	}
-
-	if(column_indices.size() > 0) {
-		// Fill data to pq_args
-		cudf::io::parquet::reader_options pq_args;
-		pq_args.strings_to_categorical = false;
-		pq_args.columns.resize(column_indices.size());
-
-		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
-			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
-		}
-		// TODO: Use schema.row_groups_ids to read only some row_groups
-		cudf::io::parquet::reader parquet_reader(file, pq_args);
-
-		cudf::table table_out = parquet_reader.read_all();
-
-		assert(table_out.num_columns() > 0);
-
-		columns_out.resize(column_indices.size());
-		for(size_t i = 0; i < columns_out.size(); i++) {
-			if(table_out.get_column(i)->dtype == GDF_STRING) {
-				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
-				NVCategory * category = NVCategory::create_from_strings(*strs);
-				std::string column_name(table_out.get_column(i)->col_name);
-				columns_out[i].create_gdf_column(category, table_out.get_column(i)->size, column_name);
-				gdf_column_free(table_out.get_column(i));
-			} else {
-				// TODO percy cudf0.12 port cudf::column and io stuff
-				//columns_out[i].create_gdf_column(table_out.get_column(i));
-			}
-		}
-	}
-}
-
-std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
+	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) 

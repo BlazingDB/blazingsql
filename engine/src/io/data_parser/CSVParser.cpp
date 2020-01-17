@@ -65,7 +65,10 @@ std::unique_ptr<cudf::column> make_empty_column(cudf::data_type type) {
   return std::make_unique<cudf::column>(type, 0, rmm::device_buffer{});
 }
 
-std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names, const std::vector<cudf::type_id> &dtypes, const std::vector<size_t> &column_indices) {
+std::unique_ptr<ral::frame::BlazingTable> create_empty_table(
+	const std::vector<std::string> &column_names, 
+	const std::vector<cudf::type_id> &dtypes, 
+	const std::vector<size_t> &column_indices) {
 	std::vector<std::unique_ptr<cudf::column>> columns(column_indices.size());
 
 	for (auto idx : column_indices) {
@@ -74,15 +77,6 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<s
 	}
 	auto table = std::make_unique<cudf::experimental::table>(std::move(columns));
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), column_names);
-}
-
-// DEPRECATED this function should not will be used
-// schema is not really necessary yet here, but we want it to maintain compatibility
-void csv_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
-	std::vector<gdf_column_cpp> & columns_out,
-	const Schema & schema,
-	std::vector<size_t> column_indices) { 
 }
 
 std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
