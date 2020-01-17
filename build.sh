@@ -192,10 +192,10 @@ if buildAll || hasArg engine; then
     if [[ ${INSTALL_TARGET} != "" ]]; then
         python setup.py build_ext --inplace
         python setup.py install --single-version-externally-managed --record=record.txt
-    else
-        python setup.py build_ext --inplace --library-dir=${LIBENGINE_BUILD_DIR}
         cp `pwd`/cio*.so `pwd`/../../_h_env*/lib/python*/site-packages
         cp -r `pwd`/bsql_engine `pwd`/../../_h_env*/lib/python*/site-packages
+    else
+        python setup.py build_ext --inplace --library-dir=${LIBENGINE_BUILD_DIR}
     fi
 fi
 
