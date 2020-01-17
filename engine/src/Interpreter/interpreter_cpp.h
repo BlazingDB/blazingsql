@@ -23,7 +23,7 @@ static constexpr short SCALAR_NULL_INDEX = -3;
 
 void add_expression_to_interpreter_plan(const std::vector<std::string> & tokenized_expression,
 	const cudf::table_view & table,
-	std::map<column_index_type, column_index_type> expr_idx_to_col_idx_map,
+	const std::map<column_index_type, column_index_type> & expr_idx_to_col_idx_map,
 	column_index_type expression_position,
 	column_index_type num_total_outputs,
 	std::vector<column_index_type> & left_inputs,

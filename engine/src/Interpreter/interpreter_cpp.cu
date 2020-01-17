@@ -471,7 +471,7 @@ std::unique_ptr<cudf::column> handle_concat_str_col(const cudf::column_view & le
  */
 void add_expression_to_interpreter_plan(const std::vector<std::string> & tokenized_expression,
 	const cudf::table_view & table,
-	std::map<column_index_type, column_index_type> expr_idx_to_col_idx_map,
+	const std::map<column_index_type, column_index_type> & expr_idx_to_col_idx_map,
 	column_index_type expression_position,
 	column_index_type num_total_outputs,
 	std::vector<column_index_type> & left_inputs,
@@ -831,10 +831,10 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 		block_size,
 		stream);
 
-	transformKernel<<<min_grid_size,
-		block_size,
-		//	transformKernel<<<1
-		//	,1,
+	// transformKernel<<<min_grid_size,
+	// 	block_size,
+			transformKernel<<<1
+			,1,
 		shared_memory_per_thread * block_size,
 		stream>>>(op, table.num_rows());
 

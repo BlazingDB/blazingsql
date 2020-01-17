@@ -21,9 +21,25 @@ const std::string LEFT_JOIN = "left";
 const std::string RIGHT_JOIN = "right";
 const std::string OUTER_JOIN = "full";
 
-std::unique_ptr<cudf::column> boolean_mask_from_expression(
+} // namespace
+
+bool is_logical_filter(const std::string & query_part) {
+  return query_part.find(LOGICAL_FILTER) != std::string::npos;
+}
+
+std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
+  const ral::frame::BlazingTableView & table,
+  const CudfColumnView & boolValues){
+  auto filteredTable = cudf::experimental::apply_boolean_mask(
+    table.view(),boolValues);
+  return std::make_unique<ral::frame::BlazingTable>(std::move(
+    filteredTable),table.names());
+}
+
+std::unique_ptr<cudf::column> evaluate_expression(
   const cudf::table_view & table,
-  const std::string & expression) {
+  const std::string & expression,
+  cudf::data_type output_type) {
   using interops::column_index_type;
 
   if(is_var_column(expression)) {
@@ -31,7 +47,7 @@ std::unique_ptr<cudf::column> boolean_mask_from_expression(
     cudf::size_type index = get_index(expression);
     auto col_view = table.column(index);
 
-    RAL_EXPECTS(col_view.type().id() == cudf::type_id::BOOL8, "Column must be of type boolean");
+    RAL_EXPECTS(col_view.type() == output_type, "Expression evaluates to incorrect type");
 
     return std::make_unique<cudf::column>(col_view);
   }
@@ -54,7 +70,7 @@ std::unique_ptr<cudf::column> boolean_mask_from_expression(
   std::map<column_index_type, column_index_type> col_idx_map;
   for(size_t i = 0; i < col_used_in_expression.size(); i++) {
     if(col_used_in_expression[i]) {
-      col_idx_map[i] = col_idx_map.size();
+      col_idx_map.insert({i, col_idx_map.size()});
       input_col_indices.push_back(i);
     }
   }
@@ -83,7 +99,7 @@ std::unique_ptr<cudf::column> boolean_mask_from_expression(
                                               left_scalars,
                                               right_scalars);
 
-  auto ret = cudf::make_numeric_column(cudf::data_type{cudf::type_id::BOOL8}, table.num_rows(), cudf::mask_state::UNINITIALIZED);
+  auto ret = cudf::make_fixed_width_column(output_type, table.num_rows(), cudf::mask_state::UNINITIALIZED); 
   cudf::mutable_table_view ret_view {{ret->mutable_view()}};
   interops::perform_interpreter_operation(ret_view,
                                           filtered_table,
@@ -97,21 +113,6 @@ std::unique_ptr<cudf::column> boolean_mask_from_expression(
                                           right_scalars);
 
   return ret;
-}
-
-} // namespace
-
-bool is_logical_filter(const std::string & query_part) {
-  return query_part.find(LOGICAL_FILTER) != std::string::npos;
-}
-
-std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
-  const ral::frame::BlazingTableView & table,
-  const CudfColumnView & boolValues){
-  auto filteredTable = cudf::experimental::apply_boolean_mask(
-    table.view(),boolValues);
-  return std::make_unique<ral::frame::BlazingTable>(std::move(
-    filteredTable),table.names());
 }
 
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
@@ -129,7 +130,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 		conditional_expression = get_named_expression(query_part, "filters");
 	}
 
-  auto bool_mask = boolean_mask_from_expression(table_view, conditional_expression);
+  auto bool_mask = evaluate_expression(table_view, conditional_expression, cudf::data_type{cudf::type_id::BOOL8});
 
   return applyBooleanFilter(table, *bool_mask);
 }
