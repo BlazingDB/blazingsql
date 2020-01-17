@@ -182,6 +182,7 @@ if buildAll || hasArg libengine; then
     if [[ ${INSTALL_TARGET} != "" ]]; then
         echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
+        cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     fi
 fi
 
@@ -193,9 +194,9 @@ if buildAll || hasArg engine; then
         python setup.py install --single-version-externally-managed --record=record.txt
     else
         python setup.py build_ext --inplace --library-dir=${LIBENGINE_BUILD_DIR}
+        cp `pwd`/cio*.so `pwd`/../../_h_env*/lib/python*/site-packages
+        cp -r `pwd`/bsql_engine `pwd`/../../_h_env*/lib/python*/site-packages
     fi
-   cp `pwd`/cio*.so `pwd`/../../_h_env*/lib/python*/site-packages
-   cp -r `pwd`/bsql_engine `pwd`/../../_h_env*/lib/python*/site-packages
 fi
 
 if buildAll || hasArg pyblazing; then
@@ -204,6 +205,8 @@ if buildAll || hasArg pyblazing; then
     if [[ ${INSTALL_TARGET} != "" ]]; then
         python setup.py build_ext --inplace
         python setup.py install --single-version-externally-managed --record=record.txt
+        cp -r `pwd`/pyblazing `pwd`/../../_h_env*/lib/python*/site-packages
+        cp -r `pwd`/blazingsql `pwd`/../../_h_env*/lib/python*/site-packages
     else
         python setup.py build_ext --inplace
     fi
