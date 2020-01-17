@@ -194,6 +194,8 @@ if buildAll || hasArg engine; then
     else
         python setup.py build_ext --inplace --library-dir=${LIBENGINE_BUILD_DIR}
     fi
+   cp `pwd`/cio*.so `pwd`/../../_h_env*/lib/python*/site-packages
+   cp -r `pwd`/bsql_engine `pwd`/../../_h_env*/lib/python*/site-packages
 fi
 
 if buildAll || hasArg pyblazing; then
@@ -207,7 +209,7 @@ if buildAll || hasArg pyblazing; then
     fi
 fi
 
-if buildAll || hasArg pyblazing; then
+if buildAll || hasArg algebra; then
 
     cd ${ALGEBRA_BUILD_DIR}
     if [[ ${TESTS} == "ON" ]]; then
