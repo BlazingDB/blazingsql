@@ -70,7 +70,7 @@ TYPED_TEST(OrcTest, multipleColumns)
     loader.get_schema(schema, {});
     
     Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
-    std::unique_ptr<BlazingTable> orc_table = loader.load_data(queryContext, {}, schema);
+    std::unique_ptr<BlazingTable> orc_table = loader.load_data(&queryContext, {}, schema);
 
     // Here we are creating the expected output
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{0, 1, 2, 3, 4}, {1, 1, 1, 1, 1}};
