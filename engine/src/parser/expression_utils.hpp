@@ -49,7 +49,6 @@ static std::map<std::string, gdf_binary_operator_exp> gdf_binary_operator_map = 
 	{"MOD", BLZ_MOD},
 	{"AND", BLZ_MUL},
 	{"OR", BLZ_LOGICAL_OR},
-	{"COALESCE", BLZ_COALESCE},
 	{"FIRST_NON_MAGIC", BLZ_FIRST_NON_MAGIC},
 	{"MAGIC_IF_NOT", BLZ_MAGIC_IF_NOT},
 	{"LIKE", BLZ_STR_LIKE},

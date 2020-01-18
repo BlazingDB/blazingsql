@@ -90,7 +90,7 @@ struct launch_extract_component {
 	}
 };
 
-struct scale_to_64_bit_functor {
+struct upcast_to_64_bit_functor {
 	template <typename T, std::enable_if_t<!cudf::is_simple<T>()> * = nullptr>
 	int64_t operator()(cudf::scalar * s) {
 		return 0;
@@ -130,8 +130,14 @@ struct scale_to_64_bit_functor {
 	}
 };
 
-__device__ __forceinline__ bool isFloat(cudf::type_id type) {
-	return (type == cudf::type_id::FLOAT32) || (type == cudf::type_id::FLOAT64);
+__device__ __forceinline__ bool is_float_type(cudf::type_id type) {
+	return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type);
+}
+
+__device__ __forceinline__ bool is_timestamp_type(cudf::type_id type) {
+	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
+			cudf::type_id::TIMESTAMP_MILLISECONDS == type || cudf::type_id::TIMESTAMP_MICROSECONDS == type ||
+			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
 }
 
 /**
@@ -279,7 +285,7 @@ public:
 			} else if(left_index == SCALAR_INDEX) {
 				left_input_types_vec[i] = left_scalars[i]->type().id();
 				left_scalars_host[i] = cudf::experimental::type_dispatcher(
-					left_scalars[i]->type(), scale_to_64_bit_functor{}, left_scalars[i].get());
+					left_scalars[i]->type(), upcast_to_64_bit_functor{}, left_scalars[i].get());
 			} else if(left_index == UNARY_INDEX) {
 					// wont be used its a unary operation
 			} else {
@@ -294,7 +300,7 @@ public:
 			} else if(right_index == SCALAR_INDEX) {
 				right_input_types_vec[i] = right_scalars[i]->type().id();
 				right_scalars_host[i] = cudf::experimental::type_dispatcher(
-					right_scalars[i]->type(), scale_to_64_bit_functor{}, right_scalars[i].get());
+					right_scalars[i]->type(), upcast_to_64_bit_functor{}, right_scalars[i].get());
 			} else if(right_index == UNARY_INDEX) {
 					// wont be used its a unary operation
 			} else {
@@ -652,7 +658,7 @@ private:
 	__device__ __forceinline__ void process_operator(
 		size_t op_index, int64_t * buffer, cudf::size_type row_index, int64_t & row_valids) {
 		cudf::type_id type = this->input_types_left[op_index];
-		if(isFloat(type)) {
+		if(is_float_type(type)) {
 			process_operator_1<double>(op_index, buffer, row_index, row_valids);
 		} else {
 			process_operator_1<int64_t>(op_index, buffer, row_index, row_valids);
@@ -663,7 +669,7 @@ private:
 	__device__ __forceinline__ void process_operator_1(
 		size_t op_index, int64_t * buffer, cudf::size_type row_index, int64_t & row_valids) {
 		cudf::type_id type = this->input_types_right[op_index];
-		if(isFloat(type)) {
+		if(is_float_type(type)) {
 			process_operator_2<LeftType, double>(op_index, buffer, row_index, row_valids);
 		} else {
 			process_operator_2<LeftType, int64_t>(op_index, buffer, row_index, row_valids);
@@ -674,7 +680,7 @@ private:
 	__device__ __forceinline__ void process_operator_2(
 		size_t op_index, int64_t * buffer, cudf::size_type row_index, int64_t & row_valids) {
 		cudf::type_id type = this->output_types[op_index];
-		if(isFloat(type)) {
+		if(is_float_type(type)) {
 			process_operator_3<LeftType, RightType, double>(op_index, buffer, row_index, row_valids);
 		} else {
 			process_operator_3<LeftType, RightType, int64_t>(op_index, buffer, row_index, row_valids);
@@ -684,47 +690,43 @@ private:
 	template <typename LeftType, typename RightType, typename OutputTypeOperator>
 	__device__ __forceinline__ void process_operator_3(
 		size_t op_index, int64_t * buffer, cudf::size_type row_index, int64_t & row_valids) {
-		column_index_type right_position = this->right_input_positions[op_index];
 		column_index_type left_position = this->left_input_positions[op_index];
-
-		bool left_valid;
-		bool right_valid;
-
+		column_index_type right_position = this->right_input_positions[op_index];
 		column_index_type output_position = this->output_positions[op_index];
-		if(right_position != UNARY_INDEX) {
-			// binary op
-			LeftType left_value;
 
-			if(left_position == SCALAR_INDEX) {
-				left_value = ((LeftType *) this->scalars_left)[op_index];
-				left_valid = true;
-			} else if(left_position >= 0) {
+		if(right_position != UNARY_INDEX) {
+			// It's a binary operation
+
+			LeftType left_value;
+			bool left_valid;
+			if(left_position >= 0) {
 				left_value = get_data_from_buffer<LeftType>(buffer, left_position);
 				left_valid = getColumnValid(row_valids, left_position);
-			} else if(left_position == SCALAR_NULL_INDEX) {
-				// left is null do whatever
+			} else if(left_position == SCALAR_INDEX) {
+				left_value = ((LeftType *) this->scalars_left)[op_index];
+				left_valid = true;
+			} else { // if(left_position == SCALAR_NULL_INDEX)
 				left_valid = false;
 			}
 
 			RightType right_value;
-			if(right_position == SCALAR_INDEX) {
-				right_value = ((RightType *) this->scalars_right)[op_index];
-				right_valid = true;
-			} else if(right_position == SCALAR_NULL_INDEX) {
-				right_valid = false;
-			} else if(right_position >= 0) {
+			bool right_valid;
+			if(right_position >= 0) {
 				right_value = get_data_from_buffer<RightType>(buffer, right_position);
 				right_valid = getColumnValid(row_valids, right_position);
+			}	else if(right_position == SCALAR_INDEX) {
+				right_value = ((RightType *) this->scalars_right)[op_index];
+				right_valid = true;
+			} else { // if(right_position == SCALAR_NULL_INDEX)
+				right_valid = false;
 			}
 
-			if(this->binary_operations[op_index] == GDF_COALESCE) {
-				setColumnValid(row_valids, output_position, left_valid || right_valid);
-			} else {
-				setColumnValid(row_valids, output_position, left_valid && right_valid);
-			}
+			setColumnValid(row_valids, output_position, left_valid && right_valid);
 
+			cudf::type_id left_type_id = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_left[op_index]));
+			cudf::type_id right_type_id = static_cast<cudf::type_id>(__ldg((int32_t *) &this->input_types_right[op_index]));
 			gdf_binary_operator_exp oper = this->binary_operations[op_index];
-			if(oper == BLZ_ADD) {
+			if(oper == BLZ_ADD) {		
 				store_data_in_buffer<OutputTypeOperator>(left_value + right_value, buffer, output_position);
 			} else if(oper == BLZ_SUB) {
 				store_data_in_buffer<OutputTypeOperator>(left_value - right_value, buffer, output_position);
@@ -732,33 +734,17 @@ private:
 				store_data_in_buffer<OutputTypeOperator>(left_value * right_value, buffer, output_position);
 			} else if(oper == BLZ_DIV || oper == BLZ_FLOOR_DIV) {
 				store_data_in_buffer<OutputTypeOperator>(left_value / right_value, buffer, output_position);
-			} else if(oper == BLZ_COALESCE) {
-				if(left_valid) {
-					store_data_in_buffer<OutputTypeOperator>(left_value, buffer, output_position);
-				} else {
-					store_data_in_buffer<OutputTypeOperator>(right_value, buffer, output_position);
-				}
-			}
-
-			/*else if(oper == BLZ_TRUE_DIV){
-				//TODO: snap this requires understanding of the bitmask
-			}*/
-			else if(oper == BLZ_MOD) {
+			} else if(oper == BLZ_MOD) {
 				// mod only makes sense with integer inputs
 				store_data_in_buffer<OutputTypeOperator>(
 					(int64_t) left_value % (int64_t) right_value, buffer, output_position);
 			} else if(oper == BLZ_POW) {
-				// oh god this is where it breaks if we are floats e do one thing
 				OutputTypeOperator data = 1;
-				if(isFloat((cudf::type_id) __ldg((int32_t *) &this->input_types_left[op_index])) ||
-					isFloat((cudf::type_id) __ldg((int32_t *) &this->input_types_right[op_index]))) {
-					data = pow((double) left_value, (double) right_value);
-
+				if(is_float_type(left_type_id) || is_float_type(right_type_id)) {
+					data = pow(left_value, right_value);
 				} else {
 					// there is no pow for ints, so lets just do it...
-
 					LeftType base = left_value;
-					// right type is the exponent
 					for(int i = 0; i < right_value; i++) {
 						data *= base;
 					}
@@ -784,7 +770,6 @@ private:
 				} else {
 					store_data_in_buffer<OutputTypeOperator>(right_value, buffer, output_position);
 				}
-
 			} else if(oper == BLZ_MAGIC_IF_NOT) {
 				if(left_valid && left_value) {
 					store_data_in_buffer<OutputTypeOperator>(right_value, buffer, output_position);
@@ -794,39 +779,36 @@ private:
 					store_data_in_buffer<OutputTypeOperator>(
 						getMagicNumber<OutputTypeOperator>(), buffer, output_position);
 				}
-
 			} else if(oper == BLZ_FIRST_NON_MAGIC) {
-				if(left_value == getMagicNumber<OutputTypeOperator>()) {
+				if(left_value == getMagicNumber<LeftType>()) {
 					store_data_in_buffer<OutputTypeOperator>(right_value, buffer, output_position);
 					setColumnValid(row_valids, output_position, right_valid);
 				} else {
 					store_data_in_buffer<OutputTypeOperator>(left_value, buffer, output_position);
 					setColumnValid(row_valids, output_position, left_valid);
 				}
-
 			} else if(oper == BLZ_STR_LIKE || oper == BLZ_STR_SUBSTRING || oper == BLZ_STR_CONCAT) {
 				store_data_in_buffer<OutputTypeOperator>(left_value, buffer, output_position);
 				setColumnValid(row_valids, output_position, left_valid);
 			}
 		} else {
-			// unary op
-			gdf_unary_operator oper = this->unary_operations[op_index];
+			// It's a unary operation			
 
 			LeftType left_value;
 			bool left_valid;
-
-			if(left_position == SCALAR_INDEX) {
-				left_value = ((LeftType *) this->scalars_left)[op_index];
-				left_valid = true;
-			} else if(left_position >= 0) {
+			if(left_position >= 0) {
 				left_value = get_data_from_buffer<LeftType>(buffer, left_position);
 				left_valid = getColumnValid(row_valids, left_position);
+			} else if(left_position == SCALAR_INDEX) {
+				left_value = ((LeftType *) this->scalars_left)[op_index];
+				left_valid = true;
 			} else if(left_position == SCALAR_NULL_INDEX) {
-				// left is null do whatever
 				left_valid = false;
 			}
 
 			OutputTypeOperator computed = left_value;
+
+			gdf_unary_operator oper = this->unary_operations[op_index];
 			if (left_valid) {
 				if(oper == BLZ_FLOOR) {
 					computed = floor(left_value);

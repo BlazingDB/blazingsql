@@ -223,9 +223,13 @@ std::string to_string(cudf::column_view const& col, std::string const& delimiter
   std::ostringstream buffer;
   std::vector<std::string> h_data = to_strings(col);
 
-  std::copy(h_data.begin(), h_data.end() - 1, std::ostream_iterator<std::string>(buffer, delimiter.c_str()));
-  buffer << h_data.back();
-
+  if (!h_data.empty()) {
+    std::copy(h_data.begin(), h_data.end() - 1, std::ostream_iterator<std::string>(buffer, delimiter.c_str()));
+    buffer << h_data.back();
+  } else {
+    buffer << "Empty Column";
+  }
+  
   return buffer.str();
 }
 

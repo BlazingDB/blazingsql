@@ -22,9 +22,14 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         (query_part.rfind(")") - query_part.find("(")) - 1
     );
 
+    std::cout<<"Combined expression: "<<combined_expression<<std::endl;
     std::vector<std::string> expressions = get_expressions_from_expression_list(combined_expression);
+    std::cout<<"List of expressions: "<<std::endl;
+    for(auto & exp : expressions){
+        std::cout << exp << std::endl;
+    }
+    std::cout <<std::endl;
 
-    std::vector<column_index_type> final_output_positions;
     std::vector<std::unique_ptr<cudf::column>> output_columns;
     std::vector<std::unique_ptr<cudf::column>> input_columns;
 
@@ -33,6 +38,22 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
 
     std::vector<std::unique_ptr<cudf::column>> columns(expressions.size());
     std::vector<std::string> names(expressions.size());
+
+    std::vector<cudf::type_id> output_type_expressions(expressions.size()); //contains output types
+                                                                             //for columns that are expressions, if they are not expressions we skip over it
+
+    cudf::table_view filtered_table;
+    std::vector<column_index_type> left_inputs;
+    std::vector<column_index_type> right_inputs;
+    std::vector<column_index_type> outputs;
+    std::vector<column_index_type> final_output_positions;
+    std::vector<gdf_binary_operator_exp> operators;
+    std::vector<gdf_unary_operator> unary_operators;
+    std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
+    std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
+    
+    size_t num_total_outputs = 0;
+    size_t cur_expression_out = 0;
 
     for(int i = 0; i < expressions.size(); i++){
         std::string expression = expressions[i].substr(
@@ -45,10 +66,9 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         );
 
         if(contains_evaluation(expression)){
-            cudf::type_id max_temp_type = cudf::type_id::EMPTY;
-            std::vector<cudf::type_id> output_type_expressions(expressions.size()); //contains output types
-                                                                             //for columns that are expressions, if they are not expressions we skip over it
+            std::cout<<"Processing: "<<expression<<std::endl;
 
+            cudf::type_id max_temp_type = cudf::type_id::EMPTY;
             output_type_expressions[i] = get_output_type_expression(table, max_temp_type, expression);
 
             //todo put this into its own function
@@ -73,22 +93,15 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                     input_col_indices.push_back(i);
                 }
             }
-            
-            cudf::table_view filtered_table = table.view().select(input_col_indices);
-            std::vector<column_index_type> left_inputs;
-            std::vector<column_index_type> right_inputs;
-            std::vector<column_index_type> outputs;
-            std::vector<column_index_type> final_output_positions = {filtered_table.num_columns()};
-            std::vector<gdf_binary_operator_exp> operators;
-            std::vector<gdf_unary_operator> unary_operators;
-            std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
-            std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
+
+            filtered_table = table.view().select(input_col_indices);
+            final_output_positions = {filtered_table.num_columns()};
 
             interops::add_expression_to_interpreter_plan(tokens,
                                                         filtered_table,
                                                         col_idx_map,
-                                                        0, //TODO edit for loop
-                                                        1, //TODO edit for loop
+                                                        cur_expression_out++,
+                                                        ++num_total_outputs,
                                                         left_inputs,
                                                         right_inputs,
                                                         outputs,
@@ -98,21 +111,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                                                         left_scalars,
                                                         right_scalars);
 
-            auto ret = cudf::make_numeric_column(cudf::data_type{output_type_expressions[i]}, table.view().num_rows());
-            cudf::mutable_table_view ret_view {{ret->mutable_view()}};
-            interops::perform_interpreter_operation(ret_view,
-                                                    filtered_table,
-                                                    left_inputs,
-                                                    right_inputs,
-                                                    outputs,
-                                                    final_output_positions,
-                                                    operators,
-                                                    unary_operators,
-                                                    left_scalars,
-                                                    right_scalars);
-
             names.push_back(cleaned_expression);
-            columns[i] = std::move(ret);
         } else {
             // TODO percy this code is duplicated inside get_index, refactor get_index
             const std::string cleaned_expression = clean_calcite_expression(expression);
@@ -136,6 +135,31 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                 names.push_back(name);
                 columns[i] = std::make_unique<cudf::column>(table.view().column(index));
             }
+        }
+    }
+
+    for(int i = 0; i < expressions.size(); i++){
+
+        std::string expression = expressions[i].substr(
+            expressions[i].find("=[") + 2 ,
+            (expressions[i].size() - expressions[i].find("=[")) - 3
+        );
+
+        if(contains_evaluation(expression)){
+            std::cout<<"Operating: "<<expression<<std::endl;
+            auto ret = cudf::make_numeric_column(cudf::data_type{output_type_expressions[i]}, table.view().num_rows());
+                cudf::mutable_table_view ret_view {{ret->mutable_view()}};
+                interops::perform_interpreter_operation(ret_view,
+                                                        filtered_table,
+                                                        left_inputs,
+                                                        right_inputs,
+                                                        outputs,
+                                                        final_output_positions,
+                                                        operators,
+                                                        unary_operators,
+                                                        left_scalars,
+                                                        right_scalars);
+            columns[i] = std::move(ret);
         }
     }
 

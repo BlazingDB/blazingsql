@@ -17,6 +17,11 @@ std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
   const ral::frame::BlazingTableView & table,
   const CudfColumnView & boolValues);
 
+std::unique_ptr<cudf::column> evaluate_expression(
+  const cudf::table_view & table,
+  const std::string & expression,
+  cudf::data_type output_type);
+
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const ral::frame::BlazingTableView & table,
   const std::string & query_part,

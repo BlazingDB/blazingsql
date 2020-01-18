@@ -1,46 +1,43 @@
 #include <algorithm>
+#include <cudf.h>
+#include <cudf/table/table_view.hpp>
 #include <iomanip>
 #include <limits>
 #include <map>
 #include <regex>
 #include <sstream>
 #include <stack>
-#include <cudf.h>
-#include <cudf/table/table_view.hpp>
 
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include "CalciteExpressionParsing.h"
 #include "DataFrame.h"
 #include "Traits/RuntimeTraits.h"
-#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
 #include "cudf/legacy/binaryop.hpp"
+#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
 
 bool is_type_signed(cudf::type_id type) {
-	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type || cudf::type_id::INT64 == type ||
-			cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type ||
-			cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
+	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type ||
+			cudf::type_id::INT32 == type || cudf::type_id::INT64 == type || cudf::type_id::FLOAT32 == type ||
+			cudf::type_id::FLOAT64 == type || cudf::type_id::TIMESTAMP_DAYS == type ||
+			cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
 			cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type);
 }
 
 bool is_type_float(cudf::type_id type) { return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type); }
 
 bool is_type_integer(cudf::type_id type) {
-	return (cudf::type_id::INT8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type || cudf::type_id::INT64 == type);
+	return (cudf::type_id::INT8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type ||
+			cudf::type_id::INT64 == type);
 }
 
-bool is_date_type(cudf::type_id type) { return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
-												cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type); }
-
-// TODO percy noboa see upgrade to uints
-// bool is_type_unsigned_numeric(cudf::type_id type){
-//	return (GDF_UINT8 == type ||
-//			GDF_UINT16 == type ||
-//			GDF_UINT32 == type ||
-//			GDF_UINT64 == type);
-//}
+bool is_date_type(cudf::type_id type) {
+	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
+			cudf::type_id::TIMESTAMP_MILLISECONDS == type || cudf::type_id::TIMESTAMP_MICROSECONDS == type ||
+			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
+}
 
 // TODO percy noboa see upgrade to uints
 bool is_numeric_type(cudf::type_id type) {
@@ -162,7 +159,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator 
 }
 
 // todo: get_output_type: add support to coalesce and date operations!
-cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation) {
+cudf::type_id get_output_type(
+	cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation) {
 	if(is_arithmetic_operation(operation)) {
 		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
 			// the output shoudl be ther largest float type
@@ -232,11 +230,16 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 			// return GDF_UINT64;
 			return cudf::type_id::INT64;
 		}
-	} else if(operation == BLZ_COALESCE) {
-		return input_left_type;
 	} else if(operation == BLZ_MAGIC_IF_NOT) {
 		return input_right_type;
 	} else if(operation == BLZ_FIRST_NON_MAGIC) {
+		if(is_numeric_type(input_left_type) && is_numeric_type(input_right_type)) {
+			if(is_type_float(input_left_type) && !is_type_float(input_right_type)) {
+				return input_left_type;
+			} else if(!is_type_float(input_left_type) && is_type_float(input_right_type)) {
+				return input_right_type;
+			}
+		}
 		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
 				   ral::traits::get_dtype_size_in_bytes(input_right_type))
 				   ? input_left_type
@@ -251,9 +254,7 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 	}
 }
 
-void get_common_type(cudf::type_id type1,
-	cudf::type_id type2,
-	cudf::type_id & type_out) {
+void get_common_type(cudf::type_id type1, cudf::type_id type2, cudf::type_id & type_out) {
 	// TODO percy cudf0.12 was invalid here, should we return empty?
 	type_out = cudf::type_id::EMPTY;
 	if(type1 == type2) {
@@ -271,7 +272,7 @@ void get_common_type(cudf::type_id type1,
 			type_out = (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2))
 						   ? type1
 						   : type2;
-		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
 		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 			if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
@@ -336,7 +337,7 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	cudf::type_id type_id = infer_dtype_from_literal(scalar_string);
 	cudf::data_type type{type_id};
 
-	if (type_id == cudf::type_id::EMPTY) {
+	if(type_id == cudf::type_id::EMPTY) {
 		return nullptr;
 	}
 	if(type_id == cudf::type_id::BOOL8) {
@@ -345,7 +346,7 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(scalar_string == "true"));
 		return ret;
-	} 
+	}
 	if(type_id == cudf::type_id::INT8) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int8_t;
@@ -522,7 +523,7 @@ void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 	const cudf::table_view & table, std::vector<std::string> & tokens) {
 
 	bool has_timestamp = false;
-	for (auto &&c : table) {
+	for (auto && c : table) {
 		if(is_date_type(c.type().id())) {
 			has_timestamp = true;
 			break;
@@ -587,7 +588,7 @@ cudf::size_type get_index(const std::string & operand_string) {
 	}
 	std::string cleaned_expression = clean_calcite_expression(operand_string);
 	return std::stoi(is_literal(cleaned_expression) ? cleaned_expression
-													  : cleaned_expression.substr(1, cleaned_expression.size() - 1));
+													: cleaned_expression.substr(1, cleaned_expression.size() - 1));
 }
 
 std::string aggregator_to_string(cudf::experimental::aggregation::Kind aggregation) {
@@ -712,7 +713,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
 	StringUtil::findAndReplaceAll(ret, "FLOOR(", "BL_FLOUR(");
 
-	StringUtil::findAndReplaceAll(ret,"/INT(","/(");
+	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 
 	return ret;
 }
