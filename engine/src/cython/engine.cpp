@@ -17,7 +17,6 @@
 #include "communication/network/Server.h"
 #include <numeric>
 
-
 void make_sure_output_is_not_input_gdf(
 	blazing_frame & output_frame, std::vector<TableSchema> & tableSchemas, const std::vector<int> & fileTypes) {
 	std::vector<void *> input_data_ptrs;
@@ -147,10 +146,17 @@ ResultSet runQuery(int32_t masterIndex,
 			names.push_back(column.name());
 		}
 
-		// TODO percy cudf0.12 port to cudf::column CIO
-//		ResultSet result = {columns, names};
-//		//    std::cout<<"result looks ok"<<std::endl;
-//		return result;
+		std::vector<cudf::column_view> columnViews;
+		columnViews.reserve(columns.size());
+		std::transform(
+			columns.cbegin(), columns.cend(), columnViews.begin(), [](cudf::column * column) { return column->view(); });
+
+		// TODO(gcca): Ask to William about this. Use shared_ptr
+		// or implement default constructor to have an empty BlazingTableView
+		// beacuse cythons needs initialize a ResultSet by default. After that,
+		// remove new statement.
+		ResultSet result{{}, {}, new ral::frame::BlazingTableView{CudfTableView{columnViews}, names}};
+		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;
 		throw;

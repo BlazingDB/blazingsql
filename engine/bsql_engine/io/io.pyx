@@ -42,6 +42,7 @@ from cudf._lib.cudf import *
 from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
 from cpython.ref cimport PyObject
+from cython.operator cimport dereference
 
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
@@ -232,8 +233,6 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
       i = i + 1
     return df
 
-
-
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
     query = str.encode(queryPy)
@@ -266,7 +265,6 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
 
     cdef gdf_scalar_ptr scalar_ptr
     cdef gdf_scalar scalar
-
 
     tableIndex = 0
     for tableName in tables:
@@ -342,9 +340,10 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     df = cudf.DataFrame()
     i = 0
     for column in temp.columns:
-      column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
-      strcpy(column.col_name, temp.names[i].c_str())
-      df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
+      names = dereference(temp.blazingTableView).names()
+      column.col_name =  <char *> malloc((strlen(names[i].c_str()) + 1) * sizeof(char))
+      # strcpy(column.col_name, names()[i].c_str())
+      # df.add_column(names()[i].decode('utf-8'),gdf_column_to_column(column))
       i = i + 1
     return df
 

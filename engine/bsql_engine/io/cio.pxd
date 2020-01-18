@@ -244,17 +244,32 @@ cdef extern from "../include/io/io.h":
 
 ctypedef gdf_scalar* gdf_scalar_ptr
 
+cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
+        cdef cppclass table_view:
+            table_view() except +
+            table_view(vector[table_view]) except +
+            select(vector[size_type])
+            size_type num_columns()
+            size_type num_rows()
+ctypedef table_view CudfTableView
+
+cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
+        cdef cppclass BlazingTableView:
+            BlazingTableView(CudfTableView, vector[string]) except +
+            CudfTableView view()
+            vector[string] names()
 
 cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
             vector[gdf_column_ptr] columns
             vector[string]  names
+            BlazingTableView *blazingTableView
 
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
         ResultSet runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
-        ResultSet runSkipData(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError 
+        ResultSet runSkipData(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
 
         cdef struct TableScanInfo:
             vector[string] relational_algebra_steps
