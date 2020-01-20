@@ -30,13 +30,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     }
     std::cout <<std::endl;
 
-    std::vector<std::unique_ptr<cudf::column>> output_columns;
-    std::vector<std::unique_ptr<cudf::column>> input_columns;
-
-    //size_t num_expressions_out = 0;
     std::vector<bool> col_used_in_expression(table.view().num_columns(), false);
 
     std::vector<std::unique_ptr<cudf::column>> columns(expressions.size());
+    std::vector<cudf::mutable_column_view> col_outputs_views;
+
     std::vector<std::string> names(expressions.size());
 
     std::vector<cudf::type_id> output_type_expressions(expressions.size()); //contains output types
@@ -52,8 +50,12 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
     std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
     
-    size_t num_total_outputs = 0;
+    size_t num_total_outputs = std::count_if(expressions.begin(), expressions.end(), [](const std::string & expression){return contains_evaluation(expression);});
+
+    std::cout<<"Num total outputs: "<<num_total_outputs<<std::endl;
     size_t cur_expression_out = 0;
+
+    std::vector<std::unique_ptr<cudf::column>> col_outputs;
 
     for(int i = 0; i < expressions.size(); i++){
         std::string expression = expressions[i].substr(
@@ -70,6 +72,10 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
 
             cudf::type_id max_temp_type = cudf::type_id::EMPTY;
             output_type_expressions[i] = get_output_type_expression(table, max_temp_type, expression);
+
+            auto new_column = cudf::make_fixed_width_column(cudf::data_type{output_type_expressions[i]}, table.view().num_rows());
+            col_outputs_views.push_back(new_column->mutable_view());
+            columns[i] = std::move(new_column);
 
             //todo put this into its own function
             std::string cleaned_expression = clean_calcite_expression(expression);
@@ -100,8 +106,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
             interops::add_expression_to_interpreter_plan(tokens,
                                                         filtered_table,
                                                         col_idx_map,
-                                                        cur_expression_out++,
-                                                        ++num_total_outputs,
+                                                        cur_expression_out,
+                                                        num_total_outputs,
                                                         left_inputs,
                                                         right_inputs,
                                                         outputs,
@@ -111,6 +117,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                                                         left_scalars,
                                                         right_scalars);
 
+            cur_expression_out++;
             names.push_back(cleaned_expression);
         } else {
             // TODO percy this code is duplicated inside get_index, refactor get_index
@@ -138,36 +145,25 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         }
     }
 
-    for(int i = 0; i < expressions.size(); i++){
+    if(cur_expression_out>0){
+        std::cout<<"Expressions to process: "<<cur_expression_out<<std::endl;
+        cudf::mutable_table_view ret_view(col_outputs_views);
 
-        std::string expression = expressions[i].substr(
-            expressions[i].find("=[") + 2 ,
-            (expressions[i].size() - expressions[i].find("=[")) - 3
-        );
-
-        if(contains_evaluation(expression)){
-            std::cout<<"Operating: "<<expression<<std::endl;
-            auto ret = cudf::make_numeric_column(cudf::data_type{output_type_expressions[i]}, table.view().num_rows());
-                cudf::mutable_table_view ret_view {{ret->mutable_view()}};
-                interops::perform_interpreter_operation(ret_view,
-                                                        filtered_table,
-                                                        left_inputs,
-                                                        right_inputs,
-                                                        outputs,
-                                                        final_output_positions,
-                                                        operators,
-                                                        unary_operators,
-                                                        left_scalars,
-                                                        right_scalars);
-            columns[i] = std::move(ret);
-        }
+        interops::perform_interpreter_operation(ret_view,
+                                                filtered_table,
+                                                left_inputs,
+                                                right_inputs,
+                                                outputs,
+                                                final_output_positions,
+                                                operators,
+                                                unary_operators,
+                                                left_scalars,
+                                                right_scalars);
     }
 
   return std::make_unique<ral::frame::BlazingTable>( 
     std::make_unique<cudf::experimental::table>( std::move(columns) ), names
   );
-
-  //return ret;
 }
 
 } // namespace processor
