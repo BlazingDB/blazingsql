@@ -652,7 +652,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 					}
 					
 					std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(scan_frame_columns));
-					std::unique_ptr<ral::frame::BlazingTable> scan_frame_ptr = std::make_unique<ral::frame::BlazingTable>(cudf_table, col_names);
+					std::unique_ptr<ral::frame::BlazingTable> scan_frame_ptr = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), col_names);
 					ral::frame::BlazingTableView scan_frame(scan_frame_ptr->view(), col_names);
 
 					// TODO rommel jp felipe cudf0.12
@@ -684,7 +684,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 				scan_frame_columns.push_back(std::move(input_table[i]));
 			}
 			std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(scan_frame_columns));
-			std::unique_ptr<ral::frame::BlazingTable> scan_frame_ptr = std::make_unique<ral::frame::BlazingTable>(cudf_table, col_names);
+			std::unique_ptr<ral::frame::BlazingTable> scan_frame_ptr = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), col_names);
 			
 			queryContext->incrementQueryStep();
 			return scan_frame_ptr;
