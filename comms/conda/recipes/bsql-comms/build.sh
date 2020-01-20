@@ -21,7 +21,7 @@ mkdir -p build
 cd build
 
 echo "cmake .. -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}"
-cmake .. -DBUILD_TESTING=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
+cmake .. -DBUILD_TESTS=$run_test -DCMAKE_BUILD_TYPE=$build_type -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
 if [ $? != 0 ]; then
   exit 1
 fi

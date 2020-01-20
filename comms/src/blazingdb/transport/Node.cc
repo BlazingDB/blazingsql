@@ -45,10 +45,10 @@ Node::Node(const Address &address, bool isAvailable)
     : address_{address}, isAvailable_{isAvailable} {}
 
 bool Node::operator==(const Node &rhs) const {
-  return this->address().metadata() == rhs.address().metadata();
+  return address_.metadata_ == rhs.address_.metadata_;
 }
 
-Address Node::address() const noexcept { return address_; }
+const Address& Node::address() const noexcept { return address_; }
 
 bool Node::isAvailable() const { return isAvailable_; }
 
@@ -56,7 +56,7 @@ void Node::setAvailable(bool available) { isAvailable_ = available; }
 
 void Node::print() const {
   std::string isAvailable = isAvailable_ ? "true" : "false";
-  auto metadata = this->address().metadata();
+  const auto& metadata = this->address_.metadata_;
   std::cout << "NODE: isAvailable_: " << isAvailable << "|" << metadata.ip
             << "|comunication_port: " << metadata.comunication_port
             << "|protocol_port:" << metadata.protocol_port << "\n";

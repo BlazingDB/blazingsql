@@ -520,10 +520,9 @@ std::vector<std::string> get_tokens_in_reverse_order(const std::string & express
 // TODO percy dirty hack ... fix this approach for timestamps
 // out arg: tokens will be modified in case need a fix due timestamp
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	const cudf::table_view & table, std::vector<std::string> & tokens) {
-
+	const cudf::table_view & inputs, std::vector<std::string> & tokens) {
 	bool has_timestamp = false;
-	for (auto && c : table) {
+	for(auto && c : inputs) {
 		if(is_date_type(c.type().id())) {
 			has_timestamp = true;
 			break;

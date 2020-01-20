@@ -27,7 +27,7 @@ public:
 
   virtual raw_buffer GetRawColumns() {
     std::vector<int> bufferSizes;
-    std::vector<char *> buffers;
+    std::vector<const char *> buffers;
     std::vector<ColumnTransport> column_offset;
 
     return std::make_tuple(bufferSizes, buffers, column_offset);
