@@ -139,7 +139,7 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types5)
     blazingdb::manager::Context * context;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
-        table, 
+        table,
         query_part,
         context);
 
@@ -182,23 +182,11 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types6)
         cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col3{{1, 1, 1, 1, 1, 1, 1}};
         CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
 
-        std::string col0_string = cudf::test::to_string(table_out->view().column(0), "|");
-        std::cout<<"col0_string: "<<col0_string<<std::endl;
-
-        std::string col2_string = cudf::test::to_string(table_out->view().column(1), "|");
-        std::cout<<"col2_string: "<<col2_string<<std::endl;
-
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
     } else {
         cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{1, 1, 0, 1, 1, 1, 1}};
         cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col3{{0, 0, 0, 0, 1, 0, 0}};
         CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
-    
-        std::string col0_string = cudf::test::to_string(table_out->view().column(0), "|");
-        std::cout<<"col0_string: "<<col0_string<<std::endl;
-
-        std::string col2_string = cudf::test::to_string(table_out->view().column(1), "|");
-        std::cout<<"col2_string: "<<col2_string<<std::endl;
 
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
     }

@@ -22,13 +22,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         (query_part.rfind(")") - query_part.find("(")) - 1
     );
 
-    std::cout<<"Combined expression: "<<combined_expression<<std::endl;
     std::vector<std::string> expressions = get_expressions_from_expression_list(combined_expression);
-    std::cout<<"List of expressions: "<<std::endl;
-    for(auto & exp : expressions){
-        std::cout << exp << std::endl;
-    }
-    std::cout <<std::endl;
 
     std::vector<bool> col_used_in_expression(table.view().num_columns(), false);
 
@@ -49,13 +43,15 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<gdf_unary_operator> unary_operators;
     std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
     std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
-    
-    size_t num_total_outputs = std::count_if(expressions.begin(), expressions.end(), [](const std::string & expression){return contains_evaluation(expression);});
 
-    std::cout<<"Num total outputs: "<<num_total_outputs<<std::endl;
-    size_t cur_expression_out = 0;
+    size_t num_total_outputs = 0;
 
-    std::vector<std::unique_ptr<cudf::column>> col_outputs;
+    std::map<column_index_type, column_index_type> col_idx_map;
+
+    // Get the needed columns indices in order and keep track of the mapped indices
+    std::vector<cudf::size_type> input_col_indices;
+
+    std::vector<std::vector<std::string>> tokenized_expression_vector;
 
     for(int i = 0; i < expressions.size(); i++){
         std::string expression = expressions[i].substr(
@@ -68,8 +64,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         );
 
         if(contains_evaluation(expression)){
-            std::cout<<"Processing: "<<expression<<std::endl;
-
             cudf::type_id max_temp_type = cudf::type_id::EMPTY;
             output_type_expressions[i] = get_output_type_expression(table, max_temp_type, expression);
 
@@ -81,6 +75,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
             std::string cleaned_expression = clean_calcite_expression(expression);
             std::vector<std::string> tokens = get_tokens_in_reverse_order(cleaned_expression);
             fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table.view(), tokens);
+            tokenized_expression_vector.push_back(tokens);
 
             // Keep track of which columns are used in the expression
             for(const auto & token : tokens) {
@@ -90,37 +85,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                 }
             }
 
-            // Get the needed columns indices in order and keep track of the mapped indices
-            std::vector<cudf::size_type> input_col_indices;
-            std::map<column_index_type, column_index_type> col_idx_map;
-            for(size_t i = 0; i < col_used_in_expression.size(); i++) {
-                if(col_used_in_expression[i]) {
-                    col_idx_map.insert({i, col_idx_map.size()});
-                    input_col_indices.push_back(i);
-                }
-            }
-
-            filtered_table = table.view().select(input_col_indices);
-            final_output_positions = {filtered_table.num_columns()};
-
-            interops::add_expression_to_interpreter_plan(tokens,
-                                                        filtered_table,
-                                                        col_idx_map,
-                                                        cur_expression_out,
-                                                        num_total_outputs,
-                                                        left_inputs,
-                                                        right_inputs,
-                                                        outputs,
-                                                        final_output_positions,
-                                                        operators,
-                                                        unary_operators,
-                                                        left_scalars,
-                                                        right_scalars);
-
-            cur_expression_out++;
             names.push_back(cleaned_expression);
-        } else {
-            // TODO percy this code is duplicated inside get_index, refactor get_index
+            num_total_outputs++;
+        }
+        else{
+             // TODO percy this code is duplicated inside get_index, refactor get_index
             const std::string cleaned_expression = clean_calcite_expression(expression);
             const bool is_literal_col = is_literal(cleaned_expression);
 
@@ -145,8 +114,39 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         }
     }
 
+    size_t cur_expression_out = 0;
+
+    for(size_t i = 0; i < col_used_in_expression.size(); i++) {
+        if(col_used_in_expression[i]) {
+            col_idx_map.insert({i, col_idx_map.size()});
+            input_col_indices.push_back(i);
+        }
+    }
+
+    std::vector<std::unique_ptr<cudf::column>> col_outputs;
+    filtered_table = table.view().select(input_col_indices);
+
+    for(auto & tokens : tokenized_expression_vector){
+            final_output_positions.push_back(filtered_table.num_columns() + final_output_positions.size());
+
+            interops::add_expression_to_interpreter_plan(tokens,
+                                                        filtered_table,
+                                                        col_idx_map,
+                                                        cur_expression_out,
+                                                        num_total_outputs,
+                                                        left_inputs,
+                                                        right_inputs,
+                                                        outputs,
+                                                        final_output_positions,
+                                                        operators,
+                                                        unary_operators,
+                                                        left_scalars,
+                                                        right_scalars);
+
+            cur_expression_out++;
+    }
+
     if(cur_expression_out>0){
-        std::cout<<"Expressions to process: "<<cur_expression_out<<std::endl;
         cudf::mutable_table_view ret_view(col_outputs_views);
 
         interops::perform_interpreter_operation(ret_view,
