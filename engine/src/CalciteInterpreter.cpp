@@ -37,6 +37,7 @@
 #include <rmm/thrust_rmm_allocator.h>
 #include "parser/expression_tree.hpp"
 
+#include "execution_graph/logic_controllers/LogicalFilter.h"
 #include <cudf/column/column_factories.hpp>
 
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
@@ -674,12 +675,12 @@ blazing_frame evaluate_split_query(std::vector<std::vector<gdf_column_cpp>> inpu
 	}
 }
 
-blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loaders,
+std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::vector<std::string> query,
 	Context * queryContext,
-	int call_depth = 0) {
+	int call_depth) {
 	assert(input_loaders.size() == table_names.size());
 
 	CodeTimer blazing_timer;
@@ -689,8 +690,9 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 		// process yourself and return
 
 		if(is_scan(query[0])) {
-			blazing_frame scan_frame;
-			std::vector<gdf_column_cpp> input_table;
+			std::vector< std::unique_ptr<cudf::column> > scan_frame_columns;
+			std::vector< std::unique_ptr<cudf::column> > input_table;
+			std::vector<std::string> col_names;
 
 			size_t table_index = get_table_index(table_names, extract_table_name(query[0]));
 			if(is_bindable_scan(query[0])) {
@@ -718,8 +720,9 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 				for(size_t col_idx = 0; col_idx < aliases_string_split.size(); col_idx++) {
 					// TODO: Rommel, this check is needed when for example the scan has not projects but there are extra
 					// aliases
+					col_names.push_back("");
 					if(col_idx < input_table.size()) {
-						input_table[col_idx].set_name(aliases_string_split[col_idx]);
+						col_names[col_idx] = aliases_string_split[col_idx];
 					}
 				}
 				int num_rows = new_blaz_table->num_rows();
@@ -728,15 +731,25 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 				blazing_timer.reset();
 
 				if(is_filtered_bindable_scan(query[0])) {
-					scan_frame.add_table(input_table);
-					process_filter(queryContext, scan_frame, query[0]);
-					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-						"evaluate_split_query process_filter",
-						"num rows",
-						scan_frame.get_num_rows_in_table(0)));
+					for (int i = 0; i < input_table.size(); ++i) {
+						scan_frame_columns.push_back(std::move(input_table[i]));
+					}
+					
+					std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(scan_frame_columns));
+					std::unique_ptr<ral::frame::BlazingTable> scan_frame_ptr = std::make_unique<ral::frame::BlazingTable>(cudf_table, col_names);
+					ral::frame::BlazingTableView scan_frame(scan_frame_ptr->view(), col_names);
+
+					// TODO rommel jp felipe cudf0.12
+					//process_filter(queryContext, scan_frame, query[0]);
+					
+					// TODO log cudf0.12
+//					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
+//						"evaluate_split_query process_filter",
+//						"num rows",
+//						scan_frame.get_num_rows_in_table(0)));
 					blazing_timer.reset();
 					queryContext->incrementQueryStep();
-					return scan_frame;
+					return scan_frame_ptr;
 				}
 			} else {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
@@ -749,9 +762,15 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 
 
 			// EnumerableTableScan(table=[[hr, joiner]])
-			scan_frame.add_table(input_table);
+			// TODO percy cudf0.12 could be some memory issues here if input_tables was moved before
+			for (int i = 0; i < input_table.size(); ++i) {
+				scan_frame_columns.push_back(std::move(input_table[i]));
+			}
+			std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(scan_frame_columns));
+			std::unique_ptr<ral::frame::BlazingTable> scan_frame_ptr = std::make_unique<ral::frame::BlazingTable>(cudf_table, col_names);
+			
 			queryContext->incrementQueryStep();
-			return scan_frame;
+			return scan_frame_ptr;
 		} else {
 			// i dont think there are any other type of end nodes at the moment
 		}
@@ -770,40 +789,53 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			}
 		}
 		// these shoudl be split up and run on different threads
-		blazing_frame left_frame;
-		left_frame = evaluate_split_query(input_loaders,
+		std::unique_ptr<ral::frame::BlazingTable> left_frame = evaluate_split_query(input_loaders,
 			schemas,
 			table_names,
 			std::vector<std::string>(query.begin() + 1, query.begin() + other_depth_one_start),
 			queryContext,
 			call_depth + 1);
 
-		blazing_frame right_frame;
-		right_frame = evaluate_split_query(input_loaders,
+		std::unique_ptr<ral::frame::BlazingTable> right_frame = evaluate_split_query(input_loaders,
 			schemas,
 			table_names,
 			std::vector<std::string>(query.begin() + other_depth_one_start, query.end()),
 			queryContext,
 			call_depth + 1);
 
-		blazing_frame result_frame;
 		if(ral::operators::is_join(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 			// we know that left and right are dataframes we want to join together
-			int numLeft = left_frame.get_num_rows_in_table(0);
-			int numRight = right_frame.get_num_rows_in_table(0);
-			left_frame.add_table(right_frame.get_table(0));
+			int numLeft = left_frame->num_rows();
+			int numRight = right_frame->num_rows();
+			
+			// TODO percy felipe william cudf0.12 join why we need to add? could create mem leaks
+			//left_frame.add_table(right_frame.get_table(0));
+			
 			///left_frame.consolidate_tables();
 			std::string new_join_statement, filter_statement;
 			split_inequality_join_into_join_and_filter(query[0], new_join_statement, filter_statement);
-			result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);
+			//result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);
+			
+			const ral::frame::BlazingTableView table_left = left_frame->toBlazingTableView();
+			const ral::frame::BlazingTableView table_right = right_frame->toBlazingTableView();
+			const std::string expression = new_join_statement;
+			
+			//result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);
+			std::unique_ptr<ral::frame::BlazingTable> result_frame = ral::processor::processJoin(table_left, table_right, expression);
 			std::string extraInfo = "left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
-			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame.get_num_rows_in_table(0), extraInfo));
+			
+			//TODO percy cudf0.12 log logs
+			//Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame.get_num_rows_in_table(0), extraInfo));
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
 			if (filter_statement != ""){
-				process_filter(queryContext, result_frame,filter_statement);
-				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame.get_num_rows_in_table(0)));
+				// TODO rommel jp felipe cudf0.12
+				//process_filter(queryContext, result_frame,filter_statement);
+
+				// TODO percy cudf0.12 log logs
+				//Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame.get_num_rows_in_table(0)));
+				
 				blazing_timer.reset();
 				queryContext->incrementQueryStep();
 			}
@@ -812,26 +844,32 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 			// TODO: append the frames to each other
 			// return right_frame;//!!
-			int numLeft = left_frame.get_num_rows_in_table(0);
-			int numRight = right_frame.get_num_rows_in_table(0);
-			result_frame = process_union(left_frame, right_frame, query[0]);
+			int numLeft = left_frame->num_rows();
+			int numRight = right_frame->num_rows();
+			
+			// TODO percy william felipe cudf0.12 seems we need to migrate union
+			//result_frame = process_union(left_frame, right_frame, query[0]);
+			
 			std::string extraInfo =
 				"left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
-			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-				"evaluate_split_query process_union",
-				"num rows result",
-				result_frame.get_num_rows_in_table(0),
-				extraInfo));
+			// TODO percy cudf0.12 log logs
+//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
+//				"evaluate_split_query process_union",
+//				"num rows result",
+//				result_frame.get_num_rows_in_table(0),
+//				extraInfo));
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
-			return result_frame;
+			
+			// TODO percy william felipe cudf0.12 seems we need to migrate union
+			//return result_frame;
 		} else {
 			throw std::runtime_error{"In evaluate_split_query function: unsupported query operator"};
 		}
 
 	} else {
 		// process child
-		blazing_frame child_frame = evaluate_split_query(input_loaders,
+		std::unique_ptr<ral::frame::BlazingTable> child_frame = evaluate_split_query(input_loaders,
 			schemas,
 			table_names,
 			std::vector<std::string>(query.begin() + 1, query.end()),
@@ -840,11 +878,16 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 		// process self
 		if(is_project(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			execute_project_plan(child_frame, query[0]);
-			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-				"evaluate_split_query process_project",
-				"num rows",
-				child_frame.get_num_rows_in_table(0)));
+			
+			// TODO percy rommel jp cudf0.12
+			//execute_project_plan(child_frame, query[0]);
+			
+			// TODO percy cudf0.12 log logs
+//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
+//				"evaluate_split_query process_project",
+//				"num rows",
+//				child_frame.get_num_rows_in_table(0)));
+			
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
 			return child_frame;
@@ -852,28 +895,41 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 			// TODO percy cudf0.12 evaluate_query aggregate
 			//ral::operators::process_aggregate(child_frame, query[0], queryContext);
-			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-				"evaluate_split_query process_aggregate",
-				"num rows",
-				child_frame.get_num_rows_in_table(0)));
+			
+			// TODO percy cudf0.12 log logs
+//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
+//				"evaluate_split_query process_aggregate",
+//				"num rows",
+//				child_frame.get_num_rows_in_table(0)));
+			
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
 			return child_frame;
 		} else if(ral::operators::is_sort(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			ral::operators::process_sort(child_frame, query[0], queryContext);
-			Library::Logging::Logger().logInfo(blazing_timer.logDuration(
-				*queryContext, "evaluate_split_query process_sort", "num rows", child_frame.get_num_rows_in_table(0)));
+			
+			// TODO percy william rommel cudf0.12
+			//ral::operators::process_sort(child_frame, query[0], queryContext);
+			
+			// TODO percy cudf0.12 log logs
+//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(
+//				*queryContext, "evaluate_split_query process_sort", "num rows", child_frame.get_num_rows_in_table(0)));
+			
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
 			return child_frame;
 		} else if(is_filter(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			process_filter(queryContext, child_frame, query[0]);
-			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-				"evaluate_split_query process_filter",
-				"num rows",
-				child_frame.get_num_rows_in_table(0)));
+			
+			// TODO percy jp rommel cudf.012
+			//process_filter(queryContext, child_frame, query[0]);
+			
+			// TODO percy cudf0.12 log logs
+//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
+//				"evaluate_split_query process_filter",
+//				"num rows",
+//				child_frame.get_num_rows_in_table(0)));
+			
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
 			return child_frame;
@@ -901,21 +957,24 @@ query_token_t evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 
 		try {
 			Context context = queryContext;
-			blazing_frame output_frame = evaluate_split_query(input_loaders, schemas, table_names, splitted, &context);
+			std::unique_ptr<ral::frame::BlazingTable> output_frame = evaluate_split_query(input_loaders, schemas, table_names, splitted, &context);
 
 			// REMOVE any columns that were ipcd to put into the result set
-			for(size_t index = 0; index < output_frame.get_size_column(); index++) {
-				gdf_column_cpp output_column = output_frame.get_column(index);
+			// TODO percy felipe cudf0.12 I think we don't need this logic anymore
+			//for(size_t index = 0; index < output_frame.get_size_column(); index++) {
+				//gdf_column_cpp output_column = output_frame.get_column(index);
 
 				// TODO percy cudf0.12 port to cudf::column
 				//if(output_column.is_ipc() || output_column.has_token()) {
 				//	output_frame.set_column(index, output_column.clone(output_column.name()));
 				//}
-			}
+			//}
+			
 			double duration = blazing_timer.getDuration();
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
 
-			result_set_repository::get_instance().update_token(token, output_frame, duration);
+			// TODO percy felipe cudf0.12 I think we don't need this logic anymore
+			//result_set_repository::get_instance().update_token(token, output_frame, duration);
 
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Done"));
 		} catch(const std::exception & e) {
@@ -938,7 +997,7 @@ query_token_t evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 
 
 
-blazing_frame evaluate_query(
+std::unique_ptr<ral::frame::BlazingTable> evaluate_query(
 		std::vector<ral::io::data_loader > input_loaders,
 		std::vector<ral::io::Schema> schemas,
 		std::vector<std::string> table_names,
@@ -957,12 +1016,15 @@ blazing_frame evaluate_query(
 		}
 
 		try {
-			blazing_frame output_frame = evaluate_split_query(input_loaders, schemas,table_names, splitted, &queryContext);
-			output_frame.deduplicate();
-			for (size_t i=0;i<output_frame.get_width();i++) {
-				if (output_frame.get_column(i).get_gdf_column()->type().id() == cudf::type_id::STRING) {
+			std::unique_ptr<ral::frame::BlazingTable> output_frame = evaluate_split_query(input_loaders, schemas,table_names, splitted, &queryContext);
+			
+			// TODO percy william cudf0.12
+			//output_frame.deduplicate();
+			
+			for (size_t i=0;i<output_frame->num_columns();i++) {
+				if (output_frame->view().column(i).type().id() == cudf::type_id::STRING) {
 					NVStrings * new_strings = nullptr;
-					if (output_frame.get_column(i).get_gdf_column()->size() > 0) {
+					if (output_frame->view().column(i).size() > 0) {
 						// TODO percy cudf0.12 custrings this was not commented
 //						NVCategory* new_category = static_cast<NVCategory *> (output_frame.get_column(i).dtype_info().category)->gather_and_remap( static_cast<int *>(output_frame.get_column(i).data()), output_frame.get_column(i).size());
 //						new_strings = new_category->to_strings();
@@ -971,10 +1033,10 @@ blazing_frame evaluate_query(
 						new_strings = NVStrings::create_from_array(nullptr, 0);
 					}
 
-					gdf_column_cpp string_column;
-					string_column.create_gdf_column(new_strings, output_frame.get_column(i).get_gdf_column()->size(), output_frame.get_column(i).name());
-
-					output_frame.set_column(i, string_column);
+					// TODO rommel felipe jp custrings cudf0.12
+					//gdf_column_cpp string_column;
+					//string_column.create_gdf_column(new_strings, output_frame->view().column(i).size(), output_frame->names().at(i));
+					//output_frame.set_column(i, string_column);
 				}
 
 				// TODO percy cudf0.12 port to cudf::column
