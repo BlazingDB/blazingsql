@@ -13,6 +13,7 @@
 #include "utilities/RalColumn.h"
 #include "utilities/StringUtils.h"
 #include "utilities/TableWrapper.h"
+#include "../parser/expression_utils.hpp"
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <future>
