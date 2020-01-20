@@ -763,7 +763,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::Bl
 	std::vector<int> group_column_indices = get_group_columns(combined_expression);
 
 	// Get aggregations
-	std::vector<cudf::experimental::aggregation::Kind> aggregation_types;
 	std::vector<std::string> aggregation_expressions;
 	std::vector<std::string> aggregation_column_assigned_aliases;
 	std::vector<std::string> expressions = get_expressions_from_expression_list(combined_expression);
@@ -780,12 +779,12 @@ std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::Bl
 				aggregation_column_assigned_aliases.push_back(expression.substr(0, expression.find("=[")));
 		}
 	}		
-	if(aggregation_types.size() == 0) {
+	if(aggregation_expressions.size() == 0) {
 		return groupby_without_aggregations(context, table, group_column_indices);	
 	} else if (group_column_indices.size() == 0) {
-		// return aggregations_without_groupby(context, table, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases);
+		return aggregations_without_groupby(context, table, aggregation_expressions, aggregation_column_assigned_aliases);
 	} else {
-		// return aggregations_with_groupby(context, table, group_column_indices, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases);
+		return aggregations_with_groupby(context, table, aggregation_expressions, aggregation_column_assigned_aliases, group_column_indices);
 	}														
 }
 
