@@ -754,7 +754,9 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 				//Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame.get_num_rows_in_table(0)));
 				
 				// process_filter(queryContext, result_frame,filter_statement);
-				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame.get_num_rows_in_table(0)));
+				
+				// TODO percy cudf0.12 log logs
+				//Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame.get_num_rows_in_table(0)));
 
 				blazing_timer.reset();
 				queryContext->incrementQueryStep();
