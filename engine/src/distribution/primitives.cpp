@@ -1429,12 +1429,10 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 	
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
-	std::unique_ptr<BlazingTable> groupedSamples; // replace this with commented below
-	// WSM cudf0.12 waiting on groupby_without_aggregations
-	// std::vector<int> groupColumnIndices(concatSamples.size());
-	// std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
-	// std::unique_ptr<BlazingTable> groupedSamples =
-	// 	ral::operators::groupby_without_aggregations(concatSamples, groupColumnIndices);
+	std::vector<int> groupColumnIndices(concatSamples->view().num_columns());
+	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
+	std::unique_ptr<BlazingTable> groupedSamples = ral::operators::experimental::compute_groupby_without_aggregations(
+														concatSamples->toBlazingTableView(), groupColumnIndices);
 
 	// Sort
 	std::vector<cudf::order> column_order(groupedSamples->view().num_columns(), cudf::order::ASCENDING);

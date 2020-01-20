@@ -915,6 +915,125 @@ std::unique_ptr<ral::frame::BlazingTable> compute_groupby_without_aggregations(
 	return std::make_unique<ral::frame::BlazingTable>( std::move(output), table.names() );
 }
 
+
+std::unique_ptr<ral::frame::BlazingTable> aggregations_without_groupby(Context * context,
+		const ral::frame::BlazingTableView & table, const std::vector<cudf::experimental::aggregation::Kind> & aggregation_types, 
+		const std::vector<std::string> & aggregation_input_expressions, const std::vector<std::string> & aggregation_column_assigned_aliases){
+
+	
+
+}
+
+
+std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * context,
+		const ral::frame::BlazingTableView & table, const std::vector<cudf::experimental::aggregation::Kind> & aggregation_types, 
+		const std::vector<std::string> & aggregation_input_expressions, const std::vector<std::string> & aggregation_column_assigned_aliases, 
+		const std::vector<int> & group_column_indices) {
+
+	static CodeTimer timer;
+	timer.reset();
+	// if(context->getTotalNodes() <= 1) {
+		return compute_aggregations_with_groupby(table, aggregation_types, aggregation_input_expressions, 
+					aggregation_column_assigned_aliases, group_column_indices);
+	// } else {
+
+	// }
+}
+
+std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
+		const ral::frame::BlazingTableView & table, const std::vector<cudf::experimental::aggregation::Kind> & aggregation_types, 
+		const std::vector<std::string> & aggregation_input_expressions, const std::vector<std::string> & aggregation_column_assigned_aliases, 
+		const std::vector<int> & group_column_indices) {
+
+	// lets get the unique expressions. This is how many aggregation requests we will need
+	std::vector<std::string> unique_expressions = aggregation_input_expressions;
+	sort( unique_expressions.begin(), unique_expressions.end() );
+	unique_expressions.erase( unique( unique_expressions.begin(), unique_expressions.end() ), unique_expressions.end() );
+
+	// We will iterate over the unique expressions and create an aggregation request for each one. 
+	// We do it this way, because you could have something like min(colA), max(colA), sum(colA). 
+	// These three aggregations would all be in one request because they have the same input
+	std::vector< std::unique_ptr<cudf::column> > aggregation_inputs_scope_holder;
+	std::vector<cudf::experimental::groupby::aggregation_request> requests;
+	std::vector<int> agg_out_indices;
+	std::vector<std::string> agg_output_column_names;
+	for (size_t u = 0; u < unique_expressions.size(); u++){
+		std::string expression = aggregation_input_expressions[u];
+
+		CudfColumnView aggregation_input; // this is the input from which we will crete the aggregation request
+		std::vector<std::unique_ptr<cudf::experimental::aggregation>> agg_ops_for_request;
+		for (size_t i = 0; i < aggregation_input_expressions.size(); i++){
+			if (expression == aggregation_input_expressions[i]){
+
+				// need to calculate or determine the aggregation input only once
+				if (aggregation_input.size() == 0){
+					// this means we have a COUNT(*). So lets create a simple column with no nulls
+					if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT ) {
+						std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(cudf::data_type(cudf::type_id::INT8), table.view().num_rows());
+						std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT8));
+						auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int8_t>* >(scalar.get());
+						numeric_s->set_value(0);
+						temp = cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *scalar);
+						aggregation_inputs_scope_holder.emplace_back(std::move(temp));
+						aggregation_input  = aggregation_inputs_scope_holder.back()->view();
+					} else {
+						if(contains_evaluation(expression)) {
+							// WSM TODO cudf0.12 need evaluate_expression
+							// put output into aggregation_input and add to aggregation_inputs_scope_holder
+						} else {
+							aggregation_input = table.view().column(get_index(expression));
+						}
+					}
+				}
+				agg_ops_for_request.push_back(std::make_unique<cudf::experimental::aggregation>(aggregation_types[i]));
+				agg_out_indices.push_back(i);  // this is to know what is the desired order of aggregations output
+				
+				// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
+				if(aggregation_column_assigned_aliases[i] == "") {
+					if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT) {  // COUNT(*) case
+						agg_output_column_names.push_back(aggregator_to_string(aggregation_types[i]) + "(*)");
+					} else {
+						agg_output_column_names.push_back(aggregator_to_string(aggregation_types[i]) + "(" + table.names().at(i) + ")");
+					}
+				} else {
+					agg_output_column_names.push_back(aggregation_column_assigned_aliases[i]);
+				}
+			}
+		}		
+		requests.push_back(cudf::experimental::groupby::aggregation_request {.values = aggregation_input, .aggregations = std::move(agg_ops_for_request)});
+	}
+
+	CudfTableView keys = table.view().select(group_column_indices);
+	cudf::experimental::groupby::groupby group_by_obj(keys);
+	std::pair<std::unique_ptr<cudf::experimental::table>, std::vector<cudf::experimental::groupby::aggregation_result>> result = group_by_obj.aggregate( requests );
+
+	// output table is grouped columns and then aggregated columns
+	std::vector< std::unique_ptr<cudf::column> > output_columns = result.first->release();
+	
+	// lets collect all the aggregated results from the results structure and then add them to output_columns
+	std::vector< std::unique_ptr<cudf::column> > agg_cols_out;
+	for (int i = 0; i < result.second.size(); i++){
+		for (int j = 0; j < result.second[i].results.size(); j++){
+			agg_cols_out.emplace_back(std::move(result.second[i].results[j]));
+		}
+	}
+	for (int i = 0; i < agg_out_indices.size(); i++){
+		output_columns.emplace_back(std::move(agg_cols_out[agg_out_indices[i]]));
+	}
+	std::unique_ptr<CudfTable> output_table = std::make_unique<CudfTable>(std::move(output_columns));
+
+	// lets put together the output names
+	std::vector<std::string> output_names;
+	for (int i = 0; i < group_column_indices.size(); i++){
+		output_names.push_back(table.names()[group_column_indices[i]]);
+	}
+	for (int i = 0; i < agg_out_indices.size(); i++){
+		output_names.emplace_back(std::move(agg_output_column_names[agg_out_indices[i]]));
+	}
+
+	return std::make_unique<BlazingTable>(std::move(output_table), output_names);
+}
+
 }  // namespace experimental
 }  // namespace operators
 }  // namespace ral
