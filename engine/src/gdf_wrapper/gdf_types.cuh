@@ -59,7 +59,6 @@ typedef enum {
   BLZ_BITWISE_XOR,    ///< operator ^
   BLZ_LOGICAL_AND,    ///< operator &&
   BLZ_LOGICAL_OR,     ///< operator ||
-  BLZ_COALESCE,       ///< operator x,y  x is null ? y : x
 	BLZ_FIRST_NON_MAGIC,
 	BLZ_MAGIC_IF_NOT,
 	BLZ_STR_LIKE,

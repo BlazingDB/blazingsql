@@ -3,7 +3,7 @@
 #define CALCITEINTERPRETER_H_
 
 #include "DataFrame.h"
-#include "LogicalFilter.h"
+#include "../Interpreter/interpreter_cpp.h"
 #include "Types.h"
 #include "cudf/legacy/binaryop.hpp"
 #include "io/DataLoader.h"
@@ -18,16 +18,16 @@ struct project_plan_params {
 	size_t num_expressions_out;
 	std::vector<cudf::column *> output_columns;
 	std::vector<cudf::column *> input_columns;
-	std::vector<column_index_type> left_inputs;
-	std::vector<column_index_type> right_inputs;
-	std::vector<column_index_type> outputs;
-	std::vector<column_index_type> final_output_positions;
+	std::vector<interops::column_index_type> left_inputs;
+	std::vector<interops::column_index_type> right_inputs;
+	std::vector<interops::column_index_type> outputs;
+	std::vector<interops::column_index_type> final_output_positions;
 	std::vector<gdf_binary_operator_exp> operators;
 	std::vector<gdf_unary_operator> unary_operators;
 	// TODO percy cudf0.12 implement proper scalar support
 	std::vector<cudf::scalar*> left_scalars;
 	std::vector<cudf::scalar*> right_scalars;
-	std::vector<column_index_type> new_column_indices;
+	std::vector<interops::column_index_type> new_column_indices;
 	std::vector<gdf_column_cpp> columns;
 	gdf_error error;
 };
@@ -39,8 +39,6 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 	std::vector<std::string> query,
 	Context * queryContext,
 	int call_depth = 0);
-
-std::string get_named_expression(std::string query_part, std::string expression_name);
 
 void execute_project_plan(blazing_frame & input, std::string query_part);
 
