@@ -22,6 +22,7 @@ target_compile_definitions(parse_parquet-test
 
 set(parse_orc-test_SRCS
     parse_orc.cu
+    ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/table_utilities.cu
 )
 
 configure_test(parse_orc-test "${parse_orc-test_SRCS}")
@@ -30,6 +31,7 @@ configure_test(parse_orc-test "${parse_orc-test_SRCS}")
 
 set(parse_gdf-test_SRCS
     parse_gdf.cu
+    ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/table_utilities.cu
 )
 
 configure_test(parse_gdf-test "${parse_gdf-test_SRCS}")

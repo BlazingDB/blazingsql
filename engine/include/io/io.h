@@ -20,7 +20,7 @@ struct ReaderArgs {
 };
 
 struct TableSchema {
-	std::vector<gdf_column *> columns;
+	std::vector<cudf::column *> columns;
 	std::vector<std::string> files;
 	std::vector<std::string> datasource;
 	std::vector<std::string> names;

@@ -86,11 +86,9 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	if(num_files > 0)
 		num_columns = columns_per_file[0]->num_columns();
 
-	if(num_files == 0 || num_columns == 0) {  // we got no data
-
-		// TODO: empty table!
-		// parser->parse(nullptr, "", columns, schema, column_indices);
-		return nullptr;
+	if(num_files == 0 || num_columns == 0) { 
+		// GDFParse is parsed here
+		return parser->parse(nullptr, "", schema, column_indices);
 	}
 
 	Library::Logging::Logger().logInfo(timer.logDuration(*context, "data_loader::load_data part 2 concat"));
