@@ -244,11 +244,44 @@ cdef extern from "../include/io/io.h":
 
 ctypedef gdf_scalar* gdf_scalar_ptr
 
+cdef extern from "cudf/types.hpp" namespace "cudf":
+        cdef enum type_id:
+            EMPTY = 0
+            INT8 = 1
+            INT16 = 2
+            INT32 = 3
+            INT64 = 4
+            FLOAT32 = 5
+            FLOAT64 = 6
+            BOOL8 = 7
+            TIMESTAMP_DAYS = 8
+            TIMESTAMP_SECONDS = 9
+            TIMESTAMP_MILLISECONDS = 10
+            TIMESTAMP_MICROSECONDS = 11
+            TIMESTAMP_NANOSECONDS = 12
+            CATEGORY = 13
+            STRING = 14
+            NUM_TYPE_IDS = 15
+
+        cdef cppclass data_type:
+            type_id id()
+
+cdef extern from "cudf/column/column_view.hpp" namespace "cudf" nogil:
+        cdef cppclass column_view:
+            T* data[T]()
+            size_type size()
+            void * null_mask()
+            data_type type()
+            size_type offset()
+            size_type num_children()
+ctypedef column_view CudfColumnView
+
 cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
         cdef cppclass table_view:
             table_view() except +
             table_view(vector[table_view]) except +
             select(vector[size_type])
+            CudfColumnView column(size_type column_index)
             size_type num_columns()
             size_type num_rows()
 ctypedef table_view CudfTableView

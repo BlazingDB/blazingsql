@@ -148,8 +148,26 @@ ResultSet runQuery(int32_t masterIndex,
 
 		std::vector<cudf::column_view> columnViews;
 		columnViews.reserve(columns.size());
-		std::transform(
-			columns.cbegin(), columns.cend(), columnViews.begin(), [](cudf::column * column) { return column->view(); });
+		//std::transform(
+			//columns.cbegin(), columns.cend(), columnViews.begin(), [](cudf::column * column) { return column->view(); });
+
+		// TODO(cristhian): Uncomment this to use a dummy data sending to cython
+		//names = {"col001", "col002", "col003"};
+		//std::vector<cudf::column> cvss;
+
+
+		//std::vector<std::int32_t> arr{1, 2, 3, 4, 5, 6, 7, 8, 9};
+		//std::vector<std::int32_t> arr2{11, 12, 13, 14, 15, 16, 17, 18, 19};
+		//std::vector<std::int32_t> arr3{31, 32, 33, 34, 35, 36, 37, 38, 39};
+		//rmm::device_buffer sdata(arr.data(), 9 * sizeof(std::int32_t));
+		//rmm::device_buffer sdata2(arr2.data(), 9 * sizeof(std::int32_t));
+		//rmm::device_buffer sdata3(arr3.data(), 9 * sizeof(std::int32_t));
+		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata);
+		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata2);
+		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata3);
+
+		//std::transform(
+			//cvss.cbegin(), cvss.cend(), std::back_inserter(columnViews), [](const cudf::column & column) { return column.view(); });
 
 		// TODO(gcca): Ask to William about this. Use shared_ptr
 		// or implement default constructor to have an empty BlazingTableView

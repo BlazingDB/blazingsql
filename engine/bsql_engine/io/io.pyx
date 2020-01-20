@@ -38,6 +38,7 @@ import nvcategory
 from cudf._lib.cudf cimport *
 from cudf._lib.cudf import *
 
+from cudf._libxx.column import cudf_to_np_types
 
 from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
@@ -338,13 +339,19 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     temp = runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all)
 
     df = cudf.DataFrame()
-    i = 0
-    for column in temp.columns:
-      names = dereference(temp.blazingTableView).names()
-      column.col_name =  <char *> malloc((strlen(names[i].c_str()) + 1) * sizeof(char))
-      # strcpy(column.col_name, names()[i].c_str())
-      # df.add_column(names()[i].decode('utf-8'),gdf_column_to_column(column))
-      i = i + 1
+
+    names = dereference(temp.blazingTableView).names()
+    view = dereference(temp.blazingTableView).view()
+
+    for i in range(names.size()):
+        c = view.column(i)
+        dtype = cudf_to_np_types[c.type().id()]
+        df.add_column(
+            names[i].decode('utf-8'),
+            build_column(
+                cudf.core.Buffer(
+                    rmm.DeviceBuffer(ptr=<long long>c.data[void](), size=c.size() * dtype.itemsize),
+                ), dtype))
     return df
 
 
