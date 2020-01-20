@@ -15,8 +15,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
   blazingdb::manager::Context * context) {
   using interops::column_index_type;
 
-    size_t row_size = table.view().column(0).size();
-
     std::string combined_expression = query_part.substr(
         query_part.find("(") + 1,
         (query_part.rfind(")") - query_part.find("(")) - 1
@@ -99,7 +97,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                 if(col_type == GDF_STRING_CATEGORY){
                     //TODO strings
                 } else {
-                    std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(cudf::data_type(cudf::type_id::INT8), row_size);
+                    std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(cudf::data_type(cudf::type_id::INT8), table.view().num_rows());
                     std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(cleaned_expression);
                     temp = cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *literal_scalar);
                     names.push_back(cleaned_expression);
@@ -114,8 +112,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         }
     }
 
-    size_t cur_expression_out = 0;
-
     for(size_t i = 0; i < col_used_in_expression.size(); i++) {
         if(col_used_in_expression[i]) {
             col_idx_map.insert({i, col_idx_map.size()});
@@ -126,24 +122,25 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<std::unique_ptr<cudf::column>> col_outputs;
     filtered_table = table.view().select(input_col_indices);
 
+    size_t cur_expression_out = 0;
     for(auto & tokens : tokenized_expression_vector){
-            final_output_positions.push_back(filtered_table.num_columns() + final_output_positions.size());
+        final_output_positions.push_back(filtered_table.num_columns() + final_output_positions.size());
 
-            interops::add_expression_to_interpreter_plan(tokens,
-                                                        filtered_table,
-                                                        col_idx_map,
-                                                        cur_expression_out,
-                                                        num_total_outputs,
-                                                        left_inputs,
-                                                        right_inputs,
-                                                        outputs,
-                                                        final_output_positions,
-                                                        operators,
-                                                        unary_operators,
-                                                        left_scalars,
-                                                        right_scalars);
+        interops::add_expression_to_interpreter_plan(tokens,
+                                                    filtered_table,
+                                                    col_idx_map,
+                                                    cur_expression_out,
+                                                    num_total_outputs,
+                                                    left_inputs,
+                                                    right_inputs,
+                                                    outputs,
+                                                    final_output_positions,
+                                                    operators,
+                                                    unary_operators,
+                                                    left_scalars,
+                                                    right_scalars);
 
-            cur_expression_out++;
+        cur_expression_out++;
     }
 
     if(cur_expression_out>0){
