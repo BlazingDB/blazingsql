@@ -64,10 +64,10 @@ cudf::type_id get_next_biggest_type(cudf::type_id type) {
 // TODO all these return types need to be revisited later. Right now we have issues with some aggregators that only
 // support returning the same input type. Also pygdf does not currently support unsigned types (for example count should
 // return and unsigned type)
-cudf::type_id get_aggregation_output_type(cudf::type_id input_type, gdf_agg_op aggregation, bool have_groupby) {
-	if(aggregation == GDF_COUNT) {
+cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experimental::aggregation::Kind aggregation, bool have_groupby) {
+	if(aggregation == cudf::experimental::aggregation::Kind::COUNT) {
 		return cudf::type_id::INT64;
-	} else if(aggregation == GDF_SUM) {
+	} else if(aggregation == cudf::experimental::aggregation::Kind::SUM) {
 		if(have_groupby)
 			return input_type;  // current group by function can only handle this
 		else {
@@ -75,14 +75,15 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, gdf_agg_op a
 			// to be safe we should enlarge to the greatest integer or float representation
 			return is_type_float(input_type) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64;
 		}
-	} else if(aggregation == GDF_MIN) {
+	} else if(aggregation == cudf::experimental::aggregation::Kind::MIN) {
 		return input_type;
-	} else if(aggregation == GDF_MAX) {
+	} else if(aggregation == cudf::experimental::aggregation::Kind::MAX) {
 		return input_type;
-	} else if(aggregation == GDF_AVG) {
+	} else if(aggregation == cudf::experimental::aggregation::Kind::MEAN) {
 		return cudf::type_id::FLOAT64;
-	} else if(aggregation == GDF_COUNT_DISTINCT) {
-		return cudf::type_id::INT64;
+	// TODO percy cudf0.12 aggregation pass flag for COUNT_DISTINCT cases
+//	} else if(aggregation == GDF_COUNT_DISTINCT) {
+//		return cudf::type_id::INT64;
 	} else {
 		// TODO percy cudf0.12 was invalid here, is ok to return EMPTY?
 		return cudf::type_id::EMPTY;
@@ -234,13 +235,6 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 	} else if(operation == BLZ_MAGIC_IF_NOT) {
 		return input_right_type;
 	} else if(operation == BLZ_FIRST_NON_MAGIC) {
-		if (is_numeric_type(input_left_type) && is_numeric_type(input_right_type)) {
-			if (is_type_float(input_left_type) && !is_type_float(input_right_type)){
-				return input_left_type;
-			}	else if (!is_type_float(input_left_type) && is_type_float(input_right_type)) {
-				return input_right_type;
-			}
-		}
 		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
 				   ral::traits::get_dtype_size_in_bytes(input_right_type))
 				   ? input_left_type
@@ -522,7 +516,7 @@ cudf::type_id infer_dtype_from_literal(const std::string & token) {
 }
 
 // must pass in temp type as invalid if you are not setting it to something to begin with
-cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * max_temp_type, std::string expression) {
+cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id * max_temp_type, std::string expression) {
 	std::string clean_expression = clean_calcite_expression(expression);
 
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
@@ -531,7 +525,7 @@ cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * 
 	}
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(*input, tokens);
+	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
 
 	std::stack<cudf::type_id> operands;
 	for(std::string token : tokens) {
@@ -585,32 +579,34 @@ cudf::type_id get_output_type_expression(blazing_frame * input, cudf::type_id * 
 			if(is_literal(token)) {
 				operands.push(infer_dtype_from_literal(token));
 			} else {
-				operands.push(input->get_column(get_index(token)).get_gdf_column()->type().id());
+				operands.push(table.view().column(get_index(token)).type().id());
 			}
 		}
 	}
 	return operands.top();
 }
 
-gdf_agg_op get_aggregation_operation(std::string operator_string) {
+cudf::experimental::aggregation::Kind get_aggregation_operation(std::string operator_string) {
 	operator_string = operator_string.substr(
 		operator_string.find("=[") + 2, (operator_string.find("]") - (operator_string.find("=[") + 2)));
 
 	// remove expression
 	operator_string = operator_string.substr(0, operator_string.find("("));
 	if(operator_string == "SUM") {
-		return GDF_SUM;
+		return cudf::experimental::aggregation::Kind::SUM;
 	} else if(operator_string == "AVG") {
-		return GDF_AVG;
+		return cudf::experimental::aggregation::Kind::MEAN;
 	} else if(operator_string == "MIN") {
-		return GDF_MIN;
+		return cudf::experimental::aggregation::Kind::MIN;
 	} else if(operator_string == "MAX") {
-		return GDF_MAX;
+		return cudf::experimental::aggregation::Kind::MAX;
 	} else if(operator_string == "COUNT") {
-		return GDF_COUNT;
-	} else if(operator_string == "COUNT_DISTINCT") {
-		return GDF_COUNT_DISTINCT;
+		return cudf::experimental::aggregation::Kind::COUNT;
 	}
+	// TODO percy cudf0.12 aggregation COUNT_DISTINCT cases
+//	else if(operator_string == "COUNT_DISTINCT") {
+//		return GDF_COUNT_DISTINCT;
+//	}
 
 	throw std::runtime_error(
 		"In get_aggregation_operation function: aggregation type not supported, " + operator_string);
@@ -640,24 +636,19 @@ std::vector<std::string> get_tokens_in_reverse_order(const std::string & express
 // TODO percy dirty hack ... fix this approach for timestamps
 // out arg: tokens will be modified in case need a fix due timestamp
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	blazing_frame & inputs, std::vector<std::string> & tokens) {
-	auto a = inputs.get_columns();
-	bool has_timestamp = false;
-	for(int i = 0; i < a.size(); ++i) {
-		auto colss = a.at(i);
-		for(int j = 0; j < colss.size(); ++j) {
-			auto cp = colss.at(j);
+	const ral::frame::BlazingTableView & table, std::vector<std::string> & tokens) {
 
-			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-			if(cp.get_gdf_column() != nullptr && cp.get_gdf_column()->type().id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-				has_timestamp = true;
-				break;
-			}
-		}
-		if(has_timestamp) {
+	bool has_timestamp = false;
+	for(int i = 0; i < table.view().num_columns(); ++i) {
+		auto cp = table.view().column(i);
+
+		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+		if( !cp.is_empty() && cp.type().id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+			has_timestamp = true;
 			break;
 		}
 	}
+
 	if(has_timestamp) {
 		bool coms = false;
 		for(int i = 0; i < tokens.size(); ++i) {
@@ -719,19 +710,20 @@ std::size_t get_index(std::string operand_string) {
 													  : cleaned_expression.substr(1, cleaned_expression.size() - 1));
 }
 
-std::string aggregator_to_string(gdf_agg_op aggregation) {
-	if(aggregation == GDF_COUNT) {
+std::string aggregator_to_string(cudf::experimental::aggregation::Kind aggregation) {
+	if(aggregation == cudf::experimental::aggregation::Kind::COUNT) {
 		return "count";
-	} else if(aggregation == GDF_SUM) {
+	} else if(aggregation == cudf::experimental::aggregation::Kind::SUM) {
 		return "sum";
-	} else if(aggregation == GDF_MIN) {
+	} else if(aggregation == cudf::experimental::aggregation::Kind::MIN) {
 		return "min";
-	} else if(aggregation == GDF_MAX) {
+	} else if(aggregation == cudf::experimental::aggregation::Kind::MAX) {
 		return "max";
-	} else if(aggregation == GDF_AVG) {
+	} else if(aggregation == cudf::experimental::aggregation::Kind::MEAN) {
 		return "avg";
-	} else if(aggregation == GDF_COUNT_DISTINCT) {
-		return "count_distinct";
+	// TODO percy cudf0.12 aggregation pass flag for COUNT_DISTINCT cases
+//	} else if(aggregation == GDF_COUNT_DISTINCT) {
+//		return "count_distinct";
 	} else {
 		return "";  // FIXME: is really necessary?
 	}

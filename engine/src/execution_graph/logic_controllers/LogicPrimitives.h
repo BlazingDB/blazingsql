@@ -16,6 +16,7 @@ namespace ral{
 
 namespace frame{
 
+	class BlazingTableView;
 
   	class BlazingTable{
   	public:
@@ -28,6 +29,8 @@ namespace frame{
 				return table->num_rows();
 			}
   		std::vector<std::string> names() const;
+		
+		BlazingTableView toBlazingTableView() const;
   	private:
   		std::vector<std::string> columnNames;
   		std::unique_ptr<CudfTable> table;
@@ -39,6 +42,7 @@ namespace frame{
   	BlazingTableView(CudfTableView table,std::vector<std::string> columnNames);
   	CudfTableView view() const;
   	std::vector<std::string> names() const;
+	std::unique_ptr<BlazingTable> clone() const;
   private:
   	std::vector<std::string> columnNames;
   	CudfTableView table;
