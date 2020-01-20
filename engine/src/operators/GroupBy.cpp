@@ -30,6 +30,7 @@
 #include <cudf/copying.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/groupby.hpp>
+#include <cudf/reduction.hpp>
 #include <cudf/detail/aggregation/aggregation.hpp>
 #include <cudf/stream_compaction.hpp>
 #include <cudf/column/column_factories.hpp>
@@ -324,7 +325,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations(const ral::frame:
 			std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT8));
 			auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int8_t>* >(scalar.get());
 			numeric_s->set_value(0);
-			temp = cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *scalar);
+			cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *scalar);
 			aggregation_inputs_scope_holder[i] = std::move(temp);
 			aggregation_inputs[i] = aggregation_inputs_scope_holder[i]->view();
 		} else {
@@ -676,7 +677,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::Bl
 	for(std::string expr : expressions) {
 		std::string expression = std::regex_replace(expr, std::regex("^ +| +$|( ) +"), "$1");
 		if(expression.find("group=") == std::string::npos) {
-			cudf::experimental::aggregation::Kind operation = get_aggregation_operation(expression);
+			cudf::experimental::aggregation::Kind operation = get_aggregation_operation_for_groupby(expression);
 			aggregation_types.push_back(operation);
 			aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));
 
@@ -763,16 +764,14 @@ std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::Bl
 
 	// Get aggregations
 	std::vector<cudf::experimental::aggregation::Kind> aggregation_types;
-	std::vector<std::string> aggregation_input_expressions;
+	std::vector<std::string> aggregation_expressions;
 	std::vector<std::string> aggregation_column_assigned_aliases;
 	std::vector<std::string> expressions = get_expressions_from_expression_list(combined_expression);
 	for(std::string expr : expressions) {
 		std::string expression = std::regex_replace(expr, std::regex("^ +| +$|( ) +"), "$1");
 		if(expression.find("group=") == std::string::npos) {
-			cudf::experimental::aggregation::Kind operation = get_aggregation_operation(expression);
-			aggregation_types.push_back(operation);
-			aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));
-
+			aggregation_expressions.push_back(expression);
+			
 			// if the aggregation has an alias, lets capture it here, otherwise we'll figure out what to call the
 			// aggregation based on its input
 			if(expression.find("EXPR$") == 0)
@@ -917,18 +916,90 @@ std::unique_ptr<ral::frame::BlazingTable> compute_groupby_without_aggregations(
 
 
 std::unique_ptr<ral::frame::BlazingTable> aggregations_without_groupby(Context * context,
-		const ral::frame::BlazingTableView & table, const std::vector<cudf::experimental::aggregation::Kind> & aggregation_types, 
+		const ral::frame::BlazingTableView & table, const std::vector<std::string> & aggregation_expressions,
+		const std::vector<std::string> & aggregation_column_assigned_aliases){
+
+	std::vector<std::string> aggregation_types;
+	std::vector<std::string> aggregation_input_expressions;
+	for(std::string expression : aggregation_expressions) {
+		aggregation_types.push_back(get_aggregation_operation_string(expression));
+		aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));			
+	}
+
+	static CodeTimer timer;
+	timer.reset();
+	// if(context->getTotalNodes() <= 1) {
+		return compute_aggregations_without_groupby(table, aggregation_types, aggregation_input_expressions, 
+					aggregation_column_assigned_aliases);
+	// } else {
+
+	// }
+}
+
+std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
+		const ral::frame::BlazingTableView & table, const std::vector<std::string> & aggregation_types, 
 		const std::vector<std::string> & aggregation_input_expressions, const std::vector<std::string> & aggregation_column_assigned_aliases){
 
-	
+	std::vector<std::unique_ptr<cudf::scalar>> reductions;
+	std::vector<std::string> agg_output_column_names;
+	for (int i = 0; i < aggregation_types.size(); i++){
+		if(aggregation_input_expressions[i] == "" && aggregation_types[i] == "COUNT") { // this is a COUNT(*)
+			std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT64));
+			auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int64_t>* >(scalar.get());
+			numeric_s->set_value((int64_t)(table.view().num_rows()));
+			reductions.emplace_back(std::move(scalar));
+		} else {
+			std::unique_ptr<cudf::column> aggregation_input_scope_holder;
+			CudfColumnView aggregation_input; 
+			if(contains_evaluation(aggregation_input_expressions[i])) {
+				// WSM TODO cudf0.12 need evaluate_expression
+				// put output into aggregation_input and add to aggregation_input_scope_holder
+			} else {
+				aggregation_input = table.view().column(get_index(aggregation_input_expressions[i]));
+			}
+			if( aggregation_types[i] == "COUNT") { 
+				std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT64));
+				auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int64_t>* >(scalar.get());
+				numeric_s->set_value((int64_t)(aggregation_input.size() - aggregation_input.null_count()));
+				reductions.emplace_back(std::move(scalar));
+			} else {
+				cudf::type_id output_type = get_aggregation_output_type(aggregation_input.type().id(), aggregation_types[i]);
+				reductions.emplace_back(cudf::experimental::reduce(aggregation_input,
+    					get_aggregation_operation_for_reduce(aggregation_types[i]), cudf::data_type(output_type)));
+			}
+		}
 
+		// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
+		if(aggregation_column_assigned_aliases[i] == "") {
+			if(aggregation_input_expressions[i] == "" && aggregation_types[i] == "COUNT") { // this is a COUNT(*)
+				agg_output_column_names.push_back(aggregation_types[i] + "(*)");
+			} else {
+				agg_output_column_names.push_back(aggregation_types[i] + "(" + table.names().at(get_index(aggregation_input_expressions[i])) + ")");
+			}
+		} else {
+			agg_output_column_names.push_back(aggregation_column_assigned_aliases[i]);
+		}
+	}
+	// convert scalars into columns
+	std::vector<std::unique_ptr<cudf::column>> output_columns;
+	for (int i = 0; i < reductions.size(); i++){
+		output_columns.emplace_back(cudf::make_numeric_column(reductions[i]->type(), 1));
+		cudf::experimental::fill(output_columns.back()->mutable_view(), 0, 1, *(reductions[i]));
+	}
+	return std::make_unique<ral::frame::BlazingTable>(std::move(std::make_unique<CudfTable>(std::move(output_columns))), agg_output_column_names);			
 }
 
 
 std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * context,
-		const ral::frame::BlazingTableView & table, const std::vector<cudf::experimental::aggregation::Kind> & aggregation_types, 
-		const std::vector<std::string> & aggregation_input_expressions, const std::vector<std::string> & aggregation_column_assigned_aliases, 
-		const std::vector<int> & group_column_indices) {
+		const ral::frame::BlazingTableView & table, const std::vector<std::string> & aggregation_expressions,
+		const std::vector<std::string> & aggregation_column_assigned_aliases, const std::vector<int> & group_column_indices) {
+
+	std::vector<cudf::experimental::aggregation::Kind> aggregation_types;
+	std::vector<std::string> aggregation_input_expressions;
+	for(std::string expression : aggregation_expressions) {
+		aggregation_types.push_back(get_aggregation_operation_for_groupby(expression));
+		aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));			
+	}
 
 	static CodeTimer timer;
 	timer.reset();
@@ -973,7 +1044,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT8));
 						auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int8_t>* >(scalar.get());
 						numeric_s->set_value(0);
-						temp = cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *scalar);
+						cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *scalar);
 						aggregation_inputs_scope_holder.emplace_back(std::move(temp));
 						aggregation_input  = aggregation_inputs_scope_holder.back()->view();
 					} else {
