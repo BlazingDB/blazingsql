@@ -653,10 +653,10 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 					
 					std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(scan_frame_columns));
 					std::unique_ptr<ral::frame::BlazingTable> scan_frame_ptr = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), col_names);
-					ral::frame::BlazingTableView scan_frame(scan_frame_ptr->view(), col_names);
+					ral::frame::BlazingTableView scan_frame = scan_frame_ptr->toBlazingTableView();
 
-					// TODO rommel jp felipe cudf0.12
-					//process_filter(queryContext, scan_frame, query[0]);
+					const std::string query_part = query[0];
+					scan_frame_ptr = ral::processor::process_filter(scan_frame_ptr->toBlazingTableView(), query_part, queryContext);
 					
 					// TODO log cudf0.12
 //					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
