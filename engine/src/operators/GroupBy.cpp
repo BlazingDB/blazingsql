@@ -27,6 +27,8 @@
 
 #include "cuDF/safe_nvcategory_gather.hpp"
 
+#include <cudf/copying.hpp>
+#include <cudf/sorting.hpp>
 #include <cudf/groupby.hpp>
 #include <cudf/detail/aggregation/aggregation.hpp>
 #include <cudf/stream_compaction.hpp>
@@ -745,8 +747,12 @@ namespace ral {
 namespace operators {
 namespace experimental {
 
-	std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::BlazingTableView & table,
-																std::string query_part, Context * context) {
+typedef blazingdb::manager::experimental::Context Context;
+typedef ral::communication::experimental::CommunicationData CommunicationData;
+using namespace ral::distribution::experimental;
+
+std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::BlazingTableView & table,
+															std::string query_part, Context * context) {
 
 		// Get groups
 	auto rangeStart = query_part.find("(");
@@ -776,14 +782,14 @@ namespace experimental {
 		}
 	}		
 	if(aggregation_types.size() == 0) {
-		return groupby_without_aggregations(context, table, group_column_indices);
-	
+		return groupby_without_aggregations(context, table, group_column_indices);	
 	} else if (group_column_indices.size() == 0) {
-		return aggregations_without_groupby(context, table, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases);
+		// return aggregations_without_groupby(context, table, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases);
 	} else {
-		return aggregations_with_groupby(context, table, group_column_indices, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases);
+		// return aggregations_with_groupby(context, table, group_column_indices, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases);
 	}														
 }
+
 
 std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context * context,
 		const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
@@ -818,7 +824,7 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 							},
 		context,
 		std::ref(table),
-		std::ref(group_column_indices)
+		std::ref(group_column_indices),
 		std::ref(grouped_table)};
 		
 		// std::unique_ptr<ral::frame::BlazingTable> grouped_table = compute_groupby_without_aggregations(table, group_column_indices);
@@ -869,12 +875,16 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 		// need to sort the data before its partitioned
 		std::vector<cudf::order> column_order(group_column_indices.size(), cudf::order::ASCENDING);
 		std::vector<cudf::null_order> null_orders(group_column_indices.size(), cudf::null_order::AFTER);
-		CudfTableView groupbyColumnsForSort = grouped_table.view().select(group_column_indices);
+		CudfTableView groupbyColumnsForSort = grouped_table->view().select(group_column_indices);
 		std::unique_ptr<cudf::column> sorted_order_col = cudf::experimental::sorted_order( groupbyColumnsForSort, column_order, null_orders );
-		std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::gather( grouped_table.view(), sorted_order_col->view() );
+		std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::gather( grouped_table->view(), sorted_order_col->view() );
 
+		ral::frame::BlazingTableView gathered_table(gathered->view(), grouped_table->names());
+		grouped_table = nullptr; // lets free grouped_table. We dont need it anymore. 
+
+		std::vector<int8_t> sortOrderTypes;
 		std::vector<NodeColumnView> partitions = partitionData(
-								context, BlazingTableView(gathered, grouped_table.names()), partitionPlan->toBlazingTableView(), group_column_indices);
+								context, gathered_table, partitionPlan->toBlazingTableView(), group_column_indices, sortOrderTypes);
 	
 		context->incrementQuerySubstep();
 		distributePartitions(context, partitions);
@@ -904,5 +914,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_groupby_without_aggregations(
 
 	return std::make_unique<ral::frame::BlazingTable>( std::move(output), table.names() );
 }
-}
-}
+
+}  // namespace experimental
+}  // namespace operators
+}  // namespace ral
