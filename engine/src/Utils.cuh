@@ -64,6 +64,10 @@
       : throw cudf::logic_error("Ral failure at: " __FILE__ \
                                 ":" RAL_STRINGIFY(__LINE__) ": " reason)
 
+#define RAL_FAIL(reason)                              \
+  throw cudf::logic_error("Ral failure at: " __FILE__ \
+                          ":" CUDF_STRINGIFY(__LINE__) ": " reason)
+
 static constexpr int ValidSize = 32;
 using ValidType = uint32_t;
 

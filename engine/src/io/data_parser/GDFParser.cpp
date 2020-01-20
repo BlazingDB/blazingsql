@@ -5,6 +5,8 @@
  *      Author: felipe
  */
 
+#include <numeric>
+
 #include "GDFParser.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
 
