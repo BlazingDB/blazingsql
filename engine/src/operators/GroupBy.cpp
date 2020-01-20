@@ -918,6 +918,9 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_without_groupby(Context *
 		const ral::frame::BlazingTableView & table, const std::vector<std::string> & aggregation_expressions,
 		const std::vector<std::string> & aggregation_column_assigned_aliases){
 
+	static CodeTimer timer;
+	timer.reset();
+
 	std::vector<std::string> aggregation_types;
 	std::vector<std::string> aggregation_input_expressions;
 	for(std::string expression : aggregation_expressions) {
@@ -925,14 +928,61 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_without_groupby(Context *
 		aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));			
 	}
 
-	static CodeTimer timer;
-	timer.reset();
-	// if(context->getTotalNodes() <= 1) {
-		return compute_aggregations_without_groupby(table, aggregation_types, aggregation_input_expressions, 
+	std::unique_ptr<ral::frame::BlazingTable> results = compute_aggregations_without_groupby(table, aggregation_types, aggregation_input_expressions, 
 					aggregation_column_assigned_aliases);
-	// } else {
 
-	// }
+	if(context->getTotalNodes() <= 1) {  // if single node, we can just return
+		return results; 
+	}
+
+	// WSM TODO cudf0.12
+	// Library::Logging::Logger().logInfo(
+	// 	timer.logDuration(queryContext, "aggregations_without_groupby part 1 compute_aggregations"));
+	timer.reset();
+
+	if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
+		context->incrementQuerySubstep();
+		std::vector<NodeColumn> collected_partitions = collectPartitions(context);
+
+		std::vector<ral::frame::BlazingTableView> partitions_to_merge;
+		for (int i = 0; i < collected_partitions.size(); i++){
+			partitions_to_merge.emplace_back(collected_partitions[i].second->toBlazingTableView());
+		}		
+		partitions_to_merge.emplace_back(results->toBlazingTableView());
+
+		std::unique_ptr<BlazingTable> concatenated_aggregations = ral::utilities::experimental::concatTables(partitions_to_merge);
+
+		std::vector<std::string> mod_aggregation_types = aggregation_types;
+		std::vector<std::string> mod_aggregation_input_expressions = aggregation_input_expressions;
+		for (int i = 0; i < mod_aggregation_types.size(); i++){
+			if (mod_aggregation_types[i] == "COUNT"){
+				mod_aggregation_types[i] = "SUM"; // if we have a COUNT, we want to SUM the output of the counts from other nodes
+			}
+			mod_aggregation_input_expressions[i] = std::to_string(i); // we just want to aggregate the input columns, so we are setting the indices here
+		}
+		
+		std::unique_ptr<ral::frame::BlazingTable> merged_results = compute_aggregations_without_groupby(concatenated_aggregations->toBlazingTableView(), 
+				mod_aggregation_types, mod_aggregation_input_expressions, concatenated_aggregations->names());
+
+		// WSM TODO cudf0.12
+		// Library::Logging::Logger().logInfo(timer.logDuration(
+		// 	queryContext, "aggregations_without_groupby part 2 collectPartitions and merged"));
+		timer.reset();
+		return merged_results;
+	} else {
+		
+		std::vector<NodeColumnView> selfPartition;
+		selfPartition.emplace_back(context->getMasterNode(), results->toBlazingTableView());
+
+		context->incrementQuerySubstep();
+		ral::distribution::experimental::distributePartitions(context, selfPartition);
+
+		// WSM TODO cudf0.12
+		// Library::Logging::Logger().logInfo(
+		// 	timer.logDuration(queryContext, "aggregations_without_groupby part 2 distributePartitions"));
+		timer.reset();
+		return std::unique_ptr<ral::frame::BlazingTable>();
+	}
 }
 
 std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
