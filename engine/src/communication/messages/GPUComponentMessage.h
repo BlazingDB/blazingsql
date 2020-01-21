@@ -57,7 +57,9 @@ public:
 		this->metadata().total_row_size = total_row_size;
 	} 
 	
-	std::unique_ptr<ral::frame::BlazingTable>  releaseTableView() { return std::move(table); }
+	std::unique_ptr<ral::frame::BlazingTable>  releaseBlazingTable() { return std::move(table); }
+
+	int32_t getTotalRowSize() { return this->metadata().total_row_size; };
 
 protected:
 	std::unique_ptr<ral::frame::BlazingTable> table;
@@ -68,7 +70,7 @@ public:
 	GPUComponentMessage(std::string const & messageToken,
 		uint32_t contextToken,
 		Node  & sender_node,
-		ral::frame::BlazingTableView & samples,
+		const ral::frame::BlazingTableView & samples,
 		std::uint64_t total_row_size = 0)
 		: GPUMessage(messageToken, contextToken, sender_node), table_view{samples} {
 		this->metadata().total_row_size = total_row_size;
