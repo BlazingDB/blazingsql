@@ -53,7 +53,7 @@ TESTS="ON"
 # Set defaults for vars that may not have been defined externally
 #  FIXME: if INSTALL_PREFIX is not set, check PREFIX, then check
 #         CONDA_PREFIX, but there is no fallback from there!
-INSTALL_PREFIX=${INSTALL_PREFIX:=${CONDA_PREFIX}}
+INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
 PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
 export LD_LIBRARY_PATH=$INSTALL_PREFIX/lib
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
@@ -115,76 +115,58 @@ fi
 
 if buildAll || hasArg io; then
 
-    echo ">>>> mkdir -p ${IO_BUILD_DIR}"
     mkdir -p ${IO_BUILD_DIR}
-    echo ">>>> cd ${IO_BUILD_DIR}"
     cd ${IO_BUILD_DIR}
-    echo ">>>> cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .."
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
     if [[ ${TESTS} == "ON" ]]; then
-        echo ">>>> make -j${PARALLEL_LEVEL} all"
         make -j${PARALLEL_LEVEL} all
     else
-        echo ">>>> make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
     fi
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
-        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     fi
 fi
 
 if buildAll || hasArg comms; then
 
-    echo ">>>> mkdir -p ${COMMS_BUILD_DIR}"
     mkdir -p ${COMMS_BUILD_DIR}
-    echo ">>>> cd ${COMMS_BUILD_DIR}"
     cd ${COMMS_BUILD_DIR}
-    echo ">>>> cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .."
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
     if [[ ${TESTS} == "ON" ]]; then
-        echo ">>>> make -j${PARALLEL_LEVEL} all"
         make -j${PARALLEL_LEVEL} all
     else
-        echo ">>>> make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
     fi
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
-        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
     fi
 fi
 
 if buildAll || hasArg libengine; then
 
-    echo ">>>> mkdir -p ${LIBENGINE_BUILD_DIR}"
     mkdir -p ${LIBENGINE_BUILD_DIR}
-    echo ">>>> cd ${LIBENGINE_BUILD_DIR}"
     cd ${LIBENGINE_BUILD_DIR}
-    echo ">>>> cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .."
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
           -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
 
     if [[ ${TESTS} == "ON" ]]; then
-        echo ">>>> make -j${PARALLEL_LEVEL} all"
         make -j${PARALLEL_LEVEL} all
     else
-        echo ">>>> make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}
     fi
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
-        echo ">>>> make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
         cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     fi
