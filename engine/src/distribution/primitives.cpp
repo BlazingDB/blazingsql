@@ -1092,18 +1092,8 @@ typedef ral::communication::experimental::CommunicationData CommunicationData;
 typedef ral::communication::network::Server Server;
 typedef ral::communication::network::Client Client;
 
-
-
-// namespace Factory = ral::communication::messages::Factory;
-// namespace SampleToNodeMasterMessage = ral::communication::messages::SampleToNodeMasterMessage;
-// namespace PartitionPivotsMessage = ral::communication::messages::PartitionPivotsMessage;
-// namespace CommunicationData = ral::communication::experimental::CommunicationData;
-// namespace Server = ral::communication::network::Server;
-// namespace Client = ral::communication::network::Client;
-
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
-	
-	// Get master node
+  // Get master node
 	const Node & master_node = context->getMasterNode();
 
 	// Get self node	
@@ -1128,7 +1118,7 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
 }
 
 std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context) {
-	
+
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
@@ -1196,7 +1186,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 }
 
 void distributePartitionPlan(Context * context, const BlazingTableView & pivots) {
-	
+
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + std::to_string(context_comm_token);
@@ -1208,7 +1198,7 @@ void distributePartitionPlan(Context * context, const BlazingTableView & pivots)
 }
 
 std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
-	
+
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + std::to_string(context_comm_token);
@@ -1289,6 +1279,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 		partitioned_node_column_views.push_back(std::make_pair(all_nodes[i], BlazingTableView(partitioned_data[i], table.names())));
 	}
 	return partitioned_node_column_views;
+
 }
 
 void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
@@ -1361,7 +1352,7 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 }
 
 void scatterData(Context * context, const BlazingTableView & table) {
-	
+
 	std::vector<NodeColumnView> node_columns;
 	auto nodes = context->getAllNodes();
 	for(std::size_t i = 0; i < nodes.size(); ++i) {
@@ -1455,7 +1446,90 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 }
 
 
+void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows) {
+	using ral::communication::experimental::CommunicationData;
+	using ral::communication::messages::Factory;
+	using ral::communication::messages::SampleToNodeMasterMessage;
+	using ral::communication::network::Client;
+
+	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	cudf::test::fixed_width_column_wrapper<cudf::size_type>num_rows_col{left_num_rows, right_num_rows};
+	CudfTableView num_rows_table{{num_rows_col}};
+	std::vector<std::string> names{"left_num_rows", "right_num_rows"};
+	BlazingTableView num_rows_blz_table(num_rows_table, names);
+	// WSM TODO cudf0.12 waiting on messages
+	// auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_rows_blz_table);
+
+	// int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	// broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+}
+
+void collectLeftRightNumRows(Context * context,
+	std::vector<cudf::size_type> & node_num_rows_left,
+	std::vector<cudf::size_type> & node_num_rows_right) {
+	using ral::communication::experimental::CommunicationData;
+	using ral::communication::messages::SampleToNodeMasterMessage;
+	using ral::communication::network::Server;
+
+	int num_nodes = context->getTotalNodes();
+	node_num_rows_left.resize(num_nodes);
+	node_num_rows_right.resize(num_nodes);
+	std::vector<bool> received(num_nodes, false);
+
+	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
+		// WSM TODO cudf0.12 
+		// auto message = Server::getInstance().getMessage(context_token, message_id);
+		// if(message->getMessageTokenValue() != message_id) {
+		// 	throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
+		// }
+		// auto concrete_message = std::static_pointer_cast<SampleToNodeMasterMessage>(message);
+		// auto node = concrete_message->getSenderNode();
+		// std::unique_ptr<BlazingTable> num_rows_data = concrete_message->getSamples();
+		// assert(num_rows_data->view().num_columns() == 1);
+		// assert(num_rows_data->view().num_rows() == 2);
+		
+		// std::pair<std::vector<cudf::size_type>, std::vector<cudf::bitmask_type>> num_rows_host = cudf::test::to_host<cudf::size_type>(num_rows_data->view());
+		
+		// int node_idx = context->getNodeIndex(node);
+		// assert(node_idx >= 0);
+		// if(received[node_idx]) {
+		// 	Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+		// 		std::to_string(context->getQueryStep()),
+		// 		std::to_string(context->getQuerySubstep()),
+		// 		"ERROR: Already received collectLeftRightNumRows from node " + std::to_string(node_idx)));
+		// }
+		// node_num_rows_left[node_idx] = num_rows_host.first[0];
+		// node_num_rows_right[node_idx] = num_rows_host.first[1];
+		// received[node_idx] = true;
+	}
+}
+
+// void broadcastMessage(
+// 	std::vector<Node> nodes, std::shared_ptr<communication::messages::Message> message) {
+// 	std::vector<std::thread> threads(nodes.size());
+// 	for(size_t i = 0; i < nodes.size(); i++) {
+// 		std::shared_ptr<Node> node = nodes[i];
+// 		threads[i] = std::thread([node, message]() {
+// 			ral::communication::network::Client::send(*node, *message);
+// 		});
+// 	}
+// 	for(size_t i = 0; i < threads.size(); i++) {
+// 		threads[i].join();
+// 	}
+// }
+
+
 }  // namespace experimental
+}  // namespace sampling
 }  // namespace distribution
 }  // namespace ral
 

@@ -172,6 +172,7 @@ namespace experimental {
 											const std::vector<int> & searchColIndices,
 											std::vector<int8_t> sortOrderTypes);
 
+
 	void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
 	std::vector<NodeColumn> collectPartitions(Context * context);
@@ -186,6 +187,12 @@ namespace experimental {
 	std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const BlazingTableView & sortedSamples);
 
 	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples);
+
+	void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows);
+
+	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
+				std::vector<cudf::size_type> & node_num_rows_right);
+
 
 }  // namespace experimental
 }  // namespace distribution

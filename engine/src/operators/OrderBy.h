@@ -32,7 +32,8 @@ namespace {
 }  
 
 std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, 
-    const std::string & query_part, Context * context);
+
+const std::string & query_part, Context * context);
 
 std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, 
