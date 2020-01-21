@@ -174,10 +174,10 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
     return_object['num_row_groups']= temp.num_row_groups
     i = 0
-    for column in temp.columns:
-      column.col_name = return_object['names'][i]
-      return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
-      i = i + 1
+    #for column in temp.columns:
+      # column.col_name = return_object['names'][i]
+      # return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
+      # i = i + 1
     return return_object
 
 
@@ -192,7 +192,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
     cdef TableSchema cpp_schema
 
     for col in schema['columns']:
-        cpp_schema.columns.push_back(column_view_from_column(schema['columns'][col]._column))
+        #cpp_schema.columns.push_back(column_view_from_column(schema['columns'][col]._column))
         cpp_schema.names.push_back(col.encode())
 
     for key, value in args.items():
@@ -225,11 +225,11 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
 
     df = cudf.DataFrame()
     i = 0
-    for column in temp.columns:
-      column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
-      strcpy(column.col_name, temp.names[i].c_str())
-      df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
-      i = i + 1
+    # for column in temp.columns:
+    #   column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
+    #   strcpy(column.col_name, temp.names[i].c_str())
+    #   df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
+    #   i = i + 1
     return df
 
 
@@ -305,10 +305,11 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       columns.resize(0)
       names.resize(0)
       fileType = fileTypes[tableIndex]
+      # TODO: TableSchema will be refactorized
       for col in table.input:
         names.push_back(col.encode())
-        columns.push_back(column_view_from_column(table.input[col]._column))
-      currentTableSchemaCpp.columns = columns
+        #columns.push_back(column_view_from_column(table.input[col]._column))
+      #currentTableSchemaCpp.columns = columns
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
@@ -420,10 +421,11 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     columns.resize(0)
     names.resize(0)
     fileType = fileTypes[tableIndex]
+    # TODO: TableSchema will be refactorized
     for col in table.input:
       names.push_back(col.encode())
-      columns.push_back(column_view_from_column(table.input[col]._column))
-    currentTableSchemaCpp.columns = columns
+      #columns.push_back(column_view_from_column(table.input[col]._column))
+    #currentTableSchemaCpp.columns = columns
     currentTableSchemaCpp.names = names
     currentTableSchemaCpp.datasource = table.datasource
     if table.calcite_to_file_indices is not None:

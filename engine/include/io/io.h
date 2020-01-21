@@ -7,6 +7,7 @@
 #include <arrow/table.h>
 #include <memory>
 #include <cudf/io/functions.hpp>
+#include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 #pragma once
 
@@ -20,6 +21,8 @@ struct ReaderArgs {
 };
 
 struct TableSchema {
+	// TODO: TableSchema will be refactorizedt
+	//ral::frame::BlazingTableView blazingTableView
 	std::vector<cudf::column *> columns;
 	std::vector<std::string> files;
 	std::vector<std::string> datasource;
