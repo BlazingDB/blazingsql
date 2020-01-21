@@ -806,7 +806,7 @@ int main(int argc, const char *argv[])
     while (num_tries < max_tries && !connection_success) {
       try {
           std::cout<<"Attempting to connect to Orchestrator"<<std::endl;
-          std::shared_ptr<blazingdb::transport::experimental::Node> node = communicationData.getSharedSelfNode();
+          std::shared_ptr<blazingdb::transport::experimental::Node> node = communicationData.getSelfNode();
           auto nodeDataMesssage = blazingdb::manager::NodeDataMessage::Make(node);
           ral::communication::network::experimental::Client::sendNodeData(communicationData.getOrchestratorIp(),
                                                             communicationData.getOrchestratorPort(),
