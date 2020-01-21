@@ -6,7 +6,7 @@
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 struct ResultSet {
-	ral::frame::BlazingTableView *blazingTableView;
+	std::unique_ptr<ral::frame::BlazingTable> blazingTable;
 };
 
 struct SkipDataResultSet {

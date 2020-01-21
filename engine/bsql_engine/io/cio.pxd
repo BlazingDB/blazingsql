@@ -186,7 +186,6 @@ cdef extern from "cudf/legacy/io_types.hpp":
         bool use_index
         bool use_np_dtypes
         gdf_time_unit timestamp_unit
-        
 
 cdef extern from "../include/io/io.h":
     ctypedef enum DataType:
@@ -298,7 +297,7 @@ cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
             vector[gdf_column_ptr] columns
             vector[string]  names
-            BlazingTableView *blazingTableView
+            unique_ptr[BlazingTable] blazingTable
 
         cdef struct NodeMetaDataTCP:
             string ip

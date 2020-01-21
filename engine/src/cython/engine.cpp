@@ -139,46 +139,27 @@ ResultSet runQuery(int32_t masterIndex,
 
 		//blazing_frame frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 		// TODO: change this dummy function with actual evaluate_query
-		auto evaluate_query_dummy = []() -> std::unique_ptr<ral::frame::BlazingTable> { return nullptr; };
+		auto evaluate_query_dummy = []() {
+			std::vector<std::int32_t> arr{1, 2, 3, 4, 5, 6, 7, 8, 9};
+			std::vector<std::int32_t> arr2{11, 12, 13, 14, 15, 16, 17, 18, 19};
+			std::vector<std::int32_t> arr3{31, 32, 33, 34, 35, 36, 37, 38, 39};
+			rmm::device_buffer sdata(arr.data(), 9 * sizeof(std::int32_t));
+			rmm::device_buffer sdata2(arr2.data(), 9 * sizeof(std::int32_t));
+			rmm::device_buffer sdata3(arr3.data(), 9 * sizeof(std::int32_t));
+			std::vector<std::unique_ptr<cudf::column>> cvss;
+			cvss.emplace_back(std::make_unique<cudf::column>(cudf::data_type{cudf::type_id::INT32}, 9, sdata));
+			cvss.emplace_back(std::make_unique<cudf::column>(cudf::data_type{cudf::type_id::INT32}, 9, sdata2));
+			cvss.emplace_back(std::make_unique<cudf::column>(cudf::data_type{cudf::type_id::INT32}, 9, sdata3));
+			std::vector<std::string> names = {"col001", "col002", "col003"};
+			return std::make_unique<ral::frame::BlazingTable>(std::make_unique<CudfTable>(std::move(cvss)), names);
+		};
 		std::unique_ptr<ral::frame::BlazingTable> blazingTable = evaluate_query_dummy();
-
-		//make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
-		//std::vector<cudf::column *> columns;
-		std::vector<std::string> names;
-		//for(int i = 0; i < frame.get_width(); i++) {
-			//auto& column = frame.get_column(i);
-			//columns.push_back(column.get_gdf_column());
-			//names.push_back(column.name());
-		//}
-
-		std::vector<cudf::column_view> columnViews;
-		//columnViews.reserve(columns.size());
-		//std::transform(
-			//columns.cbegin(), columns.cend(), columnViews.begin(), [](cudf::column * column) { return column->view(); });
-
-		// TODO(cristhian): Uncomment this to use a dummy data sending to cython
-		names = {"col001", "col002", "col003"};
-		std::vector<cudf::column> cvss;
-
-
-		//std::vector<std::int32_t> arr{1, 2, 3, 4, 5, 6, 7, 8, 9};
-		//std::vector<std::int32_t> arr2{11, 12, 13, 14, 15, 16, 17, 18, 19};
-		//std::vector<std::int32_t> arr3{31, 32, 33, 34, 35, 36, 37, 38, 39};
-		//rmm::device_buffer sdata(arr.data(), 9 * sizeof(std::int32_t));
-		//rmm::device_buffer sdata2(arr2.data(), 9 * sizeof(std::int32_t));
-		//rmm::device_buffer sdata3(arr3.data(), 9 * sizeof(std::int32_t));
-		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata);
-		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata2);
-		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata3);
-
-		//std::transform(
-			//cvss.cbegin(), cvss.cend(), std::back_inserter(columnViews), [](const cudf::column & column) { return column.view(); });
 
 		// TODO(gcca): Ask to William about this. Use shared_ptr
 		// or implement default constructor to have an empty BlazingTableView
 		// beacuse cythons needs initialize a ResultSet by default. After that,
 		// remove new statement.
-		ResultSet result{new ral::frame::BlazingTableView{CudfTableView{columnViews}, names}};
+		ResultSet result{std::move(blazingTable)};
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;
