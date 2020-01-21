@@ -1052,12 +1052,147 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 
 	static CodeTimer timer;
 	timer.reset();
-	// if(context->getTotalNodes() <= 1) {
+	if(context->getTotalNodes() <= 1) {
 		return compute_aggregations_with_groupby(table, aggregation_types, aggregation_input_expressions, 
 					aggregation_column_assigned_aliases, group_column_indices);
-	// } else {
+	} else {
+		size_t total_rows_table = table.view().num_rows();
 
-	// }
+		ral::frame::BlazingTableView groupbyColumns(table.view().select(group_column_indices), table.names());
+		
+		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamples(
+																	groupbyColumns, 0.1);
+
+		// WSM TODO cudf0.12 waiting on logger
+		// Library::Logging::Logger().logInfo(timer.logDuration(context, "distributed aggregations_with_groupby part 1 generateSample"));
+
+		std::unique_ptr<ral::frame::BlazingTable> grouped_table;
+		std::thread groupbyThread{[](Context * context,
+								const ral::frame::BlazingTableView & table,
+								const std::vector<cudf::experimental::aggregation::Kind> & aggregation_types, 
+								const std::vector<std::string> & aggregation_input_expressions,
+								const std::vector<std::string> & aggregation_column_assigned_aliases, 
+								const std::vector<int> & group_column_indices,
+								std::unique_ptr<ral::frame::BlazingTable> & grouped_table) {
+								static CodeTimer timer2;
+								grouped_table = compute_aggregations_with_groupby(table, aggregation_types, aggregation_input_expressions, 
+													aggregation_column_assigned_aliases, group_column_indices);
+								// WSM TODO cudf0.12 waiting on logger
+								//    Library::Logging::Logger().logInfo(
+								// 	   timer2.logDuration(context, "distributed aggregations_with_groupby part 2 async compute_aggregations_with_groupby"));
+								timer2.reset();
+							},
+		context,
+		std::ref(table),
+		std::ref(aggregation_types),
+		std::ref(aggregation_input_expressions),
+		std::ref(aggregation_column_assigned_aliases),
+		std::ref(group_column_indices),
+		std::ref(grouped_table)};
+		
+		// std::unique_ptr<ral::frame::BlazingTable> grouped_table = compute_aggregations_with_groupby(table, aggregation_types, aggregation_input_expressions, 
+													// aggregation_column_assigned_aliases, group_column_indices);
+	
+		std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+		if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
+			context->incrementQuerySubstep();
+			std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > samples_pair = collectSamples(context);
+			
+			std::vector<ral::frame::BlazingTableView> samples;
+			for (int i = 0; i < samples_pair.first.size(); i++){
+				samples.push_back(samples_pair.first[i].second->toBlazingTableView());
+			}
+			samples.push_back(selfSamples->toBlazingTableView());
+
+			std::vector<size_t> total_rows_tables = samples_pair.second;
+			total_rows_tables.push_back(total_rows_table);
+			
+			partitionPlan = generatePartitionPlansGroupBy(context, samples);
+
+			context->incrementQuerySubstep();
+			distributePartitionPlan(context, partitionPlan->toBlazingTableView());
+
+			// WSM TODO cudf0.12 waiting on logger
+			// Library::Logging::Logger().logInfo(timer.logDuration(
+			// 	context, "distributed aggregations_with_groupby part 3 collectSamples generatePartitionPlans distributePartitionPlan"));
+		} else {
+			context->incrementQuerySubstep();
+			sendSamplesToMaster(context, selfSamples->toBlazingTableView(), total_rows_table);
+
+			context->incrementQuerySubstep();
+			partitionPlan = getPartitionPlan(context);
+
+			// WSM TODO cudf0.12 waiting on logger
+			// Library::Logging::Logger().logInfo(
+			// 	timer.logDuration(context, "distributed aggregations_with_groupby part 3 sendSamplesToMaster getPartitionPlan"));
+			
+		}
+
+		// Wait for sortThread
+		groupbyThread.join();
+		timer.reset();  // lets do the reset here, since  part 2 async is capting the time
+
+		if(partitionPlan->view().num_rows() == 0) {
+			return std::unique_ptr<ral::frame::BlazingTable>();
+		}
+
+		// need to sort the data before its partitioned
+		std::vector<cudf::order> column_order(group_column_indices.size(), cudf::order::ASCENDING);
+		std::vector<cudf::null_order> null_orders(group_column_indices.size(), cudf::null_order::AFTER);
+		CudfTableView groupbyColumnsForSort = grouped_table->view().select(group_column_indices);
+		std::unique_ptr<cudf::column> sorted_order_col = cudf::experimental::sorted_order( groupbyColumnsForSort, column_order, null_orders );
+		std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::gather( grouped_table->view(), sorted_order_col->view() );
+
+		ral::frame::BlazingTableView gathered_table(gathered->view(), grouped_table->names());
+		grouped_table = nullptr; // lets free grouped_table. We dont need it anymore. 
+
+		std::vector<int8_t> sortOrderTypes;
+		std::vector<NodeColumnView> partitions = partitionData(
+								context, gathered_table, partitionPlan->toBlazingTableView(), group_column_indices, sortOrderTypes);
+	
+		context->incrementQuerySubstep();
+		distributePartitions(context, partitions);
+		std::vector<NodeColumn> collected_partitions = collectPartitions(context);
+
+		std::vector<ral::frame::BlazingTableView> partitions_to_merge;
+		for (int i = 0; i < collected_partitions.size(); i++){
+			partitions_to_merge.emplace_back(collected_partitions[i].second->toBlazingTableView());
+		}
+		for (auto partition : partitions){
+			if (partition.first == CommunicationData::getInstance().getSelfNode()){
+				partitions_to_merge.emplace_back(partition.second);
+				break;
+			}
+		}
+
+		// WSM TODO cudf0.12 waiting on logger
+			// Library::Logging::Logger().logInfo(
+			// 	timer.logDuration(context, "distributed aggregations_with_groupby part 4 collected partitions"));
+
+		std::unique_ptr<BlazingTable> concatenated_aggregations = ral::utilities::experimental::concatTables(partitions_to_merge);
+	
+		std::vector<cudf::experimental::aggregation::Kind> mod_aggregation_types = aggregation_types;
+		std::vector<std::string> mod_aggregation_input_expressions(aggregation_input_expressions.size());
+		std::vector<std::string> mod_aggregation_column_assigned_aliases(mod_aggregation_types.size());  
+		std::vector<int> mod_group_column_indices(group_column_indices.size());  
+		std::iota(mod_group_column_indices.begin(), mod_group_column_indices.end(), 0);		 
+		for (int i = 0; i < mod_aggregation_types.size(); i++){
+			if (mod_aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT){
+				mod_aggregation_types[i] = cudf::experimental::aggregation::Kind::SUM; // if we have a COUNT, we want to SUM the output of the counts from other nodes
+			}
+			mod_aggregation_input_expressions[i] = std::to_string(i + mod_group_column_indices.size()); // we just want to aggregate the input columns, so we are setting the indices here
+			mod_aggregation_column_assigned_aliases[i] = concatenated_aggregations->names()[i + mod_group_column_indices.size()];
+		}
+		
+		std::unique_ptr<ral::frame::BlazingTable> merged_results = compute_aggregations_with_groupby(concatenated_aggregations->toBlazingTableView(), 
+				mod_aggregation_types, mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, mod_group_column_indices);
+
+		// WSM TODO cudf0.12 waiting on logger
+		// Library::Logging::Logger().logInfo(
+		// timer.logDuration(queryContext, "distributed_aggregations_with_groupby part 5 concat and merge"));
+		timer.reset();
+		return merged_results;
+	}
 }
 
 std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
