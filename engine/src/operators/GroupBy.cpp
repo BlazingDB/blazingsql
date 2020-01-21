@@ -334,7 +334,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations(const ral::frame:
 				// we dont knwo what the size of this input will be so allcoate max size
 				// TODO de donde saco el nombre de la columna aqui???
 				cudf::type_id unused;
-				cudf::type_id agg_input_type = get_output_type_expression(table, &unused, expression);
+				cudf::type_id agg_input_type = get_output_type_expression(table, unused, expression);
 				
 				std::unique_ptr<cudf::column> temp;
 				

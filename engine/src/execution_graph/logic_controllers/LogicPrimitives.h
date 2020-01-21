@@ -12,6 +12,7 @@ typedef cudf::experimental::table CudfTable;
 typedef cudf::table_view CudfTableView;
 typedef cudf::column_view CudfColumnView;
 
+
 namespace ral {
 
 namespace frame {
@@ -71,3 +72,4 @@ private:
 }  // namespace frame
 
 }  // namespace ral
+
