@@ -6,8 +6,15 @@
 #include <string>
 #include <vector>
 
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
+#include <cudf/aggregation.hpp>
+
+#include <cudf/column/column_view.hpp>
+
 namespace ral {
 namespace operators {
+
+
 
 namespace {
 using blazingdb::manager::Context;
@@ -15,10 +22,11 @@ using blazingdb::manager::Context;
 
 bool is_aggregate(std::string query_part);
 
-void process_aggregate(blazing_frame & input, std::string query_part, Context * queryContext);
+std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::BlazingTableView & table, std::string query_part, Context * queryContext);
 
-std::vector<gdf_column_cpp> groupby_without_aggregations(
-	std::vector<gdf_column_cpp> & input, const std::vector<int> & group_column_indices);
+// TODO rommel percy
+std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(
+	const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices);
 
 }  // namespace operators
 }  // namespace ral

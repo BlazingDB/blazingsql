@@ -1,5 +1,6 @@
 #pragma once
 
+#include <blazingdb/manager/Context.h>
 #include "LogicPrimitives.h"
 #include "blazingdb/manager/Context.h"
 #include <utility>
@@ -8,14 +9,24 @@ namespace ral{
 
 namespace processor{
 
-
+bool is_logical_filter(const std::string & query_part);
 
 /**
 Takes a table and applies a boolean filter to it
 */
 std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
   const ral::frame::BlazingTableView & table,
-  const CudfColumnView boolValues);
+  const CudfColumnView & boolValues);
+
+std::unique_ptr<cudf::column> evaluate_expression(
+  const cudf::table_view & table,
+  const std::string & expression,
+  cudf::data_type output_type);
+
+std::unique_ptr<ral::frame::BlazingTable> process_filter(
+  const ral::frame::BlazingTableView & table,
+  const std::string & query_part,
+  blazingdb::manager::Context * context);
 
 std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
     const ral::frame::BlazingTableView & table,

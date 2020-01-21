@@ -17,15 +17,15 @@
 #include "communication/network/Server.h"
 #include <numeric>
 
-
 void make_sure_output_is_not_input_gdf(
 	blazing_frame & output_frame, std::vector<TableSchema> & tableSchemas, const std::vector<int> & fileTypes) {
 	std::vector<void *> input_data_ptrs;
 	for(int i = 0; i < tableSchemas.size(); i++) {
 		if(fileTypes[i] == gdfFileType || fileTypes[i] == daskFileType) {
 			for(int j = 0; j < tableSchemas[i].columns.size(); j++) {
-				if(tableSchemas[i].columns[j]->data != nullptr) {
-					input_data_ptrs.push_back(tableSchemas[i].columns[j]->data);
+				if(tableSchemas[i].columns[j]->size() > 0) {
+					// TODO: cordova cudf0.12 port to cudf::column
+					//input_data_ptrs.push_back(tableSchemas[i].columns[j]->data);
 				}
 			}
 		}
@@ -75,7 +75,7 @@ ResultSet runQuery(int32_t masterIndex,
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			types.push_back(to_type_id(tableSchemas[i].columns[col]->dtype));
+			types.push_back(tableSchemas[i].columns[col]->type().id());
 		}
 
 		auto schema = ral::io::Schema(tableSchema.names,
@@ -89,7 +89,7 @@ ResultSet runQuery(int32_t masterIndex,
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-				parser = std::make_shared<ral::io::gdf_parser>(tableSchema);
+			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.columns, tableSchema.names);
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(tableSchema.args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {
@@ -147,10 +147,35 @@ ResultSet runQuery(int32_t masterIndex,
 			names.push_back(column.name());
 		}
 
-		// TODO percy cudf0.12 port to cudf::column CIO
-//		ResultSet result = {columns, names};
-//		//    std::cout<<"result looks ok"<<std::endl;
-//		return result;
+		std::vector<cudf::column_view> columnViews;
+		columnViews.reserve(columns.size());
+		//std::transform(
+			//columns.cbegin(), columns.cend(), columnViews.begin(), [](cudf::column * column) { return column->view(); });
+
+		// TODO(cristhian): Uncomment this to use a dummy data sending to cython
+		//names = {"col001", "col002", "col003"};
+		//std::vector<cudf::column> cvss;
+
+
+		//std::vector<std::int32_t> arr{1, 2, 3, 4, 5, 6, 7, 8, 9};
+		//std::vector<std::int32_t> arr2{11, 12, 13, 14, 15, 16, 17, 18, 19};
+		//std::vector<std::int32_t> arr3{31, 32, 33, 34, 35, 36, 37, 38, 39};
+		//rmm::device_buffer sdata(arr.data(), 9 * sizeof(std::int32_t));
+		//rmm::device_buffer sdata2(arr2.data(), 9 * sizeof(std::int32_t));
+		//rmm::device_buffer sdata3(arr3.data(), 9 * sizeof(std::int32_t));
+		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata);
+		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata2);
+		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata3);
+
+		//std::transform(
+			//cvss.cbegin(), cvss.cend(), std::back_inserter(columnViews), [](const cudf::column & column) { return column.view(); });
+
+		// TODO(gcca): Ask to William about this. Use shared_ptr
+		// or implement default constructor to have an empty BlazingTableView
+		// beacuse cythons needs initialize a ResultSet by default. After that,
+		// remove new statement.
+		ResultSet result{{}, {}, new ral::frame::BlazingTableView{CudfTableView{columnViews}, names}};
+		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;
 		throw;
@@ -188,7 +213,7 @@ ResultSet runSkipData(int32_t masterIndex,
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			types.push_back(to_type_id(tableSchemas[i].columns[col]->dtype));
+			types.push_back(tableSchemas[i].columns[col]->type().id());
 		}
 
 		std::vector<gdf_column*> minmax_metadata_table;
@@ -207,7 +232,7 @@ ResultSet runSkipData(int32_t masterIndex,
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			parser = std::make_shared<ral::io::gdf_parser>(tableSchema);
+			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.columns, tableSchema.names);
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(tableSchema.args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {

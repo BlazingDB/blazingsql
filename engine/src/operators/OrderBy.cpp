@@ -330,11 +330,13 @@ namespace ral {
 namespace operators {
 namespace experimental {
 
-	using Context = blazingdb::manager::experimental::Context;
-	using Node = blazingdb::transport::experimental::Node;
+	typedef blazingdb::manager::experimental::Context Context;
+	typedef blazingdb::transport::experimental::Node Node;
+	typedef ral::communication::experimental::CommunicationData CommunicationData;
 	using namespace ral::distribution::experimental;
 
-std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, std::string query_part, Context * context) {
+std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
+
 	auto rangeStart = query_part.find("(");
 	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
@@ -370,8 +372,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			if (limitRows < table.view().num_rows()){ // lets do the limit only if it will actually do sometihng
 				return logicalLimit(table, limitRows);
 			} else {
+				// TODO: in the future we want to have a way to just return the input and not make a clone
 				return table.clone();
 			}
+		} else { // this should never happen, you either have a sort or a filter,otherwise you should have never called this function
+			return table.clone();
 		}
 	} else {
 		if(num_sort_columns > 0) {
@@ -386,7 +391,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<int8_t> & sortOrderTypes){
 	
-	using ral::communication::experimental::CommunicationData;
+
 	static CodeTimer timer;
 	timer.reset();
 

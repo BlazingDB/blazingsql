@@ -6,7 +6,7 @@
  */
 
 #include "CalciteExpressionParsing.h"
-#include "LogicalFilter.h"
+#include "../Interpreter/interpreter_cpp.h"
 //#include <cub/cub.cuh>
 #include "DataFrame.h"
 #include "utilities/CommonOperations.h"

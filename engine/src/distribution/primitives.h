@@ -172,6 +172,7 @@ namespace experimental {
 											const std::vector<int> & searchColIndices,
 											std::vector<int8_t> sortOrderTypes);
 
+
 	void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
 	std::vector<NodeColumn> collectPartitions(Context * context);
@@ -191,6 +192,7 @@ namespace experimental {
 
 	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
 				std::vector<cudf::size_type> & node_num_rows_right);
+
 
 }  // namespace experimental
 }  // namespace distribution

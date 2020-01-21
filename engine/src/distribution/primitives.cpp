@@ -677,8 +677,11 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 
 	std::vector<int> groupColumnIndices(concatSamples.size());
 	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
-	std::vector<gdf_column_cpp> groupedSamples =
-		ral::operators::groupby_without_aggregations(concatSamples, groupColumnIndices);
+	
+	// TODO percy william alex port distribution
+	//std::vector<gdf_column_cpp> groupedSamples = ral::operators::groupby_without_aggregations(concatSamples, groupColumnIndices);
+	std::vector<gdf_column_cpp> groupedSamples;
+	
 	size_t number_of_groups = groupedSamples[0].get_gdf_column()->size();
 
 	// Sort
@@ -781,8 +784,9 @@ void groupByWithoutAggregationsMerger(
 
 	std::vector<gdf_column_cpp> concatGroups = ral::utilities::concatTables(tables);
 
-	std::vector<gdf_column_cpp> groupedOutput =
-		ral::operators::groupby_without_aggregations(concatGroups, groupColIndices);
+	// TODO percy william alex port distribution
+	//std::vector<gdf_column_cpp> groupedOutput = ral::operators::groupby_without_aggregations(concatGroups, groupColIndices);
+	std::vector<gdf_column_cpp> groupedOutput;
 
 	output.clear();
 	output.add_table(groupedOutput);
@@ -800,7 +804,7 @@ void distributeRowSize(const Context & context, std::size_t total_row_size) {
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
 
 	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
-	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, {});
+	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, std::vector<gdf_column_cpp> ());
 
 	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	broadcastMessage(context.getAllOtherNodes(self_node_idx), message);
@@ -847,8 +851,7 @@ void distributeLeftRightNumRows(const Context & context, std::size_t left_num_ro
 	using ral::communication::CommunicationData;
 	using ral::communication::messages::Factory;
 	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Client;
-
+	
 	const uint32_t context_comm_token = context.getContextCommunicationToken();
 	const uint32_t context_token = context.getContextToken();
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
@@ -1077,20 +1080,20 @@ namespace ral {
 namespace distribution {
 namespace experimental {
 
-using namespace ral::frame;
-
-namespace {
-	using Context = blazingdb::manager::experimental::Context;
-	using Node = blazingdb::transport::experimental::Node;
-}  // namespace
-
+typedef ral::frame::BlazingTable BlazingTable;
+typedef ral::frame::BlazingTableView BlazingTableView;
+typedef blazingdb::manager::experimental::Context Context;
+typedef blazingdb::transport::experimental::Node Node;
+typedef ral::communication::messages::Factory Factory;
+typedef ral::communication::messages::SampleToNodeMasterMessage SampleToNodeMasterMessage;
+typedef ral::communication::messages::PartitionPivotsMessage PartitionPivotsMessage;
+typedef ral::communication::messages::ColumnDataMessage ColumnDataMessage;
+typedef ral::communication::experimental::CommunicationData CommunicationData;
+typedef ral::communication::network::Server Server;
+typedef ral::communication::network::Client Client;
 
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
-	using ral::communication::messages::Factory;
-	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::experimental::CommunicationData;
-
-	// Get master node
+  // Get master node
 	const Node & master_node = context->getMasterNode();
 
 	// Get self node	
@@ -1115,9 +1118,6 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
 }
 
 std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context) {
-	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Server;
-	using ral::communication::experimental::CommunicationData;
 
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
@@ -1186,9 +1186,6 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 }
 
 void distributePartitionPlan(Context * context, const BlazingTableView & pivots) {
-	using ral::communication::experimental::CommunicationData;
-	using ral::communication::messages::Factory;
-	using ral::communication::messages::PartitionPivotsMessage;
 
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
@@ -1201,8 +1198,6 @@ void distributePartitionPlan(Context * context, const BlazingTableView & pivots)
 }
 
 std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
-	using ral::communication::messages::PartitionPivotsMessage;
-	using ral::communication::network::Server;
 
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
@@ -1284,14 +1279,11 @@ std::vector<NodeColumnView> partitionData(Context * context,
 		partitioned_node_column_views.push_back(std::make_pair(all_nodes[i], BlazingTableView(partitioned_data[i], table.names())));
 	}
 	return partitioned_node_column_views;
+
 }
 
 void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
-	using ral::communication::experimental::CommunicationData;
-	using ral::communication::messages::ColumnDataMessage;
-	using ral::communication::messages::Factory;
-	using ral::communication::network::Client;
-
+	
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
@@ -1321,9 +1313,7 @@ std::vector<NodeColumn> collectPartitions(Context * context) {
 }
 
 std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partitions) {
-	using ral::communication::messages::ColumnDataMessage;
-	using ral::communication::network::Server;
-
+	
 	// Get the numbers of rals in the query
 	int number_rals = context->getTotalNodes() - 1;
 	std::vector<bool> received(context->getTotalNodes(), false);
@@ -1362,7 +1352,6 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 }
 
 void scatterData(Context * context, const BlazingTableView & table) {
-	using ral::communication::experimental::CommunicationData;
 
 	std::vector<NodeColumnView> node_columns;
 	auto nodes = context->getAllNodes();
@@ -1456,6 +1445,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
 }
 
+
 void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows) {
 	using ral::communication::experimental::CommunicationData;
 	using ral::communication::messages::Factory;
@@ -1539,6 +1529,7 @@ void collectLeftRightNumRows(Context * context,
 
 
 }  // namespace experimental
+}  // namespace sampling
 }  // namespace distribution
 }  // namespace ral
 
