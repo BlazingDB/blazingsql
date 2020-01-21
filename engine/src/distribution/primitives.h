@@ -187,6 +187,10 @@ namespace experimental {
 
 	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples);
 
+	// multi-threaded message sender
+	void broadcastMessage(std::vector<Node> nodes, 
+			std::shared_ptr<communication::messages::experimental::Message> message);
+
 }  // namespace experimental
 }  // namespace distribution
 }  // namespace ral
