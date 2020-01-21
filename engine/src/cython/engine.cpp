@@ -174,7 +174,7 @@ ResultSet runQuery(int32_t masterIndex,
 		// or implement default constructor to have an empty BlazingTableView
 		// beacuse cythons needs initialize a ResultSet by default. After that,
 		// remove new statement.
-		ResultSet result{{}, {}, new ral::frame::BlazingTableView{CudfTableView{columnViews}, names}};
+		ResultSet result{new ral::frame::BlazingTableView{CudfTableView{columnViews}, names}};
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;
