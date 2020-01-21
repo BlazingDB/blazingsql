@@ -3,7 +3,7 @@
 #include "CodeTimer.h"
 #include "ColumnManipulation.cuh"
 #include "GDFColumn.cuh"
-#include "LogicalFilter.h"
+#include "../Interpreter/interpreter_cpp.h"
 #include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
 #include "config/GPUManager.cuh"

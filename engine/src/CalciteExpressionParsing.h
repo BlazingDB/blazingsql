@@ -22,18 +22,18 @@ gdf_binary_operator_exp get_binary_operation(std::string operator_string);
 
 gdf_unary_operator get_unary_operation(std::string operator_string);
 
-size_t get_index(std::string operand_string);
+cudf::size_type get_index(const std::string & operand_string);
 
 // interprets the expression and if is n-ary and logical, then returns their corresponding binary version
 std::string expand_if_logical_op(std::string expression);
 
-std::string clean_calcite_expression(std::string expression);
+std::string clean_calcite_expression(const std::string & expression);
 
 std::vector<std::string> get_tokens_in_reverse_order(const std::string & expression);
 
 // NOTE call this function after use get_tokens_in_reverse_order ... TODO refactos this approach
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	const ral::frame::BlazingTableView & table, std::vector<std::string> & tokens);
+	const cudf::table_view & inputs, std::vector<std::string> & tokens);
 
 std::string get_aggregation_operation_string(std::string operator_expression);
 
@@ -51,8 +51,7 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experi
 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::string & aggregation);
 
-cudf::type_id get_type_from_string(std::string scalar_string);
-std::unique_ptr<cudf::scalar> get_scalar_from_string(std::string scalar_string, cudf::type_id type);
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string);
 
 std::string aggregator_to_string(cudf::experimental::aggregation::Kind operation);
 
@@ -80,9 +79,6 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator 
 void get_common_type(cudf::type_id type1,
 	cudf::type_id type2,
 	cudf::type_id & type_out);
-
-std::string get_named_expression(std::string query_part, std::string expression_name);
-std::string get_filter_expression(std::string query_part);
 
 bool contains_evaluation(std::string expression);
 

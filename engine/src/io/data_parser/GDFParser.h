@@ -7,8 +7,6 @@
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
-
-#include "../../include/io/io.h"
 #include "GDFColumn.cuh"
 #include "cudf.h"
 
@@ -19,7 +17,7 @@ namespace io {
 
 class gdf_parser : public data_parser {
 public:
-	gdf_parser(TableSchema tableSchemas);
+	gdf_parser(std::vector<cudf::column *> columns_, std::vector<std::string> names_);
 
 	virtual ~gdf_parser();
 
@@ -32,7 +30,8 @@ public:
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema);
 
 private:
-	TableSchema tableSchema;
+	std::vector<cudf::column *> columns;
+	std::vector<std::string> names;
 };
 
 } /* namespace io */

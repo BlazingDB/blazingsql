@@ -41,6 +41,11 @@ namespace transport {
 namespace experimental {
 
 Address::Address(){}
+ 
+Address::Address(const Address& address){
+  this->metadata_ = address.metadata_;
+  memcpy(this->metadata_.ip, address.metadata_.ip, ADDRSTRLEN);
+}
 
 Address::Address(Type type, const std::string &ip,
                  const std::int16_t communication_port,

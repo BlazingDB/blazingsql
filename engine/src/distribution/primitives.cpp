@@ -804,7 +804,7 @@ void distributeRowSize(const Context & context, std::size_t total_row_size) {
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
 
 	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
-	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, {});
+	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, std::vector<gdf_column_cpp> ());
 
 	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	broadcastMessage(context.getAllOtherNodes(self_node_idx), message);

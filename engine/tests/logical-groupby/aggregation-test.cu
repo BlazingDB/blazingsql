@@ -1,7 +1,8 @@
 //#include "gtest/gtest.h"
 
-#include "src/operators/GroupBy.h"
+#include <cudf/detail/aggregation/aggregation.hpp>
 
+#include <operators/GroupBy.h>
 #include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <from_cudf/cpp_tests/utilities/type_lists.hpp>

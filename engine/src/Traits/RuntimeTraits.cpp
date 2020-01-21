@@ -28,6 +28,8 @@ cudf::size_type get_dtype_size_in_bytes(cudf::type_id dtype) {
 
 cudf::size_type get_dtype_size_in_bytes(cudf::column * column) { return get_dtype_size_in_bytes(column->type().id()); }
 
+cudf::size_type get_dtype_size_in_bytes(cudf::column_view & column) { return get_dtype_size_in_bytes(column.type().id()); }
+
 cudf::size_type get_data_size_in_bytes(cudf::column * column) {
 	return (column->size() * get_dtype_size_in_bytes(column->type().id()));
 }

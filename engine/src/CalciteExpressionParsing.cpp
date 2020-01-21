@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <cudf.h>
+#include <cudf/table/table_view.hpp>
 #include <iomanip>
 #include <limits>
 #include <map>
@@ -11,34 +13,31 @@
 #include "CalciteExpressionParsing.h"
 #include "DataFrame.h"
 #include "Traits/RuntimeTraits.h"
-#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
 #include "cudf/legacy/binaryop.hpp"
+#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
 #include "parser/expression_tree.hpp"
-#include <cudf.h>
+#include "utilities/scalar_timestamp_parser.hpp"
 
 bool is_type_signed(cudf::type_id type) {
-	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type || cudf::type_id::INT64 == type ||
-			cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type ||
-			cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
+	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type ||
+			cudf::type_id::INT32 == type || cudf::type_id::INT64 == type || cudf::type_id::FLOAT32 == type ||
+			cudf::type_id::FLOAT64 == type || cudf::type_id::TIMESTAMP_DAYS == type ||
+			cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
 			cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type);
 }
 
 bool is_type_float(cudf::type_id type) { return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type); }
 
 bool is_type_integer(cudf::type_id type) {
-	return (cudf::type_id::INT8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type || cudf::type_id::INT64 == type);
+	return (cudf::type_id::INT8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type ||
+			cudf::type_id::INT64 == type);
 }
 
-bool is_date_type(cudf::type_id type) { return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
-												cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type); }
-
-// TODO percy noboa see upgrade to uints
-// bool is_type_unsigned_numeric(cudf::type_id type){
-//	return (GDF_UINT8 == type ||
-//			GDF_UINT16 == type ||
-//			GDF_UINT32 == type ||
-//			GDF_UINT64 == type);
-//}
+bool is_date_type(cudf::type_id type) {
+	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
+			cudf::type_id::TIMESTAMP_MILLISECONDS == type || cudf::type_id::TIMESTAMP_MICROSECONDS == type ||
+			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
+}
 
 // TODO percy noboa see upgrade to uints
 bool is_numeric_type(cudf::type_id type) {
@@ -176,7 +175,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator 
 }
 
 // todo: get_output_type: add support to coalesce and date operations!
-cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation) {
+cudf::type_id get_output_type(
+	cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation) {
 	if(is_arithmetic_operation(operation)) {
 		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
 			// the output shoudl be ther largest float type
@@ -246,11 +246,16 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 			// return GDF_UINT64;
 			return cudf::type_id::INT64;
 		}
-	} else if(operation == BLZ_COALESCE) {
-		return input_left_type;
 	} else if(operation == BLZ_MAGIC_IF_NOT) {
 		return input_right_type;
 	} else if(operation == BLZ_FIRST_NON_MAGIC) {
+		if(is_numeric_type(input_left_type) && is_numeric_type(input_right_type)) {
+			if(is_type_float(input_left_type) && !is_type_float(input_right_type)) {
+				return input_left_type;
+			} else if(!is_type_float(input_left_type) && is_type_float(input_right_type)) {
+				return input_right_type;
+			}
+		}
 		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
 				   ral::traits::get_dtype_size_in_bytes(input_right_type))
 				   ? input_left_type
@@ -265,9 +270,7 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 	}
 }
 
-void get_common_type(cudf::type_id type1,
-	cudf::type_id type2,
-	cudf::type_id & type_out) {
+void get_common_type(cudf::type_id type1, cudf::type_id type2, cudf::type_id & type_out) {
 	// TODO percy cudf0.12 was invalid here, should we return empty?
 	type_out = cudf::type_id::EMPTY;
 	if(type1 == type2) {
@@ -285,7 +288,7 @@ void get_common_type(cudf::type_id type1,
 			type_out = (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2))
 						   ? type1
 						   : type2;
-		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
+			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
 		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 			if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
@@ -308,190 +311,6 @@ void get_common_type(cudf::type_id type1,
 		type_out = cudf::type_id::CATEGORY;
 	} else {
 		// No common type
-	}
-}
-
-// Todo: unit tests
-int32_t get_date_32_from_string(std::string scalar_string) {
-	return parseDateFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
-}
-
-int64_t get_date_64_from_string(std::string scalar_string) {
-	return parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
-}
-
-// Todo: Consider cases with different unit: ms, us, or ns
-int64_t get_timestamp_from_string(std::string scalar_string) {
-	return parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
-}
-
-// TODO: Remove this dirty workaround to get the type for the scalar
-cudf::type_id get_type_from_string(std::string scalar_string) {
-	static const std::regex reInt{R""(^[-+]?[0-9]+$)""};
-	static const std::regex reFloat{R""(^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$)""};
-
-	if(std::regex_match(scalar_string, reInt)) {
-		return cudf::type_id::INT64;
-	} else if(std::regex_match(scalar_string, reFloat)) {
-		return cudf::type_id::FLOAT64;
-	} else if(scalar_string == "true" || scalar_string == "false") {
-		return cudf::type_id::BOOL8;
-	} else {
-		// check timestamp
-		static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})");
-		bool ret = std::regex_match(scalar_string, re);
-
-		if(ret) {
-			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-			return cudf::type_id::TIMESTAMP_MILLISECONDS;
-		}
-	}
-
-	return cudf::type_id::TIMESTAMP_MILLISECONDS;
-}
-
-std::unique_ptr<cudf::scalar> get_scalar_from_string(std::string scalar_string, cudf::type_id type) {
-	/*
-	 * void*    invd;
-int8_t   si08;
-int16_t  si16;
-int32_t  si32;
-int64_t  si64;
-uint8_t  ui08;
-uint16_t ui16;
-uint32_t ui32;
-uint64_t ui64;
-float    fp32;
-double   fp64;
-int32_t  dt32;  // GDF_DATE32
-int64_t  dt64;  // GDF_DATE64
-int64_t  tmst;  // GDF_TIMESTAMP
-};*/
-	
-	//int8_t, int16_t, int32_t, int64_t, float, double, cudf::experimental::bool8
-	if(scalar_string == "null") {
-		cudf::data_type scalar_type(cudf::type_id::INT8);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
-		ret->set_valid(false);
-		return ret;
-	}
-	if(type == cudf::type_id::INT8) {
-		cudf::data_type scalar_type(cudf::type_id::INT8);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int8_t>*>(ret.get());
-	  	int8_t value = stoi(scalar_string);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-	} else if(type == cudf::type_id::BOOL8) {
-		cudf::data_type scalar_type(cudf::type_id::INT8);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::experimental::bool8>*>(ret.get());
-		bool v = scalar_string == "false" ? 0 : 1;
-		cudf::experimental::bool8 value(v);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-	} else if(type == cudf::type_id::INT16) {
-		cudf::data_type scalar_type(cudf::type_id::INT16);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int16_t>*>(ret.get());
-	  	int16_t value = stoi(scalar_string);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-	} else if(type == cudf::type_id::INT32) {
-		cudf::data_type scalar_type(cudf::type_id::INT32);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int32_t>*>(ret.get());
-	  	int32_t value = stoi(scalar_string);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-	} else if(type == cudf::type_id::INT64) {
-		cudf::data_type scalar_type(cudf::type_id::INT64);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<int64_t>*>(ret.get());
-	  	int64_t value = stoll(scalar_string);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-	}
-	//	else if(type == GDF_UINT8){
-	//		gdf_data data;
-	//		data.ui08 = stoull(scalar_string);
-	//		return {data, GDF_UINT8, true};
-	//	}else if(type == GDF_UINT16){
-	//		gdf_data data;
-	//		data.ui16 = stoull(scalar_string);
-	//		return {data, GDF_UINT16, true};
-	//	}else if(type == GDF_UINT32){
-	//		gdf_data data;
-	//		data.ui32 = stoull(scalar_string);
-	//		return {data, GDF_UINT32, true};
-	//	}else if(type == GDF_UINT64){
-	//		gdf_data data;
-	//		data.ui64 = stoull(scalar_string);
-	//		return {data, GDF_UINT64, true};
-	//	}
-	else if(type == cudf::type_id::FLOAT32) {
-		cudf::data_type scalar_type(cudf::type_id::FLOAT32);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<float>*>(ret.get());
-	  	float value = stof(scalar_string);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-	} else if(type == cudf::type_id::FLOAT64) {
-		cudf::data_type scalar_type(cudf::type_id::FLOAT64);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_numeric_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<double>*>(ret.get());
-	  	double value = stod(scalar_string);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-	} else if(type == cudf::type_id::TIMESTAMP_DAYS) {
-		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
-		cudf::data_type scalar_type(cudf::type_id::TIMESTAMP_DAYS);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_timestamp_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::timestamp_D>*>(ret.get());
-		int32_t v = get_date_32_from_string(scalar_string);
-		cudf::timestamp_D value(v);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-	} else if(type == cudf::type_id::TIMESTAMP_SECONDS) {
-		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
-		cudf::data_type scalar_type(cudf::type_id::TIMESTAMP_SECONDS);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_timestamp_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::timestamp_D>*>(ret.get());
-		scalar_string[10] = 'T';
-		int64_t v = get_date_64_from_string(scalar_string);
-		cudf::timestamp_D value(v);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-	} else if(type == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
-		// TODO percy cudf0.12 use cudf::string::to_timestamp when is implemented
-		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-		cudf::data_type scalar_type(cudf::type_id::TIMESTAMP_MILLISECONDS);
-		std::unique_ptr<cudf::scalar> ret = cudf::make_timestamp_scalar(scalar_type);
-		auto raw_scalar = static_cast<cudf::experimental::scalar_type_t<cudf::timestamp_D>*>(ret.get());
-		// TODO percy another dirty hack ... we should not use private cudf api in the engine!
-		scalar_string[10] = 'T';
-		int64_t v = get_timestamp_from_string(scalar_string);  // this returns in ms
-		cudf::timestamp_D value(v);
-		raw_scalar->set_value(value);
-		raw_scalar->set_valid(true);
-		return ret;
-
-		// NOTE percy this fix the time resolution (e.g. orc files)
-		// TODO percy cudf0.12 implement timestamp resolution
-//		switch(extra_info.time_unit) {
-//		case TIME_UNIT_us: data.tmst = data.tmst * 1000; break;
-//		case TIME_UNIT_ns: data.tmst = data.tmst * 1000 * 1000; break;
-//		}
 	}
 }
 
@@ -520,12 +339,77 @@ cudf::type_id infer_dtype_from_literal(const std::string & token) {
 								   : cudf::type_id::INT8;
 		}
 	} else if(is_date(token)) {
-		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-		return cudf::type_id::TIMESTAMP_SECONDS;
+		return cudf::type_id::TIMESTAMP_DAYS;
 	} else if(is_timestamp(token)) {
 		return cudf::type_id::TIMESTAMP_MILLISECONDS;
 	} else if(is_string(token)) {
 		return cudf::type_id::CATEGORY;
+	}
+
+	RAL_FAIL("Invalid literal string");
+}
+
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string) {
+	cudf::type_id type_id = infer_dtype_from_literal(scalar_string);
+	cudf::data_type type{type_id};
+
+	if(type_id == cudf::type_id::EMPTY) {
+		return nullptr;
+	}
+	if(type_id == cudf::type_id::BOOL8) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = cudf::experimental::bool8;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(scalar_string == "true"));
+		return ret;
+	}
+	if(type_id == cudf::type_id::INT8) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int8_t;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::INT16) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int16_t;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::INT32) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int32_t;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::INT64) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int64_t;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoll(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::FLOAT32) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = float;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stof(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::FLOAT64) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = double;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stod(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::TIMESTAMP_DAYS) {
+		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
+	}
+	if(type_id == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
 	}
 
 	assert(false);
@@ -541,7 +425,7 @@ cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & ta
 	}
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
+	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table.view(), tokens);
 
 	std::stack<cudf::type_id> operands;
 	for(std::string token : tokens) {
@@ -679,14 +563,10 @@ std::vector<std::string> get_tokens_in_reverse_order(const std::string & express
 // TODO percy dirty hack ... fix this approach for timestamps
 // out arg: tokens will be modified in case need a fix due timestamp
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	const ral::frame::BlazingTableView & table, std::vector<std::string> & tokens) {
-
+	const cudf::table_view & inputs, std::vector<std::string> & tokens) {
 	bool has_timestamp = false;
-	for(int i = 0; i < table.view().num_columns(); ++i) {
-		auto cp = table.view().column(i);
-
-		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-		if( !cp.is_empty() && cp.type().id() == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+	for(auto && c : inputs) {
+		if(is_date_type(c.type().id())) {
 			has_timestamp = true;
 			break;
 		}
@@ -744,13 +624,13 @@ void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 	}
 }
 
-std::size_t get_index(std::string operand_string) {
+cudf::size_type get_index(const std::string & operand_string) {
 	if(operand_string.empty()) {
 		return 0;
 	}
 	std::string cleaned_expression = clean_calcite_expression(operand_string);
-	return std::stoull(is_literal(cleaned_expression) ? cleaned_expression
-													  : cleaned_expression.substr(1, cleaned_expression.size() - 1));
+	return std::stoi(is_literal(cleaned_expression) ? cleaned_expression
+													: cleaned_expression.substr(1, cleaned_expression.size() - 1));
 }
 
 std::string aggregator_to_string(cudf::experimental::aggregation::Kind aggregation) {
@@ -839,64 +719,66 @@ std::string expand_if_logical_op(std::string expression) {
 	return output;
 }
 
-std::string replace_calcite_regex(std::string expression) {
+std::string replace_calcite_regex(const std::string & expression) {
+	std::string ret = expression;
+
 	static const std::regex count_re{R""(COUNT\(DISTINCT (\W\(.+?\)|.+)\))"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, count_re, "COUNT_DISTINCT($1)");
+	ret = std::regex_replace(ret, count_re, "COUNT_DISTINCT($1)");
 
 	static const std::regex char_collate_re{
 		R""((?:\(\d+\))? CHARACTER SET ".+?" COLLATE ".+?")"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, char_collate_re, "");
+	ret = std::regex_replace(ret, char_collate_re, "");
 
 	static const std::regex timestamp_re{R""(TIMESTAMP\(\d+\))"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, timestamp_re, "TIMESTAMP");
+	ret = std::regex_replace(ret, timestamp_re, "TIMESTAMP");
 
 	static const std::regex number_implicit_cast_re{
 		R""((\d):(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, number_implicit_cast_re, "$1");
+	ret = std::regex_replace(ret, number_implicit_cast_re, "$1");
 
 	static const std::regex null_implicit_cast_re{
 		R""(null:(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, null_implicit_cast_re, "null");
+	ret = std::regex_replace(ret, null_implicit_cast_re, "null");
 
 	static const std::regex varchar_implicit_cast_re{R""(':VARCHAR)"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, varchar_implicit_cast_re, "'");
+	ret = std::regex_replace(ret, varchar_implicit_cast_re, "'");
 
-	StringUtil::findAndReplaceAll(expression, "IS NOT NULL", "IS_NOT_NULL");
-	StringUtil::findAndReplaceAll(expression, "IS NULL", "IS_NULL");
-	StringUtil::findAndReplaceAll(expression, " NOT NULL", "");
+	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
+	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
+	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
 
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(DAY), ", "BL_DAY(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
-	StringUtil::findAndReplaceAll(expression, "FLOOR(", "BL_FLOUR(");
+	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
+	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
+	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DAY), ", "BL_DAY(");
+	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
+	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
+	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
+	StringUtil::findAndReplaceAll(ret, "FLOOR(", "BL_FLOUR(");
 
-	StringUtil::findAndReplaceAll(expression,"/INT(","/(");
+	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 
-	return expression;
+	return ret;
 }
 
-std::string clean_calcite_expression(std::string expression) {
-	expression = replace_calcite_regex(expression);
+std::string clean_calcite_expression(const std::string & expression) {
+	std::string clean_expression = replace_calcite_regex(expression);
 
 	ral::parser::parse_tree tree;
-	tree.build(expression);
+	tree.build(clean_expression);
 	tree.transform_to_custom_op();
-	expression = tree.rebuildExpression();
+	clean_expression = tree.rebuildExpression();
 
-	expression = expand_if_logical_op(expression);
+	clean_expression = expand_if_logical_op(clean_expression);
 
 	std::string new_string = "";
-	new_string.reserve(expression.size());
+	new_string.reserve(clean_expression.size());
 
-	for(int i = 0; i < expression.size(); i++) {
-		if(expression[i] == '(') {
+	for(int i = 0; i < clean_expression.size(); i++) {
+		if(clean_expression[i] == '(') {
 			new_string.push_back(' ');
 
-		} else if(expression[i] != ',' && expression[i] != ')') {
-			new_string.push_back(expression.at(i));
+		} else if(clean_expression[i] != ',' && clean_expression[i] != ')') {
+			new_string.push_back(clean_expression.at(i));
 		}
 	}
 
