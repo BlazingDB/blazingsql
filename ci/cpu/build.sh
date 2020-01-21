@@ -22,28 +22,6 @@ export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
 
-
-#export CUDACXX=/usr/local/cuda/bin/nvcc
-#
-#CONDA_CH=""
-#if [ ! -z "$CONDA_BUILD" ]; then
-#    IFS=', ' read -r -a array <<< "$CONDA_BUILD"
-#    for item in "${array[@]}"
-#    do
-#        if [ $item == "blazingsql" ]; then
-#            CONDA_CH=$CONDA_CH" -c blazingsql/label/main"
-#        else
-#            CONDA_CH=$CONDA_CH" -c "$item
-#        fi
-#    done
-#fi
-#export CONDA_CH
-#
-#if [ -z "$CONDA_UPLOAD" ]; then
-#    CONDA_UPLOAD="blazingsql"
-#fi
-#export CONDA_UPLOAD
-
 ################################################################################
 # SETUP - Check environment
 ################################################################################
