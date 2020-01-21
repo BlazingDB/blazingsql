@@ -46,6 +46,8 @@ void execute_project_plan(blazing_frame & input, std::string query_part);
 
 project_plan_params parse_project_plan(blazing_frame & input, std::string query_part);
 
+project_plan_params parse_project_plan(const ral::frame::BlazingTableView & table, std::string query_part);
+
 void process_project(blazing_frame & input, std::string query_part);
 
 blazing_frame evaluate_query(std::vector<ral::io::data_loader> input_loaders,
