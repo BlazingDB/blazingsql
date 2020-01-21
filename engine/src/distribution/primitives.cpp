@@ -243,7 +243,7 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 		}
 
 		materialize_column(concatSamples[i].get_gdf_column(), sortedSamples[i].get_gdf_column(), sortedIndexCol.get_gdf_column());
-		
+
 		// TODO percy cudf0.12 port to cudf::column
 		//sortedSamples[i].update_null_count();
 	}
@@ -280,13 +280,13 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 			nullptr,
 			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 			"");
-		
+
 		// TODO percy cudf0.12 port to cudf::column
 		//gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.get_gdf_column()->size(), step, step);
 
 		// TODO percy cudf0.12 port to cudf::column
 		//cudf::gather(&srcTable, (gdf_size_type *) (gatherMap.get_gdf_column()->data), &destTable);
-		
+
 		// TODO percy cudf0.12 port to cudf::column and custrings
 		//ral::init_string_category_if_null(destTable);
 	}
@@ -346,7 +346,7 @@ std::vector<NodeColumns> split_data_into_NodeColumns(
 			// TODO percy cudf0.12 port to cudf::column
 			//split_table[k][i]->col_name = nullptr;
 			//columns[k].create_gdf_column(split_table[k][i]);
-			
+
 			columns[k].set_name(table[k].name());
 		}
 
@@ -457,7 +457,7 @@ std::vector<NodeColumns> partitionData(const Context & context,
 			}
 
 			materialize_column(table[i].get_gdf_column(), sortedTable[i].get_gdf_column(), index_col.get_gdf_column());
-			
+
 			// TODO percy cudf0.12 port to cudf::column
 			//sortedTable[i].update_null_count();
 		}
@@ -677,11 +677,11 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 
 	std::vector<int> groupColumnIndices(concatSamples.size());
 	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
-	
+
 	// TODO percy william alex port distribution
 	//std::vector<gdf_column_cpp> groupedSamples = ral::operators::groupby_without_aggregations(concatSamples, groupColumnIndices);
 	std::vector<gdf_column_cpp> groupedSamples;
-	
+
 	size_t number_of_groups = groupedSamples[0].get_gdf_column()->size();
 
 	// Sort
@@ -724,7 +724,7 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 
 		materialize_column(
 			groupedSamples[i].get_gdf_column(), sortedSamples[i].get_gdf_column(), sortedIndexCol.get_gdf_column());
-		
+
 		// TODO percy cudf0.12 port to cudf::column
 //		sortedSamples[i].update_null_count();
 	}
@@ -763,7 +763,7 @@ std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & contex
 			nullptr,
 			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
 			"");
-		
+
 		// TODO percy cudf0.12 port to cudf::column
 //		gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.get_gdf_column()->size(), step, step);
 
@@ -851,7 +851,7 @@ void distributeLeftRightNumRows(const Context & context, std::size_t left_num_ro
 	using ral::communication::CommunicationData;
 	using ral::communication::messages::Factory;
 	using ral::communication::messages::SampleToNodeMasterMessage;
-	
+
 	const uint32_t context_comm_token = context.getContextCommunicationToken();
 	const uint32_t context_token = context.getContextToken();
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
@@ -896,13 +896,13 @@ void collectLeftRightNumRows(const Context & context,
 		assert(num_rows_data[0].get_gdf_column()->size() == 2);
 		assert(num_rows_data[0].get_gdf_column()->type().id() == cudf::type_id::INT64);
 		std::vector<int64_t> num_rows_host(2);
-		
+
 		// TODO percy cudf0.12 port to cudf::column
 //		cudaMemcpy(num_rows_host.data(),
 //			num_rows_data[0].data(),
 //			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT64) * 2,
 //			cudaMemcpyDeviceToHost);
-		
+
 		int node_idx = context.getNodeIndex(*node);
 		assert(node_idx >= 0);
 		if(received[node_idx]) {
@@ -987,7 +987,7 @@ std::vector<NodeColumns> generateJoinPartitions(
 		temp_input_table.begin(), temp_input_table.end(), raw_input_table_col_ptrs.begin(), [](auto & cpp_col) {
 			return cpp_col.get_gdf_column();
 		});
-	
+
 	// TODO percy cudf0.12 port to cudf::column
 	//cudf::table input_table_wrapper(raw_input_table_col_ptrs);
 
@@ -1096,7 +1096,7 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
   // Get master node
 	const Node & master_node = context->getMasterNode();
 
-	// Get self node	
+	// Get self node
 	Node self_node = CommunicationData::getInstance().getSelfNode();
 
 	// Get context token
@@ -1155,9 +1155,9 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
-				Context * context, std::vector<BlazingTableView> & samples, 
+				Context * context, std::vector<BlazingTableView> & samples,
 				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes) {
-	
+
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
 	std::vector<cudf::order> column_order;
@@ -1216,7 +1216,7 @@ std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 }
 
 
-// This function locates the pivots in the table and partitions the data on those pivot points. 
+// This function locates the pivots in the table and partitions the data on those pivot points.
 // IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
 // IMPORTANT: The TableViews of the data returned point to the same data that was input.
 std::vector<NodeColumnView> partitionData(Context * context,
@@ -1224,7 +1224,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 											const BlazingTableView & pivots,
 											const std::vector<int> & searchColIndices,
 											std::vector<int8_t> sortOrderTypes) {
-	
+
 	// verify input
 	if(pivots.view().num_columns() == 0) {
 		throw std::runtime_error("The pivots array is empty");
@@ -1269,7 +1269,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 	std::vector<CudfTableView> partitioned_data = cudf::experimental::split(table.view(), host_pivot_indexes.first);
 
 	std::vector<Node> all_nodes = context->getAllNodes();
-	
+
 	if(all_nodes.size() != partitioned_data.size()){
 		std::string err = "Number of CudfTableView from partitionData does not match number of nodes";
 		Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context->getContextToken()), std::to_string(context->getQueryStep()), std::to_string(context->getQuerySubstep()), err));
@@ -1283,7 +1283,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 }
 
 void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
-	
+
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
@@ -1313,7 +1313,7 @@ std::vector<NodeColumn> collectPartitions(Context * context) {
 }
 
 std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partitions) {
-	
+
 	// Get the numbers of rals in the query
 	int number_rals = context->getTotalNodes() - 1;
 	std::vector<bool> received(context->getTotalNodes(), false);
@@ -1366,7 +1366,7 @@ void scatterData(Context * context, const BlazingTableView & table) {
 std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
 	const std::vector<int8_t> & sortOrderTypes,
 	const std::vector<int> & sortColIndices) {
-		
+
 	std::vector<cudf::order> column_order;
 	for(auto col_order : sortOrderTypes){
 		if(col_order)
@@ -1376,11 +1376,11 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 	}
 	// TODO this is just a default setting. Will want to be able to properly set null_order
 	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
-	
+
 	std::unique_ptr<CudfTable> merged_table;
 	CudfTableView left_table = tables[0].view();
 	for(size_t i = 1; i < tables.size(); i++) {
-		
+
 		CudfTableView right_table = tables[i].view();
 
 		merged_table = cudf::experimental::merge(left_table, right_table,
@@ -1397,17 +1397,17 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 			break;
 		}
 	}
-	return std::make_unique<BlazingTable>(std::move(merged_table), names);	
+	return std::make_unique<BlazingTable>(std::move(merged_table), names);
 }
 
 
 std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const BlazingTableView & sortedSamples){
 	cudf::size_type outputRowSize = sortedSamples.view().num_rows();
 	cudf::size_type pivotsSize = outputRowSize > 0 ? context->getTotalNodes() - 1 : 0;
-	
+
 	int32_t step = outputRowSize / context->getTotalNodes();
 
-	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});    
+	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
 	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);
 	CudfColumnView gather_map(gather_map_wrapper);
 	std::unique_ptr<CudfTable> pivots = cudf::experimental::gather( sortedSamples.view(), gather_map );
@@ -1417,7 +1417,7 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const Blazi
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples) {
-	
+
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
 	std::unique_ptr<BlazingTable> groupedSamples; // replace this with commented below
@@ -1455,7 +1455,7 @@ void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, st
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
-	
+
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	cudf::test::fixed_width_column_wrapper<cudf::size_type>num_rows_col{left_num_rows, right_num_rows};
 	CudfTableView num_rows_table{{num_rows_col}};
@@ -1486,7 +1486,7 @@ void collectLeftRightNumRows(Context * context,
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
-		// WSM TODO cudf0.12 
+		// WSM TODO cudf0.12
 		// auto message = Server::getInstance().getMessage(context_token, message_id);
 		// if(message->getMessageTokenValue() != message_id) {
 		// 	throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
@@ -1496,9 +1496,9 @@ void collectLeftRightNumRows(Context * context,
 		// std::unique_ptr<BlazingTable> num_rows_data = concrete_message->getSamples();
 		// assert(num_rows_data->view().num_columns() == 1);
 		// assert(num_rows_data->view().num_rows() == 2);
-		
+
 		// std::pair<std::vector<cudf::size_type>, std::vector<cudf::bitmask_type>> num_rows_host = cudf::test::to_host<cudf::size_type>(num_rows_data->view());
-		
+
 		// int node_idx = context->getNodeIndex(node);
 		// assert(node_idx >= 0);
 		// if(received[node_idx]) {
@@ -1529,7 +1529,6 @@ void collectLeftRightNumRows(Context * context,
 
 
 }  // namespace experimental
-}  // namespace sampling
 }  // namespace distribution
 }  // namespace ral
 
@@ -1542,14 +1541,14 @@ namespace experimental {
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	const ral::frame::BlazingTableView & table, const double ratio) {
-	
+
 	return generateSamples(table, std::ceil(table.view().num_rows() * ratio));
 }
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	const ral::frame::BlazingTableView & table, const size_t quantile) {
-	
-	return cudf::generator::generate_sample(table, quantile);	
+
+	return cudf::generator::generate_sample(table, quantile);
 }
 
 }  // namespace experimental
