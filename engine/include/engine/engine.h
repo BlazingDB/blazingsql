@@ -3,14 +3,17 @@
 #include <string>
 #include <vector>
 
+#include <execution_graph/logic_controllers/LogicPrimitives.h>
+
 struct ResultSet {
 	std::vector<gdf_column *> columns;
 	std::vector<std::string> names;
+	ral::frame::BlazingTableView *blazingTableView;
 };
 
 struct SkipDataResultSet {
 	std::vector<int> files;
-	std::vector<std::vector<int> > row_groups; 
+	std::vector<std::vector<int> > row_groups;
 };
 
 struct NodeMetaDataTCP {

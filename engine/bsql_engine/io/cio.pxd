@@ -186,7 +186,7 @@ cdef extern from "cudf/legacy/io_types.hpp":
         bool use_index
         bool use_np_dtypes
         gdf_time_unit timestamp_unit
-
+        
 
 cdef extern from "../include/io/io.h":
     ctypedef enum DataType:
@@ -203,6 +203,8 @@ cdef extern from "../include/io/io.h":
         json_read_arg jsonReaderArg
         csv_read_arg csvReaderArg
     cdef struct TableSchema:
+        # TODO: TableSchema will be refactorized
+        # BlazingTableView blazingTableView
         vector[gdf_column_ptr] columns
         vector[string]  names
         vector[string]  files
@@ -244,17 +246,65 @@ cdef extern from "../include/io/io.h":
 
 ctypedef gdf_scalar* gdf_scalar_ptr
 
+cdef extern from "cudf/types.hpp" namespace "cudf":
+        cdef enum type_id:
+            EMPTY = 0
+            INT8 = 1
+            INT16 = 2
+            INT32 = 3
+            INT64 = 4
+            FLOAT32 = 5
+            FLOAT64 = 6
+            BOOL8 = 7
+            TIMESTAMP_DAYS = 8
+            TIMESTAMP_SECONDS = 9
+            TIMESTAMP_MILLISECONDS = 10
+            TIMESTAMP_MICROSECONDS = 11
+            TIMESTAMP_NANOSECONDS = 12
+            CATEGORY = 13
+            STRING = 14
+            NUM_TYPE_IDS = 15
+
+        cdef cppclass data_type:
+            type_id id()
+
+cdef extern from "cudf/column/column_view.hpp" namespace "cudf" nogil:
+        cdef cppclass column_view:
+            T* data[T]()
+            size_type size()
+            void * null_mask()
+            data_type type()
+            size_type offset()
+            size_type num_children()
+ctypedef column_view CudfColumnView
+
+cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
+        cdef cppclass table_view:
+            table_view() except +
+            table_view(vector[table_view]) except +
+            select(vector[size_type])
+            CudfColumnView column(size_type column_index)
+            size_type num_columns()
+            size_type num_rows()
+ctypedef table_view CudfTableView
+
+cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
+        cdef cppclass BlazingTableView:
+            BlazingTableView(CudfTableView, vector[string]) except +
+            CudfTableView view()
+            vector[string] names()
 
 cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
             vector[gdf_column_ptr] columns
             vector[string]  names
+            BlazingTableView *blazingTableView
 
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
         ResultSet runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
-        ResultSet runSkipData(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError 
+        ResultSet runSkipData(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
 
         cdef struct TableScanInfo:
             vector[string] relational_algebra_steps
