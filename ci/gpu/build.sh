@@ -1,8 +1,8 @@
 #!/bin/bash
 # Copyright (c) 2018, NVIDIA CORPORATION.
-#########################################
-# cuDF GPU build and test script for CI #
-#########################################
+##############################################
+# BlazingDB GPU build and test script for CI #
+##############################################
 set -e
 NUMARGS=$#
 ARGS=$*
