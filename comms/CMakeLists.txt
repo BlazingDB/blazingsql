@@ -184,51 +184,15 @@ blazingdb_artifact(
         src/blazingdb/transport/Node.cc
         src/blazingdb/transport/io/reader_writer.cpp
         src/blazingdb/transport/io/fd_reader_writer.cpp
-        src/blazingdb/manager/Manager.cc
         src/blazingdb/manager/Context.cc
-        src/blazingdb/manager/Cluster.cc
-        src/blazingdb/manager/NodeDataMessage.cc
 
     TESTS
+        # tests/utils/StringInfo.cpp
         tests/utils/Traits/RuntimeTraits.cpp
+        
         tests/gpu-tcp-server-client-test.cc
-)
-
-blazingdb_artifact(
-    TARGET
-        blazingdb-manager
-
-    INCLUDES PUBLIC
-        $ENV{PROJECT_SOURCE_DIR}/include
-        ${PROJECT_SOURCE_DIR}/include
-        /usr/local/cuda/include
-
-    LIBRARIES
-        Threads::Threads
-        zmq
-
-    PREFIX
-        blazingdb
-
-        PUBLIC_HEADERS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/
-
-    SOURCES
-        src/blazingdb/transport/Message.cc
-        src/blazingdb/transport/Address.cc
-        src/blazingdb/transport/Node.cc
-        src/blazingdb/manager/Manager.cc
-        src/blazingdb/manager/Context.cc
-        src/blazingdb/manager/Cluster.cc
-        src/blazingdb/manager/NodeDataMessage.cc
-        src/blazingdb/transport/io/fd_reader_writer.cpp
-
-
-    TESTS
         tests/node-test.cc
-        tests/manager-test.cc
 )
-
 
 # Print the project summary
  feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

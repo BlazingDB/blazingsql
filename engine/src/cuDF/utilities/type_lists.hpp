@@ -19,7 +19,7 @@
 #include <cudf/types.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/wrappers/timestamps.hpp>
-#include <tests/utilities/type_list_utilities.hpp>
+#include <cuDF/utilities/type_list_utilities.hpp>
 #include <cudf/wrappers/bool.hpp>
 
 #include <array>

@@ -1,0 +1,8 @@
+
+.vscode/
+
+.pytest_cache/
+
+.idea/
+
+engine/cmake-build-debug/

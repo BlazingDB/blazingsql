@@ -8,7 +8,7 @@
 #pragma once
 
 #include <FileSystem/Uri.h>
-
+#include "Metadata.h"
 #include "GDFColumn.cuh"
 #include "data_parser/DataParser.h"
 #include "data_provider/DataProvider.h"
@@ -22,6 +22,7 @@
 #include <nvstrings/ipc_transfer.h>
 
 namespace ral {
+
 namespace io {
 
 namespace {
@@ -40,18 +41,16 @@ public:
 	virtual ~data_loader();
 
 	/**
-	 * loads data into a vector of gdf_column_cpp
-	 * @param columns a vector to receive our output should be of size 0 when it is coming in and it will be allocated
-	 * by this function
-	 * @param include_column the different files we can read from can have more columns than we actual want to read,
-	 * this lest us filter some of them out
+	 * returns data into a std::unique_ptr<ral::frame::BlazingTable>
 	 */
-
-	void load_data(const Context & context,
-		std::vector<gdf_column_cpp> & columns,
+	std::unique_ptr<ral::frame::BlazingTable> load_data(
+		Context * context,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
+		
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
+
+	void get_metadata(Metadata & metadata, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
 
 private:
 	/**

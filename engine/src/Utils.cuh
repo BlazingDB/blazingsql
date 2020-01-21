@@ -2,7 +2,8 @@
 #define UTILS_CUH_
 
 #include "gdf_wrapper/gdf_wrapper.cuh"
-#include "gdf_wrapper/utilities/cudf_utils.h"
+#include "from_cudf/cpp_src/utilities/legacy/cudf_utils.h"
+#include "from_cudf/cpp_src/bitmask/legacy/legacy_bitmask.hpp"
 
 #include <iostream>
 #include <vector>
@@ -62,6 +63,10 @@
       ? static_cast<void>(0)                                 \
       : throw cudf::logic_error("Ral failure at: " __FILE__ \
                                 ":" RAL_STRINGIFY(__LINE__) ": " reason)
+
+#define RAL_FAIL(reason)                              \
+  throw cudf::logic_error("Ral failure at: " __FILE__ \
+                          ":" CUDF_STRINGIFY(__LINE__) ": " reason)
 
 static constexpr int ValidSize = 32;
 using ValidType = uint32_t;

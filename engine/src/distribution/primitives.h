@@ -8,6 +8,8 @@
 #include "distribution/NodeColumns.h"
 #include "distribution/NodeSamples.h"
 #include <vector>
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
+
 
 namespace ral {
 namespace distribution {
@@ -133,6 +135,75 @@ namespace distribution {
 std::vector<NodeColumns> generateJoinPartitions(
 	const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices);
 
+}  // namespace distribution
+}  // namespace ral
+
+
+namespace ral {
+
+namespace distribution {
+namespace experimental {
+	namespace {
+		using Context = blazingdb::manager::experimental::Context;
+		using Node = blazingdb::transport::experimental::Node;
+	}  // namespace
+
+	typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
+	typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
+	using namespace ral::frame;
+
+	void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows);
+	std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context);
+
+	std::unique_ptr<BlazingTable> generatePartitionPlans(
+				Context * context, std::vector<BlazingTableView> & samples, 
+				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes);
+	
+	void distributePartitionPlan(Context * context, const BlazingTableView & pivots);
+
+	std::unique_ptr<BlazingTable> getPartitionPlan(Context * context);
+	
+// This function locates the pivots in the table and partitions the data on those pivot points. 
+// IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
+// IMPORTANT: The TableViews of the data returned point to the same data that was input.
+	std::vector<NodeColumnView> partitionData(Context * context,
+											const BlazingTableView & table,
+											const BlazingTableView & pivots,
+											const std::vector<int> & searchColIndices,
+											std::vector<int8_t> sortOrderTypes);
+
+	void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions);
+
+	std::vector<NodeColumn> collectPartitions(Context * context);
+
+	std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partitions);
+
+	void scatterData(Context * context, const BlazingTableView & table);
+
+	std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
+				const std::vector<int8_t> & sortOrderTypes, const std::vector<int> & sortColIndices);
+	
+	std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const BlazingTableView & sortedSamples);
+
+	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples);
+
+}  // namespace experimental
+}  // namespace distribution
+}  // namespace ral
+
+namespace ral {
+namespace distribution {
+namespace sampling {
+namespace experimental {
+
+std::unique_ptr<ral::frame::BlazingTable> generateSamples(
+	const ral::frame::BlazingTableView & table, const double ratio);
+
+std::unique_ptr<ral::frame::BlazingTable> generateSamples(
+	const ral::frame::BlazingTableView & table, const size_t quantile);
+
+}  // namespace experimental
+}  // namespace sampling
 }  // namespace distribution
 }  // namespace ral
 

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <tests/utilities/cudf_gtest.hpp>
+#include <cuDF/utilities/cudf_gtest.hpp>
 #include <cudf/wrappers/bool.hpp>
 #include <cudf/utilities/traits.hpp>
 

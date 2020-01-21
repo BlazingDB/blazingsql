@@ -15,7 +15,7 @@
 #include "types.h"
 #include "vector.h"
 
-#include "gdf_wrapper/utilities/bit_util.cuh"
+#include "from_cudf/cpp_src/utilities/legacy/bit_util.cuh"
 #include <arrow/util/bit_util.h>
 
 

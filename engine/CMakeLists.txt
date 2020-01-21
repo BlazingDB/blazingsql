@@ -76,13 +76,13 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
     $ENV{CONDA_PREFIX}/include
     $ENV{CONDA_PREFIX}/include/cudf
-	$ENV{CONDA_PREFIX}/include/cub
-	$ENV{CONDA_PREFIX}/include/libcudacxx/include
+    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/cub
+    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
     $ENV{CONDA_PREFIX}/include/blazingdb/io
     $ENV{PREFIX}/include
     $ENV{PREFIX}/include/cudf
-	$ENV{PREFIX}/include/cub
-	$ENV{PREFIX}/include/libcudacxx/include
+    $ENV{PREFIX}/include/bsql-rapids-thirdparty/cub
+    $ENV{PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
     $ENV{PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
     )
@@ -116,11 +116,13 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArrowParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ParserUtil.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArgsUtil.cpp
+              ${CMAKE_SOURCE_DIR}/src/io/data_parser/metadata/parquet_metadata.cpp
               ${CMAKE_SOURCE_DIR}/src/Traits/RuntimeTraits.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/RalColumn.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/CommonOperations.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/TableWrapper.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/StringUtils.cpp
+              ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${CMAKE_CURRENT_SOURCE_DIR}/src/Config/Config.cpp
               ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
               ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
@@ -129,14 +131,16 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/ColumnManipulation.cu
               ${CMAKE_SOURCE_DIR}/src/ResultSetRepository.cpp
               ${CMAKE_SOURCE_DIR}/src/JoinProcessor.cpp
-              ${CMAKE_SOURCE_DIR}/src/LogicalFilter.cpp
-              #${CMAKE_SOURCE_DIR}/src/QueryState.cpp
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
               ${CMAKE_SOURCE_DIR}/src/Utils.cu
-			  ${CMAKE_SOURCE_DIR}/src/cuDF/utilities/column_utilities.cu
               ${CMAKE_SOURCE_DIR}/src/GDFCounter.cu
               ${CMAKE_SOURCE_DIR}/src/GDFColumn.cu
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
+              ${CMAKE_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
+              ${CMAKE_SOURCE_DIR}/src/skip_data/utils.cpp
+              ${CMAKE_SOURCE_DIR}/src/skip_data/expression_tree.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/initialize.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp

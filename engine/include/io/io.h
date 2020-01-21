@@ -6,19 +6,24 @@
 #include <vector>
 #include <arrow/table.h>
 #include <memory>
+#include <cudf/io/functions.hpp>
+#include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 #pragma once
 
 typedef ral::io::DataType DataType;
+namespace cudf_io = cudf::experimental::io;
 
 struct ReaderArgs {
-	cudf::orc_read_arg orcReaderArg = cudf::orc_read_arg(cudf::source_info(""));
+	cudf_io::read_orc_args orcReaderArg = cudf_io::read_orc_args(cudf_io::source_info(""));
 	cudf::json_read_arg jsonReaderArg = cudf::json_read_arg(cudf::source_info(""));
-	cudf::csv_read_arg csvReaderArg = cudf::csv_read_arg(cudf::source_info(""));
+	cudf_io::read_csv_args csvReaderArg = cudf_io::read_csv_args(cudf_io::source_info(""));
 };
 
 struct TableSchema {
-	std::vector<gdf_column *> columns;
+	// TODO: TableSchema will be refactorizedt
+	//ral::frame::BlazingTableView blazingTableView
+	std::vector<cudf::column *> columns;
 	std::vector<std::string> files;
 	std::vector<std::string> datasource;
 	std::vector<std::string> names;
@@ -27,6 +32,9 @@ struct TableSchema {
 	std::vector<bool> in_file;
 	int data_type;
 	ReaderArgs args;
+
+	std::vector<gdf_column *> metadata;
+	std::vector<std::vector<int>> row_groups_ids;
 	std::shared_ptr<arrow::Table> arrow_table;
 };
 
@@ -65,6 +73,14 @@ struct GCS {
 
 
 TableSchema parseSchema(std::vector<std::string> files,
+	std::string file_format_hint,
+	std::vector<std::string> arg_keys,
+	std::vector<std::string> arg_values,
+	std::vector<std::pair<std::string, gdf_dtype>> extra_columns);
+
+TableSchema parseMetadata(std::vector<std::string> files,
+	std::pair<int, int> offset,
+	TableSchema schema,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
 	std::vector<std::string> arg_values,

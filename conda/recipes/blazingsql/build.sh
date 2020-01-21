@@ -24,19 +24,34 @@ echo "run_test: "$run_test
 echo '### Building bsql-io ###'
 cd io
 ./conda/recipes/bsql-io/build.sh $build_type $run_test $INSTALL_PREFIX
+if [ $? != 0 ]; then
+  exit 1
+fi
 
 echo '### Building bsql-comms ###'
 cd ../comms
 ./conda/recipes/bsql-comms/build.sh $build_type $run_test $INSTALL_PREFIX
+if [ $? != 0 ]; then
+  exit 1
+fi
 
 echo '### Building bsql-engine ###'
 cd ../engine
 ./conda/recipes/libbsql-engine/build.sh $build_type $run_test $INSTALL_PREFIX
+if [ $? != 0 ]; then
+  exit 1
+fi
 ./conda/recipes/bsql-engine/build.sh $INSTALL_PREFIX
+if [ $? != 0 ]; then
+  exit 1
+fi
 
 echo '### Building blazingsql ###'
 cd ../pyblazing
 ./conda/recipes/pyblazing/build.sh
+if [ $? != 0 ]; then
+  exit 1
+fi
 
 echo '### Building bsql-algebra ###'
 cd ../algebra
