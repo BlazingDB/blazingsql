@@ -941,31 +941,9 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_query(
 		try {
 			std::unique_ptr<ral::frame::BlazingTable> output_frame = evaluate_split_query(input_loaders, schemas,table_names, splitted, &queryContext);
 			
-			// TODO percy william cudf0.12
+			// TODO percy william c.gonzales cudf0.12
 			//output_frame.deduplicate();
 			
-			for (size_t i=0;i<output_frame->num_columns();i++) {
-				if (output_frame->view().column(i).type().id() == cudf::type_id::STRING) {
-					NVStrings * new_strings = nullptr;
-					if (output_frame->view().column(i).size() > 0) {
-						// TODO percy cudf0.12 custrings this was not commented
-//						NVCategory* new_category = static_cast<NVCategory *> (output_frame.get_column(i).dtype_info().category)->gather_and_remap( static_cast<int *>(output_frame.get_column(i).data()), output_frame.get_column(i).size());
-//						new_strings = new_category->to_strings();
-//						NVCategory::destroy(new_category);
-					} else {
-						new_strings = NVStrings::create_from_array(nullptr, 0);
-					}
-
-					// TODO rommel felipe jp custrings cudf0.12
-					//gdf_column_cpp string_column;
-					//string_column.create_gdf_column(new_strings, output_frame->view().column(i).size(), output_frame->names().at(i));
-					//output_frame.set_column(i, string_column);
-				}
-
-				// TODO percy cudf0.12 port to cudf::column
-				//GDFRefCounter::getInstance()->deregister_column(output_frame.get_column(i).get_gdf_column());
-			}
-
 			double duration = blazing_timer.getDuration();
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
 
