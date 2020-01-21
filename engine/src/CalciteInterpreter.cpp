@@ -631,10 +631,6 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 		// process yourself and return
 
 		if(is_scan(query[0])) {
-			std::vector< std::unique_ptr<cudf::column> > scan_frame_columns;
-			std::vector< std::unique_ptr<cudf::column> > input_table;
-			std::vector<std::string> col_names;
-
 			size_t table_index = get_table_index(table_names, extract_table_name(query[0]));
 			if(is_bindable_scan(query[0])) {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
@@ -655,63 +651,50 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
 					projections.push_back(0);
 				}
-				std::unique_ptr<ral::frame::BlazingTable> new_blaz_table = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
-
+				std::unique_ptr<ral::frame::BlazingTable> input_table = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
+				
+				std::vector<std::string> col_names = input_table->names();
+				
 				// Setting the aliases only when is not an empty set
 				for(size_t col_idx = 0; col_idx < aliases_string_split.size(); col_idx++) {
 					// TODO: Rommel, this check is needed when for example the scan has not projects but there are extra
 					// aliases
-					col_names.push_back("");
-					if(col_idx < input_table.size()) {
+					if(col_idx < input_table->num_columns()) {
 						col_names[col_idx] = aliases_string_split[col_idx];
 					}
 				}
-				int num_rows = new_blaz_table->num_rows();
+				input_table->setNames(col_names);
+				
+				int num_rows = input_table->num_rows();
 				Library::Logging::Logger().logInfo(
 					blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
 				blazing_timer.reset();
 
 				if(is_filtered_bindable_scan(query[0])) {
-					for (int i = 0; i < input_table.size(); ++i) {
-						scan_frame_columns.push_back(std::move(input_table[i]));
-					}
-					
-					std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(scan_frame_columns));
-					std::unique_ptr<ral::frame::BlazingTable> scan_frame_ptr = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), col_names);
-					ral::frame::BlazingTableView scan_frame = scan_frame_ptr->toBlazingTableView();
-
 					const std::string query_part = query[0];
-					scan_frame_ptr = ral::processor::process_filter(scan_frame_ptr->toBlazingTableView(), query_part, queryContext);
+					std::unique_ptr<ral::frame::BlazingTable> scan_frame = ral::processor::process_filter(input_table->toBlazingTableView(), query_part, queryContext);
 					
 					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 						"evaluate_split_query process_filter",
 						"num rows",
-						scan_frame_ptr->num_rows()));
+						scan_frame->num_rows()));
 
 					blazing_timer.reset();
 					queryContext->incrementQueryStep();
-					return scan_frame_ptr;
+					return scan_frame;
+				} else {
+					queryContext->incrementQueryStep();
+					return input_table;
 				}
 			} else {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-				std::unique_ptr<ral::frame::BlazingTable> new_blaz_table = input_loaders[table_index].load_data(queryContext, {}, schemas[table_index]);
-				int num_rows = new_blaz_table->num_rows();
-				Library::Logging::Logger().logInfo(
-					blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
+				std::unique_ptr<ral::frame::BlazingTable> input_table = input_loaders[table_index].load_data(queryContext, {}, schemas[table_index]);
+				queryContext->incrementQueryStep();
+				int num_rows = input_table->num_rows();
+				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
 				blazing_timer.reset();
+				return input_table;
 			}
-
-
-			// EnumerableTableScan(table=[[hr, joiner]])
-			// TODO percy cudf0.12 could be some memory issues here if input_tables was moved before
-			for (int i = 0; i < input_table.size(); ++i) {
-				scan_frame_columns.push_back(std::move(input_table[i]));
-			}
-			std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(scan_frame_columns));
-			std::unique_ptr<ral::frame::BlazingTable> scan_frame_ptr = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), col_names);
-			
-			queryContext->incrementQueryStep();
-			return scan_frame_ptr;
 		} else {
 			// i dont think there are any other type of end nodes at the moment
 		}
