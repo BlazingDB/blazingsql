@@ -186,7 +186,7 @@ cdef extern from "cudf/legacy/io_types.hpp":
         bool use_index
         bool use_np_dtypes
         gdf_time_unit timestamp_unit
-
+        
 
 cdef extern from "../include/io/io.h":
     ctypedef enum DataType:
@@ -203,6 +203,8 @@ cdef extern from "../include/io/io.h":
         json_read_arg jsonReaderArg
         csv_read_arg csvReaderArg
     cdef struct TableSchema:
+        # TODO: TableSchema will be refactorized
+        # BlazingTableView blazingTableView
         vector[gdf_column_ptr] columns
         vector[string]  names
         vector[string]  files
