@@ -27,8 +27,8 @@ gdf_error evaluate_query(std::vector<std::vector<gdf_column_cpp>> input_tables,
 	}
 	uint32_t ctxToken = 0;
 	uint32_t masterIndex = 0;
-	using blazingdb::manager::Context;
-	using blazingdb::transport::Node;
+	using blazingdb::manager::experimental::Context;
+	using blazingdb::transport::experimental::Node;
 
 	std::vector<std::shared_ptr<Node>> contextNodes;
 	auto address = blazingdb::transport::Address::TCP("127.0.0.1", 8001, 1234);

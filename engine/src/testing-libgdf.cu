@@ -219,8 +219,8 @@ static result_pair systemCommand(uint64_t accessToken, Buffer&& requestPayloadBu
 
       std::thread([]() {
           std::this_thread::sleep_for(std::chrono::seconds(1));
-          ral::communication::network::Client::closeConnections();
-          ral::communication::network::Server::getInstance().close();      
+          ral::communication::network::experimental::Client::closeConnections();
+          ral::communication::network::experimental::Server::getInstance().close();      
           cudaDeviceReset();
           exit(0);
       }).detach();
@@ -559,8 +559,8 @@ static result_pair executeFileSystemPlanService (uint64_t accessToken, Buffer&& 
 
   uint64_t resultToken = 0L;
   try {
-    using blazingdb::manager::Context;
-    using blazingdb::transport::Node;
+    using blazingdb::manager::experimental::Context;
+    using blazingdb::transport::experimental::Node;
     auto& rawCommContext = requestPayload.communicationContext();
     std::vector<std::shared_ptr<Node>> contextNodes;
     for(auto& rawNode: rawCommContext.nodes){
@@ -574,10 +574,10 @@ static result_pair executeFileSystemPlanService (uint64_t accessToken, Buffer&& 
     }
     uint32_t ctxToken = static_cast<uint32_t>(rawCommContext.token);
     Context queryContext{ctxToken, contextNodes, contextNodes[rawCommContext.masterIndex], ""};
-    Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(queryContext.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())); // TODO we only need to do this once. Lets change this once we ral synching system
+    Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(queryContext.getNodeIndex(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())); // TODO we only need to do this once. Lets change this once we ral synching system
     Library::Logging::Logger().logInfo(timer.logDuration(queryContext, "\"Query Start\n" + requestPayload.statement() + "\""));
     
-    ral::communication::network::Server::getInstance().registerContext(ctxToken);
+    ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
     resultToken = requestPayload.resultToken();
     result_set_repository::get_instance().register_query(accessToken,resultToken);
 
@@ -647,8 +647,8 @@ static result_pair addToResultRepo(std::uint64_t accessToken,
     ral::io::Schema schema;
     loader.get_schema(schema);
 
-    using blazingdb::manager::Context;
-    using blazingdb::transport::Node;
+    using blazingdb::manager::experimental::Context;
+    using blazingdb::transport::experimental::Node;
     Context queryContext{accessToken, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
     std::vector<gdf_column_cpp> columns;
     loader.load_data(queryContext, columns, {}, schema);
@@ -789,9 +789,9 @@ int main(int argc, const char *argv[])
     size_t total_gpu_mem_size = ral::config::GPUManager::getInstance().gpuMemorySize();
     assert(total_gpu_mem_size > 0);
     auto nthread = 4;
-    blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
+    blazingdb::transport::experimental::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
-    auto& communicationData = ral::communication::CommunicationData::getInstance();
+    auto& communicationData = ral::communication::experimental::CommunicationData::getInstance();
     communicationData.initialize(
         std::atoi(ralId.c_str()),
         orchestratorHost,
@@ -806,13 +806,13 @@ int main(int argc, const char *argv[])
     while (num_tries < max_tries && !connection_success) {
       try {
           std::cout<<"Attempting to connect to Orchestrator"<<std::endl;
-          std::shared_ptr<blazingdb::transport::Node> node = communicationData.getSharedSelfNode();
+          std::shared_ptr<blazingdb::transport::experimental::Node> node = communicationData.getSharedSelfNode();
           auto nodeDataMesssage = blazingdb::manager::NodeDataMessage::Make(node);
-          ral::communication::network::Client::sendNodeData(communicationData.getOrchestratorIp(),
+          ral::communication::network::experimental::Client::sendNodeData(communicationData.getOrchestratorIp(),
                                                             communicationData.getOrchestratorPort(),
                                                             *nodeDataMesssage);
 
-          ral::communication::network::Server::start(ralCommunicationPort);
+          ral::communication::network::experimental::Server::start(ralCommunicationPort);
           connection_success = true;
           std::cout<<"Successfully Connected to Orchestrator"<<std::endl;
       } catch (std::exception &e) {

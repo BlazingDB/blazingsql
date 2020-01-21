@@ -12,7 +12,7 @@
 #include <vector>
 
 #include <blazingdb/manager/Context.h>
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 
 struct project_plan_params {
 	size_t num_expressions_out;

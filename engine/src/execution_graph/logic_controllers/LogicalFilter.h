@@ -25,7 +25,7 @@ std::unique_ptr<cudf::column> evaluate_expression(
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const ral::frame::BlazingTableView & table,
   const std::string & query_part,
-  blazingdb::manager::Context * context);
+  blazingdb::manager::experimental::Context * context);
 
 std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
     const ral::frame::BlazingTableView & table,

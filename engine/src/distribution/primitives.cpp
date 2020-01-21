@@ -128,7 +128,7 @@ void sendSamplesToMaster(const Context & context, std::vector<gdf_column_cpp> & 
 	const Node & master_node = context.getMasterNode();
 
 	// Get self node
-	using CommunicationData = ral::communication::CommunicationData;
+	using CommunicationData = ral::communication::experimental::CommunicationData;
 	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
 
 	// Get context token
@@ -140,7 +140,7 @@ void sendSamplesToMaster(const Context & context, std::vector<gdf_column_cpp> & 
 		MessageFactory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, samples);
 
 	// Send message to master
-	using Client = ral::communication::network::Client;
+	using Client = ral::communication::network::experimental::Client;
 	Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context_token),
 		std::to_string(context.getQueryStep()),
 		std::to_string(context.getQuerySubstep()),
@@ -150,7 +150,7 @@ void sendSamplesToMaster(const Context & context, std::vector<gdf_column_cpp> & 
 
 std::vector<NodeSamples> collectSamples(const Context & context) {
 	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Server;
+	using ral::communication::network::experimental::Server;
 
 	const uint32_t context_comm_token = context.getContextCommunicationToken();
 	const uint32_t context_token = context.getContextToken();
@@ -295,7 +295,7 @@ std::vector<gdf_column_cpp> generatePartitionPlans(
 }
 
 void distributePartitionPlan(const Context & context, std::vector<gdf_column_cpp> & pivots) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	using ral::communication::messages::Factory;
 	using ral::communication::messages::PartitionPivotsMessage;
 
@@ -310,7 +310,7 @@ void distributePartitionPlan(const Context & context, std::vector<gdf_column_cpp
 
 std::vector<gdf_column_cpp> getPartitionPlan(const Context & context) {
 	using ral::communication::messages::PartitionPivotsMessage;
-	using ral::communication::network::Server;
+	using ral::communication::network::experimental::Server;
 
 	const uint32_t context_comm_token = context.getContextCommunicationToken();
 	const uint32_t context_token = context.getContextToken();
@@ -530,10 +530,10 @@ std::vector<NodeColumns> partitionData(const Context & context,
 }
 
 void distributePartitions(const Context & context, std::vector<NodeColumns> & partitions) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	using ral::communication::messages::ColumnDataMessage;
 	using ral::communication::messages::Factory;
-	using ral::communication::network::Client;
+	using ral::communication::network::experimental::Client;
 
 	const uint32_t context_comm_token = context.getContextCommunicationToken();
 	const uint32_t context_token = context.getContextToken();
@@ -564,7 +564,7 @@ std::vector<NodeColumns> collectPartitions(const Context & context) {
 
 std::vector<NodeColumns> collectSomePartitions(const Context & context, int num_partitions) {
 	using ral::communication::messages::ColumnDataMessage;
-	using ral::communication::network::Server;
+	using ral::communication::network::experimental::Server;
 
 	// Get the numbers of rals in the query
 	int number_rals = context.getTotalNodes() - 1;
@@ -602,7 +602,7 @@ std::vector<NodeColumns> collectSomePartitions(const Context & context, int num_
 }
 
 void scatterData(const Context & context, std::vector<gdf_column_cpp> & table) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 
 	std::vector<NodeColumns> array_node_columns;
 	auto nodes = context.getAllNodes();
@@ -793,10 +793,10 @@ void groupByWithoutAggregationsMerger(
 }
 
 void distributeRowSize(const Context & context, std::size_t total_row_size) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	using ral::communication::messages::Factory;
 	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Client;
+	using ral::communication::network::experimental::Client;
 
 
 	const uint32_t context_comm_token = context.getContextCommunicationToken();
@@ -811,9 +811,9 @@ void distributeRowSize(const Context & context, std::size_t total_row_size) {
 }
 
 std::vector<cudf::size_type> collectRowSize(const Context & context) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Server;
+	using ral::communication::network::experimental::Server;
 
 	int num_nodes = context.getTotalNodes();
 	std::vector<cudf::size_type> node_row_sizes(num_nodes);
@@ -848,7 +848,7 @@ std::vector<cudf::size_type> collectRowSize(const Context & context) {
 
 
 void distributeLeftRightNumRows(const Context & context, std::size_t left_num_rows, std::size_t right_num_rows) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	using ral::communication::messages::Factory;
 	using ral::communication::messages::SampleToNodeMasterMessage;
 	
@@ -870,9 +870,9 @@ void distributeLeftRightNumRows(const Context & context, std::size_t left_num_ro
 void collectLeftRightNumRows(const Context & context,
 	std::vector<cudf::size_type> & node_num_rows_left,
 	std::vector<cudf::size_type> & node_num_rows_right) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Server;
+	using ral::communication::network::experimental::Server;
 
 	int num_nodes = context.getTotalNodes();
 	node_num_rows_left.resize(num_nodes);
@@ -1063,7 +1063,7 @@ void broadcastMessage(
 	for(size_t i = 0; i < nodes.size(); i++) {
 		std::shared_ptr<Node> node = nodes[i];
 		threads[i] = std::thread([node, message]() {
-			ral::communication::network::Client::send(*node, *message);
+			ral::communication::network::experimental::Client::send(*node, *message);
 		});
 	}
 	for(size_t i = 0; i < threads.size(); i++) {
@@ -1089,8 +1089,8 @@ typedef ral::communication::messages::SampleToNodeMasterMessage SampleToNodeMast
 typedef ral::communication::messages::PartitionPivotsMessage PartitionPivotsMessage;
 typedef ral::communication::messages::ColumnDataMessage ColumnDataMessage;
 typedef ral::communication::experimental::CommunicationData CommunicationData;
-typedef ral::communication::network::Server Server;
-typedef ral::communication::network::Client Client;
+typedef ral::communication::network::experimental::Server Server;
+typedef ral::communication::network::experimental::Client Client;
 
 
 
@@ -1098,8 +1098,8 @@ typedef ral::communication::network::Client Client;
 // namespace SampleToNodeMasterMessage = ral::communication::messages::SampleToNodeMasterMessage;
 // namespace PartitionPivotsMessage = ral::communication::messages::PartitionPivotsMessage;
 // namespace CommunicationData = ral::communication::experimental::CommunicationData;
-// namespace Server = ral::communication::network::Server;
-// namespace Client = ral::communication::network::Client;
+// namespace Server = ral::communication::network::experimental::Server;
+// namespace Client = ral::communication::network::experimental::Client;
 
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
 	
@@ -1119,7 +1119,7 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
 	// 	Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, samples);
 
 	// // Send message to master
-	// using Client = ral::communication::network::Client;
+	// using Client = ral::communication::network::experimental::Client;
 	// Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context_token),
 	// 	std::to_string(context->getQueryStep()),
 	// 	std::to_string(context->getQuerySubstep()),

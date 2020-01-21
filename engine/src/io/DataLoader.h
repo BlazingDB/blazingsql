@@ -26,7 +26,7 @@ namespace ral {
 namespace io {
 
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }  // namespace
 
 /**

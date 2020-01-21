@@ -38,7 +38,7 @@ namespace ral {
 namespace operators {
 
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }  // namespace
 
 const std::string LOGICAL_AGGREGATE_TEXT = "LogicalAggregate";
@@ -89,7 +89,7 @@ std::unique_ptr<ral::frame::BlazingTable> single_node_groupby_without_aggregatio
 
 void distributed_groupby_without_aggregations(
 	Context & queryContext, blazing_frame & input, std::vector<int> & group_column_indices) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	static CodeTimer timer;
 	timer.reset();
 
@@ -482,7 +482,7 @@ void distributed_aggregations_with_groupby(Context & queryContext,
 	std::vector<gdf_agg_op> & aggregation_types,
 	std::vector<std::string> & aggregation_input_expressions,
 	std::vector<std::string> & aggregation_column_assigned_aliases) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	static CodeTimer timer;
 	timer.reset();
 
@@ -601,7 +601,7 @@ void distributed_aggregations_without_groupby(Context & queryContext,
 	std::vector<gdf_agg_op> & aggregation_types,
 	std::vector<std::string> & aggregation_input_expressions,
 	std::vector<std::string> & aggregation_column_assigned_aliases) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	static CodeTimer timer;
 	timer.reset();
 

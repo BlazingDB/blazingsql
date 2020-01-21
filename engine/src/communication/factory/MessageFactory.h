@@ -9,8 +9,8 @@ namespace ral {
 namespace communication {
 namespace messages {
 
-using Node = blazingdb::transport::Node;
-using Message = blazingdb::transport::GPUMessage;
+using Node = blazingdb::transport::experimental::Node;
+using Message = blazingdb::transport::experimental::GPUMessage;
 using ContextToken = uint32_t;
 
 struct Factory {

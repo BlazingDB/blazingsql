@@ -11,7 +11,7 @@ namespace ral {
 namespace operators {
 
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }  // namespace
 
 bool is_sort(std::string query_part);

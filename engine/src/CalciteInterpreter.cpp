@@ -927,7 +927,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 //			}
 //		}
 
-//		ral::communication::network::Server::getInstance().deregisterContext(queryContext.getContextToken());
+//		ral::communication::network::experimental::Server::getInstance().deregisterContext(queryContext.getContextToken());
 //	});
 
 //	//@todo: hablar con felipe sobre detach
