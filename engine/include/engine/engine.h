@@ -6,6 +6,8 @@
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 struct ResultSet {
+	std::vector<gdf_column *> columns;
+	std::vector<std::string> names;
 	std::unique_ptr<ral::frame::BlazingTable> blazingTable;
 };
 

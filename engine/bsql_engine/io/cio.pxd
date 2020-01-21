@@ -288,6 +288,12 @@ cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
 ctypedef table_view CudfTableView
 
 cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
+        cdef cppclass BlazingTable:
+            size_type num_columns
+            size_type num_rows
+            CudfTableView view()
+            vector[string] names()
+
         cdef cppclass BlazingTableView:
             BlazingTableView(CudfTableView, vector[string]) except +
             CudfTableView view()
