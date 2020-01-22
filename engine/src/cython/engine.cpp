@@ -137,14 +137,17 @@ ResultSet runQuery(int32_t masterIndex,
 
 		// Execute query
 
-		blazing_frame frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
-		make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
-		std::vector<cudf::column *> columns;
+		std::unique_ptr<ral::frame::BlazingTable> frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+		
+		// TODO percy william cudf0.12
+		//make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
+		
+		std::vector<cudf::column_view> columns;
 		std::vector<std::string> names;
-		for(int i = 0; i < frame.get_width(); i++) {
-			auto& column = frame.get_column(i);
-			columns.push_back(column.get_gdf_column());
-			names.push_back(column.name());
+		for(int i = 0; i < frame->num_columns(); i++) {
+			auto& column = frame->view().column(i);
+			columns.push_back(column);
+			names.push_back(frame->names().at(i));
 		}
 
 		std::vector<cudf::column_view> columnViews;

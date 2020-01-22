@@ -416,12 +416,12 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 }
 
 // must pass in temp type as invalid if you are not setting it to something to begin with
-cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id * max_temp_type, std::string expression) {
+cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id & max_temp_type, std::string expression) {
 	std::string clean_expression = clean_calcite_expression(expression);
 
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
-	if(*max_temp_type == cudf::type_id::EMPTY) {
-		*max_temp_type = cudf::type_id::INT8;
+	if(max_temp_type == cudf::type_id::EMPTY) {
+		max_temp_type = cudf::type_id::INT8;
 	}
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
@@ -456,8 +456,8 @@ cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & ta
 				gdf_binary_operator_exp operation = get_binary_operation(token);
 				operands.push(get_output_type(left_operand, right_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
-					ral::traits::get_dtype_size_in_bytes(*max_temp_type)) {
-					*max_temp_type = operands.top();
+					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
+					max_temp_type = operands.top();
 				}
 			} else if(is_unary_operator_token(token)) {
 				cudf::type_id left_operand = operands.top();
@@ -467,8 +467,8 @@ cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & ta
 
 				operands.push(get_output_type(left_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
-					ral::traits::get_dtype_size_in_bytes(*max_temp_type)) {
-					*max_temp_type = operands.top();
+					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
+					max_temp_type = operands.top();
 				}
 			} else {
 				throw std::runtime_error(

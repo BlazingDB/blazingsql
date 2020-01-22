@@ -172,6 +172,7 @@ namespace experimental {
 											const std::vector<int> & searchColIndices,
 											std::vector<int8_t> sortOrderTypes);
 
+
 	void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
 	std::vector<NodeColumn> collectPartitions(Context * context);
@@ -187,7 +188,18 @@ namespace experimental {
 
 	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples);
 
+
 	std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices);
+
+	// multi-threaded message sender
+	void broadcastMessage(std::vector<Node> nodes, 
+			std::shared_ptr<communication::messages::experimental::Message> message);
+			
+	void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows);
+
+	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
+				std::vector<cudf::size_type> & node_num_rows_right);
+
 
 }  // namespace experimental
 }  // namespace distribution
