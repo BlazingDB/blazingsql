@@ -23,10 +23,11 @@ void make_sure_output_is_not_input_gdf(
 	for(int i = 0; i < tableSchemas.size(); i++) {
 		if(fileTypes[i] == gdfFileType || fileTypes[i] == daskFileType) {
 			for(int j = 0; j < tableSchemas[i].columns.size(); j++) {
-				if(tableSchemas[i].columns[j]->size() > 0) {
+				// TODO percy cudf0.12
+				//if(tableSchemas[i].columns[j]->size() > 0) {
 					// TODO: cordova cudf0.12 port to cudf::column
 					//input_data_ptrs.push_back(tableSchemas[i].columns[j]->data);
-				}
+				//}
 			}
 		}
 	}
@@ -75,7 +76,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			types.push_back(tableSchemas[i].columns[col]->type().id());
+			// TODO percy cudf0.12
+			//types.push_back(tableSchemas[i].columns[col]->type().id());
 		}
 
 		auto schema = ral::io::Schema(tableSchema.names,
@@ -89,7 +91,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.columns, tableSchema.names);
+			// TODO percy cudf0.12
+			//parser = std::make_shared<ral::io::gdf_parser>(tableSchema.columns, tableSchema.names);
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(tableSchema.args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {
@@ -182,7 +185,8 @@ std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
 		for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			types.push_back(tableSchemas[i].columns[col]->type().id());
+			// TODO percy cudf0.12
+			//types.push_back(tableSchemas[i].columns[col]->type().id());
 		}
 
 		std::vector<gdf_column*> minmax_metadata_table;
@@ -201,7 +205,8 @@ std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.columns, tableSchema.names);
+			// TODO percy cudf.102
+			//parser = std::make_shared<ral::io::gdf_parser>(tableSchema.columns, tableSchema.names);
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(tableSchema.args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {

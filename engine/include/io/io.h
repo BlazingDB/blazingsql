@@ -22,7 +22,7 @@ struct ReaderArgs {
 
 struct TableSchema {
 	ral::frame::BlazingTableView blazingTableView;
-	std::vector< std::unique_ptr<cudf::column> > columns;
+	std::vector< gdf_column_* > columns;
 	std::vector<std::string> files;
 	std::vector<std::string> datasource;
 	std::vector<std::string> names;
