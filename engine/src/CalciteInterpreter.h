@@ -32,8 +32,7 @@ struct project_plan_params {
 	gdf_error error;
 };
 
-
-std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::io::data_loader> input_loaders,
+ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::vector<std::string> query,

@@ -25,7 +25,7 @@ data_loader::data_loader(std::shared_ptr<data_parser> _parser, std::shared_ptr<d
 data_loader::~data_loader() {}
 
 
-std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
+ral::frame::TableViewPair data_loader::load_data(
 	Context * context,
 	const std::vector<size_t> & column_indices,
 	const Schema & schema) {
@@ -43,7 +43,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 		files.push_back(this->provider->get_next());
 	}
 
-	std::vector< std::unique_ptr<ral::frame::BlazingTable> > columns_per_file;
+	std::vector< ral::frame::TableViewPair > tableViewPairs_per_file;
 
 	// TODO NOTE percy c.gonzales rommel fix our concurrent reads here (better use of thread)
 	// make sure cudf supports concurrent reads
@@ -55,7 +55,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 			if (files[file_index].fileHandle != nullptr) {
 				auto fileSchema = schema.fileSchema(file_index);
 				// TODO: tricky!!! 
-				columns_per_file.emplace_back(parser->parse(files[file_index].fileHandle,
+				tableViewPairs_per_file.emplace_back(parser->parse(files[file_index].fileHandle,
 					user_readable_file_handles[file_index], fileSchema, column_indices));
 			} else {
 				Library::Logging::Logger().logError(ral::utilities::buildLogString(
@@ -84,7 +84,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	size_t num_files = files.size();
 
 	if(num_files > 0)
-		num_columns = columns_per_file[0]->num_columns();
+		num_columns = tableViewPairs_per_file[0].first->num_columns();
 
 	if(num_files == 0 || num_columns == 0) { 
 		// GDFParse is parsed here
@@ -95,13 +95,18 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	timer.reset();
 
 	if(num_files == 1) {  // we have only one file so we can just return the columns we parsed from that file
-		return std::move(columns_per_file[0]);
+		return std::move(tableViewPairs_per_file[0]);
 
 	} else {  // we have more than one file so we need to concatenate
+
+		std::vector<ral::frame::BlazingTableView> table_views;
+		for (int i = 0; i < tableViewPairs_per_file.size(); i++)
+			table_views.push_back(tableViewPairs_per_file[i].second);
 		
-		// columns = ral::utilities::concatTables(columns_per_file);
-	}
-	return nullptr;
+		std::unique_ptr<ral::frame::BlazingTable> table_out = ral::utilities::experimental::concatTables(table_views);
+		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
+		return std::make_pair(std::move(table_out), table_out_view);
+	}	
 }
 
 
