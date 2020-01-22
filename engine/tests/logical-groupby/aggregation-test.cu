@@ -9,8 +9,9 @@
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 
 
-template <typename T>
+ template <typename T>
 struct AggregationTest : public cudf::test::BaseFixture {};
+
 
 using DecimalTypes = cudf::test::Types<int8_t, int16_t, int32_t, int64_t>;
 
@@ -18,7 +19,8 @@ TYPED_TEST_CASE(AggregationTest, DecimalTypes);
 
 TYPED_TEST(AggregationTest, CheckBasicWithGroupby) {
 
-	using T = TypeParam;
+ 	using T = TypeParam;
+
 
 	cudf::test::fixed_width_column_wrapper<T> key{{   5,  4,  3, 5, 8,  5, 6, 5}, {1, 1, 1, 1, 1, 1, 1, 0}};
 	cudf::test::fixed_width_column_wrapper<T> value{{10, 40, 70, 5, 2, 10, 11, 55}, {1, 1, 1, 1, 1, 1, 1, 0}};
@@ -53,9 +55,11 @@ TYPED_TEST(AggregationTest, CheckBasicWithGroupby) {
 	cudf::test::expect_tables_equal(result->view(), expect_table);						
 }
 
+
 TYPED_TEST(AggregationTest, GroupbyWithoutAggs) {
 
-	using T = TypeParam;
+using T = TypeParam;
+
 
 	cudf::test::fixed_width_column_wrapper<T> col1{{ 5,  4,  3, 5, 8,  5,  6}, {1, 1, 1, 1, 1, 1, 1}};
 	cudf::test::fixed_width_column_wrapper<T> col2{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
@@ -81,13 +85,14 @@ TYPED_TEST(AggregationTest, GroupbyWithoutAggs) {
 	cudf::test::expect_tables_equal(result->view(), expect_table);						
 }
 
-TYPED_TEST(AggregationTest, GroupbyWithoutAggsWithNull) {
 
-	using T = TypeParam;
+ TYPED_TEST(AggregationTest, GroupbyWithoutAggsWithNull) {
 
-	cudf::test::fixed_width_column_wrapper<T> col1{{1, 1, 2, 1, 2, 2, 3, 3}, {1, 1, 1, 1, 1, 1, 1, 1}};
-	cudf::test::fixed_width_column_wrapper<T> col2{{1, 1, 9, 2, 2, 2, 9, 3}, {1, 1, 0, 1, 1, 1, 0, 1}};
-	cudf::test::fixed_width_column_wrapper<T> col3{{3, 4, 2, 9, 1, 1, 1, 3}, {1, 1, 1, 0, 1, 1, 1, 1}};
+ 	using T = TypeParam;
+
+ 	cudf::test::fixed_width_column_wrapper<T> col1{{1, 1, 2, 1, 2, 2, 3, 3}, {1, 1, 1, 1, 1, 1, 1, 1}};
+ 	cudf::test::fixed_width_column_wrapper<T> col2{{1, 1, 9, 2, 2, 2, 9, 3}, {1, 1, 0, 1, 1, 1, 0, 1}};
+ 	cudf::test::fixed_width_column_wrapper<T> col3{{3, 4, 2, 9, 1, 1, 1, 3}, {1, 1, 1, 0, 1, 1, 1, 1}};
 	
 	std::vector<std::string> column_names{"A", "B", "C"};
 	ral::frame::BlazingTableView table(CudfTableView{{col1, col2, col3}}, column_names);

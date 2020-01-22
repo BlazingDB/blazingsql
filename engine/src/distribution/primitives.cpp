@@ -1444,6 +1444,7 @@ std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
 	return ral::operators::experimental::compute_groupby_without_aggregations(concatGroups->toBlazingTableView(),  group_column_indices);	
 }
 
+
 void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message) {
 	std::vector<std::thread> threads(nodes.size());
