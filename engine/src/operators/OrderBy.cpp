@@ -77,16 +77,16 @@ void distributed_limit(Context & queryContext, blazing_frame & input, cudf::size
 	cudf::size_type rowSize = input.get_num_rows_in_table(0);
 
 	queryContext.incrementQuerySubstep();
-	ral::distribution::distributeRowSize(queryContext, rowSize);
-	std::vector<cudf::size_type> nodesRowSize = ral::distribution::collectRowSize(queryContext);
+	ral::distribution::experimental::distributeRowSize(queryContext, rowSize);
+	
+	// TODO percy william felipe port distribution cudf0.12
+//	std::vector<cudf::size_type> nodesRowSize = ral::distribution::experimental::collectRowSize(queryContext);
+//	int self_node_idx = queryContext.getNodeIndex(CommunicationData::getInstance().getSelfNode());
+//	cudf::size_type prevTotalRows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, 0);
+//	if(prevTotalRows + rowSize > limitRows) {
+//		limit_table(input, std::max(limitRows - prevTotalRows, 0));
+//	}
 
-	int self_node_idx = queryContext.getNodeIndex(CommunicationData::getInstance().getSelfNode());
-
-	cudf::size_type prevTotalRows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, 0);
-
-	if(prevTotalRows + rowSize > limitRows) {
-		limit_table(input, std::max(limitRows - prevTotalRows, 0));
-	}
 }
 
 void sort(cudf::table_view & input,
@@ -228,22 +228,31 @@ void distributed_sort(Context & queryContext,
 	std::vector<gdf_column_cpp> partitionPlan;
 	if(queryContext.isMasterNode(CommunicationData::getInstance().getSelfNode())) {
 		queryContext.incrementQuerySubstep();
-		std::vector<ral::distribution::NodeSamples> samples = ral::distribution::collectSamples(queryContext);
-		samples.emplace_back(rowSize, CommunicationData::getInstance().getSelfNode(), selfSamples);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//std::vector<ral::distribution::NodeSamples> samples = ral::distribution::experimental::collectSamples(queryContext);
+		//samples.emplace_back(rowSize, CommunicationData::getInstance().getSelfNode(), selfSamples);
 
-		partitionPlan = ral::distribution::generatePartitionPlans(queryContext, samples, sortOrderTypes);
+		// TODO percy william felipe port distribution cudf0.12
+		//partitionPlan = ral::distribution::experimental::generatePartitionPlans(queryContext, samples, sortOrderTypes);
 
 		queryContext.incrementQuerySubstep();
-		ral::distribution::distributePartitionPlan(queryContext, partitionPlan);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//ral::distribution::experimental::distributePartitionPlan(queryContext, partitionPlan);
 
 		Library::Logging::Logger().logInfo(timer.logDuration(
 			queryContext, "distributed_sort part 2 collectSamples generatePartitionPlans distributePartitionPlan"));
 	} else {
 		queryContext.incrementQuerySubstep();
-		ral::distribution::sendSamplesToMaster(queryContext, selfSamples, rowSize);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//ral::distribution::experimental::sendSamplesToMaster(queryContext, selfSamples, rowSize);
 
 		queryContext.incrementQuerySubstep();
-		partitionPlan = ral::distribution::getPartitionPlan(queryContext);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//partitionPlan = ral::distribution::experimental::getPartitionPlan(queryContext);
 
 		Library::Logging::Logger().logInfo(
 			timer.logDuration(queryContext, "distributed_sort part 2 sendSamplesToMaster getPartitionPlan"));
@@ -257,26 +266,38 @@ void distributed_sort(Context & queryContext,
 		return;
 	}
 
-	std::vector<ral::distribution::NodeColumns> partitions = ral::distribution::partitionData(
-		queryContext, sortedTable, sortColIndices, partitionPlan, true, sortOrderTypes);
+	// TODO percy william felipe port distribution cudf0.12
+//	std::vector<ral::distribution::NodeColumns> partitions = ral::distribution::experimental::partitionData(
+//		queryContext, sortedTable, sortColIndices, partitionPlan, true, sortOrderTypes);
+	
 	Library::Logging::Logger().logInfo(timer.logDuration(queryContext, "distributed_sort part 3 partitionData"));
 	timer.reset();
 
 	queryContext.incrementQuerySubstep();
-	ral::distribution::distributePartitions(queryContext, partitions);
-	std::vector<ral::distribution::NodeColumns> partitionsToMerge = ral::distribution::collectPartitions(queryContext);
+	
+	// TODO percy william felipe port distribution cudf0.12
+	//ral::distribution::experimental::distributePartitions(queryContext, partitions);
+	
+	// TODO percy william felipe port distribution cudf0.12
+	//std::vector<ral::distribution::NodeColumns> partitionsToMerge = ral::distribution::collectPartitions(queryContext);
 
 	Library::Logging::Logger().logInfo(
 		timer.logDuration(queryContext, "distributed_sort part 4 distributePartitions collectPartitions"));
 	timer.reset();
 
-	auto it = std::find_if(partitions.begin(), partitions.end(), [&](ral::distribution::NodeColumns & el) {
-		return el.getNode() == CommunicationData::getInstance().getSelfNode();
-	});
+	// TODO percy william felipe port distribution cudf0.12
+//	auto it = std::find_if(partitions.begin(), partitions.end(), [&](ral::distribution::NodeColumns & el) {
+//		return el.getNode() == CommunicationData::getInstance().getSelfNode();
+//	});
+	
 	// Could "it" iterator be partitions.end()?
-	partitionsToMerge.push_back(*it);
+	
+	// TODO percy william felipe port distribution cudf0.12
+	//partitionsToMerge.push_back(*it);
 
-	ral::distribution::sortedMerger(partitionsToMerge, sortOrderTypes, sortColIndices, input);
+	// TODO percy william felipe port distribution cudf0.12
+	//ral::distribution::experimental::sortedMerger(partitionsToMerge, sortOrderTypes, sortColIndices, input);
+	
 	Library::Logging::Logger().logInfo(timer.logDuration(queryContext, "distributed_sort part 5 sortedMerger"));
 	timer.reset();
 }
