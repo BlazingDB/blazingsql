@@ -33,9 +33,9 @@ struct project_plan_params {
 };
 
 
-blazing_frame evaluate_split_query(std::vector<std::vector<gdf_column_cpp>> input_tables,
+std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::io::data_loader> input_loaders,
+	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
-	std::vector<std::vector<std::string>> column_names,
 	std::vector<std::string> query,
 	Context * queryContext,
 	int call_depth = 0);
@@ -48,7 +48,7 @@ project_plan_params parse_project_plan(const ral::frame::BlazingTableView & tabl
 
 void process_project(blazing_frame & input, std::string query_part);
 
-blazing_frame evaluate_query(std::vector<ral::io::data_loader> input_loaders,
+std::unique_ptr<ral::frame::BlazingTable> evaluate_query(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::string logicalPlan,

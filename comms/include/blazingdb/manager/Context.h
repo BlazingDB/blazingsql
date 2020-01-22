@@ -77,6 +77,8 @@ public:
                    const Node& masterNode,
                    const std::string& logicalPlan);
 
+      // TODO Cristhian Gonzalez no copies allowed
+
   int getTotalNodes() const;
 
   std::vector<Node> getAllNodes() const;
