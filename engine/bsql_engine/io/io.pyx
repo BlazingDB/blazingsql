@@ -176,17 +176,17 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     return_object['num_row_groups']= temp.num_row_groups
     return_object['names'] = temp.blazingTableView.names()
 
-    cdef int size = temp.blazingTableView.num_columns()
-    i = 0
-    for column in range(0, size):
-      col_name = return_object['names'][i]
-      var = temp.blazingTableView.column(i)
-      dtype = cudf_to_np_types[c.type().id()]
-      return_object['columns']['col_name'] = build_column(
-                cudf.core.Buffer(
-                    rmm.DeviceBuffer(ptr=<long long>var.data[void](), size=var.size() * dtype.itemsize),
-                ), dtype)
-      i = i + 1
+    # cdef int size = temp.blazingTableView.num_columns()
+    # i = 0
+    # for column in range(0, size):
+    #   col_name = return_object['names'][i]
+    #   var = temp.blazingTableView.column(i)
+    #   dtype = cudf_to_np_types[c.type().id()]
+    #   return_object['columns'][col_name] = build_column(
+    #             cudf.core.Buffer(
+    #                 rmm.DeviceBuffer(ptr=<long long>var.data[void](), size=var.size() * dtype.itemsize),
+    #             ), dtype)
+    #   i = i + 1
     
     return return_object
 

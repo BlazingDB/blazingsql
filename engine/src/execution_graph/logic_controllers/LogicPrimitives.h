@@ -62,8 +62,6 @@ public:
 	// set columnNames
 	void setNames(const std::vector<std::string> &names) { this->columnNames = names; }
 
-	void setNames(const std::vector<std::string> &names) { this->columnNames = names; }
-
 	cudf::size_type num_columns() const { return table.num_columns(); }
 
 	cudf::size_type num_rows() const { return table.num_rows(); }
