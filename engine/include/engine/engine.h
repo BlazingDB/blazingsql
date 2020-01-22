@@ -9,28 +9,6 @@ struct ResultSet {
 	std::vector<gdf_column *> columns;
 	std::vector<std::string> names;
 	std::unique_ptr<ral::frame::BlazingTable> blazingTable;
-
-	ResultSet() {
-		columns = {};
-		names = {};
-		blazingTable = nullptr;
-	}
-
-	ResultSet(std::unique_ptr<ral::frame::BlazingTable> blazingTableValue)
-		: blazingTable{std::move(blazingTableValue)} {}
-
-	ResultSet(const ResultSet & other) {
-		columns = std::move(other.columns);
-		names = std::move(other.names);
-		blazingTable.swap(const_cast<ResultSet &>(other).blazingTable);
-	}
-
-	ResultSet & operator=(const ResultSet & other) {
-		columns = std::move(other.columns);
-		names = std::move(other.names);
-		blazingTable.swap(const_cast<ResultSet &>(other).blazingTable);
-		return *this;
-	}
 };
 
 struct SkipDataResultSet {
@@ -43,7 +21,7 @@ struct NodeMetaDataTCP {
 	std::int32_t communication_port;
 };
 
-ResultSet runQuery(int32_t masterIndex,
+std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -67,7 +45,7 @@ struct TableScanInfo {
 
 TableScanInfo getTableScanInfo(std::string logicalPlan);
 
-ResultSet runSkipData(int32_t masterIndex,
+std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,

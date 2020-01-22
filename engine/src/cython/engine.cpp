@@ -46,7 +46,7 @@ void make_sure_output_is_not_input_gdf(
 }
 
 
-ResultSet runQuery(int32_t masterIndex,
+std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -142,7 +142,8 @@ ResultSet runQuery(int32_t masterIndex,
 		// TODO percy william cudf0.12
 		//make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
 
-		ResultSet result{std::move(frame)};
+		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
+		result->blazingTable = std::move(frame);
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;
@@ -151,7 +152,7 @@ ResultSet runQuery(int32_t masterIndex,
 }
 
 
-ResultSet runSkipData(int32_t masterIndex,
+std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -263,6 +264,7 @@ ResultSet runSkipData(int32_t masterIndex,
 //		ResultSet result = {columns, names};
 		//    std::cout<<"result looks ok"<<std::endl;
 		// return result;
+		return nullptr;
 	} catch(const std::exception & e) {
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
 		std::cerr << e.what() << std::endl;

@@ -117,7 +117,6 @@ void normalizeSamples(std::vector<NodeSamples> & samples) {
 }  // namespace ral
 
 namespace ral {
-
 namespace distribution {
 namespace experimental {
 

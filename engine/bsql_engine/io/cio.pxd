@@ -300,6 +300,11 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
             CudfTableView view()
             vector[string] names()
 
+# REMARK: We have some compilation errors from cython assigning temp = unique_ptr[ResultSet]
+# We force the move using this function
+cdef extern from "<utility>" namespace "std":
+        cdef unique_ptr[ResultSet] blaz_move "std::move"(unique_ptr[ResultSet])
+
 cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
             vector[gdf_column_ptr] columns
@@ -309,8 +314,8 @@ cdef extern from "../include/engine/engine.h":
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
-        ResultSet runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
-        ResultSet runSkipData(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
+        unique_ptr[ResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
+        unique_ptr[ResultSet] runSkipData(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
 
         cdef struct TableScanInfo:
             vector[string] relational_algebra_steps
