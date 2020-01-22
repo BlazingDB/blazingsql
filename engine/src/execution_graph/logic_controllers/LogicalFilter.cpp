@@ -127,7 +127,7 @@ std::unique_ptr<cudf::column> evaluate_expression(
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const ral::frame::BlazingTableView & table,
   const std::string & query_part,
-  blazingdb::manager::Context * context) {
+  blazingdb::manager::experimental::Context * context) {
 
 	cudf::table_view table_view = table.view();
 	if(table_view.num_rows() == 0) {

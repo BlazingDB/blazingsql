@@ -122,18 +122,18 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	}
 
 	try {
-		using blazingdb::manager::Context;
-		using blazingdb::transport::Node;
+		using blazingdb::manager::experimental::Context;
+		using blazingdb::transport::experimental::Node;
 
-		std::vector<std::shared_ptr<Node>> contextNodes;
+		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node::Make(address));
+				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+			contextNodes.push_back(Node(address));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
-		ral::communication::network::Server::getInstance().registerContext(ctxToken);
+		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
 
@@ -231,18 +231,18 @@ std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 	}
 
 	try {
-		using blazingdb::manager::Context;
-		using blazingdb::transport::Node;
+		using blazingdb::manager::experimental::Context;
+		using blazingdb::transport::experimental::Node;
 
-		std::vector<std::shared_ptr<Node>> contextNodes;
+		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node::Make(address));
+				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+			contextNodes.push_back(Node(address));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
-		ral::communication::network::Server::getInstance().registerContext(ctxToken);
+		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
 		// 		skipdata_output_t

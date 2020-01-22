@@ -45,7 +45,7 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args orc_arg,
 	return std::move(table_out);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
+ral::frame::TableViewPair orc_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle, // TODO where is this param used?
 	const Schema & schema,
@@ -58,9 +58,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
 	}
 
 	if(file == nullptr) {
-		// TODO columns_out not exist anymore
-		//columns_out =	create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
-		return nullptr;
+		return std::make_pair(nullptr, ral::frame::BlazingTableView());
 	}
 	
 	cudf_io::read_orc_args orc_args = this->orc_args;
@@ -75,22 +73,11 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
 		if(orc_table.tbl->num_columns() <= 0)
 			Library::Logging::Logger().logWarn("orc_parser::parse no columns were read");
 
-		// TODO columns_out should change (gdf_column_cpp)
-		for(size_t i = 0; i < orc_table.tbl->num_columns(); i++) {
-			if(orc_table.tbl->get_column(i).type().id() == cudf::type_id::STRING) {
-//				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
-//				NVCategory * category = NVCategory::create_from_strings(*strs);
-//				std::string column_name(table_out.get_column(i)->col_name);
-//				columns_out[i].create_gdf_column(category, table_out.get_column(i)->size, column_name);
-//				gdf_column_free(table_out.get_column(i));
-			} else {
-				//TODO create_gdf_column anymore
-//				columns_out[i].create_gdf_column(table_out.get_column(i));
-			}
-		}
-		return std::make_unique<ral::frame::BlazingTable>(std::move(orc_table.tbl), orc_table.metadata.column_names);
+		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(orc_table.tbl), orc_table.metadata.column_names);
+		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
+		return std::make_pair(std::move(table_out), table_out_view);
 	}
-	return nullptr;
+	return std::make_pair(nullptr, ral::frame::BlazingTableView());
 }
 
 void orc_parser::parse_schema(

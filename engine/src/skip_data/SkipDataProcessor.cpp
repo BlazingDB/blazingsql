@@ -126,7 +126,7 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
 
     // int totalNumNodes = context.getTotalNodes();
     // int totalNumRowgroups = row_group_identifiers[0].size();
-    // int localNodeIndex = context.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
+    // int localNodeIndex = context.getNodeIndex(ral::communication::experimental::CommunicationData::getInstance().getSelfNode());
 
     // // lets determine the set of rowgroups this node will process
     // int remaining = totalNumRowgroups;

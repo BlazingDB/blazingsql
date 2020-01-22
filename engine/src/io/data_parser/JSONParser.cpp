@@ -120,13 +120,13 @@ void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 */
 
 
-std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
+ral::frame::TableViewPair json_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 		// TODO: Implement the new ARROW parser with 0.12 API whether already a new API exists for JSON parse
-		return nullptr;
+		return std::make_pair(nullptr, ral::frame::BlazingTableView());
 }
 
 void json_parser::parse_schema(

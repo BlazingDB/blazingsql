@@ -24,6 +24,11 @@ BlazingTableView BlazingTable::toBlazingTableView() const{
   return BlazingTableView(this->table->view(), this->columnNames);
 }
 
+
+BlazingTableView::BlazingTableView(){
+  
+}
+
 BlazingTableView::BlazingTableView(
   CudfTableView table,
   std::vector<std::string> columnNames)
