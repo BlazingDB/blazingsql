@@ -1418,8 +1418,8 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 
 	std::vector<int> groupColumnIndices(concatSamples->view().num_columns());
 	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
-	std::unique_ptr<BlazingTable> groupedSamples =
-		ral::operators::groupby_without_aggregations(concatSamples->toBlazingTableView(), groupColumnIndices);
+	std::unique_ptr<BlazingTable> groupedSamples = ral::operators::experimental::compute_groupby_without_aggregations(
+														concatSamples->toBlazingTableView(), groupColumnIndices);
 
 	// Sort
 	std::vector<cudf::order> column_order(groupedSamples->view().num_columns(), cudf::order::ASCENDING);
@@ -1438,6 +1438,15 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 
 	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
 }
+
+std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
+	std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices) {
+	
+	std::unique_ptr<BlazingTable> concatGroups = ral::utilities::experimental::concatTables(tables);
+
+	return ral::operators::experimental::compute_groupby_without_aggregations(concatGroups->toBlazingTableView(),  group_column_indices);	
+}
+
 
 void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message) {
