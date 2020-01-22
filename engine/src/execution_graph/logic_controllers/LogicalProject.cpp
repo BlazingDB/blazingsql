@@ -12,7 +12,7 @@ namespace processor {
 std::unique_ptr<ral::frame::BlazingTable> process_project(
   const ral::frame::BlazingTableView & table,
   const std::string & query_part,
-  blazingdb::manager::Context * context) {
+  blazingdb::manager::experimental::Context * context) {
   using interops::column_index_type;
 
     std::string combined_expression = query_part.substr(
