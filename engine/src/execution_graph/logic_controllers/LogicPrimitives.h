@@ -17,6 +17,7 @@ namespace ral {
 
 namespace frame {
 
+class BlazingTable;
 class BlazingTableView;
 
 class BlazingTable {
@@ -58,6 +59,8 @@ public:
 	cudf::column_view const & column(cudf::size_type column_index) const { return table.column(column_index); }
 
 	std::vector<std::string> names() const;
+	// set columnNames
+	void setNames(const std::vector<std::string> &names) { this->columnNames = names; }
 
 	void setNames(const std::vector<std::string> &names) { this->columnNames = names; }
 
@@ -71,6 +74,8 @@ private:
 	std::vector<std::string> columnNames;
 	CudfTableView table;
 };
+
+typedef std::pair<std::unique_ptr<ral::frame::BlazingTable>, ral::frame::BlazingTableView> TableViewPair;
 
 }  // namespace frame
 

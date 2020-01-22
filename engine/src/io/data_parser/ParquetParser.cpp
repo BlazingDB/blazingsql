@@ -58,7 +58,7 @@ parquet_parser::~parquet_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
+ral::frame::TableViewPair parquet_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
@@ -70,10 +70,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 	}
 
 	if(file == nullptr) {
-		// columns_out =
-		// create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
-		// @TODO, @alex
-		return nullptr;
+		return std::make_pair(nullptr, ral::frame::BlazingTableView());
 	}
 
 	if(column_indices.size() > 0) {
@@ -108,9 +105,11 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 		//columns_out[i].create_gdf_column(table_out.get_column(i));
 		// }
 		// }
-		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
+		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
+		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
+		return std::make_pair(std::move(table_out), table_out_view);
 	}
-	return nullptr;
+	return std::make_pair(nullptr, ral::frame::BlazingTableView());
 }
 
 // This function is copied and adapted from cudf

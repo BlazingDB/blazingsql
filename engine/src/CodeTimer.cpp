@@ -10,7 +10,7 @@
 #include <iostream>
 
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }  // namespace
 
 CodeTimer::CodeTimer() { start = std::chrono::high_resolution_clock::now(); }

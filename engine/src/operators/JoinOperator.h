@@ -15,7 +15,7 @@ namespace operators {
 
 // Alias
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }
 
 bool is_join(const std::string & query_part);
