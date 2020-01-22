@@ -9,11 +9,33 @@ struct ResultSet {
 	std::vector<gdf_column *> columns;
 	std::vector<std::string> names;
 	std::unique_ptr<ral::frame::BlazingTable> blazingTable;
+
+	ResultSet() {
+		columns = {};
+		names = {};
+		blazingTable = nullptr;
+	}
+
+	ResultSet(std::unique_ptr<ral::frame::BlazingTable> blazingTableValue)
+		: blazingTable{std::forward<std::unique_ptr<ral::frame::BlazingTable>>(blazingTableValue)} {}
+
+	ResultSet(const ResultSet & other) {
+		columns = std::move(other.columns);
+		names = std::move(other.names);
+		blazingTable.swap(const_cast<ResultSet &>(other).blazingTable);
+	}
+
+	ResultSet & operator=(const ResultSet & other) {
+		columns = std::move(other.columns);
+		names = std::move(other.names);
+		blazingTable.swap(const_cast<ResultSet &>(other).blazingTable);
+		return *this;
+	}
 };
 
 struct SkipDataResultSet {
 	std::vector<int> files;
-	std::vector<std::vector<int> > row_groups;
+	std::vector<std::vector<int>> row_groups;
 };
 
 struct NodeMetaDataTCP {
