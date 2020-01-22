@@ -40,6 +40,7 @@
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <cudf/column/column_factories.hpp>
+#include "execution_graph/logic_controllers/LogicalProject.h"
 
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
@@ -639,11 +640,10 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			child_frame = ral::processor::process_project(child_frame_view, query[0], queryContext);
 			child_frame_view = child_frame->toBlazingTableView();
 
-			// TODO percy cudf0.12 log logs
-//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-//				"evaluate_split_query process_project",
-//				"num rows",
-//				child_frame.get_num_rows_in_table(0)));
+			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
+				"evaluate_split_query process_project",
+				"num rows",
+				child_frame->num_rows()));
 			
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
@@ -651,14 +651,14 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 
 		} else if(ral::operators::is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-			// TODO percy cudf0.12 evaluate_query aggregate
+			
+			child_frame = ral::operators::process_aggregate(child_frame->toBlazingTableView(), query[0], queryContext);
 			//ral::operators::process_aggregate(child_frame, query[0], queryContext);
 			
-			// TODO percy cudf0.12 log logs
-//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-//				"evaluate_split_query process_aggregate",
-//				"num rows",
-//				child_frame.get_num_rows_in_table(0)));
+			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
+				"evaluate_split_query process_aggregate",
+				"num rows",
+				child_frame->num_rows()));
 			
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
@@ -666,12 +666,12 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 		} else if(ral::operators::is_sort(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 			
-			// TODO percy william rommel cudf0.12
+			child_frame = ral::operators::experimental::process_sort(child_frame->toBlazingTableView(), query[0], queryContext);
 			//ral::operators::process_sort(child_frame, query[0], queryContext);
 			
 			// TODO percy cudf0.12 log logs
-//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(
-//				*queryContext, "evaluate_split_query process_sort", "num rows", child_frame.get_num_rows_in_table(0)));
+			Library::Logging::Logger().logInfo(blazing_timer.logDuration(
+				*queryContext, "evaluate_split_query process_sort", "num rows", child_frame->num_rows()));
 			
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
@@ -679,15 +679,13 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 		} else if(is_filter(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 			
-			// TODO percy jp rommel cudf.012
+			child_frame = ral::processor::process_filter(child_frame->toBlazingTableView(), query[0], queryContext);
 			//process_filter(queryContext, child_frame, query[0]);
 			
-			// TODO percy cudf0.12 log logs
-//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-//				"evaluate_split_query process_filter",
-//				"num rows",
-//				child_frame.get_num_rows_in_table(0)));
-			
+			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
+				"evaluate_split_query process_filter",
+				"num rows",
+				child_frame->num_rows()));
 
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
@@ -698,8 +696,6 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 		// return frame
 	}
 }
-
-
 
 std::unique_ptr<ral::frame::BlazingTable> evaluate_query(
 		std::vector<ral::io::data_loader > input_loaders,
