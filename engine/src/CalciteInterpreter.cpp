@@ -485,11 +485,9 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
 					projections.push_back(0);
 				}
-				// std::unique_ptr<ral::frame::BlazingTable> input_table;
-				// ral::frame::BlazingTableView input_table_view;
-				// std::tie(input_table, input_table_view) = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
-				std::unique_ptr<ral::frame::BlazingTable> input_table  = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
-				ral::frame::BlazingTableView input_table_view = input_table->toBlazingTableView();
+				std::unique_ptr<ral::frame::BlazingTable> input_table;
+				ral::frame::BlazingTableView input_table_view;
+				std::tie(input_table, input_table_view) = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
 								
 				std::vector<std::string> col_names = input_table_view.names();
 				
@@ -530,16 +528,13 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 				}
 			} else {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-				// ral::frame::TableViewPair input_table_pair = input_loaders[table_index].load_data(queryContext, {}, schemas[table_index]);
-				std::unique_ptr<ral::frame::BlazingTable> input_table  = input_loaders[table_index].load_data(queryContext, {}, schemas[table_index]);
-				ral::frame::BlazingTableView input_table_view = input_table->toBlazingTableView();
-
+				ral::frame::TableViewPair input_table_pair = input_loaders[table_index].load_data(queryContext, {}, schemas[table_index]);
+				
 				queryContext->incrementQueryStep();
-				int num_rows = input_table_view.num_rows();
+				int num_rows = input_table_pair.second.num_rows();
 				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
 				blazing_timer.reset();
-				// return input_table_pair;
-				return std::make_pair(std::move(input_table), input_table_view);
+				return input_table_pair;				
 			}
 		} else {
 			// i dont think there are any other type of end nodes at the moment
