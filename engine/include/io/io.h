@@ -21,9 +21,8 @@ struct ReaderArgs {
 };
 
 struct TableSchema {
-	// TODO: TableSchema will be refactorizedt
-	//ral::frame::BlazingTableView blazingTableView
-	std::vector<cudf::column *> columns;
+	ral::frame::BlazingTableView blazingTableView;
+	std::vector< gdf_column_* > columns;
 	std::vector<std::string> files;
 	std::vector<std::string> datasource;
 	std::vector<std::string> names;

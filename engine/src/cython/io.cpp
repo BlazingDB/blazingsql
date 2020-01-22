@@ -64,15 +64,15 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::vector<size_t> column_indices(schema.get_num_columns());
 	std::iota(column_indices.begin(), column_indices.end(), 0);
 
-	auto columns_cpp =
-		ral::io::create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
+	auto columns_cpp = ral::io::create_empty_columns(schema.get_names(), schema.get_dtypes(), column_indices);
 
-	for(auto column_cpp : columns_cpp) {
+	for(const auto & col : columns_cpp) {
 		// TODO percy cudf0.12 port to cudf::column
 		//GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-		//tableSchema.columns.push_back(column_cpp.get_gdf_column());
+		//tableSchema.columns.push_back(std::move(col));
 		
-		tableSchema.names.push_back(column_cpp.name());
+		// TODO percy cudf0.12 tablenames
+		//tableSchema.names.push_back(column_cpp.name());
 	}
 	tableSchema.files = schema.get_files();
 	tableSchema.num_row_groups = schema.get_num_row_groups();
