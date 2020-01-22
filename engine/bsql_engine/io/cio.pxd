@@ -186,7 +186,6 @@ cdef extern from "cudf/legacy/io_types.hpp":
         bool use_index
         bool use_np_dtypes
         gdf_time_unit timestamp_unit
-        
 
 cdef extern from "../include/io/io.h":
     ctypedef enum DataType:
@@ -289,6 +288,12 @@ cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
 ctypedef table_view CudfTableView
 
 cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
+        cdef cppclass BlazingTable:
+            size_type num_columns
+            size_type num_rows
+            CudfTableView view()
+            vector[string] names()
+
         cdef cppclass BlazingTableView:
             BlazingTableView(CudfTableView, vector[string]) except +
             CudfTableView view()
@@ -298,7 +303,7 @@ cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
             vector[gdf_column_ptr] columns
             vector[string]  names
-            BlazingTableView *blazingTableView
+            unique_ptr[BlazingTable] blazingTable
 
         cdef struct NodeMetaDataTCP:
             string ip

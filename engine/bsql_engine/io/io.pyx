@@ -341,8 +341,8 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
 
     df = cudf.DataFrame()
 
-    names = dereference(temp.blazingTableView).names()
-    view = dereference(temp.blazingTableView).view()
+    names = dereference(temp.blazingTable).names()
+    view = dereference(temp.blazingTable).view()
 
     for i in range(names.size()):
         c = view.column(i)
