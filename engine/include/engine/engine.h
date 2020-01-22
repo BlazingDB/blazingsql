@@ -8,12 +8,12 @@
 struct ResultSet {
 	std::vector<gdf_column *> columns;
 	std::vector<std::string> names;
-	ral::frame::BlazingTableView *blazingTableView;
+	std::unique_ptr<ral::frame::BlazingTable> blazingTable;
 };
 
 struct SkipDataResultSet {
 	std::vector<int> files;
-	std::vector<std::vector<int> > row_groups;
+	std::vector<std::vector<int>> row_groups;
 };
 
 struct NodeMetaDataTCP {
@@ -21,7 +21,7 @@ struct NodeMetaDataTCP {
 	std::int32_t communication_port;
 };
 
-ResultSet runQuery(int32_t masterIndex,
+std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -45,7 +45,7 @@ struct TableScanInfo {
 
 TableScanInfo getTableScanInfo(std::string logicalPlan);
 
-ResultSet runSkipData(int32_t masterIndex,
+std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,

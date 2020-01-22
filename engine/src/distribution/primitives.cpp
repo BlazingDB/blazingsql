@@ -118,7 +118,6 @@ void normalizeSamples(std::vector<NodeSamples> & samples) {
 
 
 namespace ral {
-
 namespace distribution {
 namespace experimental {
 
@@ -139,7 +138,7 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
   // Get master node
 	const Node & master_node = context->getMasterNode();
 
-	// Get self node	
+	// Get self node
 	Node self_node = CommunicationData::getInstance().getSelfNode();
 
 	// Get context token
@@ -199,9 +198,9 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
-				Context * context, std::vector<BlazingTableView> & samples, 
+				Context * context, std::vector<BlazingTableView> & samples,
 				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes) {
-	
+
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
 	std::vector<cudf::order> column_order;
@@ -257,7 +256,7 @@ std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 }
 
 
-// This function locates the pivots in the table and partitions the data on those pivot points. 
+// This function locates the pivots in the table and partitions the data on those pivot points.
 // IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
 // IMPORTANT: The TableViews of the data returned point to the same data that was input.
 std::vector<NodeColumnView> partitionData(Context * context,
@@ -265,7 +264,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 											const BlazingTableView & pivots,
 											const std::vector<int> & searchColIndices,
 											std::vector<int8_t> sortOrderTypes) {
-	
+
 	// verify input
 	if(pivots.view().num_columns() == 0) {
 		throw std::runtime_error("The pivots array is empty");
@@ -310,7 +309,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 	std::vector<CudfTableView> partitioned_data = cudf::experimental::split(table.view(), host_pivot_indexes.first);
 
 	std::vector<Node> all_nodes = context->getAllNodes();
-	
+
 	if(all_nodes.size() != partitioned_data.size()){
 		std::string err = "Number of CudfTableView from partitionData does not match number of nodes";
 		Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context->getContextToken()), std::to_string(context->getQueryStep()), std::to_string(context->getQuerySubstep()), err));
@@ -324,7 +323,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 }
 
 void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
-	
+
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
@@ -353,7 +352,7 @@ std::vector<NodeColumn> collectPartitions(Context * context) {
 }
 
 std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partitions) {
-	
+
 	// Get the numbers of rals in the query
 	int number_rals = context->getTotalNodes() - 1;
 	std::vector<bool> received(context->getTotalNodes(), false);
@@ -404,7 +403,7 @@ void scatterData(Context * context, const BlazingTableView & table) {
 std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
 	const std::vector<int8_t> & sortOrderTypes,
 	const std::vector<int> & sortColIndices) {
-		
+
 	std::vector<cudf::order> column_order;
 	for(auto col_order : sortOrderTypes){
 		if(col_order)
@@ -414,11 +413,11 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 	}
 	// TODO this is just a default setting. Will want to be able to properly set null_order
 	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
-	
+
 	std::unique_ptr<CudfTable> merged_table;
 	CudfTableView left_table = tables[0].view();
 	for(size_t i = 1; i < tables.size(); i++) {
-		
+
 		CudfTableView right_table = tables[i].view();
 
 		merged_table = cudf::experimental::merge(left_table, right_table,
@@ -435,17 +434,17 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 			break;
 		}
 	}
-	return std::make_unique<BlazingTable>(std::move(merged_table), names);	
+	return std::make_unique<BlazingTable>(std::move(merged_table), names);
 }
 
 
 std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const BlazingTableView & sortedSamples){
 	cudf::size_type outputRowSize = sortedSamples.view().num_rows();
 	cudf::size_type pivotsSize = outputRowSize > 0 ? context->getTotalNodes() - 1 : 0;
-	
+
 	int32_t step = outputRowSize / context->getTotalNodes();
 
-	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});    
+	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
 	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);
 	CudfColumnView gather_map(gather_map_wrapper);
 	std::unique_ptr<CudfTable> pivots = cudf::experimental::gather( sortedSamples.view(), gather_map );
@@ -455,7 +454,7 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const Blazi
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples) {
-	
+
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
 	std::vector<int> groupColumnIndices(concatSamples->view().num_columns());
@@ -510,7 +509,7 @@ void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, st
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
-	
+
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	cudf::test::fixed_width_column_wrapper<cudf::size_type>num_rows_col{left_num_rows, right_num_rows};
 	CudfTableView num_rows_table{{num_rows_col}};
@@ -575,14 +574,14 @@ namespace experimental {
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	const ral::frame::BlazingTableView & table, const double ratio) {
-	
+
 	return generateSamples(table, std::ceil(table.view().num_rows() * ratio));
 }
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	const ral::frame::BlazingTableView & table, const size_t quantile) {
-	
-	return cudf::generator::generate_sample(table, quantile);	
+
+	return cudf::generator::generate_sample(table, quantile);
 }
 
 }  // namespace experimental
