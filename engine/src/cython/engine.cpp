@@ -125,11 +125,11 @@ ResultSet runQuery(int32_t masterIndex,
 		using blazingdb::manager::experimental::Context;
 		using blazingdb::transport::experimental::Node;
 
-		std::vector<std::shared_ptr<Node>> contextNodes;
+		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
 				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(std::make_shared<Node>(Node(address)));
+			contextNodes.push_back(Node(address));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
@@ -268,11 +268,11 @@ ResultSet runSkipData(int32_t masterIndex,
 		using blazingdb::manager::experimental::Context;
 		using blazingdb::transport::experimental::Node;
 
-		std::vector<std::shared_ptr<Node>> contextNodes;
+		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
 				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(std::make_shared<Node>(Node(address)));
+			contextNodes.push_back(Node(address));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
