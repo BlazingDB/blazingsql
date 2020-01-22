@@ -4,6 +4,7 @@
 namespace ral {
 namespace communication {
 namespace messages {
+namespace experimental {
 
 std::shared_ptr<Message> Factory::createSampleToNodeMaster(const std::string & message_token,
 	const ContextToken & context_token,
@@ -50,7 +51,7 @@ std::shared_ptr<Message> Factory::createPartitionPivotsMessage(const std::string
 	return std::make_shared<PartitionPivotsMessage>(message_token, context_token, sender_node, columns);
 }
 
-
+}  // namespace experimental
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral

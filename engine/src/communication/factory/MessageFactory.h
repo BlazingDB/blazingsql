@@ -8,6 +8,7 @@
 namespace ral {
 namespace communication {
 namespace messages {
+namespace experimental {
 
 using Node = blazingdb::transport::experimental::Node;
 using Message = blazingdb::transport::experimental::GPUMessage;
@@ -47,6 +48,7 @@ struct Factory {
 																 ral::frame::BlazingTableView & columns);
 };
 
+}  // namespace experimental
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral

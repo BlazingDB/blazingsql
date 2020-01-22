@@ -111,7 +111,7 @@ void collectLeftRightNumRows(const Context & context,
 
 // multi-threaded message sender
 void broadcastMessage(
-	std::vector<std::shared_ptr<Node>> nodes, std::shared_ptr<communication::messages::Message> message);
+	std::vector<std::shared_ptr<Node>> nodes, std::shared_ptr<communication::messages::experimental::Message> message);
 
 }  // namespace distribution
 }  // namespace ral

@@ -126,7 +126,7 @@ typedef ral::frame::BlazingTable BlazingTable;
 typedef ral::frame::BlazingTableView BlazingTableView;
 typedef blazingdb::manager::experimental::Context Context;
 typedef blazingdb::transport::experimental::Node Node;
-typedef ral::communication::messages::Factory Factory;
+typedef ral::communication::messages::experimental::Factory Factory;
 typedef ral::communication::messages::experimental::SampleToNodeMasterMessage SampleToNodeMasterMessage;
 typedef ral::communication::messages::experimental::PartitionPivotsMessage PartitionPivotsMessage;
 typedef ral::communication::messages::experimental::ColumnDataMessage ColumnDataMessage;
