@@ -17,7 +17,7 @@ struct ResultSet {
 	}
 
 	ResultSet(std::unique_ptr<ral::frame::BlazingTable> blazingTableValue)
-		: blazingTable{std::forward<std::unique_ptr<ral::frame::BlazingTable>>(blazingTableValue)} {}
+		: blazingTable{std::move(blazingTableValue)} {}
 
 	ResultSet(const ResultSet & other) {
 		columns = std::move(other.columns);
