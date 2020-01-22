@@ -13,9 +13,8 @@
 namespace ral {
 namespace io {
 
-gdf_parser::gdf_parser(std::vector<cudf::column *> columns_, std::vector<std::string> names_) {
-	this->columns = columns_;
-	this->names = names_;
+gdf_parser::gdf_parser(ral::frame::BlazingTableView blazingTableView_) {
+	this->blazingTableView = blazingTableView_;
 }
 
 gdf_parser::~gdf_parser() {}
@@ -50,7 +49,8 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse(
 }
 
 void gdf_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, 
+	ral::io::Schema & schema) {
 }
 
 

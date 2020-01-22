@@ -71,9 +71,8 @@ TableSchema parseSchema(std::vector<std::string> files,
 		// TODO percy cudf0.12 port to cudf::column
 		//GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
 		//tableSchema.columns.push_back(column_cpp.get_gdf_column());
-		
-		tableSchema.names.push_back(column_cpp.name());
 	}
+	tableSchema.blazingTableView.setNames(schema.get_names());
 	tableSchema.files = schema.get_files();
 	tableSchema.num_row_groups = schema.get_num_row_groups();
 	tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();

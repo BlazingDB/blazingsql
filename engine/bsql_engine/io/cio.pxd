@@ -203,10 +203,7 @@ cdef extern from "../include/io/io.h":
         json_read_arg jsonReaderArg
         csv_read_arg csvReaderArg
     cdef struct TableSchema:
-        # TODO: TableSchema will be refactorized
-        # BlazingTableView blazingTableView
-        vector[gdf_column_ptr] columns
-        vector[string]  names
+        BlazingTableView blazingTableView
         vector[string]  files
         vector[string] datasource
         vector[unsigned long] calcite_to_file_indices
@@ -216,7 +213,6 @@ cdef extern from "../include/io/io.h":
         ReaderArgs args
         vector[gdf_column_ptr] metadata
         vector[vector[int]] row_groups_ids
-
 
         shared_ptr[CTable] arrow_table
     cdef struct HDFS:
@@ -282,6 +278,8 @@ cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
         cdef cppclass table_view:
             table_view() except +
             table_view(vector[table_view]) except +
+            # This Ctor is from the table_view_base
+            table_view(vector[column_view]) except + 
             select(vector[size_type])
             CudfColumnView column(size_type column_index)
             size_type num_columns()
@@ -293,6 +291,9 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
             BlazingTableView(CudfTableView, vector[string]) except +
             CudfTableView view()
             vector[string] names()
+            CudfColumnView column(size_type column_index)
+            size_type num_columns()
+            size_type num_rows()
 
 cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:

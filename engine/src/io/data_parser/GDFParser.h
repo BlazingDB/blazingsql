@@ -11,13 +11,14 @@
 #include "cudf.h"
 
 #include <cudf/io/functions.hpp>
+#include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 namespace ral {
 namespace io {
 
 class gdf_parser : public data_parser {
 public:
-	gdf_parser(std::vector<cudf::column *> columns_, std::vector<std::string> names_);
+	gdf_parser(ral::frame::BlazingTableView blazingTableView);
 
 	virtual ~gdf_parser();
 
@@ -32,6 +33,7 @@ public:
 private:
 	std::vector<cudf::column *> columns;
 	std::vector<std::string> names;
+	ral::frame::BlazingTableView blazingTableView;
 };
 
 } /* namespace io */

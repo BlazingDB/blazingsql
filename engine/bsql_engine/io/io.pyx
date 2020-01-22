@@ -163,8 +163,8 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     cdef vector[pair[string,gdf_dtype]] extra_columns_cpp
     cdef pair[string,gdf_dtype] extra_column_cpp
     for extra_column in extra_columns:
-        extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
-        extra_columns_cpp.push_back(extra_column_cpp)
+      extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
+      extra_columns_cpp.push_back(extra_column_cpp)
     temp = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
     return_object['datasource'] = files
@@ -172,14 +172,22 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     return_object['file_type'] = temp.data_type
     return_object['args'] = args
     return_object['columns'] = cudf.DataFrame()
-    return_object['names'] = temp.names
     return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
     return_object['num_row_groups']= temp.num_row_groups
+    return_object['names'] = temp.blazingTableView.names()
+
+    cdef int size = temp.blazingTableView.num_columns()
     i = 0
-    #for column in temp.columns:
-      # column.col_name = return_object['names'][i]
-      # return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
-      # i = i + 1
+    for column in range(0, size):
+      col_name = return_object['names'][i]
+      var = temp.blazingTableView.column(i)
+      dtype = cudf_to_np_types[c.type().id()]
+      return_object['columns']['col_name'] = build_column(
+                cudf.core.Buffer(
+                    rmm.DeviceBuffer(ptr=<long long>var.data[void](), size=var.size() * dtype.itemsize),
+                ), dtype)
+      i = i + 1
+    
     return return_object
 
 
@@ -192,10 +200,18 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
     cdef vector[string] arg_keys
     cdef vector[string] arg_values
     cdef TableSchema cpp_schema
+    cdef vector[column_view] columns
+    cdef Column new_column
+    cdef CudfTableView currentTableView
+    cdef vector[string] names
+    names.resize(0)
 
     for col in schema['columns']:
-        #cpp_schema.columns.push_back(column_view_from_column(schema['columns'][col]._column))
-        cpp_schema.names.push_back(col.encode())
+      new_column = schema['columns'][col]._column
+      columns.push_back(new_column.view())
+      names.push_back(col.encode())
+    currentTableView = CudfTableView(columns)
+    cpp_schema.blazingTableView = BlazingTableView(currentTableView, names)
 
     for key, value in args.items():
       arg_keys.push_back(str.encode(key))
@@ -213,9 +229,9 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
     return_object['file_type'] = temp.data_type
     return_object['args'] = args
     return_object['columns'] = cudf.DataFrame()
-    return_object['names'] = temp.names
-    # return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
-    # return_object['num_row_groups']= temp.num_row_groups
+    return_object['names'] = temp.blazingTableView.names()
+    return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
+    return_object['num_row_groups']= temp.num_row_groups
 
     # i = 0
     # for column in temp.columns:
@@ -244,7 +260,9 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef vector[string] currentTableSchemaCppArgKeys
     cdef vector[string] currentTableSchemaCppArgValues
     cdef vector[string] tableNames
-    cdef vector[gdf_column_ptr] columns
+    cdef vector[column_view] columns
+    cdef Column new_column
+    cdef CudfTableView currentTableView
     cdef vector[string] names
     cdef TableSchema currentTableSchemaCpp
     cdef NodeMetaDataTCP currentMetadataCpp
@@ -304,12 +322,14 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       columns.resize(0)
       names.resize(0)
       fileType = fileTypes[tableIndex]
-      # TODO: TableSchema will be refactorized
+
       for col in table.input:
         names.push_back(col.encode())
-        #columns.push_back(column_view_from_column(table.input[col]._column))
-      #currentTableSchemaCpp.columns = columns
-      currentTableSchemaCpp.names = names
+        new_column = table.input[col]._column
+        columns.push_back(new_column.view())
+
+      currentTableView = CudfTableView(columns)
+      currentTableSchemaCpp.blazingTableView = BlazingTableView(currentTableView, names)
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
@@ -367,7 +387,9 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     cdef vector[string] currentTableSchemaCppArgKeys
     cdef vector[string] currentTableSchemaCppArgValues
     cdef vector[string] tableNames
-    cdef vector[gdf_column_ptr] columns
+    cdef vector[column_view] columns
+    cdef Column new_column
+    cdef CudfTableView currentTableView
     cdef vector[string] names
     cdef TableSchema currentTableSchemaCpp
     cdef NodeMetaDataTCP currentMetadataCpp
@@ -427,12 +449,14 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     columns.resize(0)
     names.resize(0)
     fileType = fileTypes[tableIndex]
-    # TODO: TableSchema will be refactorized
+
     for col in table.input:
       names.push_back(col.encode())
-      #columns.push_back(column_view_from_column(table.input[col]._column))
-    #currentTableSchemaCpp.columns = columns
-    currentTableSchemaCpp.names = names
+      new_column = table.input[col]._column
+      columns.push_back(new_column.view())
+
+    currentTableView = CudfTableView(columns)
+    currentTableSchemaCpp.blazingTableView = BlazingTableView(currentTableView, names)
     currentTableSchemaCpp.datasource = table.datasource
     if table.calcite_to_file_indices is not None:
       currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
@@ -470,7 +494,7 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
 
 cpdef getTableScanInfoCaller(logicalPlan,tables):
     temp = getTableScanInfoPython(str.encode(logicalPlan))
-    #print(temp)
+
     new_tables = {}
     table_names = [name.decode('utf-8') for name in temp.table_names]
 
