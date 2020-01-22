@@ -261,7 +261,8 @@ std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 		throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
 	}
 
-	auto concreteMessage = std::static_pointer_cast<PartitionPivotsMessage>(message);
+	// TODO percy william felipe COMMS cudf0.12
+	//auto concreteMessage = std::static_pointer_cast<PartitionPivotsMessage>(message);
 
 	// WSM TODO waiting on message
 	// return concreteMessage->getBlazingTable();
@@ -385,7 +386,9 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
 		}
 
-		auto column_message = std::static_pointer_cast<ColumnDataMessage>(message);
+		// TODO percy william felipe COMMS cudf0.12
+		//auto column_message = std::static_pointer_cast<ColumnDataMessage>(message);
+		
 		// WSM TODO waiting on message Node refactor
 		// auto node = message->getSenderNode();
 		// int node_idx = context->getNodeIndex(node);
