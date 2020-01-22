@@ -204,10 +204,10 @@ namespace ral {
 namespace communication {
 namespace messages {
 
-using Node = blazingdb::transport::Node;
-using Address = blazingdb::transport::Address;
-using ColumnTransport = blazingdb::transport::ColumnTransport;
-using GPUMessage = blazingdb::transport::GPUMessage;
+using Node = blazingdb::transport::experimental::Node;
+using Address = blazingdb::transport::experimental::Address;
+using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
+using GPUMessage = blazingdb::transport::experimental::GPUMessage;
 using StrDataPtrTuple = std::tuple<char *, cudf::size_type, int *, cudf::size_type, unsigned char *, cudf::size_type>;
 
 inline bool isGdfString(const cudf::column_view& column) {

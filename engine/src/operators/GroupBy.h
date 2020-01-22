@@ -19,7 +19,7 @@ namespace operators {
 
 
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }  // namespace
 
 bool is_aggregate(std::string query_part);

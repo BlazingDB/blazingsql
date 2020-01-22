@@ -20,8 +20,8 @@
 #include <numeric>
 
 namespace {
-using blazingdb::manager::Context;
-using blazingdb::transport::Node;
+using blazingdb::manager::experimental::Context;
+using blazingdb::transport::experimental::Node;
 using ral::distribution::NodeColumns;
 }  // namespace
 
@@ -228,7 +228,7 @@ std::vector<gdf_column_cpp> DistributedJoinOperator::process_distribution_table(
 	std::vector<NodeColumns> remote_node_columns = ral::distribution::collectPartitions(*context_);
 
 	auto it = std::find_if(partitions.begin(), partitions.end(), [](const auto & e) {
-		return e.getNode() == ral::communication::CommunicationData::getInstance().getSelfNode();
+		return e.getNode() == ral::communication::experimental::CommunicationData::getInstance().getSelfNode();
 	});
 	assert(it != partitions.end());
 	std::vector<gdf_column_cpp> local_table = it->getColumns();
@@ -241,7 +241,7 @@ blazing_frame DistributedJoinOperator::process_distribution(blazing_frame & fram
 	std::vector<std::vector<gdf_column_cpp>> tables = frame.get_columns();
 	assert(tables.size() == 2);
 
-	int self_node_idx = context_->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
+	int self_node_idx = context_->getNodeIndex(ral::communication::experimental::CommunicationData::getInstance().getSelfNode());
 
 	context_->incrementQuerySubstep();
 	cudf::size_type local_num_rows_left = frame.get_num_rows_in_table(0);

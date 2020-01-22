@@ -36,34 +36,3 @@ std::shared_ptr<Message> Factory::createPartitionPivotsMessage(const std::string
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral
-
-
-namespace ral {
-namespace communication {
-namespace messages {
-
-std::shared_ptr<Message> Factory::createSampleToNodeMaster(const std::string & message_token,
-	const ContextToken & context_token,
-	std::shared_ptr<Node>   & sender_node,
-	std::uint64_t total_row_size,
-	std::vector<gdf_column_cpp> samples) {
-	return nullptr;
-}
-
-std::shared_ptr<Message> Factory::createColumnDataMessage(const std::string & message_token,
-	const ContextToken & context_token,
-	std::shared_ptr<Node>   & sender_node,
-	std::vector<gdf_column_cpp> columns) {
-	return nullptr;
-}
-
-std::shared_ptr<Message> Factory::createPartitionPivotsMessage(const std::string & message_token,
-	const ContextToken & context_token,
-	std::shared_ptr<Node>   & sender_node,
-	std::vector<gdf_column_cpp> columns) {
-	return nullptr;
-}
-
-}  // namespace messages
-}  // namespace communication
-}  // namespace ral

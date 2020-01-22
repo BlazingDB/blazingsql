@@ -9,7 +9,7 @@ namespace ral {
 namespace distribution {
 
 namespace {
-using Node = blazingdb::transport::Node;
+using Node = blazingdb::transport::experimental::Node;
 }  // namespace
 
 class NodeColumns {
