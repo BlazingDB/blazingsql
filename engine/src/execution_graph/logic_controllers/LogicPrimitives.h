@@ -12,6 +12,7 @@ typedef cudf::experimental::table CudfTable;
 typedef cudf::table_view CudfTableView;
 typedef cudf::column_view CudfColumnView;
 
+
 namespace ral {
 
 namespace frame {
@@ -29,6 +30,8 @@ public:
 	cudf::size_type num_columns() const { return table->num_columns(); }
 	cudf::size_type num_rows() const { return table->num_rows(); }
 	std::vector<std::string> names() const;
+	// set columnNames
+	void setNames(const std::vector<std::string> &names) { this->columnNames = names; }
 
 	BlazingTableView toBlazingTableView() const;
 
@@ -69,3 +72,4 @@ private:
 }  // namespace frame
 
 }  // namespace ral
+

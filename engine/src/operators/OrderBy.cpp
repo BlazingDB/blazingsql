@@ -336,6 +336,7 @@ namespace experimental {
 	using namespace ral::distribution::experimental;
 
 std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
+
 	auto rangeStart = query_part.find("(");
 	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
@@ -390,6 +391,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<int8_t> & sortOrderTypes){
 	
+
 	static CodeTimer timer;
 	timer.reset();
 
