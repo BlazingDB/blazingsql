@@ -17,16 +17,14 @@
 #include <vector>
 
 #include <memory>
-#include <nvstrings/NVCategory.h>
-#include <nvstrings/NVStrings.h>
-#include <nvstrings/ipc_transfer.h>
+
 
 namespace ral {
 
 namespace io {
 
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }  // namespace
 
 /**
@@ -43,7 +41,7 @@ public:
 	/**
 	 * returns data into a std::unique_ptr<ral::frame::BlazingTable>
 	 */
-	std::unique_ptr<ral::frame::BlazingTable> load_data(
+	ral::frame::TableViewPair  load_data(
 		Context * context,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);

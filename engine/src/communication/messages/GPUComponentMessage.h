@@ -57,7 +57,9 @@ public:
 		this->metadata().total_row_size = total_row_size;
 	} 
 	
-	std::unique_ptr<ral::frame::BlazingTable>  releaseTableView() { return std::move(table); }
+	std::unique_ptr<ral::frame::BlazingTable>  releaseBlazingTable() { return std::move(table); }
+
+	int32_t getTotalRowSize() { return this->metadata().total_row_size; };
 
 protected:
 	std::unique_ptr<ral::frame::BlazingTable> table;
@@ -68,7 +70,7 @@ public:
 	GPUComponentMessage(std::string const & messageToken,
 		uint32_t contextToken,
 		Node  & sender_node,
-		ral::frame::BlazingTableView & samples,
+		const ral::frame::BlazingTableView & samples,
 		std::uint64_t total_row_size = 0)
 		: GPUMessage(messageToken, contextToken, sender_node), table_view{samples} {
 		this->metadata().total_row_size = total_row_size;
@@ -202,10 +204,10 @@ namespace ral {
 namespace communication {
 namespace messages {
 
-using Node = blazingdb::transport::Node;
-using Address = blazingdb::transport::Address;
-using ColumnTransport = blazingdb::transport::ColumnTransport;
-using GPUMessage = blazingdb::transport::GPUMessage;
+using Node = blazingdb::transport::experimental::Node;
+using Address = blazingdb::transport::experimental::Address;
+using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
+using GPUMessage = blazingdb::transport::experimental::GPUMessage;
 using StrDataPtrTuple = std::tuple<char *, cudf::size_type, int *, cudf::size_type, unsigned char *, cudf::size_type>;
 
 inline bool isGdfString(const cudf::column_view& column) {

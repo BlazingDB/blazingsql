@@ -72,14 +72,13 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(
 	std::vector<std::unique_ptr<cudf::column>> columns(column_indices.size());
 
 	for (auto idx : column_indices) {
-		auto type_id = cudf::data_type(dtypes[idx]);
-		columns[idx] =  make_empty_column(cudf::data_type(type_id));
+		columns[idx] =  make_empty_column(cudf::data_type(dtypes[idx]));
 	}
 	auto table = std::make_unique<cudf::experimental::table>(std::move(columns));
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), column_names);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
+ral::frame::TableViewPair csv_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
@@ -92,7 +91,8 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 	}
 
 	if(file == nullptr) { 
-		return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);
+		// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);  // do we need to create an empty table that has metadata?
+		return std::make_pair(nullptr, ral::frame::BlazingTableView());
 	}
 
 	cudf_io::read_csv_args csv_arg = this->csv_args;
@@ -115,22 +115,12 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 			return column_indices[i1] < column_indices[i2];
 		});
 
-		// TODO columns_out should change (gdf_column_cpp)
-		for(size_t i = 0; i < csv_table.tbl->num_columns(); i++) {
-			if(csv_table.tbl->get_column(i).type().id() == cudf::type_id::STRING) {
-//				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
-//				NVCategory * category = NVCategory::create_from_strings(*strs);
-//				std::string column_name(table_out.get_column(i)->col_name);
-//				columns_out[idx[i]].create_gdf_column(category, table_out.get_column(i)->size, column_name);
-//				gdf_column_free(table_out.get_column(i));
-			} else {
-				//TODO create_gdf_column anymore
-				//columns_out[i].create_gdf_column(csv_table.tbl->get_column(i), csv_table.metadata.column_names[i]);
-			}
-		}
-		return std::make_unique<ral::frame::BlazingTable>(std::move(csv_table.tbl), csv_table.metadata.column_names);
+		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(csv_table.tbl), csv_table.metadata.column_names);
+		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
+		return std::make_pair(std::move(table_out), table_out_view);
 	}
-	return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);
+	// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);  // do we need to create an empty table that has metadata?
+	return std::make_pair(nullptr, ral::frame::BlazingTableView());
 }
 	
 void csv_parser::parse_schema(

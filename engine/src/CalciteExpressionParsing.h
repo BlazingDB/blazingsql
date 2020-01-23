@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <cudf/detail/aggregation/aggregation.hpp>
+#include <cudf/reduction.hpp>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
 gdf_binary_operator_exp get_binary_operation(std::string operator_string);
@@ -34,15 +35,21 @@ std::vector<std::string> get_tokens_in_reverse_order(const std::string & express
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 	const cudf::table_view & inputs, std::vector<std::string> & tokens);
 
-cudf::experimental::aggregation::Kind get_aggregation_operation(std::string operator_string);
+std::string get_aggregation_operation_string(std::string operator_expression);
+
+cudf::experimental::aggregation::Kind get_aggregation_operation_for_groupby(std::string operator_string);
+
+cudf::experimental::reduction_op get_aggregation_operation_for_reduce(std::string operator_string);
 
 std::string get_string_between_outer_parentheses(std::string operator_string);
 
 cudf::type_id infer_dtype_from_literal(const std::string & token);
 
-cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id * max_temp_type, std::string expression);
+cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id & max_temp_type, std::string expression);
 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experimental::aggregation::Kind aggregation, bool have_groupby);
+
+cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::string & aggregation);
 
 std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string);
 

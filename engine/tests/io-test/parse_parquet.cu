@@ -24,8 +24,8 @@
 #include <arrow/io/file.h>
 #include <arrow/util/logging.h>
 
-using blazingdb::manager::Context;
-using Node = blazingdb::transport::Node;
+using blazingdb::manager::experimental::Context;
+using Node = blazingdb::transport::experimental::Node;
 
 #ifndef PARQUET_FILE_PATH
 #error PARQUET_FILE_PATH must be defined for precompiling

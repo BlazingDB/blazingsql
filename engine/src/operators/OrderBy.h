@@ -11,7 +11,7 @@ namespace ral {
 namespace operators {
 
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }  // namespace
 
 bool is_sort(std::string query_part);
@@ -32,7 +32,8 @@ namespace {
 }  
 
 std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, 
-    const std::string & query_part, Context * context);
+
+const std::string & query_part, Context * context);
 
 std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, 

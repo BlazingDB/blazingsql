@@ -21,8 +21,8 @@
 
 #include <cudf/io/functions.hpp>
 
-using blazingdb::manager::Context;
-using Node = blazingdb::transport::Node;
+using blazingdb::manager::experimental::Context;
+using Node = blazingdb::transport::experimental::Node;
 
 using namespace ral::frame;
 using namespace ral::processor;

@@ -20,7 +20,7 @@ public:
 
 	virtual ~orc_parser();
 
-	std::unique_ptr<ral::frame::BlazingTable> parse(
+	ral::frame::TableViewPair parse(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
 		const Schema & schema,

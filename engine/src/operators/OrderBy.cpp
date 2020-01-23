@@ -71,7 +71,7 @@ void limit_table(blazing_frame & input, cudf::size_type limitRows) {
 }
 
 void distributed_limit(Context & queryContext, blazing_frame & input, cudf::size_type limitRows) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	using ral::distribution::NodeSamples;
 
 	cudf::size_type rowSize = input.get_num_rows_in_table(0);
@@ -173,7 +173,7 @@ void distributed_sort(Context & queryContext,
 	std::vector<cudf::column *> & rawCols,
 	std::vector<int8_t> & sortOrderTypes,
 	std::vector<int> & sortColIndices) {
-	using ral::communication::CommunicationData;
+	using ral::communication::experimental::CommunicationData;
 	static CodeTimer timer;
 	timer.reset();
 
@@ -336,6 +336,7 @@ namespace experimental {
 	using namespace ral::distribution::experimental;
 
 std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
+
 	auto rangeStart = query_part.find("(");
 	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
@@ -390,6 +391,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<int8_t> & sortOrderTypes){
 	
+
 	static CodeTimer timer;
 	timer.reset();
 

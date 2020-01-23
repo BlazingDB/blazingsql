@@ -46,7 +46,7 @@ void make_sure_output_is_not_input_gdf(
 }
 
 
-ResultSet runQuery(int32_t masterIndex,
+std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -122,59 +122,28 @@ ResultSet runQuery(int32_t masterIndex,
 	}
 
 	try {
-		using blazingdb::manager::Context;
-		using blazingdb::transport::Node;
+		using blazingdb::manager::experimental::Context;
+		using blazingdb::transport::experimental::Node;
 
-		std::vector<std::shared_ptr<Node>> contextNodes;
+		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node::Make(address));
+				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+			contextNodes.push_back(Node(address));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
-		ral::communication::network::Server::getInstance().registerContext(ctxToken);
+		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
 
-		blazing_frame frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
-		make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
-		std::vector<cudf::column *> columns;
-		std::vector<std::string> names;
-		for(int i = 0; i < frame.get_width(); i++) {
-			auto& column = frame.get_column(i);
-			columns.push_back(column.get_gdf_column());
-			names.push_back(column.name());
-		}
+		std::unique_ptr<ral::frame::BlazingTable> frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 
-		std::vector<cudf::column_view> columnViews;
-		columnViews.reserve(columns.size());
-		//std::transform(
-			//columns.cbegin(), columns.cend(), columnViews.begin(), [](cudf::column * column) { return column->view(); });
+		// TODO percy william cudf0.12
+		//make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
 
-		// TODO(cristhian): Uncomment this to use a dummy data sending to cython
-		//names = {"col001", "col002", "col003"};
-		//std::vector<cudf::column> cvss;
-
-
-		//std::vector<std::int32_t> arr{1, 2, 3, 4, 5, 6, 7, 8, 9};
-		//std::vector<std::int32_t> arr2{11, 12, 13, 14, 15, 16, 17, 18, 19};
-		//std::vector<std::int32_t> arr3{31, 32, 33, 34, 35, 36, 37, 38, 39};
-		//rmm::device_buffer sdata(arr.data(), 9 * sizeof(std::int32_t));
-		//rmm::device_buffer sdata2(arr2.data(), 9 * sizeof(std::int32_t));
-		//rmm::device_buffer sdata3(arr3.data(), 9 * sizeof(std::int32_t));
-		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata);
-		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata2);
-		//cvss.emplace_back(cudf::data_type{cudf::type_id::INT32}, 9, sdata3);
-
-		//std::transform(
-			//cvss.cbegin(), cvss.cend(), std::back_inserter(columnViews), [](const cudf::column & column) { return column.view(); });
-
-		// TODO(gcca): Ask to William about this. Use shared_ptr
-		// or implement default constructor to have an empty BlazingTableView
-		// beacuse cythons needs initialize a ResultSet by default. After that,
-		// remove new statement.
-		ResultSet result{{}, {}, new ral::frame::BlazingTableView{CudfTableView{columnViews}, names}};
+		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
+		result->blazingTable = std::move(frame);
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;
@@ -183,7 +152,7 @@ ResultSet runQuery(int32_t masterIndex,
 }
 
 
-ResultSet runSkipData(int32_t masterIndex,
+std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -262,18 +231,18 @@ ResultSet runSkipData(int32_t masterIndex,
 	}
 
 	try {
-		using blazingdb::manager::Context;
-		using blazingdb::transport::Node;
+		using blazingdb::manager::experimental::Context;
+		using blazingdb::transport::experimental::Node;
 
-		std::vector<std::shared_ptr<Node>> contextNodes;
+		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node::Make(address));
+				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+			contextNodes.push_back(Node(address));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
-		ral::communication::network::Server::getInstance().registerContext(ctxToken);
+		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
 		// 		skipdata_output_t
@@ -295,6 +264,7 @@ ResultSet runSkipData(int32_t masterIndex,
 //		ResultSet result = {columns, names};
 		//    std::cout<<"result looks ok"<<std::endl;
 		// return result;
+		return nullptr;
 	} catch(const std::exception & e) {
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
 		std::cerr << e.what() << std::endl;

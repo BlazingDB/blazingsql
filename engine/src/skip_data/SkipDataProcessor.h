@@ -7,7 +7,7 @@
 #include <blazingdb/manager/Context.h>
 #include "io/DataLoader.h"
 
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 
 namespace ral {
 namespace skip_data {
