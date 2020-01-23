@@ -53,10 +53,11 @@ ral::frame::TableViewPair data_loader::load_data(
 		threads.push_back(std::thread([&, file_index]() {
 
 			if (files[file_index].fileHandle != nullptr) {
-				auto fileSchema = schema.fileSchema(file_index);
-				// TODO: tricky!!! 
-				tableViewPairs_per_file.emplace_back(parser->parse(files[file_index].fileHandle,
-					user_readable_file_handles[file_index], fileSchema, column_indices));
+				// TODO william alex percy skipdata cudf0.12
+				//auto fileSchema = schema.fileSchema(file_index);
+				// TODO: tricky!!!
+				ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], schema, column_indices);
+				tableViewPairs_per_file.emplace_back(std::move(loaded_table));
 			} else {
 				Library::Logging::Logger().logError(ral::utilities::buildLogString(
 					"", "", "", "ERROR: Was unable to open " + user_readable_file_handles[file_index]));
