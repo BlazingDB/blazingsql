@@ -126,13 +126,16 @@ void distributed_groupby_without_aggregations(
 	std::vector<gdf_column_cpp> partitionPlan;
 	if(queryContext.isMasterNode(CommunicationData::getInstance().getSelfNode())) {
 		queryContext.incrementQuerySubstep();
-		std::vector<ral::distribution::NodeSamples> samples = ral::distribution::collectSamples(queryContext);
-		samples.emplace_back(rowSize, CommunicationData::getInstance().getSelfNode(), selfSamples);
-
-		partitionPlan = ral::distribution::generatePartitionPlansGroupBy(queryContext, samples);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//std::vector<ral::distribution::NodeSamples> samples = ral::distribution::collectSamples(queryContext);
+		//samples.emplace_back(rowSize, CommunicationData::getInstance().getSelfNode(), selfSamples);
+		//partitionPlan = ral::distribution::generatePartitionPlansGroupBy(queryContext, samples);
 
 		queryContext.incrementQuerySubstep();
-		ral::distribution::distributePartitionPlan(queryContext, partitionPlan);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//ral::distribution::experimental::distributePartitionPlan(queryContext, partitionPlan);
 
 		Library::Logging::Logger().logInfo(timer.logDuration(queryContext,
 			"distributed_groupby_without_aggregations part 1 collectSamples generatePartitionPlansGroupBy "
@@ -140,10 +143,14 @@ void distributed_groupby_without_aggregations(
 		timer.reset();
 	} else {
 		queryContext.incrementQuerySubstep();
-		ral::distribution::sendSamplesToMaster(queryContext, selfSamples, rowSize);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//ral::distribution::experimental::sendSamplesToMaster(queryContext, selfSamples, rowSize);
 
 		queryContext.incrementQuerySubstep();
-		partitionPlan = ral::distribution::getPartitionPlan(queryContext);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//partitionPlan = ral::distribution::experimental::getPartitionPlan(queryContext);
 
 		Library::Logging::Logger().logInfo(timer.logDuration(
 			queryContext, "distributed_groupby_without_aggregations part 1 sendSamplesToMaster getPartitionPlan"));
@@ -533,13 +540,16 @@ void distributed_aggregations_with_groupby(Context & queryContext,
 	std::vector<gdf_column_cpp> partitionPlan;
 	if(queryContext.isMasterNode(CommunicationData::getInstance().getSelfNode())) {
 		queryContext.incrementQuerySubstep();
-		std::vector<ral::distribution::NodeSamples> samples = ral::distribution::collectSamples(queryContext);
-		samples.emplace_back(rowSize, CommunicationData::getInstance().getSelfNode(), selfSamples);
-
-		partitionPlan = ral::distribution::generatePartitionPlansGroupBy(queryContext, samples);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//std::vector<ral::distribution::NodeSamples> samples = ral::distribution::collectSamples(queryContext);
+		//samples.emplace_back(rowSize, CommunicationData::getInstance().getSelfNode(), selfSamples);
+		//partitionPlan = ral::distribution::generatePartitionPlansGroupBy(queryContext, samples);
 
 		queryContext.incrementQuerySubstep();
-		ral::distribution::distributePartitionPlan(queryContext, partitionPlan);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//ral::distribution::experimental::distributePartitionPlan(queryContext, partitionPlan);
 
 		Library::Logging::Logger().logInfo(timer.logDuration(queryContext,
 			"distributed_aggregations_with_groupby part 1 collectSamples generatePartitionPlansGroupBy "
@@ -547,10 +557,15 @@ void distributed_aggregations_with_groupby(Context & queryContext,
 		timer.reset();
 	} else {
 		queryContext.incrementQuerySubstep();
-		ral::distribution::sendSamplesToMaster(queryContext, selfSamples, rowSize);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//ral::distribution::sendSamplesToMaster(queryContext, selfSamples, rowSize);
 
 		queryContext.incrementQuerySubstep();
-		partitionPlan = ral::distribution::getPartitionPlan(queryContext);
+		
+		// TODO percy william felipe port distribution cudf0.12
+		//partitionPlan = ral::distribution::experimental::getPartitionPlan(queryContext);
+		
 		Library::Logging::Logger().logInfo(timer.logDuration(
 			queryContext, "distributed_aggregations_with_groupby part 1 sendSamplesToMaster getPartitionPlan"));
 		timer.reset();
@@ -1006,6 +1021,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 			} else {
 				aggregation_input = table.view().column(get_index(aggregation_input_expressions[i]));
 			}
+			
 			if( aggregation_types[i] == "COUNT") { 
 				std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT64));
 				auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int64_t>* >(scalar.get());
@@ -1032,8 +1048,9 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 	// convert scalars into columns
 	std::vector<std::unique_ptr<cudf::column>> output_columns;
 	for (int i = 0; i < reductions.size(); i++){
-		output_columns.emplace_back(cudf::make_numeric_column(reductions[i]->type(), 1));
-		cudf::experimental::fill(output_columns.back()->mutable_view(), 0, 1, *(reductions[i]));
+		std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(reductions[i]->type(), 1);
+		temp = cudf::experimental::fill(temp->mutable_view(), 0, 1, *(reductions[i]));
+		output_columns.emplace_back(std::move(temp));		
 	}
 	return std::make_unique<ral::frame::BlazingTable>(std::move(std::make_unique<CudfTable>(std::move(output_columns))), agg_output_column_names);			
 }

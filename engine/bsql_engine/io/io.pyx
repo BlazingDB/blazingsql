@@ -163,21 +163,27 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     for extra_column in extra_columns:
         extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
         extra_columns_cpp.push_back(extra_column_cpp)
-    temp = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
+    tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
     return_object['datasource'] = files
-    return_object['files'] = temp.files
-    return_object['file_type'] = temp.data_type
+    return_object['files'] = tableSchema.files
+    return_object['file_type'] = tableSchema.data_type
     return_object['args'] = args
     return_object['columns'] = cudf.DataFrame()
-    return_object['names'] = temp.names
-    return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
-    return_object['num_row_groups']= temp.num_row_groups
+    return_object['names'] = tableSchema.names
+    return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
+    return_object['num_row_groups']= tableSchema.num_row_groups
     i = 0
     #for column in temp.columns:
       # column.col_name = return_object['names'][i]
       # return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
       # i = i + 1
+	
+	# temp is TableSchema and temp.column is array of cudf::column_view
+    #for column in tableSchema.columns:
+        #return_object['columns'][return_object['names'][i].decode('utf-8')] = column
+    #    i = i + 1
+    
     return return_object
 
 

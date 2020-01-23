@@ -116,7 +116,6 @@ void normalizeSamples(std::vector<NodeSamples> & samples) {
 }  // namespace distribution
 }  // namespace ral
 
-
 namespace ral {
 namespace distribution {
 namespace experimental {
@@ -133,6 +132,124 @@ typedef ral::communication::messages::experimental::GPUComponentReceivedMessage 
 typedef ral::communication::experimental::CommunicationData CommunicationData;
 typedef ral::communication::network::experimental::Server Server;
 typedef ral::communication::network::experimental::Client Client;
+
+std::vector<NodeColumns> generateJoinPartitions(
+	const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices) {
+	assert(table.size() != 0);
+
+	if(table[0].get_gdf_column()->size() == 0) {
+		std::vector<NodeColumns> result;
+		auto nodes = context.getAllNodes();
+		for(cudf::size_type k = 0; k < nodes.size(); ++k) {
+			std::vector<gdf_column_cpp> columns = table;
+			// TODO percy william felipe port distribution cudf0.12
+			//result.emplace_back(*nodes[k], columns);
+		}
+		return result;
+	}
+
+	// Support for GDF_STRING_CATEGORY. We need the string hashes not the category indices
+	std::vector<gdf_column_cpp> temp_input_table(table);
+	std::vector<int> temp_input_col_indices(columnIndices);
+	for(size_t i = 0; i < columnIndices.size(); i++) {
+		gdf_column_cpp & col = table[columnIndices[i]];
+
+		if(col.get_gdf_column()->type().id() != cudf::type_id::STRING)
+			continue;
+
+		// TODO percy cudf0.12 port to cudf::column and custrings
+//		NVCategory * nvCategory = static_cast<NVCategory *>(col.get_gdf_column()->dtype_info.category);
+//		NVStrings * nvStrings =
+//			nvCategory->gather_strings(static_cast<nv_category_index_type *>(col.data()), col.get_gdf_column()->size(), true);
+
+//		gdf_column_cpp str_hash;
+//		str_hash.create_gdf_column(cudf::type_id::INT32,
+//			nvStrings->size(),
+//			nullptr,
+//			nullptr,
+//			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
+//			"");
+//		nvStrings->hash(static_cast<unsigned int *>(str_hash.data()));
+//		NVStrings::destroy(nvStrings);
+
+//		temp_input_col_indices[i] = temp_input_table.size();
+//		temp_input_table.push_back(str_hash);
+	}
+
+
+	std::vector<cudf::column *> raw_input_table_col_ptrs(temp_input_table.size());
+	std::transform(
+		temp_input_table.begin(), temp_input_table.end(), raw_input_table_col_ptrs.begin(), [](auto & cpp_col) {
+			return cpp_col.get_gdf_column();
+		});
+	
+	// TODO percy cudf0.12 port to cudf::column
+	//cudf::table input_table_wrapper(raw_input_table_col_ptrs);
+
+	// Generate partition offset vector
+	cudf::size_type number_nodes = context.getTotalNodes();
+	std::vector<gdf_size_type> partition_offset(number_nodes);
+
+	// Preallocate output columns
+	// TODO percy cudf0.12 port to cudf::column
+	//std::vector<gdf_column_cpp> output_columns = generateOutputColumns(input_table_wrapper.num_columns(), input_table_wrapper.num_rows(), temp_input_table);
+
+	// copy over nvcategory to output
+	// NOTE that i am having to do this due to an already identified issue: https://github.com/rapidsai/cudf/issues/1474
+	// TODO percy cudf0.12 port to cudf::column
+//	for(size_t i = 0; i < output_columns.size(); i++) {
+//		// TODO percy cudf0.12 custrings this was not commented
+////		if(output_columns[i].dtype() == GDF_STRING_CATEGORY && temp_input_table[i].dtype_info().category) {
+////			output_columns[i].get_gdf_column()->dtype_info.category =
+////				static_cast<void *>(static_cast<NVCategory *>(temp_input_table[i].dtype_info().category)->copy());
+////		}
+//	}
+
+	// TODO percy cudf0.12 port to cudf::column
+//	std::vector<gdf_column *> raw_output_table_col_ptrs(output_columns.size());
+//	std::transform(output_columns.begin(), output_columns.end(), raw_output_table_col_ptrs.begin(), [](auto & cpp_col) {
+//		return cpp_col.get_gdf_column();
+//	});
+//	cudf::table output_table_wrapper(raw_output_table_col_ptrs);
+
+	// Execute operation
+	// TODO percy cudf0.12 port to cudf::column
+//	CUDF_CALL(gdf_hash_partition(input_table_wrapper.num_columns(),
+//		input_table_wrapper.begin(),
+//		temp_input_col_indices.data(),
+//		temp_input_col_indices.size(),
+//		number_nodes,
+//		output_table_wrapper.begin(),
+//		partition_offset.data(),
+//		gdf_hash_func::GDF_HASH_MURMUR3));
+
+	// TODO percy cudf0.12 port to cudf::column
+//	std::vector<gdf_column_cpp> temp_output_columns(output_columns.begin(), output_columns.begin() + table.size());
+//	for(size_t i = 0; i < table.size(); i++) {
+//		gdf_column * srcCol = input_table_wrapper.get_column(i);
+//		gdf_column * dstCol = output_table_wrapper.get_column(i);
+
+//		if(srcCol->dtype != GDF_STRING_CATEGORY)
+//			continue;
+
+//		ral::safe_nvcategory_gather_for_string_category(dstCol, srcCol->dtype_info.category);
+//	}
+
+	// Erase input table
+	table.clear();
+
+	// lets get the split indices. These are all the partition_offset, except for the first since its just 0
+	gdf_column_cpp indexes;
+	indexes.create_gdf_column(cudf::type_id::INT32,
+		number_nodes - 1,
+		partition_offset.data() + 1,
+		nullptr,
+		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
+		"");
+
+	// TODO percy cudf0.12 port to cudf::column
+	//return split_data_into_NodeColumns(context, temp_output_columns, indexes);
+}
 
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
   // Get master node
@@ -488,6 +605,24 @@ std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
 	return ral::operators::experimental::compute_groupby_without_aggregations(concatGroups->toBlazingTableView(),  group_column_indices);	
 }
 
+void distributeRowSize(const Context & context, std::size_t total_row_size) {
+	using ral::communication::experimental::CommunicationData;
+	using ral::communication::messages::experimental::Factory;
+	using ral::communication::messages::experimental::SampleToNodeMasterMessage;
+	using ral::communication::network::experimental::Client;
+
+
+	const uint32_t context_comm_token = context.getContextCommunicationToken();
+	const uint32_t context_token = context.getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	// TODO WMS william percy cudf0.12 port this stuff
+//	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
+//	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, {});
+
+//	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
+//	broadcastMessage(context.getAllOtherNodes(self_node_idx), message);
+}
 
 void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message) {
@@ -519,6 +654,45 @@ void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, st
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+}
+
+// TODO percy william felipe port distribution cudf0.12
+std::vector<cudf::size_type> collectRowSize(const Context & context) {
+	// TODO percy william felipe port distribution cudf0.12
+	
+//	using ral::communication::CommunicationData;
+//	using ral::communication::messages::SampleToNodeMasterMessage;
+//	using ral::communication::network::Server;
+
+//	int num_nodes = context.getTotalNodes();
+//	std::vector<cudf::size_type> node_row_sizes(num_nodes);
+//	std::vector<bool> received(num_nodes, false);
+
+//	const uint32_t context_comm_token = context.getContextCommunicationToken();
+//	const uint32_t context_token = context.getContextToken();
+//	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+//	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
+//	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
+//		auto message = Server::getInstance().getMessage(context_token, message_id);
+//		if(message->getMessageTokenValue() != message_id) {
+//			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
+//		}
+//		auto concrete_message = std::static_pointer_cast<SampleToNodeMasterMessage>(message);
+//		auto node = concrete_message->getSenderNode();
+//		int node_idx = context.getNodeIndex(*node);
+//		assert(node_idx >= 0);
+//		if(received[node_idx]) {
+//			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+//				std::to_string(context.getQueryStep()),
+//				std::to_string(context.getQuerySubstep()),
+//				"ERROR: Already received collectRowSize from node " + std::to_string(node_idx)));
+//		}
+//		node_row_sizes[node_idx] = concrete_message->getTotalRowSize();
+//		received[node_idx] = true;
+//	}
+
+//	return node_row_sizes;
 }
 
 void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & node_num_rows_left,

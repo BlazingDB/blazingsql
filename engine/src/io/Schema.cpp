@@ -107,12 +107,12 @@ size_t Schema::get_num_row_groups(size_t file_index) const { return this->num_ro
 size_t Schema::get_num_columns() const { return this->names.size(); }
 
 std::vector<bool> Schema::get_in_file() const { return this->in_file; }
-void Schema::add_column(gdf_column_cpp column, size_t file_index) {
+/*void Schema::add_column(gdf_column_cpp column, size_t file_index) {
 	this->names.push_back(column.name());
 	this->types.push_back(column.get_gdf_column()->type().id());
 	this->calcite_to_file_indices.push_back(file_index);
 	this->in_file.push_back(true);
-}
+}*/
 
 void Schema::add_column(std::string name, cudf::type_id type, size_t file_index, bool is_in_file) {
 	this->names.push_back(name);

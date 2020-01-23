@@ -86,7 +86,7 @@ using T = TypeParam;
 }
 
 
- TYPED_TEST(AggregationTest, GroupbyWithoutAggsWithNull) {
+ TYPED_TEST(AggregationTest, AggsWithoutGroupbyWithNull) {
 
  	using T = TypeParam;
 
@@ -110,19 +110,18 @@ using T = TypeParam;
     	std::cout<<result->names()[i]<<": "<<result->view().column(i).type().id()<<" : "<<col_string<<std::endl;
 	}
 	
-
-	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg0{{15}, {1}};
-	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg1{{11}, {1}};
-	cudf::test::fixed_width_column_wrapper<int32_t> expect_agg2{{6}, {1}};
-	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg3{{15}, {1}};
-	cudf::test::fixed_width_column_wrapper<int32_t> expect_agg4{{7}, {1}};
-	cudf::test::fixed_width_column_wrapper<int32_t> expect_agg5{{8}, {1}};
-	cudf::test::fixed_width_column_wrapper<T> expect_agg6{{3}, {1}};
-	cudf::test::fixed_width_column_wrapper<T> expect_agg7{{4}, {1}};
+	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg0{{15}};
+	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg1{{11}};
+	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg2{{7}};
+	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg3{{15}};
+	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg4{{6}};
+	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg5{{8}};
+	cudf::test::fixed_width_column_wrapper<T> expect_agg6{{3}};
+	cudf::test::fixed_width_column_wrapper<T> expect_agg7{{4}};
 	
 
 	CudfTableView expect_table{{expect_agg0, expect_agg1, expect_agg2, expect_agg3, expect_agg4, expect_agg5, expect_agg6, expect_agg7}};
-	
+
 	cudf::test::expect_tables_equal(result->view(), expect_table);						
 
 }
