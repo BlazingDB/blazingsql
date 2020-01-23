@@ -338,38 +338,19 @@ void execute_project_plan(blazing_frame & input, std::string query_part) {
 	// }
 }
 
-blazing_frame process_union(blazing_frame & left, blazing_frame & right, std::string query_part) {
+std::unique_ptr<ral::frame::BlazingTable> process_union(const ral::frame::BlazingTableView & left, const ral::frame::BlazingTableView & right, std::string query_part) {
 	bool isUnionAll = (get_named_expression(query_part, "all") == "true");
 	if(!isUnionAll) {
 		throw std::runtime_error{"In process_union function: UNION is not supported, use UNION ALL"};
 	}
 
 	// Check same number of columns
-	if(left.get_size_column(0) != right.get_size_column(0)) {
+	if(left.num_columns() != right.num_columns()) {
 		throw std::runtime_error{
 			"In process_union function: left frame and right frame have different number of columns"};
 	}
-
-	// Check columns have the same data type
-	size_t ncols = left.get_size_column(0);
-	for(size_t i = 0; i < ncols; i++) {
-		if(left.get_column(i).get_gdf_column()->type().id() != right.get_column(i).get_gdf_column()->type().id()) {
-			throw std::runtime_error{"In process_union function: left column and right column have different dtypes"};
-		}
-	}
-
-	// Check to see if one of the tables is empty
-	if(left.get_num_rows_in_table(0) == 0)
-		return right;
-	else if(right.get_num_rows_in_table(0) == 0)
-		return left;
-
-	std::vector<gdf_column_cpp> new_table = ral::utilities::concatTables({left.get_table(0), right.get_table(0)});
-
-	blazing_frame result_frame;
-	result_frame.add_table(new_table);
-
-	return result_frame;
+	std::vector<ral::frame::BlazingTableView> tables{left, right};
+	return ral::utilities::experimental::concatTables(tables);	
 }
 
 std::vector<int> get_group_columns(std::string query_part) {
@@ -607,22 +588,23 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			int numLeft = left_frame_pair.second.num_rows();
 			int numRight = right_frame_pair.second.num_rows();
 			
-			// TODO percy william felipe cudf0.12 seems we need to migrate union
-			//result_frame = process_union(left_frame, right_frame, query[0]);
+			ral::frame::TableViewPair result_pair;
+			if (numLeft == 0){
+				result_pair = std::move(right_frame_pair);
+			} else if (numRight == 0) {
+				result_pair = std::move(left_frame_pair);
+			} else {
+				std::unique_ptr<ral::frame::BlazingTable> result_frame = process_union(left_frame_pair.second, right_frame_pair.second, query[0]);
+				ral::frame::BlazingTableView result_frame_view = result_frame->toBlazingTableView();
+				result_pair = std::make_pair(std::move(result_frame), result_frame_view);				
+			}
+			std::string extraInfo =	"left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
+				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
+						"evaluate_split_query process_union", "num rows result", result_pair.second.num_rows(), extraInfo));
+				blazing_timer.reset();
+				queryContext->incrementQueryStep();	
 			
-			std::string extraInfo =
-				"left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
-			// TODO percy cudf0.12 log logs
-//			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-//				"evaluate_split_query process_union",
-//				"num rows result",
-//				result_frame.get_num_rows_in_table(0),
-//				extraInfo));
-			blazing_timer.reset();
-			queryContext->incrementQueryStep();
-			
-			// TODO percy william felipe cudf0.12 seems we need to migrate union
-			//return result_frame;
+			return result_pair;
 		} else {
 			throw std::runtime_error{"In evaluate_split_query function: unsupported query operator"};
 		}
