@@ -17,9 +17,12 @@
 namespace interops {
 
 typedef int16_t column_index_type;
-static constexpr short UNARY_INDEX = -1;
-static constexpr short SCALAR_INDEX = -2;
-static constexpr short SCALAR_NULL_INDEX = -3;
+
+enum column_index : column_index_type {
+	UNARY_INDEX = -1,
+	SCALAR_INDEX = -2,
+	SCALAR_NULL_INDEX = -3
+};
 
 void add_expression_to_interpreter_plan(const std::vector<std::string> & tokenized_expression,
 	const cudf::table_view & table,
