@@ -188,3 +188,55 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types)
     cudf::test::expect_tables_equal(expected_table_view, out_table_view);
   }
 }
+
+struct InteropsTestString : public cudf::test::BaseFixture {};
+
+TEST_F(InteropsTestString, test_string)
+{
+  using namespace interops;
+  
+  cudf::test::strings_column_wrapper col1({"foo", "d", "e", "a", "hello", "k", "d", "l", "bar", ""});
+  
+  cudf::table_view in_table_view {{col1}};
+
+  std::vector<column_index_type> left_inputs =  {0, 0, SCALAR_INDEX};
+  std::vector<column_index_type> right_inputs = {SCALAR_INDEX, SCALAR_INDEX, 0};
+  std::vector<column_index_type> outputs =      {1, 2, 3};
+
+  std::vector<column_index_type> final_output_positions = {1, 2, 3};
+
+  std::vector<gdf_binary_operator_exp> operators = {BLZ_EQUAL, BLZ_LESS, BLZ_GREATER_EQUAL};
+  std::vector<gdf_unary_operator> unary_operators = {BLZ_INVALID_UNARY, BLZ_INVALID_UNARY, BLZ_INVALID_UNARY};
+
+  std::unique_ptr<cudf::scalar> arr_s1[] = {nullptr, nullptr, cudf::make_string_scalar("e")};
+  std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
+  std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_string_scalar("hello"), cudf::make_string_scalar("test"), nullptr};
+  std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
+  
+  // using OUT_T = typename output_type<T>::type;
+  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+      return cudf::experimental::bool8{};
+    });
+  cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> out_col1{sequenceOut, sequenceOut + 10};
+  cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> out_col2{sequenceOut, sequenceOut + 10};
+  cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> out_col3{sequenceOut, sequenceOut + 10};
+  cudf::mutable_table_view out_table_view {{out_col1, out_col2, out_col3}};
+
+  perform_interpreter_operation(out_table_view,
+                              in_table_view,
+                              left_inputs,
+                              right_inputs,
+                              outputs,
+                              final_output_positions,
+                              operators,
+                              unary_operators,
+                              left_scalars,
+                              right_scalars);
+  
+  cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expected_col1{{0,0,0,0,1,0,0,0,0,0}};
+  cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expected_col2{{1,1,1,1,1,1,1,1,1,1}};
+  cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expected_col3{{0,1,1,1,0,0,1,0,1,1}};
+  cudf::table_view expected_table_view {{expected_col1, expected_col2, expected_col3}};
+
+  cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+}

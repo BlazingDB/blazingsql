@@ -235,17 +235,7 @@ cudf::type_id get_output_type(
 	} else if(is_logical_operation(operation)) {
 		return cudf::type_id::BOOL8;
 	} else if(is_exponential_operator(operation)) {
-		// assume biggest type unsigned if left is unsigned, signed if left is signed
-
-		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
-			return cudf::type_id::FLOAT64;
-			//		}else if(is_type_signed(input_left_type)){
-			//			return GDF_INT64;
-		} else {
-			// TODO felipe percy noboa see upgrade to uints
-			// return GDF_UINT64;
-			return cudf::type_id::INT64;
-		}
+		return cudf::type_id::FLOAT64;
 	} else if(operation == BLZ_MAGIC_IF_NOT) {
 		return input_right_type;
 	} else if(operation == BLZ_FIRST_NON_MAGIC) {

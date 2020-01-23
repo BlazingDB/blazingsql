@@ -1,5 +1,9 @@
+#include <cudf/column/column_device_view.cuh>
 #include <cudf/column/column_view.hpp>
 #include <cudf/scalar/scalar.hpp>
+#include <cudf/scalar/scalar_device_view.cuh>
+#include <cudf/table/table_view.hpp>
+#include <cudf/table/table_device_view.cuh>
 #include <cudf/utilities/error.hpp>
 #include <algorithm>
 #include <deque>
@@ -7,12 +11,53 @@
 #include <map>
 #include <regex>
 #include <exception>
+#include <functional>
+#include <rmm/rmm.h>
 
+#include "CalciteExpressionParsing.h"
 #include "interpreter_cpp.h"
 #include "interpreter_ops.cuh"
 
 namespace interops {
-namespace {
+namespace detail {
+
+struct allocate_device_scalar {
+	using scalar_device_ptr = typename std::unique_ptr<cudf::detail::scalar_device_view_base, std::function<void(cudf::detail::scalar_device_view_base*)>>;
+
+	template <typename T, std::enable_if_t<cudf::is_simple<T>()> * = nullptr>
+	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarDeviceType = cudf::experimental::scalar_device_type_t<T>;
+
+		ScalarDeviceType * ret = nullptr;
+		RMM_TRY(RMM_ALLOC(&ret, sizeof(ScalarDeviceType), stream));
+
+		auto typed_scalar_ptr = static_cast<ScalarType *>(&s);
+		ScalarDeviceType h_scalar{typed_scalar_ptr->type(), typed_scalar_ptr->data(), typed_scalar_ptr->validity_data()};
+
+    CUDA_TRY(cudaMemcpyAsync(ret, &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
+
+		auto deleter = [stream](cudf::detail::scalar_device_view_base * p) { RMM_TRY(RMM_FREE(p, stream)); };
+		return {ret, deleter};
+	}
+
+	template <typename T, std::enable_if_t<cudf::is_compound<T>()> * = nullptr>
+	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarDeviceType = cudf::experimental::scalar_device_type_t<T>;
+
+		ScalarDeviceType * ret = nullptr;
+		RMM_TRY(RMM_ALLOC(&ret, sizeof(ScalarDeviceType), stream));
+
+		auto typed_scalar_ptr = static_cast<ScalarType *>(&s);
+		ScalarDeviceType h_scalar{typed_scalar_ptr->type(), typed_scalar_ptr->data(), typed_scalar_ptr->validity_data(), typed_scalar_ptr->size()};
+
+		CUDA_TRY(cudaMemcpyAsync(ret, &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
+
+		auto deleter = [stream](cudf::detail::scalar_device_view_base * p) { RMM_TRY(RMM_FREE(p, stream)); };
+		return {ret, deleter};
+	}
+};
 
 template <int SIZE, int REGISTER_SIZE>
 int calculated_shared_memory(int num_threads_per_block) {
@@ -464,7 +509,7 @@ std::unique_ptr<cudf::column> handle_concat_str_col(const cudf::column_view & le
 //	return new_input_col;
 }
 
-}  // namespace
+}  // namespace detail
 
 /**
  * Creates a physical plan for the expression that can be added to the total plan
@@ -482,6 +527,8 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 	std::vector<gdf_unary_operator> & unary_operators,
 	std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
 	std::vector<std::unique_ptr<cudf::scalar>> & right_scalars) {
+
+	using namespace detail;
 
 	cudf::size_type num_inputs = table.num_columns();
 	std::vector<bool> processing_space_free(512, true);  // A place to store whether or not a processing space is occupied at any point in time
@@ -793,53 +840,125 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	const std::vector<gdf_unary_operator> & unary_operators,
 	const std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
 	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars) {
+	using namespace detail;
+	cudaStream_t stream = 0;
+
 	auto max_it = std::max_element(outputs.begin(), outputs.end());
 	column_index_type max_output = (max_it != outputs.end() ? *max_it : 0);
-
-	cudaStream_t stream;
-	CUDA_TRY(cudaStreamCreate(&stream));
 
 	size_t shared_memory_per_thread = (max_output + 1) * sizeof(int64_t);
 
 	int min_grid_size, block_size;
 	calculate_grid(&min_grid_size, &block_size, max_output + 1);
 
-	size_t temp_size = InterpreterFunctor::get_temp_size(
-		table.num_columns(), left_inputs.size(), final_output_positions.size());
+	size_t temp_valids_in_size = min_grid_size * block_size * table.num_columns() * sizeof(cudf::bitmask_type);
+	size_t temp_valids_out_size = min_grid_size * block_size * final_output_positions.size() * sizeof(cudf::bitmask_type);
+	rmm::device_buffer temp_device_valids_in_buffer(temp_valids_in_size, stream); 
+	rmm::device_buffer temp_device_valids_out_buffer(temp_valids_out_size, stream); 
 
-	rmm::device_buffer temp_space(temp_size, stream); 
+	// device table views
+	auto device_table_view = cudf::table_device_view::create(table, stream);
+	auto device_out_table_view = cudf::mutable_table_device_view::create(out_table, stream);
 
-	size_t temp_valids_in_size = min_grid_size * block_size * table.num_columns() * sizeof(int64_t);
-	size_t temp_valids_out_size = min_grid_size * block_size * final_output_positions.size() * sizeof(int64_t);
+	// device scalar views
+	using scalar_device_ptr = typename allocate_device_scalar::scalar_device_ptr;
+	std::vector<scalar_device_ptr> left_device_scalars_ptrs;
+	std::vector<cudf::detail::scalar_device_view_base *> left_device_scalars_raw;
+	std::vector<scalar_device_ptr> right_device_scalars_ptrs;
+	std::vector<cudf::detail::scalar_device_view_base *> right_device_scalars_raw;
+	for (size_t i = 0; i < left_scalars.size(); i++) {
+		left_device_scalars_ptrs.push_back(left_scalars[i] ? cudf::experimental::type_dispatcher(left_scalars[i]->type(), allocate_device_scalar{}, *(left_scalars[i])) : nullptr);
+		left_device_scalars_raw.push_back(left_device_scalars_ptrs.back().get());
 
-	rmm::device_buffer temp_valids_in_buffer(temp_valids_in_size, stream); 
-	rmm::device_buffer temp_valids_out_buffer(temp_valids_out_size, stream); 
+		right_device_scalars_ptrs.push_back(right_scalars[i] ? cudf::experimental::type_dispatcher(right_scalars[i]->type(), allocate_device_scalar{}, *(right_scalars[i])) : nullptr);
+		right_device_scalars_raw.push_back(right_device_scalars_ptrs.back().get());
+	}
+	rmm::device_vector<cudf::detail::scalar_device_view_base *> left_device_scalars(left_device_scalars_raw);
+	rmm::device_vector<cudf::detail::scalar_device_view_base *> right_device_scalars(right_device_scalars_raw);
 
-	InterpreterFunctor op(out_table,
-		table,
-		left_inputs,
-		right_inputs,
-		outputs,
-		final_output_positions,
-		operators,
-		unary_operators,
-		left_scalars,
-		right_scalars,
-		temp_space.data(),
-		temp_valids_in_buffer.data(),
-		temp_valids_out_buffer.data(),
+	// device left, right and output types
+	size_t num_operations = left_inputs.size();
+	std::vector<cudf::type_id> left_input_types_vec(num_operations);
+	std::vector<cudf::type_id> right_input_types_vec(num_operations);
+	std::vector<cudf::type_id> output_types_vec(num_operations);
+	std::map<column_index_type, cudf::type_id> output_map_type;
+	for(size_t i = 0; i < num_operations; i++) {
+		column_index_type left_index = left_inputs[i];
+		column_index_type right_index = right_inputs[i];
+		column_index_type output_index = outputs[i];
+
+		if(left_index >= 0 && left_index < table.num_columns()) {
+			left_input_types_vec[i] = table.column(left_index).type().id();
+		} else if(left_index == SCALAR_NULL_INDEX) {
+			left_input_types_vec[i] = cudf::type_id::EMPTY;
+		} else if(left_index == SCALAR_INDEX) {
+			left_input_types_vec[i] = left_scalars[i]->type().id();
+		} else if(left_index == UNARY_INDEX) {
+			// not possible
+			assert(false);
+		} else {
+			// have to get it from the output that generated it
+			left_input_types_vec[i] = output_map_type[left_index];
+		}
+
+		if(right_index >= 0 && right_index < table.num_columns()) {
+			right_input_types_vec[i] = table.column(right_index).type().id();
+		} else if(right_index == SCALAR_NULL_INDEX) {
+			right_input_types_vec[i] = cudf::type_id::EMPTY;
+		} else if(right_index == SCALAR_INDEX) {
+			right_input_types_vec[i] = right_scalars[i]->type().id();
+		} else if(right_index == UNARY_INDEX) {
+			// wont be used its a unary operation
+			right_input_types_vec[i] = cudf::type_id::EMPTY;
+		} else {
+			// have to get it from the output that generated it
+			right_input_types_vec[i] = output_map_type[right_index];
+		}
+
+		cudf::type_id type_from_op = (right_index == UNARY_INDEX
+																	? get_output_type(left_input_types_vec[i], unary_operators[i])
+																	: get_output_type(left_input_types_vec[i], right_input_types_vec[i], operators[i]));
+
+		output_types_vec[i] = (is_type_float(type_from_op) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64);
+		output_map_type[output_index] = output_types_vec[i];
+	}
+	rmm::device_vector<cudf::type_id> left_device_input_types(left_input_types_vec);
+	rmm::device_vector<cudf::type_id> right_device_input_types(right_input_types_vec);
+	rmm::device_vector<cudf::type_id> output_device_types(output_types_vec);
+
+	rmm::device_vector<column_index_type> left_device_inputs(left_inputs);
+	rmm::device_vector<column_index_type> right_device_inputs(right_inputs);
+	rmm::device_vector<column_index_type> device_outputs(outputs);
+	rmm::device_vector<column_index_type> final_device_output_positions(final_output_positions);
+	rmm::device_vector<gdf_binary_operator_exp> device_operators(operators);
+	rmm::device_vector<gdf_unary_operator> unary_device_operators(unary_operators);
+
+
+	InterpreterFunctor op(*device_out_table_view,
+												*device_table_view,
+												static_cast<cudf::size_type>(left_device_inputs.size()),
+												left_device_inputs.data().get(),
+												right_device_inputs.data().get(),
+												device_outputs.data().get(),
+												final_device_output_positions.data().get(),
+												left_device_input_types.data().get(),
+												right_device_input_types.data().get(),
+												output_device_types.data().get(),
+												device_operators.data().get(),
+												unary_device_operators.data().get(),
+												left_device_scalars.data().get(),
+												right_device_scalars.data().get(),
+												temp_device_valids_in_buffer.data(),
+												temp_device_valids_out_buffer.data());
+
+	transformKernel<<<min_grid_size,
 		block_size,
-		stream);
-
-	// transformKernel<<<min_grid_size,
-	// 	block_size,
-			transformKernel<<<1
-			,1,
+			// transformKernel<<<1
+			// ,1,
 		shared_memory_per_thread * block_size,
 		stream>>>(op, table.num_rows());
 
 	CUDA_TRY(cudaStreamSynchronize(stream));
-	CUDA_TRY(cudaStreamDestroy(stream));
 }
 
 }  // namespace interops

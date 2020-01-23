@@ -43,10 +43,7 @@ typedef enum {
   BLZ_SUB,            ///< operator -
   BLZ_MUL,            ///< operator *
   BLZ_DIV,            ///< operator / using common type of lhs and rhs
-  BLZ_TRUE_DIV,       ///< operator / after promoting type to floating point
-  BLZ_FLOOR_DIV,      ///< operator / after promoting to float and then flooring the result
   BLZ_MOD,            ///< operator %
-  BLZ_PYMOD,          ///< operator % but following python's sign rules for negatives
   BLZ_POW,            ///< lhs ^ rhs
   BLZ_EQUAL,          ///< operator ==
   BLZ_NOT_EQUAL,      ///< operator !=
@@ -64,7 +61,6 @@ typedef enum {
 	BLZ_STR_LIKE,
 	BLZ_STR_SUBSTRING,
 	BLZ_STR_CONCAT,
-  BLZ_GENERIC_OP,     ///< generic binary operator to be generated with input ptx code
   BLZ_INVALID_BINARY  ///< invalid operation
 } gdf_binary_operator_exp;
 
