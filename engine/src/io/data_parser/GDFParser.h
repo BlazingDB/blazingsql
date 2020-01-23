@@ -12,26 +12,26 @@
 
 #include <cudf/io/functions.hpp>
 
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
+
 namespace ral {
 namespace io {
 
 class gdf_parser : public data_parser {
 public:
-	gdf_parser(std::vector<cudf::column *> columns_, std::vector<std::string> names_);
+	gdf_parser(frame::BlazingTableView blazingTableView);
 
 	virtual ~gdf_parser();
 
-	ral::frame::TableViewPair parse(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
+	ral::frame::TableViewPair parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
 		const Schema & schema,
-		std::vector<size_t> column_indices);
+		std::vector<std::size_t> column_indices);
 
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema);
 
 private:
-	std::vector<cudf::column *> columns;
-	std::vector<std::string> names;
+	frame::BlazingTableView blazingTableView_;
 };
 
 } /* namespace io */

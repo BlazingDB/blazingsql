@@ -178,12 +178,12 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
       # column.col_name = return_object['names'][i]
       # return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
       # i = i + 1
-	
+
 	# temp is TableSchema and temp.column is array of cudf::column_view
     #for column in tableSchema.columns:
         #return_object['columns'][return_object['names'][i].decode('utf-8')] = column
     #    i = i + 1
-    
+
     return return_object
 
 
@@ -271,6 +271,9 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef gdf_scalar_ptr scalar_ptr
     cdef gdf_scalar scalar
 
+    cdef vector[column_view] column_views
+    cdef Column cython_col
+
     tableIndex = 0
     for tableName in tables:
       string_values_cpp.empty()
@@ -313,6 +316,14 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         names.push_back(col.encode())
         #columns.push_back(column_view_from_column(table.input[col]._column))
       #currentTableSchemaCpp.columns = columns
+
+      # TODO: Remove 4 == DataType.CUDF. Now there is a cython conflict with pyarrow.DataType
+      if table.fileType == 4:
+          names = [str.encode(x) for x in table.input.dtypes.keys()]
+          for cython_col in table.input._data.values():
+              column_views.push_back(cython_col.view())
+          currentTableSchemaCpp.blazingTableView = BlazingTableView(table_view(column_views), names)
+
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
