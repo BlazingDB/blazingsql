@@ -204,7 +204,7 @@ cdef extern from "../include/io/io.h":
     cdef struct TableSchema:
         # TODO: TableSchema will be refactorized
         # BlazingTableView blazingTableView
-        vector[gdf_column_ptr] columns
+        # vector[gdf_column_ptr] columns
         vector[string]  names
         vector[string]  files
         vector[string] datasource
@@ -281,6 +281,7 @@ cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
         cdef cppclass table_view:
             table_view() except +
             table_view(vector[table_view]) except +
+            table_view(vector[column_view]) except +
             select(vector[size_type])
             CudfColumnView column(size_type column_index)
             size_type num_columns()
