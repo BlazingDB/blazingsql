@@ -180,9 +180,9 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
       # i = i + 1
 	
 	# temp is TableSchema and temp.column is array of cudf::column_view
-    for column in tableSchema.columns:
+    #for column in tableSchema.columns:
         #return_object['columns'][return_object['names'][i].decode('utf-8')] = column
-        i = i + 1
+    #    i = i + 1
     
     return return_object
 

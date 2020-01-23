@@ -204,7 +204,7 @@ cdef extern from "../include/io/io.h":
     cdef struct TableSchema:
         # TODO: TableSchema will be refactorized
         # BlazingTableView blazingTableView
-        vector[gdf_column_ptr] columns
+        # vector[gdf_column_ptr] columns
         vector[string]  names
         vector[string]  files
         vector[string] datasource
