@@ -14,6 +14,7 @@
 #include "parser/expression_utils.hpp"
 #include <string>
 #include <vector>
+
 class blazing_frame;
 
 gdf_binary_operator_exp get_binary_operation(std::string operator_string);
