@@ -67,22 +67,15 @@ bool is_filtered_bindable_scan(std::string query_part) {
 
 bool is_scan(std::string query_part) { return is_logical_scan(query_part) || is_bindable_scan(query_part); }
 
-
 bool is_filter(std::string query_part) { return (query_part.find(LOGICAL_FILTER_TEXT) != std::string::npos); }
 
-int count_string_occurrence(std::string haystack, std::string needle) {
-	int position = haystack.find(needle, 0);
-	int count = 0;
-	while(position != std::string::npos) {
-		count++;
-		position = haystack.find(needle, position + needle.size());
-	}
+bool is_sort(std::string query_part) { return (query_part.find(LOGICAL_SORT_TEXT) != std::string::npos); }
 
-	return count;
-}
+bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
+
 
 bool is_double_input(std::string query_part) {
-	if(ral::operators::is_join(query_part)) {
+	if(is_join(query_part)) {
 		return true;
 	} else if(is_union(query_part)) {
 		return true;
@@ -554,7 +547,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			queryContext,
 			call_depth + 1);
 
-		if(ral::operators::is_join(query[0])) {
+		if(is_join(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 			// we know that left and right are dataframes we want to join together
 			int numLeft = left_frame_pair.second.num_rows();
@@ -649,7 +642,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			blazing_timer.reset();
 			queryContext->incrementQueryStep();
 			return std::make_pair(std::move(child_frame), child_frame_view);
-		} else if(ral::operators::is_sort(query[0])) {
+		} else if(is_sort(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 			
 			child_frame = ral::operators::experimental::process_sort(child_frame->toBlazingTableView(), query[0], queryContext);
