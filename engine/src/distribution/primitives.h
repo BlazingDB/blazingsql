@@ -111,9 +111,6 @@ namespace experimental {
 	typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
 	using namespace ral::frame;
 
-	// TODO percy william felipe port distribution cudf0.12
-	std::vector<cudf::size_type> collectRowSize(const Context & context);
-	
 	void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows);
 	std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context);
 
@@ -152,12 +149,14 @@ namespace experimental {
 
 	std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices);
 	
-	void distributeRowSize(const Context & context, std::size_t total_row_size);
-	
 	// multi-threaded message sender
 	void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message);
 			
+	void distributeNumRows(Context * context, cudf::size_type num_rows);
+
+	std::vector<cudf::size_type> collectNumRows(Context * context);	
+	
 	void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows);
 
 	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
