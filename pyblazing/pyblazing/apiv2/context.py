@@ -281,6 +281,7 @@ class BlazingTable(object):
         self.offset = (0,0)
 
         self.column_names = []
+        self.column_types = []
 
 
     def has_metadata(self) :
@@ -490,7 +491,7 @@ class BlazingContext(object):
                 self.tables[tableName] = table
                 arr = ArrayClass()
                 order = 0
-                for column in table.input.columns:
+                for column in table.column_types:
                     if(isinstance(table.input, dask_cudf.core.DataFrame)):
                         dataframe_column = table.input.head(0)._data[column]
                     else:
@@ -559,7 +560,7 @@ class BlazingContext(object):
 
             file_type = parsedSchema['file_type']
             table = BlazingTable(
-                parsedSchema['columns'],
+                parsedSchema['files'],
                 file_type,
                 files=parsedSchema['files'],
                 datasource=parsedSchema['datasource'],

@@ -187,62 +187,6 @@ cdef extern from "cudf/legacy/io_types.hpp":
         bool use_np_dtypes
         gdf_time_unit timestamp_unit
 
-cdef extern from "../include/io/io.h":
-    ctypedef enum DataType:
-        UNDEFINED = 999,
-        PARQUET = 0,
-        ORC = 1,
-        CSV = 2,
-        JSON = 3,
-        CUDF = 4,
-        DASK_CUDF = 5,
-        ARROW = 6
-    cdef struct ReaderArgs:
-        orc_read_arg orcReaderArg
-        json_read_arg jsonReaderArg
-        csv_read_arg csvReaderArg
-    cdef struct TableSchema:
-        # TODO: TableSchema will be refactorized
-        BlazingTableView blazingTableView
-        # vector[gdf_column_ptr] columns
-        vector[string]  names
-        vector[string]  files
-        vector[string] datasource
-        vector[unsigned long] calcite_to_file_indices
-        vector[unsigned long] num_row_groups
-        vector[bool] in_file
-        int data_type
-        ReaderArgs args
-        vector[gdf_column_ptr] metadata
-        vector[vector[int]] row_groups_ids
-
-
-        shared_ptr[CTable] arrow_table
-    cdef struct HDFS:
-        string host
-        int port
-        string user
-        short DriverType
-        string kerberosTicket
-    cdef struct S3:
-        string bucketName
-        short encryptionType
-        string kmsKeyAmazonResourceName
-        string accessKeyId
-        string secretKey
-        string sessionToken
-    cdef struct GCS:
-        string projectId
-        string bucketName
-        bool useDefaultAdcJsonFile
-        string adcJsonFile
-    pair[bool, string] registerFileSystemHDFS(HDFS hdfs, string root, string authority) except +raiseRegisterFileSystemHDFSError
-    pair[bool, string] registerFileSystemGCS( GCS gcs, string root, string authority) except +raiseRegisterFileSystemGCSError
-    pair[bool, string] registerFileSystemS3( S3 s3, string root, string authority) except +raiseRegisterFileSystemS3Error
-    pair[bool, string] registerFileSystemLocal(  string root, string authority) except +raiseRegisterFileSystemLocalError
-    TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
-    TableSchema parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
-
 ctypedef gdf_scalar* gdf_scalar_ptr
 
 cdef extern from "cudf/types.hpp" namespace "cudf":
@@ -287,6 +231,59 @@ cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
             size_type num_columns()
             size_type num_rows()
 ctypedef table_view CudfTableView
+
+cdef extern from "../include/io/io.h":
+    ctypedef enum DataType:
+        UNDEFINED = 999,
+        PARQUET = 0,
+        ORC = 1,
+        CSV = 2,
+        JSON = 3,
+        CUDF = 4,
+        DASK_CUDF = 5,
+        ARROW = 6
+    cdef struct ReaderArgs:
+        orc_read_arg orcReaderArg
+        json_read_arg jsonReaderArg
+        csv_read_arg csvReaderArg
+    cdef struct TableSchema:
+        BlazingTableView blazingTableView
+        vector[type_id] types
+        vector[string]  names
+        vector[string]  files
+        vector[string] datasource
+        vector[unsigned long] calcite_to_file_indices
+        vector[unsigned long] num_row_groups
+        vector[bool] in_file
+        int data_type
+        ReaderArgs args
+        vector[gdf_column_ptr] metadata
+        vector[vector[int]] row_groups_ids
+        shared_ptr[CTable] arrow_table
+    cdef struct HDFS:
+        string host
+        int port
+        string user
+        short DriverType
+        string kerberosTicket
+    cdef struct S3:
+        string bucketName
+        short encryptionType
+        string kmsKeyAmazonResourceName
+        string accessKeyId
+        string secretKey
+        string sessionToken
+    cdef struct GCS:
+        string projectId
+        string bucketName
+        bool useDefaultAdcJsonFile
+        string adcJsonFile
+    pair[bool, string] registerFileSystemHDFS(HDFS hdfs, string root, string authority) except +raiseRegisterFileSystemHDFSError
+    pair[bool, string] registerFileSystemGCS( GCS gcs, string root, string authority) except +raiseRegisterFileSystemGCSError
+    pair[bool, string] registerFileSystemS3( S3 s3, string root, string authority) except +raiseRegisterFileSystemS3Error
+    pair[bool, string] registerFileSystemLocal(  string root, string authority) except +raiseRegisterFileSystemLocalError
+    TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
+    TableSchema parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
 
 cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
         cdef cppclass BlazingTable:

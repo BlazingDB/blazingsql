@@ -169,7 +169,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     return_object['files'] = tableSchema.files
     return_object['file_type'] = tableSchema.data_type
     return_object['args'] = args
-    return_object['columns'] = cudf.DataFrame()
+    return_object['types'] = tableSchema.types
     return_object['names'] = tableSchema.names
     return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
     return_object['num_row_groups']= tableSchema.num_row_groups
