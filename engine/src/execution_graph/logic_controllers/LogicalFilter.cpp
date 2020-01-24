@@ -144,28 +144,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   return applyBooleanFilter(table, *bool_mask);
 }
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
-  const ral::frame::BlazingTableView & table,
-  std::vector<cudf::size_type> const& columns_to_hash,
-  int numPartitions){
-
-  auto result = hash_partition(table.view(),
-  columns_to_hash,
-  numPartitions);
-
-  std::vector<std::unique_ptr<ral::frame::BlazingTable> > partitionedTables;
-
-  for(auto & partition : result){
-    partitionedTables.push_back(
-      std::make_unique<ral::frame::BlazingTable>(
-        std::move(partition),
-        table.names())
-      );
-  }
-    return partitionedTables;
-
-}
-
 
   namespace{
     typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
@@ -178,16 +156,20 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable> > hashPartition(
     blazingdb::manager::experimental::Context * context) {
 
     //TODO: CACHE_POINT (ask felipe)
-    std::vector<std::unique_ptr<ral::frame::BlazingTable> > partitionedData = hashPartition(
-      table,
-      columnIndices,
-      context->getTotalNodes());
+    std::vector<cudf::size_type> columns_to_hash;
+    std::transform(columnIndices.begin(), columnIndices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
+    std::pair<std::unique_ptr<CudfTable>, std::vector<cudf::size_type>> hashedData_offsets_pair = cudf::hash_partition(table.view(),
+            columns_to_hash, context->getTotalNodes());
+
+    // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
+    std::vector<cudf::size_type> split_indexes(hashedData_offsets_pair.second.begin() + 1, hashedData_offsets_pair.second.end());
+    std::vector<CudfTableView> partitioned = cudf::experimental::split(hashedData_offsets_pair.first->view(), 
+                                                                        hashedData_offsets_pair.second);
 
     std::vector<NodeColumnView > partitions;
     for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-      partitions.push_back(
-        std::make_pair(context->getNode(nodeIndex),
-         partitionedData[nodeIndex]->toBlazingTableView()));
+      partitions.emplace_back(
+        std::make_pair(context->getNode(nodeIndex), ral::frame::BlazingTableView(partitioned[nodeIndex], table.names())));
     }
 
   	context->incrementQuerySubstep();
