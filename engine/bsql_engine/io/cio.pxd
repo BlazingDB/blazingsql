@@ -203,7 +203,7 @@ cdef extern from "../include/io/io.h":
         csv_read_arg csvReaderArg
     cdef struct TableSchema:
         # TODO: TableSchema will be refactorized
-        # BlazingTableView blazingTableView
+        BlazingTableView blazingTableView
         # vector[gdf_column_ptr] columns
         vector[string]  names
         vector[string]  files
