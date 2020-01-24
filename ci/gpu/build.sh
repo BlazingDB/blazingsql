@@ -48,9 +48,10 @@ nvidia-smi
 
 logger "Activate conda env..."
 source activate gdf
-conda install "bsql-toolchain=${MINOR_VERSION}.*" "librmm=${MINOR_VERSION}.*" "libcudf=${MINOR_VERSION}.*" \
+conda install -y "bsql-toolchain=${MINOR_VERSION}.*" "librmm=${MINOR_VERSION}.*" "libcudf=${MINOR_VERSION}.*" \
               "libnvstrings=${MINOR_VERSION}.*" "dask-cudf=${MINOR_VERSION}.*" "dask-cuda=${MINOR_VERSION}.*" \
-              "openjdk=8.0" "sasl=0.2.1" "maven" "libhdfs3" "cppzmq" "gmock" "jpype1" "netifaces" "pyhive"
+              "openjdk=8.0" "sasl=0.2.1" "maven" "libhdfs3" "cppzmq" "gmock" "jpype1" "netifaces" "pyhive" \
+              "arrow-cpp=0.15.0" "gtest" "cmake" "cppzmq" "cudatoolkit=${CUDA_VERSION}" "cython>=0.29"
 
 logger "Check versions..."
 python --version
