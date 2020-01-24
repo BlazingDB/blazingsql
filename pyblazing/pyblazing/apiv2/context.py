@@ -335,11 +335,8 @@ class BlazingTable(object):
         startIndex = 0
         for i in range(0, numSlices):
             batchSize = int(remaining / (numSlices - i))
-            # #print(batchSize)
-            # #print(startIndex)
             tempFiles = self.files[startIndex: startIndex + batchSize]
             uri_values = self.uri_values[startIndex: startIndex + batchSize]
-
             if isinstance(self.metadata, cudf.DataFrame) or self.metadata is None:
                 slice_metadata = self.metadata
             else:
@@ -353,7 +350,8 @@ class BlazingTable(object):
                                                   num_row_groups=self.num_row_groups[startIndex: startIndex + batchSize],
                                                   uri_values=uri_values,
                                                   args=self.args,
-                                                  metadata=slice_metadata)
+                                                  metadata=slice_metadata,
+                                                  in_file=self.in_file)
                 bt.offset = (startIndex, batchSize)
                 nodeFilesList.append(bt)
             else:
@@ -364,7 +362,8 @@ class BlazingTable(object):
                         calcite_to_file_indices=self.calcite_to_file_indices,
                         uri_values=uri_values,
                         args=self.args,
-                        metadata=slice_metadata)
+                        metadata=slice_metadata,
+                        in_file=self.in_file)
                 bt.offset = (startIndex, batchSize)
                 nodeFilesList.append(bt)
             startIndex = startIndex + batchSize
@@ -541,12 +540,14 @@ class BlazingContext(object):
             'file_format', 'undefined')  # See datasource.file_format
         extra_kwargs = {}
         in_file = []
+        is_hive_input = False
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file = get_hive_table(
                 input, hive_table_name)
             kwargs.update(extra_kwargs)
             input = folder_list
+            is_hive_input = True
         if isinstance(input, str):
             input = [input, ]
 
@@ -575,7 +576,6 @@ class BlazingContext(object):
         elif isinstance(input, list):
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
-
             file_type = parsedSchema['file_type']
             table = BlazingTable(
                 parsedSchema['columns'],
@@ -589,12 +589,16 @@ class BlazingContext(object):
                 in_file=in_file)
 
             table.slices = table.getSlices(len(self.nodes))
-            if parsedSchema['file_type'] == DataType.PARQUET :
+            if is_hive_input:
+                # 3 cols concretas hive 2 cols particiones (virtuales) => 5 columnas 
+                parsedMetadata = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
+                table.metadata = parsedMetadata
+            
+            elif parsedSchema['file_type'] == DataType.PARQUET :
                 parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
-                if isinstance(parsedMetadata, cudf.DataFrame): 
-                    table.metadata = parsedMetadata
-                else:
-                    table.metadata = parsedMetadata 
+                table.metadata = parsedMetadata
+            
+            # alinear cols concretas y virtuales y las filas( files, row_groups )....
             
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
@@ -648,6 +652,33 @@ class BlazingContext(object):
         else:
             return cio.parseMetadataCaller(
                 input, currentTableNodes[0].offset, schema, file_format_hint, kwargs, extra_columns)
+
+# +----------------------------+
+# | company_id=1/part_id=2017  |
+# | company_id=1/part_id=2018  |
+# | company_id=1/part_id=2019  |
+# | company_id=2/part_id=2017  |
+# | company_id=2/part_id=2018  |
+# | company_id=3/part_id=2017  |
+# +----------------------------+
+
+    def _parseHiveMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns): 
+        if self.dask_client:
+            dask_futures = []
+            workers = tuple(self.dask_client.scheduler_info()['workers'])
+            worker_id = 0
+            df = None
+            for worker in workers: 
+                file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
+                offset = currentTableNodes[worker_id].offset
+                # schema
+                # file_format_hint
+                # kwargs
+                # extra_columns 
+                worker_id += 1
+            return df 
+        else:
+            return None
 
     def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
             if self.dask_client is None:
