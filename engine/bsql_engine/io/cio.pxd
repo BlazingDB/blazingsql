@@ -302,8 +302,14 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
 
 # REMARK: We have some compilation errors from cython assigning temp = unique_ptr[ResultSet]
 # We force the move using this function
-cdef extern from "<utility>" namespace "std":
-        cdef unique_ptr[ResultSet] blaz_move "std::move"(unique_ptr[ResultSet])
+cdef extern from * namespace "blazing":
+        """
+        namespace blazing {
+        template <class T> inline typename std::remove_reference<T>::type&& blaz_move(T& t) { return std::move(t); }
+        template <class T> inline typename std::remove_reference<T>::type&& blaz_move(T&& t) { return std::move(t); }
+        }
+        """
+        cdef T blaz_move[T](T)
 
 cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
