@@ -58,8 +58,7 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 
   std::vector<column_index_type> final_output_positions = {3, 4};
 
-  std::vector<gdf_binary_operator_exp> operators = {BLZ_ADD, BLZ_MUL, BLZ_ADD, BLZ_ADD};
-  std::vector<gdf_unary_operator> unary_operators = {BLZ_INVALID_UNARY, BLZ_INVALID_UNARY, BLZ_INVALID_UNARY, BLZ_INVALID_UNARY};
+  std::vector<operator_type> operators = {operator_type::BLZ_ADD, operator_type::BLZ_MUL, operator_type::BLZ_ADD, operator_type::BLZ_ADD};
 
   auto dtype = cudf::data_type{cudf::experimental::type_to_id<T>()};
   std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
@@ -83,7 +82,6 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types)
                               outputs,
                               final_output_positions,
                               operators,
-                              unary_operators,
                               left_scalars,
                               right_scalars);
 
@@ -135,8 +133,7 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types)
 
   std::vector<column_index_type> final_output_positions = {1, 2, 3, 4, 5, 6};
 
-	std::vector<gdf_binary_operator_exp> operators = {BLZ_INVALID_BINARY, BLZ_INVALID_BINARY, BLZ_INVALID_BINARY, BLZ_INVALID_BINARY, BLZ_INVALID_BINARY, BLZ_INVALID_BINARY};
-	std::vector<gdf_unary_operator> unary_operators = {BLZ_YEAR, BLZ_MONTH, BLZ_DAY, BLZ_HOUR, BLZ_MINUTE, BLZ_SECOND};
+	std::vector<operator_type> operators = {operator_type::BLZ_YEAR, operator_type::BLZ_MONTH, operator_type::BLZ_DAY, operator_type::BLZ_HOUR, operator_type::BLZ_MINUTE, operator_type::BLZ_SECOND};
 
 	auto dtype = cudf::data_type{cudf::experimental::type_to_id<T>()};
   std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype)};
@@ -162,7 +159,6 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types)
                               outputs,
                               final_output_positions,
                               operators,
-                              unary_operators,
                               left_scalars,
                               right_scalars);
    
@@ -205,8 +201,7 @@ TEST_F(InteropsTestString, test_string)
 
   std::vector<column_index_type> final_output_positions = {1, 2, 3};
 
-  std::vector<gdf_binary_operator_exp> operators = {BLZ_EQUAL, BLZ_LESS, BLZ_GREATER_EQUAL};
-  std::vector<gdf_unary_operator> unary_operators = {BLZ_INVALID_UNARY, BLZ_INVALID_UNARY, BLZ_INVALID_UNARY};
+  std::vector<operator_type> operators = {operator_type::BLZ_EQUAL, operator_type::BLZ_LESS, operator_type::BLZ_GREATER_EQUAL};
 
   std::unique_ptr<cudf::scalar> arr_s1[] = {nullptr, nullptr, cudf::make_string_scalar("e")};
   std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
@@ -229,7 +224,6 @@ TEST_F(InteropsTestString, test_string)
                               outputs,
                               final_output_positions,
                               operators,
-                              unary_operators,
                               left_scalars,
                               right_scalars);
   

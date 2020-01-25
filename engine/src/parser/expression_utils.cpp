@@ -2,7 +2,6 @@
 #include <regex>
 
 #include "expression_utils.hpp"
-#include "gdf_wrapper/gdf_types.cuh"
 #include "Utils.cuh"
 
 bool is_binary_operator_token(const std::string & token) {
@@ -78,4 +77,16 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	size_t end_position = query_part.find("]", start_position);
 	
 	return query_part.substr(start_position, end_position - start_position);
+}
+
+interops::operator_type get_unary_operation(const std::string & operator_string) {
+	RAL_EXPECTS(gdf_unary_operator_map.find(operator_string) != gdf_unary_operator_map.end(), "Unsupported unary operator");
+	
+	return gdf_unary_operator_map[operator_string];
+}
+
+interops::operator_type get_binary_operation(const std::string & operator_string) {
+	RAL_EXPECTS(gdf_binary_operator_map.find(operator_string) != gdf_binary_operator_map.end(), "Unsupported binary operator");
+
+	return gdf_binary_operator_map[operator_string];
 }

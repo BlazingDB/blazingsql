@@ -37,8 +37,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<column_index_type> right_inputs;
     std::vector<column_index_type> outputs;
     std::vector<column_index_type> final_output_positions;
-    std::vector<gdf_binary_operator_exp> operators;
-    std::vector<gdf_unary_operator> unary_operators;
+    std::vector<interops::operator_type> operators;
     std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
     std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
 
@@ -136,7 +135,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                                                     outputs,
                                                     final_output_positions,
                                                     operators,
-                                                    unary_operators,
                                                     left_scalars,
                                                     right_scalars);
 
@@ -153,7 +151,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                                                 outputs,
                                                 final_output_positions,
                                                 operators,
-                                                unary_operators,
                                                 left_scalars,
                                                 right_scalars);
     }

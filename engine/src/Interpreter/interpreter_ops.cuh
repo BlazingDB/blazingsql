@@ -17,7 +17,6 @@
 #include <simt/chrono>
 #include <type_traits>
 
-#include "gdf_wrapper/gdf_types.cuh"
 #include "interpreter_cpp.h"
 #include "../Utils.cuh"
 
@@ -124,8 +123,7 @@ public:
 		const cudf::type_id * input_types_left,
 		const cudf::type_id * input_types_right,
 		const cudf::type_id * output_types,
-		const gdf_binary_operator_exp * binary_operations,
-		const gdf_unary_operator * unary_operations,
+		const operator_type * operations,
 		cudf::detail::scalar_device_view_base ** scalars_left,
 		cudf::detail::scalar_device_view_base ** scalars_right,
 		void * temp_valids_in_buffer,
@@ -140,8 +138,7 @@ public:
 			input_types_left{input_types_left},
 			input_types_right{input_types_right},
 			output_types{output_types},
-			binary_operations{binary_operations},
-			unary_operations{unary_operations},
+			operations{operations},
 			scalars_left{scalars_left},
 			scalars_right{scalars_right},
 		  temp_valids_in_buffer{static_cast<cudf::bitmask_type *>(temp_valids_in_buffer)},
@@ -396,6 +393,7 @@ private:
 		column_index_type left_position = left_input_positions[op_index];
 		column_index_type right_position = right_input_positions[op_index];
 		column_index_type output_position = output_positions[op_index];
+		operator_type oper = operations[op_index];
 
 		if(right_position != UNARY_INDEX) {
 			// It's a binary operation
@@ -448,17 +446,16 @@ private:
 				right_valid = false;
 			}
 
-			gdf_binary_operator_exp oper = this->binary_operations[op_index];
 			if (left_valid && right_valid) {
-				if(oper == BLZ_ADD) {		
+				if(oper == operator_type::BLZ_ADD) {		
 					store_data_in_buffer(left_value + right_value, buffer, output_position);
-				} else if(oper == BLZ_SUB) {
+				} else if(oper == operator_type::BLZ_SUB) {
 					store_data_in_buffer(left_value - right_value, buffer, output_position);
-				} else if(oper == BLZ_MUL) {
+				} else if(oper == operator_type::BLZ_MUL) {
 					store_data_in_buffer(left_value * right_value, buffer, output_position);
-				} else if(oper == BLZ_DIV) {
+				} else if(oper == operator_type::BLZ_DIV) {
 					store_data_in_buffer(left_value / right_value, buffer, output_position);
-				} else if(oper == BLZ_MOD) {
+				} else if(oper == operator_type::BLZ_MOD) {
 					if (!is_float_type(left_type_id) && !is_float_type(right_type_id))	{
 						store_data_in_buffer(
 						static_cast<int64_t>(left_value) % static_cast<int64_t>(right_value), buffer, output_position);
@@ -466,9 +463,9 @@ private:
 						store_data_in_buffer(
 						fmod(static_cast<double>(left_value), static_cast<double>(right_value)), buffer, output_position);
 					}					
-				} else if(oper == BLZ_POW) {
+				} else if(oper == operator_type::BLZ_POW) {
 					store_data_in_buffer(pow(static_cast<double>(left_value), static_cast<double>(right_value)), buffer, output_position);
-				} else if(oper == BLZ_EQUAL) {
+				} else if(oper == operator_type::BLZ_EQUAL) {
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view == right_str_view;
@@ -476,7 +473,7 @@ private:
 						computed = left_value == right_value;
 					}
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_NOT_EQUAL) {
+				} else if(oper == operator_type::BLZ_NOT_EQUAL) {
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view != right_str_view;
@@ -484,7 +481,7 @@ private:
 						computed = left_value != right_value;
 					}
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_LESS) {
+				} else if(oper == operator_type::BLZ_LESS) {
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view < right_str_view;
@@ -492,7 +489,7 @@ private:
 						computed = left_value < right_value;
 					}
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_GREATER) {
+				} else if(oper == operator_type::BLZ_GREATER) {
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view > right_str_view;
@@ -500,7 +497,7 @@ private:
 						computed = left_value > right_value;
 					}
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_LESS_EQUAL) {
+				} else if(oper == operator_type::BLZ_LESS_EQUAL) {
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view <= right_str_view;
@@ -508,7 +505,7 @@ private:
 						computed = left_value <= right_value;
 					}
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_GREATER_EQUAL) {
+				} else if(oper == operator_type::BLZ_GREATER_EQUAL) {
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view >= right_str_view;
@@ -518,7 +515,7 @@ private:
 					store_data_in_buffer(computed, buffer, output_position);
 				}
 				setColumnValid(row_valids, output_position, true);
-			} else if(oper == BLZ_LOGICAL_OR) {
+			} else if(oper == operator_type::BLZ_LOGICAL_OR) {
 				if(left_valid && right_valid) {
 					store_data_in_buffer(static_cast<int64_t>(left_value || right_value), buffer, output_position);
 					setColumnValid(row_valids, output_position, true);
@@ -531,7 +528,7 @@ private:
 				}	else {
 					setColumnValid(row_valids, output_position, false);
 				}
-			} else if(oper == BLZ_MAGIC_IF_NOT) {
+			} else if(oper == operator_type::BLZ_MAGIC_IF_NOT) {
 				if(left_valid && left_value) {
 					store_data_in_buffer(right_value, buffer, output_position);
 					setColumnValid(row_valids, output_position, right_valid);
@@ -540,7 +537,7 @@ private:
 					store_data_in_buffer(
 						getMagicNumber<RightType>(), buffer, output_position);
 				}
-			} else if(oper == BLZ_FIRST_NON_MAGIC) {
+			} else if(oper == operator_type::BLZ_FIRST_NON_MAGIC) {
 				if(left_value == getMagicNumber<LeftType>()) {
 					store_data_in_buffer(right_value, buffer, output_position);
 					setColumnValid(row_valids, output_position, right_valid);
@@ -559,38 +556,37 @@ private:
 			get_data_from_buffer(&left_value, buffer, left_position);
 			bool left_valid = getColumnValid(row_valids, left_position);
 			
-			gdf_unary_operator oper = unary_operations[op_index];
 			if (left_valid) {
-				if(oper == BLZ_FLOOR) {
+				if(oper == operator_type::BLZ_FLOOR) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(floor(val), buffer, output_position);
-				} else if(oper == BLZ_CEIL) {
+				} else if(oper == operator_type::BLZ_CEIL) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(ceil(val), buffer, output_position);
-				} else if(oper == BLZ_SIN) {
+				} else if(oper == operator_type::BLZ_SIN) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(sin(val), buffer, output_position);
-				} else if(oper == BLZ_COS) {
+				} else if(oper == operator_type::BLZ_COS) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(cos(val), buffer, output_position);
-				} else if(oper == BLZ_ASIN) {
+				} else if(oper == operator_type::BLZ_ASIN) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(asin(val), buffer, output_position);
-				} else if(oper == BLZ_ACOS) {
+				} else if(oper == operator_type::BLZ_ACOS) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(acos(val), buffer, output_position);
-				} else if(oper == BLZ_TAN) {
+				} else if(oper == operator_type::BLZ_TAN) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(tan(val), buffer, output_position);
-				} else if(oper == BLZ_COTAN) {
+				} else if(oper == operator_type::BLZ_COTAN) {
 					double val = static_cast<double>(left_value);
 					double sin_, cos_;
 					sincos(val, &sin_, &cos_);
 					store_data_in_buffer(cos_ / sin_, buffer, output_position);
-				} else if(oper == BLZ_ATAN) {
+				} else if(oper == operator_type::BLZ_ATAN) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(atan(val), buffer, output_position);
-				} else if(oper == BLZ_ABS) {
+				} else if(oper == operator_type::BLZ_ABS) {
 					if (is_float_type(input_types_left[op_index])){
 						double val = static_cast<double>(left_value);
 						store_data_in_buffer(fabs(val), buffer, output_position);
@@ -598,49 +594,49 @@ private:
 						int64_t val = static_cast<int64_t>(left_value);
 						store_data_in_buffer(abs(val), buffer, output_position);
 					}					
-				} else if(oper == BLZ_NOT) {
+				} else if(oper == operator_type::BLZ_NOT) {
 					store_data_in_buffer(static_cast<int64_t>(!left_value), buffer, output_position);
-				} else if(oper == BLZ_LN) {
+				} else if(oper == operator_type::BLZ_LN) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(log(val), buffer, output_position);
-				} else if(oper == BLZ_LOG) {
+				} else if(oper == operator_type::BLZ_LOG) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(log10(val), buffer, output_position);
-				} else if(oper == BLZ_YEAR) {
+				} else if(oper == operator_type::BLZ_YEAR) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
 						launch_extract_component<LeftType, datetime_component::YEAR>{},	left_value);
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_MONTH) {
+				} else if(oper == operator_type::BLZ_MONTH) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
 						launch_extract_component<LeftType, datetime_component::MONTH>{}, left_value);
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_DAY) {
+				} else if(oper == operator_type::BLZ_DAY) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
 						launch_extract_component<LeftType, datetime_component::DAY>{}, left_value);
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_HOUR) {
+				} else if(oper == operator_type::BLZ_HOUR) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
 						launch_extract_component<LeftType, datetime_component::HOUR>{},	left_value);
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_MINUTE) {
+				} else if(oper == operator_type::BLZ_MINUTE) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
 						launch_extract_component<LeftType, datetime_component::MINUTE>{}, left_value);
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_SECOND) {
+				} else if(oper == operator_type::BLZ_SECOND) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
 						launch_extract_component<LeftType, datetime_component::SECOND>{}, left_value);
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == BLZ_CAST_INTEGER || oper == BLZ_CAST_BIGINT) {
+				} else if(oper == operator_type::BLZ_CAST_INTEGER || oper == operator_type::BLZ_CAST_BIGINT) {
 					store_data_in_buffer(static_cast<int64_t>(left_value), buffer, output_position);
-				} else if(oper == BLZ_CAST_FLOAT || oper == BLZ_CAST_DOUBLE) {
+				} else if(oper == operator_type::BLZ_CAST_FLOAT || oper == operator_type::BLZ_CAST_DOUBLE) {
 					store_data_in_buffer(static_cast<double>(left_value), buffer, output_position);
-				} else if(oper == BLZ_CAST_DATE) {
+				} else if(oper == operator_type::BLZ_CAST_DATE) {
 					cudf::timestamp_D computed;
 					switch (input_types_left[op_index])
 					{
@@ -671,7 +667,7 @@ private:
 						break;
 					}
 					store_data_in_buffer(static_cast<int64_t>(computed.time_since_epoch().count()), buffer, output_position);
-				} else if(oper == BLZ_CAST_TIMESTAMP) {
+				} else if(oper == operator_type::BLZ_CAST_TIMESTAMP) {
 					cudf::timestamp_ns computed;
 					switch (input_types_left[op_index])
 					{
@@ -703,13 +699,13 @@ private:
 					}
 					store_data_in_buffer(static_cast<int64_t>(computed.time_since_epoch().count()), buffer, output_position);
 				}
-			} else if(oper == BLZ_IS_NULL) {
+			} else if(oper == operator_type::BLZ_IS_NULL) {
 				store_data_in_buffer(static_cast<int64_t>(!left_valid), buffer, output_position);
-			} else if(oper == BLZ_IS_NOT_NULL) {
+			} else if(oper == operator_type::BLZ_IS_NOT_NULL) {
 				store_data_in_buffer(static_cast<int64_t>(left_valid), buffer, output_position);
 			}
 
-			bool out_valid = (oper == BLZ_IS_NULL || oper == BLZ_IS_NOT_NULL) ? true : left_valid;
+			bool out_valid = (oper == operator_type::BLZ_IS_NULL || oper == operator_type::BLZ_IS_NOT_NULL) ? true : left_valid;
 			setColumnValid(row_valids, output_position, out_valid);
 		}
 	}
@@ -729,8 +725,7 @@ private:
 	const cudf::type_id * input_types_right;
 	const cudf::type_id * output_types;
 
-	const gdf_binary_operator_exp * binary_operations;
-	const gdf_unary_operator * unary_operations;
+	const operator_type * operations;
 	
 	cudf::detail::scalar_device_view_base ** scalars_left;
 	cudf::detail::scalar_device_view_base ** scalars_right;

@@ -17,6 +17,7 @@
 #include "CalciteExpressionParsing.h"
 #include "interpreter_cpp.h"
 #include "interpreter_ops.cuh"
+#include "Traits/RuntimeTraits.h"
 
 namespace interops {
 namespace detail {
@@ -278,7 +279,7 @@ column_index_type get_first_open_position(std::vector<bool> & open_positions, cu
 	return -1;
 }
 
-std::unique_ptr<cudf::column> handle_cast_from_string(gdf_unary_operator operation, const cudf::column_view& input_col) {
+// std::unique_ptr<cudf::column> handle_cast_from_string(operator_type operation, const cudf::column_view& input_col) {
 	// TODO percy cudf0.12 port to cudf::column and custrings
 //	NVCategory * nv_category = static_cast<NVCategory *>(input_col->dtype_info.category);
 //	NVStrings * nv_strings =
@@ -327,9 +328,9 @@ std::unique_ptr<cudf::column> handle_cast_from_string(gdf_unary_operator operati
 //	}
 
 //	return new_input_col;
-}
+// }
 
-std::unique_ptr<cudf::column> handle_cast_to_string(const cudf::column_view & input_col) {
+// std::unique_ptr<cudf::column> handle_cast_to_string(const cudf::column_view & input_col) {
 	// TODO percy cudf0.12 custrings this was not commented
 //	NVStrings * nv_strings = nullptr;
 
@@ -385,9 +386,9 @@ std::unique_ptr<cudf::column> handle_cast_to_string(const cudf::column_view & in
 //	new_input_col.create_gdf_column(nv_category, nv_category->size(), "");
 
 //	return new_input_col;
-}
+// }
 
-int insert_string_into_column_nvcategory(const cudf::column_view & col, const std::string & str) {
+// int insert_string_into_column_nvcategory(const cudf::column_view & col, const std::string & str) {
 	// TODO percy cudf0.12 port to cudf::column and custrings
 //	const char * str_arr[] = {str.c_str()};
 //	NVStrings * temp_string = NVStrings::create_from_array(str_arr, 1);
@@ -402,7 +403,7 @@ int insert_string_into_column_nvcategory(const cudf::column_view & col, const st
 //		col->data, new_category->values_cptr(), sizeof(gdf_nvstring_category) * col->size, cudaMemcpyDeviceToDevice));
 
 //	return new_category->get_value(str.c_str());
-}
+// }
 
 std::string like_expression_to_regex_str(const std::string & like_exp) {
 	if(like_exp.empty()) {
@@ -422,7 +423,7 @@ std::string like_expression_to_regex_str(const std::string & like_exp) {
 	return (match_start ? "^" : "") + re + (match_end ? "$" : "");
 }
 
-std::unique_ptr<cudf::column> handle_match_regex(const cudf::column_view & input_col, const std::string & re) {
+// std::unique_ptr<cudf::column> handle_match_regex(const cudf::column_view & input_col, const std::string & re) {
 	// TODO percy cudf0.12 custrings this was not commented
 //	NVCategory * nv_category = static_cast<NVCategory *>(input_col->dtype_info.category);
 //	NVStrings * nv_strings =
@@ -440,9 +441,9 @@ std::unique_ptr<cudf::column> handle_match_regex(const cudf::column_view & input
 //	NVStrings::destroy(nv_strings);
 
 //	return new_input_col;
-}
+// }
 
-std::unique_ptr<cudf::column> handle_substring(const cudf::column_view & input_col, const std::string & str_params) {
+// std::unique_ptr<cudf::column> handle_substring(const cudf::column_view & input_col, const std::string & str_params) {
 	// TODO percy cudf0.12 custrings this was not commented
 //	size_t pos = str_params.find(":");
 //	int start = std::max(std::stoi(str_params.substr(0, pos)), 1) - 1;
@@ -462,9 +463,9 @@ std::unique_ptr<cudf::column> handle_substring(const cudf::column_view & input_c
 //	NVStrings::destroy(new_strings);
 
 //	return new_input_col;
-}
+// }
 
-std::unique_ptr<cudf::column> handle_concat_str_literal(const cudf::column_view & input_col, const std::string & str, bool prefix = false) {
+// std::unique_ptr<cudf::column> handle_concat_str_literal(const cudf::column_view & input_col, const std::string & str, bool prefix = false) {
 	// TODO percy cudf0.12 custrings this was not commented
 //	std::vector<const char *> str_vec{(size_t) input_col->size, str.c_str()};
 //	NVStrings * temp_strings = NVStrings::create_from_array(str_vec.data(), str_vec.size());
@@ -484,9 +485,9 @@ std::unique_ptr<cudf::column> handle_concat_str_literal(const cudf::column_view 
 //	NVStrings::destroy(new_strings);
 
 //	return new_input_col;
-}
+// }
 
-std::unique_ptr<cudf::column> handle_concat_str_col(const cudf::column_view & left_input_col, const cudf::column_view & right_input_col) {
+// std::unique_ptr<cudf::column> handle_concat_str_col(const cudf::column_view & left_input_col, const cudf::column_view & right_input_col) {
 	// TODO percy cudf0.12 port to cudf::column and custrings
 //	NVCategory * left_nv_category = static_cast<NVCategory *>(left_input_col->dtype_info.category);
 //	NVStrings * left_nv_strings = left_nv_category->gather_strings(
@@ -507,9 +508,108 @@ std::unique_ptr<cudf::column> handle_concat_str_col(const cudf::column_view & le
 //	NVStrings::destroy(new_strings);
 
 //	return new_input_col;
-}
+// }
 
 }  // namespace detail
+
+cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
+	switch (op)
+	{
+	case operator_type::BLZ_CAST_INTEGER:
+		return cudf::type_id::INT32;
+	case operator_type::BLZ_CAST_BIGINT:
+		return cudf::type_id::INT64;
+	case operator_type::BLZ_CAST_FLOAT:
+		return cudf::type_id::FLOAT32;
+	case operator_type::BLZ_CAST_DOUBLE:
+		return cudf::type_id::FLOAT64;
+	case operator_type::BLZ_CAST_DATE:
+		return cudf::type_id::TIMESTAMP_DAYS;
+	case operator_type::BLZ_CAST_TIMESTAMP:
+		return cudf::type_id::TIMESTAMP_NANOSECONDS;
+	case operator_type::BLZ_CAST_VARCHAR:
+		return cudf::type_id::STRING;
+	case operator_type::BLZ_YEAR:
+	case operator_type::BLZ_MONTH:
+	case operator_type::BLZ_DAY:
+	case operator_type::BLZ_HOUR:
+	case operator_type::BLZ_MINUTE:
+	case operator_type::BLZ_SECOND:
+		return cudf::type_id::INT16;
+	case operator_type::BLZ_SIN:
+	case operator_type::BLZ_COS:
+	case operator_type::BLZ_ASIN:
+	case operator_type::BLZ_ACOS:
+	case operator_type::BLZ_TAN:
+	case operator_type::BLZ_COTAN:
+	case operator_type::BLZ_ATAN:
+	case operator_type::BLZ_LN:
+	case operator_type::BLZ_LOG:
+	case operator_type::BLZ_FLOOR:
+	case operator_type::BLZ_CEIL:
+		if(is_type_float(input_left_type)) {
+			return input_left_type;
+		} else {
+			return cudf::type_id::FLOAT64;
+		}
+	case operator_type::BLZ_ABS:
+		return input_left_type;
+	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_NULL:
+	case operator_type::BLZ_IS_NOT_NULL:
+		return cudf::type_id::BOOL8;
+	default:
+	 	assert(false);
+		return cudf::type_id::EMPTY;
+	}
+}
+
+cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, operator_type op) {
+	switch (op)
+	{
+	case operator_type::BLZ_ADD:
+	case operator_type::BLZ_SUB:
+	case operator_type::BLZ_MUL:
+	case operator_type::BLZ_DIV:
+	case operator_type::BLZ_MOD:
+		if(is_type_float(input_left_type) && is_type_float(input_right_type)) {
+			return (ral::traits::get_dtype_size_in_bytes(input_left_type) >= ral::traits::get_dtype_size_in_bytes(input_right_type))
+							? input_left_type
+							: input_right_type;
+		}	else if(is_type_float(input_left_type)) {
+			return input_left_type;
+		} else if(is_type_float(input_right_type)) {
+			return input_left_type;
+		} else {
+			return (ral::traits::get_dtype_size_in_bytes(input_left_type) >= ral::traits::get_dtype_size_in_bytes(input_right_type))
+							? input_left_type
+							: input_right_type;
+		}
+  case operator_type::BLZ_EQUAL:
+  case operator_type::BLZ_NOT_EQUAL:
+  case operator_type::BLZ_LESS:
+  case operator_type::BLZ_GREATER:
+  case operator_type::BLZ_LESS_EQUAL:
+  case operator_type::BLZ_GREATER_EQUAL:
+		return cudf::type_id::BOOL8;
+	case operator_type::BLZ_POW:
+		return cudf::type_id::FLOAT64;
+	case operator_type::BLZ_MAGIC_IF_NOT:
+		return input_right_type;
+	case operator_type::BLZ_FIRST_NON_MAGIC:
+		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >= ral::traits::get_dtype_size_in_bytes(input_right_type))
+				   ? input_left_type
+				   : input_right_type;
+	case operator_type::BLZ_STR_LIKE:
+		return cudf::type_id::BOOL8;
+	case operator_type::BLZ_STR_SUBSTRING:
+	case operator_type::BLZ_STR_CONCAT:
+		return cudf::type_id::STRING;
+	default:
+		assert(false);
+		return cudf::type_id::EMPTY;
+	}
+}
 
 /**
  * Creates a physical plan for the expression that can be added to the total plan
@@ -523,8 +623,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 	std::vector<column_index_type> & right_inputs,
 	std::vector<column_index_type> & outputs,
 	std::vector<column_index_type> & final_output_positions,
-	std::vector<gdf_binary_operator_exp> & operators,
-	std::vector<gdf_unary_operator> & unary_operators,
+	std::vector<operator_type> & operators,
 	std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
 	std::vector<std::unique_ptr<cudf::scalar>> & right_scalars) {
 
@@ -561,9 +660,8 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 				}
 				operand_stack.pop_back();
 
-				gdf_binary_operator_exp operation = get_binary_operation(token);
+				operator_type operation = get_binary_operation(token);
 				operators.push_back(operation);
-				unary_operators.push_back(BLZ_INVALID_UNARY);
 
 				if(is_literal(left_operand) && is_literal(right_operand)) {
 					RAL_FAIL("Operations between literals is not supported");
@@ -591,7 +689,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 					// column_index_type mapped_index = src_str_col_map.at(left_index);
 					// cudf::column_view left_column = table.column(mapped_index);
 
-					// if(operation == BLZ_STR_LIKE) {
+					// if(operation == operator_type::BLZ_STR_LIKE) {
 					// 	std::string regex = like_expression_to_regex_str(literal_operand);
 					// 	gdf_column_cpp new_input_col = handle_match_regex(left_column, regex);
 
@@ -606,7 +704,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 						
 					// 	right_inputs.push_back(SCALAR_NULL_INDEX);
 					// 	left_inputs.push_back(left_index);
-					// } else if(operation == BLZ_STR_SUBSTRING) {
+					// } else if(operation == operator_type::BLZ_STR_SUBSTRING) {
 					// 	gdf_column_cpp new_input_col = handle_substring(left_column, literal_operand);
 
 					// 	inputs.add_column(new_input_col);
@@ -623,7 +721,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 						
 					// 	right_inputs.push_back(SCALAR_NULL_INDEX);
 					// 	left_inputs.push_back(left_index);
-					// } else if(operation == BLZ_STR_CONCAT) {
+					// } else if(operation == operator_type::BLZ_STR_CONCAT) {
 					// 	gdf_column_cpp new_input_col =
 					// 		handle_concat_str_literal(left_column, literal_operand, is_string(left_operand));
 
@@ -672,7 +770,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 					// 	cudf::column * left_column = input_columns[mapped_left_index];
 					// 	cudf::column * right_column = input_columns[mapped_right_index];
 
-					// 	if(operation == BLZ_STR_CONCAT) {
+					// 	if(operation == operator_type::BLZ_STR_CONCAT) {
 					// 		gdf_column_cpp new_input_col = handle_concat_str_col(left_column, right_column);
 
 					// 		inputs.add_column(new_input_col);
@@ -705,11 +803,11 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 				}
 				operand_stack.pop_back();
 
-				gdf_unary_operator operation = get_unary_operation(token);
+				operator_type operation = get_unary_operation(token);
 				size_t left_index = get_index(left_operand);
 
 				// column_index_type mapped_left_index = src_str_col_map[left_index];
-				// if(operation == BLZ_CAST_VARCHAR) {
+				// if(operation == operator_type::BLZ_CAST_VARCHAR) {
 				// 	if(left_index < num_inputs) {
 				// 		cudf::column * left_column = input_columns[left_index];
 				// 		if(left_column->type().id() != cudf::type_id::STRING) {
@@ -729,9 +827,9 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 				// 	} else {
 				// 		RAL_FAIL("Cast to String from intermediate results is not supported yet");
 				// 	}
-				// } else if(operation == BLZ_CAST_INTEGER || operation == BLZ_CAST_BIGINT ||
-				// 			operation == BLZ_CAST_FLOAT || operation == BLZ_CAST_DOUBLE ||
-				// 			operation == BLZ_CAST_DATE || operation == BLZ_CAST_TIMESTAMP) {
+				// } else if(operation == operator_type::BLZ_CAST_INTEGER || operation == operator_type::BLZ_CAST_BIGINT ||
+				// 			operation == operator_type::BLZ_CAST_FLOAT || operation == operator_type::BLZ_CAST_DOUBLE ||
+				// 			operation == operator_type::BLZ_CAST_DATE || operation == operator_type::BLZ_CAST_TIMESTAMP) {
 				// 	if(mapped_left_index >= 0) {
 				// 		cudf::column * left_column = input_columns[mapped_left_index];
 				// 		gdf_column_cpp new_input_col = handle_cast_from_string(operation, left_column);
@@ -744,8 +842,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 				// 	}
 				// }
 
-				operators.push_back(BLZ_INVALID_BINARY);
-				unary_operators.push_back(operation);
+				operators.push_back(operation);
 
 				left_inputs.push_back(left_index);
 				right_inputs.push_back(UNARY_INDEX);
@@ -836,8 +933,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	const std::vector<column_index_type> & right_inputs,
 	const std::vector<column_index_type> & outputs,
 	const std::vector<column_index_type> & final_output_positions,
-	const std::vector<gdf_binary_operator_exp> & operators,
-	const std::vector<gdf_unary_operator> & unary_operators,
+	const std::vector<operator_type> & operators,
 	const std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
 	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars) {
 	using namespace detail;
@@ -916,7 +1012,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 		}
 
 		cudf::type_id type_from_op = (right_index == UNARY_INDEX
-																	? get_output_type(left_input_types_vec[i], unary_operators[i])
+																	? get_output_type(left_input_types_vec[i], operators[i])
 																	: get_output_type(left_input_types_vec[i], right_input_types_vec[i], operators[i]));
 
 		output_types_vec[i] = (is_type_float(type_from_op) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64);
@@ -930,8 +1026,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	rmm::device_vector<column_index_type> right_device_inputs(right_inputs);
 	rmm::device_vector<column_index_type> device_outputs(outputs);
 	rmm::device_vector<column_index_type> final_device_output_positions(final_output_positions);
-	rmm::device_vector<gdf_binary_operator_exp> device_operators(operators);
-	rmm::device_vector<gdf_unary_operator> unary_device_operators(unary_operators);
+	rmm::device_vector<operator_type> device_operators(operators);
 
 
 	InterpreterFunctor op(*device_out_table_view,
@@ -945,7 +1040,6 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 												right_device_input_types.data().get(),
 												output_device_types.data().get(),
 												device_operators.data().get(),
-												unary_device_operators.data().get(),
 												left_device_scalars.data().get(),
 												right_device_scalars.data().get(),
 												temp_device_valids_in_buffer.data(),

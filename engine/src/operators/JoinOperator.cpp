@@ -88,8 +88,8 @@ namespace ral {
 namespace operators {
 
 JoinOperator::JoinOperator(Context * context) : context_{context} {
-	left_indices_ = ral::utilities::create_column(0, ral::traits::dtype<gdf_size_type>);
-	right_indices_ = ral::utilities::create_column(0, ral::traits::dtype<gdf_size_type>);
+	left_indices_ = ral::utilities::create_column(0, cudf::type_id::INT32);
+	right_indices_ = ral::utilities::create_column(0, cudf::type_id::INT32);
 }
 
 // TODO: On error clean up everything here so we dont run out of memory

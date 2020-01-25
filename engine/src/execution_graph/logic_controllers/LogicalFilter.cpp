@@ -89,8 +89,7 @@ std::unique_ptr<cudf::column> evaluate_expression(
   std::vector<column_index_type> right_inputs;
   std::vector<column_index_type> outputs;
   std::vector<column_index_type> final_output_positions = {filtered_table.num_columns()};
-  std::vector<gdf_binary_operator_exp> operators;
-  std::vector<gdf_unary_operator> unary_operators;
+  std::vector<interops::operator_type> operators;
   std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
   std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
   
@@ -104,7 +103,6 @@ std::unique_ptr<cudf::column> evaluate_expression(
                                               outputs,
                                               final_output_positions,
                                               operators,
-                                              unary_operators,
                                               left_scalars,
                                               right_scalars);
 
@@ -117,7 +115,6 @@ std::unique_ptr<cudf::column> evaluate_expression(
                                           outputs,
                                           final_output_positions,
                                           operators,
-                                          unary_operators,
                                           left_scalars,
                                           right_scalars);
 
