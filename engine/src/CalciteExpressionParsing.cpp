@@ -722,3 +722,15 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 }
 
 bool contains_evaluation(std::string expression) { return expression.find("(") != std::string::npos; }
+
+
+int count_string_occurrence(std::string haystack, std::string needle) {
+	int position = haystack.find(needle, 0);
+	int count = 0;
+	while(position != std::string::npos) {
+		count++;
+		position = haystack.find(needle, position + needle.size());
+	}
+
+	return count;
+}

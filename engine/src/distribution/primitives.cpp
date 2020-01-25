@@ -605,25 +605,6 @@ std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
 	return ral::operators::experimental::compute_groupby_without_aggregations(concatGroups->toBlazingTableView(),  group_column_indices);	
 }
 
-void distributeRowSize(const Context & context, std::size_t total_row_size) {
-	using ral::communication::experimental::CommunicationData;
-	using ral::communication::messages::experimental::Factory;
-	using ral::communication::messages::experimental::SampleToNodeMasterMessage;
-	using ral::communication::network::experimental::Client;
-
-
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
-
-	// TODO WMS william percy cudf0.12 port this stuff
-//	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
-//	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, {});
-
-//	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
-//	broadcastMessage(context.getAllOtherNodes(self_node_idx), message);
-}
-
 void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message) {
 	std::vector<std::thread> threads(nodes.size());
@@ -638,6 +619,51 @@ void broadcastMessage(std::vector<Node> nodes,
 	}
 }
 
+void distributeNumRows(Context * context, cudf::size_type num_rows) {
+	
+	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, num_rows, {});
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+}
+
+std::vector<cudf::size_type> collectNumRows(Context * context) {
+	
+	int num_nodes = context->getTotalNodes();
+	std::vector<cudf::size_type> node_num_rows(num_nodes);
+	std::vector<bool> received(num_nodes, false);
+
+	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
+		auto message = Server::getInstance().getMessage(context_token, message_id);
+		if(message->getMessageTokenValue() != message_id) {
+			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
+		}
+		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto node = concrete_message->getSenderNode();
+		int node_idx = context->getNodeIndex(node);
+		assert(node_idx >= 0);
+		if(received[node_idx]) {
+			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+				std::to_string(context->getQueryStep()),
+				std::to_string(context->getQuerySubstep()),
+				"ERROR: Already received collectRowSize from node " + std::to_string(node_idx)));
+		}
+		node_num_rows[node_idx] = concrete_message->getTotalRowSize();
+		received[node_idx] = true;
+	}
+
+	return node_num_rows;
+}
 
 void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows) {
 	
@@ -654,45 +680,6 @@ void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, st
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
-}
-
-// TODO percy william felipe port distribution cudf0.12
-std::vector<cudf::size_type> collectRowSize(const Context & context) {
-	// TODO percy william felipe port distribution cudf0.12
-	
-//	using ral::communication::CommunicationData;
-//	using ral::communication::messages::SampleToNodeMasterMessage;
-//	using ral::communication::network::Server;
-
-//	int num_nodes = context.getTotalNodes();
-//	std::vector<cudf::size_type> node_row_sizes(num_nodes);
-//	std::vector<bool> received(num_nodes, false);
-
-//	const uint32_t context_comm_token = context.getContextCommunicationToken();
-//	const uint32_t context_token = context.getContextToken();
-//	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
-
-//	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
-//	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
-//		auto message = Server::getInstance().getMessage(context_token, message_id);
-//		if(message->getMessageTokenValue() != message_id) {
-//			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-//		}
-//		auto concrete_message = std::static_pointer_cast<SampleToNodeMasterMessage>(message);
-//		auto node = concrete_message->getSenderNode();
-//		int node_idx = context.getNodeIndex(*node);
-//		assert(node_idx >= 0);
-//		if(received[node_idx]) {
-//			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-//				std::to_string(context.getQueryStep()),
-//				std::to_string(context.getQuerySubstep()),
-//				"ERROR: Already received collectRowSize from node " + std::to_string(node_idx)));
-//		}
-//		node_row_sizes[node_idx] = concrete_message->getTotalRowSize();
-//		received[node_idx] = true;
-//	}
-
-//	return node_row_sizes;
 }
 
 void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & node_num_rows_left,

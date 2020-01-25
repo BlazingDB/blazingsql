@@ -416,9 +416,7 @@ std::vector<gdf_column_cpp> DistributedJoinOperator::concat_columns(
 namespace ral {
 namespace operators {
 
-const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 
-bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
 
 blazing_frame process_join(Context * context, blazing_frame & frame, const std::string & query) {
 	std::unique_ptr<JoinOperator> join_operator;

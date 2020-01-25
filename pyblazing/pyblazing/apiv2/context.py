@@ -280,6 +280,8 @@ class BlazingTable(object):
         # a pair of values with the startIndex and batchSize info for each slice
         self.offset = (0,0)
 
+        self.column_names = []
+
 
     def has_metadata(self) :
         if isinstance(self.metadata, dask_cudf.core.DataFrame):
@@ -342,6 +344,7 @@ class BlazingTable(object):
                                                   args=self.args,
                                                   metadata=slice_metadata)
                 bt.offset = (startIndex, batchSize)
+                bt.column_names = self.column_names
                 nodeFilesList.append(bt)
             else:
                 bt = BlazingTable(
@@ -353,6 +356,7 @@ class BlazingTable(object):
                         args=self.args,
                         metadata=slice_metadata)
                 bt.offset = (startIndex, batchSize)
+                bt.column_names = self.column_names
                 nodeFilesList.append(bt)
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
@@ -564,6 +568,8 @@ class BlazingContext(object):
                 args=parsedSchema['args'],
                 uri_values=uri_values,
                 in_file=in_file)
+
+            table.column_names = parsedSchema['names']
 
             table.slices = table.getSlices(len(self.nodes))
             if parsedSchema['file_type'] == DataType.PARQUET :

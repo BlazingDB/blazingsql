@@ -75,4 +75,6 @@ void get_common_type(cudf::type_id type1,
 
 bool contains_evaluation(std::string expression);
 
+int count_string_occurrence(std::string haystack, std::string needle);
+
 #endif /* CALCITEEXPRESSIONPARSING_H_ */

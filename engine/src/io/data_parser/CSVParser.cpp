@@ -130,12 +130,10 @@ void csv_parser::parse_schema(
 	assert(table_out.tbl->num_columns() > 0);
 
 	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
-		std::string name = "";
-		if (i < csv_args.names.size()) 
-			name = csv_args.names[i];
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
 		size_t file_index = i;
 		bool is_in_file = true;
+		std::string name = table_out.metadata.column_names.at(i);
 		schema.add_column(name, type, file_index, is_in_file);
 	}
 }

@@ -91,8 +91,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			// TODO percy cudf0.12
-			//parser = std::make_shared<ral::io::gdf_parser>(tableSchema.columns, tableSchema.names);
+			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableView);
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(tableSchema.args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {
