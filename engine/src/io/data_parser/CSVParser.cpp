@@ -114,8 +114,21 @@ ral::frame::TableViewPair csv_parser::parse(
 		std::sort(idx.begin(), idx.end(), [&column_indices](size_t i1, size_t i2) {
 			return column_indices[i1] < column_indices[i2];
 		});
+		
+		std::vector< std::unique_ptr<cudf::column> > table = csv_table.tbl->release();
 
-		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(csv_table.tbl), csv_table.metadata.column_names);
+		std::vector< std::unique_ptr<cudf::column> > columns_out;
+		std::vector<std::string> column_names_out;
+		columns_out.resize(column_indices.size());
+		column_names_out.resize(column_indices.size());
+		for(size_t i = 0; i < column_indices.size(); i++) {
+			columns_out[idx[i]] = std::move(table[idx[i]]);
+			column_names_out[idx[i]] = csv_table.metadata.column_names[idx[i]];
+		}
+
+		std::unique_ptr<CudfTable> cudf_tb = std::make_unique<CudfTable>(std::move(columns_out));
+		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_tb), column_names_out);
+		
 		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
 		return std::make_pair(std::move(table_out), table_out_view);
 	}
