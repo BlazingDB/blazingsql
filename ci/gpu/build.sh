@@ -18,7 +18,7 @@ function hasArg {
 }
 
 # Set path and build parallel level
-export PATH=/usr/local/cuda/bin:$PATH
+export PATH=/usr/local/cuda/bin:$PATH:/conda/bin
 export PARALLEL_LEVEL=4
 export CUDA_REL=${CUDA_VERSION%.*}
 
