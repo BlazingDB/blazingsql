@@ -10,6 +10,7 @@ from libcpp.memory cimport shared_ptr
 from libcpp cimport bool
 from pyarrow.lib cimport *
 
+from cudf import DataFrame
 
 from libc.stdint cimport (  # noqa: E211
     uint8_t,

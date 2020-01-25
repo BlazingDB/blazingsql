@@ -518,12 +518,7 @@ cpdef getTableScanInfoCaller(logicalPlan,tables):
           relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
           relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
 
-        if len(table_columns) == 0:
-            # NOTE use the col names from parsed Schema
-            new_table.column_names = tables[table_name].column_names
-        else:
-            new_table.column_names = table_columns
-        
+        new_table.column_names = tables[table_name].column_names
         new_tables[table_name] = new_table
         
     return new_tables, relational_algebra_steps
