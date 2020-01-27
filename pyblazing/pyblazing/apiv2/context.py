@@ -541,9 +541,10 @@ class BlazingContext(object):
         extra_kwargs = {}
         in_file = []
         is_hive_input = False
+        partitions = {}
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
-            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file = get_hive_table(
+            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file, partitions = get_hive_table(
                 input, hive_table_name)
             kwargs.update(extra_kwargs)
             input = folder_list
@@ -591,7 +592,7 @@ class BlazingContext(object):
             table.slices = table.getSlices(len(self.nodes))
             if is_hive_input:
                 # 3 cols concretas hive 2 cols particiones (virtuales) => 5 columnas 
-                parsedMetadata = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
+                parsedMetadata = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns, partitions)
                 table.metadata = parsedMetadata
             
             elif parsedSchema['file_type'] == DataType.PARQUET :
@@ -653,32 +654,77 @@ class BlazingContext(object):
             return cio.parseMetadataCaller(
                 input, currentTableNodes[0].offset, schema, file_format_hint, kwargs, extra_columns)
 
-# +----------------------------+
-# | company_id=1/part_id=2017  |
-# | company_id=1/part_id=2018  |
-# | company_id=1/part_id=2019  |
-# | company_id=2/part_id=2017  |
-# | company_id=2/part_id=2018  |
-# | company_id=3/part_id=2017  |
-# +----------------------------+
+    def _parseHiveMetadataFor(self, worker_id, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions):
+        curr_table = currentTableNodes[worker_id]
+        file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
+        offset = currentTableNodes[worker_id].offset
+        metadata = {}
+        names = []
+        n_cols = len(curr_table.input.columns)
+        dtypes = curr_table.input.dtypes
+        columns = curr_table.input.columns
+        n_files = len(file_subset)
+        col_indexes = {}
+        for index in range(n_cols):
+            col_name = columns[index]
+            names.append('min_' + str(index) + '_' + col_name) 
+            names.append('max_' + str(index) + '_' + col_name) 
+            col_indexes[col_name] = index
+            
+        names.append('file_handle_index') 
+        names.append('row_group_index') 
+        minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
+        table_partition = {}
+        for file_index, partition_name  in enumerate(partitions):
+            curr_table = partitions[partition_name]
+            for col_name, col_value_id in curr_table:
+                table_partition.setdefault(col_name, []).append(col_value_id)
+            minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index);
+            minmax_metadata_table[len(minmax_metadata_table) - 1].append(0);
 
-    def _parseHiveMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns): 
+        for index in range(n_cols):
+            col_name = columns[index]
+            if col_name in table_partition:
+                col_value_ids = table_partition[col_name]
+                index = col_indexes[col_name] 
+                minmax_metadata_table[2*index] = col_value_ids
+                minmax_metadata_table[2*index+1] = col_value_ids
+            else:
+                minmax_metadata_table[2*index] = [np.iinfo(dtypes[col_name]).min] * n_files
+                minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[col_name]).max] * n_files
+
+        series = []
+        for index in range(n_cols):
+            col_name = columns[index]
+            col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
+            col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
+            series.append(col1)
+            series.append(col2)
+        
+        index = n_cols 
+        col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
+        col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
+        series.append(col1)
+        series.append(col2)
+
+        frame = {key:value for (key,value) in zip(names, series)}
+        return cudf.DataFrame(frame)
+
+    def _parseHiveMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions): 
         if self.dask_client:
-            dask_futures = []
+            dfs = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
             worker_id = 0
-            df = None
             for worker in workers: 
-                file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
-                offset = currentTableNodes[worker_id].offset
-                # schema
-                # file_format_hint
-                # kwargs
-                # extra_columns 
+                curr_table = currentTableNodes[worker_id]
+                df = self._parseHiveMetadataFor(worker_id, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions)
                 worker_id += 1
-            return df 
+                dfs.append(df)
+            return dask_cudf.from_cudf(dfs, npartitions=len(workers)) 
         else:
-            return None
+            worker_id = 0
+            return self._parseHiveMetadataFor(worker_id, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions)
+            
 
     def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
             if self.dask_client is None:
@@ -690,14 +736,17 @@ class BlazingContext(object):
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
                     grouped = file_and_rowgroup_indices.groupby('file_handle_index')
                     actual_files = []
+                    uri_values = []
                     current_table.row_groups_ids = []
                     for group_id in grouped.groups:
                         row_indices = grouped.groups[group_id].values.tolist()
                         actual_files.append(table_files[group_id])
+                        uri_values.append(current_table.uri_values[group_id])
                         row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
                         row_group_ids = [row_groups_col[i] for i in row_indices]
                         current_table.row_groups_ids.append(row_group_ids)
                     current_table.files = actual_files
+                    current_table.uri_values = uri_values
             else:
                 dask_futures = []
                 i = 0
@@ -720,16 +769,19 @@ class BlazingContext(object):
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
                     grouped = file_and_rowgroup_indices.groupby('file_handle_index')
                     actual_files = []
+                    uri_values = []
                     current_table.row_groups_ids = []
                     for group_id in grouped.groups:
                         row_indices = grouped.groups[group_id].values.tolist()
                         actual_files.append(table_files[group_id])
+                        uri_values.append(current_table.uri_values[group_id])
                         row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
                         row_group_ids = [row_groups_col[i] for i in row_indices]
                         current_table.row_groups_ids.append(row_group_ids)
                     current_table.files = actual_files
-
-
+                    current_table.uri_values = uri_values
+ 
+ 
     def sql(self, sql, table_list=[], algebra=None):
         # TODO: remove hardcoding
         masterIndex = 0
