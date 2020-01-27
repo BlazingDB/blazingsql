@@ -11,7 +11,7 @@ function logger() {
 }
 
 # Set home to the job's workspace
-export PATH=/usr/local/cuda/bin:$PATH
+export PATH=/usr/local/cuda/bin:$PATH:/conda/bin
 export HOME=$WORKSPACE
 
 # Switch to project root; also root of repo checkout
