@@ -474,7 +474,7 @@ class BlazingContext(object):
                 if(isinstance(table.input, dask_cudf.core.DataFrame)):
                     schema_df_types = []
                     for col in table.input.head(0)._data[column]:
-                        schema_df_types.add(np_to_cudf_types(col.dtype))
+                        schema_df_types.append(np_to_cudf_types(col.dtype))
                 else:
                     schema_df_types = table.column_types
 
