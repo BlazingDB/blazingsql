@@ -7,7 +7,7 @@
 namespace ral {
 namespace utilities {
 
-void print_blazing_table_view(ral::frame::BlazingTableView table_view);
+void print_blazing_table_view(ral::frame::BlazingTableView table_view, const std::string table_name="");
 
 }  // namespace utilities
 }  // namespace ral

@@ -15,7 +15,7 @@ struct get_type_id_name {
   }
 };
 
-void print_blazing_table_view(ral::frame::BlazingTableView table_view, const std::string table_name=""){
+void print_blazing_table_view(ral::frame::BlazingTableView table_view, const std::string table_name){
     std::cout<<"Table: "<<table_name<<std::endl;
 	std::cout<<"\t"<<"Num Rows: "<<table_view.num_rows()<<std::endl;
 	std::cout<<"\t"<<"Num Columns: "<<table_view.num_columns()<<std::endl;
