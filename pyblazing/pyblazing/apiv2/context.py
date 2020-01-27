@@ -67,15 +67,6 @@ RelationalAlgebraGeneratorClass = jpype.JClass(
     'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
 
-# Internal util to create empty DataFrame with a valid schema
-def _schema_dataframe(column_names, column_types):
-    temp = cudf.DataFrame()
-    for name, type_id in zip(column_names, column_types):
-        dtype = cudf_to_np_types[type_id]
-        temp.add_column(name, build_column(cudf.core.Buffer(), dtype))
-    return temp
-
-
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -479,18 +470,18 @@ class BlazingContext(object):
             if(addTable):
                 self.db.removeTable(tableName)
                 self.tables[tableName] = table
-                arr = ArrayClass()
-                order = 0
 
                 if(isinstance(table.input, dask_cudf.core.DataFrame)):
-                    schema_df = table.input.head(0)
+                    schema_df_types = []
+                    for col in table.input.head(0)._data[column]:
+                        schema_df_types.append(np_to_cudf_types(col.dtype))
                 else:
-                    schema_df = _schema_dataframe(table.column_names, table.column_types)
+                    schema_df_types = table.column_types
 
+                arr = ArrayClass()
+                order = 0
                 for column in table.column_names:
-                    dataframe_column = schema_df._data[column]
-                    data_sz = len(dataframe_column)
-                    type_id = np_to_cudf_types[dataframe_column.dtype]
+                    type_id = schema_df_types[order]
                     dataType = ColumnTypeClass.fromTypeId(type_id)
                     column = ColumnClass(column, dataType, order)
                     arr.add(column)
