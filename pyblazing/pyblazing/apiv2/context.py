@@ -10,7 +10,7 @@ from threading import Lock
 from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
-
+import pandas as pd
 
 from .hive import *
 import time
@@ -233,6 +233,60 @@ def modifyAlegebraAndTablesForArrowBasedOnColumnUsage(algebra, tableScanInfo, or
 
     return newTables, algebra
 
+
+def parseHiveMetadataFor(curr_table, file_subset, partitions):
+    metadata = {}
+    names = []
+    n_cols = len(curr_table.input.columns)
+    dtypes = curr_table.input.dtypes
+    columns = curr_table.input.columns
+    n_files = len(file_subset)
+    col_indexes = {}
+    for index in range(n_cols):
+        col_name = columns[index]
+        names.append('min_' + str(index) + '_' + col_name) 
+        names.append('max_' + str(index) + '_' + col_name) 
+        col_indexes[col_name] = index
+        
+    names.append('file_handle_index') 
+    names.append('row_group_index') 
+    minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
+    table_partition = {}
+    for file_index, partition_name  in enumerate(partitions):
+        curr_table = partitions[partition_name]
+        for col_name, col_value_id in curr_table:
+            table_partition.setdefault(col_name, []).append(col_value_id)
+        minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index);
+        minmax_metadata_table[len(minmax_metadata_table) - 1].append(0);
+
+    for index in range(n_cols):
+        col_name = columns[index]
+        if col_name in table_partition:
+            col_value_ids = table_partition[col_name]
+            index = col_indexes[col_name] 
+            minmax_metadata_table[2*index] = col_value_ids
+            minmax_metadata_table[2*index+1] = col_value_ids
+        else:
+            minmax_metadata_table[2*index] = [np.iinfo(dtypes[col_name]).min] * n_files
+            minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[col_name]).max] * n_files
+
+    series = []
+    for index in range(n_cols):
+        col_name = columns[index]
+        col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
+        col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
+        series.append(col1)
+        series.append(col2)
+    index = n_cols 
+
+    col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
+    col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
+    series.append(col1)
+    series.append(col2)
+
+    frame = {key:value for (key,value) in zip(names, series)}
+    metadata = cudf.DataFrame(frame)
+    return metadata
 
 class BlazingTable(object):
     def __init__(
@@ -462,12 +516,6 @@ class BlazingContext(object):
     def __del__(self):
         self.finalizeCaller()
 
-    def __repr__(self):
-        return "BlazingContext('%s')" % (self.connection)
-
-    def __str__(self):
-        return self.connection
-
     # BEGIN FileSystem interface
 
     def localfs(self, prefix, **kwargs):
@@ -654,76 +702,23 @@ class BlazingContext(object):
             return cio.parseMetadataCaller(
                 input, currentTableNodes[0].offset, schema, file_format_hint, kwargs, extra_columns)
 
-    def _parseHiveMetadataFor(self, worker_id, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions):
-        curr_table = currentTableNodes[worker_id]
-        file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
-        offset = currentTableNodes[worker_id].offset
-        metadata = {}
-        names = []
-        n_cols = len(curr_table.input.columns)
-        dtypes = curr_table.input.dtypes
-        columns = curr_table.input.columns
-        n_files = len(file_subset)
-        col_indexes = {}
-        for index in range(n_cols):
-            col_name = columns[index]
-            names.append('min_' + str(index) + '_' + col_name) 
-            names.append('max_' + str(index) + '_' + col_name) 
-            col_indexes[col_name] = index
-            
-        names.append('file_handle_index') 
-        names.append('row_group_index') 
-        minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
-        table_partition = {}
-        for file_index, partition_name  in enumerate(partitions):
-            curr_table = partitions[partition_name]
-            for col_name, col_value_id in curr_table:
-                table_partition.setdefault(col_name, []).append(col_value_id)
-            minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index);
-            minmax_metadata_table[len(minmax_metadata_table) - 1].append(0);
-
-        for index in range(n_cols):
-            col_name = columns[index]
-            if col_name in table_partition:
-                col_value_ids = table_partition[col_name]
-                index = col_indexes[col_name] 
-                minmax_metadata_table[2*index] = col_value_ids
-                minmax_metadata_table[2*index+1] = col_value_ids
-            else:
-                minmax_metadata_table[2*index] = [np.iinfo(dtypes[col_name]).min] * n_files
-                minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[col_name]).max] * n_files
-
-        series = []
-        for index in range(n_cols):
-            col_name = columns[index]
-            col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
-            col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
-            series.append(col1)
-            series.append(col2)
-        
-        index = n_cols 
-        col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
-        col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
-        series.append(col1)
-        series.append(col2)
-
-        frame = {key:value for (key,value) in zip(names, series)}
-        return cudf.DataFrame(frame)
-
     def _parseHiveMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions): 
         if self.dask_client:
-            dfs = []
+            dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
             worker_id = 0
             for worker in workers: 
                 curr_table = currentTableNodes[worker_id]
-                df = self._parseHiveMetadataFor(worker_id, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions)
+                file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
+                connection = self.dask_client.submit(parseHiveMetadataFor, curr_table, file_subset, partitions, workers=[worker])
+                dask_futures.append(connection)
                 worker_id += 1
-                dfs.append(df)
-            return dask_cudf.from_cudf(dfs, npartitions=len(workers)) 
+            return dask.dataframe.from_delayed(dask_futures) 
         else:
             worker_id = 0
-            return self._parseHiveMetadataFor(worker_id, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions)
+            curr_table = currentTableNodes[worker_id]
+            file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
+            return parseHiveMetadataFor(curr_table, file_subset, partitions)
             
 
     def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
