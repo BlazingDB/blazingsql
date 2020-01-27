@@ -134,7 +134,7 @@ def get_hive_table(cursor, tableName):
         partition = schema['partitions'][partitionName]
         file_list.append(schema['location'] + "/" + partitionName + "/*")
         uri_values.append(partition)
-    return file_list, uri_values, schema['fileType'], extra_kwargs, extra_columns, in_file
+    return file_list, uri_values, schema['fileType'], extra_kwargs, extra_columns, in_file, schema['partitions']
 
 
 def runHiveDDL(cursor, query):
