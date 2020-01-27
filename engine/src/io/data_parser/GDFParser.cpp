@@ -50,7 +50,7 @@ void gdf_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 			NVCategory * new_category = static_cast<NVCategory *>(column->dtype_info.category)->copy();
 			col.create_gdf_column(new_category, column->size, column_name);
 		} else {
-			col.create_gdf_column(column, false);
+			col.create_gdf_column(column, false, column_name);
 		}
 
 		columns.push_back(col);
