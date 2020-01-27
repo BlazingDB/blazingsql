@@ -184,8 +184,8 @@ public class BlazingCatalogTest {
 		repo.createDatabase(db);
 		dbId = db.getId();
 
-		CatalogColumnImpl column1 = new CatalogColumnImpl("col-1", CatalogColumnDataType.GDF_INT64, 1);
-		CatalogColumnImpl column2 = new CatalogColumnImpl("col-2", CatalogColumnDataType.GDF_INT32, 2);
+		CatalogColumnImpl column1 = new CatalogColumnImpl("col-1", CatalogColumnDataType.INT64, 1);
+		CatalogColumnImpl column2 = new CatalogColumnImpl("col-2", CatalogColumnDataType.INT32, 2);
 
 		List<CatalogColumnImpl> columns = new ArrayList<CatalogColumnImpl>();
 		columns.add(column1);
@@ -226,9 +226,9 @@ public class BlazingCatalogTest {
 		repo.createDatabase(db);
 		dbId = db.getId();
 
-		CatalogColumnImpl column1 = new CatalogColumnImpl("col1", CatalogColumnDataType.GDF_INT64, 1);
-		CatalogColumnImpl column2 = new CatalogColumnImpl("col2", CatalogColumnDataType.GDF_INT32, 2);
-		CatalogColumnImpl column3 = new CatalogColumnImpl("col3", CatalogColumnDataType.GDF_INT32, 2);
+		CatalogColumnImpl column1 = new CatalogColumnImpl("col1", CatalogColumnDataType.INT64, 1);
+		CatalogColumnImpl column2 = new CatalogColumnImpl("col2", CatalogColumnDataType.INT32, 2);
+		CatalogColumnImpl column3 = new CatalogColumnImpl("col3", CatalogColumnDataType.INT32, 2);
 
 		List<CatalogColumnImpl> columns = new ArrayList<CatalogColumnImpl>();
 		columns.add(column1);
@@ -271,7 +271,7 @@ public class BlazingCatalogTest {
 
 				System.out.println("testSaveOperation begins ........ This is \"C\" of CRUD");
 
-				CatalogColumnDataType type1 = CatalogColumnDataType.GDF_FLOAT64;
+				CatalogColumnDataType type1 = CatalogColumnDataType.FLOAT64;
 
 				Session session = sessionFactory.openSession();
 				session.beginTransaction();
