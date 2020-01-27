@@ -106,23 +106,28 @@ ral::frame::TableViewPair csv_parser::parse(
 		if(csv_table.tbl->num_columns() <= 0)
 			Library::Logging::Logger().logWarn("csv_parser::parse no columns were read");
 
-		// column_indices may be requested in a specific order (not necessarily sorted), but read_csv will output the
-		// columns in the sorted order, so we need to put them back into the order we want
-		std::vector<size_t> idx(column_indices.size());
-		std::iota(idx.begin(), idx.end(), 0);
-		// sort indexes based on comparing values in column_indices
-		std::sort(idx.begin(), idx.end(), [&column_indices](size_t i1, size_t i2) {
-			return column_indices[i1] < column_indices[i2];
-		});
+		std::vector< std::unique_ptr<cudf::column> > columns_out;
+		std::vector<std::string> column_names_out;
 
-		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(csv_table.tbl), csv_table.metadata.column_names);
+		columns_out.resize(column_indices.size());
+		column_names_out.resize(column_indices.size());
+
+		std::vector< std::unique_ptr<cudf::column> > table = csv_table.tbl->release();
+
+		for(size_t i = 0; i < column_indices.size(); i++) {
+			size_t idx = column_indices[i];
+			columns_out[i] = std::move(table[idx]);
+			column_names_out[i] = csv_table.metadata.column_names[idx];
+		}
+
+		std::unique_ptr<CudfTable> cudf_tb = std::make_unique<CudfTable>(std::move(columns_out));
+		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_tb), column_names_out);
 		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
 		return std::make_pair(std::move(table_out), table_out_view);
 	}
-	// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);  // do we need to create an empty table that has metadata?
 	return std::make_pair(nullptr, ral::frame::BlazingTableView());
 }
-	
+
 void csv_parser::parse_schema(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 

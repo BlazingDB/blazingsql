@@ -75,10 +75,9 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
-		//for(int col = 0; col < tableSchemas[i].columns.size(); col++) {
-			// TODO percy cudf0.12
-			//types.push_back(tableSchemas[i].columns[col]->type().id());
-		//}
+		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
+			types.push_back(tableSchemas[i].types[col]);
+		}
 
 		auto schema = ral::io::Schema(tableSchema.names,
 			tableSchema.calcite_to_file_indices,
