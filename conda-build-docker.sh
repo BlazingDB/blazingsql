@@ -32,6 +32,6 @@ docker run --rm \
     -v $CONDA_PKGS:/opt/conda/pkgs/ \
     -v $CONDA_CACHE:/.cache/ \
     -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
-    gpuci/rapidsai-base:cuda${CUDA_VERSION}-ubuntu16.04-gcc5-py${PYTHON_VERSION} \
+    gpuci/rapidsai-base:cuda${CUDA_VERSION}-centos7-gcc7-py${PYTHON_VERSION} \
     ./ci/gpu/build.sh
 
