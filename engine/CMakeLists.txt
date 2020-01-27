@@ -123,6 +123,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/TableWrapper.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/StringUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
+              ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
               ${CMAKE_CURRENT_SOURCE_DIR}/src/Config/Config.cpp
               ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
               ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
