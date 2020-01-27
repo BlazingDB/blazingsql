@@ -221,11 +221,15 @@ std::vector<gdf_column_cpp> DistributedJoinOperator::process_distribution_table(
 	cudf::table temp_table = ral::utilities::create_table(table);
 	gather_and_remap_nvcategory(temp_table);
 
-	std::vector<NodeColumns> partitions = ral::distribution::generateJoinPartitions(*context_, table, columnIndices);
+	std::vector<NodeColumns> partitions = ral::distribution::experimental::generateJoinPartitions(*context_, table, columnIndices);
 
 	context_->incrementQuerySubstep();
-	distributePartitions(*context_, partitions);
-	std::vector<NodeColumns> remote_node_columns = ral::distribution::collectPartitions(*context_);
+	
+	// TODO percy william felipe port distribution cudf0.12
+	//experimental_ distributePartitions(*context_, partitions);
+	
+	// TODO percy william felipe port distribution cudf0.12
+	//std::vector<NodeColumns> remote_node_columns = ral::distribution::collectPartitions(*context_);
 
 	auto it = std::find_if(partitions.begin(), partitions.end(), [](const auto & e) {
 		return e.getNode() == ral::communication::experimental::CommunicationData::getInstance().getSelfNode();
@@ -233,7 +237,8 @@ std::vector<gdf_column_cpp> DistributedJoinOperator::process_distribution_table(
 	assert(it != partitions.end());
 	std::vector<gdf_column_cpp> local_table = it->getColumns();
 
-	return concat_columns(local_table, remote_node_columns);
+	// TODO percy william felipe port distribution cudf0.12
+	//return concat_columns(local_table, remote_node_columns);
 }
 
 blazing_frame DistributedJoinOperator::process_distribution(blazing_frame & frame, const std::string & query) {
@@ -246,10 +251,10 @@ blazing_frame DistributedJoinOperator::process_distribution(blazing_frame & fram
 	context_->incrementQuerySubstep();
 	cudf::size_type local_num_rows_left = frame.get_num_rows_in_table(0);
 	cudf::size_type local_num_rows_right = frame.get_num_rows_in_table(1);
-	ral::distribution::distributeLeftRightNumRows(*context_, local_num_rows_left, local_num_rows_right);
+	ral::distribution::experimental::distributeLeftRightNumRows(context_, local_num_rows_left, local_num_rows_right);
 	std::vector<cudf::size_type> nodes_num_rows_left;
 	std::vector<cudf::size_type> nodes_num_rows_right;
-	ral::distribution::collectLeftRightNumRows(*context_, nodes_num_rows_left, nodes_num_rows_right);
+	ral::distribution::experimental::collectLeftRightNumRows(context_, nodes_num_rows_left, nodes_num_rows_right);
 	nodes_num_rows_left[self_node_idx] = local_num_rows_left;
 	nodes_num_rows_right[self_node_idx] = local_num_rows_right;
 
@@ -312,7 +317,8 @@ blazing_frame DistributedJoinOperator::process_distribution(blazing_frame & fram
 					"join process_distribution scatter_left"));
 			data_to_scatter = frame.get_table(0);
 			if(local_num_rows_left > 0) {
-				ral::distribution::scatterData(*context_, data_to_scatter);
+				// TODO percy william felipe port distribution cudf0.12
+				//ral::distribution::experimental::scatterData(context_, data_to_scatter);
 			}
 			for(size_t i = 0; i < nodes_num_rows_left.size(); i++) {
 				if(i != self_node_idx && nodes_num_rows_left[i] > 0) {
@@ -327,7 +333,8 @@ blazing_frame DistributedJoinOperator::process_distribution(blazing_frame & fram
 					"join process_distribution scatter_right"));
 			data_to_scatter = frame.get_table(1);
 			if(local_num_rows_right > 0) {  // this node has data on the right to scatter
-				ral::distribution::scatterData(*context_, data_to_scatter);
+				// TODO percy william felipe port distribution cudf0.12
+				//ral::distribution::scatterData(*context_, data_to_scatter);
 			}
 			for(size_t i = 0; i < nodes_num_rows_right.size(); i++) {
 				if(i != self_node_idx && nodes_num_rows_right[i] > 0) {
@@ -339,9 +346,11 @@ blazing_frame DistributedJoinOperator::process_distribution(blazing_frame & fram
 		blazing_frame join_frame;
 		std::vector<gdf_column_cpp> cluster_shared_table;
 		if(num_to_collect > 0) {
-			std::vector<NodeColumns> collected_partitions =
-				ral::distribution::collectSomePartitions(*context_, num_to_collect);
-			cluster_shared_table = concat_columns(data_to_scatter, collected_partitions);
+			
+			// TODO percy william felipe port distribution cudf0.12
+			//std::vector<NodeColumns> collected_partitions = ral::distribution::collectSomePartitions(*context_, num_to_collect);
+			//cluster_shared_table = concat_columns(data_to_scatter, collected_partitions);
+			
 		} else {
 			cluster_shared_table = data_to_scatter;
 		}
@@ -407,9 +416,7 @@ std::vector<gdf_column_cpp> DistributedJoinOperator::concat_columns(
 namespace ral {
 namespace operators {
 
-const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 
-bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
 
 blazing_frame process_join(Context * context, blazing_frame & frame, const std::string & query) {
 	std::unique_ptr<JoinOperator> join_operator;

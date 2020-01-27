@@ -7,21 +7,6 @@
 #include <vector>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
-namespace ral {
-namespace operators {
-
-namespace {
-using blazingdb::manager::experimental::Context;
-}  // namespace
-
-bool is_sort(std::string query_part);
-
-void process_sort(blazing_frame & input, std::string query_part, Context * queryContext);
-
-}  // namespace operators
-}  // namespace ral
-
-
 
 namespace ral {
 namespace operators {
@@ -55,6 +40,21 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 std::unique_ptr<ral::frame::BlazingTable> logicalSort(
   const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, 
   const std::vector<int8_t> & sortOrderTypes);
+
+/**---------------------------------------------------------------------------*
+ * @brief In a distributed context, this function determines what the limit would be
+ * for this local node. It does this be distributing and collecting the total number of 
+ * rows in the table. Then knowing which node index this local node is, it can calculate
+ * how many rows are ahead of the ones in this partition
+ *
+ * @param[in] contex
+ * @param[in] local_num_rows    Number of rows of this partition
+ * @param[in] limit_rows        Limit being applied to the whole query
+ *
+ * @returns The limit that would be applied to this partition
+ *---------------------------------------------------------------------------**/
+cudf::size_type determine_local_limit(Context * context,
+	const cudf::size_type local_num_rows, cudf::size_type limit_rows);
 
 std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
   const ral::frame::BlazingTableView & table, cudf::size_type limitRows);

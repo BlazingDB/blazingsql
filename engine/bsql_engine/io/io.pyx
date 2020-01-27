@@ -163,21 +163,27 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     for extra_column in extra_columns:
         extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
         extra_columns_cpp.push_back(extra_column_cpp)
-    temp = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
+    tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
     return_object['datasource'] = files
-    return_object['files'] = temp.files
-    return_object['file_type'] = temp.data_type
+    return_object['files'] = tableSchema.files
+    return_object['file_type'] = tableSchema.data_type
     return_object['args'] = args
-    return_object['columns'] = cudf.DataFrame()
-    return_object['names'] = temp.names
-    return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
-    return_object['num_row_groups']= temp.num_row_groups
+    return_object['types'] = tableSchema.types
+    return_object['names'] = tableSchema.names
+    return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
+    return_object['num_row_groups']= tableSchema.num_row_groups
     i = 0
     #for column in temp.columns:
       # column.col_name = return_object['names'][i]
       # return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
       # i = i + 1
+
+	# temp is TableSchema and temp.column is array of cudf::column_view
+    #for column in tableSchema.columns:
+        #return_object['columns'][return_object['names'][i].decode('utf-8')] = column
+    #    i = i + 1
+
     return return_object
 
 
@@ -265,6 +271,9 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef gdf_scalar_ptr scalar_ptr
     cdef gdf_scalar scalar
 
+    cdef vector[column_view] column_views
+    cdef Column cython_col
+
     tableIndex = 0
     for tableName in tables:
       string_values_cpp.empty()
@@ -303,11 +312,22 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       names.resize(0)
       fileType = fileTypes[tableIndex]
       # TODO: TableSchema will be refactorized
-      for col in table.input:
-        names.push_back(col.encode())
+      
+      for col_name in table.column_names:
+        names.push_back(col_name)
         #columns.push_back(column_view_from_column(table.input[col]._column))
+
       #currentTableSchemaCpp.columns = columns
+
+      # TODO: Remove 4 == DataType.CUDF. Now there is a cython conflict with pyarrow.DataType
+      if table.fileType == 4:
+          names = [str.encode(x) for x in table.input.dtypes.keys()]
+          for cython_col in table.input._data.values():
+              column_views.push_back(cython_col.view())
+          currentTableSchemaCpp.blazingTableView = BlazingTableView(table_view(column_views), names)
+
       currentTableSchemaCpp.names = names
+      
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
@@ -498,5 +518,7 @@ cpdef getTableScanInfoCaller(logicalPlan,tables):
           relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
           relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
 
+        new_table.column_names = tables[table_name].column_names
         new_tables[table_name] = new_table
+        
     return new_tables, relational_algebra_steps

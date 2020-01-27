@@ -43,18 +43,6 @@ namespace {
 using Context = blazingdb::manager::experimental::Context;
 }  // namespace
 
-void sendSamplesToMaster(const Context & context, std::vector<gdf_column_cpp> & samples, std::size_t total_row_size);
-
-
-std::vector<NodeSamples> collectSamples(const Context & context);
-
-std::vector<gdf_column_cpp> generatePartitionPlans(
-	const Context & context, std::vector<NodeSamples> & samples, std::vector<int8_t> & sortOrderTypes);
-
-void distributePartitionPlan(const Context & context, std::vector<gdf_column_cpp> & pivots);
-
-std::vector<gdf_column_cpp> getPartitionPlan(const Context & context);
-
 /**
  * The implementation of the partition must be changed with the 'split' or 'slice' function in cudf.
  * The current implementation transfer the output of the function 'gdf_multisearch' to the CPU
@@ -75,39 +63,24 @@ std::vector<gdf_column_cpp> getPartitionPlan(const Context & context);
  * table = { { 10, 12, 14, 16, 18, 20 } }
  * output = { {10} , {12, 14, 16}, {18, 20} }
  */
-std::vector<NodeColumns> partitionData(const Context & context,
-	std::vector<gdf_column_cpp> & table,
-	std::vector<int> & searchColIndices,
-	std::vector<gdf_column_cpp> & pivots,
-	bool isTableSorted,
-	std::vector<int8_t> sortOrderTypes = {});
+// DEPRECATED delete in next iteration (see if we can reuse some documentation ... see above)
+// william felipe percy cudf0.12
+//std::vector<NodeColumns> partitionData(const Context & context,
+//	std::vector<gdf_column_cpp> & table,
+//	std::vector<int> & searchColIndices,
+//	std::vector<gdf_column_cpp> & pivots,
+//	bool isTableSorted,
+//	std::vector<int8_t> sortOrderTypes = {});
 
-void distributePartitions(const Context & context, std::vector<NodeColumns> & partitions);
-
-std::vector<NodeColumns> collectPartitions(const Context & context);
-std::vector<NodeColumns> collectSomePartitions(const Context & context, int num_partitions);
-
-// this functions sends the data in table to all nodes except itself
-void scatterData(const Context & context, std::vector<gdf_column_cpp> & table);
-
-void sortedMerger(std::vector<NodeColumns> & columns,
-	std::vector<int8_t> & sortOrderTypes,
-	std::vector<int> & sortColIndices,
-	blazing_frame & output);
 
 std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & context, std::vector<NodeSamples> & samples);
 
 void groupByWithoutAggregationsMerger(
 	std::vector<NodeColumns> & groups, const std::vector<int> & groupColIndices, blazing_frame & output);
 
-void distributeRowSize(const Context & context, std::size_t total_row_size);
 
-std::vector<cudf::size_type> collectRowSize(const Context & context);
 
-void distributeLeftRightNumRows(const Context & context, std::size_t left_num_rows, std::size_t right_num_rows);
-void collectLeftRightNumRows(const Context & context,
-	std::vector<cudf::size_type> & node_num_rows_left,
-	std::vector<cudf::size_type> & node_num_rows_right);
+
 
 // multi-threaded message sender
 void broadcastMessage(
@@ -120,20 +93,6 @@ void broadcastMessage(
 namespace ral {
 namespace distribution {
 
-/**
- * It uses a hash partition algorithm in order to split a table. Each partition is stored with the corresponding
- * node in a 'NodeColumn' class. It is primary used for join operation, but it can be used for any operation.
- * The input table will be deleted.
- *
- * @param[in] context 'blazingdb::manager::experimental::Context' belongs to communication library. It contains
- * information related to the current query.
- * @param[in] table represents the input columns (table) used in the 'join' operation. The table will be deleted.
- * @param[in] columnIndices indices of the columns to be joined.
- * @return std::vector<NodeColumns> represents an array of NodeColumn (@see NodeColumn), which contains
- * a node with their corresponding partition table.
- */
-std::vector<NodeColumns> generateJoinPartitions(
-	const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices);
 
 }  // namespace distribution
 }  // namespace ral
@@ -189,15 +148,35 @@ namespace experimental {
 	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples);
 
 	std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices);
+	
 	// multi-threaded message sender
 	void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message);
 			
+	void distributeNumRows(Context * context, cudf::size_type num_rows);
+
+	std::vector<cudf::size_type> collectNumRows(Context * context);	
+	
 	void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows);
 
 	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
 				std::vector<cudf::size_type> & node_num_rows_right);
 
+	/**
+	 * It uses a hash partition algorithm in order to split a table. Each partition is stored with the corresponding
+	 * node in a 'NodeColumn' class. It is primary used for join operation, but it can be used for any operation.
+	 * The input table will be deleted.
+	 *
+	 * @param[in] context 'blazingdb::manager::experimental::Context' belongs to communication library. It contains
+	 * information related to the current query.
+	 * @param[in] table represents the input columns (table) used in the 'join' operation. The table will be deleted.
+	 * @param[in] columnIndices indices of the columns to be joined.
+	 * @return std::vector<NodeColumns> represents an array of NodeColumn (@see NodeColumn), which contains
+	 * a node with their corresponding partition table.
+	 */
+	// TODO percy william felipe port distribution cudf0.12
+	std::vector<NodeColumns> generateJoinPartitions(
+		const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices);
 
 }  // namespace experimental
 }  // namespace distribution

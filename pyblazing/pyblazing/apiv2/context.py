@@ -1,6 +1,10 @@
 # NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
 import cudf
 
+from cudf._libxx.column import np_to_cudf_types
+from cudf._libxx.column import cudf_to_np_types
+from cudf.core.column.column import build_column
+
 from collections import OrderedDict
 from enum import Enum
 
@@ -63,29 +67,13 @@ RelationalAlgebraGeneratorClass = jpype.JClass(
     'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
 
-def get_np_dtype_to_gdf_dtype_str(dtype):
-    dtypes = {
-        np.dtype('float64'): 'GDF_FLOAT64',
-        np.dtype('float32'): 'GDF_FLOAT32',
-        np.dtype('int64'): 'GDF_INT64',
-        np.dtype('int32'): 'GDF_INT32',
-        np.dtype('int16'): 'GDF_INT16',
-        np.dtype('int8'): 'GDF_INT8',
-        np.dtype('bool_'): 'GDF_BOOL8',
-        np.dtype('datetime64[s]'): 'GDF_DATE64',
-        np.dtype('datetime64[ms]'): 'GDF_DATE64',
-        np.dtype('datetime64[ns]'): 'GDF_TIMESTAMP',
-        np.dtype('datetime64[us]'): 'GDF_TIMESTAMP',
-        np.dtype('datetime64'): 'GDF_DATE64',
-        np.dtype('object_'): 'GDF_STRING',
-        np.dtype('str_'): 'GDF_STRING',
-        np.dtype('<M8[s]'): 'GDF_DATE64',
-        np.dtype('<M8[ms]'): 'GDF_DATE64',
-        np.dtype('<M8[ns]'): 'GDF_TIMESTAMP',
-        np.dtype('<M8[us]'): 'GDF_TIMESTAMP'
-    }
-    ret = dtypes[np.dtype(dtype)]
-    return ret
+# Internal util to create empty DataFrame with a valid schema
+def _schema_dataframe(column_names, column_types):
+    temp = cudf.DataFrame()
+    for name, type_id in zip(column_names, column_types):
+        dtype = cudf_to_np_types[type_id]
+        temp.add_column(name, build_column(cudf.core.Buffer(), dtype))
+    return temp
 
 
 def checkSocket(socketNum):
@@ -280,6 +268,9 @@ class BlazingTable(object):
         # a pair of values with the startIndex and batchSize info for each slice
         self.offset = (0,0)
 
+        self.column_names = []
+        self.column_types = []
+
 
     def has_metadata(self) :
         if isinstance(self.metadata, dask_cudf.core.DataFrame):
@@ -342,6 +333,8 @@ class BlazingTable(object):
                                                   args=self.args,
                                                   metadata=slice_metadata)
                 bt.offset = (startIndex, batchSize)
+                bt.column_names = self.column_names
+                bt.column_types = self.column_types
                 nodeFilesList.append(bt)
             else:
                 bt = BlazingTable(
@@ -353,6 +346,8 @@ class BlazingTable(object):
                         args=self.args,
                         metadata=slice_metadata)
                 bt.offset = (startIndex, batchSize)
+                bt.column_names = self.column_names
+                bt.column_types = self.column_types
                 nodeFilesList.append(bt)
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
@@ -486,15 +481,17 @@ class BlazingContext(object):
                 self.tables[tableName] = table
                 arr = ArrayClass()
                 order = 0
-                for column in table.input.columns:
-                    if(isinstance(table.input, dask_cudf.core.DataFrame)):
-                        dataframe_column = table.input.head(0)._data[column]
-                    else:
-                        dataframe_column = table.input._data[column]
+
+                if(isinstance(table.input, dask_cudf.core.DataFrame)):
+                    schema_df = table.input.head(0)
+                else:
+                    schema_df = _schema_dataframe(table.column_names, table.column_types)
+
+                for column in table.column_names:
+                    dataframe_column = schema_df._data[column]
                     data_sz = len(dataframe_column)
-                    dtype = get_np_dtype_to_gdf_dtype_str(
-                        dataframe_column.dtype)
-                    dataType = ColumnTypeClass.fromString(dtype)
+                    type_id = np_to_cudf_types[dataframe_column.dtype]
+                    dataType = ColumnTypeClass.fromTypeId(type_id)
                     column = ColumnClass(column, dataType, order)
                     arr.add(column)
                     order = order + 1
@@ -555,7 +552,7 @@ class BlazingContext(object):
 
             file_type = parsedSchema['file_type']
             table = BlazingTable(
-                parsedSchema['columns'],
+                parsedSchema['files'],
                 file_type,
                 files=parsedSchema['files'],
                 datasource=parsedSchema['datasource'],
@@ -564,6 +561,9 @@ class BlazingContext(object):
                 args=parsedSchema['args'],
                 uri_values=uri_values,
                 in_file=in_file)
+
+            table.column_names = parsedSchema['names']
+            table.column_types = parsedSchema['types']
 
             table.slices = table.getSlices(len(self.nodes))
             if parsedSchema['file_type'] == DataType.PARQUET :

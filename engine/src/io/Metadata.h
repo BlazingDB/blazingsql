@@ -11,19 +11,19 @@
 #include <cudf/cudf.h>
 #include <string>
 #include <vector>
-#include "GDFColumn.cuh"
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
 
 namespace ral {
 namespace io {
 
 class Metadata {
 public:
-	Metadata(std::vector<gdf_column_cpp> metadata, std::pair<int, int> offset)
+	Metadata(std::vector<CudfColumnView> metadata, std::pair<int, int> offset)
 		: metadata_{metadata}, offset_{offset}
 	{
 	}
 
-	std::vector<gdf_column_cpp> get_columns() {
+	std::vector<CudfColumnView> get_columns() {
 		return metadata_;
 	}
 
@@ -40,7 +40,7 @@ public:
 	// impar-wise elements are max, odds
 	// file_path_index
 	// row_group
-	std::vector<gdf_column_cpp> metadata_; // for all files in that node!
+	std::vector<CudfColumnView> metadata_; // for all files in that node!
 	std::pair<int, int> offset_;
 };
 

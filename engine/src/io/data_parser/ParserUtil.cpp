@@ -5,6 +5,7 @@
 #include <arrow/io/file.h>
 #include <arrow/status.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
+#include <cudf/column/column_factories.hpp>
 
 namespace ral {
 namespace io {
@@ -64,22 +65,20 @@ void get_columns_that_were_already_loaded(const std::vector<size_t> & column_ind
 	}
 }
 
-
 std::vector<gdf_column_cpp> create_empty_columns(const std::vector<std::string> & column_names,
 	const std::vector<cudf::type_id> & column_types,
 	const std::vector<size_t> & column_indices_requested) {
-	std::vector<gdf_column_cpp> columns(column_indices_requested.size());
+	// TODO percy cudf0.12
+//	std::vector< std::unique_ptr<cudf::column> > columns(column_indices_requested.size());
 
-	for(size_t i = 0; i < column_indices_requested.size(); i++) {
-		const size_t ind = column_indices_requested[i];
+//	for(size_t i = 0; i < column_indices_requested.size(); i++) {
+//		const size_t ind = column_indices_requested[i];
+//		cudf::type_id dtype = column_types[ind];
+//		columns[i] = cudf::make_empty_column(cudf::data_type(dtype));
+//		//columns[i].create_empty(dtype, column_name);
+//	}
 
-		cudf::type_id dtype = column_types[ind];
-		const std::string & column_name = column_names[ind];
-
-		columns[i].create_empty(dtype, column_name);
-	}
-
-	return columns;
+//	return columns;
 }
 
 /**
