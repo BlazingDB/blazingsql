@@ -1,29 +1,20 @@
-#include "Traits/RuntimeTraits.h"
-#include "GDFColumn.cuh"
 #include <cudf.h>
+#include <cudf/utilities/type_dispatcher.hpp>
+#include "GDFColumn.cuh"
+#include "Traits/RuntimeTraits.h"
 
 namespace ral {
 namespace traits {
 
+struct size_of_functor{
+ template <typename T>
+ cudf::size_type operator()(){
+   return sizeof(T);
+ }
+};
+
 cudf::size_type get_dtype_size_in_bytes(cudf::type_id dtype) {
-	cudf::size_type size = 0;
-	switch(dtype) {
-	case cudf::type_id::BOOL8: size = sizeof(gdf_bool8); break;
-	case cudf::type_id::INT8: size = sizeof(int8_t); break;
-	case cudf::type_id::INT16: size = sizeof(int16_t); break;
-	case cudf::type_id::INT32: size = sizeof(int32_t); break;
-	case cudf::type_id::INT64: size = sizeof(int64_t); break;
-	case cudf::type_id::FLOAT32: size = sizeof(float); break;
-	case cudf::type_id::FLOAT64: size = sizeof(double); break;
-	case cudf::type_id::TIMESTAMP_DAYS: size = sizeof(gdf_date32); break;
-	case cudf::type_id::TIMESTAMP_SECONDS: size = sizeof(gdf_date64); break;
-	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-	case cudf::type_id::TIMESTAMP_MILLISECONDS: size = sizeof(gdf_timestamp); break;
-	case cudf::type_id::CATEGORY: size = sizeof(gdf_category); break;
-	case cudf::type_id::STRING: size = sizeof(gdf_nvstring_category); break;
-	default: size = 0; break;
-	}
-	return size;
+	return cudf::experimental::type_dispatcher(cudf::data_type{dtype}, size_of_functor{});
 }
 
 cudf::size_type get_dtype_size_in_bytes(cudf::column * column) { return get_dtype_size_in_bytes(column->type().id()); }
