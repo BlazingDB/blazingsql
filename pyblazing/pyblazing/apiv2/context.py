@@ -262,6 +262,9 @@ class BlazingTable(object):
         self.column_names = []
         self.column_types = []
 
+        if fileType == DataType.CUDF:
+            self.column_names = [x for x in input._data.keys()]
+            self.column_types = [np_to_cudf_types[x.dtype] for x in input._data.values()]
 
     def has_metadata(self) :
         if isinstance(self.metadata, dask_cudf.core.DataFrame):
@@ -352,8 +355,11 @@ class BlazingContext(object):
 
     def __init__(self, dask_client=None, network_interface=None):
         """
-        :param connection: BlazingSQL cluster URL to connect to
-            (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
+        :param dask_client: a dask.distributed.Client instance
+            (e.g. BlazingContext(dask_client=dask.distributed.Client('127.0.0.1:8786'))
+
+        :param network_interface: network interface name
+            (e.g. BlazingContext(dask_client=..., network_interface='eth0'))
         """
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
@@ -427,10 +433,10 @@ class BlazingContext(object):
         self.finalizeCaller()
 
     def __repr__(self):
-        return "BlazingContext('%s')" % (self.connection)
+        return "BlazingContext('%s')" % (self.dask_client)
 
     def __str__(self):
-        return self.connection
+        return self.dask_client
 
     # BEGIN FileSystem interface
 
