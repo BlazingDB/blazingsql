@@ -14,6 +14,7 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.map cimport map
+from libcpp.memory cimport unique_ptr
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
@@ -35,9 +36,9 @@ import rmm
 import nvstrings
 import nvcategory
 
-from cudf._lib.cudf cimport *
-from cudf._lib.cudf import *
-
+from cudf._libxx.lib cimport *
+from cudf._libxx.table cimport *
+# from cudf._libxx.table import *
 from cudf._libxx.column import cudf_to_np_types
 
 from bsql_engine.io cimport cio
@@ -347,7 +348,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       # else:
       #   currentTableSchemaCpp.row_groups_ids = []
 
-      tableSchemaCpp.push_back(currentTableSchemaCpp);
+      tableSchemaCpp.push_back(currentTableSchemaCpp)
       tableIndex = tableIndex + 1
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
@@ -355,23 +356,38 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    temp = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
+    cdef unique_ptr[cio.ResultSet] temp = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
 
-    df = cudf.DataFrame()
+    # cdef unique_ptr[table] tempTable = Table.from_unique_ptr(blaz_move(dereference(temp).cudfTable), dereference(temp).names)
+    
+    # return cudf.DataFrame(Table.from_unique_ptr(dereference(temp).cudfTable, dereference(temp).names)._data)
 
-    names = dereference(dereference(temp).blazingTable).names()
-    view = dereference(dereference(temp).blazingTable).view()
+  # cdef table_view ttemp = dereference(dereference(temp).cudfTable).view()
 
-    for i in range(names.size()):
-        c = view.column(i)
-        dtype = cudf_to_np_types[c.type().id()]
-        df.add_column(
-            names[i].decode('utf-8'),
-            build_column(
-                cudf.core.Buffer(
-                    rmm.DeviceBuffer(ptr=<long long>c.data[void](), size=c.size() * dtype.itemsize),
-                ), dtype))
-    return df
+
+    cdef u_table ttemp = blaz_move(dereference(temp).cudfTable)
+    namesy = dereference(temp).names
+    tablyy = Table.from_unique_ptr(ttemp, namesy)
+    return cudf.DataFrame(tablyy._data)
+
+    # return cudf.DataFrame(Table.from_unique_ptr(blaz_move(dereference(temp).cudfTable), dereference(temp).names)._data)
+    
+    return cudf.DataFrame(_Table.from_ptr(blaz_move(dereference(temp).cudfTable), dereference(temp).names)._data)
+    # return df._rename_columns(dereference(temp).names)
+
+    # names = dereference(dereference(temp).blazingTable).names()
+    # view = dereference(dereference(temp).blazingTable).view()
+
+    # for i in range(names.size()):
+    #     c = view.column(i)
+    #     dtype = cudf_to_np_types[c.type().id()]
+    #     df.add_column(
+    #         names[i].decode('utf-8'),
+    #         build_column(
+    #             cudf.core.Buffer(
+    #                 rmm.DeviceBuffer(ptr=<long long>c.data[void](), size=c.size() * dtype.itemsize),
+    #             ), dtype))
+    # return df
 
 
 
