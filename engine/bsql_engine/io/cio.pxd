@@ -9,8 +9,11 @@ from libcpp.memory cimport shared_ptr
 
 from libcpp cimport bool
 from pyarrow.lib cimport *
+from cudf._libxx.lib cimport *
 
 from cudf import DataFrame
+
+from cudf._libxx.table cimport table
 
 from libc.stdint cimport (  # noqa: E211
     uint8_t,
@@ -233,6 +236,14 @@ cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
             size_type num_rows()
 ctypedef table_view CudfTableView
 
+cdef extern from "cudf/table/table.hpp" namespace "cudf::experimental":
+        cdef cppclass table:
+            table() except +
+            size_type num_columns()
+            size_type num_rows()
+            table_view view()            
+# ctypedef table CudfTable
+
 cdef extern from "../include/io/io.h":
     ctypedef enum DataType:
         UNDEFINED = 999,
@@ -311,9 +322,8 @@ cdef extern from * namespace "blazing":
 
 cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
-            vector[gdf_column_ptr] columns
-            vector[string]  names
-            unique_ptr[BlazingTable] blazingTable
+            unique_ptr[table] cudfTable
+            vector[string]  names            
 
         cdef struct NodeMetaDataTCP:
             string ip

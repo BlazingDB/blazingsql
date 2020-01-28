@@ -14,6 +14,7 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.map cimport map
+from libcpp.memory cimport unique_ptr
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
@@ -35,6 +36,8 @@ import rmm
 import nvstrings
 import nvcategory
 
+from cudf._libxx.lib cimport *
+from cudf._libxx.table cimport *
 from cudf._lib.cudf cimport *
 from cudf._lib.cudf import *
 
@@ -359,25 +362,19 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
     temp = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
-
-    df = cudf.DataFrame()
-
-    names = dereference(dereference(temp).blazingTable).names()
-    view = dereference(dereference(temp).blazingTable).view()
-
+    
+    # TODO WSM. When we migrate to cudf 0.13 we will likely only need to do something like:
+    # cudf.DataFrame(Table.from_unique_ptr(blaz_move(dereference(temp).cudfTable), names)._data)
+    # and we dont have to call _rename_columns. We are doing that here only because the current from_ptr is not properly setting the column names
+    names = dereference(temp).names
+    decoded_names = []
     for i in range(names.size()):
-        c = view.column(i)
-        dtype = cudf_to_np_types[c.type().id()]
-        df.add_column(
-            names[i].decode('utf-8'),
-            build_column(
-                cudf.core.Buffer(
-                    rmm.DeviceBuffer(ptr=<long long>c.data[void](), size=c.size() * dtype.itemsize),
-                ), dtype))
+        decoded_names.append(names[i].decode('utf-8'))
+    # names = [name.decode('utf-8') for name in names]
+    df = cudf.DataFrame(_Table.from_ptr(blaz_move(dereference(temp).cudfTable), decoded_names)._data)
+    df._rename_columns(decoded_names)
     return df
-
-
-
+    
 cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
     query = str.encode(queryPy)
