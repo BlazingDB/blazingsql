@@ -1,8 +1,0 @@
-DEBUG: com.blazingdb.calcite.schema.BlazingSchema - getting table names
-DEBUG: com.blazingdb.calcite.application.RelationalAlgebraGenerator - non optimized
-LogicalProject(n_nationkey=[$0], n_name=[$1], n_regionkey=[$2])
-  LogicalTableScan(table=[[main, nation]])
-
-DEBUG: com.blazingdb.calcite.application.RelationalAlgebraGenerator - optimized
-BindableTableScan(table=[[main, nation]], projects=[[0, 1, 2]], aliases=[[n_nationkey, n_name, n_regionkey]])
-
