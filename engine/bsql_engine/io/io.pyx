@@ -38,7 +38,9 @@ import nvcategory
 
 from cudf._libxx.lib cimport *
 from cudf._libxx.table cimport *
-# from cudf._libxx.table import *
+from cudf._lib.cudf cimport *
+from cudf._lib.cudf import *
+
 from cudf._libxx.column import cudf_to_np_types
 
 from bsql_engine.io cimport cio
@@ -348,7 +350,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       # else:
       #   currentTableSchemaCpp.row_groups_ids = []
 
-      tableSchemaCpp.push_back(currentTableSchemaCpp)
+      tableSchemaCpp.push_back(currentTableSchemaCpp);
       tableIndex = tableIndex + 1
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
@@ -356,41 +358,20 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    cdef unique_ptr[cio.ResultSet] temp = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
-
-    # cdef unique_ptr[table] tempTable = Table.from_unique_ptr(blaz_move(dereference(temp).cudfTable), dereference(temp).names)
+    temp = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
     
-    # return cudf.DataFrame(Table.from_unique_ptr(dereference(temp).cudfTable, dereference(temp).names)._data)
-
-  # cdef table_view ttemp = dereference(dereference(temp).cudfTable).view()
-
-
-    cdef u_table ttemp = blaz_move(dereference(temp).cudfTable)
-    namesy = dereference(temp).names
-    tablyy = Table.from_unique_ptr(ttemp, namesy)
-    return cudf.DataFrame(tablyy._data)
-
-    # return cudf.DataFrame(Table.from_unique_ptr(blaz_move(dereference(temp).cudfTable), dereference(temp).names)._data)
+    # TODO WSM. When we migrate to cudf 0.13 we will likely only need to do something like:
+    # cudf.DataFrame(Table.from_unique_ptr(blaz_move(dereference(temp).cudfTable), names)._data)
+    # and we dont have to call _rename_columns. We are doing that here only because the current from_ptr is not properly setting the column names
+    names = dereference(temp).names
+    decoded_names = []
+    for i in range(names.size()):
+        decoded_names.append(names[i].decode('utf-8'))
+    # names = [name.decode('utf-8') for name in names]
+    df = cudf.DataFrame(_Table.from_ptr(blaz_move(dereference(temp).cudfTable), decoded_names)._data)
+    df._rename_columns(decoded_names)
+    return df
     
-    return cudf.DataFrame(_Table.from_ptr(blaz_move(dereference(temp).cudfTable), dereference(temp).names)._data)
-    # return df._rename_columns(dereference(temp).names)
-
-    # names = dereference(dereference(temp).blazingTable).names()
-    # view = dereference(dereference(temp).blazingTable).view()
-
-    # for i in range(names.size()):
-    #     c = view.column(i)
-    #     dtype = cudf_to_np_types[c.type().id()]
-    #     df.add_column(
-    #         names[i].decode('utf-8'),
-    #         build_column(
-    #             cudf.core.Buffer(
-    #                 rmm.DeviceBuffer(ptr=<long long>c.data[void](), size=c.size() * dtype.itemsize),
-    #             ), dtype))
-    # return df
-
-
-
 cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
     query = str.encode(queryPy)
