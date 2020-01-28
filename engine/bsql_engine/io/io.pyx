@@ -197,9 +197,12 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
     cdef vector[string] arg_values
     cdef TableSchema cpp_schema
 
-    for col in schema['columns']:
+    for col in schema['names']:
         #cpp_schema.columns.push_back(column_view_from_column(schema['columns'][col]._column))
-        cpp_schema.names.push_back(col.encode())
+        cpp_schema.names.push_back(col)
+
+    for col_type in schema['types']:
+        cpp_schema.types.push_back(col_type)
 
     for key, value in args.items():
       arg_keys.push_back(str.encode(key))
@@ -216,7 +219,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
     # return_object['files'] = temp.files
     return_object['file_type'] = temp.data_type
     return_object['args'] = args
-    return_object['columns'] = cudf.DataFrame()
+    return_object['types'] = temp.types
     return_object['names'] = temp.names
     # return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
     # return_object['num_row_groups']= temp.num_row_groups
