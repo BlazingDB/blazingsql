@@ -23,11 +23,13 @@ if [ ! -z $2 ]; then
   PYTHON_VERSION=$2
 fi
 
-docker run --rm \
+docker run --rm -ti \
     --runtime=nvidia \
+    -u $(id -u):$(id -g) \
     -e CUDA_VER=${CUDA_VERSION} -e PYTHON=$PYTHON_VERSION \
     -e CONDA_UPLOAD=$3 -e MY_UPLOAD_KEY=$4 \
     -e WORKSPACE=$WORKSPACE \
+    -v /etc/passwd:/etc/passwd \
     -v $CONDA_RC:/.condarc \
     -v $CONDA_PKGS:/opt/conda/pkgs/ \
     -v $CONDA_CACHE:/.cache/ \
