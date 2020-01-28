@@ -189,23 +189,19 @@ private:
 	 * @param position the position in the local buffer where this data needs to be written
 	 */
 	CUDA_DEVICE_CALLABLE void get_data_from_buffer(int64_t * data, int64_t * buffer, int position) {
-		int64_t * register_ptr = buffer + (position * blockDim.x + threadIdx.x);
-		*data = *register_ptr;
+		*data = *(buffer + (position * blockDim.x + threadIdx.x));
 	}
 
 	CUDA_DEVICE_CALLABLE void get_data_from_buffer(double * data, int64_t * buffer, int position) {
-		int64_t * register_ptr = buffer + (position * blockDim.x + threadIdx.x);
-		*data = __longlong_as_double(*register_ptr);
+		*data = __longlong_as_double(*(buffer + (position * blockDim.x + threadIdx.x)));
 	}
 
 	CUDA_DEVICE_CALLABLE void store_data_in_buffer(int64_t data, int64_t * buffer, int position) {
-		int64_t * register_ptr = buffer + (position * blockDim.x + threadIdx.x);
-		*register_ptr = data;
+		*(buffer + (position * blockDim.x + threadIdx.x)) = data;
 	}
 
 	CUDA_DEVICE_CALLABLE void store_data_in_buffer(double data, int64_t * buffer, int position) {
-		int64_t * register_ptr = buffer + (position * blockDim.x + threadIdx.x);
-		*register_ptr = __double_as_longlong(data);
+		*(buffer + (position * blockDim.x + threadIdx.x)) = __double_as_longlong(data);
 	}
 
 	/**
@@ -217,8 +213,7 @@ private:
 																					cudf::size_type col_index,
 																					cudf::size_type row,
 																					int64_t * buffer) {
-			int64_t * register_ptr = buffer + (col_index * blockDim.x + threadIdx.x);
-			*register_ptr =	static_cast<int64_t>(table.column(col_index).element<ColType>(row));
+			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row));
 		}
 
 		template <typename ColType, std::enable_if_t<std::is_floating_point<ColType>::value> * = nullptr>
@@ -226,8 +221,7 @@ private:
 																					cudf::size_type col_index,
 																					cudf::size_type row,
 																					int64_t * buffer) {
-			int64_t * register_ptr = buffer + (col_index * blockDim.x + threadIdx.x);
-			*register_ptr =	__double_as_longlong(static_cast<double>(table.column(col_index).element<ColType>(row)));
+			*(buffer + (col_index * blockDim.x + threadIdx.x)) = __double_as_longlong(static_cast<double>(table.column(col_index).element<ColType>(row)));
 		}
 
 		template <typename ColType, std::enable_if_t<cudf::is_timestamp<ColType>()> * = nullptr>
@@ -235,8 +229,7 @@ private:
 																					cudf::size_type col_index,
 																					cudf::size_type row,
 																					int64_t * buffer) {
-			int64_t * register_ptr = buffer + (col_index * blockDim.x + threadIdx.x);
-			*register_ptr =	static_cast<int64_t>(table.column(col_index).element<ColType>(row).time_since_epoch().count());
+			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row).time_since_epoch().count());
 		}
 
 		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
@@ -266,8 +259,7 @@ private:
 																					cudf::size_type row,
 																					int64_t * buffer,
 																					int position) {
-			int64_t * register_ptr = buffer + (position * blockDim.x + threadIdx.x);
-			out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(*register_ptr);
+			out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(*(buffer + (position * blockDim.x + threadIdx.x)));
 		}
 
 		template <typename ColType, std::enable_if_t<std::is_floating_point<ColType>::value> * = nullptr>
@@ -276,8 +268,7 @@ private:
 																					cudf::size_type row,
 																					int64_t * buffer,
 																					int position) {
-			int64_t * register_ptr = buffer + (position * blockDim.x + threadIdx.x);
-			out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(__longlong_as_double(*register_ptr));
+			out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(__longlong_as_double(*(buffer + (position * blockDim.x + threadIdx.x))));
 		}
 
 		template <typename ColType, std::enable_if_t<cudf::is_timestamp<ColType>()> * = nullptr>
@@ -286,8 +277,7 @@ private:
 																					cudf::size_type row,
 																					int64_t * buffer,
 																					int position) {
-			int64_t * register_ptr = buffer + (position * blockDim.x + threadIdx.x);
-			out_table.column(col_index).element<ColType>(row) =	static_cast<typename ColType::rep>(*register_ptr);
+			out_table.column(col_index).element<ColType>(row) =	static_cast<typename ColType::rep>(*(buffer + (position * blockDim.x + threadIdx.x)));
 		}
 
 		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
