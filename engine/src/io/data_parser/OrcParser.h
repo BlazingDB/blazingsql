@@ -29,7 +29,7 @@ public:
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, Schema & schema);
 
 private:
-	cudf_io::read_orc_args orc_args{cudf_io::source_info("")};
+	cudf::experimental::io::read_orc_args orc_args{cudf_io::source_info("")};
 };
 
 } /* namespace io */
