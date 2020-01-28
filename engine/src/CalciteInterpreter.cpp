@@ -628,11 +628,10 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			queryContext->incrementQueryStep();
 			return std::make_pair(std::move(child_frame), child_frame_view);
 
-		} else if(ral::operators::is_aggregate(query[0])) {
+		} else if(ral::operators::experimental::is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
-			child_frame = ral::operators::process_aggregate(child_frame->toBlazingTableView(), query[0], queryContext);
-			//ral::operators::process_aggregate(child_frame, query[0], queryContext);
+			child_frame = ral::operators::experimental::process_aggregate(child_frame->toBlazingTableView(), query[0], queryContext);
 
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_aggregate",

@@ -53,11 +53,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			(get_named_expression(combined_expression, "dir" + std::to_string(i)) == DESCENDING_ORDER_SORT_TEXT);		 
 	}
 
-	bool apply_limit = !limitRowsStr.empty();
-	cudf::size_type limitRows = apply_limit ? std::stoi(limitRowsStr) : 0;
+	bool apply_limit = (limitRowsStr.empty() == false);
+	cudf::size_type limitRows = apply_limit ? std::stoi(limitRowsStr) : -1;
 	if(context->getTotalNodes() <= 1) {		
-		
-		apply_limit = limitRows < table.num_rows();
+		if (limitRows > 0)
+			apply_limit = limitRows < table.num_rows();
 		
 		if(num_sort_columns > 0) {
 			std::unique_ptr<ral::frame::BlazingTable> sorted_table = logicalSort(table, sortColIndices, sortOrderTypes);
