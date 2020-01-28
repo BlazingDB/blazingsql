@@ -87,7 +87,7 @@ function(blazingdb_artifact)
 
     if (ARG_PUBLIC_HEADERS)
         message(STATUS "Log: public headers ${ARG_PUBLIC_HEADERS}")
-        install(DIRECTORY ${ARG_PUBLIC_HEADERS} DESTINATION include)
+        install(DIRECTORY ${ARG_PUBLIC_HEADERS} DESTINATION include FILES_MATCHING PATTERN "*.h")
     endif ()
 
     add_library(${ARG_TARGET} SHARED ${ARG_SOURCES})
