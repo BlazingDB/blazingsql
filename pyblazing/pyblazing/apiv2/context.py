@@ -638,7 +638,7 @@ class BlazingContext(object):
                 in_file=in_file)
 
             table.slices = table.getSlices(len(self.nodes))
-            if is_hive_input:
+            if is_hive_input and len(extra_columns) > 0:
                 # 3 cols concretas hive 2 cols particiones (virtuales) => 5 columnas 
                 parsedMetadata = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns, partitions)
                 table.metadata = parsedMetadata
