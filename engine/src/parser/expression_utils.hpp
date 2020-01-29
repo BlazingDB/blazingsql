@@ -6,7 +6,8 @@
 
 #include "Interpreter/interpreter_cpp.h"
 
-static std::map<std::string, interops::operator_type> gdf_unary_operator_map = {
+static std::map<std::string, interops::operator_type> operator_map = {
+	// Unary operators
 	{"NOT", interops::operator_type::BLZ_NOT},
 	{"SIN", interops::operator_type::BLZ_SIN},
 	{"ASIN", interops::operator_type::BLZ_ASIN},
@@ -14,7 +15,7 @@ static std::map<std::string, interops::operator_type> gdf_unary_operator_map = {
 	{"ACOS", interops::operator_type::BLZ_ACOS},
 	{"TAN", interops::operator_type::BLZ_TAN},
 	{"ATAN", interops::operator_type::BLZ_ATAN},
-	{"BL_FLOUR", interops::operator_type::BLZ_FLOOR},
+	{"FLOOR", interops::operator_type::BLZ_FLOOR},
 	{"CEIL", interops::operator_type::BLZ_CEIL},
 	{"ABS", interops::operator_type::BLZ_ABS},
 	{"LOG10", interops::operator_type::BLZ_LOG},
@@ -33,11 +34,9 @@ static std::map<std::string, interops::operator_type> gdf_unary_operator_map = {
 	{"CAST_DOUBLE", interops::operator_type::BLZ_CAST_DOUBLE},
 	{"CAST_DATE", interops::operator_type::BLZ_CAST_DATE},
 	{"CAST_TIMESTAMP", interops::operator_type::BLZ_CAST_TIMESTAMP},
-	{"CAST_VARCHAR", interops::operator_type::BLZ_CAST_VARCHAR}
-};
-
-
-static std::map<std::string, interops::operator_type> gdf_binary_operator_map = {
+	{"CAST_VARCHAR", interops::operator_type::BLZ_CAST_VARCHAR},
+	
+	// Binary operators
 	{"=", interops::operator_type::BLZ_EQUAL},
 	{"<>", interops::operator_type::BLZ_NOT_EQUAL},
 	{">", interops::operator_type::BLZ_GREATER},
@@ -61,10 +60,6 @@ static std::map<std::string, interops::operator_type> gdf_binary_operator_map = 
 
 static std::vector<std::string> CALCITE_DATA_TYPES = {
 	"INTEGER", "BIGINT", "FLOAT", "DOUBLE", "DATE", "TIMESTAMP", "VARCHAR"};
-
-bool is_binary_operator_token(const std::string & token);
-
-bool is_unary_operator_token(const std::string & token);
 
 bool is_number(const std::string & token);
 
@@ -92,6 +87,4 @@ bool is_inequality(const std::string& token);
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name);
 
-interops::operator_type get_unary_operation(const std::string & operator_string);
-
-interops::operator_type get_binary_operation(const std::string & operator_string);
+interops::operator_type map_to_operator_type(const std::string & operator_token);

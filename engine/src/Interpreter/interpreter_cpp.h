@@ -80,6 +80,10 @@ enum class operator_type {
 	BLZ_STR_CONCAT
 };
 
+bool is_unary_operator(operator_type op);
+
+bool is_binary_operator(operator_type op);
+
 cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op);
 
 cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, operator_type op);
@@ -87,8 +91,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 void add_expression_to_interpreter_plan(const std::vector<std::string> & tokenized_expression,
 	const cudf::table_view & table,
 	const std::map<column_index_type, column_index_type> & expr_idx_to_col_idx_map,
-	column_index_type expression_position,
-	column_index_type num_total_outputs,
+	cudf::size_type expression_position,
+	cudf::size_type num_total_outputs,
 	std::vector<column_index_type> & left_inputs,
 	std::vector<column_index_type> & right_inputs,
 	std::vector<column_index_type> & outputs,

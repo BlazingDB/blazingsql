@@ -512,6 +512,74 @@ std::string like_expression_to_regex_str(const std::string & like_exp) {
 
 }  // namespace detail
 
+bool is_unary_operator(operator_type op) {
+	switch (op)
+	{
+	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_ABS:
+	case operator_type::BLZ_FLOOR:
+	case operator_type::BLZ_CEIL:
+	case operator_type::BLZ_SIN:
+	case operator_type::BLZ_COS:
+	case operator_type::BLZ_ASIN:
+	case operator_type::BLZ_ACOS:
+	case operator_type::BLZ_TAN:
+	case operator_type::BLZ_COTAN:
+	case operator_type::BLZ_ATAN:
+	case operator_type::BLZ_LN:
+	case operator_type::BLZ_LOG:
+	case operator_type::BLZ_YEAR:
+	case operator_type::BLZ_MONTH:
+	case operator_type::BLZ_DAY:
+	case operator_type::BLZ_HOUR:
+	case operator_type::BLZ_MINUTE:
+	case operator_type::BLZ_SECOND:
+	case operator_type::BLZ_IS_NULL:
+	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_CAST_INTEGER:
+	case operator_type::BLZ_CAST_BIGINT:
+	case operator_type::BLZ_CAST_FLOAT:
+	case operator_type::BLZ_CAST_DOUBLE:
+	case operator_type::BLZ_CAST_DATE:
+	case operator_type::BLZ_CAST_TIMESTAMP:
+	case operator_type::BLZ_CAST_VARCHAR:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool is_binary_operator(operator_type op) {
+	switch (op)
+	{
+  case operator_type::BLZ_ADD:
+  case operator_type::BLZ_SUB:
+  case operator_type::BLZ_MUL:
+  case operator_type::BLZ_DIV:
+  case operator_type::BLZ_MOD:
+  case operator_type::BLZ_POW:
+  case operator_type::BLZ_EQUAL:
+  case operator_type::BLZ_NOT_EQUAL:
+  case operator_type::BLZ_LESS:
+  case operator_type::BLZ_GREATER:
+  case operator_type::BLZ_LESS_EQUAL:
+  case operator_type::BLZ_GREATER_EQUAL:
+  case operator_type::BLZ_BITWISE_AND:
+  case operator_type::BLZ_BITWISE_OR:
+  case operator_type::BLZ_BITWISE_XOR:
+  case operator_type::BLZ_LOGICAL_AND:
+  case operator_type::BLZ_LOGICAL_OR:
+	case operator_type::BLZ_FIRST_NON_MAGIC:
+	case operator_type::BLZ_MAGIC_IF_NOT:
+	case operator_type::BLZ_STR_LIKE:
+	case operator_type::BLZ_STR_SUBSTRING:
+	case operator_type::BLZ_STR_CONCAT:
+		return true;
+	default:
+		return false;
+	}
+}
+
 cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
 	switch (op)
 	{
@@ -591,8 +659,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
   case operator_type::BLZ_GREATER:
   case operator_type::BLZ_LESS_EQUAL:
   case operator_type::BLZ_GREATER_EQUAL:
-  case operator_type::BLZ_LOGICAL_OR:
-  case operator_type::BLZ_LOGICAL_AND:
+	case operator_type::BLZ_LOGICAL_AND:
+	case operator_type::BLZ_LOGICAL_OR:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_POW:
 		return cudf::type_id::FLOAT64;
@@ -619,8 +687,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 void add_expression_to_interpreter_plan(const std::vector<std::string> & tokenized_expression,
 	const cudf::table_view & table,
 	const std::map<column_index_type, column_index_type> & expr_idx_to_col_idx_map,
-	column_index_type expression_position,
-	column_index_type num_total_outputs,
+	cudf::size_type expression_position,
+	cudf::size_type num_total_outputs,
 	std::vector<column_index_type> & left_inputs,
 	std::vector<column_index_type> & right_inputs,
 	std::vector<column_index_type> & outputs,
@@ -645,7 +713,8 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 			cudf::size_type src_str_col_idx = -1;
 			bool new_input_col_added = false;
 
-			if(is_binary_operator_token(token)) {
+			operator_type operation = map_to_operator_type(token);
+			if(is_binary_operator(operation)) {
 				const std::string left_operand = operand_stack.back().token;
 				if(!is_literal(left_operand)) {
 					if(operand_stack.back().position >= start_processing_position) {
@@ -662,7 +731,6 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 				}
 				operand_stack.pop_back();
 
-				operator_type operation = get_binary_operation(token);
 				operators.push_back(operation);
 
 				if(is_literal(left_operand) && is_literal(right_operand)) {
@@ -805,7 +873,6 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 				}
 				operand_stack.pop_back();
 
-				operator_type operation = get_unary_operation(token);
 				size_t left_index = get_index(left_operand);
 
 				// column_index_type mapped_left_index = src_str_col_map[left_index];

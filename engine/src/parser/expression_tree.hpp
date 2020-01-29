@@ -1,20 +1,32 @@
 #pragma once
-#include "parser/expression_utils.hpp"
+
 #include <algorithm>
 #include <blazingdb/io/Util/StringUtil.h>
-#include <cstring>
 #include <iostream>
 #include <sstream>
-#include <stack>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 #include <vector>
+
+#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace parser {
 
-enum parse_node_type { OPERATOR, OPERAND };
+enum class parse_node_type { OPERATOR, OPERAND };
+
+struct parse_node;
+struct operad_node;
+struct operator_node;
+
+struct parse_node_visitor {
+	virtual void visit(const operad_node& node) = 0;
+	virtual void visit(const operator_node& node) = 0;
+};
+
+struct parse_node_transformer {
+	virtual parse_node * transform(const operad_node& node) = 0;
+	virtual parse_node * transform(const operator_node& node) = 0;
+};
 
 struct parse_node {
 	parse_node_type type;
@@ -23,17 +35,40 @@ struct parse_node {
 
 	parse_node(parse_node_type type, const std::string & value) : type{type}, value{value} {};
 
+	virtual void accept(parse_node_visitor&) = 0;
+	virtual parse_node * accept(parse_node_transformer&) = 0;
+
 	virtual parse_node * transform_to_custom_op() = 0;
 };
 
 struct operad_node : parse_node {
-	operad_node(const std::string & value) : parse_node{OPERAND, value} {};
+	operad_node(const std::string & value) : parse_node{parse_node_type::OPERAND, value} {};
 
+	void accept(parse_node_visitor& visitor) override {	visitor.visit(*this); }
+	parse_node * accept(parse_node_transformer& transformer) override { return transformer.transform(*this); }
+	
 	parse_node * transform_to_custom_op() override { return this; }
 };
 
 struct operator_node : parse_node {
-	operator_node(const std::string & value) : parse_node{OPERATOR, value} {};
+	operator_node(const std::string & value) : parse_node{parse_node_type::OPERATOR, value} {};
+
+	void accept(parse_node_visitor& visitor) override {
+		for(auto && c : this->children) {
+			c->accept(visitor);
+		}
+		visitor.visit(*this);
+	}
+
+	parse_node * accept(parse_node_transformer& transformer) override {
+		for(auto && c : this->children) {
+			parse_node * transformed_node = c->accept(transformer);
+			if(transformed_node != c.get()) {
+				c.reset(transformed_node);
+			}			
+		}
+		return transformer.transform(*this);
+	}
 
 	parse_node * transform_to_custom_op() override {
 		for(auto && c : this->children) {
@@ -202,7 +237,7 @@ private:
 		if(!node)
 			return "";
 
-		if(node->type == OPERATOR) {
+		if(node->type == parse_node_type::OPERATOR) {
 			std::string operands = "";
 			for(auto && c : node->children) {
 				std::string sep = operands.empty() ? "" : ", ";
@@ -216,7 +251,7 @@ private:
 	}
 
 public:
-	parse_tree(){};
+	parse_tree() = default;
 
 	void build(const std::string & expression) {
 		build_helper(nullptr, expression, 0);
@@ -226,6 +261,19 @@ public:
 	void print() {
 		assert(!!this->root);
 		print_helper(this->root.get(), 0);
+	}
+
+	void visit(parse_node_visitor& visitor) {
+		assert(!!this->root);
+		this->root->accept(visitor);
+	}
+
+	void transform(parse_node_transformer& transformer) {
+		assert(!!this->root);
+		parse_node * transformed_root = this->root->accept(transformer);
+		if(transformed_root != this->root.get()) {
+			this->root.reset(transformed_root);
+		}
 	}
 
 	void transform_to_custom_op() {
@@ -238,7 +286,7 @@ public:
 
 	void split_inequality_join_into_join_and_filter(std::string & join_out, std::string & filter_out) {
 		assert(!!this->root);
-		assert(this->root.get()->type == OPERATOR);
+		assert(this->root.get()->type == parse_node_type::OPERATOR);
 
 		if(this->root.get()->value == "=") {
 			// this would be a regular single equality join
