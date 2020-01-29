@@ -311,6 +311,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 			std::unique_ptr<cudf::column> aggregation_input_scope_holder;
 			CudfColumnView aggregation_input; 
 			if(contains_evaluation(aggregation_input_expressions[i])) {
+				// aggregation_input_scope_holder = evaluate_expression(table.view(), aggregation_input_expressions[i], cudf::data_type output_type);
 				// WSM TODO cudf0.12 need evaluate_expression
 				// put output into aggregation_input and add to aggregation_input_scope_holder
 			} else {
@@ -514,9 +515,10 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 
 	// lets get the unique expressions. This is how many aggregation requests we will need
 	std::vector<std::string> unique_expressions = aggregation_input_expressions;
-	sort( unique_expressions.begin(), unique_expressions.end() );
-	unique_expressions.erase( unique( unique_expressions.begin(), unique_expressions.end() ), unique_expressions.end() );
-
+	std::sort( unique_expressions.begin(), unique_expressions.end() );
+	auto it = std::unique( unique_expressions.begin(), unique_expressions.end() );
+	unique_expressions.resize( std::distance(unique_expressions.begin(),it) );
+	
 	// We will iterate over the unique expressions and create an aggregation request for each one. 
 	// We do it this way, because you could have something like min(colA), max(colA), sum(colA). 
 	// These three aggregations would all be in one request because they have the same input
@@ -525,13 +527,14 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	std::vector<int> agg_out_indices;
 	std::vector<std::string> agg_output_column_names;
 	for (size_t u = 0; u < unique_expressions.size(); u++){
-		std::string expression = aggregation_input_expressions[u];
+		std::string expression = unique_expressions[u];
 
 		CudfColumnView aggregation_input; // this is the input from which we will crete the aggregation request
 		std::vector<std::unique_ptr<cudf::experimental::aggregation>> agg_ops_for_request;
 		for (size_t i = 0; i < aggregation_input_expressions.size(); i++){
 			if (expression == aggregation_input_expressions[i]){
 
+				int column_index = -1;
 				// need to calculate or determine the aggregation input only once
 				if (aggregation_input.size() == 0){
 					// this means we have a COUNT(*). So lets create a simple column with no nulls
@@ -545,10 +548,12 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						aggregation_input  = aggregation_inputs_scope_holder.back()->view();
 					} else {
 						if(contains_evaluation(expression)) {
+							std::cout<<"had evaluation~!"<<std::endl;
 							// WSM TODO cudf0.12 need evaluate_expression
 							// put output into aggregation_input and add to aggregation_inputs_scope_holder
 						} else {
-							aggregation_input = table.view().column(get_index(expression));
+							column_index = get_index(expression);
+							aggregation_input = table.view().column(column_index);
 						}
 					}
 				}
@@ -560,7 +565,11 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 					if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT) {  // COUNT(*) case
 						agg_output_column_names.push_back(aggregator_to_string(aggregation_types[i]) + "(*)");
 					} else {
-						agg_output_column_names.push_back(aggregator_to_string(aggregation_types[i]) + "(" + table.names().at(i) + ")");
+						if (column_index == -1){
+							agg_output_column_names.push_back(aggregator_to_string(aggregation_types[i]) + "(" + expression + ")");
+						} else {
+							agg_output_column_names.push_back(aggregator_to_string(aggregation_types[i]) + "(" + table.names().at(column_index) + ")");
+						}						
 					}
 				} else {
 					agg_output_column_names.push_back(aggregation_column_assigned_aliases[i]);
