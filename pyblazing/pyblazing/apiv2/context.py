@@ -256,8 +256,8 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
         curr_table = partitions[partition_name]
         for col_name, col_value_id in curr_table:
             table_partition.setdefault(col_name, []).append(col_value_id)
-        minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index);
-        minmax_metadata_table[len(minmax_metadata_table) - 1].append(0);
+        minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
+        minmax_metadata_table[len(minmax_metadata_table) - 1].append(0)
 
     for index in range(n_cols):
         col_name = columns[index]
@@ -267,6 +267,8 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
             minmax_metadata_table[2*index] = col_value_ids
             minmax_metadata_table[2*index+1] = col_value_ids
         else:
+            if dtypes[col_name] == np.object or dtypes[col_name] == np.dtype('datetime64[ms]') or dtypes[col_name] == np.datetime64:
+                return cudf.DataFrame({})
             minmax_metadata_table[2*index] = [np.iinfo(dtypes[col_name]).min] * n_files
             minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[col_name]).max] * n_files
 
