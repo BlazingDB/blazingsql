@@ -332,7 +332,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
 
       # TODO: Remove 4 == DataType.CUDF. Now there is a cython conflict with pyarrow.DataType
       if table.fileType == 4:
-          names = [str.encode(x) for x in table.input.dtypes.keys()]
+          column_views.resize(0)
           for cython_col in table.input._data.values():
               column_views.push_back(cython_col.view())
           currentTableSchemaCpp.blazingTableView = BlazingTableView(table_view(column_views), names)
