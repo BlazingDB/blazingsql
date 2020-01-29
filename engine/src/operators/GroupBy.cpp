@@ -11,6 +11,7 @@
 #include "utilities/RalColumn.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <blazingdb/io/Util/StringUtil.h>
+#include "execution_graph/logic_controllers/LogicalFilter.h"
 #include <functional>
 #include <future>
 #include <iostream>
@@ -115,8 +116,7 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamples(
 																	groupbyColumns, 0.1);
 
-		// WSM TODO cudf0.12 waiting on logger
-		// Library::Logging::Logger().logInfo(timer.logDuration(context, "distributed groupby_without_aggregations part 1 generateSample"));
+		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed groupby_without_aggregations part 1 generateSample"));
 
 		std::unique_ptr<ral::frame::BlazingTable> grouped_table;
 		std::thread groupbyThread{[](Context * context,
@@ -125,9 +125,8 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 								std::unique_ptr<ral::frame::BlazingTable> & grouped_table) {
 								static CodeTimer timer2;
 								grouped_table = compute_groupby_without_aggregations(table, group_column_indices);
-								// WSM TODO cudf0.12 waiting on logger
-								//    Library::Logging::Logger().logInfo(
-								// 	   timer2.logDuration(context, "distributed groupby_without_aggregations part 2 async compute_groupby_without_aggregations"));
+								Library::Logging::Logger().logInfo(
+								 	   timer2.logDuration(*context, "distributed groupby_without_aggregations part 2 async compute_groupby_without_aggregations"));
 								timer2.reset();
 							},
 		context,
@@ -156,9 +155,8 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 			context->incrementQuerySubstep();
 			distributePartitionPlan(context, partitionPlan->toBlazingTableView());
 
-			// WSM TODO cudf0.12 waiting on logger
-			// Library::Logging::Logger().logInfo(timer.logDuration(
-			// 	context, "distributed groupby_without_aggregations part 2 collectSamples generatePartitionPlans distributePartitionPlan"));
+			Library::Logging::Logger().logInfo(timer.logDuration(
+			 	*context, "distributed groupby_without_aggregations part 2 collectSamples generatePartitionPlans distributePartitionPlan"));
 		} else {
 			context->incrementQuerySubstep();
 			sendSamplesToMaster(context, selfSamples->toBlazingTableView(), total_rows_table);
@@ -166,9 +164,8 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 			context->incrementQuerySubstep();
 			partitionPlan = getPartitionPlan(context);
 
-			// WSM TODO cudf0.12 waiting on logger
-			// Library::Logging::Logger().logInfo(
-			// 	timer.logDuration(context, "distributed groupby_without_aggregations part 2 sendSamplesToMaster getPartitionPlan"));
+			Library::Logging::Logger().logInfo(
+			 	timer.logDuration(*context, "distributed groupby_without_aggregations part 2 sendSamplesToMaster getPartitionPlan"));
 			
 		}
 
@@ -245,9 +242,8 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_without_groupby(Context *
 		return results; 
 	}
 
-	// WSM TODO cudf0.12
-	// Library::Logging::Logger().logInfo(
-	// 	timer.logDuration(queryContext, "aggregations_without_groupby part 1 compute_aggregations"));
+	Library::Logging::Logger().logInfo(
+	 	timer.logDuration(*context, "aggregations_without_groupby part 1 compute_aggregations"));
 	timer.reset();
 
 	if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
@@ -274,9 +270,8 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_without_groupby(Context *
 		std::unique_ptr<ral::frame::BlazingTable> merged_results = compute_aggregations_without_groupby(concatenated_aggregations->toBlazingTableView(), 
 				mod_aggregation_types, mod_aggregation_input_expressions, concatenated_aggregations->names());
 
-		// WSM TODO cudf0.12
-		// Library::Logging::Logger().logInfo(timer.logDuration(
-		// 	queryContext, "aggregations_without_groupby part 2 collectPartitions and merged"));
+		Library::Logging::Logger().logInfo(timer.logDuration(
+		 	*context, "aggregations_without_groupby part 2 collectPartitions and merged"));
 		timer.reset();
 		return merged_results;
 	} else {
@@ -287,9 +282,8 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_without_groupby(Context *
 		context->incrementQuerySubstep();
 		ral::distribution::experimental::distributePartitions(context, selfPartition);
 
-		// WSM TODO cudf0.12
-		// Library::Logging::Logger().logInfo(
-		// 	timer.logDuration(queryContext, "aggregations_without_groupby part 2 distributePartitions"));
+		Library::Logging::Logger().logInfo(
+		 	timer.logDuration(*context, "aggregations_without_groupby part 2 distributePartitions"));
 		timer.reset();
 		return std::unique_ptr<ral::frame::BlazingTable>();
 	}
@@ -308,12 +302,13 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 			numeric_s->set_value((int64_t)(table.view().num_rows()));
 			reductions.emplace_back(std::move(scalar));
 		} else {
-			std::unique_ptr<cudf::column> aggregation_input_scope_holder;
+			std::unique_ptr<CudfColumn> aggregation_input_scope_holder;
 			CudfColumnView aggregation_input; 
 			if(contains_evaluation(aggregation_input_expressions[i])) {
-				// aggregation_input_scope_holder = evaluate_expression(table.view(), aggregation_input_expressions[i], cudf::data_type output_type);
-				// WSM TODO cudf0.12 need evaluate_expression
-				// put output into aggregation_input and add to aggregation_input_scope_holder
+				cudf::type_id max_temp_type = cudf::type_id::EMPTY;
+            	cudf::type_id expression_output_type = get_output_type_expression(table, max_temp_type, aggregation_input_expressions[i]);
+				aggregation_input_scope_holder = ral::processor::evaluate_expression(table.view(), aggregation_input_expressions[i],  cudf::data_type{expression_output_type});
+				aggregation_input = aggregation_input_scope_holder->view();
 			} else {
 				aggregation_input = table.view().column(get_index(aggregation_input_expressions[i]));
 			}
@@ -376,8 +371,7 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamples(
 																	groupbyColumns, 0.1);
 
-		// WSM TODO cudf0.12 waiting on logger
-		// Library::Logging::Logger().logInfo(timer.logDuration(context, "distributed aggregations_with_groupby part 1 generateSample"));
+		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed aggregations_with_groupby part 1 generateSample"));
 
 		std::unique_ptr<ral::frame::BlazingTable> grouped_table;
 		std::thread groupbyThread{[](Context * context,
@@ -390,9 +384,8 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 								static CodeTimer timer2;
 								grouped_table = compute_aggregations_with_groupby(table, aggregation_types, aggregation_input_expressions, 
 													aggregation_column_assigned_aliases, group_column_indices);
-								// WSM TODO cudf0.12 waiting on logger
-								//    Library::Logging::Logger().logInfo(
-								// 	   timer2.logDuration(context, "distributed aggregations_with_groupby part 2 async compute_aggregations_with_groupby"));
+								Library::Logging::Logger().logInfo(
+								 	   timer2.logDuration(*context, "distributed aggregations_with_groupby part 2 async compute_aggregations_with_groupby"));
 								timer2.reset();
 							},
 		context,
@@ -425,9 +418,8 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 			context->incrementQuerySubstep();
 			distributePartitionPlan(context, partitionPlan->toBlazingTableView());
 
-			// WSM TODO cudf0.12 waiting on logger
-			// Library::Logging::Logger().logInfo(timer.logDuration(
-			// 	context, "distributed aggregations_with_groupby part 3 collectSamples generatePartitionPlans distributePartitionPlan"));
+			Library::Logging::Logger().logInfo(timer.logDuration(
+			 	*context, "distributed aggregations_with_groupby part 3 collectSamples generatePartitionPlans distributePartitionPlan"));
 		} else {
 			context->incrementQuerySubstep();
 			sendSamplesToMaster(context, selfSamples->toBlazingTableView(), total_rows_table);
@@ -435,9 +427,8 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 			context->incrementQuerySubstep();
 			partitionPlan = getPartitionPlan(context);
 
-			// WSM TODO cudf0.12 waiting on logger
-			// Library::Logging::Logger().logInfo(
-			// 	timer.logDuration(context, "distributed aggregations_with_groupby part 3 sendSamplesToMaster getPartitionPlan"));
+			Library::Logging::Logger().logInfo(
+			 	timer.logDuration(*context, "distributed aggregations_with_groupby part 3 sendSamplesToMaster getPartitionPlan"));
 			
 		}
 
@@ -478,9 +469,8 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 			}
 		}
 
-		// WSM TODO cudf0.12 waiting on logger
-			// Library::Logging::Logger().logInfo(
-			// 	timer.logDuration(context, "distributed aggregations_with_groupby part 4 collected partitions"));
+		Library::Logging::Logger().logInfo(
+			timer.logDuration(*context, "distributed aggregations_with_groupby part 4 collected partitions"));
 
 		std::unique_ptr<BlazingTable> concatenated_aggregations = ral::utilities::experimental::concatTables(partitions_to_merge);
 	
@@ -500,9 +490,8 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 		std::unique_ptr<ral::frame::BlazingTable> merged_results = compute_aggregations_with_groupby(concatenated_aggregations->toBlazingTableView(), 
 				mod_aggregation_types, mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, mod_group_column_indices);
 
-		// WSM TODO cudf0.12 waiting on logger
-		// Library::Logging::Logger().logInfo(
-		// timer.logDuration(queryContext, "distributed_aggregations_with_groupby part 5 concat and merge"));
+		Library::Logging::Logger().logInfo(
+		 	timer.logDuration(*context, "distributed_aggregations_with_groupby part 5 concat and merge"));
 		timer.reset();
 		return merged_results;
 	}
@@ -545,12 +534,14 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						numeric_s->set_value(0);
 						cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *scalar);
 						aggregation_inputs_scope_holder.emplace_back(std::move(temp));
-						aggregation_input  = aggregation_inputs_scope_holder.back()->view();
+						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					} else {
 						if(contains_evaluation(expression)) {
-							std::cout<<"had evaluation~!"<<std::endl;
-							// WSM TODO cudf0.12 need evaluate_expression
-							// put output into aggregation_input and add to aggregation_inputs_scope_holder
+							cudf::type_id max_temp_type = cudf::type_id::EMPTY;
+							cudf::type_id expression_output_type = get_output_type_expression(table, max_temp_type, expression);
+							aggregation_inputs_scope_holder.emplace_back(ral::processor::evaluate_expression(
+												table.view(), expression, cudf::data_type{expression_output_type}));
+							aggregation_input = aggregation_inputs_scope_holder.back()->view();
 						} else {
 							column_index = get_index(expression);
 							aggregation_input = table.view().column(column_index);
