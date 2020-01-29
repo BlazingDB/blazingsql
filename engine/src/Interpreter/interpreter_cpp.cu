@@ -646,7 +646,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 			bool new_input_col_added = false;
 
 			if(is_binary_operator_token(token)) {
-				const std::string & left_operand = operand_stack.back().token;
+				const std::string left_operand = operand_stack.back().token;
 				if(!is_literal(left_operand)) {
 					if(operand_stack.back().position >= start_processing_position) {
 						processing_space_free[operand_stack.back().position] = true;
@@ -654,7 +654,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 				}
 				operand_stack.pop_back();
 
-				const std::string & right_operand = operand_stack.back().token;
+				const std::string right_operand = operand_stack.back().token;
 				if(!is_literal(right_operand)) {
 					if(operand_stack.back().position >= start_processing_position) {
 						processing_space_free[operand_stack.back().position] = true;
