@@ -18,7 +18,7 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="clean io comms libengine engine pyblazing algebra -t -v -g -n -h"
+VALIDARGS="clean io comms libengine engine pyblazing algebra -t -v -g -n -c -h"
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean        - remove all existing build artifacts and configuration (start
                   over)
@@ -32,6 +32,7 @@ HELP="$0 [-v] [-g] [-n] [-h] [-t]
    -v           - verbose build mode
    -g           - build for debug
    -n           - no install step
+   -c           - copy cio files
    -h           - print this text
    default action (no args) is to build and install all code and packages
 "
@@ -49,6 +50,7 @@ VERBOSE=""
 BUILD_TYPE=Release
 INSTALL_TARGET=install
 TESTS="ON"
+COPY_CIO=""
 
 # Set defaults for vars that may not have been defined externally
 #  FIXME: if INSTALL_PREFIX is not set, check PREFIX, then check
@@ -95,6 +97,9 @@ if hasArg -n; then
 fi
 if hasArg -t; then
     TESTS="OFF"
+fi
+if hasArg -c; then
+    COPY_CIO=1
 fi
 
 # If clean given, run it prior to any other steps
@@ -180,8 +185,10 @@ if buildAll || hasArg engine; then
         python setup.py build_ext --inplace
         python setup.py install --single-version-externally-managed --record=record.txt
 
-        cp `pwd`/cio*.so `pwd`/../../_h_env*/lib/python*/site-packages 2>/dev/null || :
-        cp -r `pwd`/bsql_engine `pwd`/../../_h_env*/lib/python*/site-packages 2>/dev/null || :
+        if [[ ${COPY_CIO} != "" ]]; then
+            cp `pwd`/cio*.so `pwd`/../../_h_env*/lib/python*/site-packages
+            cp -r `pwd`/bsql_engine `pwd`/../../_h_env*/lib/python*/site-packages
+        fi
     else
         python setup.py build_ext --inplace --library-dir=${LIBENGINE_BUILD_DIR}
     fi
@@ -194,8 +201,10 @@ if buildAll || hasArg pyblazing; then
         python setup.py build_ext --inplace
         python setup.py install --single-version-externally-managed --record=record.txt
 
-        cp -r `pwd`/pyblazing `pwd`/../../_h_env*/lib/python*/site-packages 2>/dev/null || :
-        cp -r `pwd`/blazingsql `pwd`/../../_h_env*/lib/python*/site-packages 2>/dev/null || :
+        if [[ ${COPY_CIO} != "" ]]; then
+            cp -r `pwd`/pyblazing `pwd`/../../_h_env*/lib/python*/site-packages
+            cp -r `pwd`/blazingsql `pwd`/../../_h_env*/lib/python*/site-packages
+        fi
     else
         python setup.py build_ext --inplace
     fi
