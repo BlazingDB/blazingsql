@@ -95,17 +95,26 @@ ral::frame::TableViewPair csv_parser::parse(
 		return std::make_pair(nullptr, ral::frame::BlazingTableView());
 	}
 
-	cudf_io::read_csv_args csv_arg = this->csv_args;
+	cudf_io::read_csv_args new_csv_arg = this->csv_args;
 	if(column_indices.size() > 0) {
 		// copy column_indices into use_col_indexes (at the moment is ordered only)
-		csv_args.use_cols_indexes.resize(column_indices.size());
-		csv_args.use_cols_indexes.assign(column_indices.begin(), column_indices.end());
+		new_csv_arg.use_cols_indexes.resize(column_indices.size());
+		new_csv_arg.use_cols_indexes.assign(column_indices.begin(), column_indices.end());
 
-		cudf_io::table_with_metadata csv_table = read_csv_arg_arrow(csv_arg, file);
+		cudf_io::table_with_metadata csv_table = read_csv_arg_arrow(new_csv_arg, file);
 
 		if(csv_table.tbl->num_columns() <= 0)
 			Library::Logging::Logger().logWarn("csv_parser::parse no columns were read");
 
+		// column_indices may be requested in a specific order (not necessarily sorted), but read_csv will output the
+		// columns in the sorted order, so we need to put them back into the order we want
+		std::vector<size_t> idx(column_indices.size());
+		std::iota(idx.begin(), idx.end(), 0);
+		// sort indexes based on comparing values in column_indices
+		std::sort(idx.begin(), idx.end(), [&column_indices](size_t i1, size_t i2) {
+			return column_indices[i1] < column_indices[i2];
+		});
+		
 		std::vector< std::unique_ptr<cudf::column> > columns_out;
 		std::vector<std::string> column_names_out;
 
@@ -115,9 +124,8 @@ ral::frame::TableViewPair csv_parser::parse(
 		std::vector< std::unique_ptr<cudf::column> > table = csv_table.tbl->release();
 
 		for(size_t i = 0; i < column_indices.size(); i++) {
-			size_t idx = column_indices[i];
-			columns_out[i] = std::move(table[idx]);
-			column_names_out[i] = csv_table.metadata.column_names[idx];
+			columns_out[idx[i]] = std::move(table[i]);
+			column_names_out[idx[i]] = csv_table.metadata.column_names[i];
 		}
 
 		std::unique_ptr<CudfTable> cudf_tb = std::make_unique<CudfTable>(std::move(columns_out));

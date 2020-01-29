@@ -17,6 +17,7 @@
 #include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
+#include "Interpreter/interpreter_cpp.h"
 
 bool is_type_signed(cudf::type_id type) {
 	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type ||
@@ -101,171 +102,6 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::s
 	} else if(aggregation == "AVG") {
 		return cudf::type_id::FLOAT64;
 	} else {
-		return cudf::type_id::EMPTY;
-	}
-}
-
-bool is_exponential_operator(gdf_binary_operator_exp operation) { return operation == BLZ_POW; }
-
-bool is_null_check_operator(gdf_unary_operator operation) {
-	return (operation == BLZ_IS_NULL || operation == BLZ_IS_NOT_NULL);
-}
-
-bool is_arithmetic_operation(gdf_binary_operator_exp operation) {
-	return (operation == BLZ_ADD || operation == BLZ_SUB || operation == BLZ_MUL || operation == BLZ_DIV ||
-			operation == BLZ_MOD);
-}
-
-bool is_logical_operation(gdf_binary_operator_exp operation) {
-	return (operation == BLZ_EQUAL || operation == BLZ_NOT_EQUAL || operation == BLZ_GREATER ||
-			operation == BLZ_GREATER_EQUAL || operation == BLZ_LESS || operation == BLZ_LESS_EQUAL ||
-			operation == BLZ_LOGICAL_OR);
-}
-
-bool is_trig_operation(gdf_unary_operator operation) {
-	return (operation == BLZ_SIN || operation == BLZ_COS || operation == BLZ_ASIN || operation == BLZ_ACOS ||
-			operation == BLZ_TAN || operation == BLZ_COTAN || operation == BLZ_ATAN);
-}
-
-cudf::type_id get_signed_type_from_unsigned(cudf::type_id type) {
-	return type;
-	// TODO felipe percy noboa see upgrade to uints
-	//	if(type == GDF_UINT8){
-	//		return GDF_INT16;
-	//	}else if(type == GDF_UINT16){
-	//		return GDF_INT32;
-	//	}else if(type == GDF_UINT32){
-	//		return GDF_INT64;
-	//	}else if(type == GDF_UINT64){
-	//		return GDF_INT64;
-	//	}else{
-	//		return GDF_INT64;
-	//	}
-}
-
-cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator operation) {
-	if(operation == BLZ_CAST_INTEGER) {
-		return cudf::type_id::INT32;
-	} else if(operation == BLZ_CAST_BIGINT) {
-		return cudf::type_id::INT64;
-	} else if(operation == BLZ_CAST_FLOAT) {
-		return cudf::type_id::FLOAT32;
-	} else if(operation == BLZ_CAST_DOUBLE) {
-		return cudf::type_id::FLOAT64;
-	} else if(operation == BLZ_CAST_DATE) {
-		return cudf::type_id::TIMESTAMP_SECONDS;
-	} else if(operation == BLZ_CAST_TIMESTAMP) {
-		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-		return cudf::type_id::TIMESTAMP_MILLISECONDS;
-	} else if(operation == BLZ_CAST_VARCHAR) {
-		return cudf::type_id::CATEGORY;
-	} else if(is_date_type(input_left_type)) {
-		return cudf::type_id::INT16;
-	} else if(is_trig_operation(operation) || operation == BLZ_LOG || operation == BLZ_LN) {
-		if(input_left_type == cudf::type_id::FLOAT32 || input_left_type == cudf::type_id::FLOAT64) {
-			return input_left_type;
-		} else {
-			return cudf::type_id::FLOAT64;
-		}
-	} else if(is_null_check_operator(operation)) {
-		return cudf::type_id::BOOL8;  // TODO: change to bools
-	} else {
-		return input_left_type;
-	}
-}
-
-// todo: get_output_type: add support to coalesce and date operations!
-cudf::type_id get_output_type(
-	cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation) {
-	if(is_arithmetic_operation(operation)) {
-		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
-			// the output shoudl be ther largest float type
-			if(is_type_float(input_left_type) && is_type_float(input_right_type)) {
-				return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
-						   ral::traits::get_dtype_size_in_bytes(input_right_type))
-						   ? input_left_type
-						   : input_right_type;
-			} else if(is_type_float(input_left_type)) {
-				return input_left_type;
-			} else {
-				return input_right_type;
-			}
-		}
-
-		// ok so now we know we have now floating points left
-		// so only things to worry about now are
-		// if both are signed or unsigned, use largest type
-
-		if((is_type_signed(input_left_type) && is_type_signed(input_right_type)) ||
-			(!is_type_signed(input_left_type) && !is_type_signed(input_right_type))) {
-			return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
-					   ral::traits::get_dtype_size_in_bytes(input_right_type))
-					   ? input_left_type
-					   : input_right_type;
-		}
-
-		// now we know one is signed and the other isnt signed, if signed is larger we can just use signed version, if
-		// unsigned is larger we have to use the signed version one step up e.g. an unsigned int32 requires and int64 to
-		// represent all its numbers, unsigned int64 we are just screwed :)
-		if(is_type_signed(input_left_type)) {
-			// left signed
-			// right unsigned
-			if(ral::traits::get_dtype_size_in_bytes(input_left_type) >
-				ral::traits::get_dtype_size_in_bytes(input_right_type)) {
-				// great the left can represent the right
-				return input_left_type;
-			} else {
-				// right type cannot be represented by left so we need to get a signed type big enough to represent the
-				// unsigned right
-				return get_signed_type_from_unsigned(input_right_type);
-			}
-		} else {
-			// right signed
-			// left unsigned
-			if(ral::traits::get_dtype_size_in_bytes(input_left_type) <
-				ral::traits::get_dtype_size_in_bytes(input_right_type)) {
-				return input_right_type;
-			} else {
-				return get_signed_type_from_unsigned(input_left_type);
-			}
-		}
-
-		// convert to largest type
-		// if signed and unsigned convert to signed, upgrade unsigned if possible to determine size requirements
-	} else if(is_logical_operation(operation)) {
-		return cudf::type_id::BOOL8;
-	} else if(is_exponential_operator(operation)) {
-		// assume biggest type unsigned if left is unsigned, signed if left is signed
-
-		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
-			return cudf::type_id::FLOAT64;
-			//		}else if(is_type_signed(input_left_type)){
-			//			return GDF_INT64;
-		} else {
-			// TODO felipe percy noboa see upgrade to uints
-			// return GDF_UINT64;
-			return cudf::type_id::INT64;
-		}
-	} else if(operation == BLZ_MAGIC_IF_NOT) {
-		return input_right_type;
-	} else if(operation == BLZ_FIRST_NON_MAGIC) {
-		if(is_numeric_type(input_left_type) && is_numeric_type(input_right_type)) {
-			if(is_type_float(input_left_type) && !is_type_float(input_right_type)) {
-				return input_left_type;
-			} else if(!is_type_float(input_left_type) && is_type_float(input_right_type)) {
-				return input_right_type;
-			}
-		}
-		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
-				   ral::traits::get_dtype_size_in_bytes(input_right_type))
-				   ? input_left_type
-				   : input_right_type;
-	} else if(operation == BLZ_STR_LIKE) {
-		return cudf::type_id::BOOL8;
-	} else if(operation == BLZ_STR_SUBSTRING || operation == BLZ_STR_CONCAT) {
-		return cudf::type_id::CATEGORY;
-	} else {
-		// TODO percy cudf0.12 was invalid here, is correct to use empty?
 		return cudf::type_id::EMPTY;
 	}
 }
@@ -453,7 +289,7 @@ cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & ta
 						right_operand = left_operand;
 					}
 				}
-				gdf_binary_operator_exp operation = get_binary_operation(token);
+				interops::operator_type operation = get_binary_operation(token);
 				operands.push(get_output_type(left_operand, right_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
 					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
@@ -463,7 +299,7 @@ cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & ta
 				cudf::type_id left_operand = operands.top();
 				operands.pop();
 
-				gdf_unary_operator operation = get_unary_operation(token);
+				interops::operator_type operation = get_unary_operation(token);
 
 				operands.push(get_output_type(left_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
@@ -537,21 +373,6 @@ cudf::experimental::reduction_op get_aggregation_operation_for_reduce(std::strin
 
 	throw std::runtime_error(
 		"In get_aggregation_operation_for_reduce function: aggregation type not supported, " + operator_string);
-}
-
-
-gdf_unary_operator get_unary_operation(std::string operator_string) {
-	if(gdf_unary_operator_map.find(operator_string) != gdf_unary_operator_map.end())
-		return gdf_unary_operator_map[operator_string];
-
-	throw std::runtime_error("In get_unary_operation function: unsupported operator, " + operator_string);
-}
-
-gdf_binary_operator_exp get_binary_operation(std::string operator_string) {
-	if(gdf_binary_operator_map.find(operator_string) != gdf_binary_operator_map.end())
-		return gdf_binary_operator_map[operator_string];
-
-	throw std::runtime_error("In get_binary_operation function: unsupported operator, " + operator_string);
 }
 
 std::vector<std::string> get_tokens_in_reverse_order(const std::string & expression) {

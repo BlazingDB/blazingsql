@@ -37,8 +37,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<column_index_type> right_inputs;
     std::vector<column_index_type> outputs;
     std::vector<column_index_type> final_output_positions;
-    std::vector<gdf_binary_operator_exp> operators;
-    std::vector<gdf_unary_operator> unary_operators;
+    std::vector<interops::operator_type> operators;
     std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
     std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
 
@@ -83,7 +82,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                 }
             }
 
-            names.push_back(cleaned_expression);
+            names[i] = cleaned_expression;
             num_total_outputs++;
         }
         else{
@@ -100,13 +99,13 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                     std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(cudf::data_type(cudf::type_id::INT8), table.view().num_rows());
                     std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(cleaned_expression);
                     temp = cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *literal_scalar);
-                    names.push_back(cleaned_expression);
+                    names[i] = cleaned_expression;
                     columns[i] = std::move(temp);
                 }
             } else {
                 int index = get_index(expression);
 
-                names.push_back(name);
+                names[i] = name;
                 columns[i] = std::make_unique<cudf::column>(table.view().column(index));
             }
         }
@@ -136,7 +135,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                                                     outputs,
                                                     final_output_positions,
                                                     operators,
-                                                    unary_operators,
                                                     left_scalars,
                                                     right_scalars);
 
@@ -153,7 +151,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
                                                 outputs,
                                                 final_output_positions,
                                                 operators,
-                                                unary_operators,
                                                 left_scalars,
                                                 right_scalars);
     }
