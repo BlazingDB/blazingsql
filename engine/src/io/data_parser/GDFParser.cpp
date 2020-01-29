@@ -40,8 +40,17 @@ ral::frame::TableViewPair gdf_parser::parse(std::shared_ptr<arrow::io::RandomAcc
 	if(tableView.num_columns() <= 0) {
 		Library::Logging::Logger().logWarn("gdf_parser::parse no columns were read");
 	}
-
-	return std::make_pair(nullptr, frame::BlazingTableView{tableView, blazingTableView_.names()});
+	
+	std::vector<std::string> column_names_out;
+	column_names_out.resize(column_indices.size());
+	
+	// we need to output the same column names of tableView
+	for (size_t i = 0; i < column_indices.size(); ++i) {
+		size_t idx = column_indices[i];
+		column_names_out[i] = blazingTableView_.names()[idx];
+	}
+	
+	return std::make_pair(nullptr, frame::BlazingTableView{tableView, column_names_out});
 }
 
 void gdf_parser::parse_schema(
