@@ -591,6 +591,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
   case operator_type::BLZ_GREATER:
   case operator_type::BLZ_LESS_EQUAL:
   case operator_type::BLZ_GREATER_EQUAL:
+  case operator_type::BLZ_LOGICAL_OR:
+  case operator_type::BLZ_LOGICAL_AND:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_POW:
 		return cudf::type_id::FLOAT64;

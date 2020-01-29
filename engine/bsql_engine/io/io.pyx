@@ -254,7 +254,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef vector[string] currentTableSchemaCppArgKeys
     cdef vector[string] currentTableSchemaCppArgValues
     cdef vector[string] tableNames
-    cdef vector[gdf_column_ptr] columns
+    cdef vector[type_id] types
     cdef vector[string] names
     cdef TableSchema currentTableSchemaCpp
     cdef NodeMetaDataTCP currentMetadataCpp
@@ -314,14 +314,19 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         for file in table.files:
           currentFilesAll.push_back(file)
       filesAll.push_back(currentFilesAll)
-      columns.resize(0)
+      types.resize(0)
       names.resize(0)
       fileType = fileTypes[tableIndex]
       # TODO: TableSchema will be refactorized
       
       for col_name in table.column_names:
-        names.push_back(col_name)
-        #columns.push_back(column_view_from_column(table.input[col]._column))
+        if table.fileType == 4: #if from gdf
+            names.push_back(col_name.encode())
+        else: # from file
+            names.push_back(col_name)
+
+      for col_type in table.column_types:
+        types.push_back(col_type)
 
       #currentTableSchemaCpp.columns = columns
 
@@ -333,6 +338,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
           currentTableSchemaCpp.blazingTableView = BlazingTableView(table_view(column_views), names)
 
       currentTableSchemaCpp.names = names
+      currentTableSchemaCpp.types = types
       
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
@@ -385,7 +391,7 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     cdef vector[string] currentTableSchemaCppArgKeys
     cdef vector[string] currentTableSchemaCppArgValues
     cdef vector[string] tableNames
-    cdef vector[gdf_column_ptr] columns
+    cdef vector[type_id] types
     cdef vector[string] names
     cdef TableSchema currentTableSchemaCpp
     cdef NodeMetaDataTCP currentMetadataCpp
@@ -442,14 +448,20 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
       for file in table.files:
         currentFilesAll.push_back(file)
     filesAll.push_back(currentFilesAll)
-    columns.resize(0)
+    types.resize(0)
     names.resize(0)
     fileType = fileTypes[tableIndex]
-    # TODO: TableSchema will be refactorized
-    for col in table.input:
-      names.push_back(col.encode())
-      #columns.push_back(column_view_from_column(table.input[col]._column))
-    #currentTableSchemaCpp.columns = columns
+     
+    for col_name in table.column_names:
+      if table.fileType == 4: #if from gdf
+          names.push_back(col_name.encode())
+      else: # from file
+          names.push_back(col_name)
+    
+    for col_type in table.column_types:
+      types.push_back(col_type)
+    
+    currentTableSchemaCpp.types = types
     currentTableSchemaCpp.names = names
     currentTableSchemaCpp.datasource = table.datasource
     if table.calcite_to_file_indices is not None:
