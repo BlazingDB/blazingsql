@@ -21,6 +21,7 @@ cd $WORKSPACE
 export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
+#export DISTUTILS_DEBUG=1
 
 ################################################################################
 # SETUP - Check environment

@@ -4,15 +4,6 @@
 
 export WORKSPACE=$PWD
 
-CONDA_RC=$PWD/.condarc
-CONDA_PKGS=$PWD/conda_pkgs/
-CONDA_CACHE=$PWD/conda_cache/
-
-if [ ! -f "$CONDA_RC" ]; then
-    touch $CONDA_RC
-fi
-mkdir -p $CONDA_PKGS $CONDA_CACHE
-
 CUDA_VERSION="10.0"
 if [ ! -z $1 ]; then
     CUDA_VERSION=$1
@@ -30,9 +21,6 @@ docker run --rm -ti \
     -e CONDA_UPLOAD=$3 -e MY_UPLOAD_KEY=$4 \
     -e WORKSPACE=$WORKSPACE \
     -v /etc/passwd:/etc/passwd \
-    -v $CONDA_RC:/.condarc \
-    -v $CONDA_PKGS:/opt/conda/pkgs/ \
-    -v $CONDA_CACHE:/.cache/ \
     -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
     gpuci/rapidsai-base:cuda${CUDA_VERSION}-centos7-gcc7-py${PYTHON_VERSION} \
     ./ci/gpu/build.sh

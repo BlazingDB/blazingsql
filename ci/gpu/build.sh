@@ -65,7 +65,7 @@ conda list
 ################################################################################
 
 logger "Build BlazingSQL"
-export DISTUTILS_DEBUG=1
+#export DISTUTILS_DEBUG=1
 ${WORKSPACE}/build.sh
 
 ################################################################################

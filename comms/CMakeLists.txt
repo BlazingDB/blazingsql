@@ -22,7 +22,7 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     message(STATUS "Conda environment detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
 endif ()
 
-#########################################################################3
+##########################################################################
 # - compiler stuff ------------------
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -86,8 +86,8 @@ function(blazingdb_artifact)
 
 
     if (ARG_PUBLIC_HEADERS)
-        message(STATUS "Log: public headers ${ARG_PUBLIC_HEADERS}")
-        install(DIRECTORY ${ARG_PUBLIC_HEADERS} DESTINATION include)
+        message(STATUS "Log: public headers ${ARG_PUBLIC_HEADERS}/blazingdb")
+        install(DIRECTORY ${ARG_PUBLIC_HEADERS}/blazingdb DESTINATION include)
     endif ()
 
     add_library(${ARG_TARGET} SHARED ${ARG_SOURCES})
