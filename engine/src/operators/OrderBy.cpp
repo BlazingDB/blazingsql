@@ -20,6 +20,7 @@
 #include <thread>
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>
+#include <cudf/strings/copying.hpp>
 #include <cudf/table/table_view.hpp>
 #include <cudf/column/column_factories.hpp>
 
@@ -250,24 +251,38 @@ cudf::size_type determine_local_limit(Context * context,
 // This function will return a new BlazingTable that only has limitRows rows.
 // This function should only be called if a limit will actually be applied, otherwise it will just make a copy, which we would want to avoid
 std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
-  const ral::frame::BlazingTableView & table, cudf::size_type limitRows){
-
+	const ral::frame::BlazingTableView & table, cudf::size_type limitRows) {
 	cudf::size_type rowSize = table.view().num_rows();
 
 	std::vector<std::unique_ptr<cudf::column>> output_cols;
 
 	if(limitRows < rowSize) {
-
 		for(size_t i = 0; i < table.view().num_columns(); ++i) {
-			std::unique_ptr<cudf::column> output = cudf::experimental::copy_range(table.view().column(i), table.view().column(i), 0, limitRows, 0);
-			output_cols.push_back(std::move(output));
+			cudf::data_type columnType = table.view().column(i).type();
+			cudf::type_id columnTypeId = columnType.id();
+
+			if((cudf::CATEGORY == columnTypeId) || (cudf::EMPTY == columnTypeId) ||
+				(cudf::NUM_TYPE_IDS == columnTypeId)) {
+				throw std::runtime_error("Unsupported column type");
+			}
+
+			if(cudf::STRING == columnTypeId) {
+				std::unique_ptr<cudf::column> output =
+					cudf::strings::detail::slice(table.view().column(i), 0, limitRows);
+				output_cols.push_back(std::move(output));
+			} else {
+				std::unique_ptr<cudf::column> mycolumn = cudf::make_fixed_width_column(columnType, limitRows);
+				std::unique_ptr<cudf::column> output =
+					cudf::experimental::copy_range(table.view().column(i), *mycolumn, 0, limitRows, 0);
+				output_cols.push_back(std::move(output));
+			}
 		}
 		return std::make_unique<ral::frame::BlazingTable>(
-			std::make_unique<cudf::experimental::table>( std::move(output_cols) ), table.names() );
+			std::make_unique<cudf::experimental::table>(std::move(output_cols)), table.names());
 	} else {
 		return table.clone();
 	}
-  }
+}
 
 }  // namespace experimental
 }  // namespace operators
