@@ -49,7 +49,7 @@ static std::map<std::string, interops::operator_type> operator_map = {
 	{"/", interops::operator_type::BLZ_DIV},
 	{"POWER", interops::operator_type::BLZ_POW},
 	{"MOD", interops::operator_type::BLZ_MOD},
-	{"AND", interops::operator_type::BLZ_MUL},
+	{"AND", interops::operator_type::BLZ_LOGICAL_AND},
 	{"OR", interops::operator_type::BLZ_LOGICAL_OR},
 	{"FIRST_NON_MAGIC", interops::operator_type::BLZ_FIRST_NON_MAGIC},
 	{"MAGIC_IF_NOT", interops::operator_type::BLZ_MAGIC_IF_NOT},
