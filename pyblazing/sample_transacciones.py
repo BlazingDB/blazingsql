@@ -22,11 +22,12 @@ result, error_msg, fs = bc.hdfs(authority, host=hdfs_host, port=hdfs_port, user=
 cursor = hive.connect('localhost').cursor() 
 
 table = bc.create_table('ptransactions', cursor, file_format='parquet')
-query = "SELECT * FROM ptransactions where t_year=2017 and t_company_id=4 LIMIT 10"
-ddf = bc.sql(query)
-print(query)
+for i in range(11):
+    query = "SELECT * FROM ptransactions where t_year=2017 and t_company_id={t_company_id} LIMIT 10".format(t_company_id=i)
+    ddf = bc.sql(query)
+    print(query)
 
-if isinstance(ddf, cudf.DataFrame):
-    print(ddf)
-else:
-    print(ddf.compute())
+    if isinstance(ddf, cudf.DataFrame):
+        print(ddf)
+    else:
+        print(ddf.compute())

@@ -296,6 +296,10 @@ def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
     columns = curr_table.input.columns
     n_cols = len(curr_table.input.columns)
 
+    if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
+        print('TODO: files have to be listed in the same order')
+        return hiveMetadata 
+
     names = []
     col_indexes = {}
     counter = 0
@@ -689,7 +693,7 @@ class BlazingContext(object):
                 if is_hive_input:
                     # TODO: The way hive and blazingsql list files is different!!!
                     # alinear cols concretas y virtuales y las filas( files, row_groups )....
-                    # table.metadata = self._mergeMetadata(table.slices, parsedMetadata, table.metadata, extra_columns)
+                    table.metadata = self._mergeMetadata(table.slices, parsedMetadata, table.metadata, extra_columns)
                     print('.')
                 else:
                     table.metadata = parsedMetadata
@@ -788,10 +792,10 @@ class BlazingContext(object):
             if self.dask_client is None:
                 current_table = nodeTableList[0][table_name]
                 table_tuple = (table_name, current_table) 
-                print("skip-data-frame:", current_table.metadata[['max_2_t_year', 'max_3_t_company_id', 'file_handle_index']])
+                # print("skip-data-frame:", current_table.metadata[['max_2_t_year', 'max_3_t_company_id', 'file_handle_index']])
                 file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0)
                 has_some_error = '__empty__' in file_indices_and_rowgroup_indices
-                print("skip-data-frame:", file_indices_and_rowgroup_indices, has_some_error)
+                # print("skip-data-frame:", file_indices_and_rowgroup_indices, has_some_error)
                 if not has_some_error:
                     file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
@@ -809,8 +813,8 @@ class BlazingContext(object):
                         current_table.row_groups_ids.append(row_group_ids)
                     current_table.files = actual_files
                     current_table.uri_values = uri_values
-                print("*****files****: ", current_table.files)
-                print("*****uri_values****: ", current_table.uri_values)
+                # print("*****files****: ", current_table.files)
+                # print("*****uri_values****: ", current_table.uri_values)
             else:
                 dask_futures = []
                 i = 0
