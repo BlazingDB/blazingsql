@@ -46,6 +46,7 @@ BUILD_DIRS="${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
 
 # Set defaults for vars modified by flags to this script
 VERBOSE=""
+QUIET=""
 BUILD_TYPE=Release
 INSTALL_TARGET=install
 TESTS="ON"
@@ -86,6 +87,7 @@ fi
 # Process flags
 if hasArg -v; then
     VERBOSE=1
+    QUIET="--quiet"
 fi
 if hasArg -g; then
     BUILD_TYPE=Debug
@@ -209,9 +211,9 @@ if buildAll || hasArg algebra; then
 
     cd ${ALGEBRA_BUILD_DIR}
     if [[ ${TESTS} == "ON" ]]; then
-        mvn clean install -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ --quiet
+        mvn clean install -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ $QUIET
     else
-        mvn clean install -Dmaven.test.skip=true -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ --quiet
+        mvn clean install -Dmaven.test.skip=true -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ $QUIET
     fi
     if [[ ${INSTALL_TARGET} != "" ]]; then
         cp blazingdb-calcite-application/target/BlazingCalcite.jar $INSTALL_PREFIX/lib/blazingsql-algebra.jar
