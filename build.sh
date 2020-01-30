@@ -49,7 +49,6 @@ VERBOSE=""
 BUILD_TYPE=Release
 INSTALL_TARGET=install
 TESTS="ON"
-COPY_CIO=""
 
 # Set defaults for vars that may not have been defined externally
 #  FIXME: if INSTALL_PREFIX is not set, check PREFIX, then check
