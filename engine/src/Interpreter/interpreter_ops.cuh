@@ -436,8 +436,23 @@ private:
 				right_valid = false;
 			}
 
-			if (left_valid && right_valid) {
-				if(oper == operator_type::BLZ_ADD) {		
+			if(oper == operator_type::BLZ_LOGICAL_OR) {
+				if(left_valid && right_valid) {
+					store_data_in_buffer(static_cast<int64_t>(left_value || right_value), buffer, output_position);
+					setColumnValid(row_valids, output_position, true);
+				} else if(left_valid) {
+					store_data_in_buffer(left_value, buffer, output_position);
+					setColumnValid(row_valids, output_position, !!left_value);
+				} else if(right_valid) {
+					store_data_in_buffer(right_value, buffer, output_position);
+					setColumnValid(row_valids, output_position, !!right_valid);
+				}	else {
+					setColumnValid(row_valids, output_position, false);
+				}
+			} else if (left_valid && right_valid) {
+				if(oper == operator_type::BLZ_LOGICAL_AND) {
+					store_data_in_buffer(static_cast<int64_t>(left_value && right_value), buffer, output_position);
+				} else if(oper == operator_type::BLZ_ADD) {		
 					store_data_in_buffer(left_value + right_value, buffer, output_position);
 				} else if(oper == operator_type::BLZ_SUB) {
 					store_data_in_buffer(left_value - right_value, buffer, output_position);
@@ -505,19 +520,6 @@ private:
 					store_data_in_buffer(computed, buffer, output_position);
 				}
 				setColumnValid(row_valids, output_position, true);
-			} else if(oper == operator_type::BLZ_LOGICAL_OR) {
-				if(left_valid && right_valid) {
-					store_data_in_buffer(static_cast<int64_t>(left_value || right_value), buffer, output_position);
-					setColumnValid(row_valids, output_position, true);
-				} else if(left_valid) {
-					store_data_in_buffer(left_value, buffer, output_position);
-					setColumnValid(row_valids, output_position, !!left_value);
-				} else if(right_valid) {
-					store_data_in_buffer(right_value, buffer, output_position);
-					setColumnValid(row_valids, output_position, !!right_valid);
-				}	else {
-					setColumnValid(row_valids, output_position, false);
-				}
 			} else if(oper == operator_type::BLZ_MAGIC_IF_NOT) {
 				if(left_valid && left_value) {
 					store_data_in_buffer(right_value, buffer, output_position);
@@ -546,7 +548,11 @@ private:
 			get_data_from_buffer(&left_value, buffer, left_position);
 			bool left_valid = getColumnValid(row_valids, left_position);
 			
-			if (left_valid) {
+			if(oper == operator_type::BLZ_IS_NULL) {
+				store_data_in_buffer(static_cast<int64_t>(!left_valid), buffer, output_position);
+			} else if(oper == operator_type::BLZ_IS_NOT_NULL) {
+				store_data_in_buffer(static_cast<int64_t>(left_valid), buffer, output_position);
+			}	else if (left_valid) {
 				if(oper == operator_type::BLZ_FLOOR) {
 					double val = static_cast<double>(left_value);
 					store_data_in_buffer(floor(val), buffer, output_position);
@@ -689,10 +695,6 @@ private:
 					}
 					store_data_in_buffer(static_cast<int64_t>(computed.time_since_epoch().count()), buffer, output_position);
 				}
-			} else if(oper == operator_type::BLZ_IS_NULL) {
-				store_data_in_buffer(static_cast<int64_t>(!left_valid), buffer, output_position);
-			} else if(oper == operator_type::BLZ_IS_NOT_NULL) {
-				store_data_in_buffer(static_cast<int64_t>(left_valid), buffer, output_position);
 			}
 
 			bool out_valid = (oper == operator_type::BLZ_IS_NULL || oper == operator_type::BLZ_IS_NOT_NULL) ? true : left_valid;
