@@ -4,14 +4,6 @@
 #include "expression_utils.hpp"
 #include "Utils.cuh"
 
-bool is_binary_operator_token(const std::string & token) {
-	return (gdf_binary_operator_map.find(token) != gdf_binary_operator_map.end());
-}
-
-bool is_unary_operator_token(const std::string & token) {
-	return (gdf_unary_operator_map.find(token) != gdf_unary_operator_map.end());
-}
-
 bool is_string(const std::string & token) { return token[0] == '\'' && token[token.size() - 1] == '\''; }
 
 bool is_number(const std::string & token) {
@@ -74,14 +66,8 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	return query_part.substr(start_position, end_position - start_position);
 }
 
-interops::operator_type get_unary_operation(const std::string & operator_string) {
-	RAL_EXPECTS(gdf_unary_operator_map.find(operator_string) != gdf_unary_operator_map.end(), "Unsupported unary operator");
-	
-	return gdf_unary_operator_map[operator_string];
-}
+interops::operator_type map_to_operator_type(const std::string & operator_token) {
+	RAL_EXPECTS(operator_map.find(operator_token) != operator_map.end(), "Unsupported operator");
 
-interops::operator_type get_binary_operation(const std::string & operator_string) {
-	RAL_EXPECTS(gdf_binary_operator_map.find(operator_string) != gdf_binary_operator_map.end(), "Unsupported binary operator");
-
-	return gdf_binary_operator_map[operator_string];
+	return operator_map[operator_token];
 }

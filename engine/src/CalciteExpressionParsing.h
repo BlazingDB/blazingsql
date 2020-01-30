@@ -23,6 +23,8 @@ cudf::size_type get_index(const std::string & operand_string);
 // interprets the expression and if is n-ary and logical, then returns their corresponding binary version
 std::string expand_if_logical_op(std::string expression);
 
+std::string replace_calcite_regex(const std::string & expression);
+
 std::string clean_calcite_expression(const std::string & expression);
 
 std::vector<std::string> get_tokens_in_reverse_order(const std::string & expression);
@@ -41,7 +43,7 @@ std::string get_string_between_outer_parentheses(std::string operator_string);
 
 cudf::type_id infer_dtype_from_literal(const std::string & token);
 
-cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id & max_temp_type, std::string expression);
+cudf::type_id get_output_type_expression(const cudf::table_view & table, std::string expression);
 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experimental::aggregation::Kind aggregation, bool have_groupby);
 

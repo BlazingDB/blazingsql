@@ -177,9 +177,9 @@ cudf::type_id infer_dtype_from_literal(const std::string & token) {
 	} else if(is_date(token)) {
 		return cudf::type_id::TIMESTAMP_DAYS;
 	} else if(is_timestamp(token)) {
-		return cudf::type_id::TIMESTAMP_MILLISECONDS;
+		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	} else if(is_string(token)) {
-		return cudf::type_id::CATEGORY;
+		return cudf::type_id::STRING;
 	}
 
 	RAL_FAIL("Invalid literal string");
@@ -189,9 +189,6 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	cudf::type_id type_id = infer_dtype_from_literal(scalar_string);
 	cudf::data_type type{type_id};
 
-	if(type_id == cudf::type_id::EMPTY) {
-		return nullptr;
-	}
 	if(type_id == cudf::type_id::BOOL8) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = cudf::experimental::bool8;
@@ -244,29 +241,31 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	if(type_id == cudf::type_id::TIMESTAMP_DAYS) {
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
 	}
-	if(type_id == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+	if(type_id == cudf::type_id::TIMESTAMP_NANOSECONDS) {
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
 	}
-
+	if(type_id == cudf::type_id::STRING)	{
+		return cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
+	}
+	
 	assert(false);
 }
 
 // must pass in temp type as invalid if you are not setting it to something to begin with
-cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id & max_temp_type, std::string expression) {
+cudf::type_id get_output_type_expression(const cudf::table_view & table, std::string expression) {
 	std::string clean_expression = clean_calcite_expression(expression);
 
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
-	if(max_temp_type == cudf::type_id::EMPTY) {
-		max_temp_type = cudf::type_id::INT8;
-	}
+	cudf::type_id max_temp_type = cudf::type_id::INT8;
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table.view(), tokens);
+	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
 
 	std::stack<cudf::type_id> operands;
 	for(std::string token : tokens) {
 		if(is_operator_token(token)) {
-			if(is_binary_operator_token(token)) {
+			interops::operator_type operation = map_to_operator_type(token);
+			if(is_binary_operator(operation)) {
 				if(operands.size() < 2)
 					throw std::runtime_error(
 						"In function get_output_type_expression, the operator cannot be processed on less than one or "
@@ -289,33 +288,27 @@ cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & ta
 						right_operand = left_operand;
 					}
 				}
-				interops::operator_type operation = get_binary_operation(token);
+
 				operands.push(get_output_type(left_operand, right_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
 					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
 					max_temp_type = operands.top();
 				}
-			} else if(is_unary_operator_token(token)) {
+			} else if(is_unary_operator(operation)) {
 				cudf::type_id left_operand = operands.top();
 				operands.pop();
-
-				interops::operator_type operation = get_unary_operation(token);
 
 				operands.push(get_output_type(left_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
 					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
 					max_temp_type = operands.top();
 				}
-			} else {
-				throw std::runtime_error(
-					"In get_output_type_expression function: unsupported operator token, " + token);
 			}
-
 		} else {
 			if(is_literal(token)) {
 				operands.push(infer_dtype_from_literal(token));
 			} else {
-				operands.push(table.view().column(get_index(token)).type().id());
+				operands.push(table.column(get_index(token)).type().id());
 			}
 		}
 	}
@@ -446,12 +439,9 @@ void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 }
 
 cudf::size_type get_index(const std::string & operand_string) {
-	if(operand_string.empty()) {
-		return 0;
-	}
-	std::string cleaned_expression = clean_calcite_expression(operand_string);
-	return std::stoi(is_literal(cleaned_expression) ? cleaned_expression
-													: cleaned_expression.substr(1, cleaned_expression.size() - 1));
+	assert(is_var_column(operand_string) || is_literal(operand_string));
+	
+	return std::stoi(is_literal(operand_string) ? operand_string : operand_string.substr(1, operand_string.size() - 1));
 }
 
 std::string aggregator_to_string(cudf::experimental::aggregation::Kind aggregation) {
@@ -574,7 +564,6 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
-	StringUtil::findAndReplaceAll(ret, "FLOOR(", "BL_FLOUR(");
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 

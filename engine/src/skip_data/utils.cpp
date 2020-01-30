@@ -14,12 +14,7 @@ namespace ral {
 namespace skip_data {
 
 bool is_binary_op(const std::string &test) {
-  std::vector<std::string> operators;
-  for (auto &kv : gdf_binary_operator_map) {
-    operators.push_back(kv.first);
-  }
-  return std::any_of(operators.begin(), operators.end(),
-                     [&test](std::string op) { return op == test; });
+  return interops::is_binary_operator(map_to_operator_type(test));
 }
 
 bool is_unsupported_binary_op(const std::string &test) {
@@ -29,12 +24,7 @@ bool is_unsupported_binary_op(const std::string &test) {
                       [&test](std::string op) { return op == test; });
 }
 bool is_unary_op(const std::string &test) {
-  std::vector<std::string> unary_operators;
-  for (auto &kv : gdf_unary_operator_map) {
-    unary_operators.push_back(kv.first);
-  }
-  return std::any_of(unary_operators.begin(), unary_operators.end(),
-                     [&test](std::string op) { return op == test; });
+  return interops::is_unary_operator(map_to_operator_type(test));
 }
 
 // Non skip data support exclusion rules:
@@ -45,13 +35,12 @@ bool is_exclusion_unary_op(const std::string &test) {
   //   seguro (porque no aplicaria un filtro)!
   //     => un not podria invalidar esta premisa
 
-  std::vector<std::string> unary_operators;
-  for (auto &kv : gdf_unary_operator_map) {
-    unary_operators.push_back(kv.first);
+  if (test == "NONE") {
+    // special type
+    return true;
   }
-  unary_operators.push_back("NONE"); // special type
-  return std::any_of(unary_operators.begin(), unary_operators.end(),
-                     [&test](std::string op) { return op == test; });
+  
+  return interops::is_unary_operator(map_to_operator_type(test));
 }
 
 int get_id(const std::string &s) {

@@ -11,7 +11,7 @@
 #include "utilities/RalColumn.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <blazingdb/io/Util/StringUtil.h>
-#include "execution_graph/logic_controllers/LogicalFilter.h"
+#include "execution_graph/logic_controllers/LogicalProject.h"
 #include <functional>
 #include <future>
 #include <iostream>
@@ -302,13 +302,11 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 			numeric_s->set_value((int64_t)(table.view().num_rows()));
 			reductions.emplace_back(std::move(scalar));
 		} else {
-			std::unique_ptr<CudfColumn> aggregation_input_scope_holder;
+			std::unique_ptr<cudf::experimental::table> aggregation_input_scope_holder;
 			CudfColumnView aggregation_input; 
 			if(contains_evaluation(aggregation_input_expressions[i])) {
-				cudf::type_id max_temp_type = cudf::type_id::EMPTY;
-            	cudf::type_id expression_output_type = get_output_type_expression(table, max_temp_type, aggregation_input_expressions[i]);
-				aggregation_input_scope_holder = ral::processor::evaluate_expression(table.view(), aggregation_input_expressions[i],  cudf::data_type{expression_output_type});
-				aggregation_input = aggregation_input_scope_holder->view();
+				aggregation_input_scope_holder = ral::processor::evaluate_expressions(table.view(), {aggregation_input_expressions[i]});
+				aggregation_input = aggregation_input_scope_holder->get_column(0).view();
 			} else {
 				aggregation_input = table.view().column(get_index(aggregation_input_expressions[i]));
 			}
@@ -537,10 +535,9 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					} else {
 						if(contains_evaluation(expression)) {
-							cudf::type_id max_temp_type = cudf::type_id::EMPTY;
-							cudf::type_id expression_output_type = get_output_type_expression(table, max_temp_type, expression);
-							aggregation_inputs_scope_holder.emplace_back(ral::processor::evaluate_expression(
-												table.view(), expression, cudf::data_type{expression_output_type}));
+							auto computed_table = ral::processor::evaluate_expressions(table.view(), {expression});
+							auto computed_columns = computed_table->release();
+							aggregation_inputs_scope_holder.insert(aggregation_inputs_scope_holder.end(), std::make_move_iterator(computed_columns.begin()), std::make_move_iterator(computed_columns.end()));
 							aggregation_input = aggregation_inputs_scope_holder.back()->view();
 						} else {
 							column_index = get_index(expression);
