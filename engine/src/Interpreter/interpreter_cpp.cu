@@ -667,7 +667,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 
 				if(is_literal(left_operand) && is_literal(right_operand)) {
 					RAL_FAIL("Operations between literals is not supported");
-				} else if(is_literal(left_operand) && !is_string(left_operand)) {
+				} else if(is_literal(left_operand) ) {
 					cudf::size_type right_index = get_index(right_operand);
 					auto scalar_ptr = get_scalar_from_string(left_operand);
 
@@ -675,7 +675,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 					right_inputs.push_back(right_index);
 					left_scalars.push_back(std::move(scalar_ptr));
 					right_scalars.emplace_back(nullptr);
-				} else if(is_literal(right_operand) && !is_string(right_operand)) {
+				} else if(is_literal(right_operand)) {
 					cudf::size_type left_index = get_index(left_operand);
 					auto scalar_ptr = get_scalar_from_string(right_operand);
 					

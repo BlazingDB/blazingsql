@@ -179,7 +179,7 @@ cudf::type_id infer_dtype_from_literal(const std::string & token) {
 	} else if(is_timestamp(token)) {
 		return cudf::type_id::TIMESTAMP_MILLISECONDS;
 	} else if(is_string(token)) {
-		return cudf::type_id::CATEGORY;
+		return cudf::type_id::STRING;
 	}
 
 	RAL_FAIL("Invalid literal string");
@@ -246,6 +246,10 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	}
 	if(type_id == cudf::type_id::TIMESTAMP_MILLISECONDS) {
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
+	}
+	if(type_id == cudf::type_id::STRING) {
+		std::string string_literal = scalar_string.substr(1, scalar_string.size() - 2); // remove the quotes
+		return cudf::make_string_scalar(string_literal);
 	}
 
 	assert(false);

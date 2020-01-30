@@ -171,3 +171,23 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
 
   cudf::test::expect_tables_equal(expected_table_view, out_table->view());
 }
+
+
+TEST(LogicalFilterWithStringsTest, NoNulls){
+  
+  cudf::test::strings_column_wrapper col1({"foo", "d", "e", "a", "hello", "k", "d", "l", "bar", ""});
+  cudf::test::fixed_width_column_wrapper<int32_t> col2{{10,8,6,4,2,1,11,9,7,5}};
+
+  cudf::table_view in_table_view {{col1, col2}};
+  std::vector<std::string> column_names{"col1", "col2"};
+
+  auto out_table = ral::processor::process_filter(ral::frame::BlazingTableView{in_table_view, column_names},
+                                                  "LogicalFilter(condition=[=($0, 'bar')])", nullptr);
+
+  cudf::test::strings_column_wrapper expected_col1({"bar"});
+  cudf::test::fixed_width_column_wrapper<int32_t> expected_col2{{7}};
+
+  cudf::table_view expected_table_view {{expected_col1, expected_col2}};
+
+  cudf::test::expect_tables_equal(expected_table_view, out_table->view());
+}

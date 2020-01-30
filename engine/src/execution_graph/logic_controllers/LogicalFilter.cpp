@@ -136,9 +136,9 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 		conditional_expression = get_named_expression(query_part, "filters");
 	}
 
-  auto bool_mask = evaluate_expression(table_view, conditional_expression, cudf::data_type{cudf::type_id::BOOL8});
+  std::unique_ptr<CudfColumn> bool_mask = evaluate_expression(table_view, conditional_expression, cudf::data_type{cudf::type_id::BOOL8});
 
-  return applyBooleanFilter(table, *bool_mask);
+  return applyBooleanFilter(table, bool_mask->view());
 }
 
 
