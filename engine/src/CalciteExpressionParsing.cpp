@@ -473,9 +473,13 @@ std::string expand_if_logical_op(std::string expression) {
 
 		int first_and = StringUtil::findFirstNotInQuotes(
 			expression, "AND(", start_pos, is_quoted_vector);  // returns -1 if not found
-		int first_or = StringUtil::findFirstNotInQuotes(
-			expression, "OR(", start_pos, is_quoted_vector);  // returns -1 if not found
-
+		int first_or = -1;
+		
+		std::string floor_str = "FLOOR";
+		if (StringUtil::contains(expression, floor_str) == false) {
+			first_or = StringUtil::findFirstNotInQuotes(expression, "OR(", start_pos, is_quoted_vector);  // returns -1 if not found
+		}
+		
 		int first = -1;
 		std::string op = "";
 		if(first_and >= 0) {
