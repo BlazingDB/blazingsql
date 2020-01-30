@@ -252,13 +252,11 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 }
 
 // must pass in temp type as invalid if you are not setting it to something to begin with
-cudf::type_id get_output_type_expression(const cudf::table_view & table, cudf::type_id & max_temp_type, std::string expression) {
+cudf::type_id get_output_type_expression(const cudf::table_view & table, std::string expression) {
 	std::string clean_expression = clean_calcite_expression(expression);
 
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
-	if(max_temp_type == cudf::type_id::EMPTY) {
-		max_temp_type = cudf::type_id::INT8;
-	}
+	cudf::type_id max_temp_type = cudf::type_id::INT8;
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
 	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);

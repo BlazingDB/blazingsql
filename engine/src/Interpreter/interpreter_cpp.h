@@ -96,7 +96,6 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 	std::vector<column_index_type> & left_inputs,
 	std::vector<column_index_type> & right_inputs,
 	std::vector<column_index_type> & outputs,
-	std::vector<column_index_type> & final_output_positions,
 	std::vector<operator_type> & operators,
 	std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
 	std::vector<std::unique_ptr<cudf::scalar>> & right_scalars);

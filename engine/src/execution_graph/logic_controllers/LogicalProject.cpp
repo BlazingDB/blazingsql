@@ -4,6 +4,10 @@
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
 #include <cudf/strings/substring.hpp>
+#include <cudf/strings/convert/convert_booleans.hpp>
+#include <cudf/strings/convert/convert_datetime.hpp>
+#include <cudf/strings/convert/convert_floats.hpp>
+#include <cudf/strings/convert/convert_integers.hpp>
 #include <memory>
 #include <regex>
 #include <utility>
@@ -48,6 +52,33 @@ std::unique_ptr<cudf::column> make_column_from_scalar(const std::string& str, cu
     return cudf::make_strings_column(chars, offsets);
 }
 
+struct cast_to_str_functor {
+    template<typename T, std::enable_if_t<cudf::is_boolean<T>()> * = nullptr>
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+        return cudf::strings::from_booleans(col);
+    }
+
+    template<typename T, std::enable_if_t<std::is_integral<T>::value && !cudf::is_boolean<T>()> * = nullptr>
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+        return cudf::strings::from_integers(col);
+    }
+
+    template<typename T, std::enable_if_t<std::is_floating_point<T>::value> * = nullptr>
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+        return cudf::strings::from_floats(col);
+    }
+
+    template<typename T, std::enable_if_t<cudf::is_timestamp<T>()> * = nullptr>
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+        return cudf::strings::from_timestamps(col);
+    }
+
+    template<typename T, std::enable_if_t<cudf::is_compound<T>()> * = nullptr>
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+        return nullptr;
+    }
+};
+
 std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view & table,
                                                         const std::string & op_token,
                                                         const std::vector<std::string> & arg_tokens)
@@ -60,7 +91,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_STR_LIKE:
     {
         assert(arg_tokens.size() == 2);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "LIKE operator not supported for intermediate columns");
+        RAL_EXPECTS(is_var_column(arg_tokens[0]), "LIKE operator not supported for intermediate columns or literals");
         
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         std::string regex = like_expression_to_regex_str(arg_tokens[1].substr(1, arg_tokens[1].size() - 2));
@@ -71,7 +102,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_STR_SUBSTRING:
     {
         assert(arg_tokens.size() == 2);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "SUBSTRING operator not supported for intermediate columns");
+        RAL_EXPECTS(is_var_column(arg_tokens[0]), "SUBSTRING operator not supported for intermediate columns or literals");
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         std::string literal_str = arg_tokens[1].substr(1, arg_tokens[1].size() - 2);
@@ -120,6 +151,16 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
         break;
     }
+    case interops::operator_type::BLZ_CAST_VARCHAR:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+
+        computed_col = cudf::experimental::type_dispatcher(column.type(), cast_to_str_functor{}, column);
+        break;
+    }
     }
 
     return computed_col;
@@ -153,7 +194,7 @@ public:
 
                 cudf::size_type idx = get_index(token);
                 if (idx >= table.num_columns()) {
-                    computed_columns.erase(computed_columns.begin() + (idx -table.num_columns()));
+                    computed_columns.erase(computed_columns.begin() + (idx - table.num_columns()));
                 }
             }
             
@@ -199,8 +240,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
         expression = parse_tree.rebuildExpression();
 
         if(contains_evaluation(expression)){
-            cudf::type_id max_temp_type = cudf::type_id::EMPTY;
-            cudf::type_id expr_out_type = get_output_type_expression(table, max_temp_type, expression);
+            cudf::type_id expr_out_type = get_output_type_expression(table, expression);
 
             auto new_column = cudf::make_fixed_width_column(cudf::data_type{expr_out_type}, table.num_rows(), cudf::mask_state::UNINITIALIZED);
             interpreter_out_column_views.push_back(new_column->mutable_view());
@@ -294,7 +334,6 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
                                                     left_inputs,
                                                     right_inputs,
                                                     outputs,
-                                                    final_output_positions,
                                                     operators,
                                                     left_scalars,
                                                     right_scalars);
