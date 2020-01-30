@@ -374,7 +374,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     for(int i = 0; i < named_expressions.size(); i++) {
         const std::string & named_expr = named_expressions[i];
         
-        std::string name = named_expr.substr(0, expressions[i].find("=["));
+        std::string name = named_expr.substr(0, named_expr.find("=["));
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
         
         expressions[i] = expression;
