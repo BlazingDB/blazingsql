@@ -77,7 +77,8 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         std::string literal_str = arg_tokens[1].substr(1, arg_tokens[1].size() - 2);
         size_t pos = literal_str.find(":");
         int start = std::max(std::stoi(literal_str.substr(0, pos)), 1) - 1;
-        int end = pos != std::string::npos ? start + std::stoi(literal_str.substr(pos + 1)) : -1;
+        int length = pos != std::string::npos ? std::stoi(literal_str.substr(pos + 1)) : -1;
+        int end = length >= 0 ? start + length : -1;
 
         computed_col = cudf::strings::slice_strings(column, start, end);
         break;
@@ -87,7 +88,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         assert(arg_tokens.size() == 2);
         RAL_EXPECTS(is_var_column(arg_tokens[0]) || is_string(arg_tokens[0]), "SUBSTRING operator not supported for intermediate columns");
         RAL_EXPECTS(is_var_column(arg_tokens[1]) || is_string(arg_tokens[1]), "SUBSTRING operator not supported for intermediate columns");
-        RAL_EXPECTS(is_string(arg_tokens[0]) && is_string(arg_tokens[1]), "Operations between literals is not supported");
+        RAL_EXPECTS(!(is_string(arg_tokens[0]) && is_string(arg_tokens[1])), "Operations between literals is not supported");
 
         if (is_var_column(arg_tokens[0]) && is_var_column(arg_tokens[1])) {
             cudf::column_view column1 = table.column(get_index(arg_tokens[0]));
@@ -119,16 +120,16 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
         break;
     }
+    }
 
     return computed_col;
-    }
 }
 
 } // namespace strings
 
 class function_evaluator_transformer : public parser::parse_node_transformer {
 public:
-    function_evaluator_transformer(const cudf::table_view & table) : table{table}, computed_table{std::make_unique<cudf::experimental::table>()} {}
+    function_evaluator_transformer(const cudf::table_view & table) : table{table} {}
 
     parser::parse_node * transform(const parser::operad_node& node) override { return const_cast<parser::operad_node *>(&node); }
     
@@ -139,11 +140,13 @@ public:
             return child->value;
         });
 
-        auto computed_col = strings::evaluate_string_functions(cudf::table_view{{table, computed_table->view()}}, op_token, arg_tokens);
+        std::vector<cudf::column_view> computed_views(computed_columns.size());
+        std::transform(std::cbegin(computed_columns), std::cend(computed_columns), computed_views.begin(), [](auto & col){
+            return col->view();
+        });
+        auto computed_col = strings::evaluate_string_functions(cudf::table_view{{table, cudf::table_view{computed_views}}}, op_token, arg_tokens);
         
         if (computed_col) {
-            auto computed_columns = computed_table->release();
-
             // Discard temp columns used in operations
             for (auto &&token : arg_tokens) {
                 if (!is_var_column(token)) continue;
@@ -154,21 +157,22 @@ public:
                 }
             }
             
+            std::string computed_var_token = "$" + std::to_string(table.num_columns() + computed_columns.size());
             computed_columns.push_back(std::move(computed_col));
-            computed_table = std::make_unique<cudf::experimental::table>(std::move(computed_columns));
             
-            std::string computed_var_token = "$" + (table.num_columns() + computed_table->num_columns());
             return new parser::operad_node(computed_var_token);
         }
 
         return const_cast<parser::operator_node *>(&node); 
     }
 
-    cudf::table_view computed_table_view() { return computed_table->view(); }
+    cudf::size_type num_computed_columns() { return static_cast<cudf::size_type>(computed_columns.size()); }
+
+    std::vector<std::unique_ptr<cudf::column>> release_computed_columns() { return std::move(computed_columns); }
 
 private:
     cudf::table_view table;
-    std::unique_ptr<cudf::experimental::table> computed_table;
+    std::vector<std::unique_ptr<cudf::column>> computed_columns;
 };
 
 
@@ -179,7 +183,8 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
 
     std::vector<std::unique_ptr<cudf::column>> out_columns(expressions.size());
     
-    std::vector<bool> col_used_in_expression(table.num_columns(), false);
+    std::vector<bool> column_used(table.num_columns(), false);
+    std::vector<std::pair<int, int>> out_idx_computed_idx_pair;
 
     std::vector<std::vector<std::string>> tokenized_expression_vector;
     std::vector<cudf::mutable_column_view> interpreter_out_column_views;
@@ -212,7 +217,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
 
                 cudf::size_type idx = get_index(token);
                 if (idx < table.num_columns()) {
-                    col_used_in_expression[idx] = true;
+                    column_used[idx] = true;
                 }
             }
         } else if (is_literal(expression)) {
@@ -228,23 +233,46 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
                 out_columns[i] = cudf::experimental::fill(*out_columns[i], 0, out_columns[i]->size(), *literal_scalar);
             }
         } else {
-            cudf::size_type index = get_index(expression);
-
-            out_columns[i] = std::make_unique<cudf::column>(table.column(index));
+            cudf::size_type idx = get_index(expression);
+            if (idx < table.num_columns()) {
+                out_columns[i] = std::make_unique<cudf::column>(table.column(idx));
+            } else {
+                out_idx_computed_idx_pair.push_back({i, idx - table.num_columns()});
+            }
         }
+    }
+
+    auto computed_columns = evaluator.release_computed_columns();
+    for (auto &&p : out_idx_computed_idx_pair) {
+        out_columns[p.first] = std::move(computed_columns[p.second]);
     }
 
     // Get the needed columns indices in order and keep track of the mapped indices
     std::map<column_index_type, column_index_type> col_idx_map;
     std::vector<cudf::size_type> input_col_indices;
-    for(size_t i = 0; i < col_used_in_expression.size(); i++) {
-        if(col_used_in_expression[i]) {
+    for(size_t i = 0; i < column_used.size(); i++) {
+        if(column_used[i]) {
             col_idx_map.insert({i, col_idx_map.size()});
             input_col_indices.push_back(i);
         }
     }
 
-    cudf::table_view filtered_table_view{{table.select(input_col_indices), evaluator.computed_table_view()}};
+    std::vector<std::unique_ptr<cudf::column>> filtered_computed_columns;
+    for(size_t i = 0; i < computed_columns.size(); i++) {
+        if(computed_columns[i]) { 
+            // If computed_columns[i] has not been moved to out_columns
+            // then it will be used as input in interops
+            col_idx_map.insert({table.num_columns() + i, col_idx_map.size()});
+            filtered_computed_columns.push_back(std::move(computed_columns[i]));
+        }
+    }
+
+    std::vector<cudf::column_view> filtered_computed_views(filtered_computed_columns.size());
+    std::transform(std::cbegin(filtered_computed_columns), std::cend(filtered_computed_columns), filtered_computed_views.begin(), [](auto & col){
+        return col->view();
+    });
+
+    cudf::table_view interops_input_table{{table.select(input_col_indices), cudf::table_view{filtered_computed_views}}};
 
     std::vector<column_index_type> left_inputs;
     std::vector<column_index_type> right_inputs;
@@ -256,10 +284,10 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
 
     cudf::size_type cur_expression_out = 0;
     for(auto & tokens : tokenized_expression_vector){
-        final_output_positions.push_back(filtered_table_view.num_columns() + final_output_positions.size());
+        final_output_positions.push_back(interops_input_table.num_columns() + final_output_positions.size());
 
         interops::add_expression_to_interpreter_plan(tokens,
-                                                    filtered_table_view,
+                                                    interops_input_table,
                                                     col_idx_map,
                                                     cur_expression_out,
                                                     interpreter_out_column_views.size(),
@@ -278,7 +306,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
         cudf::mutable_table_view out_table_view(interpreter_out_column_views);
 
         interops::perform_interpreter_operation(out_table_view,
-                                                filtered_table_view,
+                                                interops_input_table,
                                                 left_inputs,
                                                 right_inputs,
                                                 outputs,
