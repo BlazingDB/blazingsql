@@ -9,8 +9,6 @@
 #include "../../CalciteExpressionParsing.h"
 #include "../../JoinProcessor.h"
 
-
-
 #include "blazingdb/transport/Node.h"
 
 #include "distribution/primitives.h"
@@ -64,7 +62,7 @@ std::unique_ptr<cudf::column> evaluate_expression(
   std::string clean_expression = clean_calcite_expression(expression);
   std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
   fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
-  
+
   // Keep track of which columns are used in the expression
   std::vector<bool> col_used_in_expression(table.num_columns(), false);
   for(const auto & token : tokens) {
@@ -92,7 +90,7 @@ std::unique_ptr<cudf::column> evaluate_expression(
   std::vector<interops::operator_type> operators;
   std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
   std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
-  
+
   interops::add_expression_to_interpreter_plan(tokens,
                                               filtered_table,
                                               col_idx_map,
@@ -106,7 +104,7 @@ std::unique_ptr<cudf::column> evaluate_expression(
                                               left_scalars,
                                               right_scalars);
 
-  auto ret = cudf::make_fixed_width_column(output_type, table.num_rows(), cudf::mask_state::UNINITIALIZED); 
+  auto ret = cudf::make_fixed_width_column(output_type, table.num_rows(), cudf::mask_state::UNINITIALIZED);
   cudf::mutable_table_view ret_view {{ret->mutable_view()}};
   interops::perform_interpreter_operation(ret_view,
                                           filtered_table,
@@ -130,7 +128,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 	if(table_view.num_rows() == 0) {
 		return std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(table_view), table.names());
 	}
-	
+
   std::string conditional_expression = get_named_expression(query_part, "condition");
 	if(conditional_expression.empty()) {
 		conditional_expression = get_named_expression(query_part, "filters");
@@ -160,7 +158,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 
     // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
     std::vector<cudf::size_type> split_indexes(hashedData_offsets_pair.second.begin() + 1, hashedData_offsets_pair.second.end());
-    std::vector<CudfTableView> partitioned = cudf::experimental::split(hashedData_offsets_pair.first->view(), 
+    std::vector<CudfTableView> partitioned = cudf::experimental::split(hashedData_offsets_pair.first->view(),
                                                                         hashedData_offsets_pair.second);
 
     std::vector<NodeColumnView > partitions;
@@ -237,7 +235,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 
 
 
-// This function can either do a small table scatter distribution or regular hash based. 
+// This function can either do a small table scatter distribution or regular hash based.
   std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> >  process_distribution(
     const ral::frame::BlazingTableView & left,
     const ral::frame::BlazingTableView & right,
@@ -245,7 +243,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     blazingdb::manager::experimental::Context * context) {
 
   	// First lets find out if we are joining against a small table. If so, we will want to replicate that small table
-  	
+
   // 	int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
 
   // 	context->incrementQuerySubstep();
@@ -413,7 +411,7 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
         left_column_indices,
         right_column_indices,
         columns_in_common);
-  
+
     } else if(join_type == LEFT_JOIN) {
       result_table = cudf::experimental::left_join(
         table_left.view(),
@@ -421,7 +419,7 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
         left_column_indices,
         right_column_indices,
         columns_in_common);
-  
+
     } else if(join_type == OUTER_JOIN) {
       result_table = cudf::experimental::full_join(
         table_left.view(),
@@ -429,7 +427,7 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
         left_column_indices,
         right_column_indices,
         columns_in_common);
-  
+
     } else {
       throw std::runtime_error("In evaluate_join function: unsupported join operator, " + join_type);
     }
@@ -437,9 +435,9 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
       std::cerr << e.what() << std::endl;
   }
 
-  // TODO WSM here because we had to use column_in_column above, which we dont want to, we have to recreate the columns removed by 
-  // columns_in_column. This will work just fine for inner_joins, but left or full outer joins, can have the right key column be 
-  // different that its corresponding left side (due to missing values, there can be nulls). So in those cases this hack will 
+  // TODO WSM here because we had to use column_in_column above, which we dont want to, we have to recreate the columns removed by
+  // columns_in_column. This will work just fine for inner_joins, but left or full outer joins, can have the right key column be
+  // different that its corresponding left side (due to missing values, there can be nulls). So in those cases this hack will
   // produce incorrect results
 
   // if we had columns [A, B, C, D, E] joining against [F, G, H, I, J] on the columns B = F and C = H
@@ -458,7 +456,21 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
       int right_element = std::distance(right_column_indices.begin(), it);
       cudf::size_type result_src_index = left_column_indices[right_element];
       cudf::size_type result_dst_index = table_left.num_columns() + i;
-      new_result_columns[result_dst_index] = std::make_unique<CudfColumn>(new_result_columns[result_src_index]->view()); // make a new column which is a copy
+
+      CudfColumnView new_column_view = new_result_columns[result_src_index]->view();
+      std::unique_ptr<CudfColumn> new_column =
+        std::make_unique<CudfColumn>(new_column_view);  // make a new column which is a copy
+
+      // Eval nulls for right join column
+      std::unique_ptr<CudfColumn> & a_join_column =
+        result_columns.back() ? result_columns.back() : new_result_columns[table_left.num_columns() - 1];
+      if(a_join_column->has_nulls()) {
+        rmm::device_buffer new_null_mask{
+          a_join_column->view().null_mask(), cudf::bitmask_allocation_size_bytes(a_join_column->size())};
+        new_column->set_null_mask(new_null_mask, a_join_column->null_count());
+      }
+
+      new_result_columns[result_dst_index] = std::move(new_column);
     } else {
       cudf::size_type result_src_index = table_left.num_columns() + non_join_columns_count;
       cudf::size_type result_dst_index = table_left.num_columns() + i;

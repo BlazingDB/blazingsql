@@ -318,7 +318,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       names.resize(0)
       fileType = fileTypes[tableIndex]
       # TODO: TableSchema will be refactorized
-      
+
       for col_name in table.column_names:
         if table.fileType == 4: #if from gdf
             names.push_back(col_name.encode())
@@ -339,7 +339,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
 
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.types = types
-      
+
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
@@ -367,20 +367,20 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    temp = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
-    
+    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
+
     # TODO WSM. When we migrate to cudf 0.13 we will likely only need to do something like:
-    # cudf.DataFrame(Table.from_unique_ptr(blaz_move(dereference(temp).cudfTable), names)._data)
+    # cudf.DataFrame(Table.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), names)._data)
     # and we dont have to call _rename_columns. We are doing that here only because the current from_ptr is not properly setting the column names
-    names = dereference(temp).names
+    names = dereference(resultSet).names
     decoded_names = []
     for i in range(names.size()):
         decoded_names.append(names[i].decode('utf-8'))
     # names = [name.decode('utf-8') for name in names]
-    df = cudf.DataFrame(_Table.from_ptr(blaz_move(dereference(temp).cudfTable), decoded_names)._data)
+    df = cudf.DataFrame(_Table.from_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
     df._rename_columns(decoded_names)
     return df
-    
+
 cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
     query = str.encode(queryPy)
@@ -451,16 +451,16 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     types.resize(0)
     names.resize(0)
     fileType = fileTypes[tableIndex]
-     
+
     for col_name in table.column_names:
       if table.fileType == 4: #if from gdf
           names.push_back(col_name.encode())
       else: # from file
           names.push_back(col_name)
-    
+
     for col_type in table.column_types:
       types.push_back(col_type)
-    
+
     currentTableSchemaCpp.types = types
     currentTableSchemaCpp.names = names
     currentTableSchemaCpp.datasource = table.datasource
@@ -532,5 +532,5 @@ cpdef getTableScanInfoCaller(logicalPlan,tables):
 
         new_table.column_names = tables[table_name].column_names
         new_tables[table_name] = new_table
-        
+
     return new_tables, relational_algebra_steps
