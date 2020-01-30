@@ -17,19 +17,23 @@ struct ExpressionTreeTest : public ::testing::Test {
   }
 
   void process(std::string prefix, std::string expected, bool valid_expr = true) {
-    expression_tree tree;
-    if (tree.build(prefix)) {
-      std::cout << "before:\n";
-      tree.print();
-      tree.apply_skip_data_rules();
-      std::cout << "after:\n";
-      tree.print();
-      auto solution =  tree.prefix();
-      std::cout << "solution:\n";
-      std::cout << solution << "\n";
-      EXPECT_EQ(solution, expected);
-    }else {
-      EXPECT_EQ(valid_expr, false);
+    try {
+      expression_tree tree;
+      if (tree.build(prefix)) {
+        std::cout << "before:\n";
+        tree.print();
+        tree.apply_skip_data_rules();
+        std::cout << "after:\n";
+        tree.print();
+        auto solution =  tree.prefix();
+        std::cout << "solution:\n";
+        std::cout << solution << "\n";
+        EXPECT_EQ(solution, expected);
+      }else {
+        EXPECT_EQ(valid_expr, false);
+      }
+    } catch (std::exception e) {
+      std::cerr << e.what() << std::endl;
     }
   }
 };

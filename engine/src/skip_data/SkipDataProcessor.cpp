@@ -44,23 +44,23 @@ std::vector<gdf_column_cpp> create_empty_result() {
 //      projects=[[0, 3, 5]]
 // minmax_metadata_table => use these indices [[0, 3, 5]]
 // minmax_metadata_table => minmax_metadata_table[[0, 1,  6, 7,  10, 11, size - 2, size - 1]]
-std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column_cpp> new_minmax_metadata_table_cpp, std::string table_scan, const Context& context) {
+std::pair<std::vector<gdf_column_cpp>, bool> process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column_cpp> new_minmax_metadata_table_cpp, std::string table_scan, const Context& context) {
      
     // convert minmax_metadata_table to blazing_frame minmax_metadata_frame which we will use to apply evaluate_expression
     blazing_frame minmax_metadata_frame;
     minmax_metadata_frame.add_table(new_minmax_metadata_table_cpp);
      
     if (minmax_metadata_frame.get_width() == 0){
-        return create_empty_result();
+        return std::make_pair(create_empty_result(), true);
     } 
     std::string filter_string;
     try {
         filter_string = get_filter_expression(table_scan);
         if (filter_string.empty()) {
-            return create_empty_result();
+            return std::make_pair(create_empty_result(), true);
         }
     } catch (...) {
-        return create_empty_result();
+        return std::make_pair(create_empty_result(), true);
     }
     filter_string = clean_calcite_expression(filter_string);
 
@@ -77,10 +77,10 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
         filter_string =  tree.prefix();
 
     } else { // something happened and could not process
-        return create_empty_result();
+        return std::make_pair(create_empty_result(), true);
     }
     if (filter_string.empty()) {
-        return create_empty_result();
+        return std::make_pair(create_empty_result(), true);
     }
     // then we follow a similar pattern to process_filter
     gdf_column_cpp stencil;
@@ -130,10 +130,10 @@ std::vector<gdf_column_cpp> process_skipdata_for_table(ral::io::data_loader & in
         }
         curStart = curEnd;        
     }
-    if (localEnd - localStart > 0){
-        return row_group_identifiers;
+    if (localEnd - localStart >= 0){
+        return std::make_pair(row_group_identifiers, false);
     }
-    return create_empty_result();
+    return std::make_pair(create_empty_result(), true);
 }
 
 

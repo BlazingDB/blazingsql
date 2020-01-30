@@ -185,7 +185,6 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
 cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extra_columns):
     cdef vector[string] files
     for file in fileList:
-      print('file', file)
       files.push_back(str.encode(file))
 
     cdef vector[string] arg_keys
@@ -447,7 +446,6 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
 
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        print(currentMetadata['communication_port'])
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
     temp = runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all)
@@ -459,6 +457,9 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
       strcpy(column.col_name, temp.names[i].c_str())
       df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
       i = i + 1
+    
+    if not temp.error_reported and temp.columns.size() == 0:
+      return cudf.DataFrame({'__empty__': []})
     return df
 
 cpdef getTableScanInfoCaller(logicalPlan):
