@@ -11,7 +11,7 @@ function logger() {
 }
 
 # Set home to the job's workspace
-export PATH=/conda/bin:/usr/local/cuda/bin:$PATH
+export PATH=/usr/local/cuda/bin:$PATH:/conda/bin
 export HOME=$WORKSPACE
 
 # Switch to project root; also root of repo checkout
@@ -21,6 +21,7 @@ cd $WORKSPACE
 export GIT_DESCRIBE_TAG=`git describe --abbrev=0 --tags`
 export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 
+#export DISTUTILS_DEBUG=1
 
 ################################################################################
 # SETUP - Check environment
