@@ -34,7 +34,7 @@ static std::basic_string<int8_t> BuildCudaIpcMemHandler (void *data) {
 
 static void* CudaIpcMemHandlerFrom (const std::basic_string<int8_t>& handler) {
   void * response = nullptr;
-  std::cout << "handler-content: " <<  handler.size() <<  std::endl;
+  // std::cout << "handler-content: " <<  handler.size() <<  std::endl;
   if (handler.size() == 64) {
     cudaIpcMemHandle_t ipc_memhandle;
     memcpy((int8_t*)&ipc_memhandle, handler.data(), sizeof(ipc_memhandle));

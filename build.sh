@@ -46,6 +46,7 @@ BUILD_DIRS="${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
 
 # Set defaults for vars modified by flags to this script
 VERBOSE=""
+QUIET=""
 BUILD_TYPE=Release
 INSTALL_TARGET=install
 TESTS="ON"
@@ -55,9 +56,10 @@ TESTS="ON"
 #         CONDA_PREFIX, but there is no fallback from there!
 INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
 PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
-export LD_LIBRARY_PATH=$INSTALL_PREFIX/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
+export CUDACXX=/usr/local/cuda/bin/nvcc
 
 function hasArg {
     (( ${NUMARGS} != 0 )) && (echo " ${ARGS} " | grep -q " $1 ")
@@ -85,6 +87,7 @@ fi
 # Process flags
 if hasArg -v; then
     VERBOSE=1
+    QUIET="--quiet"
 fi
 if hasArg -g; then
     BUILD_TYPE=Debug
@@ -170,10 +173,6 @@ if buildAll || hasArg libengine; then
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
         cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     fi
-
-    if [[ ${TESTS} == "ON" ]]; then
-        ctest
-    fi
 fi
 
 if buildAll || hasArg engine; then
@@ -182,8 +181,11 @@ if buildAll || hasArg engine; then
     if [[ ${INSTALL_TARGET} != "" ]]; then
         python setup.py build_ext --inplace
         python setup.py install --single-version-externally-managed --record=record.txt
-        # cp `pwd`/cio*.so `pwd`/../../_h_env*/lib/python*/site-packages
-        # cp -r `pwd`/bsql_engine `pwd`/../../_h_env*/lib/python*/site-packages
+
+        if [[ $CONDA_BUILD -eq 1 ]]; then
+            cp `pwd`/cio*.so `pwd`/../../_h_env*/lib/python*/site-packages
+            cp -r `pwd`/bsql_engine `pwd`/../../_h_env*/lib/python*/site-packages
+        fi
     else
         python setup.py build_ext --inplace --library-dir=${LIBENGINE_BUILD_DIR}
     fi
@@ -195,8 +197,11 @@ if buildAll || hasArg pyblazing; then
     if [[ ${INSTALL_TARGET} != "" ]]; then
         python setup.py build_ext --inplace
         python setup.py install --single-version-externally-managed --record=record.txt
-        # cp -r `pwd`/pyblazing `pwd`/../../_h_env*/lib/python*/site-packages
-        # cp -r `pwd`/blazingsql `pwd`/../../_h_env*/lib/python*/site-packages
+
+        if [[ $CONDA_BUILD -eq 1 ]]; then
+            cp -r `pwd`/pyblazing `pwd`/../../_h_env*/lib/python*/site-packages
+            cp -r `pwd`/blazingsql `pwd`/../../_h_env*/lib/python*/site-packages
+        fi
     else
         python setup.py build_ext --inplace
     fi
@@ -206,9 +211,9 @@ if buildAll || hasArg algebra; then
 
     cd ${ALGEBRA_BUILD_DIR}
     if [[ ${TESTS} == "ON" ]]; then
-        mvn clean install -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/
+        mvn clean install -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ $QUIET
     else
-        mvn clean install -Dmaven.test.skip=true -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/
+        mvn clean install -Dmaven.test.skip=true -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ $QUIET
     fi
     if [[ ${INSTALL_TARGET} != "" ]]; then
         cp blazingdb-calcite-application/target/BlazingCalcite.jar $INSTALL_PREFIX/lib/blazingsql-algebra.jar

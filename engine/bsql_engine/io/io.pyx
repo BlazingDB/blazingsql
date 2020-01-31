@@ -329,11 +329,10 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       # else:
       #   currentTableSchemaCpp.row_groups_ids = []
 
-      tableSchemaCpp.push_back(currentTableSchemaCpp);
+      tableSchemaCpp.push_back(currentTableSchemaCpp)
       tableIndex = tableIndex + 1
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        #print(currentMetadata['communication_port'])
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
@@ -442,7 +441,7 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     for col in table.metadata:
       currentTableSchemaCpp.metadata.push_back(column_view_from_column(table.metadata[col]._column))
 
-    tableSchemaCpp.push_back(currentTableSchemaCpp);
+    tableSchemaCpp.push_back(currentTableSchemaCpp)
 
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
