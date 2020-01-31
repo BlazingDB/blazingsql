@@ -25,6 +25,11 @@ using namespace ral::frame;
 
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables);
 
+std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names, 
+	const std::vector<cudf::type_id> &dtypes, std::vector<size_t> column_indices = std::vector<size_t>());
+
+std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableView & table);
+
 }  // namespace experimental
 }  // namespace utilities
 }  // namespace ral

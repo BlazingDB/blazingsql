@@ -93,9 +93,15 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       std::vector<CudfTableView> partitioned = cudf::experimental::split(hashedData_offsets_pair.first->view(), 
                                                                           split_indexes);
       
+      std::unique_ptr<CudfTable> empty;
+      if (partitioned.size() == context->getTotalNodes() - 1 ){ // split can return one less, due to weird implementation details in cudf. When so, the last one should have been emtpy
+        empty = cudf::experimental::empty_like(table.view());
+        partitioned.emplace_back(empty->view());
+      }
+      
       for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-        partitions.emplace_back(
-          std::make_pair(context->getNode(nodeIndex), ral::frame::BlazingTableView(partitioned[nodeIndex], table.names())));
+          partitions.emplace_back(
+            std::make_pair(context->getNode(nodeIndex), ral::frame::BlazingTableView(partitioned[nodeIndex], table.names())));
       }
     } else {
       for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
@@ -107,7 +113,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   	context->incrementQuerySubstep();
     ral::distribution::experimental::distributePartitions(context, partitions);
     std::vector<NodeColumn> remote_node_columns = ral::distribution::experimental::collectPartitions(context);
-    
+
     std::vector<ral::frame::BlazingTableView> partitions_to_concat;
     for (int i = 0; i < remote_node_columns.size(); i++){
       partitions_to_concat.emplace_back(remote_node_columns[i].second->toBlazingTableView());
@@ -123,7 +129,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     assert(found_self_partition);
 
     return ral::utilities::experimental::concatTables(partitions_to_concat);
-
   }
 
 

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <cudf/legacy/column.hpp>
+#include <cudf/copying.hpp>
 
 namespace ral {
 namespace utilities {
@@ -183,6 +184,33 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 
 	std::unique_ptr<CudfTable> concatenated_tables = cudf::experimental::concatenate(table_views_to_concat);
 	return std::make_unique<BlazingTable>(std::move(concatenated_tables), names);
+}
+
+std::unique_ptr<cudf::column> make_empty_column(cudf::data_type type) {
+  return std::make_unique<cudf::column>(type, 0, rmm::device_buffer{});
+}
+
+std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names, 
+	const std::vector<cudf::type_id> &dtypes, std::vector<size_t> column_indices) {
+	
+	if (column_indices.size() == 0){
+		column_indices.resize(column_names.size());
+		std::iota(column_indices.begin(), column_indices.end(), 0);
+	}
+
+	std::vector<std::unique_ptr<cudf::column>> columns(column_indices.size());
+
+	for (auto idx : column_indices) {
+		columns[idx] =  make_empty_column(cudf::data_type(dtypes[idx]));
+	}
+	auto table = std::make_unique<cudf::experimental::table>(std::move(columns));
+	return std::make_unique<ral::frame::BlazingTable>(std::move(table), column_names);
+}
+
+std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableView & table) {
+
+	std::unique_ptr<CudfTable> empty = cudf::experimental::empty_like(table.view());
+	return std::make_unique<ral::frame::BlazingTable>(std::move(empty), table.names());	
 }
 
 }  // namespace experimental
