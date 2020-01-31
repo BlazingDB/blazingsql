@@ -2,18 +2,24 @@
 
 set -e
 
-export TAR_FILE=`conda build conda/recipes/blazingsql/ --python=$PYTHON --output`
+export BLAZINGSQL_FILE=`conda build conda/recipes/blazingsql/ --python=$PYTHON --output`
 
-LABEL_OPTION="--label main --label cuda"$CUDA_VER
-echo "LABEL_OPTION=${LABEL_OPTION}"
+# Restrict uploads to master branch
+if [ ${GIT_BRANCH} != ${SOURCE_BRANCH} ]; then
+  echo "Skipping upload"
+  return 0
+fi
 
 if [ -z "$MY_UPLOAD_KEY" ]; then
     echo "No upload key"
     return 0
 fi
 
-test -e ${PYBLAZING_FILE}
-echo "Upload blazingsql: "${PYBLAZING_FILE}
+if [ "$UPLOAD_BLAZING" == "1" ]; then
+    LABEL_OPTION="--label main --label cuda"$CUDA_VER
+    echo "LABEL_OPTION=${LABEL_OPTION}"
 
-anaconda -t ${MY_UPLOAD_KEY} upload -u ${CONDA_UPLOAD} ${LABEL_OPTION} --force ${TAR_FILE}
-
+    test -e ${BLAZINGSQL_FILE}
+    echo "Upload blazingsql: "${BLAZINGSQL_FILE}
+    anaconda -t ${MY_UPLOAD_KEY} upload -u ${CONDA_UPLOAD} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}
+fi
