@@ -70,7 +70,7 @@ struct cast_to_str_functor {
 
     template<typename T, std::enable_if_t<cudf::is_timestamp<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
-        return cudf::strings::from_timestamps(col);
+        return cudf::strings::from_timestamps(col, "%Y-%m-%d %H:%M:%S");
     }
 
     template<typename T, std::enable_if_t<cudf::is_compound<T>()> * = nullptr>
@@ -207,7 +207,13 @@ public:
         return const_cast<parser::operator_node *>(&node); 
     }
 
-    cudf::size_type num_computed_columns() { return static_cast<cudf::size_type>(computed_columns.size()); }
+    cudf::table_view computed_columns_view() {
+        std::vector<cudf::column_view> computed_views(computed_columns.size());
+        std::transform(std::cbegin(computed_columns), std::cend(computed_columns), computed_views.begin(), [](auto & col){
+            return col->view();
+        });
+        return cudf::table_view{computed_views};
+    }
 
     std::vector<std::unique_ptr<cudf::column>> release_computed_columns() { return std::move(computed_columns); }
 
@@ -240,7 +246,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
         expression = parse_tree.rebuildExpression();
 
         if(contains_evaluation(expression)){
-            cudf::type_id expr_out_type = get_output_type_expression(table, expression);
+            cudf::type_id expr_out_type = get_output_type_expression(cudf::table_view{{table, evaluator.computed_columns_view()}}, expression);
 
             auto new_column = cudf::make_fixed_width_column(cudf::data_type{expr_out_type}, table.num_rows(), cudf::mask_state::UNINITIALIZED);
             interpreter_out_column_views.push_back(new_column->mutable_view());
