@@ -39,6 +39,8 @@ public:
 
 	operator bool() const { return table != nullptr; }
 
+	std::unique_ptr<CudfTable> releaseCudfTable() { return std::move(table);}
+
 private:
 	std::vector<std::string> columnNames;
 	std::unique_ptr<CudfTable> table;

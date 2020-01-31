@@ -17,6 +17,7 @@
 #include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
+#include "Interpreter/interpreter_cpp.h"
 
 bool is_type_signed(cudf::type_id type) {
 	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type ||
@@ -105,171 +106,6 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::s
 	}
 }
 
-bool is_exponential_operator(gdf_binary_operator_exp operation) { return operation == BLZ_POW; }
-
-bool is_null_check_operator(gdf_unary_operator operation) {
-	return (operation == BLZ_IS_NULL || operation == BLZ_IS_NOT_NULL);
-}
-
-bool is_arithmetic_operation(gdf_binary_operator_exp operation) {
-	return (operation == BLZ_ADD || operation == BLZ_SUB || operation == BLZ_MUL || operation == BLZ_DIV ||
-			operation == BLZ_MOD);
-}
-
-bool is_logical_operation(gdf_binary_operator_exp operation) {
-	return (operation == BLZ_EQUAL || operation == BLZ_NOT_EQUAL || operation == BLZ_GREATER ||
-			operation == BLZ_GREATER_EQUAL || operation == BLZ_LESS || operation == BLZ_LESS_EQUAL ||
-			operation == BLZ_LOGICAL_OR);
-}
-
-bool is_trig_operation(gdf_unary_operator operation) {
-	return (operation == BLZ_SIN || operation == BLZ_COS || operation == BLZ_ASIN || operation == BLZ_ACOS ||
-			operation == BLZ_TAN || operation == BLZ_COTAN || operation == BLZ_ATAN);
-}
-
-cudf::type_id get_signed_type_from_unsigned(cudf::type_id type) {
-	return type;
-	// TODO felipe percy noboa see upgrade to uints
-	//	if(type == GDF_UINT8){
-	//		return GDF_INT16;
-	//	}else if(type == GDF_UINT16){
-	//		return GDF_INT32;
-	//	}else if(type == GDF_UINT32){
-	//		return GDF_INT64;
-	//	}else if(type == GDF_UINT64){
-	//		return GDF_INT64;
-	//	}else{
-	//		return GDF_INT64;
-	//	}
-}
-
-cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator operation) {
-	if(operation == BLZ_CAST_INTEGER) {
-		return cudf::type_id::INT32;
-	} else if(operation == BLZ_CAST_BIGINT) {
-		return cudf::type_id::INT64;
-	} else if(operation == BLZ_CAST_FLOAT) {
-		return cudf::type_id::FLOAT32;
-	} else if(operation == BLZ_CAST_DOUBLE) {
-		return cudf::type_id::FLOAT64;
-	} else if(operation == BLZ_CAST_DATE) {
-		return cudf::type_id::TIMESTAMP_SECONDS;
-	} else if(operation == BLZ_CAST_TIMESTAMP) {
-		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-		return cudf::type_id::TIMESTAMP_MILLISECONDS;
-	} else if(operation == BLZ_CAST_VARCHAR) {
-		return cudf::type_id::CATEGORY;
-	} else if(is_date_type(input_left_type)) {
-		return cudf::type_id::INT16;
-	} else if(is_trig_operation(operation) || operation == BLZ_LOG || operation == BLZ_LN) {
-		if(input_left_type == cudf::type_id::FLOAT32 || input_left_type == cudf::type_id::FLOAT64) {
-			return input_left_type;
-		} else {
-			return cudf::type_id::FLOAT64;
-		}
-	} else if(is_null_check_operator(operation)) {
-		return cudf::type_id::BOOL8;  // TODO: change to bools
-	} else {
-		return input_left_type;
-	}
-}
-
-// todo: get_output_type: add support to coalesce and date operations!
-cudf::type_id get_output_type(
-	cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation) {
-	if(is_arithmetic_operation(operation)) {
-		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
-			// the output shoudl be ther largest float type
-			if(is_type_float(input_left_type) && is_type_float(input_right_type)) {
-				return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
-						   ral::traits::get_dtype_size_in_bytes(input_right_type))
-						   ? input_left_type
-						   : input_right_type;
-			} else if(is_type_float(input_left_type)) {
-				return input_left_type;
-			} else {
-				return input_right_type;
-			}
-		}
-
-		// ok so now we know we have now floating points left
-		// so only things to worry about now are
-		// if both are signed or unsigned, use largest type
-
-		if((is_type_signed(input_left_type) && is_type_signed(input_right_type)) ||
-			(!is_type_signed(input_left_type) && !is_type_signed(input_right_type))) {
-			return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
-					   ral::traits::get_dtype_size_in_bytes(input_right_type))
-					   ? input_left_type
-					   : input_right_type;
-		}
-
-		// now we know one is signed and the other isnt signed, if signed is larger we can just use signed version, if
-		// unsigned is larger we have to use the signed version one step up e.g. an unsigned int32 requires and int64 to
-		// represent all its numbers, unsigned int64 we are just screwed :)
-		if(is_type_signed(input_left_type)) {
-			// left signed
-			// right unsigned
-			if(ral::traits::get_dtype_size_in_bytes(input_left_type) >
-				ral::traits::get_dtype_size_in_bytes(input_right_type)) {
-				// great the left can represent the right
-				return input_left_type;
-			} else {
-				// right type cannot be represented by left so we need to get a signed type big enough to represent the
-				// unsigned right
-				return get_signed_type_from_unsigned(input_right_type);
-			}
-		} else {
-			// right signed
-			// left unsigned
-			if(ral::traits::get_dtype_size_in_bytes(input_left_type) <
-				ral::traits::get_dtype_size_in_bytes(input_right_type)) {
-				return input_right_type;
-			} else {
-				return get_signed_type_from_unsigned(input_left_type);
-			}
-		}
-
-		// convert to largest type
-		// if signed and unsigned convert to signed, upgrade unsigned if possible to determine size requirements
-	} else if(is_logical_operation(operation)) {
-		return cudf::type_id::BOOL8;
-	} else if(is_exponential_operator(operation)) {
-		// assume biggest type unsigned if left is unsigned, signed if left is signed
-
-		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
-			return cudf::type_id::FLOAT64;
-			//		}else if(is_type_signed(input_left_type)){
-			//			return GDF_INT64;
-		} else {
-			// TODO felipe percy noboa see upgrade to uints
-			// return GDF_UINT64;
-			return cudf::type_id::INT64;
-		}
-	} else if(operation == BLZ_MAGIC_IF_NOT) {
-		return input_right_type;
-	} else if(operation == BLZ_FIRST_NON_MAGIC) {
-		if(is_numeric_type(input_left_type) && is_numeric_type(input_right_type)) {
-			if(is_type_float(input_left_type) && !is_type_float(input_right_type)) {
-				return input_left_type;
-			} else if(!is_type_float(input_left_type) && is_type_float(input_right_type)) {
-				return input_right_type;
-			}
-		}
-		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
-				   ral::traits::get_dtype_size_in_bytes(input_right_type))
-				   ? input_left_type
-				   : input_right_type;
-	} else if(operation == BLZ_STR_LIKE) {
-		return cudf::type_id::BOOL8;
-	} else if(operation == BLZ_STR_SUBSTRING || operation == BLZ_STR_CONCAT) {
-		return cudf::type_id::CATEGORY;
-	} else {
-		// TODO percy cudf0.12 was invalid here, is correct to use empty?
-		return cudf::type_id::EMPTY;
-	}
-}
-
 void get_common_type(cudf::type_id type1, cudf::type_id type2, cudf::type_id & type_out) {
 	// TODO percy cudf0.12 was invalid here, should we return empty?
 	type_out = cudf::type_id::EMPTY;
@@ -341,9 +177,9 @@ cudf::type_id infer_dtype_from_literal(const std::string & token) {
 	} else if(is_date(token)) {
 		return cudf::type_id::TIMESTAMP_DAYS;
 	} else if(is_timestamp(token)) {
-		return cudf::type_id::TIMESTAMP_MILLISECONDS;
+		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	} else if(is_string(token)) {
-		return cudf::type_id::CATEGORY;
+		return cudf::type_id::STRING;
 	}
 
 	RAL_FAIL("Invalid literal string");
@@ -353,9 +189,6 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	cudf::type_id type_id = infer_dtype_from_literal(scalar_string);
 	cudf::data_type type{type_id};
 
-	if(type_id == cudf::type_id::EMPTY) {
-		return nullptr;
-	}
 	if(type_id == cudf::type_id::BOOL8) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = cudf::experimental::bool8;
@@ -408,29 +241,31 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	if(type_id == cudf::type_id::TIMESTAMP_DAYS) {
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
 	}
-	if(type_id == cudf::type_id::TIMESTAMP_MILLISECONDS) {
+	if(type_id == cudf::type_id::TIMESTAMP_NANOSECONDS) {
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
 	}
-
+	if(type_id == cudf::type_id::STRING)	{
+		return cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
+	}
+	
 	assert(false);
 }
 
 // must pass in temp type as invalid if you are not setting it to something to begin with
-cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id & max_temp_type, std::string expression) {
+cudf::type_id get_output_type_expression(const cudf::table_view & table, std::string expression) {
 	std::string clean_expression = clean_calcite_expression(expression);
 
 	// TODO percy cudf0.12 was invalid here, should we consider empty?
-	if(max_temp_type == cudf::type_id::EMPTY) {
-		max_temp_type = cudf::type_id::INT8;
-	}
+	cudf::type_id max_temp_type = cudf::type_id::INT8;
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table.view(), tokens);
+	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
 
 	std::stack<cudf::type_id> operands;
 	for(std::string token : tokens) {
 		if(is_operator_token(token)) {
-			if(is_binary_operator_token(token)) {
+			interops::operator_type operation = map_to_operator_type(token);
+			if(is_binary_operator(operation)) {
 				if(operands.size() < 2)
 					throw std::runtime_error(
 						"In function get_output_type_expression, the operator cannot be processed on less than one or "
@@ -453,33 +288,27 @@ cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & ta
 						right_operand = left_operand;
 					}
 				}
-				gdf_binary_operator_exp operation = get_binary_operation(token);
+
 				operands.push(get_output_type(left_operand, right_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
 					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
 					max_temp_type = operands.top();
 				}
-			} else if(is_unary_operator_token(token)) {
+			} else if(is_unary_operator(operation)) {
 				cudf::type_id left_operand = operands.top();
 				operands.pop();
-
-				gdf_unary_operator operation = get_unary_operation(token);
 
 				operands.push(get_output_type(left_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
 					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
 					max_temp_type = operands.top();
 				}
-			} else {
-				throw std::runtime_error(
-					"In get_output_type_expression function: unsupported operator token, " + token);
 			}
-
 		} else {
 			if(is_literal(token)) {
 				operands.push(infer_dtype_from_literal(token));
 			} else {
-				operands.push(table.view().column(get_index(token)).type().id());
+				operands.push(table.column(get_index(token)).type().id());
 			}
 		}
 	}
@@ -537,21 +366,6 @@ cudf::experimental::reduction_op get_aggregation_operation_for_reduce(std::strin
 
 	throw std::runtime_error(
 		"In get_aggregation_operation_for_reduce function: aggregation type not supported, " + operator_string);
-}
-
-
-gdf_unary_operator get_unary_operation(std::string operator_string) {
-	if(gdf_unary_operator_map.find(operator_string) != gdf_unary_operator_map.end())
-		return gdf_unary_operator_map[operator_string];
-
-	throw std::runtime_error("In get_unary_operation function: unsupported operator, " + operator_string);
-}
-
-gdf_binary_operator_exp get_binary_operation(std::string operator_string) {
-	if(gdf_binary_operator_map.find(operator_string) != gdf_binary_operator_map.end())
-		return gdf_binary_operator_map[operator_string];
-
-	throw std::runtime_error("In get_binary_operation function: unsupported operator, " + operator_string);
 }
 
 std::vector<std::string> get_tokens_in_reverse_order(const std::string & expression) {
@@ -625,12 +439,9 @@ void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 }
 
 cudf::size_type get_index(const std::string & operand_string) {
-	if(operand_string.empty()) {
-		return 0;
-	}
-	std::string cleaned_expression = clean_calcite_expression(operand_string);
-	return std::stoi(is_literal(cleaned_expression) ? cleaned_expression
-													: cleaned_expression.substr(1, cleaned_expression.size() - 1));
+	assert(is_var_column(operand_string) || is_literal(operand_string));
+	
+	return std::stoi(is_literal(operand_string) ? operand_string : operand_string.substr(1, operand_string.size() - 1));
 }
 
 std::string aggregator_to_string(cudf::experimental::aggregation::Kind aggregation) {
@@ -662,9 +473,13 @@ std::string expand_if_logical_op(std::string expression) {
 
 		int first_and = StringUtil::findFirstNotInQuotes(
 			expression, "AND(", start_pos, is_quoted_vector);  // returns -1 if not found
-		int first_or = StringUtil::findFirstNotInQuotes(
-			expression, "OR(", start_pos, is_quoted_vector);  // returns -1 if not found
-
+		int first_or = -1;
+		
+		std::string floor_str = "FLOOR";
+		if (StringUtil::contains(expression, floor_str) == false) {
+			first_or = StringUtil::findFirstNotInQuotes(expression, "OR(", start_pos, is_quoted_vector);  // returns -1 if not found
+		}
+		
 		int first = -1;
 		std::string op = "";
 		if(first_and >= 0) {
@@ -753,7 +568,6 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
-	StringUtil::findAndReplaceAll(ret, "FLOOR(", "BL_FLOUR(");
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 

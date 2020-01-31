@@ -16,6 +16,7 @@
 #include "from_cudf/cpp_tests/utilities/table_utilities.hpp"
 #include "from_cudf/cpp_tests/utilities/type_lists.hpp"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
+#include "utilities/DebuggingUtils.h"
 
 template <typename T>
 struct LogicalFilterTest : public cudf::test::BaseFixture {};
@@ -167,6 +168,58 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
       return true;
     });
   cudf::test::fixed_width_column_wrapper<T> expected_col2{sequenceOut2, sequenceOut2 + (inputRows / 2), sequenceOutValidity2};
+  cudf::table_view expected_table_view {{expected_col1, expected_col2}};
+
+  cudf::test::expect_tables_equal(expected_table_view, out_table->view());
+}
+
+
+struct LogicalFilterWithStringsTest : public cudf::test::BaseFixture {};
+
+TEST_F(LogicalFilterWithStringsTest, NoNulls){
+  
+  std::cout<<"start"<<std::endl;
+  cudf::test::strings_column_wrapper col1({"foo", "d", "e", "a", "hello", "k", "d", "l", "bar", ""});
+  cudf::test::fixed_width_column_wrapper<int32_t> col2{{10,8,6,4,2,1,11,9,7,5}};
+
+  cudf::table_view in_table_view {{col1, col2}};
+  std::vector<std::string> column_names{"col1", "col2"};
+
+  std::cout<<"prefilter"<<std::endl;
+
+  auto out_table = ral::processor::process_filter(ral::frame::BlazingTableView{in_table_view, column_names},
+                                                  "LogicalFilter(condition=[=($0, 'bar')])", nullptr);
+
+  
+  std::cout<<"postfilter"<<std::endl;
+
+  cudf::test::strings_column_wrapper expected_col1({"bar"});
+  cudf::test::fixed_width_column_wrapper<int32_t> expected_col2{{7}};
+
+  cudf::table_view expected_table_view {{expected_col1, expected_col2}};
+
+  std::cout<<"prevalidation"<<std::endl;
+  cudf::test::expect_tables_equal(expected_table_view, out_table->view());
+}
+
+TEST_F(LogicalFilterWithStringsTest, IneqWithNulls){
+  
+  cudf::test::strings_column_wrapper col1({"foo", "d", "e", "a", "hello", "k", "d", "l", "bar", ""}, {1, 1, 0, 1, 1, 0, 1, 1, 0, 1});
+  cudf::test::fixed_width_column_wrapper<int32_t> col2{{10,8,6,4,2,1,11,9,7,5}, {1, 1, 0, 1, 1, 0, 1, 1, 0, 1}};
+
+  cudf::table_view in_table_view {{col1, col2}};
+  std::vector<std::string> column_names{"col1", "col2"};
+
+  auto out_table = ral::processor::process_filter(ral::frame::BlazingTableView{in_table_view, column_names},
+                                                  "LogicalFilter(condition=[>($0, 'd')])", nullptr);
+
+  
+  std::cout<<"postfilter"<<std::endl;
+  ral::utilities::print_blazing_table_view(out_table->toBlazingTableView());
+
+  cudf::test::strings_column_wrapper expected_col1({"foo", "hello", "l"}, {1, 1, 1});
+  cudf::test::fixed_width_column_wrapper<int32_t> expected_col2{{10, 2, 9}, {1, 1, 1}};
+
   cudf::table_view expected_table_view {{expected_col1, expected_col2}};
 
   cudf::test::expect_tables_equal(expected_table_view, out_table->view());

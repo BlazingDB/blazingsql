@@ -2,16 +2,7 @@
 #include <regex>
 
 #include "expression_utils.hpp"
-#include "gdf_wrapper/gdf_types.cuh"
 #include "Utils.cuh"
-
-bool is_binary_operator_token(const std::string & token) {
-	return (gdf_binary_operator_map.find(token) != gdf_binary_operator_map.end());
-}
-
-bool is_unary_operator_token(const std::string & token) {
-	return (gdf_unary_operator_map.find(token) != gdf_unary_operator_map.end());
-}
 
 bool is_string(const std::string & token) { return token[0] == '\'' && token[token.size() - 1] == '\''; }
 
@@ -64,18 +55,19 @@ bool is_inequality(const std::string& token){
 }
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
-	std::string str_to_search = expression_name + "=[[";
-	size_t start_position = query_part.find(str_to_search);
-	if(start_position == std::string::npos) {
-		str_to_search = expression_name + "=[";
-		start_position = query_part.find(str_to_search);
+	if(query_part.find(expression_name + "=[") == query_part.npos) {
+		return "";  // expression not found
 	}
-
-	RAL_EXPECTS(start_position != std::string::npos, "Couldn't find expression name in query part" );
-
-	start_position += str_to_search.length();
-
-	size_t end_position = query_part.find("]", start_position);
-	
+	int start_position = (query_part.find(expression_name + "=[[")) + 3 + expression_name.length();
+	if(query_part.find(expression_name + "=[[") == query_part.npos) {
+		start_position = (query_part.find(expression_name + "=[")) + 2 + expression_name.length();
+	}
+	int end_position = (query_part.find("]", start_position));
 	return query_part.substr(start_position, end_position - start_position);
+}
+
+interops::operator_type map_to_operator_type(const std::string & operator_token) {
+	RAL_EXPECTS(operator_map.find(operator_token) != operator_map.end(), "Unsupported operator");
+
+	return operator_map[operator_token];
 }

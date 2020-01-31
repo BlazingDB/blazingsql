@@ -20,6 +20,7 @@
 #include <thread>
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>
+#include <cudf/strings/copying.hpp>
 #include <cudf/table/table_view.hpp>
 #include <cudf/column/column_factories.hpp>
 
@@ -50,15 +51,15 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 	for(int i = 0; i < num_sort_columns; i++) {
 		sortColIndices[i] = get_index(get_named_expression(combined_expression, "sort" + std::to_string(i)));
 		sortOrderTypes[i] =
-			(get_named_expression(combined_expression, "dir" + std::to_string(i)) == DESCENDING_ORDER_SORT_TEXT);		 
+			(get_named_expression(combined_expression, "dir" + std::to_string(i)) == DESCENDING_ORDER_SORT_TEXT);
 	}
 
-	bool apply_limit = !limitRowsStr.empty();
-	cudf::size_type limitRows = apply_limit ? std::stoi(limitRowsStr) : 0;
-	if(context->getTotalNodes() <= 1) {		
-		
-		apply_limit = limitRows < table.num_rows();
-		
+	bool apply_limit = (limitRowsStr.empty() == false);
+	cudf::size_type limitRows = apply_limit ? std::stoi(limitRowsStr) : -1;
+	if(context->getTotalNodes() <= 1) {
+		if (limitRows > 0)
+			apply_limit = limitRows < table.num_rows();
+
 		if(num_sort_columns > 0) {
 			std::unique_ptr<ral::frame::BlazingTable> sorted_table = logicalSort(table, sortColIndices, sortOrderTypes);
 
@@ -68,14 +69,14 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 				return sorted_table;
 			}
 		} else if(apply_limit) {
-			return logicalLimit(table, limitRows);			
+			return logicalLimit(table, limitRows);
 		} else { // this should never happen, you either have a sort or a filter,otherwise you should have never called this function
 			return table.clone();
 		}
 	} else {
 		if(num_sort_columns > 0) {
 			std::unique_ptr<ral::frame::BlazingTable> sorted_table = distributed_sort(context, table, sortColIndices, sortOrderTypes);
-			
+
 			limitRows = determine_local_limit(context, sorted_table->num_rows(), limitRows);
 			apply_limit = limitRows < sorted_table->num_rows();
 			if(apply_limit) {
@@ -90,18 +91,18 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 				return logicalLimit(table, limitRows);
 			} else {
 				return table.clone();
-			}			
+			}
 		} else { // this should never happen, you either have a sort or a filter,otherwise you should have never called this function
 			return table.clone();
 		}
 	}
 }
 
-	
+
 
 std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<int8_t> & sortOrderTypes){
-	
+
 
 	static CodeTimer timer;
 	timer.reset();
@@ -109,7 +110,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	size_t total_rows_table = table.view().num_rows();
 
 	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), table.names());
-	
+
 	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamples(
 																sortColumns, 0.1);
 
@@ -135,12 +136,12 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 		std::ref(sortedTable)};
 
 	// std::unique_ptr<ral::frame::BlazingTable> sortedTable = logicalSort(table, sortColIndices, sortOrderTypes);
-	
+
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 	if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
 		context->incrementQuerySubstep();
 		std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > samples_pair = collectSamples(context);
-		
+
 		std::vector<ral::frame::BlazingTableView> samples;
 		for (int i = 0; i < samples_pair.first.size(); i++){
 			samples.push_back(samples_pair.first[i].second->toBlazingTableView());
@@ -149,7 +150,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 
 		std::vector<size_t> total_rows_tables = samples_pair.second;
 		total_rows_tables.push_back(total_rows_table);
-		
+
 		partitionPlan = generatePartitionPlans(context, samples, total_rows_tables, sortOrderTypes);
 
 		context->incrementQuerySubstep();
@@ -178,7 +179,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 
 	std::vector<NodeColumnView> partitions = partitionData(
 							context, sortedTable->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
-	
+
 	Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed_sort part 3 partitionData"));
 	timer.reset();
 
@@ -238,37 +239,50 @@ cudf::size_type determine_local_limit(Context * context,
 
 	context->incrementQuerySubstep();
 	ral::distribution::experimental::distributeNumRows(context, local_num_rows);
-	
+
 	std::vector<cudf::size_type> nodesRowSize = ral::distribution::experimental::collectNumRows(context);
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	cudf::size_type prev_total_rows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, 0);
-	
-	return std::max(limit_rows - prev_total_rows, 0);	
+
+	return std::max(limit_rows - prev_total_rows, 0);
 }
 
 
-// This function will return a new BlazingTable that only has limitRows rows. 
+// This function will return a new BlazingTable that only has limitRows rows.
 // This function should only be called if a limit will actually be applied, otherwise it will just make a copy, which we would want to avoid
 std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
-  const ral::frame::BlazingTableView & table, cudf::size_type limitRows){
-
+	const ral::frame::BlazingTableView & table, cudf::size_type limitRows) {
 	cudf::size_type rowSize = table.view().num_rows();
 
 	std::vector<std::unique_ptr<cudf::column>> output_cols;
 
 	if(limitRows < rowSize) {
-
 		for(size_t i = 0; i < table.view().num_columns(); ++i) {
-			std::unique_ptr<cudf::column> mycolumn = cudf::make_numeric_column( table.view().column(i).type(), limitRows);
-			std::unique_ptr<cudf::column> output = cudf::experimental::copy_range(table.view().column(i), *mycolumn, 0, limitRows, 0);
-			output_cols.push_back(std::move(output));
+			cudf::data_type columnType = table.view().column(i).type();
+			cudf::type_id columnTypeId = columnType.id();
+
+			if((cudf::CATEGORY == columnTypeId) || (cudf::EMPTY == columnTypeId) ||
+				(cudf::NUM_TYPE_IDS == columnTypeId)) {
+				throw std::runtime_error("Unsupported column type");
+			}
+
+			if(cudf::STRING == columnTypeId) {
+				std::unique_ptr<cudf::column> output =
+					cudf::strings::detail::slice(table.view().column(i), 0, limitRows);
+				output_cols.push_back(std::move(output));
+			} else {
+				std::unique_ptr<cudf::column> mycolumn = cudf::make_fixed_width_column(columnType, limitRows);
+				std::unique_ptr<cudf::column> output =
+					cudf::experimental::copy_range(table.view().column(i), *mycolumn, 0, limitRows, 0);
+				output_cols.push_back(std::move(output));
+			}
 		}
-		return std::make_unique<ral::frame::BlazingTable>( 
-			std::make_unique<cudf::experimental::table>( std::move(output_cols) ), table.names() );
+		return std::make_unique<ral::frame::BlazingTable>(
+			std::make_unique<cudf::experimental::table>(std::move(output_cols)), table.names());
 	} else {
 		return table.clone();
-	}	
-  }
+	}
+}
 
 }  // namespace experimental
 }  // namespace operators

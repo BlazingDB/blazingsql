@@ -67,15 +67,6 @@ RelationalAlgebraGeneratorClass = jpype.JClass(
     'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
 
-# Internal util to create empty DataFrame with a valid schema
-def _schema_dataframe(column_names, column_types):
-    temp = cudf.DataFrame()
-    for name, type_id in zip(column_names, column_types):
-        dtype = cudf_to_np_types[type_id]
-        temp.add_column(name, build_column(cudf.core.Buffer(), dtype))
-    return temp
-
-
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -271,6 +262,9 @@ class BlazingTable(object):
         self.column_names = []
         self.column_types = []
 
+        if fileType == DataType.CUDF:
+            self.column_names = [x for x in input._data.keys()]
+            self.column_types = [np_to_cudf_types[x.dtype] for x in input._data.values()]
 
     def has_metadata(self) :
         if isinstance(self.metadata, dask_cudf.core.DataFrame):
@@ -361,8 +355,11 @@ class BlazingContext(object):
 
     def __init__(self, dask_client=None, network_interface=None):
         """
-        :param connection: BlazingSQL cluster URL to connect to
-            (e.g. 125.23.14.1:8889, blazingsql-gateway:7887).
+        :param dask_client: a dask.distributed.Client instance
+            (e.g. BlazingContext(dask_client=dask.distributed.Client('127.0.0.1:8786'))
+
+        :param network_interface: network interface name
+            (e.g. BlazingContext(dask_client=..., network_interface='eth0'))
         """
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
@@ -436,10 +433,10 @@ class BlazingContext(object):
         self.finalizeCaller()
 
     def __repr__(self):
-        return "BlazingContext('%s')" % (self.connection)
+        return "BlazingContext('%s')" % (self.dask_client)
 
     def __str__(self):
-        return self.connection
+        return self.dask_client
 
     # BEGIN FileSystem interface
 
@@ -479,18 +476,18 @@ class BlazingContext(object):
             if(addTable):
                 self.db.removeTable(tableName)
                 self.tables[tableName] = table
-                arr = ArrayClass()
-                order = 0
 
                 if(isinstance(table.input, dask_cudf.core.DataFrame)):
-                    schema_df = table.input.head(0)
+                    schema_df_types = []
+                    for col in table.input.head(0)._data[column]:
+                        schema_df_types.append(np_to_cudf_types(col.dtype))
                 else:
-                    schema_df = _schema_dataframe(table.column_names, table.column_types)
+                    schema_df_types = table.column_types
 
+                arr = ArrayClass()
+                order = 0
                 for column in table.column_names:
-                    dataframe_column = schema_df._data[column]
-                    data_sz = len(dataframe_column)
-                    type_id = np_to_cudf_types[dataframe_column.dtype]
+                    type_id = schema_df_types[order]
                     dataType = ColumnTypeClass.fromTypeId(type_id)
                     column = ColumnClass(column, dataType, order)
                     arr.add(column)

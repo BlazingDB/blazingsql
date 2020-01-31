@@ -6,6 +6,7 @@
 #include <cudf/copying.hpp>
 
 #include "LogicalFilter.h"
+#include "LogicalProject.h"
 #include "../../CalciteExpressionParsing.h"
 #include "../../JoinProcessor.h"
 
@@ -45,85 +46,6 @@ std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
     filteredTable),table.names());
 }
 
-std::unique_ptr<cudf::column> evaluate_expression(
-  const cudf::table_view & table,
-  const std::string & expression,
-  cudf::data_type output_type) {
-  using interops::column_index_type;
-
-  if(is_var_column(expression)) {
-    // special case when there is nothing to evaluate in the condition expression i.e. LogicalFilter(condition=[$16])
-    cudf::size_type index = get_index(expression);
-    auto col_view = table.column(index);
-
-    RAL_EXPECTS(col_view.type() == output_type, "Expression evaluates to incorrect type");
-
-    return std::make_unique<cudf::column>(col_view);
-  }
-
-  std::string clean_expression = clean_calcite_expression(expression);
-  std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-  fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
-  
-  // Keep track of which columns are used in the expression
-  std::vector<bool> col_used_in_expression(table.num_columns(), false);
-  for(const auto & token : tokens) {
-    if(is_var_column(token)) {
-      cudf::size_type index = get_index(token);
-      col_used_in_expression[index] = true;
-    }
-  }
-
-  // Get the needed columns indices in order and keep track of the mapped indices
-  std::vector<cudf::size_type> input_col_indices;
-  std::map<column_index_type, column_index_type> col_idx_map;
-  for(size_t i = 0; i < col_used_in_expression.size(); i++) {
-    if(col_used_in_expression[i]) {
-      col_idx_map.insert({i, col_idx_map.size()});
-      input_col_indices.push_back(i);
-    }
-  }
-
-  cudf::table_view filtered_table = table.select(input_col_indices);
-  std::vector<column_index_type> left_inputs;
-  std::vector<column_index_type> right_inputs;
-  std::vector<column_index_type> outputs;
-  std::vector<column_index_type> final_output_positions = {filtered_table.num_columns()};
-  std::vector<gdf_binary_operator_exp> operators;
-  std::vector<gdf_unary_operator> unary_operators;
-  std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
-  std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
-  
-  interops::add_expression_to_interpreter_plan(tokens,
-                                              filtered_table,
-                                              col_idx_map,
-                                              0,
-                                              1,
-                                              left_inputs,
-                                              right_inputs,
-                                              outputs,
-                                              final_output_positions,
-                                              operators,
-                                              unary_operators,
-                                              left_scalars,
-                                              right_scalars);
-
-  auto ret = cudf::make_fixed_width_column(output_type, table.num_rows(), cudf::mask_state::UNINITIALIZED); 
-  cudf::mutable_table_view ret_view {{ret->mutable_view()}};
-  interops::perform_interpreter_operation(ret_view,
-                                          filtered_table,
-                                          left_inputs,
-                                          right_inputs,
-                                          outputs,
-                                          final_output_positions,
-                                          operators,
-                                          unary_operators,
-                                          left_scalars,
-                                          right_scalars);
-
-  return ret;
-}
-
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const ral::frame::BlazingTableView & table,
   const std::string & query_part,
@@ -139,9 +61,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 		conditional_expression = get_named_expression(query_part, "filters");
 	}
 
-  auto bool_mask = evaluate_expression(table_view, conditional_expression, cudf::data_type{cudf::type_id::BOOL8});
+  auto evaluated_table = evaluate_expressions(table_view, {conditional_expression});
 
-  return applyBooleanFilter(table, *bool_mask);
+  RAL_EXPECTS(evaluated_table->num_columns() == 1 && evaluated_table->get_column(0).type().id() == cudf::type_id::BOOL8, "Expression does not evaluate to a boolean mask");
+
+  return applyBooleanFilter(table, evaluated_table->get_column(0));
 }
 
 
@@ -395,39 +319,83 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
     }
   }
 
+  // TODO WSM we actually dont want to use columns_in_common, but cudf right now has a bug and needs this filled in.
   std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common(left_column_indices.size());
   for(int i = 0; i < left_column_indices.size(); i++){
     columns_in_common[i].first = left_column_indices[i];
     columns_in_common[i].second = right_column_indices[i];
   }
+  // std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 
-  if(join_type == INNER_JOIN) {
-    auto result = cudf::experimental::inner_join(
-      table_left.view(),
-      table_right.view(),
-      left_column_indices,
-      right_column_indices,
-      columns_in_common);
+  std::unique_ptr<CudfTable> result_table;
+  std::vector<std::string> result_names = table_left.names();
+  std::vector<std::string> right_names = table_right.names();
+  result_names.insert(result_names.end(), right_names.begin(), right_names.end());
 
-  } else if(join_type == LEFT_JOIN) {
-    auto result = cudf::experimental::left_join(
-      table_left.view(),
-      table_right.view(),
-      left_column_indices,
-      right_column_indices,
-      columns_in_common);
-
-  } else if(join_type == OUTER_JOIN) {
-    auto result = cudf::experimental::full_join(
-      table_left.view(),
-      table_right.view(),
-      left_column_indices,
-      right_column_indices,
-      columns_in_common);
-
-  } else {
-    throw std::runtime_error("In evaluate_join function: unsupported join operator, " + join_type);
+  try {
+    if(join_type == INNER_JOIN) {
+      result_table = cudf::experimental::inner_join(
+        table_left.view(),
+        table_right.view(),
+        left_column_indices,
+        right_column_indices,
+        columns_in_common);
+  
+    } else if(join_type == LEFT_JOIN) {
+      result_table = cudf::experimental::left_join(
+        table_left.view(),
+        table_right.view(),
+        left_column_indices,
+        right_column_indices,
+        columns_in_common);
+  
+    } else if(join_type == OUTER_JOIN) {
+      result_table = cudf::experimental::full_join(
+        table_left.view(),
+        table_right.view(),
+        left_column_indices,
+        right_column_indices,
+        columns_in_common);
+  
+    } else {
+      throw std::runtime_error("In evaluate_join function: unsupported join operator, " + join_type);
+    }
+  } catch(std::exception& e) {
+      std::cerr << e.what() << std::endl;
   }
+
+  // TODO WSM here because we had to use column_in_column above, which we dont want to, we have to recreate the columns removed by 
+  // columns_in_column. This will work just fine for inner_joins, but left or full outer joins, can have the right key column be 
+  // different that its corresponding left side (due to missing values, there can be nulls). So in those cases this hack will 
+  // produce incorrect results
+
+  // if we had columns [A, B, C, D, E] joining against [F, G, H, I, J] on the columns B = F and C = H
+  // the join function will return [A, B, C, D, E, G, I, J] and we want it to return [A, B, C, D, E, F, G, H, I, J]
+  // this is what this block is trying to fix
+  std::vector<std::unique_ptr<CudfColumn>> result_columns = result_table->release();
+  std::vector<std::unique_ptr<CudfColumn>> new_result_columns(table_left.num_columns() + table_right.num_columns());
+  // lets move here the columns we know come from the left table
+  for (int i = 0; i < table_left.num_columns(); i++){
+    new_result_columns[i] = std::move(result_columns[i]);
+  }
+  int non_join_columns_count = 0;
+  for (int i = 0; i < table_right.num_columns(); i++){
+    auto it = std::find(right_column_indices.begin(), right_column_indices.end(), i);
+    if (it != right_column_indices.end()){ // this column was one of the join columns, so we need to get it from the left side because of column_in_column
+      int right_element = std::distance(right_column_indices.begin(), it);
+      cudf::size_type result_src_index = left_column_indices[right_element];
+      cudf::size_type result_dst_index = table_left.num_columns() + i;
+      new_result_columns[result_dst_index] = std::make_unique<CudfColumn>(new_result_columns[result_src_index]->view()); // make a new column which is a copy
+    } else {
+      cudf::size_type result_src_index = table_left.num_columns() + non_join_columns_count;
+      cudf::size_type result_dst_index = table_left.num_columns() + i;
+      new_result_columns[result_dst_index] = std::move(result_columns[result_src_index]);
+      non_join_columns_count++;
+    }
+  }
+ std::unique_ptr<CudfTable> new_table = std::make_unique<CudfTable>(std::move(new_result_columns));
+
+  return std::make_unique<ral::frame::BlazingTable>(std::move(new_table), result_names);
 }
 
 } // namespace processor
