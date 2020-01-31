@@ -35,8 +35,7 @@ import rmm
 import nvstrings
 import nvcategory
 
-from cudf._lib.cudf cimport *
-from cudf._lib.cudf import *
+from cudf._lib.cudf import gdf_dtype_from_value
 
 from cudf._libxx.column import cudf_to_np_types
 
@@ -312,7 +311,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       names.resize(0)
       fileType = fileTypes[tableIndex]
       # TODO: TableSchema will be refactorized
-      
+
       for col_name in table.column_names:
         names.push_back(col_name)
         #columns.push_back(column_view_from_column(table.input[col]._column))
@@ -327,7 +326,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
           currentTableSchemaCpp.blazingTableView = BlazingTableView(table_view(column_views), names)
 
       currentTableSchemaCpp.names = names
-      
+
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
@@ -520,5 +519,5 @@ cpdef getTableScanInfoCaller(logicalPlan,tables):
 
         new_table.column_names = tables[table_name].column_names
         new_tables[table_name] = new_table
-        
+
     return new_tables, relational_algebra_steps
