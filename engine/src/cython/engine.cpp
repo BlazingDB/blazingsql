@@ -144,7 +144,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		//make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
 
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
-		result->blazingTable = std::move(frame);
+		result->names = frame->names();
+		result->cudfTable = frame->releaseCudfTable();
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;

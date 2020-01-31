@@ -18,14 +18,12 @@
 #include <cudf/reduction.hpp>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
-gdf_binary_operator_exp get_binary_operation(std::string operator_string);
-
-gdf_unary_operator get_unary_operation(std::string operator_string);
-
 cudf::size_type get_index(const std::string & operand_string);
 
 // interprets the expression and if is n-ary and logical, then returns their corresponding binary version
 std::string expand_if_logical_op(std::string expression);
+
+std::string replace_calcite_regex(const std::string & expression);
 
 std::string clean_calcite_expression(const std::string & expression);
 
@@ -45,7 +43,7 @@ std::string get_string_between_outer_parentheses(std::string operator_string);
 
 cudf::type_id infer_dtype_from_literal(const std::string & token);
 
-cudf::type_id get_output_type_expression(const ral::frame::BlazingTableView & table, cudf::type_id & max_temp_type, std::string expression);
+cudf::type_id get_output_type_expression(const cudf::table_view & table, std::string expression);
 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experimental::aggregation::Kind aggregation, bool have_groupby);
 
@@ -68,9 +66,6 @@ bool is_type_float(cudf::type_id type);
 bool is_type_integer(cudf::type_id type);
 bool is_date_type(cudf::type_id type);
 bool is_numeric_type(cudf::type_id type);
-
-cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, gdf_binary_operator_exp operation);
-cudf::type_id get_output_type(cudf::type_id input_left_type, gdf_unary_operator operation);
 
 // this function takes two data types and returns the a common data type that the both can be losslessly be converted to
 // the function returns true if a common type is possible, or false if there is no common type

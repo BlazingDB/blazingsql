@@ -104,233 +104,6 @@ std::string extract_table_name(std::string query_part) {
 	return table_name;
 }
 
-project_plan_params parse_project_plan(blazing_frame & input, std::string query_part){
-
-}
-
-project_plan_params parse_project_plan(const ral::frame::BlazingTableView & table, std::string query_part) {
-	using interops::column_index_type;
-
-	gdf_error err = GDF_SUCCESS;
-
-	size_t size = table.num_columns();
-
-	// LogicalProject(x=[$0], y=[$1], z=[$2], e=[$3], join_x=[$4], y0=[$5], EXPR$6=[+($0, $5)])
-	std::string combined_expression =
-		query_part.substr(query_part.find("(") + 1, (query_part.rfind(")") - query_part.find("(")) - 1);
-
-	std::vector<std::string> expressions = get_expressions_from_expression_list(combined_expression);
-
-	// now we have a vector
-	// x=[$0
-	//std::vector<bool> input_used_in_output(input.get_width(), false);
-
-	std::vector<gdf_column_cpp> columns(expressions.size());
-	std::vector<std::string> names(expressions.size());
-
-
-	std::vector<column_index_type> final_output_positions;
-	std::vector<std::unique_ptr<cudf::column>> output_columns;
-	std::vector<std::unique_ptr<cudf::column>> input_columns;
-
-	// TODO: some of this code could be used to extract columns
-	// that will be projected to make the csv and parquet readers
-	// be able to ignore columns that are not
-	// TODO percy cudf0.12 was invalid here, should we consider empty?
-	cudf::type_id max_temp_type = cudf::type_id::EMPTY;
-	std::vector<cudf::type_id> output_type_expressions(
-		expressions.size());  // contains output types for columns that are expressions, if they are not expressions we
-							  // skip over it
-
-	size_t num_expressions_out = 0;
-	//std::vector<bool> input_used_in_expression(input.get_size_column(), false);
-
-	// for(int i = 0; i < expressions.size(); i++) {  // last not an expression
-	// 	std::string expression = expressions[i].substr(
-	// 		expressions[i].find("=[") + 2, (expressions[i].size() - expressions[i].find("=[")) - 3);
-
-	// 	std::string name = expressions[i].substr(0, expressions[i].find("=["));
-
-	// 	if(contains_evaluation(expression)) {
-	// 		//output_type_expressions[i] = get_output_type_expression(&input, &max_temp_type, expression);
-
-	// 		// todo put this into its own function
-	// 		std::string clean_expression = clean_calcite_expression(expression);
-
-	// 		std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	// 		fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table.view(), tokens);
-	// 		for(std::string token : tokens) {
-	// 			if(!is_operator_token(token) && !is_literal(token)) {
-	// 				size_t index = get_index(token);
-	// 				input_used_in_expression[index] = true;
-	// 			}
-	// 		}
-	// 		num_expressions_out++;
-	// 	}
-	// }
-
-	// create allocations for output on seperate thread
-
-	// std::vector<column_index_type> new_column_indices(input_used_in_expression.size());
-	// for(int i = 0; i < input_used_in_expression.size(); i++) {
-	// 	if(input_used_in_expression[i]) {
-	// 		new_column_indices[i] = input_columns.size();
-	// 		// TODO percy jp cudf0.12 project
-	// 		//input_columns.push_back(table.view().column(i));
-	// 	} else {
-	// 		new_column_indices[i] = -1;  // won't be uesd anyway
-	// 	}
-	// }
-
-	// TODO: this shit is all super hacky in here we should clean it up
-	// std::vector<column_index_type> left_inputs;
-	// std::vector<column_index_type> right_inputs;
-	// std::vector<column_index_type> outputs;
-
-	// std::vector<gdf_binary_operator_exp> operators;
-	// std::vector<gdf_unary_operator> unary_operators;
-
-	// std::vector<cudf::scalar*> left_scalars;
-	// std::vector<cudf::scalar*> right_scalars;
-	// size_t cur_expression_out = 0;
-	// for(int i = 0; i < expressions.size(); i++) {  // last not an expression
-	// 	std::string expression = expressions[i].substr(
-	// 		expressions[i].find("=[") + 2, (expressions[i].size() - expressions[i].find("=[")) - 3);
-
-	// 	std::string name = expressions[i].substr(0, expressions[i].find("=["));
-
-	// 	if(contains_evaluation(expression)) {
-	// 		final_output_positions.push_back(input_columns.size() + final_output_positions.size());
-
-	// 		// TODO Percy Rommel Jean Pierre improve timestamp resolution
-	// 		// assumes worst possible case allocation for output
-	// 		// TODO: find a way to know what our output size will be
-
-	// 		std::unique_ptr<cudf::column> output_temp;
-
-	// 		switch (output_type_expressions[i]) {
-	// 			case cudf::type_id::INT8:
-	// 			case cudf::type_id::INT16:
-	// 			case cudf::type_id::INT32:
-	// 			case cudf::type_id::INT64:
-	// 			case cudf::type_id::FLOAT32:
-	// 			case cudf::type_id::FLOAT64: {
-	// 				//output_temp = cudf::make_numeric_column(cudf::data_type(output_type_expressions[i]), row_size);
-	// 				break;
-	// 			}
-	// 			// TODO percy cudf0.12 jp strings and dates cases cc rommel
-	// 		}
-
-	// 		output_columns.push_back(std::move(output_temp));
-
-			// TODO percy jp cudf0.12 project
-//			add_expression_to_plan(table,
-//				input_columns,
-//				expression,
-//				cur_expression_out,
-//				num_expressions_out,
-//				input_columns.size(),
-//				left_inputs,
-//				right_inputs,
-//				outputs,
-//				operators,
-//				unary_operators,
-//				left_scalars,
-//				right_scalars,
-//				new_column_indices,
-//				final_output_positions,
-//				output.get_gdf_column());
-//			cur_expression_out++;
-//			columns[i] = output;
-		// } else {
-		// 	// TODO percy this code is duplicated inside get_index, refactor get_index
-		// 	const std::string cleaned_expression = clean_calcite_expression(expression);
-		// 	const bool is_literal_col = is_literal(cleaned_expression);
-
-		// 	if(is_literal_col) {
-		// 		int index = i;
-		// 		cudf::type_id col_type = infer_dtype_from_literal(cleaned_expression);
-
-		// 		output_type_expressions[i] = col_type;
-		// 		std::vector< std::unique_ptr<cudf::column> > output_holder;
-
-		// 		if(col_type == cudf::type_id::CATEGORY) {
-		// 			//const std::string literal_expression = cleaned_expression.substr(1, cleaned_expression.size() - 2);
-		// 			//NVCategory * new_category = repeated_string_category(literal_expression, row_size);
-		// 			//output.create_gdf_column(new_category, row_size, name);
-		// 		} else {
-		// 			int column_width = ral::traits::get_dtype_size_in_bytes(col_type);
-		// 			output.create_gdf_column(col_type, row_size, nullptr, column_width);
-		// 			std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(cleaned_expression);
-		// 			output.set_name(name);
-
-		// 			// TODO percy cudf0.12 port to cudf::column
-		// 			//cudf::fill(output.get_gdf_column(), to_gdf_scalar(literal_scalar), 0, row_size);
-		// 		}
-
-				// TODO percy jp cudf0.12 project
-				//output_columns.push_back(output.get_gdf_column());
-				//input_used_in_output[index] = false;
-				//columns[i] = output;
-			// } else {
-			// 	int index = get_index(expression);
-				// TODO percy jp cudf0.12 project
-//				gdf_column_cpp output = input.get_column(index);
-//				output.set_name(name);
-//				input_used_in_output[index] = true;
-//				columns[i] = output;
-	// 		}
-	// 	}
-	// }
-
-	// free_gdf_column(&temp);
-	// TODO percy jp cudf0.12 project
-//	return project_plan_params{num_expressions_out,
-//		output_columns,
-//		input_columns,
-//		left_inputs,
-//		right_inputs,
-//		outputs,
-//		final_output_positions,
-//		operators,
-//		unary_operators,
-//		left_scalars,
-//		right_scalars,
-//		new_column_indices,
-//		columns,
-//		err};
-}
-
-void execute_project_plan(blazing_frame & input, std::string query_part) {
-	// project_plan_params params = parse_project_plan(input, query_part);
-
-	// perform operations
-	// if(params.num_expressions_out > 0) {
-	// 	size_t size = params.input_columns[0]->size();
-
-	// 	if(size > 0) {
-			// perform_operation(params.output_columns,
-			// 	params.input_columns,
-			// 	params.left_inputs,
-			// 	params.right_inputs,
-			// 	params.outputs,
-			// 	params.final_output_positions,
-			// 	params.operators,
-			// 	params.unary_operators,
-			// 	params.left_scalars,
-			// 	params.right_scalars);
-	// 	}
-	// }
-
-	// input.clear();
-	// input.add_table(params.columns);
-
-	// for(size_t i = 0; i < input.get_width(); i++) {
-		// TODO percy cudf0.12 port to cudf::column
-		//input.get_column(i).update_null_count();
-	// }
-}
-
 std::unique_ptr<ral::frame::BlazingTable> process_union(const ral::frame::BlazingTableView & left, const ral::frame::BlazingTableView & right, std::string query_part) {
 	bool isUnionAll = (get_named_expression(query_part, "all") == "true");
 	if(!isUnionAll) {
@@ -557,7 +330,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			split_inequality_join_into_join_and_filter(query[0], new_join_statement, filter_statement);
 
 			//result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);
-			std::unique_ptr<ral::frame::BlazingTable> result_frame = ral::processor::processJoin(left_frame_pair.second, right_frame_pair.second, new_join_statement);
+			std::unique_ptr<ral::frame::BlazingTable> result_frame = ral::processor::process_logical_join(queryContext, left_frame_pair.second, right_frame_pair.second, new_join_statement);
 			std::string extraInfo = "left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
 
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame->num_rows(), extraInfo));
@@ -628,11 +401,11 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			queryContext->incrementQueryStep();
 			return std::make_pair(std::move(child_frame), child_frame_view);
 
-		} else if(ral::operators::is_aggregate(query[0])) {
+		} else if(ral::operators::experimental::is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
-			child_frame = ral::operators::process_aggregate(child_frame->toBlazingTableView(), query[0], queryContext);
-			//ral::operators::process_aggregate(child_frame, query[0], queryContext);
+			child_frame = ral::operators::experimental::process_aggregate(child_frame_view, query[0], queryContext);
+			child_frame_view = child_frame->toBlazingTableView();
 
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_aggregate",
@@ -646,6 +419,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
 			child_frame = ral::operators::experimental::process_sort(child_frame_view, query[0], queryContext);
+			child_frame_view = child_frame->toBlazingTableView();
 			//ral::operators::process_sort(child_frame, query[0], queryContext);
 
 			// TODO percy cudf0.12 log logs
@@ -659,6 +433,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
 			child_frame = ral::processor::process_filter(child_frame->toBlazingTableView(), query[0], queryContext);
+			child_frame_view = child_frame->toBlazingTableView();
 			//process_filter(queryContext, child_frame, query[0]);
 
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,

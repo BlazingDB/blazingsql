@@ -23,7 +23,7 @@
 namespace ral {
 namespace io {
 
-orc_parser::orc_parser(cudf_io::read_orc_args arg_) : orc_args{arg_} {}
+orc_parser::orc_parser(cudf::experimental::io::read_orc_args arg_) : orc_args{arg_} {}
 
 orc_parser::~orc_parser() {
 	// TODO Auto-generated destructor stub
@@ -61,14 +61,15 @@ ral::frame::TableViewPair orc_parser::parse(
 		return std::make_pair(nullptr, ral::frame::BlazingTableView());
 	}
 	
-	cudf_io::read_orc_args orc_args = this->orc_args;
+	cudf::experimental::io::read_orc_args new_orc_args = this->orc_args;
 	if(column_indices.size() > 0) {
-
+		new_orc_args.columns.resize(column_indices.size());
+		
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
-			orc_args.columns[column_i] = schema.get_name(column_indices[column_i]);
+			new_orc_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		cudf_io::table_with_metadata orc_table = get_new_orc(orc_args, file);
+		cudf_io::table_with_metadata orc_table = get_new_orc(new_orc_args, file);
 
 		if(orc_table.tbl->num_columns() <= 0)
 			Library::Logging::Logger().logWarn("orc_parser::parse no columns were read");
@@ -86,10 +87,8 @@ void orc_parser::parse_schema(
 	cudf_io::table_with_metadata table_out = get_new_orc(orc_args, files[0], true);
 	assert(table_out.tbl->num_columns() > 0);
 
-	for(size_t i = 0; i < table_out.tbl->num_columns() ; i++) {
-		std::string name = "";
-		if (i < orc_args.columns.size())
-			name = orc_args.columns[i];
+	for(cudf::size_type i = 0; i < table_out.tbl->num_columns() ; i++) {
+		std::string name = table_out.metadata.column_names[i];
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
 		size_t file_index = i;
 		bool is_in_file = true;

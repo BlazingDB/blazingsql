@@ -6,6 +6,7 @@
 #include "ColumnTransport.h"
 #include "blazingdb/transport/Node.h"
 #include "blazingdb/transport/common/macros.hpp"
+#include <rmm/device_buffer.hpp>
 
 namespace blazingdb {
 namespace transport {
@@ -63,7 +64,7 @@ protected:
 class GPUMessage : public Message {
 public:
   using raw_buffer = std::tuple<std::vector<int>, std::vector<const char *>,
-                                std::vector<ColumnTransport>>;
+                                std::vector<ColumnTransport>, std::vector<std::unique_ptr<rmm::device_buffer>> >;
 
 public:
   explicit GPUMessage(std::string const &messageToken,

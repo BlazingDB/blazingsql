@@ -55,6 +55,44 @@ TYPED_TEST(AggregationTest, CheckBasicWithGroupby) {
 	cudf::test::expect_tables_equal(result->view(), expect_table);						
 }
 
+TYPED_TEST(AggregationTest, MoreComplexGroupby) {
+
+ 	using T = TypeParam;
+
+
+	cudf::test::fixed_width_column_wrapper<T> key{{   5,  4,  3, 5, 8,  5, 6, 5}, {1, 1, 1, 1, 1, 1, 1, 0}};
+	cudf::test::fixed_width_column_wrapper<T> value{{10, 40, 70, 5, 2, 10, 11, 55}, {1, 1, 1, 1, 1, 1, 1, 0}};
+
+	std::vector<std::string> column_names{"A", "B"};
+	ral::frame::BlazingTableView table(CudfTableView{{key, value}}, column_names);
+
+	std::vector<cudf::experimental::aggregation::Kind> aggregation_types{cudf::experimental::aggregation::Kind::SUM, cudf::experimental::aggregation::Kind::COUNT, 
+				cudf::experimental::aggregation::Kind::SUM, cudf::experimental::aggregation::Kind::COUNT};
+
+	std::vector<std::string> aggregation_input_expressions{"$1", "$1", "$0", "$0"};
+	std::vector<std::string> aggregation_column_assigned_aliases{"", "", "", ""};
+	std::vector<int> group_column_indices{0};
+
+	std::unique_ptr<ral::frame::BlazingTable> result = ral::operators::experimental::compute_aggregations_with_groupby(
+		table, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases, group_column_indices);
+
+	for (int i = 0; i < result->view().num_columns(); i++){
+		std::string col_string = cudf::test::to_string(result->view().column(i), "|");
+    	std::cout<<result->names()[i]<<": "<<result->view().column(i).type().id()<<" : "<<col_string<<std::endl;
+	}
+	
+
+	cudf::test::fixed_width_column_wrapper<T> expect_key{{ 3,  4,  5,  6, 8}, {1, 1, 1, 1, 1}};
+	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg0{{70, 40, 25, 11, 2}, {1, 1, 1, 1, 1}};
+	cudf::test::fixed_width_column_wrapper<int32_t> expect_agg1{{1, 1, 3, 1, 1}, {1, 1, 1, 1, 1}};
+	cudf::test::fixed_width_column_wrapper<int64_t> expect_agg2{{ 3,  4,  15,  6, 8}, {1, 1, 1, 1, 1}};
+	cudf::test::fixed_width_column_wrapper<int32_t> expect_agg3{{1, 1, 3, 1, 1}, {1, 1, 1, 1, 1}};
+
+	CudfTableView expect_table{{expect_key, expect_agg0, expect_agg1, expect_agg2, expect_agg3}};
+	
+	cudf::test::expect_tables_equal(result->view(), expect_table);						
+}
+
 
 TYPED_TEST(AggregationTest, GroupbyWithoutAggs) {
 

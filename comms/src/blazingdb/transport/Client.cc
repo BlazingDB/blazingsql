@@ -60,7 +60,8 @@ public:
     std::vector<int> buffer_sizes;
     std::vector<const char *> buffers;
     std::vector<ColumnTransport> column_offsets;
-    std::tie(buffer_sizes, buffers, column_offsets) = message.GetRawColumns();
+    std::vector<std::unique_ptr<rmm::device_buffer>> temp_bitmasks_scope_holder;
+    std::tie(buffer_sizes, buffers, column_offsets, temp_bitmasks_scope_holder) = message.GetRawColumns();
 
     write_metadata(fd, (int32_t)column_offsets.size());
     blazingdb::transport::io::writeToSocket(

@@ -14,6 +14,7 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.map cimport map
+from libcpp.memory cimport unique_ptr
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
@@ -35,7 +36,8 @@ import rmm
 import nvstrings
 import nvcategory
 
-from cudf._lib.cudf cimport *
+from cudf._libxx.lib cimport *
+from cudf._libxx.table cimport *
 from cudf._lib.cudf import *
 
 from cudf._libxx.column import cudf_to_np_types
@@ -44,6 +46,8 @@ from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
 from cpython.ref cimport PyObject
 from cython.operator cimport dereference
+
+from cudf._libxx.table cimport Table as CudfXxTable
 
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
@@ -197,9 +201,12 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
     cdef vector[string] arg_values
     cdef TableSchema cpp_schema
 
-    for col in schema['columns']:
+    for col in schema['names']:
         #cpp_schema.columns.push_back(column_view_from_column(schema['columns'][col]._column))
-        cpp_schema.names.push_back(col.encode())
+        cpp_schema.names.push_back(col)
+
+    for col_type in schema['types']:
+        cpp_schema.types.push_back(col_type)
 
     for key, value in args.items():
       arg_keys.push_back(str.encode(key))
@@ -216,7 +223,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
     # return_object['files'] = temp.files
     return_object['file_type'] = temp.data_type
     return_object['args'] = args
-    return_object['columns'] = cudf.DataFrame()
+    return_object['types'] = temp.types
     return_object['names'] = temp.names
     # return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
     # return_object['num_row_groups']= temp.num_row_groups
@@ -248,7 +255,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef vector[string] currentTableSchemaCppArgKeys
     cdef vector[string] currentTableSchemaCppArgValues
     cdef vector[string] tableNames
-    cdef vector[gdf_column_ptr] columns
+    cdef vector[type_id] types
     cdef vector[string] names
     cdef TableSchema currentTableSchemaCpp
     cdef NodeMetaDataTCP currentMetadataCpp
@@ -308,26 +315,32 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         for file in table.files:
           currentFilesAll.push_back(file)
       filesAll.push_back(currentFilesAll)
-      columns.resize(0)
+      types.resize(0)
       names.resize(0)
       fileType = fileTypes[tableIndex]
       # TODO: TableSchema will be refactorized
-      
+
       for col_name in table.column_names:
-        names.push_back(col_name)
-        #columns.push_back(column_view_from_column(table.input[col]._column))
+        if type(col_name) == np.str:
+            names.push_back(col_name.encode())
+        else: # from file
+            names.push_back(col_name)
+
+      for col_type in table.column_types:
+        types.push_back(col_type)
 
       #currentTableSchemaCpp.columns = columns
 
       # TODO: Remove 4 == DataType.CUDF. Now there is a cython conflict with pyarrow.DataType
-      if table.fileType == 4:
-          names = [str.encode(x) for x in table.input.dtypes.keys()]
+      if table.fileType == 4 or table.fileType == 5:
+          column_views.resize(0)
           for cython_col in table.input._data.values():
               column_views.push_back(cython_col.view())
           currentTableSchemaCpp.blazingTableView = BlazingTableView(table_view(column_views), names)
 
       currentTableSchemaCpp.names = names
-      
+      currentTableSchemaCpp.types = types
+
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
@@ -355,24 +368,20 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    temp = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
+    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
 
-    df = cudf.DataFrame()
-
-    names = dereference(dereference(temp).blazingTable).names()
-    view = dereference(dereference(temp).blazingTable).view()
-
+    # TODO WSM. When we migrate to cudf 0.13 we will likely only need to do something like:
+    # cudf.DataFrame(Table.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), names)._data)
+    # and we dont have to call _rename_columns. We are doing that here only because the current from_ptr is not properly setting the column names
+    names = dereference(resultSet).names
+    decoded_names = []
     for i in range(names.size()):
-        c = view.column(i)
-        dtype = cudf_to_np_types[c.type().id()]
-        df.add_column(
-            names[i].decode('utf-8'),
-            build_column(
-                cudf.core.Buffer(
-                    rmm.DeviceBuffer(ptr=<long long>c.data[void](), size=c.size() * dtype.itemsize),
-                ), dtype))
-    return df
+        decoded_names.append(names[i].decode('utf-8'))
 
+    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
+    df._rename_columns(decoded_names)
+
+    return df
 
 
 cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
@@ -385,7 +394,7 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     cdef vector[string] currentTableSchemaCppArgKeys
     cdef vector[string] currentTableSchemaCppArgValues
     cdef vector[string] tableNames
-    cdef vector[gdf_column_ptr] columns
+    cdef vector[type_id] types
     cdef vector[string] names
     cdef TableSchema currentTableSchemaCpp
     cdef NodeMetaDataTCP currentMetadataCpp
@@ -442,14 +451,20 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
       for file in table.files:
         currentFilesAll.push_back(file)
     filesAll.push_back(currentFilesAll)
-    columns.resize(0)
+    types.resize(0)
     names.resize(0)
     fileType = fileTypes[tableIndex]
-    # TODO: TableSchema will be refactorized
-    for col in table.input:
-      names.push_back(col.encode())
-      #columns.push_back(column_view_from_column(table.input[col]._column))
-    #currentTableSchemaCpp.columns = columns
+
+    for col_name in table.column_names:
+      if table.fileType == 4: #if from gdf
+          names.push_back(col_name.encode())
+      else: # from file
+          names.push_back(col_name)
+
+    for col_type in table.column_types:
+      types.push_back(col_type)
+
+    currentTableSchemaCpp.types = types
     currentTableSchemaCpp.names = names
     currentTableSchemaCpp.datasource = table.datasource
     if table.calcite_to_file_indices is not None:
@@ -520,5 +535,5 @@ cpdef getTableScanInfoCaller(logicalPlan,tables):
 
         new_table.column_names = tables[table_name].column_names
         new_tables[table_name] = new_table
-        
+
     return new_tables, relational_algebra_steps

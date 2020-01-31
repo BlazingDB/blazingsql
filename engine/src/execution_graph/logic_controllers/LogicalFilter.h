@@ -1,9 +1,8 @@
 #pragma once
 
 #include <blazingdb/manager/Context.h>
+
 #include "LogicPrimitives.h"
-#include "blazingdb/manager/Context.h"
-#include <utility>
 
 namespace ral{
 
@@ -18,21 +17,10 @@ std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
   const ral::frame::BlazingTableView & table,
   const CudfColumnView & boolValues);
 
-std::unique_ptr<cudf::column> evaluate_expression(
-  const cudf::table_view & table,
-  const std::string & expression,
-  cudf::data_type output_type);
-
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const ral::frame::BlazingTableView & table,
   const std::string & query_part,
   blazingdb::manager::experimental::Context * context);
-
-
-
-std::unique_ptr<ral::frame::BlazingTable> evaluateExpression(
-  const ral::frame::BlazingTableView & table,
-  const std::string & expression);
 
 std::unique_ptr<ral::frame::BlazingTable> process_logical_join(blazingdb::manager::experimental::Context * context,
       const ral::frame::BlazingTableView & table_left,
