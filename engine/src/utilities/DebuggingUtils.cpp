@@ -39,5 +39,14 @@ void print_blazing_table_view(ral::frame::BlazingTableView table_view, const std
 	}
 }
 
+void print_blazing_table_view_schema(ral::frame::BlazingTableView table_view, const std::string table_name){
+	std::cout<<"Table: "<<table_name<<std::endl;
+	std::cout<<"\t"<<"Num Rows: "<<table_view.num_rows()<<std::endl;
+	std::cout<<"\t"<<"Num Columns: "<<table_view.num_columns()<<std::endl;
+	for(size_t col_idx=0; col_idx<table_view.num_columns(); col_idx++){
+		std::cout<<"\t"<<table_view.names().at(col_idx)<<" ("<<"type: "<<type_string(table_view.column(col_idx).type())<<")"<<std::endl;
+	}
+}
+
 }  // namespace utilities
 }  // namespace ral
