@@ -306,7 +306,8 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 	std::vector<std::thread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
-		threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, &minmax_metadata_table ](){
+		// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
+		// threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, &minmax_metadata_table ](){
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 
 		  int num_row_groups = file_metadata->num_row_groups();
@@ -337,13 +338,12 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 			  minmax_metadata_table[minmax_metadata_table.size() - 1].push_back(row_group_index);
 			  guard.unlock();
 		  }
-		});
+		// });
 	}
-
-	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
-		threads[file_index].join();
-	}
-
+	// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
+	// for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
+	// 	threads[file_index].join();
+	// }
 	for (size_t index = 0; index < 	minmax_metadata_table.size(); index++) {
 		auto vector = minmax_metadata_table[index];
 		auto dtype = minmax_metadata_gdf_table[index].dtype();

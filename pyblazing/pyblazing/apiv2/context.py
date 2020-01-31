@@ -296,9 +296,9 @@ def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
     columns = curr_table.input.columns
     n_cols = len(curr_table.input.columns)
 
-    if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
-        print('TODO: files have to be listed in the same order')
-        return hiveMetadata 
+    # if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
+    #     print('TODO: files have to be listed in the same order')
+    #     return hiveMetadata 
 
     names = []
     col_indexes = {}
@@ -682,7 +682,7 @@ class BlazingContext(object):
                 args=parsedSchema['args'],
                 uri_values=uri_values,
                 in_file=in_file)
-
+            # print("parsedSchema['files']: ", parsedSchema['files'])
             table.slices = table.getSlices(len(self.nodes))
             if is_hive_input and len(extra_columns) > 0:
                 parsedMetadata = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns, partitions)
@@ -691,10 +691,7 @@ class BlazingContext(object):
             if parsedSchema['file_type'] == DataType.PARQUET :
                 parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
                 if is_hive_input:
-                    # TODO: The way hive and blazingsql list files is different!!!
-                    # alinear cols concretas y virtuales y las filas( files, row_groups )....
                     table.metadata = self._mergeMetadata(table.slices, parsedMetadata, table.metadata, extra_columns)
-                    print('.')
                 else:
                     table.metadata = parsedMetadata
 
@@ -850,8 +847,6 @@ class BlazingContext(object):
                         current_table.row_groups_ids.append(row_group_ids)
                     current_table.files = actual_files
                     current_table.uri_values = uri_values
-                    print("*****files****: ", index, current_table.files)
-                    print("*****uri_values****: ", index, current_table.uri_values)
 
  
     def sql(self, sql, table_list=[], algebra=None):
