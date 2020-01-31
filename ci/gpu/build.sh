@@ -18,7 +18,7 @@ function hasArg {
 }
 
 # Set path and build parallel level
-export PATH=/conda/bin:/usr/local/cuda/bin:$PATH
+export PATH=/usr/local/cuda/bin:$PATH:/conda/bin
 export PARALLEL_LEVEL=4
 export CUDA_REL=${CUDA_VERSION%.*}
 
@@ -48,9 +48,11 @@ nvidia-smi
 
 logger "Activate conda env..."
 source activate gdf
-conda install "bsql-toolchain=${MINOR_VERSION}.*" "librmm=${MINOR_VERSION}.*" "libcudf=${MINOR_VERSION}.*" \
+
+conda install -y "bsql-toolchain=${MINOR_VERSION}.*" "librmm=${MINOR_VERSION}.*" "libcudf=${MINOR_VERSION}.*" \
               "libnvstrings=${MINOR_VERSION}.*" "dask-cudf=${MINOR_VERSION}.*" "dask-cuda=${MINOR_VERSION}.*" \
-              "openjdk=8.0" "sasl=0.2.1" "maven" "libhdfs3" "cppzmq" "gmock" "jpype1" "netifaces" "pyhive"
+              "openjdk=8.0" "sasl=0.2.1" "maven" "libhdfs3" "cppzmq" "gmock" "jpype1" "netifaces" "pyhive" \
+              "arrow-cpp=0.15.0" "gtest" "cmake" "cppzmq" "cudatoolkit=${CUDA_REL}" "cython>=0.29" "numpy"
 
 logger "Check versions..."
 python --version
@@ -63,7 +65,8 @@ conda list
 ################################################################################
 
 logger "Build BlazingSQL"
-$WORKSPACE/build.sh
+#export DISTUTILS_DEBUG=1
+${WORKSPACE}/build.sh
 
 ################################################################################
 # TEST - Run Tests
@@ -72,6 +75,9 @@ $WORKSPACE/build.sh
 if hasArg --skip-tests; then
     logger "Skipping Tests..."
 else
+    INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
+
     logger "Check GPU usage..."
     nvidia-smi
 
@@ -85,5 +91,6 @@ else
 
     logger "Running Engine Unit tests..."
     cd ${WORKSPACE}/engine/build
+    ctest
 fi
 
