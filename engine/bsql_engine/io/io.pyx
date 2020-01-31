@@ -38,7 +38,6 @@ import nvcategory
 
 from cudf._libxx.lib cimport *
 from cudf._libxx.table cimport *
-from cudf._lib.cudf cimport *
 from cudf._lib.cudf import *
 
 from cudf._libxx.column import cudf_to_np_types
@@ -47,6 +46,8 @@ from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
 from cpython.ref cimport PyObject
 from cython.operator cimport dereference
+
+from cudf._libxx.table cimport Table as CudfXxTable
 
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
@@ -376,10 +377,12 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     decoded_names = []
     for i in range(names.size()):
         decoded_names.append(names[i].decode('utf-8'))
-    # names = [name.decode('utf-8') for name in names]
-    df = cudf.DataFrame(_Table.from_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
+
+    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
     df._rename_columns(decoded_names)
+
     return df
+
 
 cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
