@@ -379,19 +379,12 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<std::string> out_column_names(named_expressions.size());
     for(int i = 0; i < named_expressions.size(); i++) {
         const std::string & named_expr = named_expressions[i];
-        
+
         std::string name = named_expr.substr(0, named_expr.find("=["));
         std::string expression = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
-        
-        expressions[i] = expression;
 
-        if(contains_evaluation(expression)){
-            out_column_names[i] = expression;
-        } else if (is_literal(expression)) {
-            out_column_names[i] = expression;
-        } else {
-            out_column_names[i] = name;
-        }
+        expressions[i] = expression;
+        out_column_names[i] = name;
     }
 
     return std::make_unique<ral::frame::BlazingTable>(evaluate_expressions(table.view(), expressions), out_column_names);
