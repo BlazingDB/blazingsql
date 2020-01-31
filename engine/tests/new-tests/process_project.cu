@@ -267,7 +267,7 @@ TEST_F(ProjectTestString, test_cast_to_string)
     cudf::test::strings_column_wrapper expected_col1{{"true","false","true","true","true","false","false","true","false","false"}};
     cudf::test::strings_column_wrapper expected_col2{{"1","5","10","15","100","500","1000","5000","10000","999999"}};
     cudf::test::strings_column_wrapper expected_col3{{"1.0","5.5","10.00003","15.45","100.656","500.756756","0.45435436","3.24e-05","0.1","999999.001"}};
-    cudf::test::strings_column_wrapper expected_col4{{"1890-10-12T00:00:00Z","1890-10-12T00:00:00Z","1890-10-12T00:00:00Z","1890-10-12T00:00:00Z","1890-10-12T00:00:00Z","1890-10-12T00:00:00Z","1890-10-13T00:00:00Z","1891-04-13T00:00:00Z","1891-10-12T00:00:00Z","1910-10-08T00:00:00Z"}};
+    cudf::test::strings_column_wrapper expected_col4{{"1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-13 00:00:00","1891-04-13 00:00:00","1891-10-12 00:00:00","1910-10-08 00:00:00"}};
     cudf::table_view expected_table_view {{expected_col1, expected_col2, expected_col3, expected_col4}};
 
     cudf::test::expect_tables_equal(expected_table_view, out_table->view());
