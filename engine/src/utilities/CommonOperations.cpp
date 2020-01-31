@@ -8,6 +8,7 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <cudf/legacy/column.hpp>
 #include <cudf/copying.hpp>
+#include <numeric>
 
 namespace ral {
 namespace utilities {

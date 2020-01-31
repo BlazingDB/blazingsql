@@ -29,8 +29,6 @@ export HOME=$WORKSPACE
 cd $WORKSPACE
 export GIT_DESCRIBE_TAG=`git describe --tags`
 export MINOR_VERSION=`echo $GIT_DESCRIBE_TAG | grep -o -E '([0-9]+\.[0-9]+)'`
-echo $MINOR_VERSION
-exit
 
 # Set `LIBCUDF_KERNEL_CACHE_PATH` environment variable to $HOME/.jitify-cache because
 # it's local to the container's virtual file system, and not shared with other CI jobs
