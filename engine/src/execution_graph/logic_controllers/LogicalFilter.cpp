@@ -17,6 +17,7 @@
 #include "distribution/primitives.h"
 #include "communication/CommunicationData.h"
 #include "utilities/CommonOperations.h"
+#include "utilities/DebuggingUtils.h"
 
 #include "../../Interpreter/interpreter_cpp.h"
 
@@ -79,25 +80,37 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     std::vector<int> & columnIndices,
     blazingdb::manager::experimental::Context * context) {
 
-    //TODO: CACHE_POINT (ask felipe)
-    std::vector<cudf::size_type> columns_to_hash;
-    std::transform(columnIndices.begin(), columnIndices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-    std::pair<std::unique_ptr<CudfTable>, std::vector<cudf::size_type>> hashedData_offsets_pair = cudf::hash_partition(table.view(),
-            columns_to_hash, context->getTotalNodes());
-
-    // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-    std::vector<cudf::size_type> split_indexes(hashedData_offsets_pair.second.begin() + 1, hashedData_offsets_pair.second.end());
-    std::vector<CudfTableView> partitioned = cudf::experimental::split(hashedData_offsets_pair.first->view(), 
-                                                                        hashedData_offsets_pair.second);
-
     std::vector<NodeColumnView > partitions;
-    for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-      partitions.emplace_back(
-        std::make_pair(context->getNode(nodeIndex), ral::frame::BlazingTableView(partitioned[nodeIndex], table.names())));
+    if (table.num_rows() > 0){    
+      //TODO: CACHE_POINT (ask felipe)
+      std::vector<cudf::size_type> columns_to_hash;
+      std::transform(columnIndices.begin(), columnIndices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
+      std::pair<std::unique_ptr<CudfTable>, std::vector<cudf::size_type>> hashedData_offsets_pair = cudf::hash_partition(table.view(),
+              columns_to_hash, context->getTotalNodes());
+
+      // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
+      std::vector<cudf::size_type> split_indexes(hashedData_offsets_pair.second.begin() + 1, hashedData_offsets_pair.second.end());
+      std::vector<CudfTableView> partitioned = cudf::experimental::split(hashedData_offsets_pair.first->view(), 
+                                                                          split_indexes);
+      
+      std::unique_ptr<CudfTable> empty;
+      if (partitioned.size() == context->getTotalNodes() - 1 ){ // split can return one less, due to weird implementation details in cudf. When so, the last one should have been emtpy
+        empty = cudf::experimental::empty_like(table.view());
+        partitioned.emplace_back(empty->view());
+      }
+      
+      for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+          partitions.emplace_back(
+            std::make_pair(context->getNode(nodeIndex), ral::frame::BlazingTableView(partitioned[nodeIndex], table.names())));
+      }
+    } else {
+      for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+        partitions.emplace_back(
+          std::make_pair(context->getNode(nodeIndex), ral::frame::BlazingTableView(table.view(), table.names())));
+      }
     }
 
   	context->incrementQuerySubstep();
-    //TODO: uncomment when implemented
     ral::distribution::experimental::distributePartitions(context, partitions);
     std::vector<NodeColumn> remote_node_columns = ral::distribution::experimental::collectPartitions(context);
 
@@ -116,7 +129,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     assert(found_self_partition);
 
     return ral::utilities::experimental::concatTables(partitions_to_concat);
-
   }
 
 
@@ -332,6 +344,11 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
   std::vector<std::string> right_names = table_right.names();
   result_names.insert(result_names.end(), right_names.begin(), right_names.end());
 
+  // need to validate that tables are not empty
+  if (table_left.num_columns() == 0 || table_right.num_columns() == 0){
+    return nullptr;
+  }
+  
   try {
     if(join_type == INNER_JOIN) {
       result_table = cudf::experimental::inner_join(

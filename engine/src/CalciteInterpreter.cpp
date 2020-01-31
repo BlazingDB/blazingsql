@@ -330,7 +330,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			split_inequality_join_into_join_and_filter(query[0], new_join_statement, filter_statement);
 
 			//result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);
-			std::unique_ptr<ral::frame::BlazingTable> result_frame = ral::processor::processJoin(left_frame_pair.second, right_frame_pair.second, new_join_statement);
+			std::unique_ptr<ral::frame::BlazingTable> result_frame = ral::processor::process_logical_join(queryContext, left_frame_pair.second, right_frame_pair.second, new_join_statement);
 			std::string extraInfo = "left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
 
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame->num_rows(), extraInfo));

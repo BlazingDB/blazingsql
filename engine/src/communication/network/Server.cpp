@@ -59,14 +59,14 @@ void Server::setEndPoints() {
 	{
 		const std::string endpoint = ral::communication::messages::experimental::ColumnDataMessage::MessageID();
 		comm_server->registerEndPoint(endpoint);
-		// comm_server->registerMessageForEndPoint(ral::communication::messages::experimental::ColumnDataMessage::MakeFrom, endpoint);
+		comm_server->registerMessageForEndPoint(ral::communication::messages::experimental::ColumnDataMessage::MakeFrom, endpoint);
 	}
 
 	// message PartitionPivotsMessage
 	{
 		const std::string endpoint = ral::communication::messages::experimental::PartitionPivotsMessage::MessageID();
 		comm_server->registerEndPoint(endpoint);
-		// comm_server->registerMessageForEndPoint(ral::communication::messages::experimental::PartitionPivotsMessage::MakeFrom, endpoint);
+		comm_server->registerMessageForEndPoint(ral::communication::messages::experimental::PartitionPivotsMessage::MakeFrom, endpoint);
 	}
 }
 }  // namespace experimental
