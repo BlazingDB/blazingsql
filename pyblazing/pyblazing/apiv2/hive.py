@@ -153,7 +153,7 @@ def get_hive_table(cursor, tableName):
     if schema['fileType'] == 'csv':
         extra_kwargs['names'] = [col_name for col_name, dtype, is_virtual_col  in schema['columns'] if not is_virtual_col ]
         extra_kwargs['dtype'] = [gdf_dtype_from_dtype(dtype) for col_name, dtype, is_virtual_col in schema['columns'] if not is_virtual_col]
-
+    extra_kwargs['file_format'] = schema['fileType']
     extra_columns = []
     in_file = []
     for column in schema['columns']:
