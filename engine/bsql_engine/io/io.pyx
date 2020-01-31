@@ -331,7 +331,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       #currentTableSchemaCpp.columns = columns
 
       # TODO: Remove 4 == DataType.CUDF. Now there is a cython conflict with pyarrow.DataType
-      if table.fileType == 4:
+      if table.fileType == 4 or table.fileType == 5:
           column_views.resize(0)
           for cython_col in table.input._data.values():
               column_views.push_back(cython_col.view())
