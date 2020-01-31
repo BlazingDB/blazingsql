@@ -40,11 +40,13 @@ cdef extern from "../include/engine/errors.h":
 from cudf._libxx.lib cimport (column_view,
                               data_type,
                               size_type,
+                              table,
                               table_view,
                               type_id)
 
 ctypedef column_view CudfColumnView
 ctypedef table_view CudfTableView
+ctypedef table CudfTable
 
 
 cdef extern from "cudf/types.hpp" namespace "cudf" nogil:
@@ -203,57 +205,6 @@ cdef extern from "cudf/legacy/io_types.hpp":
 
 ctypedef gdf_scalar* gdf_scalar_ptr
 
-cdef extern from "cudf/types.hpp" namespace "cudf":
-        cdef enum type_id:
-            EMPTY = 0
-            INT8 = 1
-            INT16 = 2
-            INT32 = 3
-            INT64 = 4
-            FLOAT32 = 5
-            FLOAT64 = 6
-            BOOL8 = 7
-            TIMESTAMP_DAYS = 8
-            TIMESTAMP_SECONDS = 9
-            TIMESTAMP_MILLISECONDS = 10
-            TIMESTAMP_MICROSECONDS = 11
-            TIMESTAMP_NANOSECONDS = 12
-            CATEGORY = 13
-            STRING = 14
-            NUM_TYPE_IDS = 15
-
-        cdef cppclass data_type:
-            type_id id()
-
-cdef extern from "cudf/column/column_view.hpp" namespace "cudf" nogil:
-        cdef cppclass column_view:
-            T* data[T]()
-            size_type size()
-            void * null_mask()
-            data_type type()
-            size_type offset()
-            size_type num_children()
-ctypedef column_view CudfColumnView
-
-cdef extern from "cudf/table/table_view.hpp" namespace "cudf":
-        cdef cppclass table_view:
-            table_view() except +
-            table_view(vector[table_view]) except +
-            table_view(vector[column_view]) except +
-            select(vector[size_type])
-            CudfColumnView column(size_type column_index)
-            size_type num_columns()
-            size_type num_rows()
-ctypedef table_view CudfTableView
-
-cdef extern from "cudf/table/table.hpp" namespace "cudf::experimental":
-        cdef cppclass table:
-            table() except +
-            size_type num_columns()
-            size_type num_rows()
-            table_view view()            
-# ctypedef table CudfTable
-
 cdef extern from "../include/io/io.h":
     ctypedef enum DataType:
         UNDEFINED = 999,
@@ -333,7 +284,7 @@ cdef extern from * namespace "blazing":
 cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
             unique_ptr[table] cudfTable
-            vector[string]  names            
+            vector[string]  names
 
         cdef struct NodeMetaDataTCP:
             string ip
