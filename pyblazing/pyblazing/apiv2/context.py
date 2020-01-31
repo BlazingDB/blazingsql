@@ -263,8 +263,13 @@ class BlazingTable(object):
         self.column_types = []
 
         if fileType == DataType.CUDF:
-            self.column_names = [x for x in input._data.keys()]
-            self.column_types = [np_to_cudf_types[x.dtype] for x in input._data.values()]
+            self.column_names = [x for x in self.input._data.keys()]
+            self.column_types = [np_to_cudf_types[x.dtype] for x in self.input._data.values()]
+        elif fileType == DataType.DASK_CUDF:
+            self.column_names = list(self.input.head(0)._data.keys())
+            for col_name in self.column_names:
+                self.column_types.append(np_to_cudf_types[self.input.head(0)._data[col_name].dtype])
+            
 
     def has_metadata(self) :
         if isinstance(self.metadata, dask_cudf.core.DataFrame):
@@ -477,17 +482,10 @@ class BlazingContext(object):
                 self.db.removeTable(tableName)
                 self.tables[tableName] = table
 
-                if(isinstance(table.input, dask_cudf.core.DataFrame)):
-                    schema_df_types = []
-                    for col in table.input.head(0)._data[column]:
-                        schema_df_types.append(np_to_cudf_types(col.dtype))
-                else:
-                    schema_df_types = table.column_types
-
                 arr = ArrayClass()
                 order = 0
                 for column in table.column_names:
-                    type_id = schema_df_types[order]
+                    type_id = table.column_types[order]
                     dataType = ColumnTypeClass.fromTypeId(type_id)
                     column = ColumnClass(column, dataType, order)
                     arr.add(column)

@@ -426,7 +426,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 	std::vector<CudfTableView> partitioned_data = cudf::experimental::split(table.view(), host_pivot_indexes.first);
 
 	std::unique_ptr<CudfTable> empty;
-	if (partitioned_data.size() == host_pivot_indexes.first ){ // split can return one less, due to weird implementation details in cudf. This only happens if the last one should be empty
+	if (partitioned_data.size() == host_pivot_indexes.first.size()){ // split can return one less, due to weird implementation details in cudf. This only happens if the last one should be empty
 		empty = cudf::experimental::empty_like(table.view());
 		partitioned_data.emplace_back(empty->view());
 	}

@@ -320,7 +320,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       # TODO: TableSchema will be refactorized
 
       for col_name in table.column_names:
-        if table.fileType == 4: #if from gdf
+        if type(col_name) == np.str:
             names.push_back(col_name.encode())
         else: # from file
             names.push_back(col_name)
