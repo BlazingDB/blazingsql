@@ -44,6 +44,7 @@ ral::frame::TableViewPair data_loader::load_data(
 	}
 
 	std::vector< ral::frame::TableViewPair > tableViewPairs_per_file;
+	tableViewPairs_per_file.resize(files.size());
 
 	// TODO NOTE percy c.gonzales rommel fix our concurrent reads here (better use of thread)
 	// make sure cudf supports concurrent reads
@@ -57,7 +58,7 @@ ral::frame::TableViewPair data_loader::load_data(
 				//auto fileSchema = schema.fileSchema(file_index);
 				// TODO: tricky!!!
 				ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], schema, column_indices);
-				tableViewPairs_per_file.emplace_back(std::move(loaded_table));
+				tableViewPairs_per_file[file_index] = std::move(loaded_table);
 			} else {
 				Library::Logging::Logger().logError(ral::utilities::buildLogString(
 					"", "", "", "ERROR: Was unable to open " + user_readable_file_handles[file_index]));
