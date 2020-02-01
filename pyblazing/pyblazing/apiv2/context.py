@@ -266,12 +266,6 @@ class BlazingTable(object):
             self.column_names = [x for x in self.input._data.keys()]
             self.column_types = [np_to_cudf_types[x.dtype] for x in self.input._data.values()]
         elif fileType == DataType.DASK_CUDF:
-            self.column_names = list(self.input.head(0)._data.keys())
-            for col_name in self.column_names:
-                self.column_types.append(np_to_cudf_types[self.input.head(0)._data[col_name].dtype])
-
-
-        if fileType == DataType.DASK_CUDF:
             self.column_names = [x for x in input.columns]
             self.column_types = [np_to_cudf_types[x] for x in input.dtypes]
 
