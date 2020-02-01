@@ -179,7 +179,7 @@ public class RelationalAlgebraGenerator {
 			program = new HepProgramBuilder()
 							.addRuleInstance(AggregateExpandDistinctAggregatesRule.JOIN)
 							.addRuleInstance(FilterAggregateTransposeRule.INSTANCE)
-						  .addRuleInstance(FilterJoinRule.JoinCondition	PushRule.FILTER_ON_JOIN)
+						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.JOIN)
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
 						  .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
