@@ -73,17 +73,30 @@ struct extract_component_operator {
 	}
 };
 
-template <typename PrimitiveType, datetime_component Component>
+template <datetime_component Component>
 struct launch_extract_component {
 	template <typename Element, std::enable_if_t<!cudf::is_timestamp<Element>()> * = nullptr>
-	CUDA_DEVICE_CALLABLE int16_t operator()(PrimitiveType val) {
+	CUDA_DEVICE_CALLABLE int16_t operator()(int64_t val) {
 		assert(false);
 		return 0;
 	}
 
 	template <typename Timestamp, std::enable_if_t<cudf::is_timestamp<Timestamp>()> * = nullptr>
-	CUDA_DEVICE_CALLABLE int16_t operator()(PrimitiveType val) {
+	CUDA_DEVICE_CALLABLE int16_t operator()(int64_t val) {
 		return extract_component_operator<Timestamp, Component>{}(Timestamp{static_cast<typename Timestamp::rep>(val)});
+	}
+};
+
+struct cast_to_timestamp_ns {
+	template <typename Element, std::enable_if_t<!cudf::is_timestamp<Element>()> * = nullptr>
+	CUDA_DEVICE_CALLABLE cudf::timestamp_ns operator()(int64_t val) {
+		assert(false);
+		return cudf::timestamp_ns{};
+	}
+
+	template <typename Timestamp, std::enable_if_t<cudf::is_timestamp<Timestamp>()> * = nullptr>
+	CUDA_DEVICE_CALLABLE cudf::timestamp_ns operator()(int64_t val) {
+		return cudf::timestamp_ns{Timestamp{static_cast<typename Timestamp::rep>(val)}};
 	}
 };
 
@@ -474,6 +487,10 @@ private:
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view == right_str_view;
+					} else if(is_timestamp_type(left_type_id) && is_timestamp_type(right_type_id)) {
+						cudf::timestamp_ns left_ts = cudf::experimental::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
+						cudf::timestamp_ns right_ts = cudf::experimental::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
+						computed = left_ts == right_ts;
 					} else {
 						computed = left_value == right_value;
 					}
@@ -482,6 +499,10 @@ private:
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view != right_str_view;
+					} else if(is_timestamp_type(left_type_id) && is_timestamp_type(right_type_id)) {
+						cudf::timestamp_ns left_ts = cudf::experimental::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
+						cudf::timestamp_ns right_ts = cudf::experimental::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
+						computed = left_ts != right_ts;
 					} else {
 						computed = left_value != right_value;
 					}
@@ -490,6 +511,10 @@ private:
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view < right_str_view;
+					} else if(is_timestamp_type(left_type_id) && is_timestamp_type(right_type_id)) {
+						cudf::timestamp_ns left_ts = cudf::experimental::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
+						cudf::timestamp_ns right_ts = cudf::experimental::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
+						computed = left_ts < right_ts;
 					} else {
 						computed = left_value < right_value;
 					}
@@ -498,6 +523,10 @@ private:
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view > right_str_view;
+					} else if(is_timestamp_type(left_type_id) && is_timestamp_type(right_type_id)) {
+						cudf::timestamp_ns left_ts = cudf::experimental::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
+						cudf::timestamp_ns right_ts = cudf::experimental::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
+						computed = left_ts > right_ts;
 					} else {
 						computed = left_value > right_value;
 					}
@@ -506,6 +535,10 @@ private:
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view <= right_str_view;
+					} else if(is_timestamp_type(left_type_id) && is_timestamp_type(right_type_id)) {
+						cudf::timestamp_ns left_ts = cudf::experimental::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
+						cudf::timestamp_ns right_ts = cudf::experimental::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
+						computed = left_ts <= right_ts;
 					} else {
 						computed = left_value <= right_value;
 					}
@@ -514,6 +547,10 @@ private:
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
 						computed = left_str_view >= right_str_view;
+					} else if(is_timestamp_type(left_type_id) && is_timestamp_type(right_type_id)) {
+						cudf::timestamp_ns left_ts = cudf::experimental::type_dispatcher(cudf::data_type{left_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(left_value));
+						cudf::timestamp_ns right_ts = cudf::experimental::type_dispatcher(cudf::data_type{right_type_id}, cast_to_timestamp_ns{}, static_cast<int64_t>(right_value));
+						computed = left_ts >= right_ts;
 					} else {
 						computed = left_value >= right_value;
 					}
@@ -601,32 +638,32 @@ private:
 				} else if(oper == operator_type::BLZ_YEAR) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
-						launch_extract_component<LeftType, datetime_component::YEAR>{},	left_value);
+						launch_extract_component<datetime_component::YEAR>{},	static_cast<int64_t>(left_value));
 					store_data_in_buffer(computed, buffer, output_position);
 				} else if(oper == operator_type::BLZ_MONTH) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
-						launch_extract_component<LeftType, datetime_component::MONTH>{}, left_value);
+						launch_extract_component<datetime_component::MONTH>{}, static_cast<int64_t>(left_value));
 					store_data_in_buffer(computed, buffer, output_position);
 				} else if(oper == operator_type::BLZ_DAY) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
-						launch_extract_component<LeftType, datetime_component::DAY>{}, left_value);
+						launch_extract_component<datetime_component::DAY>{}, static_cast<int64_t>(left_value));
 					store_data_in_buffer(computed, buffer, output_position);
 				} else if(oper == operator_type::BLZ_HOUR) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
-						launch_extract_component<LeftType, datetime_component::HOUR>{},	left_value);
+						launch_extract_component<datetime_component::HOUR>{},	static_cast<int64_t>(left_value));
 					store_data_in_buffer(computed, buffer, output_position);
 				} else if(oper == operator_type::BLZ_MINUTE) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
-						launch_extract_component<LeftType, datetime_component::MINUTE>{}, left_value);
+						launch_extract_component<datetime_component::MINUTE>{}, static_cast<int64_t>(left_value));
 					store_data_in_buffer(computed, buffer, output_position);
 				} else if(oper == operator_type::BLZ_SECOND) {
 					cudf::type_id type_id = input_types_left[op_index];
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
-						launch_extract_component<LeftType, datetime_component::SECOND>{}, left_value);
+						launch_extract_component<datetime_component::SECOND>{}, static_cast<int64_t>(left_value));
 					store_data_in_buffer(computed, buffer, output_position);
 				} else if(oper == operator_type::BLZ_CAST_INTEGER || oper == operator_type::BLZ_CAST_BIGINT) {
 					store_data_in_buffer(static_cast<int64_t>(left_value), buffer, output_position);
