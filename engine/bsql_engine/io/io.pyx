@@ -457,7 +457,7 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
       df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
       i = i + 1
     
-    if not temp.error_reported and temp.columns.size() == 0:
+    if temp.error_reported:
       return cudf.DataFrame({'__empty__': []})
     return df
 
