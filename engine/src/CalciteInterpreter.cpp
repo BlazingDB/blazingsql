@@ -389,6 +389,12 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 		if(is_project(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
+			if (0 == child_frame_view.num_columns()) {
+				blazing_timer.reset();
+				queryContext->incrementQueryStep();
+				return std::make_pair(std::move(child_frame), child_frame_view);
+			}
+
 			child_frame = ral::processor::process_project(child_frame_view, query[0], queryContext);
 			child_frame_view = child_frame->toBlazingTableView();
 
