@@ -77,10 +77,9 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 		if(num_sort_columns > 0) {
 			std::unique_ptr<ral::frame::BlazingTable> sorted_table = distributed_sort(context, table, sortColIndices, sortOrderTypes);
 
-			apply_limit = limitRows < sorted_table->num_rows();
+			apply_limit = limitRows < sorted_table->num_rows() && limitRows!=-1;
+			limitRows = determine_local_limit(context, sorted_table->num_rows(), limitRows);
 			if(apply_limit) {
-				limitRows = determine_local_limit(context, sorted_table->num_rows(), limitRows);
-
 				if(limitRows == 0){
 					return std::make_unique<BlazingTable>(cudf::experimental::empty_like(sorted_table->view()), table.names());
 				}
