@@ -143,8 +143,9 @@ cd $CONDA_PREFIX
 git clone https://github.com/BlazingDB/blazingsql.git
 cd blazingsql
 export CUDACXX=/usr/local/cuda/bin/nvcc
-conda/recipes/blazingsql/build.sh
+./build.sh
 ```
+NOTE: You can do `./build.sh -h` to see more build options.
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
 
