@@ -20,13 +20,10 @@ struct ExpressionTreeTest : public ::testing::Test {
     try {
       expression_tree tree;
       if (tree.build(prefix)) {
-        std::cout << "before:\n";
-        tree.print();
+        // tree.print();
         tree.apply_skip_data_rules();
-        std::cout << "after:\n";
-        tree.print();
+        // tree.print();
         auto solution =  tree.prefix();
-        std::cout << "solution:\n";
         std::cout << solution << "\n";
         EXPECT_EQ(solution, expected);
       }else {
