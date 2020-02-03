@@ -286,22 +286,7 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_without_groupby(Context *
 		 	timer.logDuration(*context, "aggregations_without_groupby part 2 distributePartitions"));
 		timer.reset();
 
-		std::vector<cudf::type_id> typeIds;
-		typeIds.reserve(results->num_columns());
-		CudfTableView view = results->view();
-		std::transform(view.begin(), view.end(), std::back_inserter(typeIds), [](cudf::column_view & col_view) {
-			return col_view.type().id();
-		});
-
-		std::vector<std::unique_ptr<cudf::column>> the_columns;
-		the_columns.reserve(typeIds.size());
-		std::transform(
-			typeIds.cbegin(), typeIds.cend(), std::back_inserter(the_columns), [](const cudf::type_id typeId) {
-				rmm::device_buffer devbuf;
-				return std::make_unique<cudf::column>(cudf::data_type{typeId}, 0, devbuf);
-			});
-
-		return std::make_unique<ral::frame::BlazingTable>(std::make_unique<CudfTable>(std::move(the_columns)), results->names());
+		return std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(results->view()), results->names());
 	}
 }
 
