@@ -58,8 +58,8 @@ def getPartitions(tableName, schema, cursor):
 
 
 dtypes = {
-    np.float64: "float",
-    np.float32: "double",
+    np.float64: "double",
+    np.float32: "float",
     np.int64: "int64",
     np.longlong: "int64",
     np.int32: "int32",
