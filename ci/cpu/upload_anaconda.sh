@@ -2,6 +2,8 @@
 
 set -e
 
+SOURCE_BRANCH="branch-0.12"
+
 export BLAZINGSQL_FILE=`conda build conda/recipes/blazingsql/ --python=$PYTHON --output`
 
 # Restrict uploads to master branch
