@@ -70,7 +70,7 @@ struct cast_to_str_functor {
 
     template<typename T, std::enable_if_t<cudf::is_timestamp<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
-        return cudf::strings::from_timestamps(col, "%Y-%m-%d %H:%M:%S");
+        return cudf::strings::from_timestamps(col, std::is_same<cudf::timestamp_D, T>::value ? "%Y-%m-%d" : "%Y-%m-%d %H:%M:%S");
     }
 
     template<typename T, std::enable_if_t<cudf::is_compound<T>()> * = nullptr>
@@ -159,6 +159,72 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
 
         computed_col = cudf::experimental::type_dispatcher(column.type(), cast_to_str_functor{}, column);
+        break;
+    }
+    case interops::operator_type::BLZ_CAST_INTEGER:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (column.type().id() == cudf::type_id::STRING) {
+            computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT32});
+        }
+        break;
+    }
+    case interops::operator_type::BLZ_CAST_BIGINT:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (column.type().id() == cudf::type_id::STRING) {
+            computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT64});
+        }
+        break;
+    }
+    case interops::operator_type::BLZ_CAST_FLOAT:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (column.type().id() == cudf::type_id::STRING) {
+            computed_col = cudf::strings::to_floats(column, cudf::data_type{cudf::type_id::FLOAT32});
+        }
+        break;
+    }
+    case interops::operator_type::BLZ_CAST_DOUBLE:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (column.type().id() == cudf::type_id::STRING) {
+            computed_col = cudf::strings::to_floats(column, cudf::data_type{cudf::type_id::FLOAT64});
+        }
+        break;
+    }
+    case interops::operator_type::BLZ_CAST_DATE:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (column.type().id() == cudf::type_id::STRING) {
+            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_DAYS}, "%Y-%m-%d");
+        }
+        break;
+    }
+    case interops::operator_type::BLZ_CAST_TIMESTAMP:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (column.type().id() == cudf::type_id::STRING) {
+            computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, "%Y-%m-%d %H:%M:%S");
+        }
         break;
     }
     }
