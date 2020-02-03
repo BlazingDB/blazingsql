@@ -253,9 +253,7 @@ TEST_F(ProjectTestString, test_cast_to_string)
     cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> col1{{true, false, true, true, true, false, false, true, false, false}};
     cudf::test::fixed_width_column_wrapper<int32_t> col2{{1, 5, 10, 15, 100, 500, 1000, 5000, 10000, 999999}};
     cudf::test::fixed_width_column_wrapper<double> col3{{1.0, 5.5, 10.00003, 15.45, 100.656, 500.756756, 0.45435436, 0.0000324, 0.1, 999999.001}};
-    using ms_duration = typename cudf::timestamp_ms::duration;
-    auto start_ms = ms_duration{-2500000000000};
-    cudf::test::fixed_width_column_wrapper<cudf::timestamp_ms> col4{{start_ms, start_ms + ms_duration(500), start_ms + ms_duration(2000), start_ms + ms_duration(60000), start_ms + ms_duration(500000), start_ms + ms_duration(6000000), start_ms + ms_duration(86400000), start_ms + ms_duration(15768000000), start_ms + ms_duration(31536000000), start_ms + ms_duration(630720000000)}};
+    cudf::test::fixed_width_column_wrapper<cudf::timestamp_s> col4{{0, 10, 2600, 89260, 579500, 6834000, 86796400, 135768000, 715360000, 1230720000}};
   
     cudf::table_view in_table_view {{col1, col2, col3, col4}};
     std::vector<std::string> column_names(in_table_view.num_columns());
@@ -267,8 +265,39 @@ TEST_F(ProjectTestString, test_cast_to_string)
     cudf::test::strings_column_wrapper expected_col1{{"true","false","true","true","true","false","false","true","false","false"}};
     cudf::test::strings_column_wrapper expected_col2{{"1","5","10","15","100","500","1000","5000","10000","999999"}};
     cudf::test::strings_column_wrapper expected_col3{{"1.0","5.5","10.00003","15.45","100.656","500.756756","0.45435436","3.24e-05","0.1","999999.001"}};
-    cudf::test::strings_column_wrapper expected_col4{{"1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-12 00:00:00","1890-10-13 00:00:00","1891-04-13 00:00:00","1891-10-12 00:00:00","1910-10-08 00:00:00"}};
+    cudf::test::strings_column_wrapper expected_col4{{"1970-01-01 00:00:00","1970-01-01 00:00:10","1970-01-01 00:43:20","1970-01-02 00:47:40","1970-01-07 16:58:20","1970-03-21 02:20:00","1972-10-01 14:06:40","1974-04-21 09:20:00","1992-09-01 15:06:40","2008-12-31 10:40:00"}};
     cudf::table_view expected_table_view {{expected_col1, expected_col2, expected_col3, expected_col4}};
+
+    cudf::test::expect_tables_equal(expected_table_view, out_table->view());
+}
+
+TEST_F(ProjectTestString, test_cast_from_string)
+{
+    cudf::test::strings_column_wrapper col1{{"1","5","10","15","100","500","1000","5000","10000","999999"}};
+    cudf::test::strings_column_wrapper col2{{"1.0","5.5","10.00003","15.45","100.656","500.756756","0.45435436","3.24e-05","0.1","999999.001"}};
+    cudf::test::strings_column_wrapper col3{{"1970-01-01 00:00:00","1970-01-01 00:00:10","1970-01-01 00:43:20","1970-01-02 00:47:40","1970-01-07 16:58:20","1970-03-21 02:20:00","1972-10-01 14:06:40","1974-04-21 09:20:00","1992-09-01 15:06:40","2008-12-31 10:40:00"}};
+  
+    cudf::table_view in_table_view {{col1, col2, col3}};
+    std::vector<std::string> column_names(in_table_view.num_columns());
+
+    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+                                                    "LogicalProject(EXPR$0=[CAST($0):INTEGER], EXPR$1=[CAST($1):DOUBLE], EXPR$2=[CAST($2):TIMESTAMP])",
+                                                    nullptr);
+
+    cudf::test::fixed_width_column_wrapper<int32_t> expected_col1{{1, 5, 10, 15, 100, 500, 1000, 5000, 10000, 999999}};
+    cudf::test::fixed_width_column_wrapper<double> expected_col2{{1.0, 5.5, 10.00003, 15.45, 100.656, 500.756756, 0.45435436, 0.0000324, 0.1, 999999.001}};
+    cudf::test::fixed_width_column_wrapper<cudf::timestamp_ns> expected_col3{{
+        cudf::timestamp_ns{cudf::timestamp_s{0}},
+        cudf::timestamp_ns{cudf::timestamp_s{10}},
+        cudf::timestamp_ns{cudf::timestamp_s{2600}},
+        cudf::timestamp_ns{cudf::timestamp_s{89260}},
+        cudf::timestamp_ns{cudf::timestamp_s{579500}},
+        cudf::timestamp_ns{cudf::timestamp_s{6834000}},
+        cudf::timestamp_ns{cudf::timestamp_s{86796400}},
+        cudf::timestamp_ns{cudf::timestamp_s{135768000}},
+        cudf::timestamp_ns{cudf::timestamp_s{715360000}},
+        cudf::timestamp_ns{cudf::timestamp_s{1230720000}}}};
+    cudf::table_view expected_table_view {{expected_col1, expected_col2, expected_col3}};
 
     cudf::test::expect_tables_equal(expected_table_view, out_table->view());
 }
