@@ -110,6 +110,7 @@ cd blazingsql
 git checkout master
 export CUDACXX=/usr/local/cuda/bin/nvcc
 ./build.sh
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
 ```
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
@@ -144,6 +145,7 @@ git clone https://github.com/BlazingDB/blazingsql.git
 cd blazingsql
 export CUDACXX=/usr/local/cuda/bin/nvcc
 ./build.sh
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
 ```
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
