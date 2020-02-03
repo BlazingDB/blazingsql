@@ -78,7 +78,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			std::unique_ptr<ral::frame::BlazingTable> sorted_table = distributed_sort(context, table, sortColIndices, sortOrderTypes);
 
 			limitRows = determine_local_limit(context, sorted_table->num_rows(), limitRows);
-			apply_limit = limitRows < sorted_table->num_rows();
+			apply_limit = limitRows < sorted_table->num_rows() && limitRows > 0;
 			if(apply_limit) {
 				return logicalLimit(sorted_table->toBlazingTableView(), limitRows);
 			} else {

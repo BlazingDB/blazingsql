@@ -741,11 +741,10 @@ namespace experimental {
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	const ral::frame::BlazingTableView & table, const double ratio) {
-
-	return generateSamples(table, std::ceil(table.view().num_rows() * ratio));
+	return generateSamples2(table, std::ceil(table.view().num_rows() * ratio));
 }
 
-std::unique_ptr<ral::frame::BlazingTable> generateSamples(
+std::unique_ptr<ral::frame::BlazingTable> generateSamples2(
 	const ral::frame::BlazingTableView & table, const size_t quantile) {
 
 	return cudf::generator::generate_sample(table, quantile);
