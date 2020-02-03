@@ -109,7 +109,7 @@ git clone https://github.com/BlazingDB/blazingsql.git
 cd blazingsql
 git checkout master
 export CUDACXX=/usr/local/cuda/bin/nvcc
-conda/recipes/blazingsql/build.sh
+./build.sh
 ```
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
@@ -143,7 +143,7 @@ cd $CONDA_PREFIX
 git clone https://github.com/BlazingDB/blazingsql.git
 cd blazingsql
 export CUDACXX=/usr/local/cuda/bin/nvcc
-conda/recipes/blazingsql/build.sh
+./build.sh
 ```
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
