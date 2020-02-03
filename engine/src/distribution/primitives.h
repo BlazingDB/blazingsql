@@ -187,7 +187,7 @@ namespace distribution {
 namespace sampling {
 namespace experimental {
 
-std::unique_ptr<ral::frame::BlazingTable> generateSamples(
+std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
 	const ral::frame::BlazingTableView & table, const double ratio);
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamples(

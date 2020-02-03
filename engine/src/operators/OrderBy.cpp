@@ -77,10 +77,15 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 		if(num_sort_columns > 0) {
 			std::unique_ptr<ral::frame::BlazingTable> sorted_table = distributed_sort(context, table, sortColIndices, sortOrderTypes);
 
+			apply_limit = limitRows < sorted_table->num_rows() && limitRows!=-1;
 			limitRows = determine_local_limit(context, sorted_table->num_rows(), limitRows);
-			apply_limit = limitRows < sorted_table->num_rows();
 			if(apply_limit) {
-				return logicalLimit(sorted_table->toBlazingTableView(), limitRows);
+				if(limitRows == 0){
+					return std::make_unique<BlazingTable>(cudf::experimental::empty_like(sorted_table->view()), table.names());
+				}
+				else{
+					return logicalLimit(sorted_table->toBlazingTableView(), limitRows);
+				}
 			} else {
 				return sorted_table;
 			}
@@ -111,10 +116,10 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 
 	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), table.names());
 
-	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamples(
+	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(
 																sortColumns, 0.1);
 
-	Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed_sort part 1 generateSample"));
+	Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed_sort part 1 generateSamplesFromRatio"));
 	timer.reset();
 
 	std::unique_ptr<ral::frame::BlazingTable> sortedTable;
