@@ -41,7 +41,7 @@ struct allocate_device_scalar {
 		return {ret, deleter};
 	}
 
-	template <typename T, std::enable_if_t<cudf::is_compound<T>()> * = nullptr>
+	template <typename T, std::enable_if_t<std::is_same<T, cudf::string_view>::value> * = nullptr>
 	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		using ScalarDeviceType = cudf::experimental::scalar_device_type_t<T>;
@@ -56,6 +56,12 @@ struct allocate_device_scalar {
 
 		auto deleter = [stream](cudf::detail::scalar_device_view_base * p) { RMM_TRY(RMM_FREE(p, stream)); };
 		return {ret, deleter};
+	}
+
+	template <typename T, std::enable_if_t<std::is_same<T, cudf::dictionary32>::value> * = nullptr>
+	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		RAL_FAIL("Dictionary not yet supported");
+		return nullptr;
 	}
 };
 
