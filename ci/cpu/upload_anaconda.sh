@@ -23,5 +23,5 @@ if [ "$UPLOAD_BLAZING" == "1" ]; then
 
     test -e ${BLAZINGSQL_FILE}
     echo "Upload blazingsql: "${BLAZINGSQL_FILE}
-    anaconda -t ${MY_UPLOAD_KEY} upload -u ${CONDA_UPLOAD} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}
+    anaconda -t ${MY_UPLOAD_KEY} upload -u ${CONDA_USERNAME} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}
 fi
