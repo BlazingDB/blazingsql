@@ -795,6 +795,7 @@ blazing_frame evaluate_split_query(std::vector<ral::io::data_loader> input_loade
 			left_frame.add_table(right_frame.get_table(0));
 			///left_frame.consolidate_tables();
 			std::string new_join_statement, filter_statement;
+			StringUtil::findAndReplaceAll(query[0], "IS NOT DISTINCT FROM", "=");
 			split_inequality_join_into_join_and_filter(query[0], new_join_statement, filter_statement);
 			result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);
 			std::string extraInfo = "left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
