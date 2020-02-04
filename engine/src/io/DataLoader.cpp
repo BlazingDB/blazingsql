@@ -131,7 +131,7 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	this->provider->reset();
 }
 
-void data_loader::get_metadata(Metadata & metadata, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns) {
+std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) {
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
 
 	bool firstIteration = true;
@@ -139,12 +139,7 @@ void data_loader::get_metadata(Metadata & metadata, std::vector<std::pair<std::s
 	for(auto handle : handles) {
 		files.push_back(handle.fileHandle);
 	}
-	if (this->parser->get_metadata(files,  metadata) == false) {
-		throw std::runtime_error("No metadata for this data file");
-	}
-	//TODO, non_file_columns hive feature, @percy
-	// ... 
-
+	return this->parser->get_metadata(files,  offset);
 }
 
 } /* namespace io */

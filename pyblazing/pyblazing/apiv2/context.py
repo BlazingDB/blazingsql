@@ -565,7 +565,7 @@ class BlazingContext(object):
 
             table.slices = table.getSlices(len(self.nodes))
             if parsedSchema['file_type'] == DataType.PARQUET :
-                parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns)
+                parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs)
                 if isinstance(parsedMetadata, cudf.DataFrame):
                     table.metadata = parsedMetadata
                 else:
@@ -600,7 +600,7 @@ class BlazingContext(object):
 
 
 
-    def _parseMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns):
+    def _parseMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
@@ -614,7 +614,6 @@ class BlazingContext(object):
                     schema,
                     file_format_hint,
                     kwargs,
-                    extra_columns,
                     workers=[worker])
                 dask_futures.append(connection)
                 worker_id += 1
@@ -622,7 +621,7 @@ class BlazingContext(object):
 
         else:
             return cio.parseMetadataCaller(
-                input, currentTableNodes[0].offset, schema, file_format_hint, kwargs, extra_columns)
+                input, currentTableNodes[0].offset, schema, file_format_hint, kwargs)
 
     def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
             if self.dask_client is None:

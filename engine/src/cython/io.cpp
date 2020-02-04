@@ -80,8 +80,7 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	TableSchema schema,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
-	std::vector<std::string> arg_values,
-	std::vector<std::pair<std::string, gdf_dtype>> extra_columns) {
+	std::vector<std::string> arg_values) {
 	if (offset.second == 0) {
 		// cover case for empty files to parse
 		
@@ -149,28 +148,15 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 
-	ral::io::Metadata metadata({}, offset);
-
 	try {
-		 loader->get_metadata(metadata, extra_columns);
+		//TODO: @alex change this API
+		loader->get_metadata(offset.first);
+		//  return loader->get_metadata(offset.first);
+
 	} catch(std::exception & e) {
 		std::cerr << "**[parseMetadata]** error parsing metadata.\n";
-		return tableSchema;
+		// return nullptr;
 	}
-
-	auto gdf_columns = metadata.get_columns();
- 
-	for(auto column_cpp : gdf_columns) {
-		// TODO percy cudf0.12 port to cudf::column
-		// GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-		// tableSchema.columns.push_back(column_cpp.get_gdf_column());
-		// tableSchema.names.push_back(column_cpp.name());
-	}
-	//TODO: Alexander
-	// tableSchema.files = schema.get_files();
-	// tableSchema.num_row_groups = schema.get_num_row_groups();
-	// tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
-	// tableSchema.in_file = schema.get_in_file();
 	return tableSchema;
 }
 

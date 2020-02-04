@@ -82,8 +82,7 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	TableSchema schema,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
-	std::vector<std::string> arg_values,
-	std::vector<std::pair<std::string, gdf_dtype>> extra_columns);
+	std::vector<std::string> arg_values);
 
 std::pair<bool, std::string> registerFileSystemHDFS(HDFS hdfs, std::string root, std::string authority);
 std::pair<bool, std::string> registerFileSystemGCS(GCS gcs, std::string root, std::string authority);
