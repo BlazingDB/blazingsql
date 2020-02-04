@@ -114,7 +114,7 @@ public:
     std::vector<int> buffer_sizes;
     std::vector<const char *> raw_buffers;
     std::vector<ColumnTransport> column_offset;
-    std::vector<std::unique_ptr<rmm::device_buffer>> temp_bitmasks_scope_holder;
+    std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
 
     // serializeToBinary(samples);
 
@@ -179,7 +179,7 @@ public:
       }
       column_offset.push_back(col_transport);
     }
-    return std::make_tuple(buffer_sizes, raw_buffers, column_offset, std::move(temp_bitmasks_scope_holder));
+    return std::make_tuple(buffer_sizes, raw_buffers, column_offset, std::move(temp_scope_holder));
   }
 
   static std::shared_ptr<GPUReceivedMessage> MakeFrom(
@@ -270,8 +270,8 @@ std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
   std::vector<const char *> buffers;
   std::vector<int> buffer_sizes;
   std::vector<ColumnTransport> column_offsets;
-  std::vector<std::unique_ptr<rmm::device_buffer>> temp_bitmasks_scope_holder;
-  std::tie(buffer_sizes, buffers, column_offsets, temp_bitmasks_scope_holder) =
+  std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
+  std::tie(buffer_sizes, buffers, column_offsets, temp_scope_holder) =
       gpu_message->GetRawColumns();
   for (auto &info : column_offsets) {
     std::cout << "\t " << info.strings_data << "|" << info.strings_offsets

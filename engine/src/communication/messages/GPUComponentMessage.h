@@ -4,6 +4,7 @@
 #include <blazingdb/transport/ColumnTransport.h>
 #include <blazingdb/transport/Message.h>
 #include <blazingdb/transport/Node.h>
+#include <communication/messages/MessageUtil.cuh>
 
 #include <map>
 #include <memory>
@@ -17,12 +18,15 @@
 #include <cudf/null_mask.hpp>
 #include <cudf/column/column_factories.hpp>
 #include <cudf/types.hpp>
+
+
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include "Traits/RuntimeTraits.h"
+// #include <utilities/DebuggingUtils.h>
+// #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 
 #include "GDFColumn.cuh"
 
-#include "from_cudf/cpp_tests/utilities/column_utilities.hpp"
 
 
 namespace ral {
@@ -80,7 +84,7 @@ public:
 		std::vector<int> buffer_sizes;
 		std::vector<const char *> raw_buffers;
 		std::vector<ColumnTransport> column_offset;
-		std::vector<std::unique_ptr<rmm::device_buffer>> temp_bitmasks_scope_holder;
+		std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
 		for(int i = 0; i < table_view.num_columns(); ++i) {
 			const cudf::column_view&column = table_view.column(i);
 			ColumnTransport col_transport = ColumnTransport{ColumnTransport::MetaData{
@@ -101,51 +105,71 @@ public:
 				auto offsets_column = column.child(0);
 				auto chars_column = column.child(1);
 
-			 	col_transport.strings_data = raw_buffers.size();
-				buffer_sizes.push_back(chars_column.size());
-				raw_buffers.push_back(chars_column.data<char>());
-				col_transport.strings_data_size = chars_column.size();
-
-				cudf::data_type offset_dtype (cudf::type_id::INT32);
-				col_transport.strings_offsets = raw_buffers.size();
-				col_transport.strings_offsets_size = offsets_column.size() * cudf::size_of(offset_dtype);
-				buffer_sizes.push_back(col_transport.strings_offsets_size);
-				raw_buffers.push_back(offsets_column.data<char>());
+				if (column.size() + 1 == offsets_column.size()){ // this column does not come from a buffer than had been zero-copy partitioned
 				
+					col_transport.strings_data = raw_buffers.size();
+					buffer_sizes.push_back(chars_column.size());
+					raw_buffers.push_back(chars_column.data<char>());
+					col_transport.strings_data_size = chars_column.size();
+
+					cudf::data_type offset_dtype (cudf::type_id::INT32);
+					col_transport.strings_offsets = raw_buffers.size();
+					col_transport.strings_offsets_size = offsets_column.size() * cudf::size_of(offset_dtype);
+					buffer_sizes.push_back(col_transport.strings_offsets_size);
+					raw_buffers.push_back(offsets_column.data<char>());
+					
+					if(column.has_nulls()) {
+						col_transport.strings_nullmask = raw_buffers.size();
+						buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
+						raw_buffers.push_back((const char *)column.null_mask());					
+					}
+				} else {  // this column comes from a column that was zero-copy partitioned 
+					
+					std::pair<cudf::size_type, cudf::size_type> char_col_start_end = getCharsColumnStartAndEnd(column);
+
+					std::unique_ptr<CudfColumn> new_offsets = getRebasedStringOffsets(column, char_col_start_end.first);
+
+					col_transport.strings_data = raw_buffers.size();
+					col_transport.strings_data_size = char_col_start_end.second - char_col_start_end.first;
+					buffer_sizes.push_back(col_transport.strings_data_size);
+					raw_buffers.push_back(chars_column.data<char>() + char_col_start_end.first);
+					
+					cudf::data_type offset_dtype (cudf::type_id::INT32);
+					col_transport.strings_offsets = raw_buffers.size();
+					col_transport.strings_offsets_size = new_offsets->size() * cudf::size_of(offset_dtype);
+					buffer_sizes.push_back(col_transport.strings_offsets_size);
+					raw_buffers.push_back(new_offsets->view().data<char>());
+
+					cudf::column::contents new_offsets_contents = new_offsets->release();
+					temp_scope_holder.emplace_back(std::move(new_offsets_contents.data));
+
+					if(column.has_nulls()) {
+						col_transport.strings_nullmask = raw_buffers.size();
+						buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
+						temp_scope_holder.emplace_back(std::make_unique<rmm::device_buffer>(
+							cudf::copy_bitmask(column.null_mask(), column.offset(), column.offset() + column.size())));
+						raw_buffers.push_back((const char *)temp_scope_holder.back()->data());											
+					}
+				}
+			} else {
+				col_transport.data = raw_buffers.size();
+				buffer_sizes.push_back(column.size() * cudf::size_of(column.type()));
+				raw_buffers.push_back(column.head<char>() + column.offset() * cudf::size_of(column.type())); // here we are getting the beginning of the buffer and manually calculating the offset.
 				if(column.has_nulls()) {
-					col_transport.strings_nullmask = raw_buffers.size();
+					col_transport.valid = raw_buffers.size();
 					buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
 					if (column.offset() == 0){
 						raw_buffers.push_back((const char *)column.null_mask());
 					} else {
-						temp_bitmasks_scope_holder.emplace_back(std::make_unique<rmm::device_buffer>(
-							cudf::copy_bitmask(column.null_mask(), column.offset(), column.offset() + column.size())));
-						raw_buffers.push_back((const char *)temp_bitmasks_scope_holder.back()->data());					
+						temp_scope_holder.emplace_back(std::make_unique<rmm::device_buffer>(
+							cudf::copy_bitmask(column)));
+						raw_buffers.push_back((const char *)temp_scope_holder.back()->data());					
 					}
 				}
-			} else if(column.has_nulls() and column.null_count() > 0) {
-				// case: valid
-				col_transport.data = raw_buffers.size();
-				buffer_sizes.push_back(column.size() * cudf::size_of(column.type()));
-				raw_buffers.push_back(column.head<char>() + column.offset() * cudf::size_of(column.type())); // here we are getting the beginning of the buffer and manually calculating the offset.
-				col_transport.valid = raw_buffers.size();
-				buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
-				if (column.offset() == 0){
-					raw_buffers.push_back((const char *)column.null_mask());
-				} else {
-					temp_bitmasks_scope_holder.emplace_back(std::make_unique<rmm::device_buffer>(
-						cudf::copy_bitmask(column.null_mask(), column.offset(), column.offset() + column.size())));
-					raw_buffers.push_back((const char *)temp_bitmasks_scope_holder.back()->data());					
-				}
-			} else {
-				// case: data
-				col_transport.data = raw_buffers.size();
-				buffer_sizes.push_back(column.size() * cudf::size_of(column.type()));
-				raw_buffers.push_back(column.head<char>() + column.offset() * cudf::size_of(column.type())); // here we are getting the beginning of the buffer and manually calculating the offset.
 			}
 			column_offset.push_back(col_transport);
 		}
-		return std::make_tuple(buffer_sizes, raw_buffers, column_offset, std::move(temp_bitmasks_scope_holder));
+		return std::make_tuple(buffer_sizes, raw_buffers, column_offset, std::move(temp_scope_holder));
 	}
 
 	static std::shared_ptr<GPUReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
@@ -169,10 +193,14 @@ public:
 				
 				cudf::size_type total_bytes = columns_offsets[i].strings_data_size;
 				std::unique_ptr<cudf::column> chars_column	= std::make_unique<cudf::column>(cudf::data_type{cudf::INT8}, total_bytes, std::move(raw_buffers[columns_offsets[i].strings_data]));
-				rmm::device_buffer null_mask(std::move(raw_buffers[columns_offsets[i].strings_nullmask])); 
+				rmm::device_buffer null_mask;
+				if (columns_offsets[i].strings_nullmask != -1)
+					null_mask = rmm::device_buffer(std::move(raw_buffers[columns_offsets[i].strings_nullmask])); 
+
 				cudf::size_type null_count = columns_offsets[i].metadata.null_count;
 				auto unique_column = cudf::make_strings_column(num_strings, std::move(offsets_column), std::move(chars_column), null_count, std::move(null_mask));
 				received_samples[i] = std::move(unique_column);
+
 			} else {
 				cudf::data_type dtype = cudf::data_type{cudf::type_id(columns_offsets[i].metadata.dtype)};
 				cudf::size_type column_size  =  (cudf::size_type)columns_offsets[i].metadata.size;

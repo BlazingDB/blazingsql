@@ -81,17 +81,20 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     blazingdb::manager::experimental::Context * context) {
 
     std::vector<NodeColumnView > partitions;
+    std::unique_ptr<CudfTable> hashed_data;
     if (table.num_rows() > 0){    
       //TODO: CACHE_POINT (ask felipe)
       std::vector<cudf::size_type> columns_to_hash;
       std::transform(columnIndices.begin(), columnIndices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-      std::pair<std::unique_ptr<CudfTable>, std::vector<cudf::size_type>> hashedData_offsets_pair = cudf::hash_partition(table.view(),
+      
+      std::vector<cudf::size_type> hased_data_offsets;
+      std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(table.view(),
               columns_to_hash, context->getTotalNodes());
-
+      ral::frame::BlazingTableView hashed_table(hashed_data->view(), table.names());
+      
       // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-      std::vector<cudf::size_type> split_indexes(hashedData_offsets_pair.second.begin() + 1, hashedData_offsets_pair.second.end());
-      std::vector<CudfTableView> partitioned = cudf::experimental::split(hashedData_offsets_pair.first->view(), 
-                                                                          split_indexes);
+      std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+      std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
       
       std::unique_ptr<CudfTable> empty;
       if (partitioned.size() == context->getTotalNodes() - 1 ){ // split can return one less, due to weird implementation details in cudf. When so, the last one should have been emtpy
@@ -114,6 +117,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     ral::distribution::experimental::distributePartitions(context, partitions);
     std::vector<NodeColumn> remote_node_columns = ral::distribution::experimental::collectPartitions(context);
 
+    std::vector<std::unique_ptr<CudfTable>> partitions_to_concat_hold;
     std::vector<ral::frame::BlazingTableView> partitions_to_concat;
     for (int i = 0; i < remote_node_columns.size(); i++){
       partitions_to_concat.emplace_back(remote_node_columns[i].second->toBlazingTableView());
@@ -121,7 +125,12 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     bool found_self_partition = false;
     for (auto partition : partitions){
       if (partition.first == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
-        partitions_to_concat.emplace_back(partition.second);
+        if (partition.second.num_columns() > 0 && partition.second.view().column(0).offset() > 0){  // WSM this is because a bug in cudf
+          partitions_to_concat_hold.emplace_back(std::make_unique<CudfTable>(CudfTable(partition.second.view())));
+          partitions_to_concat.emplace_back(ral::frame::BlazingTableView(partitions_to_concat_hold.back()->view(),partition.second.names()));
+        } else {
+           partitions_to_concat.emplace_back(partition.second);
+        }
         found_self_partition = true;
         break;
       }
@@ -169,7 +178,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     } else {
         std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> > distributed_tables = process_hash_based_distribution(
             table_left, table_right, expression, context);
-
+      
         return processJoin(distributed_tables.first->toBlazingTableView(), distributed_tables.second->toBlazingTableView(), expression);
     }
   }
