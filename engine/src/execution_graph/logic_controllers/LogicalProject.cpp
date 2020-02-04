@@ -164,8 +164,11 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_INTEGER:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
 
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
+        
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
             computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT32});
@@ -175,7 +178,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_BIGINT:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+        
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
@@ -186,7 +192,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_FLOAT:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+        
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
@@ -197,7 +206,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_DOUBLE:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
@@ -208,7 +220,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_DATE:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
@@ -219,7 +234,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_TIMESTAMP:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+        
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
