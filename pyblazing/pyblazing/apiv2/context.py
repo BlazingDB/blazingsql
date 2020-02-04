@@ -792,8 +792,7 @@ class BlazingContext(object):
                 # print("skip-data-frame:", current_table.metadata[['max_2_t_year', 'max_3_t_company_id', 'file_handle_index']])
                 file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0)
                 has_some_error = '__empty__' in file_indices_and_rowgroup_indices
-                # print("skip-data-frame:", file_indices_and_rowgroup_indices, has_some_error)
-                if not has_some_error:
+                if not file_indices_and_rowgroup_indices.empty and not has_some_error:
                     file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
                     grouped = file_and_rowgroup_indices.groupby('file_handle_index')
@@ -829,7 +828,7 @@ class BlazingContext(object):
                 for index in range(len(self.nodes)):
                     file_indices_and_rowgroup_indices = result.get_partition(index).compute()
                     has_some_error = '__empty__' in file_indices_and_rowgroup_indices
-                    if has_some_error :
+                    if file_indices_and_rowgroup_indices.empty and has_some_error :
                         continue
                     file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
