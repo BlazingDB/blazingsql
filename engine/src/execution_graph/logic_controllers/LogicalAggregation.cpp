@@ -11,7 +11,7 @@ namespace processor{
     const ral::frame::BlazingTableView & table,
     std::vector<int> key_indeces,  // if size > 0 that means we are doing a group by and key_indices and table can create keys table_view
     std::vector<string> agg_value_expressions,
-    std::vector<cudf::experimental::aggregation::Kind> aggs,  // this we use to create aggregation requests or map them to reduction_op for reduce
+    std::vector<cudf::experimental::aggregation::Kind> aggs,  // this we use to create aggregation requests or map them to aggregation::Kind for reduce
     std::vector<std::string> output_column_names)
 
    internally, this funciton needs to see if its:
@@ -44,9 +44,6 @@ std::pair<std::unique_ptr<table>, std::vector<aggregation_result>> aggregate(
 // https://github.com/karthikeyann/cudf/blob/port-reductions2/cpp/include/cudf/reduction.hpp
 
 std::unique_ptr<scalar> reduce(
-    const column_view& col, reduction_op op, data_type output_dtype,
+    const column_view& col, aggregation::Kind op, data_type output_dtype,
     cudf::size_type ddof = 1,
     rmm::mr::device_memory_resource* mr = rmm::mr::get_default_resource());
-
-
-
