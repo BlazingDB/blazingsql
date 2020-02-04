@@ -189,6 +189,9 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	cudf::type_id type_id = infer_dtype_from_literal(scalar_string);
 	cudf::data_type type{type_id};
 
+	if (type_id == cudf::type_id::EMPTY) {
+		return nullptr;
+	}
 	if(type_id == cudf::type_id::BOOL8) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = cudf::experimental::bool8;

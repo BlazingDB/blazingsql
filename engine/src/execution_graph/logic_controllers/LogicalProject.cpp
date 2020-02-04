@@ -358,7 +358,8 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
             } else {
                 out_columns[i] = cudf::make_fixed_width_column(cudf::data_type{col_type}, table.num_rows());
                 std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(expression);
-
+                RAL_EXPECTS(!!literal_scalar, "NULL literal not supported in projection");
+                
                 // TODO: verify that in-place fill works correctly, seems there is a bug currently
                 out_columns[i] = cudf::experimental::fill(*out_columns[i], 0, out_columns[i]->size(), *literal_scalar);
             }
