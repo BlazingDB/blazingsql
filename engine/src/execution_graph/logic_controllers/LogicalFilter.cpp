@@ -97,7 +97,9 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
       
       std::unique_ptr<CudfTable> empty;
-      if (partitioned.size() == context->getTotalNodes() - 1 ){ // split can return one less, due to weird implementation details in cudf. When so, the last one should have been emtpy
+      // split can return one less, due to weird implementation details in cudf. When so, the last one should have been emtpy
+      // https://github.com/rapidsai/cudf/issues/4056
+      if (partitioned.size() == context->getTotalNodes() - 1 ){ 
         empty = cudf::experimental::empty_like(table.view());
         partitioned.emplace_back(empty->view());
       }
@@ -125,12 +127,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     bool found_self_partition = false;
     for (auto partition : partitions){
       if (partition.first == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
-        if (partition.second.num_columns() > 0 && partition.second.view().column(0).offset() > 0){  // WSM this is because a bug in cudf
-          partitions_to_concat_hold.emplace_back(std::make_unique<CudfTable>(CudfTable(partition.second.view())));
-          partitions_to_concat.emplace_back(ral::frame::BlazingTableView(partitions_to_concat_hold.back()->view(),partition.second.names()));
-        } else {
-           partitions_to_concat.emplace_back(partition.second);
-        }
+        partitions_to_concat.emplace_back(partition.second);
         found_self_partition = true;
         break;
       }
