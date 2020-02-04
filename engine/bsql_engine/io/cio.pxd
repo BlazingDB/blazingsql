@@ -249,6 +249,7 @@ cdef extern from "../include/engine/engine.h":
         cdef struct ResultSet:
             vector[gdf_column_ptr] columns
             vector[string]  names
+            bool error_reported
 
         cdef struct NodeMetaDataTCP:
             string ip

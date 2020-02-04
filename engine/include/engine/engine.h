@@ -6,6 +6,7 @@
 struct ResultSet {
 	std::vector<gdf_column *> columns;
 	std::vector<std::string> names;
+	bool error_reported;
 };
 
 struct SkipDataResultSet {

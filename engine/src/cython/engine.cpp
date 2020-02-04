@@ -162,7 +162,6 @@ ResultSet runQuery(int32_t masterIndex,
 	}
 }
 
-
 ResultSet runSkipData(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
@@ -281,8 +280,8 @@ ResultSet runSkipData(int32_t masterIndex,
 		metadata[2*index].set_name("file_handle_index");
 		metadata[2*index + 1].set_name("row_group_index");
 
-		auto row_groups_cols = ral::skip_data::process_skipdata_for_table(input_loaders[0], metadata, query, queryContext);
-		 
+		std::pair<std::vector<gdf_column_cpp>, bool> result_pair = ral::skip_data::process_skipdata_for_table(input_loaders[0], metadata, query, queryContext);
+		auto row_groups_cols = result_pair.first;
 		std::vector<gdf_column *> columns;
 		std::vector<std::string> names;
 		for(int i = 0; i < row_groups_cols.size(); i++) {
@@ -293,7 +292,7 @@ ResultSet runSkipData(int32_t masterIndex,
 			names.push_back(column.name());
 		}
 
-		ResultSet result = {columns, names};
+		ResultSet result = {columns, names, result_pair.second};
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
