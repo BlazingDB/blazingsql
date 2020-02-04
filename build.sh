@@ -46,7 +46,7 @@ BUILD_DIRS="${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
 
 # Set defaults for vars modified by flags to this script
 VERBOSE=""
-QUIET=""
+QUIET="--quiet"
 BUILD_TYPE=Release
 INSTALL_TARGET=install
 TESTS="ON"
@@ -87,7 +87,7 @@ fi
 # Process flags
 if hasArg -v; then
     VERBOSE=1
-    QUIET="--quiet"
+    QUIET=""
 fi
 if hasArg -g; then
     BUILD_TYPE=Debug
