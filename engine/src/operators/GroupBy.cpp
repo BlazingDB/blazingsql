@@ -9,6 +9,7 @@
 #include "distribution/primitives.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/RalColumn.h"
+#include "utilities/DebuggingUtils.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <blazingdb/io/Util/StringUtil.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"
@@ -113,7 +114,7 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 
 		ral::frame::BlazingTableView groupbyColumns(table.view().select(group_column_indices), table.names());
 
-		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamples(
+		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(
 																	groupbyColumns, 0.1);
 
 		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed groupby_without_aggregations part 1 generateSample"));
@@ -368,9 +369,9 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 
 		ral::frame::BlazingTableView groupbyColumns(table.view().select(group_column_indices), table.names());
 
-		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamples(
+		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(
 																	groupbyColumns, 0.1);
-
+		
 		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed aggregations_with_groupby part 1 generateSample"));
 
 		std::unique_ptr<ral::frame::BlazingTable> grouped_table;
@@ -453,7 +454,6 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 		std::vector<int8_t> sortOrderTypes;
 		std::vector<NodeColumnView> partitions = partitionData(
 								context, gathered_table, partitionPlan->toBlazingTableView(), group_column_indices, sortOrderTypes);
-
 		context->incrementQuerySubstep();
 		distributePartitions(context, partitions);
 		std::vector<NodeColumn> collected_partitions = collectPartitions(context);
@@ -486,7 +486,7 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 			mod_aggregation_input_expressions[i] = std::to_string(i + mod_group_column_indices.size()); // we just want to aggregate the input columns, so we are setting the indices here
 			mod_aggregation_column_assigned_aliases[i] = concatenated_aggregations->names()[i + mod_group_column_indices.size()];
 		}
-
+	
 		std::unique_ptr<ral::frame::BlazingTable> merged_results = compute_aggregations_with_groupby(concatenated_aggregations->toBlazingTableView(),
 				mod_aggregation_types, mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, mod_group_column_indices);
 
