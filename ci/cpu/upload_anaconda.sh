@@ -2,7 +2,7 @@
 
 set -e
 
-SOURCE_BRANCH="branch-0.12"
+SOURCE_BRANCH="master"
 
 export BLAZINGSQL_FILE=`conda build conda/recipes/blazingsql/ --python=$PYTHON --output`
 
