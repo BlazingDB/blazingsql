@@ -456,10 +456,10 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
       strcpy(column.col_name, temp.names[i].c_str())
       df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
       i = i + 1
-    
-    if temp.error_reported:
-      return cudf.DataFrame({'__empty__': []})
-    return df
+    return_object = {}
+    return_object['has_some_error'] = temp.error_reported
+    return_object['metadata'] = df 
+    return return_object
 
 cpdef getTableScanInfoCaller(logicalPlan):
     temp = getTableScanInfoPython(str.encode(logicalPlan))
