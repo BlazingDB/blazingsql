@@ -32,9 +32,10 @@ public enum CatalogColumnDataType {
 	TIMESTAMP_MICROSECONDS(11, "TIMESTAMP_MICROSECONDS"), /// < duration of microseconds since Unix Epoch in int64
 	TIMESTAMP_NANOSECONDS(12, "TIMESTAMP_NANOSECONDS"), /// < duration of nanoseconds since Unix Epoch in int64
 	CATEGORY(13, "CATEGORY"), /// < Categorial/Dictionary type
-	STRING(14, "STRING"), /// < String elements
+	DICTIONARY32(14, "DICTIONARY32"),
+	STRING(15, "STRING"), /// < String elements
 	// `NUM_TYPE_IDS` must be last!
-	NUM_TYPE_IDS(15, "NUM_TYPE_IDS"); /// < Total number of type ids
+	NUM_TYPE_IDS(16, "NUM_TYPE_IDS"); /// < Total number of type ids
 
 	private final int type_id;
 	private final String type_id_name;
@@ -78,6 +79,7 @@ public enum CatalogColumnDataType {
 			case "TIMESTAMP_MICROSECONDS": return TIMESTAMP_MICROSECONDS;
 			case "TIMESTAMP_NANOSECONDS": return TIMESTAMP_NANOSECONDS;
 			case "CATEGORY": return CATEGORY;
+			case "DICTIONARY32": return DICTIONARY32;
 			case "STRING": return STRING;
 			case "NUM_TYPE_IDS": return NUM_TYPE_IDS;
 		}
