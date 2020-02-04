@@ -318,9 +318,10 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 				numeric_s->set_value((int64_t)(aggregation_input.size() - aggregation_input.null_count()));
 				reductions.emplace_back(std::move(scalar));
 			} else {
+				std::unique_ptr<cudf::experimental::aggregation> agg = 
+					std::make_unique<cudf::experimental::aggregation>(get_aggregation_operation(aggregation_types[i]));
 				cudf::type_id output_type = get_aggregation_output_type(aggregation_input.type().id(), aggregation_types[i]);
-				reductions.emplace_back(cudf::experimental::reduce(aggregation_input,
-    					get_aggregation_operation_for_reduce(aggregation_types[i]), cudf::data_type(output_type)));
+				reductions.emplace_back(cudf::experimental::reduce(aggregation_input, agg, cudf::data_type(output_type)));	
 			}
 		}
 
@@ -353,7 +354,7 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 	std::vector<cudf::experimental::aggregation::Kind> aggregation_types;
 	std::vector<std::string> aggregation_input_expressions;
 	for(std::string expression : aggregation_expressions) {
-		aggregation_types.push_back(get_aggregation_operation_for_groupby(expression));
+		aggregation_types.push_back(get_aggregation_operation(expression));
 		aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));
 	}
 

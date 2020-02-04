@@ -35,9 +35,7 @@ void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 
 std::string get_aggregation_operation_string(std::string operator_expression);
 
-cudf::experimental::aggregation::Kind get_aggregation_operation_for_groupby(std::string operator_string);
-
-cudf::experimental::reduction_op get_aggregation_operation_for_reduce(std::string operator_string);
+cudf::experimental::aggregation::Kind get_aggregation_operation(std::string operator_string);
 
 std::string get_string_between_outer_parentheses(std::string operator_string);
 
