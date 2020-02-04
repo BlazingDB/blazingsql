@@ -328,9 +328,9 @@ std::string get_aggregation_operation_string(std::string operator_string) {
 	return operator_string.substr(0, operator_string.find("("));
 }
 
-cudf::experimental::aggregation::Kind get_aggregation_operation_for_groupby(std::string operator_string) {
+cudf::experimental::aggregation::Kind get_aggregation_operation(std::string operator_string) {
+	
 	operator_string = get_aggregation_operation_string(operator_string);
-
 	if(operator_string == "SUM") {
 		return cudf::experimental::aggregation::Kind::SUM;
 	} else if(operator_string == "AVG") {
@@ -341,31 +341,10 @@ cudf::experimental::aggregation::Kind get_aggregation_operation_for_groupby(std:
 		return cudf::experimental::aggregation::Kind::MAX;
 	} else if(operator_string == "COUNT") {
 		return cudf::experimental::aggregation::Kind::COUNT;
-	}
-	// TODO percy cudf0.12 aggregation COUNT_DISTINCT cases
-//	else if(operator_string == "COUNT_DISTINCT") {
-//		return GDF_COUNT_DISTINCT;
-//	}
-
-	throw std::runtime_error(
-		"In get_aggregation_operation_for_groupby function: aggregation type not supported, " + operator_string);
-}
-
-cudf::experimental::reduction_op get_aggregation_operation_for_reduce(std::string operator_string) {
-	
-	operator_string = get_aggregation_operation_string(operator_string);
-	if(operator_string == "SUM") {
-		return cudf::experimental::reduction_op::SUM;
-	} else if(operator_string == "AVG") {
-		return cudf::experimental::reduction_op::MEAN;
-	} else if(operator_string == "MIN") {
-		return cudf::experimental::reduction_op::MIN;
-	} else if(operator_string == "MAX") {
-		return cudf::experimental::reduction_op::MAX;
 	} 
 
 	throw std::runtime_error(
-		"In get_aggregation_operation_for_reduce function: aggregation type not supported, " + operator_string);
+		"In get_aggregation_operation function: aggregation type not supported, " + operator_string);
 }
 
 std::vector<std::string> get_tokens_in_reverse_order(const std::string & expression) {
