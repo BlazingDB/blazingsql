@@ -61,7 +61,6 @@ static void ExecMaster() {
 		for(gdf_column_cpp & column : concreteMessage->getSamples()) {
 			print_gdf_column(column.get_gdf_column());
 		}
-		Server::getInstance().close();
 	}).join();
 }
 

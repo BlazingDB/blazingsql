@@ -88,7 +88,7 @@ conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql bsql-toolchain
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.11 dask-cudf=0.11 dask-cuda=0.11 cudatoolkit=9.2
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.12 dask-cudf=0.12 dask-cuda=0.12 cudatoolkit=9.2
 ```
 
 *For CUDA 10.0 and Python 3.7:*
@@ -97,7 +97,7 @@ conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql bsql-toolchain
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.11 dask-cudf=0.11 dask-cuda=0.11 cudatoolkit=10.0
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.12 dask-cudf=0.12 dask-cuda=0.12 cudatoolkit=10.0
 ```
 
 ### Build
@@ -123,7 +123,7 @@ conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
-conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda9.2 libcudf=0.11 cudf=0.11 dask-cudf=0.11 dask-cuda=0.11
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.12 cudf=0.12 dask-cudf=0.12 dask-cuda=0.12 cudatoolkit=9.2
 ```
 
 *For CUDA 10.0:*
@@ -132,7 +132,7 @@ conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
-conda install --yes -c conda-forge -c rapidsai-nightly/label/cuda10.0 libcudf=0.11 cudf=0.11 dask-cudf=0.11 dask-cuda=0.11
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.12 cudf=0.12 dask-cudf=0.12 dask-cuda=0.12 cudatoolkit=10.0
 ```
 
 ### Build
@@ -143,8 +143,9 @@ cd $CONDA_PREFIX
 git clone https://github.com/BlazingDB/blazingsql.git
 cd blazingsql
 export CUDACXX=/usr/local/cuda/bin/nvcc
-conda/recipes/blazingsql/build.sh
+./build.sh
 ```
+NOTE: You can do `./build.sh -h` to see more build options.
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
 

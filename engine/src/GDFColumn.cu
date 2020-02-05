@@ -334,7 +334,7 @@ void gdf_column_cpp::create_gdf_column(gdf_dtype type, gdf_dtype_extra_info dtyp
     GDFRefCounter::getInstance()->register_column(this->column);
 }
 
-void gdf_column_cpp::create_gdf_column(gdf_column * column, bool registerColumn){
+void gdf_column_cpp::create_gdf_column(gdf_column * column, bool registerColumn, std::string column_name){
 
     if (column != this->column) { // if this gdf_column_cpp already represented this gdf_column, we dont want to do anything. Especially do decrement_counter, since it might actually free the gdf_column we are trying to use
         decrement_counter(this->column);
@@ -360,8 +360,10 @@ void gdf_column_cpp::create_gdf_column(gdf_column * column, bool registerColumn)
             this->set_name(std::string(column->col_name));
 				if(registerColumn){
         	GDFRefCounter::getInstance()->register_column(this->column);
-				}
-
+                }
+        if (column_name != "") {
+            this->set_name(column_name);
+        }
     }
 }
 

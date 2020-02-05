@@ -108,12 +108,15 @@ void evaluate_join(std::string condition,
 		columns_in_common[i].second = i;
 	}
 
+	cudf::table left_table = cudf::table{left_columns};
+	cudf::table right_table = cudf::table{right_columns};
+
 	std::vector<gdf_column *> result_idx_cols = {left_result, right_result};
 	cudf::table result_idx_table(result_idx_cols);
 	gdf_context ctxt{0, GDF_HASH, 0};
 	if(join_type == INNER_JOIN) {
-		cudf::table result = cudf::inner_join(cudf::table{left_columns},
-			cudf::table{right_columns},
+		cudf::table result = cudf::inner_join(left_table,
+			right_table,
 			join_cols,
 			join_cols,
 			columns_in_common,
@@ -121,8 +124,8 @@ void evaluate_join(std::string condition,
 			&ctxt);
 		result.destroy();
 	} else if(join_type == LEFT_JOIN) {
-		cudf::table result = cudf::left_join(cudf::table{left_columns},
-			cudf::table{right_columns},
+		cudf::table result = cudf::left_join(left_table,
+			right_table,
 			join_cols,
 			join_cols,
 			columns_in_common,
@@ -130,8 +133,8 @@ void evaluate_join(std::string condition,
 			&ctxt);
 		result.destroy();
 	} else if(join_type == OUTER_JOIN) {
-		cudf::table result = cudf::full_join(cudf::table{left_columns},
-			cudf::table{right_columns},
+		cudf::table result = cudf::full_join(left_table,
+			right_table,
 			join_cols,
 			join_cols,
 			columns_in_common,

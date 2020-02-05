@@ -241,30 +241,31 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 
 	char * temp_space;
 
-	gdf_size_type num_rows = input_columns[0]->size;
+	if (input_columns.size() > 0) {
+		gdf_size_type num_rows = input_columns[0]->size;
 
-	cudaStream_t stream;
-	CheckCudaErrors(cudaStreamCreate(&stream));
+		cudaStream_t stream;
+		CheckCudaErrors(cudaStreamCreate(&stream));
 
 
-	size_t shared_memory_per_thread = (max_output+1) * sizeof(int64_t);
-	int min_grid_size;
-	int block_size;
+		size_t shared_memory_per_thread = (max_output+1) * sizeof(int64_t);
+		int min_grid_size;
+		int block_size;
 
-	calculate_grid(&min_grid_size, &block_size, max_output+1);
+		calculate_grid(&min_grid_size, &block_size, max_output+1);
 
-	size_t temp_size = interpreter_functor_8::get_temp_size(input_columns.size(),left_inputs.size(),final_output_positions.size());
+		size_t temp_size = interpreter_functor_8::get_temp_size(input_columns.size(),left_inputs.size(),final_output_positions.size());
 
-	cuDF::Allocator::allocate((void **)&temp_space,temp_size, stream);
+		cuDF::Allocator::allocate((void **)&temp_space,temp_size, stream);
 
-	int64_t * temp_valids_in_buffer, *temp_valids_out_buffer;
-	size_t temp_valids_in_size = min_grid_size * block_size * input_columns.size() * sizeof(int64_t);
-	size_t temp_valids_out_size = min_grid_size * block_size * final_output_positions.size() * sizeof(int64_t);
+		int64_t * temp_valids_in_buffer, *temp_valids_out_buffer;
+		size_t temp_valids_in_size = min_grid_size * block_size * input_columns.size() * sizeof(int64_t);
+		size_t temp_valids_out_size = min_grid_size * block_size * final_output_positions.size() * sizeof(int64_t);
 
-	cuDF::Allocator::allocate((void **)&temp_valids_in_buffer,temp_valids_in_size, stream);
-	cuDF::Allocator::allocate((void **)&temp_valids_out_buffer,temp_valids_out_size, stream);
+		cuDF::Allocator::allocate((void **)&temp_valids_in_buffer,temp_valids_in_size, stream);
+		cuDF::Allocator::allocate((void **)&temp_valids_out_buffer,temp_valids_out_size, stream);
 
-	interpreter_functor_8 op(input_columns,
+		interpreter_functor_8 op(input_columns,
 			output_columns,
 			left_inputs.size(),
 			left_inputs,
@@ -280,23 +281,23 @@ void perform_operation(	std::vector<gdf_column *> output_columns,
 			max_output,
 			block_size);
 
-	transformKernel<<<min_grid_size
-					,block_size,
-					//	transformKernel<<<1
-					//	,1,
-					shared_memory_per_thread * block_size,
-					stream>>>(op, num_rows, temp_valids_in_buffer, temp_valids_out_buffer);
+		transformKernel<<<min_grid_size
+						,block_size,
+						//	transformKernel<<<1
+						//	,1,
+						shared_memory_per_thread * block_size,
+						stream>>>(op, num_rows, temp_valids_in_buffer, temp_valids_out_buffer);
 
+		// op.update_columns_null_count(output_columns);
 
-	// op.update_columns_null_count(output_columns);
+		CheckCudaErrors(cudaStreamSynchronize(stream));
 
-	CheckCudaErrors(cudaStreamSynchronize(stream));
+		cuDF::Allocator::deallocate(temp_space,stream);
+		cuDF::Allocator::deallocate(temp_valids_in_buffer,stream);
+		cuDF::Allocator::deallocate(temp_valids_out_buffer,stream);
 
-	cuDF::Allocator::deallocate(temp_space,stream);
-	cuDF::Allocator::deallocate(temp_valids_in_buffer,stream);
-	cuDF::Allocator::deallocate(temp_valids_out_buffer,stream);
+		CheckCudaErrors(cudaGetLastError());
 
-	CheckCudaErrors(cudaGetLastError());
-
-	CheckCudaErrors(cudaStreamDestroy(stream));
+		CheckCudaErrors(cudaStreamDestroy(stream));
+	}
 }
