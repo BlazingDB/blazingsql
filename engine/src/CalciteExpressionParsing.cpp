@@ -9,6 +9,7 @@
 #include <stack>
 
 #include <blazingdb/io/Util/StringUtil.h>
+#include "Utils.cuh"
 
 #include "CalciteExpressionParsing.h"
 #include "Traits/RuntimeTraits.h"

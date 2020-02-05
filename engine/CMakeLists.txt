@@ -129,8 +129,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteInterpreter.cpp
               ${CMAKE_SOURCE_DIR}/src/ColumnManipulation.cu
-              ${CMAKE_SOURCE_DIR}/src/ResultSetRepository.cpp
-              ${CMAKE_SOURCE_DIR}/src/JoinProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
               ${CMAKE_SOURCE_DIR}/src/Utils.cu
               ${CMAKE_SOURCE_DIR}/src/GDFCounter.cu
