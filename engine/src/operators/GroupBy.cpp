@@ -549,7 +549,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 				}
 				agg_ops_for_request.push_back(std::make_unique<cudf::experimental::aggregation>(aggregation_types[i]));
 				agg_out_indices.push_back(i);  // this is to know what is the desired order of aggregations output
-
+				
 				// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
 				if(aggregation_column_assigned_aliases[i] == "") {
 					if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT) {  // COUNT(*) case
@@ -575,6 +575,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 
 	// output table is grouped columns and then aggregated columns
 	std::vector< std::unique_ptr<cudf::column> > output_columns = result.first->release();
+	output_columns.resize(agg_out_indices.size() + group_column_indices.size());
 
 	// lets collect all the aggregated results from the results structure and then add them to output_columns
 	std::vector< std::unique_ptr<cudf::column> > agg_cols_out;
@@ -584,7 +585,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 		}
 	}
 	for (int i = 0; i < agg_out_indices.size(); i++){
-		output_columns.emplace_back(std::move(agg_cols_out[agg_out_indices[i]]));
+		output_columns[agg_out_indices[i] + group_column_indices.size()] = std::move(agg_cols_out[i]);		
 	}
 	std::unique_ptr<CudfTable> output_table = std::make_unique<CudfTable>(std::move(output_columns));
 
@@ -593,8 +594,9 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	for (int i = 0; i < group_column_indices.size(); i++){
 		output_names.push_back(table.names()[group_column_indices[i]]);
 	}
+	output_names.resize(agg_out_indices.size() + group_column_indices.size());
 	for (int i = 0; i < agg_out_indices.size(); i++){
-		output_names.emplace_back(std::move(agg_output_column_names[agg_out_indices[i]]));
+		output_names[agg_out_indices[i] + group_column_indices.size()] = agg_output_column_names[i];
 	}
 
 	return std::make_unique<BlazingTable>(std::move(output_table), output_names);

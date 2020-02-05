@@ -17,6 +17,7 @@
 #include "../../Interpreter/interpreter_cpp.h"
 #include "../../parser/expression_tree.hpp"
 #include "../../Utils.cuh"
+#include "utilities/DebuggingUtils.h"
 
 namespace ral {
 namespace processor {
@@ -331,7 +332,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
 
         if(contains_evaluation(expression)){
             cudf::type_id expr_out_type = get_output_type_expression(cudf::table_view{{table, evaluator.computed_columns_view()}}, expression);
-
+            
             auto new_column = cudf::make_fixed_width_column(cudf::data_type{expr_out_type}, table.num_rows(), cudf::mask_state::UNINITIALIZED);
             interpreter_out_column_views.push_back(new_column->mutable_view());
             out_columns[i] = std::move(new_column);
