@@ -67,7 +67,7 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 }
 
 interops::operator_type map_to_operator_type(const std::string & operator_token) {
-	std::cout << "operator_token: " << operator_token << std::endl;
+	// std::cout << "operator_token: " << operator_token << std::endl;
 	RAL_EXPECTS(operator_map.find(operator_token) != operator_map.end(), "Unsupported operator");
 
 	return operator_map[operator_token];

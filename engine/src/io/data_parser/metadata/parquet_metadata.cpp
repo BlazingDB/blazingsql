@@ -279,6 +279,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	// T(min, max), (file_handle, row_group)
 	minmax_metadata_table.resize(file_metadata->num_columns() * 2 + 2);
 	metadata_names.resize(file_metadata->num_columns() * 2 + 2);
+	metadata_dtypes.resize(file_metadata->num_columns() * 2 + 2);
 	
 	int num_row_groups = file_metadata->num_row_groups();
 	const parquet::SchemaDescriptor *schema = file_metadata->schema();

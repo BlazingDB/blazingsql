@@ -159,19 +159,19 @@ void parquet_parser::parse_schema(
 	std::vector<size_t> num_row_groups(files.size());
 	std::thread threads[files.size()];
 	for(int file_index = 0; file_index < files.size(); file_index++) {
-		// threads[file_index] = std::thread([&, file_index]() {
+		threads[file_index] = std::thread([&, file_index]() {
 			std::unique_ptr<parquet::ParquetFileReader> parquet_reader =
 				parquet::ParquetFileReader::Open(files[file_index]);
 			std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_reader->metadata();
 			const parquet::SchemaDescriptor * schema = file_metadata->schema();
 			num_row_groups[file_index] = file_metadata->num_row_groups();
 			parquet_reader->Close();
-		// });
+		});
 	}
 
-	// for(int file_index = 0; file_index < files.size(); file_index++) {
-	// 	threads[file_index].join();
-	// }
+	for(int file_index = 0; file_index < files.size(); file_index++) {
+		threads[file_index].join();
+	}
 
 	cudf::io::parquet::reader_options pq_args;
 	pq_args.strings_to_categorical = false;
