@@ -17,7 +17,6 @@
 #include "../../Interpreter/interpreter_cpp.h"
 #include "../../parser/expression_tree.hpp"
 #include "../../Utils.cuh"
-#include "utilities/DebuggingUtils.h"
 
 namespace ral {
 namespace processor {

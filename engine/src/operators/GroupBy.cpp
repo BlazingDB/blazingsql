@@ -9,7 +9,6 @@
 #include "distribution/primitives.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/RalColumn.h"
-#include "utilities/DebuggingUtils.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <blazingdb/io/Util/StringUtil.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"
