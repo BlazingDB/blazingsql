@@ -14,7 +14,6 @@
 #include <src/Traits/RuntimeTraits.h>
 #include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
 #include <thread>
-//#include "GDFColumn.cuh"
 
 void set_min_max(
 	std::vector<std::vector<int64_t>> &minmax_metadata_table,

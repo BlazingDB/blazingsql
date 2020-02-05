@@ -7,7 +7,6 @@
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
-#include "GDFColumn.cuh"
 #include "cudf.h"
 
 #include <cudf/io/functions.hpp>

@@ -2,7 +2,6 @@
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
 #include "ColumnManipulation.cuh"
-#include "GDFColumn.cuh"
 #include "cudf.h"
 #include "cudf/legacy/copying.hpp"
 #include "Traits/RuntimeTraits.h"

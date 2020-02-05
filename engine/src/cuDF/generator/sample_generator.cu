@@ -2,9 +2,6 @@
 #include "cuDF/generator/random_generator.cuh"
 #include "cuDF/generator/sample_generator.h"
 #include "cuDF/safe_nvcategory_gather.hpp"
-#include "utilities/RalColumn.h"
-#include <cudf/legacy/copying.hpp>
-#include <cudf/legacy/table.hpp>
 #include <types.hpp>
 
 #include <cudf/copying.hpp>

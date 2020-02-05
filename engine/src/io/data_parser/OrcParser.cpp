@@ -7,9 +7,6 @@
 
 #include <thread>
 
-#include <GDFColumn.cuh>
-#include <GDFCounter.cuh>
-
 #include "../Schema.h"
 #include "io/data_parser/ParserUtil.h"
 

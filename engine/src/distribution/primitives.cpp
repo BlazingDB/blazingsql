@@ -11,12 +11,8 @@
 #include "cuDF/generator/sample_generator.h"
 #include "cuDF/safe_nvcategory_gather.hpp"
 #include "distribution/Exception.h"
-#include "legacy/groupby.hpp"
-#include "legacy/reduction.hpp"
 #include "operators/GroupBy.h"
-#include "utilities/RalColumn.h"
 #include "utilities/StringUtils.h"
-#include "utilities/TableWrapper.h"
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <cassert>
@@ -27,9 +23,6 @@
 #include <numeric>
 #include <types.hpp>
 
-#include "cudf/legacy/copying.hpp"
-#include "cudf/legacy/merge.hpp"
-#include "cudf/legacy/search.hpp"
 #include "cudf/search.hpp"
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>

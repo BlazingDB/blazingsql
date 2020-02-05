@@ -9,7 +9,6 @@
 #define PARQUETPARSER_H_
 
 #include "DataParser.h"
-#include "GDFColumn.cuh"
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>

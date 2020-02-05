@@ -9,7 +9,6 @@
 
 #include <FileSystem/Uri.h>
 #include "Metadata.h"
-#include "GDFColumn.cuh"
 #include "data_parser/DataParser.h"
 #include "data_provider/DataProvider.h"
 #include <arrow/io/interfaces.h>

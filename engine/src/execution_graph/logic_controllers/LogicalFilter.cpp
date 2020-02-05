@@ -17,6 +17,7 @@
 #include "communication/CommunicationData.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/DebuggingUtils.h"
+#include "Utils.cuh"
 
 #include "../../Interpreter/interpreter_cpp.h"
 

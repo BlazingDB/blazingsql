@@ -26,7 +26,6 @@
 #include "operators/GroupBy.h"
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
-#include "utilities/RalColumn.h"
 #include "utilities/StringUtils.h"
 #include <cudf/filling.hpp>
 #include <cudf/legacy/table.hpp>
