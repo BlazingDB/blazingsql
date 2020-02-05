@@ -12,93 +12,6 @@
 
 
 namespace ral {
-namespace distribution {
-
-namespace sampling {
-
-constexpr double THRESHOLD_FOR_SUBSAMPLING = 0.01;
-
-double calculateSampleRatio(cudf::size_type tableSize);
-
-std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, double ratio);
-
-std::vector<std::vector<gdf_column_cpp>> generateSamples(
-	const std::vector<std::vector<gdf_column_cpp>> & tables, const std::vector<double> & ratios);
-
-std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, std::size_t quantity);
-
-std::vector<std::vector<gdf_column_cpp>> generateSamples(
-	const std::vector<std::vector<gdf_column_cpp>> & input_tables, std::vector<std::size_t> & quantities);
-
-void normalizeSamples(std::vector<NodeSamples> & samples);
-
-}  // namespace sampling
-}  // namespace distribution
-}  // namespace ral
-
-namespace ral {
-namespace distribution {
-
-namespace {
-using Context = blazingdb::manager::experimental::Context;
-}  // namespace
-
-/**
- * The implementation of the partition must be changed with the 'split' or 'slice' function in cudf.
- * The current implementation transfer the output of the function 'gdf_multisearch' to the CPU
- * memory and then uses the 'slice' function from gdf_column_cpp (each column) in order to create
- * the partitions.
- *
- * The parameters in the 'gdf_multisearch' function are true for 'find_first_greater', false for
- * 'nulls_appear_before_values' and true for 'use_haystack_length_for_not_found'.
- * It doesn't matter whether the value is not found due to the 'gdf_multisearch' retrieve always
- * the position of the greater value or the size of the column in the worst case.
- * The second parameters is used to maintain the order of the positions of the indexes in the output.
- *
- * Precondition:
- * The size of the nodes will be the same as the number of pivots (in one column) plus one.
- *
- * Example:
- * pivots = { 11, 16 }
- * table = { { 10, 12, 14, 16, 18, 20 } }
- * output = { {10} , {12, 14, 16}, {18, 20} }
- */
-// DEPRECATED delete in next iteration (see if we can reuse some documentation ... see above)
-// william felipe percy cudf0.12
-//std::vector<NodeColumns> partitionData(const Context & context,
-//	std::vector<gdf_column_cpp> & table,
-//	std::vector<int> & searchColIndices,
-//	std::vector<gdf_column_cpp> & pivots,
-//	bool isTableSorted,
-//	std::vector<int8_t> sortOrderTypes = {});
-
-
-std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & context, std::vector<NodeSamples> & samples);
-
-void groupByWithoutAggregationsMerger(
-	std::vector<NodeColumns> & groups, const std::vector<int> & groupColIndices, blazing_frame & output);
-
-
-
-
-
-// multi-threaded message sender
-void broadcastMessage(
-	std::vector<std::shared_ptr<Node>> nodes, std::shared_ptr<communication::messages::experimental::Message> message);
-
-}  // namespace distribution
-}  // namespace ral
-
-
-namespace ral {
-namespace distribution {
-
-
-}  // namespace distribution
-}  // namespace ral
-
-
-namespace ral {
 
 namespace distribution {
 namespace experimental {
@@ -161,23 +74,7 @@ namespace experimental {
 
 	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
 				std::vector<cudf::size_type> & node_num_rows_right);
-
-	/**
-	 * It uses a hash partition algorithm in order to split a table. Each partition is stored with the corresponding
-	 * node in a 'NodeColumn' class. It is primary used for join operation, but it can be used for any operation.
-	 * The input table will be deleted.
-	 *
-	 * @param[in] context 'blazingdb::manager::experimental::Context' belongs to communication library. It contains
-	 * information related to the current query.
-	 * @param[in] table represents the input columns (table) used in the 'join' operation. The table will be deleted.
-	 * @param[in] columnIndices indices of the columns to be joined.
-	 * @return std::vector<NodeColumns> represents an array of NodeColumn (@see NodeColumn), which contains
-	 * a node with their corresponding partition table.
-	 */
-	// TODO percy william felipe port distribution cudf0.12
-	std::vector<NodeColumns> generateJoinPartitions(
-		const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices);
-
+	
 }  // namespace experimental
 }  // namespace distribution
 }  // namespace ral

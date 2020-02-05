@@ -41,81 +41,6 @@
 #include "utilities/CommonOperations.h"
 #include "utilities/DebuggingUtils.h"
 
-namespace ral {
-namespace distribution {
-namespace sampling {
-
-double calculateSampleRatio(cudf::size_type tableSize) { return std::ceil(1.0 - std::pow(tableSize / 1.0E11, 8E-4)); }
-
-std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, double ratio) {
-	std::size_t quantity = std::ceil(table[0].get_gdf_column()->size() * ratio);
-	return generateSample(table, quantity);
-}
-
-std::vector<std::vector<gdf_column_cpp>> generateSamples(
-	const std::vector<std::vector<gdf_column_cpp>> & tables, const std::vector<double> & ratios) {
-	std::vector<std::size_t> quantities;
-	quantities.reserve(tables.size());
-
-	for(std::size_t i = 0; i < tables.size(); i++) {
-		quantities.push_back(std::ceil(tables[i][0].get_gdf_column()->size() * ratios[i]));
-	}
-
-	return generateSamples(tables, quantities);
-}
-
-std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, std::size_t quantity) {
-	std::vector<gdf_column_cpp> sample;
-
-	gdf_error gdf_status = cudf::generator::generate_sample(table, sample, quantity);
-	if(GDF_SUCCESS != gdf_status) {
-		throw std::runtime_error(
-			"[ERROR] " + std::string{__FUNCTION__} + " -- CUDF: " + gdf_error_get_name(gdf_status));
-	}
-
-	return sample;
-}
-
-std::vector<std::vector<gdf_column_cpp>> generateSamples(
-	const std::vector<std::vector<gdf_column_cpp>> & input_tables, std::vector<std::size_t> & quantities) {
-	// verify
-	if(input_tables.size() != quantities.size()) {
-		throw std::runtime_error("[ERROR] " + std::string{__FUNCTION__} + " -- size mismatch.");
-	}
-
-	// output data
-	std::vector<std::vector<gdf_column_cpp>> result;
-
-	// make sample for each table
-	for(std::size_t k = 0; k < input_tables.size(); ++k) {
-		result.emplace_back(generateSample(input_tables[k], quantities[k]));
-	}
-
-	// done
-	return result;
-}
-
-void normalizeSamples(std::vector<NodeSamples> & samples) {
-	std::vector<double> representativities(samples.size());
-
-	for(std::size_t i = 0; i < samples.size(); i++) {
-		representativities[i] = (double) samples[i].getColumns()[0].get_gdf_column()->size() / samples[i].getTotalRowSize();
-	}
-
-	const double minimumRepresentativity = *std::min_element(representativities.cbegin(), representativities.cend());
-
-	for(std::size_t i = 0; i < samples.size(); i++) {
-		double representativenessRatio = minimumRepresentativity / representativities[i];
-
-		if(representativenessRatio > THRESHOLD_FOR_SUBSAMPLING) {
-			samples[i].setColumns(generateSample(samples[i].getColumns(), representativenessRatio));
-		}
-	}
-}
-
-}  // namespace sampling
-}  // namespace distribution
-}  // namespace ral
 
 namespace ral {
 namespace distribution {
@@ -134,123 +59,7 @@ typedef ral::communication::experimental::CommunicationData CommunicationData;
 typedef ral::communication::network::experimental::Server Server;
 typedef ral::communication::network::experimental::Client Client;
 
-std::vector<NodeColumns> generateJoinPartitions(
-	const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices) {
-	assert(table.size() != 0);
 
-	if(table[0].get_gdf_column()->size() == 0) {
-		std::vector<NodeColumns> result;
-		auto nodes = context.getAllNodes();
-		for(cudf::size_type k = 0; k < nodes.size(); ++k) {
-			std::vector<gdf_column_cpp> columns = table;
-			// TODO percy william felipe port distribution cudf0.12
-			//result.emplace_back(*nodes[k], columns);
-		}
-		return result;
-	}
-
-	// Support for GDF_STRING_CATEGORY. We need the string hashes not the category indices
-	std::vector<gdf_column_cpp> temp_input_table(table);
-	std::vector<int> temp_input_col_indices(columnIndices);
-	for(size_t i = 0; i < columnIndices.size(); i++) {
-		gdf_column_cpp & col = table[columnIndices[i]];
-
-		if(col.get_gdf_column()->type().id() != cudf::type_id::STRING)
-			continue;
-
-		// TODO percy cudf0.12 port to cudf::column and custrings
-//		NVCategory * nvCategory = static_cast<NVCategory *>(col.get_gdf_column()->dtype_info.category);
-//		NVStrings * nvStrings =
-//			nvCategory->gather_strings(static_cast<nv_category_index_type *>(col.data()), col.get_gdf_column()->size(), true);
-
-//		gdf_column_cpp str_hash;
-//		str_hash.create_gdf_column(cudf::type_id::INT32,
-//			nvStrings->size(),
-//			nullptr,
-//			nullptr,
-//			ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
-//			"");
-//		nvStrings->hash(static_cast<unsigned int *>(str_hash.data()));
-//		NVStrings::destroy(nvStrings);
-
-//		temp_input_col_indices[i] = temp_input_table.size();
-//		temp_input_table.push_back(str_hash);
-	}
-
-
-	std::vector<cudf::column *> raw_input_table_col_ptrs(temp_input_table.size());
-	std::transform(
-		temp_input_table.begin(), temp_input_table.end(), raw_input_table_col_ptrs.begin(), [](auto & cpp_col) {
-			return cpp_col.get_gdf_column();
-		});
-	
-	// TODO percy cudf0.12 port to cudf::column
-	//cudf::table input_table_wrapper(raw_input_table_col_ptrs);
-
-	// Generate partition offset vector
-	cudf::size_type number_nodes = context.getTotalNodes();
-	std::vector<gdf_size_type> partition_offset(number_nodes);
-
-	// Preallocate output columns
-	// TODO percy cudf0.12 port to cudf::column
-	//std::vector<gdf_column_cpp> output_columns = generateOutputColumns(input_table_wrapper.num_columns(), input_table_wrapper.num_rows(), temp_input_table);
-
-	// copy over nvcategory to output
-	// NOTE that i am having to do this due to an already identified issue: https://github.com/rapidsai/cudf/issues/1474
-	// TODO percy cudf0.12 port to cudf::column
-//	for(size_t i = 0; i < output_columns.size(); i++) {
-//		// TODO percy cudf0.12 custrings this was not commented
-////		if(output_columns[i].dtype() == GDF_STRING_CATEGORY && temp_input_table[i].dtype_info().category) {
-////			output_columns[i].get_gdf_column()->dtype_info.category =
-////				static_cast<void *>(static_cast<NVCategory *>(temp_input_table[i].dtype_info().category)->copy());
-////		}
-//	}
-
-	// TODO percy cudf0.12 port to cudf::column
-//	std::vector<gdf_column *> raw_output_table_col_ptrs(output_columns.size());
-//	std::transform(output_columns.begin(), output_columns.end(), raw_output_table_col_ptrs.begin(), [](auto & cpp_col) {
-//		return cpp_col.get_gdf_column();
-//	});
-//	cudf::table output_table_wrapper(raw_output_table_col_ptrs);
-
-	// Execute operation
-	// TODO percy cudf0.12 port to cudf::column
-//	CUDF_CALL(gdf_hash_partition(input_table_wrapper.num_columns(),
-//		input_table_wrapper.begin(),
-//		temp_input_col_indices.data(),
-//		temp_input_col_indices.size(),
-//		number_nodes,
-//		output_table_wrapper.begin(),
-//		partition_offset.data(),
-//		gdf_hash_func::GDF_HASH_MURMUR3));
-
-	// TODO percy cudf0.12 port to cudf::column
-//	std::vector<gdf_column_cpp> temp_output_columns(output_columns.begin(), output_columns.begin() + table.size());
-//	for(size_t i = 0; i < table.size(); i++) {
-//		gdf_column * srcCol = input_table_wrapper.get_column(i);
-//		gdf_column * dstCol = output_table_wrapper.get_column(i);
-
-//		if(srcCol->dtype != GDF_STRING_CATEGORY)
-//			continue;
-
-//		ral::safe_nvcategory_gather_for_string_category(dstCol, srcCol->dtype_info.category);
-//	}
-
-	// Erase input table
-	table.clear();
-
-	// lets get the split indices. These are all the partition_offset, except for the first since its just 0
-	gdf_column_cpp indexes;
-	indexes.create_gdf_column(cudf::type_id::INT32,
-		number_nodes - 1,
-		partition_offset.data() + 1,
-		nullptr,
-		ral::traits::get_dtype_size_in_bytes(cudf::type_id::INT32),
-		"");
-
-	// TODO percy cudf0.12 port to cudf::column
-	//return split_data_into_NodeColumns(context, temp_output_columns, indexes);
-}
 
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
   // Get master node
@@ -267,15 +76,7 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
 	auto message =
 		Factory::createSampleToNodeMaster(message_id, context_token, self_node, table_total_rows, samples);
 
-	// // Send message to master
-	// using Client = ral::communication::network::experimental::Client;
 	// Send message to master
-	// WSM TODO cudf0.12
-
-	// Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context_token),
-	// 	std::to_string(context->getQueryStep()),
-	// 	std::to_string(context->getQuerySubstep()),
-	// 	"About to send sendSamplesToMaster message"));
 	Client::send(master_node, *message);
 }
 

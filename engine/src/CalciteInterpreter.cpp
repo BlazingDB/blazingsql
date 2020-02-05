@@ -26,7 +26,6 @@
 #include "legacy/reduction.hpp"
 #include "legacy/stream_compaction.hpp"
 #include "operators/GroupBy.h"
-#include "operators/JoinOperator.h"
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/RalColumn.h"
