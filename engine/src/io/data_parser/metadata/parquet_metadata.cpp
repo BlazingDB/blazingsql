@@ -254,7 +254,9 @@ std::unique_ptr<cudf::column> make_cudf_column_from(cudf::data_type dtype, std::
 		rmm::device_buffer gpu_buffer(vector.data(), buffer_size);
 		return std::make_unique<cudf::column>(dtype, column_size, std::move(gpu_buffer));
 	} else {
-		return std::make_unique<cudf::column>(dtype, 0, rmm::device_buffer{});
+		auto buffer_size = width_per_value * column_size;
+		rmm::device_buffer gpu_buffer(vector.data(), buffer_size);
+		return std::make_unique<cudf::column>(dtype, column_size, buffer_size);
 	}
 }
 
@@ -280,7 +282,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	minmax_metadata_table.resize(file_metadata->num_columns() * 2 + 2);
 	metadata_names.resize(file_metadata->num_columns() * 2 + 2);
 	metadata_dtypes.resize(file_metadata->num_columns() * 2 + 2);
-	
+
 	int num_row_groups = file_metadata->num_row_groups();
 	const parquet::SchemaDescriptor *schema = file_metadata->schema();
 

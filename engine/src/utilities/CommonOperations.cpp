@@ -211,7 +211,15 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<s
 	}
 	auto table = std::make_unique<cudf::experimental::table>(std::move(columns));
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), column_names);
-}
+} 
+
+std::unique_ptr<cudf::experimental::table> create_empty_table(const std::vector<cudf::type_id> &dtypes) {
+	std::vector<std::unique_ptr<cudf::column>> columns(dtypes.size());
+	for (size_t idx =0; idx < dtypes.size(); idx++) {
+		columns[idx] =  make_empty_column(cudf::data_type(dtypes[idx]));
+	}
+	return std::make_unique<cudf::experimental::table>(std::move(columns));
+} 
 
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableView & table) {
 

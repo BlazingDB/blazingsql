@@ -9,6 +9,7 @@
 #include "../io/data_parser/ParquetParser.h"
 #include "../io/data_parser/ParserUtil.h"
 #include "../io/data_provider/UriDataProvider.h"
+#include "utilities/CommonOperations.h"
 
 #include <blazingdb/io/Config/BlazingContext.h>
 #include <blazingdb/io/FileSystem/FileSystemConnection.h>
@@ -74,8 +75,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	return tableSchema;
 }
 
-
-TableSchema parseMetadata(std::vector<std::string> files,
+std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	std::pair<int, int> offset,
 	TableSchema schema,
 	std::string file_format_hint,
@@ -110,26 +110,15 @@ TableSchema parseMetadata(std::vector<std::string> files,
 
 		dtypes[2*index + 1] = cudf::type_id::INT32;
 		names[2*index + 1] = "row_group_index";
-				
-		// auto columns_cpp = ral::io::create_empty_columns(names, dtypes, time_units, column_indices);
-		TableSchema tableSchema;
-
-		// for(auto column_cpp : columns_cpp) {
-		// 	GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-		// 	tableSchema.columns.push_back(column_cpp.get_gdf_column());
-		// 	tableSchema.names.push_back(column_cpp.name());
-		// }
-		//TODO, @alex init tableShema with valid None Values
-		return tableSchema;
+		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
+		result->names = names;
+		auto table = ral::utilities::experimental::create_empty_table(dtypes);
+		result->cudfTable = std::move(table);
+		return result;
 	}
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
 	ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
-	TableSchema tableSchema;
-	tableSchema.data_type = fileType;
-	tableSchema.args.orcReaderArg = args.orcReaderArg;
-	tableSchema.args.jsonReaderArg = args.jsonReaderArg;
-	tableSchema.args.csvReaderArg = args.csvReaderArg;
 
 	std::shared_ptr<ral::io::data_parser> parser;
 	if(fileType == ral::io::DataType::PARQUET) {
@@ -147,17 +136,16 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	}
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
-
-	try {
-		//TODO: @alex change this API
-		loader->get_metadata(offset.first);
-		//  return loader->get_metadata(offset.first);
-
-	} catch(std::exception & e) {
-		std::cerr << "**[parseMetadata]** error parsing metadata.\n";
-		// return nullptr;
+	try{
+		std::unique_ptr<ral::frame::BlazingTable> metadata = loader->get_metadata(offset.first);
+		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
+		result->names = metadata->names();
+		result->cudfTable = metadata->releaseCudfTable();
+		return result;
+	} catch(std::exception e) {
+		std::cerr << e.what() << std::endl;
+		throw e;
 	}
-	return tableSchema;
 }
 
 

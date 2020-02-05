@@ -14,6 +14,10 @@
 typedef ral::io::DataType DataType;
 namespace cudf_io = cudf::experimental::io;
 
+struct ResultSet {
+	std::unique_ptr<cudf::experimental::table> cudfTable;
+	std::vector<std::string> names;
+};
 struct ReaderArgs {
 	cudf_io::read_orc_args orcReaderArg = cudf_io::read_orc_args(cudf_io::source_info(""));
 	cudf::json_read_arg jsonReaderArg = cudf::json_read_arg(cudf::source_info(""));
@@ -62,7 +66,6 @@ struct GCS {
 	std::string adcJsonFile;
 };
 
-
 #define parquetFileType 0
 #define orcFileType 1
 #define csvFileType 2
@@ -77,7 +80,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::vector<std::string> arg_values,
 	std::vector<std::pair<std::string, gdf_dtype>> extra_columns);
 
-TableSchema parseMetadata(std::vector<std::string> files,
+std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	std::pair<int, int> offset,
 	TableSchema schema,
 	std::string file_format_hint,

@@ -206,6 +206,10 @@ cdef extern from "cudf/legacy/io_types.hpp":
 ctypedef gdf_scalar* gdf_scalar_ptr
 
 cdef extern from "../include/io/io.h":
+    cdef struct ResultSet:
+        unique_ptr[table] cudfTable
+        vector[string]  names
+
     ctypedef enum DataType:
         UNDEFINED = 999,
         PARQUET = 0,
@@ -256,7 +260,7 @@ cdef extern from "../include/io/io.h":
     pair[bool, string] registerFileSystemS3( S3 s3, string root, string authority) except +raiseRegisterFileSystemS3Error
     pair[bool, string] registerFileSystemLocal(  string root, string authority) except +raiseRegisterFileSystemLocalError
     TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
-    TableSchema parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) except +raiseParseSchemaError
+    unique_ptr[ResultSet] parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) except +raiseParseSchemaError
 
 cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
         cdef cppclass BlazingTable:
@@ -282,9 +286,6 @@ cdef extern from * namespace "blazing":
         cdef T blaz_move[T](T)
 
 cdef extern from "../include/engine/engine.h":
-        cdef struct ResultSet:
-            unique_ptr[table] cudfTable
-            vector[string]  names
 
         cdef struct NodeMetaDataTCP:
             string ip
