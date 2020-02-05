@@ -8,9 +8,6 @@
 #include "LogicalFilter.h"
 #include "LogicalProject.h"
 #include "../../CalciteExpressionParsing.h"
-#include "../../JoinProcessor.h"
-
-
 
 #include "blazingdb/transport/Node.h"
 

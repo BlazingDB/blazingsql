@@ -11,7 +11,6 @@
 #include "cuDF/generator/sample_generator.h"
 #include "cuDF/safe_nvcategory_gather.hpp"
 #include "distribution/Exception.h"
-#include "distribution/primitives_util.cuh"
 #include "legacy/groupby.hpp"
 #include "legacy/reduction.hpp"
 #include "operators/GroupBy.h"

@@ -13,7 +13,6 @@
 #include "CodeTimer.h"
 #include "ColumnManipulation.cuh"
 #include "Interpreter/interpreter_cpp.h"
-#include "JoinProcessor.h"
 #include "ResultSetRepository.h"
 #include "Traits/RuntimeTraits.h"
 #include "Utils.cuh"

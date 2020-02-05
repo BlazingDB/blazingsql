@@ -1,12 +1,8 @@
 #ifndef BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H
 #define BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H
 
-#include "DataFrame.h"
-#include "GDFColumn.cuh"
 #include "blazingdb/manager/Context.h"
 #include "communication/factory/MessageFactory.h"
-#include "distribution/NodeColumns.h"
-#include "distribution/NodeSamples.h"
 #include <vector>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 

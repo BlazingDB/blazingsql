@@ -11,7 +11,6 @@
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include "CalciteExpressionParsing.h"
-#include "DataFrame.h"
 #include "Traits/RuntimeTraits.h"
 #include "cudf/legacy/binaryop.hpp"
 #include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
