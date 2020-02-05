@@ -40,6 +40,7 @@ requirements:
         - openjdk=8.0
         - maven
     host:
+        - gtest
         - cmake
         - cudatoolkit {{ cuda_version }}.*
         - python
@@ -51,6 +52,7 @@ requirements:
         - openjdk=8.0
         - maven
     run:
+        - gtest
         - arrow-cpp=0.15.0
         - bsql-toolchain {{ minor_version }}.*
         - cppzmq
