@@ -113,7 +113,7 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 
 		ral::frame::BlazingTableView groupbyColumns(table.view().select(group_column_indices), table.names());
 
-		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamples(
+		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(
 																	groupbyColumns, 0.1);
 
 		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed groupby_without_aggregations part 1 generateSample"));
@@ -368,9 +368,9 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 
 		ral::frame::BlazingTableView groupbyColumns(table.view().select(group_column_indices), table.names());
 
-		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamples(
+		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(
 																	groupbyColumns, 0.1);
-
+		
 		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed aggregations_with_groupby part 1 generateSample"));
 
 		std::unique_ptr<ral::frame::BlazingTable> grouped_table;
@@ -453,7 +453,6 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 		std::vector<int8_t> sortOrderTypes;
 		std::vector<NodeColumnView> partitions = partitionData(
 								context, gathered_table, partitionPlan->toBlazingTableView(), group_column_indices, sortOrderTypes);
-
 		context->incrementQuerySubstep();
 		distributePartitions(context, partitions);
 		std::vector<NodeColumn> collected_partitions = collectPartitions(context);
@@ -486,7 +485,7 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 			mod_aggregation_input_expressions[i] = std::to_string(i + mod_group_column_indices.size()); // we just want to aggregate the input columns, so we are setting the indices here
 			mod_aggregation_column_assigned_aliases[i] = concatenated_aggregations->names()[i + mod_group_column_indices.size()];
 		}
-
+	
 		std::unique_ptr<ral::frame::BlazingTable> merged_results = compute_aggregations_with_groupby(concatenated_aggregations->toBlazingTableView(),
 				mod_aggregation_types, mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, mod_group_column_indices);
 
@@ -549,7 +548,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 				}
 				agg_ops_for_request.push_back(std::make_unique<cudf::experimental::aggregation>(aggregation_types[i]));
 				agg_out_indices.push_back(i);  // this is to know what is the desired order of aggregations output
-
+				
 				// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
 				if(aggregation_column_assigned_aliases[i] == "") {
 					if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT) {  // COUNT(*) case
@@ -575,6 +574,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 
 	// output table is grouped columns and then aggregated columns
 	std::vector< std::unique_ptr<cudf::column> > output_columns = result.first->release();
+	output_columns.resize(agg_out_indices.size() + group_column_indices.size());
 
 	// lets collect all the aggregated results from the results structure and then add them to output_columns
 	std::vector< std::unique_ptr<cudf::column> > agg_cols_out;
@@ -584,7 +584,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 		}
 	}
 	for (int i = 0; i < agg_out_indices.size(); i++){
-		output_columns.emplace_back(std::move(agg_cols_out[agg_out_indices[i]]));
+		output_columns[agg_out_indices[i] + group_column_indices.size()] = std::move(agg_cols_out[i]);		
 	}
 	std::unique_ptr<CudfTable> output_table = std::make_unique<CudfTable>(std::move(output_columns));
 
@@ -593,8 +593,9 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	for (int i = 0; i < group_column_indices.size(); i++){
 		output_names.push_back(table.names()[group_column_indices[i]]);
 	}
+	output_names.resize(agg_out_indices.size() + group_column_indices.size());
 	for (int i = 0; i < agg_out_indices.size(); i++){
-		output_names.emplace_back(std::move(agg_output_column_names[agg_out_indices[i]]));
+		output_names[agg_out_indices[i] + group_column_indices.size()] = agg_output_column_names[i];
 	}
 
 	return std::make_unique<BlazingTable>(std::move(output_table), output_names);

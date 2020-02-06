@@ -14,6 +14,10 @@ struct size_of_functor{
 };
 
 cudf::size_type get_dtype_size_in_bytes(cudf::type_id dtype) {
+	if (dtype == cudf::type_id::EMPTY) {
+		return 0;
+	}
+	
 	return cudf::experimental::type_dispatcher(cudf::data_type{dtype}, size_of_functor{});
 }
 

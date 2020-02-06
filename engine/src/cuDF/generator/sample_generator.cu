@@ -72,10 +72,10 @@ std::unique_ptr<ral::frame::BlazingTable> generate_sample(
 
 	cudf::generator::RandomVectorGenerator<std::int32_t> generator(0L, num_rows);
 	std::vector<std::int32_t> arrayIdx = generator(num_samples);
-
+	
 	rmm::device_buffer gatherData(arrayIdx.data(), num_samples * sizeof(std::int32_t));
 
-	cudf::column gatherMap{cudf::data_type{cudf::type_id::INT32}, num_samples, gatherData};
+	cudf::column gatherMap{cudf::data_type{cudf::type_id::INT32}, num_samples, std::move(gatherData)};
 
 	std::unique_ptr<CudfTable> sampleTable =
 		cudf::experimental::gather(view, gatherMap.view(), true, rmm::mr::get_default_resource());

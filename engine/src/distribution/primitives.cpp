@@ -39,6 +39,7 @@
 #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 
 #include "utilities/CommonOperations.h"
+#include "utilities/DebuggingUtils.h"
 
 namespace ral {
 namespace distribution {
@@ -564,6 +565,7 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 
 
 std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const BlazingTableView & sortedSamples){
+
 	cudf::size_type outputRowSize = sortedSamples.view().num_rows();
 	cudf::size_type pivotsSize = outputRowSize > 0 ? context->getTotalNodes() - 1 : 0;
 
@@ -581,14 +583,14 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const Blazi
 std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples) {
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
-
-	std::vector<int> groupColumnIndices(concatSamples->view().num_columns());
+	
+	std::vector<int> groupColumnIndices(concatSamples->num_columns());
 	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
 	std::unique_ptr<BlazingTable> groupedSamples = ral::operators::experimental::compute_groupby_without_aggregations(
 														concatSamples->toBlazingTableView(), groupColumnIndices);
-
+	
 	// Sort
-	std::vector<cudf::order> column_order(groupedSamples->view().num_columns(), cudf::order::ASCENDING);
+	std::vector<cudf::order> column_order(groupedSamples->num_columns(), cudf::order::ASCENDING);
 	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
 	std::unique_ptr<cudf::column> sort_indices = cudf::experimental::sorted_order( groupedSamples->view(), column_order, null_orders);
 	std::unique_ptr<CudfTable> sortedSamples = cudf::experimental::gather( groupedSamples->view(), sort_indices->view() );

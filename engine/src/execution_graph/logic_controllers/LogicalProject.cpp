@@ -164,8 +164,11 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_INTEGER:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
 
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
+        
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
             computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT32});
@@ -175,7 +178,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_BIGINT:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+        
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
@@ -186,7 +192,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_FLOAT:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+        
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
@@ -197,7 +206,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_DOUBLE:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
@@ -208,7 +220,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_DATE:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
@@ -219,7 +234,10 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_TIMESTAMP:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+        
+        if (!is_var_column(arg_tokens[0])) {
+            break;
+        }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         if (column.type().id() == cudf::type_id::STRING) {
@@ -313,7 +331,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
 
         if(contains_evaluation(expression)){
             cudf::type_id expr_out_type = get_output_type_expression(cudf::table_view{{table, evaluator.computed_columns_view()}}, expression);
-
+            
             auto new_column = cudf::make_fixed_width_column(cudf::data_type{expr_out_type}, table.num_rows(), cudf::mask_state::UNINITIALIZED);
             interpreter_out_column_views.push_back(new_column->mutable_view());
             out_columns[i] = std::move(new_column);
@@ -340,7 +358,8 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
             } else {
                 out_columns[i] = cudf::make_fixed_width_column(cudf::data_type{col_type}, table.num_rows());
                 std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(expression);
-
+                RAL_EXPECTS(!!literal_scalar, "NULL literal not supported in projection");
+                
                 // TODO: verify that in-place fill works correctly, seems there is a bug currently
                 out_columns[i] = cudf::experimental::fill(*out_columns[i], 0, out_columns[i]->size(), *literal_scalar);
             }

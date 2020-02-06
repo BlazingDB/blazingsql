@@ -449,7 +449,23 @@ private:
 				right_valid = false;
 			}
 
-			if(oper == operator_type::BLZ_LOGICAL_OR) {
+			if(oper == operator_type::BLZ_MAGIC_IF_NOT) {
+				if(left_valid && left_value) {
+					store_data_in_buffer(right_value, buffer, output_position);
+					setColumnValid(row_valids, output_position, right_valid);
+				} else {
+					// we want to indicate to first_non_magic to use the second value
+					store_data_in_buffer(getMagicNumber<RightType>(), buffer, output_position);
+				}
+			} else if(oper == operator_type::BLZ_FIRST_NON_MAGIC) {
+				if(left_value == getMagicNumber<LeftType>()) {
+					store_data_in_buffer(right_value, buffer, output_position);
+					setColumnValid(row_valids, output_position, right_valid);
+				} else {
+					store_data_in_buffer(left_value, buffer, output_position);
+					setColumnValid(row_valids, output_position, left_valid);
+				}
+			} else if(oper == operator_type::BLZ_LOGICAL_OR) {
 				if(left_valid && right_valid) {
 					store_data_in_buffer(static_cast<int64_t>(left_value || right_value), buffer, output_position);
 					setColumnValid(row_valids, output_position, true);
@@ -557,23 +573,6 @@ private:
 					store_data_in_buffer(computed, buffer, output_position);
 				}
 				setColumnValid(row_valids, output_position, true);
-			} else if(oper == operator_type::BLZ_MAGIC_IF_NOT) {
-				if(left_valid && left_value) {
-					store_data_in_buffer(right_value, buffer, output_position);
-					setColumnValid(row_valids, output_position, right_valid);
-				} else {
-					// we want to indicate to first_non_magic to use the second value
-					store_data_in_buffer(
-						getMagicNumber<RightType>(), buffer, output_position);
-				}
-			} else if(oper == operator_type::BLZ_FIRST_NON_MAGIC) {
-				if(left_value == getMagicNumber<LeftType>()) {
-					store_data_in_buffer(right_value, buffer, output_position);
-					setColumnValid(row_valids, output_position, right_valid);
-				} else {
-					store_data_in_buffer(left_value, buffer, output_position);
-					setColumnValid(row_valids, output_position, left_valid);
-				}
 			} else {
 				setColumnValid(row_valids, output_position, false);
 			}
