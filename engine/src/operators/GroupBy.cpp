@@ -68,7 +68,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::Bl
 
 		// Get groups
 	auto rangeStart = query_part.find("(");
-	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
+	auto rangeEnd = query_part.rfind(")") - rangeStart;
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd - 1);
 
 	std::vector<int> group_column_indices = get_group_columns(combined_expression);
