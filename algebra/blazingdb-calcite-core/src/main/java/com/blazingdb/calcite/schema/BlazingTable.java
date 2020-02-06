@@ -116,7 +116,6 @@ public class BlazingTable implements ProjectableFilterableTable {
 			case TIMESTAMP_NANOSECONDS:
 				temp = typeFactory.createSqlType(SqlTypeName.TIMESTAMP);
 				break;
-			case CATEGORY:
 			case DICTIONARY32:
 			case STRING:
 				temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);

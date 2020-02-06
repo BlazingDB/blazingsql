@@ -14,7 +14,7 @@
 #include "CalciteExpressionParsing.h"
 #include "Traits/RuntimeTraits.h"
 #include "cudf/legacy/binaryop.hpp"
-#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
+#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.cuh"
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
 #include "Interpreter/interpreter_cpp.h"
