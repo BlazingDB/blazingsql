@@ -10,6 +10,7 @@
 #include <cudf/table/table_view.hpp>
 #include <cudf/scalar/scalar.hpp>
 #include <vector>
+#include <map>
 #include <memory>
 
 namespace interops {

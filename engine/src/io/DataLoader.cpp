@@ -9,6 +9,7 @@
 #include <CodeTimer.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <thread>
+#include "gdf_wrapper.cuh"
 
 namespace ral {
 // TODO: namespace frame should be remove from here

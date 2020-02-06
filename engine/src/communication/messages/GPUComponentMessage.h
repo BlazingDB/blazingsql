@@ -25,8 +25,6 @@
 // #include <utilities/DebuggingUtils.h>
 // #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 
-#include "GDFColumn.cuh"
-
 
 
 namespace ral {

@@ -7,6 +7,7 @@
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <from_cudf/cpp_tests/utilities/type_lists.hpp>
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
+#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 
 
  template <typename T>
