@@ -17,36 +17,6 @@
 #include "communication/network/Server.h"
 #include <numeric>
 
-void make_sure_output_is_not_input_gdf(
-	blazing_frame & output_frame, std::vector<TableSchema> & tableSchemas, const std::vector<int> & fileTypes) {
-	std::vector<void *> input_data_ptrs;
-	for(int i = 0; i < tableSchemas.size(); i++) {
-		if(fileTypes[i] == gdfFileType || fileTypes[i] == daskFileType) {
-			//for(int j = 0; j < tableSchemas[i].columns.size(); j++) {
-				// TODO percy cudf0.12
-				//if(tableSchemas[i].columns[j]->size() > 0) {
-					// TODO: cordova cudf0.12 port to cudf::column
-					//input_data_ptrs.push_back(tableSchemas[i].columns[j]->data);
-				//}
-			//}
-		}
-	}
-
-	if(input_data_ptrs.size() > 0) {
-		for(size_t index = 0; index < output_frame.get_width(); index++) {
-			// if we find that in the output the data pointer is the same as an input data pointer, we need to clone it.
-			// this can happen when you do something like select * from gdf_table
-			// TODO percy cudf0.12 port to cudf::column
-//			if(std::find(input_data_ptrs.begin(), input_data_ptrs.end(), output_frame.get_column(index).data()) !=
-//				input_data_ptrs.end()) {
-//				bool register_column = false;
-//				output_frame.set_column(index, output_frame.get_column(index).clone(output_frame.get_column(index).name(), register_column));
-//			}
-		}
-	}
-}
-
-
 std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
@@ -139,9 +109,6 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		// Execute query
 
 		std::unique_ptr<ral::frame::BlazingTable> frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
-
-		// TODO percy william cudf0.12
-		//make_sure_output_is_not_input_gdf(frame, tableSchemas, fileTypes);
 
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = frame->names();

@@ -13,8 +13,6 @@
 #include "CodeTimer.h"
 #include "ColumnManipulation.cuh"
 #include "Interpreter/interpreter_cpp.h"
-#include "JoinProcessor.h"
-#include "ResultSetRepository.h"
 #include "Traits/RuntimeTraits.h"
 #include "Utils.cuh"
 #include "communication/network/Server.h"
@@ -26,10 +24,8 @@
 #include "legacy/reduction.hpp"
 #include "legacy/stream_compaction.hpp"
 #include "operators/GroupBy.h"
-#include "operators/JoinOperator.h"
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
-#include "utilities/RalColumn.h"
 #include "utilities/StringUtils.h"
 #include <cudf/filling.hpp>
 #include <cudf/legacy/table.hpp>

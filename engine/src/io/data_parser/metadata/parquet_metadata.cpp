@@ -11,11 +11,9 @@
 #include <iostream>
 #include <mutex>
 #include <rmm/rmm.h>
-#include <src/DataFrame.h>
 #include <src/Traits/RuntimeTraits.h>
 #include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
 #include <thread>
-//#include "GDFColumn.cuh"
 
 void set_min_max(
 	std::vector<std::vector<int64_t>> &minmax_metadata_table,
@@ -129,26 +127,23 @@ void set_min_max(
 
 
 // This function is copied and adapted from cudf
-std::pair<gdf_dtype, gdf_dtype_extra_info>
-to_dtype(parquet::Type::type physical, parquet::ConvertedType::type logical) {
-
-	bool strings_to_categorical = false; // parameter used in cudf::read_parquet
+cudf::type_id to_dtype(parquet::Type::type physical, parquet::ConvertedType::type logical) {
 
 	// Logical type used for actual data interpretation; the legacy converted type
 	// is superceded by 'logical' type whenever available.
 	switch (logical) {
 	case parquet::ConvertedType::type::UINT_8:
 	case parquet::ConvertedType::type::INT_8:
-		return std::make_pair(GDF_INT8, gdf_dtype_extra_info{TIME_UNIT_NONE});
+		return cudf::type_id::INT8;
 	case parquet::ConvertedType::type::UINT_16:
 	case parquet::ConvertedType::type::INT_16:
-		return std::make_pair(GDF_INT16, gdf_dtype_extra_info{TIME_UNIT_NONE});
+		return cudf::type_id::INT16;
 	case parquet::ConvertedType::type::DATE:
-		return std::make_pair(GDF_DATE32, gdf_dtype_extra_info{TIME_UNIT_NONE});
+		return cudf::type_id::TIMESTAMP_DAYS;
 	case parquet::ConvertedType::type::TIMESTAMP_MILLIS:
-		return std::make_pair(GDF_DATE64, gdf_dtype_extra_info{TIME_UNIT_ms});
+		return cudf::type_id::TIMESTAMP_MILLISECONDS;
 	case parquet::ConvertedType::type::TIMESTAMP_MICROS:
-		return std::make_pair(GDF_DATE64, gdf_dtype_extra_info{TIME_UNIT_us});
+		return cudf::type_id::TIMESTAMP_MICROSECONDS;
 	default:
 		break;
 	}
@@ -157,82 +152,91 @@ to_dtype(parquet::Type::type physical, parquet::ConvertedType::type logical) {
 	// format in combination with the encoding type.
 	switch (physical) {
 	case parquet::Type::type::BOOLEAN:
-		return std::make_pair(GDF_BOOL8, gdf_dtype_extra_info{TIME_UNIT_NONE});
+		return cudf::type_id::BOOL8;
 	case parquet::Type::type::INT32:
-		return std::make_pair(GDF_INT32, gdf_dtype_extra_info{TIME_UNIT_NONE});
+		return cudf::type_id::INT32;
 	case parquet::Type::type::INT64:
-		return std::make_pair(GDF_INT64, gdf_dtype_extra_info{TIME_UNIT_NONE});
+		return cudf::type_id::INT64;
 	case parquet::Type::type::FLOAT:
-		return std::make_pair(GDF_FLOAT32, gdf_dtype_extra_info{TIME_UNIT_NONE});
+		return cudf::type_id::FLOAT32;
 	case parquet::Type::type::DOUBLE:
-		return std::make_pair(GDF_FLOAT64, gdf_dtype_extra_info{TIME_UNIT_NONE});
+		return cudf::type_id::FLOAT64;
 	case parquet::Type::type::BYTE_ARRAY:
 	case parquet::Type::type::FIXED_LEN_BYTE_ARRAY:
-		// Can be mapped to GDF_CATEGORY (32-bit hash) or GDF_STRING (nvstring)
-		// TODO: check GDF_STRING_CATEGORY
-		return std::make_pair(strings_to_categorical ? GDF_CATEGORY : GDF_STRING,
-							  gdf_dtype_extra_info{TIME_UNIT_NONE});
+		// TODO: Check GDF_STRING_CATEGORY
+		return cudf::type_id::STRING;
 	case parquet::Type::type::INT96:
-		// Convert Spark INT96 timestamp to GDF_DATE64
-		return std::make_pair(GDF_DATE64, gdf_dtype_extra_info{TIME_UNIT_ms});
 	default:
 		break;
 	}
 
-	return std::make_pair(GDF_invalid, gdf_dtype_extra_info{TIME_UNIT_NONE});
+	return cudf::type_id::EMPTY;
 }
 
 
-std::basic_string<char> get_typed_vector_content(gdf_dtype dtype, const std::vector<int64_t> &vector) {
+std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, const std::vector<int64_t> &vector) {
   std::basic_string<char> output;
   switch (dtype) {
-	case GDF_INT8:{
+	case cudf::type_id::INT8:{
 			std::vector<char> typed_v(vector.begin(), vector.end());
 			output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(char));
 			break;
 		}
-	case GDF_INT16: {
+	case cudf::type_id::INT16: {
 		std::vector<int16_t> typed_v(vector.begin(), vector.end());
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int16_t));
 		break;
 	}
-	case GDF_INT32:{
+	case cudf::type_id::INT32:{
 		std::vector<int32_t> typed_v(vector.begin(), vector.end());
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int32_t));
 		break;
 	}
-	case GDF_INT64: {
+	case cudf::type_id::INT64: {
 		std::vector<int64_t> typed_v(vector.begin(), vector.end());
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
 		break;
 	}
-	case GDF_FLOAT32: {
+	case cudf::type_id::FLOAT32: {
 		std::vector<float> typed_v(vector.begin(), vector.end());
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(float));
 		break;
 	}
-	case GDF_FLOAT64: {
+	case cudf::type_id::FLOAT64: {
 		std::vector<double> typed_v(vector.begin(), vector.end());
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(double));
 		break;
 	}
-	case GDF_BOOL8: {
+	case cudf::type_id::BOOL8: {
 		std::vector<int8_t> typed_v(vector.begin(), vector.end());
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int8_t));
 		break;
 	}
-	case GDF_DATE32: {
+	case cudf::type_id::TIMESTAMP_DAYS: {
 		std::vector<int32_t> typed_v(vector.begin(), vector.end());
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int32_t));
 		break;
 	}
-	case GDF_DATE64: {
+	case cudf::type_id::TIMESTAMP_SECONDS: {
 		std::vector<int64_t> typed_v(vector.begin(), vector.end());
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
 		break;
 	}
-	case GDF_STRING:
-	case GDF_STRING_CATEGORY:
+	case cudf::type_id::TIMESTAMP_MILLISECONDS: {
+		std::vector<int64_t> typed_v(vector.begin(), vector.end());
+		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
+		break;
+	}
+	case cudf::type_id::TIMESTAMP_MICROSECONDS: {
+		std::vector<int64_t> typed_v(vector.begin(), vector.end());
+		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
+		break;
+	}
+	case cudf::type_id::TIMESTAMP_NANOSECONDS: {
+		std::vector<int64_t> typed_v(vector.begin(), vector.end());
+		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
+		break;
+	}
 	default: {
 		// default return type since we're throwing an exception.
 		std::cerr << "Invalid gdf_dtype in create_host_column" << std::endl;
@@ -242,35 +246,41 @@ std::basic_string<char> get_typed_vector_content(gdf_dtype dtype, const std::vec
   return output;
 }
 
-void set_gdf_column(gdf_column_cpp &p_column, std::basic_string<char> &vector, unsigned long size) {
-	// TODO percy cudf0.12 port to cudf::column
-	// size_t width_per_value = ral::traits::get_dtype_size_in_bytes(p_column.dtype());
-	// if (vector.size() != 0) {
-	// 	RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&p_column.get_gdf_column()->data),  width_per_value * size, 0));
-	// 	CheckCudaErrors(cudaMemcpy(p_column.get_gdf_column()->data, vector.data(), width_per_value * size, cudaMemcpyHostToDevice));
-	// 	p_column.get_gdf_column()->size = size;
-	// } else {
-	// 	RMM_TRY(RMM_ALLOC(reinterpret_cast<void **>(&p_column.get_gdf_column()->data),  width_per_value * size, 0));
-	// 	p_column.get_gdf_column()->size = size;
-	// }
+std::unique_ptr<cudf::column> make_cudf_column_from(cudf::data_type dtype, std::basic_string<char> &vector, unsigned long column_size) {
+	size_t width_per_value = cudf::size_of(dtype);
+	if (vector.size() != 0) {
+		auto buffer_size = width_per_value * column_size;
+		rmm::device_buffer gpu_buffer(vector.data(), buffer_size);
+		return std::make_unique<cudf::column>(dtype, column_size, std::move(gpu_buffer));
+	} else {
+		auto buffer_size = width_per_value * column_size;
+		rmm::device_buffer gpu_buffer(buffer_size);
+		return std::make_unique<cudf::column>(dtype, column_size, buffer_size);
+	}
 }
 
-std::vector<gdf_column_cpp> get_minmax_metadata(
+std::unique_ptr<cudf::column> make_empty_column(cudf::data_type type) {
+  return std::make_unique<cudf::column>(type, 0, rmm::device_buffer{});
+}
+
+std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> &parquet_readers,
 	size_t total_num_row_groups, int metadata_offset) {
 
-	if (parquet_readers.size() == 0)
-		return {};
-
+	if (parquet_readers.size() == 0){
+		return nullptr;
+	}
 	std::vector<std::vector<int64_t>> minmax_metadata_table;
-	std::vector<gdf_column_cpp> minmax_metadata_gdf_table;
+	std::vector<std::string> metadata_names;
+	std::vector<cudf::data_type> metadata_dtypes;
 
 	std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[0]->metadata();
 
 	// initialize minmax_metadata_table
 	// T(min, max), (file_handle, row_group)
 	minmax_metadata_table.resize(file_metadata->num_columns() * 2 + 2);
-	minmax_metadata_gdf_table.resize(file_metadata->num_columns() * 2 + 2);
+	metadata_names.resize(file_metadata->num_columns() * 2 + 2);
+	metadata_dtypes.resize(file_metadata->num_columns() * 2 + 2);
 
 	int num_row_groups = file_metadata->num_row_groups();
 	const parquet::SchemaDescriptor *schema = file_metadata->schema();
@@ -284,31 +294,32 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 			auto columnMetaData = rowGroupMetadata->ColumnChunk(colIndex);
 			auto physical_type = column->physical_type();
 			auto logical_type = column->converted_type();
-			gdf_dtype dtype;
-			gdf_dtype_extra_info extra_info;
-			std::tie(dtype, extra_info) = to_dtype(physical_type, logical_type);
+			cudf::data_type dtype = cudf::data_type (to_dtype(physical_type, logical_type)) ;
 
-			if (dtype == GDF_CATEGORY || dtype == GDF_STRING || dtype == GDF_STRING_CATEGORY)
-				dtype = GDF_INT32;
+			if (dtype.id() == cudf::type_id::STRING || dtype.id() == cudf::CATEGORY )
+				dtype = cudf::data_type(cudf::type_id::INT32);
 
-// TODO percy cudf0.12 port to cudf::column
-			// auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
-			// minmax_metadata_gdf_table[2 * colIndex].create_empty(dtype, col_name_min, extra_info.time_unit);
+			auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
+			metadata_dtypes[2 * colIndex] = dtype;
+			metadata_names[2 * colIndex] = col_name_min;
 			
-			// auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
-			// minmax_metadata_gdf_table[2 * colIndex + 1].create_empty(dtype, col_name_max, extra_info.time_unit);
+			auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
+			metadata_dtypes[2 * colIndex + 1] = dtype;
+			metadata_names[2 * colIndex + 1] = col_name_max;
 		}
 
-		// TODO percy cudf0.12 port to cudf::column
-		// minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 2].create_empty(GDF_INT32, "file_handle_index", TIME_UNIT_NONE);
-		// minmax_metadata_gdf_table[minmax_metadata_gdf_table.size() - 1].create_empty(GDF_INT32, "row_group_index", TIME_UNIT_NONE);
+		metadata_dtypes[metadata_dtypes.size() - 2] = cudf::data_type{cudf::type_id::INT32};
+		metadata_names[metadata_names.size() - 2] = "file_handle_index";
+		metadata_dtypes[metadata_dtypes.size() - 1] = cudf::data_type{cudf::type_id::INT32};
+		metadata_names[metadata_names.size() - 1] = "row_group_index";
 	}
 
 	size_t file_index = 0;
 	std::vector<std::thread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
-		threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, &minmax_metadata_table ](){
+		// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
+		// threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, &minmax_metadata_table ](){
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 
 		  int num_row_groups = file_metadata->num_row_groups();
@@ -339,20 +350,21 @@ std::vector<gdf_column_cpp> get_minmax_metadata(
 			  minmax_metadata_table[minmax_metadata_table.size() - 1].push_back(row_group_index);
 			  guard.unlock();
 		  }
-		});
+		// });
 	}
+	// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
+	// for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
+	// 	threads[file_index].join();
+	// }
 
-	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
-		threads[file_index].join();
-	}
-
+	std::vector<std::unique_ptr<cudf::column>> minmax_metadata_gdf_table(file_metadata->num_columns() * 2 + 2);
 	for (size_t index = 0; index < 	minmax_metadata_table.size(); index++) {
-		// TODO percy cudf0.12 port to cudf::column
-		// auto vector = minmax_metadata_table[index];
-		// auto dtype = minmax_metadata_gdf_table[index].dtype();
-		// auto content =  get_typed_vector_content(dtype, vector);
-		// set_gdf_column(minmax_metadata_gdf_table[index], content, total_num_row_groups);
+		auto vector = minmax_metadata_table[index];
+		auto dtype = metadata_dtypes[index];
+		auto content =  get_typed_vector_content(dtype.id(), vector);
+		minmax_metadata_gdf_table[index] = make_cudf_column_from(dtype, content, total_num_row_groups);
 	}
-	return minmax_metadata_gdf_table;
+	auto table = std::make_unique<cudf::experimental::table>(std::move(minmax_metadata_gdf_table));
+	return std::make_unique<ral::frame::BlazingTable>(std::move(table), metadata_names);
 }
 #endif	// BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_

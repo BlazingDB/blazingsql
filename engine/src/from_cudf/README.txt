@@ -3,4 +3,4 @@ This folder (from_cudf) contains code straight from cudf repo with only small mo
 If you add anything more, please update all the code so that its all fromt he same commit hash and update the used commit hash here. 
 If you add anything more, place any new files in a folder that matches its source location
 
-This code was updated on 01/21/2020 with cudf commit hash  ed33cb8c7d975867de84b00d8d00824826dc0109
+This code was updated on 02/06/2020 with cudf commit hash  b451ce60ae6310d9cb7b5a2d7fabc8dae79f581d

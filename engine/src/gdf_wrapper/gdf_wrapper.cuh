@@ -19,7 +19,6 @@ inline gdf_dtype to_gdf_type(cudf::type_id type_id) {
 		case cudf::type_id::FLOAT32: return gdf_dtype::GDF_FLOAT32;
 		case cudf::type_id::FLOAT64: return gdf_dtype::GDF_FLOAT64;
 		case cudf::type_id::STRING: return gdf_dtype::GDF_STRING;
-		case cudf::type_id::CATEGORY: return gdf_dtype::GDF_STRING_CATEGORY;
 		case cudf::type_id::TIMESTAMP_DAYS: return gdf_dtype::GDF_DATE32;
 		case cudf::type_id::TIMESTAMP_SECONDS: return gdf_dtype::GDF_DATE64;
 		case cudf::type_id::TIMESTAMP_MILLISECONDS: return gdf_dtype::GDF_TIMESTAMP;
@@ -43,7 +42,6 @@ inline cudf::type_id to_type_id(gdf_dtype gdf_type_val) {
 		case gdf_dtype::GDF_FLOAT32: return cudf::type_id::FLOAT32;
 		case gdf_dtype::GDF_FLOAT64: return cudf::type_id::FLOAT64;
 		case gdf_dtype::GDF_STRING: return cudf::type_id::STRING;
-		case gdf_dtype::GDF_STRING_CATEGORY: return cudf::type_id::CATEGORY;
 		case gdf_dtype::GDF_DATE32: return cudf::type_id::TIMESTAMP_DAYS;
 		case gdf_dtype::GDF_DATE64: return cudf::type_id::TIMESTAMP_SECONDS;
 		case gdf_dtype::GDF_TIMESTAMP: return cudf::type_id::TIMESTAMP_MILLISECONDS;
@@ -72,7 +70,6 @@ inline gdf_time_unit to_gdf_time_unit(cudf::type_id type_id) {
 		case cudf::type_id::FLOAT64:
 		case cudf::type_id::BOOL8:
 		case cudf::type_id::TIMESTAMP_DAYS:
-		case cudf::type_id::CATEGORY:
 		case cudf::type_id::STRING:
 		case cudf::type_id::NUM_TYPE_IDS: throw std::runtime_error("Unsupported cudf type ids for time unit");
 	}
@@ -105,9 +102,6 @@ inline gdf_scalar to_gdf_scalar(const std::unique_ptr<cudf::scalar> &s) {
 			break;
 		}
 		case cudf::type_id::STRING: {
-			break;
-		}
-		case cudf::type_id::CATEGORY: {
 			break;
 		}
 		case cudf::type_id::TIMESTAMP_DAYS: {

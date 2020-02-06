@@ -6,6 +6,7 @@
 #include <string>
 #include <blazingdb/manager/Context.h>
 #include "io/DataLoader.h"
+#include "GDFColumn.cuh"
 
 using blazingdb::manager::experimental::Context;
 

@@ -9,7 +9,6 @@
 #define BLAZING_RAL_SCHEMA_H_
 
 
-#include "../GDFColumn.cuh"
 #include <cudf/cudf.h>
 #include <string>
 #include <vector>

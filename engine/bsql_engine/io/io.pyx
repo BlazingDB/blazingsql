@@ -90,9 +90,8 @@ cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_
     temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns)
     return temp
 
-cdef cio.TableSchema parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,gdf_dtype]] extra_columns):
-    temp = cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values,extra_columns)
-    return temp
+cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values):
+    return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
 cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
     return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string))
@@ -165,7 +164,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     cdef vector[pair[string,gdf_dtype]] extra_columns_cpp
     cdef pair[string,gdf_dtype] extra_column_cpp
     for extra_column in extra_columns:
-        extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
+        extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_dtype(extra_column[1]))
         extra_columns_cpp.push_back(extra_column_cpp)
     tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
@@ -191,7 +190,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     return return_object
 
 
-cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extra_columns):
+cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     cdef vector[string] files
     for file in fileList:
       print('file', file)
@@ -212,38 +211,16 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args, extr
       arg_keys.push_back(str.encode(key))
       arg_values.push_back(str.encode(str(value)))
 
-    cdef vector[pair[string,gdf_dtype]] extra_columns_cpp
-    cdef pair[string,gdf_dtype] extra_column_cpp
-    for extra_column in extra_columns:
-        extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_value(None,extra_column[1]))
-        extra_columns_cpp.push_back(extra_column_cpp)
-    temp = parseMetadataPython(files, offset, cpp_schema, str.encode(file_format_hint), arg_keys,arg_values, extra_columns_cpp)
-    return_object = {}
-    return_object['datasource'] = files
-    # return_object['files'] = temp.files
-    return_object['file_type'] = temp.data_type
-    return_object['args'] = args
-    return_object['types'] = temp.types
-    return_object['names'] = temp.names
-    # return_object['calcite_to_file_indices']= temp.calcite_to_file_indices
-    # return_object['num_row_groups']= temp.num_row_groups
+    resultSet = blaz_move(parseMetadataPython(files, offset, cpp_schema, str.encode(file_format_hint), arg_keys,arg_values))
 
-    # i = 0
-    # for column in temp.columns:
-    #   column.col_name = return_object['names'][i]
-    #   return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
-    #   i = i + 1
-    # return return_object['columns']
+    names = dereference(resultSet).names
+    decoded_names = []
+    for i in range(names.size()):
+        decoded_names.append(names[i].decode('utf-8'))
 
-
-    df = cudf.DataFrame()
-    i = 0
-    # for column in temp.columns:
-    #   column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
-    #   strcpy(column.col_name, temp.names[i].c_str())
-    #   df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
-    #   i = i + 1
-    return df
+    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
+    df._rename_columns(decoded_names)
+    return df 
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query

@@ -2,7 +2,6 @@
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
 #include "ColumnManipulation.cuh"
-#include "GDFColumn.cuh"
 #include "cudf.h"
 #include "cudf/legacy/copying.hpp"
 #include "Traits/RuntimeTraits.h"
@@ -266,8 +265,7 @@ std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
 			cudf::data_type columnType = table.view().column(i).type();
 			cudf::type_id columnTypeId = columnType.id();
 
-			if((cudf::CATEGORY == columnTypeId) || (cudf::EMPTY == columnTypeId) ||
-				(cudf::NUM_TYPE_IDS == columnTypeId)) {
+			if((cudf::EMPTY == columnTypeId) || (cudf::NUM_TYPE_IDS == columnTypeId)) {
 				throw std::runtime_error("Unsupported column type");
 			}
 

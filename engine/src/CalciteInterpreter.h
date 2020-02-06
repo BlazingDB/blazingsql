@@ -2,7 +2,6 @@
 #ifndef CALCITEINTERPRETER_H_
 #define CALCITEINTERPRETER_H_
 
-#include "DataFrame.h"
 #include "../Interpreter/interpreter_cpp.h"
 #include "Types.h"
 #include "cudf/legacy/binaryop.hpp"

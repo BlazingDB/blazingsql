@@ -9,12 +9,12 @@
 #include <stack>
 
 #include <blazingdb/io/Util/StringUtil.h>
+#include "Utils.cuh"
 
 #include "CalciteExpressionParsing.h"
-#include "DataFrame.h"
 #include "Traits/RuntimeTraits.h"
 #include "cudf/legacy/binaryop.hpp"
-#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.hpp"
+#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.cuh"
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
 #include "Interpreter/interpreter_cpp.h"
@@ -142,9 +142,9 @@ void get_common_type(cudf::type_id type1, cudf::type_id type2, cudf::type_id & t
 		} else {
 			// No common type
 		}
-	} else if((type1 == cudf::type_id::STRING || type1 == cudf::type_id::CATEGORY) &&
-			  (type2 == cudf::type_id::STRING || type2 == cudf::type_id::CATEGORY)) {
-		type_out = cudf::type_id::CATEGORY;
+	} else if((type1 == cudf::type_id::STRING) &&
+			  (type2 == cudf::type_id::STRING)) {
+		type_out = cudf::type_id::STRING;
 	} else {
 		// No common type
 	}
