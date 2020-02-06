@@ -248,7 +248,9 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
 	}
 	if(type_id == cudf::type_id::STRING)	{
-		return cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
+		auto str_scalar = cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
+		str_scalar->set_valid(true); // https://github.com/rapidsai/cudf/issues/4085
+		return str_scalar;
 	}
 	
 	assert(false);

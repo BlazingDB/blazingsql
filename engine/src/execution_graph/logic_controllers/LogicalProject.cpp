@@ -1,5 +1,6 @@
 #include <cudf/column/column_view.hpp>
 #include <cudf/column/column_factories.hpp>
+#include <cudf/copying.hpp>
 #include <cudf/filling.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
@@ -20,6 +21,9 @@
 
 namespace ral {
 namespace processor {
+
+// forward declaration
+std::unique_ptr<cudf::experimental::table> evaluate_expressions(const cudf::table_view & table, const std::vector<std::string> & expressions);
 
 namespace strings {
 
@@ -80,12 +84,11 @@ struct cast_to_str_functor {
 };
 
 std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view & table,
-                                                        const std::string & op_token,
+                                                        interops::operator_type op,
                                                         const std::vector<std::string> & arg_tokens)
 {
     std::unique_ptr<cudf::column> computed_col;
 
-    interops::operator_type op = map_to_operator_type(op_token);
     switch (op)
     {
     case interops::operator_type::BLZ_STR_LIKE:
@@ -166,6 +169,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         assert(arg_tokens.size() == 1);
 
         if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
             break;
         }
         
@@ -180,6 +184,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         assert(arg_tokens.size() == 1);
         
         if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
             break;
         }
 
@@ -194,6 +199,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         assert(arg_tokens.size() == 1);
         
         if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
             break;
         }
 
@@ -208,6 +214,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         assert(arg_tokens.size() == 1);
 
         if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
             break;
         }
 
@@ -222,6 +229,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         assert(arg_tokens.size() == 1);
 
         if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
             break;
         }
 
@@ -236,6 +244,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         assert(arg_tokens.size() == 1);
         
         if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
             break;
         }
 
@@ -250,6 +259,58 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     return computed_col;
 }
 
+std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_view & table,
+                                                            const std::string & condition_expr,
+                                                            const std::string & expr1,
+                                                            const std::string & expr2)
+{
+    std::unique_ptr<cudf::column> computed_col;
+
+    if ((!is_string(expr1) && !is_var_column(expr1)) || !is_string(expr2) && !is_var_column(expr2)) {
+        return computed_col;
+    }
+    
+    if ((is_var_column(expr1) && table.column(get_index(expr1)).type().id() != cudf::type_id::STRING)
+        || (is_var_column(expr2) && table.column(get_index(expr2)).type().id() != cudf::type_id::STRING)) {
+        return computed_col;
+    }
+
+    RAL_EXPECTS(!is_literal(condition_expr), "CASE operator not supported for condition expression literals");
+    
+    std::unique_ptr<cudf::column> boolean_mask_col;
+    cudf::column_view boolean_mask_view;
+    if (is_var_column(condition_expr)) {
+        boolean_mask_view = table.column(get_index(condition_expr));
+    } else {
+        auto evaluated_table = evaluate_expressions(table, {condition_expr});
+        RAL_EXPECTS(evaluated_table->num_columns() == 1 && evaluated_table->get_column(0).type().id() == cudf::type_id::BOOL8, "Expression does not evaluate to a boolean mask");
+
+        auto columns = evaluated_table->release();
+        boolean_mask_col = std::move(columns[0]);
+        boolean_mask_view = boolean_mask_col->view();
+    }
+
+    if (is_string(expr1) && is_string(expr2)) {
+        std::unique_ptr<cudf::scalar> lhs = get_scalar_from_string(expr1);
+        std::unique_ptr<cudf::scalar> rhs = get_scalar_from_string(expr2);
+        computed_col = cudf::experimental::copy_if_else(*lhs, *rhs, boolean_mask_view);
+    } else if (is_string(expr1)) {
+        std::unique_ptr<cudf::scalar> lhs = get_scalar_from_string(expr1);
+        cudf::column_view rhs = table.column(get_index(expr2));
+        computed_col = cudf::experimental::copy_if_else(*lhs, rhs, boolean_mask_view);
+    } else if (is_string(expr2)) {
+        cudf::column_view lhs = table.column(get_index(expr1));
+        std::unique_ptr<cudf::scalar> rhs = get_scalar_from_string(expr2);
+        computed_col = cudf::experimental::copy_if_else(lhs, *rhs, boolean_mask_view);
+    } else {
+        cudf::column_view lhs = table.column(get_index(expr1));
+        cudf::column_view rhs = table.column(get_index(expr2));
+        computed_col = cudf::experimental::copy_if_else(lhs, rhs, boolean_mask_view);
+    } 
+
+    return computed_col;
+}
+
 } // namespace strings
 
 class function_evaluator_transformer : public parser::parse_node_transformer {
@@ -259,17 +320,32 @@ public:
     parser::parse_node * transform(const parser::operad_node& node) override { return const_cast<parser::operad_node *>(&node); }
     
     parser::parse_node * transform(const parser::operator_node& node) override {
-        std::string op_token = node.value;
-        std::vector<std::string> arg_tokens(node.children.size());
-        std::transform(std::cbegin(node.children), std::cend(node.children), arg_tokens.begin(), [](auto & child){
-            return child->value;
-        });
+        interops::operator_type op = map_to_operator_type(node.value);
 
-        std::vector<cudf::column_view> computed_views(computed_columns.size());
-        std::transform(std::cbegin(computed_columns), std::cend(computed_columns), computed_views.begin(), [](auto & col){
-            return col->view();
-        });
-        auto computed_col = strings::evaluate_string_functions(cudf::table_view{{table, cudf::table_view{computed_views}}}, op_token, arg_tokens);
+        std::unique_ptr<cudf::column> computed_col;
+        std::vector<std::string> arg_tokens;
+        if (op == interops::operator_type::BLZ_FIRST_NON_MAGIC) {
+            // special case for CASE WHEN ELSE END for strings
+            assert(node.children[0]->type == parser::parse_node_type::OPERATOR);
+            assert(map_to_operator_type(node.children[0]->value) == interops::operator_type::BLZ_MAGIC_IF_NOT);
+
+            const parser::parse_node * magic_if_not_node = node.children[0].get();
+            const parser::parse_node * condition_node = magic_if_not_node->children[0].get();
+            const parser::parse_node * expr_node_1 = magic_if_not_node->children[1].get();
+            const parser::parse_node * expr_node_2 = node.children[1].get();
+            
+            std::string conditional_exp = parser::detail::rebuild_helper(condition_node);
+
+            arg_tokens = {conditional_exp, expr_node_1->value, expr_node_2->value};
+            computed_col = strings::evaluate_string_case_when_else(cudf::table_view{{table, computed_columns_view()}}, conditional_exp, expr_node_1->value, expr_node_2->value);
+        } else {
+            arg_tokens.resize(node.children.size());
+            std::transform(std::cbegin(node.children), std::cend(node.children), arg_tokens.begin(), [](auto & child){
+                return child->value;
+            });
+
+            computed_col = strings::evaluate_string_functions(cudf::table_view{{table, computed_columns_view()}}, op, arg_tokens);
+        }
         
         if (computed_col) {
             // Discard temp columns used in operations
@@ -360,8 +436,8 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
                 std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(expression);
                 RAL_EXPECTS(!!literal_scalar, "NULL literal not supported in projection");
                 
-                // TODO: verify that in-place fill works correctly, seems there is a bug currently
-                out_columns[i] = cudf::experimental::fill(*out_columns[i], 0, out_columns[i]->size(), *literal_scalar);
+                cudf::mutable_column_view out_column_mutable_view = out_columns[i]->mutable_view();
+                cudf::experimental::fill(out_column_mutable_view, 0, out_column_mutable_view.size(), *literal_scalar);
             }
         } else {
             cudf::size_type idx = get_index(expression);
@@ -413,14 +489,13 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
     std::vector<std::unique_ptr<cudf::scalar>> left_scalars;
     std::vector<std::unique_ptr<cudf::scalar>> right_scalars;
 
-    cudf::size_type cur_expression_out = 0;
-    for(auto & tokens : tokenized_expression_vector){
-        final_output_positions.push_back(interops_input_table.num_columns() + final_output_positions.size());
+    for (size_t i = 0; i < tokenized_expression_vector.size(); i++) {
+        final_output_positions.push_back(interops_input_table.num_columns() + i);
 
-        interops::add_expression_to_interpreter_plan(tokens,
+        interops::add_expression_to_interpreter_plan(tokenized_expression_vector[i],
                                                     interops_input_table,
                                                     col_idx_map,
-                                                    cur_expression_out,
+                                                    i,
                                                     interpreter_out_column_views.size(),
                                                     left_inputs,
                                                     right_inputs,
@@ -428,11 +503,9 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
                                                     operators,
                                                     left_scalars,
                                                     right_scalars);
-
-        cur_expression_out++;
     }
 
-    if(cur_expression_out > 0){
+    if(!tokenized_expression_vector.empty()){
         cudf::mutable_table_view out_table_view(interpreter_out_column_views);
 
         interops::perform_interpreter_operation(out_table_view,
