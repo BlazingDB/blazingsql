@@ -296,7 +296,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			auto logical_type = column->converted_type();
 			cudf::data_type dtype = cudf::data_type (to_dtype(physical_type, logical_type)) ;
 
-			if (dtype.id() == cudf::type_id::STRING || dtype.id() == cudf::CATEGORY )
+			if (dtype.id() == cudf::type_id::STRING )
 				dtype = cudf::data_type(cudf::type_id::INT32);
 
 			auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();

@@ -95,7 +95,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		size_t index = 0;
 		for(; index < schema.types.size(); index++) {
 			cudf::type_id dtype = schema.types[index];
-			if (dtype == cudf::type_id::CATEGORY || dtype == cudf::type_id::STRING)
+			if (dtype == cudf::type_id::STRING)
 				dtype = cudf::type_id::INT32;
 
 			dtypes[2*index] = dtype;
