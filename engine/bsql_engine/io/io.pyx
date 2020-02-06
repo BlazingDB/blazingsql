@@ -214,7 +214,6 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     resultSet = blaz_move(parseMetadataPython(files, offset, cpp_schema, str.encode(file_format_hint), arg_keys,arg_values))
 
     names = dereference(resultSet).names
-    print(names)
     decoded_names = []
     for i in range(names.size()):
         decoded_names.append(names[i].decode('utf-8'))

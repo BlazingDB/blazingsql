@@ -255,7 +255,7 @@ std::unique_ptr<cudf::column> make_cudf_column_from(cudf::data_type dtype, std::
 		return std::make_unique<cudf::column>(dtype, column_size, std::move(gpu_buffer));
 	} else {
 		auto buffer_size = width_per_value * column_size;
-		rmm::device_buffer gpu_buffer(vector.data(), buffer_size);
+		rmm::device_buffer gpu_buffer(buffer_size);
 		return std::make_unique<cudf::column>(dtype, column_size, buffer_size);
 	}
 }
@@ -297,7 +297,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			auto logical_type = column->converted_type();
 			cudf::data_type dtype = cudf::data_type (to_dtype(physical_type, logical_type)) ;
 
-			if (dtype.id() == cudf::type_id::STRING || dtype.id() == cudf::CATEGORY)
+			if (dtype.id() == cudf::type_id::STRING || dtype.id() == cudf::CATEGORY )
 				dtype = cudf::data_type(cudf::type_id::INT32);
 
 			auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();

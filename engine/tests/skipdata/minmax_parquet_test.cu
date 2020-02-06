@@ -54,23 +54,7 @@ TEST_F(MinMaxParquetTest, UsingRalIO) {
 	ral::io::Schema schema;
 	auto parser = std::make_shared<ral::io::parquet_parser>();
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
-
-	// {
-	// 	ral::io::data_loader loader(parser, provider);
-	// 	try {
-	// 		loader.get_schema(schema, {});
-	// 		for(auto name : schema.get_names()) {
-	// 			std::cout << name << std::endl;
-	// 		}
-	// 		for(auto type : schema.get_types()) {
-	// 			std::cout << type << std::endl;
-	// 		}
-
-	// 	} catch(std::exception & e) {
-	// 		return;
-	// 	}
-	// }
-
+ 
 	{
 		cudf_io::read_parquet_args in_args{cudf_io::source_info{PARQUET_FILE_PATH}};
 		auto result = cudf_io::read_parquet(in_args);
@@ -81,25 +65,14 @@ TEST_F(MinMaxParquetTest, UsingRalIO) {
 		// expect_tables_equal(expected->view(), result.tbl->view());
 	}
 	std::cerr << ">>> reading metadata:: " <<   std::endl;
-
-  std::vector<Node> contextNodes;
-	auto address = blazingdb::transport::experimental::Address::TCP("127.0.0.1", 8001, 1234);
-	contextNodes.push_back(Node(address));
-
-	Context queryContext(0, contextNodes, contextNodes[0], "");
+ 
 	ral::io::data_loader loader(parser, provider);
 	try {
-		//  = loader.load_data(&queryContext, {}, schema);
-		std::cerr << ">>> loading metadata:: " <<   std::endl;
 		auto table_pair = loader.get_metadata(0);
-		std::cerr << "<<< loading metadata:: " <<   std::endl;
 		auto view = table_pair->toBlazingTableView();
+		// ral::utilities::print_blazing_table_view(view);
 	} catch(std::exception e){
 		std::cerr << "***std::exception:: " <<  e.what() << std::endl;
-		// for(auto name : csv_table->names()) {
-		// 	std::cout << name << std::endl;
-		// }
-		// expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-		// csv_table->view().column(0));
+
 	}
 }

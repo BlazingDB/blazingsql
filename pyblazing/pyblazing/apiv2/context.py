@@ -203,6 +203,106 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
             algebra = algebra.replace(orig_scan, new_scan)
     return algebra
 
+
+
+def parseHiveMetadataFor(curr_table, file_subset, partitions):
+    metadata = {}
+    names = []
+    n_cols = len(curr_table.input.columns)
+    dtypes = curr_table.input.dtypes
+    columns = curr_table.input.columns
+    n_files = len(file_subset)
+    col_indexes = {} 
+    for index in range(n_cols):
+        col_name = columns[index]
+        names.append('min_' + str(index) + '_' + col_name) 
+        names.append('max_' + str(index) + '_' + col_name) 
+        col_indexes[col_name] = index
+        
+    names.append('file_handle_index') 
+    names.append('row_group_index') 
+    minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
+    table_partition = {}
+    for file_index, partition_name  in enumerate(partitions):
+        curr_table = partitions[partition_name]
+        for col_name, col_value_id in curr_table:
+            table_partition.setdefault(col_name, []).append(col_value_id)
+        minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
+        minmax_metadata_table[len(minmax_metadata_table) - 1].append(0)
+
+    for index in range(n_cols):
+        col_name = columns[index]
+        if col_name in table_partition:
+            col_value_ids = table_partition[col_name]
+            index = col_indexes[col_name] 
+            minmax_metadata_table[2*index] = col_value_ids
+            minmax_metadata_table[2*index+1] = col_value_ids
+        else:
+            if dtypes[col_name] == np.object or dtypes[col_name] == np.dtype('datetime64[ms]') or dtypes[col_name] == np.datetime64:
+                return cudf.DataFrame({})
+            minmax_metadata_table[2*index] = [np.iinfo(dtypes[col_name]).min] * n_files
+            minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[col_name]).max] * n_files
+
+    series = []
+    for index in range(n_cols):
+        col_name = columns[index]
+        col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
+        col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
+        series.append(col1)
+        series.append(col2)
+    index = n_cols 
+
+    col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
+    col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
+    series.append(col1)
+    series.append(col2)
+
+    frame = OrderedDict(((key,value) for (key,value) in zip(names, series)))
+    metadata = cudf.DataFrame(frame)
+    return metadata
+
+
+def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
+    result = fileMetadata
+    columns = curr_table.input.columns
+    n_cols = len(curr_table.input.columns)
+
+    # if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
+    #     print('TODO: files have to be listed in the same order')
+    #     return hiveMetadata 
+
+    names = []
+    col_indexes = {}
+    counter = 0
+    for index in range(n_cols):
+        col_name = columns[index]
+        names.append('min_' + str(index) + '_' + col_name) 
+        names.append('max_' + str(index) + '_' + col_name) 
+        col_indexes[col_name] = index
+    names.append('file_handle_index') 
+    names.append('row_group_index') 
+
+    for (col_name, col_dtype) in extra_columns:
+        index = col_indexes[col_name]
+        min_name = 'min_' + str(index) + '_' + col_name
+        max_name = 'max_' + str(index) + '_' + col_name
+        if result.shape[0] == hiveMetadata.shape[0]:
+            result[min_name] = hiveMetadata[min_name]
+            result[max_name] = hiveMetadata[max_name]
+        else:
+            print('TODO: duplicate data based on rowgroups and file_index info')
+            return hiveMetadata 
+    # reorder dataframes using original min_max col_name order
+    series = []
+    for col_name in names:
+        col = result[col_name]
+        series.append(col)
+
+    frame = OrderedDict(((key,value) for (key,value) in zip(names, series)))
+    result = cudf.DataFrame(frame)
+    return result
+    
+
 class BlazingTable(object):
     def __init__(
             self,
@@ -328,7 +428,8 @@ class BlazingTable(object):
                                                   num_row_groups=self.num_row_groups[startIndex: startIndex + batchSize],
                                                   uri_values=uri_values,
                                                   args=self.args,
-                                                  metadata=slice_metadata)
+                                                  metadata=slice_metadata,
+                                                  in_file=self.in_file)
                 bt.offset = (startIndex, batchSize)
                 bt.column_names = self.column_names
                 bt.column_types = self.column_types
@@ -341,7 +442,8 @@ class BlazingTable(object):
                         calcite_to_file_indices=self.calcite_to_file_indices,
                         uri_values=uri_values,
                         args=self.args,
-                        metadata=slice_metadata)
+                        metadata=slice_metadata,
+                        in_file=self.in_file)
                 bt.offset = (startIndex, batchSize)
                 bt.column_names = self.column_names
                 bt.column_types = self.column_types
@@ -513,12 +615,15 @@ class BlazingContext(object):
             'file_format', 'undefined')  # See datasource.file_format
         extra_kwargs = {}
         in_file = []
+        is_hive_input = False
+        partitions = {}
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
-            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file = get_hive_table(
+            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file, partitions = get_hive_table(
                 input, hive_table_name)
             kwargs.update(extra_kwargs)
             input = folder_list
+            is_hive_input = True
         if isinstance(input, str):
             input = [input, ]
 
@@ -655,7 +760,6 @@ class BlazingContext(object):
                             workers=[worker]))
                     i = i + 1
                 result = dask.dataframe.from_delayed(dask_futures)
-                print("SKIP_DATA+++")
                 for index in range(len(self.nodes)):
                     file_indices_and_rowgroup_indices = result.get_partition(index).compute()
                     if file_indices_and_rowgroup_indices.empty :
@@ -714,8 +818,9 @@ class BlazingContext(object):
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
             scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-            if new_tables[table].has_metadata():
-                self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
+            #  TODO: @alex, fix this when C++ _optimize_with_skip_data is migrated 
+            # if new_tables[table].has_metadata():
+            # self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
 
         ctxToken = random.randint(0, 64000)
         accessToken = 0
