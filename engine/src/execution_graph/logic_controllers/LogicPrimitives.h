@@ -145,9 +145,12 @@ public:
 	unsigned long long sizeInBytes() override;
   virtual ~CacheDataLocalFile(){
 
-	}
+  }
+  std::string filePath() const {
+    return filePath_;
+  }
 private:
-  std::string filePath;
+  std::string filePath_;
   //ideally would be a writeable file
 };
 

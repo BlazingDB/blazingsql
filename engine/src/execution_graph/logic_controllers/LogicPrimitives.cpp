@@ -80,14 +80,14 @@ namespace cache{
   unsigned long long CacheDataLocalFile::sizeInBytes(){
     struct stat st;
 
-    if(stat(this->filePath.c_str(),&st)==0)
+    if(stat(this->filePath_.c_str(),&st)==0)
         return (st.st_size);
     else
         throw;
   }
 
   std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache(){
-    cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath}};
+    cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath_}};
     auto result = cudf_io::read_orc(in_args);
     return std::make_unique<ral::frame::BlazingTable>(
       std::move(result.tbl),
@@ -96,15 +96,15 @@ namespace cache{
 
   CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table) {
     //TODO: make this configurable
-    this->filePath =".blazing-temp/" + randomString(64) + ".orc";
+    this->filePath_ ="/tmp/.blazing-temp-" + randomString(64) + ".orc";
     this->names = table->names();
-
+    std::cout << "CacheDataLocalFile: " << this->filePath_ << std::endl;
     cudf_io::table_metadata metadata;
     for (auto name : table->names()) {
         metadata.column_names.emplace_back(name);
     }
     cudf_io::write_orc_args out_args(
-      cudf_io::sink_info{this->filePath},
+      cudf_io::sink_info{this->filePath_},
       table->view(), &metadata);
 
     cudf_io::write_orc(out_args);
@@ -170,14 +170,13 @@ namespace cache{
             gpuData.push(std::move(table));
         }else{
 
-          std::thread t([ tableInLambda = std::move(table),this,cacheIndex] () mutable {
-            if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE){
-
-              std::lock_guard<std::mutex> lock(cacheMutex);
-
-              this->cache[cacheIndex]->push(std::make_unique<CacheDataLocalFile>(std::move(tableInLambda)));
-
-            }
+            std::thread t([ tableInLambda = std::move(table),this,cacheIndex] () mutable {
+              if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE){
+                std::lock_guard<std::mutex> lock(cacheMutex);
+                auto item = std::make_unique<CacheDataLocalFile>(std::move(tableInLambda));
+                this->cache[cacheIndex]->push(std::move(item));
+                //NOTE: Wait don't kill the main process until the last thread is finished!
+              }
           });
           t.detach();
         }
@@ -198,8 +197,12 @@ namespace cache{
 
   CacheMachine::CacheMachine(unsigned long long gpuMemory, std::vector<unsigned long long> memoryPerCache_, std::vector<CacheDataType> cachePolicyTypes_)
   : _finished(false){
+
     cache.resize(cachePolicyTypes_.size() + 1);
-      this->memoryPerCache.push_back(gpuMemory);
+    for(size_t i = 0; i < cache.size(); i++) {
+        cache[i] = std::make_unique< std::queue<std::unique_ptr<CacheData>> >();
+    }
+    this->memoryPerCache.push_back(gpuMemory);
     for( auto mem : memoryPerCache_){
         this->memoryPerCache.push_back(mem);
     }
