@@ -1,3 +1,5 @@
+#include <stack>
+
 #include <cudf/table/table_view.hpp>
 #include <cudf/hashing.hpp>
 #include <cudf/join.hpp>
@@ -8,9 +10,6 @@
 #include "LogicalFilter.h"
 #include "LogicalProject.h"
 #include "../../CalciteExpressionParsing.h"
-#include "../../JoinProcessor.h"
-
-
 
 #include "blazingdb/transport/Node.h"
 
@@ -18,6 +17,7 @@
 #include "communication/CommunicationData.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/DebuggingUtils.h"
+#include "Utils.cuh"
 
 #include "../../Interpreter/interpreter_cpp.h"
 
@@ -74,6 +74,51 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
     typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
   }
+
+  void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices) {
+	// TODO: right now this only works for equijoins
+	// since this is all that is implemented at the time
+
+	// TODO: for this to work properly we can only do multi column join
+	// when we have ands, when we have hors we hvae to perform the joisn seperately then
+	// do a unique merge of the indices
+
+	// right now with pred push down the join codnition takes the filters as the second argument to condition
+
+	std::string clean_expression = clean_calcite_expression(condition);
+	int operator_count = 0;
+	std::stack<std::string> operand;
+	// NOTE percy c.cordoba here we dont need to call fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp
+	// after
+	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
+	for(std::string token : tokens) {
+		if(is_operator_token(token)) {
+			if(token == "=") {
+				// so far only equijoins are supported in libgdf
+				operator_count++;
+			} else if(token != "AND") {
+				throw std::runtime_error("In evaluate_join function: unsupported non-equijoins operator");
+			}
+		} else {
+			operand.push(token);
+		}
+	}
+
+	columnIndices.resize(2 * operator_count);
+	for(size_t i = 0; i < operator_count; i++) {
+		int right_index = get_index(operand.top());
+		operand.pop();
+		int left_index = get_index(operand.top());
+		operand.pop();
+
+		if(right_index < left_index) {
+			std::swap(left_index, right_index);
+		}
+
+		columnIndices[2 * i] = left_index;
+		columnIndices[2 * i + 1] = right_index;
+	}
+}
 
   std::unique_ptr<ral::frame::BlazingTable> process_distribution_table(
   	const ral::frame::BlazingTableView & table,
@@ -314,7 +359,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   // 	}
   //   return process_hash_based_distribution(left, right, query, context);
   }
-
 
 std::unique_ptr<ral::frame::BlazingTable> processJoin(
   const ral::frame::BlazingTableView & table_left,

@@ -9,7 +9,6 @@
 #define CSVPARSER_H_
 
 #include "DataParser.h"
-#include "GDFColumn.cuh"
 #include "arrow/io/interfaces.h"
 #include <cudf/legacy/io_types.hpp>
 #include <memory>

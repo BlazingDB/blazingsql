@@ -10,6 +10,7 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <thread>
 #include <cudf/filling.hpp>
+#include "gdf_wrapper.cuh"
 
 namespace ral {
 // TODO: namespace frame should be remove from here

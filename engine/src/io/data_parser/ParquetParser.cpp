@@ -35,13 +35,12 @@
 
 #include <parquet/api/reader.h>
 #include <parquet/api/writer.h>
-#include <GDFColumn.cuh>
-#include <GDFCounter.cuh>
 
 #include "../Schema.h"
 #include "../Metadata.h"
 
 #include "io/data_parser/ParserUtil.h"
+#include "gdf_wrapper.cuh"
 
 #include <numeric>
 

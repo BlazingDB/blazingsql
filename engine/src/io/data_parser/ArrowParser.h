@@ -8,7 +8,6 @@
 #include <memory>
 #include "arrow/io/interfaces.h"
 
-#include "GDFColumn.cuh"
 #include "cudf.h"
 #include "../../include/io/io.h"
 #include <arrow/table.h>

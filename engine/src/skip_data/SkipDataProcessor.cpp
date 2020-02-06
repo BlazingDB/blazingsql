@@ -3,9 +3,6 @@
 
 
 #include "skip_data/expression_tree.hpp"
-#include "DataFrame.h"
-#include <GDFColumn.cuh>
-#include "utilities/RalColumn.h"
 #include "FileSystem/Uri.h"
 #include "io/data_parser/metadata/parquet_metadata.h"
 #include "io/data_provider/UriDataProvider.h"
@@ -13,7 +10,6 @@
 #include "../Interpreter/interpreter_cpp.h"
 #include <cudf/legacy/table.hpp>
 #include "communication/CommunicationData.h"
-#include "distribution/NodeColumns.h"
 #include "distribution/primitives.h"
 #include "CalciteInterpreter.h"
 #include "CalciteExpressionParsing.h"
@@ -21,6 +17,7 @@
 #include "legacy/stream_compaction.hpp"
 #include "../io/data_parser/ParserUtil.h"
 #include "../parser/expression_utils.hpp"
+#include "DataFrame.h"
 
 #include <memory> // this is for std::static_pointer_cast
 #include <string>

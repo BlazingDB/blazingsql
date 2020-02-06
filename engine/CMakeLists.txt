@@ -104,7 +104,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
               ${CMAKE_SOURCE_DIR}/src/exception/RalException.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/OrderBy.cpp
-              ${CMAKE_SOURCE_DIR}/src/operators/JoinOperator.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${CMAKE_SOURCE_DIR}/src/io/Schema.cpp
@@ -118,9 +117,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArgsUtil.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/metadata/parquet_metadata.cpp
               ${CMAKE_SOURCE_DIR}/src/Traits/RuntimeTraits.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/RalColumn.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/CommonOperations.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/TableWrapper.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/StringUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
@@ -130,8 +127,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteInterpreter.cpp
               ${CMAKE_SOURCE_DIR}/src/ColumnManipulation.cu
-              ${CMAKE_SOURCE_DIR}/src/ResultSetRepository.cpp
-              ${CMAKE_SOURCE_DIR}/src/JoinProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
               ${CMAKE_SOURCE_DIR}/src/Utils.cu
               ${CMAKE_SOURCE_DIR}/src/GDFCounter.cu

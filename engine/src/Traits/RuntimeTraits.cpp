@@ -1,7 +1,9 @@
 #include <cudf.h>
 #include <cudf/utilities/type_dispatcher.hpp>
-#include "GDFColumn.cuh"
 #include "Traits/RuntimeTraits.h"
+#include "cudf/column/column_view.hpp"
+#include "cudf/column/column.hpp"
+#include "cudf/strings/string_view.cuh"
 
 namespace ral {
 namespace traits {
