@@ -121,12 +121,19 @@ ral::frame::TableViewPair data_loader::load_data(
 	size_t num_columns;
 	size_t num_files = files.size();
 
-	if(num_files > 0)
+	if(num_files > 0) {
 		num_columns = tableViewPairs_per_file[0].first->num_columns();
+	}
 
 	if(num_files == 0 || num_columns == 0) { 
 		// GDFParse is parsed here
-		return parser->parse(nullptr, "", schema, column_indices);
+		ral::frame::TableViewPair ds = parser->parse(nullptr, "", schema, column_indices);
+		bool if_null_empty_load = (ds.first == nullptr);
+		if_null_empty_load = (ds.second.names().empty()) || if_null_empty_load;
+		if (if_null_empty_load) {
+			ds = ral::frame::createEmptyTableViewPair(schema.get_dtypes(), schema.get_names());
+		}
+		return ds;
 	}
 
 	Library::Logging::Logger().logInfo(timer.logDuration(*context, "data_loader::load_data part 2 concat"));
