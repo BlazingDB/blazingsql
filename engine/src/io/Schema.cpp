@@ -22,8 +22,6 @@ std::string convert_dtype_to_string(const cudf::type_id & dtype) {
 	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
 	if(dtype == cudf::type_id::TIMESTAMP_MILLISECONDS)
 		return "timestamp";
-	if(dtype == cudf::type_id::CATEGORY)
-		return "category";
 	if(dtype == cudf::type_id::FLOAT32)
 		return "float32";
 	if(dtype == cudf::type_id::FLOAT64)
