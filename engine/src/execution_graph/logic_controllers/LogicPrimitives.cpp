@@ -1,5 +1,10 @@
 
+
 #include "LogicPrimitives.h"
+#include <sys/stat.h>
+
+
+#include <random>
 namespace ral{
 
 namespace frame{
@@ -26,7 +31,7 @@ BlazingTableView BlazingTable::toBlazingTableView() const{
 
 
 BlazingTableView::BlazingTableView(){
-  
+
 }
 
 BlazingTableView::BlazingTableView(
@@ -50,5 +55,165 @@ std::unique_ptr<BlazingTable> BlazingTableView::clone() const {
 }
 
 
-}
-}
+} // namespace frame
+
+namespace cache{
+
+  std::string randomString(std::size_t length)
+  {
+      const std::string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+      std::random_device random_device;
+      std::mt19937 generator(random_device());
+      std::uniform_int_distribution<> distribution(0, characters.size() - 1);
+
+      std::string random_string;
+
+      for (std::size_t i = 0; i < length; ++i)
+      {
+          random_string += characters[distribution(generator)];
+      }
+
+      return random_string;
+  }
+
+  unsigned long long CacheDataLocalFile::sizeInBytes(){
+    struct stat st;
+
+    if(stat(this->filePath.c_str(),&st)==0)
+        return (st.st_size);
+    else
+        throw;
+  }
+
+  std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache(){
+    cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath}};
+    auto result = cudf_io::read_orc(in_args);
+    return std::make_unique<ral::frame::BlazingTable>(
+      std::move(result.tbl),
+      this->names);
+  }
+
+  CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table) {
+    //TODO: make this configurable
+    this->filePath =".blazing-temp/" + randomString(64) + ".orc";
+    this->names = table->names();
+
+    cudf_io::table_metadata metadata;
+    for (auto name : table->names()) {
+        metadata.column_names.emplace_back(name);
+    }
+    cudf_io::write_orc_args out_args(
+      cudf_io::sink_info{this->filePath},
+      table->view(), &metadata);
+
+    cudf_io::write_orc(out_args);
+  }
+
+
+  bool CacheMachine::finished(){
+      if(gpuData.size() > 0){
+        return false;
+      }
+      for(int cacheIndex = 1; cacheIndex < cache.size(); cacheIndex++){
+        if(cache.size() > 0){
+          return false;
+        }
+      }
+      return this->_finished;
+    }
+
+ void CacheMachine::finish(){
+   this->_finished = true;
+ }
+
+  std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(){
+
+    {
+      std::lock_guard<std::mutex> lock(cacheMutex);
+      if(gpuData.size() > 0){
+        auto data = std::move(gpuData.front());
+        gpuData.pop();
+        usedMemory[0] -= data->sizeInBytes();
+        return std::move(data); //blocks  until it can do this, can return nullptr
+
+      }
+    }
+
+    //a different option would be to use cv.notify here
+    for(int cacheIndex = 1; cacheIndex < memoryPerCache.size(); cacheIndex++){
+      {
+        std::lock_guard<std::mutex> lock(cacheMutex);
+        if(cache[cacheIndex]->size() > 0){
+          auto data = std::move(cache[cacheIndex]->front());
+          cache[cacheIndex]->pop();
+          usedMemory[cacheIndex] -= data->sizeInBytes();
+          return std::move(data->decache());
+        }
+      }
+    }
+    //there are no chunks
+    //make condition variable  and Wait
+    //for now hack it by calling pullFromCache again
+    if(_finished){
+      return nullptr;
+    }
+    return pullFromCache();
+  }
+
+  void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table){
+    for(int cacheIndex = 0; cacheIndex < memoryPerCache.size(); cacheIndex++){
+      if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())){
+        usedMemory[cacheIndex]+= table->sizeInBytes();
+        if(cacheIndex == 0){
+            std::lock_guard<std::mutex> lock(cacheMutex);
+            gpuData.push(std::move(table));
+        }else{
+
+          std::thread t([ tableInLambda = std::move(table),this,cacheIndex] () mutable {
+            if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE){
+
+              std::lock_guard<std::mutex> lock(cacheMutex);
+
+              this->cache[cacheIndex]->push(std::make_unique<CacheDataLocalFile>(std::move(tableInLambda)));
+
+            }
+          });
+          t.detach();
+        }
+        break;
+      }
+    }
+
+  }
+
+  WaitingCacheMachine::WaitingCacheMachine(unsigned long long gpuMemory, std::vector<unsigned long long> memoryPerCache, std::vector<CacheDataType> cachePolicyTypes) :
+  CacheMachine(gpuMemory,memoryPerCache,cachePolicyTypes){
+
+  }
+
+  CacheMachine::~CacheMachine(){
+
+  }
+
+  CacheMachine::CacheMachine(unsigned long long gpuMemory, std::vector<unsigned long long> memoryPerCache_, std::vector<CacheDataType> cachePolicyTypes_)
+  : _finished(false){
+    cache.resize(cachePolicyTypes_.size() + 1);
+      this->memoryPerCache.push_back(gpuMemory);
+    for( auto mem : memoryPerCache_){
+        this->memoryPerCache.push_back(mem);
+    }
+
+    usedMemory.resize(cache.size(),0UL);
+    this->cachePolicyTypes.push_back(GPU);
+    for(auto policy : cachePolicyTypes_){
+      this->cachePolicyTypes.push_back(policy);
+    }
+
+
+  }
+
+
+} // namespace cache
+
+} // namespace ral
