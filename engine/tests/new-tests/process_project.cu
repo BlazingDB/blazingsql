@@ -301,3 +301,21 @@ TEST_F(ProjectTestString, test_cast_from_string)
 
     cudf::test::expect_tables_equal(expected_table_view, out_table->view());
 }
+
+TEST_F(ProjectTestString, test_string_case)
+{
+    cudf::test::fixed_width_column_wrapper<int32_t> col1{{0, 1, 2, 3, 4, 5, 6, 7, 8}};
+    cudf::test::strings_column_wrapper col2{{"The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"}};
+  
+    cudf::table_view in_table_view {{col1, col2}};
+    std::vector<std::string> column_names(in_table_view.num_columns());
+
+    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+                                                    "LogicalProject(EXPR$0=[CASE(=(MOD($0, 2), 0), $1, 'LOL')])",
+                                                    nullptr);
+  
+    cudf::test::strings_column_wrapper expected_col1{{"The", "LOL", "brown", "LOL", "jumps", "LOL", "the", "LOL", "dog"}};
+    cudf::table_view expected_table_view {{expected_col1}};
+
+    cudf::test::expect_tables_equal(expected_table_view, out_table->view());
+}
