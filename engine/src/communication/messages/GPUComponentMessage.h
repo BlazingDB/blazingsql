@@ -43,7 +43,7 @@ using GPUReceivedMessage = blazingdb::transport::experimental::GPUReceivedMessag
 
 inline bool isGdfString(const cudf::column_view& column) {
 	cudf::type_id col_type = column.type().id();
-	bool ret = (cudf::type_id::STRING == col_type || cudf::type_id::CATEGORY == col_type);
+	bool ret = cudf::type_id::STRING == col_type;
 	return ret;
 }
 

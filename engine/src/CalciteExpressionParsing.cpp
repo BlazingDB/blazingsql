@@ -142,9 +142,9 @@ void get_common_type(cudf::type_id type1, cudf::type_id type2, cudf::type_id & t
 		} else {
 			// No common type
 		}
-	} else if((type1 == cudf::type_id::STRING || type1 == cudf::type_id::CATEGORY) &&
-			  (type2 == cudf::type_id::STRING || type2 == cudf::type_id::CATEGORY)) {
-		type_out = cudf::type_id::CATEGORY;
+	} else if((type1 == cudf::type_id::STRING) &&
+			  (type2 == cudf::type_id::STRING)) {
+		type_out = cudf::type_id::STRING;
 	} else {
 		// No common type
 	}

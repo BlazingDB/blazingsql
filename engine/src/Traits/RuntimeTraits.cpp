@@ -60,8 +60,6 @@ cudf::type_id convert_string_dtype(std::string str) {
 	} else if(str == "GDF_TIMESTAMP") {
 		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
 		return cudf::type_id::TIMESTAMP_MILLISECONDS;
-	} else if(str == "GDF_CATEGORY") {
-		return cudf::type_id::CATEGORY;
 	} else if(str == "GDF_STRING") {
 		return cudf::type_id::STRING;
 	// TODO percy cudf0.12 custrings this was not commented

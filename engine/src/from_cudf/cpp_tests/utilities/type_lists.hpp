@@ -189,7 +189,6 @@ static constexpr std::array<cudf::type_id, 8> non_numeric_type_ids{
     cudf::TIMESTAMP_MILLISECONDS,
     cudf::TIMESTAMP_MICROSECONDS,
     cudf::TIMESTAMP_NANOSECONDS,
-    cudf::CATEGORY,
     cudf::STRING};
 
 /**---------------------------------------------------------------------------*
@@ -200,7 +199,6 @@ static constexpr std::array<cudf::type_id, 8> non_numeric_type_ids{
  *---------------------------------------------------------------------------**/
 static constexpr std::array<cudf::type_id, 3> non_fixed_width_type_ids{
     cudf::EMPTY,    
-    cudf::CATEGORY,
     cudf::STRING};
 
 }  // namespace test
