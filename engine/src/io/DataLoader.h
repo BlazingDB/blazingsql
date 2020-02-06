@@ -47,7 +47,7 @@ public:
 		
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
 
-	void get_metadata(Metadata & metadata, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
+	std::unique_ptr<ral::frame::BlazingTable> get_metadata(int offset);
 
 private:
 	/**

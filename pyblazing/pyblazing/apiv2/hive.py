@@ -4,7 +4,7 @@ from TCLIService.ttypes import TOperationState
 import numpy as np
 import cudf
 from itertools import repeat
-
+import pandas as pd
 
 def convertHiveTypeToCudfType(hiveType):
     if(hiveType == 'int' or hiveType == 'integer'):
@@ -55,6 +55,32 @@ def getPartitions(tableName, schema, cursor):
                         columnPartitions.append((columnName, columnValue))
         partitions[partition[0]] = columnPartitions
     return partitions
+
+
+dtypes = {
+    np.float64: "double",
+    np.float32: "float",
+    np.int64: "int64",
+    np.longlong: "int64",
+    np.int32: "int32",
+    np.int16: "int16",
+    np.int8: "int8",
+    np.bool_: "bool",
+    np.datetime64: "date64",
+    np.object_: "str",
+    np.str_: "str",
+}
+
+
+def gdf_dtype_from_dtype(dtype):
+    if pd.api.types.is_datetime64_dtype(dtype):
+        time_unit, _ = np.datetime_data(dtype)
+        return "date64"
+    # everything else is a 1-1 mapping
+    dtype = np.dtype(dtype)
+    if dtype.type in dtypes:
+        return dtypes[dtype.type]
+    raise TypeError('cannot convert numpy dtype `%s` to gdf_dtype' % (dtype))
 
 
 def get_hive_table(cursor, tableName):
@@ -124,6 +150,10 @@ def get_hive_table(cursor, tableName):
     uri_values = []
     extra_kwargs = {}
     extra_kwargs['delimiter'] = schema['delimiter']
+    if schema['fileType'] == 'csv':
+        extra_kwargs['names'] = [col_name for col_name, dtype, is_virtual_col  in schema['columns'] if not is_virtual_col ]
+        extra_kwargs['dtype'] = [gdf_dtype_from_dtype(dtype) for col_name, dtype, is_virtual_col in schema['columns'] if not is_virtual_col]
+    extra_kwargs['file_format'] = schema['fileType']
     extra_columns = []
     in_file = []
     for column in schema['columns']:
@@ -134,7 +164,7 @@ def get_hive_table(cursor, tableName):
         partition = schema['partitions'][partitionName]
         file_list.append(schema['location'] + "/" + partitionName + "/*")
         uri_values.append(partition)
-    return file_list, uri_values, schema['fileType'], extra_kwargs, extra_columns, in_file
+    return file_list, uri_values, schema['fileType'], extra_kwargs, extra_columns, in_file, schema['partitions']
 
 
 def runHiveDDL(cursor, query):

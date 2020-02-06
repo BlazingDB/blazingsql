@@ -21,7 +21,7 @@ uri_data_provider::uri_data_provider(std::vector<Uri> uris)
 	: data_provider(), file_uris(uris), uri_scalars({}), string_scalars({}), is_column_string({}), opened_files({}),
 	  current_file(0), errors({}), directory_uris({}), directory_current_file(0) {}
 
-// TODO percy cudf0.12 implement proper scalar support
+// TODO percy cudf0.12 implement proper scalar support, TODO, finish this to support HIVE with partitions, @alex 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
 	std::vector<std::map<std::string, cudf::scalar*>> uri_scalars,
 	std::vector<std::map<std::string, std::string>> string_scalars,

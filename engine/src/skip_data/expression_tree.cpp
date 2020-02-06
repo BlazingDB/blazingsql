@@ -200,12 +200,12 @@ int expression_tree::build(std::shared_ptr<abstract_node> &parent,
   while (true) {
     auto str = parts[index];
     if (parent == nullptr) {
-      if (is_unary_op(str))
-        parent = std::make_shared<unary_op_node>(str);
-      else if (is_var_column(str))
+      if (is_var_column(str))
         parent = std::make_shared<var_node>(str);
       else if (is_number(str))
         parent = std::make_shared<const_node>(str);
+      else if (is_unary_op(str))
+        parent = std::make_shared<unary_op_node>(str);
       else
         parent = std::make_shared<binary_op_node>(str);
     } else {
