@@ -125,9 +125,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     std::vector<int> & columnIndices,
     blazingdb::manager::experimental::Context * context) {
 
-    std::cout<<"columnIndices.size(): "<<columnIndices.size()<<" columnIndices[0]"<<columnIndices[0]<<std::endl;
-    ral::utilities::print_blazing_table_view_schema(table, "join_table_in");
-
     std::vector<NodeColumnView > partitions;
     std::unique_ptr<CudfTable> hashed_data;
     if (table.num_rows() > 0){    
