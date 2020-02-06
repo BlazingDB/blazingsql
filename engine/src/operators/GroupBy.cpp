@@ -530,7 +530,10 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT8));
 						auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int8_t>* >(scalar.get());
 						numeric_s->set_value(0);
-						cudf::experimental::fill(temp->mutable_view(), 0, temp->size(), *scalar);
+						auto mview_temp = temp->mutable_view();
+						if (temp->size() != 0) {
+							cudf::experimental::fill(mview_temp, 0, temp->size(), *scalar);
+						}
 						aggregation_inputs_scope_holder.emplace_back(std::move(temp));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					} else {
