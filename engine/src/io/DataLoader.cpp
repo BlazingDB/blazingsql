@@ -128,10 +128,16 @@ ral::frame::TableViewPair data_loader::load_data(
 	if(num_files == 0 || num_columns == 0) { 
 		// GDFParse is parsed here
 		ral::frame::TableViewPair ds = parser->parse(nullptr, "", schema, column_indices);
-		bool if_null_empty_load = (ds.first == nullptr);
-		if_null_empty_load = (ds.second.names().empty()) || if_null_empty_load;
+		bool if_null_empty_load = (ds.second.num_columns() == 0);
 		if (if_null_empty_load) {
-			ds = ral::frame::createEmptyTableViewPair(schema.get_dtypes(), schema.get_names());
+			std::vector<std::string> select_names(column_indices.size());
+			std::vector<cudf::type_id> select_types(column_indices.size());
+			for (int i = 0; i < column_indices.size(); i++){
+				select_names[i] = schema.get_names()[column_indices[i]];
+				select_types[i] = schema.get_dtypes()[column_indices[i]];
+			}
+
+			ds = ral::frame::createEmptyTableViewPair(select_types, select_names);
 		}
 		return ds;
 	}
