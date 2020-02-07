@@ -71,5 +71,24 @@ TEST_F(CacheMachineTest, FilterTest){
         processor.run();
     std::cout << "<<> processor.run()\n";
     std::this_thread::sleep_for (std::chrono::seconds(1));
+}
 
+TEST_F(CacheMachineTest, ProjectTest) {
+    using ProcessorFunctor = std::unique_ptr<ral::frame::BlazingTable> (
+            const ral::frame::BlazingTableView & table,
+            const std::string & query_part,
+            blazingdb::manager::experimental::Context * context);
+
+    std::shared_ptr<ral::cache::CacheMachine> cacheSource = createSourceCacheMachine();
+    std::shared_ptr<ral::cache::CacheMachine> cacheSink  = createSinkCacheMachine();
+    ProcessorFunctor *process_project = &ral::processor::process_project;
+    std::string queryString = "LogicalProject(INT64=[$0], INT32=[$1], FLOAT64=[$2])";
+    BlazingContext * context = nullptr;
+    int numWorkers = 1;
+    ral::cache::ProcessMachine<ProcessorFunctor> processor(cacheSource, cacheSink, process_project, queryString, context, numWorkers);
+
+    std::cout << ">> processor.run()\n";
+    processor.run();
+    std::cout << "<<> processor.run()\n";
+    std::this_thread::sleep_for (std::chrono::seconds(1));
 }
