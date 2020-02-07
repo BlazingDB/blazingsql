@@ -338,10 +338,10 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 	// convert scalars into columns
 	std::vector<std::unique_ptr<cudf::column>> output_columns;
 	for (int i = 0; i < reductions.size(); i++){
-		std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(reductions[i]->type(), 1);
+		std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(reductions[i]->type(), 1, cudf::mask_state::ALL_NULL);
 		cudf::mutable_column_view temp_mutable_view = temp->mutable_view();
 
-		if(table.num_rows()!=0){ //empty table, no needed to perform reductions
+		if(table.num_rows()!=0 || aggregation_types[i] == "COUNT"){ //empty table, no needed to perform reductions
 			cudf::experimental::fill(temp_mutable_view, 0, 1, *(reductions[i]));
 		}
 
