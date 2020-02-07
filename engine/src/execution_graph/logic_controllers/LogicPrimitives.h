@@ -7,8 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <blazingdb/manager/Context.h>
-#include <blazingdb/io/Config/BlazingContext.h>
+#include <blazingdb/manager/Context.h> 
 #include <cudf/io/functions.hpp>
 #include <mutex>
 #include <queue>
@@ -182,6 +181,40 @@ protected:
   bool _finished;
 };
 
+static std::string type_string(cudf::data_type dtype) {
+    using namespace cudf;
+
+    switch (dtype.id()) {
+        case BOOL8: return "BOOL8";
+        case INT8:  return "INT8";
+        case INT16: return "INT16";
+        case INT32: return "INT32";
+        case INT64: return "INT64";
+        case FLOAT32: return "FLOAT32";
+        case FLOAT64: return "FLOAT64";
+        case STRING:  return "STRING";
+        case TIMESTAMP_DAYS: return "TIMESTAMP_DAYS";
+        case TIMESTAMP_SECONDS: return "TIMESTAMP_SECONDS";
+        case TIMESTAMP_MILLISECONDS: return "TIMESTAMP_MILLISECONDS";
+        case TIMESTAMP_MICROSECONDS: return "TIMESTAMP_MICROSECONDS";
+        case TIMESTAMP_NANOSECONDS: return "TIMESTAMP_NANOSECONDS";
+        default: return "Unsupported type_id";
+    }
+}
+
+static void print_blazing_table_view(ral::frame::BlazingTableView table_view, const std::string table_name = ""){
+    std::cout<<"Table: "<<table_name<<std::endl;
+    std::cout<<"\t"<<"Num Rows: "<<table_view.num_rows()<<std::endl;
+    std::cout<<"\t"<<"Num Columns: "<<table_view.num_columns()<<std::endl;
+    for(size_t col_idx=0; col_idx<table_view.num_columns(); col_idx++){
+        std::string col_string;
+        if (table_view.num_rows() > 0){
+            col_string = cudf::test::to_string(table_view.column(col_idx), "|");
+        }
+        std::cout<<"\t"<<table_view.names().at(col_idx)<<" ("<<"type: "<<type_string(table_view.column(col_idx).type())<<"): "<<col_string<<std::endl;
+    }
+}
+
 class WaitingCacheMachine : public CacheMachine{
 public:
 	WaitingCacheMachine(unsigned long long gpuMemory, std::vector<unsigned long long> memoryPerCache, std::vector<CacheDataType> cachePolicyTypes);
@@ -201,20 +234,20 @@ public:
     virtual bool process() = 0;
 
   protected:
-    BlazingContext * context;
+    blazingdb::manager::experimental::Context * context;
     std::string queryString;
     bool _paused;
 };
 
 	template <typename Processor>
-	class SingleSourceWorkerThread : WorkerThread{
+	class SingleSourceWorkerThread : public WorkerThread{
 	public:
 		SingleSourceWorkerThread(
 			std::shared_ptr<CacheMachine> cacheSource,
 			std::shared_ptr<CacheMachine> cacheSink,
 			std::string queryString,
-            Processor * processor,
-			BlazingContext * context)
+      Processor * processor,
+			blazingdb::manager::experimental::Context * context)
 			    :  source(cacheSource), sink(cacheSink), WorkerThread()
 			 {
 				this->context = context;
@@ -226,20 +259,22 @@ public:
 		//returns true when theres nothing left to process
 		bool process() override {
 
-			if(_paused || source->finished()){
-				return false;
-			}
-			auto input = source->pullFromCache();
-			if(input == nullptr){
-				return true;
-			}
-			//TODO: fix context Type
-			auto output = this->processor(input->toBlazingTableView(), queryString, nullptr);
-			std::cout << ">>> process filter ()\n";
-            sink->addToCache(std::move(output));
-            std::cout << "<<< process filter ()\n";
-            // TODO: Fix or ask @felipe latter
-            // return process();
+      if(_paused || source->finished()){
+        return false;
+      }
+      auto input = source->pullFromCache();
+      if(input == nullptr){
+        return true;
+      }
+      //TODO: fix context Type
+      print_blazing_table_view(input->toBlazingTableView());
+      auto output = this->processor(input->toBlazingTableView(), queryString, nullptr);
+      std::cout << ">>> process filter ()\n";
+      print_blazing_table_view(output->toBlazingTableView());
+      sink->addToCache(std::move(output));
+      std::cout << "<<< process filter ()\n";
+      // TODO: Fix or ask @felipe latter
+      // return process();
 		}
 		void resume(){
 			_paused = false;
@@ -253,28 +288,30 @@ public:
 	private:
 		std::shared_ptr<CacheMachine> source;
 		std::shared_ptr<CacheMachine> sink;
-        Processor * processor;
+    Processor * processor;
 	};
 //
 ////Has two sources, waits until at least one is complte before proceeding
-//	template <typename Processor>
-//	class DoubleSourceWaitingWorkerThread : WorkerThread{
-//	public:
-//		SingleSourceWorkerThread(
-//			std::shared_ptr<WaitingCacheMachine> cacheSourceLeft,
-//			std::shared_ptr<WaitingCacheMachine> cacheSourceRight,
-//			std::shared_ptr<CacheMachine> cacheSink,
-//			std::string queryString,
-//			BlazingContext * context): source(cacheSource), sink(cacheSink)
-//			 {
-//				this->context = context;
-//				this->queryString = queryString;
-//				this->_paused = false;
-//		}
-//
-//		//returns true when theres nothing left to process
-//		void process(){
-//
+template <typename Processor>
+class DoubleSourceWaitingWorkerThread : public WorkerThread {
+	public:
+		DoubleSourceWaitingWorkerThread(
+			std::shared_ptr<CacheMachine> cacheSourceOne,
+			std::shared_ptr<CacheMachine> cacheSourceTwo,
+			std::shared_ptr<CacheMachine> cacheSink,
+			std::string queryString,
+      Processor * processor,
+			blazingdb::manager::experimental::Context * context): sourceOne(cacheSourceOne), sourceTwo(cacheSourceTwo), sink(cacheSink)
+    {
+				this->context = context;
+				this->queryString = queryString;
+				this->_paused = false;
+        this->processor = processor;
+		}
+
+		//returns true when theres nothing left to process
+		bool process() override {
+//TODO : complete this threads
 //			std::thread left([]{
 //
 //			});
@@ -282,32 +319,49 @@ public:
 //			std::thread right([]{
 //
 //			});
-//
-//			//USE a cv here to notify when they finish or what?
-//			if(_paused || source->finished()){
-//				return;
-//			}
-//			auto input = source->pullFromCache();
-//			if(input == nullptr){
-//				return;
-//			}
-//			auto output = Processor(input->view(), context, queryString);
-//			sink->addToCache(output);
-//			process();
-//		}
-//		void resume(){
-//			_paused = false;
-//		}
-//		void pause(){
-//			_paused = true;
-//		}
-//		virtual ~SingleSourceWorkerThread();
-//	private:
-//		std::shared_ptr<CacheMachine> source;
-//		std::shared_ptr<CacheMachine> sink;
-//
-//
-//	};
+
+			//USE a cv here to notify when they finish or what?
+			if(_paused || sourceOne->finished()){
+				return false;
+			}
+			auto inputOne = sourceOne->pullFromCache();
+			if(inputOne == nullptr){
+				return false;
+			}
+
+            if(_paused || sourceTwo->finished()){
+				return false;
+			}
+			auto inputTwo = sourceTwo->pullFromCache();
+			if(inputTwo == nullptr){
+				return false;
+			}
+      // TODO: change blazingdb::manager::experimental::ContextType
+			auto output = this->processor(this->context, inputOne->toBlazingTableView(), inputTwo->toBlazingTableView(), queryString);
+			sink->addToCache(std::move(output));
+			//  TODO: ask @felipe recursive call
+          // process();
+         return true;
+		}
+
+		void resume(){
+			_paused = false;
+		}
+
+		void pause(){
+			_paused = true;
+		}
+
+		virtual ~DoubleSourceWaitingWorkerThread() {
+
+    }
+
+	private:
+		std::shared_ptr<CacheMachine> sourceOne;
+    std::shared_ptr<CacheMachine> sourceTwo;
+		std::shared_ptr<CacheMachine> sink;
+    Processor * processor;
+	};
 
 
 	template <typename Processor>
@@ -317,12 +371,26 @@ public:
       std::shared_ptr<CacheMachine> cacheSource,
       std::shared_ptr<CacheMachine> cacheSink,
       Processor* processor, std::string queryString,
-      BlazingContext * context,
+      blazingdb::manager::experimental::Context * context,
       int numWorkers)
     : source(cacheSource), sink(cacheSink),
       context(context), queryString(queryString), numWorkers(numWorkers){
 				for(int i = 0; i < numWorkers; i++){
-                    auto thread = std::make_unique<SingleSourceWorkerThread< Processor > >(cacheSource, cacheSink, queryString, processor, context  );
+            auto thread = std::make_unique<SingleSourceWorkerThread< Processor > >(cacheSource, cacheSink, queryString, processor, context  );
+				    workerThreads.emplace_back(std::move(thread));
+				}
+    }
+    ProcessMachine(
+      std::shared_ptr<CacheMachine> cacheSourceOne,
+      std::shared_ptr<CacheMachine> cacheSourceTwo,
+      std::shared_ptr<CacheMachine> cacheSink,
+      Processor* processor, std::string queryString,
+      blazingdb::manager::experimental::Context * context,
+      int numWorkers)
+    :   sink(cacheSink),
+        context(context), queryString(queryString), numWorkers(numWorkers){
+				for(int i = 0; i < numWorkers; i++){
+            auto thread = std::make_unique<DoubleSourceWaitingWorkerThread< Processor > >(cacheSourceOne, cacheSourceTwo, cacheSink, queryString, processor, context  );
 				    workerThreads.emplace_back(std::move(thread));
 				}
     }
@@ -331,9 +399,9 @@ public:
   private:
 		std::shared_ptr<CacheMachine> source;
 		std::shared_ptr<CacheMachine> sink;
-    std::vector<std::unique_ptr<SingleSourceWorkerThread< Processor >> > workerThreads;
+    std::vector<std::unique_ptr<WorkerThread> > workerThreads;
     int numWorkers;
-		BlazingContext * context;
+		blazingdb::manager::experimental::Context * context;
     std::string queryString;
   };
 

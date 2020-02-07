@@ -1,6 +1,7 @@
 
 #include <cudf/cudf.h>
 #include <cudf/types.hpp>
+#include <cudf/io/functions.hpp>
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
@@ -62,8 +63,7 @@ TEST_F(CacheMachineTest, FilterTest){
     std::shared_ptr<ral::cache::CacheMachine> cacheSink  = createSinkCacheMachine();
     ProcessorFunctor *process_project = &ral::processor::process_filter;
     std::string queryString = "BindableTableScan(table=[[main, nation]], filters=[[<($0, 5)]])";
-//    std::string queryString = "BindableTableScan(table=[[main, nation]], projects=[[0, 1]], aliases=[[INT64, INT32]])";
-    BlazingContext * context = nullptr;
+    blazingdb::manager::experimental::Context * context = nullptr;
     int numWorkers = 1;
     ral::cache::ProcessMachine<ProcessorFunctor> processor(cacheSource, cacheSink, process_project, queryString, context, numWorkers);
 
@@ -83,7 +83,7 @@ TEST_F(CacheMachineTest, ProjectTest) {
     std::shared_ptr<ral::cache::CacheMachine> cacheSink  = createSinkCacheMachine();
     ProcessorFunctor *process_project = &ral::processor::process_project;
     std::string queryString = "LogicalProject(INT64=[$0], INT32=[$1], FLOAT64=[$2])";
-    BlazingContext * context = nullptr;
+    blazingdb::manager::experimental::Context * context = nullptr;
     int numWorkers = 1;
     ral::cache::ProcessMachine<ProcessorFunctor> processor(cacheSource, cacheSink, process_project, queryString, context, numWorkers);
 
@@ -91,4 +91,82 @@ TEST_F(CacheMachineTest, ProjectTest) {
     processor.run();
     std::cout << "<<> processor.run()\n";
     std::this_thread::sleep_for (std::chrono::seconds(1));
+}
+
+
+
+//namespace cudf_io = cudf::experimental::io;
+//std::shared_ptr<ral::cache::CacheMachine>  createNationMachine() {
+//    unsigned long long  gpuMemory = 1024;
+//    std::vector<unsigned long long > memoryPerCache = {INT_MAX};
+//    std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+//    auto source =  std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+//     auto PARQUET_NATION_PATH = "/home/aocsa/tpch/DataSet5Part100MB/nation_0_0.parquet";
+//    cudf_io::read_parquet_args in_args{cudf_io::source_info{PARQUET_NATION_PATH}};
+//    auto table = cudf_io::read_parquet(in_args);
+//    std::vector<std::string> column_names= {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
+//    auto blazing_table =  std::make_unique<ral::frame::BlazingTable>(std::move(table.tbl), column_names);
+//    source->addToCache(std::move(blazing_table));
+//    return source;
+//}
+//
+//std::shared_ptr<ral::cache::CacheMachine>  createRegionMachine() {
+//    unsigned long long  gpuMemory = 1024;
+//    std::vector<unsigned long long > memoryPerCache = {INT_MAX};
+//    std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+//    auto source =  std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+//    auto PARQUET_REGION_PATH = "/home/aocsa/tpch/DataSet5Part100MB/region_0_0.parquet";
+//    cudf_io::read_parquet_args in_args{cudf_io::source_info{PARQUET_REGION_PATH}};
+//    auto table = cudf_io::read_parquet(in_args);
+//    std::vector<std::string> column_names= {"r_regionkey", "r_name", "r_comment"};
+//    auto blazing_table =  std::make_unique<ral::frame::BlazingTable>(std::move(table.tbl), column_names);
+//
+//    source->addToCache(std::move(blazing_table));
+//    return source;
+//}
+
+
+std::shared_ptr<ral::cache::CacheMachine>  createSourceCacheMachineOneColumn() {
+    unsigned long long  gpuMemory = 1024;
+    std::vector<unsigned long long > memoryPerCache = {INT_MAX};
+    std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+    auto source =  std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+    auto table = build_custom_one_column_table();
+    source->addToCache(std::move(table));
+    return source;
+}
+
+
+
+TEST_F(CacheMachineTest, LogicalJoinTest) {
+     using ProcessorFunctor = std::unique_ptr<ral::frame::BlazingTable> (
+            blazingdb::manager::experimental::Context *,
+            const ral::frame::BlazingTableView & ,
+            const ral::frame::BlazingTableView & ,
+            const std::string & );
+
+    std::shared_ptr<ral::cache::CacheMachine> cacheLeftSource = createSourceCacheMachineOneColumn();
+    std::shared_ptr<ral::cache::CacheMachine> cacheRightSource = createSourceCacheMachineOneColumn();
+    std::shared_ptr<ral::cache::CacheMachine> cacheSink  = createSinkCacheMachine();
+    ProcessorFunctor *process_project = &ral::processor::process_logical_join;
+
+    std::string queryString =  "LogicalJoin(condition=[=($1, $0)], joinType=[inner])"; 
+    using blazingdb::manager::experimental::Context;
+    using blazingdb::transport::experimental::Node;
+    using blazingdb::transport::experimental::Address;
+    std::vector<Node> contextNodes;
+    auto address = Address::TCP("127.0.0.1", 8089, 0);
+    contextNodes.push_back(Node(address));
+    uint32_t ctxToken = 123;
+    Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+
+    int numWorkers = 1;
+
+    ral::cache::ProcessMachine<ProcessorFunctor> processor(cacheLeftSource, cacheRightSource, cacheSink, process_project, queryString, &queryContext, numWorkers);
+
+    std::cout << ">> processor.run()\n";
+    processor.run();
+    std::cout << "<<> processor.run()\n";
+    std::this_thread::sleep_for (std::chrono::seconds(1));
+
 }

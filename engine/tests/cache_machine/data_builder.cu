@@ -50,3 +50,17 @@ std::unique_ptr<ral::frame::BlazingTable> build_custom_table() {
     return std::make_unique<ral::frame::BlazingTable>(ral::frame::BlazingTable(std::move(table), column_names));
 }
  
+
+std::unique_ptr<ral::frame::BlazingTable>  build_custom_one_column_table() {
+    cudf::size_type size = 10;
+
+    auto num_column_1 = make_col<int32_t>(size); 
+    std::vector<std::unique_ptr<cudf::column>> columns;
+    columns.push_back(std::move(num_column_1));  
+    std::vector<std::string> column_names = {"INT64"};
+
+    auto table = std::make_unique<cudf::experimental::table>(std::move(columns));
+    return std::make_unique<ral::frame::BlazingTable>(ral::frame::BlazingTable(std::move(table), column_names));
+
+}
+
