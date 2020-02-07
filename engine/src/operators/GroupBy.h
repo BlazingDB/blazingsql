@@ -1,7 +1,6 @@
 #ifndef BLAZINGDB_RAL_GROUPBY_OPERATOR_H
 #define BLAZINGDB_RAL_GROUPBY_OPERATOR_H
 
-#include "DataFrame.h"
 #include <blazingdb/manager/Context.h>
 #include <string>
 #include <vector>

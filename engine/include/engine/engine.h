@@ -5,11 +5,6 @@
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
-struct ResultSet {
-	std::unique_ptr<cudf::experimental::table> cudfTable;
-	std::vector<std::string> names;
-};
-
 struct SkipDataResultSet {
 	std::vector<int> files;
 	std::vector<std::vector<int>> row_groups;

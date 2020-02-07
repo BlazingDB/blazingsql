@@ -306,7 +306,7 @@ void gdf_column_cpp::create_gdf_column(const std::unique_ptr<cudf::scalar> & sca
 
 void gdf_column_cpp::create_empty(const cudf::type_id     dtype,
                                   const std::string & column_name) {
-    if (cudf::type_id::STRING == dtype || cudf::type_id::CATEGORY == dtype ) {  // cudf::size_of doesn't support GDF_STRING
+    if (cudf::type_id::STRING == dtype) {  // cudf::size_of doesn't support GDF_STRING
         create_gdf_column(
             NVCategory::create_from_array(nullptr, 0), 0, column_name);
     } else {

@@ -1,7 +1,4 @@
 #include "communication/factory/MessageFactory.h"
-#include "GDFColumn.cuh"
-
-
 
 
 namespace ral {
