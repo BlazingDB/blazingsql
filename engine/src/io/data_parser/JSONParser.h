@@ -1,27 +1,18 @@
-/*
- * jsonParser.h
- *
- *  Created on: Nov 29, 2018
- *      Author: felipe
- */
+#pragma once
 
-#ifndef jsonPARSER_H_
-#define jsonPARSER_H_
-
-#include "DataParser.h"
-#include "arrow/io/interfaces.h"
-#include "cudf/legacy/io_types.hpp"
+#include <arrow/io/interfaces.h>
+#include <cudf/io/functions.hpp>
 #include <memory>
 #include <vector>
 
-#include <cudf/io/functions.hpp>
+#include "DataParser.h"
 
 namespace ral {
 namespace io {
 
 class json_parser : public data_parser {
 public:
-	json_parser(cudf::json_read_arg args);
+	json_parser(cudf::experimental::io::read_json_args args);
 
 	virtual ~json_parser();
 
@@ -34,9 +25,8 @@ public:
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, Schema & schema);
 
 private:
-	cudf::json_read_arg args;
+	cudf::experimental::io::read_json_args args;
 };
+
 } /* namespace io */
 } /* namespace ral */
-
-#endif /* jsonPARSER_H_ */
