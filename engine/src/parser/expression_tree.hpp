@@ -151,6 +151,40 @@ private:
 	}
 };
 
+namespace detail {
+	inline void print_helper(const parse_node * node, size_t depth) {
+		if(!node)
+			return;
+
+		for(size_t i = 0; i < depth; ++i) {
+			std::cout << "    ";
+		}
+
+		std::cout << node->value << "\n";
+
+		for(auto && c : node->children) {
+			print_helper(c.get(), depth + 1);
+		}
+	}
+
+	inline std::string rebuild_helper(const parse_node * node) {
+		if(!node)
+			return "";
+
+		if(node->type == parse_node_type::OPERATOR) {
+			std::string operands = "";
+			for(auto && c : node->children) {
+				std::string sep = operands.empty() ? "" : ", ";
+				operands += sep + rebuild_helper(c.get());
+			}
+
+			return node->value + "(" + operands + ")";
+		}
+
+		return node->value;
+	}
+}
+
 struct parse_tree {
 	std::unique_ptr<parse_node> root;
 
@@ -218,38 +252,6 @@ private:
 		return pos;
 	}
 
-	void print_helper(parse_node * node, size_t depth) {
-		if(!node)
-			return;
-
-		for(size_t i = 0; i < depth; ++i) {
-			std::cout << "    ";
-		}
-
-		std::cout << node->value << "\n";
-
-		for(auto && c : node->children) {
-			print_helper(c.get(), depth + 1);
-		}
-	}
-
-	std::string rebuild_helper(parse_node * node) {
-		if(!node)
-			return "";
-
-		if(node->type == parse_node_type::OPERATOR) {
-			std::string operands = "";
-			for(auto && c : node->children) {
-				std::string sep = operands.empty() ? "" : ", ";
-				operands += sep + rebuild_helper(c.get());
-			}
-
-			return node->value + "(" + operands + ")";
-		}
-
-		return node->value;
-	}
-
 public:
 	parse_tree() = default;
 
@@ -260,7 +262,7 @@ public:
 
 	void print() {
 		assert(!!this->root);
-		print_helper(this->root.get(), 0);
+		detail::print_helper(this->root.get(), 0);
 	}
 
 	void visit(parse_node_visitor& visitor) {
@@ -310,21 +312,21 @@ public:
 					if(this->root.get()->children.size() == 2) {
 						for(auto && c : this->root.get()->children) {
 							if(c.get()->value == "=") {
-								join_out = rebuild_helper(c.get());
+								join_out = detail::rebuild_helper(c.get());
 							} else {
-								filter_out = rebuild_helper(c.get());
+								filter_out = detail::rebuild_helper(c.get());
 							}
 						}
 					} else {
 						parse_node * filter_root = new operator_node{"AND"};
 						for(auto && c : this->root.get()->children) {
 							if(c.get()->value == "=") {
-								join_out = rebuild_helper(c.get());
+								join_out = detail::rebuild_helper(c.get());
 							} else {
 								filter_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
 							}
 						}
-						filter_out = rebuild_helper(filter_root);
+						filter_out = detail::rebuild_helper(filter_root);
 					}
 				} else if(num_equalities == this->root.get()->children.size() -
 												1) {  // only one that does not have an inequality and therefore will be
@@ -334,10 +336,10 @@ public:
 						if(c.get()->value == "=") {
 							join_out_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
 						} else {
-							filter_out = rebuild_helper(c.get());
+							filter_out = detail::rebuild_helper(c.get());
 						}
 					}
-					join_out = rebuild_helper(join_out_root);
+					join_out = detail::rebuild_helper(join_out_root);
 				} else {
 					parse_node * join_out_root = new operator_node{"AND"};
 					parse_node * filter_root = new operator_node{"AND"};
@@ -348,8 +350,8 @@ public:
 							filter_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
 						}
 					}
-					join_out = rebuild_helper(join_out_root);
-					filter_out = rebuild_helper(filter_root);
+					join_out = detail::rebuild_helper(join_out_root);
+					filter_out = detail::rebuild_helper(filter_root);
 				}
 			} else {  // this is not supported. Throw error
 				std::string original_join_condition = this->rebuildExpression();
@@ -365,7 +367,7 @@ public:
 
 	std::string rebuildExpression() {
 		assert(!!this->root);
-		return rebuild_helper(this->root.get());
+		return detail::rebuild_helper(this->root.get());
 	}
 };
 
