@@ -219,14 +219,6 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 	std::vector<CudfTableView> partitioned_data = cudf::experimental::split(table.view(), host_pivot_indexes.first);
 
-	std::unique_ptr<CudfTable> empty;
-	// split can return one less, due to weird implementation details in cudf. When so, the last one should have been emtpy
-    // https://github.com/rapidsai/cudf/issues/4056
-	if (partitioned_data.size() == host_pivot_indexes.first.size()){
-		empty = cudf::experimental::empty_like(table.view());
-		partitioned_data.emplace_back(empty->view());
-	}
-
 	std::vector<Node> all_nodes = context->getAllNodes();
 
 	if(all_nodes.size() != partitioned_data.size()){
