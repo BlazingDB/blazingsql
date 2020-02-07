@@ -327,13 +327,10 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 
 	std::unique_ptr<CudfTable> merged_table;
 	CudfTableView left_table = tables[0].view();
+	
 	for(size_t i = 1; i < tables.size(); i++) {
-
 		CudfTableView right_table = tables[i].view();
-
-		merged_table = cudf::experimental::merge(left_table, right_table,
-													sortColIndices, column_order, null_orders);
-
+		merged_table = cudf::experimental::merge({left_table, right_table}, sortColIndices, column_order, null_orders);
 		left_table = merged_table->view();
 	}
 
