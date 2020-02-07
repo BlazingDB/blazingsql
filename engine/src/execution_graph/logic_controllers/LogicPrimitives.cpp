@@ -128,7 +128,6 @@ namespace cache{
  }
 
   std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(){
-
     {
       std::lock_guard<std::mutex> lock(cacheMutex);
       if(gpuData.size() > 0){
@@ -158,7 +157,8 @@ namespace cache{
     if(_finished){
       return nullptr;
     }
-    return pullFromCache();
+    // TODO: Fix or ask @felipe latter
+    //    return pullFromCache();
   }
 
   void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table){
@@ -169,11 +169,10 @@ namespace cache{
             std::lock_guard<std::mutex> lock(cacheMutex);
             gpuData.push(std::move(table));
         }else{
-
-            std::thread t([ tableInLambda = std::move(table),this,cacheIndex] () mutable {
+            std::thread t([ table = std::move(table),this,cacheIndex] () mutable {
               if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE){
                 std::lock_guard<std::mutex> lock(cacheMutex);
-                auto item = std::make_unique<CacheDataLocalFile>(std::move(tableInLambda));
+                auto item = std::make_unique<CacheDataLocalFile>(std::move(table));
                 this->cache[cacheIndex]->push(std::move(item));
                 //NOTE: Wait don't kill the main process until the last thread is finished!
               }

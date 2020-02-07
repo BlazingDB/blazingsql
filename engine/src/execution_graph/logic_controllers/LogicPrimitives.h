@@ -13,6 +13,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <src/from_cudf/cpp_tests/utilities/column_utilities.hpp>
 
 typedef cudf::experimental::table CudfTable;
 typedef cudf::table_view CudfTableView;
@@ -191,18 +192,19 @@ public:
 //	std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 };
 
-
-
   class WorkerThread{
   public:
-    WorkerThread() = delete;
-    virtual ~WorkerThread();
-    virtual bool process();
+
+    WorkerThread() {}
+    virtual ~WorkerThread() {
+    }
+    virtual bool process() = 0;
+
   protected:
     BlazingContext * context;
     std::string queryString;
-		bool _paused;
-	};
+    bool _paused;
+};
 
 	template <typename Processor>
 	class SingleSourceWorkerThread : WorkerThread{
@@ -211,11 +213,14 @@ public:
 			std::shared_ptr<CacheMachine> cacheSource,
 			std::shared_ptr<CacheMachine> cacheSink,
 			std::string queryString,
-			BlazingContext * context): source(cacheSource), sink(cacheSink)
+            Processor * processor,
+			BlazingContext * context)
+			    :  source(cacheSource), sink(cacheSink), WorkerThread()
 			 {
 				this->context = context;
 				this->queryString = queryString;
 				this->_paused = false;
+				this->processor = processor;
 		}
 
 		//returns true when theres nothing left to process
@@ -228,9 +233,13 @@ public:
 			if(input == nullptr){
 				return true;
 			}
-			auto output = Processor(input->view(), context, queryString);
-			sink->addToCache(output);
-			return process();
+			//TODO: fix context Type
+			auto output = this->processor(input->toBlazingTableView(), queryString, nullptr);
+			std::cout << ">>> process filter ()\n";
+            sink->addToCache(std::move(output));
+            std::cout << "<<< process filter ()\n";
+            // TODO: Fix or ask @felipe latter
+            // return process();
 		}
 		void resume(){
 			_paused = false;
@@ -238,10 +247,13 @@ public:
 		void pause(){
 			_paused = true;
 		}
-		virtual ~SingleSourceWorkerThread();
+		virtual ~SingleSourceWorkerThread() {
+
+		}
 	private:
 		std::shared_ptr<CacheMachine> source;
 		std::shared_ptr<CacheMachine> sink;
+        Processor * processor;
 	};
 //
 ////Has two sources, waits until at least one is complte before proceeding
@@ -304,17 +316,14 @@ public:
     ProcessMachine(
       std::shared_ptr<CacheMachine> cacheSource,
       std::shared_ptr<CacheMachine> cacheSink,
-      Processor processor, std::string queryString,
+      Processor* processor, std::string queryString,
       BlazingContext * context,
       int numWorkers)
     : source(cacheSource), sink(cacheSink),
-      context(context), queryString(queryString){
-
+      context(context), queryString(queryString), numWorkers(numWorkers){
 				for(int i = 0; i < numWorkers; i++){
-					workerThreads.push_back(
-						std::move(
-							std::make_unique<SingleSourceWorkerThread< Processor > >(
-								 cacheSource,cacheSink, queryString, context  )));
+                    auto thread = std::make_unique<SingleSourceWorkerThread< Processor > >(cacheSource, cacheSink, queryString, processor, context  );
+				    workerThreads.emplace_back(std::move(thread));
 				}
     }
     void run();
@@ -322,7 +331,7 @@ public:
   private:
 		std::shared_ptr<CacheMachine> source;
 		std::shared_ptr<CacheMachine> sink;
-    std::vector<std::unique_ptr<WorkerThread> > workerThreads;
+    std::vector<std::unique_ptr<SingleSourceWorkerThread< Processor >> > workerThreads;
     int numWorkers;
 		BlazingContext * context;
     std::string queryString;
@@ -330,19 +339,16 @@ public:
 
   template <typename Processor>
   void ProcessMachine<Processor>::run(){
-		std::vector<std::thread> threads;
+    std::vector<std::thread> threads;
     for(int threadIndex = 0; threadIndex < numWorkers; threadIndex++){
-			std::thread t([this,threadIndex]{
-
-					this->workerThreads[threadIndex]->process();
-
-
-			});
-			threads.push_back(std::move(t));
+        std::thread t([this,threadIndex]{
+                this->workerThreads[threadIndex]->process();
+        });
+        threads.push_back(std::move(t));
     }
-		for(auto & thread : threads){
-			thread.join();
-		}
+    for(auto & thread : threads){
+        thread.join();
+    }
   } 
 
 
