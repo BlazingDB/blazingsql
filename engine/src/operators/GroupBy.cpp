@@ -320,7 +320,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 				std::unique_ptr<cudf::experimental::aggregation> agg = 
 					std::make_unique<cudf::experimental::aggregation>(get_aggregation_operation(aggregation_types[i]));
 				cudf::type_id output_type = get_aggregation_output_type(aggregation_input.type().id(), aggregation_types[i]);
-				reductions.emplace_back(cudf::experimental::reduce(aggregation_input, agg, cudf::data_type(output_type)));	
+				reductions.emplace_back(cudf::experimental::reduce(aggregation_input, agg, cudf::data_type(output_type)));
 			}
 		}
 
@@ -340,7 +340,11 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 	for (int i = 0; i < reductions.size(); i++){
 		std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(reductions[i]->type(), 1);
 		cudf::mutable_column_view temp_mutable_view = temp->mutable_view();
-		cudf::experimental::fill(temp_mutable_view, 0, 1, *(reductions[i]));
+
+		if(table.num_rows()!=0){ //empty table, no needed to perform reductions
+			cudf::experimental::fill(temp_mutable_view, 0, 1, *(reductions[i]));
+		}
+
 		output_columns.emplace_back(std::move(temp));
 	}
 	return std::make_unique<ral::frame::BlazingTable>(std::move(std::make_unique<CudfTable>(std::move(output_columns))), agg_output_column_names);
