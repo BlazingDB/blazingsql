@@ -120,9 +120,9 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_STR_CONCAT:
     {
         assert(arg_tokens.size() == 2);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]) || is_string(arg_tokens[0]), "SUBSTRING operator not supported for intermediate columns");
-        RAL_EXPECTS(is_var_column(arg_tokens[1]) || is_string(arg_tokens[1]), "SUBSTRING operator not supported for intermediate columns");
-        RAL_EXPECTS(!(is_string(arg_tokens[0]) && is_string(arg_tokens[1])), "Operations between literals is not supported");
+        RAL_EXPECTS(is_var_column(arg_tokens[0]) || is_string(arg_tokens[0]), "CONCAT operator not supported for intermediate columns");
+        RAL_EXPECTS(is_var_column(arg_tokens[1]) || is_string(arg_tokens[1]), "CONCAT operator not supported for intermediate columns");
+        RAL_EXPECTS(!(is_string(arg_tokens[0]) && is_string(arg_tokens[1])), "CONCAT operator between literals is not supported");
 
         if (is_var_column(arg_tokens[0]) && is_var_column(arg_tokens[1])) {
             cudf::column_view column1 = table.column(get_index(arg_tokens[0]));

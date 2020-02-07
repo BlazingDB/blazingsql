@@ -144,12 +144,12 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types5)
         context);
 
     if (std::is_same<T, cudf::experimental::bool8>::value) {
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{0, 0, 0, 0, 0, 0, 0}};
+        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{0, 0, 0, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
         CudfTableView expect_cudf_table_view {{expect_col1}};
 
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
     } else {
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{1, 1, 0, 1, 1, 1, 1}};
+        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{1, 1, 0, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
         CudfTableView expect_cudf_table_view {{expect_col1}};
     
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
@@ -178,14 +178,14 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types6)
         context);
 
     if (std::is_same<T, cudf::experimental::bool8>::value) {
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{0, 0, 0, 0, 0, 0, 0}};
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col3{{1, 1, 1, 1, 1, 1, 1}};
+        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{0, 0, 0, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
+        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col3{{1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
         CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
 
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
     } else {
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{1, 1, 0, 1, 1, 1, 1}};
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col3{{0, 0, 0, 0, 1, 0, 0}};
+        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{1, 1, 0, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
+        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col3{{0, 0, 0, 0, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
         CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
 
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
@@ -241,8 +241,8 @@ TEST_F(ProjectTestString, test_string_concat)
                                                     "LogicalProject(EXPR$0=[||($0,'XD=D')], EXPR$1=[||($0,$1)])",
                                                     nullptr);
   
-    cudf::test::strings_column_wrapper expected_col1{{"fooXD=D","dXD=D","eXD=D","aXD=D","helloXD=D","kXD=D","dXD=D","lXD=D","XD=D","XD=D"}};
-    cudf::test::strings_column_wrapper expected_col2{{"fooThe","dquick","ebrown","afox","hellojumps","kover","dthe","llazy","dog",""}};
+    cudf::test::strings_column_wrapper expected_col1{{"fooXD=D","dXD=D","eXD=D","aXD=D","helloXD=D","kXD=D","dXD=D","lXD=D","XD=D","XD=D"}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::strings_column_wrapper expected_col2{{"fooThe","dquick","ebrown","afox","hellojumps","kover","dthe","llazy","dog",""}, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
     cudf::table_view expected_table_view {{expected_col1, expected_col2}};
 
     cudf::test::expect_tables_equal(expected_table_view, out_table->view());
@@ -315,6 +315,24 @@ TEST_F(ProjectTestString, test_string_case)
                                                     nullptr);
   
     cudf::test::strings_column_wrapper expected_col1{{"The", "LOL", "brown", "LOL", "jumps", "LOL", "the", "LOL", "dog"}};
+    cudf::table_view expected_table_view {{expected_col1}};
+
+    cudf::test::expect_tables_equal(expected_table_view, out_table->view());
+}
+
+TEST_F(ProjectTestString, test_string_nested_case)
+{
+    cudf::test::fixed_width_column_wrapper<int32_t> col1{{0, 1, 2, 3, 4, 5, 6, 7, 8}};
+    cudf::test::strings_column_wrapper col2{{"The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"}};
+  
+    cudf::table_view in_table_view {{col1, col2}};
+    std::vector<std::string> column_names(in_table_view.num_columns());
+
+    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+                                                    "LogicalProject(EXPR$0=[=(CASE(=(MOD($0, 2), 0), $1, 'LOL'), 'LOL')])",
+                                                    nullptr);
+  
+    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expected_col1{{false, true, false, true, false, true, false, true, false}, {1, 1, 1, 1, 1, 1, 1, 1, 1}};
     cudf::table_view expected_table_view {{expected_col1}};
 
     cudf::test::expect_tables_equal(expected_table_view, out_table->view());
