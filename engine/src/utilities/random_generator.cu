@@ -1,12 +1,15 @@
 #pragma once
 
-#include <ctime>
-#include <vector>
+#include <cudf/copying.hpp>
 #include <thrust/random.h>
 #include <thrust/device_vector.h>
+#include <vector>
 
-namespace cudf {
+#include "random_generator.cuh"
+
+namespace ral {
 namespace generator {
+namespace {
 
 template <typename T>
 struct UniformRandomGenerator {
@@ -59,6 +62,27 @@ private:
     const T min_value;
     const T max_value;
 };
+
+} // namespace
+
+std::unique_ptr<ral::frame::BlazingTable> generate_sample(
+	const ral::frame::BlazingTableView & blazingTableView, std::size_t num_samples){
+	CudfTableView view = blazingTableView.view();
+
+	cudf::size_type num_rows = view.num_rows();
+
+	RandomVectorGenerator<std::int32_t> generator(0L, num_rows);
+	std::vector<std::int32_t> arrayIdx = generator(num_samples);
+	
+	rmm::device_buffer gatherData(arrayIdx.data(), num_samples * sizeof(std::int32_t));
+
+	cudf::column gatherMap{cudf::data_type{cudf::type_id::INT32}, num_samples, std::move(gatherData)};
+
+	std::unique_ptr<CudfTable> sampleTable =
+		cudf::experimental::gather(view, gatherMap.view(), true, rmm::mr::get_default_resource());
+
+	return std::make_unique<ral::frame::BlazingTable>(std::move(sampleTable), blazingTableView.names());
+}
 
 } // namespace generator
 } // namespace cudf

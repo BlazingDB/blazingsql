@@ -1,13 +1,11 @@
 #include "../../include/io/io.h"
 #include "../io/DataLoader.h"
 #include "../io/Schema.h"
-#include "../io/Metadata.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/JSONParser.h"
 #include "../io/data_parser/OrcParser.h"
 #include "../io/data_parser/ParquetParser.h"
-#include "../io/data_parser/ParserUtil.h"
 #include "../io/data_provider/UriDataProvider.h"
 
 #include "utilities/CommonOperations.h"

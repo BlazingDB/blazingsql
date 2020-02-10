@@ -8,7 +8,6 @@
 #include "CSVParser.h"
 #include "../Utils.cuh"
 #include "cudf/legacy/io_types.hpp"
-#include "io/data_parser/ParserUtil.h"
 #include <arrow/buffer.h>
 #include <arrow/io/interfaces.h>
 #include <arrow/io/memory.h>

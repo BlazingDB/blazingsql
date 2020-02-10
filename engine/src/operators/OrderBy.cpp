@@ -1,13 +1,9 @@
 #include "OrderBy.h"
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "ColumnManipulation.cuh"
 #include "cudf.h"
-#include "cudf/legacy/copying.hpp"
 #include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
-#include "config/GPUManager.cuh"
-#include "cuDF/safe_nvcategory_gather.hpp"
 #include "distribution/primitives.h"
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>

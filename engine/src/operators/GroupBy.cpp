@@ -1,11 +1,9 @@
 #include "GroupBy.h"
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "ColumnManipulation.cuh"
 #include "../Interpreter/interpreter_cpp.h"
 #include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
-#include "config/GPUManager.cuh"
 #include "distribution/primitives.h"
 #include "utilities/CommonOperations.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
@@ -18,10 +16,6 @@
 #include <numeric>
 #include <regex>
 #include <tuple>
-
-#include <rmm/thrust_rmm_allocator.h>
-
-#include "cuDF/safe_nvcategory_gather.hpp"
 
 #include <cudf/copying.hpp>
 #include <cudf/sorting.hpp>
