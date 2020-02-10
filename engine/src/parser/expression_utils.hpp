@@ -48,6 +48,7 @@ static std::map<std::string, interops::operator_type> operator_map = {
 	{"*", interops::operator_type::BLZ_MUL},
 	{"/", interops::operator_type::BLZ_DIV},
 	{"POWER", interops::operator_type::BLZ_POW},
+	{"ROUND", interops::operator_type::BLZ_ROUND},
 	{"MOD", interops::operator_type::BLZ_MOD},
 	{"AND", interops::operator_type::BLZ_LOGICAL_AND},
 	{"OR", interops::operator_type::BLZ_LOGICAL_OR},
