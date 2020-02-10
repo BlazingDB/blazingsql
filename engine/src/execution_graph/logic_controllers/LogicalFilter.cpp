@@ -136,18 +136,10 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(table.view(),
               columns_to_hash, context->getTotalNodes());
       ral::frame::BlazingTableView hashed_table(hashed_data->view(), table.names());
-      
+
       // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
       std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
       std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
-      
-      std::unique_ptr<CudfTable> empty;
-      // split can return one less, due to weird implementation details in cudf. When so, the last one should have been emtpy
-      // https://github.com/rapidsai/cudf/issues/4056
-      if (partitioned.size() == context->getTotalNodes() - 1 ){ 
-        empty = cudf::experimental::empty_like(table.view());
-        partitioned.emplace_back(empty->view());
-      }
       
       for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
           partitions.emplace_back(
@@ -178,7 +170,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       }
     }
     assert(found_self_partition);
-
     return ral::utilities::experimental::concatTables(partitions_to_concat);
   }
 
@@ -191,7 +182,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 
     std::vector<int> globalColumnIndices;
   	parseJoinConditionToColumnIndices(get_named_expression(query, "condition"), globalColumnIndices);
-
 
     std::vector<int> localIndicesLeft;
     std::vector<int> localIndicesRight;
@@ -214,7 +204,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
         const ral::frame::BlazingTableView & table_left,
         const ral::frame::BlazingTableView & table_right,
         const std::string & expression){
-
+      
     if(context->getTotalNodes() <= 1) { // if single node
         return processJoin(table_left, table_right, expression);
     } else {

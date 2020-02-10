@@ -110,6 +110,9 @@ private:
 
 typedef std::pair<std::unique_ptr<ral::frame::BlazingTable>, ral::frame::BlazingTableView> TableViewPair;
 
+TableViewPair createEmptyTableViewPair(std::vector<cudf::type_id> column_types,
+									   std::vector<std::string> column_names);
+
 }  // namespace frame
 
 namespace cache{
