@@ -1,8 +1,5 @@
-#pragma once
-
 #include <cudf/copying.hpp>
 #include <thrust/random.h>
-#include <thrust/device_vector.h>
 #include <vector>
 
 #include "random_generator.cuh"
@@ -45,7 +42,7 @@ public:
 
 public:
     std::vector<T> operator()(std::size_t size) {
-        thrust::device_vector<T> data(size);
+        rmm::device_vector<T> data(size);
 
         thrust::transform(thrust::counting_iterator<T>(0),
                           thrust::counting_iterator<T>(size),
