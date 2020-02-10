@@ -174,7 +174,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	timer.reset();  // lets do the reset here, since  part 2 async is capting the time
 
 	if(partitionPlan->view().num_rows() == 0) {
-		return std::unique_ptr<ral::frame::BlazingTable>();
+		return std::make_unique<BlazingTable>(cudf::experimental::empty_like(table.view()), table.names());
 	}
 
 	std::vector<NodeColumnView> partitions = partitionData(
