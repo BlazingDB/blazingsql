@@ -99,54 +99,53 @@ public:
 			strcpy(col_transport.metadata.col_name, table_view.names().at(i).c_str());
 			if(isGdfString(column)) {
 				auto num_children = column.num_children();
-				assert(num_children == 2);
-				auto offsets_column = column.child(0);
-				auto chars_column = column.child(1);
+				if(num_children == 2){
+					auto offsets_column = column.child(0);
+					auto chars_column = column.child(1);
 
-				if (column.size() + 1 == offsets_column.size()){ // this column does not come from a buffer than had been zero-copy partitioned
-				
-					col_transport.strings_data = raw_buffers.size();
-					buffer_sizes.push_back(chars_column.size());
-					raw_buffers.push_back(chars_column.data<char>());
-					col_transport.strings_data_size = chars_column.size();
+					if (column.size() + 1 == offsets_column.size()){ // this column does not come from a buffer than had been zero-copy partitioned
+						col_transport.strings_data = raw_buffers.size();
+						buffer_sizes.push_back(chars_column.size());
+						raw_buffers.push_back(chars_column.data<char>());
+						col_transport.strings_data_size = chars_column.size();
 
-					cudf::data_type offset_dtype (cudf::type_id::INT32);
-					col_transport.strings_offsets = raw_buffers.size();
-					col_transport.strings_offsets_size = offsets_column.size() * cudf::size_of(offset_dtype);
-					buffer_sizes.push_back(col_transport.strings_offsets_size);
-					raw_buffers.push_back(offsets_column.data<char>());
-					
-					if(column.has_nulls()) {
-						col_transport.strings_nullmask = raw_buffers.size();
-						buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
-						raw_buffers.push_back((const char *)column.null_mask());					
-					}
-				} else {  // this column comes from a column that was zero-copy partitioned 
-					
-					std::pair<cudf::size_type, cudf::size_type> char_col_start_end = getCharsColumnStartAndEnd(column);
+						cudf::data_type offset_dtype (cudf::type_id::INT32);
+						col_transport.strings_offsets = raw_buffers.size();
+						col_transport.strings_offsets_size = offsets_column.size() * cudf::size_of(offset_dtype);
+						buffer_sizes.push_back(col_transport.strings_offsets_size);
+						raw_buffers.push_back(offsets_column.data<char>());
 
-					std::unique_ptr<CudfColumn> new_offsets = getRebasedStringOffsets(column, char_col_start_end.first);
+						if(column.has_nulls()) {
+							col_transport.strings_nullmask = raw_buffers.size();
+							buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
+							raw_buffers.push_back((const char *)column.null_mask());
+						}
+					} else {  // this column comes from a column that was zero-copy partitioned 
+						std::pair<cudf::size_type, cudf::size_type> char_col_start_end = getCharsColumnStartAndEnd(column);
 
-					col_transport.strings_data = raw_buffers.size();
-					col_transport.strings_data_size = char_col_start_end.second - char_col_start_end.first;
-					buffer_sizes.push_back(col_transport.strings_data_size);
-					raw_buffers.push_back(chars_column.data<char>() + char_col_start_end.first);
-					
-					cudf::data_type offset_dtype (cudf::type_id::INT32);
-					col_transport.strings_offsets = raw_buffers.size();
-					col_transport.strings_offsets_size = new_offsets->size() * cudf::size_of(offset_dtype);
-					buffer_sizes.push_back(col_transport.strings_offsets_size);
-					raw_buffers.push_back(new_offsets->view().data<char>());
+						std::unique_ptr<CudfColumn> new_offsets = getRebasedStringOffsets(column, char_col_start_end.first);
 
-					cudf::column::contents new_offsets_contents = new_offsets->release();
-					temp_scope_holder.emplace_back(std::move(new_offsets_contents.data));
+						col_transport.strings_data = raw_buffers.size();
+						col_transport.strings_data_size = char_col_start_end.second - char_col_start_end.first;
+						buffer_sizes.push_back(col_transport.strings_data_size);
+						raw_buffers.push_back(chars_column.data<char>() + char_col_start_end.first);
+						
+						cudf::data_type offset_dtype (cudf::type_id::INT32);
+						col_transport.strings_offsets = raw_buffers.size();
+						col_transport.strings_offsets_size = new_offsets->size() * cudf::size_of(offset_dtype);
+						buffer_sizes.push_back(col_transport.strings_offsets_size);
+						raw_buffers.push_back(new_offsets->view().data<char>());
 
-					if(column.has_nulls()) {
-						col_transport.strings_nullmask = raw_buffers.size();
-						buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
-						temp_scope_holder.emplace_back(std::make_unique<rmm::device_buffer>(
-							cudf::copy_bitmask(column.null_mask(), column.offset(), column.offset() + column.size())));
-						raw_buffers.push_back((const char *)temp_scope_holder.back()->data());											
+						cudf::column::contents new_offsets_contents = new_offsets->release();
+						temp_scope_holder.emplace_back(std::move(new_offsets_contents.data));
+
+						if(column.has_nulls()) {
+							col_transport.strings_nullmask = raw_buffers.size();
+							buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
+							temp_scope_holder.emplace_back(std::make_unique<rmm::device_buffer>(
+								cudf::copy_bitmask(column.null_mask(), column.offset(), column.offset() + column.size())));
+							raw_buffers.push_back((const char *)temp_scope_holder.back()->data());
+						}
 					}
 				}
 			} else {
@@ -161,7 +160,7 @@ public:
 					} else {
 						temp_scope_holder.emplace_back(std::make_unique<rmm::device_buffer>(
 							cudf::copy_bitmask(column)));
-						raw_buffers.push_back((const char *)temp_scope_holder.back()->data());					
+						raw_buffers.push_back((const char *)temp_scope_holder.back()->data());
 					}
 				}
 			}
@@ -210,8 +209,11 @@ public:
 					auto valid_offset = columns_offsets[i].valid;
 					auto unique_column = std::make_unique<cudf::column>(dtype, column_size, std::move(raw_buffers[data_offset]), std::move(raw_buffers[valid_offset]));
 					received_samples[i] = std::move(unique_column);
-				} else {
+				} else if (data_offset != -1){
 					auto unique_column = std::make_unique<cudf::column>(dtype, column_size, std::move(raw_buffers[data_offset]));
+					received_samples[i] = std::move(unique_column);
+				} else {
+					auto unique_column = cudf::make_empty_column(dtype);
 					received_samples[i] = std::move(unique_column);
 				}
 			}

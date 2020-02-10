@@ -30,10 +30,6 @@ namespace experimental {
 
 		CudfColumnView offsets_column = column.child(0);
 
-		std::string offsets_col_string = cudf::test::to_string(offsets_column, "|");
-		std::cout<<"original offsets column"<<std::endl;
-		std::cout<<offsets_col_string<<std::endl;
-		
 		// NOTE that the offsets column size is usually one more than the number of strings. It starts at 0 and ends at chars_column.size()
 		cudf::size_type offset = column.offset();
 		std::unique_ptr<CudfColumn> new_offsets = cudf::experimental::allocate_like(offsets_column, 
@@ -41,16 +37,8 @@ namespace experimental {
 
 		auto mutable_col = new_offsets->mutable_view();
 
-			offsets_col_string = cudf::test::to_string(new_offsets->view(), "|");
-	std::cout<<"new offsets after allocate_like"<<std::endl;
-	std::cout<<offsets_col_string<<std::endl;
-	
 		cudf::experimental::copy_range(offsets_column, mutable_col,
 				offset, offset + column.size() + 1, 0);
-
-	offsets_col_string = cudf::test::to_string(new_offsets->view(), "|");
-		std::cout<<"new offsets after copy"<<std::endl;
-		std::cout<<offsets_col_string<<std::endl;
 
 		struct subtracting_operator	{
 			cudf::size_type _sub;
@@ -64,17 +52,11 @@ namespace experimental {
 			}
 		};
 
-		std::cout<<"rebase amount: "<<chars_column_start<<std::endl;
-		
 		subtracting_operator op(chars_column_start);
 		auto start_src = mutable_col.begin<cudf::size_type>();
 		auto end_src = mutable_col.end<cudf::size_type>();
 		auto start_dst = mutable_col.begin<cudf::size_type>();		
 		thrust::transform(start_src, end_src, start_dst, op);
-
-		offsets_col_string = cudf::test::to_string(new_offsets->view(), "|");
-		std::cout<<"new offsets after rebase"<<std::endl;
-		std::cout<<offsets_col_string<<std::endl;
 
 		return new_offsets;
 	}
