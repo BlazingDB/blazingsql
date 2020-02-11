@@ -64,3 +64,35 @@ std::unique_ptr<ral::frame::BlazingTable>  build_custom_one_column_table() {
 
 }
 
+
+//namespace cudf_io = cudf::experimental::io;
+//std::shared_ptr<ral::cache::CacheMachine>  createNationMachine() {
+//    unsigned long long  gpuMemory = 1024;
+//    std::vector<unsigned long long > memoryPerCache = {INT_MAX};
+//    std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+//    auto source =  std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+//     auto PARQUET_NATION_PATH = "/home/aocsa/tpch/DataSet5Part100MB/nation_0_0.parquet";
+//    cudf_io::read_parquet_args in_args{cudf_io::source_info{PARQUET_NATION_PATH}};
+//    auto table = cudf_io::read_parquet(in_args);
+//    std::vector<std::string> column_names= {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
+//    auto blazing_table =  std::make_unique<ral::frame::BlazingTable>(std::move(table.tbl), column_names);
+//    source->addToCache(std::move(blazing_table));
+//    return source;
+//}
+//
+//std::shared_ptr<ral::cache::CacheMachine>  createRegionMachine() {
+//    unsigned long long  gpuMemory = 1024;
+//    std::vector<unsigned long long > memoryPerCache = {INT_MAX};
+//    std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+//    auto source =  std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+//    auto PARQUET_REGION_PATH = "/home/aocsa/tpch/DataSet5Part100MB/region_0_0.parquet";
+//    cudf_io::read_parquet_args in_args{cudf_io::source_info{PARQUET_REGION_PATH}};
+//    auto table = cudf_io::read_parquet(in_args);
+//    std::vector<std::string> column_names= {"r_regionkey", "r_name", "r_comment"};
+//    auto blazing_table =  std::make_unique<ral::frame::BlazingTable>(std::move(table.tbl), column_names);
+//
+//    source->addToCache(std::move(blazing_table));
+//    return source;
+//}
+
+

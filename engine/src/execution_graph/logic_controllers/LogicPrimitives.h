@@ -6,11 +6,13 @@
 #include "cudf/table/table_view.hpp"
 #include <blazingdb/manager/Context.h>
 #include <cudf/io/functions.hpp>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <thread>
+#include <typeindex>
 #include <vector>
 
 typedef cudf::experimental::table CudfTable;
@@ -131,9 +133,10 @@ protected:
 
 class CacheDataLocalFile : public CacheData {
 public:
+	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table);
+
 	std::unique_ptr<ral::frame::BlazingTable> decache() override;
 
-	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table);
 	unsigned long long sizeInBytes() override;
 	virtual ~CacheDataLocalFile() {}
 	std::string filePath() const { return filePath_; }
@@ -143,44 +146,134 @@ private:
 	// ideally would be a writeable file
 };
 
-
 class CacheMachine {
 public:
 	CacheMachine(unsigned long long gpuMemory,
 		std::vector<unsigned long long> memoryPerCache,
 		std::vector<CacheDataType> cachePolicyTypes);
+	virtual ~CacheMachine();
+
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table);
+
 	//  void eject(int partitionNumber);
 	//  void reprocess(int partitionNumber);
-	virtual ~CacheMachine();
-	void addToCache(std::unique_ptr<ral::frame::BlazingTable> table);
 	//  void reduceCache(int cacheIndex, unsigned long long reductionAmount);
 	//  void incrementCache(int cacheIndex, unsigned long long incrementAmount);
 	// TODO: figure out how we tell it which cache to prefer
-
 	bool finished();
 	void finish();
 
 protected:
-	std::mutex cacheMutex;
-	std::vector<std::unique_ptr<std::queue<std::unique_ptr<CacheData>>>> cache;
-	std::queue<std::unique_ptr<ral::frame::BlazingTable>> gpuData;
-	//  std::map<int,std::unique_ptr<CacheData> > operatingData;
-
 	std::vector<CacheDataType> cachePolicyTypes;
 	std::vector<unsigned long long> memoryPerCache;
 	std::vector<unsigned long long> usedMemory;
 	bool _finished;
+
+private:
+	std::mutex cacheMutex;
+	std::vector<std::unique_ptr<std::queue<std::unique_ptr<CacheData>>>> cache;
+	std::queue<std::unique_ptr<ral::frame::BlazingTable>> gpuData;
+	//  std::map<int,std::unique_ptr<CacheData> > operatingData;
+};
+
+
+enum kstatus { stop, proceed };
+using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
+static std::size_t message_count = {0};
+
+template <class T>
+class message {
+public:
+	message(std::unique_ptr<T> content) : data(std::move(content)), message_id(message_count) { message_count++; }
+
+	virtual ~message() = default;
+
+	std::size_t get_id() { return (message_id); }
+
+	std::unique_ptr<T> releaseData() { return std::move(data); }
+
+protected:
+	const std::size_t message_id;
+	std::unique_ptr<T> data;
+};
+
+
+template <class T>
+class WaitingQueue {
+public:
+	using message_ptr = std::unique_ptr<message<T>>;
+
+	WaitingQueue() = default;
+	~WaitingQueue() = default;
+
+	WaitingQueue(WaitingQueue &&) = delete;
+	WaitingQueue(const WaitingQueue &) = delete;
+	WaitingQueue & operator=(WaitingQueue &&) = delete;
+	WaitingQueue & operator=(const WaitingQueue &) = delete;
+
+	message_ptr get(const std::size_t & message_id) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		condition_variable_.wait(lock, [&, this] {
+			return std::any_of(this->message_queue_.cbegin(), this->message_queue_.cend(), [&](const auto & e) {
+				return e->get_id() == message_id;
+			});
+		});
+		return getWaitingQueue(message_id);
+	}
+	message_ptr get() {
+		std::unique_lock<std::mutex> lock(mutex_);
+		condition_variable_.wait(lock, [&, this] { return this->message_queue_.size() > 0; });
+		auto data = std::move(this->message_queue_.front());
+		this->message_queue_.pop_front();
+		return std::move(data);
+	}
+
+	bool empty() const {
+		return this->message_queue_.size() == 0;
+	}
+
+	void put(message_ptr item) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		putWaitingQueue(std::move(item));
+		lock.unlock();
+		condition_variable_.notify_one();
+	}
+
+private:
+	message_ptr getWaitingQueue(const std::size_t & message_id) {
+		auto it = std::partition(message_queue_.begin(), message_queue_.end(), [&message_id](const auto & e) {
+			return e->getMessageTokenValue() != message_id;
+		});
+		assert(it != message_queue_.end());
+		message_ptr message = std::move(*it);
+		message_queue_.erase(it, it + 1);
+		return message;
+	}
+
+	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
+
+private:
+	std::mutex mutex_;
+	std::deque<message_ptr> message_queue_;
+	std::condition_variable condition_variable_;
 };
 
 class WaitingCacheMachine : public CacheMachine {
 public:
 	WaitingCacheMachine(unsigned long long gpuMemory,
 		std::vector<unsigned long long> memoryPerCache,
-		std::vector<CacheDataType> cachePolicyTypes);
-	~WaitingCacheMachine() {}
-	//	TODO:
-	//	std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
+		std::vector<CacheDataType> cachePolicyTypes_); 
+
+	~WaitingCacheMachine();
+
+	void addToCache(std::unique_ptr<ral::frame::BlazingTable> table) override;
+
+	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+
+private:
+	std::vector<std::unique_ptr<WaitingQueue<CacheData>>> waitingCache;
+	WaitingQueue<ral::frame::BlazingTable> waitingGpuData;
 };
 
 class WorkerThread {
@@ -237,8 +330,9 @@ private:
 template <typename Processor>
 class DoubleSourceWaitingWorkerThread : public WorkerThread {
 public:
-	DoubleSourceWaitingWorkerThread(std::shared_ptr<CacheMachine> cacheSourceOne,
-		std::shared_ptr<CacheMachine> cacheSourceTwo,
+	DoubleSourceWaitingWorkerThread(
+		std::shared_ptr<WaitingCacheMachine> cacheSourceOne,
+		std::shared_ptr<WaitingCacheMachine> cacheSourceTwo,
 		std::shared_ptr<CacheMachine> cacheSink,
 		std::string queryString,
 		Processor * processor,
@@ -249,55 +343,34 @@ public:
 		this->_paused = false;
 		this->processor = processor;
 	}
+	virtual ~DoubleSourceWaitingWorkerThread() {}
 
 	// returns true when theres nothing left to process
 	bool process() override {
-		// TODO : complete this threads
-		//			std::thread left([]{
-		//
-		//			});
-		//
-		//			std::thread right([]{
-		//
-		//			});
-
-		// USE a cv here to notify when they finish or what?
 		if(_paused || sourceOne->finished()) {
 			return false;
 		}
 		auto inputOne = sourceOne->pullFromCache();
-		if(inputOne == nullptr) {
-			return false;
-		}
 
 		if(_paused || sourceTwo->finished()) {
 			return false;
 		}
 		auto inputTwo = sourceTwo->pullFromCache();
-		if(inputTwo == nullptr) {
-			return false;
-		}
-		// TODO: change blazingdb::manager::experimental::ContextType
-		auto output =
-			this->processor(this->context, inputOne->toBlazingTableView(), inputTwo->toBlazingTableView(), queryString);
+
+		auto output = this->processor(this->context, inputOne->toBlazingTableView(), inputTwo->toBlazingTableView(), queryString);
 		sink->addToCache(std::move(output));
-		// process();
-		return true;
 	}
 
 	void resume() { _paused = false; }
 
 	void pause() { _paused = true; }
 
-	virtual ~DoubleSourceWaitingWorkerThread() {}
-
 private:
-	std::shared_ptr<CacheMachine> sourceOne;
-	std::shared_ptr<CacheMachine> sourceTwo;
+	std::shared_ptr<WaitingCacheMachine> sourceOne;
+	std::shared_ptr<WaitingCacheMachine> sourceTwo;
 	std::shared_ptr<CacheMachine> sink;
 	Processor * processor;
 };
-
 
 template <typename Processor>
 class ProcessMachine {
@@ -315,8 +388,8 @@ public:
 			workerThreads.emplace_back(std::move(thread));
 		}
 	}
-	ProcessMachine(std::shared_ptr<CacheMachine> cacheSourceOne,
-		std::shared_ptr<CacheMachine> cacheSourceTwo,
+	ProcessMachine(std::shared_ptr<WaitingCacheMachine> cacheSourceOne,
+		std::shared_ptr<WaitingCacheMachine> cacheSourceTwo,
 		std::shared_ptr<CacheMachine> cacheSink,
 		Processor * processor,
 		std::string queryString,
