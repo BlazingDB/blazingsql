@@ -88,38 +88,37 @@ TYPED_TEST(ApplyFilter, withNull)
     cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
 }
 
-// currently not passing due to issue in apply_boolean_mask. (https://github.com/rapidsai/cudf/issues/3714)
-// TYPED_TEST(ApplyFilter, withOutNull)
-// {
-//     using T = TypeParam;
-//     cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5, 6}};
-//     cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d", "l"});
-//     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}};
-//     CudfTableView cudf_table_in_view {{col1, col2, col3}};
-//     std::vector<std::string> names({"A", "B", "C"});
-//     BlazingTableView table_in(cudf_table_in_view, names);
+TYPED_TEST(ApplyFilter, withOutNull)
+{
+    using T = TypeParam;
+    cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5, 6}};
+    cudf::test::strings_column_wrapper col2({"d", "e", "a", "d", "k", "d", "l"});
+    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}};
+    CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::vector<std::string> names({"A", "B", "C"});
+    BlazingTableView table_in(cudf_table_in_view, names);
     
 
-//     cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 0, 0, 1, 0, 0}};
-//     cudf::column_view bool_filter_col(bool_filter);
+    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> bool_filter{{1, 1, 0, 0, 1, 0, 0}};
+    cudf::column_view bool_filter_col(bool_filter);
 
-//     std::unique_ptr<BlazingTable> table_out = applyBooleanFilter(
-//         table_in,bool_filter_col);
+    std::unique_ptr<BlazingTable> table_out = applyBooleanFilter(
+        table_in,bool_filter_col);
 
-//     cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 8}};
-//     cudf::test::strings_column_wrapper expect_col2({"d", "e", "k"});
-//     cudf::test::fixed_width_column_wrapper<T> expect_col3{{10, 40, 2}};
-//     CudfTableView expect_cudf_table_view {{expect_col1, expect_col2, expect_col3}};
+    cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 8}};
+    cudf::test::strings_column_wrapper expect_col2({"d", "e", "k"});
+    cudf::test::fixed_width_column_wrapper<T> expect_col3{{10, 40, 2}};
+    CudfTableView expect_cudf_table_view {{expect_col1, expect_col2, expect_col3}};
 
-//     std::string col0_string = cudf::test::to_string(table_out->view().column(0), "|");
-//     std::cout<<"col0_string: "<<col0_string<<std::endl;
-//     std::string col1_string = cudf::test::to_string(table_out->view().column(1), "|");
-//     std::cout<<"col1_string: "<<col1_string<<std::endl;
-//     std::string col2_string = cudf::test::to_string(table_out->view().column(2), "|");
-//     std::cout<<"col2_string: "<<col2_string<<std::endl;
+    std::string col0_string = cudf::test::to_string(table_out->view().column(0), "|");
+    std::cout<<"col0_string: "<<col0_string<<std::endl;
+    std::string col1_string = cudf::test::to_string(table_out->view().column(1), "|");
+    std::cout<<"col1_string: "<<col1_string<<std::endl;
+    std::string col2_string = cudf::test::to_string(table_out->view().column(2), "|");
+    std::cout<<"col2_string: "<<col2_string<<std::endl;
 
-//     cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
-// }
+    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+}
 
 TYPED_TEST(ApplyFilter, withAndWithOutNull)
 {

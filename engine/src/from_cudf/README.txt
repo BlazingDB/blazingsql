@@ -4,3 +4,10 @@ If you add anything more, please update all the code so that its all fromt he sa
 If you add anything more, place any new files in a folder that matches its source location
 
 This code was updated on 02/06/2020 with cudf commit hash  b451ce60ae6310d9cb7b5a2d7fabc8dae79f581d
+
+Note that in table_utilities.cu I manually changed from
+cudf::test::expect_columns_equal(lhs.column(i), rhs.column(i));
+to:
+cudf::test::expect_columns_equivalent(lhs.column(i), rhs.column(i));
+
+

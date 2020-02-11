@@ -12,7 +12,6 @@
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
-#include "../Metadata.h"
 
 namespace ral {
 namespace io {
