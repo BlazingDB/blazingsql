@@ -4,7 +4,6 @@ import cudf
 from cudf._libxx.column import np_to_cudf_types
 from cudf._libxx.column import cudf_to_np_types
 from cudf.core.column.column import build_column
-from cudf._libxx.lib import type_id
 
 from collections import OrderedDict
 from enum import Enum
@@ -211,7 +210,7 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
     metadata = {}
     names = []
     n_cols = len(curr_table.column_names)
-    dtypes = curr_table.column_types
+    dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
     columns = [name.decode() for name in curr_table.column_names]
     n_files = len(file_subset)
     col_indexes = {} 
@@ -228,14 +227,13 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
     valid_metadata_columns = []
     for file_index, partition_name  in enumerate(partitions):
         curr_table = partitions[partition_name]
-        for col_ind, [col_name, col_value_id] in enumerate(curr_table):
-            breakpoint() # WSM left off here. dtypes[col_ind] here are an enum, so we may not need to compare against np types
-            if(dtypes[col_ind] == np.str):
+        for index, [col_name, col_value_id] in enumerate(curr_table):
+            if(dtypes[index] == np.dtype("object")):
                 np_col_value = col_value_id
-            elif(dtypes[col_ind] == np.datetime64):
+            elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
                 np_col_value = np.datetime64(col_value_id)
             else:
-                np_col_value = np.fromstring(col_value_id, dtypes[col_ind], sep=' ')[0]
+                np_col_value = np.fromstring(col_value_id, dtypes[index], sep=' ')[0]
             
             table_partition.setdefault(col_name, []).append(np_col_value)
         minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
@@ -251,22 +249,21 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
             valid_metadata_columns.append(2*index)
             valid_metadata_columns.append(2*index+1)
         else:
-            breakpoint()
-            if dtypes[col_name] == np.object:
+            if dtypes[index] == np.object:
                 minmax_metadata_table[2*index] = [''] * n_files
                 minmax_metadata_table[2*index+1] = [''] * n_files
-            elif dtypes[col_name] == np.dtype('datetime64[ms]') or dtypes[col_name] == np.datetime64:
+            elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
                 minmax_metadata_table[2*index] = [0] * n_files
                 minmax_metadata_table[2*index+1] = [0] * n_files
             else:
-                minmax_metadata_table[2*index] = [np.iinfo(dtypes[col_name]).min] * n_files
-                minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[col_name]).max] * n_files
+                minmax_metadata_table[2*index] = [np.iinfo(dtypes[index]).min] * n_files
+                minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[index]).max] * n_files
 
     series = []
     for index in range(n_cols):
         col_name = columns[index]
-        col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
-        col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
+        col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[index], name=names[2*index])
+        col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
         series.append(col1)
         series.append(col2)
     index = n_cols 
@@ -282,13 +279,18 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
 
 
 def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
-    result = fileMetadata
-    columns = curr_table.column_names
-    n_cols = len(curr_table.column_names)
+    
+    if fileMetadata.shape[0] != hiveMetadata.shape[0]:
+        print('ERROR: number of rows from fileMetadata does not match hiveMetadata')
+        return hiveMetadata 
 
-    # if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
-    #     print('TODO: files have to be listed in the same order')
-    #     return hiveMetadata 
+    if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
+        print('ERROR: file_handle_index of fileMetadata does not match the same order as in hiveMetadata')
+        return hiveMetadata 
+
+    result = fileMetadata
+    columns = [c.decode() for c in curr_table.column_names]
+    n_cols = len(curr_table.column_names)
 
     names = []
     col_indexes = {}
@@ -305,12 +307,9 @@ def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
         index = col_indexes[col_name]
         min_name = 'min_' + str(index) + '_' + col_name
         max_name = 'max_' + str(index) + '_' + col_name
-        if result.shape[0] == hiveMetadata.shape[0]:
-            result[min_name] = hiveMetadata[min_name]
-            result[max_name] = hiveMetadata[max_name]
-        else:
-            print('TODO: duplicate data based on rowgroups and file_index info')
-            return hiveMetadata 
+        result[min_name] = hiveMetadata[min_name]
+        result[max_name] = hiveMetadata[max_name]
+        
     # reorder dataframes using original min_max col_name order
     series = []
     for col_name in names:
