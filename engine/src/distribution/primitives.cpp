@@ -1,29 +1,22 @@
 #include "distribution/primitives.h"
 #include "CalciteExpressionParsing.h"
-#include "ColumnManipulation.cuh"
 #include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
 #include "communication/factory/MessageFactory.h"
 #include "communication/messages/ComponentMessages.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
-#include "config/GPUManager.cuh"
-#include "cuDF/generator/sample_generator.h"
-#include "cuDF/safe_nvcategory_gather.hpp"
-#include "distribution/Exception.h"
 #include "operators/GroupBy.h"
 #include "utilities/StringUtils.h"
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <cassert>
 #include <cmath>
-#include <cudf/legacy/table.hpp>
 #include <iostream>
 #include <memory>
 #include <numeric>
-#include <types.hpp>
 
-#include "cudf/search.hpp"
+#include <cudf/search.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>
 #include <cudf/merge.hpp>
@@ -32,7 +25,7 @@
 
 #include "utilities/CommonOperations.h"
 #include "utilities/DebuggingUtils.h"
-
+#include "utilities/random_generator.cuh"
 
 namespace ral {
 namespace distribution {
@@ -85,10 +78,6 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 	std::vector<bool> received(context->getTotalNodes(), false);
 	for(int k = 0; k < size; ++k) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
-
-		if(message->getMessageTokenValue() != message_id) {
-			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-		}
 
 		auto node = message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
@@ -157,10 +146,6 @@ std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + std::to_string(context_comm_token);
 
 	auto message = Server::getInstance().getMessage(context_token, message_id);
-
-	if(message->getMessageTokenValue() != message_id) {
-		throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-	}
 
 	auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
 	return concreteMessage->releaseBlazingTable();
@@ -280,10 +265,6 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 		auto message = Server::getInstance().getMessage(context_token, message_id);
 		num_partitions--;
 
-		if(message->getMessageTokenValue() != message_id) {
-			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-		}
-
 		auto node = message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
 		if(received[node_idx]) {
@@ -327,13 +308,10 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 
 	std::unique_ptr<CudfTable> merged_table;
 	CudfTableView left_table = tables[0].view();
+	
 	for(size_t i = 1; i < tables.size(); i++) {
-
 		CudfTableView right_table = tables[i].view();
-
-		merged_table = cudf::experimental::merge(left_table, right_table,
-													sortColIndices, column_order, null_orders);
-
+		merged_table = cudf::experimental::merge({left_table, right_table}, sortColIndices, column_order, null_orders);
 		left_table = merged_table->view();
 	}
 
@@ -440,9 +418,6 @@ std::vector<cudf::size_type> collectNumRows(Context * context) {
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
-		if(message->getMessageTokenValue() != message_id) {
-			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-		}
 		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
@@ -492,9 +467,6 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
-		if(message->getMessageTokenValue() != message_id) {
-			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-		}
 		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		std::unique_ptr<BlazingTable> num_rows_data = concrete_message->releaseBlazingTable();
@@ -536,7 +508,7 @@ std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
 std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	const ral::frame::BlazingTableView & table, const size_t quantile) {
 
-	return cudf::generator::generate_sample(table, quantile);
+	return ral::generator::generate_sample(table, quantile);
 }
 
 }  // namespace experimental

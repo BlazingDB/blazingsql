@@ -1,6 +1,5 @@
 #include "../../include/engine/engine.h"
 #include "../CalciteInterpreter.h"
-#include "../Types.h"
 #include "../io/DataLoader.h"
 #include "../io/Schema.h"
 #include "../io/data_parser/ArgsUtil.h"
@@ -10,7 +9,6 @@
 #include "../io/data_parser/OrcParser.h"
 #include "../io/data_parser/ArrowParser.h"
 #include "../io/data_parser/ParquetParser.h"
-#include "../io/data_parser/ParserUtil.h"
 #include "../io/data_provider/DummyProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
@@ -218,18 +216,18 @@ std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 		// Execute query
 		// 		skipdata_output_t
 		//TODO: fix this @alex, input_loaders[0]
-		auto row_groups_cols = ral::skip_data::process_skipdata_for_table(input_loaders[0], minmax_metadata_tables[0], query, queryContext);
+		// auto row_groups_cols = ral::skip_data::process_skipdata_for_table(input_loaders[0], minmax_metadata_tables[0], query, queryContext);
 
-		std::vector<cudf::column *> columns;
-		std::vector<std::string> names;
-		for(int i = 0; i < row_groups_cols.size(); i++) {
-			auto& column = row_groups_cols[i];
-			columns.push_back(column.get_gdf_column());
-			// TODO percy cudf0.12 port to cudf::column
-			// GDFRefCounter::getInstance()->deregister_column(column.get_gdf_column());
+		// std::vector<cudf::column *> columns;
+		// std::vector<std::string> names;
+		// for(int i = 0; i < row_groups_cols.size(); i++) {
+		// 	auto& column = row_groups_cols[i];
+		// 	columns.push_back(column.get_gdf_column());
+		// 	// TODO percy cudf0.12 port to cudf::column
+		// 	// GDFRefCounter::getInstance()->deregister_column(column.get_gdf_column());
 
-			names.push_back(column.name());
-		}
+		// 	names.push_back(column.name());
+		// }
 
 		// TODO percy cudf0.12 port to cudf::column CIO
 //		ResultSet result = {columns, names};

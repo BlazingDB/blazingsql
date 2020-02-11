@@ -20,7 +20,7 @@ struct ResultSet {
 };
 struct ReaderArgs {
 	cudf_io::read_orc_args orcReaderArg = cudf_io::read_orc_args(cudf_io::source_info(""));
-	cudf::json_read_arg jsonReaderArg = cudf::json_read_arg(cudf::source_info(""));
+	cudf_io::read_json_args jsonReaderArg = cudf_io::read_json_args(cudf_io::source_info(""));
 	cudf_io::read_csv_args csvReaderArg = cudf_io::read_csv_args(cudf_io::source_info(""));
 };
 

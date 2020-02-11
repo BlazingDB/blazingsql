@@ -87,22 +87,13 @@ include_directories(
     ${PYTHON_INCLUDE_DIRS}
     )
 
-## cuDF adapter source files
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/cuDF)
-get_directory_property(cudf_adapter_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/src/cuDF DEFINITION source_files)
-
 ## communication primitives
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/communication)
 get_directory_property(communication_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/src/communication DEFINITION source_files)
 
-## communication primitives
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/distribution)
-get_directory_property(distribution_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/src/distribution DEFINITION source_files)
-
 ## Target source files
 set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
-              ${CMAKE_SOURCE_DIR}/src/exception/RalException.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
@@ -113,7 +104,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/GDFParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/OrcParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArrowParser.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/ParserUtil.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArgsUtil.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/metadata/parquet_metadata.cpp
               ${CMAKE_SOURCE_DIR}/src/Traits/RuntimeTraits.cpp
@@ -121,16 +111,12 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/StringUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/Config/Config.cpp
+              ${CMAKE_SOURCE_DIR}/src/utilities/random_generator.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
               ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
               ${CMAKE_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteInterpreter.cpp
-              ${CMAKE_SOURCE_DIR}/src/ColumnManipulation.cu
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
-              ${CMAKE_SOURCE_DIR}/src/Utils.cu
-              ${CMAKE_SOURCE_DIR}/src/GDFCounter.cu
-              ${CMAKE_SOURCE_DIR}/src/GDFColumn.cu
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
@@ -143,10 +129,8 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
               ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/column_utilities.cu
-              ${cudf_adapter_source_files}
-              ${binary_operation_source_files}
+              ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
               ${communication_source_files}
-              ${distribution_source_files}
 )
 
 link_directories($ENV{CONDA_PREFIX}/lib)
