@@ -11,25 +11,17 @@
 
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "ColumnManipulation.cuh"
 #include "Interpreter/interpreter_cpp.h"
 #include "Traits/RuntimeTraits.h"
 #include "Utils.cuh"
 #include "communication/network/Server.h"
 #include "config/GPUManager.cuh"
-#include "cuDF/safe_nvcategory_gather.hpp"
-#include "cudf/legacy/binaryop.hpp"
 #include "io/DataLoader.h"
-#include "legacy/groupby.hpp"
-#include "legacy/reduction.hpp"
-#include "legacy/stream_compaction.hpp"
 #include "operators/GroupBy.h"
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/StringUtils.h"
 #include <cudf/filling.hpp>
-#include <cudf/legacy/table.hpp>
-#include <rmm/thrust_rmm_allocator.h>
 #include "parser/expression_tree.hpp"
 #include "Interpreter/interpreter_cpp.h"
 
@@ -455,7 +447,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_query(
 		std::vector<ral::io::Schema> schemas,
 		std::vector<std::string> table_names,
 		std::string logicalPlan,
-		connection_id_t connection,
+		int64_t connection,
 		Context& queryContext
 		){
 

@@ -50,7 +50,8 @@ jpype.addClassPath(
         os.getenv("CONDA_PREFIX"),
         'lib/blazingsql-algebra-core.jar'))
 
-jpype.startJVM(jpype.getDefaultJVMPath(), '-ea', convertStrings=False)
+jvm_path=os.environ["CONDA_PREFIX"]+"/jre/lib/amd64/server/libjvm.so"
+jpype.startJVM('-ea', convertStrings=False, jvmpath=jvm_path)
 
 ArrayClass = jpype.JClass('java.util.ArrayList')
 ColumnTypeClass = jpype.JClass(

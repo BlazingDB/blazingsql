@@ -6,7 +6,6 @@
 #include <thread>
 
 #include "JSONParser.h"
-#include "io/data_parser/ParserUtil.h"
 #include "../Schema.h"
 
 namespace ral {
