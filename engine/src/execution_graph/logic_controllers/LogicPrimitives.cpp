@@ -240,7 +240,8 @@ void WaitingCacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> t
 }
 
 std::unique_ptr<ral::frame::BlazingTable> WaitingCacheMachine::pullFromCache() {
-	if (not waitingGpuData.empty()){
+	{
+		// TODO: @alex: Fix this: We should use here a unique queue. In order to use the latest element in que queue.
 		auto data = waitingGpuData.get();
 		auto frame = data->releaseData();
 		usedMemory[0] -= frame->sizeInBytes();
