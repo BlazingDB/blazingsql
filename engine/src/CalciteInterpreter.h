@@ -3,7 +3,6 @@
 #define CALCITEINTERPRETER_H_
 
 #include "../Interpreter/interpreter_cpp.h"
-#include "Types.h"
 #include "cudf/legacy/binaryop.hpp"
 #include "io/DataLoader.h"
 #include <iostream>
@@ -24,7 +23,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_query(std::vector<ral::io::da
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::string logicalPlan,
-	connection_id_t connection,
+	int64_t connection,
 	Context & queryContext);
 
 void split_inequality_join_into_join_and_filter(const std::string & join_statement, 

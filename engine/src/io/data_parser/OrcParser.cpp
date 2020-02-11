@@ -8,7 +8,6 @@
 #include <thread>
 
 #include "../Schema.h"
-#include "io/data_parser/ParserUtil.h"
 
 #include <cudf/table/table.hpp>
 #include <cudf/io/functions.hpp>
