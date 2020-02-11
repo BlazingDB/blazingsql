@@ -332,7 +332,7 @@ bool is_binary_operator(operator_type op) {
   case operator_type::BLZ_DIV:
   case operator_type::BLZ_MOD:
   case operator_type::BLZ_POW:
-	case operator_type::BLZ_ROUND:
+  case operator_type::BLZ_ROUND:
   case operator_type::BLZ_EQUAL:
   case operator_type::BLZ_NOT_EQUAL:
   case operator_type::BLZ_LESS:
