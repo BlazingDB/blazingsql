@@ -8,7 +8,6 @@
 #ifndef DATAPARSER_H_
 #define DATAPARSER_H_
 
-#include "../Metadata.h"
 #include "../Schema.h"
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 #include "arrow/io/interfaces.h"
