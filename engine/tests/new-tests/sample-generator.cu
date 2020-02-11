@@ -5,7 +5,7 @@
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
-#include <cuDF/generator/sample_generator.h>
+#include "utilities/random_generator.cuh"
 
 template <class T>
 class SampleGeneratorTest : public cudf::test::BaseFixture {};
@@ -23,7 +23,7 @@ TYPED_TEST(SampleGeneratorTest, BaseCase) {
 	const std::vector<std::string> columnNames{"column1", "column2"};
 	ral::frame::BlazingTableView blazingTableView{cudfTableView, columnNames};
 
-	std::unique_ptr<ral::frame::BlazingTable> sampleTable = cudf::generator::generate_sample(blazingTableView, 4);
+	std::unique_ptr<ral::frame::BlazingTable> sampleTable = ral::generator::generate_sample(blazingTableView, 4);
 
 	CudfTableView sampleView = sampleTable->view();
 
@@ -59,7 +59,7 @@ TEST_F(SampleGeneratorExceptionsTest, WithoutColumns) {
 
 	ral::frame::BlazingTableView blazingTableView{cudfTableView, {}};
 
-	EXPECT_THROW(cudf::generator::generate_sample(blazingTableView, 4), std::logic_error);
+	EXPECT_THROW(ral::generator::generate_sample(blazingTableView, 4), std::logic_error);
 }
 
 TEST_F(SampleGeneratorExceptionsTest, WithoutRows) {
@@ -69,5 +69,5 @@ TEST_F(SampleGeneratorExceptionsTest, WithoutRows) {
 
 	ral::frame::BlazingTableView blazingTableView{cudfTableView, {}};
 
-	EXPECT_THROW(cudf::generator::generate_sample(blazingTableView, 4), std::logic_error);
+	EXPECT_THROW(ral::generator::generate_sample(blazingTableView, 4), std::logic_error);
 }

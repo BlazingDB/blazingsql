@@ -20,7 +20,6 @@
 #include "gdf/library/api.h"
 #include <CalciteInterpreter.h>
 #include <DataFrame.h>
-#include <GDFColumn.cuh>
 #include <Utils.cuh>
 #include <algorithm>
 #include <benchmark/benchmark.h>
