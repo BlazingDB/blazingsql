@@ -55,47 +55,46 @@ ral::frame::TableViewPair data_loader::load_data(
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads.push_back(std::thread([&, file_index]() {
 			if (files[file_index].fileHandle != nullptr) {
-				// TODO william alex percy skipdata cudf0.12
+				
 				Schema fileSchema = schema.fileSchema(file_index);
 
-				// // TODO: @alex, Super important to support HIVE!! tricky!!!
 				ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices);
-				// {
-
-					// std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = std::move(loaded_table.first);
-					// std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
-					// auto num_rows = current_table->num_rows();
-					// std::vector<std::unique_ptr<cudf::column>> current_columns = current_table->release();
-					// for(int i = 0; i < schema.get_num_columns(); i++) {
-					// 	if(!schema.get_in_file()[i]) {
-					// 		std::cout<<"creating column!"<<std::endl;
-					// 		std::string name = schema.get_name(i);
-					// 		if(files[file_index].is_column_string[name]) {
-					// // 			std::string string_value = files[file_index].string_values[name];
-					// // 			NVCategory * category = repeated_string_category(string_value, num_rows);
-					// // 			gdf_column_cpp column;
-					// // 			column.create_gdf_column(category, num_rows, name);
-					// // 			converted_data.push_back(column);
-					// 		} else {
-					// 			auto scalar = files[file_index].column_values[name];
-					// 			size_t width_per_value = cudf::size_of(scalar->type());
-					// 			auto buffer_size = width_per_value * num_rows;
-					// 			rmm::device_buffer gpu_buffer(buffer_size);
-					// 			auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
-
-					// 			cudf::experimental::fill(scalar_column->mutable_view(), cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
-					// 			current_columns.emplace_back(std::move(scalar_column));
-					// 		}
-					// 		std::cout<<"created column!"<<std::endl;
-					// 	}
-					// }
-					// auto unique_table = std::make_unique<cudf::experimental::table>(std::move(current_columns));
-					// auto new_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), current_blazing_table->names());
-					// tableViewPairs_per_file[file_index] = std::make_pair(std::move(new_blazing_table), new_blazing_table->toBlazingTableView());
-				// } 
-				{
+				
+				if (schema.all_in_file()){
 					tableViewPairs_per_file[file_index] =  std::move(loaded_table);
-				}
+				} else {
+					std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = std::move(loaded_table.first);
+					std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
+					auto num_rows = current_table->num_rows();
+					std::vector<std::unique_ptr<cudf::column>> current_columns = current_table->release();
+					for(int i = 0; i < schema.get_num_columns(); i++) {
+						if(!schema.get_in_file()[i]) {
+							std::cout<<"creating column!"<<std::endl;
+							std::string name = schema.get_name(i);
+							if(files[file_index].is_column_string[name]) {
+					// 			std::string string_value = files[file_index].string_values[name];
+					// 			NVCategory * category = repeated_string_category(string_value, num_rows);
+					// 			gdf_column_cpp column;
+					// 			column.create_gdf_column(category, num_rows, name);
+					// 			converted_data.push_back(column);
+							} else {
+								auto scalar = files[file_index].column_values[name];
+								size_t width_per_value = cudf::size_of(scalar->type());
+								auto buffer_size = width_per_value * num_rows;
+								rmm::device_buffer gpu_buffer(buffer_size);
+								auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
+
+								cudf::experimental::fill(scalar_column->mutable_view(), cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
+								current_columns.emplace_back(std::move(scalar_column));
+							}
+							std::cout<<"created column!"<<std::endl;
+						}
+					}
+					auto unique_table = std::make_unique<cudf::experimental::table>(std::move(current_columns));
+					auto new_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), current_blazing_table->names());
+					tableViewPairs_per_file[file_index] = std::make_pair(std::move(new_blazing_table), new_blazing_table->toBlazingTableView());
+				} 
+				
 			} else {
 				Library::Logging::Logger().logError(ral::utilities::buildLogString(
 					"", "", "", "ERROR: Was unable to open " + user_readable_file_handles[file_index]));

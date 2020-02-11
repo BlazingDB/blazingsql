@@ -4,6 +4,7 @@ import cudf
 from cudf._libxx.column import np_to_cudf_types
 from cudf._libxx.column import cudf_to_np_types
 from cudf.core.column.column import build_column
+from cudf._libxx.lib import type_id
 
 from collections import OrderedDict
 from enum import Enum
@@ -208,9 +209,9 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
 def parseHiveMetadataFor(curr_table, file_subset, partitions):
     metadata = {}
     names = []
-    n_cols = len(curr_table.input.columns)
-    dtypes = curr_table.input.dtypes
-    columns = curr_table.input.columns
+    n_cols = len(curr_table.column_names)
+    dtypes = curr_table.column_types
+    columns = [name.decode() for name in curr_table.column_names]
     n_files = len(file_subset)
     col_indexes = {} 
     for index in range(n_cols):
@@ -223,10 +224,19 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
     names.append('row_group_index') 
     minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
     table_partition = {}
+    valid_metadata_columns = []
     for file_index, partition_name  in enumerate(partitions):
         curr_table = partitions[partition_name]
-        for col_name, col_value_id in curr_table:
-            table_partition.setdefault(col_name, []).append(col_value_id)
+        for col_ind, [col_name, col_value_id] in enumerate(curr_table):
+            breakpoint() # WSM left off here. dtypes[col_ind] here are an enum, so we may not need to compare against np types
+            if(dtypes[col_ind] == np.str):
+                np_col_value = col_value_id
+            elif(dtypes[col_ind] == np.datetime64):
+                np_col_value = np.datetime64(col_value_id)
+            else:
+                np_col_value = np.fromstring(col_value_id, dtypes[col_ind], sep=' ')[0]
+            
+            table_partition.setdefault(col_name, []).append(np_col_value)
         minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
         minmax_metadata_table[len(minmax_metadata_table) - 1].append(0)
 
@@ -237,11 +247,19 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
             index = col_indexes[col_name] 
             minmax_metadata_table[2*index] = col_value_ids
             minmax_metadata_table[2*index+1] = col_value_ids
+            valid_metadata_columns.append(2*index)
+            valid_metadata_columns.append(2*index+1)
         else:
-            if dtypes[col_name] == np.object or dtypes[col_name] == np.dtype('datetime64[ms]') or dtypes[col_name] == np.datetime64:
-                return cudf.DataFrame({})
-            minmax_metadata_table[2*index] = [np.iinfo(dtypes[col_name]).min] * n_files
-            minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[col_name]).max] * n_files
+            breakpoint()
+            if dtypes[col_name] == np.object:
+                minmax_metadata_table[2*index] = [''] * n_files
+                minmax_metadata_table[2*index+1] = [''] * n_files
+            elif dtypes[col_name] == np.dtype('datetime64[ms]') or dtypes[col_name] == np.datetime64:
+                minmax_metadata_table[2*index] = [0] * n_files
+                minmax_metadata_table[2*index+1] = [0] * n_files
+            else:
+                minmax_metadata_table[2*index] = [np.iinfo(dtypes[col_name]).min] * n_files
+                minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[col_name]).max] * n_files
 
     series = []
     for index in range(n_cols):
@@ -252,20 +270,20 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
         series.append(col2)
     index = n_cols 
 
-    col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[col_name], name=names[2*index])
-    col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[col_name], name=names[2*index+1])
+    col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.int16, name=names[2*index])
+    col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=np.int16, name=names[2*index+1])
     series.append(col1)
     series.append(col2)
 
     frame = OrderedDict(((key,value) for (key,value) in zip(names, series)))
     metadata = cudf.DataFrame(frame)
-    return metadata
+    return metadata, valid_metadata_columns
 
 
 def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
     result = fileMetadata
-    columns = curr_table.input.columns
-    n_cols = len(curr_table.input.columns)
+    columns = curr_table.column_names
+    n_cols = len(curr_table.column_names)
 
     # if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
     #     print('TODO: files have to be listed in the same order')
@@ -319,7 +337,8 @@ class BlazingTable(object):
             uri_values=[],
             in_file=[],
             force_conversion=False,
-            metadata=None):
+            metadata=None,
+            valid_metadata_columns=None):
         self.fileType = fileType
         if fileType == DataType.ARROW:
             if force_conversion:
@@ -354,6 +373,7 @@ class BlazingTable(object):
         self.slices = None
         # metadata, this is computed in create table, after call get_metadata
         self.metadata = metadata
+        self.valid_metadata_columns = valid_metadata_columns
         # row_groups_ids, vector<vector<int>> one vector of row_groups per file
         self.row_groups_id = []
         # a pair of values with the startIndex and batchSize info for each slice
@@ -582,19 +602,12 @@ class BlazingContext(object):
                 self.db.removeTable(tableName)
                 self.tables[tableName] = table
 
-                if(isinstance(table.input, dask_cudf.core.DataFrame)):
-                    schema_df_types = [np_to_cudf_types[col.dtype] for col in table.input.head(0)._data.values()]
-                else:
-                    schema_df_types = table.column_types
-
                 arr = ArrayClass()
-                order = 0
-                for column in table.column_names:
+                for order, column in enumerate(table.column_names):
                     type_id = table.column_types[order]
                     dataType = ColumnTypeClass.fromTypeId(type_id)
                     column = ColumnClass(column, dataType, order)
                     arr.add(column)
-                    order = order + 1
                 tableJava = TableClass(tableName, self.db, arr)
                 self.db.addTable(tableJava)
                 self.schema = BlazingSchemaClass(self.db)
@@ -669,10 +682,15 @@ class BlazingContext(object):
             table.column_types = parsedSchema['types']
 
             table.slices = table.getSlices(len(self.nodes))
+            if is_hive_input and len(extra_columns) > 0:
+                parsedMetadata, valid_metadata_columns = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns, partitions)
+                table.metadata = parsedMetadata
+                table.valid_metadata_columns = valid_metadata_columns
+
             if parsedSchema['file_type'] == DataType.PARQUET :
                 parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs)
-                if isinstance(parsedMetadata, cudf.DataFrame):
-                    table.metadata = parsedMetadata
+                if is_hive_input:
+                    table.metadata = self._mergeMetadata(table.slices, parsedMetadata, table.metadata, table.valid_metadata_columns, extra_columns)
                 else:
                     table.metadata = parsedMetadata
 
@@ -703,7 +721,27 @@ class BlazingContext(object):
             return cio.parseSchemaCaller(
                 input, file_format_hint, kwargs, extra_columns)
 
+    # WSM left off here. Want to be able to use valid_metadata_columns when merging metadata
+    # then want to use valid_metadata_columns when processing skip-data. Also want to get valid_metadata_columns 
+    # from parquet files. Also want to pass hive partitions extra_column info as strings instead of gdf_scalar
+    def _mergeMetadata(self, currentTableNodes, fileMetadata, hiveMetadata, valid_metadata_columns, extra_columns): 
+        if self.dask_client:
+            dask_futures = []
+            workers = tuple(self.dask_client.scheduler_info()['workers'])
+            worker_id = 0
+            for worker in workers: 
+                curr_table = currentTableNodes[worker_id]
+                file_part_metadata = fileMetadata.get_partition(worker_id).compute()
+                hive_part_metadata = hiveMetadata.get_partition(worker_id).compute()
 
+                connection = self.dask_client.submit(mergeMetadataFor, curr_table, file_part_metadata, hive_part_metadata, extra_columns, workers=[worker])
+                dask_futures.append(connection)
+                worker_id += 1
+            return dask.dataframe.from_delayed(dask_futures) 
+        else:
+            worker_id = 0
+            curr_table = currentTableNodes[worker_id]
+            return mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns)
 
     def _parseMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
@@ -727,6 +765,24 @@ class BlazingContext(object):
         else:
             return cio.parseMetadataCaller(
                 input, currentTableNodes[0].offset, schema, file_format_hint, kwargs)
+
+    def _parseHiveMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions): 
+        if self.dask_client:
+            dask_futures = []
+            workers = tuple(self.dask_client.scheduler_info()['workers'])
+            worker_id = 0
+            for worker in workers: 
+                curr_table = currentTableNodes[worker_id]
+                file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
+                connection = self.dask_client.submit(parseHiveMetadataFor, curr_table, file_subset, partitions, workers=[worker])
+                dask_futures.append(connection)
+                worker_id += 1
+            return dask.dataframe.from_delayed(dask_futures) 
+        else:
+            worker_id = 0
+            curr_table = currentTableNodes[worker_id]
+            file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
+            return parseHiveMetadataFor(curr_table, file_subset, partitions)
 
     def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
             if self.dask_client is None:

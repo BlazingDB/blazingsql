@@ -6,6 +6,7 @@
  */
 
 #include "Schema.h"
+#include <algorithm>
 
 namespace ral {
 namespace io {
@@ -105,6 +106,10 @@ size_t Schema::get_num_row_groups(size_t file_index) const { return this->num_ro
 size_t Schema::get_num_columns() const { return this->names.size(); }
 
 std::vector<bool> Schema::get_in_file() const { return this->in_file; }
+
+bool Schema::all_in_file() const {
+	return std::all_of(this->in_file.begin(), this->in_file.end(), [](bool elem) { return elem; });
+}
 /*void Schema::add_column(gdf_column_cpp column, size_t file_index) {
 	this->names.push_back(column.name());
 	this->types.push_back(column.get_gdf_column()->type().id());

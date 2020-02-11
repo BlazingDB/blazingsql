@@ -53,6 +53,7 @@ public:
 	std::vector<std::string> get_types() const;
 	std::vector<std::string> get_files() const;
 	std::vector<bool> get_in_file() const;
+	bool all_in_file() const;
 	std::vector<cudf::type_id> get_dtypes() const;
 	std::string get_name(size_t schema_index) const;
 	std::string get_type(size_t schema_index) const;
