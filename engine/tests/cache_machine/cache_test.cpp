@@ -360,19 +360,19 @@ public:
 			if(not source) {
 				break;
 			}
-			//			std::cout << "source_id: " <<  source_id << "->";
+			std::cout << "source_id: " <<  source_id << "->";
 			for(auto edge : get_neighbours(source)) {
 				auto target_id = edge.target;
-				//				std::cout << " " <<  target_id << std::endl;
+				std::cout << " " <<  target_id << std::endl;
 				auto target = get_node(target_id);
 				auto edge_id = std::make_pair(source_id, target_id);
 				if(visited.find(edge_id) == visited.end()) {
 					visited.insert(edge_id);
 					Q.push_back(target_id);
-					std::thread t([this, &source, &target, &edge] {
-//						  source->run(target, edge.source_port_name, edge.target_port_name);
+					std::thread t([this, source, target, edge] {
+						  source->run(target, edge.source_port_name, edge.target_port_name);
 					});
-					source->run(target, edge.source_port_name, edge.target_port_name);
+					// source->run(target, edge.source_port_name, edge.target_port_name);
 					threads.push_back(std::move(t));
 				} else {
 					// TODO: and circular graph is defined here. Report and error

@@ -207,10 +207,8 @@ WaitingCacheMachine::WaitingCacheMachine(unsigned long long gpuMemory,
 	std::vector<unsigned long long> memoryPerCache,
 	std::vector<CacheDataType> cachePolicyTypes_)
 	: CacheMachine(gpuMemory, memoryPerCache, cachePolicyTypes_) {
-	waitingCache.resize(cachePolicyTypes_.size() + 1);
-	for(size_t i = 0; i < waitingCache.size(); i++) {
-		waitingCache[i] = std::make_unique<WaitingQueue<CacheData>>();
-	}
+
+  waitingCache = std::make_unique<WaitingQueue<CacheData>>();
 }
 
 WaitingCacheMachine::~WaitingCacheMachine() {}
@@ -220,15 +218,18 @@ void WaitingCacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> t
 		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())) {
 			usedMemory[cacheIndex] += table->sizeInBytes();
 			if(cacheIndex == 0) {
-				auto item = std::make_unique<message<ral::frame::BlazingTable>>(std::move(table));
-				waitingGpuData.put(std::move(item));
-			} else {
+        auto cache_data = std::make_unique<GPUCacheData>(std::move(table));
+        std::unique_ptr<message<CacheData>> item =
+          std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex);
+        this->waitingCache->put(std::move(item));
+
+      } else {
 				std::thread t([table = std::move(table), this, cacheIndex]() mutable {
 					if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE) {
 						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table));
 						std::unique_ptr<message<CacheData>> item =
-							std::make_unique<message<CacheData>>(std::move(cache_data));
-						this->waitingCache[cacheIndex]->put(std::move(item));
+							std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex);
+						this->waitingCache->put(std::move(item));
 						// NOTE: Wait don't kill the main process until the last thread is finished!
 					}
 				});
@@ -240,23 +241,12 @@ void WaitingCacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> t
 }
 
 std::unique_ptr<ral::frame::BlazingTable> WaitingCacheMachine::pullFromCache() {
-	{
-		// TODO: @alex: Fix this: We should use here a unique queue. In order to use the latest element in que queue.
-		auto data = waitingGpuData.get();
-		auto frame = data->releaseData();
-		usedMemory[0] -= frame->sizeInBytes();
-		return std::move(frame);
-	}
-	for(int cacheIndex = 1; cacheIndex < memoryPerCache.size(); cacheIndex++) {
-		if(not waitingCache[cacheIndex]->empty()) {
-			auto data = std::move(waitingCache[cacheIndex]->get());
-			auto cache_data = data->releaseData();
-			usedMemory[cacheIndex] -= cache_data->sizeInBytes();
-			return std::move(cache_data->decache());
-		}
-	}
+  std::unique_ptr<message<CacheData>> message_data = std::move(waitingCache->pop_and_wait());
+  auto cache_data = message_data->releaseData();
+  auto cache_index = message_data->cacheIndex();
+  usedMemory[cache_index] -= cache_data->sizeInBytes();
+  return std::move(cache_data->decache());
 }
-
 
 }  // namespace cache
 

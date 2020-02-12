@@ -131,6 +131,27 @@ protected:
 	std::vector<std::string> names;
 };
 
+class GPUCacheData : public CacheData {
+public:
+	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table) : data{std::move(table)}
+	{}
+
+	std::unique_ptr<ral::frame::BlazingTable> decache() override {
+		return std::move(data);
+	}
+
+	unsigned long long sizeInBytes() override {
+		return data->sizeInBytes();
+	}
+
+	virtual ~GPUCacheData() {
+
+	}
+
+private:
+	std::unique_ptr<ral::frame::BlazingTable> data;
+};
+
 class CacheDataLocalFile : public CacheData {
 public:
 	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table);
@@ -184,16 +205,18 @@ static std::size_t message_count = {0};
 template <class T>
 class message {
 public:
-	message(std::unique_ptr<T> content) : data(std::move(content)), message_id(message_count) { message_count++; }
+	message(std::unique_ptr<T> content, size_t index) : data(std::move(content)), cache_index{index}, message_id(message_count) { message_count++; }
 
 	virtual ~message() = default;
 
 	std::size_t get_id() { return (message_id); }
 
 	std::unique_ptr<T> releaseData() { return std::move(data); }
+	size_t cacheIndex() { return cache_index; }
 
 protected:
 	const std::size_t message_id;
+	size_t  cache_index;
 	std::unique_ptr<T> data;
 };
 
@@ -211,7 +234,7 @@ public:
 	WaitingQueue & operator=(WaitingQueue &&) = delete;
 	WaitingQueue & operator=(const WaitingQueue &) = delete;
 
-	message_ptr get(const std::size_t & message_id) {
+	message_ptr pop_and_wait(const std::size_t & message_id) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] {
 			return std::any_of(this->message_queue_.cbegin(), this->message_queue_.cend(), [&](const auto & e) {
@@ -220,7 +243,7 @@ public:
 		});
 		return getWaitingQueue(message_id);
 	}
-	message_ptr get() {
+	message_ptr pop_and_wait() {
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] { return this->message_queue_.size() > 0; });
 		auto data = std::move(this->message_queue_.front());
@@ -271,8 +294,7 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
 
 private:
-	std::vector<std::unique_ptr<WaitingQueue<CacheData>>> waitingCache;
-	WaitingQueue<ral::frame::BlazingTable> waitingGpuData;
+	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
 };
 
 class WorkerThread {
