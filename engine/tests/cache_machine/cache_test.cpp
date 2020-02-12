@@ -178,7 +178,9 @@ class kernel;
 
 class port {
 public:
-	port(kernel * const k);
+	port(kernel * const k){
+		this->kernel_ = k;
+	}
 
 	virtual ~port() = default;
 
@@ -212,7 +214,9 @@ public:
 
 	virtual ~kernel() = default;
 
-	virtual kstatus run() = 0;
+	virtual kstatus run() {
+		//TODO run kernel!
+	}
 
 	kernel & operator[](const std::string && portname) {
 		// TODO !! get source or target.
@@ -438,6 +442,8 @@ protected:
 	std::ostream * ofs = nullptr;
 	static std::mutex print_lock;
 };
+std::mutex print::print_lock{};
+
 namespace test {
 class generate : public kernel {
 public:

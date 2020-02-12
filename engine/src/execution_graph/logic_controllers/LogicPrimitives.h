@@ -178,7 +178,6 @@ private:
 };
 
 
-enum kstatus { stop, proceed };
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 static std::size_t message_count = {0};
 
