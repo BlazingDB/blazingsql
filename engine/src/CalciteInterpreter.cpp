@@ -407,9 +407,11 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			queryContext->incrementQueryStep();
 			return std::make_pair(std::move(child_frame), child_frame_view);
 		} else if(is_sort(query[0])) {
+			std::cout << "----- CalciteInterpreter:is_sort 1 -----" << std::endl;  // QUITARRRRRRRRRRRRRRRRRrrr
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
 			child_frame = ral::operators::experimental::process_sort(child_frame_view, query[0], queryContext);
+			std::cout << "----- CalciteInterpreter:is_sort 2 -----" << std::endl; // QUITARRRRRRRRRRRRRRRRRrrr
 			child_frame_view = child_frame->toBlazingTableView();
 			//ral::operators::process_sort(child_frame, query[0], queryContext);
 
