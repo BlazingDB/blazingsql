@@ -55,8 +55,8 @@ public:
 	std::vector<bool> get_in_file() const;
 	bool all_in_file() const;
 	std::vector<cudf::type_id> get_dtypes() const;
+	cudf::type_id get_dtype(size_t schema_index) const;
 	std::string get_name(size_t schema_index) const;
-	std::string get_type(size_t schema_index) const;
 	std::vector<size_t> get_calcite_to_file_indices() const { return this->calcite_to_file_indices; }
 	std::vector<size_t> get_num_row_groups() const { return this->num_row_groups; }
 	Schema fileSchema(size_t current_file_index) const;

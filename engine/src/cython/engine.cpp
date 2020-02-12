@@ -26,9 +26,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	int32_t ctxToken,
 	std::string query,
 	uint64_t accessToken,
-	std::vector<std::vector<std::map<std::string, gdf_scalar>>> uri_values,
-	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
-	std::vector<std::vector<std::map<std::string, bool>>> is_column_string) {
+	std::vector<std::vector<std::map<std::string, std::string>>> uri_values) {
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
@@ -80,10 +78,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 			provider = std::make_shared<ral::io::dummy_data_provider>();
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)
-
-			// TODO percy cudf0.12 implement proper scalar support
-			provider = std::make_shared<ral::io::uri_data_provider>(
-				uris, /* uri_values[i]*/ std::vector<std::map<std::string, cudf::scalar*>>(), string_values[i], is_column_string[i]);
+			provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);
 		}
 		ral::io::data_loader loader(parser, provider);
 		input_loaders.push_back(loader);
@@ -130,9 +125,7 @@ std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 	int32_t ctxToken,
 	std::string query,
 	uint64_t accessToken,
-	std::vector<std::vector<std::map<std::string, gdf_scalar>>> uri_values,
-	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
-	std::vector<std::vector<std::map<std::string, bool>>> is_column_string) {
+	std::vector<std::vector<std::map<std::string, std::string>>> uri_values) {
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 

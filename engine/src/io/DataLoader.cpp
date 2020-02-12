@@ -11,6 +11,7 @@
 #include <thread>
 #include <cudf/filling.hpp>
 #include "gdf_wrapper.cuh"
+#include "CalciteExpressionParsing.h"
 
 namespace ral {
 // TODO: namespace frame should be remove from here
@@ -64,35 +65,34 @@ ral::frame::TableViewPair data_loader::load_data(
 					tableViewPairs_per_file[file_index] =  std::move(loaded_table);
 				} else {
 					std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = std::move(loaded_table.first);
+					std::vector<std::string> names = current_blazing_table->names();
 					std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
 					auto num_rows = current_table->num_rows();
 					std::vector<std::unique_ptr<cudf::column>> current_columns = current_table->release();
 					for(int i = 0; i < schema.get_num_columns(); i++) {
 						if(!schema.get_in_file()[i]) {
-							std::cout<<"creating column!"<<std::endl;
 							std::string name = schema.get_name(i);
-							if(files[file_index].is_column_string[name]) {
-					// 			std::string string_value = files[file_index].string_values[name];
-					// 			NVCategory * category = repeated_string_category(string_value, num_rows);
-					// 			gdf_column_cpp column;
-					// 			column.create_gdf_column(category, num_rows, name);
-					// 			converted_data.push_back(column);
+							names.push_back(name);
+							cudf::type_id type = schema.get_dtype(i);
+							std::string scalar_string = files[file_index].column_values[name];
+							if(type == cudf::type_id::STRING){
+								current_columns.emplace_back(ral::utilities::experimental::make_column_from_scalar(scalar_string, num_rows));
 							} else {
-								auto scalar = files[file_index].column_values[name];
+								std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
 								size_t width_per_value = cudf::size_of(scalar->type());
 								auto buffer_size = width_per_value * num_rows;
 								rmm::device_buffer gpu_buffer(buffer_size);
 								auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
-
-								cudf::experimental::fill(scalar_column->mutable_view(), cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
+								auto mutable_scalar_col = scalar_column->mutable_view();
+								cudf::experimental::fill(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
 								current_columns.emplace_back(std::move(scalar_column));
 							}
-							std::cout<<"created column!"<<std::endl;
-						}
+						} 
 					}
 					auto unique_table = std::make_unique<cudf::experimental::table>(std::move(current_columns));
-					auto new_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), current_blazing_table->names());
-					tableViewPairs_per_file[file_index] = std::make_pair(std::move(new_blazing_table), new_blazing_table->toBlazingTableView());
+					auto new_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names);
+					ral::frame::BlazingTableView new_table_view = new_blazing_table->toBlazingTableView();
+					tableViewPairs_per_file[file_index] = std::move(std::make_pair(std::move(new_blazing_table), new_table_view));
 				} 
 				
 			} else {

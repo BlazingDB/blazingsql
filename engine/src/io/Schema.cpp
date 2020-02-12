@@ -89,10 +89,9 @@ std::vector<std::string> Schema::get_types() const {
 std::vector<std::string> Schema::get_files() const { return this->files; }
 
 std::vector<cudf::type_id> Schema::get_dtypes() const { return this->types; }
+cudf::type_id Schema::get_dtype(size_t schema_index) const { return this->types[schema_index]; }
 
 std::string Schema::get_name(size_t schema_index) const { return this->names[schema_index]; }
-
-std::string Schema::get_type(size_t schema_index) const { return convert_dtype_to_string(this->types[schema_index]); }
 
 size_t Schema::get_file_index(size_t schema_index) const {
 	if(this->calcite_to_file_indices.size() == 0) {

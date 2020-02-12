@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <cudf/copying.hpp>
+#include <cudf/column/column_factories.hpp>
 #include <numeric>
 
 // namespace ral {
@@ -191,10 +192,6 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 	return std::make_unique<BlazingTable>(std::move(concatenated_tables), names);
 }
 
-std::unique_ptr<cudf::column> make_empty_column(cudf::data_type type) {
-  return std::make_unique<cudf::column>(type, 0, rmm::device_buffer{});
-}
-
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names, 
 	const std::vector<cudf::type_id> &dtypes, std::vector<size_t> column_indices) {
 	
@@ -224,6 +221,17 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableV
 
 	std::unique_ptr<CudfTable> empty = cudf::experimental::empty_like(table.view());
 	return std::make_unique<ral::frame::BlazingTable>(std::move(empty), table.names());	
+}
+
+std::unique_ptr<cudf::column> make_column_from_scalar(const std::string& str, cudf::size_type rows) {
+    std::vector<char> chars{};
+    std::vector<int32_t> offsets(1, 0);
+    for(cudf::size_type k = 0; k < rows; k++) {
+        chars.insert(chars.end(), std::cbegin(str), std::cend(str));
+        offsets.push_back(offsets.back() + str.length());
+    }
+
+    return cudf::make_strings_column(chars, offsets);
 }
 
 }  // namespace experimental

@@ -93,11 +93,11 @@ cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_
 cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values):
     return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
-    return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string))
+cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp) except *:
+    return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp))
 
-cdef unique_ptr[cio.ResultSet] runSkipDataPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except *:
-    return blaz_move(cio.runSkipData( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp,string_values_cpp,is_column_string))
+cdef unique_ptr[cio.ResultSet] runSkipDataPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp) except *:
+    return blaz_move(cio.runSkipData( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp))
 
 cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
@@ -239,52 +239,27 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef vector[vector[string]] filesAll
     cdef vector[string] currentFilesAll
 
-    cdef vector[vector[map[string,gdf_scalar]]] uri_values_cpp_all
-    cdef vector[map[string,gdf_scalar]] uri_values_cpp
-    cdef map[string,gdf_scalar] cur_uri_values
-
-
-    cdef vector[vector[map[string,string]]] string_values_cpp_all
-    cdef vector[map[string,string]] string_values_cpp
-    cdef map[string,string] cur_string_values
-
-    cdef vector[vector[map[string,bool]]] is_string_column_all
-    cdef vector[map[string,bool]] is_string_column
-    cdef map[string,bool] cur_is_string_column
-
-    cdef gdf_scalar_ptr scalar_ptr
-    cdef gdf_scalar scalar
+    cdef vector[vector[map[string,string]]] uri_values_cpp_all
+    cdef vector[map[string,string]] uri_values_cpp
+    cdef map[string,string] cur_uri_values
 
     cdef vector[column_view] column_views
     cdef Column cython_col
 
     tableIndex = 0
     for tableName in tables:
-      string_values_cpp.empty()
       uri_values_cpp.empty()
       for uri_value in tables[tableName].uri_values:
         cur_uri_values.clear()
-        cur_string_values.clear()
         for column_tuple in uri_value:
           key = column_tuple[0]
           value = column_tuple[1]
-          if type(value) == np.str:
-            cur_is_string_column[key.encode()] = True
-            cur_string_values[key.encode()] = value.encode()
-          else:
-            scalar_ptr = gdf_scalar_from_scalar(value)
-            scalar = scalar_ptr[0]
-            free(scalar_ptr)
-            cur_is_string_column[key.encode()] = False
-            cur_uri_values[key.encode()] = scalar
+          cur_uri_values[key.encode()] = value.encode()
+          
         uri_values_cpp.push_back(cur_uri_values)
-        string_values_cpp.push_back(cur_string_values)
-        is_string_column.push_back(cur_is_string_column)
+        
       uri_values_cpp_all.push_back(uri_values_cpp)
-      string_values_cpp_all.push_back(string_values_cpp)
-      is_string_column_all.push_back(is_string_column)
-
-      is_string_column.push_back(cur_is_string_column)
+      
       tableNames.push_back(str.encode(tableName))
       table = tables[tableName]
       currentFilesAll.resize(0)
@@ -295,8 +270,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       types.resize(0)
       names.resize(0)
       fileType = fileTypes[tableIndex]
-      # TODO: TableSchema will be refactorized
-
+      
       for col_name in table.column_names:
         if type(col_name) == np.str:
             names.push_back(col_name.encode())
@@ -306,7 +280,6 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       for col_type in table.column_types:
         types.push_back(col_type)
 
-      # TODO: Remove 4 == DataType.CUDF. Now there is a cython conflict with pyarrow.DataType
       if table.fileType in (4, 5):
           column_views.resize(0)
           for cython_col in table.input._data.values():
@@ -343,7 +316,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
+    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all))
 
     # TODO WSM. When we migrate to cudf 0.13 we will likely only need to do something like:
     # cudf.DataFrame(Table.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), names)._data)
@@ -376,50 +349,23 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     cdef vector[vector[string]] filesAll
     cdef vector[string] currentFilesAll
 
-    cdef vector[vector[map[string,gdf_scalar]]] uri_values_cpp_all
-    cdef vector[map[string,gdf_scalar]] uri_values_cpp
-    cdef map[string,gdf_scalar] cur_uri_values
-
-
-    cdef vector[vector[map[string,string]]] string_values_cpp_all
-    cdef vector[map[string,string]] string_values_cpp
-    cdef map[string,string] cur_string_values
-
-    cdef vector[vector[map[string,bool]]] is_string_column_all
-    cdef vector[map[string,bool]] is_string_column
-    cdef map[string,bool] cur_is_string_column
-
-    cdef gdf_scalar_ptr scalar_ptr
-    cdef gdf_scalar scalar
+    cdef vector[vector[map[string,string]]] uri_values_cpp_all
+    cdef vector[map[string,string]] uri_values_cpp
+    cdef map[string,string] cur_uri_values
 
     tableName, table = table_obj
 
     tableIndex = 0
-    string_values_cpp.empty()
-    uri_values_cpp.empty()
     for uri_value in table.uri_values:
       cur_uri_values.clear()
-      cur_string_values.clear()
       for column_tuple in uri_value:
         key = column_tuple[0]
         value = column_tuple[1]
-        if type(value) == np.str:
-          cur_is_string_column[key.encode()] = True
-          cur_string_values[key.encode()] = value.encode()
-        else:
-          scalar_ptr = gdf_scalar_from_scalar(value)
-          scalar = scalar_ptr[0]
-          free(scalar_ptr)
-          cur_is_string_column[key.encode()] = False
-          cur_uri_values[key.encode()] = scalar
+        cur_uri_values[key.encode()] = value.encode()
       uri_values_cpp.push_back(cur_uri_values)
-      string_values_cpp.push_back(cur_string_values)
-      is_string_column.push_back(cur_is_string_column)
+      
     uri_values_cpp_all.push_back(uri_values_cpp)
-    string_values_cpp_all.push_back(string_values_cpp)
-    is_string_column_all.push_back(is_string_column)
-
-    is_string_column.push_back(cur_is_string_column)
+    
     tableNames.push_back(str.encode(tableName))
     currentFilesAll.resize(0)
     if table.files is not None:
@@ -431,10 +377,10 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     fileType = fileTypes[tableIndex]
 
     for col_name in table.column_names:
-      if table.fileType == 4: #if from gdf
-          names.push_back(col_name.encode())
+      if type(col_name) == np.str:
+        names.push_back(col_name.encode())
       else: # from file
-          names.push_back(col_name)
+        names.push_back(col_name)
 
     for col_type in table.column_types:
       types.push_back(col_type)
@@ -465,7 +411,7 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
         print(currentMetadata['communication_port'])
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
-    temp = blaz_move(runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all,string_values_cpp_all,is_string_column_all))
+    temp = blaz_move(runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all))
 
     df = cudf.DataFrame()
     i = 0
