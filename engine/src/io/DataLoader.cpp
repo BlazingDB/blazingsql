@@ -76,7 +76,7 @@ ral::frame::TableViewPair data_loader::load_data(
 							cudf::type_id type = schema.get_dtype(i);
 							std::string scalar_string = files[file_index].column_values[name];
 							if(type == cudf::type_id::STRING){
-								current_columns.emplace_back(ral::utilities::experimental::make_column_from_scalar(scalar_string, num_rows));
+								current_columns.emplace_back(ral::utilities::experimental::make_string_column_from_scalar(scalar_string, num_rows));
 							} else {
 								std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
 								size_t width_per_value = cudf::size_of(scalar->type());

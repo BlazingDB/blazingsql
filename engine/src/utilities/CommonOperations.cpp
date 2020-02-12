@@ -4,6 +4,10 @@
 #include "CalciteExpressionParsing.h"
 #include "Traits/RuntimeTraits.h"
 #include "cudf/legacy/unary.hpp"
+#include "cudf/null_mask.hpp"
+#include "cudf/types.hpp"
+#include <cudf/filling.hpp>
+#include <cudf/scalar/scalar_factories.hpp>
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <cudf/copying.hpp>
@@ -223,15 +227,19 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableV
 	return std::make_unique<ral::frame::BlazingTable>(std::move(empty), table.names());	
 }
 
-std::unique_ptr<cudf::column> make_column_from_scalar(const std::string& str, cudf::size_type rows) {
-    std::vector<char> chars{};
-    std::vector<int32_t> offsets(1, 0);
-    for(cudf::size_type k = 0; k < rows; k++) {
-        chars.insert(chars.end(), std::cbegin(str), std::cend(str));
-        offsets.push_back(offsets.back() + str.length());
-    }
+std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& str, cudf::size_type rows) {
 
-    return cudf::make_strings_column(chars, offsets);
+	std::unique_ptr<cudf::column> temp_no_data = std::make_unique<cudf::column>( 
+		cudf::data_type{cudf::type_id::STRING}, rows,
+		rmm::device_buffer{0}, // no data
+		cudf::create_null_mask(rows, cudf::ALL_NULL),
+		rows );
+
+	auto scalar_value = cudf::make_string_scalar(str);
+	scalar_value->set_valid(true); // https://github.com/rapidsai/cudf/issues/4085
+
+	auto scalar_filled_column = cudf::experimental::fill(temp_no_data->view(), 0, rows, *scalar_value);
+	return scalar_filled_column;
 }
 
 }  // namespace experimental
