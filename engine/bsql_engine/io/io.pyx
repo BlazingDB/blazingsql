@@ -176,17 +176,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     return_object['names'] = tableSchema.names
     return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
     return_object['num_row_groups']= tableSchema.num_row_groups
-    i = 0
-    #for column in temp.columns:
-      # column.col_name = return_object['names'][i]
-      # return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
-      # i = i + 1
-
-	# temp is TableSchema and temp.column is array of cudf::column_view
-    #for column in tableSchema.columns:
-        #return_object['columns'][return_object['names'][i].decode('utf-8')] = column
-    #    i = i + 1
-
+    
     return return_object
 
 
@@ -201,7 +191,6 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     cdef TableSchema cpp_schema
 
     for col in schema['names']:
-        #cpp_schema.columns.push_back(column_view_from_column(schema['columns'][col]._column))
         cpp_schema.names.push_back(col)
 
     for col_type in schema['types']:
@@ -303,32 +292,28 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
           tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
           tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
 
-      # if table.row_groups_ids is not None:
-      #   currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
-      # else:
-      #   currentTableSchemaCpp.row_groups_ids = []
+      if table.row_groups_ids is not None:
+        currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
+      else:
+        currentTableSchemaCpp.row_groups_ids = []
 
-      tableSchemaCpp.push_back(currentTableSchemaCpp);
+      tableSchemaCpp.push_back(currentTableSchemaCpp)
       tableIndex = tableIndex + 1
+
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        #print(currentMetadata['communication_port'])
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
     resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all))
 
-    # TODO WSM. When we migrate to cudf 0.13 we will likely only need to do something like:
-    # cudf.DataFrame(Table.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), names)._data)
-    # and we dont have to call _rename_columns. We are doing that here only because the current from_ptr is not properly setting the column names
     names = dereference(resultSet).names
     decoded_names = []
     for i in range(names.size()):
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    df._rename_columns(decoded_names)
-
+    
     return df
 
 
@@ -352,6 +337,9 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     cdef vector[vector[map[string,string]]] uri_values_cpp_all
     cdef vector[map[string,string]] uri_values_cpp
     cdef map[string,string] cur_uri_values
+
+    cdef vector[column_view] column_views
+    cdef Column cython_col
 
     tableName, table = table_obj
 
@@ -401,26 +389,32 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
         tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
         tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
 
-    for col in table.metadata:
-      currentTableSchemaCpp.metadata.push_back(column_view_from_column(table.metadata[col]._column))
+    column_views.resize(0)
+    metadata_col_names = [name for name in table.metadata._data.keys()]
+    for cython_col in table.metadata._data.values():
+      column_views.push_back(cython_col.view())
+    currentTableSchemaCpp.metadata = BlazingTableView(table_view(column_views), metadata_col_names)
 
-    tableSchemaCpp.push_back(currentTableSchemaCpp);
+    tableSchemaCpp.push_back(currentTableSchemaCpp)
 
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        print(currentMetadata['communication_port'])
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
-    temp = blaz_move(runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all))
+    
+    resultSet = blaz_move(runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all))
 
-    df = cudf.DataFrame()
-    i = 0
-    # for column in temp.columns:
-      # column.col_name =  <char *> malloc((strlen(temp.names[i].c_str()) + 1) * sizeof(char))
-      # strcpy(column.col_name, temp.names[i].c_str())
-      # df.add_column(temp.names[i].decode('utf-8'),gdf_column_to_column(column))
-      # i = i + 1
-    return df
+    names = dereference(resultSet).names
+    decoded_names = []
+    for i in range(names.size()):
+        decoded_names.append(names[i].decode('utf-8'))
+
+    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
+    
+    return_object = {}
+    return_object['has_some_error'] = dereference(resultSet).error_reported
+    return_object['metadata'] = df 
+    return return_object
 
 cpdef getTableScanInfoCaller(logicalPlan,tables):
     temp = getTableScanInfoPython(str.encode(logicalPlan))

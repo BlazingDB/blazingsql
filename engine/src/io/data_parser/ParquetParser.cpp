@@ -4,9 +4,6 @@
 #include "ParquetParser.h"
 #include "config/GPUManager.cuh"
 #include <blazingdb/io/Util/StringUtil.h>
-#include <cudf/legacy/column.hpp>
-#include <cudf/legacy/io_functions.hpp>
-
 
 #include <algorithm>
 #include <string>
@@ -37,8 +34,6 @@
 #include <parquet/api/writer.h>
 
 #include "../Schema.h"
-
-#include "gdf_wrapper.cuh"
 
 #include <numeric>
 
@@ -72,7 +67,6 @@ ral::frame::TableViewPair parquet_parser::parse(
 
 	if(column_indices.size() > 0) {
 		// Fill data to pq_args
-		// cudf::io::parquet::reader_options pq_args;
 		cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
 
 		pq_args.strings_to_categorical = false;
@@ -111,46 +105,24 @@ ral::frame::TableViewPair parquet_parser::parse(
 
 
 void parquet_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema_out) {
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 
-	std::vector<size_t> num_row_groups(files.size());
-	std::thread threads[files.size()];
-	for(int file_index = 0; file_index < files.size(); file_index++) {
-		threads[file_index] = std::thread([&, file_index]() {
-			std::unique_ptr<parquet::ParquetFileReader> parquet_reader =
-				parquet::ParquetFileReader::Open(files[file_index]);
-			std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_reader->metadata();
-			const parquet::SchemaDescriptor * schema = file_metadata->schema();
-			num_row_groups[file_index] = file_metadata->num_row_groups();
-			parquet_reader->Close();
-		});
-	}
-
-	for(int file_index = 0; file_index < files.size(); file_index++) {
-		threads[file_index].join();
-	}
-
-	cudf::io::parquet::reader_options pq_args;
+	cudf_io::read_parquet_args pq_args{cudf_io::source_info{files[0]}};
 	pq_args.strings_to_categorical = false;
-	cudf::io::parquet::reader cudf_parquet_reader(files[0], pq_args);
-	cudf::table table_out = cudf_parquet_reader.read_rows(0, 1);
+	pq_args.row_group = 0;
+	pq_args.num_rows = 1;
 
+	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);
 
-	// we currently dont support GDF_DATE32 for parquet so lets filter those out
-	std::vector<std::string> column_names_out;
-	std::vector<cudf::type_id> dtypes_out;
-	for(size_t i = 0; i < table_out.num_columns(); i++) {
-		if(table_out.get_column(i)->dtype != GDF_DATE32) {
-			column_names_out.push_back(table_out.get_column(i)->col_name);
-			dtypes_out.push_back(to_type_id(table_out.get_column(i)->dtype));
-		}
+	assert(table_out.tbl->num_columns() > 0);
+
+	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
+		cudf::type_id type = table_out.tbl->get_column(i).type().id();
+		size_t file_index = i;
+		bool is_in_file = true;
+		std::string name = table_out.metadata.column_names.at(i);
+		schema.add_column(name, type, file_index, is_in_file);
 	}
-	table_out.destroy();
-
-	std::vector<std::size_t> column_indices(column_names_out.size());
-	std::iota(column_indices.begin(), column_indices.end(), 0);
-
-	schema_out = ral::io::Schema(column_names_out, column_indices, dtypes_out, num_row_groups);
 }
 
 

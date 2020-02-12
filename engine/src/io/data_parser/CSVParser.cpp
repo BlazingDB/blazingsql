@@ -40,7 +40,7 @@ cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_a
 	int64_t num_bytes;
 	arrow_file_handle->GetSize(&num_bytes);
 
-	// lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
+	// lets only read up to 48192 bytes. We are assuming that a full row will always be less than that
 	if(first_row_only && num_bytes > 48192) {
 		new_csv_args.byte_range_size = 48192;
 		new_csv_args.nrows = 1;

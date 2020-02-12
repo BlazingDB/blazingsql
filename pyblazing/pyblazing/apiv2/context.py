@@ -787,51 +787,60 @@ class BlazingContext(object):
     def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
             if self.dask_client is None:
                 current_table = nodeTableList[0][table_name]
-                table_tuple = (table_name, current_table)
+                table_tuple = (table_name, current_table) 
+                # print("skip-data-frame:", current_table.metadata[['file_handle_index']])
                 file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0)
-                if not file_indices_and_rowgroup_indices.empty:
+                has_some_error = file_indices_and_rowgroup_indices['has_some_error']
+                file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
+                if not file_indices_and_rowgroup_indices.empty and not has_some_error:
                     file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
                     grouped = file_and_rowgroup_indices.groupby('file_handle_index')
                     actual_files = []
+                    uri_values = []
                     current_table.row_groups_ids = []
                     for group_id in grouped.groups:
                         row_indices = grouped.groups[group_id].values.tolist()
                         actual_files.append(table_files[group_id])
+                        if group_id < len(current_table.uri_values):
+                            uri_values.append(current_table.uri_values[group_id])
                         row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
                         row_group_ids = [row_groups_col[i] for i in row_indices]
                         current_table.row_groups_ids.append(row_group_ids)
                     current_table.files = actual_files
+                    current_table.uri_values = uri_values
             else:
-                dask_futures = []
                 i = 0
                 for node in self.nodes:
                     worker = node['worker']
                     current_table = nodeTableList[i][table_name]
                     table_tuple = (table_name, current_table)
-                    dask_futures.append(
-                        self.dask_client.submit(
+                    connection = self.dask_client.submit(
                             cio.runSkipDataCaller,
                             masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0,
-                            workers=[worker]))
+                            workers=[worker])
                     i = i + 1
-                result = dask.dataframe.from_delayed(dask_futures)
-                for index in range(len(self.nodes)):
-                    file_indices_and_rowgroup_indices = result.get_partition(index).compute()
-                    if file_indices_and_rowgroup_indices.empty :
+                    file_indices_and_rowgroup_indices = connection.result()
+                    has_some_error = file_indices_and_rowgroup_indices['has_some_error']
+                    file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
+                    if file_indices_and_rowgroup_indices.empty and has_some_error :
                         continue
                     file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                     files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
                     grouped = file_and_rowgroup_indices.groupby('file_handle_index')
                     actual_files = []
+                    uri_values = []
                     current_table.row_groups_ids = []
                     for group_id in grouped.groups:
                         row_indices = grouped.groups[group_id].values.tolist()
                         actual_files.append(table_files[group_id])
+                        if group_id < len(current_table.uri_values):
+                            uri_values.append(current_table.uri_values[group_id])
                         row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
                         row_group_ids = [row_groups_col[i] for i in row_indices]
                         current_table.row_groups_ids.append(row_group_ids)
                     current_table.files = actual_files
+                    current_table.uri_values = uri_values
 
 
     def sql(self, sql, table_list=[], algebra=None):
@@ -873,10 +882,10 @@ class BlazingContext(object):
             for nodeList in nodeTableList:
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
-            scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-            #  TODO: @alex, fix this when C++ _optimize_with_skip_data is migrated 
-            # if new_tables[table].has_metadata():
-            # self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
+                        
+            if new_tables[table].has_metadata():
+                scan_table_query = relational_algebra_steps[table]['table_scans'][0]
+                self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
 
         ctxToken = random.randint(0, 64000)
         accessToken = 0

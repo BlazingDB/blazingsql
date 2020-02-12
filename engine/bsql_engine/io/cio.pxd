@@ -209,6 +209,7 @@ cdef extern from "../include/io/io.h":
     cdef struct ResultSet:
         unique_ptr[table] cudfTable
         vector[string]  names
+        bool error_reported
 
     ctypedef enum DataType:
         UNDEFINED = 999,
@@ -234,7 +235,8 @@ cdef extern from "../include/io/io.h":
         vector[bool] in_file
         int data_type
         ReaderArgs args
-        vector[gdf_column_ptr] metadata
+        BlazingTableView metadata
+        vector[bool] valid_metadata_columns
         vector[vector[int]] row_groups_ids
         shared_ptr[CTable] arrow_table
     cdef struct HDFS:

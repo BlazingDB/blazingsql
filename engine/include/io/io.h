@@ -17,6 +17,7 @@ namespace cudf_io = cudf::experimental::io;
 struct ResultSet {
 	std::unique_ptr<cudf::experimental::table> cudfTable;
 	std::vector<std::string> names;
+	bool error_reported;
 };
 struct ReaderArgs {
 	cudf_io::read_orc_args orcReaderArg = cudf_io::read_orc_args(cudf_io::source_info(""));
@@ -36,7 +37,8 @@ struct TableSchema {
 	int data_type;
 	ReaderArgs args;
 
-	std::vector<gdf_column *> metadata;
+	ral::frame::BlazingTableView metadata;
+	std::vector<bool> valid_metadata_columns;
 	std::vector<std::vector<int>> row_groups_ids;
 	std::shared_ptr<arrow::Table> arrow_table;
 };
