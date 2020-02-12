@@ -215,6 +215,12 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     }
   }
 
+std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::BlazingTableView & table_left,
+													   const ral::frame::BlazingTableView & table_right,
+													   const std::string & expression,
+													   blazingdb::manager::experimental::Context * context) {
+	return process_logical_join(context, table_left, table_right, expression);
+}
 
 
 // This function can either do a small table scatter distribution or regular hash based. 

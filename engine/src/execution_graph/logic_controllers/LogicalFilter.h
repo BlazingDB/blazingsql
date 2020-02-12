@@ -22,6 +22,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const std::string & query_part,
   blazingdb::manager::experimental::Context * context);
 
+std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::BlazingTableView & table_left,
+															   const ral::frame::BlazingTableView & table_right,
+															   const std::string & expression,
+															   blazingdb::manager::experimental::Context * context);
+
 std::unique_ptr<ral::frame::BlazingTable> process_logical_join(blazingdb::manager::experimental::Context * context,
       const ral::frame::BlazingTableView & table_left,
       const ral::frame::BlazingTableView & table_right,
