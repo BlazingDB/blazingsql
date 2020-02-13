@@ -434,8 +434,8 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 		groupbyThread.join();
 		timer.reset();  // lets do the reset here, since  part 2 async is capting the time
 
-		if(partitionPlan->view().num_rows() == 0) {
-			return std::unique_ptr<ral::frame::BlazingTable>();
+		if(partitionPlan->num_rows() == 0) {
+			return std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(grouped_table->view()), grouped_table->names());
 		}
 
 		// need to sort the data before its partitioned
