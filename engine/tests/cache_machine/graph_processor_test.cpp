@@ -537,10 +537,10 @@ TEST_F(GraphProcessorTest, IOWorkFlowTest) {
 	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
 
 	std::string folder_path = "/home/aocsa/tpch/DataSet5Part100MB/";
-	int n_files = 1; // not limited to use just one file. See cudf issue: https://github.com/rapidsai/cudf/issues/4055
+	int n_files = 3;
 	std::vector<std::string> order_path_list;
 	std::vector<std::string> customer_path_list;
-	for (int index = 0; index < n_files; index++){
+	for (int index = 1; index < n_files; index++){
 		auto filepath = folder_path + "orders_" + std::to_string(index) + "_0.parquet";
 		order_path_list.push_back(filepath);
 		filepath = folder_path + "customer_" + std::to_string(index) + "_0.parquet";

@@ -129,6 +129,8 @@ TEST_F(CacheMachineTest, LogicalJoinTest) {
 		cacheLeftSource, cacheRightSource, cacheSink, process_project, queryString, &queryContext, numWorkers);
 
 	std::cout << ">> processor.run()\n";
+	cacheLeftSource->finish();
+	cacheRightSource->finish();
 	processor.run();
 	std::cout << "<<> processor.run()\n";
 	std::this_thread::sleep_for(std::chrono::seconds(1));
