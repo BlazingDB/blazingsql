@@ -226,7 +226,11 @@ class WaitingQueue {
 public:
 	using message_ptr = std::unique_ptr<message<T>>;
 
-	WaitingQueue() = default;
+	WaitingQueue(bool &finished_condition)
+		: finished{finished_condition}
+	{
+
+	}
 	~WaitingQueue() = default;
 
 	WaitingQueue(WaitingQueue &&) = delete;
@@ -234,32 +238,30 @@ public:
 	WaitingQueue & operator=(WaitingQueue &&) = delete;
 	WaitingQueue & operator=(const WaitingQueue &) = delete;
 
-	message_ptr pop_and_wait(const std::size_t & message_id) {
-		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] {
-			return std::any_of(this->message_queue_.cbegin(), this->message_queue_.cend(), [&](const auto & e) {
-				return e->get_id() == message_id;
-			});
-		});
-		return getWaitingQueue(message_id);
-	}
-	message_ptr pop_and_wait() {
-		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->message_queue_.size() > 0; });
-		auto data = std::move(this->message_queue_.front());
-		this->message_queue_.pop_front();
-		return std::move(data);
-	}
-
-	bool empty() const {
-		return this->message_queue_.size() == 0;
-	}
-
 	void put(message_ptr item) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		putWaitingQueue(std::move(item));
 		lock.unlock();
 		condition_variable_.notify_one();
+	}
+
+	message_ptr pop_or_wait() {
+		std::unique_lock<std::mutex> lock(mutex_);
+		condition_variable_.wait(lock, [&, this] { return this->finished and this->message_queue_.size() > 0; });
+		auto data = std::move(this->message_queue_.front());
+		this->message_queue_.pop_front();
+		return std::move(data);
+	}
+
+	std::vector<message_ptr> get_all_or_wait() {
+		std::unique_lock<std::mutex> lock(mutex_);
+		condition_variable_.wait(lock, [&, this] { return this->finished and this->message_queue_.size() > 0; });
+		std::vector<message_ptr> response;
+		for (message_ptr& it : message_queue_) {
+			response.emplace_back(std::move(it));
+		}
+		message_queue_.erase(message_queue_.begin(), message_queue_.end());
+		return response;
 	}
 
 private:
@@ -278,6 +280,7 @@ private:
 private:
 	std::mutex mutex_;
 	std::deque<message_ptr> message_queue_;
+	bool& finished;
 	std::condition_variable condition_variable_;
 };
 
@@ -289,12 +292,23 @@ public:
 
 	~WaitingCacheMachine();
 
-	void addToCache(std::unique_ptr<ral::frame::BlazingTable> table) override;
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table) override;
+
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+
+protected:
+	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
+};
+
+class ConcatenatingCacheMachine : public WaitingCacheMachine {
+public:
+	ConcatenatingCacheMachine(unsigned long long gpuMemory,
+						std::vector<unsigned long long> memoryPerCache,
+						std::vector<CacheDataType> cachePolicyTypes_);
+
+	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
-
-private:
-	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
 };
 
 class WorkerThread {

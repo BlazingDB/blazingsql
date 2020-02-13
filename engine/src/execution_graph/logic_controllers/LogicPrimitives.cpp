@@ -5,6 +5,7 @@
 
 
 #include <random>
+#include <src/utilities/CommonOperations.h>
 
 #include "cudf/column/column_factories.hpp"
 
@@ -208,7 +209,7 @@ WaitingCacheMachine::WaitingCacheMachine(unsigned long long gpuMemory,
 	std::vector<CacheDataType> cachePolicyTypes_)
 	: CacheMachine(gpuMemory, memoryPerCache, cachePolicyTypes_) {
 
-  waitingCache = std::make_unique<WaitingQueue<CacheData>>();
+  waitingCache = std::make_unique<WaitingQueue<CacheData>>(this->_finished);
 }
 
 WaitingCacheMachine::~WaitingCacheMachine() {}
@@ -241,12 +242,36 @@ void WaitingCacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> t
 }
 
 std::unique_ptr<ral::frame::BlazingTable> WaitingCacheMachine::pullFromCache() {
-  std::unique_ptr<message<CacheData>> message_data = std::move(waitingCache->pop_and_wait());
+  std::unique_ptr<message<CacheData>> message_data = std::move(waitingCache->pop_or_wait());
   auto cache_data = message_data->releaseData();
   auto cache_index = message_data->cacheIndex();
   usedMemory[cache_index] -= cache_data->sizeInBytes();
   return std::move(cache_data->decache());
 }
+
+
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(unsigned long long gpuMemory,
+                                         std::vector<unsigned long long> memoryPerCache,
+                                         std::vector<CacheDataType> cachePolicyTypes_)
+  : WaitingCacheMachine(gpuMemory, memoryPerCache, cachePolicyTypes_)
+{
+}
+
+std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
+  std::vector<std::unique_ptr<ral::frame::BlazingTable>> holder_samples;
+  std::vector<ral::frame::BlazingTableView> samples;
+  auto all_messages_data = waitingCache->get_all_or_wait();
+  for (auto& message_data : all_messages_data) {
+    auto cache_data = message_data->releaseData();
+    auto cache_index = message_data->cacheIndex();
+    usedMemory[cache_index] -= cache_data->sizeInBytes();
+    auto tmp_frame = cache_data->decache();
+    samples.emplace_back(tmp_frame->toBlazingTableView());
+    holder_samples.emplace_back(std::move(tmp_frame));
+  }
+  return ral::utilities::experimental::concatTables(samples);
+}
+
 
 }  // namespace cache
 

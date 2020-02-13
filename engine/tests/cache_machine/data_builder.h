@@ -18,3 +18,5 @@
 std::unique_ptr<ral::frame::BlazingTable> build_custom_table() ;
 
 std::unique_ptr<ral::frame::BlazingTable> build_custom_one_column_table() ;
+
+std::unique_ptr<ral::frame::BlazingTable>  open_table_from_path(std::string filepath);
