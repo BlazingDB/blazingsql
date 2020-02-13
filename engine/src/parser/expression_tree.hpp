@@ -86,6 +86,8 @@ struct operator_node : parse_node {
 			return transform_substring();
 		} else if(this->value == "Reinterpret") {
 			return remove_reinterpret();
+		} else if(this->value == "ROUND") {
+			return transform_round();
 		}
 
 		return this;
@@ -148,6 +150,17 @@ private:
 		assert(this->children.size() == 1);
 
 		return this->children[0].release();
+	}
+
+	parse_node * transform_round() {
+		assert(this->children.size() == 1 || this->children.size() == 2);
+
+		if (this->children.size() == 1) {
+			parse_node * second_arg = new operad_node{"0"};
+			this->children.push_back(std::unique_ptr<parse_node>(second_arg));
+		}
+
+		return this;
 	}
 };
 

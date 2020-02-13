@@ -63,6 +63,7 @@ enum class operator_type {
   BLZ_DIV,            ///< operator / using common type of lhs and rhs
   BLZ_MOD,            ///< operator %
   BLZ_POW,            ///< lhs ^ rhs
+  BLZ_ROUND,
   BLZ_EQUAL,          ///< operator ==
   BLZ_NOT_EQUAL,      ///< operator !=
   BLZ_LESS,           ///< operator <
