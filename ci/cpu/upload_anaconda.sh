@@ -16,10 +16,10 @@ if [ -z "$MY_UPLOAD_KEY" ]; then
 fi
 
 if [ "$UPLOAD_BLAZING" == "1" ]; then
-    LABEL_OPTION="--label main --label cuda"$CUDA_VER
+    LABEL_OPTION="--label main --label cuda"$CUDA_VERSION
     echo "LABEL_OPTION=${LABEL_OPTION}"
 
     test -e ${BLAZINGSQL_FILE}
     echo "Upload blazingsql: "${BLAZINGSQL_FILE}
-    anaconda -t ${MY_UPLOAD_KEY} upload -u ${CONDA_UPLOAD} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}
+    anaconda -t ${MY_UPLOAD_KEY} upload -u ${CONDA_USERNAME} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}
 fi

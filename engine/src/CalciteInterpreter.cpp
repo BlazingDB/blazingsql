@@ -315,6 +315,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			int numRight = right_frame_pair.second.num_rows();
 
 			std::string new_join_statement, filter_statement;
+			StringUtil::findAndReplaceAll(query[0], "IS NOT DISTINCT FROM", "=");
 			split_inequality_join_into_join_and_filter(query[0], new_join_statement, filter_statement);
 
 			//result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);

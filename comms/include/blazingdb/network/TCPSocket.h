@@ -62,7 +62,6 @@ public:
     try {
       socket = zmq::socket_t(context, ZMQ_REQ);
       auto connection = "tcp://" + tcp_host + ":" + std::to_string(tcp_port);
-      std::cout << "client: " << connection << std::endl;
       int linger = -1;
       socket.setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
       socket.connect(connection);
