@@ -499,6 +499,9 @@ private:
 					}					
 				} else if(oper == operator_type::BLZ_POW) {
 					store_data_in_buffer(pow(static_cast<double>(left_value), static_cast<double>(right_value)), buffer, output_position);
+				} else if(oper == operator_type::BLZ_ROUND) {
+					double factor = pow(10, right_value);
+					store_data_in_buffer(round(static_cast<double>(left_value) * factor) / factor, buffer, output_position);
 				} else if(oper == operator_type::BLZ_EQUAL) {
 					int64_t computed;
 					if (is_string_type(left_type_id) && is_string_type(right_type_id)) {
