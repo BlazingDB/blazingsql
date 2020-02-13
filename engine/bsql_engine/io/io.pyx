@@ -208,8 +208,8 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    df._rename_columns(decoded_names)
-    return df 
+    df._rename_columns(decoded_names)    
+    return df
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
@@ -292,10 +292,11 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
           tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
           tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
 
-      if table.row_groups_ids is not None:
-        currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
-      else:
-        currentTableSchemaCpp.row_groups_ids = []
+      # WSM TODO??
+      # if table.row_groups_ids is not None:
+      #   currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
+      # else:
+      #   currentTableSchemaCpp.row_groups_ids = []
 
       tableSchemaCpp.push_back(currentTableSchemaCpp)
       tableIndex = tableIndex + 1

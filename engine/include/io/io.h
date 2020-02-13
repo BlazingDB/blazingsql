@@ -19,6 +19,7 @@ struct ResultSet {
 	std::vector<std::string> names;
 	bool error_reported;
 };
+
 struct ReaderArgs {
 	cudf_io::read_orc_args orcReaderArg = cudf_io::read_orc_args(cudf_io::source_info(""));
 	cudf_io::read_json_args jsonReaderArg = cudf_io::read_json_args(cudf_io::source_info(""));
@@ -38,7 +39,6 @@ struct TableSchema {
 	ReaderArgs args;
 
 	ral::frame::BlazingTableView metadata;
-	std::vector<bool> valid_metadata_columns;
 	std::vector<std::vector<int>> row_groups_ids;
 	std::shared_ptr<arrow::Table> arrow_table;
 };

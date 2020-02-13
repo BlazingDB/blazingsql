@@ -19,7 +19,7 @@ namespace skip_data {
 // minmax_metadata_table => use these indices [[0, 3, 5]]
 // minmax_metadata_table => minmax_metadata_table[[0, 1,  6, 7,  10, 11, size - 2, size - 1]]
 std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_table(
-    const ral::frame::BlazingTableView & metadata_view, const std::vector<bool> & valid_metadata_columns, std::string table_scan) {
+    const ral::frame::BlazingTableView & metadata_view, std::string table_scan) {
      
     std::string filter_string;
     try {
@@ -34,6 +34,8 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         return std::make_pair(nullptr, true);
     }
     filter_string = clean_calcite_expression(filter_string);
+
+    std::vector<bool> valid_metadata_columns; // WSM need to calculate this
 
     // process filter_string to convert to skip data version
     expression_tree tree;

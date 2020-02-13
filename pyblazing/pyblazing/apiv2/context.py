@@ -224,7 +224,6 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
     names.append('row_group_index') 
     minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
     table_partition = {}
-    valid_metadata_columns = []
     for file_index, partition_name  in enumerate(partitions):
         curr_table = partitions[partition_name]
         for index, [col_name, col_value_id] in enumerate(curr_table):
@@ -237,7 +236,7 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
             
             table_partition.setdefault(col_name, []).append(np_col_value)
         minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
-        minmax_metadata_table[len(minmax_metadata_table) - 1].append(0)
+        minmax_metadata_table[len(minmax_metadata_table) - 1].append(0) # TODO this assumes that you only have one row group per partitioned file
 
     for index in range(n_cols):
         col_name = columns[index]
@@ -246,26 +245,26 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
             index = col_indexes[col_name] 
             minmax_metadata_table[2*index] = col_value_ids
             minmax_metadata_table[2*index+1] = col_value_ids
-            valid_metadata_columns.append(2*index)
-            valid_metadata_columns.append(2*index+1)
-        else:
-            if dtypes[index] == np.object:
-                minmax_metadata_table[2*index] = [''] * n_files
-                minmax_metadata_table[2*index+1] = [''] * n_files
-            elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
-                minmax_metadata_table[2*index] = [0] * n_files
-                minmax_metadata_table[2*index+1] = [0] * n_files
-            else:
-                minmax_metadata_table[2*index] = [np.iinfo(dtypes[index]).min] * n_files
-                minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[index]).max] * n_files
+        # rather than filling in columns that we dont acutally have min/max for, lets only fill in the columns that we do and manage the missing columns on the engine
+        # else:  
+        #     if dtypes[index] == np.object:
+        #         minmax_metadata_table[2*index] = [''] * n_files
+        #         minmax_metadata_table[2*index+1] = [''] * n_files
+        #     elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
+        #         minmax_metadata_table[2*index] = [0] * n_files
+        #         minmax_metadata_table[2*index+1] = [0] * n_files
+        #     else:
+        #         minmax_metadata_table[2*index] = [np.iinfo(dtypes[index]).min] * n_files
+        #         minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[index]).max] * n_files
 
     series = []
     for index in range(n_cols):
         col_name = columns[index]
-        col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[index], name=names[2*index])
-        col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
-        series.append(col1)
-        series.append(col2)
+        if col_name in table_partition:
+            col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[index], name=names[2*index])
+            col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
+            series.append(col1)
+            series.append(col2)
     index = n_cols 
 
     col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.int16, name=names[2*index])
@@ -275,7 +274,7 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
 
     frame = OrderedDict(((key,value) for (key,value) in zip(names, series)))
     metadata = cudf.DataFrame(frame)
-    return metadata, valid_metadata_columns
+    return metadata
 
 
 def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
@@ -337,8 +336,7 @@ class BlazingTable(object):
             uri_values=[],
             in_file=[],
             force_conversion=False,
-            metadata=None,
-            valid_metadata_columns=None):
+            metadata=None):
         self.fileType = fileType
         if fileType == DataType.ARROW:
             if force_conversion:
@@ -372,8 +370,7 @@ class BlazingTable(object):
         # slices, this is computed in create table, and then reused in sql method
         self.slices = None
         # metadata, this is computed in create table, after call get_metadata
-        self.metadata = metadata
-        self.valid_metadata_columns = valid_metadata_columns
+        self.metadata = metadata        
         # row_groups_ids, vector<vector<int>> one vector of row_groups per file
         self.row_groups_id = []
         # a pair of values with the startIndex and batchSize info for each slice
@@ -683,14 +680,20 @@ class BlazingContext(object):
 
             table.slices = table.getSlices(len(self.nodes))
             if is_hive_input and len(extra_columns) > 0:
-                parsedMetadata, valid_metadata_columns = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns, partitions)
-                table.metadata = parsedMetadata
-                table.valid_metadata_columns = valid_metadata_columns
+                parsedMetadata = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns, partitions)
+                print("parsedMetadata HIVE: " + table_name)
+                print(parsedMetadata)
+                table.metadata = parsedMetadata                
 
             if parsedSchema['file_type'] == DataType.PARQUET :
                 parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs)
+                print("parsedMetadata PARQUET: " + table_name)
+                print(parsedMetadata)
+                breakpoint()
                 if is_hive_input:
-                    table.metadata = self._mergeMetadata(table.slices, parsedMetadata, table.metadata, table.valid_metadata_columns, extra_columns)
+                    table.metadata = self._mergeMetadata(table.slices, parsedMetadata, table.metadata, extra_columns)
+                    print("parsedMetadata merged: " + table_name)
+                    print(table.metadata)
                 else:
                     table.metadata = parsedMetadata
 
@@ -721,10 +724,7 @@ class BlazingContext(object):
             return cio.parseSchemaCaller(
                 input, file_format_hint, kwargs, extra_columns)
 
-    # WSM left off here. Want to be able to use valid_metadata_columns when merging metadata
-    # then want to use valid_metadata_columns when processing skip-data. Also want to get valid_metadata_columns 
-    # from parquet files. Also want to pass hive partitions extra_column info as strings instead of gdf_scalar
-    def _mergeMetadata(self, currentTableNodes, fileMetadata, hiveMetadata, valid_metadata_columns, extra_columns): 
+    def _mergeMetadata(self, currentTableNodes, fileMetadata, hiveMetadata, extra_columns): 
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
@@ -788,7 +788,6 @@ class BlazingContext(object):
             if self.dask_client is None:
                 current_table = nodeTableList[0][table_name]
                 table_tuple = (table_name, current_table) 
-                # print("skip-data-frame:", current_table.metadata[['file_handle_index']])
                 file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0)
                 has_some_error = file_indices_and_rowgroup_indices['has_some_error']
                 file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
@@ -882,10 +881,11 @@ class BlazingContext(object):
             for nodeList in nodeTableList:
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
-                        
-            if new_tables[table].has_metadata():
-                scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-                self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
+
+                       #  WSM 
+            # if new_tables[table].has_metadata():
+            #     scan_table_query = relational_algebra_steps[table]['table_scans'][0]
+            #     self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
 
         ctxToken = random.randint(0, 64000)
         accessToken = 0

@@ -210,7 +210,7 @@ cdef extern from "../include/io/io.h":
         unique_ptr[table] cudfTable
         vector[string]  names
         bool error_reported
-
+    
     ctypedef enum DataType:
         UNDEFINED = 999,
         PARQUET = 0,
@@ -236,7 +236,6 @@ cdef extern from "../include/io/io.h":
         int data_type
         ReaderArgs args
         BlazingTableView metadata
-        vector[bool] valid_metadata_columns
         vector[vector[int]] row_groups_ids
         shared_ptr[CTable] arrow_table
     cdef struct HDFS:

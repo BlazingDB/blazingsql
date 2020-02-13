@@ -24,6 +24,7 @@
 #include <cudf/filling.hpp>
 #include "parser/expression_tree.hpp"
 #include "Interpreter/interpreter_cpp.h"
+#include "utilities/DebuggingUtils.h"
 
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
@@ -201,6 +202,8 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 	CodeTimer blazing_timer;
 	blazing_timer.reset();
 
+	std::cout<<"evaluate_split_query "<<query[0]<<std::endl;
+
 	if(query.size() == 1) {
 		// process yourself and return
 
@@ -225,9 +228,15 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
 					projections.push_back(0);
 				}
+				std::cout<<"load_data before"<<std::endl;
+
 				std::unique_ptr<ral::frame::BlazingTable> input_table;
 				ral::frame::BlazingTableView input_table_view;
 				std::tie(input_table, input_table_view) = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
+
+				std::cout<<"load_data after"<<std::endl;
+
+				ral::utilities::print_blazing_table_view_schema(input_table_view, "loiaded data");
 
 				std::vector<std::string> col_names = input_table_view.names();
 
@@ -394,6 +403,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 		} else if(ral::operators::experimental::is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
+			std::cout<<"process_aggregate"<<std::endl;
 			child_frame = ral::operators::experimental::process_aggregate(child_frame_view, query[0], queryContext);
 			child_frame_view = child_frame->toBlazingTableView();
 
@@ -449,6 +459,8 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_query(
 		int64_t connection,
 		Context& queryContext
 		){
+
+				std::cout<<"evaluate_query start"<<std::endl;
 
 		CodeTimer blazing_timer;
 
