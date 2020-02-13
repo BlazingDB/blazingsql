@@ -132,9 +132,14 @@ ral::frame::TableViewPair data_loader::load_data(
 		if (if_null_empty_load) {
 			std::vector<std::string> select_names(column_indices.size());
 			std::vector<cudf::type_id> select_types(column_indices.size());
-			for (int i = 0; i < column_indices.size(); i++){
-				select_names[i] = schema.get_names()[column_indices[i]];
-				select_types[i] = schema.get_dtypes()[column_indices[i]];
+			if (column_indices.empty()) {
+				select_types = schema.get_dtypes();
+				select_names = schema.get_names();
+			} else {
+				for (int i = 0; i < column_indices.size(); i++){
+					select_names[i] = schema.get_names()[column_indices[i]];
+					select_types[i] = schema.get_dtypes()[column_indices[i]];
+				}
 			}
 
 			ds = ral::frame::createEmptyTableViewPair(select_types, select_names);
