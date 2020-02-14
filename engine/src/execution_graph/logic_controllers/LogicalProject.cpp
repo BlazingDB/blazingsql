@@ -414,7 +414,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
 
             std::string cleaned_expression = clean_calcite_expression(expression);
             std::vector<std::string> tokens = get_tokens_in_reverse_order(cleaned_expression);
-            fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
+            fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(cudf::table_view{{table, evaluator.computed_columns_view()}}, tokens);
             tokenized_expression_vector.push_back(tokens);
 
             // Keep track of which columns are used in the expression
@@ -436,8 +436,10 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
                 std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(expression);
                 RAL_EXPECTS(!!literal_scalar, "NULL literal not supported in projection");
                 
-                cudf::mutable_column_view out_column_mutable_view = out_columns[i]->mutable_view();
-                cudf::experimental::fill(out_column_mutable_view, 0, out_column_mutable_view.size(), *literal_scalar);
+                if (out_columns[i]->size() != 0){
+                    cudf::mutable_column_view out_column_mutable_view = out_columns[i]->mutable_view();
+                    cudf::experimental::fill(out_column_mutable_view, 0, out_column_mutable_view.size(), *literal_scalar);
+                }                
             }
         } else {
             cudf::size_type idx = get_index(expression);

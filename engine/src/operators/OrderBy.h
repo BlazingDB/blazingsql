@@ -15,14 +15,8 @@ namespace {
   using blazingdb::manager::experimental::Context;
 }  
 
-std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, 
-
+std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table,
 const std::string & query_part, Context * context);
-
-std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
-	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, 
-  const std::vector<int8_t> & sortOrderTypes);
-
 
 /**---------------------------------------------------------------------------*
  * @brief Sorts the columns of the input table according the sortOrderTypes 
@@ -53,10 +47,7 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
  * @returns The limit that would be applied to this partition
  *---------------------------------------------------------------------------**/
 cudf::size_type determine_local_limit(Context * context,
-	const cudf::size_type local_num_rows, cudf::size_type limit_rows);
-
-std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
-  const ral::frame::BlazingTableView & table, cudf::size_type limitRows);
+	cudf::size_type local_num_rows, cudf::size_type limit_rows);
 
 std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context);
 
