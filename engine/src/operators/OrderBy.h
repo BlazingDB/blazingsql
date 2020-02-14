@@ -58,6 +58,9 @@ cudf::size_type determine_local_limit(Context * context,
 std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
   const ral::frame::BlazingTableView & table, cudf::size_type limitRows);
 
+std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context);
+
+std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context);
 
 }  // namespace experimental
 }  // namespace operators

@@ -1,4 +1,4 @@
-#include "data_builder.h"
+#include "utilities/random_generator.cuh"
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <cudf/cudf.h>
 #include <cudf/io/functions.hpp>
@@ -6,6 +6,8 @@
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
+#include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
+#include <src/operators/OrderBy.h>
 #include <src/utilities/DebuggingUtils.h>
 #include <stack>
 
@@ -394,6 +396,7 @@ private:
 using FilterKernel = SingleSourceKernel<ral::processor::process_filter>;
 using ProjectKernel = SingleSourceKernel<ral::processor::process_project>;
 using JoinKernel = DoubleSourceKernel<ral::processor::process_join>;
+using SortKernel = SingleSourceKernel<ral::operators::experimental::sort>;
 
 class print : public kernel {
 public:
@@ -418,7 +421,16 @@ class generate : public kernel {
 public:
 	generate(std::int64_t count = 1000) : kernel(), count(count) {}
 	virtual kstatus run() {
-		auto table = build_custom_one_column_table();
+
+		cudf::test::fixed_width_column_wrapper<int32_t> column1{{0, 1, 2, 3, 4, 5}, {1, 1, 1, 1, 1, 1}};
+
+		CudfTableView cudfTableView{{column1} };
+
+		const std::vector<std::string> columnNames{"column1"};
+		ral::frame::BlazingTableView blazingTableView{cudfTableView, columnNames};
+
+		std::unique_ptr<ral::frame::BlazingTable> table = ral::generator::generate_sample(blazingTableView, 4);
+
 		this->output_.get_cache()->addToCache(std::move(table));
 		return (kstatus::proceed);
 	}
@@ -426,6 +438,14 @@ public:
 private:
 	std::int64_t count;
 };
+
+namespace cudf_io = cudf::experimental::io;
+std::unique_ptr<ral::frame::BlazingTable>  open_table_from_path(std::string filepath) {
+	cudf_io::read_parquet_args in_args{cudf_io::source_info{filepath}};
+	auto output = cudf_io::read_parquet(in_args);
+	return std::make_unique<ral::frame::BlazingTable>(std::move(output.tbl), output.metadata.column_names);
+}
+
 
 class file_reader_kernel : public kernel {
 public:
@@ -450,6 +470,13 @@ using GeneratorKernel = ral::cache::test::generate;
 using PrinterKernel = ral::cache::print;
 using TableScanKernel = ral::cache::test::file_reader_kernel;
 
+std::shared_ptr<ral::cache::CacheMachine> create_cache_concatenating_machine() {
+	unsigned long long gpuMemory = 1024;
+	std::vector<unsigned long long> memoryPerCache = {INT_MAX};
+	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+	return std::make_shared<ral::cache::ConcatenatingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+}
+
 TEST_F(GraphProcessorTest, JoinWorkFlowTest) {
 	GeneratorKernel a(10), b(10);
 
@@ -473,7 +500,7 @@ TEST_F(GraphProcessorTest, JoinWorkFlowTest) {
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
-
+// select $0 from a inner join b on a.$0 = b.$0 where a.$0 < 5 and where b.$0 < 5
 TEST_F(GraphProcessorTest, ComplexWorkFlowTest) {
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
@@ -507,12 +534,6 @@ TEST_F(GraphProcessorTest, ComplexWorkFlowTest) {
 //     	->
 //			->
 
-std::shared_ptr<ral::cache::CacheMachine> create_concatenating_machine() {
-	unsigned long long gpuMemory = 1024;
-	std::vector<unsigned long long> memoryPerCache = {INT_MAX};
-	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
-	return std::make_shared<ral::cache::ConcatenatingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
-}
 
 
 //sql: select c_custkey, c_nationkey, c_acctbal from orders as o inner join customer as c on o.o_custkey = c.c_custkey where o.o_orderkey < 100
@@ -536,11 +557,11 @@ TEST_F(GraphProcessorTest, IOWorkFlowTest) {
 	uint32_t ctxToken = 123;
 	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
 
-	std::string folder_path = "/home/aocsa/tpch/DataSet5Part100MB/";
-	int n_files = 3;
+	std::string folder_path = "/home/aocsa/tpch/100MB2Part/tpch/";
+	int n_files = 1;
 	std::vector<std::string> order_path_list;
 	std::vector<std::string> customer_path_list;
-	for (int index = 1; index < n_files; index++){
+	for (int index = 0; index < n_files; index++){
 		auto filepath = folder_path + "orders_" + std::to_string(index) + "_0.parquet";
 		order_path_list.push_back(filepath);
 		filepath = folder_path + "customer_" + std::to_string(index) + "_0.parquet";
@@ -556,8 +577,8 @@ TEST_F(GraphProcessorTest, IOWorkFlowTest) {
 	PrinterKernel print;
 	ral::cache::graph m;
 	try {
-		auto concatenating_machine_1 = create_concatenating_machine();
-		auto concatenating_machine_2 = create_concatenating_machine();
+		auto concatenating_machine_1 = create_cache_concatenating_machine();
+		auto concatenating_machine_2 = create_cache_concatenating_machine();
 		m += link(order_generator, join["input_a"], concatenating_machine_1);
 		m += link(customer_generator, join["input_b"], concatenating_machine_2);
 		m += join >> filter;
@@ -571,11 +592,47 @@ TEST_F(GraphProcessorTest, IOWorkFlowTest) {
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
-//			-> sample
-// (cache)     			  -> partition ->
-//			->  sort
-//
-//
+//select c_custkey, c_nationkey from customer where c_custkey < 10 order by c_nationkey, c_custkey
+
+//LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])
+//LogicalProject(c_custkey=[$0], c_nationkey=[$3])
+//LogicalFilter(condition=[<($0, 10)])
+//LogicalTableScan(table=[[main, customer]])
+TEST_F(GraphProcessorTest, SortWorkFlowTest) {
+	std::vector<Node> contextNodes;
+	auto address = Address::TCP("127.0.0.1", 8089, 0);
+	contextNodes.push_back(Node(address));
+	uint32_t ctxToken = 123;
+	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+
+	std::string folder_path = "/home/aocsa/tpch/100MB2Part/tpch/";
+	int n_files = 1;
+	std::vector<std::string> order_path_list;
+	std::vector<std::string> customer_path_list;
+	for (int index = 0; index < n_files; index++) {
+		auto filepath = folder_path + "orders_" + std::to_string(index) + "_0.parquet";
+		order_path_list.push_back(filepath);
+		filepath = folder_path + "customer_" + std::to_string(index) + "_0.parquet";
+		customer_path_list.push_back(filepath);
+	}
+	TableScanKernel order_generator(order_path_list);
+	TableScanKernel customer_generator(customer_path_list);
+	SortKernel order_by("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
+	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", &queryContext);
+	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", &queryContext);
+	PrinterKernel print;
+	ral::cache::graph m;
+	try {
+		m += order_generator >> filter;
+		m += filter >> project;
+		m += project >> order_by;
+		m += order_by >> print;
+		m.execute();
+	} catch(std::exception & ex) {
+		std::cout << ex.what() << "\n";
+	}
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+}
 
 }  // namespace cache
 }  // namespace ral

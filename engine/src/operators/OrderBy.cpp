@@ -283,6 +283,77 @@ std::unique_ptr<ral::frame::BlazingTable> logicalLimit(
 	}
 }
 
+std::pair<std::vector<int8_t>, std::vector<int> > getSortIndecesAndTypes(std::string combined_expression){
+	size_t num_sort_columns = count_string_occurrence(combined_expression, "sort");
+	std::vector<int8_t> sortOrderTypes(num_sort_columns);
+	std::vector<int> sortColIndices(num_sort_columns);
+	for(int i = 0; i < num_sort_columns; i++) {
+		sortColIndices[i] = get_index(get_named_expression(combined_expression, "sort" + std::to_string(i)));
+		sortOrderTypes[i] =
+			(get_named_expression(combined_expression, "dir" + std::to_string(i)) == DESCENDING_ORDER_SORT_TEXT);
+	}
+	return std::make_pair(sortOrderTypes,sortColIndices);
+}
+std::pair<std::string,cudf::size_type> getCombinedExpressionAndLimit(const std::string & query_part){
+	auto rangeStart = query_part.find("(");
+	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
+	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
+	std::string limitRowsStr = get_named_expression(combined_expression, "fetch");
+	bool apply_limit = (limitRowsStr.empty() == false);
+	cudf::size_type limitRows = apply_limit ? std::stoi(limitRowsStr) : -1;
+	return std::make_pair(combined_expression,limitRows);
+}
+std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context){
+	auto combinedAndLimit = getCombinedExpressionAndLimit(query_part);
+	std::string combined_expression = combinedAndLimit.first;
+	cudf::size_type limitRows = combinedAndLimit.second;
+	bool apply_limit = (limitRows == -1);
+	auto indexAndTypes = getSortIndecesAndTypes(combined_expression);
+	std::vector<int8_t> sortOrderTypes = indexAndTypes.first;
+	std::vector<int> sortColIndices = indexAndTypes.second;
+	CodeTimer timer2;
+	auto sortedTable = logicalSort(table, sortColIndices, sortOrderTypes);
+	Library::Logging::Logger().logInfo(
+		timer2.logDuration(*context, "distributed_sort part 2 async sort"));
+	timer2.reset();
+	return sortedTable;
+}
+
+std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context){
+	auto combinedAndLimit = getCombinedExpressionAndLimit(query_part);
+	std::string combined_expression = combinedAndLimit.first;
+	cudf::size_type limitRows = combinedAndLimit.second;
+	auto indexAndTypes = getSortIndecesAndTypes(combined_expression);
+	std::vector<int8_t> sortOrderTypes = indexAndTypes.first;
+	std::vector<int> sortColIndices = indexAndTypes.second;
+	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), table.names());
+
+	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(sortColumns, 0.1);
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+	if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
+		context->incrementQuerySubstep();
+		std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > samples_pair = collectSamples(context);
+		std::vector<ral::frame::BlazingTableView> samples;
+		for (int i = 0; i < samples_pair.first.size(); i++){
+			samples.push_back(samples_pair.first[i].second->toBlazingTableView());
+		}
+		samples.push_back(selfSamples->toBlazingTableView());
+		std::vector<size_t> total_rows_tables = samples_pair.second;
+		total_rows_tables.push_back(table.view().num_rows());
+		partitionPlan = generatePartitionPlans(context, samples, total_rows_tables, sortOrderTypes);
+		context->incrementQuerySubstep();
+		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
+//		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed_sort part 2 collectSamples generatePartitionPlans distributePartitionPlan"));
+	} else {
+		context->incrementQuerySubstep();
+		sendSamplesToMaster(context, selfSamples->toBlazingTableView(), table.view().num_rows());
+		context->incrementQuerySubstep();
+		partitionPlan = getPartitionPlan(context);
+//		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed_sort part 2 sendSamplesToMaster getPartitionPlan"));
+	}
+	return partitionPlan;
+}
+
 }  // namespace experimental
 }  // namespace operators
 }  // namespace ral
