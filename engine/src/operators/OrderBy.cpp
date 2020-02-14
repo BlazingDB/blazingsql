@@ -210,7 +210,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
 
 	std::string limitRowsStr = get_named_expression(combined_expression, "fetch");
-	cudf::size_type limitRows = !limitRowsStr.empty() ? std::stoi(limitRowsStr) : table.num_rows();
+	cudf::size_type limitRows = !limitRowsStr.empty() ? std::stoi(limitRowsStr) : -1;
 
 	size_t num_sort_columns = count_string_occurrence(combined_expression, "sort");
 
@@ -230,7 +230,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			table_view = out_blz_table->view();
 		}
 		
-		if(limitRows >= 0 && limitRows < table_view.num_rows()) {
+		if(limitRows >= 0) {
 			auto out_table = logicalLimit(table_view, limitRows);
 			out_blz_table = std::make_unique<ral::frame::BlazingTable>( std::move(out_table), table.names() );
 		}
@@ -240,10 +240,13 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			table_view = out_blz_table->view();
 		}
 
-		limitRows = determine_local_limit(context, table_view.num_rows(), limitRows);
-		if(limitRows >= 0 && limitRows < table_view.num_rows()) {
-			auto out_table = logicalLimit(table_view, limitRows);
-			out_blz_table = std::make_unique<ral::frame::BlazingTable>( std::move(out_table), table.names() );
+		if(limitRows >= 0) {
+			limitRows = determine_local_limit(context, table_view.num_rows(), limitRows);
+
+			if(limitRows >= 0 && limitRows < table_view.num_rows()) {
+				auto out_table = logicalLimit(table_view, limitRows);
+				out_blz_table = std::make_unique<ral::frame::BlazingTable>( std::move(out_table), table.names() );
+			}
 		}
 	}
 
