@@ -19,6 +19,8 @@
 #include <cudf/table/table_view.hpp>
 #include <cudf/column/column_factories.hpp>
 
+#include "utilities/DebuggingUtils.h"
+
 namespace ral {
 namespace operators {
 namespace experimental {
@@ -58,7 +60,7 @@ std::unique_ptr<cudf::experimental::table> logicalLimit(
 	const cudf::table_view& table,
 	cudf::size_type limitRows)
 {
-	limitRows = std::min(limitRows, table.num_rows());
+	assert(limitRows < table.num_rows());
 
 	if (limitRows == 0) {
 		return cudf::experimental::empty_like(table);
@@ -81,6 +83,7 @@ std::unique_ptr<cudf::experimental::table> logicalLimit(
 		output_cols.push_back(std::move(out_column));
 	}
 
+	
 	return std::make_unique<cudf::experimental::table>(std::move(output_cols));
 }
 
@@ -204,7 +207,6 @@ cudf::size_type determine_local_limit(Context * context, cudf::size_type local_n
 }
 
 std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
-
 	auto rangeStart = query_part.find("(");
 	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
@@ -230,7 +232,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			table_view = out_blz_table->view();
 		}
 		
-		if(limitRows >= 0) {
+		if(limitRows >= 0 && limitRows < table_view.num_rows()) {
 			auto out_table = logicalLimit(table_view, limitRows);
 			out_blz_table = std::make_unique<ral::frame::BlazingTable>( std::move(out_table), table.names() );
 		}
@@ -240,7 +242,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			table_view = out_blz_table->view();
 		}
 
-		if(limitRows >= 0) {
+		if(limitRows >= 0 && limitRows < table_view.num_rows()) {
 			limitRows = determine_local_limit(context, table_view.num_rows(), limitRows);
 
 			if(limitRows >= 0 && limitRows < table_view.num_rows()) {
@@ -250,8 +252,13 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 		}
 	}
 
-	assert(!!out_blz_table);
+	if (out_blz_table == nullptr) {
+		// special case when num rows < limit
+		out_blz_table = table.clone();
+	}
 
+
+	
 	return out_blz_table;
 }
 
