@@ -176,10 +176,11 @@ private:
 
 public:
   bool build(std::string str);
-
+  
   void print();
 
   std::string prefix();
+  std::string rebuildExpression();
   void apply_skip_data_rules();
   void drop(std::vector<std::string> const &column_names);
 
@@ -190,6 +191,7 @@ private:
   // Function to print the print expression for the tree
   void print_helper(abstract_node *p, int level);
   void prefix_helper(abstract_node *p, std::stringstream &out);
+  void rebuild_helper(abstract_node *p, std::stringstream &out);
 };
 
 } // namespace skip_data

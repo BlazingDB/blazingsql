@@ -53,6 +53,7 @@ ral::frame::TableViewPair data_loader::load_data(
 	// make sure cudf supports concurrent reads
 	std::vector<std::thread> threads;
 
+	std::cout<<"load_data going to load how many files? : "<<files.size()<<std::endl;
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads.push_back(std::thread([&, file_index]() {
 			if (files[file_index].fileHandle != nullptr) {

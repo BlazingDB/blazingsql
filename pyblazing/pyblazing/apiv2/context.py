@@ -209,16 +209,15 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
 def parseHiveMetadataFor(curr_table, file_subset, partitions):
     metadata = {}
     names = []
+    final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
     dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
     columns = [name.decode() for name in curr_table.column_names]
     n_files = len(file_subset)
-    col_indexes = {} 
     for index in range(n_cols):
         col_name = columns[index]
         names.append('min_' + str(index) + '_' + col_name) 
         names.append('max_' + str(index) + '_' + col_name) 
-        col_indexes[col_name] = index
         
     names.append('file_handle_index') 
     names.append('row_group_index') 
@@ -242,9 +241,9 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
         col_name = columns[index]
         if col_name in table_partition:
             col_value_ids = table_partition[col_name]
-            index = col_indexes[col_name] 
             minmax_metadata_table[2*index] = col_value_ids
             minmax_metadata_table[2*index+1] = col_value_ids
+            
         # rather than filling in columns that we dont acutally have min/max for, lets only fill in the columns that we do and manage the missing columns on the engine
         # else:  
         #     if dtypes[index] == np.object:
@@ -265,19 +264,23 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
             col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
             series.append(col1)
             series.append(col2)
+            final_names.append(names[2*index])
+            final_names.append(names[2*index+1])
     index = n_cols 
 
     col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.int16, name=names[2*index])
     col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=np.int16, name=names[2*index+1])
+    final_names.append(names[2*index])
+    final_names.append(names[2*index+1])
     series.append(col1)
     series.append(col2)
 
-    frame = OrderedDict(((key,value) for (key,value) in zip(names, series)))
+    frame = OrderedDict(((key,value) for (key,value) in zip(final_names, series)))
     metadata = cudf.DataFrame(frame)
     return metadata
 
 
-def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
+def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata):
     
     if fileMetadata.shape[0] != hiveMetadata.shape[0]:
         print('ERROR: number of rows from fileMetadata does not match hiveMetadata')
@@ -292,30 +295,28 @@ def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
     n_cols = len(curr_table.column_names)
 
     names = []
-    col_indexes = {}
-    counter = 0
+    final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     for index in range(n_cols):
         col_name = columns[index]
         names.append('min_' + str(index) + '_' + col_name) 
         names.append('max_' + str(index) + '_' + col_name) 
-        col_indexes[col_name] = index
     names.append('file_handle_index') 
     names.append('row_group_index') 
 
-    for (col_name, col_dtype) in extra_columns:
-        index = col_indexes[col_name]
-        min_name = 'min_' + str(index) + '_' + col_name
-        max_name = 'max_' + str(index) + '_' + col_name
-        result[min_name] = hiveMetadata[min_name]
-        result[max_name] = hiveMetadata[max_name]
-        
+    for col_name in hiveMetadata._data.keys():
+        result[col_name] = hiveMetadata[col_name]
+    
+    result_col_names = [col_name for col_name in result._data.keys()]
+                
     # reorder dataframes using original min_max col_name order
     series = []
     for col_name in names:
-        col = result[col_name]
-        series.append(col)
+        if col_name in result_col_names:
+            col = result[col_name]
+            series.append(col)
+            final_names.append(col_name)
 
-    frame = OrderedDict(((key,value) for (key,value) in zip(names, series)))
+    frame = OrderedDict(((key,value) for (key,value) in zip(final_names, series)))
     result = cudf.DataFrame(frame)
     return result
     
@@ -372,7 +373,7 @@ class BlazingTable(object):
         # metadata, this is computed in create table, after call get_metadata
         self.metadata = metadata        
         # row_groups_ids, vector<vector<int>> one vector of row_groups per file
-        self.row_groups_id = []
+        self.row_groups_ids = []
         # a pair of values with the startIndex and batchSize info for each slice
         self.offset = (0,0)
 
@@ -681,19 +682,12 @@ class BlazingContext(object):
             table.slices = table.getSlices(len(self.nodes))
             if is_hive_input and len(extra_columns) > 0:
                 parsedMetadata = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns, partitions)
-                print("parsedMetadata HIVE: " + table_name)
-                print(parsedMetadata)
                 table.metadata = parsedMetadata                
 
             if parsedSchema['file_type'] == DataType.PARQUET :
                 parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs)
-                print("parsedMetadata PARQUET: " + table_name)
-                print(parsedMetadata)
-                breakpoint()
                 if is_hive_input:
-                    table.metadata = self._mergeMetadata(table.slices, parsedMetadata, table.metadata, extra_columns)
-                    print("parsedMetadata merged: " + table_name)
-                    print(table.metadata)
+                    table.metadata = self._mergeMetadata(table.slices, parsedMetadata, table.metadata)
                 else:
                     table.metadata = parsedMetadata
 
@@ -724,7 +718,7 @@ class BlazingContext(object):
             return cio.parseSchemaCaller(
                 input, file_format_hint, kwargs, extra_columns)
 
-    def _mergeMetadata(self, currentTableNodes, fileMetadata, hiveMetadata, extra_columns): 
+    def _mergeMetadata(self, currentTableNodes, fileMetadata, hiveMetadata): 
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
@@ -734,14 +728,14 @@ class BlazingContext(object):
                 file_part_metadata = fileMetadata.get_partition(worker_id).compute()
                 hive_part_metadata = hiveMetadata.get_partition(worker_id).compute()
 
-                connection = self.dask_client.submit(mergeMetadataFor, curr_table, file_part_metadata, hive_part_metadata, extra_columns, workers=[worker])
+                connection = self.dask_client.submit(mergeMetadataFor, curr_table, file_part_metadata, hive_part_metadata, workers=[worker])
                 dask_futures.append(connection)
                 worker_id += 1
             return dask.dataframe.from_delayed(dask_futures) 
         else:
             worker_id = 0
             curr_table = currentTableNodes[worker_id]
-            return mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns)
+            return mergeMetadataFor(curr_table, fileMetadata, hiveMetadata)
 
     def _parseMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
@@ -808,6 +802,7 @@ class BlazingContext(object):
                         current_table.row_groups_ids.append(row_group_ids)
                     current_table.files = actual_files
                     current_table.uri_values = uri_values
+                    nodeTableList[0][table_name] = current_table
             else:
                 i = 0
                 for node in self.nodes:
@@ -840,6 +835,8 @@ class BlazingContext(object):
                         current_table.row_groups_ids.append(row_group_ids)
                     current_table.files = actual_files
                     current_table.uri_values = uri_values
+                    nodeTableList[i][table_name] = current_table
+            return nodeTableList
 
 
     def sql(self, sql, table_list=[], algebra=None):
@@ -882,11 +879,11 @@ class BlazingContext(object):
                 nodeList[table] = currentTableNodes[j]
                 j = j + 1
 
-                       #  WSM 
-            # if new_tables[table].has_metadata():
-            #     scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-            #     self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
 
+            if new_tables[table].has_metadata():
+                scan_table_query = relational_algebra_steps[table]['table_scans'][0]
+                nodeTableList = self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
+                
         ctxToken = random.randint(0, 64000)
         accessToken = 0
         if (len(table_list) > 0):

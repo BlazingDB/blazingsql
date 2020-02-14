@@ -7,18 +7,16 @@
 
 
 #include "io/DataLoader.h"
-#include "io/data_parser/CSVParser.h"
 #include "io/data_parser/DataParser.h"
 #include "io/data_parser/ParquetParser.h"
 #include "io/data_provider/DataProvider.h"
 #include "io/data_provider/UriDataProvider.h"
 #include <fstream>
-#include <gdf_wrapper/gdf_wrapper.cuh>
+
 
 #include <arrow/io/file.h>
 #include <arrow/util/logging.h>
 
-#include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "utilities/DebuggingUtils.h"
  
 
@@ -27,7 +25,6 @@
 #define PARQUET_FILE_PATH "/"
 #endif
 
-namespace cudf_io = cudf::experimental::io;
 using blazingdb::manager::experimental::Context;
 using Node = blazingdb::transport::experimental::Node;
 
@@ -47,26 +44,16 @@ TEST_F(MinMaxParquetTest, UsingRalIO) {
 	
 	std::vector<Uri> uris;
 	uris.push_back(Uri{filename});
-	ral::io::Schema schema;
 	auto parser = std::make_shared<ral::io::parquet_parser>();
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
  
-	{
-		cudf_io::read_parquet_args in_args{cudf_io::source_info{PARQUET_FILE_PATH}};
-		auto result = cudf_io::read_parquet(in_args);
-		for(auto name : result.metadata.column_names) {
-			std::cout << "col_name: " << name << std::endl;
-		}
-		std::cerr << " <<<  reading parquet:: " <<   std::endl;
-		// expect_tables_equal(expected->view(), result.tbl->view());
-	}
-	std::cerr << ">>> reading metadata:: " <<   std::endl;
- 
-	ral::io::data_loader loader(parser, provider);
+	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
+	std::cout << ">>> reading metadata:: loaded " <<   std::endl;
 	try {
-		auto table_pair = loader.get_metadata(0);
-		auto view = table_pair->toBlazingTableView();
-		// ral::utilities::print_blazing_table_view(view);
+		std::unique_ptr<ral::frame::BlazingTable> metadata = loader->get_metadata(0);
+		std::cout << ">>> reading metadata:: got metadata " <<   std::endl;
+		auto view = metadata->toBlazingTableView();
+		ral::utilities::print_blazing_table_view(view);
 	} catch(std::exception e){
 		std::cerr << "***std::exception:: " <<  e.what() << std::endl;
 

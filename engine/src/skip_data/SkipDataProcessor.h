@@ -10,7 +10,7 @@ namespace ral {
 namespace skip_data {
 
 std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_table(
-    const ral::frame::BlazingTableView & metadata_view, std::string table_scan);
+    const ral::frame::BlazingTableView & metadata_view, const std::vector<std::string> & names, std::string table_scan);
 
 } // namespace skip_data
 } // namespace ral

@@ -148,8 +148,6 @@ std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
-	ral::frame::BlazingTableView minmax_metadata_table = tableSchemas[0].metadata;
-	
 	try {
 		using blazingdb::manager::experimental::Context;
 		using blazingdb::transport::experimental::Node;
@@ -165,7 +163,7 @@ std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> result_pair = ral::skip_data::process_skipdata_for_table(
-				minmax_metadata_table, query);
+				tableSchemas[0].metadata, tableSchemas[0].names, query);
 
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = result_pair.first->names();

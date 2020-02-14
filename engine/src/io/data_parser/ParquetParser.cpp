@@ -133,7 +133,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(std::vect
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads[file_index] = std::thread([&, file_index]() {
 		  parquet_readers[file_index] =
-			  parquet::ParquetFileReader::Open(files[file_index]);
+			  std::move(parquet::ParquetFileReader::Open(files[file_index]));
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 		  const parquet::SchemaDescriptor * schema = file_metadata->schema();
 		  num_row_groups[file_index] = file_metadata->num_row_groups();

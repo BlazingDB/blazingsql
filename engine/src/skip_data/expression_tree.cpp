@@ -191,6 +191,13 @@ std::string expression_tree::prefix() {
   return returned_str.substr(0, returned_str.length() - 1);
 }
 
+std::string expression_tree::rebuildExpression() {
+  std::stringstream ss;
+  rebuild_helper(root.get(), ss);
+  std::string returned_str = ss.str();
+  return returned_str;
+}
+
 int expression_tree::build(std::shared_ptr<abstract_node> &parent,
                            const std::vector<std::string> &parts, int index) {
   // If its the end of the expression
@@ -264,6 +271,26 @@ void expression_tree::prefix_helper(abstract_node *p, std::stringstream &out) {
     out << p->to_string() << " ";
     prefix_helper(p->left.get(), out);
     prefix_helper(p->right.get(), out);
+  }
+}
+void expression_tree::rebuild_helper(abstract_node *p, std::stringstream &out) {
+  if (p == nullptr) {
+    return;
+  } else {
+    if (p->left.get() != nullptr && p->right.get() != nullptr &&
+            p->left.get()->to_string() != "" && p->right.get()->to_string() != "" ){ // binary op
+      out << p->to_string() << "(";
+      rebuild_helper(p->left.get(), out);
+      out << ", ";
+      rebuild_helper(p->right.get(), out);
+      out << ")";
+    } else if (p->left.get() != nullptr && p->left.get()->to_string() != "") { // unary op
+      out << p->to_string() << "(";
+      rebuild_helper(p->left.get(), out);
+      out << ")";
+    } else {
+      out << p->to_string();
+    }    
   }
 }
 

@@ -92,7 +92,8 @@ void set_min_max(
 		auto min = convertedStats->min();
 		auto max = convertedStats->max();
 		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		// here we are effectively casting a float to an int64_t which will lose the decimal resolution. So for a max value, lets apply ceil
+		minmax_metadata_table[col_index + 1].push_back(std::ceil(max)); 
 		break;
 	}
 	case parquet::Type::type::DOUBLE: {
@@ -101,7 +102,8 @@ void set_min_max(
 		auto min = convertedStats->min();
 		auto max = convertedStats->max();
 		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		// here we are effectively casting a float to an int64_t which will lose the decimal resolution. So for a max value, lets apply ceil
+		minmax_metadata_table[col_index + 1].push_back(std::ceil(max));
 		break;
 	}
 	case parquet::Type::type::BYTE_ARRAY:

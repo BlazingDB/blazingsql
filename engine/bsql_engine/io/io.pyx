@@ -292,11 +292,10 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
           tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
           tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
 
-      # WSM TODO??
-      # if table.row_groups_ids is not None:
-      #   currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
-      # else:
-      #   currentTableSchemaCpp.row_groups_ids = []
+      if table.row_groups_ids is not None:
+        currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
+      else:
+        currentTableSchemaCpp.row_groups_ids = []
 
       tableSchemaCpp.push_back(currentTableSchemaCpp)
       tableIndex = tableIndex + 1
@@ -391,7 +390,7 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
         tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
 
     column_views.resize(0)
-    metadata_col_names = [name for name in table.metadata._data.keys()]
+    metadata_col_names = [name.encode() for name in table.metadata._data.keys()]
     for cython_col in table.metadata._data.values():
       column_views.push_back(cython_col.view())
     currentTableSchemaCpp.metadata = BlazingTableView(table_view(column_views), metadata_col_names)

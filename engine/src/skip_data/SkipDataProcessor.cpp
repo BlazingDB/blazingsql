@@ -6,6 +6,7 @@
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include "Utils.cuh"
+#include "utilities/DebuggingUtils.h"
 
 #include <memory> // this is for std::static_pointer_cast
 #include <string>
@@ -19,7 +20,7 @@ namespace skip_data {
 // minmax_metadata_table => use these indices [[0, 3, 5]]
 // minmax_metadata_table => minmax_metadata_table[[0, 1,  6, 7,  10, 11, size - 2, size - 1]]
 std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_table(
-    const ral::frame::BlazingTableView & metadata_view, std::string table_scan) {
+    const ral::frame::BlazingTableView & metadata_view, const std::vector<std::string> & names, std::string table_scan) {
      
     std::string filter_string;
     try {
@@ -35,7 +36,17 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     }
     filter_string = clean_calcite_expression(filter_string);
 
-    std::vector<bool> valid_metadata_columns; // WSM need to calculate this
+    std::vector<bool> valid_metadata_columns(names.size(), false); 
+    std::vector<std::string> metadata_names = metadata_view.names();
+    for (int i = 0; i < names.size(); i++){
+        std::string metadata_min_name = "min_" + std::to_string(i) + '_' + names[i];
+        std::string metadata_max_name = "max_" + std::to_string(i) + '_' + names[i];
+        if (std::find(metadata_names.begin(), metadata_names.end(), metadata_min_name) != metadata_names.end() &&
+                std::find(metadata_names.begin(), metadata_names.end(), metadata_max_name) != metadata_names.end()){
+            valid_metadata_columns[i] = true;            
+        }
+    }
+    
 
     // process filter_string to convert to skip data version
     expression_tree tree;
@@ -47,7 +58,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
             }
         }
         tree.apply_skip_data_rules();
-        filter_string =  tree.prefix();
+        filter_string =  tree.rebuildExpression();
 
     } else { // something happened and could not process
         return std::make_pair(nullptr, true);
