@@ -16,6 +16,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         gtest
         blazingdb-io
         arrow
+        aws-cpp-sdk-core
         aws-cpp-sdk-s3
         aws-cpp-sdk-s3-encryption
         storage_client
