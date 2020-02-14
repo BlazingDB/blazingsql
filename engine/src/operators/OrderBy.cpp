@@ -58,7 +58,7 @@ std::unique_ptr<cudf::experimental::table> logicalLimit(
 	const cudf::table_view& table,
 	cudf::size_type limitRows)
 {
-	assert(limitRows < table.num_rows());
+	limitRows = std::min(limitRows, table.num_rows());
 
 	if (limitRows == 0) {
 		return cudf::experimental::empty_like(table);
