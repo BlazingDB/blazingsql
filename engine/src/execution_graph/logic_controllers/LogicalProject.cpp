@@ -414,7 +414,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
 
             std::string cleaned_expression = clean_calcite_expression(expression);
             std::vector<std::string> tokens = get_tokens_in_reverse_order(cleaned_expression);
-            fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
+            fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(cudf::table_view{{table, evaluator.computed_columns_view()}}, tokens);
             tokenized_expression_vector.push_back(tokens);
 
             // Keep track of which columns are used in the expression
