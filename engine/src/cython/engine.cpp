@@ -42,7 +42,6 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto schema = ral::io::Schema(tableSchema.names,
 			tableSchema.calcite_to_file_indices,
 			types,
-			tableSchema.num_row_groups,
 			tableSchema.in_file,
 			tableSchema.row_groups_ids);
 

@@ -34,14 +34,12 @@ public:
 	Schema(std::vector<std::string> names,
 		std::vector<size_t> calcite_to_file_indices,
 		std::vector<cudf::type_id> types,
-		std::vector<size_t> num_row_groups,
 		std::vector<std::vector<int>> row_groups_ids = {}
 		);
 
 	Schema(std::vector<std::string> names,
 		std::vector<size_t> calcite_to_file_indices,
 		std::vector<cudf::type_id> types,
-		std::vector<size_t> num_row_groups,
 		std::vector<bool> in_file,
 		std::vector<std::vector<int>> row_groups_ids = {});
 
@@ -58,11 +56,8 @@ public:
 	cudf::type_id get_dtype(size_t schema_index) const;
 	std::string get_name(size_t schema_index) const;
 	std::vector<size_t> get_calcite_to_file_indices() const { return this->calcite_to_file_indices; }
-	std::vector<size_t> get_num_row_groups() const { return this->num_row_groups; }
 	Schema fileSchema(size_t current_file_index) const;
 	size_t get_file_index(size_t schema_index) const;
-
-	size_t get_num_row_groups(size_t file_index) const;
 
 	size_t get_num_columns() const;
 
@@ -86,7 +81,6 @@ private:
 	std::vector<std::string> names;
 	std::vector<size_t> calcite_to_file_indices;  // maps calcite columns to our columns
 	std::vector<cudf::type_id> types;
-	std::vector<size_t> num_row_groups;
 	std::vector<bool> in_file;
 	std::vector<std::string> files;
 	

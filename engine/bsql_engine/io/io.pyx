@@ -175,7 +175,6 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     return_object['types'] = tableSchema.types
     return_object['names'] = tableSchema.names
     return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
-    return_object['num_row_groups']= tableSchema.num_row_groups
     
     return return_object
 
@@ -281,8 +280,6 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       currentTableSchemaCpp.datasource = table.datasource
       if table.calcite_to_file_indices is not None:
         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
-      if table.num_row_groups is not None:
-        currentTableSchemaCpp.num_row_groups = table.num_row_groups
       currentTableSchemaCpp.in_file = table.in_file
       currentTableSchemaCppArgKeys.resize(0)
       currentTableSchemaCppArgValues.resize(0)
@@ -378,8 +375,6 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     currentTableSchemaCpp.datasource = table.datasource
     if table.calcite_to_file_indices is not None:
       currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
-    if table.num_row_groups is not None:
-      currentTableSchemaCpp.num_row_groups = table.num_row_groups
     currentTableSchemaCpp.in_file = table.in_file
     currentTableSchemaCppArgKeys.resize(0)
     currentTableSchemaCppArgValues.resize(0)

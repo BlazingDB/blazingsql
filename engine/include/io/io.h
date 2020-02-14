@@ -33,7 +33,6 @@ struct TableSchema {
 	std::vector<std::string> datasource;
 	std::vector<std::string> names;
 	std::vector<size_t> calcite_to_file_indices;
-	std::vector<size_t> num_row_groups;
 	std::vector<bool> in_file;
 	int data_type;
 	ReaderArgs args;

@@ -75,7 +75,8 @@ ral::frame::TableViewPair parquet_parser::parse(
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
 			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
-		// TODO: Use schema.row_groups_ids to read only some row_groups
+
+		// WSM TODO: Use schema.row_groups_ids to read only some row_groups
 		// cudf::io::parquet::reader parquet_reader(file, pq_args);
 		// cudf::table table_out = parquet_reader.read_all();
 

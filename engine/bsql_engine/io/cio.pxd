@@ -231,7 +231,6 @@ cdef extern from "../include/io/io.h":
         vector[string]  files
         vector[string] datasource
         vector[unsigned long] calcite_to_file_indices
-        vector[unsigned long] num_row_groups
         vector[bool] in_file
         int data_type
         ReaderArgs args

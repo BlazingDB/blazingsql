@@ -329,7 +329,6 @@ class BlazingTable(object):
             files=None,
             datasource=[],
             calcite_to_file_indices=None,
-            num_row_groups=None,
             args={},
             convert_gdf_to_dask=False,
             convert_gdf_to_dask_partitions=1,
@@ -337,7 +336,8 @@ class BlazingTable(object):
             uri_values=[],
             in_file=[],
             force_conversion=False,
-            metadata=None):
+            metadata=None,
+            row_groups_ids = []): # row_groups_ids, vector<vector<int>> one vector of row_groups per file
         self.fileType = fileType
         if fileType == DataType.ARROW:
             if force_conversion:
@@ -354,9 +354,6 @@ class BlazingTable(object):
         self.files = files
 
         self.datasource = datasource
-        # TODO, cc @percy, @cristian!
-        # num_row_groups: this property is computed in create_table.parse_schema, but not used in run_query.
-        self.num_row_groups = num_row_groups
 
         self.args = args
         if fileType == DataType.CUDF or DataType.DASK_CUDF:
@@ -373,7 +370,7 @@ class BlazingTable(object):
         # metadata, this is computed in create table, after call get_metadata
         self.metadata = metadata        
         # row_groups_ids, vector<vector<int>> one vector of row_groups per file
-        self.row_groups_ids = []
+        self.row_groups_ids = row_groups_ids
         # a pair of values with the startIndex and batchSize info for each slice
         self.offset = (0,0)
 
@@ -428,8 +425,6 @@ class BlazingTable(object):
         startIndex = 0
         for i in range(0, numSlices):
             batchSize = int(remaining / (numSlices - i))
-            # #print(batchSize)
-            # #print(startIndex)
             tempFiles = self.files[startIndex: startIndex + batchSize]
             uri_values = self.uri_values[startIndex: startIndex + batchSize]
 
@@ -438,34 +433,65 @@ class BlazingTable(object):
             else:
                 slice_metadata = self.metadata.get_partition(i).compute()
 
-            if self.num_row_groups is not None:
-                bt = BlazingTable(self.input,
-                                                  self.fileType,
-                                                  files=tempFiles,
-                                                  calcite_to_file_indices=self.calcite_to_file_indices,
-                                                  num_row_groups=self.num_row_groups[startIndex: startIndex + batchSize],
-                                                  uri_values=uri_values,
-                                                  args=self.args,
-                                                  metadata=slice_metadata,
-                                                  in_file=self.in_file)
-                bt.offset = (startIndex, batchSize)
-                bt.column_names = self.column_names
-                bt.column_types = self.column_types
-                nodeFilesList.append(bt)
-            else:
-                bt = BlazingTable(
-                        self.input,
-                        self.fileType,
-                        files=tempFiles,
-                        calcite_to_file_indices=self.calcite_to_file_indices,
-                        uri_values=uri_values,
-                        args=self.args,
-                        metadata=slice_metadata,
-                        in_file=self.in_file)
-                bt.offset = (startIndex, batchSize)
-                bt.column_names = self.column_names
-                bt.column_types = self.column_types
-                nodeFilesList.append(bt)
+            slice_row_groups_ids = []
+            if self.row_groups_ids is not None:
+                slice_row_groups_ids=self.row_groups_ids[startIndex: startIndex + batchSize]
+
+            bt = BlazingTable(self.input,
+                                self.fileType,
+                                files=tempFiles,
+                                calcite_to_file_indices=self.calcite_to_file_indices,
+                                uri_values=uri_values,
+                                args=self.args,
+                                metadata=slice_metadata,
+                                row_groups_ids=slice_row_groups_ids,
+                                in_file=self.in_file)
+            bt.offset = (startIndex, batchSize)
+            bt.column_names = self.column_names
+            bt.column_types = self.column_types
+            nodeFilesList.append(bt)
+            
+            startIndex = startIndex + batchSize
+            remaining = remaining - batchSize
+        return nodeFilesList
+
+    def getSlicesRowGroups(self, numSlices):
+        nodeFilesList = []
+       
+        total_num_rowgroups = sum([len(x) for x in self.row_groups_ids])
+        file_index_per_rowgroups = [file_index  for file_index, row_groups_for_file in enumerate(self.row_groups_ids) for row_group in row_groups_for_file]
+        flattened_rowgroup_ids = [row_group  for row_groups_for_file in self.row_groups_ids for row_group in row_groups_for_file]
+
+        remaining = total_num_rowgroups
+        startIndex = 0
+        for i in range(0, numSlices):
+            batchSize = int(remaining / (numSlices - i))
+            file_indexes_for_slice = file_index_per_rowgroups[startIndex: startIndex + batchSize]
+            unique_file_indexes_for_slice = list(set(file_indexes_for_slice)) # lets get the unique indexes
+            sliced_files = [self.files[i] for i in unique_file_indexes_for_slice]
+            sliced_uri_values = [self.uri_values[i] for i in unique_file_indexes_for_slice]
+            
+            sliced_rowgroup_ids = []
+            last_file_index = None
+            for ind, file_index in enumerate(file_indexes_for_slice):
+                if last_file_index is None or file_index != last_file_index:
+                    sliced_rowgroup_ids.append([])
+                sliced_rowgroup_ids[-1].append(flattened_rowgroup_ids[ind + startIndex])
+                last_file_index = file_index
+
+            bt = BlazingTable(self.input,
+                                self.fileType,
+                                files=tempFiles,
+                                calcite_to_file_indices=self.calcite_to_file_indices,
+                                uri_values=uri_values,
+                                args=self.args,
+                                metadata=slice_metadata,
+                                row_groups_ids=slice_row_groups_ids,
+                                in_file=self.in_file)
+            bt.column_names = self.column_names
+            bt.column_types = self.column_types
+            nodeFilesList.append(bt)
+            
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
         return nodeFilesList
@@ -671,7 +697,6 @@ class BlazingContext(object):
                 files=parsedSchema['files'],
                 datasource=parsedSchema['datasource'],
                 calcite_to_file_indices=parsedSchema['calcite_to_file_indices'],
-                num_row_groups=parsedSchema['num_row_groups'],
                 args=parsedSchema['args'],
                 uri_values=uri_values,
                 in_file=in_file)
@@ -779,6 +804,9 @@ class BlazingContext(object):
             return parseHiveMetadataFor(curr_table, file_subset, partitions)
 
     def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
+
+            #  WSM TODO move logic from getSlicesRowGroups to here
+
             if self.dask_client is None:
                 current_table = nodeTableList[0][table_name]
                 table_tuple = (table_name, current_table) 

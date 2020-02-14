@@ -42,10 +42,9 @@ std::string convert_dtype_to_string(const cudf::type_id & dtype) {
 Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
 	std::vector<cudf::type_id> types,
-	std::vector<size_t> num_row_groups,
 	std::vector<std::vector<int>> row_groups_ids)
 	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), 
-	  num_row_groups(num_row_groups), row_groups_ids{row_groups_ids} {
+	  row_groups_ids{row_groups_ids} {
 	// TODO Auto-generated constructor stub
 
 	in_file.resize(names.size(), true);
@@ -54,10 +53,9 @@ Schema::Schema(std::vector<std::string> names,
 Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
 	std::vector<cudf::type_id> types,
-	std::vector<size_t> num_row_groups,
 	std::vector<bool> in_file,
 	std::vector<std::vector<int>> row_groups_ids)
-	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), num_row_groups(num_row_groups),
+	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types),
 	  in_file(in_file), row_groups_ids{row_groups_ids}  {
 	if(in_file.size() != names.size()) {
 		this->in_file.resize(names.size(), true);
@@ -65,11 +63,11 @@ Schema::Schema(std::vector<std::string> names,
 }
 
 Schema::Schema(std::vector<std::string> names, std::vector<cudf::type_id> types)
-	: names(names), calcite_to_file_indices({}), types(types), num_row_groups({}) {
+	: names(names), calcite_to_file_indices({}), types(types) {
 	in_file.resize(names.size(), true);
 }
 
-Schema::Schema() : names({}), calcite_to_file_indices({}), types({}), num_row_groups({}) {}
+Schema::Schema() : names({}), calcite_to_file_indices({}), types({}) {}
 
 
 Schema::~Schema() {
@@ -100,8 +98,6 @@ size_t Schema::get_file_index(size_t schema_index) const {
 	return this->calcite_to_file_indices[schema_index];
 }
 
-size_t Schema::get_num_row_groups(size_t file_index) const { return this->num_row_groups[file_index]; }
-
 size_t Schema::get_num_columns() const { return this->names.size(); }
 
 std::vector<bool> Schema::get_in_file() const { return this->in_file; }
@@ -109,12 +105,7 @@ std::vector<bool> Schema::get_in_file() const { return this->in_file; }
 bool Schema::all_in_file() const {
 	return std::all_of(this->in_file.begin(), this->in_file.end(), [](bool elem) { return elem; });
 }
-/*void Schema::add_column(gdf_column_cpp column, size_t file_index) {
-	this->names.push_back(column.name());
-	this->types.push_back(column.get_gdf_column()->type().id());
-	this->calcite_to_file_indices.push_back(file_index);
-	this->in_file.push_back(true);
-}*/
+
 
 void Schema::add_column(std::string name, cudf::type_id type, size_t file_index, bool is_in_file) {
 	this->names.push_back(name);
@@ -137,8 +128,9 @@ Schema Schema::fileSchema(size_t current_file_index) const {
 		}
 	}
 	// Just get the associated row_groups for current_file_index
-	// TODO, @alex
-	// schema.row_groups_ids.push_back(this->row_groups_ids.at(current_file_index));
+	if (this->row_groups_ids.size() > current_file_index){
+		schema.row_groups_ids.push_back(this->row_groups_ids.at(current_file_index));
+	}
 	return schema;
 }
 

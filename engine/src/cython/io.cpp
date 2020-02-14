@@ -68,7 +68,6 @@ TableSchema parseSchema(std::vector<std::string> files,
 	tableSchema.types = schema.get_dtypes();
 	tableSchema.names = schema.get_names();
 	tableSchema.files = schema.get_files();
-	tableSchema.num_row_groups = schema.get_num_row_groups();
 	tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
 	tableSchema.in_file = schema.get_in_file();
 
