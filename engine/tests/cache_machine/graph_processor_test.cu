@@ -607,15 +607,11 @@ TEST_F(GraphProcessorTest, SortWorkFlowTest) {
 
 	std::string folder_path = "/home/aocsa/tpch/100MB2Part/tpch/";
 	int n_files = 1;
-	std::vector<std::string> order_path_list;
 	std::vector<std::string> customer_path_list;
 	for (int index = 0; index < n_files; index++) {
-		auto filepath = folder_path + "orders_" + std::to_string(index) + "_0.parquet";
-		order_path_list.push_back(filepath);
-		filepath = folder_path + "customer_" + std::to_string(index) + "_0.parquet";
+		auto filepath = folder_path + "customer_" + std::to_string(index) + "_0.parquet";
 		customer_path_list.push_back(filepath);
 	}
-	TableScanKernel order_generator(order_path_list);
 	TableScanKernel customer_generator(customer_path_list);
 	SortKernel order_by("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
 	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", &queryContext);
@@ -623,7 +619,7 @@ TEST_F(GraphProcessorTest, SortWorkFlowTest) {
 	PrinterKernel print;
 	ral::cache::graph m;
 	try {
-		m += order_generator >> filter;
+		m += customer_generator >> filter;
 		m += filter >> project;
 		m += project >> order_by;
 		m += order_by >> print;
