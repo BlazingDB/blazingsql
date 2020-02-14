@@ -19,8 +19,6 @@
 #include <cudf/table/table_view.hpp>
 #include <cudf/column/column_factories.hpp>
 
-#include "utilities/DebuggingUtils.h"
-
 namespace ral {
 namespace operators {
 namespace experimental {
