@@ -336,7 +336,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 		cudf::mutable_column_view temp_mutable_view = temp->mutable_view();
 
 		if(table.num_rows()!=0 || aggregation_types[i] == "COUNT"){ //empty table, no needed to perform reductions
-			cudf::experimental::fill(temp_mutable_view, 0, 1, *(reductions[i]));
+			cudf::experimental::fill_in_place(temp_mutable_view, 0, 1, *(reductions[i]));
 		}
 
 		output_columns.emplace_back(std::move(temp));
@@ -531,7 +531,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						numeric_s->set_value(0);
 						auto mview_temp = temp->mutable_view();
 						if (temp->size() != 0) {
-							cudf::experimental::fill(mview_temp, 0, temp->size(), *scalar);
+							cudf::experimental::fill_in_place(mview_temp, 0, temp->size(), *scalar);
 						}
 						aggregation_inputs_scope_holder.emplace_back(std::move(temp));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();

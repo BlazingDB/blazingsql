@@ -438,7 +438,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
                 
                 if (out_columns[i]->size() != 0){
                     cudf::mutable_column_view out_column_mutable_view = out_columns[i]->mutable_view();
-                    cudf::experimental::fill(out_column_mutable_view, 0, out_column_mutable_view.size(), *literal_scalar);
+                    cudf::experimental::fill_in_place(out_column_mutable_view, 0, out_column_mutable_view.size(), *literal_scalar);
                 }                
             }
         } else {
