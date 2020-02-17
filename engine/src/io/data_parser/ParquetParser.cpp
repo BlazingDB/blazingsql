@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <numeric>
 #include <string>
+#include <iostream>
 #include <cudf/cudf.h>
 #include <cudf/io/functions.hpp>
 

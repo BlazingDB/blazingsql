@@ -219,7 +219,7 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
         col_name = columns[index]
         names.append('min_' + str(index) + '_' + col_name) 
         names.append('max_' + str(index) + '_' + col_name) 
-        
+    
     names.append('file_handle_index') 
     names.append('row_group_index') 
     minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
@@ -237,7 +237,6 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
             table_partition.setdefault(col_name, []).append(np_col_value)
         minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
         minmax_metadata_table[len(minmax_metadata_table) - 1].append(0) # TODO this assumes that you only have one row group per partitioned file
-
     for index in range(n_cols):
         col_name = columns[index]
         if col_name in table_partition:
@@ -256,7 +255,6 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
         #     else:
         #         minmax_metadata_table[2*index] = [np.iinfo(dtypes[index]).min] * n_files
         #         minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[index]).max] * n_files
-
     series = []
     for index in range(n_cols):
         col_name = columns[index]
@@ -268,7 +266,6 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
             final_names.append(names[2*index])
             final_names.append(names[2*index+1])
     index = n_cols 
-
     col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.int16, name=names[2*index])
     col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=np.int16, name=names[2*index+1])
     final_names.append(names[2*index])
@@ -627,6 +624,7 @@ class BlazingContext(object):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file, partitions = get_hive_table(
                 input, hive_table_name)
+
             kwargs.update(extra_kwargs)
             input = folder_list
             is_hive_input = True
@@ -658,7 +656,7 @@ class BlazingContext(object):
         elif isinstance(input, list):
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
-
+            
             file_type = parsedSchema['file_type']
             table = BlazingTable(
                 parsedSchema['files'],

@@ -53,7 +53,6 @@ ral::frame::TableViewPair data_loader::load_data(
 	// make sure cudf supports concurrent reads
 	std::vector<std::thread> threads;
 
-	std::cout<<"load_data going to load how many files? : "<<files.size()<<std::endl;
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads.push_back(std::thread([&, file_index]() {
 			if (files[file_index].fileHandle != nullptr) {
@@ -85,7 +84,7 @@ ral::frame::TableViewPair data_loader::load_data(
 								rmm::device_buffer gpu_buffer(buffer_size);
 								auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
 								auto mutable_scalar_col = scalar_column->mutable_view();
-								cudf::experimental::fill(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
+								cudf::experimental::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
 								current_columns.emplace_back(std::move(scalar_column));
 							}
 						} 

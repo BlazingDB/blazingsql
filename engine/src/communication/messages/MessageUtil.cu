@@ -37,7 +37,7 @@ namespace experimental {
 
 		auto mutable_col = new_offsets->mutable_view();
 
-		cudf::experimental::copy_range(offsets_column, mutable_col,
+		cudf::experimental::copy_range_in_place(offsets_column, mutable_col,
 				offset, offset + column.size() + 1, 0);
 
 		struct subtracting_operator	{
