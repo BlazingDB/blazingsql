@@ -134,5 +134,16 @@ Schema Schema::fileSchema(size_t current_file_index) const {
 	return schema;
 }
 
+ral::frame::TableViewPair Schema::makeEmptyTableViewPair(const std::vector<size_t> & column_indices) const {
+	std::vector<std::string> select_names(column_indices.size());
+	std::vector<cudf::type_id> select_types(column_indices.size());
+	for (int i = 0; i < column_indices.size(); i++){
+		select_names[i] = this->names[column_indices[i]];
+		select_types[i] = this->types[column_indices[i]];
+	}
+
+	return ral::frame::createEmptyTableViewPair(select_types, select_names);
+}
+
 } /* namespace io */
 } /* namespace ral */

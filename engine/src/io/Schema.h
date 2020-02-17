@@ -61,8 +61,13 @@ public:
 
 	size_t get_num_columns() const;
 
-	// DEPRECATED please use add_column(name, type, file_index, is_in_file)
-	//void add_column(gdf_column_cpp column, size_t file_index);
+	std::vector<int> get_rowgroup_ids(size_t file_index) const { 
+		if (this->row_groups_ids.size() > file_index){
+			return this->row_groups_ids[file_index];
+		} else {
+			return std::vector<int>();
+		}
+	}
 	
 	void add_file(std::string file);
 
@@ -70,6 +75,8 @@ public:
 		cudf::type_id type,
 		size_t file_index,
 		bool is_in_file = true);
+
+	ral::frame::TableViewPair makeEmptyTableViewPair(const std::vector<size_t> & column_indices) const;
 
 	inline bool operator==(const Schema & rhs) const {
 		return (this->names == rhs.names) && (this->types == rhs.types);

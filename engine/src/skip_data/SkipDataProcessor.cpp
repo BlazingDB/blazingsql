@@ -35,7 +35,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         return std::make_pair(nullptr, true);
     }
     filter_string = clean_calcite_expression(filter_string);
-
+    
     std::vector<bool> valid_metadata_columns(names.size(), false); 
     std::vector<std::string> metadata_names = metadata_view.names();
     for (int i = 0; i < names.size(); i++){
@@ -78,31 +78,6 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     std::unique_ptr<ral::frame::BlazingTable> filtered_metadata_ids = ral::processor::applyBooleanFilter(metadata_view, evaluated_table->get_column(0));
 
     return std::make_pair(std::move(filtered_metadata_ids), false);
-
-    // int totalNumNodes = context.getTotalNodes();
-    // int totalNumRowgroups = filtered_metadata_ids->num_rows();
-    // int localNodeIndex = context.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
-
-    // // lets determine the set of rowgroups this node will process
-    // int remaining = totalNumRowgroups;
-    // int curStart = 0;
-    // int localStart = 0;
-    // int localEnd = 0;
-    // for (int nodeInd = 0; nodeInd < totalNumNodes; nodeInd++){
-    //     int batch = remaining/(totalNumNodes-nodeInd);
-    //     int curEnd = curStart + batch;
-    //     remaining = remaining- batch;
-    //     if (nodeInd == localNodeIndex){
-    //         localStart = curStart;
-    //         localEnd = curEnd;
-    //         break;
-    //     }
-    //     curStart = curEnd;        
-    // }
-    // if (localEnd - localStart >= 0){
-    //     return std::make_pair(filtered_metadata_ids, false);
-    // }
-    // return std::make_pair(create_empty_result(), true);
 }
 
 

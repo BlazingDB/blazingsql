@@ -455,47 +455,6 @@ class BlazingTable(object):
             remaining = remaining - batchSize
         return nodeFilesList
 
-    def getSlicesRowGroups(self, numSlices):
-        nodeFilesList = []
-       
-        total_num_rowgroups = sum([len(x) for x in self.row_groups_ids])
-        file_index_per_rowgroups = [file_index  for file_index, row_groups_for_file in enumerate(self.row_groups_ids) for row_group in row_groups_for_file]
-        flattened_rowgroup_ids = [row_group  for row_groups_for_file in self.row_groups_ids for row_group in row_groups_for_file]
-
-        remaining = total_num_rowgroups
-        startIndex = 0
-        for i in range(0, numSlices):
-            batchSize = int(remaining / (numSlices - i))
-            file_indexes_for_slice = file_index_per_rowgroups[startIndex: startIndex + batchSize]
-            unique_file_indexes_for_slice = list(set(file_indexes_for_slice)) # lets get the unique indexes
-            sliced_files = [self.files[i] for i in unique_file_indexes_for_slice]
-            sliced_uri_values = [self.uri_values[i] for i in unique_file_indexes_for_slice]
-            
-            sliced_rowgroup_ids = []
-            last_file_index = None
-            for ind, file_index in enumerate(file_indexes_for_slice):
-                if last_file_index is None or file_index != last_file_index:
-                    sliced_rowgroup_ids.append([])
-                sliced_rowgroup_ids[-1].append(flattened_rowgroup_ids[ind + startIndex])
-                last_file_index = file_index
-
-            bt = BlazingTable(self.input,
-                                self.fileType,
-                                files=tempFiles,
-                                calcite_to_file_indices=self.calcite_to_file_indices,
-                                uri_values=uri_values,
-                                args=self.args,
-                                metadata=slice_metadata,
-                                row_groups_ids=slice_row_groups_ids,
-                                in_file=self.in_file)
-            bt.column_names = self.column_names
-            bt.column_types = self.column_types
-            nodeFilesList.append(bt)
-            
-            startIndex = startIndex + batchSize
-            remaining = remaining - batchSize
-        return nodeFilesList
-
     def get_partitions(self, worker):
         return self.dask_mapping[worker]
 
@@ -803,68 +762,117 @@ class BlazingContext(object):
             file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
             return parseHiveMetadataFor(curr_table, file_subset, partitions)
 
+    def sliceRowGroups(numSlices, files, uri_values, row_groups_ids):
+        nodeFilesList = []
+       
+        total_num_rowgroups = sum([len(x) for x in row_groups_ids])
+        file_index_per_rowgroups = [file_index  for file_index, row_groups_for_file in enumerate(row_groups_ids) for row_group in row_groups_for_file]
+        flattened_rowgroup_ids = [row_group  for row_groups_for_file in row_groups_ids for row_group in row_groups_for_file]
+
+        all_sliced_actual_files = []
+        all_sliced_uri_values = []
+        all_sliced_row_groups_ids = []
+        remaining = total_num_rowgroups
+        startIndex = 0
+        for i in range(0, numSlices):
+            batchSize = int(remaining / (numSlices - i))
+            file_indexes_for_slice = file_index_per_rowgroups[startIndex: startIndex + batchSize]
+            unique_file_indexes_for_slice = list(set(file_indexes_for_slice)) # lets get the unique indexes
+            sliced_files = [files[i] for i in unique_file_indexes_for_slice]
+            sliced_uri_values = [uri_values[i] for i in unique_file_indexes_for_slice]
+            
+            sliced_rowgroup_ids = []
+            last_file_index = None
+            for ind, file_index in enumerate(file_indexes_for_slice):
+                if last_file_index is None or file_index != last_file_index:
+                    sliced_rowgroup_ids.append([])
+                sliced_rowgroup_ids[-1].append(flattened_rowgroup_ids[ind + startIndex])
+                last_file_index = file_index
+
+            startIndex = startIndex + batchSize
+            remaining = remaining - batchSize
+
+            all_sliced_files.append(sliced_files)
+            all_sliced_uri_values.append(sliced_uri_values)
+            all_sliced_row_groups_ids.append(sliced_rowgroup_ids)
+            
+        return all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids
+    
+    
     def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
 
-            #  WSM TODO move logic from getSlicesRowGroups to here
-
-            if self.dask_client is None:
-                current_table = nodeTableList[0][table_name]
-                table_tuple = (table_name, current_table) 
-                file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0)
+        if self.dask_client is None:
+            current_table = nodeTableList[0][table_name]
+            table_tuple = (table_name, current_table) 
+            file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0)
+            has_some_error = file_indices_and_rowgroup_indices['has_some_error']
+            file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
+            if not file_indices_and_rowgroup_indices.empty and not has_some_error:
+                file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
+                files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
+                grouped = file_and_rowgroup_indices.groupby('file_handle_index')
+                actual_files = []
+                uri_values = []
+                current_table.row_groups_ids = []
+                for group_id in grouped.groups:
+                    row_indices = grouped.groups[group_id].values.tolist()
+                    actual_files.append(table_files[group_id])
+                    if group_id < len(current_table.uri_values):
+                        uri_values.append(current_table.uri_values[group_id])
+                    row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
+                    row_group_ids = [row_groups_col[i] for i in row_indices]
+                    current_table.row_groups_ids.append(row_group_ids)
+                current_table.files = actual_files
+                current_table.uri_values = uri_values
+                nodeTableList[0][table_name] = current_table
+        else:
+            connections = []
+            for i, node in enumerate(self.nodes):
+                worker = node['worker']
+                current_table = nodeTableList[i][table_name]
+                table_tuple = (table_name, current_table)
+                connections.appen( self.dask_client.submit(
+                        cio.runSkipDataCaller,
+                        masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0,
+                        workers=[worker]) )
+            
+            all_files = []
+            all_uri_values = []
+            all_row_groups_ids = []
+            for i, connection in enumerate(connections):
+                current_table = nodeTableList[i][table_name]
+                file_indices_and_rowgroup_indices = connection.result()
                 has_some_error = file_indices_and_rowgroup_indices['has_some_error']
                 file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
-                if not file_indices_and_rowgroup_indices.empty and not has_some_error:
-                    file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
-                    files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
-                    grouped = file_and_rowgroup_indices.groupby('file_handle_index')
-                    actual_files = []
-                    uri_values = []
-                    current_table.row_groups_ids = []
-                    for group_id in grouped.groups:
-                        row_indices = grouped.groups[group_id].values.tolist()
-                        actual_files.append(table_files[group_id])
-                        if group_id < len(current_table.uri_values):
-                            uri_values.append(current_table.uri_values[group_id])
-                        row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
-                        row_group_ids = [row_groups_col[i] for i in row_indices]
-                        current_table.row_groups_ids.append(row_group_ids)
-                    current_table.files = actual_files
-                    current_table.uri_values = uri_values
-                    nodeTableList[0][table_name] = current_table
-            else:
-                i = 0
-                for node in self.nodes:
-                    worker = node['worker']
-                    current_table = nodeTableList[i][table_name]
-                    table_tuple = (table_name, current_table)
-                    connection = self.dask_client.submit(
-                            cio.runSkipDataCaller,
-                            masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0,
-                            workers=[worker])
-                    i = i + 1
-                    file_indices_and_rowgroup_indices = connection.result()
-                    has_some_error = file_indices_and_rowgroup_indices['has_some_error']
-                    file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
-                    if file_indices_and_rowgroup_indices.empty and has_some_error :
-                        continue
-                    file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
-                    files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
-                    grouped = file_and_rowgroup_indices.groupby('file_handle_index')
-                    actual_files = []
-                    uri_values = []
-                    current_table.row_groups_ids = []
-                    for group_id in grouped.groups:
-                        row_indices = grouped.groups[group_id].values.tolist()
-                        actual_files.append(table_files[group_id])
-                        if group_id < len(current_table.uri_values):
-                            uri_values.append(current_table.uri_values[group_id])
-                        row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
-                        row_group_ids = [row_groups_col[i] for i in row_indices]
-                        current_table.row_groups_ids.append(row_group_ids)
-                    current_table.files = actual_files
-                    current_table.uri_values = uri_values
-                    nodeTableList[i][table_name] = current_table
-            return nodeTableList
+                if file_indices_and_rowgroup_indices.empty and has_some_error :
+                    continue
+                file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
+                files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
+                grouped = file_and_rowgroup_indices.groupby('file_handle_index')
+                actual_files = []
+                uri_values = []
+                row_groups_ids = []
+                for group_id in grouped.groups:
+                    row_indices = grouped.groups[group_id].values.tolist()
+                    actual_files.append(table_files[group_id])
+                    if group_id < len(current_table.uri_values):
+                        uri_values.append(current_table.uri_values[group_id])
+                    row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
+                    row_group_ids_perfile = [row_groups_col[i] for i in row_indices]
+                    row_groups_ids.append(row_group_ids_perfile)
+                    
+                all_files = all_files + actual_files
+                all_uri_values = all_uri_values + uri_values
+                all_row_groups_ids = all_row_groups_ids + row_groups_ids
+
+            all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = sliceRowGroups(len(self.nodes), all_files, all_uri_values, all_row_groups_ids)
+
+            for i, node in enumerate(self.nodes):
+                nodeTableList[i][table_name].files = all_sliced_files[i]
+                nodeTableList[i][table_name].uri_values = all_sliced_uri_values[i]
+                nodeTableList[i][table_name].row_groups_ids = all_sliced_row_groups_ids[i]                
+            
+        return nodeTableList
 
 
     def sql(self, sql, table_list=[], algebra=None):

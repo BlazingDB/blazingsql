@@ -82,13 +82,13 @@ struct binary_op_node : abstract_node {
       if (this->to_string() == "AND") {
         return m;
       } else {
-        return n;
+        return std::make_shared<unary_op_node>("NONE");
       }
     } else if (right_is_exclusion_unary_op and not left_is_exclusion_unary_op) {
       if (this->to_string() == "AND") {
         return n;
       } else {
-        return m;
+        return std::make_shared<unary_op_node>("NONE");
       }
     } else if (left_is_exclusion_unary_op and right_is_exclusion_unary_op) {
       return std::make_shared<unary_op_node>("NONE");

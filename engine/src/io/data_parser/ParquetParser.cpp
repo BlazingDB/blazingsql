@@ -4,6 +4,7 @@
 #include "ParquetParser.h"
 #include "config/GPUManager.cuh"
 #include <blazingdb/io/Util/StringUtil.h>
+#include "utilities/CommonOperations.h"
 
 #include <algorithm>
 #include <string>
@@ -62,7 +63,7 @@ ral::frame::TableViewPair parquet_parser::parse(
 	}
 
 	if(file == nullptr) {
-		return std::make_pair(nullptr, ral::frame::BlazingTableView());
+		return schema.makeEmptyTableViewPair(column_indices);
 	}
 
 	if(column_indices.size() > 0) {
@@ -76,30 +77,53 @@ ral::frame::TableViewPair parquet_parser::parse(
 			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		// WSM TODO: Use schema.row_groups_ids to read only some row_groups
-		// cudf::io::parquet::reader parquet_reader(file, pq_args);
-		// cudf::table table_out = parquet_reader.read_all();
+		std::vector<int> row_groups = schema.get_rowgroup_ids(0); // because the Schema we are using here was already filtered for a specific file by Schema::fileSchema we are simply getting the first set of rowgroup_ids
+		if (row_groups.size() == 0){
+			// make empty table of the right schema
+			return schema.makeEmptyTableViewPair(column_indices);
+		} else {
+			// now lets get these row_groups in batches of consecutive rowgroups because that is how the reader will want them
+			std::vector<int> consecutive_row_group_start(1, row_groups[0]);
+			std::vector<int> consecutive_row_group_length;
+			int length_count = 1;
+			int last_rowgroup = consecutive_row_group_start.back();
+			for (int i = 1; i < row_groups.size(); i++){
+				if (last_rowgroup + 1 == row_groups[i]){ // consecutive
+					length_count++;
+					last_rowgroup = row_groups[i];
+				} else {
+					consecutive_row_group_length.push_back(length_count);
+					consecutive_row_group_start.push_back(row_groups[i]);
+					last_rowgroup = row_groups[i];
+					length_count = 1;
+				}				
+			}
+			consecutive_row_group_length.push_back(length_count);
 
-		auto result = cudf_io::read_parquet(pq_args);
+			if (consecutive_row_group_start.size() == 1){
+				pq_args.row_group = consecutive_row_group_start[0];
+				pq_args.row_group_count = consecutive_row_group_length[0];
 
+				auto result = cudf_io::read_parquet(pq_args);
+				std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
+				ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
+				return std::make_pair(std::move(table_out), table_out_view);
+			} else {
+				std::vector<std::unique_ptr<ral::frame::BlazingTable>> table_outs;
+				std::vector<ral::frame::BlazingTableView> table_view_outs;
+				for (int i = 0; i < consecutive_row_group_start.size(); i++){
+					pq_args.row_group = consecutive_row_group_start[i];
+					pq_args.row_group_count = consecutive_row_group_length[i];
 
-		// columns_out.resize(column_indices.size());
-
-		// for(size_t i = 0; i < columns_out.size(); i++) {
-		// if(table_out.get_column(i)->dtype == GDF_STRING) {
-		// NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
-		// NVCategory * category = NVCategory::create_from_strings(*strs);
-		// std::string column_name(table_out.get_column(i)->col_name);
-		// columns_out[i].create_gdf_column(category, table_out.get_column(i)->size, column_name);
-		// gdf_column_free(table_out.get_column(i));
-		// } else {
-		// TODO percy cudf0.12 port cudf::column and io stuff
-		//columns_out[i].create_gdf_column(table_out.get_column(i));
-		// }
-		// }
-		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
-		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
-		return std::make_pair(std::move(table_out), table_out_view);
+					auto result = cudf_io::read_parquet(pq_args);
+					table_outs.emplace_back(std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names));
+					table_view_outs.emplace_back(table_outs.back()->toBlazingTableView());
+				}
+				std::unique_ptr<ral::frame::BlazingTable> table_out = ral::utilities::experimental::concatTables(table_view_outs);
+				ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
+				return std::make_pair(std::move(table_out), table_out_view);
+			}			
+		}
 	}
 	return std::make_pair(nullptr, ral::frame::BlazingTableView());
 }

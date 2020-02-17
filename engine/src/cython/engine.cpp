@@ -165,9 +165,11 @@ std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 				tableSchemas[0].metadata, tableSchemas[0].names, query);
 
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
-		result->names = result_pair.first->names();
-		result->cudfTable = result_pair.first->releaseCudfTable();
 		result->error_reported = result_pair.second;
+		if (!result_pair.second){ // if could process skip-data
+			result->names = result_pair.first->names();
+			result->cudfTable = result_pair.first->releaseCudfTable();
+		}
 		return result;
 
 	} catch(const std::exception & e) {

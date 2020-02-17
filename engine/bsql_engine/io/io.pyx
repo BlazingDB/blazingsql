@@ -399,17 +399,20 @@ cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] 
     
     resultSet = blaz_move(runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all))
 
-    names = dereference(resultSet).names
-    decoded_names = []
-    for i in range(names.size()):
-        decoded_names.append(names[i].decode('utf-8'))
-
-    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    
     return_object = {}
     return_object['has_some_error'] = dereference(resultSet).error_reported
-    return_object['metadata'] = df 
-    return return_object
+    if return_object['has_some_error']:
+      return_object['metadata'] = cudf.DataFrame()
+      return return_object
+    else:
+      names = dereference(resultSet).names
+      decoded_names = []
+      for i in range(names.size()):
+          decoded_names.append(names[i].decode('utf-8'))
+
+      df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
+      return_object['metadata'] = df 
+      return return_object
 
 cpdef getTableScanInfoCaller(logicalPlan,tables):
     temp = getTableScanInfoPython(str.encode(logicalPlan))
