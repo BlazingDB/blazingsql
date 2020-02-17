@@ -202,8 +202,6 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 	CodeTimer blazing_timer;
 	blazing_timer.reset();
 
-	std::cout<<"evaluate_split_query "<<query[0]<<std::endl;
-
 	if(query.size() == 1) {
 		// process yourself and return
 
@@ -228,15 +226,10 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
 					projections.push_back(0);
 				}
-				std::cout<<"load_data before"<<std::endl;
-
+				
 				std::unique_ptr<ral::frame::BlazingTable> input_table;
 				ral::frame::BlazingTableView input_table_view;
 				std::tie(input_table, input_table_view) = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
-
-				std::cout<<"load_data after"<<std::endl;
-
-				ral::utilities::print_blazing_table_view_schema(input_table_view, "loiaded data");
 
 				std::vector<std::string> col_names = input_table_view.names();
 
@@ -255,7 +248,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 
 				int num_rows = input_table_view.num_rows();
 				Library::Logging::Logger().logInfo(
-					blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
+					blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows, "num files", schemas[table_index].get_files().size()));
 				blazing_timer.reset();
 
 				if(is_filtered_bindable_scan(query[0])) {
@@ -324,6 +317,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			int numRight = right_frame_pair.second.num_rows();
 
 			std::string new_join_statement, filter_statement;
+			StringUtil::findAndReplaceAll(query[0], "IS NOT DISTINCT FROM", "=");
 			split_inequality_join_into_join_and_filter(query[0], new_join_statement, filter_statement);
 
 			//result_frame = ral::operators::process_join(queryContext, left_frame, new_join_statement);

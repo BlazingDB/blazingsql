@@ -59,7 +59,7 @@ struct RegionResult {
 	std::string errorMessage;
 };
 
-RegionResult getRegion(std::string bucketName, Aws::Auth::AWSCredentials credentials) {
+RegionResult getRegion(std::string bucketName,std::shared_ptr< Aws::Auth::AWSCredentials> credentials) {
 	RegionResult regionResult;
 
 	auto clientConfig = Aws::Client::ClientConfiguration();
@@ -69,12 +69,18 @@ RegionResult getRegion(std::string bucketName, Aws::Auth::AWSCredentials credent
 	clientConfig.connectTimeoutMs = 60000;
 	clientConfig.requestTimeoutMs = 30000;
 
-	const Aws::S3::S3Client s3Client = Aws::S3::S3Client(credentials, clientConfig);
+	std::shared_ptr<Aws::S3::S3Client> s3Client;
+	if(credentials == nullptr){
+		s3Client = std::make_shared<Aws::S3::S3Client>( clientConfig);
+	}else{
+		s3Client = std::make_shared<Aws::S3::S3Client>(*credentials, clientConfig);
+	}
+
 
 	Aws::S3::Model::GetBucketLocationRequest location_request;
 	location_request.WithBucket(bucketName);
 
-	const auto locationRequestOutcome = s3Client.GetBucketLocation(location_request);
+	const auto locationRequestOutcome = s3Client->GetBucketLocation(location_request);
 
 	if(locationRequestOutcome.IsSuccess()) {
 		const Aws::S3::Model::BucketLocationConstraint regionEnum =
@@ -148,9 +154,19 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 
 	// TODO percy check valid conn properties: do this in the fs::isValidConn or inside fsConnection (get rid of strings
 	// map: that is a bad pattern)
+	std::shared_ptr<Aws::Auth::AWSCredentials> credentials = nullptr;
+	if(accessKeyId != ""){
+		credentials = std::make_shared<Aws::Auth::AWSCredentials>(accessKeyId, secretKey, sessionToken);
+	}
 
-	const auto credentials = Aws::Auth::AWSCredentials(accessKeyId, secretKey, sessionToken);
-	const RegionResult regionResult = getRegion(bucketName, credentials);
+	RegionResult regionResult;
+
+	if(credentials != nullptr){
+		regionResult = getRegion(bucketName, credentials);
+	}else{
+		regionResult.regionName = "us-east-1";
+		regionResult.valid = true;
+	}
 
 	// TODO percy error handling
 	if(regionResult.valid == false) {
@@ -166,7 +182,12 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 	clientConfig.connectTimeoutMs = 60000;
 	clientConfig.requestTimeoutMs = 30000;
 
-	this->s3Client = std::make_shared<Aws::S3::S3Client>(credentials, clientConfig);
+	if(credentials == nullptr){
+		this->s3Client = std::make_shared<Aws::S3::S3Client>(clientConfig);
+	}else{
+		this->s3Client = std::make_shared<Aws::S3::S3Client>(*credentials, clientConfig);
+	}
+
 
 	// TODO NOTE This code is when we need to support client side encryption (currently only support server side
 	// encryption) 	switch (encryptionType) { 		case EncryptionType::NONE: { 			this->s3Client =
@@ -230,6 +251,7 @@ FileSystemConnection S3FileSystem::Private::getFileSystemConnection() const noex
 }
 
 bool S3FileSystem::Private::exists(const Uri & uri) const {
+
 	if(uri.isValid() == false) {
 		throw BlazingInvalidPathException(uri);
 	}

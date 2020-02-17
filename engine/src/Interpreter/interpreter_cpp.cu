@@ -332,6 +332,7 @@ bool is_binary_operator(operator_type op) {
   case operator_type::BLZ_DIV:
   case operator_type::BLZ_MOD:
   case operator_type::BLZ_POW:
+  case operator_type::BLZ_ROUND:
   case operator_type::BLZ_EQUAL:
   case operator_type::BLZ_NOT_EQUAL:
   case operator_type::BLZ_LESS:
@@ -437,7 +438,10 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 	case operator_type::BLZ_LOGICAL_OR:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_POW:
-		return cudf::type_id::FLOAT64;
+	case operator_type::BLZ_ROUND:
+		return ral::traits::get_dtype_size_in_bytes(input_left_type) <= ral::traits::get_dtype_size_in_bytes(cudf::type_id::FLOAT32)
+					 ? cudf::type_id::FLOAT32
+					 : cudf::type_id::FLOAT64;
 	case operator_type::BLZ_MAGIC_IF_NOT:
 		return input_right_type;
 	case operator_type::BLZ_FIRST_NON_MAGIC:

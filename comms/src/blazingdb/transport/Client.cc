@@ -81,9 +81,6 @@ public:
     auto data_past_topic_size{sizeof(data_past_topic)};
     socket_ptr->getsockopt(ZMQ_RCVMORE, &data_past_topic,
                            &data_past_topic_size);
-    if (data_past_topic == 0 || data_past_topic_size == 0) {
-      std::cerr << "Client: No data inside message." << std::endl;
-    }
     // receive the ok
     zmq::message_t local_message;
     auto success = socket_ptr->recv(local_message);

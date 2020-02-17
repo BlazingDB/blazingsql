@@ -337,3 +337,29 @@ TEST_F(ProjectTestString, test_string_nested_case)
 
     cudf::test::expect_tables_equal(expected_table_view, out_table->view());
 }
+
+template <typename T>
+struct ProjectRoundTest : public cudf::test::BaseFixture {};
+
+TYPED_TEST_CASE(ProjectRoundTest, cudf::test::FloatingPointTypes);
+
+TYPED_TEST(ProjectRoundTest, test_round)
+{
+    using T = TypeParam;
+
+    cudf::test::fixed_width_column_wrapper<T> col1{{4.0, 5.21, 87317.3, 0.1232387, 0.0000007, 342.9348, 698.3243}};
+
+    CudfTableView cudf_table_in_view{{col1}};
+    std::vector<std::string> names(cudf_table_in_view.num_columns());
+
+    auto table_out = ral::processor::process_project(ral::frame::BlazingTableView{cudf_table_in_view, names}, 
+                                                    "LogicalProject(EXPR$0=[ROUND($0)], EXPR$1=[ROUND($0, 2)], EXPR$2=[ROUND($0, 5)])",
+                                                    nullptr);
+
+    cudf::test::fixed_width_column_wrapper<T> expect_col1{{4.0, 5.0, 87317.0, 0.0, 0.0, 343.0, 698.0}, {1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::fixed_width_column_wrapper<T> expect_col2{{4.00, 5.21, 87317.30, 0.12, 0.00, 342.93, 698.32}, {1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::fixed_width_column_wrapper<T> expect_col3{{4.00000, 5.21000, 87317.30000, 0.12324, 0.00000, 342.93480, 698.32430}, {1, 1, 1, 1, 1, 1, 1}};
+    CudfTableView expect_cudf_table_view{{expect_col1, expect_col2, expect_col3}};
+
+    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+}

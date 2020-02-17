@@ -22,7 +22,7 @@ set(project_test_SRCS
     ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
 )
 
-configure_test(project_test "${project_test_SRCS}")
+#configure_test(project_test "${project_test_SRCS}")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
