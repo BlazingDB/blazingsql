@@ -18,14 +18,10 @@
 #include <cudf/null_mask.hpp>
 #include <cudf/column/column_factories.hpp>
 #include <cudf/types.hpp>
-
+#include <cudf/strings/strings_column_view.hpp>
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include "Traits/RuntimeTraits.h"
-// #include <utilities/DebuggingUtils.h>
-// #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
-
-
 
 namespace ral {
 namespace communication {
@@ -38,13 +34,6 @@ using Address = blazingdb::transport::experimental::Address;
 using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
 using GPUMessage = blazingdb::transport::experimental::GPUMessage;
 using GPUReceivedMessage = blazingdb::transport::experimental::GPUReceivedMessage;
-
-inline bool isGdfString(const cudf::column_view& column) {
-	cudf::type_id col_type = column.type().id();
-	bool ret = cudf::type_id::STRING == col_type;
-	return ret;
-}
-
 
 class GPUComponentReceivedMessage : public GPUReceivedMessage {
 public:
@@ -97,44 +86,47 @@ public:
 				.strings_offsets = -1,
 				.strings_nullmask = -1};
 			strcpy(col_transport.metadata.col_name, table_view.names().at(i).c_str());
-			if(isGdfString(column)) {
-				auto num_children = column.num_children();
-				if(num_children == 2){
-					auto offsets_column = column.child(0);
-					auto chars_column = column.child(1);
+			
+			if(column.type().id() == cudf::type_id::STRING) {
+					cudf::strings_column_view str_col_view{column};
 
-					if (column.size() + 1 == offsets_column.size()){ // this column does not come from a buffer than had been zero-copy partitioned
+					auto offsets_column = str_col_view.offsets();
+					auto chars_column = str_col_view.chars();
+
+					if (column.size() + 1 == offsets_column.size()){
+						// this column does not come from a buffer than had been zero-copy partitioned
+						
 						col_transport.strings_data = raw_buffers.size();
 						buffer_sizes.push_back(chars_column.size());
-						raw_buffers.push_back(chars_column.data<char>());
+						raw_buffers.push_back(chars_column.head<char>());
 						col_transport.strings_data_size = chars_column.size();
 
-						cudf::data_type offset_dtype (cudf::type_id::INT32);
 						col_transport.strings_offsets = raw_buffers.size();
-						col_transport.strings_offsets_size = offsets_column.size() * cudf::size_of(offset_dtype);
+						col_transport.strings_offsets_size = offsets_column.size() * sizeof(int32_t);
 						buffer_sizes.push_back(col_transport.strings_offsets_size);
-						raw_buffers.push_back(offsets_column.data<char>());
+						raw_buffers.push_back(offsets_column.head<char>());
 
 						if(column.has_nulls()) {
 							col_transport.strings_nullmask = raw_buffers.size();
 							buffer_sizes.push_back(cudf::bitmask_allocation_size_bytes(column.size()));
 							raw_buffers.push_back((const char *)column.null_mask());
 						}
-					} else {  // this column comes from a column that was zero-copy partitioned 
-						std::pair<cudf::size_type, cudf::size_type> char_col_start_end = getCharsColumnStartAndEnd(column);
+					} else {
+						// this column comes from a column that was zero-copy partitioned
+
+						std::pair<int32_t, int32_t> char_col_start_end = getCharsColumnStartAndEnd(column);
 
 						std::unique_ptr<CudfColumn> new_offsets = getRebasedStringOffsets(column, char_col_start_end.first);
 
 						col_transport.strings_data = raw_buffers.size();
 						col_transport.strings_data_size = char_col_start_end.second - char_col_start_end.first;
 						buffer_sizes.push_back(col_transport.strings_data_size);
-						raw_buffers.push_back(chars_column.data<char>() + char_col_start_end.first);
+						raw_buffers.push_back(chars_column.head<char>() + char_col_start_end.first);
 						
-						cudf::data_type offset_dtype (cudf::type_id::INT32);
 						col_transport.strings_offsets = raw_buffers.size();
-						col_transport.strings_offsets_size = new_offsets->size() * cudf::size_of(offset_dtype);
+						col_transport.strings_offsets_size = new_offsets->size() * sizeof(int32_t);
 						buffer_sizes.push_back(col_transport.strings_offsets_size);
-						raw_buffers.push_back(new_offsets->view().data<char>());
+						raw_buffers.push_back(new_offsets->view().head<char>());
 
 						cudf::column::contents new_offsets_contents = new_offsets->release();
 						temp_scope_holder.emplace_back(std::move(new_offsets_contents.data));
@@ -147,7 +139,6 @@ public:
 							raw_buffers.push_back((const char *)temp_scope_holder.back()->data());
 						}
 					}
-				}
 			} else {
 				col_transport.data = raw_buffers.size();
 				buffer_sizes.push_back(column.size() * cudf::size_of(column.type()));
@@ -239,4 +230,3 @@ protected:
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral
-
