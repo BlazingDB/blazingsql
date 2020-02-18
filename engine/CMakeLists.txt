@@ -175,7 +175,7 @@ target_link_libraries(blazingsql-engine
 
     # Library needed for blazing communication repository (debug)
     gcov
-    
+
     gtest
 )
 
