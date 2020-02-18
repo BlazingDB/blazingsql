@@ -165,7 +165,7 @@ std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
 			tableSchema.num_row_groups,
 			tableSchema.in_file);
 
-		std::shared_ptr<ral::io::data_parser> parser;
+		std::shared_ptr<ral::io::data_parser> parser; 
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {

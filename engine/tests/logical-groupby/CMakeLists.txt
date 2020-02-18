@@ -3,4 +3,4 @@ set(aggregation-test_SRCS
     ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/table_utilities.cu
 )
 
-configure_test(aggregation-test "${aggregation-test_SRCS}")
+#configure_test(aggregation-test "${aggregation-test_SRCS}")

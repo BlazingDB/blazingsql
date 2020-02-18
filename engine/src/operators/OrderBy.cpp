@@ -72,15 +72,16 @@ std::unique_ptr<cudf::experimental::table> logicalLimit(
 
 		std::unique_ptr<cudf::column> out_column;
 		if(cudf::is_fixed_width(columnType)) {
-			out_column = cudf::make_fixed_width_column(columnType, limitRows);
+			out_column = cudf::make_fixed_width_column(columnType, limitRows, column.has_nulls()?cudf::mask_state::UNINITIALIZED: cudf::mask_state::UNALLOCATED);
 			cudf::mutable_column_view out_column_mutable_view = out_column->mutable_view();
-			cudf::experimental::copy_range(column, out_column_mutable_view, 0, limitRows, 0);			
+			cudf::experimental::copy_range_in_place(column, out_column_mutable_view, 0, limitRows, 0);			
 		} else {
 			out_column = cudf::strings::detail::slice(column, 0, limitRows);
 		}
 		output_cols.push_back(std::move(out_column));
 	}
 
+	
 	return std::make_unique<cudf::experimental::table>(std::move(output_cols));
 }
 
@@ -204,13 +205,12 @@ cudf::size_type determine_local_limit(Context * context, cudf::size_type local_n
 }
 
 std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
-
 	auto rangeStart = query_part.find("(");
 	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
 
 	std::string limitRowsStr = get_named_expression(combined_expression, "fetch");
-	cudf::size_type limitRows = !limitRowsStr.empty() ? std::stoi(limitRowsStr) : table.num_rows();
+	cudf::size_type limitRows = !limitRowsStr.empty() ? std::stoi(limitRowsStr) : -1;
 
 	size_t num_sort_columns = count_string_occurrence(combined_expression, "sort");
 
@@ -240,15 +240,23 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			table_view = out_blz_table->view();
 		}
 
-		limitRows = determine_local_limit(context, table_view.num_rows(), limitRows);
 		if(limitRows >= 0 && limitRows < table_view.num_rows()) {
-			auto out_table = logicalLimit(table_view, limitRows);
-			out_blz_table = std::make_unique<ral::frame::BlazingTable>( std::move(out_table), table.names() );
+			limitRows = determine_local_limit(context, table_view.num_rows(), limitRows);
+
+			if(limitRows >= 0 && limitRows < table_view.num_rows()) {
+				auto out_table = logicalLimit(table_view, limitRows);
+				out_blz_table = std::make_unique<ral::frame::BlazingTable>( std::move(out_table), table.names() );
+			}
 		}
 	}
 
-	assert(!!out_blz_table);
+	if (out_blz_table == nullptr) {
+		// special case when num rows < limit
+		out_blz_table = table.clone();
+	}
 
+
+	
 	return out_blz_table;
 }
 
