@@ -74,7 +74,7 @@ std::unique_ptr<cudf::experimental::table> logicalLimit(
 		if(cudf::is_fixed_width(columnType)) {
 			out_column = cudf::make_fixed_width_column(columnType, limitRows, column.has_nulls()?cudf::mask_state::UNINITIALIZED: cudf::mask_state::UNALLOCATED);
 			cudf::mutable_column_view out_column_mutable_view = out_column->mutable_view();
-			cudf::experimental::copy_range(column, out_column_mutable_view, 0, limitRows, 0);			
+			cudf::experimental::copy_range_in_place(column, out_column_mutable_view, 0, limitRows, 0);			
 		} else {
 			out_column = cudf::strings::detail::slice(column, 0, limitRows);
 		}
