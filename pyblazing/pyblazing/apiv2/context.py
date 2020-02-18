@@ -87,7 +87,7 @@ def checkSocket(socketNum):
 
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
-                      allocator="managed", pool=True,initial_pool_size=None,enable_logging=False):
+                      allocator="managed", pool=False,initial_pool_size=None,enable_logging=False):
     #print(networkInterface)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
@@ -462,7 +462,7 @@ class BlazingContext(object):
 
     def __init__(self, dask_client=None, network_interface=None,
                  allocator="managed", # options are "default" or "managed". Where "managed" uses Unified Virtual Memory (UVM) and may use system memory if GPU memory runs out
-                 pool=True, # if True, it will allocate a memory pool in the beginning. This can greatly improve performance
+                 pool=False, # if True, it will allocate a memory pool in the beginning. This can greatly improve performance
                  initial_pool_size=None, # Initial size of memory pool in bytes (if pool=True). If None, it will default to using half of the GPU memory
                  enable_logging=False): # If set to True the memory allocator logging will be enabled, but can negatively impact perforamance
         """
