@@ -109,112 +109,36 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 	cudf_io::write_orc(out_args);
 }
 
-
-bool CacheMachine::finished() {
-	if(gpuData.size() > 0) {
-		return false;
-	}
-	for(int cacheIndex = 1; cacheIndex < cache.size(); cacheIndex++) {
-		if(cache.size() > 0) {
-			return false;
-		}
-	}
-	return this->_finished;
-}
-
-void CacheMachine::finish() { this->_finished = true; }
-
-std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
-	{
-		std::lock_guard<std::mutex> lock(cacheMutex);
-		if(gpuData.size() > 0) {
-			auto data = std::move(gpuData.front());
-			gpuData.pop();
-			usedMemory[0] -= data->sizeInBytes();
-			return std::move(data);	 // blocks  until it can do this, can return nullptr
-		}
-	}
-
-	// a different option would be to use cv.notify here
-	for(int cacheIndex = 1; cacheIndex < memoryPerCache.size(); cacheIndex++) {
-		{
-			std::lock_guard<std::mutex> lock(cacheMutex);
-			if(cache[cacheIndex]->size() > 0) {
-				auto data = std::move(cache[cacheIndex]->front());
-				cache[cacheIndex]->pop();
-				usedMemory[cacheIndex] -= data->sizeInBytes();
-				return std::move(data->decache());
-			}
-		}
-	}
-	// there are no chunks
-	// make condition variable  and Wait
-	// for now hack it by calling pullFromCache again
-	if(_finished) {
-		return nullptr;
-	}
-	// TODO: Fix or ask @felipe latter. TODO fix next line
-	if (gpuData.size() == 0) { _finished = true; }
-	return pullFromCache();
-}
-
-void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table) {
-	for(int cacheIndex = 0; cacheIndex < memoryPerCache.size(); cacheIndex++) {
-		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())) {
-			usedMemory[cacheIndex] += table->sizeInBytes();
-			if(cacheIndex == 0) {
-				std::lock_guard<std::mutex> lock(cacheMutex);
-				gpuData.push(std::move(table));
-			} else {
-				std::thread t([table = std::move(table), this, cacheIndex]() mutable {
-					if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE) {
-						std::lock_guard<std::mutex> lock(cacheMutex);
-						auto item = std::make_unique<CacheDataLocalFile>(std::move(table));
-						this->cache[cacheIndex]->push(std::move(item));
-						// NOTE: Wait don't kill the main process until the last thread is finished!
-					}
-				});
-				t.detach();
-			}
-			break;
-		}
-	}
-}
-
-CacheMachine::~CacheMachine() {}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CacheMachine::CacheMachine(unsigned long long gpuMemory,
 	std::vector<unsigned long long> memoryPerCache_,
 	std::vector<CacheDataType> cachePolicyTypes_)
 	: _finished(false) {
-	this->cache.resize(cachePolicyTypes_.size() + 1);
-	for(size_t i = 0; i < cache.size(); i++) {
-		this->cache[i] = std::make_unique<std::queue<std::unique_ptr<CacheData>>>();
-	}
+
+  	waitingCache = std::make_unique<WaitingQueue<CacheData>>(this->_finished);
+
 	this->memoryPerCache.push_back(gpuMemory);
 	for(auto mem : memoryPerCache_) {
 		this->memoryPerCache.push_back(mem);
 	}
 
-	this->usedMemory.resize(cache.size(), 0UL);
+	this->usedMemory.resize(cachePolicyTypes_.size() + 1, 0UL);
 	this->cachePolicyTypes.push_back(GPU);
 	for(auto policy : cachePolicyTypes_) {
 		this->cachePolicyTypes.push_back(policy);
 	}
 }
 
+CacheMachine::~CacheMachine() {}
 
-WaitingCacheMachine::WaitingCacheMachine(unsigned long long gpuMemory,
-	std::vector<unsigned long long> memoryPerCache,
-	std::vector<CacheDataType> cachePolicyTypes_)
-	: CacheMachine(gpuMemory, memoryPerCache, cachePolicyTypes_) {
 
-  waitingCache = std::make_unique<WaitingQueue<CacheData>>(this->_finished);
+void CacheMachine::finish() {
+	this->_finished = true;
+	this->waitingCache->notify();
 }
 
-WaitingCacheMachine::~WaitingCacheMachine() {}
-
-void WaitingCacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table) {
+void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table) {
 	for(int cacheIndex = 0; cacheIndex < memoryPerCache.size(); cacheIndex++) {
 		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())) {
 			usedMemory[cacheIndex] += table->sizeInBytes();
@@ -241,8 +165,19 @@ void WaitingCacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> t
 	}
 }
 
-std::unique_ptr<ral::frame::BlazingTable> WaitingCacheMachine::pullFromCache() {
-  std::unique_ptr<message<CacheData>> message_data = std::move(waitingCache->pop_or_wait());
+bool CacheMachine::is_finished() {
+	if(not waitingCache->empty()) {
+		return false;
+	}
+	return this->_finished;
+}
+
+
+std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
+  std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
+  if (message_data == nullptr) {
+  	return nullptr;
+  }
   auto cache_data = message_data->releaseData();
   auto cache_index = message_data->cacheIndex();
   usedMemory[cache_index] -= cache_data->sizeInBytes();
@@ -253,7 +188,7 @@ std::unique_ptr<ral::frame::BlazingTable> WaitingCacheMachine::pullFromCache() {
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(unsigned long long gpuMemory,
                                          std::vector<unsigned long long> memoryPerCache,
                                          std::vector<CacheDataType> cachePolicyTypes_)
-  : WaitingCacheMachine(gpuMemory, memoryPerCache, cachePolicyTypes_)
+  : CacheMachine(gpuMemory, memoryPerCache, cachePolicyTypes_)
 {
 }
 

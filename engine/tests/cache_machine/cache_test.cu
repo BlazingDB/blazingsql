@@ -117,6 +117,7 @@ TEST_F(CacheMachineTest, FilterTest) {
 		cacheSource, cacheSink, process_project, queryString, context, numWorkers);
 
 	std::cout << ">> processor.run()\n";
+	cacheSource->finish();
 	processor.run();
 	std::cout << "<<> processor.run()\n";
 	std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -137,16 +138,17 @@ TEST_F(CacheMachineTest, ProjectTest) {
 		cacheSource, cacheSink, process_project, queryString, context, numWorkers);
 
 	std::cout << ">> processor.run()\n";
+	cacheSource->finish();
 	processor.run();
 	std::cout << "<<> processor.run()\n";
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
-std::shared_ptr<ral::cache::WaitingCacheMachine> createSourceCacheMachineOneColumn() {
+std::shared_ptr<ral::cache::CacheMachine> createSourceCacheMachineOneColumn() {
 	unsigned long long gpuMemory = 1024;
 	std::vector<unsigned long long> memoryPerCache = {INT_MAX};
 	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
-	auto source = std::make_shared<ral::cache::WaitingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+	auto source = std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
 	auto table = build_custom_one_column_table();
 	source->addToCache(std::move(table));
 	return source;
@@ -159,8 +161,8 @@ TEST_F(CacheMachineTest, LogicalJoinTest) {
 		const ral::frame::BlazingTableView &,
 		const std::string &);
 
-	std::shared_ptr<ral::cache::WaitingCacheMachine> cacheLeftSource = createSourceCacheMachineOneColumn();
-	std::shared_ptr<ral::cache::WaitingCacheMachine> cacheRightSource = createSourceCacheMachineOneColumn();
+	std::shared_ptr<ral::cache::CacheMachine> cacheLeftSource = createSourceCacheMachineOneColumn();
+	std::shared_ptr<ral::cache::CacheMachine> cacheRightSource = createSourceCacheMachineOneColumn();
 	std::shared_ptr<ral::cache::CacheMachine> cacheSink = createSinkCacheMachine();
 	ProcessorFunctor * process_project = &ral::processor::process_logical_join;
 

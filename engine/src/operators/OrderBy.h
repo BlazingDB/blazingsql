@@ -53,6 +53,13 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 
 std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context);
 
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition(const ral::frame::BlazingTableView & partitionPlan,
+												const ral::frame::BlazingTableView & sortedTable,
+												const std::string & query_part,
+												Context * context);
+
+std::unique_ptr<ral::frame::BlazingTable> merge(const ral::frame::BlazingTableView& temporal_result, const ral::frame::BlazingTableView& partitions_to_merge, const std::string & query_part, Context * context);
+
 }  // namespace experimental
 }  // namespace operators
 }  // namespace ral

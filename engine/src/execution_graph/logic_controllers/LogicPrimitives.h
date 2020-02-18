@@ -169,38 +169,6 @@ private:
 	// ideally would be a writeable file
 };
 
-class CacheMachine {
-public:
-	CacheMachine(unsigned long long gpuMemory,
-		std::vector<unsigned long long> memoryPerCache,
-		std::vector<CacheDataType> cachePolicyTypes);
-	virtual ~CacheMachine();
-
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table);
-
-	//  void eject(int partitionNumber);
-	//  void reprocess(int partitionNumber);
-	//  void reduceCache(int cacheIndex, unsigned long long reductionAmount);
-	//  void incrementCache(int cacheIndex, unsigned long long incrementAmount);
-	// TODO: figure out how we tell it which cache to prefer
-	bool finished();
-	void finish();
-
-protected:
-	std::vector<CacheDataType> cachePolicyTypes;
-	std::vector<unsigned long long> memoryPerCache;
-	std::vector<unsigned long long> usedMemory;
-	bool _finished;
-
-private:
-	std::mutex cacheMutex;
-	std::vector<std::unique_ptr<std::queue<std::unique_ptr<CacheData>>>> cache;
-	std::queue<std::unique_ptr<ral::frame::BlazingTable>> gpuData;
-	//  std::map<int,std::unique_ptr<CacheData> > operatingData;
-};
-
-
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 static std::size_t message_count = {0};
 
@@ -246,10 +214,19 @@ public:
 		lock.unlock();
 		condition_variable_.notify_one();
 	}
+	void notify() {
+		condition_variable_.notify_one();
+	}
+	bool empty() const {
+		return this->message_queue_.size() == 0;
+	}
 
 	message_ptr pop_or_wait() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished and this->message_queue_.size() > 0; });
+		condition_variable_.wait(lock, [&, this] { return this->finished or !this->empty(); });
+		if (this->message_queue_.size() == 0) {
+			return nullptr;
+		}
 		auto data = std::move(this->message_queue_.front());
 		this->message_queue_.pop_front();
 		return std::move(data);
@@ -257,7 +234,7 @@ public:
 
 	std::vector<message_ptr> get_all_or_wait() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished and this->message_queue_.size() > 0; });
+		condition_variable_.wait(lock, [&, this] { return this->finished or !this->empty(); });
 		std::vector<message_ptr> response;
 		for (message_ptr& it : message_queue_) {
 			response.emplace_back(std::move(it));
@@ -286,23 +263,33 @@ private:
 	std::condition_variable condition_variable_;
 };
 
-class WaitingCacheMachine : public CacheMachine {
+class CacheMachine  {
 public:
-	WaitingCacheMachine(unsigned long long gpuMemory,
+	CacheMachine(unsigned long long gpuMemory,
 		std::vector<unsigned long long> memoryPerCache,
 		std::vector<CacheDataType> cachePolicyTypes_); 
 
-	~WaitingCacheMachine();
+	~CacheMachine();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table) override;
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table);
 
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+	virtual void finish();
+
+	bool  is_finished();
+
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
 protected:
 	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
+
+protected:
+	std::vector<CacheDataType> cachePolicyTypes;
+	std::vector<unsigned long long> memoryPerCache;
+	std::vector<unsigned long long> usedMemory;
+	bool _finished;
 };
 
-class ConcatenatingCacheMachine : public WaitingCacheMachine {
+class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(unsigned long long gpuMemory,
 						std::vector<unsigned long long> memoryPerCache,
@@ -342,7 +329,7 @@ public:
 
 	// returns true when theres nothing left to process
 	bool process() override {
-		if(_paused || source->finished()) {
+		if(_paused || source->is_finished()) {
 			return false;
 		}
 		auto input = source->pullFromCache();
@@ -368,8 +355,8 @@ template <typename Processor>
 class DoubleSourceWaitingWorkerThread : public WorkerThread {
 public:
 	DoubleSourceWaitingWorkerThread(
-		std::shared_ptr<WaitingCacheMachine> cacheSourceOne,
-		std::shared_ptr<WaitingCacheMachine> cacheSourceTwo,
+		std::shared_ptr<CacheMachine> cacheSourceOne,
+		std::shared_ptr<CacheMachine> cacheSourceTwo,
 		std::shared_ptr<CacheMachine> cacheSink,
 		std::string queryString,
 		Processor * processor,
@@ -384,12 +371,12 @@ public:
 
 	// returns true when theres nothing left to process
 	bool process() override {
-		if(_paused || sourceOne->finished()) {
+		if(_paused || sourceOne->is_finished()) {
 			return false;
 		}
 		auto inputOne = sourceOne->pullFromCache();
 
-		if(_paused || sourceTwo->finished()) {
+		if(_paused || sourceTwo->is_finished()) {
 			return false;
 		}
 		auto inputTwo = sourceTwo->pullFromCache();
@@ -403,8 +390,8 @@ public:
 	void pause() { _paused = true; }
 
 private:
-	std::shared_ptr<WaitingCacheMachine> sourceOne;
-	std::shared_ptr<WaitingCacheMachine> sourceTwo;
+	std::shared_ptr<CacheMachine> sourceOne;
+	std::shared_ptr<CacheMachine> sourceTwo;
 	std::shared_ptr<CacheMachine> sink;
 	Processor * processor;
 };
@@ -425,8 +412,8 @@ public:
 			workerThreads.emplace_back(std::move(thread));
 		}
 	}
-	ProcessMachine(std::shared_ptr<WaitingCacheMachine> cacheSourceOne,
-		std::shared_ptr<WaitingCacheMachine> cacheSourceTwo,
+	ProcessMachine(std::shared_ptr<CacheMachine> cacheSourceOne,
+		std::shared_ptr<CacheMachine> cacheSourceTwo,
 		std::shared_ptr<CacheMachine> cacheSink,
 		Processor * processor,
 		std::string queryString,
