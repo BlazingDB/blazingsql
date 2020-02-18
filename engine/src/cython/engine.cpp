@@ -127,42 +127,13 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 }
 
 
-std::unique_ptr<ResultSet> runSkipData(int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
-	std::vector<std::string> tableNames,
-	std::vector<TableSchema> tableSchemas,
-	std::vector<std::vector<std::string>> tableSchemaCppArgKeys,
-	std::vector<std::vector<std::string>> tableSchemaCppArgValues,
-	std::vector<std::vector<std::string>> filesAll,
-	std::vector<int> fileTypes,
-	int32_t ctxToken,
-	std::string query,
-	uint64_t accessToken,
-	std::vector<std::vector<std::map<std::string, std::string>>> uri_values) {
-
-	assert(tableSchemas.size() == 1);
-
-	std::vector<ral::io::data_loader> input_loaders;
-	std::vector<ral::io::Schema> schemas;
-	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
-		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
+std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata, 
+	std::vector<std::string> all_column_names, std::string query) {
 
 	try {
-		using blazingdb::manager::experimental::Context;
-		using blazingdb::transport::experimental::Node;
-
-		std::vector<Node> contextNodes;
-		for(auto currentMetadata : tcpMetadata) {
-			auto address =
-				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node(address));
-		}
-
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
-		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
-
+	
 		std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> result_pair = ral::skip_data::process_skipdata_for_table(
-				tableSchemas[0].metadata, tableSchemas[0].names, query);
+				metadata, all_column_names, query);
 
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->error_reported = result_pair.second;

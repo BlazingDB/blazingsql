@@ -58,11 +58,6 @@ ral::frame::TableViewPair parquet_parser::parse(
 	const Schema & schema,
 	std::vector<size_t> column_indices) 
 {
-	if(column_indices.size() == 0) {  // including all columns by default
-		column_indices.resize(schema.get_num_columns());
-		std::iota(column_indices.begin(), column_indices.end(), 0);
-	}
-
 	if(file == nullptr) {
 		return schema.makeEmptyTableViewPair(column_indices);
 	}

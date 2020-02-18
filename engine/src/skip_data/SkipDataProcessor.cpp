@@ -35,18 +35,49 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         return std::make_pair(nullptr, true);
     }
     filter_string = clean_calcite_expression(filter_string);
-    
-    std::vector<bool> valid_metadata_columns(names.size(), false); 
+
+    std::string projects = get_named_expression(table_scan, "projects");
+    std::vector<int> column_indeces;
+    if (projects == ""){
+        column_indeces.resize(names.size());
+        std::iota(column_indeces.begin(), column_indeces.end(), 0);
+    } else {
+        std::vector<std::string> column_index_strings = get_expressions_from_expression_list(projects, true);    
+        for (int i = 0; i < column_index_strings.size(); i++){
+            int index = std::stoi(column_index_strings[i]);
+            column_indeces.push_back(index);        
+        }   
+    }
+
+    cudf::size_type rows = metadata_view.num_rows();
+    std::unique_ptr<cudf::column> temp_no_data = std::make_unique<cudf::column>( 
+		cudf::data_type{cudf::type_id::INT8}, rows,
+		rmm::device_buffer{0}, // no data
+		cudf::create_null_mask(rows, cudf::ALL_NULL),
+		rows);
+
     std::vector<std::string> metadata_names = metadata_view.names();
-    for (int i = 0; i < names.size(); i++){
-        std::string metadata_min_name = "min_" + std::to_string(i) + '_' + names[i];
-        std::string metadata_max_name = "max_" + std::to_string(i) + '_' + names[i];
+    std::vector<bool> valid_metadata_columns;
+    std::vector<cudf::column_view> projected_metadata_cols;
+    for (int i = 0; i < column_indeces.size(); i++){
+        int col_index = column_indeces[i];
+        std::string metadata_min_name = "min_" + std::to_string(col_index) + '_' + names[col_index];
+        std::string metadata_max_name = "max_" + std::to_string(col_index) + '_' + names[col_index];
         if (std::find(metadata_names.begin(), metadata_names.end(), metadata_min_name) != metadata_names.end() &&
                 std::find(metadata_names.begin(), metadata_names.end(), metadata_max_name) != metadata_names.end()){
-            valid_metadata_columns[i] = true;            
+            valid_metadata_columns.push_back(true);
+
+            auto it = std::find(metadata_names.begin(), metadata_names.end(), metadata_min_name);
+            int min_col_index = std::distance(metadata_names.begin(), it);
+            projected_metadata_cols.push_back(metadata_view.view().column(min_col_index));
+            projected_metadata_cols.push_back(metadata_view.view().column(min_col_index + 1));
+        } else {
+            valid_metadata_columns.push_back(false);
+            projected_metadata_cols.push_back(temp_no_data->view()); // these are dummy columns that we wont actually use
+            projected_metadata_cols.push_back(temp_no_data->view());
         }
     }
-    
+    CudfTableView projected_metadata_table(projected_metadata_cols);
 
     // process filter_string to convert to skip data version
     expression_tree tree;
@@ -66,8 +97,9 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     if (filter_string.empty()) {
         return std::make_pair(nullptr, true);
     }
+    
     // then we follow a similar pattern to process_filter
-    auto evaluated_table = ral::processor::evaluate_expressions(metadata_view.view(), {filter_string});
+    auto evaluated_table = ral::processor::evaluate_expressions(projected_metadata_table, {filter_string});
 
     RAL_EXPECTS(evaluated_table->num_columns() == 1 && evaluated_table->get_column(0).type().id() == cudf::type_id::BOOL8, "Expression in skip_data processing did not evaluate to a boolean mask");
 
@@ -75,7 +107,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     std::vector<std::string> metadata_id_names{metadata_view.names()[metadata_view.num_columns()-2], metadata_view.names()[metadata_view.num_columns()-1]};
     ral::frame::BlazingTableView metadata_ids_view(metadata_ids, metadata_id_names);
 
-    std::unique_ptr<ral::frame::BlazingTable> filtered_metadata_ids = ral::processor::applyBooleanFilter(metadata_view, evaluated_table->get_column(0));
+    std::unique_ptr<ral::frame::BlazingTable> filtered_metadata_ids = ral::processor::applyBooleanFilter(metadata_ids_view, evaluated_table->get_column(0));
 
     return std::make_pair(std::move(filtered_metadata_ids), false);
 }

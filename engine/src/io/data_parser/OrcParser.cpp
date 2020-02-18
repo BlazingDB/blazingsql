@@ -47,12 +47,6 @@ ral::frame::TableViewPair orc_parser::parse(
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 
-	// including all columns by default
-	if(column_indices.size() == 0) {
-		column_indices.resize(schema.get_num_columns());
-		std::iota(column_indices.begin(), column_indices.end(), 0);
-	}
-
 	if(file == nullptr) {
 		return std::make_pair(nullptr, ral::frame::BlazingTableView());
 	}

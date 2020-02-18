@@ -96,8 +96,8 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
 cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp) except *:
     return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp))
 
-cdef unique_ptr[cio.ResultSet] runSkipDataPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp) except *:
-    return blaz_move(cio.runSkipData( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp))
+cdef unique_ptr[cio.ResultSet] runSkipDataPython(BlazingTableView metadata, vector[string] all_column_names, string query) except *:
+    return blaz_move(cio.runSkipData( metadata, all_column_names, query))
 
 cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
@@ -314,90 +314,29 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     return df
 
 
-cpdef runSkipDataCaller(int masterIndex,  tcpMetadata,  table_obj,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
+cpdef runSkipDataCaller(table, queryPy):
     cdef string query
-    query = str.encode(queryPy)
-    cdef vector[NodeMetaDataTCP] tcpMetadataCpp
-    cdef vector[TableSchema] tableSchemaCpp
-    cdef vector[vector[string]] tableSchemaCppArgKeys
-    cdef vector[vector[string]] tableSchemaCppArgValues
-    cdef vector[string] currentTableSchemaCppArgKeys
-    cdef vector[string] currentTableSchemaCppArgValues
-    cdef vector[string] tableNames
-    cdef vector[type_id] types
-    cdef vector[string] names
-    cdef TableSchema currentTableSchemaCpp
-    cdef NodeMetaDataTCP currentMetadataCpp
-    cdef vector[vector[string]] filesAll
-    cdef vector[string] currentFilesAll
-
-    cdef vector[vector[map[string,string]]] uri_values_cpp_all
-    cdef vector[map[string,string]] uri_values_cpp
-    cdef map[string,string] cur_uri_values
-
+    cdef BlazingTableView metadata
+    cdef vector[string] all_column_names
     cdef vector[column_view] column_views
     cdef Column cython_col
 
-    tableName, table = table_obj
-
-    tableIndex = 0
-    for uri_value in table.uri_values:
-      cur_uri_values.clear()
-      for column_tuple in uri_value:
-        key = column_tuple[0]
-        value = column_tuple[1]
-        cur_uri_values[key.encode()] = value.encode()
-      uri_values_cpp.push_back(cur_uri_values)
-      
-    uri_values_cpp_all.push_back(uri_values_cpp)
+    query = str.encode(queryPy)
+    all_column_names.resize(0)
     
-    tableNames.push_back(str.encode(tableName))
-    currentFilesAll.resize(0)
-    if table.files is not None:
-      for file in table.files:
-        currentFilesAll.push_back(file)
-    filesAll.push_back(currentFilesAll)
-    types.resize(0)
-    names.resize(0)
-    fileType = fileTypes[tableIndex]
-
     for col_name in table.column_names:
       if type(col_name) == np.str:
-        names.push_back(col_name.encode())
+        all_column_names.push_back(col_name.encode())
       else: # from file
-        names.push_back(col_name)
-
-    for col_type in table.column_types:
-      types.push_back(col_type)
-
-    currentTableSchemaCpp.types = types
-    currentTableSchemaCpp.names = names
-    currentTableSchemaCpp.datasource = table.datasource
-    if table.calcite_to_file_indices is not None:
-      currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
-    currentTableSchemaCpp.in_file = table.in_file
-    currentTableSchemaCppArgKeys.resize(0)
-    currentTableSchemaCppArgValues.resize(0)
-    tableSchemaCppArgKeys.push_back(currentTableSchemaCppArgKeys)
-    tableSchemaCppArgValues.push_back(currentTableSchemaCppArgValues)
-    for key, value in table.args.items():
-        tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
-        tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
-
+        all_column_names.push_back(col_name)
+    
     column_views.resize(0)
     metadata_col_names = [name.encode() for name in table.metadata._data.keys()]
     for cython_col in table.metadata._data.values():
       column_views.push_back(cython_col.view())
-    currentTableSchemaCpp.metadata = BlazingTableView(table_view(column_views), metadata_col_names)
+    metadata = BlazingTableView(table_view(column_views), metadata_col_names)
 
-    tableSchemaCpp.push_back(currentTableSchemaCpp)
-
-    for currentMetadata in tcpMetadata:
-        currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        currentMetadataCpp.communication_port = currentMetadata['communication_port']
-        tcpMetadataCpp.push_back(currentMetadataCpp)
-    
-    resultSet = blaz_move(runSkipDataPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all))
+    resultSet = blaz_move(runSkipDataPython( metadata, all_column_names, query))
 
     return_object = {}
     return_object['has_some_error'] = dereference(resultSet).error_reported

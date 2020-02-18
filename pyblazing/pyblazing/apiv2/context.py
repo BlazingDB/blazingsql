@@ -207,14 +207,13 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
 
 
 
-def parseHiveMetadataFor(curr_table, file_subset, partitions):
+def parseHiveMetadata(curr_table, partitions):
     metadata = {}
     names = []
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
     dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
     columns = [name.decode() for name in curr_table.column_names]
-    n_files = len(file_subset)
     for index in range(n_cols):
         col_name = columns[index]
         names.append('min_' + str(index) + '_' + col_name) 
@@ -225,8 +224,8 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
     minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
     table_partition = {}
     for file_index, partition_name  in enumerate(partitions):
-        curr_table = partitions[partition_name]
-        for index, [col_name, col_value_id] in enumerate(curr_table):
+        curr_partition = partitions[partition_name]
+        for index, [col_name, col_value_id] in enumerate(curr_partition):
             if(dtypes[index] == np.dtype("object")):
                 np_col_value = col_value_id
             elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
@@ -244,17 +243,6 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
             minmax_metadata_table[2*index] = col_value_ids
             minmax_metadata_table[2*index+1] = col_value_ids
             
-        # rather than filling in columns that we dont acutally have min/max for, lets only fill in the columns that we do and manage the missing columns on the engine
-        # else:  
-        #     if dtypes[index] == np.object:
-        #         minmax_metadata_table[2*index] = [''] * n_files
-        #         minmax_metadata_table[2*index+1] = [''] * n_files
-        #     elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
-        #         minmax_metadata_table[2*index] = [0] * n_files
-        #         minmax_metadata_table[2*index+1] = [0] * n_files
-        #     else:
-        #         minmax_metadata_table[2*index] = [np.iinfo(dtypes[index]).min] * n_files
-        #         minmax_metadata_table[2*index+1] = [np.iinfo(dtypes[index]).max] * n_files
     series = []
     for index in range(n_cols):
         col_name = columns[index]
@@ -278,7 +266,7 @@ def parseHiveMetadataFor(curr_table, file_subset, partitions):
     return metadata
 
 
-def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata):
+def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     
     if fileMetadata.shape[0] != hiveMetadata.shape[0]:
         print('ERROR: number of rows from fileMetadata does not match hiveMetadata')
@@ -426,11 +414,6 @@ class BlazingTable(object):
             tempFiles = self.files[startIndex: startIndex + batchSize]
             uri_values = self.uri_values[startIndex: startIndex + batchSize]
 
-            if isinstance(self.metadata, cudf.DataFrame) or self.metadata is None:
-                slice_metadata = self.metadata
-            else:
-                slice_metadata = self.metadata.get_partition(i).compute()
-
             slice_row_groups_ids = []
             if self.row_groups_ids is not None:
                 slice_row_groups_ids=self.row_groups_ids[startIndex: startIndex + batchSize]
@@ -441,7 +424,6 @@ class BlazingTable(object):
                                 calcite_to_file_indices=self.calcite_to_file_indices,
                                 uri_values=uri_values,
                                 args=self.args,
-                                metadata=slice_metadata,
                                 row_groups_ids=slice_row_groups_ids,
                                 in_file=self.in_file)
             bt.offset = (startIndex, batchSize)
@@ -673,13 +655,17 @@ class BlazingContext(object):
 
             table.slices = table.getSlices(len(self.nodes))
             if is_hive_input and len(extra_columns) > 0:
-                parsedMetadata = self._parseHiveMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs, extra_columns, partitions)
+                parsedMetadata = parseHiveMetadata(table, partitions)
                 table.metadata = parsedMetadata                
 
             if parsedSchema['file_type'] == DataType.PARQUET :
                 parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs)
+                if isinstance(parsedMetadata, dask_cudf.core.DataFrame):
+                    parsedMetadata = parsedMetadata.compute()
+                    parsedMetadata = parsedMetadata.reset_index()
+
                 if is_hive_input:
-                    table.metadata = self._mergeMetadata(table.slices, parsedMetadata, table.metadata)
+                    table.metadata = mergeMetadata(table, parsedMetadata, table.metadata)
                 else:
                     table.metadata = parsedMetadata
 
@@ -688,6 +674,7 @@ class BlazingContext(object):
                 input,
                 DataType.DASK_CUDF,
                 client=self.dask_client)
+        
         if table is not None:
             self.add_remove_table(table_name, True, table)
         return table
@@ -709,25 +696,6 @@ class BlazingContext(object):
         else:
             return cio.parseSchemaCaller(
                 input, file_format_hint, kwargs, extra_columns)
-
-    def _mergeMetadata(self, currentTableNodes, fileMetadata, hiveMetadata): 
-        if self.dask_client:
-            dask_futures = []
-            workers = tuple(self.dask_client.scheduler_info()['workers'])
-            worker_id = 0
-            for worker in workers: 
-                curr_table = currentTableNodes[worker_id]
-                file_part_metadata = fileMetadata.get_partition(worker_id).compute()
-                hive_part_metadata = hiveMetadata.get_partition(worker_id).compute()
-
-                connection = self.dask_client.submit(mergeMetadataFor, curr_table, file_part_metadata, hive_part_metadata, workers=[worker])
-                dask_futures.append(connection)
-                worker_id += 1
-            return dask.dataframe.from_delayed(dask_futures) 
-        else:
-            worker_id = 0
-            curr_table = currentTableNodes[worker_id]
-            return mergeMetadataFor(curr_table, fileMetadata, hiveMetadata)
 
     def _parseMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
@@ -752,32 +720,14 @@ class BlazingContext(object):
             return cio.parseMetadataCaller(
                 input, currentTableNodes[0].offset, schema, file_format_hint, kwargs)
 
-    def _parseHiveMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs, extra_columns, partitions): 
-        if self.dask_client:
-            dask_futures = []
-            workers = tuple(self.dask_client.scheduler_info()['workers'])
-            worker_id = 0
-            for worker in workers: 
-                curr_table = currentTableNodes[worker_id]
-                file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
-                connection = self.dask_client.submit(parseHiveMetadataFor, curr_table, file_subset, partitions, workers=[worker])
-                dask_futures.append(connection)
-                worker_id += 1
-            return dask.dataframe.from_delayed(dask_futures) 
-        else:
-            worker_id = 0
-            curr_table = currentTableNodes[worker_id]
-            file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
-            return parseHiveMetadataFor(curr_table, file_subset, partitions)
-
-    def sliceRowGroups(numSlices, files, uri_values, row_groups_ids):
+    def _sliceRowGroups(self, numSlices, files, uri_values, row_groups_ids):
         nodeFilesList = []
        
         total_num_rowgroups = sum([len(x) for x in row_groups_ids])
         file_index_per_rowgroups = [file_index  for file_index, row_groups_for_file in enumerate(row_groups_ids) for row_group in row_groups_for_file]
         flattened_rowgroup_ids = [row_group  for row_groups_for_file in row_groups_ids for row_group in row_groups_for_file]
 
-        all_sliced_actual_files = []
+        all_sliced_files = []
         all_sliced_uri_values = []
         all_sliced_row_groups_ids = []
         remaining = total_num_rowgroups
@@ -807,80 +757,57 @@ class BlazingContext(object):
         return all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids
     
     
-    def _optimize_with_skip_data(self, masterIndex, table_name, table_files, nodeTableList, scan_table_query, fileTypes):
+    def _optimize_with_skip_data(self, current_table, scan_table_query):
+        nodeFilesList = []
+        file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
+        has_some_error = file_indices_and_rowgroup_indices['has_some_error']
+        file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
+        if not file_indices_and_rowgroup_indices.empty and not has_some_error:
+            file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
+            files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
+            grouped = file_and_rowgroup_indices.groupby('file_handle_index')
+            actual_files = []
+            uri_values = []
+            row_groups_ids = []
+            for group_id in grouped.groups:
+                row_indices = grouped.groups[group_id].values.tolist()
+                actual_files.append(current_table.files[group_id])
+                if group_id < len(current_table.uri_values):
+                    uri_values.append(current_table.uri_values[group_id])
+                row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
+                row_group_ids = [row_groups_col[i] for i in row_indices]
+                row_groups_ids.append(row_group_ids)
 
-        if self.dask_client is None:
-            current_table = nodeTableList[0][table_name]
-            table_tuple = (table_name, current_table) 
-            file_indices_and_rowgroup_indices = cio.runSkipDataCaller(masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0)
-            has_some_error = file_indices_and_rowgroup_indices['has_some_error']
-            file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
-            if not file_indices_and_rowgroup_indices.empty and not has_some_error:
-                file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
-                files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
-                grouped = file_and_rowgroup_indices.groupby('file_handle_index')
-                actual_files = []
-                uri_values = []
-                current_table.row_groups_ids = []
-                for group_id in grouped.groups:
-                    row_indices = grouped.groups[group_id].values.tolist()
-                    actual_files.append(table_files[group_id])
-                    if group_id < len(current_table.uri_values):
-                        uri_values.append(current_table.uri_values[group_id])
-                    row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
-                    row_group_ids = [row_groups_col[i] for i in row_indices]
-                    current_table.row_groups_ids.append(row_group_ids)
-                current_table.files = actual_files
-                current_table.uri_values = uri_values
-                nodeTableList[0][table_name] = current_table
-        else:
-            connections = []
-            for i, node in enumerate(self.nodes):
-                worker = node['worker']
-                current_table = nodeTableList[i][table_name]
-                table_tuple = (table_name, current_table)
-                connections.appen( self.dask_client.submit(
-                        cio.runSkipDataCaller,
-                        masterIndex, self.nodes, table_tuple, fileTypes, 0, scan_table_query, 0,
-                        workers=[worker]) )
+            if self.dask_client is None:
+                bt = BlazingTable(current_table.input,
+                                current_table.fileType,
+                                files=actual_files,
+                                calcite_to_file_indices=current_table.calcite_to_file_indices,
+                                uri_values=uri_values,
+                                args=current_table.args,
+                                row_groups_ids=row_groups_ids,
+                                in_file=current_table.in_file)
+                bt.column_names = current_table.column_names
+                bt.column_types = current_table.column_types
+                nodeFilesList.append(bt)
+
+            else:            
+                all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
+
+                for i, node in enumerate(self.nodes):
+                    bt = BlazingTable(current_table.input,
+                                current_table.fileType,
+                                files=all_sliced_files[i],
+                                calcite_to_file_indices=current_table.calcite_to_file_indices,
+                                uri_values=all_sliced_uri_values[i],
+                                args=current_table.args,
+                                row_groups_ids=all_sliced_row_groups_ids[i],
+                                in_file=current_table.in_file)
+                    bt.column_names = current_table.column_names
+                    bt.column_types = current_table.column_types
+                    nodeFilesList.append(bt)
             
-            all_files = []
-            all_uri_values = []
-            all_row_groups_ids = []
-            for i, connection in enumerate(connections):
-                current_table = nodeTableList[i][table_name]
-                file_indices_and_rowgroup_indices = connection.result()
-                has_some_error = file_indices_and_rowgroup_indices['has_some_error']
-                file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
-                if file_indices_and_rowgroup_indices.empty and has_some_error :
-                    continue
-                file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
-                files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
-                grouped = file_and_rowgroup_indices.groupby('file_handle_index')
-                actual_files = []
-                uri_values = []
-                row_groups_ids = []
-                for group_id in grouped.groups:
-                    row_indices = grouped.groups[group_id].values.tolist()
-                    actual_files.append(table_files[group_id])
-                    if group_id < len(current_table.uri_values):
-                        uri_values.append(current_table.uri_values[group_id])
-                    row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
-                    row_group_ids_perfile = [row_groups_col[i] for i in row_indices]
-                    row_groups_ids.append(row_group_ids_perfile)
-                    
-                all_files = all_files + actual_files
-                all_uri_values = all_uri_values + uri_values
-                all_row_groups_ids = all_row_groups_ids + row_groups_ids
-
-            all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = sliceRowGroups(len(self.nodes), all_files, all_uri_values, all_row_groups_ids)
-
-            for i, node in enumerate(self.nodes):
-                nodeTableList[i][table_name].files = all_sliced_files[i]
-                nodeTableList[i][table_name].uri_values = all_sliced_uri_values[i]
-                nodeTableList[i][table_name].row_groups_ids = all_sliced_row_groups_ids[i]                
-            
-        return nodeTableList
+        return nodeFilesList
 
 
     def sql(self, sql, table_list=[], algebra=None):
@@ -909,7 +836,11 @@ class BlazingContext(object):
             fileTypes.append(new_tables[table].fileType)
             ftype = new_tables[table].fileType
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
-                currentTableNodes = new_tables[table].getSlices(len(self.nodes))
+                if new_tables[table].has_metadata():
+                    scan_table_query = relational_algebra_steps[table]['table_scans'][0]
+                    currentTableNodes = self._optimize_with_skip_data(new_tables[table], scan_table_query)
+                else:
+                    currentTableNodes = new_tables[table].getSlices(len(self.nodes))
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
                 currentTableNodes = []
                 for node in self.nodes:
@@ -918,15 +849,9 @@ class BlazingContext(object):
                 currentTableNodes = []
                 for node in self.nodes:
                     currentTableNodes.append(new_tables[table])
-            j = 0
-            for nodeList in nodeTableList:
+            
+            for j, nodeList in enumerate(nodeTableList):
                 nodeList[table] = currentTableNodes[j]
-                j = j + 1
-
-
-            if new_tables[table].has_metadata():
-                scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-                nodeTableList = self._optimize_with_skip_data(masterIndex, table, new_tables[table].files, nodeTableList, scan_table_query, fileTypes)
                 
         ctxToken = random.randint(0, 64000)
         accessToken = 0

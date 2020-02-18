@@ -30,11 +30,17 @@ data_loader::~data_loader() {}
 
 ral::frame::TableViewPair data_loader::load_data(
 	Context * context,
-	const std::vector<size_t> & column_indices,
+	const std::vector<size_t> & column_indices_in,
 	const Schema & schema) {
 
 	static CodeTimer timer;
 	timer.reset();
+
+	std::vector<size_t> column_indices = column_indices_in;
+	if(column_indices.size() == 0) {  // including all columns by default
+		column_indices.resize(schema.get_num_columns());
+		std::iota(column_indices.begin(), column_indices.end(), 0);
+	}
 
 	std::vector<std::string> user_readable_file_handles;
 	std::vector<data_handle> files;
@@ -45,6 +51,10 @@ ral::frame::TableViewPair data_loader::load_data(
 		user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
 		files.push_back(this->provider->get_next());
 	}
+
+	std::string loadMsg = "DataLoader going to load " + std::to_string(files.size()) + " files";
+	Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  			std::to_string(context->getQueryStep()), std::to_string(context->getQuerySubstep()), loadMsg));
 
 	std::vector< ral::frame::TableViewPair > tableViewPairs_per_file;
 	tableViewPairs_per_file.resize(files.size());
@@ -59,21 +69,39 @@ ral::frame::TableViewPair data_loader::load_data(
 				
 				Schema fileSchema = schema.fileSchema(file_index);
 
-				ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices);
-				
+				std::vector<size_t> column_indices_in_file;
+				for (int i = 0; i < column_indices.size(); i++){
+					if(schema.get_in_file()[column_indices[i]]) {
+						column_indices_in_file.push_back(column_indices[i]);							
+					}
+				}				
+
 				if (schema.all_in_file()){
+					ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
 					tableViewPairs_per_file[file_index] =  std::move(loaded_table);
 				} else {
-					std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = std::move(loaded_table.first);
-					std::vector<std::string> names = current_blazing_table->names();
-					std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
-					auto num_rows = current_table->num_rows();
-					std::vector<std::unique_ptr<cudf::column>> current_columns = current_table->release();
-					for(int i = 0; i < schema.get_num_columns(); i++) {
-						if(!schema.get_in_file()[i]) {
-							std::string name = schema.get_name(i);
+					std::vector<std::unique_ptr<cudf::column>> current_columns;
+					std::vector<std::string> names;
+					cudf::size_type num_rows;
+					if (column_indices_in_file.size() > 0){
+						ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
+						std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = std::move(loaded_table.first);
+						names = current_blazing_table->names();
+						std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
+						num_rows = current_table->num_rows();
+						current_columns = current_table->release();
+					} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
+						std::vector<size_t> temp_column_indices = {0};
+						ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], fileSchema, temp_column_indices);
+						num_rows = loaded_table.second.num_rows();
+					}
+					
+					for(int i = 0; i < column_indices.size(); i++) {
+						int col_ind = column_indices[i];
+						if(!schema.get_in_file()[col_ind]) {
+							std::string name = schema.get_name(col_ind);
 							names.push_back(name);
-							cudf::type_id type = schema.get_dtype(i);
+							cudf::type_id type = schema.get_dtype(col_ind);
 							std::string scalar_string = files[file_index].column_values[name];
 							if(type == cudf::type_id::STRING){
 								current_columns.emplace_back(ral::utilities::experimental::make_string_column_from_scalar(scalar_string, num_rows));
