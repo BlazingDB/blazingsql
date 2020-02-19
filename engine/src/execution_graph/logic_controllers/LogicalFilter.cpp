@@ -135,7 +135,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       std::vector<cudf::size_type> hased_data_offsets;
       std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(table.view(),
               columns_to_hash, context->getTotalNodes());
-      ral::frame::BlazingTableView hashed_table(hashed_data->view(), table.names());
 
       // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
       std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
@@ -156,7 +155,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     ral::distribution::experimental::distributePartitions(context, partitions);
     std::vector<NodeColumn> remote_node_columns = ral::distribution::experimental::collectPartitions(context);
 
-    std::vector<std::unique_ptr<CudfTable>> partitions_to_concat_hold;
     std::vector<ral::frame::BlazingTableView> partitions_to_concat;
     for (int i = 0; i < remote_node_columns.size(); i++){
       partitions_to_concat.emplace_back(remote_node_columns[i].second->toBlazingTableView());
@@ -210,7 +208,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     } else {
         std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> > distributed_tables = process_hash_based_distribution(
             table_left, table_right, expression, context);
-      
+
         return processJoin(distributed_tables.first->toBlazingTableView(), distributed_tables.second->toBlazingTableView(), expression);
     }
   }
@@ -380,39 +378,32 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
 
   // need to validate that tables are not empty
   if (table_left.num_columns() == 0 || table_right.num_columns() == 0){
-    return nullptr;
+    RAL_FAIL("Tables need at least one column to join on");
   }
-  
-  try {
-    if(join_type == INNER_JOIN) {
-      result_table = cudf::experimental::inner_join(
-        table_left.view(),
-        table_right.view(),
-        left_column_indices,
-        right_column_indices,
-        columns_in_common);
-  
-    } else if(join_type == LEFT_JOIN) {
-      result_table = cudf::experimental::left_join(
-        table_left.view(),
-        table_right.view(),
-        left_column_indices,
-        right_column_indices,
-        columns_in_common);
-  
-    } else if(join_type == OUTER_JOIN) {
-      result_table = cudf::experimental::full_join(
-        table_left.view(),
-        table_right.view(),
-        left_column_indices,
-        right_column_indices,
-        columns_in_common);
-  
-    } else {
-      throw std::runtime_error("In evaluate_join function: unsupported join operator, " + join_type);
-    }
-  } catch(std::exception& e) {
-      std::cerr << e.what() << std::endl;
+
+  if(join_type == INNER_JOIN) {
+    result_table = cudf::experimental::inner_join(
+      table_left.view(),
+      table_right.view(),
+      left_column_indices,
+      right_column_indices,
+      columns_in_common);
+  } else if(join_type == LEFT_JOIN) {
+    result_table = cudf::experimental::left_join(
+      table_left.view(),
+      table_right.view(),
+      left_column_indices,
+      right_column_indices,
+      columns_in_common);
+  } else if(join_type == OUTER_JOIN) {
+    result_table = cudf::experimental::full_join(
+      table_left.view(),
+      table_right.view(),
+      left_column_indices,
+      right_column_indices,
+      columns_in_common);
+  } else {
+    RAL_FAIL("Unsupported join operator");
   }
 
   return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), result_names);

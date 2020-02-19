@@ -1,23 +1,19 @@
 #pragma once
 
-#include <vector>
-#include <tuple>
-#include <memory>
-#include <rmm/device_buffer.hpp>
+#include <cudf/column/column.hpp>
 #include <cudf/column/column_view.hpp>
-
-#include "execution_graph/logic_controllers/LogicPrimitives.h"
-
-
+#include <cudf/strings/strings_column_view.hpp>
+#include <utility>
+#include <memory>
 
 namespace ral {
 namespace communication {
 namespace messages {
 namespace experimental {
 
-	std::pair<cudf::size_type, cudf::size_type> getCharsColumnStartAndEnd(const CudfColumnView & column);
+	std::pair<int32_t, int32_t> getCharsColumnStartAndEnd(const cudf::strings_column_view & column);
 	
-	std::unique_ptr<CudfColumn> getRebasedStringOffsets(const CudfColumnView & column, cudf::size_type chars_column_start);
+	std::unique_ptr<cudf::column> getRebasedStringOffsets(const cudf::strings_column_view & column, int32_t chars_column_start);
 
 }  // namespace experimental
 }  // namespace messages
