@@ -358,15 +358,13 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition(const ral::fram
 	return partitions_to_merge;
 }
 
-std::unique_ptr<ral::frame::BlazingTable> merge(const ral::frame::BlazingTableView &temporal_result, const ral::frame::BlazingTableView &partitions_to_merge, const std::string & query_part, blazingdb::manager::experimental::Context * context) {
+std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> &partitions_to_merge, const std::string & query_part, blazingdb::manager::experimental::Context * context) {
 	std::vector<int8_t> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	bool apply_limit;
 	std::tie(sortColIndices, sortOrderTypes, apply_limit) = get_sorted_vars(query_part);
-	std::vector<ral::frame::BlazingTableView> lst_views{temporal_result, partitions_to_merge};
-	std::unique_ptr<ral::frame::BlazingTable> merged = sortedMerger(lst_views, sortOrderTypes, sortColIndices);
-	return merged;
-} 
+	return sortedMerger(partitions_to_merge, sortOrderTypes, sortColIndices);
+}
 
 }  // namespace experimental
 }  // namespace operators

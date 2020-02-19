@@ -349,64 +349,10 @@ private:
 	std::string expression;
 };
 
-
-template <SingleProcessorFunctor processor>
-class StreamSingleSourceKernel : public kernel {
-public:
-	StreamSingleSourceKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
-		this->context = context;
-		this->expression = queryString;
-	}
-
-	virtual kstatus run() {
-		if (this->input_.get_cache()->is_finished()) {
-			return kstatus::stop;
-		}
-		frame_type input = std::move(this->input_.get_cache()->pullFromCache());
-		auto output = processor(input->toBlazingTableView(), expression, context);
-		this->output_.get_cache()->addToCache(std::move(output));
-		return kstatus::keep_processing;
-	}
-
-private:
-	blazingdb::manager::experimental::Context * context;
-	std::string expression;
-};
-
-
-
 using DoubleProcessorFunctor = std::unique_ptr<ral::frame::BlazingTable>(const ral::frame::BlazingTableView & tableA,
 																		 const ral::frame::BlazingTableView & tableB,
 																		 const std::string & expression,
 																		 blazingdb::manager::experimental::Context * context);
-
-
-template <DoubleProcessorFunctor processor>
-class StreamDoubleSourceKernel : public kernel {
-public:
-	StreamDoubleSourceKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
-		this->input_.addPort("input_a", "input_b");
-		this->context = context;
-		this->expression = queryString;
-	}
-	virtual kstatus run() {
-		try {
-			frame_type input_a = std::move(this->input_["input_a"]->pullFromCache());
-			frame_type input_b = std::move(this->input_["input_b"]->pullFromCache());
-			auto output =
-				processor(input_a->toBlazingTableView(), input_b->toBlazingTableView(), this->expression, this->context);
-			this->output_.get_cache()->addToCache(std::move(output));
-			return kstatus::proceed;
-		} catch (std::exception e) {
-			std::cerr << "Exception-DoubleSourceKernel: " << e.what() << std::endl;
-		}
-		return kstatus::stop;
-	}
-
-private:
-	blazingdb::manager::experimental::Context * context;
-	std::string expression;
-};
 
 template <DoubleProcessorFunctor processor>
 class DoubleSourceKernel : public kernel {
@@ -440,7 +386,7 @@ using ProjectKernel = SingleSourceKernel<ral::processor::process_project>;
 using JoinKernel = DoubleSourceKernel<ral::processor::process_join>;
 using SortKernel = SingleSourceKernel<ral::operators::experimental::sort>;
 using SampleKernel = SingleSourceKernel<ral::operators::experimental::sample>;
-using MergeKernel = StreamDoubleSourceKernel<ral::operators::experimental::merge>;
+
 
 class PartitionKernel : public kernel {
 public:
@@ -460,6 +406,35 @@ public:
 			}
 			return kstatus::proceed;
 		} catch (std::exception e) {
+			std::cerr << "Exception-PartitionKernel: " << e.what() << std::endl;
+		}
+		return kstatus::stop;
+	}
+
+private:
+	blazingdb::manager::experimental::Context * context;
+	std::string expression;
+};
+class MergeStreamKernel : public kernel {
+public:
+	MergeStreamKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+		this->input_.addPort("input_a", "input_b");
+		this->context = context;
+		this->expression = queryString;
+	}
+	virtual kstatus run() {
+		try {
+			std::vector<ral::frame::BlazingTableView> partitions_to_merge;
+			std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
+			while ( not this->input_["input"]->is_finished()) {
+				auto input = std::move(this->input_["input"]->pullFromCache());
+				partitions_to_merge.emplace_back(std::move(input->toBlazingTableView()));
+				partitions_to_merge_holder.emplace_back(std::move(input));
+			}
+			auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context);
+			this->output_.get_cache()->addToCache(std::move(output));
+			return kstatus::proceed;
+		} catch (std::exception e) {
 			std::cerr << "Exception-DoubleSourceKernel: " << e.what() << std::endl;
 		}
 		return kstatus::stop;
@@ -469,6 +444,31 @@ private:
 	blazingdb::manager::experimental::Context * context;
 	std::string expression;
 };
+
+// TODO: Find use case
+template <SingleProcessorFunctor processor>
+class StreamSingleSourceKernel : public kernel {
+public:
+	StreamSingleSourceKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+		this->context = context;
+		this->expression = queryString;
+	}
+
+	virtual kstatus run() {
+		if (this->input_.get_cache()->is_finished()) {
+			return kstatus::stop;
+		}
+		frame_type input = std::move(this->input_.get_cache()->pullFromCache());
+		auto output = processor(input->toBlazingTableView(), expression, context);
+		this->output_.get_cache()->addToCache(std::move(output));
+		return kstatus::keep_processing;
+	}
+
+private:
+	blazingdb::manager::experimental::Context * context;
+	std::string expression;
+};
+
 
 class print : public kernel {
 public:
