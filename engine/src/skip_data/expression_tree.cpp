@@ -209,7 +209,7 @@ int expression_tree::build(std::shared_ptr<abstract_node> &parent,
     if (parent == nullptr) {
       if (is_var_column(str))
         parent = std::make_shared<var_node>(str);
-      else if (is_number(str))
+      else if (is_literal(str))
         parent = std::make_shared<const_node>(str);
       else if (is_unary_op(str))
         parent = std::make_shared<unary_op_node>(str);
@@ -217,7 +217,7 @@ int expression_tree::build(std::shared_ptr<abstract_node> &parent,
         parent = std::make_shared<binary_op_node>(str);
     } else {
       // If the character is an operand
-      if (is_var_column(str) || is_number(str)) {
+      if (is_var_column(str) || is_literal(str)) {
         return index;
       }
       bool unary_operation = false;
