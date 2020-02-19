@@ -1,5 +1,8 @@
 
 #include "DataLoader.h"
+
+#include <numeric>
+
 #include "Traits/RuntimeTraits.h"
 #include "config/GPUManager.cuh"
 #include "cudf/legacy/filling.hpp"
