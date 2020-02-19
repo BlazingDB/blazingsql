@@ -867,6 +867,81 @@ class BlazingContext(object):
             result = dask.dataframe.from_delayed(dask_futures)
         return result
 
+
+    def execute(self, sql, algebra, plan):
+        # TODO: remove hardcoding
+        masterIndex = 0
+        nodeTableList = [{} for _ in range(len(self.nodes))]
+        fileTypes = []
+
+        if (algebra is None):
+            algebra = self.explain(sql)
+
+        if self.dask_client is None:
+            new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
+        else:
+            worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
+            connection = self.dask_client.submit(
+                cio.getTableScanInfoCaller,
+                algebra,
+                self.tables,
+                workers=[worker])
+            new_tables, relational_algebra_steps = connection.result()
+
+        # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
+
+        for table in new_tables:
+            fileTypes.append(new_tables[table].fileType)
+            ftype = new_tables[table].fileType
+            if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
+                currentTableNodes = new_tables[table].getSlices(len(self.nodes))
+            elif(new_tables[table].fileType == DataType.DASK_CUDF):
+                currentTableNodes = []
+                for node in self.nodes:
+                    currentTableNodes.append(new_tables[table])
+            elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
+                currentTableNodes = []
+                for node in self.nodes:
+                    currentTableNodes.append(new_tables[table])
+            j = 0
+            for nodeList in nodeTableList:
+                nodeList[table] = currentTableNodes[j]
+                j = j + 1
+            scan_table_query = relational_algebra_steps[table]['table_scans'][0]
+
+        ctxToken = random.randint(0, 64000)
+        accessToken = 0
+
+        if self.dask_client is None:
+            result = cio.runQueryCaller(
+                        masterIndex,
+                        self.nodes,
+                        nodeTableList[0],
+                        fileTypes,
+                        ctxToken,
+                        plan,
+                        accessToken)
+        else:
+            dask_futures = []
+            i = 0
+            for node in self.nodes:
+                worker = node['worker']
+                dask_futures.append(
+                    self.dask_client.submit(
+                        collectPartitionsRunQuery,
+                        masterIndex,
+                        self.nodes,
+                        nodeTableList[i],
+                        fileTypes,
+                        ctxToken,
+                        plan,
+                        accessToken,
+                        workers=[worker]))
+                i = i + 1
+            result = dask.dataframe.from_delayed(dask_futures)
+        return result
+
+
     # END SQL interface
 
     # BEGIN LOG interface

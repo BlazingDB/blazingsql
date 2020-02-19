@@ -105,8 +105,9 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
-
-		std::unique_ptr<ral::frame::BlazingTable> frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+		// TODO: @alex create custom workflow for  ``execute_plan``
+		// std::unique_ptr<ral::frame::BlazingTable> frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+		std::unique_ptr<ral::frame::BlazingTable> frame = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = frame->names();

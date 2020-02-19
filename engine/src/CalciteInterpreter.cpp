@@ -29,6 +29,7 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <cudf/column/column_factories.hpp>
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include <execution_graph/logic_controllers/TaskFlowProcessor.h>
 
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
@@ -478,6 +479,49 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_query(
 			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
 			throw;
 		}
+}
+
+std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data_loader> input_loaders,
+	std::vector<ral::io::Schema> schemas,
+	std::vector<std::string> table_names,
+	std::string logicalPlan,
+	int64_t connection,
+	Context & queryContext)  {
+
+	CodeTimer blazing_timer;
+
+	Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "\"Query Start\n" + logicalPlan + "\""));
+
+	try {
+		std::unique_ptr<ral::frame::BlazingTable> output_frame; 
+		ral::cache::parser::expr_tree_processor tree{
+			.root = {},
+			.context = &queryContext,
+			.input_loaders = input_loaders,
+			.schemas = schemas,
+			.table_names = table_names
+		};
+		ral::cache::OutputKernel output;
+
+		auto graph = tree.build_graph(logicalPlan);
+		try {
+			graph += graph.get_last_kernel() >> output;
+			graph.execute();
+
+			output_frame = output.release();
+		} catch(std::exception & ex) {
+			std::cout << ex.what() << "\n";
+		}
+
+		double duration = blazing_timer.getDuration();
+		Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
+
+		return output_frame;
+	} catch(const std::exception& e) {
+		std::string err = "ERROR: in evaluate_split_query " + std::string(e.what());
+		Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
+		throw;
+	}
 }
 
 

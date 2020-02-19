@@ -11,6 +11,11 @@
 #include <stack>
 #include <thrust/sequence.h>
 
+
+using blazingdb::manager::experimental::Context;
+using blazingdb::transport::experimental::Address;
+using blazingdb::transport::experimental::Node;
+
 struct CacheMachineTest : public cudf::test::BaseFixture {
 	CacheMachineTest() {}
 

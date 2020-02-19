@@ -1,6 +1,9 @@
 
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include "io/DataLoader.h"
+#include "io/Schema.h"
 #include "utilities/random_generator.cuh"
+#include <Util/StringUtil.h>
 #include <boost/foreach.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -9,7 +12,14 @@
 #include <cudf/types.hpp>
 #include <execution_graph/logic_controllers/TaskFlowProcessor.h>
 #include <src/from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <src/io/data_parser/CSVParser.h>
+#include <src/io/data_parser/ParquetParser.h>
+#include <src/io/data_provider/UriDataProvider.h>
 
+
+using blazingdb::manager::experimental::Context;
+using blazingdb::transport::experimental::Address;
+using blazingdb::transport::experimental::Node;
 struct DistributedMachinesTest : public cudf::test::BaseFixture {
 	DistributedMachinesTest() {}
 
@@ -18,94 +28,82 @@ struct DistributedMachinesTest : public cudf::test::BaseFixture {
 
 namespace ral {
 namespace cache {
-namespace parser{
-
-struct expr_tree_processor {
-	struct node {
-		std::string expr;               // expr
-		int level;                      // level
-		std::shared_ptr<kernel>            kernel_unit;
-		std::vector<std::shared_ptr<node>> children;  // children nodes
-	} root;
-	blazingdb::manager::experimental::Context * context;
-
-	expr_tree_processor(std::string json) {
-		try {
-			std::replace( json.begin(), json.end(), '\'', '\"');
-			std::istringstream input(json);
-			boost::property_tree::ptree p_tree;
-			boost::property_tree::read_json(input, p_tree);
-			expr_tree_from_json(p_tree, &this->root, 0);
-
-		} catch (std::exception & e) {
-			std::cerr << e.what() <<  std::endl;
-		}
-	}
-	void expr_tree_from_json(boost::property_tree::ptree const& node, expr_tree_processor::node * root_ptr, int level) {
-		auto expr = node.get<std::string>("expr", "");
-		for(int i = 0; i < level*2 ; ++i) {
-			std::cout << " ";
-		}
-		root_ptr->expr = expr;
-		root_ptr->level = level;
-		root_ptr->kernel_unit = get_kernel(expr);
-		std::cout << expr << std::endl;
-		for (auto &child : node.get_child("children"))
-		{
-			auto child_node_ptr = std::make_shared<expr_tree_processor::node>();
-			root_ptr->children.push_back(child_node_ptr);
-			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1);
-		}
-	}
-	std::shared_ptr<kernel>  get_kernel(std::string expr) {
-		if (expr.find("LogicalProject") != std::string::npos)
-			return std::make_shared<ProjectKernel>(expr, this->context);
-		if (expr.find("LogicalFilter") != std::string::npos)
-			return std::make_shared<FilterKernel>(expr, this->context);
-		if (expr.find("LogicalJoin") != std::string::npos)
-			return std::make_shared<JoinKernel>(expr, this->context);
-		if (expr.find("LogicalProject") != std::string::npos)
-			return std::make_shared<ProjectKernel>(expr, this->context);
-//		if (expr.find("LogicalTableScan") != std::string::npos)
-//			TODO: include use the data_provider apis
-//			return std::make_shared<TableScanKernel>(expr, this->context);
-
-		return nullptr;
-	}
-};
-
-} // namespace parser
-
+//LogicalProject(n_nationkey=[$0], n_name=[$1], n_regionkey=[$2], n_comment=[$3])
+//LogicalFilter(condition=[<($0, 10)])
+//LogicalTableScan(table=[[main, nation]])
 
 TEST_F(DistributedMachinesTest, FromJsonInput) {
 	std::string json = R"(
 	{
-		'expr': 'LogicalProject(c_custkey=[$9], c_nationkey=[$12], c_acctbal=[$14])',
+		'expr': 'LogicalProject(n_nationkey=[$0], n_name=[$1], n_regionkey=[$2], n_comment=[$3])',
 		'children': [
 			{
-				'expr': 'LogicalFilter(condition=[<($0, 100)])',
+				'expr': 'LogicalFilter(condition=[<($0, 5)])',
 				'children': [
 					{
-						'expr': 'LogicalJoin(condition=[=($1, $9)], joinType=[inner])',
-						'children':
-						[
-							{
-								'expr': 'LogicalTableScan(table=[[main, orders]])',
-								'children' : []
-							},
-							{
-								'expr':  'LogicalTableScan(table=[[main, customer]])',
-								'children' : []
-							}
-
-						]
+						'expr': 'LogicalTableScan(table=[[main, nation]])',
+						'children': []
 					}
 				]
 			}
 		]
 	}
 	)";
-	parser::expr_tree_processor tree(json);
+	const std::string content =
+		R"(0|ALGERIA|0| haggle. carefully final deposits detect slyly agai
+		1|ARGENTINA|1|al foxes promise slyly according to the regular accounts. bold requests alon
+		2|BRAZIL|1|y alongside of the pending deposits. carefully special packages are about the ironic forges. slyly special
+		3|CANADA|1|eas hang ironic, silent packages. slyly regular packages are furiously over the tithes. fluffily bold
+		4|EGYPT|4|y above the carefully unusual theodolites. final dugouts are quickly across the furiously regular d
+		5|ETHIOPIA|0|ven packages wake quickly. regu
+		6|FRANCE|3|refully final requests. regular, ironi
+		7|GERMANY|3|l platelets. regular accounts x-ray: unusual, regular acco
+		8|INDIA|2|ss excuses cajole slyly across the packages. deposits print aroun
+		9|INDONESIA|2| slyly express asymptotes. regular deposits haggle slyly. carefully ironic hockey players sleep blithely. carefull
+		10|IRAN|4|efully alongside of the slyly final dependencies)";
+
+	std::vector<Node> contextNodes;
+	auto address = Address::TCP("127.0.0.1", 8089, 0);
+	contextNodes.push_back(Node(address));
+	uint32_t ctxToken = 123;
+	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+
+	std::string filename = "/tmp/nation.psv";
+	std::ofstream outfile(filename, std::ofstream::out);
+	outfile << content << std::endl;
+	outfile.close();
+
+	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
+	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
+	in_args.dtype = { "int32", "int64", "int32", "int64"};
+	in_args.delimiter = '|';
+	in_args.header = -1;
+
+	std::vector<Uri> uris;
+
+	uris.push_back(Uri{filename});
+	ral::io::Schema schema;
+	auto parser = std::make_shared<ral::io::csv_parser>(in_args);
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	ral::io::data_loader loader(parser, provider);
+	loader.get_schema(schema, {});
+
+	parser::expr_tree_processor tree{
+		.root = {},
+		.context = &queryContext,
+		.input_loaders = {loader},
+		.schemas = {schema},
+		.table_names = {"nation"}
+	};
+	PrinterKernel print;
+
+	auto graph = tree.build_graph(json);
+	try {
+		graph += graph.get_last_kernel() >> print;
+		graph.execute();
+	} catch(std::exception & ex) {
+		std::cout << ex.what() << "\n";
+	}
 }
 
 TEST_F(DistributedMachinesTest, SortSamplePartitionWorkFlowTest) {
@@ -122,7 +120,7 @@ TEST_F(DistributedMachinesTest, SortSamplePartitionWorkFlowTest) {
 		auto filepath = folder_path + "customer_" + std::to_string(index) + "_0.parquet";
 		customer_path_list.push_back(filepath);
 	}
-	TableScanKernel customer_generator(customer_path_list);
+	FileReaderKernel customer_generator(customer_path_list);
 	SortKernel sort("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
 	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", &queryContext);
 	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", &queryContext);

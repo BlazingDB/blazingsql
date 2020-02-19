@@ -9,6 +9,10 @@
 #include <execution_graph/logic_controllers/TaskFlowProcessor.h>
 #include <src/from_cudf/cpp_tests/utilities/base_fixture.hpp>
 
+
+using blazingdb::manager::experimental::Context;
+using blazingdb::transport::experimental::Address;
+using blazingdb::transport::experimental::Node;
 namespace ral {
 namespace cache {
 	
@@ -112,8 +116,8 @@ TEST_F(GraphProcessorTest, IOWorkFlowTest) {
 		customer_path_list.push_back(filepath);
 	}
 
-	TableScanKernel order_generator(order_path_list);
-	TableScanKernel customer_generator(customer_path_list);
+	FileReaderKernel order_generator(order_path_list);
+	FileReaderKernel customer_generator(customer_path_list);
 	FilterKernel filter("LogicalFilter(condition=[<($0, 100)])", &queryContext);
 	JoinKernel join("LogicalJoin(condition=[=($1, $9)], joinType=[inner])", &queryContext);
 	ProjectKernel project("LogicalProject(c_custkey=[$9], c_nationkey=[$12], c_acctbal=[$14])", &queryContext);
@@ -156,7 +160,7 @@ TEST_F(GraphProcessorTest, SortWorkFlowTest) {
 		auto filepath = folder_path + "customer_" + std::to_string(index) + "_0.parquet";
 		customer_path_list.push_back(filepath);
 	}
-	TableScanKernel customer_generator(customer_path_list);
+	FileReaderKernel customer_generator(customer_path_list);
 	SortKernel order_by("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
 	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", &queryContext);
 	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", &queryContext);

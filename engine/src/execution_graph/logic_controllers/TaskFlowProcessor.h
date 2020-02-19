@@ -11,6 +11,9 @@
 #include <src/operators/OrderBy.h>
 #include <src/utilities/DebuggingUtils.h>
 #include <stack>
+#include "io/DataLoader.h"
+#include "io/Schema.h"
+#include <Util/StringUtil.h>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -191,6 +194,9 @@ public:
 	graph() {
 		container_[head_id_] = nullptr;	 // sentinel node
 	}
+	graph(const graph& ) = default;
+	graph& operator = (const graph& ) = default;
+	
 	kpair operator+=(kpair & p) {
 		std::string source_port_name = std::to_string(p.src->get_id());
 		std::string target_port_name = std::to_string(p.dst->get_id());
@@ -236,29 +242,29 @@ public:
 			if(not source) {
 				break;
 			}
-			std::cout << "source_id: " << source_id << "->";
+			std::cout << "source_id: " << source_id << " ->";
 			for(auto edge : get_neighbours(source)) {
 				auto target_id = edge.target;
-				std::cout << " " << target_id;
+				std::cout << " " << target_id << std::endl;
 				auto target = get_node(target_id);
 				auto edge_id = std::make_pair(source_id, target_id);
 				if(visited.find(edge_id) == visited.end()) {
 					visited.insert(edge_id);
 					Q.push_back(target_id);
 					std::thread t([this, source, target, edge] {
-					  auto state = source->run();
-					  if (state == kstatus::proceed) {
-						  source->output_.finish();
-					  } else if (state == kstatus::keep_processing) {
-						  while (state == kstatus::keep_processing) {
-							  std::cout << "keep_processing...\n";
-							  auto state = source->run();
-							  if (state == kstatus::stop) {
-								  break;
-							  }
-						  }
-						  source->output_.finish();
-					  }
+						auto state = source->run();
+						if (state == kstatus::proceed) {
+							source->output_.finish();
+						} else if (state == kstatus::keep_processing) {
+							while (state == kstatus::keep_processing) {
+								std::cout << "keep_processing...\n";
+								auto state = source->run();
+								if (state == kstatus::stop) {
+									break;
+								}
+							}
+							source->output_.finish();
+						}
 					});
 					threads.push_back(std::move(t));
 				} else {
@@ -271,9 +277,14 @@ public:
 			thread.join();
 		}
 	}
+	kernel& get_last_kernel () {
+		return *kernels_.at(kernels_.size() - 1);
+	}
+
 	size_t add_node(kernel * k) {
 		if(k != nullptr) {
 			container_[k->get_id()] = k;
+			kernels_.push_back(k);
 			return k->get_id();
 		}
 		return head_id_;
@@ -317,6 +328,7 @@ public:
 
 private:
 	const std::int32_t head_id_{-1};
+	std::vector<kernel *> kernels_;
 	std::map<std::int32_t, kernel *> container_;
 	std::map<std::int32_t, std::set<Edge>> edges_;
 };
@@ -534,12 +546,159 @@ private:
 	std::vector<std::string> file_paths;
 };
 }  // namespace test
-using blazingdb::manager::experimental::Context;
-using blazingdb::transport::experimental::Address;
-using blazingdb::transport::experimental::Node;
+
+
+class TableScanKernel : public kernel {
+public:
+	TableScanKernel(ral::io::data_loader &loader, ral::io::Schema & schema, blazingdb::manager::experimental::Context* context)
+		: kernel(), context(context), loader(loader), schema(schema)
+	{}
+
+	virtual kstatus run() {
+		auto table = loader.load_data(context, {}, schema);
+		this->output_.get_cache()->addToCache(std::move(table.first));
+		return (kstatus::proceed);
+	}
+
+private:
+	blazingdb::manager::experimental::Context *context;
+	ral::io::data_loader loader;
+	ral::io::Schema  schema;
+};
+
+class OutputKernel : public kernel {
+public:
+	OutputKernel() : kernel() {  }
+	virtual kstatus run() {
+		output = std::move(this->input_.get_cache()->pullFromCache());
+		return kstatus::stop;
+	}
+	
+	frame_type	release() {
+		return std::move(output);
+	}
+
+protected:
+	frame_type output;
+};
+
 using GeneratorKernel = ral::cache::test::generate;
 using PrinterKernel = ral::cache::print;
-using TableScanKernel = ral::cache::test::file_reader_kernel;
+using FileReaderKernel = ral::cache::test::file_reader_kernel;
+
+
+namespace parser{
+
+struct expr_tree_processor {
+	struct node {
+		std::string expr;               // expr
+		int level;                      // level
+		std::shared_ptr<kernel>            kernel_unit;
+		std::vector<std::shared_ptr<node>> children;  // children nodes
+	} root;
+	blazingdb::manager::experimental::Context * context;
+	std::vector<ral::io::data_loader> input_loaders;
+	std::vector<ral::io::Schema> schemas;
+	std::vector<std::string> table_names;
+
+	void expr_tree_from_json(boost::property_tree::ptree const& node, expr_tree_processor::node * root_ptr, int level) {
+		auto expr = node.get<std::string>("expr", "");
+		for(int i = 0; i < level*2 ; ++i) {
+			std::cout << " ";
+		}
+		root_ptr->expr = expr;
+		root_ptr->level = level;
+		root_ptr->kernel_unit = get_kernel(expr);
+		std::cout << expr << std::endl;
+		for (auto &child : node.get_child("children"))
+		{
+			auto child_node_ptr = std::make_shared<expr_tree_processor::node>();
+			root_ptr->children.push_back(child_node_ptr);
+			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1);
+		}
+	}
+	// Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
+	std::string extract_table_name(std::string query_part) {
+		size_t start = query_part.find("[[") + 2;
+		size_t end = query_part.find("]]");
+		std::string table_name_text = query_part.substr(start, end - start);
+		std::vector<std::string> table_parts = StringUtil::split(table_name_text, ',');
+		std::string table_name = "";
+		for(int i = 0; i < table_parts.size(); i++) {
+			if(table_parts[i][0] == ' ') {
+				table_parts[i] = table_parts[i].substr(1, table_parts[i].size() - 1);
+			}
+			table_name += table_parts[i];
+			if(i != table_parts.size() - 1) {
+				table_name += ".";
+			}
+		}
+
+		return table_name;
+	}
+
+	// Returns the index from table if exists
+	size_t get_table_index(std::vector<std::string> table_names, std::string table_name) {
+		if(StringUtil::beginsWith(table_name, "main.")) {
+			table_name = table_name.substr(5);
+		}
+
+		auto it = std::find(table_names.begin(), table_names.end(), table_name);
+		if(it != table_names.end()) {
+			return std::distance(table_names.begin(), it);
+		} else {
+			throw std::invalid_argument("table name does not exists ==>" + table_name);
+		}
+	}
+
+	std::shared_ptr<kernel>  get_kernel(std::string expr) {
+		if (expr.find("LogicalProject") != std::string::npos)
+			return std::make_shared<ProjectKernel>(expr, this->context);
+		if (expr.find("LogicalFilter") != std::string::npos)
+			return std::make_shared<FilterKernel>(expr, this->context);
+		if (expr.find("LogicalJoin") != std::string::npos)
+			return std::make_shared<JoinKernel>(expr, this->context);
+		if (expr.find("LogicalProject") != std::string::npos)
+			return std::make_shared<ProjectKernel>(expr, this->context);
+		if (expr.find("LogicalTableScan") != std::string::npos) { 
+			size_t table_index = get_table_index(table_names, extract_table_name(expr));
+//			}
+			return std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], this->context);
+		}
+		return nullptr;
+	}
+
+	ral::cache::graph build_graph(std::string json) {
+		try {
+			std::replace( json.begin(), json.end(), '\'', '\"');
+			std::istringstream input(json);
+			boost::property_tree::ptree p_tree;
+			boost::property_tree::read_json(input, p_tree);
+			expr_tree_from_json(p_tree, &this->root, 0);
+
+		} catch (std::exception & e) {
+			std::cerr << e.what() <<  std::endl;
+		}
+
+		ral::cache::graph graph;
+		visit(graph, &this->root, this->root.children);
+		return graph;
+	}
+
+	void visit(ral::cache::graph& graph, node * parent, std::vector<std::shared_ptr<node>>& children) {
+		for (auto& child : children) {
+			if (child) {
+				visit(graph, child.get(), child->children);
+
+				graph +=  *child->kernel_unit >> *parent->kernel_unit;
+			}
+		}
+	}
+
+};
+
+} // namespace parser
+
 
 }  // namespace cache
 }  // namespace ral
