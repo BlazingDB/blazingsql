@@ -240,7 +240,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 			table_view = out_blz_table->view();
 		}
 
-		if(limitRows >= 0 && limitRows < table_view.num_rows()) {
+		if(limitRows >= 0) {
 			limitRows = determine_local_limit(context, table_view.num_rows(), limitRows);
 
 			if(limitRows >= 0 && limitRows < table_view.num_rows()) {
