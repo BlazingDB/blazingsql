@@ -521,7 +521,6 @@ std::string expand_if_logical_op(std::string expression) {
 
 std::string replace_calcite_regex(const std::string & expression) {
 	std::string ret = expression;
-	std::cout<<"cleaning expression"<<std::endl;
 
 	static const std::regex count_re{R""(COUNT\(DISTINCT (\W\(.+?\)|.+)\))"", std::regex_constants::icase};
 	ret = std::regex_replace(ret, count_re, "COUNT_DISTINCT($1)");
