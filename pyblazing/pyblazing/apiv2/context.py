@@ -750,7 +750,10 @@ class BlazingContext(object):
             file_indexes_for_slice = file_index_per_rowgroups[startIndex: startIndex + batchSize]
             unique_file_indexes_for_slice = list(set(file_indexes_for_slice)) # lets get the unique indexes
             sliced_files = [files[i] for i in unique_file_indexes_for_slice]
-            sliced_uri_values = [uri_values[i] for i in unique_file_indexes_for_slice]
+            if uri_values is not None and len(uri_values) > 0:
+                sliced_uri_values = [uri_values[i] for i in unique_file_indexes_for_slice]
+            else:
+                sliced_uri_values = []
             
             sliced_rowgroup_ids = []
             last_file_index = None
