@@ -235,7 +235,10 @@ def parseHiveMetadata(curr_table, partitions):
             
             table_partition.setdefault(col_name, []).append(np_col_value)
         minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
-        minmax_metadata_table[len(minmax_metadata_table) - 1].append(0) # TODO this assumes that you only have one row group per partitioned file
+        # TODO this assumes that you only have one row group per partitioned file. This should be addressed in the mergeMetadata function, 
+        # where you will have information about how many rowgroups per file and you can expand the hive metadata accordingly
+        # until this is fixed, if a partition has more than one rowgroup, the mergeMetadata function will throw an error
+        minmax_metadata_table[len(minmax_metadata_table) - 1].append(0) # this is the rowgroup index
     for index in range(n_cols):
         col_name = columns[index]
         if col_name in table_partition:
