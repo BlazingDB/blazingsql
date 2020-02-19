@@ -557,7 +557,6 @@ std::string replace_calcite_regex(const std::string & expression) {
 
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
-	std::cout<<"ret was "<<ret<<std::endl;
 	return ret;
 }
 
