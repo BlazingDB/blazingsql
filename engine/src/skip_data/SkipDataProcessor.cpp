@@ -11,6 +11,7 @@
 #include <memory> // this is for std::static_pointer_cast
 #include <string>
 #include <vector>
+#include <numeric>
 
 namespace ral {
 namespace skip_data {
