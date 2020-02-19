@@ -433,6 +433,7 @@ class BlazingTable(object):
             
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
+
         return nodeFilesList
 
     def get_partitions(self, worker):
@@ -652,7 +653,7 @@ class BlazingContext(object):
 
             table.column_names = parsedSchema['names']
             table.column_types = parsedSchema['types']
-
+            
             table.slices = table.getSlices(len(self.nodes))
             if is_hive_input and len(extra_columns) > 0:
                 parsedMetadata = parseHiveMetadata(table, partitions)
@@ -660,6 +661,7 @@ class BlazingContext(object):
 
             if parsedSchema['file_type'] == DataType.PARQUET :
                 parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs)
+            
                 if isinstance(parsedMetadata, dask_cudf.core.DataFrame):
                     parsedMetadata = parsedMetadata.compute()
                     parsedMetadata = parsedMetadata.reset_index()
@@ -668,6 +670,17 @@ class BlazingContext(object):
                     table.metadata = mergeMetadata(table, parsedMetadata, table.metadata)
                 else:
                     table.metadata = parsedMetadata
+                # now lets get the row_groups_ids from the metadata
+                metadata_ids = table.metadata[['file_handle_index', 'row_group_index']].to_pandas()
+                grouped = metadata_ids.groupby('file_handle_index')
+                row_groups_ids = []
+                for group_id in grouped.groups:
+                    row_indices = grouped.groups[group_id].values.tolist()
+                    row_groups_col = metadata_ids['row_group_index'].values.tolist()
+                    row_group_ids = [row_groups_col[i] for i in row_indices]
+                    row_groups_ids.append(row_group_ids)
+                table.row_groups_ids = row_groups_ids
+
 
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
@@ -757,7 +770,7 @@ class BlazingContext(object):
         return all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids
     
     
-    def _optimize_with_skip_data(self, current_table, scan_table_query):
+    def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query):
         nodeFilesList = []
         file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
         has_some_error = file_indices_and_rowgroup_indices['has_some_error']
@@ -806,9 +819,9 @@ class BlazingContext(object):
                     bt.column_names = current_table.column_names
                     bt.column_types = current_table.column_types
                     nodeFilesList.append(bt)
-            
-        return nodeFilesList
-
+            return nodeFilesList
+        else:
+            return current_table.getSlices(len(self.nodes))
 
     def sql(self, sql, table_list=[], algebra=None):
         # TODO: remove hardcoding
@@ -818,7 +831,7 @@ class BlazingContext(object):
 
         if (algebra is None):
             algebra = self.explain(sql)
-
+        
         if self.dask_client is None:
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
         else:
@@ -831,14 +844,14 @@ class BlazingContext(object):
             new_tables, relational_algebra_steps = connection.result()
 
         algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
-
+        
         for table in new_tables:
             fileTypes.append(new_tables[table].fileType)
             ftype = new_tables[table].fileType
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
                 if new_tables[table].has_metadata():
                     scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-                    currentTableNodes = self._optimize_with_skip_data(new_tables[table], scan_table_query)
+                    currentTableNodes = self._optimize_with_skip_data_getSlices(new_tables[table], scan_table_query)
                 else:
                     currentTableNodes = new_tables[table].getSlices(len(self.nodes))
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
