@@ -242,13 +242,14 @@ public:
 			if(not source) {
 				break;
 			}
-			std::cout << "source_id: " << source_id << " ->";
 			for(auto edge : get_neighbours(source)) {
 				auto target_id = edge.target;
-				std::cout << " " << target_id << std::endl;
 				auto target = get_node(target_id);
 				auto edge_id = std::make_pair(source_id, target_id);
 				if(visited.find(edge_id) == visited.end()) {
+
+					std::cout << "source_id: " << source_id << " ->";
+					std::cout << " " << target_id << std::endl;
 					visited.insert(edge_id);
 					Q.push_back(target_id);
 					std::thread t([this, source, target, edge] {
@@ -661,8 +662,8 @@ struct expr_tree_processor {
 		if (expr.find("LogicalProject") != std::string::npos)
 			return std::make_shared<ProjectKernel>(expr, this->context);
 		if (expr.find("LogicalTableScan") != std::string::npos) { 
+			//TODO: reuse get_table_index and extract_table_name. 
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-//			}
 			return std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], this->context);
 		}
 		return nullptr;
@@ -686,11 +687,19 @@ struct expr_tree_processor {
 	}
 
 	void visit(ral::cache::graph& graph, node * parent, std::vector<std::shared_ptr<node>>& children) {
-		for (auto& child : children) {
-			if (child) {
-				visit(graph, child.get(), child->children);
+		for (size_t index = 0; index < children.size(); index++) {
+			auto& child  =  children[index];
+			visit(graph, child.get(), child->children);
 
-				graph +=  *child->kernel_unit >> *parent->kernel_unit;
+			std::string port_name = "input";
+			if (children.size() > 1) {
+				char index_char = 'a' + index;
+				port_name = std::string("input_");
+				port_name.push_back(index_char); 
+				std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << "["  << port_name<< "]" << std::endl;
+				graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
+			} else {
+				graph +=  *child->kernel_unit >> (*parent->kernel_unit);
 			}
 		}
 	}
