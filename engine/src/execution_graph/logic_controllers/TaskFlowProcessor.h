@@ -382,7 +382,7 @@ public:
 				processor(input_a->toBlazingTableView(), input_b->toBlazingTableView(), this->expression, this->context);
 			this->output_.get_cache()->addToCache(std::move(output));
 			return kstatus::proceed;
-		} catch (std::exception e) {
+		} catch (std::exception &e) {
 			std::cerr << "Exception-DoubleSourceKernel: " << e.what() << std::endl;
 		}
 		return kstatus::stop;
@@ -417,7 +417,7 @@ public:
 				this->output_.get_cache()->addToCache(std::move(item));
 			}
 			return kstatus::proceed;
-		} catch (std::exception e) {
+		} catch (std::exception &e) {
 			std::cerr << "Exception-PartitionKernel: " << e.what() << std::endl;
 		}
 		return kstatus::stop;
@@ -446,7 +446,7 @@ public:
 			auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context);
 			this->output_.get_cache()->addToCache(std::move(output));
 			return kstatus::proceed;
-		} catch (std::exception e) {
+		} catch (std::exception &e) {
 			std::cerr << "Exception-DoubleSourceKernel: " << e.what() << std::endl;
 		}
 		return kstatus::stop;
@@ -601,8 +601,8 @@ struct expr_tree_processor {
 	std::vector<ral::io::Schema> schemas;
 	std::vector<std::string> table_names;
 
-	void expr_tree_from_json(boost::property_tree::ptree const& node, expr_tree_processor::node * root_ptr, int level) {
-		auto expr = node.get<std::string>("expr", "");
+	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level) {
+		auto expr = p_tree.get<std::string>("expr", "");
 		for(int i = 0; i < level*2 ; ++i) {
 			std::cout << " ";
 		}
@@ -610,7 +610,7 @@ struct expr_tree_processor {
 		root_ptr->level = level;
 		root_ptr->kernel_unit = get_kernel(expr);
 		std::cout << expr << std::endl;
-		for (auto &child : node.get_child("children"))
+		for (auto &child : p_tree.get_child("children"))
 		{
 			auto child_node_ptr = std::make_shared<expr_tree_processor::node>();
 			root_ptr->children.push_back(child_node_ptr);
