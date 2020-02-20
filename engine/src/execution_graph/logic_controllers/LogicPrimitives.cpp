@@ -8,15 +8,20 @@ namespace ral{
 namespace frame{
 
 
-BlazingTable::BlazingTable(
-  std::unique_ptr<CudfTable> table,
-  std::vector<std::string> columnNames)
-  : table(std::move(table)), columnNames(columnNames){
+BlazingTable::BlazingTable(	std::unique_ptr<CudfTable> table, std::vector<std::string> columnNames){
 
+	std::vector<std::unique_ptr<CudfColumn>> columns_in = table->release();
+	for (size_t i = 0; i < columns_in.size(); i++){
+		columns.emplace_back(std::make_unique<BlazingColumnOwner>(std::move(columns_in[i])));
+	}
 }
 
 CudfTableView BlazingTable::view() const{
-  return this->table->view();
+	std::vector<CudfColumnView> column_views(columns.size());
+	for (size_t i = 0; i < columns.size(); i++){
+		column_views[i] = columns[i]->view();
+	}
+  	return CudfTableView(column_views);
 }
 
 std::vector<std::string> BlazingTable::names() const{
@@ -24,7 +29,15 @@ std::vector<std::string> BlazingTable::names() const{
 }
 
 BlazingTableView BlazingTable::toBlazingTableView() const{
-  return BlazingTableView(this->table->view(), this->columnNames);
+  return BlazingTableView(this->view(), this->columnNames);
+}
+
+std::unique_ptr<CudfTable> BlazingTable::releaseCudfTable() { 
+	std::vector<std::unique_ptr<CudfColumn>> columns_out;
+	for (size_t i = 0; i < columns.size(); i++){
+		columns_out.emplace_back(columns[i]->release());
+	}
+	return std::make_unique<CudfTable>(std::move(columns_out));
 }
 
 

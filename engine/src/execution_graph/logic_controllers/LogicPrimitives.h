@@ -1,17 +1,9 @@
 
 #pragma once
 
-#include "cudf/column/column_view.hpp"
-#include "cudf/table/table.hpp"
-#include "cudf/table/table_view.hpp"
-#include <memory>
-#include <string>
-#include <vector>
-
-typedef cudf::experimental::table CudfTable;
-typedef cudf::table_view CudfTableView;
-typedef cudf::column CudfColumn;
-typedef cudf::column_view CudfColumnView;
+#include "execution_graph/logic_controllers/BlazingColumn.h"
+#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
+#include "execution_graph/logic_controllers/BlazingColumnView.h"
 
 
 namespace ral {
@@ -29,21 +21,21 @@ public:
 	BlazingTable & operator=(BlazingTable &&) = delete;
 
 	CudfTableView view() const;
-	cudf::size_type num_columns() const { return table->num_columns(); }
-	cudf::size_type num_rows() const { return table->num_rows(); }
+	cudf::size_type num_columns() const { return columns.size(); }
+	cudf::size_type num_rows() const { return columns.size() == 0 ? 0 : columns[0]->view().size(); }
 	std::vector<std::string> names() const;
 	// set columnNames
 	void setNames(const std::vector<std::string> &names) { this->columnNames = names; }
 
 	BlazingTableView toBlazingTableView() const;
 
-	operator bool() const { return table != nullptr; }
+	operator bool() const { return columns.size() != 0; }
 
-	std::unique_ptr<CudfTable> releaseCudfTable() { return std::move(table);}
+	std::unique_ptr<CudfTable> releaseCudfTable();
 
 private:
 	std::vector<std::string> columnNames;
-	std::unique_ptr<CudfTable> table;
+	std::vector<std::unique_ptr<BlazingColumn>> columns;
 };
 
 
