@@ -436,6 +436,8 @@ std::string aggregator_to_string(AggregateKind aggregation) {
 		return "count";
 	} else if(aggregation == AggregateKind::SUM) {
 		return "sum";
+        } else if(aggregation == AggregateKind::SUM0) {
+                return "sum0";
 	} else if(aggregation == AggregateKind::MIN) {
 		return "min";
 	} else if(aggregation == AggregateKind::MAX) {
