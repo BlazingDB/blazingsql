@@ -15,7 +15,9 @@ class BlazingTableView;
 
 class BlazingTable {
 public:
-	BlazingTable(std::unique_ptr<CudfTable> table, std::vector<std::string> columnNames);
+	BlazingTable();
+	BlazingTable(std::unique_ptr<CudfTable> table, const std::vector<std::string> & columnNames);
+	BlazingTable(const CudfTableView & table, const std::vector<std::string> & columnNames);
 	BlazingTable(BlazingTable &&) = default;
 	BlazingTable & operator=(BlazingTable const &) = delete;
 	BlazingTable & operator=(BlazingTable &&) = delete;
@@ -68,9 +70,7 @@ private:
 	CudfTableView table;
 };
 
-typedef std::pair<std::unique_ptr<ral::frame::BlazingTable>, ral::frame::BlazingTableView> TableViewPair;
-
-TableViewPair createEmptyTableViewPair(std::vector<cudf::type_id> column_types,
+std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::type_id> column_types,
 									   std::vector<std::string> column_names);
 
 }  // namespace frame

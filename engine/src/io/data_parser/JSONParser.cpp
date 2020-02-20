@@ -44,14 +44,14 @@ cudf::experimental::io::table_with_metadata read_json_file(
 	return std::move(table_and_metadata);
 }
 
-ral::frame::TableViewPair json_parser::parse(
+std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 
 	if(file == nullptr) {
-		return std::make_pair(nullptr, ral::frame::BlazingTableView());
+		return nullptr;
 	}
 
 	// including all columns by default
@@ -81,9 +81,7 @@ ral::frame::TableViewPair json_parser::parse(
 		selected_column_names.push_back(std::move(column_names[i]));
 	}
 
-	std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::experimental::table>(std::move(selected_columns)), selected_column_names);
-	ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
-	return std::make_pair(std::move(table_out), table_out_view);
+	return std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::experimental::table>(std::move(selected_columns)), selected_column_names);	
 }
 
 void json_parser::parse_schema(

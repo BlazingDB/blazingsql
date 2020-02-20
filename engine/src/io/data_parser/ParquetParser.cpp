@@ -55,7 +55,7 @@ parquet_parser::~parquet_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-ral::frame::TableViewPair parquet_parser::parse(
+std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
@@ -67,7 +67,7 @@ ral::frame::TableViewPair parquet_parser::parse(
 	}
 
 	if(file == nullptr) {
-		return std::make_pair(nullptr, ral::frame::BlazingTableView());
+		return nullptr;
 	}
 
 	if(column_indices.size() > 0) {
@@ -102,11 +102,10 @@ ral::frame::TableViewPair parquet_parser::parse(
 		//columns_out[i].create_gdf_column(table_out.get_column(i));
 		// }
 		// }
-		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
-		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
-		return std::make_pair(std::move(table_out), table_out_view);
+		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
+		
 	}
-	return std::make_pair(nullptr, ral::frame::BlazingTableView());
+	return nullptr;
 }
 
 

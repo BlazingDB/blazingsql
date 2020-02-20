@@ -10,6 +10,7 @@ namespace frame {
 class BlazingColumnView : public BlazingColumn {
 	public:
 		BlazingColumnView();
+		BlazingColumnView(const CudfColumnView & column) : column(column) {};
 		CudfColumnView view() const {
 			return column;
 		}

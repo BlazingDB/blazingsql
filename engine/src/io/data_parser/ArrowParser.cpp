@@ -38,13 +38,13 @@ arrow_parser::~arrow_parser() {}
 // 	}
 // }
 
-ral::frame::TableViewPair arrow_parser::parse(
+std::unique_ptr<ral::frame::BlazingTable> arrow_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 		// TODO: cordova Implements the new ARROW parser with 0.12 API
-	return std::make_pair(nullptr, ral::frame::BlazingTableView());
+	return nullptr;
 }	
 
 void arrow_parser::parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile> > files,

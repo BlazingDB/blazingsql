@@ -16,7 +16,7 @@ public:
 
 	virtual ~json_parser();
 
-	ral::frame::TableViewPair parse(
+	std::unique_ptr<ral::frame::BlazingTable> parse(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
 		const Schema & schema,
