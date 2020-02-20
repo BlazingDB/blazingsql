@@ -337,8 +337,10 @@ std::string get_aggregation_operation_string(std::string operator_string) {
 AggregateKind get_aggregation_operation(std::string operator_string) {
 
 	operator_string = get_aggregation_operation_string(operator_string);
-	if(operator_string == "SUM" || operator_string == "$SUM0") {
+	if(operator_string == "SUM") {
 		return AggregateKind::SUM;
+	} else if(operator_string == "$SUM0") {
+		return AggregateKind::SUM0;
 	} else if(operator_string == "AVG") {
 		return AggregateKind::MEAN;
 	} else if(operator_string == "MIN") {
