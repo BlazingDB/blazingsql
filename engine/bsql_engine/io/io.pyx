@@ -29,7 +29,7 @@ import pyarrow as pa
 import cudf
 from cudf.utils import cudautils
 from cudf.utils.dtypes import is_categorical_dtype
-from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
+from cudf.utils.utils import mask_dtype, mask_bitsize
 
 from cudf.core.column.column import build_column
 import rmm

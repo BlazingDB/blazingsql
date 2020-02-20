@@ -54,81 +54,92 @@ ral::frame::TableViewPair data_loader::load_data(
 		user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
 		files.push_back(this->provider->get_next());
 	}
+	size_t num_files = files.size();
 
 	std::string loadMsg = "DataLoader going to load " + std::to_string(files.size()) + " files";
 	Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context->getContextToken()),
   			std::to_string(context->getQueryStep()), std::to_string(context->getQuerySubstep()), loadMsg));
 
 	std::vector< ral::frame::TableViewPair > tableViewPairs_per_file;
-	tableViewPairs_per_file.resize(files.size());
+	tableViewPairs_per_file.resize(num_files);
 
 	// TODO NOTE percy c.gonzales rommel fix our concurrent reads here (better use of thread)
 	// make sure cudf supports concurrent reads
+	int MAX_NUM_LOADING_THREADS = 8;
+	std::vector<std::vector<data_handle>> file_sets(num_files < MAX_NUM_LOADING_THREADS ? num_files : MAX_NUM_LOADING_THREADS);
+	for (int i = 0; i < num_files; i++){
+		file_sets[i % MAX_NUM_LOADING_THREADS].emplace_back(std::move(files[i]));
+    }
+
 	std::vector<std::thread> threads;
 
-	for(int file_index = 0; file_index < files.size(); file_index++) {
-		threads.push_back(std::thread([&, file_index]() {
-			if (files[file_index].fileHandle != nullptr) {
+	for(int file_set_index = 0; file_set_index < file_sets.size(); file_set_index++) {
+		threads.push_back(std::thread([&, file_set_index]() {
+			for (int file_in_set = 0; file_in_set < file_sets[file_set_index].size(); file_in_set++) {
+				int file_index = file_in_set * MAX_NUM_LOADING_THREADS + file_set_index;
 				
-				Schema fileSchema = schema.fileSchema(file_index);
+				if (file_sets[file_set_index][file_in_set].fileHandle != nullptr) {			
+				
+					Schema fileSchema = schema.fileSchema(file_index);
 
-				std::vector<size_t> column_indices_in_file;
-				for (int i = 0; i < column_indices.size(); i++){
-					if(schema.get_in_file()[column_indices[i]]) {
-						column_indices_in_file.push_back(column_indices[i]);							
-					}
-				}				
+					std::vector<size_t> column_indices_in_file;
+					for (int i = 0; i < column_indices.size(); i++){
+						if(schema.get_in_file()[column_indices[i]]) {
+							column_indices_in_file.push_back(column_indices[i]);							
+						}
+					}				
 
-				if (schema.all_in_file()){
-					ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
-					tableViewPairs_per_file[file_index] =  std::move(loaded_table);
-				} else {
-					std::vector<std::unique_ptr<cudf::column>> current_columns;
-					std::vector<std::string> names;
-					cudf::size_type num_rows;
-					if (column_indices_in_file.size() > 0){
-						ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
-						std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = std::move(loaded_table.first);
-						names = current_blazing_table->names();
-						std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
-						num_rows = current_table->num_rows();
-						current_columns = current_table->release();
-					} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
-						std::vector<size_t> temp_column_indices = {0};
-						ral::frame::TableViewPair loaded_table = parser->parse(files[file_index].fileHandle, user_readable_file_handles[file_index], fileSchema, temp_column_indices);
-						num_rows = loaded_table.second.num_rows();
-					}
+					if (schema.all_in_file()){
+						ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices);
+						tableViewPairs_per_file[file_index] =  std::move(loaded_table);
+					} else {
+						std::vector<std::unique_ptr<cudf::column>> current_columns;
+						std::vector<std::string> names;
+						cudf::size_type num_rows;
+						if (column_indices_in_file.size() > 0){
+							ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices);
+							std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = std::move(loaded_table.first);
+							names = current_blazing_table->names();
+							std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
+							num_rows = current_table->num_rows();
+							current_columns = current_table->release();
+						} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
+							std::vector<size_t> temp_column_indices = {0};
+							ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices);
+							num_rows = loaded_table.second.num_rows();
+						}
+						
+						for(int i = 0; i < column_indices.size(); i++) {
+							int col_ind = column_indices[i];
+							if(!schema.get_in_file()[col_ind]) {
+								std::string name = schema.get_name(col_ind);
+								names.push_back(name);
+								cudf::type_id type = schema.get_dtype(col_ind);
+								std::string scalar_string = file_sets[file_set_index][file_in_set].column_values[name];
+								if(type == cudf::type_id::STRING){
+									current_columns.emplace_back(ral::utilities::experimental::make_string_column_from_scalar(scalar_string, num_rows));
+								} else {
+									std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
+									size_t width_per_value = cudf::size_of(scalar->type());
+									auto buffer_size = width_per_value * num_rows;
+									rmm::device_buffer gpu_buffer(buffer_size);
+									auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
+									auto mutable_scalar_col = scalar_column->mutable_view();
+									cudf::experimental::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
+									current_columns.emplace_back(std::move(scalar_column));
+								}
+							} 
+						}
+						auto unique_table = std::make_unique<cudf::experimental::table>(std::move(current_columns));
+						auto new_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names);
+						ral::frame::BlazingTableView new_table_view = new_blazing_table->toBlazingTableView();
+						tableViewPairs_per_file[file_index] = std::move(std::make_pair(std::move(new_blazing_table), new_table_view));
+					} 
 					
-					for(int i = 0; i < column_indices.size(); i++) {
-						int col_ind = column_indices[i];
-						if(!schema.get_in_file()[col_ind]) {
-							std::string name = schema.get_name(col_ind);
-							names.push_back(name);
-							cudf::type_id type = schema.get_dtype(col_ind);
-							std::string scalar_string = files[file_index].column_values[name];
-							if(type == cudf::type_id::STRING){
-								current_columns.emplace_back(ral::utilities::experimental::make_string_column_from_scalar(scalar_string, num_rows));
-							} else {
-								std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
-								size_t width_per_value = cudf::size_of(scalar->type());
-								auto buffer_size = width_per_value * num_rows;
-								rmm::device_buffer gpu_buffer(buffer_size);
-								auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
-								auto mutable_scalar_col = scalar_column->mutable_view();
-								cudf::experimental::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
-								current_columns.emplace_back(std::move(scalar_column));
-							}
-						} 
-					}
-					auto unique_table = std::make_unique<cudf::experimental::table>(std::move(current_columns));
-					auto new_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names);
-					ral::frame::BlazingTableView new_table_view = new_blazing_table->toBlazingTableView();
-					tableViewPairs_per_file[file_index] = std::move(std::make_pair(std::move(new_blazing_table), new_table_view));
-				} 
-				
-			} else {
-				Library::Logging::Logger().logError(ral::utilities::buildLogString(
-					"", "", "", "ERROR: Was unable to open " + user_readable_file_handles[file_index]));
+				} else {
+					Library::Logging::Logger().logError(ral::utilities::buildLogString(
+						"", "", "", "ERROR: Was unable to open " + user_readable_file_handles[file_index]));
+				}
 			}
 		}));
 	}
@@ -149,8 +160,7 @@ ral::frame::TableViewPair data_loader::load_data(
 	this->provider->reset();
 
 	size_t num_columns;
-	size_t num_files = files.size();
-
+	
 	if(num_files > 0) {
 		num_columns = tableViewPairs_per_file[0].first->num_columns();
 	}
