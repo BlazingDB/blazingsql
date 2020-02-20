@@ -68,7 +68,7 @@ cudf::type_id get_next_biggest_type(cudf::type_id type) {
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKind aggregation, bool have_groupby) {
 	if(aggregation == AggregateKind::COUNT) {
 		return cudf::type_id::INT64;
-	} else if(aggregation == AggregateKind::SUM) {
+	} else if(aggregation == AggregateKind::SUM || aggregation == AggregateKind::SUM0) {
 		if(have_groupby)
 			return input_type;  // current group by function can only handle this
 		else {
