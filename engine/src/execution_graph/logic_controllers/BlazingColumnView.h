@@ -16,6 +16,7 @@ class BlazingColumnView : public BlazingColumn {
 		}
 		// release of a BlazingColumnView will make a copy since its not the owner and therefore cannot transfer ownership
 		std::unique_ptr<CudfColumn> release() { return std::make_unique<CudfColumn>(column); }
+		blazing_column_type type() { return blazing_column_type::VIEW; }
 		
 	private:
 		CudfColumnView column;

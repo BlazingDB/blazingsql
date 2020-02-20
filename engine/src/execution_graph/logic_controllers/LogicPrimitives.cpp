@@ -48,6 +48,10 @@ std::unique_ptr<CudfTable> BlazingTable::releaseCudfTable() {
 	return std::make_unique<CudfTable>(std::move(columns_out));
 }
 
+std::vector<std::unique_ptr<BlazingColumn>> BlazingTable::releaseBlazingColumns() {
+	return std::move(columns);
+}
+
 
 BlazingTableView::BlazingTableView(){
   

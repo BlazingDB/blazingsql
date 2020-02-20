@@ -16,6 +16,7 @@ class BlazingColumnOwner : public BlazingColumn {
 			return column->view();
 		}
 		std::unique_ptr<CudfColumn> release() { return std::move(column); }
+		blazing_column_type type() { return blazing_column_type::OWNER; }
 		
 	private:
 		std::unique_ptr<CudfColumn> column;

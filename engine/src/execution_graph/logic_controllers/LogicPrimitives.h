@@ -34,6 +34,7 @@ public:
 	operator bool() const { return columns.size() != 0; }
 
 	std::unique_ptr<CudfTable> releaseCudfTable();
+	std::vector<std::unique_ptr<BlazingColumn>> releaseBlazingColumns();
 
 private:
 	std::vector<std::string> columnNames;

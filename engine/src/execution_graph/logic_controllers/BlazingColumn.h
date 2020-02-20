@@ -16,11 +16,17 @@ namespace ral {
 
 namespace frame {
 
+enum class blazing_column_type {
+	OWNER,
+	VIEW
+};
+
 
 class BlazingColumn {
 	public:
 		virtual CudfColumnView view() const = 0;
 		virtual std::unique_ptr<CudfColumn> release() = 0;
+		virtual blazing_column_type type() = 0;
 		
 	
 };
