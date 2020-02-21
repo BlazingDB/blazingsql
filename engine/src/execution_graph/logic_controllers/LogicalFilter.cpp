@@ -20,6 +20,7 @@
 #include "Utils.cuh"
 
 #include "../../Interpreter/interpreter_cpp.h"
+#include "execution_graph/logic_controllers/BlazingColumn.h"
 
 namespace ral {
 namespace processor {
@@ -48,13 +49,12 @@ std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
 }
 
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
-  const ral::frame::BlazingTableView & table,
+  const ral::frame::BlazingTableView & table_view,
   const std::string & query_part,
   blazingdb::manager::experimental::Context * context) {
 
-	cudf::table_view table_view = table.view();
 	if(table_view.num_rows() == 0) {
-		return std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(table_view), table.names());
+		return std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(table_view.view()), table_view.names());
 	}
 	
   std::string conditional_expression = get_named_expression(query_part, "condition");
@@ -62,11 +62,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 		conditional_expression = get_named_expression(query_part, "filters");
 	}
 
-  auto evaluated_table = evaluate_expressions(table_view, {conditional_expression});
+  std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = evaluate_expressions(table_view.toBlazingColumns(), {conditional_expression});
 
-  RAL_EXPECTS(evaluated_table->num_columns() == 1 && evaluated_table->get_column(0).type().id() == cudf::type_id::BOOL8, "Expression does not evaluate to a boolean mask");
+  RAL_EXPECTS(evaluated_table.size() == 1 && evaluated_table[0]->view().type().id() == cudf::type_id::BOOL8, "Expression does not evaluate to a boolean mask");
 
-  return applyBooleanFilter(table, evaluated_table->get_column(0));
+  return applyBooleanFilter(table_view, evaluated_table[0]->view());
 }
 
 

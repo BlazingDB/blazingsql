@@ -367,7 +367,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
 			if (child_frame->num_columns()) {
-				child_frame = ral::processor::process_project(child_frame->toBlazingTableView(), query[0], queryContext);
+				child_frame = ral::processor::process_project(std::move(child_frame), query[0], queryContext);
 				
 				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 					"evaluate_split_query process_project",

@@ -15,7 +15,7 @@ class BlazingTableView;
 
 class BlazingTable {
 public:
-	BlazingTable();
+	BlazingTable(std::vector<std::unique_ptr<BlazingColumn>> columns, const std::vector<std::string> & columnNames);
 	BlazingTable(std::unique_ptr<CudfTable> table, const std::vector<std::string> & columnNames);
 	BlazingTable(const CudfTableView & table, const std::vector<std::string> & columnNames);
 	BlazingTable(BlazingTable &&) = default;
@@ -55,6 +55,7 @@ public:
 	CudfTableView view() const;
 
 	cudf::column_view const & column(cudf::size_type column_index) const { return table.column(column_index); }
+	std::vector<std::unique_ptr<BlazingColumn>> toBlazingColumns() const;
 
 	std::vector<std::string> names() const;
 	// set columnNames
@@ -73,6 +74,8 @@ private:
 
 std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::type_id> column_types,
 									   std::vector<std::string> column_names);
+
+std::vector<std::unique_ptr<BlazingColumn>> cudfTableViewToBlazingColumns(const CudfTableView & table);
 
 }  // namespace frame
 

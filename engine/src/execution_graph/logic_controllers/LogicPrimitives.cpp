@@ -7,6 +7,9 @@ namespace ral{
 
 namespace frame{
 
+BlazingTable::BlazingTable(std::vector<std::unique_ptr<BlazingColumn>> columns, const std::vector<std::string> & columnNames)
+	: columns(std::move(columns)), columnNames(columnNames) {}
+	
 
 BlazingTable::BlazingTable(	std::unique_ptr<CudfTable> table, const std::vector<std::string> & columnNames){
 
@@ -68,6 +71,10 @@ CudfTableView BlazingTableView::view() const{
   return this->table;
 }
 
+std::vector<std::unique_ptr<BlazingColumn>> BlazingTableView::toBlazingColumns() const{
+	return cudfTableViewToBlazingColumns(this->table);	
+}
+
 std::vector<std::string> BlazingTableView::names() const{
   return this->columnNames;
 }
@@ -90,6 +97,14 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 	
 	std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(empty_columns));
 	return std::make_unique<BlazingTable>(std::move(cudf_table), column_names);	
+}
+
+std::vector<std::unique_ptr<BlazingColumn>> cudfTableViewToBlazingColumns(const CudfTableView & table){
+	std::vector<std::unique_ptr<BlazingColumn>> columns_out;
+	for (size_t i = 0; i < table.num_columns(); i++){
+		columns_out.emplace_back(std::make_unique<BlazingColumnView>(table.column(i)));
+	}
+	return columns_out;
 }
 
 }

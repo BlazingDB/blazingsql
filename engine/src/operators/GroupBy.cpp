@@ -296,11 +296,11 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 			numeric_s->set_value((int64_t)(table.view().num_rows()));
 			reductions.emplace_back(std::move(scalar));
 		} else {
-			std::unique_ptr<cudf::experimental::table> aggregation_input_scope_holder;
+			std::vector<std::unique_ptr<ral::frame::BlazingColumn>> aggregation_input_scope_holder;
 			CudfColumnView aggregation_input;
 			if(contains_evaluation(aggregation_input_expressions[i])) {
-				aggregation_input_scope_holder = ral::processor::evaluate_expressions(table.view(), {aggregation_input_expressions[i]});
-				aggregation_input = aggregation_input_scope_holder->get_column(0).view();
+				aggregation_input_scope_holder = ral::processor::evaluate_expressions(table.toBlazingColumns(), {aggregation_input_expressions[i]});
+				aggregation_input = aggregation_input_scope_holder[0]->view();
 			} else {
 				aggregation_input = table.view().column(get_index(aggregation_input_expressions[i]));
 			}
@@ -508,7 +508,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	// We will iterate over the unique expressions and create an aggregation request for each one.
 	// We do it this way, because you could have something like min(colA), max(colA), sum(colA).
 	// These three aggregations would all be in one request because they have the same input
-	std::vector< std::unique_ptr<cudf::column> > aggregation_inputs_scope_holder;
+	std::vector< std::unique_ptr<ral::frame::BlazingColumn> > aggregation_inputs_scope_holder;
 	std::vector<cudf::experimental::groupby::aggregation_request> requests;
 	std::vector<int> agg_out_indices;
 	std::vector<std::string> agg_output_column_names;
@@ -533,12 +533,11 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						if (temp->size() != 0) {
 							cudf::experimental::fill_in_place(mview_temp, 0, temp->size(), *scalar);
 						}
-						aggregation_inputs_scope_holder.emplace_back(std::move(temp));
+						aggregation_inputs_scope_holder.emplace_back(std::move(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(temp))));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					} else {
 						if(contains_evaluation(expression)) {
-							auto computed_table = ral::processor::evaluate_expressions(table.view(), {expression});
-							auto computed_columns = computed_table->release();
+							std::vector< std::unique_ptr<ral::frame::BlazingColumn> > computed_columns = ral::processor::evaluate_expressions(table.toBlazingColumns(), {expression});
 							aggregation_inputs_scope_holder.insert(aggregation_inputs_scope_holder.end(), std::make_move_iterator(computed_columns.begin()), std::make_move_iterator(computed_columns.end()));
 							aggregation_input = aggregation_inputs_scope_holder.back()->view();
 						} else {
