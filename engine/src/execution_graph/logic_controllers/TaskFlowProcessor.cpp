@@ -9,10 +9,11 @@ void port::register_port(std::string port_name) { cache_machines_[port_name] = n
 
 std::shared_ptr<CacheMachine> & port::get_cache(const std::string & port_name) {
 	if(port_name.length() == 0) {
+		// NOTE: id is the `default` cache_machine name
 		auto id = std::to_string(kernel_->get_id());
 		auto it = cache_machines_.find(id);
 		return it->second;
-	}
+	}	
 	auto it = cache_machines_.find(port_name);
 	return it->second;
 }

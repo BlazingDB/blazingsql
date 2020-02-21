@@ -52,6 +52,6 @@ std::unique_ptr<ral::frame::BlazingTable> computeAggregation(
   /* inputs you need to run different aggregations*/);
 
 
-}
+} // end namespace processor
 
-}
+} // end namespace ral

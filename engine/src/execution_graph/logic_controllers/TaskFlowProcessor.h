@@ -1,10 +1,11 @@
 #pragma once
 
 #include "utilities/random_generator.cuh"
-#include "execution_graph/logic_controllers/LogicalProject.h"
 #include <cudf/cudf.h>
 #include <cudf/io/functions.hpp>
 #include <cudf/types.hpp>
+#include "execution_graph/logic_controllers/TableScan.h"
+#include "execution_graph/logic_controllers/LogicalProject.h"
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
@@ -18,6 +19,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
+#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace cache {
@@ -291,7 +293,9 @@ public:
 	kernel& get_last_kernel () {
 		return *kernels_.at(kernels_.size() - 1);
 	}
-
+	size_t num_nodes() const {
+		return kernels_.size();
+	}
 	size_t add_node(kernel * k) {
 		if(k != nullptr) {
 			container_[k->get_id()] = k;
@@ -488,8 +492,12 @@ public:
 			std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
 			while ( not this->input_.get_cache()->is_finished()) {
 				auto input = std::move(this->input_.get_cache()->pullFromCache());
-				partitions_to_merge.emplace_back(std::move(input->toBlazingTableView()));
-				partitions_to_merge_holder.emplace_back(std::move(input));
+				if (input) {
+					partitions_to_merge.emplace_back(input->toBlazingTableView());
+					partitions_to_merge_holder.emplace_back(std::move(input));
+				} else {
+					break;
+				}
 			}
 			auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context);
 			this->output_.get_cache()->addToCache(std::move(output));
@@ -595,6 +603,24 @@ private:
 };
 }  // namespace test
 
+class BindableTableScanKernel : public kernel {
+public:
+	BindableTableScanKernel(std::string expr, ral::io::data_loader &loader, ral::io::Schema & schema, blazingdb::manager::experimental::Context* context)
+	: kernel(), expr(expr), context(context), loader(loader), schema(schema)
+	{}
+
+	virtual kstatus run() {
+		auto output = ral::processor::process_table_scan(loader, expr, schema, context);
+		this->output_.get_cache()->addToCache(std::move(output));
+		return (kstatus::proceed);
+	}
+
+private:
+	blazingdb::manager::experimental::Context *context;
+	ral::io::data_loader loader;
+	ral::io::Schema  schema;
+	std::string expr;
+};
 
 class TableScanKernel : public kernel {
 public:
@@ -665,55 +691,26 @@ struct expr_tree_processor {
 			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1);
 		}
 	}
-	// Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
-	std::string extract_table_name(std::string query_part) {
-		size_t start = query_part.find("[[") + 2;
-		size_t end = query_part.find("]]");
-		std::string table_name_text = query_part.substr(start, end - start);
-		std::vector<std::string> table_parts = StringUtil::split(table_name_text, ',');
-		std::string table_name = "";
-		for(int i = 0; i < table_parts.size(); i++) {
-			if(table_parts[i][0] == ' ') {
-				table_parts[i] = table_parts[i].substr(1, table_parts[i].size() - 1);
-			}
-			table_name += table_parts[i];
-			if(i != table_parts.size() - 1) {
-				table_name += ".";
-			}
-		}
 
-		return table_name;
-	}
-
-	// Returns the index from table if exists
-	size_t get_table_index(std::vector<std::string> table_names, std::string table_name) {
-		if(StringUtil::beginsWith(table_name, "main.")) {
-			table_name = table_name.substr(5);
-		}
-
-		auto it = std::find(table_names.begin(), table_names.end(), table_name);
-		if(it != table_names.end()) {
-			return std::distance(table_names.begin(), it);
-		} else {
-			throw std::invalid_argument("table name does not exists ==>" + table_name);
-		}
-	}
 
 	std::shared_ptr<kernel>  get_kernel(std::string expr) {
-		if (expr.find("LogicalProject") != std::string::npos)
+		if ( is_project(expr) )
 			return std::make_shared<ProjectKernel>(expr, this->context);
-		else if (expr.find("LogicalFilter") != std::string::npos)
+		else if ( is_filter(expr) )
 			return std::make_shared<FilterKernel>(expr, this->context);
-		else if (expr.find("LogicalJoin") != std::string::npos)
+		else if ( is_join(expr) )
 			return std::make_shared<JoinKernel>(expr, this->context);
-		else if (expr.find("LogicalProject") != std::string::npos)
+		else if ( is_project(expr) )
 			return std::make_shared<ProjectKernel>(expr, this->context);
-		else if (expr.find("LogicalTableScan") != std::string::npos) {
+		else if ( is_sort(expr) ) {
+			return std::make_shared<ProjectKernel>(expr, this->context);
+		} else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			return std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], this->context);
-		}else if (expr.find("LogicalSort") != std::string::npos) {
-			return std::make_shared<ProjectKernel>(expr, this->context);
-		}
+		} else if (is_bindable_scan(expr)) {
+			size_t table_index = get_table_index(table_names, extract_table_name(expr));
+			return std::make_shared<BindableTableScanKernel>(expr, this->input_loaders[table_index], this->schemas[table_index], this->context);
+		}		
 		return nullptr;
 	}
 
@@ -730,7 +727,10 @@ struct expr_tree_processor {
 		}
 
 		ral::cache::graph graph;
-		visit(graph, &this->root, this->root.children);
+		if (this->root.kernel_unit != nullptr) {
+			graph.add_node(this->root.kernel_unit.get()); // register first node
+			visit(graph, &this->root, this->root.children);
+		}
 		return graph;
 	}
 

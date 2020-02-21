@@ -89,3 +89,39 @@ bool is_inequality(const std::string& token);
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name);
 
 interops::operator_type map_to_operator_type(const std::string & operator_token);
+
+
+const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
+const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
+const std::string LOGICAL_SCAN_TEXT = "LogicalTableScan";
+const std::string BINDABLE_SCAN_TEXT = "BindableTableScan";
+const std::string LOGICAL_AGGREGATE_TEXT = "LogicalAggregate";
+const std::string LOGICAL_PROJECT_TEXT = "LogicalProject";
+const std::string LOGICAL_SORT_TEXT = "LogicalSort";
+const std::string LOGICAL_FILTER_TEXT = "LogicalFilter";
+const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
+const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
+
+
+bool is_union(std::string query_part); 
+bool is_project(std::string query_part); 
+bool is_logical_scan(std::string query_part); 
+bool is_bindable_scan(std::string query_part); 
+bool is_filtered_bindable_scan(std::string query_part); 
+bool is_scan(std::string query_part); 
+bool is_filter(std::string query_part);
+bool is_sort(std::string query_part);
+bool is_join(const std::string & query);
+
+bool is_double_input(std::string query_part);
+
+
+// Returns the index from table if exists
+size_t get_table_index(std::vector<std::string> table_names, std::string table_name);
+
+// Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
+std::string extract_table_name(std::string query_part);
+
+std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expression, bool trim);
+
+std::string replace_calcite_regex(const std::string & expression);
