@@ -65,7 +65,7 @@ cudf::type_id get_next_biggest_type(cudf::type_id type) {
 // support returning the same input type. Also pygdf does not currently support unsigned types (for example count should
 // return and unsigned type)
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experimental::aggregation::Kind aggregation, bool have_groupby) {
-	if(aggregation == cudf::experimental::aggregation::Kind::COUNT) {
+	if(aggregation == cudf::experimental::aggregation::Kind::COUNT_ALL) {
 		return cudf::type_id::INT64;
 	} else if(aggregation == cudf::experimental::aggregation::Kind::SUM) {
 		if(have_groupby)
@@ -345,7 +345,7 @@ cudf::experimental::aggregation::Kind get_aggregation_operation(std::string oper
 	} else if(operator_string == "MAX") {
 		return cudf::experimental::aggregation::Kind::MAX;
 	} else if(operator_string == "COUNT") {
-		return cudf::experimental::aggregation::Kind::COUNT;
+		return cudf::experimental::aggregation::Kind::COUNT_ALL;
 	} 
 
 	throw std::runtime_error(
@@ -429,7 +429,7 @@ cudf::size_type get_index(const std::string & operand_string) {
 }
 
 std::string aggregator_to_string(cudf::experimental::aggregation::Kind aggregation) {
-	if(aggregation == cudf::experimental::aggregation::Kind::COUNT) {
+	if(aggregation == cudf::experimental::aggregation::Kind::COUNT_ALL) {
 		return "count";
 	} else if(aggregation == cudf::experimental::aggregation::Kind::SUM) {
 		return "sum";
