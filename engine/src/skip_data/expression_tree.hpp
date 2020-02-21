@@ -47,7 +47,13 @@ struct unary_op_node : abstract_node, std::enable_shared_from_this<unary_op_node
     ptr->right = nullptr;
     return ptr;
   }
-  virtual std::shared_ptr<abstract_node> reduce() override { return shared_from_this(); }
+  virtual std::shared_ptr<abstract_node> reduce() override {
+    if (is_unsupported_binary_op(this->to_string())) {
+      return  std::make_shared<unary_op_node>("NONE");
+    } else {
+      return shared_from_this();
+    }    
+  }
   virtual std::string to_string() override { return data; }
 };
 

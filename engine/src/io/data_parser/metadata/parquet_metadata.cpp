@@ -272,17 +272,12 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	if (parquet_readers.size() == 0){
 		return nullptr;
 	}
-	std::vector<std::vector<int64_t>> minmax_metadata_table;
+	
 	std::vector<std::string> metadata_names;
 	std::vector<cudf::data_type> metadata_dtypes;
+	std::vector<size_t> columns_with_metadata;
 
 	std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[0]->metadata();
-
-	// initialize minmax_metadata_table
-	// T(min, max), (file_handle, row_group)
-	minmax_metadata_table.resize(file_metadata->num_columns() * 2 + 2);
-	metadata_names.resize(file_metadata->num_columns() * 2 + 2);
-	metadata_dtypes.resize(file_metadata->num_columns() * 2 + 2);
 
 	int num_row_groups = file_metadata->num_row_groups();
 	const parquet::SchemaDescriptor *schema = file_metadata->schema();
@@ -298,68 +293,85 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			auto logical_type = column->converted_type();
 			cudf::data_type dtype = cudf::data_type (to_dtype(physical_type, logical_type)) ;
 
-			if (dtype.id() == cudf::type_id::STRING )
-				dtype = cudf::data_type(cudf::type_id::INT32);
+			if (columnMetaData->is_stats_set() && dtype.id() != cudf::type_id::STRING) {
+				auto statistics = columnMetaData->statistics();
+				if (statistics->HasMinMax()) {
+					auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
+					metadata_dtypes.push_back(dtype);
+					metadata_names.push_back(col_name_min);
+					
+					auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
+					metadata_dtypes.push_back(dtype);
+					metadata_names.push_back(col_name_max);
 
-			auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
-			metadata_dtypes[2 * colIndex] = dtype;
-			metadata_names[2 * colIndex] = col_name_min;
-			
-			auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
-			metadata_dtypes[2 * colIndex + 1] = dtype;
-			metadata_names[2 * colIndex + 1] = col_name_max;
+					columns_with_metadata.push_back(colIndex);
+				}
+			}
 		}
 
-		metadata_dtypes[metadata_dtypes.size() - 2] = cudf::data_type{cudf::type_id::INT32};
-		metadata_names[metadata_names.size() - 2] = "file_handle_index";
-		metadata_dtypes[metadata_dtypes.size() - 1] = cudf::data_type{cudf::type_id::INT32};
-		metadata_names[metadata_names.size() - 1] = "row_group_index";
+		metadata_dtypes.push_back(cudf::data_type{cudf::type_id::INT32});
+		metadata_names.push_back("file_handle_index");
+		metadata_dtypes.push_back(cudf::data_type{cudf::type_id::INT32});
+		metadata_names.push_back("row_group_index");
 	}
+
+	size_t num_metadata_cols = metadata_names.size();
+
+	std::vector<std::vector<std::vector<int64_t>>> minmax_metadata_table_per_file(parquet_readers.size());
 
 	size_t file_index = 0;
 	std::vector<std::thread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
 		// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
-		// threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, &minmax_metadata_table ](){
-		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
+		threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, 
+									&minmax_metadata_table_per_file, num_metadata_cols, columns_with_metadata](){
+		  
+		std::vector<std::vector<int64_t>> this_minmax_metadata_table(num_metadata_cols);
+		std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 
-		  int num_row_groups = file_metadata->num_row_groups();
-		  const parquet::SchemaDescriptor *schema = file_metadata->schema();
+		int num_row_groups = file_metadata->num_row_groups();
+		const parquet::SchemaDescriptor *schema = file_metadata->schema();
 
-		  for (int row_group_index = 0; row_group_index < num_row_groups; row_group_index++) {
-			  auto groupReader = parquet_readers[file_index]->RowGroup(row_group_index);
-			  auto *rowGroupMetadata = groupReader->metadata();
-			  for (int colIndex = 0; colIndex < file_metadata->num_columns();
-				   colIndex++) {
-				  const parquet::ColumnDescriptor *column = schema->Column(colIndex);
-				  auto columnMetaData = rowGroupMetadata->ColumnChunk(colIndex);
-				  if (columnMetaData->is_stats_set()) {
-					  auto statistics = columnMetaData->statistics();
-					  if (statistics->HasMinMax()) {
-						  guard.lock();
-						  set_min_max(minmax_metadata_table,
-						  	colIndex * 2,
-							  	     column->physical_type(),
-							  	     column->converted_type(),
-									 statistics);
-						  guard.unlock();
-					  }
-				  }
-			  }
-			  guard.lock();
-			  minmax_metadata_table[minmax_metadata_table.size() - 2].push_back(metadata_offset + file_index);
-			  minmax_metadata_table[minmax_metadata_table.size() - 1].push_back(row_group_index);
-			  guard.unlock();
-		  }
-		// });
+		for (int row_group_index = 0; row_group_index < num_row_groups; row_group_index++) {
+			auto groupReader = parquet_readers[file_index]->RowGroup(row_group_index);
+			auto *rowGroupMetadata = groupReader->metadata();
+			for (int col_count = 0; col_count < columns_with_metadata.size();
+				col_count++) {
+				const parquet::ColumnDescriptor *column = schema->Column(columns_with_metadata[col_count]);
+				auto columnMetaData = rowGroupMetadata->ColumnChunk(columns_with_metadata[col_count]);
+				if (columnMetaData->is_stats_set()) {
+					auto statistics = columnMetaData->statistics();
+					if (statistics->HasMinMax()) {
+						set_min_max(this_minmax_metadata_table,
+						col_count * 2,
+									column->physical_type(),
+									column->converted_type(),
+									statistics);
+						
+					}
+				}
+			}
+			this_minmax_metadata_table[this_minmax_metadata_table.size() - 2].push_back(metadata_offset + file_index);
+			this_minmax_metadata_table[this_minmax_metadata_table.size() - 1].push_back(row_group_index);			  
+		}
+		guard.lock();
+		minmax_metadata_table_per_file[file_index] = std::move(this_minmax_metadata_table);
+		guard.unlock();
+		});
 	}
-	// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
-	// for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
-	// 	threads[file_index].join();
-	// }
+	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
+		threads[file_index].join();
+	}
 
-	std::vector<std::unique_ptr<cudf::column>> minmax_metadata_gdf_table(file_metadata->num_columns() * 2 + 2);
+	std::vector<std::vector<int64_t>> minmax_metadata_table = minmax_metadata_table_per_file[0];
+	for (size_t i = 1; i < 	minmax_metadata_table_per_file.size(); i++) {
+		for (size_t j = 0; j < 	minmax_metadata_table_per_file[i].size(); j++) {
+			std::copy(minmax_metadata_table_per_file[i][j].begin(), minmax_metadata_table_per_file[i][j].end(), std::back_inserter(minmax_metadata_table[j]));
+		}
+	}
+
+	std::vector<std::unique_ptr<cudf::column>> minmax_metadata_gdf_table(minmax_metadata_table.size());
 	for (size_t index = 0; index < 	minmax_metadata_table.size(); index++) {
 		auto vector = minmax_metadata_table[index];
 		auto dtype = metadata_dtypes[index];

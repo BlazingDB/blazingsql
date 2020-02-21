@@ -1,6 +1,7 @@
 
 #include "SkipDataProcessor.h"
 
+#include <cudf/column/column_factories.hpp>
 #include "skip_data/expression_tree.hpp"
 #include "CalciteExpressionParsing.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
@@ -51,15 +52,14 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     }
 
     cudf::size_type rows = metadata_view.num_rows();
-    std::unique_ptr<cudf::column> temp_no_data = std::make_unique<cudf::column>( 
-		cudf::data_type{cudf::type_id::INT8}, rows,
-		rmm::device_buffer{0}, // no data
-		cudf::create_null_mask(rows, cudf::ALL_NULL),
-		rows);
-
+    std::unique_ptr<cudf::column> temp_no_data = cudf::make_fixed_width_column(
+        cudf::data_type{cudf::type_id::INT8}, rows,
+        cudf::mask_state::UNINITIALIZED);
+    
     std::vector<std::string> metadata_names = metadata_view.names();
     std::vector<bool> valid_metadata_columns;
     std::vector<cudf::column_view> projected_metadata_cols;
+    std::vector<std::string> projected_metadata_names;
     for (int i = 0; i < column_indeces.size(); i++){
         int col_index = column_indeces[i];
         std::string metadata_min_name = "min_" + std::to_string(col_index) + '_' + names[col_index];
@@ -77,6 +77,8 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
             projected_metadata_cols.push_back(temp_no_data->view()); // these are dummy columns that we wont actually use
             projected_metadata_cols.push_back(temp_no_data->view());
         }
+        projected_metadata_names.push_back(metadata_min_name);
+        projected_metadata_names.push_back(metadata_max_name);
     }
     CudfTableView projected_metadata_table(projected_metadata_cols);
 
@@ -95,10 +97,11 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     } else { // something happened and could not process
         return std::make_pair(nullptr, true);
     }
+
     if (filter_string.empty()) {
         return std::make_pair(nullptr, true);
     }
-    
+        
     // then we follow a similar pattern to process_filter
     auto evaluated_table = ral::processor::evaluate_expressions(projected_metadata_table, {filter_string});
 

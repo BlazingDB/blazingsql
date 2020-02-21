@@ -90,14 +90,14 @@ ral::frame::TableViewPair data_loader::load_data(
 					}				
 
 					if (schema.all_in_file()){
-						ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices);
+						ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
 						tableViewPairs_per_file[file_index] =  std::move(loaded_table);
 					} else {
 						std::vector<std::unique_ptr<cudf::column>> current_columns;
 						std::vector<std::string> names;
 						cudf::size_type num_rows;
 						if (column_indices_in_file.size() > 0){
-							ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices);
+							ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
 							std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = std::move(loaded_table.first);
 							names = current_blazing_table->names();
 							std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
@@ -105,7 +105,7 @@ ral::frame::TableViewPair data_loader::load_data(
 							current_columns = current_table->release();
 						} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
 							std::vector<size_t> temp_column_indices = {0};
-							ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices);
+							ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, temp_column_indices);
 							num_rows = loaded_table.second.num_rows();
 						}
 						

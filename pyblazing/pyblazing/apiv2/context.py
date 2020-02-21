@@ -257,8 +257,8 @@ def parseHiveMetadata(curr_table, partitions):
             final_names.append(names[2*index])
             final_names.append(names[2*index+1])
     index = n_cols 
-    col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.int16, name=names[2*index])
-    col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=np.int16, name=names[2*index+1])
+    col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.int32, name=names[2*index])
+    col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=np.int32, name=names[2*index+1])
     final_names.append(names[2*index])
     final_names.append(names[2*index+1])
     series.append(col1)
