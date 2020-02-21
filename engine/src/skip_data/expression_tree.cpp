@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#include "parser/expression_tree.hpp"
 #include "parser/expression_utils.hpp"
 
 namespace ral {
@@ -177,9 +178,15 @@ void expression_tree::drop(std::vector<std::string> const &column_names) {
 }
 
 bool expression_tree::build(std::string str) {
-  auto parts = split(str, " ");
-  return build(root, parts, 0) == -1;
+  // lets use our newest good parser to help us tokenize until we merge both expression tree parsers
+  ral::parser::parse_tree tree;
+	tree.build(str);
+  std::string tokenizable_string = tree.buildTokenizableString();
+  std::vector<std::string> tokens = split(tokenizable_string, "@#@"); 
+  
+  return build(root, tokens, 0) == -1;
 }
+
 void expression_tree::print() {
   print_helper(root.get(), 0);
   printf("\n");
