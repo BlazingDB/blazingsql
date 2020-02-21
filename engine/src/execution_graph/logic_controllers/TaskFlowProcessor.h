@@ -135,6 +135,13 @@ public:
 		dst = &b;
 		this->cache_machine = cache_machine;
 	}
+	kpair(kernel_pair a, kernel_pair b, std::shared_ptr<CacheMachine> cache_machine = nullptr) {
+		src = a.first;
+		src_port_name = a.second;
+		dst = b.first;
+		dst_port_name = b.second;
+		this->cache_machine = cache_machine;
+	}
 	bool has_custom_source() const { return not src_port_name.empty(); }
 	bool has_custom_target() const { return not dst_port_name.empty(); }
 
@@ -158,7 +165,10 @@ static kpair & operator>>(kernel_pair a, kernel & b) {
 	auto pair = new kpair(std::move(a), b);
 	return *pair;
 }
-
+static kpair & operator>>(kernel_pair a, kernel_pair b) {
+	auto pair = new kpair(std::move(a), std::move(b));
+	return *pair;
+}
 static kpair & link(kernel & a, kernel & b, std::shared_ptr<CacheMachine> cache_machine = nullptr) {
 	auto pair = new kpair(a, b, cache_machine);
 	return *pair;
@@ -253,19 +263,19 @@ public:
 					visited.insert(edge_id);
 					Q.push_back(target_id);
 					std::thread t([this, source, target, edge] {
-						auto state = source->run();
-						if (state == kstatus::proceed) {
-							source->output_.finish();
-						} else if (state == kstatus::keep_processing) {
-							while (state == kstatus::keep_processing) {
-								std::cout << "keep_processing...\n";
-								auto state = source->run();
-								if (state == kstatus::stop) {
-									break;
-								}
-							}
-							source->output_.finish();
-						}
+					  auto state = source->run();
+					  if (state == kstatus::proceed) {
+						  source->output_.finish();
+					  } else if (state == kstatus::keep_processing) {
+						  while (state == kstatus::keep_processing) {
+							  std::cout << "keep_processing...\n";
+							  auto state = source->run();
+							  if (state == kstatus::stop) {
+								  break;
+							  }
+						  }
+						  source->output_.finish();
+					  }
 					});
 					threads.push_back(std::move(t));
 				} else {
@@ -400,6 +410,36 @@ using JoinKernel = DoubleSourceKernel<ral::processor::process_join>;
 using SortKernel = SingleSourceKernel<ral::operators::experimental::sort>;
 using SampleKernel = SingleSourceKernel<ral::operators::experimental::sample>;
 
+class SortAndSampleKernel : public kernel {
+public:
+	SortAndSampleKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+		this->output_.addPort("output_a", "output_b");
+		this->context = context;
+		this->expression = queryString;
+	}
+	virtual kstatus run() {
+		try {
+			frame_type input = std::move(this->input_.get_cache()->pullFromCache());
+			std::unique_ptr<ral::frame::BlazingTable> sortedTable;
+			std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+			std::tie(sortedTable, partitionPlan) =
+				ral::operators::experimental::sort_and_sample(input->toBlazingTableView(), this->expression, this->context);
+
+			this->output_["output_a"]->addToCache(std::move(sortedTable));
+			if (context->getTotalNodes() > 1) {
+				this->output_["output_b"]->addToCache(std::move(partitionPlan));
+			}
+			return kstatus::proceed;
+		} catch (std::exception &e) {
+			std::cerr << "Exception-PartitionKernel: " << e.what() << std::endl;
+		}
+		return kstatus::stop;
+	}
+
+private:
+	blazingdb::manager::experimental::Context * context;
+	std::string expression;
+};
 
 class PartitionKernel : public kernel {
 public:
@@ -410,10 +450,18 @@ public:
 	}
 	virtual kstatus run() {
 		try {
-			frame_type input_a = std::move(this->input_["input_a"]->pullFromCache());
-			frame_type input_b = std::move(this->input_["input_b"]->pullFromCache());
-			std::vector<std::unique_ptr<ral::frame::BlazingTable>> output =
-				ral::operators::experimental::partition(input_a->toBlazingTableView(), input_b->toBlazingTableView(), this->expression, this->context);
+			frame_type sortedTable = std::move(this->input_["input_a"]->pullFromCache());
+			std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+			std::vector<std::unique_ptr<ral::frame::BlazingTable>> output;
+			if (context->getTotalNodes() > 1) {
+				partitionPlan = std::move(this->input_["input_b"]->pullFromCache());
+				output =
+					ral::operators::experimental::partition(partitionPlan->toBlazingTableView(),
+					sortedTable->toBlazingTableView(), this->expression, this->context);
+			} else {
+				output =
+					ral::operators::experimental::partition({}, sortedTable->toBlazingTableView(), this->expression, this->context);
+			}
 			for (auto& item : output) {
 				this->output_.get_cache()->addToCache(std::move(item));
 			}
@@ -431,7 +479,6 @@ private:
 class MergeStreamKernel : public kernel {
 public:
 	MergeStreamKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
-		this->input_.addPort("input_a", "input_b");
 		this->context = context;
 		this->expression = queryString;
 	}
@@ -439,8 +486,8 @@ public:
 		try {
 			std::vector<ral::frame::BlazingTableView> partitions_to_merge;
 			std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
-			while ( not this->input_["input"]->is_finished()) {
-				auto input = std::move(this->input_["input"]->pullFromCache());
+			while ( not this->input_.get_cache()->is_finished()) {
+				auto input = std::move(this->input_.get_cache()->pullFromCache());
 				partitions_to_merge.emplace_back(std::move(input->toBlazingTableView()));
 				partitions_to_merge_holder.emplace_back(std::move(input));
 			}
@@ -655,16 +702,17 @@ struct expr_tree_processor {
 	std::shared_ptr<kernel>  get_kernel(std::string expr) {
 		if (expr.find("LogicalProject") != std::string::npos)
 			return std::make_shared<ProjectKernel>(expr, this->context);
-		if (expr.find("LogicalFilter") != std::string::npos)
+		else if (expr.find("LogicalFilter") != std::string::npos)
 			return std::make_shared<FilterKernel>(expr, this->context);
-		if (expr.find("LogicalJoin") != std::string::npos)
+		else if (expr.find("LogicalJoin") != std::string::npos)
 			return std::make_shared<JoinKernel>(expr, this->context);
-		if (expr.find("LogicalProject") != std::string::npos)
+		else if (expr.find("LogicalProject") != std::string::npos)
 			return std::make_shared<ProjectKernel>(expr, this->context);
-		if (expr.find("LogicalTableScan") != std::string::npos) { 
-			//TODO: reuse get_table_index and extract_table_name. 
+		else if (expr.find("LogicalTableScan") != std::string::npos) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			return std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], this->context);
+		}else if (expr.find("LogicalSort") != std::string::npos) {
+			return std::make_shared<ProjectKernel>(expr, this->context);
 		}
 		return nullptr;
 	}

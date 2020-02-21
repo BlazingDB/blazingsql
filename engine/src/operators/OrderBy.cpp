@@ -338,10 +338,26 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	return partitionPlan;
 }
 
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable>>
+sort_and_sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
+	auto sortedTable = sort(table, query_part, context);
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan = nullptr;
+	if(context->getTotalNodes() > 1) {
+		partitionPlan = sample(table, query_part, context);
+	}
+	return std::make_pair(std::move(sortedTable), std::move(partitionPlan));
+}
+
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition(const ral::frame::BlazingTableView & partitionPlan,
 													const ral::frame::BlazingTableView & sortedTable,
 													const std::string & query_part,
 													blazingdb::manager::experimental::Context * context) {
+	if(context->getTotalNodes() <= 1) {
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> v;
+		//TODO  @alex  FIX THIS clone!
+		v.push_back(std::move(sortedTable.clone()));
+		return v;
+	}
 	std::vector<int8_t> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	bool apply_limit;
@@ -358,6 +374,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition(const ral::fram
 	}
 	for (auto partition : partitions) {
 		if(partition.first == CommunicationData::getInstance().getSelfNode()) {
+			//TODO  @alex  FIX THIS clone!
 			std::unique_ptr<ral::frame::BlazingTable> table = partition.second.clone();
 			partitions_to_merge.push_back(std::move(table));
 			break;
@@ -365,8 +382,10 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition(const ral::fram
 	}
 	return partitions_to_merge;
 }
-
-std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> &partitions_to_merge, const std::string & query_part, blazingdb::manager::experimental::Context * context) {
+std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part, Context * context) {
+	if(context->getTotalNodes() <= 1) {
+		return partitions_to_merge[0].clone();
+	}
 	std::vector<int8_t> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	bool apply_limit;

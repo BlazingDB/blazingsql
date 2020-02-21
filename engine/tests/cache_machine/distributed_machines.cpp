@@ -121,7 +121,9 @@ TEST_F(DistributedMachinesTest, SortSamplePartitionWorkFlowTest) {
 		customer_path_list.push_back(filepath);
 	}
 	FileReaderKernel customer_generator(customer_path_list);
-	SortKernel sort("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
+	SortAndSampleKernel sort_and_sample("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
+	PartitionKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
+	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
 	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", &queryContext);
 	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", &queryContext);
 	PrinterKernel print;
@@ -129,8 +131,11 @@ TEST_F(DistributedMachinesTest, SortSamplePartitionWorkFlowTest) {
 	try {
 		m += customer_generator >> filter;
 		m += filter >> project;
-		m += project >> sort;
-		m += sort >> print;
+		m += project >> sort_and_sample;
+		m += sort_and_sample["output_a"] >> partition["input_a"];
+		m += sort_and_sample["output_b"] >> partition["input_b"];
+		m += partition >> merge;
+		m += merge >> print;
 		m.execute();
 	} catch(std::exception & ex) {
 		std::cout << ex.what() << "\n";

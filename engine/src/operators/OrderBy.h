@@ -53,6 +53,9 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 
 std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context);
 
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable>>
+	sort_and_sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context);
+
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition(const ral::frame::BlazingTableView & partitionPlan,
 												const ral::frame::BlazingTableView & sortedTable,
 												const std::string & query_part,
