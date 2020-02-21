@@ -349,8 +349,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   }
 
 std::unique_ptr<ral::frame::BlazingTable> processJoin(
-  const ral::frame::BlazingTableView & table_left,
-  const ral::frame::BlazingTableView & table_right,
+  const ral::frame::BlazingTableView & table_left_in,
+  const ral::frame::BlazingTableView & table_right_in,
   const std::string & expression){
 
   std::string condition = get_named_expression(expression, "condition");
@@ -362,12 +362,30 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
   std::vector<cudf::size_type> left_column_indices;
   std::vector<cudf::size_type> right_column_indices;
   for(int i = 0; i < column_indices.size();i++){
-    if(column_indices[i] >= table_left.view().num_columns()){
-      right_column_indices.push_back(column_indices[i] - table_left.view().num_columns());
+    if(column_indices[i] >= table_left_in.view().num_columns()){
+      right_column_indices.push_back(column_indices[i] - table_left_in.view().num_columns());
     }else{
       left_column_indices.push_back(column_indices[i]);
     }
   }
+
+  // Here lets make sure that the columns being joined are of the same type so that we can join them properly
+  std::vector<std::unique_ptr<ral::frame::BlazingColumn>> left_columns = table_left_in.toBlazingColumns();
+  std::vector<std::unique_ptr<ral::frame::BlazingColumn>> right_columns = table_right_in.toBlazingColumns();
+  for (size_t i = 0; i < left_column_indices.size(); i++){
+    if (left_columns[i]->view().type().id() != right_columns[i]->view().type().id()){
+      std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_to_normalize;
+      columns_to_normalize.emplace_back(std::move(left_columns[i]));
+      columns_to_normalize.emplace_back(std::move(right_columns[i]));
+      std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalized_columns = ral::utilities::experimental::normalizeColumnTypes(std::move(columns_to_normalize));
+      left_columns[i] = std::move(normalized_columns[0]);
+      right_columns[i] = std::move(normalized_columns[1]);
+    }
+  }
+  std::unique_ptr<ral::frame::BlazingTable> left_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(left_columns), table_left_in.names());
+  std::unique_ptr<ral::frame::BlazingTable> right_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(right_columns), table_right_in.names());
+  ral::frame::BlazingTableView table_left = left_blazing_table->toBlazingTableView();
+  ral::frame::BlazingTableView table_right = right_blazing_table->toBlazingTableView();
 
   std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 

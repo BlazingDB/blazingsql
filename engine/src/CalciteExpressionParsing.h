@@ -66,12 +66,10 @@ bool is_date_type(cudf::type_id type);
 bool is_numeric_type(cudf::type_id type);
 
 // this function takes two data types and returns the a common data type that the both can be losslessly be converted to
-// the function returns true if a common type is possible, or false if there is no common type
+// the function returns cudf::type_id::EMPTY if there is no common type
 // this function assumes that common types are decimal, float, datetime and string. You cannot convert across these
 // general types.
-void get_common_type(cudf::type_id type1,
-	cudf::type_id type2,
-	cudf::type_id & type_out);
+cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2);
 
 bool contains_evaluation(std::string expression);
 
