@@ -234,12 +234,15 @@ std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& 
 		rmm::device_buffer{0}, // no data
 		cudf::create_null_mask(rows, cudf::ALL_NULL),
 		rows );
+	if (rows == 0){
+		return temp_no_data;
+	} else {
+		auto scalar_value = cudf::make_string_scalar(str);
+		scalar_value->set_valid(true); // https://github.com/rapidsai/cudf/issues/4085
 
-	auto scalar_value = cudf::make_string_scalar(str);
-	scalar_value->set_valid(true); // https://github.com/rapidsai/cudf/issues/4085
-
-	auto scalar_filled_column = cudf::experimental::fill(temp_no_data->view(), 0, rows, *scalar_value);
-	return scalar_filled_column;
+		auto scalar_filled_column = cudf::experimental::fill(temp_no_data->view(), 0, rows, *scalar_value);
+		return scalar_filled_column;
+	}
 }
 
 }  // namespace experimental
