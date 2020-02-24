@@ -209,7 +209,7 @@ cdef extern from "../include/io/io.h":
     cdef struct ResultSet:
         unique_ptr[table] cudfTable
         vector[string]  names
-        bool error_reported
+        bool skipdata_analysis_fail
     
     ctypedef enum DataType:
         UNDEFINED = 999,

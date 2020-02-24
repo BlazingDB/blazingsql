@@ -118,7 +118,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = frame->names();
 		result->cudfTable = frame->releaseCudfTable();
-		result->error_reported = false;
+		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(const std::exception & e) {
 		std::cerr << e.what() << std::endl;
@@ -136,7 +136,7 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 				metadata, all_column_names, query);
 
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
-		result->error_reported = result_pair.second;
+		result->skipdata_analysis_fail = result_pair.second;
 		if (!result_pair.second){ // if could process skip-data
 			result->names = result_pair.first->names();
 			result->cudfTable = result_pair.first->releaseCudfTable();

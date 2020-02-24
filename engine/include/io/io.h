@@ -17,7 +17,7 @@ namespace cudf_io = cudf::experimental::io;
 struct ResultSet {
 	std::unique_ptr<cudf::experimental::table> cudfTable;
 	std::vector<std::string> names;
-	bool error_reported;
+	bool skipdata_analysis_fail;
 };
 
 struct ReaderArgs {

@@ -113,7 +113,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		result->names = names;
 		auto table = ral::utilities::experimental::create_empty_table(dtypes);
 		result->cudfTable = std::move(table);
-		result->error_reported = false;
+		result->skipdata_analysis_fail = false;
 		return result;
 	}
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
@@ -142,7 +142,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = metadata->names();
 		result->cudfTable = metadata->releaseCudfTable();
-		result->error_reported = false;
+		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(std::exception e) {
 		std::cerr << e.what() << std::endl;

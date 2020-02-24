@@ -339,8 +339,8 @@ cpdef runSkipDataCaller(table, queryPy):
     resultSet = blaz_move(runSkipDataPython( metadata, all_column_names, query))
 
     return_object = {}
-    return_object['has_some_error'] = dereference(resultSet).error_reported
-    if return_object['has_some_error']:
+    return_object['skipdata_analysis_fail'] = dereference(resultSet).skipdata_analysis_fail
+    if return_object['skipdata_analysis_fail']:
       return_object['metadata'] = cudf.DataFrame()
       return return_object
     else:

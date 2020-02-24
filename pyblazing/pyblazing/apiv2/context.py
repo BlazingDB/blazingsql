@@ -778,10 +778,10 @@ class BlazingContext(object):
     def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query):
         nodeFilesList = []
         file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
-        has_some_error = file_indices_and_rowgroup_indices['has_some_error']
+        skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
         
-        if not has_some_error:            
+        if not skipdata_analysis_fail:            
             actual_files = []
             uri_values = []
             row_groups_ids = []
