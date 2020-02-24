@@ -1,5 +1,3 @@
-#pragma once
-
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 
 namespace ral {
