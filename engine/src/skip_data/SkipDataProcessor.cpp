@@ -36,7 +36,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     } catch (...) {
         return std::make_pair(nullptr, true);
     }
-    // filter_string = clean_calcite_expression(filter_string);
+    filter_string = replace_calcite_regex(filter_string);
 
     std::string projects = get_named_expression(table_scan, "projects");
     std::vector<int> column_indeces;
