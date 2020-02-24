@@ -717,19 +717,18 @@ class BlazingContext(object):
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
-            worker_id = 0
-            for worker in workers:
+            for worker_id, worker in enumerate(workers):
                 file_subset = [ file.decode() for file in currentTableNodes[worker_id].files]
-                connection = self.dask_client.submit(
-                    cio.parseMetadataCaller,
-                    file_subset,
-                    currentTableNodes[worker_id].offset,
-                    schema,
-                    file_format_hint,
-                    kwargs,
-                    workers=[worker])
-                dask_futures.append(connection)
-                worker_id += 1
+                if len(file_subset) > 0:
+                    connection = self.dask_client.submit(
+                        cio.parseMetadataCaller,
+                        file_subset,
+                        currentTableNodes[worker_id].offset,
+                        schema,
+                        file_format_hint,
+                        kwargs,
+                        workers=[worker])
+                    dask_futures.append(connection)                
             return dask.dataframe.from_delayed(dask_futures)
 
         else:
