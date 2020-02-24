@@ -477,7 +477,7 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 		std::vector<int> mod_group_column_indices(group_column_indices.size());
 		std::iota(mod_group_column_indices.begin(), mod_group_column_indices.end(), 0);
 		for (int i = 0; i < mod_aggregation_types.size(); i++){
-			if (mod_aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT){
+			if (mod_aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT_ALL){
 				mod_aggregation_types[i] = cudf::experimental::aggregation::Kind::SUM; // if we have a COUNT, we want to SUM the output of the counts from other nodes
 			}
 			mod_aggregation_input_expressions[i] = std::to_string(i + mod_group_column_indices.size()); // we just want to aggregate the input columns, so we are setting the indices here
@@ -524,7 +524,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 				// need to calculate or determine the aggregation input only once
 				if (aggregation_input.size() == 0){
 					// this means we have a COUNT(*). So lets create a simple column with no nulls
-					if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT ) {
+					if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT_ALL ) {
 						std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(cudf::data_type(cudf::type_id::INT8), table.view().num_rows());
 						std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT8));
 						auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int8_t>* >(scalar.get());
@@ -551,7 +551,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 				
 				// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
 				if(aggregation_column_assigned_aliases[i] == "") {
-					if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT) {  // COUNT(*) case
+					if(expression == "" && aggregation_types[i] == cudf::experimental::aggregation::Kind::COUNT_ALL) {  // COUNT(*) case
 						agg_output_column_names.push_back(aggregator_to_string(aggregation_types[i]) + "(*)");
 					} else {
 						if (column_index == -1){

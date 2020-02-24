@@ -29,7 +29,7 @@ import pyarrow as pa
 import cudf
 from cudf.utils import cudautils
 from cudf.utils.dtypes import is_categorical_dtype
-from cudf.utils.utils import calc_chunk_size, mask_dtype, mask_bitsize
+from cudf.utils.utils import mask_dtype, mask_bitsize
 
 from cudf.core.column.column import build_column
 import rmm
@@ -182,7 +182,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
       # return_object['columns'][return_object['names'][i].decode('utf-8')] = (gdf_column_to_column(column))
       # i = i + 1
 
-	# temp is TableSchema and temp.column is array of cudf::column_view
+    # temp is TableSchema and temp.column is array of cudf::column_view
     #for column in tableSchema.columns:
         #return_object['columns'][return_object['names'][i].decode('utf-8')] = column
     #    i = i + 1
