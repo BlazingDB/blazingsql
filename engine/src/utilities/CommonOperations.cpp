@@ -232,7 +232,7 @@ std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& 
 	std::unique_ptr<cudf::column> temp_no_data = std::make_unique<cudf::column>( 
 		cudf::data_type{cudf::type_id::STRING}, rows,
 		rmm::device_buffer{0}, // no data
-		cudf::create_null_mask(rows, cudf::ALL_NULL),
+		cudf::create_null_mask(rows, cudf::mask_state::ALL_NULL),
 		rows );
 	if (rows == 0){
 		return temp_no_data;
