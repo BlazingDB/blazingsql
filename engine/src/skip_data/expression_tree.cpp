@@ -181,6 +181,7 @@ bool expression_tree::build(std::string str) {
   // lets use our newest good parser to help us tokenize until we merge both expression tree parsers
   ral::parser::parse_tree tree;
 	tree.build(str);
+  tree.transform_to_custom_op();
   std::string tokenizable_string = tree.buildTokenizableString();
   std::vector<std::string> tokens = split(tokenizable_string, "@#@"); 
   
