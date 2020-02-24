@@ -373,13 +373,13 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
   std::vector<std::unique_ptr<ral::frame::BlazingColumn>> left_columns = table_left_in.toBlazingColumns();
   std::vector<std::unique_ptr<ral::frame::BlazingColumn>> right_columns = table_right_in.toBlazingColumns();
   for (size_t i = 0; i < left_column_indices.size(); i++){
-    if (left_columns[i]->view().type().id() != right_columns[i]->view().type().id()){
+    if (left_columns[left_column_indices[i]]->view().type().id() != right_columns[right_column_indices[i]]->view().type().id()){
       std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_to_normalize;
-      columns_to_normalize.emplace_back(std::move(left_columns[i]));
-      columns_to_normalize.emplace_back(std::move(right_columns[i]));
+      columns_to_normalize.emplace_back(std::move(left_columns[left_column_indices[i]]));
+      columns_to_normalize.emplace_back(std::move(right_columns[right_column_indices[i]]));
       std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalized_columns = ral::utilities::experimental::normalizeColumnTypes(std::move(columns_to_normalize));
-      left_columns[i] = std::move(normalized_columns[0]);
-      right_columns[i] = std::move(normalized_columns[1]);
+      left_columns[left_column_indices[i]] = std::move(normalized_columns[0]);
+      right_columns[right_column_indices[i]] = std::move(normalized_columns[1]);
     }
   }
   std::unique_ptr<ral::frame::BlazingTable> left_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(left_columns), table_left_in.names());
