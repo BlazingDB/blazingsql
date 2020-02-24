@@ -470,13 +470,16 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     for (auto &&p : out_idx_computed_idx_pair) {
         out_columns[p.first] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(computed_columns[p.second]));
     }
-    std::vector<bool> already_moved(blazing_columns.size(), false);
+    
+    // this is a vector to keep track of if a column has already been moved from input to output. -1 means not moved, otherwise its the index of the output where it went to
+    std::vector<int> already_moved(blazing_columns.size(), -1); 
     for (auto &&p : out_idx_input_idx_pair) {
-        if (already_moved[p.second]){ // have to make a copy
-            out_columns[p.first] = std::move(std::make_unique<ral::frame::BlazingColumnOwner>(std::make_unique<cudf::column>(blazing_columns[p.second]->view())));
+        if (already_moved[p.second] >= 0){ // have to make a copy
+            out_columns[p.first] = std::move(std::make_unique<ral::frame::BlazingColumnOwner>(
+                    std::make_unique<cudf::column>(out_columns[already_moved[p.second]]->view())));
         } else {
             out_columns[p.first] = std::move(blazing_columns[p.second]);
-            already_moved[p.second] = true;
+            already_moved[p.second] = p.first;
         }
     }
 
