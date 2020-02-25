@@ -24,6 +24,7 @@
 #include <cudf/filling.hpp>
 #include "parser/expression_tree.hpp"
 #include "Interpreter/interpreter_cpp.h"
+#include "utilities/DebuggingUtils.h"
 
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
@@ -225,6 +226,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
 					projections.push_back(0);
 				}
+				
 				std::unique_ptr<ral::frame::BlazingTable> input_table;
 				ral::frame::BlazingTableView input_table_view;
 				std::tie(input_table, input_table_view) = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
@@ -411,9 +413,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 
 			child_frame = ral::operators::experimental::process_sort(child_frame_view, query[0], queryContext);
 			child_frame_view = child_frame->toBlazingTableView();
-			//ral::operators::process_sort(child_frame, query[0], queryContext);
-
-			// TODO percy cudf0.12 log logs
+			
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(
 				*queryContext, "evaluate_split_query process_sort", "num rows", child_frame->num_rows()));
 
@@ -425,8 +425,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 
 			child_frame = ral::processor::process_filter(child_frame->toBlazingTableView(), query[0], queryContext);
 			child_frame_view = child_frame->toBlazingTableView();
-			//process_filter(queryContext, child_frame, query[0]);
-
+			
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_filter",
 				"num rows",

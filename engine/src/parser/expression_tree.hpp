@@ -196,6 +196,23 @@ namespace detail {
 
 		return node->value;
 	}
+
+	inline std::string tokenizer_helper(const parse_node * node) {
+		if(!node)
+			return "";
+
+		if(node->type == parse_node_type::OPERATOR) {
+			std::string operands = "";
+			for(auto && c : node->children) {
+				std::string sep = operands.empty() ? "" : "@#@";
+				operands += sep + tokenizer_helper(c.get());
+			}
+
+			return node->value + "@#@" + operands;
+		}
+
+		return node->value;
+	}
 }
 
 struct parse_tree {
@@ -381,6 +398,11 @@ public:
 	std::string rebuildExpression() {
 		assert(!!this->root);
 		return detail::rebuild_helper(this->root.get());
+	}
+
+	std::string buildTokenizableString() {
+		assert(!!this->root);
+		return detail::tokenizer_helper(this->root.get());		
 	}
 };
 

@@ -68,7 +68,6 @@ TableSchema parseSchema(std::vector<std::string> files,
 	tableSchema.types = schema.get_dtypes();
 	tableSchema.names = schema.get_names();
 	tableSchema.files = schema.get_files();
-	tableSchema.num_row_groups = schema.get_num_row_groups();
 	tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
 	tableSchema.in_file = schema.get_in_file();
 
@@ -114,6 +113,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		result->names = names;
 		auto table = ral::utilities::experimental::create_empty_table(dtypes);
 		result->cudfTable = std::move(table);
+		result->skipdata_analysis_fail = false;
 		return result;
 	}
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
@@ -142,6 +142,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = metadata->names();
 		result->cudfTable = metadata->releaseCudfTable();
+		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(std::exception e) {
 		std::cerr << e.what() << std::endl;

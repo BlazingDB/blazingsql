@@ -187,6 +187,11 @@ cudf::type_id infer_dtype_from_literal(const std::string & token) {
 
 std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string) {
 	cudf::type_id type_id = infer_dtype_from_literal(scalar_string);
+	return get_scalar_from_string(scalar_string, type_id);
+}
+
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, const cudf::type_id & type_id) {
+
 	cudf::data_type type{type_id};
 
 	if (type_id == cudf::type_id::EMPTY) {
