@@ -21,6 +21,10 @@ void set_min_max(
 	parquet::ConvertedType::type logical,
 	std::shared_ptr<parquet::Statistics> &statistics) {
 
+	int64_t dummy = 0;
+	minmax_metadata_table[col_index].push_back(dummy);
+	minmax_metadata_table[col_index + 1].push_back(dummy);
+
 	switch (logical) {
 	case parquet::ConvertedType::type::UINT_8:
 	case parquet::ConvertedType::type::INT_8:
@@ -32,12 +36,10 @@ void set_min_max(
 	case parquet::ConvertedType::type::TIMESTAMP_MILLIS: {
 		auto convertedStats =
 			std::static_pointer_cast<parquet::Int64Statistics>(statistics);
-		// TODO, review this case
-		// gdf_dtype_extra_info{TIME_UNIT_ms}
 		auto min = convertedStats->min();
 		auto max = convertedStats->max();
-		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		minmax_metadata_table[col_index].back() = min;
+		minmax_metadata_table[col_index + 1].back() = max;
 		break;
 	}
 	case parquet::ConvertedType::type::TIMESTAMP_MICROS: {
@@ -47,8 +49,8 @@ void set_min_max(
 		// TODO, review this case
 		auto min = convertedStats->min();
 		auto max = convertedStats->max();
-		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		minmax_metadata_table[col_index].back() = min;
+		minmax_metadata_table[col_index + 1].back() = max;
 		break;
 	}
 	default:
@@ -63,8 +65,8 @@ void set_min_max(
 			std::static_pointer_cast<parquet::BoolStatistics>(statistics);
 		auto min = convertedStats->min();
 		auto max = convertedStats->max();
-		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		minmax_metadata_table[col_index].back() = min;
+		minmax_metadata_table[col_index + 1].back() = max;
 		break;
 	}
 	case parquet::Type::type::INT32: {
@@ -72,8 +74,8 @@ void set_min_max(
 			std::static_pointer_cast<parquet::Int32Statistics>(statistics);
 		auto min = convertedStats->min();
 		auto max = convertedStats->max();
-		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		minmax_metadata_table[col_index].back() = min;
+		minmax_metadata_table[col_index + 1].back() = max;
 
 		break;
 	}
@@ -82,8 +84,8 @@ void set_min_max(
 			std::static_pointer_cast<parquet::Int64Statistics>(statistics);
 		auto min = convertedStats->min();
 		auto max = convertedStats->max();
-		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		minmax_metadata_table[col_index].back() = min;
+		minmax_metadata_table[col_index + 1].back() = max;
 		break;
 	}
 	case parquet::Type::type::FLOAT: {
@@ -91,9 +93,12 @@ void set_min_max(
 			std::static_pointer_cast<parquet::FloatStatistics>(statistics);
 		auto min = convertedStats->min();
 		auto max = convertedStats->max();
-		minmax_metadata_table[col_index].push_back(min);
-		// here we are effectively casting a float to an int64_t which will lose the decimal resolution. So for a max value, lets apply ceil
-		minmax_metadata_table[col_index + 1].push_back(std::ceil(max)); 
+		// here we want to reinterpret cast minmax_metadata_table to be floats so that we can just use this same vector as if they were floats
+		size_t current_row_index = minmax_metadata_table[col_index].size() - 1;
+		float* casted_metadata_min = reinterpret_cast<float*>(&(minmax_metadata_table[col_index][0]));
+		float* casted_metadata_max = reinterpret_cast<float*>(&(minmax_metadata_table[col_index + 1][0]));
+		casted_metadata_min[current_row_index] = min;
+		casted_metadata_max[current_row_index] = max;
 		break;
 	}
 	case parquet::Type::type::DOUBLE: {
@@ -101,9 +106,12 @@ void set_min_max(
 			std::static_pointer_cast<parquet::DoubleStatistics>(statistics);
 		auto min = convertedStats->min();
 		auto max = convertedStats->max();
-		minmax_metadata_table[col_index].push_back(min);
-		// here we are effectively casting a float to an int64_t which will lose the decimal resolution. So for a max value, lets apply ceil
-		minmax_metadata_table[col_index + 1].push_back(std::ceil(max));
+		// here we want to reinterpret cast minmax_metadata_table to be double so that we can just use this same vector as if they were double
+		size_t current_row_index = minmax_metadata_table[col_index].size() - 1;
+		double* casted_metadata_min = reinterpret_cast<double*>(&(minmax_metadata_table[col_index][0]));
+		double* casted_metadata_max = reinterpret_cast<double*>(&(minmax_metadata_table[col_index + 1][0]));
+		casted_metadata_min[current_row_index] = min;
+		casted_metadata_max[current_row_index] = max;
 		break;
 	}
 	case parquet::Type::type::BYTE_ARRAY:
@@ -176,7 +184,7 @@ cudf::type_id to_dtype(parquet::Type::type physical, parquet::ConvertedType::typ
 }
 
 
-std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, const std::vector<int64_t> &vector) {
+std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, std::vector<int64_t> &vector) {
   std::basic_string<char> output;
   switch (dtype) {
 	case cudf::type_id::INT8:{
@@ -195,18 +203,17 @@ std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, const std:
 		break;
 	}
 	case cudf::type_id::INT64: {
-		std::vector<int64_t> typed_v(vector.begin(), vector.end());
-		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
+		output = std::basic_string<char>((char *)vector.data(), vector.size() * sizeof(int64_t));
 		break;
 	}
 	case cudf::type_id::FLOAT32: {
-		std::vector<float> typed_v(vector.begin(), vector.end());
-		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(float));
+		float* casted_metadata = reinterpret_cast<float*>(&(vector[0]));
+		output = std::basic_string<char>((char *)casted_metadata, vector.size() * sizeof(float));
 		break;
 	}
 	case cudf::type_id::FLOAT64: {
-		std::vector<double> typed_v(vector.begin(), vector.end());
-		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(double));
+		double* casted_metadata = reinterpret_cast<double*>(&(vector[0]));
+		output = std::basic_string<char>((char *)casted_metadata, vector.size() * sizeof(double));
 		break;
 	}
 	case cudf::type_id::BOOL8: {
@@ -220,23 +227,19 @@ std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, const std:
 		break;
 	}
 	case cudf::type_id::TIMESTAMP_SECONDS: {
-		std::vector<int64_t> typed_v(vector.begin(), vector.end());
-		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
+		output = std::basic_string<char>((char *)vector.data(), vector.size() * sizeof(int64_t));
 		break;
 	}
 	case cudf::type_id::TIMESTAMP_MILLISECONDS: {
-		std::vector<int64_t> typed_v(vector.begin(), vector.end());
-		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
+		output = std::basic_string<char>((char *)vector.data(), vector.size() * sizeof(int64_t));
 		break;
 	}
 	case cudf::type_id::TIMESTAMP_MICROSECONDS: {
-		std::vector<int64_t> typed_v(vector.begin(), vector.end());
-		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
+		output = std::basic_string<char>((char *)vector.data(), vector.size() * sizeof(int64_t));
 		break;
 	}
 	case cudf::type_id::TIMESTAMP_NANOSECONDS: {
-		std::vector<int64_t> typed_v(vector.begin(), vector.end());
-		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(int64_t));
+		output = std::basic_string<char>((char *)vector.data(), vector.size() * sizeof(int64_t));
 		break;
 	}
 	default: {
