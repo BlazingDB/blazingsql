@@ -24,6 +24,7 @@
 
 #include <cudf/copying.hpp>
 #include <cudf/merge.hpp>
+#include <src/utilities/CommonOperations.h>
 
 namespace ral {
 namespace cache {
@@ -277,19 +278,16 @@ public:
 				auto target = get_node(target_id);
 				auto edge_id = std::make_pair(source_id, target_id);
 				if(visited.find(edge_id) == visited.end()) {
-
-					std::cout << "source_id: " << source_id << " ->";
-					std::cout << " " << target_id << std::endl;
+//					std::cout << "source_id: " << source_id << " ->";
+//					std::cout << " " << target_id << std::endl;
 					visited.insert(edge_id);
 					Q.push_back(target_id);
 					std::thread t([this, source, target, edge] {
+					  auto state = source->run();
+					  if (state == kstatus::proceed) {
+						  source->output_.finish();
+					  }
 					});
-
-					auto state = source->run();
-					if (state == kstatus::proceed) {
-						source->output_.finish();
-					}
-
 					threads.push_back(std::move(t));
 				} else {
 					// TODO: and circular graph is defined here. Report and error
@@ -297,7 +295,7 @@ public:
 			}
 		}
 		for(auto & thread : threads) {
-			std::cout << "thread_id: " << thread.get_id() << std::endl;
+//			std::cout << "thread_id: " << thread.get_id() << std::endl;
 			thread.join();
 		}
 	}
@@ -448,44 +446,55 @@ using JoinKernel = DoubleSourceKernel<ral::processor::process_join>;
 using SortKernel = SingleSourceKernel<ral::operators::experimental::process_sort>;
 using SampleKernel = SingleSourceKernel<ral::operators::experimental::sample>;
 
-// class UnionKernel : public kernel {
-// public:
-// 	UnionKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
-// 		this->input_.add_port("input_a", "input_b");
-// 		this->context = context;
-// 		this->expression = queryString;
-// 	}
-// 	virtual kstatus run() {
-// 		try {
-// 			frame_type input_a = std::move(this->input_["input_a"]->pullFromCache());
-// 			frame_type input_b = std::move(this->input_["input_b"]->pullFromCache());
+ class UnionKernel : public kernel {
+ public:
+	 UnionKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+ 		this->input_.add_port("input_a", "input_b");
+ 		this->context = context;
+ 		this->expression = queryString;
+ 	}
+ 	virtual kstatus run() {
+ 		try {
+ 			frame_type input_a = std::move(this->input_["input_a"]->pullFromCache());
+ 			frame_type input_b = std::move(this->input_["input_b"]->pullFromCache());
 
-// 			int numLeft = input_a->num_rows();
-// 			int numRight = input_b->num_rows();
+ 			int numLeft = input_a->num_rows();
+ 			int numRight = input_b->num_rows();
 
-// 			frame_type output; 
-// 			if (numLeft == 0){
-// 				output = std::move(input_b);
-// 			} else if (numRight == 0) {
-// 				output = std::move(input_a);
-// 			} else {
-// 				output = process_union(input_a->toBlazingTableView(), input_b->toBlazingTableView(), this->expression);
-// 			}
-// 			context->incrementQueryStep();
-// 			this->output_.get_cache()->addToCache(std::move(output));
-// 			return kstatus::proceed;
-// 		} catch (std::exception &e) {
-// 			std::cerr << "Exception-DoubleSourceKernel: " << e.what() << std::endl;
-// 		}
-// 		return kstatus::stop;
-// 	}
+ 			frame_type output;
+ 			if (numLeft == 0){
+ 				output = std::move(input_b);
+ 			} else if (numRight == 0) {
+ 				output = std::move(input_a);
+ 			} else {
+				auto left = input_a->toBlazingTableView();
+				auto right =  input_b->toBlazingTableView();
 
-// private:
-// 	blazingdb::manager::experimental::Context * context;
-// 	std::string expression;
-// };
+				bool isUnionAll = (get_named_expression(this->expression, "all") == "true");
+				if(!isUnionAll) {
+					throw std::runtime_error{"In process_union function: UNION is not supported, use UNION ALL"};
+				}
+				// Check same number of columns
+				if(left.num_columns() != right.num_columns()) {
+					throw std::runtime_error{
+						"In process_union function: left frame and right frame have different number of columns"};
+				}
+				std::vector<ral::frame::BlazingTableView> tables{left, right};
+				output = ral::utilities::experimental::concatTables(tables);
+ 			}
+ 			context->incrementQueryStep();
+ 			this->output_.get_cache()->addToCache(std::move(output));
+ 			return kstatus::proceed;
+ 		} catch (std::exception &e) {
+ 			std::cerr << "Exception-UnionKernel: " << e.what() << std::endl;
+ 		}
+ 		return kstatus::stop;
+ 	}
 
-
+ private:
+ 	blazingdb::manager::experimental::Context * context;
+ 	std::string expression;
+ };
 
 class SortAndSampleKernel : public kernel {
 public:
@@ -768,13 +777,13 @@ struct expr_tree_processor {
 
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level) {
 		auto expr = p_tree.get<std::string>("expr", "");
-		for(int i = 0; i < level*2 ; ++i) {
-			std::cout << " ";
-		}
+//		for(int i = 0; i < level*2 ; ++i) {
+//			std::cout << " ";
+//		}
 		root_ptr->expr = expr;
 		root_ptr->level = level;
 		root_ptr->kernel_unit = get_kernel(expr);
-		std::cout << expr << std::endl;
+//		std::cout << expr << std::endl;
 		for (auto &child : p_tree.get_child("children"))
 		{
 			auto child_node_ptr = std::make_shared<expr_tree_processor::node>();
@@ -790,6 +799,8 @@ struct expr_tree_processor {
 			return std::make_shared<FilterKernel>(expr, this->context);
 		else if ( is_join(expr) )
 			return std::make_shared<JoinKernel>(expr, this->context);
+		else if ( is_union(expr) )
+			return std::make_shared<UnionKernel>(expr, this->context);
 		else if ( is_project(expr) )
 			return std::make_shared<ProjectKernel>(expr, this->context);
 		else if ( is_sort(expr) ) {
@@ -837,7 +848,7 @@ struct expr_tree_processor {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
 				port_name.push_back(index_char); 
-				std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << "["  << port_name<< "]" << std::endl;
+//				std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << "["  << port_name<< "]" << std::endl;
 				graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
 			} else {
 				graph +=  *child->kernel_unit >> (*parent->kernel_unit);

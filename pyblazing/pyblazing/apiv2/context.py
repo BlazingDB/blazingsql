@@ -392,7 +392,7 @@ def get_plan(algebra):
 		line = lines[i]
 		level = line.count("\t")
 		new_lines.append( [level, line.replace("\t", "")] )	
-	print("new_lines:\n ", new_lines)
+	# print("new_lines:\n ", new_lines)
 	return visit(new_lines)    
 
 class BlazingTable(object):
