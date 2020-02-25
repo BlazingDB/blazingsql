@@ -46,7 +46,7 @@ BlazingTableView BlazingTable::toBlazingTableView() const{
 std::unique_ptr<CudfTable> BlazingTable::releaseCudfTable() { 
 	std::vector<std::unique_ptr<CudfColumn>> columns_out;
 	for (size_t i = 0; i < columns.size(); i++){
-		columns_out.emplace_back(columns[i]->release());
+		columns_out.emplace_back(std::move(columns[i]->release()));
 	}
 	return std::make_unique<CudfTable>(std::move(columns_out));
 }

@@ -11,6 +11,7 @@ class BlazingColumnView : public BlazingColumn {
 	public:
 		BlazingColumnView();
 		BlazingColumnView(const CudfColumnView & column) : column(column) {};
+		~BlazingColumnView() = default;
 		CudfColumnView view() const {
 			return column;
 		}

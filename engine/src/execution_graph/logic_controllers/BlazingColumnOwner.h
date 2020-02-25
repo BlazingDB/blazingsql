@@ -12,6 +12,7 @@ class BlazingColumnOwner : public BlazingColumn {
 	public:
 		BlazingColumnOwner();
 		BlazingColumnOwner(std::unique_ptr<CudfColumn> column);
+		~BlazingColumnOwner() = default;
 		CudfColumnView view() const {
 			return column->view();
 		}
