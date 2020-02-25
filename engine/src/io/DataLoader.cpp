@@ -138,7 +138,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	if(num_files == 0 || num_columns == 0) { 
 		// GDFParse is parsed here
 		std::unique_ptr<ral::frame::BlazingTable> parsed_table = parser->parse(nullptr, "", schema, column_indices);
-		bool if_null_empty_load = (parsed_table->num_columns() == 0);
+		bool if_null_empty_load = (parsed_table == nullptr || parsed_table->num_columns() == 0);
 		if (if_null_empty_load) {
 			std::vector<std::string> select_names(column_indices.size());
 			std::vector<cudf::type_id> select_types(column_indices.size());
