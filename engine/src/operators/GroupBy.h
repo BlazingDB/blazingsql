@@ -21,7 +21,7 @@ namespace experimental {
 	typedef blazingdb::manager::experimental::Context Context;
 
 	std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::BlazingTableView & table,
-																std::string query_part, Context * context);
+																const std::string& query_part, Context * context);
 
 	std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context * context,
 		const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices);

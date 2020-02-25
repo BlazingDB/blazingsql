@@ -2,43 +2,68 @@ import time
 import pprint
 from blazingsql import BlazingContext
 from dask.distributed import Client
+import dask_cudf
+
+from collections import OrderedDict 
+from blazingsql import BlazingContext
+bc = BlazingContext()
 # client = Client('127.0.0.1:8786')
-# client.restart()
 # bc = BlazingContext(dask_client=client, network_interface="lo")
 
-bc = BlazingContext()
+bc.create_table('customer', '/home/aocsa/tpch/100MB2Part/tpch/customer_0_0.parquet')
+bc.create_table('orders', '/home/aocsa/tpch/100MB2Part/tpch/orders_*.parquet')
+bc.create_table('nation', '/home/aocsa/tpch/100MB2Part/tpch/nation_*.parquet')
+bc.create_table('region', '/home/aocsa/tpch/100MB2Part/tpch/region_*.parquet')
 
-dir_data_fs = '/home/aocsa/tpch/DataSet5Part100MB'
-nfiles = 4
+def run_query(bc, sql, title):
+    print(title, sql)
+    print(bc.explain(sql))
+    result_gdf = bc.sql(sql)
+    if isinstance(result_gdf, dask_cudf.core.DataFrame) : 
+        print(result_gdf.compute())
+    else:
+        print(result_gdf)
 
-# bc.create_table('customer', [dir_data_fs + '/customer_0_0.parquet', dir_data_fs + '/customer_1_0.parquet', dir_data_fs + '/customer_2_0.parquet'])
+# distributed sort
+queryId = 'TEST_01: distributed sort'
+sql = "select c_custkey, c_nationkey from customer order by c_nationkey"
+run_query(bc, sql, queryId)
 
-bc.create_table('customer', [dir_data_fs + '/customer_0_0.parquet',
-                             dir_data_fs + '/customer_1_0.parquet', 
-                             dir_data_fs + '/customer_2_0.parquet',
-                             dir_data_fs + '/customer_3_0.parquet',
-                             dir_data_fs + '/customer_4_0.parquet'
-                             ])
+queryId = 'TEST_02: distributed sort'
+sql = "select c_custkey, c_acctbal from customer order by c_acctbal desc, c_custkey"
+run_query(bc, sql, queryId) 
 
-# "BindableTableScan(table=[[main, customer]], 
-# filters=[[OR(AND(<($0, 15000), =($1, 5)), =($0, *($1, $1)), >=($1, 10), <=($2, 500))]], 
-# projects=[[0, 3, 5]], aliases=[[c_custkey, c_nationkey, c_acctbal]])"
-# query = """select c_custkey, c_nationkey, c_acctbal
-#             from 
-#               customer
-#             where 
-#               c_custkey > 2990 and c_custkey < 3010 
-#             """
+queryId = 'TEST_03: distributed sort'
+sql = "select o_orderkey, o_custkey from orders order by o_orderkey desc, o_custkey"
+run_query(bc, sql, queryId) 
 
-query = """select c_custkey, c_nationkey, c_acctbal
-            from 
-              customer
-            where 
-              c_custkey > 2990 and c_custkey < 3010 or c_custkey > 10000 
-            """
-# [b'c_custkey', b'c_name', b'c_address', b'c_nationkey', b'c_phone', b'c_acctbal', b'c_mktsegment', b'c_comment']
-lp = bc.explain(query)
-print(lp)
-ddf = bc.sql(query)
-# print(query)
-# print(ddf)
+# distributed join
+queryId = 'TEST_01: distributed join'
+sql = "select count(c.c_custkey), sum(c.c_nationkey), n.n_regionkey from customer as c inner join nation as n on c.c_nationkey = n.n_nationkey group by n.n_regionkey"
+run_query(bc, sql, queryId)
+
+queryId = 'TEST_02: distributed join'
+sql = "select c.c_custkey, c.c_nationkey, n.n_regionkey from customer as c inner join nation as n on c.c_nationkey = n.n_nationkey where n.n_regionkey = 1 and c.c_custkey < 50"
+run_query(bc, sql, queryId)
+
+queryId = 'TEST_03: distributed join'
+sql = "select c.c_custkey, c.c_nationkey, n.o_orderkey from customer as c inner join orders as n on c.c_custkey = n.o_orderkey where n.o_orderkey < 1000"
+run_query(bc, sql, queryId)
+
+# distributed group_by
+queryId = 'TEST_01: distributed group_by'
+sql = "select count(c_custkey), sum(c_acctbal), sum(c_acctbal)/count(c_acctbal), min(c_custkey), max(c_nationkey), c_nationkey from customer group by c_nationkey"
+run_query(bc, sql, queryId)
+
+queryId = 'TEST_02: distributed group_by'
+sql = "select count(c_custkey), sum(c_acctbal), sum(c_acctbal)/count(c_acctbal), min(c_custkey), max(c_custkey), c_nationkey from customer where c_custkey < 50 group by c_nationkey"
+run_query(bc, sql, queryId)
+
+queryId = 'TEST_04: distributed group_by'
+sql = "select c_nationkey, count(c_acctbal) from customer group by c_nationkey, c_custkey"
+run_query(bc, sql, queryId)
+
+# all queries 
+queryId = 'TEST_01: all distributed operations'
+sql = "select c.c_custkey, c.c_nationkey, o.o_orderkey from customer as c inner join orders as o on c.c_custkey = o.o_orderkey inner join nation as n on c.c_nationkey = n.n_nationkey order by c_custkey"
+run_query(bc, sql, queryId)

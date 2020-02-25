@@ -32,9 +32,6 @@ namespace operators {
 
 namespace experimental {
 
-const std::string LOGICAL_AGGREGATE_TEXT = "LogicalAggregate";
-
-bool is_aggregate(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_TEXT) != std::string::npos); }
 
 std::vector<int> get_group_columns(std::string query_part) {
 	std::string temp_column_string = get_named_expression(query_part, "group");
@@ -57,7 +54,7 @@ typedef ral::communication::experimental::CommunicationData CommunicationData;
 using namespace ral::distribution::experimental;
 
 std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::BlazingTableView & table,
-															std::string query_part, Context * context) {
+															const std::string& query_part, Context * context) {
 
 		// Get groups
 	auto rangeStart = query_part.find("(");

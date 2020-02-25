@@ -22,14 +22,7 @@ struct GraphProcessorTest : public cudf::test::BaseFixture {
 	~GraphProcessorTest() {}
 }; 
 
-std::shared_ptr<ral::cache::CacheMachine> create_cache_concatenating_machine() {
-	unsigned long long gpuMemory = 1024;
-	std::vector<unsigned long long> memoryPerCache = {INT_MAX};
-	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
-	return std::make_shared<ral::cache::ConcatenatingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
-}
-
-TEST_F(GraphProcessorTest, JoinWorkFlowTest) {
+TEST_F(GraphProcessorTest, JoinTest) {
 	GeneratorKernel a(10), b(10);
 
 	std::string expression = "LogicalJoin(condition=[=($1, $0)], joinType=[inner])";
@@ -53,7 +46,7 @@ TEST_F(GraphProcessorTest, JoinWorkFlowTest) {
 }
 
 // select $0 from a inner join b on a.$0 = b.$0 where a.$0 < 5 and where b.$0 < 5
-TEST_F(GraphProcessorTest, ComplexWorkFlowTest) {
+TEST_F(GraphProcessorTest, ComplexTest) {
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
@@ -98,7 +91,7 @@ TEST_F(GraphProcessorTest, ComplexWorkFlowTest) {
 //#     LogicalProject(o_custkey=[$1])
 //#       BindableTableScan(table=[[main, orders]], filters=[[<($0, 100)]], projects=[[0, 1]], aliases=[[$f0, o_custkey]])
 //#     BindableTableScan(table=[[main, customer]], projects=[[0, 3, 5]], aliases=[[c_custkey, c_nationkey, c_acctbal]])
-TEST_F(GraphProcessorTest, IOWorkFlowTest) {
+TEST_F(GraphProcessorTest, IOTest) {
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
@@ -125,10 +118,10 @@ TEST_F(GraphProcessorTest, IOWorkFlowTest) {
 	PrinterKernel print;
 	ral::cache::graph m;
 	try {
-		auto concatenating_machine_1 = create_cache_concatenating_machine();
-		auto concatenating_machine_2 = create_cache_concatenating_machine();
-		m += link(order_generator, join["input_a"], concatenating_machine_1);
-		m += link(customer_generator, join["input_b"], concatenating_machine_2);
+		cache_settings concatenating_machine1{CacheType::CONCATENATING};
+		cache_settings concatenating_machine2{CacheType::CONCATENATING};
+		m += link(order_generator, join["input_a"], concatenating_machine1);
+		m += link(customer_generator, join["input_b"], concatenating_machine2);
 		m += join >> filter;
 		m += filter >> project;
 		m += project >> print;
@@ -146,7 +139,7 @@ TEST_F(GraphProcessorTest, IOWorkFlowTest) {
 //LogicalProject(c_custkey=[$0], c_nationkey=[$3])
 //LogicalFilter(condition=[<($0, 10)])
 //LogicalTableScan(table=[[main, customer]])
-TEST_F(GraphProcessorTest, SortWorkFlowTest) {
+TEST_F(GraphProcessorTest, SortTest) {
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
@@ -177,6 +170,50 @@ TEST_F(GraphProcessorTest, SortWorkFlowTest) {
 	}
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
+
+TEST_F(GraphProcessorTest, SortSamplePartitionTest) {
+  std::vector<Node> contextNodes;
+  auto address = Address::TCP("127.0.0.1", 8089, 0);
+  contextNodes.push_back(Node(address));
+  uint32_t ctxToken = 123;
+  Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+
+  std::string folder_path = "/home/aocsa/tpch/100MB2Part/tpch/";
+  int n_files = 1;
+  std::vector<std::string> customer_path_list;
+  for (int index = 0; index < n_files; index++) {
+    auto filepath = folder_path + "customer_" + std::to_string(index) + "_0.parquet";
+    customer_path_list.push_back(filepath);
+  }
+  FileReaderKernel customer_generator(customer_path_list);
+  SortAndSampleKernel sort_and_sample("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
+  PartitionKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
+  MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
+  ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", &queryContext);
+  FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", &queryContext);
+  PrinterKernel print;
+  ral::cache::graph m;
+  try {
+	auto cache_machine_config = cache_settings{
+		  .type = CacheType::FOR_EACH,
+		  .num_partitions = queryContext.getTotalNodes()
+	  };
+    m += customer_generator >> filter;
+    m += filter >> project;
+    m += project >> sort_and_sample;
+    m += sort_and_sample["output_a"] >> partition["input_a"];
+    m += sort_and_sample["output_b"] >> partition["input_b"];
+    m += link(partition, merge, cache_machine_config);
+    m += link(merge, print, cache_settings{
+		.type = CacheType::CONCATENATING
+	});
+    m.execute();
+  } catch(std::exception & ex) {
+    std::cout << ex.what() << "\n";
+  }
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
 
 }  // namespace cache
 }  // namespace ral

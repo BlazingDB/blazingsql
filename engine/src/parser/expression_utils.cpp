@@ -95,6 +95,8 @@ bool is_sort(std::string query_part) { return (query_part.find(LOGICAL_SORT_TEXT
 
 bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
 
+bool is_aggregate(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_TEXT) != std::string::npos); }
+
 
 bool is_double_input(std::string query_part) {
 	if(is_join(query_part)) {

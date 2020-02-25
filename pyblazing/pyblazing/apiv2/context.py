@@ -138,7 +138,9 @@ def collectPartitionsRunQuery(
         fileTypes,
         ctxToken,
         algebra,
-        accessToken):
+        accessToken,
+        use_execution_graph
+        ):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     for table_name in tables:
@@ -163,7 +165,8 @@ def collectPartitionsRunQuery(
         fileTypes,
         ctxToken,
         algebra,
-        accessToken)
+        accessToken,
+        use_execution_graph)
 
 # returns a map of table names to the indices of the columns needed. If there are more than one table scan for one table, it merged the needed columns
 # if the column list is empty, it means we want all columns
@@ -307,6 +310,8 @@ def mergeMetadataFor(curr_table, fileMetadata, hiveMetadata, extra_columns):
 
 import json
 import collections
+def is_double_children(expr):
+	return "LogicalJoin" in expr  or  "LogicalUnion" in expr
 
 def visit (lines): 
 	stack = collections.deque()
@@ -342,23 +347,38 @@ def visit (lines):
 			if child_level == curr_level:
 				continue
 			elif child_level == curr_level + 1:
-				index = curr_index + 1				
-				while index < len(lines) and child_level == curr_level + 1: 
-					child_level, expr = lines[index]
-					if child_level != curr_level + 1:
-						continue
-					first = index
-					new_dicc = {
-						"expr": expr,
-						"children": []
-					}
-					if len(curr_dicc["children"]) == 0:
-						curr_dicc["children"] = [new_dicc]
-					else:
-						curr_dicc["children"].append(new_dicc)
-					processed.add(index)
-					stack.append( (index, child_level, expr, new_dicc) )
-					index += 1
+				index = curr_index + 1
+				if is_double_children(curr_expr):
+					while index < len(lines) and len(curr_dicc["children"]) < 2: 
+						child_level, expr = lines[index]
+						if child_level == curr_level + 1:
+							new_dicc = {
+								"expr": expr,
+								"children": []
+							}
+							if len(curr_dicc["children"]) == 0:
+								curr_dicc["children"] = [new_dicc]
+							else:
+								curr_dicc["children"].append(new_dicc)
+							processed.add(index)
+							stack.append( (index, child_level, expr, new_dicc) )
+						index += 1
+				else:
+					while index < len(lines) and len(curr_dicc["children"]) < 1: 
+						child_level, expr = lines[index]
+						if child_level == curr_level + 1:
+							new_dicc = {
+								"expr": expr,
+								"children": []
+							}
+							if len(curr_dicc["children"]) == 0:
+								curr_dicc["children"] = [new_dicc]
+							else:
+								curr_dicc["children"].append(new_dicc)
+							processed.add(index)
+							stack.append( (index, child_level, expr, new_dicc) )
+						index += 1
+
 		for index in processed:
 			lines[index][0] = -1 
 	return json.dumps(dicc)
@@ -371,8 +391,8 @@ def get_plan(algebra):
 	for i in range(len(lines) - 1):
 		line = lines[i]
 		level = line.count("\t")
-		new_lines.append( [level, line.replace("\t", "")] )
-
+		new_lines.append( [level, line.replace("\t", "")] )	
+	print("new_lines:\n ", new_lines)
 	return visit(new_lines)    
 
 class BlazingTable(object):
@@ -859,7 +879,7 @@ class BlazingContext(object):
                     current_table.files = actual_files
 
 
-    def sql(self, sql, table_list=[], algebra=None):
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph = True):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [{} for _ in range(len(self.nodes))]
@@ -908,6 +928,9 @@ class BlazingContext(object):
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
 
+        if use_execution_graph:
+            algebra = get_plan(algebra)
+
         if self.dask_client is None:
             result = cio.runQueryCaller(
                         masterIndex,
@@ -916,7 +939,8 @@ class BlazingContext(object):
                         fileTypes,
                         ctxToken,
                         algebra,
-                        accessToken)
+                        accessToken,
+                        use_execution_graph)
         else:
             dask_futures = []
             i = 0
@@ -932,85 +956,11 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
+                        use_execution_graph,
                         workers=[worker]))
                 i = i + 1
             result = dask.dataframe.from_delayed(dask_futures)
         return result
-
-
-    def execute(self, sql, algebra):
-        # TODO: remove hardcoding
-        masterIndex = 0
-        nodeTableList = [{} for _ in range(len(self.nodes))]
-        fileTypes = []
-
-        if (algebra is None):
-            algebra = self.explain(sql)
-
-        if self.dask_client is None:
-            new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
-        else:
-            worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
-            connection = self.dask_client.submit(
-                cio.getTableScanInfoCaller,
-                algebra,
-                self.tables,
-                workers=[worker])
-            new_tables, relational_algebra_steps = connection.result()
-
-        algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
-
-        for table in new_tables:
-            fileTypes.append(new_tables[table].fileType)
-            ftype = new_tables[table].fileType
-            if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
-                currentTableNodes = new_tables[table].getSlices(len(self.nodes))
-            elif(new_tables[table].fileType == DataType.DASK_CUDF):
-                currentTableNodes = []
-                for node in self.nodes:
-                    currentTableNodes.append(new_tables[table])
-            elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
-                currentTableNodes = []
-                for node in self.nodes:
-                    currentTableNodes.append(new_tables[table])
-            j = 0
-            for nodeList in nodeTableList:
-                nodeList[table] = currentTableNodes[j]
-                j = j + 1
-            scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-
-        ctxToken = random.randint(0, 64000)
-        accessToken = 0
-        json_plan = get_plan(algebra)
-        if self.dask_client is None:
-            result = cio.runQueryCaller(
-                        masterIndex,
-                        self.nodes,
-                        nodeTableList[0],
-                        fileTypes,
-                        ctxToken,
-                        json_plan,
-                        accessToken)
-        else:
-            dask_futures = []
-            i = 0
-            for node in self.nodes:
-                worker = node['worker']
-                dask_futures.append(
-                    self.dask_client.submit(
-                        collectPartitionsRunQuery,
-                        masterIndex,
-                        self.nodes,
-                        nodeTableList[i],
-                        fileTypes,
-                        ctxToken,
-                        json_plan,
-                        accessToken,
-                        workers=[worker]))
-                i = i + 1
-            result = dask.dataframe.from_delayed(dask_futures)
-        return result
-
 
     # END SQL interface
 

@@ -112,6 +112,7 @@ bool is_scan(std::string query_part);
 bool is_filter(std::string query_part);
 bool is_sort(std::string query_part);
 bool is_join(const std::string & query);
+bool is_aggregate(std::string query_part);
 
 bool is_double_input(std::string query_part);
 

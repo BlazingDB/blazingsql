@@ -317,7 +317,7 @@ ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader>
 			queryContext->incrementQueryStep();
 			return std::make_pair(std::move(child_frame), child_frame_view);
 
-		} else if(ral::operators::experimental::is_aggregate(query[0])) {
+		} else if(is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
 			child_frame = ral::operators::experimental::process_aggregate(child_frame_view, query[0], queryContext);

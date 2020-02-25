@@ -28,7 +28,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, gdf_scalar>>> uri_values,
 	std::vector<std::vector<std::map<std::string, std::string>>> string_values,
-	std::vector<std::vector<std::map<std::string, bool>>> is_column_string) {
+	std::vector<std::vector<std::map<std::string, bool>>> is_column_string,
+	bool use_execution_graph) {
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
@@ -105,10 +106,14 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
-		// TODO: @alex create custom workflow for  ``execute_plan``
-		// std::unique_ptr<ral::frame::BlazingTable> frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
-		std::unique_ptr<ral::frame::BlazingTable> frame = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+		std::unique_ptr<ral::frame::BlazingTable> frame;
+		if (use_execution_graph) {
+			frame = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 
+		} else {
+			frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+		}
+		
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = frame->names();
 		result->cudfTable = frame->releaseCudfTable();
