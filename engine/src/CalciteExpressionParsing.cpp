@@ -19,6 +19,7 @@
 #include "utilities/scalar_timestamp_parser.hpp"
 #include "Interpreter/interpreter_cpp.h"
 
+
 bool is_type_signed(cudf::type_id type) {
 	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type ||
 			cudf::type_id::INT32 == type || cudf::type_id::INT64 == type || cudf::type_id::FLOAT32 == type ||
@@ -64,10 +65,10 @@ cudf::type_id get_next_biggest_type(cudf::type_id type) {
 // TODO all these return types need to be revisited later. Right now we have issues with some aggregators that only
 // support returning the same input type. Also pygdf does not currently support unsigned types (for example count should
 // return and unsigned type)
-cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experimental::aggregation::Kind aggregation, bool have_groupby) {
-	if(aggregation == cudf::experimental::aggregation::Kind::COUNT_ALL) {
+cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKind aggregation, bool have_groupby) {
+	if(aggregation == AggregateKind::COUNT) {
 		return cudf::type_id::INT64;
-	} else if(aggregation == cudf::experimental::aggregation::Kind::SUM) {
+	} else if(aggregation == AggregateKind::SUM || aggregation == AggregateKind::SUM0) {
 		if(have_groupby)
 			return input_type;  // current group by function can only handle this
 		else {
@@ -75,11 +76,11 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experi
 			// to be safe we should enlarge to the greatest integer or float representation
 			return is_type_float(input_type) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64;
 		}
-	} else if(aggregation == cudf::experimental::aggregation::Kind::MIN) {
+	} else if(aggregation == AggregateKind::MIN) {
 		return input_type;
-	} else if(aggregation == cudf::experimental::aggregation::Kind::MAX) {
+	} else if(aggregation == AggregateKind::MAX) {
 		return input_type;
-	} else if(aggregation == cudf::experimental::aggregation::Kind::MEAN) {
+	} else if(aggregation == AggregateKind::MEAN) {
 		return cudf::type_id::FLOAT64;
 	// TODO percy cudf0.12 aggregation pass flag for COUNT_DISTINCT cases
 //	} else if(aggregation == GDF_COUNT_DISTINCT) {
@@ -94,7 +95,7 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::s
 	if(aggregation == "COUNT") {
 		return cudf::type_id::INT64;
 	} else if(aggregation == "SUM") {
-		return is_type_float(input_type) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64;		
+		return is_type_float(input_type) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64;
 	} else if(aggregation == "MIN") {
 		return input_type;
 	} else if(aggregation == "MAX") {
@@ -234,7 +235,7 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 		str_scalar->set_valid(true); // https://github.com/rapidsai/cudf/issues/4085
 		return str_scalar;
 	}
-	
+
 	assert(false);
 }
 
@@ -315,20 +316,22 @@ std::string get_aggregation_operation_string(std::string operator_string) {
 	return operator_string.substr(0, operator_string.find("("));
 }
 
-cudf::experimental::aggregation::Kind get_aggregation_operation(std::string operator_string) {
-	
+AggregateKind get_aggregation_operation(std::string operator_string) {
+
 	operator_string = get_aggregation_operation_string(operator_string);
 	if(operator_string == "SUM") {
-		return cudf::experimental::aggregation::Kind::SUM;
+		return AggregateKind::SUM;
+	} else if(operator_string == "$SUM0") {
+		return AggregateKind::SUM0;
 	} else if(operator_string == "AVG") {
-		return cudf::experimental::aggregation::Kind::MEAN;
+		return AggregateKind::MEAN;
 	} else if(operator_string == "MIN") {
-		return cudf::experimental::aggregation::Kind::MIN;
+		return AggregateKind::MIN;
 	} else if(operator_string == "MAX") {
-		return cudf::experimental::aggregation::Kind::MAX;
+		return AggregateKind::MAX;
 	} else if(operator_string == "COUNT") {
-		return cudf::experimental::aggregation::Kind::COUNT_ALL;
-	} 
+		return AggregateKind::COUNT;
+	}
 
 	throw std::runtime_error(
 		"In get_aggregation_operation function: aggregation type not supported, " + operator_string);
@@ -406,20 +409,22 @@ void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 
 cudf::size_type get_index(const std::string & operand_string) {
 	assert(is_var_column(operand_string) || is_literal(operand_string));
-	
+
 	return std::stoi(is_literal(operand_string) ? operand_string : operand_string.substr(1, operand_string.size() - 1));
 }
 
-std::string aggregator_to_string(cudf::experimental::aggregation::Kind aggregation) {
-	if(aggregation == cudf::experimental::aggregation::Kind::COUNT_ALL) {
+std::string aggregator_to_string(AggregateKind aggregation) {
+	if(aggregation == AggregateKind::COUNT) {
 		return "count";
-	} else if(aggregation == cudf::experimental::aggregation::Kind::SUM) {
+	} else if(aggregation == AggregateKind::SUM) {
 		return "sum";
-	} else if(aggregation == cudf::experimental::aggregation::Kind::MIN) {
+	} else if(aggregation == AggregateKind::SUM0) {
+		return "sum0";
+	} else if(aggregation == AggregateKind::MIN) {
 		return "min";
-	} else if(aggregation == cudf::experimental::aggregation::Kind::MAX) {
+	} else if(aggregation == AggregateKind::MAX) {
 		return "max";
-	} else if(aggregation == cudf::experimental::aggregation::Kind::MEAN) {
+	} else if(aggregation == AggregateKind::MEAN) {
 		return "avg";
 	// TODO percy cudf0.12 aggregation pass flag for COUNT_DISTINCT cases
 //	} else if(aggregation == GDF_COUNT_DISTINCT) {
@@ -440,12 +445,12 @@ std::string expand_if_logical_op(std::string expression) {
 		int first_and = StringUtil::findFirstNotInQuotes(
 			expression, "AND(", start_pos, is_quoted_vector);  // returns -1 if not found
 		int first_or = -1;
-		
+
 		std::string floor_str = "FLOOR";
 		if (StringUtil::contains(expression, floor_str) == false) {
 			first_or = StringUtil::findFirstNotInQuotes(expression, "OR(", start_pos, is_quoted_vector);  // returns -1 if not found
 		}
-		
+
 		int first = -1;
 		std::string op = "";
 		if(first_and >= 0) {
@@ -534,9 +539,10 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
+	StringUtil::findAndReplaceAll(ret, ":DECIMAL(19, 0)", ":DOUBLE");
+
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
-
 	return ret;
 }
 
