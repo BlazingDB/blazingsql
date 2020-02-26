@@ -831,6 +831,21 @@ class BlazingContext(object):
         else:
             return current_table.getSlices(len(self.nodes))
 
+    #def partition(self, input, by=[]):
+    def partition(self, by=[]):
+        print("Partitioning...")
+
+        if self.dask_client is None:
+            print("Not supported...")
+        else:
+            worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
+            connection = self.dask_client.submit(
+                cio.performPartitionCaller,
+                #input,
+                by,
+                workers=[worker])
+            return connection.result()
+
     def sql(self, sql, table_list=[], algebra=None):
         # TODO: remove hardcoding
         masterIndex = 0

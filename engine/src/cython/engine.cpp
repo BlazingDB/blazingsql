@@ -12,6 +12,7 @@
 #include "../io/data_provider/DummyProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
+#include "../execution_graph/logic_controllers/LogicalFilter.h"
 #include "communication/network/Server.h"
 #include <numeric>
 
@@ -121,6 +122,31 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(const std::exception & e) {
+		std::cerr << e.what() << std::endl;
+		throw;
+	}
+}
+
+std::unique_ptr<ResultSet> performPartition(std::vector<std::string> column_names) {
+
+	try {
+		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
+
+		const ral::frame::BlazingTableView table;
+		std::vector<int> columnIndices;
+		blazingdb::manager::experimental::Context * context;
+
+		std::unique_ptr<ral::frame::BlazingTable> new_table = ral::processor::process_distribution_table(
+			table, columnIndices, context);
+
+		for(auto col_name:column_names){
+			std::cout<<col_name<<std::endl;
+		}
+
+		return result;
+
+	} catch(const std::exception & e) {
+		std::cerr << "**[performPartition]** error partitioning table.\n";
 		std::cerr << e.what() << std::endl;
 		throw;
 	}

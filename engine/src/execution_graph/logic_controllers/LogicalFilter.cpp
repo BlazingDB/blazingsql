@@ -125,6 +125,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     std::vector<int> & columnIndices,
     blazingdb::manager::experimental::Context * context) {
 
+    std::cout<<"Called process_distribution_table\n";
     std::vector<NodeColumnView > partitions;
     std::unique_ptr<CudfTable> hashed_data;
     if (table.num_rows() > 0){    
@@ -168,6 +169,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       }
     }
     assert(found_self_partition);
+    std::cout<<"Done process_distribution_table\n";
     return ral::utilities::experimental::concatTables(partitions_to_concat);
   }
 

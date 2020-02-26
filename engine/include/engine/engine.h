@@ -42,3 +42,6 @@ std::unique_ptr<ResultSet> runSkipData(
 	std::vector<std::string> all_column_names, 
 	std::string query);
 
+std::unique_ptr<ResultSet> performPartition(
+	std::vector<std::string> column_names);
+
