@@ -130,12 +130,12 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	int32_t ctxToken,
+	const ral::frame::BlazingTableView & table,
 	std::vector<std::string> column_names) {
 
 	try {
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 
-		const ral::frame::BlazingTableView table;
 		std::vector<int> columnIndices;
 
 		using blazingdb::manager::experimental::Context;
@@ -150,8 +150,8 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
 
-		std::unique_ptr<ral::frame::BlazingTable> new_table = ral::processor::process_distribution_table(
-			table, columnIndices, &queryContext);
+		/*std::unique_ptr<ral::frame::BlazingTable> new_table = ral::processor::process_distribution_table(
+			table, columnIndices, &queryContext);*/
 
 		for(auto col_name:column_names){
 			std::cout<<col_name<<std::endl;
