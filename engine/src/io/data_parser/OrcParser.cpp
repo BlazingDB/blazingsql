@@ -41,20 +41,14 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args orc_arg,
 	return std::move(table_out);
 }
 
-ral::frame::TableViewPair orc_parser::parse(
+std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle, // TODO where is this param used?
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 
-	// including all columns by default
-	if(column_indices.size() == 0) {
-		column_indices.resize(schema.get_num_columns());
-		std::iota(column_indices.begin(), column_indices.end(), 0);
-	}
-
 	if(file == nullptr) {
-		return std::make_pair(nullptr, ral::frame::BlazingTableView());
+		return nullptr;
 	}
 	
 	cudf::experimental::io::read_orc_args new_orc_args = this->orc_args;
@@ -70,11 +64,9 @@ ral::frame::TableViewPair orc_parser::parse(
 		if(orc_table.tbl->num_columns() <= 0)
 			Library::Logging::Logger().logWarn("orc_parser::parse no columns were read");
 
-		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(orc_table.tbl), orc_table.metadata.column_names);
-		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
-		return std::make_pair(std::move(table_out), table_out_view);
+		return std::make_unique<ral::frame::BlazingTable>(std::move(orc_table.tbl), orc_table.metadata.column_names);		
 	}
-	return std::make_pair(nullptr, ral::frame::BlazingTableView());
+	return nullptr;
 }
 
 void orc_parser::parse_schema(

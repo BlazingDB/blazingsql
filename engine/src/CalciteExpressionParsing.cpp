@@ -107,48 +107,25 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::s
 	}
 }
 
-void get_common_type(cudf::type_id type1, cudf::type_id type2, cudf::type_id & type_out) {
-	// TODO percy cudf0.12 was invalid here, should we return empty?
-	type_out = cudf::type_id::EMPTY;
+cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2) {
+	
 	if(type1 == type2) {
-		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-		if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-			type_out = type1;
-		} else {
-			type_out = type1;
-		}
+		return type1;		
 	} else if((is_type_float(type1) && is_type_float(type2)) || (is_type_integer(type1) && is_type_integer(type2))) {
-		type_out = (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2)) ? type1
+		return (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2)) ? type1
 																												: type2;
-	} else if(type1 == cudf::type_id::TIMESTAMP_SECONDS || type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-		if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS || type2 == cudf::type_id::TIMESTAMP_SECONDS) {
-			type_out = (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2))
-						   ? type1
-						   : type2;
-			// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-			if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-			} else {
-				type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-			}
-		} else {
-			// No common type, datetime type and non-datetime type are not compatible
-		}
-	} else if(type1 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-		if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-			type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-		} else if(type2 == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-			type_out = cudf::type_id::TIMESTAMP_MILLISECONDS;
-		} else {
-			// No common type
-		}
+	} else if(is_date_type(type1) && is_date_type(type2)) { // if they are both datetime, return the highest resolution either has
+		std::vector<cudf::type_id> datetime_types = {cudf::type_id::TIMESTAMP_NANOSECONDS, cudf::type_id::TIMESTAMP_MICROSECONDS,
+						cudf::type_id::TIMESTAMP_MILLISECONDS, cudf::type_id::TIMESTAMP_SECONDS, cudf::type_id::TIMESTAMP_DAYS};
+		for (auto datetime_type : datetime_types){
+			if(type1 == datetime_type || type2 == datetime_type)
+				return datetime_type;	
+		}		
 	} else if((type1 == cudf::type_id::STRING) &&
 			  (type2 == cudf::type_id::STRING)) {
-		type_out = cudf::type_id::STRING;
-	} else {
-		// No common type
-	}
+		return cudf::type_id::STRING;
+	} 
+	return cudf::type_id::EMPTY;	
 }
 
 cudf::type_id infer_dtype_from_literal(const std::string & token) {
@@ -188,6 +165,11 @@ cudf::type_id infer_dtype_from_literal(const std::string & token) {
 
 std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string) {
 	cudf::type_id type_id = infer_dtype_from_literal(scalar_string);
+	return get_scalar_from_string(scalar_string, type_id);
+}
+
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, const cudf::type_id & type_id) {
+
 	cudf::data_type type{type_id};
 
 	if (type_id == cudf::type_id::EMPTY) {
@@ -436,8 +418,8 @@ std::string aggregator_to_string(AggregateKind aggregation) {
 		return "count";
 	} else if(aggregation == AggregateKind::SUM) {
 		return "sum";
-        } else if(aggregation == AggregateKind::SUM0) {
-                return "sum0";
+	} else if(aggregation == AggregateKind::SUM0) {
+		return "sum0";
 	} else if(aggregation == AggregateKind::MIN) {
 		return "min";
 	} else if(aggregation == AggregateKind::MAX) {

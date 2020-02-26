@@ -12,7 +12,7 @@
 #include <blazingdb/manager/Context.h>
 using blazingdb::manager::experimental::Context;
 
-ral::frame::TableViewPair evaluate_split_query(std::vector<ral::io::data_loader> input_loaders,
+std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::vector<std::string> query,

@@ -209,7 +209,8 @@ cdef extern from "../include/io/io.h":
     cdef struct ResultSet:
         unique_ptr[table] cudfTable
         vector[string]  names
-
+        bool skipdata_analysis_fail
+    
     ctypedef enum DataType:
         UNDEFINED = 999,
         PARQUET = 0,
@@ -230,11 +231,10 @@ cdef extern from "../include/io/io.h":
         vector[string]  files
         vector[string] datasource
         vector[unsigned long] calcite_to_file_indices
-        vector[unsigned long] num_row_groups
         vector[bool] in_file
         int data_type
         ReaderArgs args
-        vector[gdf_column_ptr] metadata
+        BlazingTableView metadata
         vector[vector[int]] row_groups_ids
         shared_ptr[CTable] arrow_table
     cdef struct HDFS:
@@ -270,6 +270,7 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
             vector[string] names()
 
         cdef cppclass BlazingTableView:
+            BlazingTableView()
             BlazingTableView(CudfTableView, vector[string]) except +
             CudfTableView view()
             vector[string] names()
@@ -290,8 +291,8 @@ cdef extern from "../include/engine/engine.h":
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
-        unique_ptr[ResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
-        unique_ptr[ResultSet] runSkipData(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
+        unique_ptr[ResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp) except +raiseRunQueryError
+        unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunQueryError
 
         cdef struct TableScanInfo:
             vector[string] relational_algebra_steps

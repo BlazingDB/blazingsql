@@ -40,7 +40,7 @@ cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_a
 	int64_t num_bytes;
 	arrow_file_handle->GetSize(&num_bytes);
 
-	// lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
+	// lets only read up to 48192 bytes. We are assuming that a full row will always be less than that
 	if(first_row_only && num_bytes > 48192) {
 		new_csv_args.byte_range_size = 48192;
 		new_csv_args.nrows = 1;
@@ -60,21 +60,15 @@ cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_a
 }
  
 
-ral::frame::TableViewPair csv_parser::parse(
+std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 
-	// including all columns by default
-	if(column_indices.size() == 0) {
-		column_indices.resize(schema.get_num_columns());
-		std::iota(column_indices.begin(), column_indices.end(), 0);
-	}
-
 	if(file == nullptr) { 
 		// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);  // do we need to create an empty table that has metadata?
-		return std::make_pair(nullptr, ral::frame::BlazingTableView());
+		return nullptr;
 	}
 
 	cudf_io::read_csv_args new_csv_arg = this->csv_args;
@@ -111,11 +105,9 @@ ral::frame::TableViewPair csv_parser::parse(
 		}
 
 		std::unique_ptr<CudfTable> cudf_tb = std::make_unique<CudfTable>(std::move(columns_out));
-		std::unique_ptr<ral::frame::BlazingTable> table_out = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_tb), column_names_out);
-		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
-		return std::make_pair(std::move(table_out), table_out_view);
+		return std::make_unique<ral::frame::BlazingTable>(std::move(cudf_tb), column_names_out);		
 	}
-	return std::make_pair(nullptr, ral::frame::BlazingTableView());
+	return nullptr;
 }
 
 void csv_parser::parse_schema(

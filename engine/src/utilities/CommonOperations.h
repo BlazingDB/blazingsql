@@ -20,6 +20,10 @@ std::unique_ptr<cudf::experimental::table> create_empty_table(const std::vector<
 
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableView & table);
 
+std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns);
+
+std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& str, cudf::size_type rows);
+
 }  // namespace experimental
 }  // namespace utilities
 }  // namespace ral
