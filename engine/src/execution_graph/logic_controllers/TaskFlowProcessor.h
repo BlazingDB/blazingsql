@@ -843,7 +843,6 @@ struct expr_tree_processor {
 
 	ral::cache::graph build_graph(std::string json) {
 		try {
-			std::replace( json.begin(), json.end(), '\'', '\"');
 			std::istringstream input(json);
 			boost::property_tree::ptree p_tree;
 			boost::property_tree::read_json(input, p_tree);

@@ -14,6 +14,7 @@ bc.create_table('customer', '/home/aocsa/tpch/100MB2Part/tpch/customer_0_0.parqu
 bc.create_table('orders', '/home/aocsa/tpch/100MB2Part/tpch/orders_*.parquet')
 bc.create_table('nation', '/home/aocsa/tpch/100MB2Part/tpch/nation_*.parquet')
 bc.create_table('region', '/home/aocsa/tpch/100MB2Part/tpch/region_*.parquet')
+bc.create_table('lineitem', '/home/aocsa/tpch/100MB2Part/tpch/lineitem_*.parquet')
 
 def run_query(bc, sql, title):
     print(title, sql)
@@ -66,4 +67,10 @@ run_query(bc, sql, queryId)
 # all queries 
 queryId = 'TEST_01: all distributed operations'
 sql = "select c.c_custkey, c.c_nationkey, o.o_orderkey from customer as c inner join orders as o on c.c_custkey = o.o_orderkey inner join nation as n on c.c_nationkey = n.n_nationkey order by c_custkey"
+run_query(bc, sql, queryId)
+
+
+queryId = 'TEST_01: issue'
+sql = """select l_orderkey, l_partkey, l_suppkey, l_returnflag from lineitem 
+                where l_returnflag='N' and l_linenumber < 3 and l_orderkey < 50"""
 run_query(bc, sql, queryId)

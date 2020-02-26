@@ -21,7 +21,27 @@ using blazingdb::manager::experimental::Context;
 using blazingdb::transport::experimental::Address;
 using blazingdb::transport::experimental::Node;
 struct ExprToGraphProcessor : public cudf::test::BaseFixture {
-	ExprToGraphProcessor() {}
+	const std::string filename = "/tmp/nation.psv";
+
+	ExprToGraphProcessor() {
+		const std::string content =
+			R"(0|ALGERIA|0| haggle. carefully final deposits detect slyly agai
+		1|ARGENTINA|1|al foxes promise slyly according to the regular accounts. bold requests alon
+		2|BRAZIL|1|y alongside of the pending deposits. carefully special packages are about the ironic forges. slyly special
+		3|CANADA|1|eas hang ironic, silent packages. slyly regular packages are furiously over the tithes. fluffily bold
+		4|EGYPT|4|y above the carefully unusual theodolites. final dugouts are quickly across the furiously regular d
+		5|ETHIOPIA|0|ven packages wake quickly. regu
+		6|FRANCE|3|refully final requests. regular, ironi
+		7|GERMANY|3|l platelets. regular accounts x-ray: unusual, regular acco
+		8|INDIA|2|ss excuses cajole slyly across the packages. deposits print aroun
+		9|INDONESIA|2| slyly express asymptotes. regular deposits haggle slyly. carefully ironic hockey players sleep blithely. carefull
+		10|IRAN|4|efully alongside of the slyly final dependencies)";
+
+		std::ofstream outfile(filename, std::ofstream::out);
+		outfile << content << std::endl;
+		outfile.close();
+
+	}
 
 	~ExprToGraphProcessor() {}
 }; 
@@ -49,29 +69,13 @@ TEST_F(ExprToGraphProcessor, FromJsonInput) {
 		]
 	}
 	)";
-	const std::string content =
-		R"(0|ALGERIA|0| haggle. carefully final deposits detect slyly agai
-		1|ARGENTINA|1|al foxes promise slyly according to the regular accounts. bold requests alon
-		2|BRAZIL|1|y alongside of the pending deposits. carefully special packages are about the ironic forges. slyly special
-		3|CANADA|1|eas hang ironic, silent packages. slyly regular packages are furiously over the tithes. fluffily bold
-		4|EGYPT|4|y above the carefully unusual theodolites. final dugouts are quickly across the furiously regular d
-		5|ETHIOPIA|0|ven packages wake quickly. regu
-		6|FRANCE|3|refully final requests. regular, ironi
-		7|GERMANY|3|l platelets. regular accounts x-ray: unusual, regular acco
-		8|INDIA|2|ss excuses cajole slyly across the packages. deposits print aroun
-		9|INDONESIA|2| slyly express asymptotes. regular deposits haggle slyly. carefully ironic hockey players sleep blithely. carefull
-		10|IRAN|4|efully alongside of the slyly final dependencies)";
+	std::replace( json.begin(), json.end(), '\'', '\"');
 
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
 	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
-
-	std::string filename = "/tmp/nation.psv";
-	std::ofstream outfile(filename, std::ofstream::out);
-	outfile << content << std::endl;
-	outfile.close();
 
 	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
 	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
@@ -114,29 +118,12 @@ TEST_F(ExprToGraphProcessor, FromJsonInputOptimized) {
 		'children': []
 	}
 	)";
-	const std::string content =
-		R"(0|ALGERIA|0| haggle. carefully final deposits detect slyly agai
-		1|ARGENTINA|1|al foxes promise slyly according to the regular accounts. bold requests alon
-		2|BRAZIL|1|y alongside of the pending deposits. carefully special packages are about the ironic forges. slyly special
-		3|CANADA|1|eas hang ironic, silent packages. slyly regular packages are furiously over the tithes. fluffily bold
-		4|EGYPT|4|y above the carefully unusual theodolites. final dugouts are quickly across the furiously regular d
-		5|ETHIOPIA|0|ven packages wake quickly. regu
-		6|FRANCE|3|refully final requests. regular, ironi
-		7|GERMANY|3|l platelets. regular accounts x-ray: unusual, regular acco
-		8|INDIA|2|ss excuses cajole slyly across the packages. deposits print aroun
-		9|INDONESIA|2| slyly express asymptotes. regular deposits haggle slyly. carefully ironic hockey players sleep blithely. carefull
-		10|IRAN|4|efully alongside of the slyly final dependencies)";
-
+	std::replace( json.begin(), json.end(), '\'', '\"');
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
 	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
-
-	std::string filename = "/tmp/nation.psv";
-	std::ofstream outfile(filename, std::ofstream::out);
-	outfile << content << std::endl;
-	outfile.close();
 
 	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
 	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
@@ -190,29 +177,13 @@ TEST_F(ExprToGraphProcessor, FromJsonInputAggregation) {
 		]
 	}
 	)";
-	const std::string content =
-		R"(0|ALGERIA|0| haggle. carefully final deposits detect slyly agai
-		1|ARGENTINA|1|al foxes promise slyly according to the regular accounts. bold requests alon
-		2|BRAZIL|1|y alongside of the pending deposits. carefully special packages are about the ironic forges. slyly special
-		3|CANADA|1|eas hang ironic, silent packages. slyly regular packages are furiously over the tithes. fluffily bold
-		4|EGYPT|4|y above the carefully unusual theodolites. final dugouts are quickly across the furiously regular d
-		5|ETHIOPIA|0|ven packages wake quickly. regu
-		6|FRANCE|3|refully final requests. regular, ironi
-		7|GERMANY|3|l platelets. regular accounts x-ray: unusual, regular acco
-		8|INDIA|2|ss excuses cajole slyly across the packages. deposits print aroun
-		9|INDONESIA|2| slyly express asymptotes. regular deposits haggle slyly. carefully ironic hockey players sleep blithely. carefull
-		10|IRAN|4|efully alongside of the slyly final dependencies)";
+	std::replace( json.begin(), json.end(), '\'', '\"');
 
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
 	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
-
-	std::string filename = "/tmp/nation.psv";
-	std::ofstream outfile(filename, std::ofstream::out);
-	outfile << content << std::endl;
-	outfile.close();
 
 	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
 	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
