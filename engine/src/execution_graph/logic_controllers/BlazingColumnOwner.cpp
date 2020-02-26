@@ -4,9 +4,6 @@ namespace ral {
 
 namespace frame {
 
-BlazingColumnOwner::BlazingColumnOwner() 
-	: column(nullptr) {}
-
 BlazingColumnOwner::BlazingColumnOwner(std::unique_ptr<CudfColumn> column) 
 	: column(std::move(column)) {}
 

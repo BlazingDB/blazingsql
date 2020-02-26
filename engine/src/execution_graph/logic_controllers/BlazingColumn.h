@@ -24,6 +24,9 @@ enum class blazing_column_type {
 
 class BlazingColumn {
 	public:
+		BlazingColumn() =default;
+		BlazingColumn(const BlazingColumn&) =delete;
+  		BlazingColumn& operator=(const BlazingColumn&) =delete;
 		virtual CudfColumnView view() const = 0;
 		virtual std::unique_ptr<CudfColumn> release() = 0;
 		virtual blazing_column_type type() = 0;
