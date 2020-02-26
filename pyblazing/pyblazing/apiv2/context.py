@@ -834,6 +834,8 @@ class BlazingContext(object):
     #def partition(self, input, by=[]):
     def partition(self, by=[]):
         print("Partitioning...")
+        masterIndex = 0
+        ctxToken = random.randint(0, 64000)
 
         if self.dask_client is None:
             print("Not supported...")
@@ -842,6 +844,9 @@ class BlazingContext(object):
             connection = self.dask_client.submit(
                 cio.performPartitionCaller,
                 #input,
+                masterIndex,
+                self.nodes,
+                ctxToken,
                 by,
                 workers=[worker])
             return connection.result()

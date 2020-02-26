@@ -96,8 +96,8 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
 cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp) except *:
     return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp))
 
-cdef unique_ptr[cio.ResultSet] performPartitionPython(vector[string] column_names) except *:
-    return blaz_move(cio.performPartition(column_names))
+cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, vector[string] column_names) except *:
+    return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, column_names))
 
 cdef unique_ptr[cio.ResultSet] runSkipDataPython(BlazingTableView metadata, vector[string] all_column_names, string query) except *:
     return blaz_move(cio.runSkipData( metadata, all_column_names, query))
@@ -213,14 +213,21 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     df._rename_columns(decoded_names)    
     return df
 
-cpdef performPartitionCaller(by):
+cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, by):
+    cdef vector[NodeMetaDataTCP] tcpMetadataCpp
+    cdef NodeMetaDataTCP currentMetadataCpp
     cdef vector[string] column_names
 
     for column_name in by:
       column_names.push_back(str.encode(column_name))
 
+    for currentMetadata in tcpMetadata:
+        currentMetadataCpp.ip = currentMetadata['ip'].encode()
+        currentMetadataCpp.communication_port = currentMetadata['communication_port']
+        tcpMetadataCpp.push_back(currentMetadataCpp)
+
     print("Cythonizing")
-    resultSet = blaz_move(performPartitionPython(column_names))
+    resultSet = blaz_move(performPartitionPython(masterIndex, tcpMetadataCpp, ctxToken, column_names))
     return "OK"
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):

@@ -43,5 +43,8 @@ std::unique_ptr<ResultSet> runSkipData(
 	std::string query);
 
 std::unique_ptr<ResultSet> performPartition(
+	int32_t masterIndex,
+	std::vector<NodeMetaDataTCP> tcpMetadata,
+	int32_t ctxToken,
 	std::vector<std::string> column_names);
 

@@ -127,17 +127,31 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	}
 }
 
-std::unique_ptr<ResultSet> performPartition(std::vector<std::string> column_names) {
+std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
+	std::vector<NodeMetaDataTCP> tcpMetadata,
+	int32_t ctxToken,
+	std::vector<std::string> column_names) {
 
 	try {
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 
 		const ral::frame::BlazingTableView table;
 		std::vector<int> columnIndices;
-		blazingdb::manager::experimental::Context * context;
+
+		using blazingdb::manager::experimental::Context;
+		using blazingdb::transport::experimental::Node;
+
+		std::vector<Node> contextNodes;
+		for(auto currentMetadata : tcpMetadata) {
+			auto address =
+				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+			contextNodes.push_back(Node(address));
+		}
+
+		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
 
 		std::unique_ptr<ral::frame::BlazingTable> new_table = ral::processor::process_distribution_table(
-			table, columnIndices, context);
+			table, columnIndices, &queryContext);
 
 		for(auto col_name:column_names){
 			std::cout<<col_name<<std::endl;
