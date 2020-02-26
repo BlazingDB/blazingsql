@@ -26,7 +26,7 @@ template<class TypeParam>
 std::unique_ptr<cudf::column> make_col(cudf::size_type size) {
 	thrust::device_vector<TypeParam> d_integers(size);
 	thrust::sequence( thrust::device, d_integers.begin(), d_integers.end());
-	cudf::mask_state state = cudf::ALL_VALID;
+	cudf::mask_state state = cudf::mask_state::ALL_VALID;
 
 	auto integers = cudf::make_numeric_column(cudf::data_type{cudf::experimental::type_to_id<TypeParam>()}, size, state);
 	auto integers_view = integers->mutable_view();
