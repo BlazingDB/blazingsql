@@ -48,6 +48,7 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experi
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::string & aggregation);
 
 std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string);
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, const cudf::type_id & type_id);
 
 std::string aggregator_to_string(cudf::experimental::aggregation::Kind operation);
 

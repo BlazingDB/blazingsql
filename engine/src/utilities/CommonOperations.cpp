@@ -4,10 +4,15 @@
 #include "CalciteExpressionParsing.h"
 #include "Traits/RuntimeTraits.h"
 #include "cudf/legacy/unary.hpp"
+#include "cudf/null_mask.hpp"
+#include "cudf/types.hpp"
+#include <cudf/filling.hpp>
+#include <cudf/scalar/scalar_factories.hpp>
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <cudf/copying.hpp>
 #include <cudf/unary.hpp>
+#include <cudf/column/column_factories.hpp>
 #include <numeric>
 
 // namespace ral {
@@ -133,10 +138,6 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 	return std::make_unique<BlazingTable>(std::move(concatenated_tables), names);
 }
 
-std::unique_ptr<cudf::column> make_empty_column(cudf::data_type type) {
-  return std::make_unique<cudf::column>(type, 0, rmm::device_buffer{});
-}
-
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names, 
 	const std::vector<cudf::type_id> &dtypes, std::vector<size_t> column_indices) {
 	
@@ -197,6 +198,24 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std
 		}
 	}
 	return columns_out;
+}
+
+std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& str, cudf::size_type rows) {
+
+	std::unique_ptr<cudf::column> temp_no_data = std::make_unique<cudf::column>( 
+		cudf::data_type{cudf::type_id::STRING}, rows,
+		rmm::device_buffer{0}, // no data
+		cudf::create_null_mask(rows, cudf::mask_state::ALL_NULL),
+		rows );
+	if (rows == 0){
+		return temp_no_data;
+	} else {
+		auto scalar_value = cudf::make_string_scalar(str);
+		scalar_value->set_valid(true); // https://github.com/rapidsai/cudf/issues/4085
+
+		auto scalar_filled_column = cudf::experimental::fill(temp_no_data->view(), 0, rows, *scalar_value);
+		return scalar_filled_column;
+	}
 }
 
 }  // namespace experimental

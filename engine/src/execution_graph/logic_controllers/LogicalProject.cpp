@@ -14,10 +14,11 @@
 #include <utility>
 
 #include "LogicalProject.h"
-#include "../../CalciteExpressionParsing.h"
-#include "../../Interpreter/interpreter_cpp.h"
-#include "../../parser/expression_tree.hpp"
-#include "../../Utils.cuh"
+#include "CalciteExpressionParsing.h"
+#include "Interpreter/interpreter_cpp.h"
+#include "parser/expression_tree.hpp"
+#include "Utils.cuh"
+#include "utilities/CommonOperations.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 
 namespace ral {
@@ -44,17 +45,6 @@ std::string like_expression_to_regex_str(const std::string & like_exp) {
 	re = std::regex_replace(re, any_char_re, "$1(?:.)");
 
 	return (match_start ? "^" : "") + re + (match_end ? "$" : "");
-}
-
-std::unique_ptr<cudf::column> make_column_from_scalar(const std::string& str, cudf::size_type rows) {
-    std::vector<char> chars{};
-    std::vector<int32_t> offsets(1, 0);
-    for(cudf::size_type k = 0; k < rows; k++) {
-        chars.insert(chars.end(), std::cbegin(str), std::cend(str));
-        offsets.push_back(offsets.back() + str.length());
-    }
-
-    return cudf::make_strings_column(chars, offsets);
 }
 
 struct cast_to_str_functor {
@@ -137,7 +127,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 column1 = table.column(get_index(arg_tokens[0]));
             } else {
                 std::string literal_str = arg_tokens[0].substr(1, arg_tokens[0].size() - 2);
-                temp_col1 = make_column_from_scalar(literal_str, table.num_rows());
+                temp_col1 = ral::utilities::experimental::make_string_column_from_scalar(literal_str, table.num_rows());
                 column1 = temp_col1->view();
             }
             
@@ -147,7 +137,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 column2 = table.column(get_index(arg_tokens[1]));
             } else {
                 std::string literal_str = arg_tokens[1].substr(1, arg_tokens[1].size() - 2);
-                temp_col2 = make_column_from_scalar(literal_str, table.num_rows());
+                temp_col2 = ral::utilities::experimental::make_string_column_from_scalar(literal_str, table.num_rows());
                 column2 = temp_col2->view();
             }
 
@@ -436,7 +426,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
             cudf::type_id col_type = infer_dtype_from_literal(expression);
             if(col_type == cudf::type_id::STRING){
                 std::string scalar_str = expression.substr(1, expression.length() - 2);
-                out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(strings::make_column_from_scalar(scalar_str, table.num_rows()));
+                out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(ral::utilities::experimental::make_string_column_from_scalar(scalar_str, table.num_rows()));
             } else {
                 std::unique_ptr<CudfColumn> fixed_with_col = cudf::make_fixed_width_column(cudf::data_type{col_type}, table.num_rows());
                 std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(expression);

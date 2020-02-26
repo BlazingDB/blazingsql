@@ -26,11 +26,6 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse(std::shared_ptr<arro
 		return nullptr;
 	}
 
-	if(column_indices.size() == 0) {  // including all columns by default
-		column_indices.resize(schema.get_num_columns());
-		std::iota(column_indices.begin(), column_indices.end(), 0);
-	}
-
 	std::vector<cudf::size_type> indices;
 	indices.reserve(column_indices.size());
 	std::transform(

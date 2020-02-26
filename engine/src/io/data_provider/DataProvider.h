@@ -27,11 +27,7 @@ namespace io {
 
 struct data_handle {
 	std::shared_ptr<arrow::io::RandomAccessFile> fileHandle;
-	std::map<std::string, std::string> string_values;
-	std::map<std::string, bool> is_column_string;
-
-	// TODO percy cudf0.12 implement proper scalar support
-	std::map<std::string, cudf::scalar*> column_values;  // allows us to add hive values
+	std::map<std::string, std::string> column_values;  // allows us to add hive values
 	Uri uri;										  // in case the data was loaded from a file
 };
 

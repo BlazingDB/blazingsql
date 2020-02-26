@@ -44,14 +44,7 @@ def getPartitions(tableName, schema, cursor):
                 columnName = columnData.split("=")[0]
                 for column in schema['columns']:
                     if column[0] == columnName:
-                        #print(columnData.split("=")[1])
-                        if(column[1] == np.str):
-                            columnValue = columnData.split("=")[1]
-                        elif(column[1] == np.datetime64):
-                            columnValue = np.datetime64(columnData.split("=")[1])
-                        else:
-                            columnValue = np.fromstring(
-                            columnData.split("=")[1], column[1], sep=' ')[0]
+                        columnValue = columnData.split("=")[1]
                         columnPartitions.append((columnName, columnValue))
         partitions[partition[0]] = columnPartitions
     return partitions

@@ -54,12 +54,6 @@ std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
 		return nullptr;
 	}
 
-	// including all columns by default
-	if(column_indices.size() == 0) {
-		column_indices.resize(schema.get_num_columns());
-		std::iota(column_indices.begin(), column_indices.end(), 0);
-	}
-
 	cudf::experimental::io::read_json_args new_json_args = args;
 
 	// All json columns are be read
