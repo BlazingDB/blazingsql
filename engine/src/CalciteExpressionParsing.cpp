@@ -65,7 +65,7 @@ cudf::type_id get_next_biggest_type(cudf::type_id type) {
 // support returning the same input type. Also pygdf does not currently support unsigned types (for example count should
 // return and unsigned type)
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, cudf::experimental::aggregation::Kind aggregation, bool have_groupby) {
-	if(aggregation == cudf::experimental::aggregation::Kind::COUNT) {
+	if(aggregation == cudf::experimental::aggregation::Kind::COUNT_ALL) {
 		return cudf::type_id::INT64;
 	} else if(aggregation == cudf::experimental::aggregation::Kind::SUM) {
 		if(have_groupby)
@@ -187,6 +187,11 @@ cudf::type_id infer_dtype_from_literal(const std::string & token) {
 
 std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string) {
 	cudf::type_id type_id = infer_dtype_from_literal(scalar_string);
+	return get_scalar_from_string(scalar_string, type_id);
+}
+
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, const cudf::type_id & type_id) {
+
 	cudf::data_type type{type_id};
 
 	if (type_id == cudf::type_id::EMPTY) {
@@ -345,7 +350,7 @@ cudf::experimental::aggregation::Kind get_aggregation_operation(std::string oper
 	} else if(operator_string == "MAX") {
 		return cudf::experimental::aggregation::Kind::MAX;
 	} else if(operator_string == "COUNT") {
-		return cudf::experimental::aggregation::Kind::COUNT;
+		return cudf::experimental::aggregation::Kind::COUNT_ALL;
 	} 
 
 	throw std::runtime_error(
@@ -429,7 +434,7 @@ cudf::size_type get_index(const std::string & operand_string) {
 }
 
 std::string aggregator_to_string(cudf::experimental::aggregation::Kind aggregation) {
-	if(aggregation == cudf::experimental::aggregation::Kind::COUNT) {
+	if(aggregation == cudf::experimental::aggregation::Kind::COUNT_ALL) {
 		return "count";
 	} else if(aggregation == cudf::experimental::aggregation::Kind::SUM) {
 		return "sum";

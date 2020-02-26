@@ -27,6 +27,9 @@ struct ExpressionTreeTest : public ::testing::Test {
       auto solution =  tree.prefix();
       std::cout << "solution:\n";
       std::cout << solution << "\n";
+      auto rebuilt =  tree.rebuildExpression();
+      std::cout << "rebuilt:\n";
+      std::cout << rebuilt << "\n";
       EXPECT_EQ(solution, expected);
     }else {
       EXPECT_EQ(valid_expr, false);

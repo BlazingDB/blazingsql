@@ -25,11 +25,8 @@ namespace io {
  */
 class uri_data_provider : public data_provider {
 public:
-	// TODO percy cudf0.12 implement proper scalar support
 	uri_data_provider(std::vector<Uri> uris,
-		std::vector<std::map<std::string, cudf::scalar*>> uri_scalars,
-		std::vector<std::map<std::string, std::string>> string_scalars,
-		std::vector<std::map<std::string, bool>> is_column_string);
+		std::vector<std::map<std::string, std::string>> uri_values);
 	uri_data_provider(std::vector<Uri> uris);
 	virtual ~uri_data_provider();
 	/**
@@ -89,13 +86,11 @@ private:
 	std::vector<std::string> errors;
 
 	/**
-	 * Stores scalar values which map to a file or directory, for example in hive
+	 * Stores strings which represent scalar values which map to a file or directory, for example in hive
 	 * partitioned tables where the files themselves wont have the partition columns
 	 * this gives us a way of passing those in
 	 */
-	std::vector<std::map<std::string, cudf::scalar*>> uri_scalars;
-	std::vector<std::map<std::string, std::string>> string_scalars;
-	std::vector<std::map<std::string, bool>> is_column_string;
+	std::vector<std::map<std::string,  std::string>> uri_values;
 	std::vector<Uri> directory_uris;
 	size_t directory_current_file;
 };
