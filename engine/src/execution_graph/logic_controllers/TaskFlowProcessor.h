@@ -315,7 +315,7 @@ public:
 	}
 
 	std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machines(const cache_settings& config) {
-		unsigned long long gpuMemory = 1024;
+		unsigned long long gpuMemory = 4294967296; //TODO: @alex, Fix this latter, default 4Gb
 		std::vector<unsigned long long> memoryPerCache = {INT_MAX};
 		std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
 
