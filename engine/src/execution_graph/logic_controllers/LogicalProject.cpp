@@ -19,12 +19,13 @@
 #include "parser/expression_tree.hpp"
 #include "Utils.cuh"
 #include "utilities/CommonOperations.h"
+#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 
 namespace ral {
 namespace processor {
 
 // forward declaration
-std::unique_ptr<cudf::experimental::table> evaluate_expressions(const cudf::table_view & table, const std::vector<std::string> & expressions);
+std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> blazing_columns_in, const std::vector<std::string> & expressions);
 
 namespace strings {
 
@@ -267,17 +268,15 @@ std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_v
 
     RAL_EXPECTS(!is_literal(condition_expr), "CASE operator not supported for condition expression literals");
     
-    std::unique_ptr<cudf::column> boolean_mask_col;
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table;
     cudf::column_view boolean_mask_view;
     if (is_var_column(condition_expr)) {
         boolean_mask_view = table.column(get_index(condition_expr));
     } else {
-        auto evaluated_table = evaluate_expressions(table, {condition_expr});
-        RAL_EXPECTS(evaluated_table->num_columns() == 1 && evaluated_table->get_column(0).type().id() == cudf::type_id::BOOL8, "Expression does not evaluate to a boolean mask");
+        evaluated_table = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {condition_expr});
+        RAL_EXPECTS(evaluated_table.size() == 1 && evaluated_table[0]->view().type().id() == cudf::type_id::BOOL8, "Expression does not evaluate to a boolean mask");
 
-        auto columns = evaluated_table->release();
-        boolean_mask_col = std::move(columns[0]);
-        boolean_mask_view = boolean_mask_col->view();
+        boolean_mask_view = evaluated_table[0]->view();
     }
 
     if (is_string(expr1) && is_string(expr2)) {
@@ -373,15 +372,22 @@ private:
 };
 
 
-std::unique_ptr<cudf::experimental::table> evaluate_expressions(
-    const cudf::table_view & table,
+std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> blazing_columns,
     const std::vector<std::string> & expressions) {
     using interops::column_index_type;
 
-    std::vector<std::unique_ptr<cudf::column>> out_columns(expressions.size());
+    std::vector<CudfColumnView> cudf_column_views_in(blazing_columns.size());
+    std::transform(blazing_columns.begin(), blazing_columns.end(), cudf_column_views_in.begin(), [](auto & col){
+        return col->view();
+    });
+    cudf::table_view table(cudf_column_views_in);
+    
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(expressions.size());
     
     std::vector<bool> column_used(table.num_columns(), false);
     std::vector<std::pair<int, int>> out_idx_computed_idx_pair;
+    std::vector<std::pair<int, int>> out_idx_input_idx_pair;
 
     std::vector<std::vector<std::string>> tokenized_expression_vector;
     std::vector<cudf::mutable_column_view> interpreter_out_column_views;
@@ -400,7 +406,7 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
             
             auto new_column = cudf::make_fixed_width_column(cudf::data_type{expr_out_type}, table.num_rows(), cudf::mask_state::UNINITIALIZED);
             interpreter_out_column_views.push_back(new_column->mutable_view());
-            out_columns[i] = std::move(new_column);
+            out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(new_column));
 
             std::string cleaned_expression = clean_calcite_expression(expression);
             std::vector<std::string> tokens = get_tokens_in_reverse_order(cleaned_expression);
@@ -420,21 +426,30 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
             cudf::type_id col_type = infer_dtype_from_literal(expression);
             if(col_type == cudf::type_id::STRING){
                 std::string scalar_str = expression.substr(1, expression.length() - 2);
-                out_columns[i] = ral::utilities::experimental::make_string_column_from_scalar(scalar_str, table.num_rows());
+                out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(ral::utilities::experimental::make_string_column_from_scalar(scalar_str, table.num_rows()));
             } else {
-                out_columns[i] = cudf::make_fixed_width_column(cudf::data_type{col_type}, table.num_rows());
+                std::unique_ptr<CudfColumn> fixed_with_col = cudf::make_fixed_width_column(cudf::data_type{col_type}, table.num_rows());
                 std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(expression);
                 RAL_EXPECTS(!!literal_scalar, "NULL literal not supported in projection");
                 
-                if (out_columns[i]->size() != 0){
-                    cudf::mutable_column_view out_column_mutable_view = out_columns[i]->mutable_view();
+                if (fixed_with_col->size() != 0){
+                    cudf::mutable_column_view out_column_mutable_view = fixed_with_col->mutable_view();
                     cudf::experimental::fill_in_place(out_column_mutable_view, 0, out_column_mutable_view.size(), *literal_scalar);
-                }                
+                }
+                out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(fixed_with_col));
             }
         } else {
             cudf::size_type idx = get_index(expression);
             if (idx < table.num_columns()) {
-                out_columns[i] = std::make_unique<cudf::column>(table.column(idx));
+                // if the output is just the input, we want to see if its a BlazingColumnView or a BlazingColumnOwner
+                // if its a BlazingColumnView, then we just copy the view (no-memcopy)
+                // if its a BlazingColumnOwner, then we want to move it OR copy it if we need to make more than one move. (more than one output for the same input)
+                // the BlazingColumnOwner moves would have to happen at the end, after all transformations have happened
+                if (blazing_columns[idx]->type() == ral::frame::blazing_column_type::VIEW){ 
+                    out_columns[i] = std::make_unique<ral::frame::BlazingColumnView>(blazing_columns[idx]->view());
+                } else {
+                    out_idx_input_idx_pair.push_back({i, idx});
+                }                
             } else {
                 out_idx_computed_idx_pair.push_back({i, idx - table.num_columns()});
             }
@@ -443,7 +458,19 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
 
     auto computed_columns = evaluator.release_computed_columns();
     for (auto &&p : out_idx_computed_idx_pair) {
-        out_columns[p.first] = std::move(computed_columns[p.second]);
+        out_columns[p.first] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(computed_columns[p.second]));
+    }
+    
+    // this is a vector to keep track of if a column has already been moved from input to output. -1 means not moved, otherwise its the index of the output where it went to
+    std::vector<int> already_moved(blazing_columns.size(), -1); 
+    for (auto &&p : out_idx_input_idx_pair) {
+        if (already_moved[p.second] >= 0){ // have to make a copy
+            out_columns[p.first] = std::move(std::make_unique<ral::frame::BlazingColumnOwner>(
+                    std::make_unique<cudf::column>(out_columns[already_moved[p.second]]->view())));
+        } else {
+            out_columns[p.first] = std::move(blazing_columns[p.second]);
+            already_moved[p.second] = p.first;
+        }
     }
 
     // Get the needed columns indices in order and keep track of the mapped indices
@@ -511,11 +538,11 @@ std::unique_ptr<cudf::experimental::table> evaluate_expressions(
                                                 right_scalars);
     }
 
-    return std::make_unique<cudf::experimental::table>(std::move(out_columns));
+    return std::move(out_columns);
 }
 
 std::unique_ptr<ral::frame::BlazingTable> process_project(
-  const ral::frame::BlazingTableView & table,
+  std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
   const std::string & query_part,
   blazingdb::manager::experimental::Context * context) {
 
@@ -537,7 +564,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         out_column_names[i] = name;
     }
 
-    return std::make_unique<ral::frame::BlazingTable>(evaluate_expressions(table.view(), expressions), out_column_names);
+    return std::make_unique<ral::frame::BlazingTable>(evaluate_expressions(blazing_table_in->releaseBlazingColumns(), expressions), out_column_names);
 }
 
 } // namespace processor

@@ -31,7 +31,7 @@ data_loader::data_loader(std::shared_ptr<data_parser> _parser, std::shared_ptr<d
 data_loader::~data_loader() {}
 
 
-ral::frame::TableViewPair data_loader::load_data(
+std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	Context * context,
 	const std::vector<size_t> & column_indices_in,
 	const Schema & schema) {
@@ -60,8 +60,8 @@ ral::frame::TableViewPair data_loader::load_data(
 	Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context->getContextToken()),
   			std::to_string(context->getQueryStep()), std::to_string(context->getQuerySubstep()), loadMsg));
 
-	std::vector< ral::frame::TableViewPair > tableViewPairs_per_file;
-	tableViewPairs_per_file.resize(num_files);
+	std::vector< std::unique_ptr<ral::frame::BlazingTable> > blazingTable_per_file;
+	blazingTable_per_file.resize(num_files);
 
 	// TODO NOTE percy c.gonzales rommel fix our concurrent reads here (better use of thread)
 	// make sure cudf supports concurrent reads
@@ -90,23 +90,22 @@ ral::frame::TableViewPair data_loader::load_data(
 					}				
 
 					if (schema.all_in_file()){
-						ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
-						tableViewPairs_per_file[file_index] =  std::move(loaded_table);
+						std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
+						blazingTable_per_file[file_index] =  std::move(loaded_table);
 					} else {
 						std::vector<std::unique_ptr<cudf::column>> current_columns;
 						std::vector<std::string> names;
 						cudf::size_type num_rows;
 						if (column_indices_in_file.size() > 0){
-							ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
-							std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = std::move(loaded_table.first);
+							std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
 							names = current_blazing_table->names();
 							std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
 							num_rows = current_table->num_rows();
 							current_columns = current_table->release();
 						} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
 							std::vector<size_t> temp_column_indices = {0};
-							ral::frame::TableViewPair loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, temp_column_indices);
-							num_rows = loaded_table.second.num_rows();
+							std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, temp_column_indices);
+							num_rows = loaded_table->num_rows();
 						}
 						
 						for(int i = 0; i < column_indices.size(); i++) {
@@ -131,9 +130,7 @@ ral::frame::TableViewPair data_loader::load_data(
 							} 
 						}
 						auto unique_table = std::make_unique<cudf::experimental::table>(std::move(current_columns));
-						auto new_blazing_table = std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names);
-						ral::frame::BlazingTableView new_table_view = new_blazing_table->toBlazingTableView();
-						tableViewPairs_per_file[file_index] = std::move(std::make_pair(std::move(new_blazing_table), new_table_view));
+						blazingTable_per_file[file_index] = std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));						
 					} 
 					
 				} else {
@@ -162,34 +159,32 @@ ral::frame::TableViewPair data_loader::load_data(
 	size_t num_columns;
 	
 	if(num_files > 0) {
-		num_columns = tableViewPairs_per_file[0].first->num_columns();
+		num_columns = blazingTable_per_file[0]->num_columns();
 	}
 
 	if(num_files == 0 || num_columns == 0) { 
 		// GDFParse is parsed here
-		ral::frame::TableViewPair ds = parser->parse(nullptr, "", schema, column_indices);
-		bool if_null_empty_load = (ds.second.num_columns() == 0);
+		std::unique_ptr<ral::frame::BlazingTable> parsed_table = parser->parse(nullptr, "", schema, column_indices);
+		bool if_null_empty_load = (parsed_table == nullptr || parsed_table->num_columns() == 0);
 		if (if_null_empty_load) {
-			ds = schema.makeEmptyTableViewPair(column_indices);
+			parsed_table = schema.makeEmptyBlazingTable(column_indices);
 		}
-		return ds;
+		return std::move(parsed_table);
 	}
 
 	Library::Logging::Logger().logInfo(timer.logDuration(*context, "data_loader::load_data part 2 concat"));
 	timer.reset();
 
 	if(num_files == 1) {  // we have only one file so we can just return the columns we parsed from that file
-		return std::move(tableViewPairs_per_file[0]);
+		return std::move(blazingTable_per_file[0]);
 
 	} else {  // we have more than one file so we need to concatenate
 
 		std::vector<ral::frame::BlazingTableView> table_views;
-		for (int i = 0; i < tableViewPairs_per_file.size(); i++)
-			table_views.push_back(tableViewPairs_per_file[i].second);
+		for (int i = 0; i < blazingTable_per_file.size(); i++)
+			table_views.push_back(std::move(blazingTable_per_file[i]->toBlazingTableView()));
 		
-		std::unique_ptr<ral::frame::BlazingTable> table_out = ral::utilities::experimental::concatTables(table_views);
-		ral::frame::BlazingTableView table_out_view = table_out->toBlazingTableView();
-		return std::make_pair(std::move(table_out), table_out_view);
+		return ral::utilities::experimental::concatTables(table_views);		
 	}	
 }
 

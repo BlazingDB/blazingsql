@@ -20,12 +20,12 @@ namespace io {
 class data_parser {
 public:
 
-	virtual ral::frame::TableViewPair parse(
+	virtual std::unique_ptr<ral::frame::BlazingTable> parse(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
 		const Schema & schema,
 		std::vector<size_t> column_indices) {
-			return std::make_pair(nullptr, ral::frame::BlazingTableView()); // TODO cordova ask ALexander why is not a pure virtual function as before
+			return nullptr; // TODO cordova ask ALexander why is not a pure virtual function as before
 	}
 
 	virtual void parse_schema(
