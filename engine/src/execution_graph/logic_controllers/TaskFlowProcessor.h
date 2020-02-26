@@ -680,9 +680,9 @@ private:
 
 namespace cudf_io = cudf::experimental::io;
 
-class file_reader_kernel : public kernel {
+class parquet_file_reader_kernel : public kernel {
 public:
-	file_reader_kernel(std::vector<std::string> file_paths) : kernel(), file_paths(file_paths) {}
+	parquet_file_reader_kernel(std::vector<std::string> file_paths) : kernel(), file_paths(file_paths) {}
 
 	virtual kstatus run() {
 		for(auto file_path : file_paths) {
@@ -758,7 +758,7 @@ protected:
 
 using GeneratorKernel = ral::cache::test::generate;
 using PrinterKernel = ral::cache::print;
-using FileReaderKernel = ral::cache::test::file_reader_kernel;
+using ParquetFileReaderKernel = ral::cache::test::parquet_file_reader_kernel;
 
 
 namespace parser{
