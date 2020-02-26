@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <cudf/copying.hpp>
+#include <cudf/unary.hpp>
 #include <cudf/column/column_factories.hpp>
 #include <numeric>
 
@@ -102,65 +103,6 @@
 // 	return output_table;
 // }
 
-// std::vector<gdf_column_cpp> normalizeColumnTypes(std::vector<gdf_column_cpp> columns) {
-// 	if(columns.size() < 2) {
-// 		return columns;
-// 	}
-
-// 	cudf::type_id common_type = columns[0].get_gdf_column()->type().id();
-// 	for(size_t j = 1; j < columns.size(); j++) {
-// 		cudf::type_id type_out;
-// 		get_common_type(common_type, columns[j].get_gdf_column()->type().id(), type_out);
-
-// 		// TODO percy cudf0.12 was invalid here, should we consider empty?
-// 		if(type_out == cudf::type_id::EMPTY) {
-// 			throw std::runtime_error("In normalizeColumnTypes function: no common type between " +
-// 									 std::to_string(common_type) + " and " + std::to_string(columns[j].get_gdf_column()->type().id()));
-// 		}
-
-// 		common_type = type_out;
-// 	}
-
-// 	std::vector<gdf_column_cpp> columns_out(columns.size());
-// 	for(size_t j = 0; j < columns.size(); j++) {
-// 		// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-// 		if(common_type == cudf::type_id::TIMESTAMP_MILLISECONDS) {
-// 			if(columns[j].get_gdf_column()->type().id() == common_type) {
-// 				columns_out[j] = columns[j];
-// 			} else {
-// 				Library::Logging::Logger().logWarn(buildLogString("",
-// 					"",
-// 					"",
-// 					"WARNING: normalizeColumnTypes casting " + std::to_string(columns[j].get_gdf_column()->type().id()) +
-// 						" to " + std::to_string(common_type)));
-
-// 				// TODO percy cudf0.12 port to cudf::column				
-// //				cudf::column raw_column_out = cudf::cast(*(columns[j].get_gdf_column()), to_gdf_type(common_type));
-// //				cudf::column * temp_raw_column = new cudf::column();
-// //				*temp_raw_column = raw_column_out;
-// //				columns_out[j].create_gdf_column(temp_raw_column);
-// //				columns_out[j].set_name(columns[j].name());
-// 			}
-// 		} else if(columns[j].get_gdf_column()->type().id() == common_type) {
-// 			columns_out[j] = columns[j];
-// 		} else {
-// 			Library::Logging::Logger().logWarn(buildLogString("",
-// 				"",
-// 				"",
-// 				"WARNING: normalizeColumnTypes casting " + std::to_string(columns[j].get_gdf_column()->type().id()) + " to " +
-// 					std::to_string(common_type)));
-
-// 			// TODO percy cudf0.12 port to cudf::column				
-// //			cudf::column raw_column_out = cudf::cast(*(columns[j].get_gdf_column()), to_gdf_type(common_type));
-// //			cudf::column * temp_raw_column = new cudf::column();
-// //			*temp_raw_column = raw_column_out;
-// //			columns_out[j].create_gdf_column(temp_raw_column);
-// //			columns_out[j].set_name(columns[j].name());
-// 		}
-// 	}
-// 	return columns_out;
-// }
-
 // }  // namespace utilities
 // }  // namespace ral
 
@@ -225,6 +167,37 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableV
 
 	std::unique_ptr<CudfTable> empty = cudf::experimental::empty_like(table.view());
 	return std::make_unique<ral::frame::BlazingTable>(std::move(empty), table.names());	
+}
+
+std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns) {
+	if(columns.size() < 2) {
+		return columns;
+	}
+
+	cudf::type_id common_type = columns[0]->view().type().id();
+	for(size_t j = 1; j < columns.size(); j++) {
+		cudf::type_id type_out = get_common_type(common_type, columns[j]->view().type().id());
+
+		if(type_out == cudf::type_id::EMPTY) {
+			throw std::runtime_error("In normalizeColumnTypes function: no common type between " +
+									 std::to_string(common_type) + " and " + std::to_string(columns[j]->view().type().id()));
+		}
+		common_type = type_out;
+	}
+
+	std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_out;
+	for(size_t j = 0; j < columns.size(); j++) {
+		if(columns[j]->view().type().id() == common_type) {
+			columns_out.emplace_back(std::move(columns[j]));
+		} else {
+			Library::Logging::Logger().logWarn(buildLogString("", "", "",
+					"WARNING: normalizeColumnTypes casting " + std::to_string(columns[j]->view().type().id()) +
+						" to " + std::to_string(common_type)));
+			std::unique_ptr<CudfColumn> casted = cudf::experimental::cast(columns[j]->view(), cudf::data_type(common_type));
+			columns_out.emplace_back(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted)));
+		}
+	}
+	return columns_out;
 }
 
 std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& str, cudf::size_type rows) {

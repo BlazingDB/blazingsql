@@ -14,6 +14,9 @@
 #include <thread>
 #include <typeindex>
 #include <vector>
+#include "execution_graph/logic_controllers/BlazingColumn.h"
+#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
+#include "execution_graph/logic_controllers/BlazingColumnView.h"
 
 typedef cudf::experimental::table CudfTable;
 typedef cudf::table_view CudfTableView;
@@ -30,56 +33,32 @@ class BlazingTableView;
 
 class BlazingTable {
 public:
-	BlazingTable(std::unique_ptr<CudfTable> table, std::vector<std::string> columnNames);
+	BlazingTable(std::vector<std::unique_ptr<BlazingColumn>> columns, const std::vector<std::string> & columnNames);
+	BlazingTable(std::unique_ptr<CudfTable> table, const std::vector<std::string> & columnNames);
+	BlazingTable(const CudfTableView & table, const std::vector<std::string> & columnNames);
 	BlazingTable(BlazingTable &&) = default;
 	BlazingTable & operator=(BlazingTable const &) = delete;
 	BlazingTable & operator=(BlazingTable &&) = delete;
 
 	CudfTableView view() const;
-	cudf::size_type num_columns() const { return table->num_columns(); }
-	cudf::size_type num_rows() const { return table->num_rows(); }
+	cudf::size_type num_columns() const { return columns.size(); }
+	cudf::size_type num_rows() const { return columns.size() == 0 ? 0 : columns[0]->view().size(); }
 	std::vector<std::string> names() const;
 	// set columnNames
 	void setNames(const std::vector<std::string> & names) { this->columnNames = names; }
 
 	BlazingTableView toBlazingTableView() const;
 
-	operator bool() const { return table != nullptr; }
+	operator bool() const { return columns.size() != 0; }
 
-	std::unique_ptr<CudfTable> releaseCudfTable() { return std::move(table); }
+	std::unique_ptr<CudfTable> releaseCudfTable();
+	std::vector<std::unique_ptr<BlazingColumn>> releaseBlazingColumns();
 
-	unsigned long long sizeInBytes() {
-		unsigned long long total_size = 0UL;
-		for(cudf::size_type i = 0; i < this->table->num_columns(); ++i) {
-			const cudf::column_view & column = this->table->get_column(i);
-			if(column.type().id() == cudf::type_id::STRING) {
-				auto num_children = column.num_children();
-				if(num_children == 2) {
-					auto offsets_column = column.child(0);
-					auto chars_column = column.child(1);
-
-					total_size += chars_column.size();
-					cudf::data_type offset_dtype(cudf::type_id::INT32);
-					total_size += offsets_column.size() * cudf::size_of(offset_dtype);
-					if(column.has_nulls()) {
-						total_size += cudf::bitmask_allocation_size_bytes(column.size());
-					}
-				} else {
-//					std::cerr << "string column with no children\n";
-				};
-			} else {
-				total_size += column.size() * cudf::size_of(column.type());
-				if(column.has_nulls()) {
-					total_size += cudf::bitmask_allocation_size_bytes(column.size());
-				}
-			}
-		}
-		return total_size;
-	}
+	unsigned long long sizeInBytes();
 
 private:
 	std::vector<std::string> columnNames;
-	std::unique_ptr<CudfTable> table;
+	std::vector<std::unique_ptr<BlazingColumn>> columns;
 };
 
 
@@ -96,6 +75,7 @@ public:
 	CudfTableView view() const;
 
 	cudf::column_view const & column(cudf::size_type column_index) const { return table.column(column_index); }
+	std::vector<std::unique_ptr<BlazingColumn>> toBlazingColumns() const;
 
 	std::vector<std::string> names() const;
 	// set columnNames
@@ -112,9 +92,10 @@ private:
 	CudfTableView table;
 };
 
-typedef std::pair<std::unique_ptr<ral::frame::BlazingTable>, ral::frame::BlazingTableView> TableViewPair;
+std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::type_id> column_types,
+									   std::vector<std::string> column_names);
 
-TableViewPair createEmptyTableViewPair(std::vector<cudf::type_id> column_types, std::vector<std::string> column_names);
+std::vector<std::unique_ptr<BlazingColumn>> cudfTableViewToBlazingColumns(const CudfTableView & table);
 
 }  // namespace frame
 

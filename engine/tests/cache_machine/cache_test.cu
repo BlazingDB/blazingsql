@@ -128,7 +128,7 @@ TEST_F(CacheMachineTest, FilterTest) {
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
-TEST_F(CacheMachineTest, ProjectTest) {
+/*TEST_F(CacheMachineTest, ProjectTest) {
 	using ProcessorFunctor = std::unique_ptr<ral::frame::BlazingTable>(const ral::frame::BlazingTableView & table,
 		const std::string & query_part,
 		blazingdb::manager::experimental::Context * context);
@@ -147,7 +147,7 @@ TEST_F(CacheMachineTest, ProjectTest) {
 	processor.run();
 	std::cout << "<<> processor.run()\n";
 	std::this_thread::sleep_for(std::chrono::seconds(1));
-}
+}*/
 
 std::shared_ptr<ral::cache::CacheMachine> createSourceCacheMachineOneColumn() {
 	unsigned long long gpuMemory = 1024;

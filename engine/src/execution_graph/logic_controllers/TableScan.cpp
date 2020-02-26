@@ -48,38 +48,35 @@ std::unique_ptr<ral::frame::BlazingTable> process_table_scan(
     if(projections.size() == 0 && aliases_string_split.size() == 1) {
         projections.push_back(0);
     }
-    std::unique_ptr<ral::frame::BlazingTable> input_table;
-    ral::frame::BlazingTableView input_table_view;
-    std::tie(input_table, input_table_view) = input_loader.load_data(queryContext, projections, schema);
+	std::unique_ptr<ral::frame::BlazingTable> input_table = input_loader.load_data(queryContext, projections, schema);
 
-    std::vector<std::string> col_names = input_table_view.names();
+    std::vector<std::string> col_names = input_table->names();
 
     // Setting the aliases only when is not an empty set
     for(size_t col_idx = 0; col_idx < aliases_string_split.size(); col_idx++) {
         // TODO: Rommel, this check is needed when for example the scan has not projects but there are extra
         // aliases
-        if(col_idx < input_table_view.num_columns()) {
+        if(col_idx < input_table->num_columns()) {
             col_names[col_idx] = aliases_string_split[col_idx];
         }
     }
     if(input_table){ // the BlazingTable is not guaranteed to have something
         input_table->setNames(col_names);
     }
-    input_table_view.setNames(col_names);
+	input_table->setNames(col_names);
 
-    int num_rows = input_table_view.num_rows();
+    int num_rows = input_table->num_rows();
     Library::Logging::Logger().logInfo(
         blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
     blazing_timer.reset();
 
     if(is_filtered_bindable_scan(query_part)) {
-        input_table = ral::processor::process_filter(input_table_view, query_part, queryContext);
-        input_table_view = input_table->toBlazingTableView();
+        input_table = ral::processor::process_filter(input_table->toBlazingTableView(), query_part, queryContext);
 
         Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
             "evaluate_split_query process_filter",
             "num rows",
-            input_table_view.num_rows()));
+            input_table->num_rows()));
 
         blazing_timer.reset();
         queryContext->incrementQueryStep();

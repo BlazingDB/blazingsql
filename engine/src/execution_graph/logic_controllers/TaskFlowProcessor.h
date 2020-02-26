@@ -438,7 +438,30 @@ private:
 };
 
 using FilterKernel = SingleSourceKernel<ral::processor::process_filter>;
-using ProjectKernel = SingleSourceKernel<ral::processor::process_project>;
+
+ class ProjectKernel : public kernel {
+public:
+	 ProjectKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+		this->context = context;
+		this->expression = queryString;
+	}
+
+	virtual kstatus run() {
+		frame_type input = std::move(this->input_.get_cache()->pullFromCache());
+		if (input) {
+			auto output = ral::processor::process_project(std::move(input), expression, context);
+			this->output_.get_cache()->addToCache(std::move(output));
+			context->incrementQueryStep();
+			return kstatus::proceed;
+		}
+		return kstatus::stop;
+	}
+
+private:
+	blazingdb::manager::experimental::Context * context;
+	std::string expression;
+};
+
 using AggregateKernel = SingleSourceKernel<ral::operators::experimental::process_aggregate>;
 using JoinKernel = DoubleSourceKernel<ral::processor::process_join>;
 // using UnionKernel = DoubleSourceKernel<ral::operators::experimental::sample>;
@@ -730,7 +753,7 @@ public:
 
 	virtual kstatus run() {
 		auto table = loader.load_data(context, {}, schema);
-		this->output_.get_cache()->addToCache(std::move(table.first));
+		this->output_.get_cache()->addToCache(std::move(table));
 		return (kstatus::proceed);
 	}
 
