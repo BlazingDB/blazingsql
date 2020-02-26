@@ -150,12 +150,17 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
 
-		/*std::unique_ptr<ral::frame::BlazingTable> new_table = ral::processor::process_distribution_table(
-			table, columnIndices, &queryContext);*/
+		const std::vector<std::string> & table_col_names = table.names();
 
 		for(auto col_name:column_names){
-			std::cout<<col_name<<std::endl;
+			auto it = std::find(table_col_names.begin(), table_col_names.end(), col_name);
+			if(it != table_col_names.end()){
+				columnIndices.push_back(std::distance(table_col_names.begin(), it));
+			}
 		}
+
+		std::unique_ptr<ral::frame::BlazingTable> new_table = ral::processor::process_distribution_table(
+			table, columnIndices, &queryContext);
 
 		return result;
 

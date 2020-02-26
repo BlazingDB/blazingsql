@@ -220,12 +220,16 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
 
     cdef vector[string] names
     names.resize(0)
+    column_names.resize(0)
 
     cdef vector[column_view] column_views
     cdef Column cython_col
 
     for column_name in by:
       column_names.push_back(str.encode(column_name))
+
+    for column_name in input.columns.to_list():
+      names.push_back(str.encode(column_name))
 
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
@@ -235,7 +239,6 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
     for cython_col in input._data.values():
         column_views.push_back(cython_col.view())
 
-    print("Cythonizing")
     resultSet = blaz_move(performPartitionPython(masterIndex, tcpMetadataCpp, ctxToken, BlazingTableView(table_view(column_views), names), column_names))
     return "OK"
 
