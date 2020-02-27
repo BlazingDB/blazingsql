@@ -237,8 +237,9 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
+	StringUtil::findAndReplaceAll(ret, ":DECIMAL(19, 0)", ":DOUBLE");
+
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
-
 	return ret;
 }
