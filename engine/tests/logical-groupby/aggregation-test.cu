@@ -29,8 +29,8 @@ TYPED_TEST(AggregationTest, CheckBasicWithGroupby) {
 	std::vector<std::string> column_names{"A", "B"};
 	ral::frame::BlazingTableView table(CudfTableView{{key, value}}, column_names);
 
-	std::vector<cudf::experimental::aggregation::Kind> aggregation_types{cudf::experimental::aggregation::Kind::SUM, cudf::experimental::aggregation::Kind::COUNT_ALL, 
-				cudf::experimental::aggregation::Kind::MIN, cudf::experimental::aggregation::Kind::MAX};
+	std::vector<AggregateKind> aggregation_types{AggregateKind::SUM, AggregateKind::COUNT, 
+				AggregateKind::MIN, AggregateKind::MAX};
 
 	std::vector<std::string> aggregation_input_expressions{"1", "1", "1", "1"};
 	std::vector<std::string> aggregation_column_assigned_aliases{"agg0", "agg1", "agg2", "agg3"};
@@ -67,8 +67,8 @@ TYPED_TEST(AggregationTest, MoreComplexGroupby) {
 	std::vector<std::string> column_names{"A", "B"};
 	ral::frame::BlazingTableView table(CudfTableView{{key, value}}, column_names);
 
-	std::vector<cudf::experimental::aggregation::Kind> aggregation_types{cudf::experimental::aggregation::Kind::SUM, cudf::experimental::aggregation::Kind::COUNT_ALL, 
-				cudf::experimental::aggregation::Kind::SUM, cudf::experimental::aggregation::Kind::COUNT_ALL};
+	std::vector<AggregateKind> aggregation_types{AggregateKind::SUM, AggregateKind::COUNT, 
+				AggregateKind::SUM, AggregateKind::COUNT};
 
 	std::vector<std::string> aggregation_input_expressions{"$1", "$1", "$0", "$0"};
 	std::vector<std::string> aggregation_column_assigned_aliases{"", "", "", ""};
