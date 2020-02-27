@@ -862,7 +862,6 @@ class BlazingContext(object):
             return current_table.getSlices(len(self.nodes))
 
     def partition(self, input, by=[]):
-        print("Partitioning...")
         masterIndex = 0
         ctxToken = random.randint(0, 64000)
 
@@ -872,19 +871,19 @@ class BlazingContext(object):
             if(not isinstance(input, dask_cudf.core.DataFrame)):
                 print("Not supported...")
             else:
-                  dask_futures = []
-            for node in self.nodes:
-                worker = node['worker']
-                dask_futures.append(
-                    self.dask_client.submit(
-                        collectPartitionsPerformPartition,
-                        masterIndex,
-                        self.nodes,
-                        ctxToken,
-                        input,
-                        by,
-                        workers=[worker]))
-            result = dask.dataframe.from_delayed(dask_futures)
+                dask_futures = []
+                for node in self.nodes:
+                    worker = node['worker']
+                    dask_futures.append(
+                        self.dask_client.submit(
+                            collectPartitionsPerformPartition,
+                            masterIndex,
+                            self.nodes,
+                            ctxToken,
+                            input,
+                            by,
+                            workers=[worker]))
+                result = dask.dataframe.from_delayed(dask_futures)
             return result
 
     def sql(self, sql, table_list=[], algebra=None):

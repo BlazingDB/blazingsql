@@ -149,6 +149,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
+		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		const std::vector<std::string> & table_col_names = table.names();
 
