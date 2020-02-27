@@ -134,7 +134,7 @@ Schema Schema::fileSchema(size_t current_file_index) const {
 	return schema;
 }
 
-ral::frame::TableViewPair Schema::makeEmptyTableViewPair(const std::vector<size_t> & column_indices) const {
+std::unique_ptr<ral::frame::BlazingTable> Schema::makeEmptyBlazingTable(const std::vector<size_t> & column_indices) const {
 	std::vector<std::string> select_names(column_indices.size());
 	std::vector<cudf::type_id> select_types(column_indices.size());
 	if (column_indices.empty()) {
@@ -147,7 +147,7 @@ ral::frame::TableViewPair Schema::makeEmptyTableViewPair(const std::vector<size_
 		}
 	}
 
-	return ral::frame::createEmptyTableViewPair(select_types, select_names);
+	return ral::frame::createEmptyBlazingTable(select_types, select_names);
 }
 
 } /* namespace io */

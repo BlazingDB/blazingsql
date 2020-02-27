@@ -94,10 +94,11 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    cudf.set_allocator(allocator=allocator,
-                        pool=pool,
-                        initial_pool_size=initial_pool_size,# Default is 1/2 total GPU memory
-                        enable_logging=enable_logging)
+    if (allocator is not 'existing'): 
+        cudf.set_allocator(allocator=allocator,
+                            pool=pool,
+                            initial_pool_size=initial_pool_size,# Default is 1/2 total GPU memory
+                            enable_logging=enable_logging)
 
     cio.initializeCaller(
         ralId,
@@ -476,7 +477,7 @@ class BlazingTable(object):
 class BlazingContext(object):
 
     def __init__(self, dask_client=None, network_interface=None,
-                 allocator="managed", # options are "default" or "managed". Where "managed" uses Unified Virtual Memory (UVM) and may use system memory if GPU memory runs out
+                 allocator="managed", # options are "default", "managed". Where "managed" uses Unified Virtual Memory (UVM) and may use system memory if GPU memory runs out, or "existing" where it assumes you have already set the rmm allocator and therefore does not initialize it
                  pool=False, # if True, it will allocate a memory pool in the beginning. This can greatly improve performance
                  initial_pool_size=None, # Initial size of memory pool in bytes (if pool=True). If None, it will default to using half of the GPU memory
                  enable_logging=False): # If set to True the memory allocator logging will be enabled, but can negatively impact perforamance
