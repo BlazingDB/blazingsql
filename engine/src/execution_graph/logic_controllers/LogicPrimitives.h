@@ -215,7 +215,7 @@ public:
 
 	std::vector<message_ptr> get_all_or_wait() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished or !this->empty(); });
+		condition_variable_.wait(lock, [&, this] { return this->finished; });
 		std::vector<message_ptr> response;
 		for (message_ptr& it : message_queue_) {
 			response.emplace_back(std::move(it));
