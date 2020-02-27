@@ -96,6 +96,9 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
 cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp) except *:
     return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp))
 
+cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) except *:
+    return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
+
 cdef unique_ptr[cio.ResultSet] runSkipDataPython(BlazingTableView metadata, vector[string] all_column_names, string query) except *:
     return blaz_move(cio.runSkipData( metadata, all_column_names, query))
 
@@ -209,6 +212,35 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
     df._rename_columns(decoded_names)    
     return df
+
+cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, by):
+    cdef vector[NodeMetaDataTCP] tcpMetadataCpp
+    cdef NodeMetaDataTCP currentMetadataCpp
+    cdef vector[string] column_names
+
+    cdef vector[string] names
+    names.resize(0)
+    column_names.resize(0)
+
+    cdef vector[column_view] column_views
+    cdef Column cython_col
+
+    for column_name in by:
+      column_names.push_back(str.encode(column_name))
+
+    for column_name in input.columns.to_list():
+      names.push_back(str.encode(column_name))
+
+    for currentMetadata in tcpMetadata:
+        currentMetadataCpp.ip = currentMetadata['ip'].encode()
+        currentMetadataCpp.communication_port = currentMetadata['communication_port']
+        tcpMetadataCpp.push_back(currentMetadataCpp)
+
+    for cython_col in input._data.values():
+        column_views.push_back(cython_col.view())
+
+    resultSet = blaz_move(performPartitionPython(masterIndex, tcpMetadataCpp, ctxToken, BlazingTableView(table_view(column_views), names), column_names))
+    return "OK"
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
