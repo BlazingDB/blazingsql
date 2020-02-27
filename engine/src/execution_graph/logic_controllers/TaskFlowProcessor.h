@@ -24,8 +24,9 @@
 
 #include <cudf/copying.hpp>
 #include <cudf/merge.hpp>
-#include <cudf/sorting.hpp>
 #include <cudf/search.hpp>
+#include <cudf/sorting.hpp>
+#include <src/CalciteInterpreter.h>
 #include <src/utilities/CommonOperations.h>
 
 #include "distribution/primitives.h"
@@ -490,13 +491,54 @@ private:
 };
 
 using AggregateKernel = SingleSourceKernel<ral::operators::experimental::process_aggregate>;
-using JoinKernel = DoubleSourceKernel<ral::processor::process_join>;
+//using JoinKernel = DoubleSourceKernel<ral::processor::process_join>;
 // using UnionKernel = DoubleSourceKernel<ral::operators::experimental::sample>;
 
 using SortKernel = SingleSourceKernel<ral::operators::experimental::process_sort>;
 using SampleKernel = SingleSourceKernel<ral::operators::experimental::sample>;
 
- class UnionKernel : public kernel {
+class JoinKernel :  public kernel {
+public:
+	JoinKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+			this->input_.add_port("input_a", "input_b");
+			this->context = context;
+			this->expression = queryString;
+		}
+		virtual kstatus run() {
+			try {
+				frame_type left_frame_result = std::move(this->input_["input_a"]->pullFromCache());
+				frame_type right_frame_result = std::move(this->input_["input_b"]->pullFromCache());
+				int numLeft = left_frame_result->num_rows();
+				int numRight = right_frame_result->num_rows();
+
+				std::string new_join_statement, filter_statement;
+				StringUtil::findAndReplaceAll(expression, "IS NOT DISTINCT FROM", "=");
+				split_inequality_join_into_join_and_filter(expression, new_join_statement, filter_statement);
+
+				std::unique_ptr<ral::frame::BlazingTable> result_frame = ral::processor::process_logical_join(context, left_frame_result->toBlazingTableView(), right_frame_result->toBlazingTableView(), new_join_statement);
+				std::string extraInfo = "left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
+//				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame->num_rows(), extraInfo));
+//				blazing_timer.reset();
+				context->incrementQueryStep();
+				if (filter_statement != ""){
+					result_frame = ral::processor::process_filter(result_frame->toBlazingTableView(), filter_statement, context);
+//					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame->num_rows()));
+//					blazing_timer.reset();
+					context->incrementQueryStep();
+				}
+				this->output_.get_cache()->addToCache(std::move(result_frame));
+				return kstatus::proceed;
+			} catch (std::exception &e) {
+				std::cerr << "Exception-JoinKernel: " << e.what() << std::endl;
+			}
+			return kstatus::stop;
+		}
+
+	private:
+		blazingdb::manager::experimental::Context * context;
+		std::string expression;
+	};
+class UnionKernel : public kernel {
  public:
 	 UnionKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
  		this->input_.add_port("input_a", "input_b");
