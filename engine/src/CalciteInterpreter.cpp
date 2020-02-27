@@ -408,7 +408,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 		auto graph = tree.build_graph(logicalPlan);
 		if (graph.num_nodes() > 0) {
 			try {
-				graph += graph.get_last_kernel() >> output;
+				graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
 				graph.execute();
 
 				output_frame = output.release();

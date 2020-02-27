@@ -24,7 +24,11 @@
 
 #include <cudf/copying.hpp>
 #include <cudf/merge.hpp>
+#include <cudf/sorting.hpp>
+#include <cudf/search.hpp>
 #include <src/utilities/CommonOperations.h>
+
+#include "distribution/primitives.h"
 
 namespace ral {
 namespace cache {
@@ -92,6 +96,20 @@ public:
 	std::map<std::string, std::shared_ptr<CacheMachine>> cache_machines_;
 };
 
+enum class kernel_type {
+	ProjectKernel,
+	FilterKernel,
+	JoinKernel,
+	UnionKernel,
+	SortKernel,
+	MergeStreamKernel,
+	PartitionKernel,
+	SortAndSampleKernel,
+	AggregateKernel,
+	TableScanKernel,
+	BindableTableScanKernel
+};
+
 class kernel;
 using kernel_pair = std::pair<kernel *, std::string>;
 
@@ -112,6 +130,10 @@ public:
 
 	std::int32_t get_id() { return (kernel_id); }
 
+	kernel_type get_type_id() { return kernel_type_id; }
+
+	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
+
 protected:
 	static std::size_t kernel_count;
 
@@ -121,6 +143,7 @@ public:
 	const std::size_t kernel_id;
 	std::int32_t parent_id_;
 	bool execution_done = false;
+	kernel_type kernel_type_id;
 };
 
 
@@ -575,38 +598,70 @@ public:
 			for(auto& partition : partitions)
 				ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
 
-			auto range_generator = [](cudf::size_type begin, cudf::size_type end, cudf::size_type num_parts) {
-				std::vector<cudf::size_type> split_indexes;
-	  		  	cudf::size_type step;
-				if (end - begin <= num_parts)
-					return split_indexes;
-				step = (end - begin) / num_parts;
-				for (auto i = step; i < end; i += step) {
-					split_indexes.push_back(i);
-				} 
-				return split_indexes;
-			};
+			// Split Partitions
+			std::vector<std::unique_ptr<ral::frame::BlazingTable>> samples;
+			for (auto i = 0; i < partitions.size(); i++) {
+				auto part_samples = ral::distribution::sampling::experimental::generateSamplesFromRatio(partitions[i]->toBlazingTableView(), 0.25);
+				samples.push_back(std::move(part_samples));
+			}
 
-			cudf::size_type num_subparts = 2; //TODO: Optimize this number: default 10
-			for (size_t index = 0; index < partitions.size(); index++) {
-				std::unique_ptr<ral::frame::BlazingTable> &part = partitions[index];
-				std::vector<cudf::size_type> split_indexes = range_generator(0, part->num_rows(), num_subparts);
-				std::vector<CudfTableView> partitioned;
-				if (split_indexes.size() == 0) {
-					partitioned.push_back(part->view());
-				} else {
-					partitioned = cudf::experimental::split(part->view(), split_indexes);
-				}
-				for (auto& sub_part_view : partitioned) {
-					std::string cache_id = "output_" + std::to_string(index);
-					std::unique_ptr<CudfTable> cudfTable = std::make_unique<CudfTable>(sub_part_view);
- 					auto sub_part = std::make_unique<ral::frame::BlazingTable>(std::move(cudfTable), part->names());
-					std::cout << "partitions-subpart : " << cache_id  << "\n";
-					ral::utilities::print_blazing_table_view(sub_part->toBlazingTableView());
+			std::vector<ral::frame::BlazingTableView> samples_view;
+			for (auto &&s : samples) {
+				samples_view.push_back(s->toBlazingTableView());
+			}
+			auto concat_samples = ral::utilities::experimental::concatTables(samples_view);
 
-					this->output_[cache_id]->addToCache(std::move(sub_part));
+			std::vector<cudf::order> orders(samples_view[0].num_columns(), cudf::order::ASCENDING);
+			std::vector<cudf::null_order> null_orders(samples_view[0].num_columns(), cudf::null_order::AFTER);
+			auto sorted_samples = cudf::experimental::sort(concat_samples->view(), orders, null_orders);
+
+			std::cout<< "SORTED SAMPLES: " <<std::endl;
+			for (auto &&c : sorted_samples->view())
+			{
+				cudf::test::print(c);
+				std::cout << std::endl;
+			}	
+
+			cudf::size_type samples_rows = sorted_samples->view().num_rows();
+			cudf::size_type pivots_size = samples_rows > 0 ? 3 /* How many subpartitions? */ : 0;
+
+			int32_t step = samples_rows / (pivots_size + 1);
+			auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
+			cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivots_size);
+			auto pivots = cudf::experimental::gather(sorted_samples->view(), gather_map_wrapper);
+			
+			std::cout<< "PIVOTS: " <<std::endl;
+			for (auto &&c : pivots->view())
+			{
+				cudf::test::print(c);
+				std::cout << std::endl;
+			}	
+
+			for (auto i = 0; i < partitions.size(); i++) {
+				auto pivot_indexes = cudf::experimental::upper_bound(partitions[i]->view(),
+																															pivots->view(),
+																															orders,
+																															null_orders);
+		
+				std::cout<< "PIVOTS indices: " <<std::endl;
+				cudf::test::print(pivot_indexes->view());
+				std::cout << std::endl;
+				
+				auto host_pivot_col = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
+				auto host_pivot_indexes = host_pivot_col.first;
+
+				auto partitioned_data = cudf::experimental::split(partitions[i]->view(), host_pivot_indexes);
+
+				std::string cache_id = "output_" + std::to_string(i);
+				for (auto &&subpartition : partitioned_data) {
+					this->output_[cache_id]->addToCache(
+						std::make_unique<ral::frame::BlazingTable>(
+							std::make_unique<cudf::experimental::table>(subpartition),
+							partitions[i]->names())
+						);
 				}
 			}
+
 			return kstatus::proceed;
 		} catch (std::exception &e) {
 			std::cerr << "Exception-PartitionKernel: " << e.what() << std::endl;
@@ -626,29 +681,41 @@ public:
 	}
 	virtual kstatus run() {
 		try {
-			for (size_t index = 0; index < this->input_.count(); index++) {
-				auto cache_id = "input_" + std::to_string(index);
+
+			while (not this->input_.get_cache("input_0")->is_finished())
+			{
 				std::vector<ral::frame::BlazingTableView> partitions_to_merge;
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
-				while (not this->input_.get_cache(cache_id)->is_finished()) {
-					auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
-					if (input) {
-						partitions_to_merge.emplace_back(input->toBlazingTableView());
-						partitions_to_merge_holder.emplace_back(std::move(input));
-					} else {
-						break;
+				for (size_t index = 0; index < this->input_.count(); index++) {
+					auto cache_id = "input_" + std::to_string(index);
+					if (not this->input_.get_cache(cache_id)->is_finished()) {
+						std::cout<< ">>>>>> BEFORE pull" << std::endl;
+						auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
+						std::cout<< ">>>>>> AFTER pull" << std::endl;
+						if (input) {
+							partitions_to_merge.emplace_back(input->toBlazingTableView());
+							partitions_to_merge_holder.emplace_back(std::move(input));
+						}
 					}
 				}
-				std::cout << "merge-parts: " << std::endl;
-				for (auto view : partitions_to_merge)
-					ral::utilities::print_blazing_table_view(view);
 
-				auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context);
-				std::cout << "merge: " << cache_id << "|" << this->expression<< std::endl;
-				ral::utilities::print_blazing_table_view(output->toBlazingTableView());
+				if (partitions_to_merge.empty()) {
+					// noop
+				} else if(partitions_to_merge.size() == 1) {
+					this->output_.get_cache()->addToCache(std::move(partitions_to_merge_holder[0]));
+				}	else {
+					std::cout << "merge-parts: " << std::endl;
+					for (auto view : partitions_to_merge)
+						ral::utilities::print_blazing_table_view(view);
 
-				this->output_.get_cache()->addToCache(std::move(output));
+					auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context);
+
+					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
+
+					this->output_.get_cache()->addToCache(std::move(output));
+				}
 			}
+			
 			return kstatus::proceed;
 		} catch (std::exception &e) {
 			std::cerr << "Exception-DoubleSourceKernel: " << e.what() << std::endl;
@@ -800,13 +867,13 @@ struct expr_tree_processor {
 
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level) {
 		auto expr = p_tree.get<std::string>("expr", "");
-//		for(int i = 0; i < level*2 ; ++i) {
-//			std::cout << " ";
-//		}
+		for(int i = 0; i < level*2 ; ++i) {
+			std::cout << " ";
+		}
 		root_ptr->expr = expr;
 		root_ptr->level = level;
 		root_ptr->kernel_unit = get_kernel(expr);
-//		std::cout << expr << std::endl;
+		std::cout << expr << std::endl;
 		for (auto &child : p_tree.get_child("children"))
 		{
 			auto child_node_ptr = std::make_shared<expr_tree_processor::node>();
@@ -816,29 +883,44 @@ struct expr_tree_processor {
 	}
 
 	std::shared_ptr<kernel>  get_kernel(std::string expr) {
-		if ( is_project(expr) )
-			return std::make_shared<ProjectKernel>(expr, this->context);
-		else if ( is_filter(expr) )
-			return std::make_shared<FilterKernel>(expr, this->context);
-		else if ( is_join(expr) )
-			return std::make_shared<JoinKernel>(expr, this->context);
-		else if ( is_union(expr) )
-			return std::make_shared<UnionKernel>(expr, this->context);
-		else if ( is_project(expr) )
-			return std::make_shared<ProjectKernel>(expr, this->context);
-		else if ( is_sort(expr) ) {
-			// TODO transform sort-sample-partition-merge machine
-			return std::make_shared<SortKernel>(expr, this->context);
+		std::shared_ptr<kernel> k;
+		if ( is_project(expr) ) {
+			k = std::make_shared<ProjectKernel>(expr, this->context);
+			k->set_type_id(kernel_type::ProjectKernel);
+		} else if ( is_filter(expr) ) {
+			k = std::make_shared<FilterKernel>(expr, this->context);
+			k->set_type_id(kernel_type::FilterKernel);
+		} else if ( is_join(expr) ) {
+			k = std::make_shared<JoinKernel>(expr, this->context);
+			k->set_type_id(kernel_type::JoinKernel);
+		} else if ( is_union(expr) ) {
+			k = std::make_shared<UnionKernel>(expr, this->context);
+			k->set_type_id(kernel_type::UnionKernel);
+		} else if ( is_sort(expr) ) {
+			k = std::make_shared<SortKernel>(expr, this->context);
+			k->set_type_id(kernel_type::SortKernel);
+		} else if ( is_merge(expr) ) {
+			k = std::make_shared<MergeStreamKernel>(expr, this->context);
+			k->set_type_id(kernel_type::MergeStreamKernel);
+		} else if ( is_partition(expr) ) {
+			k = std::make_shared<PartitionKernel>(expr, this->context);
+			k->set_type_id(kernel_type::PartitionKernel);
+		} else if ( is_sort_and_sample(expr) ) {
+			k = std::make_shared<SortAndSampleKernel>(expr, this->context);
+			k->set_type_id(kernel_type::SortAndSampleKernel);
 		} else if ( is_aggregate(expr) ) {
-			return std::make_shared<AggregateKernel>(expr, this->context);
+			k = std::make_shared<AggregateKernel>(expr, this->context);
+			k->set_type_id(kernel_type::AggregateKernel);
 		} else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			return std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], this->context);
+			k = std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], this->context);
+			k->set_type_id(kernel_type::TableScanKernel);
 		} else if (is_bindable_scan(expr)) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			return std::make_shared<BindableTableScanKernel>(expr, this->input_loaders[table_index], this->schemas[table_index], this->context);
+			k = std::make_shared<BindableTableScanKernel>(expr, this->input_loaders[table_index], this->schemas[table_index], this->context);
+			k->set_type_id(kernel_type::BindableTableScanKernel);
 		}		
-		return nullptr;
+		return k;
 	}
 
 	ral::cache::graph build_graph(std::string json) {
@@ -866,6 +948,7 @@ struct expr_tree_processor {
 			visit(graph, child.get(), child->children);
 
 			std::string port_name = "input";
+			
 			if (children.size() > 1) {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
@@ -873,7 +956,22 @@ struct expr_tree_processor {
 //				std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << "["  << port_name<< "]" << std::endl;
 				graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
 			} else {
-				graph +=  *child->kernel_unit >> (*parent->kernel_unit);
+				auto a = child->kernel_unit->get_type_id();
+				auto b = parent->kernel_unit->get_type_id();
+				if (child->kernel_unit->get_type_id() == kernel_type::SortAndSampleKernel &&
+						parent->kernel_unit->get_type_id() == kernel_type::PartitionKernel) {
+					std::cout<< ">>>>> LINK 1" << std::endl;
+					graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];
+					graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
+				} else if (child->kernel_unit->get_type_id() == kernel_type::PartitionKernel &&
+									parent->kernel_unit->get_type_id() == kernel_type::MergeStreamKernel)
+				{
+					std::cout<< ">>>>> LINK 2" << std::endl;
+					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = this->context->getTotalNodes()};
+					graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+				} else {
+					graph +=  *child->kernel_unit >> (*parent->kernel_unit);
+				}				
 			}
 		}
 	}

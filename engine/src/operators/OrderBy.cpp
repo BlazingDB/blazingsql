@@ -383,9 +383,6 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition(const ral::fram
 	return partitions_to_merge;
 }
 std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part, Context * context) {
-	if(context->getTotalNodes() <= 1) {
-		return partitions_to_merge[0].clone();
-	}
 	std::vector<int8_t> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	bool apply_limit;

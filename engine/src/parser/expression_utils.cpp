@@ -93,6 +93,12 @@ bool is_filter(std::string query_part) { return (query_part.find(LOGICAL_FILTER_
 
 bool is_sort(std::string query_part) { return (query_part.find(LOGICAL_SORT_TEXT) != std::string::npos); }
 
+bool is_merge(std::string query_part) { return (query_part.find(LOGICAL_MERGE_TEXT) != std::string::npos); }
+
+bool is_partition(std::string query_part) { return (query_part.find(LOGICAL_PARTITION_TEXT) != std::string::npos); }
+
+bool is_sort_and_sample(std::string query_part) { return (query_part.find(LOGICAL_SORT_AND_SAMPLE_TEXT) != std::string::npos); }
+
 bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
 
 bool is_aggregate(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_TEXT) != std::string::npos); }
