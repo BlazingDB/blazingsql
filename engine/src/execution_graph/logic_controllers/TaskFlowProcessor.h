@@ -231,6 +231,28 @@ namespace order {
 enum spec : std::uint8_t { in = 0, out = 1 };
 }
 
+static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cache_settings& config) {
+	unsigned long long gpuMemory = 4294967296; //TODO: @alex, Fix this latter, default 4Gb
+	std::vector<unsigned long long> memoryPerCache = {INT_MAX};
+	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+	std::shared_ptr<ral::cache::CacheMachine> machine;
+
+	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
+		machine =  std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+	} else if (config.type == CacheType::CONCATENATING) {
+		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+	}
+	return machine;
+}
+
+static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machines(const cache_settings& config) {
+	std::vector<std::shared_ptr<ral::cache::CacheMachine>> machines;
+	for (size_t i = 0; i < config.num_partitions; i++) {
+		machines.push_back(create_cache_machine(config));
+	}
+	return machines;
+}
+
 class graph {
 protected:
 	struct Edge {
@@ -335,24 +357,6 @@ public:
 			return k->get_id();
 		}
 		return head_id_;
-	}
-
-	std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machines(const cache_settings& config) {
-		unsigned long long gpuMemory = 4294967296; //TODO: @alex, Fix this latter, default 4Gb
-		std::vector<unsigned long long> memoryPerCache = {INT_MAX};
-		std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
-
-		std::vector<std::shared_ptr<ral::cache::CacheMachine>> machines;
-		for (size_t i = 0; i < config.num_partitions; i++) {
-			std::shared_ptr<ral::cache::CacheMachine> machine;
-			if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
-				machine =  std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
-			} else if (config.type == CacheType::CONCATENATING) {
-				machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
-			}
-			machines.push_back(machine);
-		}
-		return machines;
 	}
 
 	void add_edge(kernel * source, kernel * target, std::string source_port, std::string target_port,
@@ -859,6 +863,55 @@ struct expr_tree_processor {
 		int level;                      // level
 		std::shared_ptr<kernel>            kernel_unit;
 		std::vector<std::shared_ptr<node>> children;  // children nodes
+
+		std::shared_ptr<ral::cache::CacheMachine> createSinkCacheMachine() {
+			unsigned long long gpuMemory = 1024;
+			std::vector<unsigned long long> memoryPerCache = {INT_MAX};
+			std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+			return std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+		}
+
+		std::unique_ptr<ral::frame::BlazingTable> execute_plan() {
+			if (children.size() == 0) {
+				// base case
+				std::shared_ptr<ral::cache::CacheMachine> cache = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+				auto kernel_id = std::to_string(kernel_unit->get_id());
+				kernel_unit->output_.register_cache(kernel_id, cache);
+				kernel_unit->run();
+				return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
+			} else {
+				if(children.size() == 2) {
+					auto input_a = children[0]->execute_plan();
+					auto input_b = children[1]->execute_plan();
+
+					auto current_input = children[0]->execute_plan();
+					std::shared_ptr<ral::cache::CacheMachine> source_cache_a = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					source_cache_a->addToCache(std::move(input_a));
+
+					std::shared_ptr<ral::cache::CacheMachine> source_cache_b = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					source_cache_b->addToCache(std::move(input_b));
+
+					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					auto kernel_id = std::to_string(kernel_unit->get_id());
+					kernel_unit->input_.register_cache("input_a", source_cache_a);
+					kernel_unit->input_.register_cache("input_b", source_cache_b);
+					kernel_unit->output_.register_cache(kernel_id, sink_cache);
+					kernel_unit->run();
+					return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
+				} else if(children.size() == 1) {
+					auto current_input = children[0]->execute_plan();
+					std::shared_ptr<ral::cache::CacheMachine> source_cache = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					source_cache->addToCache(std::move(current_input));
+
+					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					auto kernel_id = std::to_string(kernel_unit->get_id());
+					kernel_unit->input_.register_cache(kernel_id, source_cache);
+					kernel_unit->output_.register_cache(kernel_id, sink_cache);
+					kernel_unit->run();
+					return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
+				}
+			}
+		}
 	} root;
 	blazingdb::manager::experimental::Context * context;
 	std::vector<ral::io::data_loader> input_loaders;
@@ -867,15 +920,14 @@ struct expr_tree_processor {
 
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level) {
 		auto expr = p_tree.get<std::string>("expr", "");
-		for(int i = 0; i < level*2 ; ++i) {
-			std::cout << " ";
-		}
+		// for(int i = 0; i < level*2 ; ++i) {
+		// 	std::cout << " ";
+		// }
 		root_ptr->expr = expr;
 		root_ptr->level = level;
 		root_ptr->kernel_unit = get_kernel(expr);
-		std::cout << expr << std::endl;
-		for (auto &child : p_tree.get_child("children"))
-		{
+		// std::cout << expr << std::endl;
+		for (auto &child : p_tree.get_child("children")) {
 			auto child_node_ptr = std::make_shared<expr_tree_processor::node>();
 			root_ptr->children.push_back(child_node_ptr);
 			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1);
@@ -923,6 +975,21 @@ struct expr_tree_processor {
 		return k;
 	}
 
+	std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::string json) {
+		try {
+			std::istringstream input(json);
+			boost::property_tree::ptree p_tree;
+			boost::property_tree::read_json(input, p_tree);
+			expr_tree_from_json(p_tree, &this->root, 0);
+		} catch (std::exception & e) {
+			std::cerr << e.what() <<  std::endl;
+		}
+		if (this->root.kernel_unit != nullptr) {
+			return this->root.execute_plan();
+		}
+		return nullptr;
+	}
+
 	ral::cache::graph build_graph(std::string json) {
 		try {
 			std::istringstream input(json);
@@ -953,7 +1020,7 @@ struct expr_tree_processor {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
 				port_name.push_back(index_char); 
-//				std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << "["  << port_name<< "]" << std::endl;
+				std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << "["  << port_name<< "]" << std::endl;
 				graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
 			} else {
 				auto a = child->kernel_unit->get_type_id();
@@ -970,6 +1037,8 @@ struct expr_tree_processor {
 					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = this->context->getTotalNodes()};
 					graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				} else {
+					std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << std::endl;
+
 					graph +=  *child->kernel_unit >> (*parent->kernel_unit);
 				}				
 			}

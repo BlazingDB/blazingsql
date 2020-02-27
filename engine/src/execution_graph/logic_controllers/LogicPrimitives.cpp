@@ -220,11 +220,6 @@ CacheMachine::~CacheMachine() {}
 
 void CacheMachine::finish() {
 	this->_finished = true;
-	if (this->waitingCache)
-	{
-		std::cout << ">>>>>>>> EMPTY" << std::endl;
-	}
-	
 	this->waitingCache->notify();
 }
 

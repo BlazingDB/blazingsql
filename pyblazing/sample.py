@@ -74,3 +74,17 @@ queryId = 'TEST_01: issue'
 sql = """select l_orderkey, l_partkey, l_suppkey, l_returnflag from lineitem 
                 where l_returnflag='N' and l_linenumber < 3 and l_orderkey < 50"""
 run_query(bc, sql, queryId)
+
+
+sql = """(select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1,2, 3 limit 10)
+                union all
+                (select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1, 3 desc, 2 limit 10)"""
+run_query(bc, sql, "union issue")
+
+sql = "select count(n1.n_nationkey) as n1key, count(n2.n_nationkey) as n2key, count(*) as cstar from nation as n1 full outer join nation as n2 on n1.n_nationkey = n2.n_nationkey + 6"
+run_query(bc, sql, "join issue")
+
+sql = """(select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1,2, 3 limit 10)
+                union all
+                (select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1, 3 desc, 2 limit 10)"""
+run_query(bc, sql, "union issue")

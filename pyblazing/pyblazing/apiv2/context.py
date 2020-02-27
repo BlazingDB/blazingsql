@@ -398,14 +398,15 @@ def get_plan(algebra):
     for i in range(len(lines) - 1):
         line = lines[i]
         level = line.count("\t")
-        if "LogicalSort" in line:
-            line = line.replace("\t", "")
-            new_lines.append( [level, line.replace("LogicalSort", "LogicalMerge")] )
-            new_lines.append( [level+1, line.replace("LogicalSort", "LogicalPartition")] )
-            new_lines.append( [level+2, line.replace("LogicalSort", "Logical_SortAndSample")] )
-            offset += 2
-        else:
-            new_lines.append( [level+offset, line.replace("\t", "")] )	
+        # if "LogicalSort" in line:
+        #     line = line.replace("\t", "")
+        #     new_lines.append( [level, line.replace("LogicalSort", "LogicalMerge")] )
+        #     new_lines.append( [level+1, line.replace("LogicalSort", "LogicalPartition")] )
+        #     new_lines.append( [level+2, line.replace("LogicalSort", "Logical_SortAndSample")] )
+        #     offset += 2
+        # else:
+        # TODO: @alex, #jeanP Use this workaround when new sorting machine is working
+        new_lines.append( [level+offset, line.replace("\t", "")] )	
 
     # print("new_lines:\n ", new_lines)
     return visit(new_lines)    
