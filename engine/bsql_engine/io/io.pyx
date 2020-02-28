@@ -240,7 +240,14 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
         column_views.push_back(cython_col.view())
 
     resultSet = blaz_move(performPartitionPython(masterIndex, tcpMetadataCpp, ctxToken, BlazingTableView(table_view(column_views), names), column_names))
-    return "OK"
+    names = dereference(resultSet).names
+    decoded_names = []
+    for i in range(names.size()):
+        decoded_names.append(names[i].decode('utf-8'))
+
+    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
+    
+    return df
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken):
     cdef string query
