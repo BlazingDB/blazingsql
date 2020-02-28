@@ -12,6 +12,7 @@
 #include "../io/data_provider/DummyProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
+#include "../execution_graph/logic_controllers/LogicalFilter.h"
 #include "communication/network/Server.h"
 #include <numeric>
 
@@ -121,6 +122,51 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(const std::exception & e) {
+		std::cerr << e.what() << std::endl;
+		throw;
+	}
+}
+
+std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
+	std::vector<NodeMetaDataTCP> tcpMetadata,
+	int32_t ctxToken,
+	const ral::frame::BlazingTableView & table,
+	std::vector<std::string> column_names) {
+
+	try {
+		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
+
+		std::vector<int> columnIndices;
+
+		using blazingdb::manager::experimental::Context;
+		using blazingdb::transport::experimental::Node;
+
+		std::vector<Node> contextNodes;
+		for(auto currentMetadata : tcpMetadata) {
+			auto address =
+				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+			contextNodes.push_back(Node(address));
+		}
+
+		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
+		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
+
+		const std::vector<std::string> & table_col_names = table.names();
+
+		for(auto col_name:column_names){
+			auto it = std::find(table_col_names.begin(), table_col_names.end(), col_name);
+			if(it != table_col_names.end()){
+				columnIndices.push_back(std::distance(table_col_names.begin(), it));
+			}
+		}
+
+		std::unique_ptr<ral::frame::BlazingTable> new_table = ral::processor::process_distribution_table(
+			table, columnIndices, &queryContext);
+
+		return result;
+
+	} catch(const std::exception & e) {
+		std::cerr << "**[performPartition]** error partitioning table.\n";
 		std::cerr << e.what() << std::endl;
 		throw;
 	}

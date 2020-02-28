@@ -166,6 +166,36 @@ def collectPartitionsRunQuery(
         algebra,
         accessToken)
 
+def collectPartitionsPerformPartition(
+        masterIndex,
+        nodes,
+        ctxToken,
+        input,
+        by):
+    import dask.distributed
+    worker_id = dask.distributed.get_worker().name
+    if(isinstance(input, dask_cudf.core.DataFrame)):
+        #partitions = tables[table_name].get_partitions(worker_id)
+        partitions = []
+        if (len(partitions) == 0):
+            input = input.get_partition(
+                0).head(0)
+        elif (len(partitions) == 1):
+            input = input.get_partition(
+                partitions[0]).compute(scheduler='threads')
+        else:
+            table_partitions = []
+            for partition in partitions:
+                table_partitions.append(
+                    input.get_partition(partition).compute())
+            input = cudf.concat(table_partitions)
+    return cio.performPartitionCaller(
+                    masterIndex,
+                    nodes,
+                    ctxToken,
+                    input,
+                    by)
+
 # returns a map of table names to the indices of the columns needed. If there are more than one table scan for one table, it merged the needed columns
 # if the column list is empty, it means we want all columns
 def mergeTableScans(tableScanInfo):
@@ -832,6 +862,31 @@ class BlazingContext(object):
             return nodeFilesList
         else:
             return current_table.getSlices(len(self.nodes))
+
+    def partition(self, input, by=[]):
+        masterIndex = 0
+        ctxToken = random.randint(0, 64000)
+
+        if self.dask_client is None:
+            print("Not supported...")
+        else:
+            if(not isinstance(input, dask_cudf.core.DataFrame)):
+                print("Not supported...")
+            else:
+                dask_futures = []
+                for node in self.nodes:
+                    worker = node['worker']
+                    dask_futures.append(
+                        self.dask_client.submit(
+                            collectPartitionsPerformPartition,
+                            masterIndex,
+                            self.nodes,
+                            ctxToken,
+                            input,
+                            by,
+                            workers=[worker]))
+                result = dask.dataframe.from_delayed(dask_futures)
+            return result
 
     def sql(self, sql, table_list=[], algebra=None):
         # TODO: remove hardcoding
