@@ -150,7 +150,7 @@ def collectPartitionsRunQuery(
                     0).head(0)
             elif (len(partitions) == 1):
                 tables[table_name].input = tables[table_name].input.get_partition(
-                    partitions[0]).compute(scheduler='threads')
+                    partitions[0]).compute()
             else:
                 table_partitions = []
                 for partition in partitions:
@@ -350,6 +350,7 @@ class BlazingTable(object):
             if(convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame)):
                 self.input = dask_cudf.from_cudf(
                     self.input, npartitions=convert_gdf_to_dask_partitions)
+                self.input = self.input.persist()
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
                 self.dask_mapping = getNodePartitions(self.input, client)
         self.uri_values = uri_values
