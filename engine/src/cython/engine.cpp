@@ -160,9 +160,12 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 			}
 		}
 
-		std::unique_ptr<ral::frame::BlazingTable> new_table = ral::processor::process_distribution_table(
+		std::unique_ptr<ral::frame::BlazingTable> frame = ral::processor::process_distribution_table(
 			table, columnIndices, &queryContext);
 
+		result->names = frame->names();
+		result->cudfTable = frame->releaseCudfTable();
+		result->skipdata_analysis_fail = false;
 		return result;
 
 	} catch(const std::exception & e) {

@@ -88,7 +88,7 @@ def checkSocket(socketNum):
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,initial_pool_size=None,enable_logging=False):
-    #print(networkInterface)
+    
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
@@ -118,7 +118,6 @@ def getNodePartitions(df, client):
     for worker in workers:
         connectionToId[worker] = workers[worker]['name']
     dask.distributed.wait(df)
-    #print(client.who_has(df))
     worker_part = client.who_has(df)
     worker_partitions = {}
     for key in worker_part:
@@ -127,8 +126,6 @@ def getNodePartitions(df, client):
         if connectionToId[worker] not in worker_partitions:
             worker_partitions[connectionToId[worker]] = []
         worker_partitions[connectionToId[worker]].append(partition)
-    #print("worker partitions")
-    #print(worker_partitions)
     return worker_partitions
 
 
@@ -150,7 +147,7 @@ def collectPartitionsRunQuery(
                     0).head(0)
             elif (len(partitions) == 1):
                 tables[table_name].input = tables[table_name].input.get_partition(
-                    partitions[0]).compute(scheduler='threads')
+                    partitions[0]).compute()
             else:
                 table_partitions = []
                 for partition in partitions:
@@ -171,18 +168,17 @@ def collectPartitionsPerformPartition(
         nodes,
         ctxToken,
         input,
-        by):
+        dask_mapping,
+        by,
+        i):  # this is a dummy variable to make every submit unique which is necessary
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     if(isinstance(input, dask_cudf.core.DataFrame)):
-        #partitions = tables[table_name].get_partitions(worker_id)
-        partitions = []
+        partitions = dask_mapping[worker_id]
         if (len(partitions) == 0):
-            input = input.get_partition(
-                0).head(0)
+            input = input.get_partition(0).head(0)
         elif (len(partitions) == 1):
-            input = input.get_partition(
-                partitions[0]).compute(scheduler='threads')
+            input = input.get_partition(partitions[0]).compute()
         else:
             table_partitions = []
             for partition in partitions:
@@ -381,6 +377,7 @@ class BlazingTable(object):
                 self.input = dask_cudf.from_cudf(
                     self.input, npartitions=convert_gdf_to_dask_partitions)
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
+                self.input = self.input.persist()
                 self.dask_mapping = getNodePartitions(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
@@ -503,7 +500,6 @@ class BlazingContext(object):
             dask_futures = []
             masterIndex = 0
             i = 0
-            ##print(network_interface)
             for worker in list(self.dask_client.scheduler_info()["workers"]):
                 dask_futures.append(
                     self.dask_client.submit(
@@ -525,8 +521,6 @@ class BlazingContext(object):
                 node['worker'] = worker_list[i]
                 node['ip'] = ralIp
                 node['communication_port'] = ralPort
-                #print("ralport is")
-                #print(ralPort)
                 self.nodes.append(node)
                 self.node_cwds.append(cwd)
                 i = i + 1
@@ -872,8 +866,9 @@ class BlazingContext(object):
             if(not isinstance(input, dask_cudf.core.DataFrame)):
                 print("Not supported...")
             else:
+                dask_mapping = getNodePartitions(input, self.dask_client)
                 dask_futures = []
-                for node in self.nodes:
+                for i, node in enumerate(self.nodes):
                     worker = node['worker']
                     dask_futures.append(
                         self.dask_client.submit(
@@ -882,8 +877,10 @@ class BlazingContext(object):
                             self.nodes,
                             ctxToken,
                             input,
+                            dask_mapping,
                             by,
-                            workers=[worker]))
+                            i,  # this is a dummy variable to make every submit unique which is necessary
+                            workers=[worker]))                    
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
@@ -972,7 +969,6 @@ class BlazingContext(object):
             self.logs_table_name = logs_table_name
             log_files = [self.node_cwds[i] + '/RAL.' + \
                 str(i) + '.log' for i in range(0, len(self.node_cwds))]
-            #print(log_files)
             dtypes = [
                 'date64',
                 'int32',
@@ -1006,8 +1002,6 @@ class BlazingContext(object):
                 dtype=dtypes,
                 names=names,
                 file_format='csv')
-            #print("table created")
-            #print(t)
             self.logs_initialized = True
 
         return self.sql(query)
