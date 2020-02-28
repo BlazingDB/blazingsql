@@ -168,7 +168,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       }
     }
     assert(found_self_partition);
-    std::cout<<"Done process_distribution_table\n";
     return ral::utilities::experimental::concatTables(partitions_to_concat);
   }
 
