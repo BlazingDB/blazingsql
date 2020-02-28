@@ -30,6 +30,7 @@
 #include <src/utilities/CommonOperations.h>
 
 #include "distribution/primitives.h"
+#include "config/GPUManager.cuh"
 
 namespace ral {
 namespace cache {
@@ -233,7 +234,9 @@ enum spec : std::uint8_t { in = 0, out = 1 };
 }
 
 static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cache_settings& config) {
-	unsigned long long gpuMemory = 4294967296; //TODO: @alex, Fix this latter, default 4Gb
+	size_t gpuMemory = ral::config::gpuMemorySize() * 0.75;
+	assert(gpuMemory > 0);
+	
 	std::vector<unsigned long long> memoryPerCache = {INT_MAX};
 	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
 	std::shared_ptr<ral::cache::CacheMachine> machine;
@@ -641,8 +644,8 @@ public:
 				partitions =
 					ral::operators::experimental::partition({}, sortedTable->toBlazingTableView(), this->expression, this->context);
 			}
-			for(auto& partition : partitions)
-				ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
+//			for(auto& partition : partitions)
+//				ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
 
 			// Split Partitions
 			std::vector<std::unique_ptr<ral::frame::BlazingTable>> samples;
@@ -661,12 +664,12 @@ public:
 			std::vector<cudf::null_order> null_orders(samples_view[0].num_columns(), cudf::null_order::AFTER);
 			auto sorted_samples = cudf::experimental::sort(concat_samples->view(), orders, null_orders);
 
-			std::cout<< "SORTED SAMPLES: " <<std::endl;
-			for (auto &&c : sorted_samples->view())
-			{
-				cudf::test::print(c);
-				std::cout << std::endl;
-			}	
+//			std::cout<< "SORTED SAMPLES: " <<std::endl;
+//			for (auto &&c : sorted_samples->view())
+//			{
+//				cudf::test::print(c);
+//				std::cout << std::endl;
+//			}
 
 			cudf::size_type samples_rows = sorted_samples->view().num_rows();
 			cudf::size_type pivots_size = samples_rows > 0 ? 3 /* How many subpartitions? */ : 0;
@@ -676,12 +679,12 @@ public:
 			cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivots_size);
 			auto pivots = cudf::experimental::gather(sorted_samples->view(), gather_map_wrapper);
 			
-			std::cout<< "PIVOTS: " <<std::endl;
-			for (auto &&c : pivots->view())
-			{
-				cudf::test::print(c);
-				std::cout << std::endl;
-			}	
+//			std::cout<< "PIVOTS: " <<std::endl;
+//			for (auto &&c : pivots->view())
+//			{
+//				cudf::test::print(c);
+//				std::cout << std::endl;
+//			}
 
 			for (auto i = 0; i < partitions.size(); i++) {
 				auto pivot_indexes = cudf::experimental::upper_bound(partitions[i]->view(),
@@ -689,9 +692,9 @@ public:
 																															orders,
 																															null_orders);
 		
-				std::cout<< "PIVOTS indices: " <<std::endl;
-				cudf::test::print(pivot_indexes->view());
-				std::cout << std::endl;
+//				std::cout<< "PIVOTS indices: " <<std::endl;
+//				cudf::test::print(pivot_indexes->view());
+//				std::cout << std::endl;
 				
 				auto host_pivot_col = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
 				auto host_pivot_indexes = host_pivot_col.first;
@@ -735,9 +738,7 @@ public:
 				for (size_t index = 0; index < this->input_.count(); index++) {
 					auto cache_id = "input_" + std::to_string(index);
 					if (not this->input_.get_cache(cache_id)->is_finished()) {
-						std::cout<< ">>>>>> BEFORE pull" << std::endl;
 						auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
-						std::cout<< ">>>>>> AFTER pull" << std::endl;
 						if (input) {
 							partitions_to_merge.emplace_back(input->toBlazingTableView());
 							partitions_to_merge_holder.emplace_back(std::move(input));
@@ -750,13 +751,13 @@ public:
 				} else if(partitions_to_merge.size() == 1) {
 					this->output_.get_cache()->addToCache(std::move(partitions_to_merge_holder[0]));
 				}	else {
-					std::cout << "merge-parts: " << std::endl;
-					for (auto view : partitions_to_merge)
-						ral::utilities::print_blazing_table_view(view);
+//					std::cout << "merge-parts: " << std::endl;
+//					for (auto view : partitions_to_merge)
+//						ral::utilities::print_blazing_table_view(view);
 
 					auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context);
 
-					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
+//					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 
 					this->output_.get_cache()->addToCache(std::move(output));
 				}
@@ -906,13 +907,6 @@ struct expr_tree_processor {
 		std::shared_ptr<kernel>            kernel_unit;
 		std::vector<std::shared_ptr<node>> children;  // children nodes
 
-		std::shared_ptr<ral::cache::CacheMachine> createSinkCacheMachine() {
-			unsigned long long gpuMemory = 1024;
-			std::vector<unsigned long long> memoryPerCache = {INT_MAX};
-			std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
-			return std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
-		}
-
 		std::unique_ptr<ral::frame::BlazingTable> execute_plan() {
 			if (children.size() == 0) {
 				// base case
@@ -957,6 +951,8 @@ struct expr_tree_processor {
 	} root;
 	blazingdb::manager::experimental::Context * context;
 	std::vector<ral::io::data_loader> input_loaders;
+	std::map<int, std::vector<std::shared_ptr<ral::io::data_loader>>> input_loaders_uses;
+
 	std::vector<ral::io::Schema> schemas;
 	std::vector<std::string> table_names;
 
@@ -1011,9 +1007,18 @@ struct expr_tree_processor {
 			k->set_type_id(kernel_type::TableScanKernel);
 		} else if (is_bindable_scan(expr)) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			k = std::make_shared<BindableTableScanKernel>(expr, this->input_loaders[table_index], this->schemas[table_index], this->context);
-			k->set_type_id(kernel_type::BindableTableScanKernel);
-		}		
+			if (input_loaders_uses.find(table_index) == input_loaders_uses.end()) {
+				k = std::make_shared<BindableTableScanKernel>(expr, this->input_loaders[table_index], this->schemas[table_index], this->context);
+				k->set_type_id(kernel_type::BindableTableScanKernel);
+				input_loaders_uses[table_index] = std::vector<std::shared_ptr<ral::io::data_loader>>();
+			} else {
+				auto loader = this->input_loaders[table_index].clone();
+				auto schema = this->schemas[table_index];
+				k = std::make_shared<BindableTableScanKernel>(expr, *loader, schema, this->context);
+				k->set_type_id(kernel_type::BindableTableScanKernel);
+				input_loaders_uses[table_index].push_back(loader);
+			}
+		}
 		return k;
 	}
 
@@ -1062,25 +1067,24 @@ struct expr_tree_processor {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
 				port_name.push_back(index_char); 
-				std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << "["  << port_name<< "]" << std::endl;
+//				std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << "["  << port_name<< "]" << std::endl;
 				graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
 			} else {
 				auto a = child->kernel_unit->get_type_id();
 				auto b = parent->kernel_unit->get_type_id();
 				if (child->kernel_unit->get_type_id() == kernel_type::SortAndSampleKernel &&
 						parent->kernel_unit->get_type_id() == kernel_type::PartitionKernel) {
-					std::cout<< ">>>>> LINK 1" << std::endl;
+//					std::cout<< ">>>>> LINK 1" << std::endl;
 					graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];
 					graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
 				} else if (child->kernel_unit->get_type_id() == kernel_type::PartitionKernel &&
 									parent->kernel_unit->get_type_id() == kernel_type::MergeStreamKernel)
 				{
-					std::cout<< ">>>>> LINK 2" << std::endl;
+//					std::cout<< ">>>>> LINK 2" << std::endl;
 					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = this->context->getTotalNodes()};
 					graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				} else {
-					std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << std::endl;
-
+//					std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << std::endl;
 					graph +=  *child->kernel_unit >> (*parent->kernel_unit);
 				}				
 			}
