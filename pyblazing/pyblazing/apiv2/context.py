@@ -350,8 +350,8 @@ class BlazingTable(object):
             if(convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame)):
                 self.input = dask_cudf.from_cudf(
                     self.input, npartitions=convert_gdf_to_dask_partitions)
-                self.input = self.input.persist()
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
+                self.input = self.input.persist()
                 self.dask_mapping = getNodePartitions(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
