@@ -410,6 +410,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 		if (graph.num_nodes() > 0) {
 			try {
 				graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+//				graph.show();
 				graph.execute();
 
 				output_frame = output.release();
