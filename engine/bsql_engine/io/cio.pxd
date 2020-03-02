@@ -288,6 +288,8 @@ cdef extern from * namespace "blazing":
 
 cdef extern from "../include/engine/engine.h":
 
+        unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raiseRunQueryError
+
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port

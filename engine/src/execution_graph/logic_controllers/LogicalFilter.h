@@ -51,7 +51,10 @@ std::unique_ptr<ral::frame::BlazingTable> computeAggregation(
     const ral::frame::BlazingTableView & table
   /* inputs you need to run different aggregations*/);
 
+std::unique_ptr<ral::frame::BlazingTable> process_distribution_table(
+  	const ral::frame::BlazingTableView & table,
+    std::vector<int> & columnIndices,
+    blazingdb::manager::experimental::Context * context);
 
-} // end namespace processor
-
-} // end namespace ral
+} // namespace processor
+} // namespace ral
