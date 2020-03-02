@@ -401,7 +401,8 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 			.context = &queryContext,
 			.input_loaders = input_loaders,
 			.schemas = schemas,
-			.table_names = table_names
+			.table_names = table_names,
+			.transform_sort_to_partition_sort = true
 		};
 		ral::cache::OutputKernel output;
 

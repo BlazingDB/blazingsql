@@ -348,6 +348,39 @@ public:
 			thread.join();
 		}
 	}
+	void show () {
+		check_and_complete_work_flow();
+
+		std::set<std::pair<size_t, size_t>> visited;
+		std::deque<size_t> Q;
+		for(auto start_node : get_neighbours(head_id_)) {
+			Q.push_back(start_node.target);
+		}
+		for(kernel *k : kernels_) {
+			std::cout << (int)k->get_id() << " -> " << (int)k->get_type_id() << std::endl;
+		}
+		while(not Q.empty()) {
+			auto source_id = Q.front();
+			Q.pop_front();
+			auto source = get_node(source_id);
+			if(not source) {
+				break;
+			}
+			for(auto edge : get_neighbours(source)) {
+				auto target_id = edge.target;
+				auto target = get_node(target_id);
+				auto edge_id = std::make_pair(source_id, target_id);
+				if(visited.find(edge_id) == visited.end()) {
+					std::cout << "source_id: " << source_id << " -> " << target_id << std::endl;
+					visited.insert(edge_id);
+					Q.push_back(target_id);
+				} else {
+
+				}
+			}
+		}
+	}
+
 	kernel& get_last_kernel () {
 		return *kernels_.at(kernels_.size() - 1);
 	}
@@ -955,6 +988,7 @@ struct expr_tree_processor {
 
 	std::vector<ral::io::Schema> schemas;
 	std::vector<std::string> table_names;
+	const bool transform_sort_to_partition_sort = false;
 
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level) {
 		auto expr = p_tree.get<std::string>("expr", "");
@@ -963,7 +997,7 @@ struct expr_tree_processor {
 		// }
 		root_ptr->expr = expr;
 		root_ptr->level = level;
-		root_ptr->kernel_unit = get_kernel(expr);
+		root_ptr->kernel_unit = make_kernel(expr);
 		// std::cout << expr << std::endl;
 		for (auto &child : p_tree.get_child("children")) {
 			auto child_node_ptr = std::make_shared<expr_tree_processor::node>();
@@ -972,7 +1006,7 @@ struct expr_tree_processor {
 		}
 	}
 
-	std::shared_ptr<kernel>  get_kernel(std::string expr) {
+	std::shared_ptr<kernel> make_kernel(std::string expr) {
 		std::shared_ptr<kernel> k;
 		if ( is_project(expr) ) {
 			k = std::make_shared<ProjectKernel>(expr, this->context);
@@ -1031,10 +1065,59 @@ struct expr_tree_processor {
 		} catch (std::exception & e) {
 			std::cerr << e.what() <<  std::endl;
 		}
+		if (transform_sort_to_partition_sort) {
+			transform_sort(nullptr, &this->root);
+		}
+
 		if (this->root.kernel_unit != nullptr) {
 			return this->root.execute_plan();
 		}
 		return nullptr;
+	}
+	void transform_sort(node* parent, node * current) {
+		if (current->kernel_unit->get_type_id() == kernel_type::SortKernel) {
+			auto merge_expr = current->expr;
+			auto partition_expr = current->expr;
+			auto sort_and_sample_expr = current->expr;
+			StringUtil::findAndReplaceAll(merge_expr, "LogicalSort", LOGICAL_MERGE_TEXT);
+			StringUtil::findAndReplaceAll(partition_expr, "LogicalSort", LOGICAL_PARTITION_TEXT);
+			StringUtil::findAndReplaceAll(sort_and_sample_expr, "LogicalSort", LOGICAL_SORT_AND_SAMPLE_TEXT);
+
+			auto merge = std::make_shared<node>();
+			merge->expr = merge_expr;
+			merge->level = current->level;
+			merge->kernel_unit = make_kernel(merge_expr);
+
+			auto partition = std::make_shared<node>();
+			partition->expr = partition_expr;
+			partition->level = current->level;
+			partition->kernel_unit = make_kernel(partition_expr);
+			merge->children.push_back(partition);
+
+			auto ssample = std::make_shared<node>();
+			ssample->expr = sort_and_sample_expr;
+			ssample->level = current->level;
+			ssample->kernel_unit = make_kernel(sort_and_sample_expr);
+			partition->children.push_back(ssample);
+
+			ssample->children = current->children;
+
+			if (parent == nullptr) { // root is sort
+				// new root
+				current->expr = merge->expr;
+				current->kernel_unit = merge->kernel_unit;
+			} else {
+				auto it = std::find_if(parent->children.begin(), parent->children.end(), [current] (std::shared_ptr<node> tmp) {
+					return tmp->kernel_unit->get_id() == current->kernel_unit->get_id();
+				});
+				parent->children.erase( it );
+				parent->children.push_back(merge);
+			}
+		} else if (current) {
+			for (auto& child : current->children) {
+				transform_sort(current, child.get());
+			}
+		}
 	}
 
 	ral::cache::graph build_graph(std::string json) {
