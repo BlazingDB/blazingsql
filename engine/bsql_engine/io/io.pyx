@@ -36,7 +36,7 @@ import rmm
 import nvstrings
 import nvcategory
 
-from cudf._libxx.lib cimport *
+from cudf._libxx.cpp cimport *
 from cudf._libxx.table cimport *
 from cudf._lib.cudf import *
 
