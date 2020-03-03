@@ -1,7 +1,7 @@
 #include "blazingdb/manager/Context.h"
 #include <algorithm>
 #include <climits>
-
+#include <mutex>
 namespace blazingdb {
 namespace manager {
 namespace experimental { 
@@ -58,12 +58,19 @@ uint32_t Context::getContextToken() const { return token_; }
 
 uint32_t Context::getContextCommunicationToken() const { return query_substep; }
 
+std::mutex increment_step_mutex;
+
 void Context::incrementQueryStep() {
+  std::unique_lock<std::mutex> lock(increment_step_mutex);
+
   query_step++;
   query_substep++;
 }
 
-void Context::incrementQuerySubstep() { query_substep++; }
+void Context::incrementQuerySubstep() { 
+  std::unique_lock<std::mutex> lock(increment_step_mutex);
+  query_substep++; 
+}
 
 int Context::getNodeIndex(const Node &node) const {
   auto it =

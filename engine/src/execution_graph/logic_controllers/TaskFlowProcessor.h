@@ -950,10 +950,16 @@ struct expr_tree_processor {
 				return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
 			} else {
 				if(children.size() == 2) {
-					auto input_a = children[0]->execute_plan();
-					auto input_b = children[1]->execute_plan();
+					frame_type input_a;
+					std::thread t1([this, &input_a]() mutable{
+						input_a = this->children[0]->execute_plan();
+					}); t1.join();
 
-					auto current_input = children[0]->execute_plan();
+					frame_type input_b;
+					std::thread t2([this, &input_b]() mutable{
+						input_b = this->children[1]->execute_plan(); 
+					}); t2.join();
+					
 					std::shared_ptr<ral::cache::CacheMachine> source_cache_a = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
 					source_cache_a->addToCache(std::move(input_a));
 
