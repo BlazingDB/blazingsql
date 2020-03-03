@@ -38,66 +38,66 @@ struct ExpressionTreeTest : public ::testing::Test {
 };
 
 TEST_F(ExpressionTreeTest, equal) {
-  std::string prefix = "= $0 $1";
+  std::string prefix = "=($0, $1)";
   std::string expected = "AND <= $0 $3 >= $1 $2";
   process(prefix, expected);
 }
 TEST_F(ExpressionTreeTest, less) {
-  std::string prefix = "< $0 $1";
+  std::string prefix = "<($0, $1)";
   std::string expected = "< $0 $3";
   process(prefix, expected);
 }
 TEST_F(ExpressionTreeTest, less_eq) {
-  std::string prefix = "<= $0 $1";
+  std::string prefix = "<=($0, $1)";
   std::string expected = "<= $0 $3";
   process(prefix, expected);
 }
 TEST_F(ExpressionTreeTest, greater) {
-  std::string prefix = "> $0 $1";
+  std::string prefix = ">($0, $1)";
   std::string expected = "> $1 $2";
   process(prefix, expected);
 }
 TEST_F(ExpressionTreeTest, greater_eq) {
-  std::string prefix = ">= $0 $1";
+  std::string prefix = ">=($0, $1)";
   std::string expected = ">= $1 $2";
   process(prefix, expected);
 }
 TEST_F(ExpressionTreeTest, add) {
-  std::string prefix = "+ $0 $1";
+  std::string prefix = "+($0, $1)";
   std::string expected = "&&& + $0 $2 + $1 $3";
   process(prefix, expected);
 }
 TEST_F(ExpressionTreeTest, sub) {
-  std::string prefix = "- $0 $1";
+  std::string prefix = "-($0, $1)";
   std::string expected = "&&& - $0 $2 - $1 $3";
   process(prefix, expected);
 }
 TEST_F(ExpressionTreeTest, expr_test_1) {
-  std::string prefix = "= + $0 $1 123";
+  std::string prefix = "=(+($0, $1), 123)";
   std::string expected = "AND <= + $0 $2 123 >= + $1 $3 123";
   process(prefix, expected);
 } 
 
 TEST_F(ExpressionTreeTest, expr_test_2) {
-  std::string prefix = "OR AND AND > $0 100 = + $0 $1 123 < $1 10 = $0 500";
+  std::string prefix = "OR(AND(AND(>($0, 100), =(+($0, $1), 123)), <($1, 10)), =($0, 500))";
   std::string expected = "OR AND AND > $1 100 AND <= + $0 $2 123 >= + $1 $3 123 < $2 10 AND <= $0 500 >= $1 500";
   process(prefix, expected);
 }
 
 TEST_F(ExpressionTreeTest, expr_test_3) {
-  std::string prefix = "AND = COS + $0 $1 123 = $0 $1";
+  std::string prefix = "AND(=(COS(+($0, $1)), 123), =($0, $1))";
   std::string expected = "AND <= $0 $3 >= $1 $2";
   process(prefix, expected);
 }
 
 TEST_F(ExpressionTreeTest, expr_test_4) {
-  std::string prefix = "AND AND AND > $0 100 = * $0 $1 123 < $1 10 / $0 500";
+  std::string prefix = "AND(AND(AND(>($0, 100), =(*($0, $1), 123)), <($1, 10)), /($0, 500))";
   std::string expected = "AND > $1 100 < $2 10";
   process(prefix, expected);
 }
 
 TEST_F(ExpressionTreeTest, expr_test_5) {
-  std::string prefix = "OR AND AND > $0 100 = * $0 $1 123 < $1 10 / $0 500";
+  std::string prefix = "OR(AND(AND(>($0, 100), =(*($0, $1), 123)), <($1, 10)), /($0, 500))";
   std::string expected = "";
   process(prefix, expected);
 }
@@ -117,21 +117,21 @@ TEST_F(ExpressionTreeTest, expr_test_5) {
 // }
 
 TEST_F(ExpressionTreeTest, expr_test_8) {
-  std::string prefix = "OR > $0 100 = + $0";
+  std::string prefix = "OR(>($0, 100), =(+, $0))";
   std::string expected = "";
   bool valid_expr = false;  
   process(prefix, expected, valid_expr);
 }
 
 TEST_F(ExpressionTreeTest, expr_test_9) {
-  std::string prefix = "OR > $0 100 = $0 500";
+  std::string prefix = "OR(>($0, 100), =($0, 500))";
   std::string expected = "OR > $1 100 AND <= $0 500 >= $1 500";
   bool valid_expr = true;  
   process(prefix, expected, valid_expr);
 }
 
 TEST_F(ExpressionTreeTest, drop_test1) {
-  std::string prefix = "OR AND AND > $0 100 = + $0 $1 123 < $1 10 = $0 500";
+  std::string prefix = "OR(AND(AND(>($0, 100), =(+($0, $1), 123)), <($1, 10)), =($0, 500))";
   std::string expected = "OR > $1 100 AND <= $0 500 >= $1 500";
   bool valid_expr = true; 
   expression_tree tree;
@@ -160,7 +160,7 @@ TEST_F(ExpressionTreeTest, drop_test1) {
 
 
 TEST_F(ExpressionTreeTest, drop_test2) {
-  std::string prefix = "OR AND AND > $2 100 = + $0 $1 123 < $1 10 = $0 500";
+  std::string prefix = "OR(AND(AND(>($2, 100), =(+($0, $1), 123)), <($1, 10)), =($0, 500))";
   std::string expected = "OR > $5 100 AND <= $0 500 >= $1 500";
   bool valid_expr = true; 
   expression_tree tree;
@@ -188,7 +188,7 @@ TEST_F(ExpressionTreeTest, drop_test2) {
 }
 
 TEST_F(ExpressionTreeTest, drop_test3) {
-  std::string prefix = "AND = + $0 $1 123 = $0 $1";
+  std::string prefix = "AND(=(+($0, $1), 123), =($0, $1))";
   std::string expected = "";
   bool valid_expr = true; 
   expression_tree tree;
