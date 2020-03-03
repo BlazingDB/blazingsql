@@ -553,9 +553,10 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						aggregation_inputs_scope_holder.emplace_back(std::move(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(temp))));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					}else if(aggregation_types[i] == AggregateKind::SUM0){
+						column_index = get_index(expression);
 						std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string("0", table.view().column(column_index).type().id()); // this does not need to be from a string, but this is a convenient way to make the scalar i need
 						std::unique_ptr<cudf::column> temp = cudf::experimental::replace_nulls(table.view().column(column_index), *scalar );
-						aggregation_inputs_scope_holder.emplace_back(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(temp)));
+						aggregation_inputs_scope_holder.emplace_back(std::move(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(temp))));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					} else {
 						if(contains_evaluation(expression)) {
