@@ -245,8 +245,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   	nodes_num_bytes_left[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(left);
   	nodes_num_bytes_right[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(right);
 
-  	int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), 0);
-  	int64_t total_bytes_right = std::accumulate(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), 0);
+  	int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), int64_t(0));
+  	int64_t total_bytes_right = std::accumulate(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), int64_t(0));
 
   	int num_nodes = context->getTotalNodes();
 
