@@ -245,24 +245,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   	nodes_num_bytes_left[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(left);
   	nodes_num_bytes_right[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(right);
 
-    for (int i = 0 ; i < nodes_num_bytes_left.size() ; i++){
-      std::string msg = "nodes " + std::to_string(i) + " left bytes " + std::to_string(nodes_num_bytes_left[i]) + " right bytes " + std::to_string(nodes_num_bytes_right[i]);
-      Library::Logging::Logger().logTrace(
-  				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
-  					std::to_string(context->getQueryStep()),
-  					std::to_string(context->getQuerySubstep()),
-  					msg));      
-    }
-
-  	int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), 0);
-  	int64_t total_bytes_right = std::accumulate(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), 0);
-
-    std::string msg = "total_bytes_left " + std::to_string(total_bytes_left) + " total_bytes_right " + std::to_string(total_bytes_right);
-    Library::Logging::Logger().logTrace(
-        ral::utilities::buildLogString(std::to_string(context->getContextToken()),
-          std::to_string(context->getQueryStep()),
-          std::to_string(context->getQuerySubstep()),
-          msg));  
+  	int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), int64_t(0));
+  	int64_t total_bytes_right = std::accumulate(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), int64_t(0));
 
   	int num_nodes = context->getTotalNodes();
 
@@ -273,13 +257,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   	int64_t estimate_scatter_right = (total_bytes_right) * (num_nodes - 1);
   	int64_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
   												  // WSM TODO get this value from config
-    msg = "estimate_regular_distribution " + std::to_string(estimate_regular_distribution) + " estimate_scatter_left " + std::to_string(estimate_scatter_left) + " estimate_scatter_right " + std::to_string(estimate_scatter_right);
-    Library::Logging::Logger().logTrace(
-        ral::utilities::buildLogString(std::to_string(context->getContextToken()),
-          std::to_string(context->getQueryStep()),
-          std::to_string(context->getQuerySubstep()),
-          msg));  
-
   	if(estimate_scatter_left < estimate_regular_distribution ||
   		estimate_scatter_right < estimate_regular_distribution) {
   		if(estimate_scatter_left < estimate_scatter_right &&
