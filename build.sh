@@ -124,11 +124,11 @@ if buildAll || hasArg io; then
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
-    IO_BLD=""
     if [[ ${TESTS} == "ON" ]]; then
-        IO_BLD="all"
+        make -j${PARALLEL_LEVEL} all
+    else
+        make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
     fi
-    make -j${PARALLEL_LEVEL} $IO_BLD VERBOSE=${VERBOSE}
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
@@ -143,11 +143,11 @@ if buildAll || hasArg comms; then
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
-    COMMS_BLD=""
     if [[ ${TESTS} == "ON" ]]; then
-        COMMS_BLD="all"
+        make -j${PARALLEL_LEVEL} all
+    else
+        make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
     fi
-    make -j${PARALLEL_LEVEL} $COMMS_BLD VERBOSE=${VERBOSE}
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
@@ -163,11 +163,11 @@ if buildAll || hasArg libengine; then
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
           -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
 
-    ENGINE_BLD="blazingsql-engine"
     if [[ ${TESTS} == "ON" ]]; then
-        ENGINE_BLD="all"
+        make -j${PARALLEL_LEVEL} all
+    else
+        make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}
     fi
-    make -j${PARALLEL_LEVEL} $ENGINE_BLD VERBOSE=${VERBOSE}
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
         make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
@@ -231,11 +231,11 @@ fi
 if buildAll || hasArg algebra; then
 
     cd ${ALGEBRA_BUILD_DIR}
-    ALGEBRA_SKP="-Dmaven.test.skip=true"
     if [[ ${TESTS} == "ON" ]]; then
-        ALGEBRA_SKP=""
+        mvn clean install -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ $QUIET
+    else
+        mvn clean install -Dmaven.test.skip=true -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ $QUIET
     fi
-    mvn clean install $ALGEBRA_SKP -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ $QUIET
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
         cp blazingdb-calcite-application/target/BlazingCalcite.jar $INSTALL_PREFIX/lib/blazingsql-algebra.jar
