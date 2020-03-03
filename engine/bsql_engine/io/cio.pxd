@@ -9,7 +9,7 @@ from libcpp.memory cimport shared_ptr
 
 from libcpp cimport bool
 from pyarrow.lib cimport *
-from cudf._libxx.lib cimport *
+from cudf._libxx.cpp cimport *
 
 from cudf import DataFrame
 
@@ -37,12 +37,11 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseRegisterFileSystemLocalError();
 
 
-from cudf._libxx.lib cimport (column_view,
-                              data_type,
-                              size_type,
-                              table,
-                              table_view,
-                              type_id)
+from cudf._libxx.cpp.column cimport *
+from cudf._libxx.cpp.column.column_view cimport *
+from cudf._libxx.cpp.types cimport *
+from cudf._libxx.cpp.table cimport *
+from cudf._libxx.cpp.table.table_view cimport *
 
 ctypedef column_view CudfColumnView
 ctypedef table_view CudfTableView
