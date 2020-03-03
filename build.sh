@@ -178,6 +178,9 @@ fi
 if buildAll || hasArg engine; then
 
     cd ${ENGINE_BUILD_DIR}
+    rm -f ./bsql_engine/io/io.h
+    rm -f ./bsql_engine/io/io.cpp
+
     if [[ ${INSTALL_TARGET} != "" ]]; then
         python setup.py build_ext --inplace
         python setup.py install --single-version-externally-managed --record=record.txt
