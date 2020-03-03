@@ -592,7 +592,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	}
 
 	CudfTableView keys = table.view().select(group_column_indices);
-	cudf::experimental::groupby::groupby group_by_obj(keys);
+	cudf::experimental::groupby::groupby group_by_obj(keys, cudf::include_nulls::YES);
 	std::pair<std::unique_ptr<cudf::experimental::table>, std::vector<cudf::experimental::groupby::aggregation_result>> result = group_by_obj.aggregate( requests );
 
 	// output table is grouped columns and then aggregated columns
