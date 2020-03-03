@@ -990,11 +990,11 @@ struct expr_tree_processor {
 	} root;
 	blazingdb::manager::experimental::Context * context;
 	std::vector<ral::io::data_loader> input_loaders;
-	std::map<int, std::vector<std::shared_ptr<ral::io::data_loader>>> input_loaders_uses;
-
 	std::vector<ral::io::Schema> schemas;
 	std::vector<std::string> table_names;
 	const bool transform_sort_to_partition_sort = false;
+
+	std::map<int, std::vector<std::shared_ptr<ral::io::data_loader>>> input_loaders_uses = {};
 
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level) {
 		auto expr = p_tree.get<std::string>("expr", "");
