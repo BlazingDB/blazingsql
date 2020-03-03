@@ -70,6 +70,12 @@ namespace experimental {
 
 	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
 				std::vector<cudf::size_type> & node_num_rows_right);
+
+	void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::BlazingTableView & left,
+    		const ral::frame::BlazingTableView & right);
+
+	void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,
+			std::vector<int64_t> & node_num_bytes_right);
 	
 }  // namespace experimental
 }  // namespace distribution
