@@ -495,9 +495,6 @@ void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::Blaz
 	int64_t bytes_left = ral::utilities::experimental::get_table_size_bytes(left);
 	int64_t bytes_right = ral::utilities::experimental::get_table_size_bytes(right);
 
-	std::cout<<" distributeLeftRightTableSizeBytes left bytes: "<<bytes_left<<std::endl;
-	std::cout<<" distributeLeftRightTableSizeBytes right bytes: "<<bytes_right<<std::endl;
-	
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
@@ -547,8 +544,6 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 		node_num_bytes_left[node_idx] = num_bytes_host.first[0];
 		node_num_bytes_right[node_idx] = num_bytes_host.first[1];
 		received[node_idx] = true;
-
-		std::cout<<" collectLeftRightTableSizeBytes left bytes: "<<num_bytes_host.first[0]<<" right bytes: "<<num_bytes_host.first[1]<<std::endl;
 	}
 }
 
