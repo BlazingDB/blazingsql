@@ -219,21 +219,21 @@ std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& 
 	}
 }
 
-size_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
+int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
 	if (table.num_rows() == 0){
 		return 0;
 	} else {
-		size_t bytes = 0;
+		int64_t bytes = 0;
 		CudfTableView table_view = table.view();
 		for(size_t i = 0; i < table_view.num_columns(); i++) {
 			if(table_view.column(i).type().id() == cudf::type_id::STRING){
 				cudf::strings_column_view str_col_view{table_view.column(i)};
 				auto offsets_column = str_col_view.offsets();
 				auto chars_column = str_col_view.chars();
-				bytes += chars_column.size();
-				bytes += offsets_column.size() * sizeof(int32_t);  			
+				bytes += (int64_t)(chars_column.size());
+				bytes += (int64_t)(offsets_column.size()) * (int64_t)(sizeof(int32_t));
 			} else {
-				bytes += ral::traits::get_dtype_size_in_bytes(table_view.column(i).type().id()) * table_view.num_rows();
+				bytes += (int64_t)(ral::traits::get_dtype_size_in_bytes(table_view.column(i).type().id())) * (int64_t)(table_view.num_rows());
 			}
 		}
 		return bytes;

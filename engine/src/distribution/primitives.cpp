@@ -492,9 +492,9 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::BlazingTableView & left,
     		const ral::frame::BlazingTableView & right) {
 
-	size_t bytes_left = ral::utilities::experimental::get_table_size_bytes(left);
-	size_t bytes_right = ral::utilities::experimental::get_table_size_bytes(right);
-	
+	int64_t bytes_left = ral::utilities::experimental::get_table_size_bytes(left);
+	int64_t bytes_right = ral::utilities::experimental::get_table_size_bytes(right);
+
 	const uint32_t context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);

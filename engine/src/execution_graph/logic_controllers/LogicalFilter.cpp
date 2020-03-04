@@ -218,6 +218,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
         } else {
           std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> > distributed_tables = process_hash_based_distribution(
               table_left, table_right, expression, context);
+          
+          Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+            std::to_string(context->getQueryStep()),
+            std::to_string(context->getQuerySubstep()),
+            "join process_distribution hash based distribution"));
 
           return processJoin(distributed_tables.first->toBlazingTableView(), distributed_tables.second->toBlazingTableView(), expression);
         }
@@ -245,10 +250,10 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   	nodes_num_bytes_left[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(left);
   	nodes_num_bytes_right[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(right);
 
-  	int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), int64_t(0));
+    int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), int64_t(0));
   	int64_t total_bytes_right = std::accumulate(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), int64_t(0));
 
-  	int num_nodes = context->getTotalNodes();
+   	int num_nodes = context->getTotalNodes();
 
   	bool scatter_left = false;
   	bool scatter_right = false;
@@ -257,7 +262,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   	int64_t estimate_scatter_right = (total_bytes_right) * (num_nodes - 1);
   	int64_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
   												  // WSM TODO get this value from config
-  	if(estimate_scatter_left < estimate_regular_distribution ||
+
+   	if(estimate_scatter_left < estimate_regular_distribution ||
   		estimate_scatter_right < estimate_regular_distribution) {
   		if(estimate_scatter_left < estimate_scatter_right &&
   			total_bytes_left < MAX_SCATTER_MEM_OVERHEAD) {
@@ -276,7 +282,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
   					std::to_string(context->getQueryStep()),
   					std::to_string(context->getQuerySubstep()),
-  					"join process_distribution scatter_left"));
+  					"join process_distribution scatter_left bytes: " + std::to_string(total_bytes_left)));
   			if(left.num_rows() > 0) {
   				ral::distribution::experimental::scatterData(context, left);
   			}
@@ -290,7 +296,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
   					std::to_string(context->getQueryStep()),
   					std::to_string(context->getQuerySubstep()),
-  					"join process_distribution scatter_right"));
+  					"join process_distribution scatter_right bytes: " + std::to_string(total_bytes_right)));
   			if(right.num_rows() > 0) {  // this node has data on the right to scatter
   				ral::distribution::experimental::scatterData(context, right);
   			}
@@ -322,6 +328,12 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
           cluster_shared_table = std::make_unique<ral::frame::BlazingTable>(right.view(), right.names());
         }  			
   		}
+
+      Library::Logging::Logger().logTrace(
+  				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  					std::to_string(context->getQueryStep()),
+  					std::to_string(context->getQuerySubstep()),
+  					"join process_distribution scatter complete"));
 
   		if(scatter_left) {
         std::unique_ptr<ral::frame::BlazingTable> right_table = std::make_unique<ral::frame::BlazingTable>(right.view(), right.names());
