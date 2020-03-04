@@ -178,9 +178,18 @@ fi
 if buildAll || hasArg engine; then
 
     cd ${ENGINE_BUILD_DIR}
+    rm -f ./bsql_engine/io/io.h
+    rm -f ./bsql_engine/io/io.cpp
+
     if [[ ${INSTALL_TARGET} != "" ]]; then
         python setup.py build_ext --inplace
+        if [ $? != 0 ]; then
+            exit 1
+        fi
         python setup.py install --single-version-externally-managed --record=record.txt
+        if [ $? != 0 ]; then
+            exit 1
+        fi
 
         if [[ $CONDA_BUILD -eq 1 ]]; then
             cp `pwd`/cio*.so `pwd`/../../_h_env*/lib/python*/site-packages
@@ -188,6 +197,9 @@ if buildAll || hasArg engine; then
         fi
     else
         python setup.py build_ext --inplace --library-dir=${LIBENGINE_BUILD_DIR}
+        if [ $? != 0 ]; then
+            exit 1
+        fi
     fi
 fi
 
@@ -196,7 +208,13 @@ if buildAll || hasArg pyblazing; then
     cd ${PYBLAZING_BUILD_DIR}
     if [[ ${INSTALL_TARGET} != "" ]]; then
         python setup.py build_ext --inplace
+        if [ $? != 0 ]; then
+            exit 1
+        fi
         python setup.py install --single-version-externally-managed --record=record.txt
+        if [ $? != 0 ]; then
+            exit 1
+        fi
 
         if [[ $CONDA_BUILD -eq 1 ]]; then
             cp -r `pwd`/pyblazing `pwd`/../../_h_env*/lib/python*/site-packages
@@ -204,6 +222,9 @@ if buildAll || hasArg pyblazing; then
         fi
     else
         python setup.py build_ext --inplace
+        if [ $? != 0 ]; then
+            exit 1
+        fi
     fi
 fi
 
@@ -215,6 +236,7 @@ if buildAll || hasArg algebra; then
     else
         mvn clean install -Dmaven.test.skip=true -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ $QUIET
     fi
+
     if [[ ${INSTALL_TARGET} != "" ]]; then
         cp blazingdb-calcite-application/target/BlazingCalcite.jar $INSTALL_PREFIX/lib/blazingsql-algebra.jar
         cp blazingdb-calcite-core/target/blazingdb-calcite-core.jar $INSTALL_PREFIX/lib/blazingsql-algebra-core.jar
