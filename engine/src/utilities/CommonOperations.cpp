@@ -219,11 +219,11 @@ std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& 
 	}
 }
 
-size_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
+int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
 	if (table.num_rows() == 0){
 		return 0;
 	} else {
-		size_t bytes = 0;
+		int64_t bytes = 0;
 		CudfTableView table_view = table.view();
 		for(size_t i = 0; i < table_view.num_columns(); i++) {
 			if(table_view.column(i).type().id() == cudf::type_id::STRING){
