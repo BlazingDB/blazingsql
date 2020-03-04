@@ -54,9 +54,9 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
 	Node self_node = CommunicationData::getInstance().getSelfNode();
 
 	// Get context token
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	auto message =
 		Factory::createSampleToNodeMaster(message_id, context_token, self_node, table_total_rows, samples);
@@ -67,9 +67,9 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
 
 std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context) {
 
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	std::vector<NodeColumn> nodeColumns;
 	std::vector<std::size_t> table_total_rows;
@@ -130,9 +130,9 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 
 void distributePartitionPlan(Context * context, const BlazingTableView & pivots) {
 
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + context_comm_token;
 
 	auto node = CommunicationData::getInstance().getSelfNode();
 	auto message = Factory::createPartitionPivotsMessage(message_id, context_token, node, pivots);
@@ -141,9 +141,9 @@ void distributePartitionPlan(Context * context, const BlazingTableView & pivots)
 
 std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + context_comm_token;
 
 	auto message = Server::getInstance().getMessage(context_token, message_id);
 
@@ -220,9 +220,9 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
 
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	std::vector<std::thread> threads;
@@ -257,9 +257,9 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 	std::vector<NodeColumn> node_columns;
 
 	// Get message from the server
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
 	while(0 < num_partitions) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
@@ -394,9 +394,9 @@ void broadcastMessage(std::vector<Node> nodes,
 
 void distributeNumRows(Context * context, cudf::size_type num_rows) {
 	
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, num_rows, {});
@@ -411,9 +411,9 @@ std::vector<cudf::size_type> collectNumRows(Context * context) {
 	std::vector<cudf::size_type> node_num_rows(num_nodes);
 	std::vector<bool> received(num_nodes, false);
 
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
@@ -437,9 +437,9 @@ std::vector<cudf::size_type> collectNumRows(Context * context) {
 
 void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows) {
 	
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	cudf::test::fixed_width_column_wrapper<cudf::size_type>num_rows_col{left_num_rows, right_num_rows};
@@ -460,9 +460,9 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 	node_num_rows_right.resize(num_nodes);
 	std::vector<bool> received(num_nodes, false);
 
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {

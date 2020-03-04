@@ -75,7 +75,7 @@ TEST_F(ExprToGraphProcessor, FromJsonInput) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
 
 	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
 	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
@@ -94,7 +94,7 @@ TEST_F(ExprToGraphProcessor, FromJsonInput) {
 
 	parser::expr_tree_processor tree{
 		.root = {},
-		.context = &queryContext,
+		.context = queryContext,
 		.input_loaders = {loader},
 		.schemas = {schema},
 		.table_names = {"nation"}
@@ -123,7 +123,7 @@ TEST_F(ExprToGraphProcessor, FromJsonInputOptimized) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
 
 	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
 	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
@@ -142,7 +142,7 @@ TEST_F(ExprToGraphProcessor, FromJsonInputOptimized) {
 
 	parser::expr_tree_processor tree{
 		.root = {},
-		.context = &queryContext,
+		.context = queryContext,
 		.input_loaders = {loader},
 		.schemas = {schema},
 		.table_names = {"nation"}
@@ -183,7 +183,7 @@ TEST_F(ExprToGraphProcessor, FromJsonInputAggregation) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
 
 	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
 	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
@@ -202,7 +202,7 @@ TEST_F(ExprToGraphProcessor, FromJsonInputAggregation) {
 
 	parser::expr_tree_processor tree{
 		.root = {},
-		.context = &queryContext,
+		.context = queryContext,
 		.input_loaders = {loader},
 		.schemas = {schema},
 		.table_names = {"nation"}
@@ -217,7 +217,162 @@ TEST_F(ExprToGraphProcessor, FromJsonInputAggregation) {
 		std::cout << ex.what() << "\n";
 	}
 }
+/*
+//union issue
+// (select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1,2, 3 limit 10)
+//		union all
+//(select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1, 3 desc, 2 limit 10)
+//
+//LogicalUnion(all=[true])
+//	LogicalSort(sort0=[$0], sort1=[$1], sort2=[$2], dir0=[ASC], dir1=[ASC], dir2=[ASC], fetch=[10])
+//		LogicalProject(l_shipdate=[$3], l_orderkey=[$0], l_linestatus=[$2])
+//			BindableTableScan(table=[[main, lineitem]], filters=[[=($1, 1)]], projects=[[0, 3, 9, 10]], aliases=[[l_orderkey, $f1, l_linestatus, l_shipdate]])
+//	LogicalSort(sort0=[$0], sort1=[$2], sort2=[$1], dir0=[ASC], dir1=[DESC], dir2=[ASC], fetch=[10])
+//		LogicalProject(l_shipdate=[$3], l_orderkey=[$0], l_linestatus=[$2])
+//			BindableTableScan(table=[[main, lineitem]], filters=[[=($1, 1)]], projects=[[0, 3, 9, 10]], aliases=[[l_orderkey, $f1, l_linestatus, l_shipdate]])
+TEST_F(ExprToGraphProcessor, UnionTest) {
+	std::string json = R"(
+	{
+	  'expr': 'LogicalUnion(all=[true])',
+	  'children': [
+		{
+		  'expr': 'LogicalSort(sort0=[$0], sort1=[$1], sort2=[$2], dir0=[ASC], dir1=[ASC], dir2=[ASC], fetch=[10])',
+		  'children': [
+			{
+			  'expr': 'LogicalProject(l_shipdate=[$3], l_orderkey=[$0], l_linestatus=[$2])',
+			  'children': [
+				{
+				  'expr': 'BindableTableScan(table=[[main, lineitem]], filters=[[=($1, 1)]], projects=[[0, 3, 9, 10]], aliases=[[l_orderkey, $f1, l_linestatus, l_shipdate]])',
+				  'children': []
+				}
+			  ]
+			}
+		  ]
+		},
+		{
+		  'expr': 'LogicalSort(sort0=[$0], sort1=[$2], sort2=[$1], dir0=[ASC], dir1=[DESC], dir2=[ASC], fetch=[10])',
+		  'children': [
+			{
+			  'expr': 'LogicalProject(l_shipdate=[$3], l_orderkey=[$0], l_linestatus=[$2])',
+			  'children': [
+				{
+				  'expr': 'BindableTableScan(table=[[main, lineitem]], filters=[[=($1, 1)]], projects=[[0, 3, 9, 10]], aliases=[[l_orderkey, $f1, l_linestatus, l_shipdate]])',
+				  'children': []
+				}
+			  ]
+			}
+		  ]
+		}
+	  ]
+	}
+	)";
+	std::replace( json.begin(), json.end(), '\'', '\"');
 
+	std::vector<Node> contextNodes;
+	auto address = Address::TCP("127.0.0.1", 8089, 0);
+	contextNodes.push_back(Node(address));
+	uint32_t ctxToken = 123;
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
+
+	std::vector<Uri> uris;
+	uris.push_back(Uri{"/home/aocsa/tpch/100MB2Part/tpch/lineitem_0_0.parquet"});
+	uris.push_back(Uri{"/home/aocsa/tpch/100MB2Part/tpch/lineitem_1_0.parquet"});
+
+	ral::io::Schema schema;
+	auto parser = std::make_shared<ral::io::parquet_parser>();
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	ral::io::data_loader loader(parser, provider);
+	loader.get_schema(schema, {});
+
+	ral::io::Schema schema2;
+	auto parser2 = std::make_shared<ral::io::parquet_parser>();
+	auto provider2 = std::make_shared<ral::io::uri_data_provider>(uris);
+	ral::io::data_loader loader2(parser2, provider2);
+	loader2.get_schema(schema2, {});
+
+
+	parser::expr_tree_processor tree{
+		.root = {},
+		.context = queryContext,
+		.input_loaders = {loader},
+		.schemas = {schema},
+		.table_names = {"lineitem"}
+	};
+	PrinterKernel print;
+
+	auto graph = tree.build_graph(json);
+	try {
+		graph += link(graph.get_last_kernel(), print, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+		graph.execute();
+	} catch(std::exception & ex) {
+		std::cout << ex.what() << "\n";
+	}
+}
+
+// 	   	0 -> 4 -> 3
+// 	0 -> 6 -> 5 -> 3 -> 2 -> 1
+
+TEST_F(ExprToGraphProcessor, JoinTest) {
+	std::string json = R"(
+	{
+	  'expr': 'LogicalAggregate(group=[{}], n1key=[COUNT($0)], n2key=[COUNT($1)], cstar=[COUNT()])',
+	  'children': [
+		{
+		  'expr': 'LogicalProject(n_nationkey=[$0], n_nationkey0=[$1])',
+		  'children': [
+			{
+			  'expr': 'LogicalJoin(condition=[=($0, $2)], joinType=[full])',
+			  'children': [
+				{
+				  'expr': 'BindableTableScan(table=[[main, nation]], projects=[[0]], aliases=[[n_nationkey]])',
+				  'children': []
+				},
+				{
+				  'expr': 'LogicalProject(n_nationkey=[$0], $f4=[+($0, 6)])',
+				  'children': [
+					{
+					  'expr': 'BindableTableScan(table=[[main, nation]], projects=[[0]], aliases=[[n_nationkey, $f4]])',
+					  'children': []
+					}
+				  ]
+				}
+			  ]
+			}
+		  ]
+		}
+	  ]
+	})";
+
+	std::replace( json.begin(), json.end(), '\'', '\"');
+
+	std::vector<Node> contextNodes;
+	auto address = Address::TCP("127.0.0.1", 8089, 0);
+	contextNodes.push_back(Node(address));
+	uint32_t ctxToken = 123;
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
+
+	std::vector<Uri> uris;
+	uris.push_back(Uri{"/home/aocsa/tpch/100MB2Part/tpch/nation_0_0.parquet"});
+
+	ral::io::Schema schema;
+	auto parser = std::make_shared<ral::io::parquet_parser>();
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	ral::io::data_loader loader(parser, provider);
+	loader.get_schema(schema, {});
+
+	parser::expr_tree_processor tree{
+		.root = {},
+		.context = queryContext,
+		.input_loaders = {loader},
+		.schemas = {schema},
+		.table_names = {"nation"}
+	};
+	PrinterKernel print;
+
+	auto output = tree.execute_plan(json);
+	ral::utilities::print_blazing_table_view(output->toBlazingTableView());
+
+}*/
 
 }  // namespace cache
 }  // namespace ral

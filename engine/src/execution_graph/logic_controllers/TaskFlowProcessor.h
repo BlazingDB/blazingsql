@@ -327,8 +327,6 @@ public:
 				auto target = get_node(target_id);
 				auto edge_id = std::make_pair(source_id, target_id);
 				if(visited.find(edge_id) == visited.end()) {
-//					std::cout << "source_id: " << source_id << " ->";
-//					std::cout << " " << target_id << std::endl;
 					visited.insert(edge_id);
 					Q.push_back(target_id);
 					std::thread t([this, source, target, edge] {
@@ -356,6 +354,7 @@ public:
 		for(auto start_node : get_neighbours(head_id_)) {
 			Q.push_back(start_node.target);
 		}
+		std::cout << "kernel id -> kernel type id\n";
 		for(kernel *k : kernels_) {
 			std::cout << (int)k->get_id() << " -> " << (int)k->get_type_id() << std::endl;
 		}
@@ -439,15 +438,16 @@ private:
 	std::map<std::int32_t, std::set<Edge>> edges_;
 };
 
+using Context = blazingdb::manager::experimental::Context;
 using SingleProcessorFunctor = std::unique_ptr<ral::frame::BlazingTable>(const ral::frame::BlazingTableView & table,
 																		 const std::string & expression,
-																		 blazingdb::manager::experimental::Context * context);
+																		 Context* context);
 
 
 template <SingleProcessorFunctor processor>
 class SingleSourceKernel : public kernel {
 public:
-	SingleSourceKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+	SingleSourceKernel(std::string queryString, std::shared_ptr<Context> context) {
 		this->context = context;
 		this->expression = queryString;
 	}
@@ -455,7 +455,7 @@ public:
 	virtual kstatus run() {
 		frame_type input = std::move(this->input_.get_cache()->pullFromCache());
 		if (input) {
-			auto output = processor(input->toBlazingTableView(), expression, context);
+			auto output = processor(input->toBlazingTableView(), expression, context.get());
 			this->output_.get_cache()->addToCache(std::move(output));
 			context->incrementQueryStep();
 			return kstatus::proceed;
@@ -464,19 +464,19 @@ public:
 	}
 
 private:
-	blazingdb::manager::experimental::Context * context;
+	std::shared_ptr<Context> context;
 	std::string expression;
 };
 
 using DoubleProcessorFunctor = std::unique_ptr<ral::frame::BlazingTable>(const ral::frame::BlazingTableView & tableA,
 																		 const ral::frame::BlazingTableView & tableB,
 																		 const std::string & expression,
-																		 blazingdb::manager::experimental::Context * context);
+																		 Context* context);
 
 template <DoubleProcessorFunctor processor>
 class DoubleSourceKernel : public kernel {
 public:
-	DoubleSourceKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+	DoubleSourceKernel(std::string queryString, std::shared_ptr<Context> context) {
 		this->input_.add_port("input_a", "input_b");
 		this->context = context;
 		this->expression = queryString;
@@ -486,7 +486,7 @@ public:
 			frame_type input_a = std::move(this->input_["input_a"]->pullFromCache());
 			frame_type input_b = std::move(this->input_["input_b"]->pullFromCache());
 			auto output =
-				processor(input_a->toBlazingTableView(), input_b->toBlazingTableView(), this->expression, this->context);
+				processor(input_a->toBlazingTableView(), input_b->toBlazingTableView(), this->expression, this->context.get());
 			context->incrementQueryStep();
 			this->output_.get_cache()->addToCache(std::move(output));
 			return kstatus::proceed;
@@ -497,7 +497,7 @@ public:
 	}
 
 private:
-	blazingdb::manager::experimental::Context * context;
+	std::shared_ptr<Context> context;
 	std::string expression;
 };
 
@@ -505,7 +505,7 @@ using FilterKernel = SingleSourceKernel<ral::processor::process_filter>;
 
  class ProjectKernel : public kernel {
 public:
-	 ProjectKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+	 ProjectKernel(std::string queryString, std::shared_ptr<Context> context) {
 		this->context = context;
 		this->expression = queryString;
 	}
@@ -513,7 +513,7 @@ public:
 	virtual kstatus run() {
 		frame_type input = std::move(this->input_.get_cache()->pullFromCache());
 		if (input) {
-			auto output = ral::processor::process_project(std::move(input), expression, context);
+			auto output = ral::processor::process_project(std::move(input), expression, context.get());
 			this->output_.get_cache()->addToCache(std::move(output));
 			context->incrementQueryStep();
 			return kstatus::proceed;
@@ -522,7 +522,7 @@ public:
 	}
 
 private:
-	blazingdb::manager::experimental::Context * context;
+	std::shared_ptr<Context> context;
 	std::string expression;
 };
 
@@ -535,7 +535,7 @@ using SampleKernel = SingleSourceKernel<ral::operators::experimental::sample>;
 
 class JoinKernel :  public kernel {
 public:
-	JoinKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+	JoinKernel(std::string queryString, std::shared_ptr<Context> context) {
 			this->input_.add_port("input_a", "input_b");
 			this->context = context;
 			this->expression = queryString;
@@ -551,13 +551,13 @@ public:
 				StringUtil::findAndReplaceAll(expression, "IS NOT DISTINCT FROM", "=");
 				split_inequality_join_into_join_and_filter(expression, new_join_statement, filter_statement);
 
-				std::unique_ptr<ral::frame::BlazingTable> result_frame = ral::processor::process_logical_join(context, left_frame_result->toBlazingTableView(), right_frame_result->toBlazingTableView(), new_join_statement);
+				std::unique_ptr<ral::frame::BlazingTable> result_frame = ral::processor::process_logical_join(context.get(), left_frame_result->toBlazingTableView(), right_frame_result->toBlazingTableView(), new_join_statement);
 				std::string extraInfo = "left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
 //				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame->num_rows(), extraInfo));
 //				blazing_timer.reset();
 				context->incrementQueryStep();
 				if (filter_statement != ""){
-					result_frame = ral::processor::process_filter(result_frame->toBlazingTableView(), filter_statement, context);
+					result_frame = ral::processor::process_filter(result_frame->toBlazingTableView(), filter_statement, context.get());
 //					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame->num_rows()));
 //					blazing_timer.reset();
 					context->incrementQueryStep();
@@ -571,12 +571,12 @@ public:
 		}
 
 	private:
-		blazingdb::manager::experimental::Context * context;
+		std::shared_ptr<Context> context;
 		std::string expression;
 	};
 class UnionKernel : public kernel {
  public:
-	 UnionKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+	 UnionKernel(std::string queryString, std::shared_ptr<Context> context) {
  		this->input_.add_port("input_a", "input_b");
  		this->context = context;
  		this->expression = queryString;
@@ -620,13 +620,13 @@ class UnionKernel : public kernel {
  	}
 
  private:
- 	blazingdb::manager::experimental::Context * context;
+ 	std::shared_ptr<Context> context;
  	std::string expression;
  };
 
 class SortAndSampleKernel : public kernel {
 public:
-	SortAndSampleKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+	SortAndSampleKernel(std::string queryString, std::shared_ptr<Context> context) {
 		this->output_.add_port("output_a", "output_b");
 		this->context = context;
 		this->expression = queryString;
@@ -637,7 +637,7 @@ public:
 			std::unique_ptr<ral::frame::BlazingTable> sortedTable;
 			std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 			std::tie(sortedTable, partitionPlan) =
-				ral::operators::experimental::sort_and_sample(input->toBlazingTableView(), this->expression, this->context);
+				ral::operators::experimental::sort_and_sample(input->toBlazingTableView(), this->expression, this->context.get());
 
 			context->incrementQueryStep();
 			this->output_["output_a"]->addToCache(std::move(sortedTable));
@@ -652,13 +652,13 @@ public:
 	}
 
 private:
-	blazingdb::manager::experimental::Context * context;
+	std::shared_ptr<Context> context;
 	std::string expression;
 };
 
 class PartitionKernel : public kernel {
 public:
-	PartitionKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+	PartitionKernel(std::string queryString, std::shared_ptr<Context> context) {
 		this->input_.add_port("input_a", "input_b");
 		this->context = context;
 		this->expression = queryString;
@@ -672,10 +672,10 @@ public:
 				partitionPlan = std::move(this->input_["input_b"]->pullFromCache());
 				partitions =
 					ral::operators::experimental::partition(partitionPlan->toBlazingTableView(),
-					sortedTable->toBlazingTableView(), this->expression, this->context);
+					sortedTable->toBlazingTableView(), this->expression, this->context.get());
 			} else {
 				partitions =
-					ral::operators::experimental::partition({}, sortedTable->toBlazingTableView(), this->expression, this->context);
+					ral::operators::experimental::partition({}, sortedTable->toBlazingTableView(), this->expression, this->context.get());
 			}
 //			for(auto& partition : partitions)
 //				ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
@@ -752,12 +752,12 @@ public:
 	}
 
 private:
-	blazingdb::manager::experimental::Context * context;
+	std::shared_ptr<Context> context;
 	std::string expression;
 };
 class MergeStreamKernel : public kernel {
 public:
-	MergeStreamKernel(std::string queryString, blazingdb::manager::experimental::Context * context) {
+	MergeStreamKernel(std::string queryString, std::shared_ptr<Context> context) {
 		this->context = context;
 		this->expression = queryString;
 	}
@@ -788,7 +788,7 @@ public:
 //					for (auto view : partitions_to_merge)
 //						ral::utilities::print_blazing_table_view(view);
 
-					auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context);
+					auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context.get());
 
 //					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 
@@ -804,7 +804,7 @@ public:
 	}
 
 private:
-	blazingdb::manager::experimental::Context * context;
+	std::shared_ptr<Context> context;
 	std::string expression;
 };
 
@@ -875,18 +875,18 @@ private:
 
 class BindableTableScanKernel : public kernel {
 public:
-	BindableTableScanKernel(std::string expr, ral::io::data_loader &loader, ral::io::Schema & schema, blazingdb::manager::experimental::Context* context)
+	BindableTableScanKernel(std::string expr, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
 	: kernel(), expr(expr), context(context), loader(loader), schema(schema)
 	{}
 
 	virtual kstatus run() {
-		auto output = ral::processor::process_table_scan(loader, expr, schema, context);
+		auto output = ral::processor::process_table_scan(loader, expr, schema, context.get());
 		this->output_.get_cache()->addToCache(std::move(output));
 		return (kstatus::proceed);
 	}
 
 private:
-	blazingdb::manager::experimental::Context *context;
+	std::shared_ptr<Context>context;
 	ral::io::data_loader loader;
 	ral::io::Schema  schema;
 	std::string expr;
@@ -894,18 +894,18 @@ private:
 
 class TableScanKernel : public kernel {
 public:
-	TableScanKernel(ral::io::data_loader &loader, ral::io::Schema & schema, blazingdb::manager::experimental::Context* context)
+	TableScanKernel(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
 		: kernel(), context(context), loader(loader), schema(schema)
 	{}
 
 	virtual kstatus run() {
-		auto table = loader.load_data(context, {}, schema);
+		auto table = loader.load_data(context.get(), {}, schema);
 		this->output_.get_cache()->addToCache(std::move(table));
 		return (kstatus::proceed);
 	}
 
 private:
-	blazingdb::manager::experimental::Context *context;
+	std::shared_ptr<Context> context;
 	ral::io::data_loader loader;
 	ral::io::Schema  schema;
 };
@@ -932,7 +932,6 @@ using ParquetFileReaderKernel = ral::cache::test::parquet_file_reader_kernel;
 
 
 namespace parser{
-
 struct expr_tree_processor {
 	struct node {
 		std::string expr;               // expr
@@ -949,16 +948,18 @@ struct expr_tree_processor {
 				kernel_unit->run();
 				return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
 			} else {
-				if(children.size() == 2) {
+				if(children.size() == 2) {				
 					frame_type input_a;
 					std::thread t1([this, &input_a]() mutable{
 						input_a = this->children[0]->execute_plan();
-					}); t1.join();
+					}); 
 
 					frame_type input_b;
 					std::thread t2([this, &input_b]() mutable{
 						input_b = this->children[1]->execute_plan(); 
-					}); t2.join();
+					});
+					t1.join();
+					t2.join();
 					
 					std::shared_ptr<ral::cache::CacheMachine> source_cache_a = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
 					source_cache_a->addToCache(std::move(input_a));
@@ -988,7 +989,7 @@ struct expr_tree_processor {
 			}
 		}
 	} root;
-	blazingdb::manager::experimental::Context * context;
+	std::shared_ptr<Context> context;
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 	std::vector<std::string> table_names;
@@ -1014,47 +1015,60 @@ struct expr_tree_processor {
 
 	std::shared_ptr<kernel> make_kernel(std::string expr) {
 		std::shared_ptr<kernel> k;
+		auto kernel_context = this->context->clone();
 		if ( is_project(expr) ) {
-			k = std::make_shared<ProjectKernel>(expr, this->context);
+			k = std::make_shared<ProjectKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::ProjectKernel);
 		} else if ( is_filter(expr) ) {
-			k = std::make_shared<FilterKernel>(expr, this->context);
+			k = std::make_shared<FilterKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::FilterKernel);
 		} else if ( is_join(expr) ) {
-			k = std::make_shared<JoinKernel>(expr, this->context);
+			k = std::make_shared<JoinKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::JoinKernel);
 		} else if ( is_union(expr) ) {
-			k = std::make_shared<UnionKernel>(expr, this->context);
+			k = std::make_shared<UnionKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::UnionKernel);
 		} else if ( is_sort(expr) ) {
-			k = std::make_shared<SortKernel>(expr, this->context);
+			k = std::make_shared<SortKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::SortKernel);
 		} else if ( is_merge(expr) ) {
-			k = std::make_shared<MergeStreamKernel>(expr, this->context);
+			k = std::make_shared<MergeStreamKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::MergeStreamKernel);
 		} else if ( is_partition(expr) ) {
-			k = std::make_shared<PartitionKernel>(expr, this->context);
+			k = std::make_shared<PartitionKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::PartitionKernel);
 		} else if ( is_sort_and_sample(expr) ) {
-			k = std::make_shared<SortAndSampleKernel>(expr, this->context);
+			k = std::make_shared<SortAndSampleKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::SortAndSampleKernel);
 		} else if ( is_aggregate(expr) ) {
-			k = std::make_shared<AggregateKernel>(expr, this->context);
+			k = std::make_shared<AggregateKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::AggregateKernel);
 		} else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			k = std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], this->context);
+			k = std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], kernel_context);
+			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::TableScanKernel);
 		} else if (is_bindable_scan(expr)) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			if (input_loaders_uses.find(table_index) == input_loaders_uses.end()) {
-				k = std::make_shared<BindableTableScanKernel>(expr, this->input_loaders[table_index], this->schemas[table_index], this->context);
+				k = std::make_shared<BindableTableScanKernel>(expr, this->input_loaders[table_index], this->schemas[table_index], kernel_context);
+				kernel_context->setKernelId(k->get_id());
 				k->set_type_id(kernel_type::BindableTableScanKernel);
 				input_loaders_uses[table_index] = std::vector<std::shared_ptr<ral::io::data_loader>>();
 			} else {
 				auto loader = this->input_loaders[table_index].clone();
 				auto schema = this->schemas[table_index];
-				k = std::make_shared<BindableTableScanKernel>(expr, *loader, schema, this->context);
+				k = std::make_shared<BindableTableScanKernel>(expr, *loader, schema, kernel_context);
+				kernel_context->setKernelId(k->get_id());
 				k->set_type_id(kernel_type::BindableTableScanKernel);
 				input_loaders_uses[table_index].push_back(loader);
 			}

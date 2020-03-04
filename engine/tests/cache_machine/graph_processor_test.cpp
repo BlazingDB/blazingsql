@@ -150,8 +150,8 @@ TEST_F(GraphProcessorTest, JoinTest) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
-	JoinKernel s(expression, &queryContext);
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");
+	JoinKernel s(expression, queryContext);
 	PrinterKernel print;
 	ral::cache::graph g;
 	try {
@@ -171,13 +171,13 @@ TEST_F(GraphProcessorTest, ComplexTest) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");
 
 	GeneratorKernel a(10), b(10);
-	FilterKernel filterA("BindableTableScan(table=[[main, nation]], filters=[[<($0, 5)]])", &queryContext);
-	FilterKernel filterB("BindableTableScan(table=[[main, nation]], filters=[[<($0, 5)]])", &queryContext);
-	JoinKernel join("LogicalJoin(condition=[=($1, $0)], joinType=[inner])", &queryContext);
-	ProjectKernel project("LogicalProject(INT64=[$0])", &queryContext);
+	FilterKernel filterA("BindableTableScan(table=[[main, nation]], filters=[[<($0, 5)]])", queryContext);
+	FilterKernel filterB("BindableTableScan(table=[[main, nation]], filters=[[<($0, 5)]])", queryContext);
+	JoinKernel join("LogicalJoin(condition=[=($1, $0)], joinType=[inner])", queryContext);
+	ProjectKernel project("LogicalProject(INT64=[$0])", queryContext);
 
 	PrinterKernel print;
 	ral::cache::graph m;
@@ -217,7 +217,7 @@ TEST_F(GraphProcessorTest, IOTest) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");
 
 	auto orders_input = this->CreateOrderTableProvider();
 	auto customer_input = this->CreateCustomerTableProvider();
@@ -230,11 +230,11 @@ TEST_F(GraphProcessorTest, IOTest) {
 	ral::io::Schema customer_schema;
 	customer_loader.get_schema(customer_schema, {});
 
-	TableScanKernel order_generator(orders_loader, orders_schema, &queryContext);
-	TableScanKernel customer_generator(customer_loader, customer_schema, &queryContext);
-	FilterKernel filter("LogicalFilter(condition=[<($0, 100)])", &queryContext);
-	JoinKernel join("LogicalJoin(condition=[=($1, $9)], joinType=[inner])", &queryContext);
-	ProjectKernel project("LogicalProject(c_custkey=[$9], c_nationkey=[$12], c_acctbal=[$14])", &queryContext);
+	TableScanKernel order_generator(orders_loader, orders_schema, queryContext);
+	TableScanKernel customer_generator(customer_loader, customer_schema, queryContext);
+	FilterKernel filter("LogicalFilter(condition=[<($0, 100)])", queryContext);
+	JoinKernel join("LogicalJoin(condition=[=($1, $9)], joinType=[inner])", queryContext);
+	ProjectKernel project("LogicalProject(c_custkey=[$9], c_nationkey=[$12], c_acctbal=[$14])", queryContext);
 
 	PrinterKernel print;
 	ral::cache::graph m;
@@ -265,7 +265,7 @@ TEST_F(GraphProcessorTest, SortTest) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");
 
 	auto customer_input = this->CreateCustomerTableProvider();
 
@@ -273,11 +273,11 @@ TEST_F(GraphProcessorTest, SortTest) {
 	ral::io::Schema customer_schema;
 	customer_loader.get_schema(customer_schema, {});
 
-	TableScanKernel customer_generator(customer_loader, customer_schema, &queryContext);
+	TableScanKernel customer_generator(customer_loader, customer_schema, queryContext);
 
-	SortKernel order_by("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
-	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", &queryContext);
-	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", &queryContext);
+	SortKernel order_by("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
+	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext);
+	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", queryContext);
 	PrinterKernel print;
 	ral::cache::graph m;
 	try {
@@ -297,7 +297,7 @@ TEST_F(GraphProcessorTest, SortSamplePartitionTest) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	Context queryContext{ctxToken, contextNodes, contextNodes[0], ""};
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");
 
 	auto customer_input = this->CreateCustomerTableProvider();
 
@@ -305,18 +305,18 @@ TEST_F(GraphProcessorTest, SortSamplePartitionTest) {
 	ral::io::Schema customer_schema;
 	customer_loader.get_schema(customer_schema, {});
 
-	TableScanKernel customer_generator(customer_loader, customer_schema, &queryContext);
+	TableScanKernel customer_generator(customer_loader, customer_schema, queryContext);
 
-	SortAndSampleKernel sort_and_sample("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
-	PartitionKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
-	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", &queryContext);
-	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", &queryContext);
-	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", &queryContext);
+	SortAndSampleKernel sort_and_sample("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
+	PartitionKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
+	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
+	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext);
+	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", queryContext);
 	PrinterKernel print;
 	ral::cache::graph m;
 	try {
 		auto cache_machine_config =
-			cache_settings{.type = CacheType::FOR_EACH, .num_partitions = queryContext.getTotalNodes()};
+			cache_settings{.type = CacheType::FOR_EACH, .num_partitions = queryContext->getTotalNodes()};
 		m += customer_generator >> filter;
 		m += filter >> project;
 		m += project >> sort_and_sample;

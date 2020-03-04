@@ -15,7 +15,15 @@ Context::Context(const uint32_t token,
       masterNode_{masterNode},
       logicalPlan_{logicalPlan},
       query_step{0},
-      query_substep{0} {}
+      query_substep{0},
+      kernel_id_{0} {}
+
+std::shared_ptr<Context> Context::clone() {
+  auto ptr = std::make_shared<Context>(this->token_, this->taskNodes_, this->masterNode_, this->logicalPlan_);
+  ptr->query_step = this->query_step;
+  ptr->query_substep = this->query_substep;
+  return ptr;
+}
 
 int Context::getTotalNodes() const { return taskNodes_.size(); }
 
@@ -56,7 +64,9 @@ std::string Context::getLogicalPlan() const { return logicalPlan_; }
 
 uint32_t Context::getContextToken() const { return token_; }
 
-uint32_t Context::getContextCommunicationToken() const { return query_substep; }
+std::string Context::getContextCommunicationToken() const {
+  return std::to_string(kernel_id_) + "_"  + std::to_string(query_substep) ;   
+}
 
 std::mutex increment_step_mutex;
 
