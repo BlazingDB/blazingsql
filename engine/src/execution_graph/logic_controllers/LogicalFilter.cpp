@@ -276,7 +276,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
   					std::to_string(context->getQueryStep()),
   					std::to_string(context->getQuerySubstep()),
-  					"join process_distribution scatter_left"));
+  					"join process_distribution scatter_left bytes: " + std::to_string(total_bytes_left)));
   			if(left.num_rows() > 0) {
   				ral::distribution::experimental::scatterData(context, left);
   			}
@@ -290,7 +290,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
   					std::to_string(context->getQueryStep()),
   					std::to_string(context->getQuerySubstep()),
-  					"join process_distribution scatter_right"));
+  					"join process_distribution scatter_right bytes: " + std::to_string(total_bytes_right)));
   			if(right.num_rows() > 0) {  // this node has data on the right to scatter
   				ral::distribution::experimental::scatterData(context, right);
   			}
@@ -322,6 +322,12 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
           cluster_shared_table = std::make_unique<ral::frame::BlazingTable>(right.view(), right.names());
         }  			
   		}
+
+      Library::Logging::Logger().logTrace(
+  				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  					std::to_string(context->getQueryStep()),
+  					std::to_string(context->getQuerySubstep()),
+  					"join process_distribution scatter complete"));
 
   		if(scatter_left) {
         std::unique_ptr<ral::frame::BlazingTable> right_table = std::make_unique<ral::frame::BlazingTable>(right.view(), right.names());
