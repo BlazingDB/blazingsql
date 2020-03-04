@@ -232,10 +232,10 @@ int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
 				auto chars_column = str_col_view.chars();
 				std::cout<<" chars_column.size(): "<<chars_column.size()<<std::endl;
 				std::cout<<" offsets_column.size() * sizeof(int32_t): "<<offsets_column.size() * sizeof(int32_t)<<std::endl;
-				bytes += chars_column.size();
-				bytes += offsets_column.size() * sizeof(int32_t);  			
+				bytes += (int64_t)(chars_column.size());
+				bytes += (int64_t)(offsets_column.size()) * (int64_t)(sizeof(int32_t));
 			} else {
-				bytes += ral::traits::get_dtype_size_in_bytes(table_view.column(i).type().id()) * table_view.num_rows();
+				bytes += (int64_t)(ral::traits::get_dtype_size_in_bytes(table_view.column(i).type().id())) * (int64_t)(table_view.num_rows());
 				std::cout<<" ral::traits::get_dtype_size_in_bytes(table_view.column(i).type().id()): "<<ral::traits::get_dtype_size_in_bytes(table_view.column(i).type().id())<<std::endl;
 				std::cout<<" table_view.num_rows(): "<<table_view.num_rows()<<std::endl;
 			}
