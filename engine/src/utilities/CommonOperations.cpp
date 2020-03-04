@@ -235,6 +235,7 @@ int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
 			} else {
 				bytes += ral::traits::get_dtype_size_in_bytes(table_view.column(i).type().id()) * table_view.num_rows();
 			}
+			std::cout<<" adding get_table_size_bytes: "<<bytes<<std::endl;
 		}
 		return bytes;
 	}
