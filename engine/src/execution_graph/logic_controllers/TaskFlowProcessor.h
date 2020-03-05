@@ -108,6 +108,9 @@ enum class kernel_type {
 	PartitionKernel,
 	SortAndSampleKernel,
 	AggregateKernel,
+	AggregateAndSampleKernel,
+	AggregatePartitionKernel,
+	AggregateMergeStreamKernel,
 	TableScanKernel,
 	BindableTableScanKernel
 };
@@ -447,7 +450,7 @@ using SingleProcessorFunctor = std::unique_ptr<ral::frame::BlazingTable>(const r
 template <SingleProcessorFunctor processor>
 class SingleSourceKernel : public kernel {
 public:
-	SingleSourceKernel(std::string queryString, std::shared_ptr<Context> context) {
+	SingleSourceKernel(const std::string & queryString, std::shared_ptr<Context> context) {
 		this->context = context;
 		this->expression = queryString;
 	}
@@ -476,7 +479,7 @@ using DoubleProcessorFunctor = std::unique_ptr<ral::frame::BlazingTable>(const r
 template <DoubleProcessorFunctor processor>
 class DoubleSourceKernel : public kernel {
 public:
-	DoubleSourceKernel(std::string queryString, std::shared_ptr<Context> context) {
+	DoubleSourceKernel(const std::string & queryString, std::shared_ptr<Context> context) {
 		this->input_.add_port("input_a", "input_b");
 		this->context = context;
 		this->expression = queryString;
@@ -505,7 +508,7 @@ using FilterKernel = SingleSourceKernel<ral::processor::process_filter>;
 
  class ProjectKernel : public kernel {
 public:
-	 ProjectKernel(std::string queryString, std::shared_ptr<Context> context) {
+	 ProjectKernel(const std::string & queryString, std::shared_ptr<Context> context) {
 		this->context = context;
 		this->expression = queryString;
 	}
@@ -514,6 +517,8 @@ public:
 		frame_type input = std::move(this->input_.get_cache()->pullFromCache());
 		if (input) {
 			auto output = ral::processor::process_project(std::move(input), expression, context.get());
+			// std::cout<< ">>>>>>>> PROJECT: " << std::endl;
+			// ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 			this->output_.get_cache()->addToCache(std::move(output));
 			context->incrementQueryStep();
 			return kstatus::proceed;
@@ -531,11 +536,10 @@ using AggregateKernel = SingleSourceKernel<ral::operators::experimental::process
 // using UnionKernel = DoubleSourceKernel<ral::operators::experimental::sample>;
 
 using SortKernel = SingleSourceKernel<ral::operators::experimental::process_sort>;
-using SampleKernel = SingleSourceKernel<ral::operators::experimental::sample>;
 
 class JoinKernel :  public kernel {
 public:
-	JoinKernel(std::string queryString, std::shared_ptr<Context> context) {
+	JoinKernel(const std::string & queryString, std::shared_ptr<Context> context) {
 			this->input_.add_port("input_a", "input_b");
 			this->context = context;
 			this->expression = queryString;
@@ -576,7 +580,7 @@ public:
 	};
 class UnionKernel : public kernel {
  public:
-	 UnionKernel(std::string queryString, std::shared_ptr<Context> context) {
+	 UnionKernel(const std::string & queryString, std::shared_ptr<Context> context) {
  		this->input_.add_port("input_a", "input_b");
  		this->context = context;
  		this->expression = queryString;
@@ -626,7 +630,7 @@ class UnionKernel : public kernel {
 
 class SortAndSampleKernel : public kernel {
 public:
-	SortAndSampleKernel(std::string queryString, std::shared_ptr<Context> context) {
+	SortAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context) {
 		this->output_.add_port("output_a", "output_b");
 		this->context = context;
 		this->expression = queryString;
@@ -658,7 +662,7 @@ private:
 
 class PartitionKernel : public kernel {
 public:
-	PartitionKernel(std::string queryString, std::shared_ptr<Context> context) {
+	PartitionKernel(const std::string & queryString, std::shared_ptr<Context> context) {
 		this->input_.add_port("input_a", "input_b");
 		this->context = context;
 		this->expression = queryString;
@@ -671,11 +675,11 @@ public:
 			if (context->getTotalNodes() > 1) {
 				partitionPlan = std::move(this->input_["input_b"]->pullFromCache());
 				partitions =
-					ral::operators::experimental::partition(partitionPlan->toBlazingTableView(),
-					sortedTable->toBlazingTableView(), this->expression, this->context.get());
+					ral::operators::experimental::partition_sort(partitionPlan->toBlazingTableView(),
+					sortedTable->toBlazingTableView(), this->expression, context.get());
 			} else {
 				partitions =
-					ral::operators::experimental::partition({}, sortedTable->toBlazingTableView(), this->expression, this->context.get());
+					ral::operators::experimental::partition_sort({}, sortedTable->toBlazingTableView(), this->expression, context.get());
 			}
 //			for(auto& partition : partitions)
 //				ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
@@ -734,6 +738,7 @@ public:
 
 				auto partitioned_data = cudf::experimental::split(partitions[i]->view(), host_pivot_indexes);
 
+				std::cout<< ">>>>>> TOTAL PARTITIONS : " << partitioned_data.size() << std::endl;
 				std::string cache_id = "output_" + std::to_string(i);
 				for (auto &&subpartition : partitioned_data) {
 					this->output_[cache_id]->addToCache(
@@ -755,9 +760,10 @@ private:
 	std::shared_ptr<Context> context;
 	std::string expression;
 };
+
 class MergeStreamKernel : public kernel {
 public:
-	MergeStreamKernel(std::string queryString, std::shared_ptr<Context> context) {
+	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context) {
 		this->context = context;
 		this->expression = queryString;
 	}
@@ -782,11 +788,10 @@ public:
 				if (partitions_to_merge.empty()) {
 					// noop
 				} else if(partitions_to_merge.size() == 1) {
-					this->output_.get_cache()->addToCache(std::move(partitions_to_merge_holder[0]));
+					this->output_.get_cache()->addToCache(std::move(partitions_to_merge_holder.front()));
 				}	else {
-//					std::cout << "merge-parts: " << std::endl;
-//					for (auto view : partitions_to_merge)
-//						ral::utilities::print_blazing_table_view(view);
+					for (auto view : partitions_to_merge)
+						ral::utilities::print_blazing_table_view(view);
 
 					auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context.get());
 
@@ -808,12 +813,208 @@ private:
 	std::string expression;
 };
 
+class AggregateAndSampleKernel : public kernel {
+public:
+	AggregateAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context) {
+		this->output_.add_port("output_a", "output_b");
+		this->context = context;
+		this->expression = queryString;
+	}
+	virtual kstatus run() {
+		try {
+			frame_type input = std::move(this->input_.get_cache()->pullFromCache());
+			std::unique_ptr<ral::frame::BlazingTable> groupedTable;
+			std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+			std::tie(groupedTable, partitionPlan) =
+				ral::operators::experimental::group_and_sample(input->toBlazingTableView(), this->expression, this->context.get());
+
+			context->incrementQueryStep();
+			this->output_["output_a"]->addToCache(std::move(groupedTable));
+			if (context->getTotalNodes() > 1) {
+				this->output_["output_b"]->addToCache(std::move(partitionPlan));
+			}
+			return kstatus::proceed;
+		} catch (std::exception &e) {
+			std::cerr << "Exception-AggregateAndSampleKernel: " << e.what() << std::endl;
+		}
+		return kstatus::stop;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
+
+class AggregatePartitionKernel : public kernel {
+public:
+	AggregatePartitionKernel(const std::string & queryString, std::shared_ptr<Context> context) {
+		this->input_.add_port("input_a", "input_b");
+		this->context = context;
+		this->expression = queryString;
+	}
+	virtual kstatus run() {
+		try {
+			frame_type groupedTable = std::move(this->input_["input_a"]->pullFromCache());
+			std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+			std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions;
+
+			if(ral::operators::experimental::is_aggregations_without_groupby(this->expression)){
+				// aggregations_without_groupby does not need partitions
+				this->output_["output_0"]->addToCache(std::move(groupedTable));
+				return kstatus::proceed;
+			}
+
+			if (context->getTotalNodes() > 1) {
+				partitionPlan = std::move(this->input_["input_b"]->pullFromCache());
+				partitions = ral::operators::experimental::partition_group(partitionPlan->toBlazingTableView(),
+																																	groupedTable->toBlazingTableView(),
+																																	this->expression,
+																																	this->context.get());
+			} else {
+				partitions =
+					ral::operators::experimental::partition_group({}, groupedTable->toBlazingTableView(), this->expression, this->context.get());
+			}
+			// for(auto& partition : partitions)
+			// 	ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
+
+			auto group_column_indices = ral::operators::experimental::get_group_column_indices(this->expression);
+
+			// Split Partitions
+			std::vector<std::unique_ptr<ral::frame::BlazingTable>> samples;
+			for (auto i = 0; i < partitions.size(); i++) {
+				auto part_samples = ral::distribution::sampling::experimental::generateSamplesFromRatio(ral::frame::BlazingTableView{partitions[i]->view().select(group_column_indices), partitions[i]->names()}, 0.25);
+				samples.push_back(std::move(part_samples));
+			}
+
+			std::vector<ral::frame::BlazingTableView> samples_view;
+			for (auto &&s : samples) {
+				samples_view.push_back(s->toBlazingTableView());
+			}
+			auto concat_samples = ral::utilities::experimental::concatTables(samples_view);
+
+			std::vector<cudf::order> orders(samples_view[0].num_columns(), cudf::order::ASCENDING);
+			std::vector<cudf::null_order> null_orders(samples_view[0].num_columns(), cudf::null_order::AFTER);
+			auto sorted_samples = cudf::experimental::sort(concat_samples->view(), orders, null_orders);
+
+			std::cout<< "SORTED SAMPLES: " <<std::endl;
+			for (auto &&c : sorted_samples->view())
+			{
+				cudf::test::print(c);
+				std::cout << std::endl;
+			}	
+
+			cudf::size_type samples_rows = sorted_samples->view().num_rows();
+			cudf::size_type pivots_size = samples_rows > 0 ? 3 /* How many subpartitions? */ : 0;
+
+			int32_t step = samples_rows / (pivots_size + 1);
+			auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
+			cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivots_size);
+			auto pivots = cudf::experimental::gather(sorted_samples->view(), gather_map_wrapper);
+			
+			std::cout<< "PIVOTS: " <<std::endl;
+			for (auto &&c : pivots->view())
+			{
+				cudf::test::print(c);
+				std::cout << std::endl;
+			}	
+
+			for (auto i = 0; i < partitions.size(); i++) {
+				auto pivot_indexes = cudf::experimental::upper_bound(partitions[i]->view().select(group_column_indices),
+																															pivots->view(),
+																															orders,
+																															null_orders);
+		
+				std::cout<< "PIVOTS indices: " <<std::endl;
+				cudf::test::print(pivot_indexes->view());
+				std::cout << std::endl;
+				
+				auto host_pivot_col = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
+				auto host_pivot_indexes = host_pivot_col.first;
+
+				auto partitioned_data = cudf::experimental::split(partitions[i]->view(), host_pivot_indexes);
+
+				std::cout<< ">>>>>> TOTAL PARTITIONS : " << partitioned_data.size() << std::endl;
+				std::string cache_id = "output_" + std::to_string(i);
+				for (auto &&subpartition : partitioned_data) {
+					this->output_[cache_id]->addToCache(
+						std::make_unique<ral::frame::BlazingTable>(
+							std::make_unique<cudf::experimental::table>(subpartition),
+							partitions[i]->names())
+						);
+				}
+			}
+
+			return kstatus::proceed;
+		} catch (std::exception &e) {
+			std::cerr << "Exception-AggregatePartitionKernel: " << e.what() << std::endl;
+		}
+		return kstatus::stop;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
+
+class AggregateMergeStreamKernel : public kernel {
+public:
+	AggregateMergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context) {
+		this->context = context;
+		this->expression = queryString;
+	}
+	virtual kstatus run() {
+		try {
+
+			while (not this->input_.get_cache("input_0")->is_finished())
+			{
+				std::vector<ral::frame::BlazingTableView> partitions_to_merge;
+				std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
+				for (size_t index = 0; index < this->input_.count(); index++) {
+					auto cache_id = "input_" + std::to_string(index);
+					if (not this->input_.get_cache(cache_id)->is_finished()) {
+						auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
+						if (input) {
+							partitions_to_merge.emplace_back(input->toBlazingTableView());
+							partitions_to_merge_holder.emplace_back(std::move(input));
+						}
+					}
+				}
+
+				if (partitions_to_merge.empty()) {
+					// noop
+				} else if(partitions_to_merge.size() == 1) {
+					std::cout << ">>>>> ONLY 1 PARTITION NOTHING TO MERGE : " << std::endl;
+					this->output_.get_cache()->addToCache(std::move(partitions_to_merge_holder.front()));
+				}	else {
+					std::cout << ">>>>> merge-parts: " << std::endl;
+					for (auto view : partitions_to_merge)
+						ral::utilities::print_blazing_table_view(view);
+
+					auto output = ral::operators::experimental::merge_group(partitions_to_merge, this->expression, this->context.get());
+
+					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
+
+					this->output_.get_cache()->addToCache(std::move(output));
+				}
+			}
+			
+			return kstatus::proceed;
+		} catch (std::exception &e) {
+			std::cerr << "Exception-AggregateMergeStreamKernel: " << e.what() << std::endl;
+		}
+		return kstatus::stop;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
+
 class print : public kernel {
 public:
 	print() : kernel() { ofs = &(std::cout); }
 	print(std::ostream & stream) : kernel() { ofs = &stream; }
 	virtual kstatus run() {
-		const std::string delim = "\n";
 		std::lock_guard<std::mutex> lg(print::print_lock);
 		frame_type table = std::move(this->input_.get_cache()->pullFromCache());
 		ral::utilities::print_blazing_table_view(table->toBlazingTableView());
@@ -993,7 +1194,7 @@ struct expr_tree_processor {
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 	std::vector<std::string> table_names;
-	const bool transform_sort_to_partition_sort = false;
+	const bool transform_operators_bigger_than_gpu = false;
 
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level) {
 		auto expr = p_tree.get<std::string>("expr", "");
@@ -1050,6 +1251,15 @@ struct expr_tree_processor {
 			k = std::make_shared<AggregateKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::AggregateKernel);
+		} else if ( is_aggregate_merge(expr) ) {
+			k = std::make_shared<AggregateMergeStreamKernel>(expr, kernel_context);
+			k->set_type_id(kernel_type::AggregateMergeStreamKernel);
+		} else if ( is_aggregate_partition(expr) ) {
+			k = std::make_shared<AggregatePartitionKernel>(expr, kernel_context);
+			k->set_type_id(kernel_type::AggregatePartitionKernel);
+		} else if ( is_aggregate_and_sample(expr) ) {
+			k = std::make_shared<AggregateAndSampleKernel>(expr, kernel_context);
+			k->set_type_id(kernel_type::AggregateAndSampleKernel);
 		} else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			k = std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], kernel_context);
@@ -1075,8 +1285,8 @@ struct expr_tree_processor {
 		} catch (std::exception & e) {
 			std::cerr << e.what() <<  std::endl;
 		}
-		if (transform_sort_to_partition_sort) {
-			transform_sort(nullptr, &this->root);
+		if (transform_operators_bigger_than_gpu) {
+			transform_operator_bigger_than_gpu(nullptr, &this->root);
 		}
 
 		if (this->root.kernel_unit != nullptr) {
@@ -1084,7 +1294,7 @@ struct expr_tree_processor {
 		}
 		return nullptr;
 	}
-	void transform_sort(node* parent, node * current) {
+	void transform_operator_bigger_than_gpu(node* parent, node * current) {
 		if (current->kernel_unit->get_type_id() == kernel_type::SortKernel) {
 			auto merge_expr = current->expr;
 			auto partition_expr = current->expr;
@@ -1116,6 +1326,7 @@ struct expr_tree_processor {
 				// new root
 				current->expr = merge->expr;
 				current->kernel_unit = merge->kernel_unit;
+				current->children = merge->children;
 			} else {
 				auto it = std::find_if(parent->children.begin(), parent->children.end(), [current] (std::shared_ptr<node> tmp) {
 					return tmp->kernel_unit->get_id() == current->kernel_unit->get_id();
@@ -1123,11 +1334,59 @@ struct expr_tree_processor {
 				parent->children.erase( it );
 				parent->children.push_back(merge);
 			}
-		} else if (current) {
+		}	else if(current->kernel_unit->get_type_id() == kernel_type::AggregateKernel) {
+			auto merge_expr = current->expr;
+			auto partition_expr = current->expr;
+			auto aggregate_and_sample_expr = current->expr;
+			StringUtil::findAndReplaceAll(merge_expr, "LogicalAggregate", LOGICAL_AGGREGATE_MERGE_TEXT);
+			StringUtil::findAndReplaceAll(partition_expr, "LogicalAggregate", LOGICAL_AGGREGATE_PARTITION_TEXT);
+			StringUtil::findAndReplaceAll(aggregate_and_sample_expr, "LogicalAggregate", LOGICAL_AGGREGATE_AND_SAMPLE_TEXT);
+
+			auto merge = std::make_shared<node>();
+			merge->expr = merge_expr;
+			merge->level = current->level;
+			merge->kernel_unit = make_kernel(merge_expr);
+
+			auto partition = std::make_shared<node>();
+			partition->expr = partition_expr;
+			partition->level = current->level;
+			partition->kernel_unit = make_kernel(partition_expr);
+			merge->children.push_back(partition);
+
+			auto ssample = std::make_shared<node>();
+			ssample->expr = aggregate_and_sample_expr;
+			ssample->level = current->level;
+			ssample->kernel_unit = make_kernel(aggregate_and_sample_expr);
+			partition->children.push_back(ssample);
+
+			ssample->children = current->children;
+
+			if (parent == nullptr) { // root is sort
+				// new root
+				current->expr = merge->expr;
+				current->kernel_unit = merge->kernel_unit;
+				current->children = merge->children;
+			} else {
+				auto it = std::find_if(parent->children.begin(), parent->children.end(), [current] (std::shared_ptr<node> tmp) {
+					return tmp->kernel_unit->get_id() == current->kernel_unit->get_id();
+				});
+				parent->children.erase( it );
+				parent->children.push_back(merge);
+			}
+		}	else if (current) {
 			for (auto& child : current->children) {
-				transform_sort(current, child.get());
+				transform_operator_bigger_than_gpu(current, child.get());
 			}
 		}
+	}
+
+	void tree_show(node* node_ptr){
+		for (auto &&c : node_ptr->children)
+		{
+			tree_show(c.get());
+		}
+		
+		std::cout<< ">>>>> type kernel - id : "<< (int)(node_ptr->kernel_unit->get_type_id()) << " - "<<(int)(node_ptr->kernel_unit->get_id()) <<std::endl;
 	}
 
 	ral::cache::graph build_graph(std::string json) {
@@ -1140,6 +1399,15 @@ struct expr_tree_processor {
 		} catch (std::exception & e) {
 			std::cerr << e.what() <<  std::endl;
 		}
+
+		std::cout<< ">>>>>> BEFORE TRANS"<<std::endl;
+		tree_show(&this->root);
+
+		if (transform_operators_bigger_than_gpu) {
+			transform_operator_bigger_than_gpu(nullptr, &this->root);
+		}
+		std::cout<< ">>>>>> AFTER TRANS"<<std::endl;
+		tree_show(&this->root);
 
 		ral::cache::graph graph;
 		if (this->root.kernel_unit != nullptr) {
@@ -1160,24 +1428,24 @@ struct expr_tree_processor {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
 				port_name.push_back(index_char); 
-//				std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << "["  << port_name<< "]" << std::endl;
 				graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
 			} else {
 				auto a = child->kernel_unit->get_type_id();
 				auto b = parent->kernel_unit->get_type_id();
-				if (child->kernel_unit->get_type_id() == kernel_type::SortAndSampleKernel &&
-						parent->kernel_unit->get_type_id() == kernel_type::PartitionKernel) {
-//					std::cout<< ">>>>> LINK 1" << std::endl;
+				if ((child->kernel_unit->get_type_id() == kernel_type::SortAndSampleKernel &&	parent->kernel_unit->get_type_id() == kernel_type::PartitionKernel) ||
+						(child->kernel_unit->get_type_id() == kernel_type::AggregateAndSampleKernel &&	parent->kernel_unit->get_type_id() == kernel_type::AggregatePartitionKernel)) {
 					graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];
 					graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
-				} else if (child->kernel_unit->get_type_id() == kernel_type::PartitionKernel &&
-									parent->kernel_unit->get_type_id() == kernel_type::MergeStreamKernel)
+				} else if ((child->kernel_unit->get_type_id() == kernel_type::PartitionKernel && parent->kernel_unit->get_type_id() == kernel_type::MergeStreamKernel) ||
+									 (child->kernel_unit->get_type_id() == kernel_type::AggregatePartitionKernel && parent->kernel_unit->get_type_id() == kernel_type::AggregateMergeStreamKernel))
 				{
-//					std::cout<< ">>>>> LINK 2" << std::endl;
 					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = this->context->getTotalNodes()};
 					graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+				} else if ((child->kernel_unit->get_type_id() == kernel_type::AggregateMergeStreamKernel ||	child->kernel_unit->get_type_id() == kernel_type::MergeStreamKernel))
+				{
+					auto cache_machine_config =	cache_settings{.type = CacheType::CONCATENATING, .num_partitions = this->context->getTotalNodes()};
+					graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				} else {
-//					std::cout << "link: " << child->kernel_unit->get_id() << " -> " << parent->kernel_unit->get_id() << std::endl;
 					graph +=  *child->kernel_unit >> (*parent->kernel_unit);
 				}				
 			}

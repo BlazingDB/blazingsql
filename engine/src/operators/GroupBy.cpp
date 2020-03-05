@@ -621,6 +621,351 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	return std::make_unique<BlazingTable>(std::move(output_table), output_names);
 }
 
+
+// Bigger than GPU functions
+auto get_group_vars(const std::string & query_part) {
+	auto rangeStart = query_part.find("(");
+	auto rangeEnd = query_part.rfind(")") - rangeStart;
+	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd - 1);
+
+	std::vector<int> group_column_indices = get_group_columns(combined_expression);
+
+	// Get aggregations
+	std::vector<std::string> aggregation_expressions;
+	std::vector<std::string> aggregation_column_assigned_aliases;
+	std::vector<std::string> expressions = get_expressions_from_expression_list(combined_expression);
+	for(std::string expr : expressions) {
+		std::string expression = std::regex_replace(expr, std::regex("^ +| +$|( ) +"), "$1");
+		if(expression.find("group=") == std::string::npos) {
+			aggregation_expressions.push_back(expression);
+
+			// if the aggregation has an alias, lets capture it here, otherwise we'll figure out what to call the
+			// aggregation based on its input
+			if(expression.find("EXPR$") == 0)
+				aggregation_column_assigned_aliases.push_back("");
+			else
+				aggregation_column_assigned_aliases.push_back(expression.substr(0, expression.find("=[")));
+		}
+	}
+
+	return std::make_tuple(group_column_indices, aggregation_expressions, aggregation_column_assigned_aliases);
+}
+
+bool is_aggregations_without_groupby(const std::string& query_part) {
+	std::vector<int> group_column_indices;
+	std::vector<std::string> aggregation_expressions;
+	std::vector<std::string> aggregation_column_assigned_aliases;
+	std::tie(group_column_indices, aggregation_expressions, aggregation_column_assigned_aliases) = get_group_vars(query_part);
+	
+	return group_column_indices.size() == 0;
+}
+
+std::vector<int> get_group_column_indices(const std::string& query_part) {
+	std::vector<int> group_column_indices;
+	std::vector<std::string> aggregation_expressions;
+	std::vector<std::string> aggregation_column_assigned_aliases;
+	std::tie(group_column_indices, aggregation_expressions, aggregation_column_assigned_aliases) = get_group_vars(query_part);
+	
+	return group_column_indices;
+}
+
+auto groupby_without_aggregations_and_sample(Context * context,
+																							const ral::frame::BlazingTableView & table,
+																							const std::vector<int> & group_column_indices) {
+	std::unique_ptr<ral::frame::BlazingTable> grouped_table = compute_groupby_without_aggregations(table, group_column_indices);
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+
+	if(context->getTotalNodes() > 1) {
+		size_t total_rows_table = table.view().num_rows();
+		
+		ral::frame::BlazingTableView groupbyColumns(table.view().select(group_column_indices), table.names());
+		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(
+																															groupbyColumns, 0.1);	
+
+		if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
+			context->incrementQuerySubstep();
+			std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > samples_pair = collectSamples(context);
+
+			std::vector<ral::frame::BlazingTableView> samples;
+			for (int i = 0; i < samples_pair.first.size(); i++){
+				samples.push_back(samples_pair.first[i].second->toBlazingTableView());
+			}
+			samples.push_back(selfSamples->toBlazingTableView());
+
+			std::vector<size_t> total_rows_tables = samples_pair.second;
+			total_rows_tables.push_back(total_rows_table);
+
+			partitionPlan = generatePartitionPlansGroupBy(context, samples);
+
+			context->incrementQuerySubstep();
+			distributePartitionPlan(context, partitionPlan->toBlazingTableView());
+		} else {
+			context->incrementQuerySubstep();
+			sendSamplesToMaster(context, selfSamples->toBlazingTableView(), total_rows_table);
+
+			context->incrementQuerySubstep();
+			partitionPlan = getPartitionPlan(context);
+		}
+	}
+
+	return std::make_pair(std::move(grouped_table), std::move(partitionPlan));
+}
+
+auto aggregations_without_groupby_and_sample(Context * context,
+																						const ral::frame::BlazingTableView & table,
+																						const std::vector<std::string> & aggregation_expressions,
+																						const std::vector<std::string> & aggregation_column_assigned_aliases){
+
+	std::vector<std::string> aggregation_types;
+	std::vector<std::string> aggregation_input_expressions;
+	for(std::string expression : aggregation_expressions) {
+		aggregation_types.push_back(get_aggregation_operation_string(expression));
+		aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));
+	}
+
+	std::unique_ptr<ral::frame::BlazingTable> results = compute_aggregations_without_groupby(table,
+																																													aggregation_types,
+																																													aggregation_input_expressions,
+																																													aggregation_column_assigned_aliases);
+
+	// aggregations_without_groupby does not need a partitionPlan, just return and empty table
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan = std::make_unique<ral::frame::BlazingTable>(
+			std::vector<std::unique_ptr<BlazingColumn>>{}, std::vector<std::string>{});
+
+	if(context->getTotalNodes() > 1) {
+		if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
+			context->incrementQuerySubstep();
+			std::vector<NodeColumn> collected_partitions = collectPartitions(context);
+
+			std::vector<ral::frame::BlazingTableView> partitions_to_merge;
+			for (int i = 0; i < collected_partitions.size(); i++){
+				partitions_to_merge.emplace_back(collected_partitions[i].second->toBlazingTableView());
+			}
+			partitions_to_merge.emplace_back(results->toBlazingTableView());
+
+			std::unique_ptr<BlazingTable> concatenated_aggregations = ral::utilities::experimental::concatTables(partitions_to_merge);
+
+			std::vector<std::string> mod_aggregation_types = aggregation_types;
+			std::vector<std::string> mod_aggregation_input_expressions = aggregation_input_expressions;
+			for (int i = 0; i < mod_aggregation_types.size(); i++){
+				if (mod_aggregation_types[i] == "COUNT"){
+					mod_aggregation_types[i] = "SUM"; // if we have a COUNT, we want to SUM the output of the counts from other nodes
+				}
+				mod_aggregation_input_expressions[i] = std::to_string(i); // we just want to aggregate the input columns, so we are setting the indices here
+			}
+
+			results = compute_aggregations_without_groupby(concatenated_aggregations->toBlazingTableView(),
+																										mod_aggregation_types,
+																										mod_aggregation_input_expressions,
+																										concatenated_aggregations->names());
+		} else {
+			std::vector<NodeColumnView> selfPartition;
+			selfPartition.emplace_back(context->getMasterNode(), results->toBlazingTableView());
+
+			context->incrementQuerySubstep();
+			ral::distribution::experimental::distributePartitions(context, selfPartition);
+
+			results = std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(results->view()), results->names());
+		}
+	}
+
+	return std::make_pair(std::move(results), std::move(partitionPlan));
+}
+
+auto aggregations_with_groupby_and_sample(Context * context,
+																					const ral::frame::BlazingTableView & table,
+																					const std::vector<std::string> & aggregation_expressions,
+																					const std::vector<std::string> & aggregation_column_assigned_aliases,
+																					const std::vector<int> & group_column_indices) {
+	std::vector<AggregateKind> aggregation_types;
+	std::vector<std::string> aggregation_input_expressions;
+	for(std::string expression : aggregation_expressions) {
+		aggregation_types.push_back(get_aggregation_operation(expression));
+		aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));
+	}
+
+	std::unique_ptr<ral::frame::BlazingTable> grouped_table = compute_aggregations_with_groupby(table,
+																																															aggregation_types,
+																																															aggregation_input_expressions,
+																																															aggregation_column_assigned_aliases,
+																																															group_column_indices);
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+
+	if(context->getTotalNodes() > 1) {
+		size_t total_rows_table = table.view().num_rows();
+
+		ral::frame::BlazingTableView groupbyColumns(table.view().select(group_column_indices), table.names());
+		std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(
+																															groupbyColumns, 0.1);
+
+		if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
+			context->incrementQuerySubstep();
+			std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > samples_pair = collectSamples(context);
+
+			std::vector<ral::frame::BlazingTableView> samples;
+			for (int i = 0; i < samples_pair.first.size(); i++){
+				samples.push_back(samples_pair.first[i].second->toBlazingTableView());
+			}
+			samples.push_back(selfSamples->toBlazingTableView());
+
+			std::vector<size_t> total_rows_tables = samples_pair.second;
+			total_rows_tables.push_back(total_rows_table);
+
+			partitionPlan = generatePartitionPlansGroupBy(context, samples);
+
+			context->incrementQuerySubstep();
+			distributePartitionPlan(context, partitionPlan->toBlazingTableView());
+		} else {
+			context->incrementQuerySubstep();
+			sendSamplesToMaster(context, selfSamples->toBlazingTableView(), total_rows_table);
+
+			context->incrementQuerySubstep();
+			partitionPlan = getPartitionPlan(context);
+		}
+	}
+
+	return std::make_pair(std::move(grouped_table), std::move(partitionPlan));
+}
+
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable>>
+group_and_sample(const ral::frame::BlazingTableView & table, const std::string& query_part, Context * context) {
+	std::vector<int> group_column_indices;
+	std::vector<std::string> aggregation_expressions;
+	std::vector<std::string> aggregation_column_assigned_aliases;
+	std::tie(group_column_indices, aggregation_expressions, aggregation_column_assigned_aliases) = get_group_vars(query_part);
+
+	if(aggregation_expressions.size() == 0) {
+		return groupby_without_aggregations_and_sample(context, table, group_column_indices);
+	} else if (group_column_indices.size() == 0) {
+		return aggregations_without_groupby_and_sample(context, table, aggregation_expressions, aggregation_column_assigned_aliases);
+	} else {
+		return aggregations_with_groupby_and_sample(context, table, aggregation_expressions, aggregation_column_assigned_aliases, group_column_indices);
+	}
+}
+
+auto partition_groupby_aggregations(Context * context,
+																		const ral::frame::BlazingTableView & grouped_table,
+																		const ral::frame::BlazingTableView & partitionPlan,
+																		const std::vector<int> & group_column_indices) {
+	if(partitionPlan.num_rows() == 0) {
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge;
+		partitions_to_merge.push_back(grouped_table.clone());
+		return partitions_to_merge;
+	}
+			
+	// need to sort the data before its partitioned
+	std::vector<cudf::order> column_order(group_column_indices.size(), cudf::order::ASCENDING);
+	std::vector<cudf::null_order> null_orders(group_column_indices.size(), cudf::null_order::AFTER);
+	CudfTableView groupbyColumnsForSort = grouped_table.view().select(group_column_indices);
+	std::unique_ptr<cudf::column> sorted_order_col = cudf::experimental::sorted_order( groupbyColumnsForSort, column_order, null_orders );
+	std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::gather( grouped_table.view(), sorted_order_col->view() );
+
+	ral::frame::BlazingTableView gathered_table(gathered->view(), grouped_table.names());
+
+	std::vector<int8_t> sortOrderTypes;
+	std::vector<NodeColumnView> partitions = partitionData(
+							context, gathered_table, partitionPlan, group_column_indices, sortOrderTypes);
+
+	context->incrementQuerySubstep();
+	distributePartitions(context, partitions);
+	std::vector<NodeColumn> collected_partitions = collectPartitions(context);
+
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge;
+	for (int i = 0; i < collected_partitions.size(); i++){
+		partitions_to_merge.emplace_back(std::move(collected_partitions[i].second));
+	}
+	for (auto partition : partitions){
+		if (partition.first == CommunicationData::getInstance().getSelfNode()){
+			std::unique_ptr<ral::frame::BlazingTable> table = partition.second.clone();
+			partitions_to_merge.push_back(std::move(table));
+			break;
+		}
+	}
+
+	return partitions_to_merge;
+}
+
+std::vector<std::unique_ptr<ral::frame::BlazingTable>>
+partition_group(const ral::frame::BlazingTableView & partitionPlan,
+								const ral::frame::BlazingTableView & grouped_table,
+								const std::string & query_part,
+								Context * context) {
+	std::vector<int> group_column_indices;
+	std::vector<std::string> aggregation_expressions;
+	std::vector<std::string> aggregation_column_assigned_aliases;
+	std::tie(group_column_indices, aggregation_expressions, aggregation_column_assigned_aliases) = get_group_vars(query_part);
+
+	if (group_column_indices.size() == 0) {
+		// should not reach here
+		// aggregations_without_groupby does not need partitions
+		assert(false);
+	}
+
+	return partition_groupby_aggregations(context, grouped_table, partitionPlan, group_column_indices);
+}
+
+auto merge_groupby_without_aggregations(Context * context,
+																				const std::vector<ral::frame::BlazingTableView> & partitions_to_merge,
+																				const std::vector<int> & group_column_indices) {
+	return groupByWithoutAggregationsMerger(partitions_to_merge, group_column_indices);
+}
+
+
+auto merge_aggregations_with_groupby(Context * context,
+																			const std::vector<ral::frame::BlazingTableView> & partitions_to_merge,
+																			const std::vector<std::string> & aggregation_expressions,
+																			const std::vector<int> & group_column_indices) {
+	std::vector<AggregateKind> aggregation_types;
+	std::vector<std::string> aggregation_input_expressions;
+	for(std::string expression : aggregation_expressions) {
+		aggregation_types.push_back(get_aggregation_operation(expression));
+		aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));
+	}
+
+	std::unique_ptr<BlazingTable> concatenated_aggregations = ral::utilities::experimental::concatTables(partitions_to_merge);
+
+	std::vector<AggregateKind> mod_aggregation_types = aggregation_types;
+	std::vector<std::string> mod_aggregation_input_expressions(aggregation_input_expressions.size());
+	std::vector<std::string> mod_aggregation_column_assigned_aliases(aggregation_types.size());
+	std::vector<int> mod_group_column_indices(group_column_indices.size());
+	std::iota(mod_group_column_indices.begin(), mod_group_column_indices.end(), 0);
+	for (int i = 0; i < aggregation_types.size(); i++){
+		if (aggregation_types[i] == AggregateKind::COUNT){
+			aggregation_types[i] = AggregateKind::SUM; // if we have a COUNT, we want to SUM the output of the counts from other nodes
+		}
+		mod_aggregation_input_expressions[i] = std::to_string(i + mod_group_column_indices.size()); // we just want to aggregate the input columns, so we are setting the indices here
+		mod_aggregation_column_assigned_aliases[i] = concatenated_aggregations->names()[i + mod_group_column_indices.size()];
+	}
+
+	std::unique_ptr<ral::frame::BlazingTable> merged_results = compute_aggregations_with_groupby(concatenated_aggregations->toBlazingTableView(),
+			aggregation_types, mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, mod_group_column_indices);
+
+	return merged_results;
+}
+
+std::unique_ptr<ral::frame::BlazingTable>
+merge_group(const std::vector<ral::frame::BlazingTableView> & partitions_to_merge,
+						const std::string & query_part,
+						Context * context) {
+	std::vector<int> group_column_indices;
+	std::vector<std::string> aggregation_expressions;
+	std::vector<std::string> aggregation_column_assigned_aliases;
+	std::tie(group_column_indices, aggregation_expressions, aggregation_column_assigned_aliases) = get_group_vars(query_part);
+
+	if (group_column_indices.size() == 0) {
+		// should not reach here
+		// aggregations_without_groupby does not need merge
+		assert(false);
+	}
+
+	if(aggregation_expressions.size() == 0) {
+		return merge_groupby_without_aggregations(context, partitions_to_merge, group_column_indices);
+	} else {
+		return merge_aggregations_with_groupby(context, partitions_to_merge, aggregation_expressions, group_column_indices);
+	}
+
+}
+
 }  // namespace experimental
 }  // namespace operators
 }  // namespace ral

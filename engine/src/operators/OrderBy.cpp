@@ -276,8 +276,7 @@ std::pair<std::string,cudf::size_type> getCombinedExpressionAndLimit(const std::
 	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
 	std::string limitRowsStr = get_named_expression(combined_expression, "fetch");
-	bool apply_limit = (limitRowsStr.empty() == false);
-	cudf::size_type limitRows = apply_limit ? std::stoi(limitRowsStr) : -1;
+	cudf::size_type limitRows = !limitRowsStr.empty() ? std::stoi(limitRowsStr) : -1;
 	return std::make_pair(combined_expression,limitRows);
 }
 
@@ -348,7 +347,7 @@ sort_and_sample(const ral::frame::BlazingTableView & table, const std::string & 
 	return std::make_pair(std::move(sortedTable), std::move(partitionPlan));
 }
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition(const ral::frame::BlazingTableView & partitionPlan,
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition_sort(const ral::frame::BlazingTableView & partitionPlan,
 													const ral::frame::BlazingTableView & sortedTable,
 													const std::string & query_part,
 													blazingdb::manager::experimental::Context * context) {
@@ -382,6 +381,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition(const ral::fram
 	}
 	return partitions_to_merge;
 }
+
 std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part, Context * context) {
 	std::vector<int8_t> sortOrderTypes;
 	std::vector<int> sortColIndices;
