@@ -995,8 +995,6 @@ struct expr_tree_processor {
 	std::vector<std::string> table_names;
 	const bool transform_sort_to_partition_sort = false;
 
-	std::map<int, std::vector<std::shared_ptr<ral::io::data_loader>>> input_loaders_uses = {};
-
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level) {
 		auto expr = p_tree.get<std::string>("expr", "");
 		// for(int i = 0; i < level*2 ; ++i) {
@@ -1059,19 +1057,11 @@ struct expr_tree_processor {
 			k->set_type_id(kernel_type::TableScanKernel);
 		} else if (is_bindable_scan(expr)) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			if (input_loaders_uses.find(table_index) == input_loaders_uses.end()) {
-				k = std::make_shared<BindableTableScanKernel>(expr, this->input_loaders[table_index], this->schemas[table_index], kernel_context);
-				kernel_context->setKernelId(k->get_id());
-				k->set_type_id(kernel_type::BindableTableScanKernel);
-				input_loaders_uses[table_index] = std::vector<std::shared_ptr<ral::io::data_loader>>();
-			} else {
-				auto loader = this->input_loaders[table_index].clone();
-				auto schema = this->schemas[table_index];
-				k = std::make_shared<BindableTableScanKernel>(expr, *loader, schema, kernel_context);
-				kernel_context->setKernelId(k->get_id());
-				k->set_type_id(kernel_type::BindableTableScanKernel);
-				input_loaders_uses[table_index].push_back(loader);
-			}
+			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
+			auto schema = this->schemas[table_index];
+			k = std::make_shared<BindableTableScanKernel>(expr, *loader, schema, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::BindableTableScanKernel);
 		}
 		return k;
 	}

@@ -218,6 +218,89 @@ TEST_F(ExprToGraphProcessor, FromJsonInputAggregation) {
 	}
 }
 /*
+// TEST_02
+// select n1.n_nationkey as n1key, n2.n_nationkey as n2key, n1.n_nationkey + n2.n_nationkey
+// from nation as n1 full
+// outer join nation as n2
+// on n1.n_nationkey = n2.n_nationkey + 6 where n1.n_nationkey < 10
+TEST_F(ExprToGraphProcessor, JoinIssue) {
+	std::string json = R"(
+	{
+	  'expr': 'LogicalProject(n1key=[$0], n2key=[$1], EXPR$2=[+($0, $1)])',
+	  'children': [
+		{
+		  'expr': 'LogicalFilter(condition=[<($0, 10)])',
+		  'children': [
+			{
+			  'expr': 'LogicalProject(n1key=[$0], n2key=[$4])',
+			  'children': [
+				{
+				  'expr': 'LogicalJoin(condition=[=($0, $8)], joinType=[full])',
+				  'children': [
+					{
+					  'expr': 'LogicalTableScan(table=[[main, nation]])',
+					  'children': []
+					},
+					{
+					  'expr': 'LogicalProject(n_nationkey=[$0], n_name=[$1], n_regionkey=[$2], n_comment=[$3], $f4=[+($0, 6)])',
+					  'children': [
+						{
+						  'expr': 'BindableTableScan(table=[[main, nation]], aliases=[[n_nationkey, n_name, n_regionkey, n_comment, $f4]])',
+						  'children': []
+						}
+					  ]
+					}
+				  ]
+				}
+			  ]
+			}
+		  ]
+		}
+	  ]
+	}
+	)";
+	std::replace( json.begin(), json.end(), '\'', '\"');
+	std::vector<Node> contextNodes;
+	auto address = Address::TCP("127.0.0.1", 8089, 0);
+	contextNodes.push_back(Node(address));
+	uint32_t ctxToken = 123;
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
+
+	std::vector<Uri> uris;
+
+	uris.push_back(Uri{"/home/aocsa/tpch/100MB2Part/tpch/nation_0_0.parquet"});
+	ral::io::Schema tableSchema;
+	auto parser = std::make_shared<ral::io::parquet_parser>();
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	ral::io::data_loader loader(parser, provider);
+	loader.get_schema(tableSchema, {});
+
+	ral::io::Schema schema(tableSchema.get_names(),
+						  tableSchema.get_calcite_to_file_indices(),
+						  tableSchema.get_dtypes(),
+						  tableSchema.get_in_file(),
+						   { std::vector<int>{0}});
+	parser::expr_tree_processor tree{
+		.root = {},
+		.context = queryContext,
+		.input_loaders = {loader},
+		.schemas = {schema},
+		.table_names = {"nation"}
+	};
+	PrinterKernel print;
+
+//	auto graph = tree.build_graph(json);
+//	try {
+//		graph += graph.get_last_kernel() >> print;
+//		graph.show();
+//		graph.execute();
+//	} catch(std::exception & ex) {
+//		std::cout << ex.what() << "\n";
+//	}
+	tree.execute_plan(json);
+}*/
+
+/*
 //union issue
 // (select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1,2, 3 limit 10)
 //		union all
