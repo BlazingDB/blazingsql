@@ -1285,9 +1285,9 @@ struct expr_tree_processor {
 		} catch (std::exception & e) {
 			std::cerr << e.what() <<  std::endl;
 		}
-		if (transform_operators_bigger_than_gpu) {
-			transform_operator_bigger_than_gpu(nullptr, &this->root);
-		}
+		// if (transform_operators_bigger_than_gpu) {
+		// 	transform_operator_bigger_than_gpu(nullptr, &this->root);
+		// }
 
 		if (this->root.kernel_unit != nullptr) {
 			return this->root.execute_plan();
