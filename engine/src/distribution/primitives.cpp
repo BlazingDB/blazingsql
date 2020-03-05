@@ -371,7 +371,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 }
 
 std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
-	std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices) {
+	const std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices) {
 	
 	std::unique_ptr<BlazingTable> concatGroups = ral::utilities::experimental::concatTables(tables);
 

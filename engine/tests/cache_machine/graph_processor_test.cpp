@@ -277,7 +277,7 @@ TEST_F(GraphProcessorTest, SortTest) {
 
 	SortKernel order_by("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
 	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext);
-	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", queryContext);
+	FilterKernel filter("LogicalFilter(condition=[<($0, 25)])", queryContext);
 	PrinterKernel print;
 	ral::cache::graph m;
 	try {
@@ -307,11 +307,11 @@ TEST_F(GraphProcessorTest, SortSamplePartitionTest) {
 
 	TableScanKernel customer_generator(customer_loader, customer_schema, queryContext);
 
-	SortAndSampleKernel sort_and_sample("LogicalSort(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
+	SortAndSampleKernel sort_and_sample("Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
 	PartitionKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
 	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
 	ProjectKernel project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext);
-	FilterKernel filter("LogicalFilter(condition=[<($0, 10)])", queryContext);
+	FilterKernel filter("LogicalFilter(condition=[<($0, 25)])", queryContext);
 	PrinterKernel print;
 	ral::cache::graph m;
 	try {
@@ -322,6 +322,45 @@ TEST_F(GraphProcessorTest, SortSamplePartitionTest) {
 		m += project >> sort_and_sample;
 		m += sort_and_sample["output_a"] >> partition["input_a"];
 		m += sort_and_sample["output_b"] >> partition["input_b"];
+		m += link(partition, merge, cache_machine_config);
+		m += link(merge, print, cache_settings{.type = CacheType::CONCATENATING});
+		m.execute();
+	} catch(std::exception & ex) {
+		std::cout << ex.what() << "\n";
+	}
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
+TEST_F(GraphProcessorTest, GroupSamplePartitionTest) {
+	std::vector<Node> contextNodes;
+	auto address = Address::TCP("127.0.0.1", 8089, 0);
+	contextNodes.push_back(Node(address));
+	uint32_t ctxToken = 123;
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");
+
+	auto customer_input = this->CreateCustomerTableProvider();
+
+	ral::io::data_loader customer_loader(customer_input.first, customer_input.second);
+	ral::io::Schema customer_schema;
+	customer_loader.get_schema(customer_schema, {});
+
+	TableScanKernel customer_generator(customer_loader, customer_schema, queryContext);
+
+	AggregateAndSampleKernel aggregate_and_sample("Logical_AggregateAndSample(group=[{}], EXPR$0=[SUM($1)])", queryContext);
+	AggregatePartitionKernel partition("LogicalAggregatePartition(group=[{}], EXPR$0=[SUM($1)])", queryContext);
+	AggregateMergeStreamKernel merge("LogicalAggregateMerge(group=[{}], EXPR$0=[SUM($1)])", queryContext);
+	ProjectKernel project("LogicalProject(c_nationkey=[$3], c_custkey=[$0])", queryContext);
+	FilterKernel filter("LogicalFilter(condition=[<($0, 30)])", queryContext);
+	PrinterKernel print;
+	ral::cache::graph m;
+	try {
+		auto cache_machine_config =
+			cache_settings{.type = CacheType::FOR_EACH, .num_partitions = queryContext->getTotalNodes()};
+		m += customer_generator >> filter;
+		m += filter >> project;
+		m += project >> aggregate_and_sample;
+		m += aggregate_and_sample["output_a"] >> partition["input_a"];
+		m += aggregate_and_sample["output_b"] >> partition["input_b"];
 		m += link(partition, merge, cache_machine_config);
 		m += link(merge, print, cache_settings{.type = CacheType::CONCATENATING});
 		m.execute();
