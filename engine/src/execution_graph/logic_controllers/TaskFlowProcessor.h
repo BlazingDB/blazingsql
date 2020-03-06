@@ -34,6 +34,7 @@
 
 #include "distribution/primitives.h"
 #include "config/GPUManager.cuh"
+#include "CacheMachine.h"
 
 namespace ral {
 namespace cache {
@@ -1173,12 +1174,12 @@ struct expr_tree_processor {
 					std::thread t1([this, &input_a]() mutable{
 						input_a = this->children[0]->execute_plan();
 					}); 
+					t1.join();
 
 					frame_type input_b;
 					std::thread t2([this, &input_b]() mutable{
 						input_b = this->children[1]->execute_plan(); 
 					});
-					t1.join();
 					t2.join();
 					
 					std::shared_ptr<ral::cache::CacheMachine> source_cache_a = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
@@ -1281,7 +1282,9 @@ struct expr_tree_processor {
 			k->set_type_id(kernel_type::AggregateAndSampleKernel);
 		} else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			k = std::make_shared<TableScanKernel>(this->input_loaders[table_index], this->schemas[table_index], kernel_context);
+			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
+			auto schema = this->schemas[table_index];
+			k = std::make_shared<TableScanKernel>(*loader, schema, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::TableScanKernel);
 		} else if (is_bindable_scan(expr)) {

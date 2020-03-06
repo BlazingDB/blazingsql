@@ -118,6 +118,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/CalciteInterpreter.cpp
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
