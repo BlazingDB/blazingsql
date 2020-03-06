@@ -1,4 +1,5 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include "execution_graph/logic_controllers/CacheMachine.h"
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/random_generator.cuh"

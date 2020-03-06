@@ -1,5 +1,6 @@
 
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include "execution_graph/logic_controllers/CacheMachine.h"
 #include <cudf/cudf.h>
 #include <cudf/io/functions.hpp>
 #include <cudf/types.hpp>
