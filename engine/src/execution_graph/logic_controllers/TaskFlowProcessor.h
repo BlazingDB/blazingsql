@@ -9,6 +9,8 @@
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
+#include <blazingdb/io/Library/Logging/Logger.h>
+
 #include <src/operators/OrderBy.h>
 #include <src/operators/GroupBy.h>
 #include <src/utilities/DebuggingUtils.h>
@@ -16,6 +18,7 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include <Util/StringUtil.h>
+#include "CodeTimer.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -546,6 +549,9 @@ public:
 		}
 		virtual kstatus run() {
 			try {
+				CodeTimer blazing_timer;
+				blazing_timer.reset();   
+
 				frame_type left_frame_result = std::move(this->input_["input_a"]->pullFromCache());
 				frame_type right_frame_result = std::move(this->input_["input_b"]->pullFromCache());
 				int numLeft = left_frame_result->num_rows();
@@ -557,13 +563,13 @@ public:
 
 				std::unique_ptr<ral::frame::BlazingTable> result_frame = ral::processor::process_logical_join(context.get(), left_frame_result->toBlazingTableView(), right_frame_result->toBlazingTableView(), new_join_statement);
 				std::string extraInfo = "left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
-//				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query process_join", "num rows result", result_frame->num_rows(), extraInfo));
-//				blazing_timer.reset();
+				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*context, "evaluate_split_query process_join", "num rows result", result_frame->num_rows(), extraInfo));
+				blazing_timer.reset();
 				context->incrementQueryStep();
 				if (filter_statement != ""){
 					result_frame = ral::processor::process_filter(result_frame->toBlazingTableView(), filter_statement, context.get());
-//					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame->num_rows()));
-//					blazing_timer.reset();
+					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*context, "evaluate_split_query inequality join process_filter", "num rows", result_frame->num_rows()));
+					blazing_timer.reset();
 					context->incrementQueryStep();
 				}
 				this->output_.get_cache()->addToCache(std::move(result_frame));
@@ -587,6 +593,9 @@ class UnionKernel : public kernel {
  	}
  	virtual kstatus run() {
  		try {
+			CodeTimer blazing_timer;
+			blazing_timer.reset();
+
  			frame_type input_a = std::move(this->input_["input_a"]->pullFromCache());
  			frame_type input_b = std::move(this->input_["input_b"]->pullFromCache());
 
@@ -614,6 +623,10 @@ class UnionKernel : public kernel {
 				std::vector<ral::frame::BlazingTableView> tables{left, right};
 				output = ral::utilities::experimental::concatTables(tables);
  			}
+			std::string extraInfo =	"left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
+			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*context,
+					"evaluate_split_query process_union", "num rows result", output->num_rows(), extraInfo));
+			blazing_timer.reset();
  			context->incrementQueryStep();
  			this->output_.get_cache()->addToCache(std::move(output));
  			return kstatus::proceed;
@@ -1100,7 +1113,13 @@ public:
 	{}
 
 	virtual kstatus run() {
+		CodeTimer blazing_timer;
+		blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 		auto table = loader.load_data(context.get(), {}, schema);
+		context->incrementQueryStep();
+		int num_rows = table->num_rows();
+		Library::Logging::Logger().logInfo(blazing_timer.logDuration(*context, "evaluate_split_query load_data", "num rows", num_rows));
+		blazing_timer.reset();
 		this->output_.get_cache()->addToCache(std::move(table));
 		return (kstatus::proceed);
 	}
@@ -1201,10 +1220,10 @@ struct expr_tree_processor {
 		// for(int i = 0; i < level*2 ; ++i) {
 		// 	std::cout << " ";
 		// }
+		// std::cout << expr << std::endl;
 		root_ptr->expr = expr;
 		root_ptr->level = level;
 		root_ptr->kernel_unit = make_kernel(expr);
-		// std::cout << expr << std::endl;
 		for (auto &child : p_tree.get_child("children")) {
 			auto child_node_ptr = std::make_shared<expr_tree_processor::node>();
 			root_ptr->children.push_back(child_node_ptr);
@@ -1385,7 +1404,6 @@ struct expr_tree_processor {
 		{
 			tree_show(c.get());
 		}
-		
 		std::cout<< ">>>>> type kernel - id : "<< (int)(node_ptr->kernel_unit->get_type_id()) << " - "<<(int)(node_ptr->kernel_unit->get_id()) <<std::endl;
 	}
 
@@ -1400,14 +1418,9 @@ struct expr_tree_processor {
 			std::cerr << e.what() <<  std::endl;
 		}
 
-		std::cout<< ">>>>>> BEFORE TRANS"<<std::endl;
-		tree_show(&this->root);
-
 		if (transform_operators_bigger_than_gpu) {
 			transform_operator_bigger_than_gpu(nullptr, &this->root);
 		}
-		std::cout<< ">>>>>> AFTER TRANS"<<std::endl;
-		tree_show(&this->root);
 
 		ral::cache::graph graph;
 		if (this->root.kernel_unit != nullptr) {
