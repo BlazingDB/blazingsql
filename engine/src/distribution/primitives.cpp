@@ -495,9 +495,9 @@ void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::Blaz
 	int64_t bytes_left = ral::utilities::experimental::get_table_size_bytes(left);
 	int64_t bytes_right = ral::utilities::experimental::get_table_size_bytes(right);
 
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	const std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	cudf::test::fixed_width_column_wrapper<int64_t>num_bytes_col{bytes_left, bytes_right};
@@ -518,9 +518,9 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 	node_num_bytes_right.resize(num_nodes);
 	std::vector<bool> received(num_nodes, false);
 
-	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	const std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
