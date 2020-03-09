@@ -489,6 +489,64 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 	}
 }
 
+void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::BlazingTableView & left,
+    		const ral::frame::BlazingTableView & right) {
+
+	int64_t bytes_left = ral::utilities::experimental::get_table_size_bytes(left);
+	int64_t bytes_right = ral::utilities::experimental::get_table_size_bytes(right);
+
+	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	cudf::test::fixed_width_column_wrapper<int64_t>num_bytes_col{bytes_left, bytes_right};
+	CudfTableView num_bytes_table{{num_bytes_col}};
+	std::vector<std::string> names{"left_num_bytes", "right_num_bytes"};
+	BlazingTableView num_bytes_blz_table(num_bytes_table, names);
+	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_bytes_blz_table);
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+}
+
+void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,
+			std::vector<int64_t> & node_num_bytes_right) {
+	
+	int num_nodes = context->getTotalNodes();
+	node_num_bytes_left.resize(num_nodes);
+	node_num_bytes_right.resize(num_nodes);
+	std::vector<bool> received(num_nodes, false);
+
+	const uint32_t context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
+		auto message = Server::getInstance().getMessage(context_token, message_id);
+		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto node = concrete_message->getSenderNode();
+		std::unique_ptr<BlazingTable> num_bytes_data = concrete_message->releaseBlazingTable();
+		assert(num_bytes_data->view().num_columns() == 1);
+		assert(num_bytes_data->view().num_rows() == 2);
+		
+		std::pair<std::vector<int64_t>, std::vector<cudf::bitmask_type>> num_bytes_host = cudf::test::to_host<int64_t>(num_bytes_data->view().column(0));
+		
+		int node_idx = context->getNodeIndex(node);
+		assert(node_idx >= 0);
+		if(received[node_idx]) {
+			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+				std::to_string(context->getQueryStep()),
+				std::to_string(context->getQuerySubstep()),
+				"ERROR: Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx)));
+		}
+		node_num_bytes_left[node_idx] = num_bytes_host.first[0];
+		node_num_bytes_right[node_idx] = num_bytes_host.first[1];
+		received[node_idx] = true;
+	}
+}
+
 }  // namespace experimental
 }  // namespace distribution
 }  // namespace ral

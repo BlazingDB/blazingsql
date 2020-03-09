@@ -10,6 +10,7 @@
 #include "LogicalFilter.h"
 #include "LogicalProject.h"
 #include "../../CalciteExpressionParsing.h"
+#include <blazingdb/io/Library/Logging/Logger.h>
 
 #include "blazingdb/transport/Node.h"
 
@@ -17,6 +18,7 @@
 #include "communication/CommunicationData.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/DebuggingUtils.h"
+#include "utilities/StringUtils.h"
 #include "Utils.cuh"
 
 #include "../../Interpreter/interpreter_cpp.h"
@@ -172,7 +174,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   }
 
 
-    std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> > process_hash_based_distribution(
+  std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> > process_hash_based_distribution(
   	const ral::frame::BlazingTableView & left,
     const ral::frame::BlazingTableView & right,
     const std::string & query,
@@ -206,10 +208,24 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     if(context->getTotalNodes() <= 1) { // if single node
         return processJoin(table_left, table_right, expression);
     } else {
-        std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> > distributed_tables = process_hash_based_distribution(
-            table_left, table_right, expression, context);
+        std::string join_type = get_named_expression(expression, "joinType");
+        if(join_type == INNER_JOIN) { // TODO WSM: We can actually scatter the right table for a left outer join as well
+          std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> > distributed_tables = process_optimal_inner_join_distribution(
+              table_left, table_right, expression, context);
 
-        return processJoin(distributed_tables.first->toBlazingTableView(), distributed_tables.second->toBlazingTableView(), expression);
+          return processJoin(distributed_tables.first->toBlazingTableView(), distributed_tables.second->toBlazingTableView(), expression);
+
+        } else {
+          std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> > distributed_tables = process_hash_based_distribution(
+              table_left, table_right, expression, context);
+          
+          Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+            std::to_string(context->getQueryStep()),
+            std::to_string(context->getQuerySubstep()),
+            "join process_distribution hash based distribution"));
+
+          return processJoin(distributed_tables.first->toBlazingTableView(), distributed_tables.second->toBlazingTableView(), expression);
+        }
     }
   }
 
@@ -222,7 +238,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::Blazing
 
 
 // This function can either do a small table scatter distribution or regular hash based. 
-  std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> >  process_distribution(
+  std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> >  process_optimal_inner_join_distribution(
     const ral::frame::BlazingTableView & left,
     const ral::frame::BlazingTableView & right,
     const std::string & query,
@@ -230,128 +246,116 @@ std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::Blazing
 
   	// First lets find out if we are joining against a small table. If so, we will want to replicate that small table
   	
-  // 	int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
+  	int self_node_idx = context->getNodeIndex(ral::communication::experimental::CommunicationData::getInstance().getSelfNode());
 
-  // 	context->incrementQuerySubstep();
-  // 	cudf::size_type local_num_rows_left = left.view().num_rows();
-  // 	cudf::size_type local_num_rows_right = right.view().num_rows();
-  // 	ral::distribution::distributeLeftRightNumRows(context, local_num_rows_left, local_num_rows_right);
-  // 	std::vector<cudf::size_type> nodes_num_rows_left;
-  // 	std::vector<cudf::size_type> nodes_num_rows_right;
-  // 	ral::distribution::collectLeftRightNumRows(context, nodes_num_rows_left, nodes_num_rows_right);
-  // 	nodes_num_rows_left[self_node_idx] = local_num_rows_left;
-  // 	nodes_num_rows_right[self_node_idx] = local_num_rows_right;
+  	context->incrementQuerySubstep();
+  	ral::distribution::experimental::distributeLeftRightTableSizeBytes(context, left, right);
+  	std::vector<int64_t> nodes_num_bytes_left;
+  	std::vector<int64_t> nodes_num_bytes_right;
+  	ral::distribution::experimental::collectLeftRightTableSizeBytes(context, nodes_num_bytes_left, nodes_num_bytes_right);
+  	nodes_num_bytes_left[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(left);
+  	nodes_num_bytes_right[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(right);
 
-  // 	cudf::size_type total_rows_left = std::accumulate(nodes_num_rows_left.begin(), nodes_num_rows_left.end(), 0);
-  // 	cudf::size_type total_rows_right = std::accumulate(nodes_num_rows_right.begin(), nodes_num_rows_right.end(), 0);
+    int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), int64_t(0));
+  	int64_t total_bytes_right = std::accumulate(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), int64_t(0));
 
-  // 	size_t row_width_bytes_left = 0;
-  // 	size_t row_width_bytes_right = 0;
-  // 	for(auto & column : tables[0]) {
-  // 		// TODO percy cudf0.12 port to cudf::column custring
-  // //		if(column.dtype() == GDF_STRING_CATEGORY)
-  // //			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
-  // //									5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact that
-  // //										// strings can occupy a lot more. We needa better way to easily figure out how
-  // //										// mmuch space a string column actually occupies
-  // //		else
-  // //			row_width_bytes_left += ral::traits::get_dtype_size_in_bytes(column.dtype());
-  // 	}
-  // 	for(auto & column : tables[1]) {
-  // 		// TODO percy cudf0.12 port to cudf::column custring
-  // //		if(column.dtype() == GDF_STRING_CATEGORY)
-  // //			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype()) *
-  // //									 5;  // WSM TODO. Here i am adding a fudge factor trying to account for the fact
-  // //										 // that strings can occupy a lot more. We needa better way to easily figure out
-  // //										 // how mmuch space a string column actually occupies
-  // //		else
-  // //			row_width_bytes_right += ral::traits::get_dtype_size_in_bytes(column.dtype());
-  // 	}
-  // 	int num_nodes = context->getTotalNodes();
+   	int num_nodes = context->getTotalNodes();
 
-  // 	bool scatter_left = false;
-  // 	bool scatter_right = false;
-  // 	size_t estimate_regular_distribution =
-  // 		(total_rows_left * row_width_bytes_left + total_rows_right * row_width_bytes_right) * (num_nodes - 1) /
-  // 		num_nodes;
-  // 	size_t estimate_scatter_left = (total_rows_left * row_width_bytes_left) * (num_nodes - 1);
-  // 	size_t estimate_scatter_right = (total_rows_right * row_width_bytes_right) * (num_nodes - 1);
-  // 	size_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
-  // 												  // WSM TODO get this value from config
-  // 	if(estimate_scatter_left < estimate_regular_distribution ||
-  // 		estimate_scatter_right < estimate_regular_distribution) {
-  // 		if(estimate_scatter_left < estimate_scatter_right &&
-  // 			total_rows_left * row_width_bytes_left < MAX_SCATTER_MEM_OVERHEAD) {
-  // 			scatter_left = true;
-  // 		} else if(estimate_scatter_right < estimate_scatter_left &&
-  // 				  total_rows_right * row_width_bytes_right < MAX_SCATTER_MEM_OVERHEAD) {
-  // 			scatter_right = true;
-  // 		}
-  // 	}
+  	bool scatter_left = false;
+  	bool scatter_right = false;
+  	int64_t estimate_regular_distribution = (total_bytes_left + total_bytes_right) * (num_nodes - 1) / num_nodes;
+  	int64_t estimate_scatter_left = (total_bytes_left) * (num_nodes - 1);
+  	int64_t estimate_scatter_right = (total_bytes_right) * (num_nodes - 1);
+  	int64_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
+  												  // WSM TODO get this value from config
 
-  // 	if(scatter_left || scatter_right) {
-  // 		context->incrementQuerySubstep();
-  // 		int num_to_collect = 0;
-  // 		std::vector<gdf_column_cpp> data_to_scatter;
-  // 		if(scatter_left) {
-  // 			Library::Logging::Logger().logTrace(
-  // 				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
-  // 					std::to_string(context->getQueryStep()),
-  // 					std::to_string(context->getQuerySubstep()),
-  // 					"join process_distribution scatter_left"));
-  // 			data_to_scatter = frame.get_table(0);
-  // 			if(local_num_rows_left > 0) {
-  // 				ral::distribution::scatterData(*context, data_to_scatter);
-  // 			}
-  // 			for(size_t i = 0; i < nodes_num_rows_left.size(); i++) {
-  // 				if(i != self_node_idx && nodes_num_rows_left[i] > 0) {
-  // 					num_to_collect++;
-  // 				}
-  // 			}
-  // 		} else {
-  // 			Library::Logging::Logger().logTrace(
-  // 				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
-  // 					std::to_string(context->getQueryStep()),
-  // 					std::to_string(context->getQuerySubstep()),
-  // 					"join process_distribution scatter_right"));
-  // 			data_to_scatter = frame.get_table(1);
-  // 			if(local_num_rows_right > 0) {  // this node has data on the right to scatter
-  // 				ral::distribution::experimental::scatterData(context, data_to_scatter);
-  // 			}
-  // 			for(size_t i = 0; i < nodes_num_rows_right.size(); i++) {
-  // 				if(i != self_node_idx && nodes_num_rows_right[i] > 0) {
-  // 					num_to_collect++;
-  // 				}
-  // 			}
-  // 		}
+   	if(estimate_scatter_left < estimate_regular_distribution ||
+  		estimate_scatter_right < estimate_regular_distribution) {
+  		if(estimate_scatter_left < estimate_scatter_right &&
+  			total_bytes_left < MAX_SCATTER_MEM_OVERHEAD) {
+  			scatter_left = true;
+  		} else if(estimate_scatter_right < estimate_scatter_left &&
+  				  total_bytes_right < MAX_SCATTER_MEM_OVERHEAD) {
+  			scatter_right = true;
+  		}
+  	}
 
-  // 		blazing_frame join_frame;
-  // 		std::vector<gdf_column_cpp> cluster_shared_table;
-  // 		if(num_to_collect > 0) {
-  // 			std::vector<NodeColumns> collected_partitions =
-  // 				ral::distribution::collectSomePartitions(*context, num_to_collect);
-  // 			cluster_shared_table = concat_columns(data_to_scatter, collected_partitions);
-  // 		} else {
-  // 			cluster_shared_table = data_to_scatter;
-  // 		}
+  	if(scatter_left || scatter_right) {
+  		context->incrementQuerySubstep();
+  		int num_to_collect = 0;
+  		if(scatter_left) {
+  			Library::Logging::Logger().logTrace(
+  				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  					std::to_string(context->getQueryStep()),
+  					std::to_string(context->getQuerySubstep()),
+  					"join process_distribution scatter_left bytes: " + std::to_string(total_bytes_left)));
+  			if(left.num_rows() > 0) {
+  				ral::distribution::experimental::scatterData(context, left);
+  			}
+  			for(size_t i = 0; i < nodes_num_bytes_left.size(); i++) {
+  				if(i != self_node_idx && nodes_num_bytes_left[i] > 0) {
+  					num_to_collect++;
+  				}
+  			}
+  		} else {
+  			Library::Logging::Logger().logTrace(
+  				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  					std::to_string(context->getQueryStep()),
+  					std::to_string(context->getQuerySubstep()),
+  					"join process_distribution scatter_right bytes: " + std::to_string(total_bytes_right)));
+  			if(right.num_rows() > 0) {  // this node has data on the right to scatter
+  				ral::distribution::experimental::scatterData(context, right);
+  			}
+  			for(size_t i = 0; i < nodes_num_bytes_right.size(); i++) {
+  				if(i != self_node_idx && nodes_num_bytes_right[i] > 0) {
+  					num_to_collect++;
+  				}
+  			}
+  		}
 
-  // 		if(scatter_left) {
-  // 			join_frame.add_table(cluster_shared_table);
-  // 			join_frame.add_table(tables[1]);
-  // 		} else {
-  // 			join_frame.add_table(tables[0]);
-  // 			join_frame.add_table(cluster_shared_table);
-  // 		}
-  // 		return join_frame;
+      std::unique_ptr<ral::frame::BlazingTable> cluster_shared_table;
+      if(num_to_collect > 0) {
+  			std::vector<NodeColumn> collected_partitions =
+  				  ral::distribution::experimental::collectSomePartitions(context, num_to_collect);
+        std::vector<ral::frame::BlazingTableView> partitions_to_concat;
+        for (int i = 0; i < collected_partitions.size(); i++){
+          partitions_to_concat.emplace_back(collected_partitions[i].second->toBlazingTableView());
+        }
+        if (scatter_left && left.num_rows() > 0){
+          partitions_to_concat.push_back(left);
+        } else if (scatter_right && right.num_rows() > 0){
+          partitions_to_concat.push_back(right);
+        }
+        cluster_shared_table = ral::utilities::experimental::concatTables(partitions_to_concat);
+      } else {
+        if (scatter_left && left.num_rows() > 0){
+          cluster_shared_table = std::make_unique<ral::frame::BlazingTable>(left.view(), left.names());
+        } else if (scatter_right && right.num_rows() > 0){
+          cluster_shared_table = std::make_unique<ral::frame::BlazingTable>(right.view(), right.names());
+        }  			
+  		}
 
-  // 	} else {
-  // 		Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context->getContextToken()),
-  // 			std::to_string(context->getQueryStep()),
-  // 			std::to_string(context->getQuerySubstep()),
-  // 			"join process_distribution hash based distribution"));
-  // 		return process_hash_based_distribution(frame, query);
-  // 	}
-  //   return process_hash_based_distribution(left, right, query, context);
+      Library::Logging::Logger().logTrace(
+  				ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  					std::to_string(context->getQueryStep()),
+  					std::to_string(context->getQuerySubstep()),
+  					"join process_distribution scatter complete"));
+
+  		if(scatter_left) {
+        std::unique_ptr<ral::frame::BlazingTable> right_table = std::make_unique<ral::frame::BlazingTable>(right.view(), right.names());
+  			return std::make_pair(std::move(cluster_shared_table), std::move(right_table));
+  		} else {
+  			std::unique_ptr<ral::frame::BlazingTable> left_table = std::make_unique<ral::frame::BlazingTable>(left.view(), left.names());
+  			return std::make_pair(std::move(left_table), std::move(cluster_shared_table));
+  		}  		
+
+  	} else {
+  		Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context->getContextToken()),
+  			std::to_string(context->getQueryStep()),
+  			std::to_string(context->getQuerySubstep()),
+  			"join process_distribution hash based distribution"));
+  		return process_hash_based_distribution(left, right, query, context);
+  	}
   }
 
 std::unique_ptr<ral::frame::BlazingTable> processJoin(

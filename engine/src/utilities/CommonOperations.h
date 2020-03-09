@@ -24,6 +24,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std
 
 std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& str, cudf::size_type rows);
 
+int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table);
+
 }  // namespace experimental
 }  // namespace utilities
 }  // namespace ral

@@ -37,7 +37,7 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
   const ral::frame::BlazingTableView & table_right,
   const std::string & expression);
 
-std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> >  process_distribution(
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable> >  process_optimal_inner_join_distribution(
     const ral::frame::BlazingTableView & left,
     const ral::frame::BlazingTableView & right,
     const std::string & query,
