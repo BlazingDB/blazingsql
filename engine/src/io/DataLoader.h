@@ -42,8 +42,9 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable>  load_data(
 		Context * context,
 		const std::vector<size_t> & column_indices,
-		const Schema & schema);
-		
+		const Schema & schema,
+	  std::string filterQuery);
+
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
 
 	std::unique_ptr<ral::frame::BlazingTable> get_metadata(int offset);
