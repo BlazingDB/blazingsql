@@ -256,7 +256,7 @@ def parseHiveMetadata(curr_table, partitions):
             if(dtypes[index] == np.dtype("object")):
                 np_col_value = col_value_id
             elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
-                np_col_value = np.datetime64(col_value_id)f
+                np_col_value = np.datetime64(col_value_id)
             else:
                 np_col_value = np.fromstring(col_value_id, dtypes[index], sep=' ')[0]
             
