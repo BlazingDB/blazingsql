@@ -124,6 +124,8 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TableScan.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingThread.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingExceptionHolder.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TaskFlowProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/utils.cpp

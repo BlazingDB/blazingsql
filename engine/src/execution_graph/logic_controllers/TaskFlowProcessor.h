@@ -35,6 +35,7 @@
 #include "distribution/primitives.h"
 #include "config/GPUManager.cuh"
 #include "CacheMachine.h"
+#include "BlazingThread.h"
 
 namespace ral {
 namespace cache {
@@ -263,7 +264,6 @@ static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machi
 	}
 	return machines;
 }
-
 class graph {
 protected:
 	struct Edge {
@@ -316,7 +316,7 @@ public:
 	void execute() {
 		check_and_complete_work_flow();
 
-		std::vector<std::thread> threads;
+		std::vector<BlazingThread> threads;
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_neighbours(head_id_)) {
@@ -336,7 +336,7 @@ public:
 				if(visited.find(edge_id) == visited.end()) {
 					visited.insert(edge_id);
 					Q.push_back(target_id);
-					std::thread t([this, source, target, edge] {
+					BlazingThread t([this, source, target, edge] {
 					  auto state = source->run();
 					  if (state == kstatus::proceed) {
 						  source->output_.finish();
@@ -593,47 +593,43 @@ class UnionKernel : public kernel {
  		this->expression = queryString;
  	}
  	virtual kstatus run() {
- 		try {
-			CodeTimer blazing_timer;
-			blazing_timer.reset();
+		CodeTimer blazing_timer;
+		blazing_timer.reset();
 
- 			frame_type input_a = std::move(this->input_["input_a"]->pullFromCache());
- 			frame_type input_b = std::move(this->input_["input_b"]->pullFromCache());
+		frame_type input_a = std::move(this->input_["input_a"]->pullFromCache());
+		frame_type input_b = std::move(this->input_["input_b"]->pullFromCache());
 
- 			int numLeft = input_a->num_rows();
- 			int numRight = input_b->num_rows();
+		int numLeft = input_a->num_rows();
+		int numRight = input_b->num_rows();
 
- 			frame_type output;
- 			if (numLeft == 0){
- 				output = std::move(input_b);
- 			} else if (numRight == 0) {
- 				output = std::move(input_a);
- 			} else {
-				auto left = input_a->toBlazingTableView();
-				auto right =  input_b->toBlazingTableView();
+		frame_type output;
+		if (numLeft == 0){
+			output = std::move(input_b);
+		} else if (numRight == 0) {
+			output = std::move(input_a);
+		} else {
+			auto left = input_a->toBlazingTableView();
+			auto right =  input_b->toBlazingTableView();
 
-				bool isUnionAll = (get_named_expression(this->expression, "all") == "true");
-				if(!isUnionAll) {
-					throw std::runtime_error{"In process_union function: UNION is not supported, use UNION ALL"};
-				}
-				// Check same number of columns
-				if(left.num_columns() != right.num_columns()) {
-					throw std::runtime_error{
-						"In process_union function: left frame and right frame have different number of columns"};
-				}
-				std::vector<ral::frame::BlazingTableView> tables{left, right};
-				output = ral::utilities::experimental::concatTables(tables);
- 			}
-			std::string extraInfo =	"left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
-			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*context,
-					"evaluate_split_query process_union", "num rows result", output->num_rows(), extraInfo));
-			blazing_timer.reset();
- 			context->incrementQueryStep();
- 			this->output_.get_cache()->addToCache(std::move(output));
- 			return kstatus::proceed;
- 		} catch (std::exception &e) {
- 			std::cerr << "Exception-UnionKernel: " << e.what() << std::endl;
- 		}
+			bool isUnionAll = (get_named_expression(this->expression, "all") == "true");
+			if(!isUnionAll) {
+				throw std::runtime_error{"In process_union function: UNION is not supported, use UNION ALL"};
+			}
+			// Check same number of columns
+			if(left.num_columns() != right.num_columns()) {
+				throw std::runtime_error{
+					"In process_union function: left frame and right frame have different number of columns"};
+			}
+			std::vector<ral::frame::BlazingTableView> tables{left, right};
+			output = ral::utilities::experimental::concatTables(tables);
+		}
+		std::string extraInfo =	"left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
+		Library::Logging::Logger().logInfo(blazing_timer.logDuration(*context,
+				"evaluate_split_query process_union", "num rows result", output->num_rows(), extraInfo));
+		blazing_timer.reset();
+		context->incrementQueryStep();
+		this->output_.get_cache()->addToCache(std::move(output));
+		return kstatus::proceed; 
  		return kstatus::stop;
  	}
 
@@ -1171,12 +1167,12 @@ struct expr_tree_processor {
 			} else {
 				if(children.size() == 2) {				
 					frame_type input_a;
-					std::thread t1([this, &input_a]() mutable{
+					BlazingThread t1([this, &input_a]() mutable{
 						input_a = this->children[0]->execute_plan();
 					}); 
 
 					frame_type input_b;
-					std::thread t2([this, &input_b]() mutable{
+					BlazingThread t2([this, &input_b]() mutable{
 						input_b = this->children[1]->execute_plan(); 
 					});
 					t1.join();
