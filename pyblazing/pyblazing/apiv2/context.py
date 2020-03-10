@@ -94,7 +94,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    if (allocator is not 'existing'): 
+    if (allocator != 'existing'): 
         cudf.set_allocator(allocator=allocator,
                             pool=pool,
                             initial_pool_size=initial_pool_size,# Default is 1/2 total GPU memory
@@ -256,7 +256,7 @@ def parseHiveMetadata(curr_table, partitions):
             if(dtypes[index] == np.dtype("object")):
                 np_col_value = col_value_id
             elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
-                np_col_value = np.datetime64(col_value_id)
+                np_col_value = np.datetime64(col_value_id)f
             else:
                 np_col_value = np.fromstring(col_value_id, dtypes[index], sep=' ')[0]
             
