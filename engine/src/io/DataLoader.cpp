@@ -188,8 +188,13 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	} else {  // we have more than one file so we need to concatenate
 
 		std::vector<ral::frame::BlazingTableView> table_views;
-		for (int i = 0; i < blazingTable_per_file.size(); i++)
-			table_views.push_back(std::move(blazingTable_per_file[i]->toBlazingTableView()));
+		for (int i = 0; i < blazingTable_per_file.size(); i++){
+			if(blazingTable_per_file[i]->num_rows() > 0){
+				table_views.push_back(std::move(blazingTable_per_file[i]->toBlazingTableView()));	
+			}
+
+		}
+
 
 		return ral::utilities::experimental::concatTables(table_views);
 	}
