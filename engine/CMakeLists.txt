@@ -13,9 +13,11 @@ message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 ###################################################################################################
 # - conda environment -----------------------------------------------------------------------------
 
+set(BSQL_BLD_PREFIX "")
 if ("$ENV{CONDA_BUILD}" STREQUAL "1")
     set(CMAKE_SYSTEM_PREFIX_PATH "$ENV{BUILD_PREFIX};$ENV{PREFIX};${CMAKE_SYSTEM_PREFIX_PATH}")
     message(STATUS "Conda build detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
+    set(BSQL_BLD_PREFIX "$ENV{BUILD_PREFIX}")
 
     set(AWS_SDK_CPP_INSTALL_DIR $ENV{BUILD_PREFIX})
     set(GOOGLE_CLOUD_CPP_INSTALL_DIR $ENV{BUILD_PREFIX})
@@ -26,6 +28,7 @@ if ("$ENV{CONDA_BUILD}" STREQUAL "1")
 elseif (DEFINED ENV{CONDA_PREFIX})
     set(CMAKE_SYSTEM_PREFIX_PATH "$ENV{CONDA_PREFIX};${CMAKE_SYSTEM_PREFIX_PATH}")
     message(STATUS "Conda environment detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
+    set(BSQL_BLD_PREFIX "$ENV{CONDA_PREFIX}")
 
     set(AWS_SDK_CPP_INSTALL_DIR $ENV{CONDA_PREFIX})
     set(GOOGLE_CLOUD_CPP_INSTALL_DIR $ENV{CONDA_PREFIX})
@@ -34,6 +37,7 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     set(ENV{LD_LIBRARY_PATH} $ENV{CONDA_PREFIX}/lib/) # to link the tests correctly against libcurl.so
 
 endif ()
+message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 
 #########################################################################3
 # - compiler stuff ------------------
@@ -74,16 +78,11 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/thirdparty/jitify
     ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
     ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
-    $ENV{CONDA_PREFIX}/include
-    $ENV{CONDA_PREFIX}/include/cudf
-    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/cub
-    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
-    $ENV{CONDA_PREFIX}/include/blazingdb/io
-    $ENV{PREFIX}/include
-    $ENV{PREFIX}/include/cudf
-    $ENV{PREFIX}/include/bsql-rapids-thirdparty/cub
-    $ENV{PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
-    $ENV{PREFIX}/include/blazingdb/io
+    ${BSQL_BLD_PREFIX}/include
+    ${BSQL_BLD_PREFIX}/include/cudf
+    ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/cub
+    ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${BSQL_BLD_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
     )
 
@@ -139,7 +138,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${communication_source_files}
 )
 
-link_directories($ENV{CONDA_PREFIX}/lib)
+link_directories(${BSQL_BLD_PREFIX}/lib)
 
 add_library(blazingsql-engine SHARED ${SRC_FILES})
 
