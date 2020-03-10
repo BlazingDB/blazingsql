@@ -16,7 +16,6 @@
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
-#include "blazingdb/manager/Context.h"
 
 typedef cudf::experimental::table CudfTable;
 typedef cudf::table_view CudfTableView;
