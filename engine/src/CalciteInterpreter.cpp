@@ -408,14 +408,10 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 
 		auto graph = tree.build_graph(logicalPlan);
 		if (graph.num_nodes() > 0) {
-			try {
-				graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
-				// graph.show();
-				graph.execute();
-				output_frame = output.release();
-			} catch(std::exception & ex) {
-				std::cout << ex.what() << "\n";
-			}
+			graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			// graph.show();
+			graph.execute();
+			output_frame = output.release();
 		}
 		// output_frame = tree.execute_plan(logicalPlan);
 		double duration = blazing_timer.getDuration();
@@ -423,7 +419,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 		assert(output_frame != nullptr);
 		return output_frame;
 	} catch(const std::exception& e) {
-		std::string err = "ERROR: in evaluate_split_query " + std::string(e.what());
+		std::string err = "ERROR: in execute_plan " + std::string(e.what());
 		Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
 		throw;
 	}

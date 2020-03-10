@@ -349,7 +349,6 @@ public:
 			}
 		}
 		for(auto & thread : threads) {
-//			std::cout << "thread_id: " << thread.get_id() << std::endl;
 			thread.join();
 		}
 	}
