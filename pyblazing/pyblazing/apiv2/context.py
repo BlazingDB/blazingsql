@@ -94,7 +94,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    if (allocator is not 'existing'): 
+    if (allocator != 'existing'): 
         cudf.set_allocator(allocator=allocator,
                             pool=pool,
                             initial_pool_size=initial_pool_size,# Default is 1/2 total GPU memory
