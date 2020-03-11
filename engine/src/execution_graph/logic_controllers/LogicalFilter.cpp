@@ -328,9 +328,9 @@ std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::Blazing
         }
         cluster_shared_table = ral::utilities::experimental::concatTables(partitions_to_concat);
       } else {
-        if (scatter_left && left.num_rows() > 0){
+        if (scatter_left && left.num_rows() >= 0){
           cluster_shared_table = std::make_unique<ral::frame::BlazingTable>(left.view(), left.names());
-        } else if (scatter_right && right.num_rows() > 0){
+        } else if (scatter_right && right.num_rows() >= 0){
           cluster_shared_table = std::make_unique<ral::frame::BlazingTable>(right.view(), right.names());
         }  			
   		}
