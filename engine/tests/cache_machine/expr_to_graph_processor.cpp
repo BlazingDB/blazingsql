@@ -218,7 +218,102 @@ TEST_F(ExprToGraphProcessor, FromJsonInputAggregation) {
 		std::cout << ex.what() << "\n";
 	}
 }
+
 /*
+TEST_F(ExprToGraphProcessor, TimerIssue) {
+	auto count = 20;
+    std::vector<std::thread> thread_pool;
+
+	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
+	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
+	in_args.dtype = { "int32", "str", "int32", "str"};
+	in_args.delimiter = '|';
+	in_args.header = -1;
+	cudf_io::read_parquet_args in_pargs{cudf_io::source_info{"/home/aocsa/tpch/100MB2Part/tpch/customer_0_0.parquet"}};
+
+	auto result = cudf_io::read_parquet(in_pargs);
+
+	CodeTimer loop_timer;
+    for (size_t i = 0; i < count; i++)
+    {
+        CodeTimer timer;
+		auto result = cudf_io::read_parquet(in_pargs);
+        std::cout << "id: " << i << std::endl;
+        timer.display();
+    }
+	std::cout << "****loop_timer*****" << std::endl;
+	loop_timer.display();
+
+	loop_timer.reset();
+    for (size_t i = 0; i < count; i++)
+    {
+        thread_pool.emplace_back(std::thread([i, in_args, in_pargs](){
+            CodeTimer timer;
+            std::cout << "id: " << i << std::endl;
+			auto result = cudf_io::read_parquet(in_pargs);
+            timer.display();
+        }));
+    }
+    for(auto &t : thread_pool) {
+        t.join();
+    }
+	std::cout << "****loop_timer*****" << std::endl;
+	loop_timer.display();
+}
+
+TEST_F(ExprToGraphProcessor, DeadLockIssue) {
+
+	std::string json = R"({
+		'expr': 'LogicalSort(sort0=[$1], dir0=[ASC])',
+		'children': [
+			{
+			'expr': 'BindableTableScan(table=[[main, customer]], projects=[[0, 3]], aliases=[[c_custkey, c_nationkey]])',
+			'children': []
+			}
+		]
+		})";
+
+	std::replace( json.begin(), json.end(), '\'', '\"');
+
+	std::vector<Node> contextNodes;
+	auto address = Address::TCP("127.0.0.1", 8089, 0);
+	contextNodes.push_back(Node(address));
+	uint32_t ctxToken = 123;
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
+
+	std::vector<Uri> uris;
+	uris.push_back(Uri{"/home/aocsa/tpch/100MB2Part/tpch/customer_0_0.parquet"}); 
+
+	ral::io::Schema tableSchema;
+	auto parser = std::make_shared<ral::io::parquet_parser>();
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	ral::io::data_loader loader(parser, provider);
+	loader.get_schema(tableSchema, {});
+ 
+ 	ral::io::Schema schema(tableSchema.get_names(),
+						  tableSchema.get_calcite_to_file_indices(),
+						  tableSchema.get_dtypes(),
+						  tableSchema.get_in_file(),
+						   { std::vector<int>{0}});
+
+	parser::expr_tree_processor tree{
+		.root = {},
+		.context = queryContext,
+		.input_loaders = {loader},
+		.schemas = {schema},
+		.table_names = {"customer"}
+	};
+	PrinterKernel print;
+
+	auto graph = tree.build_graph(json);
+	try {
+		graph += link(graph.get_last_kernel(), print, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+		graph.execute();
+	} catch(std::exception & ex) {
+		std::cout << ex.what() << "\n";
+	}
+}
+
 // TEST_02
 // select n1.n_nationkey as n1key, n2.n_nationkey as n2key, n1.n_nationkey + n2.n_nationkey
 // from nation as n1 full
