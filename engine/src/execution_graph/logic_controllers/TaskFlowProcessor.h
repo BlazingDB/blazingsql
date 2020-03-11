@@ -1169,12 +1169,12 @@ struct expr_tree_processor {
 					BlazingThread t1([this, &input_a]() mutable{
 						input_a = this->children[0]->execute_plan();
 					}); 
+					t1.join();
 
 					frame_type input_b;
 					BlazingThread t2([this, &input_b]() mutable{
 						input_b = this->children[1]->execute_plan(); 
 					});
-					t1.join();
 					t2.join();
 					
 					std::shared_ptr<ral::cache::CacheMachine> source_cache_a = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
