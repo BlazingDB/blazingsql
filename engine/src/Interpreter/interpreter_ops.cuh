@@ -170,6 +170,8 @@ public:
 			read_valid_data(column_index, valids_in_buffer, row_index);
 		}
 
+		// NOTE: Currently interops does not support plans with an input or output index greater than 63
+		// This is a limitation by using an uint64_t to store all the valids in the plan
 		uint64_t cur_row_valids;
 		for(cudf::size_type row = 0; row < 32 && row_index + row < size; row++) {
 			// load current row valids and data
