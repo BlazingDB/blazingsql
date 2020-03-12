@@ -125,6 +125,22 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 }
 
 
+NonWaitingCacheMachine::NonWaitingCacheMachine(unsigned long long gpuMemory,
+													 std::vector<unsigned long long> memoryPerCache,
+													 std::vector<CacheDataType> cachePolicyTypes_)
+	: CacheMachine(gpuMemory, memoryPerCache, cachePolicyTypes_)
+{
+}
+
+std::unique_ptr<ral::frame::BlazingTable> NonWaitingCacheMachine::pullFromCache() {
+	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop();
+	auto cache_data = message_data->releaseData();
+	auto cache_index = message_data->cacheIndex();
+	usedMemory[cache_index] -= cache_data->sizeInBytes();
+	return std::move(cache_data->decache());
+}
+
+
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(unsigned long long gpuMemory,
 													 std::vector<unsigned long long> memoryPerCache,
 													 std::vector<CacheDataType> cachePolicyTypes_)

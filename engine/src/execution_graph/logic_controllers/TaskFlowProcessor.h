@@ -158,7 +158,7 @@ public:
 
 
 enum class CacheType {
-	SIMPLE, CONCATENATING, FOR_EACH
+	NON_WAITING, SIMPLE, CONCATENATING, FOR_EACH
 };
 
 struct cache_settings {
@@ -248,8 +248,10 @@ static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cach
 	std::vector<unsigned long long> memoryPerCache = {INT_MAX};
 	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
 	std::shared_ptr<ral::cache::CacheMachine> machine;
-
-	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
+	if (config.type == CacheType::NON_WAITING) {
+		machine =  std::make_shared<ral::cache::NonWaitingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+	}
+	else if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
 		machine =  std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
 	} else if (config.type == CacheType::CONCATENATING) {
 		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
@@ -747,7 +749,7 @@ public:
 
 				auto partitioned_data = cudf::experimental::split(partitions[i]->view(), host_pivot_indexes);
 
-				std::cout<< ">>>>>> TOTAL PARTITIONS : " << partitioned_data.size() << std::endl;
+				// std::cout<< ">>>>>> TOTAL PARTITIONS : " << partitioned_data.size() << std::endl;
 				std::string cache_id = "output_" + std::to_string(i);
 				for (auto &&subpartition : partitioned_data) {
 					this->output_[cache_id]->addToCache(
@@ -905,12 +907,12 @@ public:
 			std::vector<cudf::null_order> null_orders(samples_view[0].num_columns(), cudf::null_order::AFTER);
 			auto sorted_samples = cudf::experimental::sort(concat_samples->view(), orders, null_orders);
 
-			std::cout<< "SORTED SAMPLES: " <<std::endl;
-			for (auto &&c : sorted_samples->view())
-			{
-				cudf::test::print(c);
-				std::cout << std::endl;
-			}	
+			// std::cout<< "SORTED SAMPLES: " <<std::endl;
+			// for (auto &&c : sorted_samples->view())
+			// {
+			// 	cudf::test::print(c);
+			// 	std::cout << std::endl;
+			// }	
 
 			cudf::size_type samples_rows = sorted_samples->view().num_rows();
 			cudf::size_type pivots_size = samples_rows > 0 ? 3 /* How many subpartitions? */ : 0;
@@ -920,12 +922,12 @@ public:
 			cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivots_size);
 			auto pivots = cudf::experimental::gather(sorted_samples->view(), gather_map_wrapper);
 			
-			std::cout<< "PIVOTS: " <<std::endl;
-			for (auto &&c : pivots->view())
-			{
-				cudf::test::print(c);
-				std::cout << std::endl;
-			}	
+			// std::cout<< "PIVOTS: " <<std::endl;
+			// for (auto &&c : pivots->view())
+			// {
+			// 	cudf::test::print(c);
+			// 	std::cout << std::endl;
+			// }	
 
 			for (auto i = 0; i < partitions.size(); i++) {
 				auto pivot_indexes = cudf::experimental::upper_bound(partitions[i]->view().select(group_column_indices),
@@ -933,16 +935,16 @@ public:
 																															orders,
 																															null_orders);
 		
-				std::cout<< "PIVOTS indices: " <<std::endl;
-				cudf::test::print(pivot_indexes->view());
-				std::cout << std::endl;
+				// std::cout<< "PIVOTS indices: " <<std::endl;
+				// cudf::test::print(pivot_indexes->view());
+				// std::cout << std::endl;
 				
 				auto host_pivot_col = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
 				auto host_pivot_indexes = host_pivot_col.first;
 
 				auto partitioned_data = cudf::experimental::split(partitions[i]->view(), host_pivot_indexes);
 
-				std::cout<< ">>>>>> TOTAL PARTITIONS : " << partitioned_data.size() << std::endl;
+				// std::cout<< ">>>>>> TOTAL PARTITIONS : " << partitioned_data.size() << std::endl;
 				std::string cache_id = "output_" + std::to_string(i);
 				for (auto &&subpartition : partitioned_data) {
 					this->output_[cache_id]->addToCache(
@@ -992,10 +994,10 @@ public:
 				if (partitions_to_merge.empty()) {
 					// noop
 				} else if(partitions_to_merge.size() == 1) {
-					std::cout << ">>>>> ONLY 1 PARTITION NOTHING TO MERGE : " << std::endl;
+					// std::cout << ">>>>> ONLY 1 PARTITION NOTHING TO MERGE : " << std::endl;
 					this->output_.get_cache()->addToCache(std::move(partitions_to_merge_holder.front()));
 				}	else {
-					std::cout << ">>>>> merge-parts: " << std::endl;
+					// std::cout << ">>>>> merge-parts: " << std::endl;
 					for (auto view : partitions_to_merge)
 						ral::utilities::print_blazing_table_view(view);
 
@@ -1158,7 +1160,7 @@ struct expr_tree_processor {
 		std::unique_ptr<ral::frame::BlazingTable> execute_plan() {
 			if (children.size() == 0) {
 				// base case
-				std::shared_ptr<ral::cache::CacheMachine> cache = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
+				std::shared_ptr<ral::cache::CacheMachine> cache = create_cache_machine(cache_settings{.type = CacheType::NON_WAITING});
 				auto kernel_id = std::to_string(kernel_unit->get_id());
 				kernel_unit->output_.register_cache(kernel_id, cache);
 				kernel_unit->run();
@@ -1178,15 +1180,15 @@ struct expr_tree_processor {
 					t1.join();
 					t2.join();
 					
-					std::shared_ptr<ral::cache::CacheMachine> source_cache_a = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
+					std::shared_ptr<ral::cache::CacheMachine> source_cache_a = create_cache_machine(cache_settings{.type = CacheType::NON_WAITING});
 					source_cache_a->addToCache(std::move(input_a));
 					source_cache_a->finish();
 
-					std::shared_ptr<ral::cache::CacheMachine> source_cache_b = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
+					std::shared_ptr<ral::cache::CacheMachine> source_cache_b = create_cache_machine(cache_settings{.type = CacheType::NON_WAITING});
 					source_cache_b->addToCache(std::move(input_b));
 					source_cache_b->finish();
 
-					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
+					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::NON_WAITING});
 					auto kernel_id = std::to_string(kernel_unit->get_id());
 					kernel_unit->input_.register_cache("input_a", source_cache_a);
 					kernel_unit->input_.register_cache("input_b", source_cache_b);
@@ -1196,11 +1198,11 @@ struct expr_tree_processor {
 					return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
 				} else if(children.size() == 1) {
 					auto current_input = children[0]->execute_plan();
-					std::shared_ptr<ral::cache::CacheMachine> source_cache = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
+					std::shared_ptr<ral::cache::CacheMachine> source_cache = create_cache_machine(cache_settings{.type = CacheType::NON_WAITING});
 					source_cache->addToCache(std::move(current_input));
 					source_cache->finish();
 
-					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
+					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::NON_WAITING});
 					auto kernel_id = std::to_string(kernel_unit->get_id());
 					kernel_unit->input_.register_cache(kernel_id, source_cache);
 					kernel_unit->output_.register_cache(kernel_id, sink_cache);

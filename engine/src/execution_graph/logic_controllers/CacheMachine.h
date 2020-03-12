@@ -123,6 +123,12 @@ public:
 		return std::move(data);
 	}
 
+	message_ptr pop() {
+		auto data = std::move(this->message_queue_.front());
+		this->message_queue_.pop_front();
+		return std::move(data);
+	}
+
 	std::vector<message_ptr> get_all_or_wait() {
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });
@@ -181,6 +187,18 @@ protected:
 	std::vector<CacheDataType> cachePolicyTypes;
 	std::vector<unsigned long long> memoryPerCache;
 	std::vector<unsigned long long> usedMemory;
+};
+
+class NonWaitingCacheMachine : public CacheMachine {
+public:
+	NonWaitingCacheMachine(unsigned long long gpuMemory,
+		std::vector<unsigned long long> memoryPerCache,
+		std::vector<CacheDataType> cachePolicyTypes_);
+
+	~NonWaitingCacheMachine() = default;
+
+	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+
 };
 
 class ConcatenatingCacheMachine : public CacheMachine {
