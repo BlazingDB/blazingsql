@@ -1158,7 +1158,7 @@ struct expr_tree_processor {
 		std::unique_ptr<ral::frame::BlazingTable> execute_plan() {
 			if (children.size() == 0) {
 				// base case
-				std::shared_ptr<ral::cache::CacheMachine> cache = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+				std::shared_ptr<ral::cache::CacheMachine> cache = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
 				auto kernel_id = std::to_string(kernel_unit->get_id());
 				kernel_unit->output_.register_cache(kernel_id, cache);
 				kernel_unit->run();
@@ -1178,13 +1178,15 @@ struct expr_tree_processor {
 					t1.join();
 					t2.join();
 					
-					std::shared_ptr<ral::cache::CacheMachine> source_cache_a = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					std::shared_ptr<ral::cache::CacheMachine> source_cache_a = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
 					source_cache_a->addToCache(std::move(input_a));
+					source_cache_a->finish();
 
-					std::shared_ptr<ral::cache::CacheMachine> source_cache_b = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					std::shared_ptr<ral::cache::CacheMachine> source_cache_b = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
 					source_cache_b->addToCache(std::move(input_b));
+					source_cache_b->finish();
 
-					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
 					auto kernel_id = std::to_string(kernel_unit->get_id());
 					kernel_unit->input_.register_cache("input_a", source_cache_a);
 					kernel_unit->input_.register_cache("input_b", source_cache_b);
@@ -1194,10 +1196,11 @@ struct expr_tree_processor {
 					return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
 				} else if(children.size() == 1) {
 					auto current_input = children[0]->execute_plan();
-					std::shared_ptr<ral::cache::CacheMachine> source_cache = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					std::shared_ptr<ral::cache::CacheMachine> source_cache = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
 					source_cache->addToCache(std::move(current_input));
+					source_cache->finish();
 
-					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::SIMPLE});
+					std::shared_ptr<ral::cache::CacheMachine> sink_cache = create_cache_machine(cache_settings{.type = CacheType::CONCATENATING});
 					auto kernel_id = std::to_string(kernel_unit->get_id());
 					kernel_unit->input_.register_cache(kernel_id, source_cache);
 					kernel_unit->output_.register_cache(kernel_id, sink_cache);
