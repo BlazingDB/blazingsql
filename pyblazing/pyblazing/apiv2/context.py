@@ -121,11 +121,14 @@ def getNodePartitions(df, client):
     worker_part = client.who_has(df)
     worker_partitions = {}
     for key in worker_part:
-        worker = worker_part[key][0]
-        partition = int(key[key.find(",") + 2:(len(key) - 1)])
-        if connectionToId[worker] not in worker_partitions:
-            worker_partitions[connectionToId[worker]] = []
-        worker_partitions[connectionToId[worker]].append(partition)
+        if len(worker_part[key]) > 0:
+            worker = worker_part[key][0]
+            partition = int(key[key.find(",") + 2:(len(key) - 1)])
+            if connectionToId[worker] not in worker_partitions:
+                worker_partitions[connectionToId[worker]] = []
+            worker_partitions[connectionToId[worker]].append(partition)
+        else:
+            print("ERROR: In getNodePartitions, woker has no corresponding partition")
     return worker_partitions
 
 
@@ -142,6 +145,8 @@ def collectPartitionsRunQuery(
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
             partitions = tables[table_name].get_partitions(worker_id)
+            if partitions is None:
+                print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
             if (len(partitions) == 0):
                 tables[table_name].input = tables[table_name].input.get_partition(
                     0).head(0)
@@ -492,7 +497,10 @@ class BlazingTable(object):
         return nodeFilesList
 
     def get_partitions(self, worker):
-        return self.dask_mapping[worker]
+        if worker in self.dask_mapping:
+            return self.dask_mapping[worker]
+        else: 
+            return None
 
 
 class BlazingContext(object):
@@ -911,18 +919,22 @@ class BlazingContext(object):
     def unify_partitions(self, input):
         if isinstance(input, dask_cudf.core.DataFrame) and self.dask_client is not None:
             dask_mapping = getNodePartitions(input, self.dask_client)
-            dask_futures = []
-            for i, node in enumerate(self.nodes):
-                worker = node['worker']
-                dask_futures.append(
-                    self.dask_client.submit(
-                        workerUnifyPartitions,
-                        input,
-                        dask_mapping,
-                        i,  # this is a dummy variable to make every submit unique which is necessary
-                        workers=[worker]))                    
-            result = dask.dataframe.from_delayed(dask_futures)
-            return result
+            max_num_partitions_per_node = max([len(x) for x in dask_mapping.values()])
+            if max_num_partitions_per_node > 1:
+                dask_futures = []
+                for i, node in enumerate(self.nodes):
+                    worker = node['worker']
+                    dask_futures.append(
+                        self.dask_client.submit(
+                            workerUnifyPartitions,
+                            input,
+                            dask_mapping,
+                            i,  # this is a dummy variable to make every submit unique which is necessary
+                            workers=[worker]))                    
+                result = dask.dataframe.from_delayed(dask_futures)
+                return result
+            else:
+                return input
         else:
             return input
 
@@ -959,6 +971,12 @@ class BlazingContext(object):
                 else:
                     currentTableNodes = new_tables[table].getSlices(len(self.nodes))
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
+                if new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
+                    print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
+                    temp_df = new_tables[table].input.compute()
+                    new_tables[table].input = dask_cudf.from_cudf(temp_df,npartitions=len(self.nodes))
+                    new_tables[table].input = new_tables[table].input.persist()
+                    new_tables[table].dask_mapping = getNodePartitions(new_tables[table].input, self.dask_client)
                 currentTableNodes = []
                 for node in self.nodes:
                     currentTableNodes.append(new_tables[table])
