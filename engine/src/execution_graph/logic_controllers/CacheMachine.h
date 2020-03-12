@@ -12,6 +12,7 @@
 #include <thread>
 #include <typeindex>
 #include <vector>
+#include <atomic>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
@@ -91,7 +92,7 @@ class WaitingQueue {
 public:
 	using message_ptr = std::unique_ptr<message<T>>;
 
-	WaitingQueue(bool & finished_condition) : finished{finished_condition} {}
+	WaitingQueue() : finished{false} {}
 	~WaitingQueue() = default;
 
 	WaitingQueue(WaitingQueue &&) = delete;
@@ -105,12 +106,15 @@ public:
 		lock.unlock();
 		condition_variable_.notify_one();
 	}
-	void notify() { condition_variable_.notify_one(); }
+	void notify() { 
+		this->finished = true;
+		condition_variable_.notify_one(); 
+	}
 	bool empty() const { return this->message_queue_.size() == 0; }
 
 	message_ptr pop_or_wait() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished or !this->empty(); });
+		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -121,13 +125,17 @@ public:
 
 	std::vector<message_ptr> get_all_or_wait() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished; });
+		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });
 		std::vector<message_ptr> response;
 		for(message_ptr & it : message_queue_) {
 			response.emplace_back(std::move(it));
 		}
 		message_queue_.erase(message_queue_.begin(), message_queue_.end());
 		return response;
+	}
+
+	bool is_finished() const {
+		return this->finished.load(std::memory_order_seq_cst);
 	}
 
 private:
@@ -146,7 +154,7 @@ private:
 private:
 	std::mutex mutex_;
 	std::deque<message_ptr> message_queue_;
-	bool & finished;
+	std::atomic<bool> finished;
 	std::condition_variable condition_variable_;
 };
 
@@ -173,7 +181,6 @@ protected:
 	std::vector<CacheDataType> cachePolicyTypes;
 	std::vector<unsigned long long> memoryPerCache;
 	std::vector<unsigned long long> usedMemory;
-	bool _finished;
 };
 
 class ConcatenatingCacheMachine : public CacheMachine {

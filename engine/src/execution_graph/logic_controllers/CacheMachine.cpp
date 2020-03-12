@@ -57,10 +57,8 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 CacheMachine::CacheMachine(unsigned long long gpuMemory,
 						   std::vector<unsigned long long> memoryPerCache_,
 						   std::vector<CacheDataType> cachePolicyTypes_)
-	: _finished(false) {
-
-	waitingCache = std::make_unique<WaitingQueue<CacheData>>(this->_finished);
-
+	{
+	waitingCache = std::make_unique<WaitingQueue<CacheData>>();
 	this->memoryPerCache.push_back(gpuMemory);
 	for(auto mem : memoryPerCache_) {
 		this->memoryPerCache.push_back(mem);
@@ -77,7 +75,6 @@ CacheMachine::~CacheMachine() {}
 
 
 void CacheMachine::finish() {
-	this->_finished = true;
 	this->waitingCache->notify();
 }
 
@@ -112,7 +109,7 @@ bool CacheMachine::is_finished() {
 	if(not waitingCache->empty()) {
 		return false;
 	}
-	return this->_finished;
+	return waitingCache->is_finished();
 }
 
 
