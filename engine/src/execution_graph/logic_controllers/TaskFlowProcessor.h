@@ -1162,6 +1162,7 @@ struct expr_tree_processor {
 				auto kernel_id = std::to_string(kernel_unit->get_id());
 				kernel_unit->output_.register_cache(kernel_id, cache);
 				kernel_unit->run();
+				kernel_unit->output_.finish();
 				return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
 			} else {
 				if(children.size() == 2) {				
@@ -1189,6 +1190,7 @@ struct expr_tree_processor {
 					kernel_unit->input_.register_cache("input_b", source_cache_b);
 					kernel_unit->output_.register_cache(kernel_id, sink_cache);
 					kernel_unit->run();
+					kernel_unit->output_.finish();
 					return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
 				} else if(children.size() == 1) {
 					auto current_input = children[0]->execute_plan();
@@ -1200,6 +1202,7 @@ struct expr_tree_processor {
 					kernel_unit->input_.register_cache(kernel_id, source_cache);
 					kernel_unit->output_.register_cache(kernel_id, sink_cache);
 					kernel_unit->run();
+					kernel_unit->output_.finish();
 					return kernel_unit->output_.get_cache(kernel_id)->pullFromCache();
 				}
 			}
