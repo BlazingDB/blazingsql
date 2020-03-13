@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
 #include "blazingdb/transport/Node.h"
 
 namespace blazingdb {
@@ -67,6 +68,7 @@ private:
   const Node masterNode_;
   const std::string logicalPlan_;
   uint32_t kernel_id_;
+  std::mutex increment_step_mutex;
 };
 
 }  // namespace experimental

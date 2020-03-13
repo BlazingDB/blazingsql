@@ -68,8 +68,6 @@ std::string Context::getContextCommunicationToken() const {
   return std::to_string(kernel_id_) + "_"  + std::to_string(query_substep) ;   
 }
 
-std::mutex increment_step_mutex;
-
 void Context::incrementQueryStep() {
   std::unique_lock<std::mutex> lock(increment_step_mutex);
 
