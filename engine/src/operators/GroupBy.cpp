@@ -333,13 +333,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 	// convert scalars into columns
 	std::vector<std::unique_ptr<cudf::column>> output_columns;
 	for (int i = 0; i < reductions.size(); i++){
-		std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(reductions[i]->type(), 1, cudf::mask_state::ALL_NULL);
-		cudf::mutable_column_view temp_mutable_view = temp->mutable_view();
-
-		if(table.num_rows()!=0 || aggregation_types[i] == "COUNT"){ //empty table, no needed to perform reductions
-			cudf::experimental::fill_in_place(temp_mutable_view, 0, 1, *(reductions[i]));
-		}
-
+		std::unique_ptr<cudf::column> temp = cudf::make_column_from_scalar(*(reductions[i]), 1);
 		output_columns.emplace_back(std::move(temp));
 	}
 	return std::make_unique<ral::frame::BlazingTable>(std::move(std::make_unique<CudfTable>(std::move(output_columns))), agg_output_column_names);
@@ -542,14 +536,11 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 				if (aggregation_input.size() == 0){
 					// this means we have a COUNT(*). So lets create az simple column with no nulls
 					if(expression == "" && aggregation_types[i] == AggregateKind::COUNT ) {
-						std::unique_ptr<cudf::column> temp = cudf::make_numeric_column(cudf::data_type(cudf::type_id::INT8), table.view().num_rows());
 						std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT8));
 						auto numeric_s = static_cast< cudf::experimental::scalar_type_t<int8_t>* >(scalar.get());
 						numeric_s->set_value(0);
-						auto mview_temp = temp->mutable_view();
-						if (temp->size() != 0) {
-							cudf::experimental::fill_in_place(mview_temp, 0, temp->size(), *scalar);
-						}
+						std::unique_ptr<cudf::column> temp = cudf::make_column_from_scalar(*scalar, table.view().num_rows());
+
 						aggregation_inputs_scope_holder.emplace_back(std::move(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(temp))));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					}else if(aggregation_types[i] == AggregateKind::SUM0){
