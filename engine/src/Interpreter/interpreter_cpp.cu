@@ -584,8 +584,22 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	using namespace detail;
 	cudaStream_t stream = 0;
 
-	auto max_it = std::max_element(outputs.begin(), outputs.end());
-	column_index_type max_output = (max_it != outputs.end() ? *max_it : 0);
+	if (final_output_positions.empty())	{
+		return;
+	}
+	
+	assert(!left_inputs.empty());
+	assert(!right_inputs.empty());
+	assert(!outputs.empty());
+	assert(!operators.empty());
+
+	auto max_left_it = std::max_element(left_inputs.begin(), left_inputs.end());
+	auto max_right_it = std::max_element(right_inputs.begin(), right_inputs.end());
+	auto max_out_it = std::max_element(outputs.begin(), outputs.end());
+
+	RAL_EXPECTS(std::max(std::max(*max_left_it, *max_right_it), *max_out_it) < 64, "Interops does not support plans with an input or output index greater than 63");
+
+	column_index_type max_output = *max_out_it;
 
 	size_t shared_memory_per_thread = (max_output + 1) * sizeof(int64_t);
 
