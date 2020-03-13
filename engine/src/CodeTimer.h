@@ -32,7 +32,6 @@ public:
 		std::string eventExtraInfo2 = "",
 		int measure2 = 0);
 	std::string logDuration(uint32_t contextToken,
-		std::string commToken,
 		uint32_t query_step,
 		uint32_t query_substep,
 		std::string eventDescription,
