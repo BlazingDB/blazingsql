@@ -170,7 +170,9 @@ public:
 			read_valid_data(column_index, valids_in_buffer, row_index);
 		}
 
-		cudf::bitmask_type cur_row_valids;
+		// NOTE: Currently interops does not support plans with an input or output index greater than 63
+		// This is a limitation by using an uint64_t to store all the valids in the plan
+		uint64_t cur_row_valids;
 		for(cudf::size_type row = 0; row < 32 && row_index + row < size; row++) {
 			// load current row valids and data
 			for(cudf::size_type column_index = 0; column_index < table.num_columns(); column_index++) {
@@ -328,12 +330,19 @@ private:
 		}
 	}
 
-	CUDA_DEVICE_CALLABLE bool getColumnValid(cudf::bitmask_type row_valid, int cur_column) {
-		return (row_valid >> cur_column) & cudf::bitmask_type{1};
+	CUDA_DEVICE_CALLABLE bool getColumnValid(uint64_t row_valid, int bit_idx) {
+		assert(bit_idx < sizeof(uint64_t)*8);
+		return (row_valid >> bit_idx) & uint64_t{1};
 	}
-	CUDA_DEVICE_CALLABLE void setColumnValid(cudf::bitmask_type & row_valid, int cur_column, bool value) {
-		// TODO: careful you might have to cast bool value to int64_t for this to actually work
-		row_valid ^= ((-value) ^ row_valid) & (cudf::bitmask_type{1} << cur_column);
+
+	CUDA_DEVICE_CALLABLE void setColumnValid(cudf::bitmask_type & row_valid, int bit_idx, bool value) {
+		assert(bit_idx < sizeof(cudf::bitmask_type)*8);
+		row_valid ^= ((-value) ^ row_valid) & (cudf::bitmask_type{1} << bit_idx);
+	}
+
+	CUDA_DEVICE_CALLABLE void setColumnValid(uint64_t & row_valid, int bit_idx, bool value) {
+		assert(bit_idx < sizeof(uint64_t)*8);
+		row_valid ^= ((-value) ^ row_valid) & (uint64_t{1} << bit_idx);
 	}
 
 	template <typename LeftType>
@@ -370,7 +379,7 @@ private:
 	}
 
 	CUDA_DEVICE_CALLABLE void process_operator(
-		size_t op_index, int64_t * buffer, cudf::size_type row_index, cudf::bitmask_type & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, uint64_t & row_valids) {
 		cudf::type_id type = input_types_left[op_index];
 		if(is_float_type(type)) {
 			process_operator_1<double>(op_index, buffer, row_index, row_valids);
@@ -381,7 +390,7 @@ private:
 
 	template <typename LeftType>
 	CUDA_DEVICE_CALLABLE void process_operator_1(
-		size_t op_index, int64_t * buffer, cudf::size_type row_index, cudf::bitmask_type & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, uint64_t & row_valids) {
 		cudf::type_id type = input_types_right[op_index];
 		if(is_float_type(type)) {
 			process_operator_2<LeftType, double>(op_index, buffer, row_index, row_valids);
@@ -392,7 +401,7 @@ private:
 
 	template <typename LeftType, typename RightType>
 	CUDA_DEVICE_CALLABLE void process_operator_2(
-		size_t op_index, int64_t * buffer, cudf::size_type row_index, cudf::bitmask_type & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, uint64_t & row_valids) {
 		column_index_type left_position = left_input_positions[op_index];
 		column_index_type right_position = right_input_positions[op_index];
 		column_index_type output_position = output_positions[op_index];
