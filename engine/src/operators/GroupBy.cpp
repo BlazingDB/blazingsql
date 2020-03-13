@@ -315,7 +315,13 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 				std::unique_ptr<cudf::experimental::aggregation> agg =
 					std::make_unique<cudf::experimental::aggregation>(convertAggregationCudf(get_aggregation_operation(aggregation_types[i])));
 				cudf::type_id output_type = get_aggregation_output_type(aggregation_input.type().id(), aggregation_types[i]);
-				reductions.emplace_back(cudf::experimental::reduce(aggregation_input, agg, cudf::data_type(output_type)));
+				std::unique_ptr<cudf::scalar> reduction_out = cudf::experimental::reduce(aggregation_input, agg, cudf::data_type(output_type));
+				if (aggregation_types[i] == "$SUM0" && !reduction_out->is_valid()){ // if this aggregation was a SUM0, and it was not valid, we want it to be a valid 0 instead
+					std::unique_ptr<cudf::scalar> zero_scalar = get_scalar_from_string("0", reduction_out->type().id()); // this does not need to be from a string, but this is a convenient way to make the scalar i need
+					reductions.emplace_back(std::move(zero_scalar));
+				} else {					
+					reductions.emplace_back(std::move(reduction_out));
+				}
 			}
 		}
 
@@ -502,7 +508,9 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 			return cudf::experimental::aggregation::Kind::COUNT_VALID;
 		}else if(input == AggregateKind::SUM0){
 			return cudf::experimental::aggregation::Kind::SUM;
-		}
+		} 
+		throw std::runtime_error(
+			"In convertAggregationCudf function: AggregateKind type not supported");
 	}
 
 std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(

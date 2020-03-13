@@ -86,15 +86,15 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKin
 //	} else if(aggregation == GDF_COUNT_DISTINCT) {
 //		return cudf::type_id::INT64;
 	} else {
-		// TODO percy cudf0.12 was invalid here, is ok to return EMPTY?
-		return cudf::type_id::EMPTY;
+		throw std::runtime_error(
+			"In get_aggregation_output_type function: aggregation type not supported: " + aggregation);
 	}
 }
 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::string & aggregation) {
 	if(aggregation == "COUNT") {
 		return cudf::type_id::INT64;
-	} else if(aggregation == "SUM") {
+	} else if(aggregation == "SUM" || aggregation == "$SUM0") {
 		return is_type_float(input_type) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64;
 	} else if(aggregation == "MIN") {
 		return input_type;
@@ -103,7 +103,8 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::s
 	} else if(aggregation == "AVG") {
 		return cudf::type_id::FLOAT64;
 	} else {
-		return cudf::type_id::EMPTY;
+		throw std::runtime_error(
+			"In get_aggregation_output_type function: aggregation type not supported: " + aggregation);
 	}
 }
 
