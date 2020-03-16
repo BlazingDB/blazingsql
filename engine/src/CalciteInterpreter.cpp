@@ -406,13 +406,13 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 		};
 		ral::cache::OutputKernel output;
 
-		// auto graph = tree.build_graph(logicalPlan);
-		// if (graph.num_nodes() > 0) {
-		// 	graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
-		// 	graph.execute();
-		// 	output_frame = output.release();
-		// }
-		output_frame = tree.execute_plan(logicalPlan);
+		auto graph = tree.build_graph(logicalPlan);
+		if (graph.num_nodes() > 0) {
+			graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			graph.execute();
+			output_frame = output.release();
+		}
+		// output_frame = tree.execute_plan(logicalPlan);
 		double duration = blazing_timer.getDuration();
 		Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
 		assert(output_frame != nullptr);

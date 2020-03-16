@@ -973,7 +973,7 @@ class BlazingContext(object):
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph = True):
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph = False):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [{} for _ in range(len(self.nodes))]

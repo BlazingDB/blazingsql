@@ -104,11 +104,11 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		putWaitingQueue(std::move(item));
 		lock.unlock();
-		condition_variable_.notify_one();
+		condition_variable_.notify_all();
 	}
 	void notify() { 
 		this->finished = true;
-		condition_variable_.notify_one(); 
+		condition_variable_.notify_all(); 
 	}
 	bool empty() const { return this->message_queue_.size() == 0; }
 
