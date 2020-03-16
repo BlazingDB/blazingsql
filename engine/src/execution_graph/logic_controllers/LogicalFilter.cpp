@@ -229,6 +229,12 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     }
   }
 
+std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::BlazingTableView & table_left,
+													   const ral::frame::BlazingTableView & table_right,
+													   const std::string & expression,
+													   blazingdb::manager::experimental::Context * context) {
+	return process_logical_join(context, table_left, table_right, expression);
+}
 
 
 // This function can either do a small table scatter distribution or regular hash based. 
@@ -322,9 +328,9 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
         }
         cluster_shared_table = ral::utilities::experimental::concatTables(partitions_to_concat);
       } else {
-        if (scatter_left && left.num_rows() > 0){
+        if (scatter_left && left.num_rows() >= 0){
           cluster_shared_table = std::make_unique<ral::frame::BlazingTable>(left.view(), left.names());
-        } else if (scatter_right && right.num_rows() > 0){
+        } else if (scatter_right && right.num_rows() >= 0){
           cluster_shared_table = std::make_unique<ral::frame::BlazingTable>(right.view(), right.names());
         }  			
   		}

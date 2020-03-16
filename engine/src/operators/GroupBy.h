@@ -25,17 +25,12 @@ namespace ral {
 namespace operators {
 namespace experimental {
 
-
-
-
-
 	cudf::experimental::aggregation::Kind convertAggregationCudf(AggregateKind input);
-	bool is_aggregate(std::string query_part);
 
 	typedef blazingdb::manager::experimental::Context Context;
 
 	std::unique_ptr<ral::frame::BlazingTable> process_aggregate(const ral::frame::BlazingTableView & table,
-																std::string query_part, Context * context);
+																const std::string& query_part, Context * context);
 
 	std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context * context,
 		const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices);
@@ -59,6 +54,27 @@ namespace experimental {
 		const ral::frame::BlazingTableView & table, const std::vector<AggregateKind> & aggregation_types,
 		const std::vector<std::string> & aggregation_input_expressions, const std::vector<std::string> & aggregation_column_assigned_aliases,
 		const std::vector<int> & group_column_indices);
+
+
+	// Bigger than GPU functions
+	bool is_aggregations_without_groupby(const std::string& query_part);
+
+	std::vector<int> get_group_column_indices(const std::string& query_part);
+
+	std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable>>
+	group_and_sample(const ral::frame::BlazingTableView & table,
+									const std::string& query_part, Context * context);
+	
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>>
+	partition_group(const ral::frame::BlazingTableView & partitionPlan,
+									const ral::frame::BlazingTableView & grouped_table,
+									const std::string & query_part,
+									Context * context);
+	
+	std::unique_ptr<ral::frame::BlazingTable>
+	merge_group(const std::vector<ral::frame::BlazingTableView> & partitions_to_merge,
+							const std::string & query_part,
+							Context * context);
 
 }  // namespace experimental
 }  // namespace operators

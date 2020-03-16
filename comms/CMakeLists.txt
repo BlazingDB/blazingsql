@@ -13,14 +13,17 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 ###################################################################################################
 # - conda environment -----------------------------------------------------------------------------
-
+set(BSQL_BLD_PREFIX "")
 if ("$ENV{CONDA_BUILD}" STREQUAL "1")
     set(CMAKE_SYSTEM_PREFIX_PATH "$ENV{BUILD_PREFIX};$ENV{PREFIX};${CMAKE_SYSTEM_PREFIX_PATH}")
     message(STATUS "Conda build detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
+    set(BSQL_BLD_PREFIX "$ENV{BUILD_PREFIX}")
 elseif (DEFINED ENV{CONDA_PREFIX})
     set(CMAKE_SYSTEM_PREFIX_PATH "$ENV{CONDA_PREFIX};${CMAKE_SYSTEM_PREFIX_PATH}")
     message(STATUS "Conda environment detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
+    set(BSQL_BLD_PREFIX "$ENV{CONDA_PREFIX}")
 endif ()
+message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 
 #########################################################################3
 # - compiler stuff ------------------
@@ -66,9 +69,9 @@ include_directories(
         ${RAPIDJSON_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/include
-        $ENV{CONDA_PREFIX}/include)
+        ${BSQL_BLD_PREFIX}/include)
 
-link_directories($ENV{CONDA_PREFIX}/lib)
+link_directories(${BSQL_BLD_PREFIX}/lib)
 
 function(blazingdb_artifact)
     set(OPTIONS OPTIONAL VIRTUAL)
@@ -116,8 +119,8 @@ function(blazingdb_artifact)
         add_executable(${ARG_TARGET}-gtest ${ARG_TESTS})
         target_include_directories(${ARG_TARGET} PUBLIC src
                 ${CMAKE_SOURCE_DIR}/include
-                $ENV{CONDA_PREFIX}/include
-                $ENV{CONDA_PREFIX}/include/cudf
+                ${BSQL_BLD_PREFIX}/include
+                ${BSQL_BLD_PREFIX}/include/cudf
                 )
         target_compile_options(${ARG_TARGET} PUBLIC -ggdb -O0)
         target_link_libraries(${ARG_TARGET}-gtest

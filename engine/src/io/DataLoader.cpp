@@ -27,6 +27,10 @@ using blazingdb::manager::experimental::Context;
 data_loader::data_loader(std::shared_ptr<data_parser> _parser, std::shared_ptr<data_provider> _data_provider)
 	: provider(_data_provider), parser(_parser) {}
 
+std::shared_ptr<data_loader> data_loader::clone() {
+	auto cloned_provider = this->provider->clone();
+	return std::make_shared<data_loader>(this->parser, cloned_provider);
+}
 
 data_loader::~data_loader() {}
 

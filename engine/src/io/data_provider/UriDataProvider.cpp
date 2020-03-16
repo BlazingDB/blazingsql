@@ -30,6 +30,10 @@ uri_data_provider::uri_data_provider(std::vector<Uri> uris,
 	// thanks to c++11 we no longer have anything interesting to do here :)
 }
 
+std::shared_ptr<data_provider> uri_data_provider::clone() {
+	return std::make_shared<uri_data_provider>(this->file_uris, this->uri_values);
+}
+
 uri_data_provider::~uri_data_provider() {
 	// TODO: when a shared_ptr to a randomaccessfile goes out of scope does it close files automatically?
 	// in case it doesnt we can close that here

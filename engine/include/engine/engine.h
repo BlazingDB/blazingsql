@@ -26,7 +26,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	int32_t ctxToken,
 	std::string query,
 	uint64_t accessToken,
-	std::vector<std::vector<std::map<std::string, std::string>>> uri_values);
+	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
+	bool use_execution_graph);
 
 
 struct TableScanInfo {
