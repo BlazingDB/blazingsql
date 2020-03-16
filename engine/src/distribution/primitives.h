@@ -56,7 +56,7 @@ namespace experimental {
 
 	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples);
 
-	std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices);
+	std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(const std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices);
 	
 	// multi-threaded message sender
 	void broadcastMessage(std::vector<Node> nodes, 

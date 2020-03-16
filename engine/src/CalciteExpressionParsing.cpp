@@ -505,46 +505,6 @@ std::string expand_if_logical_op(std::string expression) {
 	return output;
 }
 
-std::string replace_calcite_regex(const std::string & expression) {
-	std::string ret = expression;
-
-	static const std::regex count_re{R""(COUNT\(DISTINCT (\W\(.+?\)|.+)\))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, count_re, "COUNT_DISTINCT($1)");
-
-	static const std::regex char_collate_re{
-		R""((?:\(\d+\))? CHARACTER SET ".+?" COLLATE ".+?")"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, char_collate_re, "");
-
-	static const std::regex timestamp_re{R""(TIMESTAMP\(\d+\))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, timestamp_re, "TIMESTAMP");
-
-	static const std::regex number_implicit_cast_re{
-		R""((\d):(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, number_implicit_cast_re, "$1");
-
-	static const std::regex null_implicit_cast_re{
-		R""(null:(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, null_implicit_cast_re, "null");
-
-	static const std::regex varchar_implicit_cast_re{R""(':VARCHAR)"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, varchar_implicit_cast_re, "'");
-
-	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
-	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
-	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
-
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DAY), ", "BL_DAY(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
-	StringUtil::findAndReplaceAll(ret, ":DECIMAL(19, 0)", ":DOUBLE");
-
-
-	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
-	return ret;
-}
 
 std::string clean_calcite_expression(const std::string & expression) {
 	std::string clean_expression = replace_calcite_regex(expression);
@@ -627,63 +587,6 @@ int find_closing_char(const std::string & expression, int start) {
 	}
 	// TODO throw error
 	return -1;
-}
-
-// takes a comma delimited list of expressions and splits it into separate expressions
-std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expression, bool trim) {
-	combined_expression = replace_calcite_regex(combined_expression);
-
-	std::vector<std::string> expressions;
-
-	int curInd = 0;
-	int curStart = 0;
-	bool inQuotes = false;
-	int parenthesisDepth = 0;
-	int sqBraketsDepth = 0;
-	while(curInd < combined_expression.size()) {
-		if(inQuotes) {
-			if(combined_expression[curInd] == '\'') {
-				if(!(curInd + 1 < combined_expression.size() &&
-					   combined_expression[curInd + 1] ==
-						   '\'')) {  // if we are in quotes and we get a double single quotes, that is an escaped quotes
-					inQuotes = false;
-				}
-			}
-		} else {
-			if(combined_expression[curInd] == '\'') {
-				inQuotes = true;
-			} else if(combined_expression[curInd] == '(') {
-				parenthesisDepth++;
-			} else if(combined_expression[curInd] == ')') {
-				parenthesisDepth--;
-			} else if(combined_expression[curInd] == '[') {
-				sqBraketsDepth++;
-			} else if(combined_expression[curInd] == ']') {
-				sqBraketsDepth--;
-			} else if(combined_expression[curInd] == ',' && parenthesisDepth == 0 && sqBraketsDepth == 0) {
-				std::string exp = combined_expression.substr(curStart, curInd - curStart);
-
-				if(trim)
-					expressions.push_back(StringUtil::ltrim(exp));
-				else
-					expressions.push_back(exp);
-
-				curStart = curInd + 1;
-			}
-		}
-		curInd++;
-	}
-
-	if(curStart < combined_expression.size() && curInd <= combined_expression.size()) {
-		std::string exp = combined_expression.substr(curStart, curInd - curStart);
-
-		if(trim)
-			expressions.push_back(StringUtil::trim(exp));
-		else
-			expressions.push_back(exp);
-	}
-
-	return expressions;
 }
 
 bool contains_evaluation(std::string expression) { return expression.find("(") != std::string::npos; }

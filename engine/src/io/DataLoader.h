@@ -33,7 +33,9 @@ using blazingdb::manager::experimental::Context;
 class data_loader {
 public:
 	data_loader(std::shared_ptr<data_parser> parser, std::shared_ptr<data_provider> provider);
-	data_loader() : provider(nullptr), parser(nullptr) {}
+	data_loader(const data_loader& ) = default;
+	std::shared_ptr<data_loader> clone();
+
 	virtual ~data_loader();
 
 	/**

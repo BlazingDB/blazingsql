@@ -136,7 +136,9 @@ def collectPartitionsRunQuery(
         fileTypes,
         ctxToken,
         algebra,
-        accessToken):
+        accessToken,
+        use_execution_graph
+        ):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     for table_name in tables:
@@ -161,7 +163,8 @@ def collectPartitionsRunQuery(
         fileTypes,
         ctxToken,
         algebra,
-        accessToken)
+        accessToken,
+        use_execution_graph)
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -335,7 +338,93 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     frame = OrderedDict(((key,value) for (key,value) in zip(final_names, series)))
     result = cudf.DataFrame(frame)
     return result
-    
+
+
+import json
+import collections
+def is_double_children(expr):
+    return "LogicalJoin" in expr  or  "LogicalUnion" in expr
+
+def visit (lines): 
+    stack = collections.deque()
+    root_level = 0
+    dicc = {
+        "expr": lines[root_level][1],
+        "children": []
+    }
+    processed = set()
+    for index in range(len(lines)): 
+        child_level, expr = lines[index]
+        if child_level == root_level + 1:
+            new_dicc = {
+                "expr": expr,
+                "children": []
+            }
+            if len(dicc["children"]) == 0:
+                dicc["children"] = [new_dicc]
+            else:
+                dicc["children"].append(new_dicc)
+            stack.append( (index, child_level, expr, new_dicc) )
+            processed.add(index)
+
+    for index in processed:
+        lines[index][0] = -1 
+
+    while len(stack) > 0: 
+        curr_index, curr_level, curr_expr, curr_dicc = stack.pop()
+        processed = set()
+
+        if curr_index < len(lines)-1: # is brother
+            child_level, expr = lines[curr_index+1]
+            if child_level == curr_level:
+                continue
+            elif child_level == curr_level + 1:
+                index = curr_index + 1
+                if is_double_children(curr_expr):
+                    while index < len(lines) and len(curr_dicc["children"]) < 2: 
+                        child_level, expr = lines[index]
+                        if child_level == curr_level + 1:
+                            new_dicc = {
+                                "expr": expr,
+                                "children": []
+                            }
+                            if len(curr_dicc["children"]) == 0:
+                                curr_dicc["children"] = [new_dicc]
+                            else:
+                                curr_dicc["children"].append(new_dicc)
+                            processed.add(index)
+                            stack.append( (index, child_level, expr, new_dicc) )
+                        index += 1
+                else:
+                    while index < len(lines) and len(curr_dicc["children"]) < 1: 
+                        child_level, expr = lines[index]
+                        if child_level == curr_level + 1:
+                            new_dicc = {
+                                "expr": expr,
+                                "children": []
+                            }
+                            if len(curr_dicc["children"]) == 0:
+                                curr_dicc["children"] = [new_dicc]
+                            else:
+                                curr_dicc["children"].append(new_dicc)
+                            processed.add(index)
+                            stack.append( (index, child_level, expr, new_dicc) )
+                        index += 1
+
+        for index in processed:
+            lines[index][0] = -1 
+    return json.dumps(dicc)
+
+
+def get_plan(algebra):
+    algebra = algebra.replace("  ", "\t")
+    lines = algebra.split("\n")
+    new_lines = []
+    for i in range(len(lines) - 1):
+        line = lines[i]
+        level = line.count("\t")
+        new_lines.append( [level, line.replace("\t", "")] )	
+    return visit(new_lines)    
 
 class BlazingTable(object):
     def __init__(
@@ -884,7 +973,7 @@ class BlazingContext(object):
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
-    def sql(self, sql, table_list=[], algebra=None):
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph = False):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [{} for _ in range(len(self.nodes))]
@@ -932,6 +1021,9 @@ class BlazingContext(object):
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
 
+        if use_execution_graph:
+            algebra = get_plan(algebra)
+
         if self.dask_client is None:
             result = cio.runQueryCaller(
                         masterIndex,
@@ -940,7 +1032,8 @@ class BlazingContext(object):
                         fileTypes,
                         ctxToken,
                         algebra,
-                        accessToken)
+                        accessToken,
+                        use_execution_graph)
         else:
             dask_futures = []
             i = 0
@@ -956,6 +1049,7 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
+                        use_execution_graph,
                         workers=[worker]))
                 i = i + 1
             result = dask.dataframe.from_delayed(dask_futures)

@@ -26,6 +26,14 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_query(std::vector<ral::io::da
 	int64_t connection,
 	Context & queryContext);
 
+std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data_loader> input_loaders,
+	std::vector<ral::io::Schema> schemas,
+	std::vector<std::string> table_names,
+	std::string logicalPlan,
+	int64_t connection,
+	Context & queryContext);
+
+
 void split_inequality_join_into_join_and_filter(const std::string & join_statement, 
  					std::string & new_join_statement, std::string & filter_statement);
 
