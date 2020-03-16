@@ -544,7 +544,9 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 				int column_index = -1;
 				// need to calculate or determine the aggregation input only once
 				if (aggregation_input.size() == 0) {
-					if(contains_evaluation(expression)) {
+					if(expression == "" && aggregation_types[i] == AggregateKind::COUNT_ALL ) { // this is COUNT(*). Lets just pick the first column
+						aggregation_input = table.view().column(0);
+					} else if(contains_evaluation(expression)) {
 						std::vector< std::unique_ptr<ral::frame::BlazingColumn> > computed_columns = ral::processor::evaluate_expressions(table.toBlazingColumns(), {expression});
 						aggregation_inputs_scope_holder.insert(aggregation_inputs_scope_holder.end(), std::make_move_iterator(computed_columns.begin()), std::make_move_iterator(computed_columns.end()));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
