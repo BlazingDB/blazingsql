@@ -18,7 +18,8 @@ enum AggregateKind{
 	MEAN,
 	MIN,
 	MAX,
-	COUNT
+	COUNT_VALID,
+	COUNT_ALL
 };
 
 namespace ral {

@@ -66,7 +66,7 @@ cudf::type_id get_next_biggest_type(cudf::type_id type) {
 // support returning the same input type. Also pygdf does not currently support unsigned types (for example count should
 // return and unsigned type)
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKind aggregation, bool have_groupby) {
-	if(aggregation == AggregateKind::COUNT) {
+	if(aggregation == AggregateKind::COUNT_VALID || aggregation == AggregateKind::COUNT_ALL) {
 		return cudf::type_id::INT64;
 	} else if(aggregation == AggregateKind::SUM || aggregation == AggregateKind::SUM0) {
 		if(have_groupby)
@@ -317,10 +317,13 @@ std::string get_aggregation_operation_string(std::string operator_string) {
 	return operator_string.substr(0, operator_string.find("("));
 }
 
-AggregateKind get_aggregation_operation(std::string operator_string) {
+AggregateKind get_aggregation_operation(std::string expression_in) {
 
-	operator_string = get_aggregation_operation_string(operator_string);
-	if(operator_string == "SUM") {
+	std::string operator_string = get_aggregation_operation_string(expression_in);
+	std::string expression = get_string_between_outer_parentheses(expression_in);
+	if (expression == "" && operator_string == "COUNT"){
+		return AggregateKind::COUNT_ALL;
+	} else if(operator_string == "SUM") {
 		return AggregateKind::SUM;
 	} else if(operator_string == "$SUM0") {
 		return AggregateKind::SUM0;
@@ -331,7 +334,7 @@ AggregateKind get_aggregation_operation(std::string operator_string) {
 	} else if(operator_string == "MAX") {
 		return AggregateKind::MAX;
 	} else if(operator_string == "COUNT") {
-		return AggregateKind::COUNT;
+		return AggregateKind::COUNT_VALID;
 	}
 
 	throw std::runtime_error(
@@ -415,7 +418,7 @@ cudf::size_type get_index(const std::string & operand_string) {
 }
 
 std::string aggregator_to_string(AggregateKind aggregation) {
-	if(aggregation == AggregateKind::COUNT) {
+	if(aggregation == AggregateKind::COUNT_VALID || aggregation == AggregateKind::COUNT_ALL) {
 		return "count";
 	} else if(aggregation == AggregateKind::SUM) {
 		return "sum";
