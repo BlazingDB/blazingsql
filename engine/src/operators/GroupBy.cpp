@@ -604,7 +604,8 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	}
 	for (int i = 0; i < agg_out_indices.size(); i++){
 		if (aggregation_types[agg_out_indices[i]] == AggregateKind::SUM0 && agg_cols_out[i]->null_count() > 0){
-			// WSM CONTINUE HERE. Need to convert these results
+			std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string("0", agg_cols_out[i]->type().id()); // this does not need to be from a string, but this is a convenient way to make the scalar i need
+			std::unique_ptr<cudf::column> temp = cudf::experimental::replace_nulls(agg_cols_out[i]->view(), *scalar );
 		} else {
 			output_columns[agg_out_indices[i] + group_column_indices.size()] = std::move(agg_cols_out[i]);
 		}
