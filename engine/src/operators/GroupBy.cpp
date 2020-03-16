@@ -572,24 +572,12 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 				}
 			}
 		}
-		if (aggregation_input.size() > 0){ // if we do have aggregations that are not SUM0
-			std::cout<<"aggregation_input.size(): "<<aggregation_input.size()<<" null count: "<<aggregation_input.null_count()<<std::endl;
 			requests.push_back(cudf::experimental::groupby::aggregation_request {.values = aggregation_input, .aggregations = std::move(agg_ops_for_request)});
-		}
 	}
-
-
-// 		std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string("0", aggregation_input.type().id()); // this does not need to be from a string, but this is a convenient way to make the scalar i need
-	// 		std::unique_ptr<cudf::column> temp = cudf::experimental::replace_nulls(aggregation_input, *scalar );
-	// 		aggregation_inputs_scope_holder.emplace_back(std::move(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(temp))));
-	// 		aggregation_input = aggregation_inputs_scope_holder.back()->view();
-
 
 	CudfTableView keys = table.view().select(group_column_indices);
 	cudf::experimental::groupby::groupby group_by_obj(keys, cudf::include_nulls::YES);
 	std::pair<std::unique_ptr<cudf::experimental::table>, std::vector<cudf::experimental::groupby::aggregation_result>> result = group_by_obj.aggregate( requests );
-
-	std::cout<<"aggregations complete"<<std::endl;
 
 	// output table is grouped columns and then aggregated columns
 	std::vector< std::unique_ptr<cudf::column> > output_columns = result.first->release();
@@ -606,6 +594,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 		if (aggregation_types[agg_out_indices[i]] == AggregateKind::SUM0 && agg_cols_out[i]->null_count() > 0){
 			std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string("0", agg_cols_out[i]->type().id()); // this does not need to be from a string, but this is a convenient way to make the scalar i need
 			std::unique_ptr<cudf::column> temp = cudf::experimental::replace_nulls(agg_cols_out[i]->view(), *scalar );
+			output_columns[agg_out_indices[i] + group_column_indices.size()] = std::move(temp);
 		} else {
 			output_columns[agg_out_indices[i] + group_column_indices.size()] = std::move(agg_cols_out[i]);
 		}
