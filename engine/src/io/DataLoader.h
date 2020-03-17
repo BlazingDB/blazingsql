@@ -45,10 +45,26 @@ public:
 		Context * context,
 		const std::vector<size_t> & column_indices,
 		const Schema & schema);
+
+	std::unique_ptr<ral::frame::BlazingTable>  load_batch(
+		Context * context,
+		const std::vector<size_t> & column_indices_in,
+		const Schema & schema,
+		std::string user_readable_file_handle,
+		data_handle file_data_handle,
+		size_t file_index,
+		size_t batch_id);
 		
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
 
 	std::unique_ptr<ral::frame::BlazingTable> get_metadata(int offset);
+
+	std::shared_ptr<data_provider> get_provider() {
+		return provider;
+	}
+	std::shared_ptr<data_parser> get_parser() {
+		return parser;
+	}
 
 private:
 	/**
