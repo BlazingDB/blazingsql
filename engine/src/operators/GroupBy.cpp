@@ -922,7 +922,7 @@ auto merge_aggregations_with_groupby(Context * context,
 	std::vector<int> mod_group_column_indices(group_column_indices.size());
 	std::iota(mod_group_column_indices.begin(), mod_group_column_indices.end(), 0);
 	for (int i = 0; i < aggregation_types.size(); i++){
-		if (aggregation_types[i] == AggregateKind::COUNT){
+		if (aggregation_types[i] == AggregateKind::COUNT_VALID || aggregation_types[i] == AggregateKind::COUNT_ALL){
 			aggregation_types[i] = AggregateKind::SUM; // if we have a COUNT, we want to SUM the output of the counts from other nodes
 		}
 		mod_aggregation_input_expressions[i] = std::to_string(i + mod_group_column_indices.size()); // we just want to aggregate the input columns, so we are setting the indices here
