@@ -114,5 +114,6 @@ add_subdirectory(transport)
 add_subdirectory(skipdata)
 add_subdirectory(new-tests)
 # add_subdirectory(sort)
+add_subdirectory(cache_machine)
 
 message(STATUS "******** Tests are ready ********")

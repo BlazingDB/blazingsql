@@ -49,9 +49,8 @@ void Server::deregisterContext(const uint32_t context_token) {
 
 std::shared_ptr<GPUReceivedMessage> Server::getMessage(
     const uint32_t context_token, const std::string &messageToken) {
-  std::shared_lock<std::shared_timed_mutex> lock(context_messages_mutex_);
   MessageQueue &message_queue = context_messages_map_.at(context_token);
-  return message_queue.getMessage(messageToken);
+  return  message_queue.getMessage(messageToken);
 }
 
 void Server::putMessage(const uint32_t context_token,

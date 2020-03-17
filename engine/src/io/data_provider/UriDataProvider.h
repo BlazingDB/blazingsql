@@ -28,6 +28,9 @@ public:
 	uri_data_provider(std::vector<Uri> uris,
 		std::vector<std::map<std::string, std::string>> uri_values);
 	uri_data_provider(std::vector<Uri> uris);
+
+	std::shared_ptr<data_provider> clone() override; 
+
 	virtual ~uri_data_provider();
 	/**
 	 * tells us if there are more files in the list of uris to be provided

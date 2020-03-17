@@ -22,6 +22,10 @@ class dummy_data_provider : public data_provider {
 public:
 	dummy_data_provider() {}
 
+	std::shared_ptr<data_provider> clone() override {
+		return std::make_shared<dummy_data_provider>();
+	}
+
 	virtual ~dummy_data_provider() {}
 
 	bool has_next() { return false; }

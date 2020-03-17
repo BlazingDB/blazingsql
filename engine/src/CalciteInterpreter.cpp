@@ -30,68 +30,8 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <cudf/column/column_factories.hpp>
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include <execution_graph/logic_controllers/TaskFlowProcessor.h>
 
-const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
-const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
-const std::string LOGICAL_SCAN_TEXT = "LogicalTableScan";
-const std::string BINDABLE_SCAN_TEXT = "BindableTableScan";
-const std::string LOGICAL_AGGREGATE_TEXT = "LogicalAggregate";
-const std::string LOGICAL_PROJECT_TEXT = "LogicalProject";
-const std::string LOGICAL_SORT_TEXT = "LogicalSort";
-const std::string LOGICAL_FILTER_TEXT = "LogicalFilter";
-const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
-const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
-
-bool is_union(std::string query_part) { return (query_part.find(LOGICAL_UNION_TEXT) != std::string::npos); }
-
-bool is_project(std::string query_part) { return (query_part.find(LOGICAL_PROJECT_TEXT) != std::string::npos); }
-
-bool is_logical_scan(std::string query_part) { return (query_part.find(LOGICAL_SCAN_TEXT) != std::string::npos); }
-
-bool is_bindable_scan(std::string query_part) { return (query_part.find(BINDABLE_SCAN_TEXT) != std::string::npos); }
-
-bool is_filtered_bindable_scan(std::string query_part) {
-	return is_bindable_scan(query_part) && (query_part.find("filters") != std::string::npos);
-}
-
-bool is_scan(std::string query_part) { return is_logical_scan(query_part) || is_bindable_scan(query_part); }
-
-bool is_filter(std::string query_part) { return (query_part.find(LOGICAL_FILTER_TEXT) != std::string::npos); }
-
-bool is_sort(std::string query_part) { return (query_part.find(LOGICAL_SORT_TEXT) != std::string::npos); }
-
-bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
-
-
-bool is_double_input(std::string query_part) {
-	if(is_join(query_part)) {
-		return true;
-	} else if(is_union(query_part)) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-// Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
-std::string extract_table_name(std::string query_part) {
-	size_t start = query_part.find("[[") + 2;
-	size_t end = query_part.find("]]");
-	std::string table_name_text = query_part.substr(start, end - start);
-	std::vector<std::string> table_parts = StringUtil::split(table_name_text, ',');
-	std::string table_name = "";
-	for(int i = 0; i < table_parts.size(); i++) {
-		if(table_parts[i][0] == ' ') {
-			table_parts[i] = table_parts[i].substr(1, table_parts[i].size() - 1);
-		}
-		table_name += table_parts[i];
-		if(i != table_parts.size() - 1) {
-			table_name += ".";
-		}
-	}
-
-	return table_name;
-}
 
 std::unique_ptr<ral::frame::BlazingTable> process_union(const ral::frame::BlazingTableView & left, const ral::frame::BlazingTableView & right, std::string query_part) {
 	bool isUnionAll = (get_named_expression(query_part, "all") == "true");
@@ -172,21 +112,6 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 		filter_statement = "";
 	}
 }
-
-// Returns the index from table if exists
-size_t get_table_index(std::vector<std::string> table_names, std::string table_name) {
-	if(StringUtil::beginsWith(table_name, "main.")) {
-		table_name = table_name.substr(5);
-	}
-
-	auto it = std::find(table_names.begin(), table_names.end(), table_name);
-	if(it != table_names.end()) {
-		return std::distance(table_names.begin(), it);
-	} else {
-		throw std::invalid_argument("table name does not exists ==>" + table_name);
-	}
-}
-
 
 std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
@@ -380,7 +305,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			queryContext->incrementQueryStep();
 			return std::move(child_frame);
 
-		} else if(ral::operators::experimental::is_aggregate(query[0])) {
+		} else if(is_aggregate(query[0])) {
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
 			child_frame = ral::operators::experimental::process_aggregate(child_frame->toBlazingTableView(), query[0], queryContext);
@@ -454,6 +379,49 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_query(
 			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
 			throw;
 		}
+}
+
+std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data_loader> input_loaders,
+	std::vector<ral::io::Schema> schemas,
+	std::vector<std::string> table_names,
+	std::string logicalPlan,
+	int64_t connection,
+	Context & queryContext)  {
+
+	CodeTimer blazing_timer;
+
+	Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "\"Query Start\n" + logicalPlan + "\""));
+
+	try {
+		assert(input_loaders.size() == table_names.size());
+
+		std::unique_ptr<ral::frame::BlazingTable> output_frame; 
+		ral::cache::parser::expr_tree_processor tree{
+			.root = {},
+			.context = queryContext.clone(),
+			.input_loaders = input_loaders,
+			.schemas = schemas,
+			.table_names = table_names,
+			.transform_operators_bigger_than_gpu = false
+		};
+		ral::cache::OutputKernel output;
+
+		auto graph = tree.build_graph(logicalPlan);
+		if (graph.num_nodes() > 0) {
+			graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			graph.execute();
+			output_frame = output.release();
+		}
+		// output_frame = tree.execute_plan(logicalPlan);
+		double duration = blazing_timer.getDuration();
+		Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
+		assert(output_frame != nullptr);
+		return output_frame;
+	} catch(const std::exception& e) {
+		std::string err = "ERROR: in execute_plan " + std::string(e.what());
+		Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
+		throw;
+	}
 }
 
 
