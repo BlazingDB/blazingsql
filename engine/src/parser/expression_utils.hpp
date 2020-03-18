@@ -88,6 +88,8 @@ bool is_inequality(const std::string& token);
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name);
 
+std::vector<size_t> get_projections(const std::string & query_part);
+
 interops::operator_type map_to_operator_type(const std::string & operator_token);
 
 

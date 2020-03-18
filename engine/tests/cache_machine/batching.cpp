@@ -73,7 +73,7 @@ TEST_F(Batching, SimpleQuery) {
 	ral::io::data_loader loader(parser, provider);
 	loader.get_schema(tableSchema, {});
 	std::vector<int> row_groups{0};
- 	ral::io::Schema schema(tableSchema.get_names(),
+	ral::io::Schema schema(tableSchema.get_names(),
 						  tableSchema.get_calcite_to_file_indices(),
 						  tableSchema.get_dtypes(),
 						  tableSchema.get_in_file(),
@@ -85,7 +85,58 @@ TEST_F(Batching, SimpleQuery) {
 		.schemas = {schema},
 		.table_names = {"nation"}
 	};
-	Print print;  
+	Print print;
+	auto graph = tree.build_batch_graph(json);
+	try {
+		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
+		graph += link(graph.get_last_kernel(), print, simple_cache_config);
+		graph.execute();
+	} catch(std::exception & ex) {
+		std::cout << ex.what() << "\n";
+	}
+}
+
+TEST_F(Batching, BindableQuery) {
+
+	std::string json = R"(
+	{
+		'expr': 'BindableTableScan(table=[[main, nation]], filters=[[<($0, 10)]], projects=[[0, 1, 2]], aliases=[[n_nationkey, n_name, n_regionkey]])',
+		'children': []
+	}
+	)";
+
+	std::replace( json.begin(), json.end(), '\'', '\"');
+
+	std::vector<Node> contextNodes;
+	auto address = Address::TCP("127.0.0.1", 8089, 0);
+	contextNodes.push_back(Node(address));
+	uint32_t ctxToken = 123;
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
+
+	std::vector<Uri> uris;
+	uris.push_back(Uri{"/home/aocsa/tpch/100MB2Part/tpch/nation_0_0.parquet"});
+	uris.push_back(Uri{"/home/aocsa/tpch/100MB2Part/tpch/nation_0_0.parquet"});
+	uris.push_back(Uri{"/home/aocsa/tpch/100MB2Part/tpch/nation_0_0.parquet"});
+
+	ral::io::Schema tableSchema;
+	auto parser = std::make_shared<ral::io::parquet_parser>();
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	ral::io::data_loader loader(parser, provider);
+	loader.get_schema(tableSchema, {});
+	std::vector<int> row_groups{0};
+	ral::io::Schema schema(tableSchema.get_names(),
+						  tableSchema.get_calcite_to_file_indices(),
+						  tableSchema.get_dtypes(),
+						  tableSchema.get_in_file(),
+						   {row_groups, row_groups, row_groups});//because 3 files
+	tree_processor tree{
+		.root = {},
+		.context = queryContext,
+		.input_loaders = {loader},
+		.schemas = {schema},
+		.table_names = {"nation"}
+	};
+	Print print;
 	auto graph = tree.build_batch_graph(json);
 	try {
 		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
