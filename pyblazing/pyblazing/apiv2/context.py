@@ -839,7 +839,7 @@ class BlazingContext(object):
         
         if table is not None:
             self.add_remove_table(table_name, True, table)
-        return table
+        
 
     def drop_table(self, table_name):
         self.add_remove_table(table_name, False)
