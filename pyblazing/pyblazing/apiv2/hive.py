@@ -77,10 +77,18 @@ def gdf_dtype_from_dtype(dtype):
 
 
 def get_hive_table(cursor, tableName, hive_database_name):
+    print("get_hive_table start")
     query = 'use ' + hive_database_name
     runHiveDDL(cursor, query)
+    print(query)
     query = 'describe formatted ' + tableName
     result, description = runHiveQuery(cursor, query)
+    print(query)
+    print("result")
+    print(result)
+    print("description")
+    print(description)
+
     schema = {}
     schema['columns'] = []
     i = 0
@@ -131,14 +139,21 @@ def get_hive_table(cursor, tableName, hive_database_name):
                     schema['columns'].append(
                         (triple[0], convertHiveTypeToCudfType(triple[1]), True))
         i = i + 1
+    
+    print("parsed result")
+    print("schema: ")
+    print(schema)
     hasPartitions = False
     for column in schema['columns']:
         if column[2]:
             hasPartitions = True
     file_list = []
     if hasPartitions:
+        print("hasPartitions")
         schema['partitions'] = getPartitions(tableName, schema, cursor)
+        print("got partitions")
     else:
+        print("does not have partitions")
         schema['partitions'] = {}
         file_list.append(schema['location'] + "/*")
 
@@ -148,6 +163,7 @@ def get_hive_table(cursor, tableName, hive_database_name):
     if schema['fileType'] == 'csv':
         extra_kwargs['names'] = [col_name for col_name, dtype, is_virtual_col  in schema['columns'] if not is_virtual_col ]
         extra_kwargs['dtype'] = [gdf_dtype_from_dtype(dtype) for col_name, dtype, is_virtual_col in schema['columns'] if not is_virtual_col]
+    print("schema['fileType']: " + str(schema['fileType']))
     extra_kwargs['file_format'] = schema['fileType']
     extra_columns = []
     in_file = []
@@ -159,6 +175,11 @@ def get_hive_table(cursor, tableName, hive_database_name):
         partition = schema['partitions'][partitionName]
         file_list.append(schema['location'] + "/" + partitionName + "/*")
         uri_values.append(partition)
+
+    print("file_list")
+    print(file_list)
+    print("uri_values")
+    print(uri_values)
     return file_list, uri_values, schema['fileType'], extra_kwargs, extra_columns, in_file, schema['partitions']
 
 
