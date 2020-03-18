@@ -76,7 +76,9 @@ def gdf_dtype_from_dtype(dtype):
     raise TypeError('cannot convert numpy dtype `%s` to gdf_dtype' % (dtype))
 
 
-def get_hive_table(cursor, tableName):
+def get_hive_table(cursor, tableName, hive_database_name):
+    query = 'use ' + hive_database_name
+    runHiveDDL(cursor, query)
     query = 'describe formatted ' + tableName
     result, description = runHiveQuery(cursor, query)
     schema = {}

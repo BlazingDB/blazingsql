@@ -722,8 +722,9 @@ class BlazingContext(object):
         partitions = {}
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
+            hive_database_name = kwargs.get('hive_database_name', 'default')
             folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file, partitions = get_hive_table(
-                input, hive_table_name)
+                input, hive_table_name, hive_database_name)
 
             kwargs.update(extra_kwargs)
             input = folder_list
