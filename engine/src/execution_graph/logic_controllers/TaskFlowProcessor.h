@@ -35,7 +35,7 @@
 #include "distribution/primitives.h"
 #include "config/GPUManager.cuh"
 #include "CacheMachine.h"
-#include "BlazingThread.h"
+#include "blazingdb/concurrency/BlazingThread.h"
 
 namespace ral {
 namespace cache {

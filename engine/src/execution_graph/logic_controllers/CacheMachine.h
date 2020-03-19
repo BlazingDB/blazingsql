@@ -107,6 +107,7 @@ public:
 		condition_variable_.notify_all();
 	}
 	void notify() { 
+		std::unique_lock<std::mutex> lock(mutex_);
 		this->finished = true;
 		condition_variable_.notify_all(); 
 	}

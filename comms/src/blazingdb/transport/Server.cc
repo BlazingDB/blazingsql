@@ -2,6 +2,7 @@
 #include "blazingdb/transport/Server.h"
 #include "blazingdb/network/TCPSocket.h"
 #include "blazingdb/transport/io/reader_writer.h"
+#include "blazingdb/concurrency/BlazingThread.h"
 
 #include <cuda_runtime_api.h>
 #include <condition_variable>
@@ -53,6 +54,21 @@ std::shared_ptr<GPUReceivedMessage> Server::getMessage(
   return  message_queue.getMessage(messageToken);
 }
 
+void Server::notifyLast(const uint32_t context_token, const std::string &messageToken) {
+  MessageQueue &message_queue = context_messages_map_.at(context_token);
+  return  message_queue.notifyLastMessage(messageToken);
+}
+
+size_t Server::getNumberOfBatches(const uint32_t context_token, const std::string &messageToken) {
+  MessageQueue &message_queue = context_messages_map_.at(context_token);
+  return  message_queue.getNumberOfBatches(messageToken);
+}
+
+void Server::setNumberOfBatches(const uint32_t context_token, const std::string &messageToken, size_t n_batches) {
+  MessageQueue &message_queue = context_messages_map_.at(context_token);
+  return  message_queue.setNumberOfBatches(messageToken, n_batches);
+}
+
 void Server::putMessage(const uint32_t context_token,
                         std::shared_ptr<GPUReceivedMessage> &message) {
   std::shared_lock<std::shared_timed_mutex> lock(context_messages_mutex_);
@@ -95,10 +111,16 @@ public:
   void SetDevice(int gpuId) override { this->gpuId = gpuId; }
 
   void Run() override;
-
+ 
   void Close() override;
 
-  ~ServerTCP() { thread.join(); }
+  ~ServerTCP() { 
+    try{
+      thread.join(); 
+    }catch(std::exception& e) {
+      std::cout << "ServerTCP::exception: " << e.what() <<std::endl;
+    }
+  }
 
 private:
   /**
@@ -106,7 +128,7 @@ private:
    */
   blazingdb::network::TCPServerSocket server_socket;
 
-  std::thread thread;
+  BlazingThread thread;
 
   int gpuId{0};
 };
@@ -118,68 +140,111 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
     // so you read sizeof(EndPointSizeInStruct) + sizeof(size_t)
     // read that from the buffer to get these values
 
-    // begin of message
-    Message::MetaData message_metadata =
-        read_metadata<Message::MetaData>(socket);
-    Address::MetaData address_metadata =
-        read_metadata<Address::MetaData>(socket);
-
-    // read columns (gpu buffers)
-    auto column_offset_size = read_metadata<int32_t>(socket);
-    std::vector<ColumnTransport> column_offsets(column_offset_size);
-    blazingdb::transport::io::readFromSocket(
-        socket, (char *)column_offsets.data(),
-        column_offset_size * sizeof(ColumnTransport));
-
-    auto buffer_sizes_size = read_metadata<int32_t>(socket);
-    std::vector<int> buffer_sizes(buffer_sizes_size);
-    blazingdb::transport::io::readFromSocket(
-        socket, (char *)buffer_sizes.data(), buffer_sizes_size * sizeof(int));
-
-    std::vector<rmm::device_buffer> raw_columns;
-    blazingdb::transport::experimental::io::readBuffersIntoGPUTCP(buffer_sizes, socket, gpuId, raw_columns);
+    // receive the ok
     zmq::socket_t *socket_ptr = (zmq::socket_t *)socket;
 
-    int data_past_topic{0};
-    auto data_past_topic_size{sizeof(data_past_topic)};
-    socket_ptr->getsockopt(ZMQ_RCVMORE, &data_past_topic,
-                           &data_past_topic_size);
-    if (data_past_topic == 0 || data_past_topic_size == 0) {
-      std::cerr << "Server: No data inside message." << std::endl;
-      return;
-    }
-    // receive the ok
-    zmq::message_t local_message;
-    auto success = socket_ptr->recv(local_message);
-    if (success.value() == false || local_message.size() == 0) {
+    zmq::message_t message_topic;
+    auto success = socket_ptr->recv(message_topic);
+    if (success.value() == false || message_topic.size() == 0) {
       throw zmq::error_t();
     }
+    std::string message_topic_str(static_cast<char *>(message_topic.data()),
+                           message_topic.size());
+    if(message_topic_str == "N_BATCHES") {
+        Message::MetaData message_metadata =
+          read_metadata<Message::MetaData>(socket); 
 
-    std::string ok_message(static_cast<char *>(local_message.data()),
-                           local_message.size());
-    assert(ok_message == "OK");
-    blazingdb::transport::io::writeToSocket(socket, "END", 3, false);
-    // end of message
+        zmq::message_t local_message;
+        auto success = socket_ptr->recv(local_message);
+        if (success.value() == false || local_message.size() == 0) {
+          throw zmq::error_t();
+        }
+        std::string ok_message(static_cast<char *>(local_message.data()),
+                              local_message.size());
 
-    std::string messageToken = message_metadata.messageToken;
-    auto deserialize_function = server->getDeserializationFunction(
-        messageToken.substr(0, messageToken.find('_')));
-    std::shared_ptr<GPUReceivedMessage> message = deserialize_function(message_metadata, address_metadata, column_offsets, raw_columns);
-    assert(message != nullptr);
-    server->putMessage(message->metadata().contextToken, message);
+        server->setNumberOfBatches(message_metadata.contextToken, message_metadata.messageToken, message_metadata.n_batches);
 
-    // TODO: write success
-  } catch (const zmq::error_t &e) {
-    // TODO: write failure
-  }
-  catch (const std::runtime_error &exception) {
+        assert(ok_message == "OK");
+        blazingdb::transport::io::writeToSocket(socket, "END", 3, false);
+    
+    } else if(message_topic_str == "LAST") {
+       // receive the ok
+
+        Message::MetaData message_metadata =
+          read_metadata<Message::MetaData>(socket); 
+
+        zmq::message_t local_message;
+        auto success = socket_ptr->recv(local_message);
+        if (success.value() == false || local_message.size() == 0) {
+          throw zmq::error_t();
+        }
+        std::string ok_message(static_cast<char *>(local_message.data()),
+                              local_message.size());
+
+        server->notifyLast(message_metadata.contextToken, message_metadata.messageToken);
+
+        assert(ok_message == "OK");
+        blazingdb::transport::io::writeToSocket(socket, "END", 3, false);
+        // end of message
+    } else if (message_topic_str == "GPUS"){
+      // begin of message
+      Message::MetaData message_metadata =
+          read_metadata<Message::MetaData>(socket);
+      Address::MetaData address_metadata =
+          read_metadata<Address::MetaData>(socket);
+
+      // read columns (gpu buffers)
+      auto column_offset_size = read_metadata<int32_t>(socket);
+      std::vector<ColumnTransport> column_offsets(column_offset_size);
+      blazingdb::transport::io::readFromSocket(
+          socket, (char *)column_offsets.data(),
+          column_offset_size * sizeof(ColumnTransport));
+
+      auto buffer_sizes_size = read_metadata<int32_t>(socket);
+      std::vector<int> buffer_sizes(buffer_sizes_size);
+      blazingdb::transport::io::readFromSocket(
+          socket, (char *)buffer_sizes.data(), buffer_sizes_size * sizeof(int));
+
+      std::vector<rmm::device_buffer> raw_columns;
+      blazingdb::transport::experimental::io::readBuffersIntoGPUTCP(buffer_sizes, socket, gpuId, raw_columns);
+
+      int data_past_topic{0};
+      auto data_past_topic_size{sizeof(data_past_topic)};
+      socket_ptr->getsockopt(ZMQ_RCVMORE, &data_past_topic,
+                            &data_past_topic_size);
+      if (data_past_topic == 0 || data_past_topic_size == 0) {
+        std::cerr << "Server: No data inside message." << std::endl;
+        return;
+      }
+      // receive the ok
+      zmq::message_t local_message;
+      auto success = socket_ptr->recv(local_message);
+      if (success.value() == false || local_message.size() == 0) {
+        throw zmq::error_t();
+      }
+
+      std::string ok_message(static_cast<char *>(local_message.data()),
+                            local_message.size());
+      assert(ok_message == "OK");
+      blazingdb::transport::io::writeToSocket(socket, "END", 3, false);
+      // end of message
+
+      std::string messageToken = message_metadata.messageToken;
+      auto deserialize_function = server->getDeserializationFunction(
+          messageToken.substr(0, messageToken.find('_')));
+      std::shared_ptr<GPUReceivedMessage> message = deserialize_function(message_metadata, address_metadata, column_offsets, raw_columns);
+      assert(message != nullptr);
+      server->putMessage(message->metadata().contextToken, message);
+    } 
+  } catch (const std::runtime_error &exception) {
     std::cerr << "[ERROR] " << exception.what() << std::endl;
     // TODO: write failure
+    throw exception;
   }
 }
 
 void ServerTCP::Run() {
-  thread = std::thread([this]() {
+  thread = BlazingThread([this]() {
     server_socket.run([this](void *fd) {
       connectionHandler(this, fd, this->gpuId);
     });

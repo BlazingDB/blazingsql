@@ -425,6 +425,7 @@ static void ExecWorker() {
 
   auto message = CreateSampleToNodeMaster(context_token, *sender_node);
   RalClient::send(*server_node, *message);
+  
 }
 
 // TODO: move common code of TCP client and server to blazingdb::network in

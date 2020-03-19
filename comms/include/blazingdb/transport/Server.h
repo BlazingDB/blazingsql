@@ -8,6 +8,7 @@
 #include "MessageQueue.h"
 #include "blazingdb/transport/Message.h"
 #include <rmm/device_buffer.hpp>
+#include "blazingdb/concurrency/BlazingThread.h"
 
 namespace blazingdb {
 namespace transport {
@@ -80,6 +81,13 @@ public:
   virtual void SetDevice(int) = 0;
 
 public:
+
+  void notifyLast(const uint32_t context_token, const std::string &messageToken);
+  
+  void setNumberOfBatches(const uint32_t context_token, const std::string &messageToken, size_t n_batches);
+
+  size_t getNumberOfBatches(const uint32_t context_token, const std::string &messageToken);
+
   /**
    * It retrieves the message that it is stored in the message queue.
    * In case that the message queue is empty and the function is called, the
