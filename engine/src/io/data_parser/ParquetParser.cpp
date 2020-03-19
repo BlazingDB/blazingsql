@@ -96,14 +96,14 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 			}
 			consecutive_row_group_length.push_back(length_count);
 
-			if (consecutive_row_group_start.size() == 1){
-				// Uncomment this code when the consecutive rowgroups issue is fixed
-				// https://github.com/rapidsai/cudf/pull/4591
-				// pq_args.row_group = consecutive_row_group_start[0];
-				// pq_args.row_group_count = consecutive_row_group_length[0];
+			// Uncomment this code when the consecutive rowgroups issue is fixed
+			// https://github.com/rapidsai/cudf/pull/4591
+			/*if (consecutive_row_group_start.size() == 1){
+				pq_args.row_group = consecutive_row_group_start[0];
+				pq_args.row_group_count = consecutive_row_group_length[0];
 
 				auto result = cudf_io::read_parquet(pq_args);
-				return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);				
+				return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 			} else {
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> table_outs;
 				std::vector<ral::frame::BlazingTableView> table_view_outs;
@@ -115,8 +115,12 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 					table_outs.emplace_back(std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names));
 					table_view_outs.emplace_back(table_outs.back()->toBlazingTableView());
 				}
-				return ral::utilities::experimental::concatTables(table_view_outs);				
-			}			
+				return ral::utilities::experimental::concatTables(table_view_outs);
+			}*/
+
+			//For now we load all the file
+			auto result = cudf_io::read_parquet(pq_args);
+			return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 		}
 	}
 	return nullptr;
