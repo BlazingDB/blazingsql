@@ -806,7 +806,7 @@ public:
 					for (auto view : partitions_to_merge)
 						ral::utilities::print_blazing_table_view(view);
 
-					auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context.get());
+					auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression);
 
 //					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 

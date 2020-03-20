@@ -23,6 +23,7 @@
 #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 
 #include "utilities/CommonOperations.h"
+#include "utilities/DebuggingUtils.h"
 
 namespace ral {
 namespace operators {
@@ -300,7 +301,11 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	cudf::size_type limitRows;
 	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
-	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), table.names());
+	auto tableNames = table.names();
+	std::vector<std::string> sortColNames(sortColIndices.size());
+  std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
+	
+	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), sortColNames);
 
 	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(sortColumns, 0.1);
 	return selfSamples;
@@ -312,9 +317,14 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_typ
 	cudf::size_type limitRows;
 	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
+	// Normalize indices, samples contains the filtered columns
+	std::iota(sortColIndices.begin(), sortColIndices.end(), 0);
+
 	auto concat_samples = ral::utilities::experimental::concatTables(samples);
-	auto sorted_samples = ral::operators::experimental::sort(concat_samples->toBlazingTableView(), query_part);
-	
+	auto sorted_samples = logicalSort(concat_samples->toBlazingTableView(), sortColIndices, sortOrderTypes);
+
+	// ral::utilities::print_blazing_table_view(sorted_samples->toBlazingTableView());
+
 	return generatePartitionPlans(number_pivots, samples, total_rows_tables, sortOrderTypes);
 }
 
@@ -416,7 +426,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition_sort(const ral:
 	return partitions_to_merge;
 }
 
-std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part, Context * context) {
+std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part) {
 	std::vector<int8_t> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
