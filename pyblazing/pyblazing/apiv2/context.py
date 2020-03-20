@@ -775,9 +775,15 @@ class BlazingContext(object):
             if is_hive_input:
                 print("using hive col names")
                 table.column_names = hive_schema['column_names']
-                table.column_types = hive_schema['column_types']
-                print(table.column_names)
-                print(table.column_types)
+                table.column_types = parsedSchema['types']
+                print("hive_schema['column_names']")
+                print(hive_schema['column_names'])
+                print("hive_schema['column_types']")
+                print(hive_schema['column_types'])
+                print("parsedSchema['names']")
+                print(parsedSchema['names'])
+                print("parsedSchema['types']")
+                print(parsedSchema['types'])
             else:
                 table.column_names = parsedSchema['names']
                 table.column_types = parsedSchema['types']
