@@ -98,7 +98,7 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
-				Context * context, std::vector<BlazingTableView> & samples,
+				cudf::size_type number_pivots, const std::vector<BlazingTableView> & samples,
 				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes) {
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
@@ -125,7 +125,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 		}
 	}
 
-	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
+	return getPivotPointsTable(number_pivots, BlazingTableView(sortedSamples->view(), names));
 }
 
 void distributePartitionPlan(Context * context, const BlazingTableView & pivots) {
@@ -327,12 +327,12 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 }
 
 
-std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const BlazingTableView & sortedSamples){
+std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_pivots, const BlazingTableView & sortedSamples){
 
 	cudf::size_type outputRowSize = sortedSamples.view().num_rows();
-	cudf::size_type pivotsSize = outputRowSize > 0 ? context->getTotalNodes() - 1 : 0;
+	cudf::size_type pivotsSize = outputRowSize > 0 ? number_pivots : 0;
 
-	int32_t step = outputRowSize / context->getTotalNodes();
+	int32_t step = outputRowSize / (number_pivots + 1);
 
 	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
 	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);
@@ -367,7 +367,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 		}
 	}
 
-	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
+	return getPivotPointsTable(context->getTotalNodes() - 1, BlazingTableView(sortedSamples->view(), names));
 }
 
 std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(

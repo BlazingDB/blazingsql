@@ -5,6 +5,7 @@
 #include "TaskFlowProcessor.h"
 #include "io/DataLoader.h"
 #include "io/Schema.h"
+#include "utilities/CommonOperations.h"
 
 namespace ral {
 namespace batch {
@@ -185,6 +186,234 @@ protected:
 	std::ostream * ofs = nullptr;
 	std::mutex print_lock;
 };
+
+class SortAndSampleSingleNodeKernel : public PhysicalPlan {
+public:
+	SortAndSampleSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context)
+		: expression{queryString}, context{context}
+	{
+		this->output_.add_port("output_a", "output_b");
+	}
+	
+	virtual kstatus run() {
+		BatchSequence input(this->input_cache());
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
+		std::vector<ral::frame::BlazingTableView> sampledTableViews;
+		std::vector<size_t> tableTotalRows;
+		size_t total_num_rows = 0;
+		while (input.has_next()) {
+			auto batch = input.next();
+			auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
+			auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
+			sampledTableViews.push_back(sampledTable->toBlazingTableView());
+			sampledTables.push_back(std::move(sampledTable));
+			tableTotalRows.push_back(batch->view().num_rows());
+			this->output_.get_cache("output_a")->addToCache(std::move(sortedTable));
+		}
+		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
+		auto partitionPlan = ral::operators::experimental::generate_partition_plan(10 /*how many?*/, sampledTableViews, tableTotalRows, this->expression);
+		this->output_.get_cache("output_b")->addToCache(std::move(partitionPlan));
+		
+		return kstatus::proceed;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
+
+class PartitionSingleNodeKernel : public PhysicalPlan {
+public:
+	PartitionSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context)
+		: expression{queryString}, context{context} {
+		this->input_.add_port("input_a", "input_b");
+	}
+
+	virtual kstatus run() {
+		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"));
+		auto partitionPlan = std::move(input_partitionPlan.next());
+		
+		BatchSequence input(this->input_.get_cache("input_a"));
+		while (input.has_next()) {
+			auto batch = input.next();
+			
+			auto partitions = ral::operators::experimental::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
+			
+//			for(auto& partition : partitions)
+//				ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
+
+			for (auto i = 0; i < partitions.size(); i++) {
+				std::string cache_id = "output_" + std::to_string(i);
+				this->output_[cache_id]->addToCache(
+					std::make_unique<ral::frame::BlazingTable>(
+						std::make_unique<cudf::experimental::table>(partitions[i]),
+						batch->names())
+					);
+			}
+		}
+
+		return kstatus::proceed;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
+
+class SortAndSampleKernel : public PhysicalPlan {
+public:
+	SortAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context)
+		: expression{queryString}, context{context}
+	{
+		this->output_.add_port("output_a", "output_b");
+	}
+	
+	virtual kstatus run() {
+		BatchSequence input(this->input_cache());
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
+		std::vector<ral::frame::BlazingTableView> sampledTableViews;
+		size_t total_num_rows = 0;
+		while (input.has_next()) {
+			auto batch = input.next();
+			auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
+			if(context->getTotalNodes() > 1) {
+				auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
+				sampledTableViews.push_back(sampledTable->toBlazingTableView());
+				sampledTables.push_back(std::move(sampledTable));
+				total_num_rows += batch->view().num_rows();
+			}
+			this->output_.get_cache("output_a")->addToCache(std::move(sortedTable));
+		}
+
+		std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+		if (context->getTotalNodes() > 1) {
+			auto concatSamples = ral::utilities::experimental::concatTables(sampledTableViews);
+			partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), total_num_rows, this->expression, this->context.get());
+		}
+		this->output_.get_cache("output_b")->addToCache(std::move(partitionPlan));
+		
+		return kstatus::proceed;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
+
+class PartitionKernel : public PhysicalPlan {
+public:
+	PartitionKernel(const std::string & queryString, std::shared_ptr<Context> context)
+		: expression{queryString}, context{context} {
+		this->input_.add_port("input_a", "input_b");
+	}
+
+	virtual kstatus run() {
+		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"));
+		std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+		if (context->getTotalNodes() > 1) {
+			partitionPlan = std::move(input_partitionPlan.next());
+		}
+		
+		BatchSequence input(this->input_.get_cache("input_a"));
+		while (input.has_next()) {
+			auto batch = input.next();
+			
+			std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions;
+			if (context->getTotalNodes() > 1) {
+				partitions = ral::operators::experimental::partition_sort(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
+			} else {
+				partitions.push_back(std::move(batch));
+			}
+			
+//			for(auto& partition : partitions)
+//				ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
+
+			std::vector<std::unique_ptr<ral::frame::BlazingTable>> samples;
+			std::vector<ral::frame::BlazingTableView> sample_views;
+			std::vector<size_t> total_rows_tables;
+			for (auto i = 0; i < partitions.size(); i++) {
+				auto part_samples = ral::operators::experimental::sample(partitions[i]->toBlazingTableView(), this->expression);
+				sample_views.push_back(part_samples->toBlazingTableView());
+				samples.push_back(std::move(part_samples));
+				total_rows_tables.push_back(partitions[i]->view().num_rows());
+			}
+
+			auto pivots = ral::operators::experimental::generate_partition_plan(3 /*how many?*/, sample_views, total_rows_tables, this->expression);
+
+//			std::cout<< "PIVOTS: " <<std::endl;
+//			for (auto &&c : pivots->view())
+//			{
+//				cudf::test::print(c);
+//				std::cout << std::endl;
+//			}
+
+			for (auto i = 0; i < partitions.size(); i++) {
+				auto partitioned_data = ral::operators::experimental::partition_table(pivots->toBlazingTableView(), partitions[i]->toBlazingTableView(), this->expression);
+
+				std::string cache_id = "output_" + std::to_string(i);
+				for (auto &&subpartition : partitioned_data) {
+					this->output_[cache_id]->addToCache(
+						std::make_unique<ral::frame::BlazingTable>(
+							std::make_unique<cudf::experimental::table>(subpartition),
+							partitions[i]->names())
+						);
+				}
+			}
+		}
+
+		return kstatus::proceed;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
+
+class MergeStreamKernel : public PhysicalPlan {
+public:
+	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context)
+		: expression{queryString}, context{context}  {
+	}
+	
+	virtual kstatus run() {
+		while (!this->input_.get_cache("input_0")->is_finished())
+		{
+			std::vector<ral::frame::BlazingTableView> partitions_to_merge;
+			std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
+			for (size_t index = 0; index < this->input_.count(); index++) {
+				auto cache_id = "input_" + std::to_string(index);
+				if (not this->input_.get_cache(cache_id)->is_finished()) {
+					auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
+					if (input) {
+						partitions_to_merge.emplace_back(input->toBlazingTableView());
+						partitions_to_merge_holder.emplace_back(std::move(input));
+					}
+				}
+			}
+
+			if (partitions_to_merge.empty()) {
+				// noop
+			} else if(partitions_to_merge.size() == 1) {
+				this->output_.get_cache()->addToCache(std::move(partitions_to_merge_holder.front()));
+			}	else {
+				for (auto view : partitions_to_merge)
+					ral::utilities::print_blazing_table_view(view);
+
+				auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context.get());
+
+//					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
+
+				this->output_.get_cache()->addToCache(std::move(output));
+			}
+		}
+		
+		return kstatus::proceed;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
  
 struct tree_processor {
 	struct node {
@@ -211,8 +440,7 @@ struct tree_processor {
 			k = std::make_shared<Filter>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::FilterKernel);
-		}
-		else if ( is_logical_scan(expr) ) {
+		}	else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
 			auto schema = this->schemas[table_index];
@@ -226,7 +454,20 @@ struct tree_processor {
 //			k = std::make_shared<BindableTableScanKernel>(expr, *loader, schema, kernel_context);
 //			kernel_context->setKernelId(k->get_id());
 //			k->set_type_id(kernel_type::BindableTableScanKernel);
+		} else if (is_single_node_partition(expr)) {
+			k = std::make_shared<PartitionSingleNodeKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::PartitionSingleNodeKernel);
+		} else if (is_single_node_sort_and_sample(expr)) {
+			k = std::make_shared<SortAndSampleSingleNodeKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::SortAndSampleSingleNodeKernel);
+		} else if (is_merge(expr)) {
+			k = std::make_shared<MergeStreamKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::MergeStreamKernel);
 		}
+		
 		return k;
 	}
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, node * root_ptr, int level) {
