@@ -242,6 +242,8 @@ def parseHiveMetadata(curr_table, partitions):
     names = []
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
+    print("in parseHiveMetadata:")
+    print(curr_table.column_types)
     dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
@@ -723,7 +725,8 @@ class BlazingContext(object):
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             hive_database_name = kwargs.get('hive_database_name', 'default')
-            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file, partitions = get_hive_table(
+            print("create_table for hive.Cursor hive_table_name: " + hive_table_name + "  hive_database_name: " + hive_database_name)
+            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file, partitions, hive_schema = get_hive_table(
                 input, hive_table_name, hive_database_name)
 
             kwargs.update(extra_kwargs)
@@ -757,7 +760,7 @@ class BlazingContext(object):
         elif isinstance(input, list):
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
-            
+
             file_type = parsedSchema['file_type']
             table = BlazingTable(
                 parsedSchema['files'],
@@ -769,8 +772,15 @@ class BlazingContext(object):
                 uri_values=uri_values,
                 in_file=in_file)
 
-            table.column_names = parsedSchema['names']
-            table.column_types = parsedSchema['types']
+            if is_hive_input:
+                print("using hive col names")
+                table.column_names = hive_schema['column_names']
+                table.column_types = hive_schema['column_types']
+                print(table.column_names)
+                print(table.column_types)
+            else:
+                table.column_names = parsedSchema['names']
+                table.column_types = parsedSchema['types']
             
             table.slices = table.getSlices(len(self.nodes))
             if is_hive_input and len(extra_columns) > 0:
