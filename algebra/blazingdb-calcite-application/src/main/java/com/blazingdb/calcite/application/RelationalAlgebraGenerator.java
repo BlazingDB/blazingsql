@@ -27,6 +27,7 @@ import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
 import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.rel.rules.ProjectMergeRule;
 import org.apache.calcite.rel.rules.ProjectRemoveRule;
+import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
@@ -189,6 +190,7 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(ProjectTableScanRule.INSTANCE)
 						  .addRuleInstance(FilterTableScanRule.INSTANCE)
 						  .addRuleInstance(FilterRemoveIsNotDistinctFromRule.INSTANCE)
+						  .addRuleInstance(AggregateReduceFunctionsRule.INSTANCE)
 						  .build();
 		} else {
 			HepProgramBuilder programBuilder = new HepProgramBuilder();
