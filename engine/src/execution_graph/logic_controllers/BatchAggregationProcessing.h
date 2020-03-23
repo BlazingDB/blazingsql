@@ -25,31 +25,29 @@ class ComputeGroupByKernel : public PhysicalPlan {
 public:
 	ComputeGroupByKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {
-		// this->input_.add_port("input_a"); // WSM only need one port here, do I need to do this?
 	}
 
 	virtual kstatus run() {
 
         std::vector<int> group_column_indices;
-        std::vector<std::string> aggregation_input_expressions;
+        std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
         std::vector<AggregateKind> aggregation_types;
-        std::vector<std::string> aggregation_column_assigned_aliases;
         std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
             aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
 
-		BatchSequence input(this->input_.get_cache("input_a"));
+		BatchSequence input(this->input_cache());
 		while (input.has_next()) {
 			auto batch = input.next();
 
             std::unique_ptr<ral::frame::BlazingTable> output;
             if (aggregation_types.size() > 0){			
                 std::unique_ptr<ral::frame::BlazingTable> output = ral::operators::experimental::compute_aggregations_with_groupby(
-                        batch->toBlazingTableView(), aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases, group_column_indices);
+                        batch->toBlazingTableView(), aggregation_input_expressions, aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
             } else {
                 std::unique_ptr<ral::frame::BlazingTable> output = ral::operators::experimental::compute_groupby_without_aggregations(
                         batch->toBlazingTableView(), group_column_indices);
             }
-            this->output_.get_cache()->addToCache(std::move(output));
+            this->output_cache()->addToCache(std::move(output));
 		}
 
 		return kstatus::proceed;
@@ -66,12 +64,11 @@ class HashPartitionKernel : public PhysicalPlan {
 public:
 	HashPartitionKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {
-		// this->input_.add_port("input_a"); // WSM only need one port here, do I need to do this?
 	}
 
 	virtual kstatus run() {
 		
-		BatchSequence input(this->input_.get_cache("input_a"));
+		BatchSequence input(this->input_cache());
 		while (input.has_next()) {
 			auto batch = input.next();
 			
@@ -106,7 +103,6 @@ class GroupByWithAggMergeKernel : public PhysicalPlan {
 public:
 	GroupByWithAggMergeKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {
-		// this->input_.add_port("input_a"); // WSM only need one port here, do I need to do this?
 	}
 
 	virtual kstatus run() {
@@ -115,7 +111,7 @@ public:
 		std::vector<ral::frame::BlazingTableView> tableViewsToConcat;
 
         if (ready_to_execute()){
-            BatchSequence input(this->input_.get_cache("input_a"));
+            BatchSequence input(this->input_cache());
             while (input.has_next()) {
                 auto batch = input.next();
                 tableViewsToConcat.emplace_back(batch->toBlazingTableView());
@@ -124,17 +120,14 @@ public:
             auto concatenated = ral::utilities::experimental::concatTables(tableViewsToConcat);
                     
             std::vector<int> group_column_indices;
-            std::vector<std::string> aggregation_input_expressions;
+            std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
             std::vector<AggregateKind> aggregation_types;
-            std::vector<std::string> aggregation_column_assigned_aliases;
             std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
                 aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
 
             std::vector<int> mod_group_column_indices;
-            std::vector<std::string> mod_aggregation_input_expressions;
+            std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
             std::vector<AggregateKind> mod_aggregation_types;
-            std::vector<std::string> mod_aggregation_column_assigned_aliases;
-            std::vector<std::string> merging_column_names;
             std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types, 
                 mod_aggregation_column_assigned_aliases) = ral::operators::experimental::modGroupByParametersForMerge(
                 group_column_indices, aggregation_types, concatenated->names());
@@ -142,13 +135,13 @@ public:
             std::unique_ptr<ral::frame::BlazingTable> output;
             if (mod_aggregation_types.size() > 0){			
                 output = ral::operators::experimental::compute_aggregations_with_groupby(
-                        concatenated->toBlazingTableView(), mod_aggregation_types, mod_aggregation_input_expressions, 
+                        concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
                         mod_aggregation_column_assigned_aliases, mod_group_column_indices);
             } else {
                 output = ral::operators::experimental::compute_groupby_without_aggregations(
                         concatenated->toBlazingTableView(), mod_group_column_indices);
             }
-            this->output_.get_cache()->addToCache(std::move(output));
+            this->output_cache()->addToCache(std::move(output));
         }
 		
 		return kstatus::proceed;
@@ -157,7 +150,6 @@ public:
     bool ready_to_execute() {
         // WSM TODO: in this function we want to wait until all batch inputs are available
         return true;
-
     }
 
 private:

@@ -838,8 +838,9 @@ public:
 			frame_type input = std::move(this->input_.get_cache()->pullFromCache());
 			std::unique_ptr<ral::frame::BlazingTable> groupedTable;
 			std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
-			std::tie(groupedTable, partitionPlan) =
-				ral::operators::experimental::group_and_sample(input->toBlazingTableView(), this->expression, this->context.get());
+			// WSM commenting this out because groupby is being refactored and this is getting deprecated
+			// std::tie(groupedTable, partitionPlan) =
+			// 	ral::operators::experimental::group_and_sample(input->toBlazingTableView(), this->expression, this->context.get());
 
 			context->incrementQueryStep();
 			this->output_["output_a"]->addToCache(std::move(groupedTable));
@@ -877,16 +878,17 @@ public:
 				return kstatus::proceed;
 			}
 
-			if (context->getTotalNodes() > 1) {
-				partitionPlan = std::move(this->input_["input_b"]->pullFromCache());
-				partitions = ral::operators::experimental::partition_group(partitionPlan->toBlazingTableView(),
-																																	groupedTable->toBlazingTableView(),
-																																	this->expression,
-																																	this->context.get());
-			} else {
-				partitions =
-					ral::operators::experimental::partition_group({}, groupedTable->toBlazingTableView(), this->expression, this->context.get());
-			}
+			// WSM commenting this out because GroupBy was getting refactored and this will be deprecated
+			// if (context->getTotalNodes() > 1) {
+			// 	partitionPlan = std::move(this->input_["input_b"]->pullFromCache());
+			// 	partitions = ral::operators::experimental::partition_group(partitionPlan->toBlazingTableView(),
+			// 																														groupedTable->toBlazingTableView(),
+			// 																														this->expression,
+			// 																														this->context.get());
+			// } else {
+			// 	partitions =
+			// 		ral::operators::experimental::partition_group({}, groupedTable->toBlazingTableView(), this->expression, this->context.get());
+			// }
 			// for(auto& partition : partitions)
 			// 	ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
 
@@ -1003,11 +1005,12 @@ public:
 					for (auto view : partitions_to_merge)
 						ral::utilities::print_blazing_table_view(view);
 
-					auto output = ral::operators::experimental::merge_group(partitions_to_merge, this->expression, this->context.get());
+					// WSM commenting this out because groupby is getting some refactoring and this should be getting deprecated soon
+					// auto output = ral::operators::experimental::merge_group(partitions_to_merge, this->expression, this->context.get());
 
-					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
+					// ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 
-					this->output_.get_cache()->addToCache(std::move(output));
+					// this->output_.get_cache()->addToCache(std::move(output));
 				}
 			}
 			
