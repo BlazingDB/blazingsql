@@ -8,6 +8,7 @@
 #include "TaskFlowProcessor.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
+#include "communication/CommunicationData.h"
 #include "operators/GroupBy.h"
 
 #include <cudf/hashing.hpp>
@@ -21,9 +22,9 @@ using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 
 
 
-class ComputeGroupByKernel : public PhysicalPlan {
+class ComputeAggregationKernel : public PhysicalPlan {
 public:
-	ComputeGroupByKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	ComputeAggregationKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {
 	}
 
@@ -40,12 +41,15 @@ public:
 			auto batch = input.next();
 
             std::unique_ptr<ral::frame::BlazingTable> output;
-            if (aggregation_types.size() > 0){			
-                std::unique_ptr<ral::frame::BlazingTable> output = ral::operators::experimental::compute_aggregations_with_groupby(
-                        batch->toBlazingTableView(), aggregation_input_expressions, aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
-            } else {
-                std::unique_ptr<ral::frame::BlazingTable> output = ral::operators::experimental::compute_groupby_without_aggregations(
+            if(aggregation_types.size() == 0) {
+                output = ral::operators::experimental::compute_groupby_without_aggregations(
                         batch->toBlazingTableView(), group_column_indices);
+            } else if (group_column_indices.size() == 0) {
+                output = ral::operators::experimental::compute_aggregations_without_groupby(
+                        batch->toBlazingTableView(), aggregation_input_expressions, aggregation_types, aggregation_column_assigned_aliases);                
+            } else {
+                output = ral::operators::experimental::compute_aggregations_with_groupby(
+                    batch->toBlazingTableView(), aggregation_input_expressions, aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
             }
             this->output_cache()->addToCache(std::move(output));
 		}
@@ -99,9 +103,9 @@ private:
 };
 
 
-class GroupByWithAggMergeKernel : public PhysicalPlan {
+class AggregationMergeKernel : public PhysicalPlan {
 public:
-	GroupByWithAggMergeKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	AggregationMergeKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {
 	}
 
@@ -133,13 +137,23 @@ public:
                 group_column_indices, aggregation_types, concatenated->names());
 
             std::unique_ptr<ral::frame::BlazingTable> output;
-            if (mod_aggregation_types.size() > 0){			
+            if(aggregation_types.size() == 0) {
+                output = ral::operators::experimental::compute_groupby_without_aggregations(
+                        concatenated->toBlazingTableView(), mod_group_column_indices);
+            } else if (group_column_indices.size() == 0) {
+                // aggregations without groupby are only merged on the master node
+                if(context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
+                    output = ral::operators::experimental::compute_aggregations_without_groupby(
+                            concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types, 
+                            mod_aggregation_column_assigned_aliases);
+                } else {
+                    // with aggregations without groupby the distribution phase should deposit an empty dataframe with the right schema into the cache, which is then output here
+                    output = std::move(concatenated);
+                }
+            } else {
                 output = ral::operators::experimental::compute_aggregations_with_groupby(
                         concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
                         mod_aggregation_column_assigned_aliases, mod_group_column_indices);
-            } else {
-                output = ral::operators::experimental::compute_groupby_without_aggregations(
-                        concatenated->toBlazingTableView(), mod_group_column_indices);
             }
             this->output_cache()->addToCache(std::move(output));
         }
@@ -169,30 +183,30 @@ private:
 /*
 aggwithgroupby becomes:
 - single node
-    ComputeGroupByKernel
-    GroupByWithAggMergeKernel
+    ComputeAggregationKernel
+    AggregationMergeKernel
 - multi node
-    ComputeGroupByKernel
+    ComputeAggregationKernel
     HashPartitionKernel
-    GroupByWithAggMergeKernel
+    AggregationMergeKernel
 
 groupbywoagg becomes:
 - single node
-    ComputeGroupByKernel
-    GroupByWithAggMergeKernel
+    ComputeAggregationKernel
+    AggregationMergeKernel
 - multi node
-    ComputeGroupByKernel
+    ComputeAggregationKernel
     HashPartitionKernel
-    GroupByWithAggMergeKernel
+    AggregationMergeKernel
 
 aggwogroupby becomes:
 - single node
-    ComputeAggWithoutGroupByKernel
+    ComputeAggregationKernel
     MergeAggWithoutGroupByKernel
 - multi node
-    ComputeAggWithoutGroupByKernel
+    ComputeAggregationKernel
     SendToMasterKernel
-    MergeAggWithoutGroupByKernel
+    AggregationMergeKernel
 
 
 
