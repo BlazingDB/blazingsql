@@ -123,16 +123,20 @@ TEST_F(Batching, SortSamplePartitionTest) {
 
 	TableScan customer_generator(loader, schema, queryContext);
 
-	SortAndSampleSingleNodeKernel sort_and_sample("Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
-	PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
-	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[ASC], dir1=[ASC])", queryContext);
+	SortAndSampleSingleNodeKernel sort_and_sample("Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext);
+	PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext);
+	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext);
+
+	// SortAndSampleSingleNodeKernel sort_and_sample("Logical_SortAndSample(sort0=[$0], dir0=[ASC])", queryContext);
+	// PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$0], dir0=[ASC])", queryContext);
+	// MergeStreamKernel merge("LogicalMerge(sort0=[$0], dir0=[ASC])", queryContext);
 	Projection project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext);
 	Filter filter("LogicalFilter(condition=[<($0, 100)])", queryContext);
 	Print print;
 	ral::cache::graph m;
 	try {
 		auto cache_machine_config =
-			ral::cache::cache_settings{.type = ral::cache::CacheType::FOR_EACH, .num_partitions = 11};
+			ral::cache::cache_settings{.type = ral::cache::CacheType::FOR_EACH, .num_partitions = 10};
 		m += customer_generator >> filter;
 		m += filter >> project;
 		m += project >> sort_and_sample;
