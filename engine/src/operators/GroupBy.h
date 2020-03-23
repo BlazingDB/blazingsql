@@ -4,6 +4,7 @@
 #include <blazingdb/manager/Context.h>
 #include <string>
 #include <vector>
+#include <tuple>
 
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 #include <cudf/aggregation.hpp>
@@ -24,6 +25,13 @@ enum AggregateKind{
 namespace ral {
 namespace operators {
 namespace experimental {
+
+	std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>, std::vector<std::string>> 
+		parseGroupByExpression(const std::string & queryString);
+
+	std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>, std::vector<std::string>> 
+		modGroupByParametersForMerge(const std::vector<int> & group_column_indices, 
+		const std::vector<AggregateKind> & aggregation_types, const std::vector<std::string> & merging_column_names);
 
 	cudf::experimental::aggregation::Kind convertAggregationCudf(AggregateKind input);
 

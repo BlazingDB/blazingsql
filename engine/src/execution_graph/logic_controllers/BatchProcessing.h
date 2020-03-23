@@ -1,4 +1,5 @@
 #pragma once
+
 #include "BlazingColumn.h"
 #include "LogicPrimitives.h"
 #include "CacheMachine.h"
@@ -6,6 +7,7 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
+
 
 namespace ral {
 namespace batch {

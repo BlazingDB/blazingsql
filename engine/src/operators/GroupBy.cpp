@@ -50,6 +50,64 @@ std::vector<int> get_group_columns(std::string query_part) {
 	return group_column_indices;
 }
 
+
+std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>,std::vector<std::string>> 
+	parseGroupByExpression(const std::string & queryString){
+
+	auto rangeStart = queryString.find("(");
+	auto rangeEnd = queryString.rfind(")") - rangeStart;
+	std::string combined_expression = queryString.substr(rangeStart + 1, rangeEnd - 1);
+
+	std::vector<int> group_column_indices = get_group_columns(combined_expression);
+
+	// Get aggregations
+	std::vector<std::string> aggregation_expressions;
+	std::vector<std::string> aggregation_column_assigned_aliases;
+	std::vector<std::string> expressions = get_expressions_from_expression_list(combined_expression);
+	for(std::string expr : expressions) {
+		std::string expression = std::regex_replace(expr, std::regex("^ +| +$|( ) +"), "$1");
+		if(expression.find("group=") == std::string::npos) {
+			aggregation_expressions.push_back(expression);
+
+			// if the aggregation has an alias, lets capture it here, otherwise we'll figure out what to call the
+			// aggregation based on its input
+			if(expression.find("EXPR$") == 0)
+				aggregation_column_assigned_aliases.push_back("");
+			else
+				aggregation_column_assigned_aliases.push_back(expression.substr(0, expression.find("=[")));
+		}
+	}
+	std::vector<AggregateKind> aggregation_types;
+	std::vector<std::string> aggregation_input_expressions;
+	for(std::string expression : aggregation_expressions) {
+		aggregation_types.push_back(get_aggregation_operation(expression));
+		aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));
+	}
+	return std::make_tuple(std::move(group_column_indices), std::move(aggregation_input_expressions), 
+		std::move(aggregation_types), std::move(aggregation_column_assigned_aliases));
+}
+
+
+std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>,	std::vector<std::string>> 
+	modGroupByParametersForMerge(const std::vector<int> & group_column_indices, 
+		const std::vector<AggregateKind> & aggregation_types, const std::vector<std::string> & merging_column_names) {
+
+	std::vector<AggregateKind> mod_aggregation_types = aggregation_types;
+	std::vector<std::string> mod_aggregation_input_expressions(aggregation_types.size());
+	std::vector<std::string> mod_aggregation_column_assigned_aliases(mod_aggregation_types.size());
+	std::vector<int> mod_group_column_indices(group_column_indices.size());
+	std::iota(mod_group_column_indices.begin(), mod_group_column_indices.end(), 0);
+	for (int i = 0; i < mod_aggregation_types.size(); i++){
+		if (mod_aggregation_types[i] == AggregateKind::COUNT){
+			mod_aggregation_types[i] = AggregateKind::SUM; // if we have a COUNT, we want to SUM the output of the counts from other nodes
+		}
+		mod_aggregation_input_expressions[i] = std::to_string(i + mod_group_column_indices.size()); // we just want to aggregate the input columns, so we are setting the indices here
+		mod_aggregation_column_assigned_aliases[i] = merging_column_names[i + mod_group_column_indices.size()];
+	}
+	return std::make_tuple(std::move(mod_group_column_indices), std::move(mod_aggregation_input_expressions), 
+		std::move(mod_aggregation_types), std::move(mod_aggregation_column_assigned_aliases));
+}
+
 typedef blazingdb::manager::experimental::Context Context;
 typedef ral::communication::experimental::CommunicationData CommunicationData;
 using namespace ral::distribution::experimental;

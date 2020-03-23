@@ -17,6 +17,7 @@
 #include <src/io/data_parser/ParquetParser.h>
 #include <src/io/data_provider/UriDataProvider.h>
 #include <execution_graph/logic_controllers/BatchProcessing.h>
+#include <execution_graph/logic_controllers/BatchAggregationProcessing.h>
 
 using blazingdb::manager::experimental::Context;
 using blazingdb::transport::experimental::Address;
