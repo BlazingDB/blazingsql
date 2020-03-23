@@ -136,6 +136,20 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 	// Data type normalization means that only some columns from a table would get normalized,
 	// so we would need to manage the lifecycle of only a new columns that get allocated
 
+	size_t empty_count = 0;	
+	for(size_t i = 0; i < table_views_to_concat.size(); i++) {	
+		ral::frame::BlazingTableView tview(table_views_to_concat[i], names);	
+
+ 		if (tview.num_rows() == 0) {	
+			++empty_count;	
+		}	
+	}	
+
+ 	// All tables are empty so we just need to return the 1st one	
+	if (empty_count == table_views_to_concat.size()) {	
+		return std::make_unique<ral::frame::BlazingTable>(table_views_to_concat[0], names);	
+	}	
+
 	std::unique_ptr<CudfTable> concatenated_tables = cudf::experimental::concatenate(table_views_to_concat);
 	return std::make_unique<BlazingTable>(std::move(concatenated_tables), names);
 }
