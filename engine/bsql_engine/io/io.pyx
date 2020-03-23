@@ -185,7 +185,6 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
 cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     cdef vector[string] files
     for file in fileList:
-      print('file', file)
       files.push_back(str.encode(file))
 
     cdef vector[string] arg_keys
