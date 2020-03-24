@@ -68,11 +68,11 @@ void ExecMaster() {
 			auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
 			auto host_table = concreteMessage->releaseBlazingHostTable();
 			cache_machine->addToCache(std::move(host_table));
-			cache_machine->finish();
 		});
 
 	std::thread([cache_machine]() {
 		auto host_table = cache_machine->pullFromCache();
+		assert(host_table != nullptr);
 		auto table = ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
 		std::cout << "message received\n";
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table->view().column(0));
@@ -122,8 +122,8 @@ TEST_F(SendBatchSamplesTest, MasterAndWorker) {
 	}
 }
 
-// // // TO use in separate process by:
-// // // ./blazingdb-communication-gtest --gtest_filter=SendBatchSamplesTest.Master
+// // TO use in separate process by:
+// // ./blazingdb-communication-gtest --gtest_filter=SendBatchSamplesTest.Master
 // TEST_F(SendBatchSamplesTest, Master) {
 //    ExecMaster();
 //  }
