@@ -55,16 +55,20 @@ public:
 	GPUComponentReceivedMessage(std::string const & messageToken,
 						uint32_t contextToken,
 						Node  & sender_node,
-					    std::unique_ptr<ral::frame::BlazingTable> && samples,
-						std::uint64_t total_row_size = 0)
+						std::unique_ptr<ral::frame::BlazingTable> && samples,
+						int32_t total_row_size = 0,
+						int32_t partition_id = 0)
 		: GPUReceivedMessage(messageToken, contextToken, sender_node),
 		  table(std::move(samples)) {
 		this->metadata().total_row_size = total_row_size;
+		this->metadata().partition_id = partition_id;
 	} 
 	
 	std::unique_ptr<ral::frame::BlazingTable>  releaseBlazingTable() { return std::move(table); }
 
 	int32_t getTotalRowSize() { return this->metadata().total_row_size; };
+	
+	int32_t getPartitionId() { return this->metadata().partition_id; };
 
 protected:
 	std::unique_ptr<ral::frame::BlazingTable> table;
@@ -76,15 +80,19 @@ public:
 						uint32_t contextToken,
 						Node  & sender_node,
 					    ral::frame::BlazingHostTable && samples,
-						std::uint64_t total_row_size = 0)
+						int32_t total_row_size = 0,
+						int32_t partition_id = 0)
 		: GPUReceivedMessage(messageToken, contextToken, sender_node),
 		  table(std::move(samples)) {
 		this->metadata().total_row_size = total_row_size;
+		this->metadata().partition_id = partition_id;
 	} 
 	
 	std::unique_ptr<ral::frame::BlazingTable>  getBlazingTable() { return deserialize_from_cpu(table); }
 
 	int32_t getTotalRowSize() { return this->metadata().total_row_size; };
+
+	int32_t getPartitionId() { return this->metadata().partition_id; };
 
 protected:
 	ral::frame::BlazingHostTable table;
@@ -96,9 +104,11 @@ public:
 		uint32_t contextToken,
 		Node  & sender_node,
 		const ral::frame::BlazingTableView & samples,
-		std::uint64_t total_row_size = 0)
+		int32_t total_row_size = 0,
+		int32_t partition_id = 0)
 		: GPUMessage(messageToken, contextToken, sender_node), table_view{samples} {
 		this->metadata().total_row_size = total_row_size;
+		this->metadata().partition_id = partition_id;
 	}
 
 	virtual raw_buffer GetRawColumns() override {
@@ -121,7 +131,7 @@ public:
 			.raw_buffers = raw_buffers
 		};
 		auto node = Node(Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port));
-		return std::make_shared<HostComponentReceivedMessage>(message_metadata.messageToken, message_metadata.contextToken, node, std::move(host_table), message_metadata.total_row_size);
+		return std::make_shared<HostComponentReceivedMessage>(message_metadata.messageToken, message_metadata.contextToken, node, std::move(host_table), message_metadata.total_row_size, message_metadata.partition_id);
 	}
 
 	ral::frame::BlazingTableView getTableView() { return table_view; }

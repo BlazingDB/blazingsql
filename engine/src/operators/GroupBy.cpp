@@ -219,7 +219,7 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 		ral::frame::BlazingTableView gathered_table(gathered->view(), grouped_table->names());
 		grouped_table = nullptr; // lets free grouped_table. We dont need it anymore.
 
-		std::vector<int8_t> sortOrderTypes;
+		std::vector<cudf::order> sortOrderTypes;
 		std::vector<NodeColumnView> partitions = partitionData(
 								context, gathered_table, partitionPlan->toBlazingTableView(), group_column_indices, sortOrderTypes);
 
@@ -471,7 +471,7 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 		ral::frame::BlazingTableView gathered_table(gathered->view(), grouped_table->names());
 		grouped_table = nullptr; // lets free grouped_table. We dont need it anymore.
 
-		std::vector<int8_t> sortOrderTypes;
+		std::vector<cudf::order> sortOrderTypes;
 		std::vector<NodeColumnView> partitions = partitionData(
 								context, gathered_table, partitionPlan->toBlazingTableView(), group_column_indices, sortOrderTypes);
 		context->incrementQuerySubstep();
@@ -876,7 +876,7 @@ auto partition_groupby_aggregations(Context * context,
 
 	ral::frame::BlazingTableView gathered_table(gathered->view(), grouped_table.names());
 
-	std::vector<int8_t> sortOrderTypes;
+	std::vector<cudf::order> sortOrderTypes;
 	std::vector<NodeColumnView> partitions = partitionData(
 							context, gathered_table, partitionPlan, group_column_indices, sortOrderTypes);
 

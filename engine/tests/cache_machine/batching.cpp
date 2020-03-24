@@ -11,13 +11,11 @@
 #include <cudf/cudf.h>
 #include <cudf/io/functions.hpp>
 #include <cudf/types.hpp>
-#include <execution_graph/logic_controllers/TaskFlowProcessor.h>
 #include <src/from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <src/io/data_parser/CSVParser.h>
 #include <src/io/data_parser/ParquetParser.h>
 #include <src/io/data_provider/UriDataProvider.h>
-#include <execution_graph/logic_controllers/BatchProcessing.h>
-#include <execution_graph/logic_controllers/BatchAggregationProcessing.h>
+#include <execution_graph/logic_controllers/PhysicalPlanGenerator.h>
 
 using blazingdb::manager::experimental::Context;
 using blazingdb::transport::experimental::Address;

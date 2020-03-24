@@ -25,7 +25,7 @@ namespace experimental {
 
 	std::unique_ptr<BlazingTable> generatePartitionPlans(
 				cudf::size_type number_pivots, const std::vector<BlazingTableView> & samples, 
-				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes);
+				const std::vector<std::size_t> & table_total_rows, const std::vector<cudf::order> & sortOrderTypes);
 	
 	void distributePartitionPlan(Context * context, const BlazingTableView & pivots);
 
@@ -38,8 +38,9 @@ namespace experimental {
 											const BlazingTableView & table,
 											const BlazingTableView & pivots,
 											const std::vector<int> & searchColIndices,
-											std::vector<int8_t> sortOrderTypes);
+											std::vector<cudf::order> sortOrderTypes);
 
+	void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
 	void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
@@ -50,7 +51,7 @@ namespace experimental {
 	void scatterData(Context * context, const BlazingTableView & table);
 
 	std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
-				const std::vector<int8_t> & sortOrderTypes, const std::vector<int> & sortColIndices);
+				const std::vector<cudf::order> & sortOrderTypes, const std::vector<int> & sortColIndices);
 	
 	std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_pivots, const BlazingTableView & sortedSamples);
 
