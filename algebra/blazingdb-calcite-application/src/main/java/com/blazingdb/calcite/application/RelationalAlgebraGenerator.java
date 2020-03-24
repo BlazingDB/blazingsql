@@ -238,6 +238,7 @@ public class RelationalAlgebraGenerator {
 		try {
 			response = RelOptUtil.toString(getRelationalAlgebra(sql));
 		} catch(Exception ex) {
+			System.out.println(ex.getMessage());
 			LOGGER.error(ex.getMessage());
 			throw ex;
 		}
