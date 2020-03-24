@@ -807,7 +807,6 @@ class BlazingContext(object):
             if is_hive_input:
                 print("using hive col names")
                 table.column_names = hive_schema['column_names']
-                table.column_types = parsedSchema['types']
                 print("hive_schema['column_names']")
                 print(hive_schema['column_names'])
                 print("hive_schema['column_types']")
@@ -816,6 +815,19 @@ class BlazingContext(object):
                 print(parsedSchema['names'])
                 print("parsedSchema['types']")
                 print(parsedSchema['types'])
+                if len(hive_schema['column_types']) == len(parsedSchema['types']):
+                    merged_types = []
+                    for i in range(len(parsedSchema['types'])):
+                        if parsedSchema['types'][i] == 0:  # if the type parsed from the file is 0 we want to use the one from Hive
+                            merged_types.append(hive_schema['column_types'][i])
+                        else:
+                            merged_types.append(parsedSchema['types'][i])
+                else:
+                    print("ERROR: number of hive_schema columns does not match number of parsedSchema columns")
+                
+                print("merged_types")
+                print(merged_types)
+                table.column_types = merged_types
             else:
                 table.column_names = parsedSchema['names']
                 table.column_types = parsedSchema['types']

@@ -9,7 +9,7 @@ import pandas as pd
 def convertHiveTypeToNumpyType(hiveType):
     if(hiveType == 'int' or hiveType == 'integer'):
         return np.int32
-    elif(hiveType == 'string' or hiveType.startswith('varchar') or hiveType == "char" or hiveType == "binary"):
+    elif(hiveType == 'string' or hiveType.startswith('varchar') or hiveType.startswith('char') or hiveType == "binary"):
         return np.str
     elif(hiveType == 'tinyint'):
         return np.int8
@@ -19,7 +19,7 @@ def convertHiveTypeToNumpyType(hiveType):
         return np.int64
     elif(hiveType == 'float'):
         return np.float32
-    elif(hiveType == 'double' or hiveType == 'double precision'):
+    elif(hiveType == 'double' or hiveType == 'double precision' or hiveType.startswith('decimal')):
         return np.float64
     elif(hiveType == 'decimal' or hiveType == 'numeric'):
         return None
@@ -34,7 +34,7 @@ def convertHiveTypeToNumpyType(hiveType):
 def convertHiveTypeToCudfType(hiveType):
     if(hiveType == 'int' or hiveType == 'integer'):
         return 3 # INT32
-    elif(hiveType == 'string' or hiveType.startswith('varchar') or hiveType == "char" or hiveType == "binary"):
+    elif(hiveType == 'string' or hiveType.startswith('varchar') or hiveType.startswith('char') or hiveType == "binary"):
         return 14  # STRING
     elif(hiveType == 'tinyint'):
         return 1  # INT8
@@ -44,7 +44,7 @@ def convertHiveTypeToCudfType(hiveType):
         return 4  # INT64
     elif(hiveType == 'float'):
         return 5  # FLOAT32
-    elif(hiveType == 'double' or hiveType == 'double precision'):
+    elif(hiveType == 'double' or hiveType == 'double precision' or hiveType.startswith('decimal')):
         return 6  # FLOAT64
     elif(hiveType == 'decimal' or hiveType == 'numeric'):
         return None

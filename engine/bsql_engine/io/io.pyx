@@ -169,6 +169,10 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     for extra_column in extra_columns:
         extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_dtype(extra_column[1]))
         extra_columns_cpp.push_back(extra_column_cpp)
+        print("extra_column_cpp")
+        print(extra_column_cpp)
+        print("extra_column[1]:  " + str(extra_column[1]))
+        print("gdf_dtype_from_dtype(extra_column[1]):  " + str(gdf_dtype_from_dtype(extra_column[1])))
     tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
     return_object['datasource'] = files
