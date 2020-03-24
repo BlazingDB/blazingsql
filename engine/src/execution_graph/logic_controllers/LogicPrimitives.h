@@ -13,9 +13,11 @@
 #include <thread>
 #include <typeindex>
 #include <vector>
+#include <string>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
+#include <blazingdb/transport/ColumnTransport.h>
 
 typedef cudf::experimental::table CudfTable;
 typedef cudf::table_view CudfTableView;
@@ -28,6 +30,7 @@ namespace frame {
 
 class BlazingTable;
 class BlazingTableView;
+class BlazingHostTable;
 
 class BlazingTable {
 public:
@@ -59,7 +62,6 @@ private:
 	std::vector<std::unique_ptr<BlazingColumn>> columns;
 };
 
-
 class BlazingTableView {
 public:
 	BlazingTableView();
@@ -88,6 +90,22 @@ public:
 private:
 	std::vector<std::string> columnNames;
 	CudfTableView table;
+};
+using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
+
+struct BlazingHostTable {
+	unsigned long long sizeInBytes() {
+		unsigned long long total_size = 0L;
+		for (auto &col : columns_offsets) {
+			total_size += col.size_in_bytes;
+		}
+		return total_size;
+	}
+
+	std::vector<ColumnTransport> columns_offsets;
+	std::vector<std::basic_string<char>> raw_buffers;
+//	const MessageMetadata& message_metadata,
+//	const Address::MetaData & address_metadata,
 };
 
 std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::type_id> column_types,

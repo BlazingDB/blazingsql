@@ -352,7 +352,7 @@ private:
     {
       const std::string endpoint = GPUComponentMessage::MessageID();
       comm_server->registerEndPoint(endpoint);
-      comm_server->registerMessageForEndPoint(GPUComponentMessage::MakeFrom, endpoint);
+      comm_server->registerDeviceDeserializerForEndPoint(GPUComponentMessage::MakeFrom, endpoint);
     }
   }
 

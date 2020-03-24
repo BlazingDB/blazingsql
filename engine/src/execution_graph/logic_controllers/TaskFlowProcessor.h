@@ -246,9 +246,10 @@ enum spec : std::uint8_t { in = 0, out = 1 };
 static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cache_settings& config) {
 	size_t gpuMemory = ral::config::gpuMemorySize() * 0.75;
 	assert(gpuMemory > 0);
-	
-	std::vector<unsigned long long> memoryPerCache = {INT_MAX};
-	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+	size_t cpuMemory = ral::config::gpuMemorySize();
+
+	std::vector<unsigned long long> memoryPerCache = {cpuMemory, INT_MAX};
+	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::CPU, ral::cache::CacheDataType::LOCAL_FILE};
 	std::shared_ptr<ral::cache::CacheMachine> machine;
 	if (config.type == CacheType::NON_WAITING) {
 		machine =  std::make_shared<ral::cache::NonWaitingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);

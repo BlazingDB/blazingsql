@@ -2,20 +2,21 @@
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
+#include "execution_graph/logic_controllers/BlazingColumn.h"
+#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
+#include "execution_graph/logic_controllers/BlazingColumnView.h"
+#include <atomic>
 #include <blazingdb/manager/Context.h>
 #include <cudf/io/functions.hpp>
 #include <future>
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <src/communication/messages/GPUComponentMessage.h>
 #include <string>
 #include <thread>
 #include <typeindex>
 #include <vector>
-#include <atomic>
-#include "execution_graph/logic_controllers/BlazingColumn.h"
-#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
-#include "execution_graph/logic_controllers/BlazingColumnView.h"
 
 namespace ral {
 namespace cache {
@@ -46,6 +47,25 @@ public:
 private:
 	std::unique_ptr<ral::frame::BlazingTable> data;
 };
+
+ class CPUCacheData : public CacheData {
+ public:
+ 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) {
+		this->host_table = ral::communication::messages::experimental::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
+ 	}
+
+ 	std::unique_ptr<ral::frame::BlazingTable> decache() override {
+ 		return ral::communication::messages::experimental::deserialize_from_cpu(host_table);
+ 	}
+
+ 	unsigned long long sizeInBytes() override { return host_table.sizeInBytes(); }
+
+ 	virtual ~CPUCacheData() {}
+
+protected:
+	 ral::frame::BlazingHostTable host_table;
+ };
+
 
 class CacheDataLocalFile : public CacheData {
 public:
@@ -212,6 +232,7 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
 };
+using Context = blazingdb::manager::experimental::Context;
 
 class WorkerThread {
 public:

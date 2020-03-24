@@ -14,10 +14,11 @@ using ContextToken = uint32_t;
 using MessageTokenType = std::string;
 using GPUMessage = blazingdb::transport::experimental::GPUMessage;
 using GPUReceivedMessage = blazingdb::transport::experimental::GPUReceivedMessage;
+using HostCallback = blazingdb::transport::experimental::HostCallback;
 
 class Server {
 public:
-	static void start(unsigned short port = 8000);
+	static void start(unsigned short port = 8000, bool use_batch_processing = false);
 
 	static void close();
 
@@ -35,6 +36,8 @@ public:
 
 public:
 	std::shared_ptr<GPUReceivedMessage> getMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
+
+	void handle(HostCallback callback);
 
 private:
 	Server(Server &&) = delete;
@@ -54,7 +57,9 @@ private:
 
 private:
 	static unsigned short port_;
+	static bool use_batch_processing_;
 };
+
 
 }  // namespace experimental
 }  // namespace network

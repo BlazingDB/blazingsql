@@ -11,6 +11,8 @@ namespace transport {
 namespace experimental {
 namespace io {
 
+using Buffer = std::basic_string<char>;
+
 struct PinnedBuffer {
   std::size_t size;
   char *data;
@@ -51,6 +53,9 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
 
 void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
                                           void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &);
+
+void readBuffersIntoCPUTCP(std::vector<int> bufferSizes,
+                                          void *fileDescriptor, int gpuNum, std::vector<Buffer> &);
 
 }  // namespace io
 }  // namespace experimental

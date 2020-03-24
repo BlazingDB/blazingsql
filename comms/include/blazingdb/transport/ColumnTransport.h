@@ -18,9 +18,10 @@ struct ColumnTransport {
   int strings_data{};
   int strings_offsets{};
   int strings_nullmask{};
-
   int strings_data_size{0};
   int strings_offsets_size{0};
+
+  int size_in_bytes{0};
 };
 
 }  // namespace experimental

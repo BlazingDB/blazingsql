@@ -14,14 +14,32 @@ namespace blazingdb {
 namespace transport {
 namespace experimental {
 
+using Buffer = std::basic_string<char>;
+
+struct HostBufferContainer {
+  Message::MetaData message_metadata;
+  Address::MetaData address_metadata;
+  std::vector<ColumnTransport> columns_offsets;
+	std::vector<std::basic_string<char>> raw_buffers;
+};
+using gpu_raw_buffer_container = std::tuple<std::vector<int>, std::vector<const char *>,
+											std::vector<ColumnTransport>,
+											std::vector<std::unique_ptr<rmm::device_buffer>> >;
+
+using HostCallback = std::function<void (HostBufferContainer)>;
+
 class Server {
 public:
   /**
    * Alias of the message class used in the implementation of the server.
    */
-  using MakeCallback = std::function<std::shared_ptr<GPUReceivedMessage>(
+  using MakeDeviceFrameCallback = std::function<std::shared_ptr<GPUReceivedMessage>(
       const Message::MetaData &, const Address::MetaData &,
       const std::vector<ColumnTransport> &, const std::vector<rmm::device_buffer> &)>;
+
+  using MakeHostFrameCallback = std::function<std::shared_ptr<GPUReceivedMessage>(
+      const Message::MetaData &, const Address::MetaData &,
+      const std::vector<ColumnTransport> &, const std::vector<std::basic_string<char>> &)>;
 
 public:
   virtual ~Server() = default;
@@ -33,7 +51,10 @@ public:
    * @param end_point     name of the endpoint.
    * @param deserializer  function used to deserialize the message.
    */
-  virtual void registerMessageForEndPoint(MakeCallback deserializer,
+  virtual void registerDeviceDeserializerForEndPoint(MakeDeviceFrameCallback deserializer,
+                                          const std::string &end_point);
+
+  virtual void registerHostDeserializerForEndPoint(MakeHostFrameCallback deserializer,
                                           const std::string &end_point);
 
 public:
@@ -76,6 +97,10 @@ public:
    */
   virtual void Run() = 0;
 
+  virtual void Run(HostCallback callback) {
+    assert(false);
+  }
+
   virtual void Close() = 0;
 
   virtual void SetDevice(int) = 0;
@@ -116,8 +141,11 @@ public:
   virtual void putMessage(const uint32_t context_token,
                           std::shared_ptr<GPUReceivedMessage> &message);
 
-  //
-  Server::MakeCallback getDeserializationFunction(const std::string &endpoint);
+
+  Server::MakeDeviceFrameCallback getDeviceDeserializationFunction(const std::string &endpoint);
+
+
+  Server::MakeHostFrameCallback getHostDeserializationFunction(const std::string & endpoint);
 
 protected:
   /**
@@ -135,12 +163,15 @@ protected:
   /**
    * It associates the endpoint to a HTTP Method.
    */
-  std::vector<std::string> end_points_;
+  std::set<std::string> end_points_;
 
   /**
    * It associate the endpoint with a unique deserialize message function.
    */
-  std::map<std::string, MakeCallback> deserializer_;
+  std::map<std::string, MakeDeviceFrameCallback> device_deserializer_;
+
+
+  std::map<std::string, MakeHostFrameCallback> host_deserializer_;
 
 public:
   /**
@@ -149,6 +180,8 @@ public:
    * @return  unique pointer of the TCP server.
    */
   static std::unique_ptr<Server> TCP(unsigned short port);
+
+  static std::unique_ptr<Server> BatchProcessing(unsigned short port);
 };
 }  // namespace experimental
 }  // namespace transport

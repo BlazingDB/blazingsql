@@ -279,6 +279,53 @@ void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
   // return tempReadAllocations;
 }
 
+void readBuffersIntoCPUTCP(std::vector<int> bufferSizes,
+                                          void *fileDescriptor, int gpuNum, std::vector<Buffer> & tempReadAllocations)
+{
+  std::vector<std::thread> allocationThreads(bufferSizes.size());
+  std::vector<std::thread> readThreads(bufferSizes.size());
+  for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
+    cudaSetDevice(gpuNum);
+    tempReadAllocations.emplace_back(Buffer(bufferSizes[bufferIndex], '0'));
+  }
+  for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
+    std::vector<std::thread> copyThreads;
+    std::size_t amountReadTotal = 0;
+    do {
+      PinnedBuffer *buffer = getPinnedBufferProvider().getBuffer();
+      std::size_t amountToRead =
+          (bufferSizes[bufferIndex] - amountReadTotal) > buffer->size
+              ? buffer->size
+              : bufferSizes[bufferIndex] - amountReadTotal;
+
+      std::size_t amountRead =
+          blazingdb::transport::io::readFromSocket(fileDescriptor, (char *)buffer->data, amountToRead);
+
+      assert(amountRead == amountToRead);
+      if (amountRead != amountToRead) {
+        getPinnedBufferProvider().freeBuffer(buffer);
+        throw std::exception();
+      }
+      copyThreads.push_back(std::thread(
+          [&tempReadAllocations, &bufferSizes, &allocationThreads, bufferIndex,
+           buffer, amountRead, amountReadTotal, gpuNum]() {
+            cudaSetDevice(gpuNum);
+            cudaMemcpyAsync((void *)tempReadAllocations[bufferIndex].data() + amountReadTotal,
+                            buffer->data, amountRead, cudaMemcpyHostToHost, // use cudaMemcpyHostToHost for lazy loading into gpu memory
+                            nullptr);
+            getPinnedBufferProvider().freeBuffer(buffer);
+            cudaStreamSynchronize(nullptr);
+          }));
+      amountReadTotal += amountRead;
+
+    } while (amountReadTotal < bufferSizes[bufferIndex]);
+    for (std::size_t threadIndex = 0; threadIndex < copyThreads.size(); threadIndex++) {
+      copyThreads[threadIndex].join();
+    }
+  }
+
+}
+
 
 }  // namespace io
 }  // namespace experimental

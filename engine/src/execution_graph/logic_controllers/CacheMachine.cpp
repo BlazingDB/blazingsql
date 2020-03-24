@@ -3,6 +3,7 @@
 #include <random>
 #include <src/utilities/CommonOperations.h>
 #include "cudf/column/column_factories.hpp"
+#include "distribution/primitives.h"
 
 namespace ral {
 namespace cache {
@@ -79,7 +80,8 @@ void CacheMachine::finish() {
 }
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table) {
-	for(int cacheIndex = 0; cacheIndex < memoryPerCache.size(); cacheIndex++) {
+	int cacheIndex = 0;
+	while(cacheIndex < memoryPerCache.size()) {
 		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())) {
 			usedMemory[cacheIndex] += table->sizeInBytes();
 			if(cacheIndex == 0) {
@@ -89,20 +91,27 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table) {
 				this->waitingCache->put(std::move(item));
 
 			} else {
-				std::thread t([table = std::move(table), this, cacheIndex]() mutable {
-				  if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE) {
+				if(this->cachePolicyTypes[cacheIndex] == CPU) {
+					auto cache_data = std::make_unique<CPUCacheData>(std::move(table));
+					std::unique_ptr<message<CacheData>> item =
+						std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex);
+					this->waitingCache->put(std::move(item));
+				} else if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE) {
+					std::thread t([table = std::move(table), this, cacheIndex]() mutable {
 					  auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table));
 					  std::unique_ptr<message<CacheData>> item =
 						  std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex);
 					  this->waitingCache->put(std::move(item));
 					  // NOTE: Wait don't kill the main process until the last thread is finished!
-				  }
-				});
-				t.detach();
+					});
+					t.detach();
+				}
 			}
 			break;
 		}
+		cacheIndex++;
 	}
+	assert(cacheIndex < memoryPerCache.size());
 }
 
 bool CacheMachine::is_finished() {
@@ -162,7 +171,5 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	}
 	return ral::utilities::experimental::concatTables(samples);
 }
-
-
 }  // namespace cache
 } // namespace ral

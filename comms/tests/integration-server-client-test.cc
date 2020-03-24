@@ -75,7 +75,7 @@ void ExecMaster(){
   server->registerEndPoint(endpoint);
   server->registerContext(context_token);
 
-  server->registerMessageForEndPoint(ComponentMessage::MakeFrom, endpoint);
+  server->registerDeviceDeserializerForEndPoint(ComponentMessage::MakeFrom, endpoint);
 
   // Run server in a thread
   server->Run();
