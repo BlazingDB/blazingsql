@@ -455,6 +455,25 @@ def get_plan(algebra):
         new_lines.append( [level, line.replace("\t", "")] )	
     return visit(new_lines)    
 
+
+def resolve_relative_path(files):
+    files_out = []
+    for file in files:
+        if isinstance(file, str): 
+            # if its an abolute path or fs path
+            if file.startswith('/') |  file.startswith('hdfs://') | file.startswith('s3://') | file.startswith('gs://'):
+                files_out.append(file)
+            else: # if its not, lets see if its a relative path we can access
+                abs_file = os.path.abspath(os.path.join(os.getcwd(), file))
+                if os.path.exists(abs_file):
+                    files_out.append(abs_file)
+                else: # if its not, lets just leave it and see if somehow the engine can access it
+                    files_out.append(file)
+        else: # we are assuming all are string. If not, lets just return
+            return files
+    return files_out
+
+
 class BlazingTable(object):
     def __init__(
             self,
@@ -786,6 +805,9 @@ class BlazingContext(object):
             else:
                 table = BlazingTable(input, DataType.CUDF)
         elif isinstance(input, list):
+
+            input = resolve_relative_path(input)
+
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
             
