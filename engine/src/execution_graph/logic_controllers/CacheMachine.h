@@ -62,6 +62,9 @@ private:
  		return ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
  	}
 
+	std::unique_ptr<ral::frame::BlazingHostTable> releaseHostTable() {
+ 		return std::move(host_table);
+ 	}
  	unsigned long long sizeInBytes() override { return host_table->sizeInBytes(); }
 
  	virtual ~CPUCacheData() {}
@@ -214,6 +217,45 @@ protected:
 	std::vector<CacheDataType> cachePolicyTypes;
 	std::vector<unsigned long long> memoryPerCache;
 	std::vector<unsigned long long> usedMemory;
+};
+
+class HostCacheMachine {
+public:
+	HostCacheMachine() {
+		waitingCache = std::make_unique<WaitingQueue<CacheData>>();
+	}
+
+	~HostCacheMachine() {}
+
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table) {
+		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
+		std::unique_ptr<message<CacheData>> item = std::make_unique<message<CacheData>>(std::move(cache_data), 0);
+		this->waitingCache->put(std::move(item));
+	}
+
+	virtual void finish() {
+		this->waitingCache->notify();
+	}
+
+	bool is_finished() {
+		if(not waitingCache->empty()) {
+			return false;
+		}
+		return waitingCache->is_finished();
+	}
+
+	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache() {
+		std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
+		if (message_data == nullptr) {
+			return nullptr;
+		}
+		std::unique_ptr<CacheData> cache_data = message_data->releaseData();
+		auto cpu_data = (CPUCacheData * )(cache_data.get());
+		return cpu_data->releaseHostTable();
+	}
+
+protected:
+	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
 };
 
 class NonWaitingCacheMachine : public CacheMachine {

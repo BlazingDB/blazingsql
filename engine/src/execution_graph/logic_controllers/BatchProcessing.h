@@ -71,7 +71,36 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
 };
 
-using ExternalBatchColumnDataSequence = ExternalBatchSequence<ColumnDataPartitionMessage>;
+class ExternalBatchColumnDataSequence {
+public:
+	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context)
+		: context{context}
+	{
+		host_cache = std::make_shared<ral::cache::HostCacheMachine>();
+		std::string context_comm_token = context->getContextCommunicationToken();
+		const uint32_t context_token = context->getContextToken();
+		const std::string message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
+		Server::getInstance().registerListener(context_token, message_token, 
+			[this](uint32_t context_token, std::string message_token) mutable {
+				auto message = Server::getInstance().getMessage(context_token, message_token);
+				auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
+				auto host_table = concreteMessage->releaseBlazingHostTable();
+				host_table->setPartitionId(concreteMessage->getPartitionId());
+				this->host_cache->addToCache(std::move(host_table));
+			});
+	} 
+
+	std::unique_ptr<ral::frame::BlazingHostTable> next() {
+		return host_cache->pullFromCache();
+	}
+	bool has_next() {
+		return not host_cache->is_finished();
+	}
+private:
+	std::shared_ptr<Context> context;
+	std::shared_ptr<ral::cache::HostCacheMachine> host_cache;
+};
+
 
 class DataSourceSequence {
 public:

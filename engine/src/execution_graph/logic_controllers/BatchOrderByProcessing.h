@@ -158,16 +158,15 @@ public:
 			}
 		}
 
-context->incrementQuerySubstep();
+		context->incrementQuerySubstep();
 
-		// ExternalBatchSequence input();
-		// while (input.has_next()) {
-		// 	auto message = input.next();
-
-				// std::string cache_id = "output_" + std::to_string(message.get_part_id());
-				// this->output_[cache_id]->addToCache(std::move(message.table()));
-		// }
-
+		ExternalBatchColumnDataSequence external_input(context);
+		
+		while (external_input.has_next()) {
+			auto host_table = external_input.next();
+			std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
+			this->output_[cache_id]->addHostFrameToCache(std::move(host_table));
+		}
 		return kstatus::proceed;
 	}
 

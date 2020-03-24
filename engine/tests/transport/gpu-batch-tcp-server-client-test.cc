@@ -58,18 +58,22 @@ void ExecMaster() {
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
 	Server::getInstance().registerContext(context_token);
-	auto cache_machine = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
+	// auto cache_machine = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
+	auto cache_machine = std::make_shared<ral::cache::HostCacheMachine>();
+
 	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
 	Server::getInstance().registerListener(context_token, message_token, 
 		[cache_machine](uint32_t context_token, std::string message_token){
 			auto message = Server::getInstance().getMessage(context_token, message_token);
 			auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
 			auto host_table = concreteMessage->releaseBlazingHostTable();
-			cache_machine->addHostFrameToCache(std::move(host_table));
+			cache_machine->addToCache(std::move(host_table));
+			cache_machine->finish();
 		});
 
 	std::thread([cache_machine]() {
-		auto table = cache_machine->pullFromCache();
+		auto host_table = cache_machine->pullFromCache();
+		auto table = ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
 		std::cout << "message received\n";
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table->view().column(0));
 		cudf::test::strings_column_wrapper expected({"d", "e", "a", "d", "k", "d", "l", "a", "b", "c"}, {1, 0, 1, 1, 1, 1, 1, 1, 0 , 1});

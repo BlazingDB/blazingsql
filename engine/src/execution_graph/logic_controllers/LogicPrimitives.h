@@ -106,11 +106,16 @@ struct BlazingHostTable {
 		}
 		return total_size;
 	}
+	void setPartitionId(const size_t &part_id) {
+		this->part_id = part_id;
+	}
+	size_t get_part_id() {
+		return this->part_id;
+	}
 
-	std::vector<ColumnTransport> columns_offsets;
-	std::vector<std::basic_string<char>> raw_buffers;
-//	const MessageMetadata& message_metadata,
-//	const Address::MetaData & address_metadata,
+	std::vector<ColumnTransport> 			columns_offsets;
+	std::vector<std::basic_string<char>> 	raw_buffers;
+	size_t 						part_id;
 };
 
 std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::type_id> column_types,
