@@ -7,6 +7,7 @@
 #include "cudf/null_mask.hpp"
 #include "cudf/types.hpp"
 #include <cudf/filling.hpp>
+#include <cudf/concatenate.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>

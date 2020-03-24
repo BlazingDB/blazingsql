@@ -97,8 +97,10 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 			consecutive_row_group_length.push_back(length_count);
 
 			if (consecutive_row_group_start.size() == 1){
-				pq_args.row_group = consecutive_row_group_start[0];
-				pq_args.row_group_count = consecutive_row_group_length[0];
+				// Uncomment this code when the consecutive rowgroups issue is fixed
+				// https://github.com/rapidsai/cudf/pull/4591
+				// pq_args.row_group = consecutive_row_group_start[0];
+				// pq_args.row_group_count = consecutive_row_group_length[0];
 
 				auto result = cudf_io::read_parquet(pq_args);
 				return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);				

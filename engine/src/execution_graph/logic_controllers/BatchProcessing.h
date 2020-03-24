@@ -1,4 +1,5 @@
 #pragma once
+
 #include "BlazingColumn.h"
 #include "LogicPrimitives.h"
 #include "CacheMachine.h"
@@ -6,6 +7,7 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
+
 
 namespace ral {
 namespace batch {
@@ -204,6 +206,9 @@ public:
 		while (input.has_next()) {
 			auto batch = input.next();
 			auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
+// std::cout<<">>>>>>>>>>>>>>> sortedTable START"<< std::endl;
+// ral::utilities::print_blazing_table_view(sortedTable->toBlazingTableView());
+// std::cout<<">>>>>>>>>>>>>>> sortedTable END"<< std::endl;
 			auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
 			sampledTableViews.push_back(sampledTable->toBlazingTableView());
 			sampledTables.push_back(std::move(sampledTable));
@@ -211,9 +216,11 @@ public:
 			this->output_.get_cache("output_a")->addToCache(std::move(sortedTable));
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
-		auto partitionPlan = ral::operators::experimental::generate_partition_plan(10 /*how many?*/, sampledTableViews, tableTotalRows, this->expression);
+		auto partitionPlan = ral::operators::experimental::generate_partition_plan(9 /*how many?*/, sampledTableViews, tableTotalRows, this->expression);
+std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
+ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
+std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
 		this->output_.get_cache("output_b")->addToCache(std::move(partitionPlan));
-		
 		return kstatus::proceed;
 	}
 
@@ -239,8 +246,10 @@ public:
 			
 			auto partitions = ral::operators::experimental::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
 			
-//			for(auto& partition : partitions)
-//				ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
+			// std::cout<<">>>>>>>>>>>>>>> PARTITIONS START"<< std::endl;
+			// for(auto& partition : partitions)
+			// 	ral::utilities::print_blazing_table_view(ral::frame::BlazingTableView(partition, batch->names()));
+			// std::cout<<">>>>>>>>>>>>>>> PARTITIONS START"<< std::endl;
 
 			for (auto i = 0; i < partitions.size(); i++) {
 				std::string cache_id = "output_" + std::to_string(i);
@@ -376,30 +385,31 @@ public:
 	}
 	
 	virtual kstatus run() {
-		while (!this->input_.get_cache("input_0")->is_finished())
+		for (auto idx = 0; idx < this->input_.count(); idx++)
 		{
-			std::vector<ral::frame::BlazingTableView> partitions_to_merge;
-			std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
-			for (size_t index = 0; index < this->input_.count(); index++) {
-				auto cache_id = "input_" + std::to_string(index);
-				if (not this->input_.get_cache(cache_id)->is_finished()) {
-					auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
-					if (input) {
-						partitions_to_merge.emplace_back(input->toBlazingTableView());
-						partitions_to_merge_holder.emplace_back(std::move(input));
-					}
+			std::vector<ral::frame::BlazingTableView> tableViews;
+			std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
+			auto cache_id = "input_" + std::to_string(idx);
+			while (!this->input_.get_cache(cache_id)->is_finished()) {
+				auto table = this->input_.get_cache(cache_id)->pullFromCache();
+				if (table) {
+					tableViews.emplace_back(table->toBlazingTableView());
+					tables.emplace_back(std::move(table));
 				}
 			}
 
-			if (partitions_to_merge.empty()) {
+			if (tableViews.empty()) {
 				// noop
-			} else if(partitions_to_merge.size() == 1) {
-				this->output_.get_cache()->addToCache(std::move(partitions_to_merge_holder.front()));
+			} else if(tableViews.size() == 1) {
+				this->output_.get_cache()->addToCache(std::move(tables.front()));
 			}	else {
-				for (auto view : partitions_to_merge)
-					ral::utilities::print_blazing_table_view(view);
+				// std::cout<<">>>>>>>>>>>>>>> MERGE PARTITIONS START"<< std::endl;
+				// for (auto view : tableViews)
+				// 	ral::utilities::print_blazing_table_view(view);
 
-				auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context.get());
+				// std::cout<<">>>>>>>>>>>>>>> MERGE PARTITIONS END"<< std::endl;
+
+				auto output = ral::operators::experimental::merge(tableViews, this->expression);
 
 //					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 
