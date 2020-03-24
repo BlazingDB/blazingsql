@@ -13,7 +13,7 @@ using CommServer = blazingdb::transport::experimental::Server;
 using ContextToken = uint32_t;
 using MessageTokenType = std::string;
 using GPUMessage = blazingdb::transport::experimental::GPUMessage;
-using GPUReceivedMessage = blazingdb::transport::experimental::GPUReceivedMessage;
+using ReceivedMessage = blazingdb::transport::experimental::ReceivedMessage;
 using HostCallback = blazingdb::transport::experimental::HostCallback;
 
 class Server {
@@ -35,9 +35,9 @@ public:
 	void deregisterContext(const ContextToken context_token);
 
 public:
-	std::shared_ptr<GPUReceivedMessage> getMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
+	std::shared_ptr<ReceivedMessage> getMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
 
-	void handle(HostCallback callback);
+	void registerListener(uint32_t context_token, std::string message_token, HostCallback callback);
 
 private:
 	Server(Server &&) = delete;

@@ -41,7 +41,7 @@ typedef ral::communication::messages::experimental::SampleToNodeMasterMessage Sa
 typedef ral::communication::messages::experimental::PartitionPivotsMessage PartitionPivotsMessage;
 typedef ral::communication::messages::experimental::ColumnDataMessage ColumnDataMessage;
 typedef ral::communication::messages::experimental::ColumnDataPartitionMessage ColumnDataPartitionMessage;
-typedef ral::communication::messages::experimental::GPUComponentReceivedMessage GPUComponentReceivedMessage;
+typedef ral::communication::messages::experimental::ReceivedDeviceMessage ReceivedDeviceMessage;
 typedef ral::communication::experimental::CommunicationData CommunicationData;
 typedef ral::communication::network::experimental::Server Server;
 typedef ral::communication::network::experimental::Client Client;
@@ -89,7 +89,7 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 				std::to_string(context->getQuerySubstep()),
 				"ERROR: Already received collectSamples from node " + std::to_string(node_idx)));
 		}
-		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		table_total_rows.push_back(concreteMessage->getTotalRowSize());
 		nodeColumns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
 		received[node_idx] = true;
@@ -142,7 +142,7 @@ std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 
 	auto message = Server::getInstance().getMessage(context_token, message_id);
 
-	auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+	auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 	return concreteMessage->releaseBlazingTable();
 }
 
@@ -281,7 +281,7 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 				std::to_string(context->getQuerySubstep()),
 				"ERROR: Already received collectSomePartitions from node " + std::to_string(node_idx)));
 		}
-		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		node_columns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
 		received[node_idx] = true;
 	}
@@ -419,7 +419,7 @@ std::vector<cudf::size_type> collectNumRows(Context * context) {
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
-		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);
@@ -468,7 +468,7 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
-		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		std::unique_ptr<BlazingTable> num_rows_data = concrete_message->releaseBlazingTable();
 		assert(num_rows_data->view().num_columns() == 1);
@@ -526,7 +526,7 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
-		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		std::unique_ptr<BlazingTable> num_bytes_data = concrete_message->releaseBlazingTable();
 		assert(num_bytes_data->view().num_columns() == 1);

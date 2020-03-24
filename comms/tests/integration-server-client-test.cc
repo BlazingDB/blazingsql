@@ -20,10 +20,10 @@ public:
 constexpr uint32_t context_token = 1234;
 
 class ComponentMessage;
-struct GPUComponentReceivedMessage : public GPUReceivedMessage {
-	GPUComponentReceivedMessage(uint32_t contextToken, const Node &sender_node,
+struct ReceivedDeviceMessage : public ReceivedMessage {
+	ReceivedDeviceMessage(uint32_t contextToken, const Node &sender_node,
 		std::uint64_t total_row_size)
-	: GPUReceivedMessage(GPUComponentReceivedMessage::MessageID(), contextToken, sender_node){
+	: ReceivedMessage(ReceivedDeviceMessage::MessageID(), contextToken, sender_node){
 		this->metadata().total_row_size = total_row_size;
 	}
 	DefineClassName(ComponentMessage);
@@ -47,7 +47,7 @@ public:
     return std::make_tuple(bufferSizes, buffers, column_offset, std::move(temp_scope_holder));
   }
 
-  static std::shared_ptr<GPUReceivedMessage> MakeFrom(
+  static std::shared_ptr<ReceivedMessage> MakeFrom(
       const Message::MetaData &message_metadata,
       const Address::MetaData &address_metadata,
       const std::vector<ColumnTransport> &columns_offsets,
@@ -55,7 +55,7 @@ public:
     Node node(
         Address::TCP(address_metadata.ip, address_metadata.comunication_port,
                      address_metadata.protocol_port));
-    return std::make_shared<GPUComponentReceivedMessage>(
+    return std::make_shared<ReceivedDeviceMessage>(
         message_metadata.contextToken, node, message_metadata.total_row_size);
   }
 

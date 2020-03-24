@@ -26,8 +26,8 @@
 #include <execution_graph/logic_controllers/TaskFlowProcessor.h>
 
 using ral::communication::messages::experimental::SampleToNodeMasterMessage;
-using ral::communication::messages::experimental::GPUComponentReceivedMessage;
-using ral::communication::messages::experimental::HostComponentReceivedMessage;
+using ral::communication::messages::experimental::ReceivedDeviceMessage;
+using ral::communication::messages::experimental::ReceivedHostMessage;
 
 using ral::communication::network::experimental::Client;
 using ral::communication::network::experimental::Node;
@@ -49,7 +49,6 @@ void expect_column_data_equal(std::vector<T> const& lhs,
   EXPECT_THAT(cudf::test::to_host<T>(rhs).first, lhs);
 }
 
-using HostBufferContainer = blazingdb::transport::experimental::HostBufferContainer;
 
 void ExecMaster() {
 	cuInit(0);
@@ -60,17 +59,16 @@ void ExecMaster() {
 	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
 	Server::getInstance().registerContext(context_token);
 	auto cache_machine = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
-
-	Server::getInstance().handle([cache_machine](HostBufferContainer container){
-		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
-		auto message = Server::getInstance().getMessage(context_token, message_token);
-		auto concreteMessage = std::static_pointer_cast<HostComponentReceivedMessage>(message);
-		auto table = concreteMessage->getBlazingTable();
-		cache_machine->addToCache(std::move(table));
-	});
+	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
+	Server::getInstance().registerListener(context_token, message_token, 
+		[cache_machine](uint32_t context_token, std::string message_token){
+			auto message = Server::getInstance().getMessage(context_token, message_token);
+			auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
+			auto host_table = concreteMessage->releaseBlazingHostTable();
+			cache_machine->addHostFrameToCache(std::move(host_table));
+		});
 
 	std::thread([cache_machine]() {
-		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
 		auto table = cache_machine->pullFromCache();
 		std::cout << "message received\n";
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table->view().column(0));

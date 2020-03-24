@@ -35,27 +35,22 @@ Server::Server() {
 		comm_server = CommServer::TCP(port_);
 	};
 	setEndPoints();
-	if (use_batch_processing_ == false) {
-		comm_server->Run();
-	}
+	comm_server->Run();
 }
+
 Server::~Server() {}
 
 void Server::registerContext(const ContextToken context_token) { comm_server->registerContext(context_token); }
 
 void Server::deregisterContext(const ContextToken context_token) { comm_server->deregisterContext(context_token); }
 
-std::shared_ptr<GPUReceivedMessage> Server::getMessage(
+std::shared_ptr<ReceivedMessage> Server::getMessage(
 	const ContextToken & token_value, const MessageTokenType & messageToken) {
 	return comm_server->getMessage(token_value, messageToken);
 }
-void Server::handle(HostCallback callback){
-	//	Ensure just one call
-	static int counter = {0};
-	assert(counter == 0);
+void Server::registerListener(uint32_t context_token, std::string message_token, HostCallback callback){
 	assert(use_batch_processing_);
-	comm_server->Run(callback);
-	counter++;
+	comm_server->registerListener(context_token, message_token, callback);
 }
 
 void Server::setEndPoints() {

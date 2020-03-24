@@ -12,7 +12,7 @@ MessageQueue::MessageQueue()
 
 }
 
-std::shared_ptr<GPUReceivedMessage> MessageQueue::getMessage(
+std::shared_ptr<ReceivedMessage> MessageQueue::getMessage(
     const std::string &messageToken) {
   std::unique_lock<std::mutex> lock(mutex_);
 
@@ -26,7 +26,7 @@ std::shared_ptr<GPUReceivedMessage> MessageQueue::getMessage(
   return getMessageQueue(messageToken);
 }
 
-void MessageQueue::putMessage(std::shared_ptr<GPUReceivedMessage> &message) {
+void MessageQueue::putMessage(std::shared_ptr<ReceivedMessage> &message) {
   std::unique_lock<std::mutex> lock(mutex_);
   putMessageQueue(message);
   lock.unlock();
@@ -58,7 +58,7 @@ size_t MessageQueue::getNumberOfBatches(const std::string& messageToken) {
   return this->n_batches_map_[messageToken];
 }
 
-std::shared_ptr<GPUReceivedMessage> MessageQueue::getMessageQueue(
+std::shared_ptr<ReceivedMessage> MessageQueue::getMessageQueue(
     const std::string &messageToken) {
   auto it = std::partition(message_queue_.begin(), message_queue_.end(),
                            [&messageToken](const auto &e) {
@@ -71,13 +71,13 @@ std::shared_ptr<GPUReceivedMessage> MessageQueue::getMessageQueue(
   }
   assert(it != message_queue_.end());
 
-  std::shared_ptr<GPUReceivedMessage> message = *it;
+  std::shared_ptr<ReceivedMessage> message = *it;
   message_queue_.erase(it, it + 1);
 
   return message;
 }
 
-void MessageQueue::putMessageQueue(std::shared_ptr<GPUReceivedMessage> &message) {
+void MessageQueue::putMessageQueue(std::shared_ptr<ReceivedMessage> &message) {
   message_queue_.push_back(message);
 }
 }  // namespace experimental

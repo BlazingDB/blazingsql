@@ -33,32 +33,31 @@ using Node = blazingdb::transport::experimental::Node;
 using Address = blazingdb::transport::experimental::Address;
 using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
 using GPUMessage = blazingdb::transport::experimental::GPUMessage;
-using GPUReceivedMessage = blazingdb::transport::experimental::GPUReceivedMessage;
+using ReceivedMessage = blazingdb::transport::experimental::ReceivedMessage;
 using MessageMetadata = blazingdb::transport::experimental::Message::MetaData;
 using gpu_raw_buffer_container = blazingdb::transport::experimental::gpu_raw_buffer_container;
-using HostBufferContainer = blazingdb::transport::experimental::HostBufferContainer;
 
 gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::BlazingTableView table_view);
 
-std::shared_ptr<GPUReceivedMessage> deserialize_from_gpu(const MessageMetadata& message_metadata,
+std::shared_ptr<ReceivedMessage> deserialize_from_gpu(const MessageMetadata& message_metadata,
 														 const Address::MetaData & address_metadata,
 														 const std::vector<ColumnTransport> & columns_offsets,
 														 const std::vector<rmm::device_buffer> & raw_buffers);
 
-ral::frame::BlazingHostTable serialize_gpu_message_to_host_table(ral::frame::BlazingTableView table_view);
+std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_table(ral::frame::BlazingTableView table_view);
 
-std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame::BlazingHostTable& host_table);
+std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame::BlazingHostTable* host_table);
 
 
-class GPUComponentReceivedMessage : public GPUReceivedMessage {
+class ReceivedDeviceMessage : public ReceivedMessage {
 public:
-	GPUComponentReceivedMessage(std::string const & messageToken,
+	ReceivedDeviceMessage(std::string const & messageToken,
 						uint32_t contextToken,
 						Node  & sender_node,
 						std::unique_ptr<ral::frame::BlazingTable> && samples,
 						int32_t total_row_size = 0,
 						int32_t partition_id = 0)
-		: GPUReceivedMessage(messageToken, contextToken, sender_node),
+		: ReceivedMessage(messageToken, contextToken, sender_node),
 		  table(std::move(samples)) {
 		this->metadata().total_row_size = total_row_size;
 		this->metadata().partition_id = partition_id;
@@ -73,29 +72,31 @@ public:
 protected:
 	std::unique_ptr<ral::frame::BlazingTable> table;
 };
-// TODO Add HostComponentReceivedMessage : 
-class HostComponentReceivedMessage : public GPUReceivedMessage {
+// TODO Add ReceivedHostMessage : 
+class ReceivedHostMessage : public ReceivedMessage {
 public:
-	HostComponentReceivedMessage(std::string const & messageToken,
+	ReceivedHostMessage(std::string const & messageToken,
 						uint32_t contextToken,
 						Node  & sender_node,
-					    ral::frame::BlazingHostTable && samples,
+					    std::unique_ptr<ral::frame::BlazingHostTable> samples,
 						int32_t total_row_size = 0,
 						int32_t partition_id = 0)
-		: GPUReceivedMessage(messageToken, contextToken, sender_node),
+		: ReceivedMessage(messageToken, contextToken, sender_node),
 		  table(std::move(samples)) {
 		this->metadata().total_row_size = total_row_size;
 		this->metadata().partition_id = partition_id;
 	} 
-	
-	std::unique_ptr<ral::frame::BlazingTable>  getBlazingTable() { return deserialize_from_cpu(table); }
+
+	std::unique_ptr<ral::frame::BlazingHostTable>  releaseBlazingHostTable() { return std::move(table); }
+
+	std::unique_ptr<ral::frame::BlazingTable>  getBlazingTable() { return deserialize_from_cpu(table.get()); }
 
 	int32_t getTotalRowSize() { return this->metadata().total_row_size; };
 
 	int32_t getPartitionId() { return this->metadata().partition_id; };
 
 protected:
-	ral::frame::BlazingHostTable table;
+	std::unique_ptr<ral::frame::BlazingHostTable> table;
 };
 
 class GPUComponentMessage : public GPUMessage {
@@ -115,23 +116,20 @@ public:
 		return serialize_gpu_message_to_gpu_containers(table_view);
 	}
 
-	static std::shared_ptr<GPUReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
+	static std::shared_ptr<ReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<rmm::device_buffer> & raw_buffers) {  
 		return deserialize_from_gpu(message_metadata, address_metadata, columns_offsets, raw_buffers);
 	}
 
-	static std::shared_ptr<GPUReceivedMessage> MakeFromHost(const Message::MetaData & message_metadata,
+	static std::shared_ptr<ReceivedMessage> MakeFromHost(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
-		const std::vector<std::basic_string<char>> & raw_buffers) {  
-		auto host_table = ral::frame::BlazingHostTable{
-			.columns_offsets = columns_offsets, 
-			.raw_buffers = raw_buffers
-		};
+		std::vector<std::basic_string<char>> && raw_buffers) {  
+		auto host_table = std::make_unique<ral::frame::BlazingHostTable>(columns_offsets, std::move(raw_buffers));
 		auto node = Node(Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port));
-		return std::make_shared<HostComponentReceivedMessage>(message_metadata.messageToken, message_metadata.contextToken, node, std::move(host_table), message_metadata.total_row_size, message_metadata.partition_id);
+		return std::make_shared<ReceivedHostMessage>(message_metadata.messageToken, message_metadata.contextToken, node, std::move(host_table), message_metadata.total_row_size, message_metadata.partition_id);
 	}
 
 	ral::frame::BlazingTableView getTableView() { return table_view; }

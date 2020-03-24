@@ -16,30 +16,24 @@ namespace experimental {
 
 using Buffer = std::basic_string<char>;
 
-struct HostBufferContainer {
-  Message::MetaData message_metadata;
-  Address::MetaData address_metadata;
-  std::vector<ColumnTransport> columns_offsets;
-	std::vector<std::basic_string<char>> raw_buffers;
-};
 using gpu_raw_buffer_container = std::tuple<std::vector<int>, std::vector<const char *>,
 											std::vector<ColumnTransport>,
 											std::vector<std::unique_ptr<rmm::device_buffer>> >;
 
-using HostCallback = std::function<void (HostBufferContainer)>;
+using HostCallback = std::function<void (uint32_t, std::string)>;
 
 class Server {
 public:
   /**
    * Alias of the message class used in the implementation of the server.
    */
-  using MakeDeviceFrameCallback = std::function<std::shared_ptr<GPUReceivedMessage>(
+  using MakeDeviceFrameCallback = std::function<std::shared_ptr<ReceivedMessage>(
       const Message::MetaData &, const Address::MetaData &,
       const std::vector<ColumnTransport> &, const std::vector<rmm::device_buffer> &)>;
 
-  using MakeHostFrameCallback = std::function<std::shared_ptr<GPUReceivedMessage>(
+  using MakeHostFrameCallback = std::function<std::shared_ptr<ReceivedMessage>(
       const Message::MetaData &, const Address::MetaData &,
-      const std::vector<ColumnTransport> &, const std::vector<std::basic_string<char>> &)>;
+      const std::vector<ColumnTransport> &, std::vector<std::basic_string<char>> &&)>;
 
 public:
   virtual ~Server() = default;
@@ -56,6 +50,8 @@ public:
 
   virtual void registerHostDeserializerForEndPoint(MakeHostFrameCallback deserializer,
                                           const std::string &end_point);
+
+  void registerListener(uint32_t context_token, std::string message_token, HostCallback callback);
 
 public:
   /**
@@ -124,7 +120,7 @@ public:
    * @param context_token  identifier for the message queue using ContextToken.
    * @return               a shared pointer of a base message class.
    */
-  virtual std::shared_ptr<GPUReceivedMessage> getMessage(
+  virtual std::shared_ptr<ReceivedMessage> getMessage(
       const uint32_t context_token, const std::string &messageToken);
 
   /**
@@ -139,7 +135,7 @@ public:
    * queue.
    */
   virtual void putMessage(const uint32_t context_token,
-                          std::shared_ptr<GPUReceivedMessage> &message);
+                          std::shared_ptr<ReceivedMessage> &message);
 
 
   Server::MakeDeviceFrameCallback getDeviceDeserializationFunction(const std::string &endpoint);
@@ -172,6 +168,8 @@ protected:
 
 
   std::map<std::string, MakeHostFrameCallback> host_deserializer_;
+
+  std::map<std::string, HostCallback> listeners_;
 
 public:
   /**

@@ -24,7 +24,7 @@ struct SampleToNodeMasterMessage : GPUComponentMessage {
 
 	int32_t getTotalRowSize() const { return this->metadata().total_row_size; }
 
-	static std::shared_ptr<GPUReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
+	static std::shared_ptr<ReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<rmm::device_buffer> & raw_buffers) {
@@ -43,7 +43,7 @@ struct ColumnDataMessage : GPUComponentMessage {
 
 	// std::unique_ptr<ral::frame::BlazingTableView>& getColumns() { return this->table_view; }
 
-	static std::shared_ptr<GPUReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
+	static std::shared_ptr<ReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<rmm::device_buffer> & raw_buffers) {
@@ -62,7 +62,7 @@ struct PartitionPivotsMessage : GPUComponentMessage {
 
 	// std::unique_ptr<ral::frame::BlazingTableView>& getColumns() { return this->table_view; }
 
-	static std::shared_ptr<GPUReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
+	static std::shared_ptr<ReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<rmm::device_buffer> & raw_buffers) {
@@ -82,7 +82,7 @@ struct ColumnDataPartitionMessage : GPUComponentMessage {
 
 	int32_t getPartitionId() const { return this->metadata().partition_id; }
 
-	static std::shared_ptr<GPUReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
+	static std::shared_ptr<ReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<rmm::device_buffer> & raw_buffers) {

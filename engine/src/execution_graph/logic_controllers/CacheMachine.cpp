@@ -78,6 +78,17 @@ CacheMachine::~CacheMachine() {}
 void CacheMachine::finish() {
 	this->waitingCache->notify();
 }
+void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table) {
+	auto cacheIndex = 1;
+	if(this->cachePolicyTypes[cacheIndex] == CPU) {
+		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
+		std::unique_ptr<message<CacheData>> item =
+			std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex);
+		this->waitingCache->put(std::move(item));
+	}else {
+		assert(false);
+	}
+}
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table) {
 	int cacheIndex = 0;

@@ -9,8 +9,8 @@
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
-#include "operators/OrderBy.h"
 
+#include "operators/OrderBy.h"
 #include <cudf/hashing.hpp>
 
 namespace ral {

@@ -27,6 +27,12 @@ namespace experimental {
 
 void Server::registerEndPoint(const std::string & end_point) { end_points_.insert(end_point); }
 
+void Server::registerListener(uint32_t context_token, std::string message_token, HostCallback callback) {
+	std::unique_lock<std::shared_timed_mutex> lock(context_messages_mutex_);
+	auto listener_key = std::to_string(context_token) + "_" + message_token;
+	this->listeners_[listener_key] = callback;
+}
+
 void Server::registerDeviceDeserializerForEndPoint(MakeDeviceFrameCallback deserializer, const std::string & end_point) {
 	device_deserializer_[end_point] = deserializer;
 }
@@ -48,7 +54,7 @@ void Server::deregisterContext(const uint32_t context_token) {
 	}
 }
 
-std::shared_ptr<GPUReceivedMessage> Server::getMessage(const uint32_t context_token, const std::string & messageToken) {
+std::shared_ptr<ReceivedMessage> Server::getMessage(const uint32_t context_token, const std::string & messageToken) {
 	MessageQueue & message_queue = context_messages_map_.at(context_token);
 	return message_queue.getMessage(messageToken);
 }
@@ -68,7 +74,7 @@ void Server::setNumberOfBatches(const uint32_t context_token, const std::string 
 	return message_queue.setNumberOfBatches(messageToken, n_batches);
 }
 
-void Server::putMessage(const uint32_t context_token, std::shared_ptr<GPUReceivedMessage> & message) {
+void Server::putMessage(const uint32_t context_token, std::shared_ptr<ReceivedMessage> & message) {
 	std::shared_lock<std::shared_timed_mutex> lock(context_messages_mutex_);
 	if(context_messages_map_.find(context_token) == context_messages_map_.end()) {
 		// putMessage could be called before registerContext so we force the
@@ -239,7 +245,7 @@ void ServerTCP::Run() {
 					std::string messageToken = message_metadata.messageToken;
 					auto deserialize_function =
 						this->getDeviceDeserializationFunction(messageToken.substr(0, messageToken.find('_')));
-					std::shared_ptr<GPUReceivedMessage> message =
+					std::shared_ptr<ReceivedMessage> message =
 						deserialize_function(message_metadata, address_metadata, column_offsets, raw_columns);
 					assert(message != nullptr);
 					this->putMessage(message->metadata().contextToken, message);
@@ -259,12 +265,8 @@ public:
 	ServerForBatchProcessing(unsigned short port) : ServerTCP(port) {}
 
 	void Run() override {
-		assert(false);
-	}
-
-	void Run(HostCallback callback) override {
-		thread = BlazingThread([this, callback]() {
-			server_socket.run([this, callback](void * socket) {
+		thread = BlazingThread([this]() {
+			server_socket.run([this](void * socket) {
 				try {
 					zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
 					zmq::message_t message_topic;
@@ -287,20 +289,20 @@ public:
 							collect_gpu_message<std::vector<Buffer>>(
 								socket, gpuId, blazingdb::transport::experimental::io::readBuffersIntoCPUTCP);
 						std::string messageToken = message_metadata.messageToken;
-
-						// callback(HostBufferContainer{
-						// 	.message_metadata =  std::get<0>(tuple),
-						// 	.address_metadata =  std::get<1>(tuple),
-						// 	.columns_offsets = std::get<2>(tuple),
-						// 	.raw_buffers =  std::get<3>(tuple)
-						// });
 						auto deserialize_function =
 						this->getHostDeserializationFunction(messageToken.substr(0, messageToken.find('_')));
-						std::shared_ptr<GPUReceivedMessage> message =
-							deserialize_function(message_metadata, address_metadata, column_offsets, raw_columns);
+						std::shared_ptr<ReceivedMessage> message =
+							deserialize_function(message_metadata, address_metadata, column_offsets, std::move(raw_columns));
 						assert(message != nullptr);
-						this->putMessage(message->metadata().contextToken, message);
-						callback(HostBufferContainer{});
+						uint32_t contextToken = message->metadata().contextToken; 
+						this->putMessage(contextToken, message);
+						
+						auto listener_key = std::to_string(contextToken) + "_" +  messageToken;
+						auto iter = this->listeners_.find(listener_key);
+						if (iter != this->listeners_.end()) {
+							auto callback = iter->second;
+							callback(contextToken, messageToken);
+						}
 					}
 				} catch(const std::runtime_error & exception) {
 					std::cerr << "[ERROR] " << exception.what() << std::endl;

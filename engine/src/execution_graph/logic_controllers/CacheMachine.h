@@ -54,16 +54,20 @@ private:
 		this->host_table = ral::communication::messages::experimental::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
  	}
 
+	CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table)
+		: host_table{std::move(host_table)}
+	{
+	}
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {
- 		return ral::communication::messages::experimental::deserialize_from_cpu(host_table);
+ 		return ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
  	}
 
- 	unsigned long long sizeInBytes() override { return host_table.sizeInBytes(); }
+ 	unsigned long long sizeInBytes() override { return host_table->sizeInBytes(); }
 
  	virtual ~CPUCacheData() {}
 
 protected:
-	 ral::frame::BlazingHostTable host_table;
+	 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
  };
 
 
@@ -194,6 +198,8 @@ public:
 	~CacheMachine();
 
 	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table);
+
+	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table);
 
 	virtual void finish();
 

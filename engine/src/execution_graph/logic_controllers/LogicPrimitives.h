@@ -94,6 +94,11 @@ private:
 using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
 
 struct BlazingHostTable {
+	BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers)
+		: columns_offsets{columns_offsets}, raw_buffers{std::move(raw_buffers)}
+	{
+	}
+
 	unsigned long long sizeInBytes() {
 		unsigned long long total_size = 0L;
 		for (auto &col : columns_offsets) {

@@ -117,7 +117,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
     return std::make_tuple(buffer_sizes, raw_buffers, column_offset, std::move(temp_scope_holder));
 }
 
-ral::frame::BlazingHostTable serialize_gpu_message_to_host_table(ral::frame::BlazingTableView table_view) {
+std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_table(ral::frame::BlazingTableView table_view) {
 	std::vector<int> buffer_sizes;
 	std::vector<const char *> raw_buffers;
 	std::vector<ColumnTransport> column_offset;
@@ -132,7 +132,7 @@ ral::frame::BlazingHostTable serialize_gpu_message_to_host_table(ral::frame::Bla
 		cudaMemcpy((void *)buffer.data(), raw_buffers[index], buffer_sizes[index], cudaMemcpyHostToHost);
 		cpu_raw_buffers.emplace_back(buffer);
 	}
-	return ral::frame::BlazingHostTable{column_offset, cpu_raw_buffers};
+	return std::make_unique<ral::frame::BlazingHostTable>(column_offset, std::move(cpu_raw_buffers));
 }
 
 auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & columns_offsets,
@@ -185,7 +185,7 @@ auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & colum
 	return std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), column_names);
 }
 
-std::shared_ptr<GPUReceivedMessage> deserialize_from_gpu(const MessageMetadata & message_metadata,
+std::shared_ptr<ReceivedMessage> deserialize_from_gpu(const MessageMetadata & message_metadata,
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<rmm::device_buffer> & raw_buffers) {
@@ -194,7 +194,7 @@ std::shared_ptr<GPUReceivedMessage> deserialize_from_gpu(const MessageMetadata &
 
 	auto received_table = deserialize_from_gpu_raw_buffers(columns_offsets, raw_buffers);
 
-    return std::make_shared<GPUComponentReceivedMessage>(message_metadata.messageToken,
+    return std::make_shared<ReceivedDeviceMessage>(message_metadata.messageToken,
         message_metadata.contextToken,
         node,
         std::move(received_table),
@@ -202,20 +202,20 @@ std::shared_ptr<GPUReceivedMessage> deserialize_from_gpu(const MessageMetadata &
 }
 
 //TODO: get column size_in_bytes
-std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame::BlazingHostTable& host_table){
+std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame::BlazingHostTable* host_table){
 	std::vector<rmm::device_buffer> gpu_raw_buffers;
-	for(int index = 0; index < host_table.raw_buffers.size(); ++index) {
-		auto buffer_sz = host_table.raw_buffers[index].size();
+	for(int index = 0; index < host_table->raw_buffers.size(); ++index) {
+		auto buffer_sz = host_table->raw_buffers[index].size();
 		rmm::device_buffer dev_buffer(buffer_sz);
 		int currentDeviceId = 0; // TODO: CHECK device_id
 		cudaSetDevice(currentDeviceId);
 		cudaMemcpy((void *)dev_buffer.data(),
-			(const void *) host_table.raw_buffers[index].data(),
+			(const void *) host_table->raw_buffers[index].data(),
 			buffer_sz,
 			cudaMemcpyHostToDevice);
 		gpu_raw_buffers.emplace_back(std::move(dev_buffer));
 	}
-	return  deserialize_from_gpu_raw_buffers(host_table.columns_offsets, gpu_raw_buffers);
+	return  deserialize_from_gpu_raw_buffers(host_table->columns_offsets, gpu_raw_buffers);
 }
 
 

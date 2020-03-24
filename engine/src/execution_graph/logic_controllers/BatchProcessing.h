@@ -7,6 +7,9 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
+#include "communication/messages/ComponentMessages.h"
+#include "communication/network/Server.h"
+#include <src/communication/network/Client.h>
 
 namespace ral {
 namespace batch {
@@ -33,6 +36,42 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
 };
 
+using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
+typedef ral::communication::network::experimental::Server Server;
+typedef ral::communication::network::experimental::Client Client;
+using ral::communication::messages::experimental::ReceivedHostMessage;
+
+
+template<class MessageType>
+class ExternalBatchSequence {
+public:
+	ExternalBatchSequence(std::shared_ptr<Context> context, std::shared_ptr<ral::cache::CacheMachine> cache)
+		: context{context}, cache{cache}
+	{
+		std::string context_comm_token = context->getContextCommunicationToken();
+		const uint32_t context_token = context->getContextToken();
+		const std::string message_token = MessageType::MessageID() + "_" + context_comm_token;
+		Server::getInstance().registerListener(context_token, message_token, 
+			[this](uint32_t context_token, std::string message_token) mutable {
+				auto message = Server::getInstance().getMessage(context_token, message_token);
+				auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
+				auto host_table = concreteMessage->releaseBlazingHostTable();
+				this->cache->addHostFrameToCache(std::move(host_table));
+			});
+	}
+
+	RecordBatch next() {
+		return cache->pullFromCache();
+	}
+	bool has_next() {
+		return not cache->is_finished();
+	}
+private:
+	std::shared_ptr<Context> context;
+	std::shared_ptr<ral::cache::CacheMachine> cache;
+};
+
+using ExternalBatchColumnDataSequence = ExternalBatchSequence<ColumnDataPartitionMessage>;
 
 class DataSourceSequence {
 public:

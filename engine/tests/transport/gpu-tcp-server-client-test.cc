@@ -26,7 +26,7 @@
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 
 using ral::communication::messages::experimental::SampleToNodeMasterMessage;
-using ral::communication::messages::experimental::GPUComponentReceivedMessage;
+using ral::communication::messages::experimental::ReceivedDeviceMessage;
 
 using ral::communication::network::experimental::Client;
 using ral::communication::network::experimental::Node;
@@ -61,7 +61,7 @@ static void ExecMaster() {
 		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
 		auto message = Server::getInstance().getMessage(context_token, message_token);
 		//TODO
-		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		std::cout << "message received\n";
 		auto  table_view = concreteMessage->releaseBlazingTable();
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table_view->view().column(0));
