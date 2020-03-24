@@ -17,6 +17,12 @@ Status Client::send(const Node & node, GPUMessage & message) {
 	return ral_client->Send(message);
 }
 
+bool Client::notifyLastMessageEvent(const Node & node, const Message::MetaData &message_metadata) {
+	const auto & metadata = node.address().metadata();
+	auto ral_client = blazingdb::transport::experimental::ClientTCP::Make(metadata.ip, metadata.comunication_port);
+	return ral_client->notifyLastMessageEvent(message_metadata);
+}
+
 void Client::closeConnections() {
 	// for (auto& c : ral_clients) {
 	//   ral_clients[c.first]->Close();

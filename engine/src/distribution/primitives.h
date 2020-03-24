@@ -42,6 +42,8 @@ namespace experimental {
 
 	void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
+	void notifyLastTablePartitions(Context * context);
+
 	void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
 	std::vector<NodeColumn> collectPartitions(Context * context);

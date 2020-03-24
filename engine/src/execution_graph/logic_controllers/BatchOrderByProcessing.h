@@ -10,6 +10,8 @@
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
 
+#include "distribution/primitives.h"
+
 #include "operators/OrderBy.h"
 #include <cudf/hashing.hpp>
 
@@ -146,6 +148,8 @@ public:
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"));
 		auto partitionPlan = std::move(input_partitionPlan.next());
 		
+	    context->incrementQuerySubstep();
+
 		BatchSequence input(this->input_.get_cache("input_a"));
 		while (input.has_next()) {
 			auto batch = input.next();
@@ -158,10 +162,9 @@ public:
 			}
 		}
 
-		context->incrementQuerySubstep();
+        ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
 
 		ExternalBatchColumnDataSequence external_input(context);
-		
 		while (external_input.has_next()) {
 			auto host_table = external_input.next();
 			std::string cache_id = "output_" + std::to_string(host_table->get_part_id());

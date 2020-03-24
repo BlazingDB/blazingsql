@@ -63,11 +63,16 @@ void ExecMaster() {
 
 	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
 	Server::getInstance().registerListener(context_token, message_token, 
-		[cache_machine](uint32_t context_token, std::string message_token){
-			auto message = Server::getInstance().getMessage(context_token, message_token);
-			auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
-			auto host_table = concreteMessage->releaseBlazingHostTable();
-			cache_machine->addToCache(std::move(host_table));
+		[cache_machine](uint32_t context_token, std::string message_token, int event_id){
+			if (event_id > 0) {
+				auto message = Server::getInstance().getMessage(context_token, message_token);
+				auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
+				auto host_table = concreteMessage->releaseBlazingHostTable();
+				cache_machine->addToCache(std::move(host_table));
+			}	else {
+				std::cout << "LAST EVENT" << std::endl;
+				cache_machine->finish();
+			}
 		});
 
 	std::thread([cache_machine]() {
@@ -99,6 +104,7 @@ void ExecWorker() {
 	auto message = std::make_shared<SampleToNodeMasterMessage>(message_token, context_token, sender_node, table_view, total_row_size);
 
 	Client::send(server_node, *message);
+	Client::notifyLastMessageEvent(server_node, message->metadata());
 	std::this_thread::sleep_for (std::chrono::seconds(1));
 }
 

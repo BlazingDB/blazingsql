@@ -81,13 +81,18 @@ public:
 		const uint32_t context_token = context->getContextToken();
 		const std::string message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
 		Server::getInstance().registerListener(context_token, message_token, 
-			[this](uint32_t context_token, std::string message_token) mutable {
-				auto message = Server::getInstance().getMessage(context_token, message_token);
-				auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
-				auto host_table = concreteMessage->releaseBlazingHostTable();
-				host_table->setPartitionId(concreteMessage->getPartitionId());
-				this->host_cache->addToCache(std::move(host_table));
+			[this](uint32_t context_token, std::string message_token, int event_id) mutable {
+				if (event_id > 0)	{
+					auto message = Server::getInstance().getMessage(context_token, message_token);
+					auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
+					auto host_table = concreteMessage->releaseBlazingHostTable();
+					host_table->setPartitionId(concreteMessage->getPartitionId());
+					this->host_cache->addToCache(std::move(host_table));
+				} else {
+					this->host_cache->finish();
+				}				
 			});
+		// TODO: deregister listener
 	} 
 
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {

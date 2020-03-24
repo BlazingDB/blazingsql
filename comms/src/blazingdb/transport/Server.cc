@@ -159,7 +159,7 @@ void collect_n_batches_event(void * socket, Server * server) {
 	assert(ok_message == "OK");
 	blazingdb::transport::io::writeToSocket(socket, "END", 3, false);
 }
-void collect_last_event(void * socket, Server * server) {
+Message::MetaData collect_last_event(void * socket, Server * server) {
 	zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
 	Message::MetaData message_metadata = read_metadata<Message::MetaData>(socket);
 
@@ -174,6 +174,8 @@ void collect_last_event(void * socket, Server * server) {
 
 	assert(ok_message == "OK");
 	blazingdb::transport::io::writeToSocket(socket, "END", 3, false);
+
+	return message_metadata;
 }
 
 template <typename buffer_container_type = std::vector<rmm::device_buffer>>
@@ -278,7 +280,13 @@ public:
 					if(message_topic_str == "N_BATCHES") {
 						collect_n_batches_event(socket, this);
 					} else if(message_topic_str == "LAST") {
-						collect_last_event(socket, this);
+						auto message_metadata = collect_last_event(socket, this);
+						auto listener_key = std::to_string(message_metadata.contextToken) + "_" +  message_metadata.messageToken;
+						auto iter = this->listeners_.find(listener_key);
+						if (iter != this->listeners_.end()) {
+							auto callback = iter->second;
+							callback(message_metadata.contextToken, message_metadata.messageToken, -1);
+						}
 					} else if(message_topic_str == "GPUS") {
 						Message::MetaData message_metadata;
 						Address::MetaData address_metadata;
@@ -301,7 +309,7 @@ public:
 						auto iter = this->listeners_.find(listener_key);
 						if (iter != this->listeners_.end()) {
 							auto callback = iter->second;
-							callback(contextToken, messageToken);
+							callback(contextToken, messageToken, 1);
 						}
 					}
 				} catch(const std::runtime_error & exception) {

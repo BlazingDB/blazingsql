@@ -20,7 +20,7 @@ using gpu_raw_buffer_container = std::tuple<std::vector<int>, std::vector<const 
 											std::vector<ColumnTransport>,
 											std::vector<std::unique_ptr<rmm::device_buffer>> >;
 
-using HostCallback = std::function<void (uint32_t, std::string)>;
+using HostCallback = std::function<void (uint32_t, std::string, int)>;
 
 class Server {
 public:

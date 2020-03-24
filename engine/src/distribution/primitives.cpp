@@ -226,6 +226,23 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 	}
 }
 
+void notifyLastTablePartitions(Context * context) {
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
+
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	auto nodes = context->getAllNodes();
+	for(std::size_t i = 0; i < nodes.size(); ++i) {
+		if(!(nodes[i] == self_node)) {
+			blazingdb::transport::experimental::Message::MetaData metadata;
+			std::strcpy(metadata.messageToken, message_id.c_str());
+			metadata.contextToken = context_token;
+			Client::notifyLastMessageEvent(nodes[i], metadata);
+		}
+	}
+}
+
 void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
 
 	std::string context_comm_token = context->getContextCommunicationToken();
