@@ -46,8 +46,26 @@ void Server::deregisterContext(const ContextToken context_token) { comm_server->
 
 std::shared_ptr<ReceivedMessage> Server::getMessage(
 	const ContextToken & token_value, const MessageTokenType & messageToken) {
+	auto message = comm_server->getMessage(token_value, messageToken);
+	
+	messages::experimental::ReceivedHostMessage * host_msg_ptr = nullptr;
+	if (host_msg_ptr = dynamic_cast<messages::experimental::ReceivedHostMessage *>(message.get())) {
+		std::string messageToken = message->getMessageTokenValue();
+		uint32_t contextToken = message->getContextTokenValue();
+	 	auto sender_node = message->getSenderNode();
+		std::unique_ptr<ral::frame::BlazingTable> samples = host_msg_ptr->getBlazingTable();
+		int32_t total_row_size = message->metadata().total_row_size;
+		int32_t partition_id = message->metadata().partition_id;
+		return std::make_shared<messages::experimental::ReceivedDeviceMessage>(messageToken, contextToken, sender_node, std::move(samples), total_row_size, partition_id);
+	}
+	
+	return message;
+}
+
+std::shared_ptr<ReceivedMessage> Server::getHostMessage(const ContextToken & token_value, const MessageTokenType & messageToken){
 	return comm_server->getMessage(token_value, messageToken);
 }
+
 void Server::registerListener(uint32_t context_token, std::string message_token, HostCallback callback){
 	assert(use_batch_processing_);
 	comm_server->registerListener(context_token, message_token, callback);

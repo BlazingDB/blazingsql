@@ -53,7 +53,7 @@ public:
 		const std::string message_token = MessageType::MessageID() + "_" + context_comm_token;
 		Server::getInstance().registerListener(context_token, message_token, 
 			[this](uint32_t context_token, std::string message_token) mutable {
-				auto message = Server::getInstance().getMessage(context_token, message_token);
+				auto message = Server::getInstance().getHostMessage(context_token, message_token);
 				auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
 				auto host_table = concreteMessage->releaseBlazingHostTable();
 				this->cache->addHostFrameToCache(std::move(host_table));
