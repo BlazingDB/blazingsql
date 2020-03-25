@@ -76,8 +76,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/jitify
-    ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
-    ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
     ${BSQL_BLD_PREFIX}/include
     ${BSQL_BLD_PREFIX}/include/cudf
     ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/cub

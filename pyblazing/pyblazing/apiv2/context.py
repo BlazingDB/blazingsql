@@ -287,12 +287,17 @@ def parseHiveMetadata(curr_table, partitions):
     for file_index, partition_name  in enumerate(partitions):
         curr_partition = partitions[partition_name]
         for index, [col_name, col_value_id] in enumerate(curr_partition):
-            if(dtypes[index] == np.dtype("object")):
+            if col_name in columns:
+                col_index = columns.index(col_name)
+            else:
+                print("ERROR: could not find partition column name " + str(col_name) + " in table names")
+            print("parseHiveMetadata getting partition metadata for " + col_name + " is of type " + str(dtypes[col_index]))
+            if(dtypes[col_index] == np.dtype("object")):
                 np_col_value = col_value_id
-            elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
+            elif(dtypes[col_index] == np.dtype("datetime64[s]") or dtypes[col_index] == np.dtype("datetime64[ms]") or dtypes[col_index] == np.dtype("datetime64[us]") or dtypes[col_index] == np.dtype("datetime64[ns]")):
                 np_col_value = np.datetime64(col_value_id)
             else:
-                np_col_value = np.fromstring(col_value_id, dtypes[index], sep=' ')[0]
+                np_col_value = np.fromstring(col_value_id, dtypes[col_index], sep=' ')[0]
             
             table_partition.setdefault(col_name, []).append(np_col_value)
         minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
@@ -824,6 +829,10 @@ class BlazingContext(object):
                             merged_types.append(parsedSchema['types'][i])
                 else:
                     print("ERROR: number of hive_schema columns does not match number of parsedSchema columns")
+                    print("hive_schema['column_types']")
+                    print(hive_schema['column_types'])
+                    print("parsedSchema['types'])")
+                    print(parsedSchema['types'])
                 
                 print("merged_types")
                 print(merged_types)

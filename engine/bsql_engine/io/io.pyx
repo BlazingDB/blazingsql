@@ -86,7 +86,7 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
-cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,gdf_dtype]] extra_columns):
+cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns):
     temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns)
     return temp
 
@@ -164,15 +164,16 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
       arg_keys.push_back(str.encode(key))
       arg_values.push_back(str.encode(str(value)))
 
-    cdef vector[pair[string,gdf_dtype]] extra_columns_cpp
-    cdef pair[string,gdf_dtype] extra_column_cpp
+    cdef vector[pair[string,type_id]] extra_columns_cpp
+    cdef pair[string,type_id] extra_column_cpp
+    
     for extra_column in extra_columns:
-        extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_dtype(extra_column[1]))
+        extra_column_cpp = (extra_column[0].encode(),extra_column[1])
         extra_columns_cpp.push_back(extra_column_cpp)
         print("extra_column_cpp")
         print(extra_column_cpp)
         print("extra_column[1]:  " + str(extra_column[1]))
-        print("gdf_dtype_from_dtype(extra_column[1]):  " + str(gdf_dtype_from_dtype(extra_column[1])))
+        
     tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
     return_object['datasource'] = files

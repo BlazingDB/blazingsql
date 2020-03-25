@@ -6,30 +6,6 @@ import cudf
 from itertools import repeat
 import pandas as pd
 
-def convertHiveTypeToNumpyType(hiveType):
-    if(hiveType == 'int' or hiveType == 'integer'):
-        return np.int32
-    elif(hiveType == 'string' or hiveType.startswith('varchar') or hiveType.startswith('char') or hiveType == "binary"):
-        return np.str
-    elif(hiveType == 'tinyint'):
-        return np.int8
-    elif(hiveType == 'smallint'):
-        return np.int16
-    elif(hiveType == 'bigint'):
-        return np.int64
-    elif(hiveType == 'float'):
-        return np.float32
-    elif(hiveType == 'double' or hiveType == 'double precision' or hiveType.startswith('decimal')):
-        return np.float64
-    elif(hiveType == 'decimal' or hiveType == 'numeric'):
-        return None
-    elif(hiveType == 'timestamp'):
-        return np.datetime64
-    elif(hiveType == 'date'):
-        return np.datetime64
-    elif(hiveType == 'boolean'):
-        return np.bool
-    
 
 def convertHiveTypeToCudfType(hiveType):
     if(hiveType == 'int' or hiveType == 'integer'):
@@ -54,7 +30,23 @@ def convertHiveTypeToCudfType(hiveType):
         return 8  # TIMESTAMP_DAYS
     elif(hiveType == 'boolean'):
         return 7  # BOOL8
-    
+
+
+cudfTypeToCsvType = {
+    1: "int8",
+    2: "int16",
+    3: "int32",
+    4: "int64",
+    5: "float32",
+    6: "float64",
+    7: "boolean",
+    8: "date32",
+    9: "timestamp[s]",
+    10: "timestamp[ms]",
+    11: "timestamp[us]",
+    12: "timestamp[ns]",
+    14: "str",
+}  
 
 
 def getPartitions(tableName, schema, cursor):
@@ -76,32 +68,6 @@ def getPartitions(tableName, schema, cursor):
     print("partitions output from getPartitions:")
     print(partitions)
     return partitions
-
-
-dtypes = {
-    np.float64: "double",
-    np.float32: "float",
-    np.int64: "int64",
-    np.longlong: "int64",
-    np.int32: "int32",
-    np.int16: "int16",
-    np.int8: "int8",
-    np.bool_: "bool",
-    np.datetime64: "date64",
-    np.object_: "str",
-    np.str_: "str",
-}
-
-
-def gdf_dtype_from_dtype(dtype):
-    if pd.api.types.is_datetime64_dtype(dtype):
-        time_unit, _ = np.datetime_data(dtype)
-        return "date64"
-    # everything else is a 1-1 mapping
-    dtype = np.dtype(dtype)
-    if dtype.type in dtypes:
-        return dtypes[dtype.type]
-    raise TypeError('cannot convert numpy dtype `%s` to gdf_dtype' % (dtype))
 
 
 def get_hive_table(cursor, tableName, hive_database_name):
@@ -137,8 +103,7 @@ def get_hive_table(cursor, tableName, hive_database_name):
                     parsingColumns = False
                 else:
                     schema['columns'].append(
-                        (triple[0], convertHiveTypeToNumpyType(triple[1]), False))
-                    schema['column_types'].append(convertHiveTypeToCudfType(triple[1]))
+                        (triple[0], convertHiveTypeToCudfType(triple[1]), False))                    
             elif isinstance(triple[0], str) and triple[0].startswith('Location:'):
                 if triple[1].startswith("file:"):
                     schema['location'] = triple[1].replace("file:", "")
@@ -167,8 +132,7 @@ def get_hive_table(cursor, tableName, hive_database_name):
                     parsingPartitionColumns = False
                 elif triple[0] != "":
                     schema['columns'].append(
-                        (triple[0], convertHiveTypeToNumpyType(triple[1]), True))
-                    schema['column_types'].append(convertHiveTypeToCudfType(triple[1]))
+                        (triple[0], convertHiveTypeToCudfType(triple[1]), True))                    
         i = i + 1
     
     print("parsed result")
@@ -193,10 +157,11 @@ def get_hive_table(cursor, tableName, hive_database_name):
     extra_kwargs['delimiter'] = schema['delimiter']
     if schema['fileType'] == 'csv':
         extra_kwargs['names'] = [col_name for col_name, dtype, is_virtual_col  in schema['columns'] if not is_virtual_col ]
-        extra_kwargs['dtype'] = [gdf_dtype_from_dtype(dtype) for col_name, dtype, is_virtual_col in schema['columns'] if not is_virtual_col]
+        extra_kwargs['dtype'] = [cudfTypeToCsvType[dtype] for col_name, dtype, is_virtual_col in schema['columns'] if not is_virtual_col]
     
     #schema['column_names'] and schema['column_types'] will be given to the BlazingTable object. We want to use these instead of that gets returned from _parseSchema because the files and the hive cursor may not agree and we want to go off of the hive cursor
     schema['column_names'] = [col_name.encode() for col_name, dtype, is_virtual_col  in schema['columns'] ]
+    schema['column_types'] = [dtype for col_name, dtype, is_virtual_col  in schema['columns'] ]
     
     extra_kwargs['file_format'] = schema['fileType']
     extra_columns = []

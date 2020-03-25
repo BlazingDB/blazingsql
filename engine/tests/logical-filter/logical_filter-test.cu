@@ -8,7 +8,6 @@
 #include <LogicalFilter.h>
 #include <Utils.cuh>
 
-#include "gdf_wrapper/gdf_wrapper.cuh"
 
 class TestEnvironment : public testing::Environment {
 public:
