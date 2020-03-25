@@ -67,6 +67,19 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	return query_part.substr(start_position, end_position - start_position);
 }
 
+std::vector<size_t> get_projections(const std::string & query_part) {
+	std::string project_string = get_named_expression(query_part, "projects");
+	std::vector<std::string> project_string_split =
+		get_expressions_from_expression_list(project_string, true);
+
+	std::vector<size_t> projections;
+	for(int i = 0; i < project_string_split.size(); i++) {
+		projections.push_back(std::stoull(project_string_split[i]));
+	}
+
+	return projections;
+}
+
 interops::operator_type map_to_operator_type(const std::string & operator_token) {
 	// std::cout << "operator_token: " << operator_token << std::endl;
 	RAL_EXPECTS(operator_map.find(operator_token) != operator_map.end(), "Unsupported operator: " + operator_token);

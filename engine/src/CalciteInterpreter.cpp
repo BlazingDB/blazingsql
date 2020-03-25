@@ -134,18 +134,12 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			size_t table_index = get_table_index(table_names, extract_table_name(query[0]));
 			if(is_bindable_scan(query[0])) {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-				std::string project_string = get_named_expression(query[0], "projects");
-				std::vector<std::string> project_string_split =
-					get_expressions_from_expression_list(project_string, true);
+
+				std::vector<size_t> projections = get_projections(query[0]);
 
 				std::string aliases_string = get_named_expression(query[0], "aliases");
 				std::vector<std::string> aliases_string_split =
 					get_expressions_from_expression_list(aliases_string, true);
-
-				std::vector<size_t> projections;
-				for(int i = 0; i < project_string_split.size(); i++) {
-					projections.push_back(std::stoull(project_string_split[i]));
-				}
 
 				// This is for the count(*) case, we don't want to load all the columns
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {

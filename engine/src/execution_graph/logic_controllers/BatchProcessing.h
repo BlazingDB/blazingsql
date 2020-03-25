@@ -10,6 +10,7 @@
 #include "communication/messages/ComponentMessages.h"
 #include "communication/network/Server.h"
 #include <src/communication/network/Client.h>
+#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace batch {
@@ -129,12 +130,10 @@ public:
 			n_batches += row_groups.size();
 			all_row_groups.push_back(row_groups);
 		}
-		
-
 	}
 	RecordBatch next() {
 		// std::cout << "Datasource.next: " << file_index << "|" << batch_id << "|" << all_row_groups[file_index].size() << std::endl;
-		auto ret = loader.load_batch(context.get(), {}, schema, user_readable_file_handles[file_index], files[file_index], file_index, batch_id);
+		auto ret = loader.load_batch(context.get(), projections, schema, user_readable_file_handles[file_index], files[file_index], file_index, batch_id);
 		batch_index++;
 		
 		batch_id++;
@@ -148,6 +147,10 @@ public:
 		return file_index < n_files and batch_index < n_batches;
 	}
 
+	void set_projections(std::vector<size_t> projections) {
+		this->projections = projections;
+	}
+
 private:
 	std::shared_ptr<ral::io::data_provider> provider;
 	std::shared_ptr<ral::io::data_parser> parser;
@@ -155,6 +158,7 @@ private:
 	std::vector<ral::io::data_handle> files;
 
 	std::shared_ptr<Context> context;
+	std::vector<size_t> projections;
 	ral::io::data_loader loader;
 	ral::io::Schema  schema;
 	size_t file_index;
@@ -197,6 +201,33 @@ public:
 	}
 private:
 	DataSourceSequence input;
+};
+
+class BindableTableScan : public PhysicalPlan {
+public:
+	BindableTableScan(std::string & expression, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
+	: PhysicalPlan(), input(loader, schema, context), expression(expression), context(context)
+	{}
+	virtual kstatus run() {
+		input.set_projections(get_projections(expression));
+
+		while (input.has_next() ) {
+			auto batch = input.next();
+
+			if(is_filtered_bindable_scan(expression)) {
+				auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
+				this->output_cache()->addToCache(std::move(columns));
+			}
+			else{
+				this->output_cache()->addToCache(std::move(batch));
+			}
+		}
+		return kstatus::proceed;
+	}
+private:
+	DataSourceSequence input;
+	std::shared_ptr<Context> context;
+	std::string expression;
 };
 
 class Projection : public PhysicalPlan {
