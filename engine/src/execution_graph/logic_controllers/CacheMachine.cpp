@@ -96,6 +96,8 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table) {
 		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())) {
 			usedMemory[cacheIndex] += table->sizeInBytes();
 			if(cacheIndex == 0) {
+				// WSM TODO add if not owned, clone
+
 				auto cache_data = std::make_unique<GPUCacheData>(std::move(table));
 				std::unique_ptr<message<CacheData>> item =
 					std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex);

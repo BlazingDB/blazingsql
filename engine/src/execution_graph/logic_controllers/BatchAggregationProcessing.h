@@ -10,6 +10,7 @@
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
 #include "operators/GroupBy.h"
+#include "distribution/primitives.h"
 
 #include <cudf/hashing.hpp>
 
@@ -79,18 +80,36 @@ public:
 			// WSM TODO from queryString determine columns_to_hash
             std::vector<cudf::size_type> columns_to_hash;
             
-            std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions;
-			
+            // WSM num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
+            // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
+            int num_partitions = context->getTotalNodes(); 
             std::unique_ptr<CudfTable> hashed_data;
             std::vector<cudf::size_type> hased_data_offsets;
-            int num_partitions = context->getTotalNodes(); // WSM this will do for now, but may want a function to determine this in the future
             std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), columns_to_hash, num_partitions);
 
             // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
             std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
             std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
 
-            //   WSM TODO ADD SHUFFLE HERE AND ADD TO CACHE
+            std::vector<std::unique_ptr<ral::frame::BlazingTable>> self_partitions;
+            std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
+            for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+                ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
+                if (context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+                    // hash_partition followed by split does not create a partition that we can own, so we need to clone it.
+                    // if we dont clone it, hashed_data will go out of scope before we get to use the partition
+                    /* WSM TODO. Lets make it so that inserting a table into a cache will do the following:
+                    - if its going to move it off gpu, then continue as usual
+                    - if its going to keep it in GPU, then see if it owns the data, if it does not, it should make a clone.
+                    when we implement this, we can remove this clone here
+                    */
+                    std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
+                    self_partitions.emplace_back(std::move(partition_table_clone));
+                } else {
+                    partitions_to_send.emplace_back(
+                        std::make_pair(context->getNode(nodeIndex), partition_table_view));
+                }
+            }
 			
 		}
 
