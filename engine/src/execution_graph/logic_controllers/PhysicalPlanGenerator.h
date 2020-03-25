@@ -16,6 +16,8 @@ namespace batch {
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
+using ral::cache::cache_settings;
+using ral::cache::CacheType;
  
 struct tree_processor {
 	struct node {
@@ -50,13 +52,17 @@ struct tree_processor {
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::TableScanKernel);
 		} else if (is_bindable_scan(expr)) {
-//			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-//			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
-//			auto schema = this->schemas[table_index];
-//			k = std::make_shared<BindableTableScanKernel>(expr, *loader, schema, kernel_context);
-//			kernel_context->setKernelId(k->get_id());
-//			k->set_type_id(kernel_type::BindableTableScanKernel);
-		} else if (is_single_node_partition(expr)) {
+			size_t table_index = get_table_index(table_names, extract_table_name(expr));
+			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
+			auto schema = this->schemas[table_index];
+			k = std::make_shared<BindableTableScanKernel>(expr, *loader, schema, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::BindableTableScanKernel);
+		} else if ( is_sort(expr) ) {
+			k = std::make_shared<ral::cache::SortKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::SortKernel);
+		}  else if (is_single_node_partition(expr)) {
 			k = std::make_shared<PartitionSingleNodeKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::PartitionSingleNodeKernel);
@@ -64,7 +70,15 @@ struct tree_processor {
 			k = std::make_shared<SortAndSampleSingleNodeKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::SortAndSampleSingleNodeKernel);
-		} else if (is_merge(expr)) {
+		} else if (is_partition(expr)) {
+			k = std::make_shared<PartitionKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::PartitionKernel);
+		} else if (is_sort_and_sample(expr)) {
+			k = std::make_shared<SortAndSampleKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::SortAndSampleKernel);
+		}  else if (is_merge(expr)) {
 			k = std::make_shared<MergeStreamKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::MergeStreamKernel);
@@ -88,6 +102,60 @@ struct tree_processor {
 		}
 	}
 
+	void transform_operator_bigger_than_gpu(node* parent, node * current) {
+		if (current->kernel_unit->get_type_id() == kernel_type::SortKernel) {
+			auto merge_expr = current->expr;
+			auto partition_expr = current->expr;
+			auto sort_and_sample_expr = current->expr;
+
+			if (this->context->getTotalNodes() == 1) {
+				StringUtil::findAndReplaceAll(merge_expr, "LogicalSort", LOGICAL_MERGE_TEXT);
+				StringUtil::findAndReplaceAll(partition_expr, "LogicalSort", LOGICAL_SINGLE_NODE_PARTITION_TEXT);
+				StringUtil::findAndReplaceAll(sort_and_sample_expr, "LogicalSort", LOGICAL_SORT_AND_SAMPLE_TEXT);
+			}	else {
+				StringUtil::findAndReplaceAll(merge_expr, "LogicalSort", LOGICAL_MERGE_TEXT);
+				StringUtil::findAndReplaceAll(partition_expr, "LogicalSort", LOGICAL_PARTITION_TEXT);
+				StringUtil::findAndReplaceAll(sort_and_sample_expr, "LogicalSort", LOGICAL_SORT_AND_SAMPLE_TEXT);
+			}
+
+			auto merge = std::make_shared<node>();
+			merge->expr = merge_expr;
+			merge->level = current->level;
+			merge->kernel_unit = make_kernel(merge_expr);
+
+			auto partition = std::make_shared<node>();
+			partition->expr = partition_expr;
+			partition->level = current->level;
+			partition->kernel_unit = make_kernel(partition_expr);
+			merge->children.push_back(partition);
+
+			auto ssample = std::make_shared<node>();
+			ssample->expr = sort_and_sample_expr;
+			ssample->level = current->level;
+			ssample->kernel_unit = make_kernel(sort_and_sample_expr);
+			partition->children.push_back(ssample);
+
+			ssample->children = current->children;
+
+			if (parent == nullptr) { // root is sort
+				// new root
+				current->expr = merge->expr;
+				current->kernel_unit = merge->kernel_unit;
+				current->children = merge->children;
+			} else {
+				auto it = std::find_if(parent->children.begin(), parent->children.end(), [current] (std::shared_ptr<node> tmp) {
+					return tmp->kernel_unit->get_id() == current->kernel_unit->get_id();
+				});
+				parent->children.erase( it );
+				parent->children.push_back(merge);
+			}
+		}	else if (current) {
+			for (auto& child : current->children) {
+				transform_operator_bigger_than_gpu(current, child.get());
+			}
+		}
+	}
+
 	ral::cache::graph build_batch_graph(std::string json) {
 		try {
 			std::istringstream input(json);
@@ -99,6 +167,7 @@ struct tree_processor {
 			std::cerr << e.what() <<  std::endl;
 		}
 
+		transform_operator_bigger_than_gpu(nullptr, &this->root);
 
 		ral::cache::graph graph;
 		if (this->root.kernel_unit != nullptr) {
@@ -120,9 +189,19 @@ struct tree_processor {
 				port_name.push_back(index_char);
 				graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
 			} else {
-				auto a = child->kernel_unit->get_type_id();
-				auto b = parent->kernel_unit->get_type_id();
-				graph +=  *child->kernel_unit >> (*parent->kernel_unit);
+				auto child_kernel_type = child->kernel_unit->get_type_id();
+				auto parent_kernel_type = parent->kernel_unit->get_type_id();
+				if ((child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
+						|| (child_kernel_type == kernel_type::SortAndSampleSingleNodeKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
+					graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];
+					graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
+				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
+									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
+					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = 10};
+					graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+				} else {
+					graph +=  *child->kernel_unit >> (*parent->kernel_unit);
+				}	
 			}
 		}
 	}

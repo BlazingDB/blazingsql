@@ -30,7 +30,8 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <cudf/column/column_factories.hpp>
 #include "execution_graph/logic_controllers/LogicalProject.h"
-#include <execution_graph/logic_controllers/TaskFlowProcessor.h>
+#include "execution_graph/logic_controllers/TaskFlowProcessor.h"
+#include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
 
 
 std::unique_ptr<ral::frame::BlazingTable> process_union(const ral::frame::BlazingTableView & left, const ral::frame::BlazingTableView & right, std::string query_part) {
@@ -396,17 +397,17 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 		assert(input_loaders.size() == table_names.size());
 
 		std::unique_ptr<ral::frame::BlazingTable> output_frame; 
-		ral::cache::parser::expr_tree_processor tree{
+		ral::batch::tree_processor tree{
 			.root = {},
 			.context = queryContext.clone(),
 			.input_loaders = input_loaders,
 			.schemas = schemas,
 			.table_names = table_names,
-			.transform_operators_bigger_than_gpu = false
+			.transform_operators_bigger_than_gpu = true
 		};
 		ral::cache::OutputKernel output;
 
-		auto graph = tree.build_graph(logicalPlan);
+		auto graph = tree.build_batch_graph(logicalPlan);
 		if (graph.num_nodes() > 0) {
 			graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
 			graph.execute();
