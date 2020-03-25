@@ -168,14 +168,16 @@ public:
 		ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
 
 		ExternalBatchColumnDataSequence external_input(context);
-		while (external_input.has_next()) {
-			auto host_table = external_input.next();
+		std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+		while (host_table = external_input.next()) {			
 			std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
 			
-			auto device_table = ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
-			this->output_[cache_id]->addToCache(std::move(device_table));
-
+			// auto device_table = ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
+			this->output_[cache_id]->addHostFrameToCache(std::move(host_table));
 		}
+
+		std::cout<< ">>>>>> FINISH PartitionKernel"<< std::endl;
+
 		return kstatus::proceed;
 	}
 
@@ -191,6 +193,7 @@ public:
 	}
 	
 	virtual kstatus run() {
+		std::cout<< ">>>>>> INSIDE MergeStreamKernel"<< std::endl;
 		for (auto idx = 0; idx < this->input_.count(); idx++)
 		{
 			std::vector<ral::frame::BlazingTableView> tableViews;

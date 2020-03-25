@@ -193,7 +193,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 	int step = static_cast<int>(partitioned_data.size() / all_nodes.size());
 	std::vector<NodeColumnView> partitioned_node_column_views;
 	for (int i = 0; i < partitioned_data.size(); i++){
-		int node_idx = std::max(i / step, static_cast<int>(all_nodes.size() - 1));
+		int node_idx = std::min(i / step, static_cast<int>(all_nodes.size() - 1));
 		partitioned_node_column_views.push_back(std::make_pair(all_nodes[node_idx], BlazingTableView(partitioned_data[i], table.names())));
 	}
 	
@@ -208,6 +208,7 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	std::vector<std::thread> threads;
+	std::cout<<">>>>>>>distributeTablePartitions total partitions "<<partitions.size()<<std::endl;
 	for (auto i = 0; i < partitions.size(); i++){
 		auto & nodeColumn = partitions[i];
 		if(nodeColumn.first == self_node) {
@@ -220,6 +221,7 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 			auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
 			Client::send(destination_node, *message);
 		}));
+		std::cout<<">>>>>>>distributeTablePartitions "<<i<<" "<<message_id<<std::endl;
 	}
 	for(size_t i = 0; i < threads.size(); i++) {
 		threads[i].join();

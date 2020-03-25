@@ -84,12 +84,15 @@ public:
 		Server::getInstance().registerListener(context_token, message_token, 
 			[this](uint32_t context_token, std::string message_token, int event_id) mutable {
 				if (event_id > 0)	{
-					auto message = Server::getInstance().getMessage(context_token, message_token);
+					std::cout<<">>>>>>>ExternalBatchColumnDataSequence listener "<<" "<<message_token<<std::endl;
+					auto message = Server::getInstance().getHostMessage(context_token, message_token);
 					auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
+					assert(concreteMessage != nullptr);
 					auto host_table = concreteMessage->releaseBlazingHostTable();
 					host_table->setPartitionId(concreteMessage->getPartitionId());
 					this->host_cache->addToCache(std::move(host_table));
 				} else {
+					std::cout<<">>>>>>>ExternalBatchColumnDataSequence FINISH "<<" "<<message_token<<std::endl;
 					this->host_cache->finish();
 				}				
 			});
@@ -98,9 +101,6 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {
 		return host_cache->pullFromCache();
-	}
-	bool has_next() {
-		return not host_cache->is_finished();
 	}
 private:
 	std::shared_ptr<Context> context;
