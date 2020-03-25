@@ -36,7 +36,10 @@ public:
 
 public:
 	std::shared_ptr<ReceivedMessage> getMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
+
 	std::shared_ptr<ReceivedMessage> getHostMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
+
+	size_t getNumberOfBatches(const ContextToken & token_value, const MessageTokenType & messageToken);
 
 	void registerListener(uint32_t context_token, std::string message_token, HostCallback callback);
 

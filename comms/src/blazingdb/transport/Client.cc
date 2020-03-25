@@ -46,7 +46,7 @@ public:
 
   void SetDevice(int gpuId) override { this->gpuId = gpuId; }
 
-  void setNumberOfBatches(const Message::MetaData &message_metadata, size_t n_batches) override {
+  bool setNumberOfBatches(const Message::MetaData &message_metadata, size_t n_batches) override {
     void* fd = client_socket.fd();
     zmq::socket_t* socket_ptr = (zmq::socket_t*)fd;
     std::string topic_id = "N_BATCHES";
@@ -73,6 +73,7 @@ public:
     std::string end_message(static_cast<char*>(local_message.data()),
                             local_message.size());
     assert(end_message == "END");
+    return true;
   }
   
   bool notifyLastMessageEvent(const Message::MetaData &message_metadata) override {

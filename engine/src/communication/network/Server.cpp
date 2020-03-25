@@ -66,66 +66,74 @@ std::shared_ptr<ReceivedMessage> Server::getHostMessage(const ContextToken & tok
 	return comm_server->getMessage(token_value, messageToken);
 }
 
+size_t Server::getNumberOfBatches(const ContextToken & token_value, const MessageTokenType & messageToken) {
+	return comm_server->getNumberOfBatches(token_value, messageToken);
+}
+
 void Server::registerListener(uint32_t context_token, std::string message_token, HostCallback callback){
 	assert(use_batch_processing_);
 	comm_server->registerListener(context_token, message_token, callback);
 }
 
 void Server::setEndPoints() {
-	// message SampleToNodeMasterMessage
+	// device messages
 	{
-		const std::string endpoint = ral::communication::messages::experimental::SampleToNodeMasterMessage::MessageID();
-		comm_server->registerEndPoint(endpoint);
-		comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::SampleToNodeMasterMessage::MakeFrom, endpoint);
-	}
+		// message SampleToNodeMasterMessage
+		{
+			const std::string endpoint = ral::communication::messages::experimental::SampleToNodeMasterMessage::MessageID();
+			comm_server->registerEndPoint(endpoint);
+			comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::SampleToNodeMasterMessage::MakeFrom, endpoint);
+		}
 
-	// message ColumnDataMessage
-	{
-		const std::string endpoint = ral::communication::messages::experimental::ColumnDataMessage::MessageID();
-		comm_server->registerEndPoint(endpoint);
-		comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::ColumnDataMessage::MakeFrom, endpoint);
-	}
+		// message ColumnDataMessage
+		{
+			const std::string endpoint = ral::communication::messages::experimental::ColumnDataMessage::MessageID();
+			comm_server->registerEndPoint(endpoint);
+			comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::ColumnDataMessage::MakeFrom, endpoint);
+		}
 
-	// message ColumnDataPartitionMessage
-	{
-		const std::string endpoint = ral::communication::messages::experimental::ColumnDataPartitionMessage::MessageID();
-		comm_server->registerEndPoint(endpoint);
-		comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::ColumnDataPartitionMessage::MakeFrom, endpoint);
-	}
+		// message ColumnDataPartitionMessage
+		{
+			const std::string endpoint = ral::communication::messages::experimental::ColumnDataPartitionMessage::MessageID();
+			comm_server->registerEndPoint(endpoint);
+			comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::ColumnDataPartitionMessage::MakeFrom, endpoint);
+		}
 
-	// message PartitionPivotsMessage
-	{
-		const std::string endpoint = ral::communication::messages::experimental::PartitionPivotsMessage::MessageID();
-		comm_server->registerEndPoint(endpoint);
-		comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::PartitionPivotsMessage::MakeFrom, endpoint);
+		// message PartitionPivotsMessage
+		{
+			const std::string endpoint = ral::communication::messages::experimental::PartitionPivotsMessage::MessageID();
+			comm_server->registerEndPoint(endpoint);
+			comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::PartitionPivotsMessage::MakeFrom, endpoint);
+		}
 	}
-
-	// Host Messages
+	///// Host Messages
 	{
-		const std::string endpoint = ral::communication::messages::experimental::SampleToNodeMasterMessage::MessageID();
-		comm_server->registerEndPoint(endpoint);
-		comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
-	}
+		{
+			const std::string endpoint = ral::communication::messages::experimental::SampleToNodeMasterMessage::MessageID();
+			comm_server->registerEndPoint(endpoint);
+			comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
+		}
 
-	// message ColumnDataMessage
-	{
-		const std::string endpoint = ral::communication::messages::experimental::ColumnDataMessage::MessageID();
-		comm_server->registerEndPoint(endpoint);
-		comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
-	}
+		// message ColumnDataMessage
+		{
+			const std::string endpoint = ral::communication::messages::experimental::ColumnDataMessage::MessageID();
+			comm_server->registerEndPoint(endpoint);
+			comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
+		}
 
-	// message ColumnDataMessage
-	{
-		const std::string endpoint = ral::communication::messages::experimental::ColumnDataPartitionMessage::MessageID();
-		comm_server->registerEndPoint(endpoint);
-		comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
-	}
+		// message ColumnDataMessage
+		{
+			const std::string endpoint = ral::communication::messages::experimental::ColumnDataPartitionMessage::MessageID();
+			comm_server->registerEndPoint(endpoint);
+			comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
+		}
 
-	// message PartitionPivotsMessage
-	{
-		const std::string endpoint = ral::communication::messages::experimental::PartitionPivotsMessage::MessageID();
-		comm_server->registerEndPoint(endpoint);
-		comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
+		// message PartitionPivotsMessage
+		{
+			const std::string endpoint = ral::communication::messages::experimental::PartitionPivotsMessage::MessageID();
+			comm_server->registerEndPoint(endpoint);
+			comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
+		}
 	}
 }
 }  // namespace experimental

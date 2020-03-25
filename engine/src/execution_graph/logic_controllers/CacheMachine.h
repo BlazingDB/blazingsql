@@ -171,6 +171,14 @@ public:
 	bool is_finished() const {
 		return this->finished.load(std::memory_order_seq_cst);
 	}
+	
+	void setNumberOfBatches(size_t n_batches) {
+		this->n_batches = n_batches;
+	}
+
+	size_t getNumberOfBatches() {
+		return this->n_batches;
+	}
 
 private:
 	message_ptr getWaitingQueue(const std::size_t & message_id) {
@@ -189,6 +197,7 @@ private:
 	std::mutex mutex_;
 	std::deque<message_ptr> message_queue_;
 	std::atomic<bool> finished;
+	std::atomic<size_t> n_batches{1};
 	std::condition_variable condition_variable_;
 };
 
@@ -209,6 +218,14 @@ public:
 	bool is_finished();
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
+
+	void setNumberOfBatches(size_t n_batches) {
+		this->waitingCache->setNumberOfBatches(n_batches);
+	}
+
+	size_t getNumberOfBatches() {
+		return this->waitingCache->getNumberOfBatches();
+	}
 
 protected:
 	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
@@ -254,6 +271,13 @@ public:
 		return cpu_data->releaseHostTable();
 	}
 
+	void setNumberOfBatches(size_t n_batches) {
+		this->waitingCache->setNumberOfBatches(n_batches);
+	}
+
+	size_t getNumberOfBatches() {
+		return this->waitingCache->getNumberOfBatches();
+	}
 protected:
 	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
 };
