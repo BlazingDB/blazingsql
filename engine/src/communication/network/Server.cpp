@@ -86,6 +86,13 @@ void Server::setEndPoints() {
 		comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::ColumnDataMessage::MakeFrom, endpoint);
 	}
 
+	// message ColumnDataPartitionMessage
+	{
+		const std::string endpoint = ral::communication::messages::experimental::ColumnDataPartitionMessage::MessageID();
+		comm_server->registerEndPoint(endpoint);
+		comm_server->registerDeviceDeserializerForEndPoint(ral::communication::messages::experimental::ColumnDataPartitionMessage::MakeFrom, endpoint);
+	}
+
 	// message PartitionPivotsMessage
 	{
 		const std::string endpoint = ral::communication::messages::experimental::PartitionPivotsMessage::MessageID();
@@ -103,6 +110,13 @@ void Server::setEndPoints() {
 	// message ColumnDataMessage
 	{
 		const std::string endpoint = ral::communication::messages::experimental::ColumnDataMessage::MessageID();
+		comm_server->registerEndPoint(endpoint);
+		comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
+	}
+
+	// message ColumnDataMessage
+	{
+		const std::string endpoint = ral::communication::messages::experimental::ColumnDataPartitionMessage::MessageID();
 		comm_server->registerEndPoint(endpoint);
 		comm_server->registerHostDeserializerForEndPoint(ral::communication::messages::experimental::GPUComponentMessage::MakeFromHost, endpoint);
 	}

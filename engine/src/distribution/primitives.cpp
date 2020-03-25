@@ -188,7 +188,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 	std::vector<Node> all_nodes = context->getAllNodes();
 
-	RAL_EXPECTS(all_nodes.size() >= partitioned_data.size(), "Number of table partitions is smalled than total nodes");
+	RAL_EXPECTS(all_nodes.size() <= partitioned_data.size(), "Number of table partitions is smalled than total nodes");
 
 	int step = static_cast<int>(partitioned_data.size() / all_nodes.size());
 	std::vector<NodeColumnView> partitioned_node_column_views;

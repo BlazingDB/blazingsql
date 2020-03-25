@@ -55,7 +55,7 @@ struct tree_processor {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
 			auto schema = this->schemas[table_index];
-			k = std::make_shared<BindableTableScanKernel>(expr, *loader, schema, kernel_context);
+			k = std::make_shared<BindableTableScan>(expr, *loader, schema, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::BindableTableScanKernel);
 		} else if ( is_sort(expr) ) {
@@ -111,7 +111,7 @@ struct tree_processor {
 			if (this->context->getTotalNodes() == 1) {
 				StringUtil::findAndReplaceAll(merge_expr, "LogicalSort", LOGICAL_MERGE_TEXT);
 				StringUtil::findAndReplaceAll(partition_expr, "LogicalSort", LOGICAL_SINGLE_NODE_PARTITION_TEXT);
-				StringUtil::findAndReplaceAll(sort_and_sample_expr, "LogicalSort", LOGICAL_SORT_AND_SAMPLE_TEXT);
+				StringUtil::findAndReplaceAll(sort_and_sample_expr, "LogicalSort", LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT);
 			}	else {
 				StringUtil::findAndReplaceAll(merge_expr, "LogicalSort", LOGICAL_MERGE_TEXT);
 				StringUtil::findAndReplaceAll(partition_expr, "LogicalSort", LOGICAL_PARTITION_TEXT);

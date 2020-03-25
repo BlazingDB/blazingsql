@@ -49,9 +49,9 @@ public:
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
 		auto partitionPlan = ral::operators::experimental::generate_partition_plan(9 /*how many?*/, sampledTableViews, tableTotalRows, this->expression);
-std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
+// std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
 ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
-std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
+// std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
 		this->output_.get_cache("output_b")->addToCache(std::move(partitionPlan));
 		return kstatus::proceed;
 	}
@@ -114,6 +114,7 @@ public:
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
 		std::vector<size_t> tableTotalRows;
+		std::cout<< ">>>>>> INSIDE SortAndSampleKernel"<< std::endl;
 		while (input.has_next()) {
 			auto batch = input.next();
 			auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
@@ -148,7 +149,9 @@ public:
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"));
 		auto partitionPlan = std::move(input_partitionPlan.next());
 		
-	    context->incrementQuerySubstep();
+		context->incrementQuerySubstep();
+
+		std::cout<< ">>>>>> INSIDE PartitionKernel"<< std::endl;
 
 		BatchSequence input(this->input_.get_cache("input_a"));
 		while (input.has_next()) {
@@ -162,13 +165,16 @@ public:
 			}
 		}
 
-        ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
+		ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
 
 		ExternalBatchColumnDataSequence external_input(context);
 		while (external_input.has_next()) {
 			auto host_table = external_input.next();
 			std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
-			this->output_[cache_id]->addHostFrameToCache(std::move(host_table));
+			
+			auto device_table = ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
+			this->output_[cache_id]->addToCache(std::move(device_table));
+
 		}
 		return kstatus::proceed;
 	}
