@@ -6,8 +6,7 @@ namespace blazingdb {
 namespace transport {
 namespace experimental {
 
-MessageQueue::MessageQueue() 
-  : last_message_flags_{}
+MessageQueue::MessageQueue()
 {
 
 }
@@ -17,8 +16,7 @@ std::shared_ptr<ReceivedMessage> MessageQueue::getMessage(
   std::unique_lock<std::mutex> lock(mutex_);
 
   condition_variable_.wait(lock, [&, this] {
-    bool last_msg = this->last_message_flags_.find(messageToken) != this->last_message_flags_.end();
-    return last_msg or std::any_of(this->message_queue_.cbegin(),
+    return std::any_of(this->message_queue_.cbegin(),
                        this->message_queue_.cend(), [&](const auto &e) {
                          return e->getMessageTokenValue() == messageToken;
                        });
@@ -30,15 +28,6 @@ void MessageQueue::putMessage(std::shared_ptr<ReceivedMessage> &message) {
   std::unique_lock<std::mutex> lock(mutex_);
   putMessageQueue(message);
   lock.unlock();
-  condition_variable_.notify_all(); // Note: Very important to notify all threads
-}
-
-void MessageQueue::notifyLastMessage(const std::string& messageToken) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  this->last_message_flags_.insert(messageToken);
-  bool last_msg = this->last_message_flags_.find(messageToken) != this->last_message_flags_.end();
-
-  std::cout << "notify last>>> " <<  messageToken << "|" << last_msg << std::endl;
   condition_variable_.notify_all(); // Note: Very important to notify all threads
 }
 
@@ -64,15 +53,14 @@ std::shared_ptr<ReceivedMessage> MessageQueue::getMessageQueue(
                            [&messageToken](const auto &e) {
                              return e->getMessageTokenValue() != messageToken;
                            });
-  bool last_msg = this->last_message_flags_.find(messageToken) != this->last_message_flags_.end();
-  if (last_msg) {
-    std::cerr << "TODO: Return Last sentinel Message\n";
-    return nullptr;
-  }
   assert(it != message_queue_.end());
 
   std::shared_ptr<ReceivedMessage> message = *it;
   message_queue_.erase(it, it + 1);
+
+  if (message->is_sentinel()) {
+    return nullptr;
+  }
 
   return message;
 }

@@ -81,22 +81,19 @@ public:
 		std::string context_comm_token = context->getContextCommunicationToken();
 		const uint32_t context_token = context->getContextToken();
 		const std::string message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
-		Server::getInstance().registerListener(context_token, message_token, 
-			[this](uint32_t context_token, std::string message_token, int event_id) mutable {
-				if (event_id > 0)	{
-					std::cout<<">>>>>>>ExternalBatchColumnDataSequence listener "<<" "<<message_token<<std::endl;
-					auto message = Server::getInstance().getHostMessage(context_token, message_token);
+		while(true){
+				auto message = Server::getInstance().getHostMessage(context_token, message_token);
+				if(!message) {
+					this->host_cache->finish();
+					break;
+				}	else{
 					auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
 					assert(concreteMessage != nullptr);
 					auto host_table = concreteMessage->releaseBlazingHostTable();
 					host_table->setPartitionId(concreteMessage->getPartitionId());
-					this->host_cache->addToCache(std::move(host_table));
-				} else {
-					std::cout<<">>>>>>>ExternalBatchColumnDataSequence FINISH "<<" "<<message_token<<std::endl;
-					this->host_cache->finish();
-				}				
-			});
-		// TODO: deregister listener
+					this->host_cache->addToCache(std::move(host_table));			
+				}
+		}
 	} 
 
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {

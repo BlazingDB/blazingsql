@@ -102,8 +102,6 @@ public:
   virtual void SetDevice(int) = 0;
 
 public:
-
-  void notifyLast(const uint32_t context_token, const std::string &messageToken);
   
   void setNumberOfBatches(const uint32_t context_token, const std::string &messageToken, size_t n_batches);
 

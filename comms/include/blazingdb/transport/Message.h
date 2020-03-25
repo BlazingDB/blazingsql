@@ -84,10 +84,16 @@ class ReceivedMessage : public Message  {
 public:
   explicit ReceivedMessage(std::string const &messageToken,
                       uint32_t const &contextToken,
-                      const blazingdb::transport::experimental::Node &sender_node)
-      : Message{messageToken, contextToken, sender_node} {}
+                      const blazingdb::transport::experimental::Node &sender_node,
+                      bool is_sentinel = false)
+      : Message{messageToken, contextToken, sender_node}, _is_sentinel{is_sentinel} {}
+
+  bool is_sentinel() { return _is_sentinel; }
 
   BZ_INTERFACE(ReceivedMessage);
+
+private:
+  bool _is_sentinel;
 };
 
 } // namespace experimental 

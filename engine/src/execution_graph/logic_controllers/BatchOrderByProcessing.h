@@ -169,10 +169,8 @@ public:
 
 		ExternalBatchColumnDataSequence external_input(context);
 		std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-		while (host_table = external_input.next()) {			
+		while (host_table = external_input.next()) {
 			std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
-			
-			// auto device_table = ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
 			this->output_[cache_id]->addHostFrameToCache(std::move(host_table));
 		}
 

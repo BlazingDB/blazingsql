@@ -28,8 +28,6 @@ public:
   MessageQueue& operator=(const MessageQueue&) = delete;
 
 public:
-  void notifyLastMessage(const std::string& messageToken);
-
   void setNumberOfBatches(const std::string& messageToken, size_t n_batches);
 
   size_t getNumberOfBatches(const std::string& messageToken);
@@ -46,7 +44,6 @@ private:
 
 private:
   std::mutex mutex_;
-  std::set<std::string>  last_message_flags_;
   std::map<std::string, size_t>  n_batches_map_;
   std::vector<std::shared_ptr<ReceivedMessage>> message_queue_;
   std::condition_variable condition_variable_;

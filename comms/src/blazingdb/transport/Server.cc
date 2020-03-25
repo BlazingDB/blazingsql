@@ -59,11 +59,6 @@ std::shared_ptr<ReceivedMessage> Server::getMessage(const uint32_t context_token
 	return message_queue.getMessage(messageToken);
 }
 
-void Server::notifyLast(const uint32_t context_token, const std::string & messageToken) {
-	MessageQueue & message_queue = context_messages_map_.at(context_token);
-	return message_queue.notifyLastMessage(messageToken);
-}
-
 size_t Server::getNumberOfBatches(const uint32_t context_token, const std::string & messageToken) {
 	MessageQueue & message_queue = context_messages_map_.at(context_token);
 	return message_queue.getNumberOfBatches(messageToken);
@@ -169,8 +164,6 @@ Message::MetaData collect_last_event(void * socket, Server * server) {
 		throw zmq::error_t();
 	}
 	std::string ok_message(static_cast<char *>(local_message.data()), local_message.size());
-
-	server->notifyLast(message_metadata.contextToken, message_metadata.messageToken);
 
 	assert(ok_message == "OK");
 	blazingdb::transport::io::writeToSocket(socket, "END", 3, false);
@@ -281,6 +274,14 @@ public:
 						collect_n_batches_event(socket, this);
 					} else if(message_topic_str == "LAST") {
 						auto message_metadata = collect_last_event(socket, this);
+
+						std::string messageToken = message_metadata.messageToken;
+						uint32_t contextToken = message_metadata.contextToken;
+						blazingdb::transport::experimental::Node tmp_node;
+
+						auto sentinel_message = std::make_shared<ReceivedMessage>(messageToken, contextToken, tmp_node, true);
+						this->putMessage(contextToken, sentinel_message);
+
 						auto listener_key = std::to_string(message_metadata.contextToken) + "_" +  message_metadata.messageToken;
 						auto iter = this->listeners_.find(listener_key);
 						if (iter != this->listeners_.end()) {
