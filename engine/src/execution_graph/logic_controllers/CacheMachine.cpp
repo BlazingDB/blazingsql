@@ -96,9 +96,13 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table) {
 		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())) {
 			usedMemory[cacheIndex] += table->sizeInBytes();
 			if(cacheIndex == 0) {
-				// WSM TODO add if not owned, clone
+				// before we put into a cache, we need to make sure we fully own the table
+				auto column_names = table->names();
+				auto cudf_table = table->releaseCudfTable();
+				std::unique_ptr<ral::frame::BlazingTable> fully_owned_table = 
+					std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), column_names);
 
-				auto cache_data = std::make_unique<GPUCacheData>(std::move(table));
+				auto cache_data = std::make_unique<GPUCacheData>(std::move(fully_owned_table));
 				std::unique_ptr<message<CacheData>> item =
 					std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex);
 				this->waitingCache->put(std::move(item));

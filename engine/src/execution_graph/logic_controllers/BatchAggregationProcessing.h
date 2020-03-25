@@ -77,12 +77,18 @@ public:
 		while (input.has_next()) {
 			auto batch = input.next();
 			
-			// WSM TODO from queryString determine columns_to_hash
+			std::vector<int> group_column_indices;
+            std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases; // not used in this kernel
+            std::vector<AggregateKind> aggregation_types; // not used in this kernel
+            std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
+                aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
+
             std::vector<cudf::size_type> columns_to_hash;
+            std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
             
-            // WSM num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
+            // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
             // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
-            int num_partitions = context->getTotalNodes(); 
+            int num_partitions = this->context->getTotalNodes(); 
             std::unique_ptr<CudfTable> hashed_data;
             std::vector<cudf::size_type> hased_data_offsets;
             std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), columns_to_hash, num_partitions);
@@ -91,28 +97,77 @@ public:
             std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
             std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
 
-            std::vector<std::unique_ptr<ral::frame::BlazingTable>> self_partitions;
             std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
-            for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+            for(int nodeIndex = 0; nodeIndex < this->context->getTotalNodes(); nodeIndex++ ){
                 ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-                if (context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+                if (this->context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
                     // hash_partition followed by split does not create a partition that we can own, so we need to clone it.
                     // if we dont clone it, hashed_data will go out of scope before we get to use the partition
-                    /* WSM TODO. Lets make it so that inserting a table into a cache will do the following:
-                    - if its going to move it off gpu, then continue as usual
-                    - if its going to keep it in GPU, then see if it owns the data, if it does not, it should make a clone.
-                    when we implement this, we can remove this clone here
-                    */
+                    // also we need a BlazingTable to put into the cache, we cant cache views.
                     std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
-                    self_partitions.emplace_back(std::move(partition_table_clone));
+                    this->output_cache()->addToCache(std::move(partition_table_clone));
                 } else {
                     partitions_to_send.emplace_back(
-                        std::make_pair(context->getNode(nodeIndex), partition_table_view));
+                        std::make_pair(this->context->getNode(nodeIndex), partition_table_view));
                 }
             }
-			
+            ral::distribution::experimental::distributeTablePartitions(this->context.get(), partitions_to_send);			
 		}
 
+        ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
+
+		ExternalBatchColumnDataSequence external_input(context);
+		std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+		while (host_table = external_input.next()) {	
+            this->output_cache()->addHostFrameToCache(std::move(host_table));
+		}
+
+		return kstatus::proceed;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
+
+
+
+class SendToMasterKernel : public PhysicalPlan {
+public:
+	SendToMasterKernel(const std::string & queryString, std::shared_ptr<Context> context)
+		: expression{queryString}, context{context} {
+	}
+
+	virtual kstatus run() {
+		
+		BatchSequence input(this->input_cache());
+        bool set_empty_part_for_non_master_node = false;
+		while (input.has_next()) {
+			auto batch = input.next();
+
+            if(this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
+                this->output_cache()->addToCache(std::move(batch));
+            } else {  
+                if (!set_empty_part_for_non_master_node){
+                    std::unique_ptr<ral::frame::BlazingTable> empty = 
+                        ral::utilities::experimental::create_empty_table(batch->toBlazingTableView());
+                    this->output_cache()->addToCache(std::move(empty));
+                    set_empty_part_for_non_master_node = true;
+                }
+                std::vector<ral::distribution::experimental::NodeColumnView> selfPartition;
+		        selfPartition.emplace_back(this->context->getMasterNode(), batch->toBlazingTableView());
+                ral::distribution::experimental::distributePartitions(this->context.get(), selfPartition);
+            }
+        }
+
+        ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
+        if(this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
+            ExternalBatchColumnDataSequence external_input(context);
+            std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+            while (host_table = external_input.next()) {	
+                this->output_cache()->addHostFrameToCache(std::move(host_table));
+            }
+        } 
 		return kstatus::proceed;
 	}
 
