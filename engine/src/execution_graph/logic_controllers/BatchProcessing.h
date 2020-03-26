@@ -75,7 +75,7 @@ private:
 class ExternalBatchColumnDataSequence {
 public:
 	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context)
-		: context{context}
+		: context{context}, last_message_counter{context->getTotalNodes() - 1}
 	{
 		host_cache = std::make_shared<ral::cache::HostCacheMachine>();
 		std::string context_comm_token = context->getContextCommunicationToken();
@@ -84,8 +84,12 @@ public:
 		while(true){
 				auto message = Server::getInstance().getHostMessage(context_token, message_token);
 				if(!message) {
-					this->host_cache->finish();
-					break;
+					--last_message_counter;
+					std::cout<< ">>>>>> ExternalBatchColumnDataSequence: last_message_counter " << last_message_counter<< std::endl;
+					if (last_message_counter == 0 ){
+						this->host_cache->finish();
+						break;
+					}
 				}	else{
 					auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
 					assert(concreteMessage != nullptr);
@@ -102,6 +106,7 @@ public:
 private:
 	std::shared_ptr<Context> context;
 	std::shared_ptr<ral::cache::HostCacheMachine> host_cache;
+	int last_message_counter;
 };
 
 
