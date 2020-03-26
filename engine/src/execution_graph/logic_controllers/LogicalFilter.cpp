@@ -6,6 +6,7 @@
 #include <cudf/stream_compaction.hpp>
 #include <cudf/column/column_factories.hpp>
 #include <cudf/copying.hpp>
+#include <cudf/partitioning.hpp>
 
 #include "LogicalFilter.h"
 #include "LogicalProject.h"
@@ -135,7 +136,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       std::transform(columnIndices.begin(), columnIndices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
       
       std::vector<cudf::size_type> hased_data_offsets;
-      std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(table.view(),
+      std::tie(hashed_data, hased_data_offsets) = cudf::experimental::hash_partition(table.view(),
               columns_to_hash, context->getTotalNodes());
 
       // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
