@@ -130,7 +130,7 @@ using kernel_pair = std::pair<kernel *, std::string>;
 
 class kernel {
 public:
-	kernel() : kernel_id(kernel::kernel_count) {
+	kernel(std::string expr = "") :  expr{expr}, kernel_id(kernel::kernel_count) {
 		kernel::kernel_count++;
 		parent_id_ = -1;
 	}
@@ -149,10 +149,15 @@ public:
 
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
 
+	virtual std::string expression() {
+		return expr;
+	}
+
 protected:
 	static std::size_t kernel_count;
 
 public:
+	std::string expr;
 	port input_{this};
 	port output_{this};
 	const std::size_t kernel_id;

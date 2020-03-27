@@ -99,15 +99,11 @@ struct tree_processor {
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::MergeAggregateKernel);
 		}
-		
+		k->expr = expr;
 		return k;
 	}
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, node * root_ptr, int level) {
 		auto expr = p_tree.get<std::string>("expr", "");
-		for(int i = 0; i < level*2 ; ++i) {
-			std::cout << " ";
-		}
-		std::cout << expr << std::endl;
 		root_ptr->expr = expr;
 		root_ptr->level = level;
 		root_ptr->kernel_unit = make_kernel(expr);
@@ -126,6 +122,7 @@ struct tree_processor {
 
 	void transform_json_tree(boost::property_tree::ptree &p_tree) {
 		std::string expr = p_tree.get<std::string>("expr", "");
+		std::cout << "transform: " << expr << "\n"; 
 		if (is_sort(expr)){
 			auto merge_expr = expr;
 			auto partition_expr = expr;
@@ -148,7 +145,8 @@ struct tree_processor {
 
 			p_tree.put("expr", merge_expr);
 			p_tree.put_child("children", create_array_tree(partition_tree));
-		} else if (is_aggregate(expr)) {
+		} 
+		else if (is_aggregate(expr)) {
 			auto merge_aggregate_expr = expr;
 			auto distribute_aggregate_expr = expr;
 			auto compute_aggregate_expr = expr;
@@ -160,6 +158,8 @@ struct tree_processor {
 				boost::property_tree::ptree agg_tree;
 				agg_tree.put("expr", compute_aggregate_expr);
 				agg_tree.add_child("children", p_tree.get_child("children")); 
+
+				p_tree.clear();
 
 				p_tree.put("expr", merge_aggregate_expr);
 				p_tree.put_child("children", create_array_tree(agg_tree));
@@ -176,27 +176,47 @@ struct tree_processor {
 				distribute_aggregate_tree.put("expr", distribute_aggregate_expr);
 				distribute_aggregate_tree.add_child("children", create_array_tree(compute_aggregate_tree)); 
 
+				p_tree.clear();
+
 				p_tree.put("expr", merge_aggregate_expr);
 				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
 			}
 		}
-		auto children = p_tree.get_child("children");
-		for (auto &child : children) {
+		for (auto &child : p_tree.get_child("children")) {
+			std::string expr = child.second.get<std::string>("expr", "");
+			std::cout << "\tchildren: " << expr << "\n"; 
 			transform_json_tree(child.second);
 		}
 	}
 
+	void print_tree(node* p_tree, int level = 0) {
+		auto expr = p_tree->expr;
+		for(int i = 0; i < level*2 ; ++i) {
+			std::cout << " ";
+		}
+		std::cout << expr << std::endl;
+		for (auto &child : p_tree->children) {
+			print_tree(child.get(), level + 1);
+		}
+	} 
+	
 	ral::cache::graph build_batch_graph(std::string json) {
 		try {
 			std::istringstream input(json);
 			boost::property_tree::ptree p_tree;
 			boost::property_tree::read_json(input, p_tree);
 			transform_json_tree(p_tree);
+
 			expr_tree_from_json(p_tree, &this->root, 0);
 		} catch (std::exception & e) {
 			std::cerr << "property_tree:" << e.what() <<  std::endl;
 			throw e;
 		}
+
+		printf("==============================================================\n");
+		print_tree(&this->root);
+		printf("==============================================================\n");
+
 		ral::cache::graph graph;
 		if (this->root.kernel_unit != nullptr) {
 			graph.add_node(this->root.kernel_unit.get()); // register first node
