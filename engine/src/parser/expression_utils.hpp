@@ -97,10 +97,13 @@ const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
 const std::string LOGICAL_SCAN_TEXT = "LogicalTableScan";
 const std::string BINDABLE_SCAN_TEXT = "BindableTableScan";
-const std::string LOGICAL_AGGREGATE_TEXT = "LogicalAggregate";
-const std::string LOGICAL_AGGREGATE_MERGE_TEXT = "Logical_AggregateMerge";
-const std::string LOGICAL_AGGREGATE_PARTITION_TEXT = "Logical_AggregatePartition";
-const std::string LOGICAL_AGGREGATE_AND_SAMPLE_TEXT = "Logical_AggregateAndSample";
+const std::string LOGICAL_AGGREGATE_TEXT = "LogicalAggregate";  // this is the base Aggregate that gets replaced
+const std::string LOGICAL_COMPUTE_AGGREGATE_TEXT = "ComputeAggregate";
+const std::string LOGICAL_DISTRIBUTE_AGGREGATE_TEXT = "DistributeAggregate";
+const std::string LOGICAL_MERGE_AGGREGATE_TEXT = "MergeAggregate";
+const std::string LOGICAL_AGGREGATE_MERGE_TEXT = "Logical_AggregateMerge"; // to be deprecated
+const std::string LOGICAL_AGGREGATE_PARTITION_TEXT = "Logical_AggregatePartition"; // to be deprecated
+const std::string LOGICAL_AGGREGATE_AND_SAMPLE_TEXT = "Logical_AggregateAndSample"; // to be deprecated
 const std::string LOGICAL_PROJECT_TEXT = "LogicalProject";
 const std::string LOGICAL_SORT_TEXT = "LogicalSort";
 const std::string LOGICAL_MERGE_TEXT = "LogicalMerge";
@@ -127,10 +130,13 @@ bool is_sort_and_sample(std::string query_part);
 bool is_single_node_partition(std::string query_part);
 bool is_single_node_sort_and_sample(std::string query_part);
 bool is_join(const std::string & query);
-bool is_aggregate(std::string query_part);
-bool is_aggregate_merge(std::string query_part);
-bool is_aggregate_partition(std::string query_part);
-bool is_aggregate_and_sample(std::string query_part);
+bool is_aggregate(std::string query_part); // this is the base Aggregate that gets replaced
+bool is_compute_aggregate(std::string query_part);
+bool is_distribute_aggregate(std::string query_part);
+bool is_merge_aggregate(std::string query_part);
+bool is_aggregate_merge(std::string query_part); // to be deprecated
+bool is_aggregate_partition(std::string query_part); // to be deprecated
+bool is_aggregate_and_sample(std::string query_part); // to be deprecated
 
 bool is_double_input(std::string query_part);
 

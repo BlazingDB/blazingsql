@@ -114,10 +114,13 @@ enum class kernel_type {
 	SortAndSampleKernel,
 	PartitionSingleNodeKernel,
 	SortAndSampleSingleNodeKernel,
-	AggregateKernel,
-	AggregateAndSampleKernel,
-	AggregatePartitionKernel,
-	AggregateMergeStreamKernel,
+	AggregateKernel,  // this is the base AggregateKernel that gets replaced
+	ComputeAggregateKernel,
+	DistributeAggregateKernel,
+	MergeAggregateKernel,
+	AggregateAndSampleKernel, // to be deprecated
+	AggregatePartitionKernel, // to be deprecated
+	AggregateMergeStreamKernel, // to be deprecated
 	TableScanKernel,
 	BindableTableScanKernel
 };
