@@ -104,10 +104,10 @@ struct tree_processor {
 	}
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, node * root_ptr, int level) {
 		auto expr = p_tree.get<std::string>("expr", "");
-		// for(int i = 0; i < level*2 ; ++i) {
-		// 	std::cout << " ";
-		// }
-		// std::cout << expr << std::endl;
+		for(int i = 0; i < level*2 ; ++i) {
+			std::cout << " ";
+		}
+		std::cout << expr << std::endl;
 		root_ptr->expr = expr;
 		root_ptr->level = level;
 		root_ptr->kernel_unit = make_kernel(expr);
@@ -116,14 +116,20 @@ struct tree_processor {
 			root_ptr->children.push_back(child_node_ptr);
 			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1);
 		}
+	} 
+
+	boost::property_tree::ptree create_array_tree(boost::property_tree::ptree child){
+		boost::property_tree::ptree children;
+		children.push_back(std::make_pair("", child));
+		return children;
 	}
 
-	void transform_operator_bigger_than_gpu(node* parent, node * current) {
-		if (current->kernel_unit->get_type_id() == kernel_type::SortKernel) {
-			auto merge_expr = current->expr;
-			auto partition_expr = current->expr;
-			auto sort_and_sample_expr = current->expr;
-
+	void transform_json_tree(boost::property_tree::ptree &p_tree) {
+		std::string expr = p_tree.get<std::string>("expr", "");
+		if (is_sort(expr)){
+			auto merge_expr = expr;
+			auto partition_expr = expr;
+			auto sort_and_sample_expr = expr;
 			if (this->context->getTotalNodes() == 1) {
 				StringUtil::findAndReplaceAll(merge_expr, LOGICAL_SORT_TEXT, LOGICAL_MERGE_TEXT);
 				StringUtil::findAndReplaceAll(partition_expr, LOGICAL_SORT_TEXT, LOGICAL_SINGLE_NODE_PARTITION_TEXT);
@@ -133,92 +139,50 @@ struct tree_processor {
 				StringUtil::findAndReplaceAll(partition_expr, LOGICAL_SORT_TEXT, LOGICAL_PARTITION_TEXT);
 				StringUtil::findAndReplaceAll(sort_and_sample_expr, LOGICAL_SORT_TEXT, LOGICAL_SORT_AND_SAMPLE_TEXT);
 			}
+			boost::property_tree::ptree sample_tree;
+			sample_tree.put("expr", sort_and_sample_expr);
+			sample_tree.add_child("children", p_tree.get_child("children"));
+			boost::property_tree::ptree partition_tree;
+			partition_tree.put("expr", partition_expr);
+			partition_tree.add_child("children", create_array_tree(sample_tree)); 
 
-			auto merge = std::make_shared<node>();
-			merge->expr = merge_expr;
-			merge->level = current->level;
-			merge->kernel_unit = make_kernel(merge_expr);
-
-			auto partition = std::make_shared<node>();
-			partition->expr = partition_expr;
-			partition->level = current->level;
-			partition->kernel_unit = make_kernel(partition_expr);
-			merge->children.push_back(partition);
-
-			auto ssample = std::make_shared<node>();
-			ssample->expr = sort_and_sample_expr;
-			ssample->level = current->level;
-			ssample->kernel_unit = make_kernel(sort_and_sample_expr);
-			partition->children.push_back(ssample);
-
-			ssample->children = current->children;
-
-			if (parent == nullptr) { // root is sort
-				// new root
-				current->expr = merge->expr;
-				current->kernel_unit = merge->kernel_unit;
-				current->children = merge->children;
-			} else {
-				auto it = std::find_if(parent->children.begin(), parent->children.end(), [current] (std::shared_ptr<node> tmp) {
-					return tmp->kernel_unit->get_id() == current->kernel_unit->get_id();
-				});
-				parent->children.erase( it );
-				parent->children.push_back(merge);
-			}
-		} else if (current->kernel_unit->get_type_id() == kernel_type::AggregateKernel) {
-			auto merge_aggregate_expr = current->expr;
-			auto distribute_aggregate_expr = current->expr;
-			auto compute_aggregate_expr = current->expr;
+			p_tree.put("expr", merge_expr);
+			p_tree.put_child("children", create_array_tree(partition_tree));
+		} else if (is_aggregate(expr)) {
+			auto merge_aggregate_expr = expr;
+			auto distribute_aggregate_expr = expr;
+			auto compute_aggregate_expr = expr;
 
 			if (this->context->getTotalNodes() == 1) {
 				StringUtil::findAndReplaceAll(merge_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_MERGE_AGGREGATE_TEXT);
 				StringUtil::findAndReplaceAll(compute_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_COMPUTE_AGGREGATE_TEXT);
+
+				boost::property_tree::ptree agg_tree;
+				agg_tree.put("expr", compute_aggregate_expr);
+				agg_tree.add_child("children", p_tree.get_child("children")); 
+
+				p_tree.put("expr", merge_aggregate_expr);
+				p_tree.put_child("children", create_array_tree(agg_tree));
 			}	else {
 				StringUtil::findAndReplaceAll(merge_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_MERGE_AGGREGATE_TEXT);
 				StringUtil::findAndReplaceAll(distribute_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_DISTRIBUTE_AGGREGATE_TEXT);
 				StringUtil::findAndReplaceAll(compute_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_COMPUTE_AGGREGATE_TEXT);
+
+				boost::property_tree::ptree compute_aggregate_tree;
+				compute_aggregate_tree.put("expr", compute_aggregate_expr);
+				compute_aggregate_tree.add_child("children", p_tree.get_child("children"));
+			
+				boost::property_tree::ptree distribute_aggregate_tree;
+				distribute_aggregate_tree.put("expr", distribute_aggregate_expr);
+				distribute_aggregate_tree.add_child("children", create_array_tree(compute_aggregate_tree)); 
+
+				p_tree.put("expr", merge_aggregate_expr);
+				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
 			}
-
-			auto compute = std::make_shared<node>();
-			compute->expr = compute_aggregate_expr;
-			compute->level = current->level;
-			compute->kernel_unit = make_kernel(compute_aggregate_expr);
-			compute->children = current->children;
-
-			auto merge = std::make_shared<node>();
-			merge->expr = merge_aggregate_expr;
-			merge->level = current->level;
-			merge->kernel_unit = make_kernel(merge_aggregate_expr);
-
-			if (this->context->getTotalNodes() == 1) {
-				merge->children.push_back(compute);
-			} else {
-				auto distribute = std::make_shared<node>();
-				distribute->expr = distribute_aggregate_expr;
-				distribute->level = current->level;
-				distribute->kernel_unit = make_kernel(distribute_aggregate_expr);
-				distribute->children.push_back(compute);
-				merge->children.push_back(distribute);
-			}			
-
-			if (parent == nullptr) { // root is sort
-				// new root
-				current->expr = merge->expr;
-				current->kernel_unit = merge->kernel_unit;
-				current->children = merge->children;
-			} else {
-				auto it = std::find_if(parent->children.begin(), parent->children.end(), [current] (std::shared_ptr<node> tmp) {
-					return tmp->kernel_unit->get_id() == current->kernel_unit->get_id();
-				});
-				parent->children.erase( it );
-				parent->children.push_back(merge);
-			}	
-		
-		
-		}	else if (current) {
-			for (auto& child : current->children) {
-				transform_operator_bigger_than_gpu(current, child.get());
-			}
+		}
+		auto children = p_tree.get_child("children");
+		for (auto &child : children) {
+			transform_json_tree(child.second);
 		}
 	}
 
@@ -227,14 +191,12 @@ struct tree_processor {
 			std::istringstream input(json);
 			boost::property_tree::ptree p_tree;
 			boost::property_tree::read_json(input, p_tree);
+			transform_json_tree(p_tree);
 			expr_tree_from_json(p_tree, &this->root, 0);
-
 		} catch (std::exception & e) {
-			std::cerr << e.what() <<  std::endl;
+			std::cerr << "property_tree:" << e.what() <<  std::endl;
+			throw e;
 		}
-
-		transform_operator_bigger_than_gpu(nullptr, &this->root);
-
 		ral::cache::graph graph;
 		if (this->root.kernel_unit != nullptr) {
 			graph.add_node(this->root.kernel_unit.get()); // register first node
