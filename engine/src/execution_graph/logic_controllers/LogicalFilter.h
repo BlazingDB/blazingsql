@@ -27,6 +27,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::Blazing
 															   const std::string & expression,
 															   blazingdb::manager::experimental::Context * context);
 
+void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices);
+
 std::unique_ptr<ral::frame::BlazingTable> process_logical_join(blazingdb::manager::experimental::Context * context,
       const ral::frame::BlazingTableView & table_left,
       const ral::frame::BlazingTableView & table_right,

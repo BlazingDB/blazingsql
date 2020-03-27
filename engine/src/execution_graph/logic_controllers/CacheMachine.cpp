@@ -90,7 +90,7 @@ void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 	}
 }
 
-void CacheMachine::insert(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id) {
+void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table) {
 	this->addToCache(std::move(table), message_id);
 }
 

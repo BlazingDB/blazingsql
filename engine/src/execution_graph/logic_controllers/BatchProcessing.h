@@ -23,15 +23,21 @@ using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 
 class BatchSequence {
 public:
-	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache)
+	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr)
 	: cache{cache}
 	{}
-
+	void set_source(std::shared_ptr<ral::cache::CacheMachine> cache) {
+		this->cache = cache;
+	}
 	RecordBatch next() {
 		return cache->pullFromCache();
 	}
 	bool wait_for_next() {
 		return cache->wait_for_next();
+	}
+
+	bool has_next_now() {
+		return cache->has_next_now();
 	}
 private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;

@@ -122,7 +122,8 @@ enum class kernel_type {
 	AggregatePartitionKernel, // to be deprecated
 	AggregateMergeStreamKernel, // to be deprecated
 	TableScanKernel,
-	BindableTableScanKernel
+	BindableTableScanKernel,
+	PartwiseJoinKernel
 };
 
 class kernel;

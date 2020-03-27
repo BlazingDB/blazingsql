@@ -118,6 +118,8 @@ bool is_single_node_sort_and_sample(std::string query_part) { return (query_part
 
 bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
 
+bool is_pairwise_join(const std::string & query) { return (query.find(LOGICAL_PARTWISE_JOIN_TEXT) != std::string::npos); }
+
 bool is_aggregate(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_TEXT) != std::string::npos); }
 
 bool is_compute_aggregate(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_AGGREGATE_TEXT) != std::string::npos); }

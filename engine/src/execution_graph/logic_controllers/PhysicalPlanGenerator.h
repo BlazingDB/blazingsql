@@ -6,6 +6,7 @@
 #include "BatchProcessing.h"
 #include "BatchOrderByProcessing.h"
 #include "BatchAggregationProcessing.h"
+#include "BatchJoinProcessing.h"
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
@@ -98,6 +99,10 @@ struct tree_processor {
 			k = std::make_shared<MergeAggregateKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::MergeAggregateKernel);
+		}  else if (is_pairwise_join(expr)) {
+			k = std::make_shared<PartwiseJoin>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::PartwiseJoinKernel);
 		}
 		k->expr = expr;
 		return k;
@@ -181,10 +186,17 @@ struct tree_processor {
 				p_tree.put("expr", merge_aggregate_expr);
 				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
 			}
+		} else if (is_join(expr)) {
+			if (this->context->getTotalNodes() == 1) {
+				// PartwiseJoin
+				auto pairwise_expr = expr;
+				StringUtil::findAndReplaceAll(pairwise_expr, LOGICAL_JOIN_TEXT, LOGICAL_PARTWISE_JOIN_TEXT);
+				p_tree.put("expr", pairwise_expr);
+			} else {
+
+			}
 		}
 		for (auto &child : p_tree.get_child("children")) {
-			std::string expr = child.second.get<std::string>("expr", "");
-			std::cout << "\tchildren: " << expr << "\n"; 
 			transform_json_tree(child.second);
 		}
 	}
