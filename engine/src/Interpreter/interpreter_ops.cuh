@@ -497,7 +497,10 @@ private:
 				} else if(oper == operator_type::BLZ_MUL) {
 					store_data_in_buffer(left_value * right_value, buffer, output_position);
 				} else if(oper == operator_type::BLZ_DIV) {
-					store_data_in_buffer(left_value / right_value, buffer, output_position);
+					if(right_value == 0)
+						store_data_in_buffer(std::nan(""), buffer, output_position);
+					else
+						store_data_in_buffer(left_value / right_value, buffer, output_position);
 				} else if(oper == operator_type::BLZ_MOD) {
 					if (!is_float_type(left_type_id) && !is_float_type(right_type_id))	{
 						store_data_in_buffer(
