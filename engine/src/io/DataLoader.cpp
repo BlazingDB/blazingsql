@@ -42,6 +42,8 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	static CodeTimer timer;
 	timer.reset();
 
+	std::cout<<"load_data start"<<std::endl;
+
 	std::vector<size_t> column_indices = column_indices_in;
 	if(column_indices.size() == 0) {  // including all columns by default
 		column_indices.resize(schema.get_num_columns());
@@ -55,6 +57,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	while(this->provider->has_next()) {
 		// a file handle that we can use in case errors occur to tell the user which file had parsing issues
 		user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
+		std::cout<<"this->provider->has_next() file : "<<user_readable_file_handles.back()<<std::endl;
 		files.push_back(this->provider->get_next());
 	}
 	size_t num_files = files.size();
