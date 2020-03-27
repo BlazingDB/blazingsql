@@ -132,8 +132,15 @@ public:
 			n_batches += row_groups.size();
 			all_row_groups.push_back(row_groups);
 		}
+
+		is_empty_data_source = (n_files == 0);
 	}
 	RecordBatch next() {
+		if (is_empty_data_source) {
+			is_empty_data_source = false;
+			return schema.makeEmptyBlazingTable(projections);
+		}
+		
 		// std::cout << "Datasource.next: " << file_index << "|" << batch_id << "|" << all_row_groups[file_index].size() << std::endl;
 		auto ret = loader.load_batch(context.get(), projections, schema, user_readable_file_handles[file_index], files[file_index], file_index, batch_id);
 		batch_index++;
@@ -146,7 +153,7 @@ public:
 		return std::move(ret);
 	}
 	bool has_next() {
-		return file_index < n_files and batch_index < n_batches;
+		return is_empty_data_source || (file_index < n_files and batch_index < n_batches);
 	}
 
 	void set_projections(std::vector<size_t> projections) {
@@ -169,6 +176,7 @@ private:
 	size_t n_batches;
 	size_t n_files;
 	std::vector<std::vector<int>> all_row_groups; 
+	bool is_empty_data_source;
 };
 
 struct PhysicalPlan : kernel {

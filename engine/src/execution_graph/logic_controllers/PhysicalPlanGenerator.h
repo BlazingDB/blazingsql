@@ -82,6 +82,22 @@ struct tree_processor {
 			k = std::make_shared<MergeStreamKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::MergeStreamKernel);
+		}  else if (is_aggregate(expr)) {
+			k = std::make_shared<ral::cache::AggregateKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::AggregateKernel);
+		}  else if (is_compute_aggregate(expr)) {
+			k = std::make_shared<ComputeAggregateKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::ComputeAggregateKernel);
+		}  else if (is_distribute_aggregate(expr)) {
+			k = std::make_shared<DistributeAggregateKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::DistributeAggregateKernel);
+		}  else if (is_merge_aggregate(expr)) {
+			k = std::make_shared<MergeAggregateKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::MergeAggregateKernel);
 		}
 		
 		return k;
@@ -109,13 +125,13 @@ struct tree_processor {
 			auto sort_and_sample_expr = current->expr;
 
 			if (this->context->getTotalNodes() == 1) {
-				StringUtil::findAndReplaceAll(merge_expr, "LogicalSort", LOGICAL_MERGE_TEXT);
-				StringUtil::findAndReplaceAll(partition_expr, "LogicalSort", LOGICAL_SINGLE_NODE_PARTITION_TEXT);
-				StringUtil::findAndReplaceAll(sort_and_sample_expr, "LogicalSort", LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT);
+				StringUtil::findAndReplaceAll(merge_expr, LOGICAL_SORT_TEXT, LOGICAL_MERGE_TEXT);
+				StringUtil::findAndReplaceAll(partition_expr, LOGICAL_SORT_TEXT, LOGICAL_SINGLE_NODE_PARTITION_TEXT);
+				StringUtil::findAndReplaceAll(sort_and_sample_expr, LOGICAL_SORT_TEXT, LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT);
 			}	else {
-				StringUtil::findAndReplaceAll(merge_expr, "LogicalSort", LOGICAL_MERGE_TEXT);
-				StringUtil::findAndReplaceAll(partition_expr, "LogicalSort", LOGICAL_PARTITION_TEXT);
-				StringUtil::findAndReplaceAll(sort_and_sample_expr, "LogicalSort", LOGICAL_SORT_AND_SAMPLE_TEXT);
+				StringUtil::findAndReplaceAll(merge_expr, LOGICAL_SORT_TEXT, LOGICAL_MERGE_TEXT);
+				StringUtil::findAndReplaceAll(partition_expr, LOGICAL_SORT_TEXT, LOGICAL_PARTITION_TEXT);
+				StringUtil::findAndReplaceAll(sort_and_sample_expr, LOGICAL_SORT_TEXT, LOGICAL_SORT_AND_SAMPLE_TEXT);
 			}
 
 			auto merge = std::make_shared<node>();
@@ -149,6 +165,56 @@ struct tree_processor {
 				parent->children.erase( it );
 				parent->children.push_back(merge);
 			}
+		} else if (current->kernel_unit->get_type_id() == kernel_type::AggregateKernel) {
+			auto merge_aggregate_expr = current->expr;
+			auto distribute_aggregate_expr = current->expr;
+			auto compute_aggregate_expr = current->expr;
+
+			if (this->context->getTotalNodes() == 1) {
+				StringUtil::findAndReplaceAll(merge_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_MERGE_AGGREGATE_TEXT);
+				StringUtil::findAndReplaceAll(compute_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_COMPUTE_AGGREGATE_TEXT);
+			}	else {
+				StringUtil::findAndReplaceAll(merge_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_MERGE_AGGREGATE_TEXT);
+				StringUtil::findAndReplaceAll(distribute_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_DISTRIBUTE_AGGREGATE_TEXT);
+				StringUtil::findAndReplaceAll(compute_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_COMPUTE_AGGREGATE_TEXT);
+			}
+
+			auto compute = std::make_shared<node>();
+			compute->expr = compute_aggregate_expr;
+			compute->level = current->level;
+			compute->kernel_unit = make_kernel(compute_aggregate_expr);
+			compute->children = current->children;
+
+			auto merge = std::make_shared<node>();
+			merge->expr = merge_aggregate_expr;
+			merge->level = current->level;
+			merge->kernel_unit = make_kernel(merge_aggregate_expr);
+
+			if (this->context->getTotalNodes() == 1) {
+				merge->children.push_back(compute);
+			} else {
+				auto distribute = std::make_shared<node>();
+				distribute->expr = distribute_aggregate_expr;
+				distribute->level = current->level;
+				distribute->kernel_unit = make_kernel(distribute_aggregate_expr);
+				distribute->children.push_back(compute);
+				merge->children.push_back(distribute);
+			}			
+
+			if (parent == nullptr) { // root is sort
+				// new root
+				current->expr = merge->expr;
+				current->kernel_unit = merge->kernel_unit;
+				current->children = merge->children;
+			} else {
+				auto it = std::find_if(parent->children.begin(), parent->children.end(), [current] (std::shared_ptr<node> tmp) {
+					return tmp->kernel_unit->get_id() == current->kernel_unit->get_id();
+				});
+				parent->children.erase( it );
+				parent->children.push_back(merge);
+			}	
+		
+		
 		}	else if (current) {
 			for (auto& child : current->children) {
 				transform_operator_bigger_than_gpu(current, child.get());
