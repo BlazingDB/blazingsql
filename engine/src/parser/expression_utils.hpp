@@ -95,6 +95,7 @@ interops::operator_type map_to_operator_type(const std::string & operator_token)
 
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 const std::string LOGICAL_PARTWISE_JOIN_TEXT = "PartwiseJoin";
+const std::string LOGICAL_JOIN_PARTITION_TEXT = "JoinPartition";
 const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
 const std::string LOGICAL_SCAN_TEXT = "LogicalTableScan";
 const std::string BINDABLE_SCAN_TEXT = "BindableTableScan";
@@ -132,6 +133,7 @@ bool is_single_node_partition(std::string query_part);
 bool is_single_node_sort_and_sample(std::string query_part);
 bool is_join(const std::string & query);
 bool is_pairwise_join(const std::string & query);
+bool is_join_partition(const std::string & query);
 bool is_aggregate(std::string query_part); // this is the base Aggregate that gets replaced
 bool is_compute_aggregate(std::string query_part);
 bool is_distribute_aggregate(std::string query_part);

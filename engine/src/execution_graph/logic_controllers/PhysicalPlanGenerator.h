@@ -103,6 +103,10 @@ struct tree_processor {
 			k = std::make_shared<PartwiseJoin>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::PartwiseJoinKernel);
+		} else if (is_join_partition(expr)) {
+			k = std::make_shared<JoinPartitionKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::JoinPartitionKernel);
 		}
 		k->expr = expr;
 		return k;
@@ -193,7 +197,20 @@ struct tree_processor {
 				StringUtil::findAndReplaceAll(pairwise_expr, LOGICAL_JOIN_TEXT, LOGICAL_PARTWISE_JOIN_TEXT);
 				p_tree.put("expr", pairwise_expr);
 			} else {
+				auto pairwise_expr = expr;
+				auto join_partition_expr = expr;
 
+				StringUtil::findAndReplaceAll(pairwise_expr, LOGICAL_JOIN_TEXT, LOGICAL_PARTWISE_JOIN_TEXT);
+				StringUtil::findAndReplaceAll(join_partition_expr, LOGICAL_JOIN_TEXT, LOGICAL_JOIN_PARTITION_TEXT);
+
+				boost::property_tree::ptree join_partition_tree;
+				join_partition_tree.put("expr", join_partition_expr);
+				join_partition_tree.add_child("children", p_tree.get_child("children")); 
+
+				p_tree.clear();
+
+				p_tree.put("expr", pairwise_expr);
+				p_tree.put_child("children", create_array_tree(join_partition_tree));
 			}
 		}
 		for (auto &child : p_tree.get_child("children")) {
