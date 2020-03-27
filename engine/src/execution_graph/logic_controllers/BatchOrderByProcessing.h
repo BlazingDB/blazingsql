@@ -35,7 +35,7 @@ public:
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
 		std::vector<size_t> tableTotalRows;
 		size_t total_num_rows = 0;
-		while (input.has_next()) {
+		while (input.wait_for_next()) {
 			auto batch = input.next();
 			auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
 // std::cout<<">>>>>>>>>>>>>>> sortedTable START"<< std::endl;
@@ -73,7 +73,7 @@ public:
 		auto partitionPlan = std::move(input_partitionPlan.next());
 		
 		BatchSequence input(this->input_.get_cache("input_a"));
-		while (input.has_next()) {
+		while (input.wait_for_next()) {
 			auto batch = input.next();
 			
 			auto partitions = ral::operators::experimental::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
@@ -115,7 +115,7 @@ public:
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
 		std::vector<size_t> tableTotalRows;
 		std::cout<< ">>>>>> INSIDE SortAndSampleKernel"<< std::endl;
-		while (input.has_next()) {
+		while (input.wait_for_next()) {
 			auto batch = input.next();
 			auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
 			auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
@@ -154,7 +154,7 @@ public:
 		std::cout<< ">>>>>> INSIDE PartitionKernel"<< std::endl;
 
 		BatchSequence input(this->input_.get_cache("input_a"));
-		while (input.has_next()) {
+		while (input.wait_for_next()) {
 			auto batch = input.next();
 			
 			auto self_partitions = ral::operators::experimental::distribute_table_partitions(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
@@ -197,7 +197,7 @@ public:
 			std::vector<ral::frame::BlazingTableView> tableViews;
 			std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
 			auto cache_id = "input_" + std::to_string(idx);
-			while (!this->input_.get_cache(cache_id)->is_finished()) {
+			while (this->input_.get_cache(cache_id)->wait_for_next()) {
 				auto table = this->input_.get_cache(cache_id)->pullFromCache();
 				if (table) {
 					tableViews.emplace_back(table->toBlazingTableView());

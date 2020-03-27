@@ -30,8 +30,8 @@ public:
 	RecordBatch next() {
 		return cache->pullFromCache();
 	}
-	bool has_next() {
-		return not cache->is_finished();
+	bool wait_for_next() {
+		return cache->wait_for_next();
 	}
 private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
@@ -42,35 +42,6 @@ typedef ral::communication::network::experimental::Server Server;
 typedef ral::communication::network::experimental::Client Client;
 using ral::communication::messages::experimental::ReceivedHostMessage;
 
-
-template<class MessageType>
-class ExternalBatchSequence {
-public:
-	ExternalBatchSequence(std::shared_ptr<Context> context, std::shared_ptr<ral::cache::CacheMachine> cache)
-		: context{context}, cache{cache}
-	{
-		std::string context_comm_token = context->getContextCommunicationToken();
-		const uint32_t context_token = context->getContextToken();
-		const std::string message_token = MessageType::MessageID() + "_" + context_comm_token;
-		Server::getInstance().registerListener(context_token, message_token, 
-			[this](uint32_t context_token, std::string message_token) mutable {
-				auto message = Server::getInstance().getHostMessage(context_token, message_token);
-				auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
-				auto host_table = concreteMessage->releaseBlazingHostTable();
-				this->cache->addHostFrameToCache(std::move(host_table));
-			});
-	}
-
-	RecordBatch next() {
-		return cache->pullFromCache();
-	}
-	bool has_next() {
-		return not cache->is_finished();
-	}
-private:
-	std::shared_ptr<Context> context;
-	std::shared_ptr<ral::cache::CacheMachine> cache;
-};
 
 class ExternalBatchColumnDataSequence {
 public:
@@ -152,7 +123,7 @@ public:
 		}
 		return std::move(ret);
 	}
-	bool has_next() {
+	bool wait_for_next() {
 		return is_empty_data_source || (file_index < n_files and batch_index < n_batches);
 	}
 
@@ -203,7 +174,7 @@ public:
 	: PhysicalPlan(), input(loader, schema, context)
 	{}
 	virtual kstatus run() {
-		while( input.has_next() ) {
+		while( input.wait_for_next() ) {
 			auto batch = input.next();
 			this->output_cache()->addToCache(std::move(batch));
 		}
@@ -221,7 +192,7 @@ public:
 	virtual kstatus run() {
 		input.set_projections(get_projections(expression));
 
-		while (input.has_next() ) {
+		while (input.wait_for_next() ) {
 			auto batch = input.next();
 
 			if(is_filtered_bindable_scan(expression)) {
@@ -249,7 +220,7 @@ public:
 	}
 	virtual kstatus run() {
 		BatchSequence input(this->input_cache());
-		while (input.has_next() ) {
+		while (input.wait_for_next() ) {
 			auto batch = input.next();
 			auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
 			this->output_cache()->addToCache(std::move(columns));
@@ -271,7 +242,7 @@ public:
 	}
 	virtual kstatus run() {
 		BatchSequence input(this->input_cache());
-		while (input.has_next() ) {
+		while (input.wait_for_next() ) {
 			auto batch = input.next();
 			auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
 			this->output_cache()->addToCache(std::move(columns));
@@ -290,7 +261,7 @@ public:
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
 		BatchSequence input(this->input_cache());
-		while (input.has_next() ) {
+		while (input.wait_for_next() ) {
 			auto batch = input.next();
 			ral::utilities::print_blazing_table_view(batch->toBlazingTableView());
 		}

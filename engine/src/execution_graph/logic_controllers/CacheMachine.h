@@ -131,7 +131,7 @@ public:
 		condition_variable_.notify_all();
 	}
 
-	void notify() { 
+	void finish() { 
 		std::unique_lock<std::mutex> lock(mutex_);
 		this->finished = true;
 		condition_variable_.notify_all(); 
@@ -150,7 +150,10 @@ public:
 	}
 	bool wait_for_next() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return !this->empty(); });
+		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
+		if(this->message_queue_.size() == 0) {
+			return false;	
+		}
 		return true;
 	}
 
@@ -158,10 +161,10 @@ public:
 		return !this->empty();
 	}
 
-	size_t wait_for_all() {
+	bool ready_to_execute() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });
-		return this->message_queue_.size();
+		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
+		return not this->finished;
 	}
 
 	message_ptr get_or_wait(size_t message_id) {
@@ -196,11 +199,7 @@ public:
 		}
 		message_queue_.erase(message_queue_.begin(), message_queue_.end());
 		return response;
-	}
-
-	bool is_finished() const {
-		return this->finished.load(std::memory_order_seq_cst);
-	}
+	} 
 	
 	void setNumberOfBatches(size_t n_batches) {
 		this->n_batches = n_batches;
@@ -249,7 +248,7 @@ public:
 
 	virtual void finish();
 
-	bool is_finished();
+	bool ready_to_execute();
 
 	bool wait_for_next() {
 		return this->waitingCache->wait_for_next();
@@ -257,13 +256,7 @@ public:
 	
 	bool has_next_now() {
 		return this->waitingCache->has_next_now();
-	}
-
-	size_t wait_for_all() {
-		return this->waitingCache->wait_for_all();
-	}
-
-
+	} 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
 	void setNumberOfBatches(size_t n_batches) {
@@ -307,14 +300,11 @@ public:
 	}
 
 	virtual void finish() {
-		this->waitingCache->notify();
+		this->waitingCache->finish();
 	}
 
-	bool is_finished() {
-		if(not waitingCache->empty()) {
-			return false;
-		}
-		return waitingCache->is_finished();
+	bool ready_to_execute() {
+		return waitingCache->ready_to_execute();
 	}
 
 	bool wait_for_next() {
@@ -323,11 +313,7 @@ public:
 	
 	bool has_next_now() {
 		return this->waitingCache->has_next_now();
-	}
-
-	size_t wait_for_all() {
-		return this->waitingCache->wait_for_all();
-	}
+	} 
 	
 	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache() {
 		std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
@@ -403,7 +389,7 @@ public:
 
 	// returns true when theres nothing left to process
 	bool process() override {
-		if(_paused || source->is_finished()) {
+		if(_paused || source->ready_to_execute()) {
 			return false;
 		}
 		auto input = source->pullFromCache();
@@ -444,12 +430,12 @@ public:
 
 	// returns true when theres nothing left to process
 	bool process() override {
-		if(_paused || sourceOne->is_finished()) {
+		if(_paused || sourceOne->ready_to_execute()) {
 			return false;
 		}
 		auto inputOne = sourceOne->pullFromCache();
 
-		if(_paused || sourceTwo->is_finished()) {
+		if(_paused || sourceTwo->ready_to_execute()) {
 			return false;
 		}
 		auto inputTwo = sourceTwo->pullFromCache();

@@ -76,7 +76,7 @@ CacheMachine::~CacheMachine() {}
 
 
 void CacheMachine::finish() {
-	this->waitingCache->notify();
+	this->waitingCache->finish();
 }
 void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table) {
 	auto cacheIndex = 1;
@@ -136,11 +136,8 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 	assert(cacheIndex < memoryPerCache.size());
 }
 
-bool CacheMachine::is_finished() {
-	if(not waitingCache->empty()) {
-		return false;
-	}
-	return waitingCache->is_finished();
+bool CacheMachine::ready_to_execute() {
+	return waitingCache->ready_to_execute();
 }
 
 

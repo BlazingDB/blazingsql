@@ -787,13 +787,13 @@ public:
 	virtual kstatus run() {
 		try {
 
-			while (not this->input_.get_cache("input_0")->is_finished())
+			while (this->input_.get_cache("input_0")->wait_for_next())
 			{
 				std::vector<ral::frame::BlazingTableView> partitions_to_merge;
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
 				for (size_t index = 0; index < this->input_.count(); index++) {
 					auto cache_id = "input_" + std::to_string(index);
-					if (not this->input_.get_cache(cache_id)->is_finished()) {
+					if (this->input_.get_cache(cache_id)->wait_for_next()) {
 						auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
 						if (input) {
 							partitions_to_merge.emplace_back(input->toBlazingTableView());
@@ -984,13 +984,13 @@ public:
 	virtual kstatus run() {
 		try {
 
-			while (not this->input_.get_cache("input_0")->is_finished())
+			while (this->input_.get_cache("input_0")->wait_for_next())
 			{
 				std::vector<ral::frame::BlazingTableView> partitions_to_merge;
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
 				for (size_t index = 0; index < this->input_.count(); index++) {
 					auto cache_id = "input_" + std::to_string(index);
-					if (not this->input_.get_cache(cache_id)->is_finished()) {
+					if (this->input_.get_cache(cache_id)->wait_for_next()) {
 						auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
 						if (input) {
 							partitions_to_merge.emplace_back(input->toBlazingTableView());

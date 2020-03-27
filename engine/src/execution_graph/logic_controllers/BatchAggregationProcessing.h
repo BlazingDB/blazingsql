@@ -40,7 +40,7 @@ public:
 
 		BatchSequence input(this->input_cache());
         int count=0;
-		while (input.has_next()) {
+		while (input.wait_for_next()) {
 			auto batch = input.next();
             std::cout<<"ComputeAggregateKernel batch "<<count<<std::endl;
             ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "ComputeAggregateKernel_batch" + std::to_string(count));
@@ -95,7 +95,7 @@ public:
 
 		BatchSequence input(this->input_cache());
         int count = 0;
-		while (input.has_next()) {
+		while (input.wait_for_next()) {
 			auto batch = input.next();
             std::cout<<"DistributeAggregateKernel batch "<<count<<std::endl;
             count++;
@@ -177,7 +177,7 @@ public:
         if (ready_to_execute()){
             BatchSequence input(this->input_cache());
             int count=0;
-            while (input.has_next()) {
+            while (input.wait_for_next()) {
                 auto batch = input.next();
                 std::cout<<"MergeAggregateKernel batch "<<count<<std::endl;
                 ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "MergeAggregateKernel_batch" + std::to_string(count));
