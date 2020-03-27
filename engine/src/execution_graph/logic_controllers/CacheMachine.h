@@ -317,6 +317,18 @@ public:
 		return waitingCache->is_finished();
 	}
 
+	bool wait_for_next() {
+		return this->waitingCache->wait_for_next();
+	}
+	
+	bool has_next_now() {
+		return this->waitingCache->has_next_now();
+	}
+
+	size_t wait_for_all() {
+		return this->waitingCache->wait_for_all();
+	}
+	
 	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache() {
 		std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
 		if (message_data == nullptr) {
