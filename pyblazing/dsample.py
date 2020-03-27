@@ -2,10 +2,7 @@ import time
 import pprint
 from blazingsql import BlazingContext
 from dask.distributed import Client
-client = Client('127.0.0.1:8786')
-client.restart()
-bc = BlazingContext(dask_client=client, network_interface="lo")
-
+bc = BlazingContext(dask_client=Client('127.0.0.1:8786'), network_interface="lo")
 # bc = BlazingContext()
 
 dir_data_fs = '/home/aocsa/tpch/100MB2Part/tpch/'
@@ -25,7 +22,7 @@ bc.create_table('customer', dir_data_fs + '/customer_*.parquet')
 #               c_custkey > 2990 and c_custkey < 3010 
 #             """
 
-query = "select c_custkey from customer order by c_custkey"
+query = "SELECT c_nationkey FROM customer order by c_nationkey"
 
 # [b'c_custkey', b'c_name', b'c_address', b'c_nationkey', b'c_phone', b'c_acctbal', b'c_mktsegment', b'c_comment']
 lp = bc.explain(query)

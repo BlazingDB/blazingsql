@@ -90,7 +90,12 @@ void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 	}
 }
 
-void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table) {
+void CacheMachine::insert(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id) {
+	this->addToCache(std::move(table), message_id);
+}
+
+
+void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id) {
 	int cacheIndex = 0;
 	while(cacheIndex < memoryPerCache.size()) {
 		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())) {
@@ -138,6 +143,17 @@ bool CacheMachine::is_finished() {
 	return waitingCache->is_finished();
 }
 
+
+std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index) {
+	std::unique_ptr<message<CacheData>> message_data = waitingCache->get_or_wait(index);
+	if (message_data == nullptr) {
+		return nullptr;
+	}
+	auto cache_data = message_data->releaseData();
+	auto cache_index = message_data->cacheIndex();
+	usedMemory[cache_index] -= cache_data->sizeInBytes();
+	return std::move(cache_data->decache());
+}
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
