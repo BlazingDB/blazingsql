@@ -148,6 +148,21 @@ public:
 		this->message_queue_.pop_front();
 		return std::move(data);
 	}
+	bool wait_for_next() {
+		std::unique_lock<std::mutex> lock(mutex_);
+		condition_variable_.wait(lock, [&, this] { return !this->empty(); });
+		return true;
+	}
+
+	bool has_next_now() {
+		return !this->empty();
+	}
+
+	size_t wait_for_all() {
+		std::unique_lock<std::mutex> lock(mutex_);
+		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });
+		return this->message_queue_.size();
+	}
 
 	message_ptr get_or_wait(size_t message_id) {
 		std::unique_lock<std::mutex> lock(mutex_);
@@ -235,6 +250,19 @@ public:
 	virtual void finish();
 
 	bool is_finished();
+
+	bool wait_for_next() {
+		return this->waitingCache->wait_for_next();
+	}
+	
+	bool has_next_now() {
+		return this->waitingCache->has_next_now();
+	}
+
+	size_t wait_for_all() {
+		return this->waitingCache->wait_for_all();
+	}
+
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
