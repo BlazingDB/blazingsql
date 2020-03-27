@@ -23,7 +23,7 @@ void MessageQueue::putMessage(std::shared_ptr<GPUReceivedMessage> &message) {
   std::unique_lock<std::mutex> lock(mutex_);
   putMessageQueue(message);
   lock.unlock();
-  condition_variable_.notify_one();
+  condition_variable_.notify_all(); // Note: Very important to notify all threads
 }
 
 std::shared_ptr<GPUReceivedMessage> MessageQueue::getMessageQueue(

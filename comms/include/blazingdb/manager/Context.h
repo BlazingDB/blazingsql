@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
 #include "blazingdb/transport/Node.h"
 
 namespace blazingdb {
@@ -20,6 +21,7 @@ public:
                    const std::string& logicalPlan);
 
       // TODO Cristhian Gonzalez no copies allowed
+  std::shared_ptr<Context> clone();
 
   int getTotalNodes() const;
 
@@ -40,7 +42,7 @@ public:
   std::string getLogicalPlan() const;
 
   uint32_t getContextToken() const;
-  uint32_t getContextCommunicationToken() const;
+  std::string getContextCommunicationToken() const;
 
   void incrementQueryStep();
   void incrementQuerySubstep();
@@ -51,6 +53,13 @@ public:
   int getNodeIndex(const Node& node) const;
   bool isMasterNode(const Node& node) const;
 
+  void setKernelId(uint32_t kernel_id) {
+    this->kernel_id_ = kernel_id;
+  }
+  uint32_t getKernelId() const {
+    return this->kernel_id_;
+  }
+
 private:
   const uint32_t token_;
   uint32_t query_step;
@@ -58,6 +67,8 @@ private:
   const std::vector<Node> taskNodes_;
   const Node masterNode_;
   const std::string logicalPlan_;
+  uint32_t kernel_id_;
+  std::mutex increment_step_mutex;
 };
 
 }  // namespace experimental

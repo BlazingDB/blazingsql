@@ -7,6 +7,7 @@
 #include "cudf/null_mask.hpp"
 #include "cudf/types.hpp"
 #include <cudf/filling.hpp>
+#include <cudf/concatenate.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
@@ -123,17 +124,26 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 			names = tables[i].names();
 		}
 		if(tables[i].view().num_columns() > 0) { // lets make sure we are trying to concatenate tables that are not empty
-			if (tables[i].view().column(0).offset() > 0){  // WSM this is because a bug in cudf https://github.com/rapidsai/cudf/issues/4055
-				temp_holder.emplace_back(std::make_unique<CudfTable>(CudfTable(tables[i].view())));
-          		table_views_to_concat.emplace_back(temp_holder.back()->view());
-			} else {
-				table_views_to_concat.push_back(tables[i].view());
-			}
+			table_views_to_concat.push_back(tables[i].view());
 		}
 	}
 	// TODO want to integrate data type normalization.
 	// Data type normalization means that only some columns from a table would get normalized,
 	// so we would need to manage the lifecycle of only a new columns that get allocated
+
+	size_t empty_count = 0;	
+	for(size_t i = 0; i < table_views_to_concat.size(); i++) {	
+		ral::frame::BlazingTableView tview(table_views_to_concat[i], names);	
+
+ 		if (tview.num_rows() == 0) {	
+			++empty_count;	
+		}	
+	}	
+
+ 	// All tables are empty so we just need to return the 1st one	
+	if (empty_count == table_views_to_concat.size()) {	
+		return std::make_unique<ral::frame::BlazingTable>(table_views_to_concat[0], names);	
+	}	
 
 	std::unique_ptr<CudfTable> concatenated_tables = cudf::experimental::concatenate(table_views_to_concat);
 	return std::make_unique<BlazingTable>(std::move(concatenated_tables), names);

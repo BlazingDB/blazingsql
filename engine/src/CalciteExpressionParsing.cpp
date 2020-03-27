@@ -66,7 +66,7 @@ cudf::type_id get_next_biggest_type(cudf::type_id type) {
 // support returning the same input type. Also pygdf does not currently support unsigned types (for example count should
 // return and unsigned type)
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKind aggregation, bool have_groupby) {
-	if(aggregation == AggregateKind::COUNT) {
+	if(aggregation == AggregateKind::COUNT_VALID || aggregation == AggregateKind::COUNT_ALL) {
 		return cudf::type_id::INT64;
 	} else if(aggregation == AggregateKind::SUM || aggregation == AggregateKind::SUM0) {
 		if(have_groupby)
@@ -86,15 +86,15 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKin
 //	} else if(aggregation == GDF_COUNT_DISTINCT) {
 //		return cudf::type_id::INT64;
 	} else {
-		// TODO percy cudf0.12 was invalid here, is ok to return EMPTY?
-		return cudf::type_id::EMPTY;
+		throw std::runtime_error(
+			"In get_aggregation_output_type function: aggregation type not supported: " + aggregation);
 	}
 }
 
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::string & aggregation) {
 	if(aggregation == "COUNT") {
 		return cudf::type_id::INT64;
-	} else if(aggregation == "SUM") {
+	} else if(aggregation == "SUM" || aggregation == "$SUM0") {
 		return is_type_float(input_type) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64;
 	} else if(aggregation == "MIN") {
 		return input_type;
@@ -103,7 +103,8 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::s
 	} else if(aggregation == "AVG") {
 		return cudf::type_id::FLOAT64;
 	} else {
-		return cudf::type_id::EMPTY;
+		throw std::runtime_error(
+			"In get_aggregation_output_type function: aggregation type not supported: " + aggregation);
 	}
 }
 
@@ -316,10 +317,13 @@ std::string get_aggregation_operation_string(std::string operator_string) {
 	return operator_string.substr(0, operator_string.find("("));
 }
 
-AggregateKind get_aggregation_operation(std::string operator_string) {
+AggregateKind get_aggregation_operation(std::string expression_in) {
 
-	operator_string = get_aggregation_operation_string(operator_string);
-	if(operator_string == "SUM") {
+	std::string operator_string = get_aggregation_operation_string(expression_in);
+	std::string expression = get_string_between_outer_parentheses(expression_in);
+	if (expression == "" && operator_string == "COUNT"){
+		return AggregateKind::COUNT_ALL;
+	} else if(operator_string == "SUM") {
 		return AggregateKind::SUM;
 	} else if(operator_string == "$SUM0") {
 		return AggregateKind::SUM0;
@@ -330,7 +334,7 @@ AggregateKind get_aggregation_operation(std::string operator_string) {
 	} else if(operator_string == "MAX") {
 		return AggregateKind::MAX;
 	} else if(operator_string == "COUNT") {
-		return AggregateKind::COUNT;
+		return AggregateKind::COUNT_VALID;
 	}
 
 	throw std::runtime_error(
@@ -414,7 +418,7 @@ cudf::size_type get_index(const std::string & operand_string) {
 }
 
 std::string aggregator_to_string(AggregateKind aggregation) {
-	if(aggregation == AggregateKind::COUNT) {
+	if(aggregation == AggregateKind::COUNT_VALID || aggregation == AggregateKind::COUNT_ALL) {
 		return "count";
 	} else if(aggregation == AggregateKind::SUM) {
 		return "sum";
@@ -505,46 +509,6 @@ std::string expand_if_logical_op(std::string expression) {
 	return output;
 }
 
-std::string replace_calcite_regex(const std::string & expression) {
-	std::string ret = expression;
-
-	static const std::regex count_re{R""(COUNT\(DISTINCT (\W\(.+?\)|.+)\))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, count_re, "COUNT_DISTINCT($1)");
-
-	static const std::regex char_collate_re{
-		R""((?:\(\d+\))? CHARACTER SET ".+?" COLLATE ".+?")"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, char_collate_re, "");
-
-	static const std::regex timestamp_re{R""(TIMESTAMP\(\d+\))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, timestamp_re, "TIMESTAMP");
-
-	static const std::regex number_implicit_cast_re{
-		R""((\d):(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, number_implicit_cast_re, "$1");
-
-	static const std::regex null_implicit_cast_re{
-		R""(null:(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, null_implicit_cast_re, "null");
-
-	static const std::regex varchar_implicit_cast_re{R""(':VARCHAR)"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, varchar_implicit_cast_re, "'");
-
-	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
-	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
-	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
-
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DAY), ", "BL_DAY(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
-	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
-	StringUtil::findAndReplaceAll(ret, ":DECIMAL(19, 0)", ":DOUBLE");
-
-
-	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
-	return ret;
-}
 
 std::string clean_calcite_expression(const std::string & expression) {
 	std::string clean_expression = replace_calcite_regex(expression);
@@ -627,63 +591,6 @@ int find_closing_char(const std::string & expression, int start) {
 	}
 	// TODO throw error
 	return -1;
-}
-
-// takes a comma delimited list of expressions and splits it into separate expressions
-std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expression, bool trim) {
-	combined_expression = replace_calcite_regex(combined_expression);
-
-	std::vector<std::string> expressions;
-
-	int curInd = 0;
-	int curStart = 0;
-	bool inQuotes = false;
-	int parenthesisDepth = 0;
-	int sqBraketsDepth = 0;
-	while(curInd < combined_expression.size()) {
-		if(inQuotes) {
-			if(combined_expression[curInd] == '\'') {
-				if(!(curInd + 1 < combined_expression.size() &&
-					   combined_expression[curInd + 1] ==
-						   '\'')) {  // if we are in quotes and we get a double single quotes, that is an escaped quotes
-					inQuotes = false;
-				}
-			}
-		} else {
-			if(combined_expression[curInd] == '\'') {
-				inQuotes = true;
-			} else if(combined_expression[curInd] == '(') {
-				parenthesisDepth++;
-			} else if(combined_expression[curInd] == ')') {
-				parenthesisDepth--;
-			} else if(combined_expression[curInd] == '[') {
-				sqBraketsDepth++;
-			} else if(combined_expression[curInd] == ']') {
-				sqBraketsDepth--;
-			} else if(combined_expression[curInd] == ',' && parenthesisDepth == 0 && sqBraketsDepth == 0) {
-				std::string exp = combined_expression.substr(curStart, curInd - curStart);
-
-				if(trim)
-					expressions.push_back(StringUtil::ltrim(exp));
-				else
-					expressions.push_back(exp);
-
-				curStart = curInd + 1;
-			}
-		}
-		curInd++;
-	}
-
-	if(curStart < combined_expression.size() && curInd <= combined_expression.size()) {
-		std::string exp = combined_expression.substr(curStart, curInd - curStart);
-
-		if(trim)
-			expressions.push_back(StringUtil::trim(exp));
-		else
-			expressions.push_back(exp);
-	}
-
-	return expressions;
 }
 
 bool contains_evaluation(std::string expression) { return expression.find("(") != std::string::npos; }

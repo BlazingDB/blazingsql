@@ -49,6 +49,15 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
 cudf::size_type determine_local_limit(Context * context,
 	cudf::size_type local_num_rows, cudf::size_type limit_rows);
 
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable>>
+	sort_and_sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context);
+
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition_sort(const ral::frame::BlazingTableView & partitionPlan,
+												const ral::frame::BlazingTableView & sortedTable,
+												const std::string & query_part,
+												Context * context);
+
+std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part, Context * context);
 
 }  // namespace experimental
 }  // namespace operators

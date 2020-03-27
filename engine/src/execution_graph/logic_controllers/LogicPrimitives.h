@@ -1,13 +1,29 @@
 
 #pragma once
 
+#include "cudf/column/column_view.hpp"
+#include "cudf/table/table.hpp"
+#include "cudf/table/table_view.hpp"
+#include <cudf/io/functions.hpp>
+#include <future>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <string>
+#include <thread>
+#include <typeindex>
+#include <vector>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
 
+typedef cudf::experimental::table CudfTable;
+typedef cudf::table_view CudfTableView;
+typedef cudf::column CudfColumn;
+typedef cudf::column_view CudfColumnView;
+namespace cudf_io = cudf::experimental::io;
 
 namespace ral {
-
 namespace frame {
 
 class BlazingTable;
@@ -27,7 +43,7 @@ public:
 	cudf::size_type num_rows() const { return columns.size() == 0 ? 0 : columns[0]->view().size(); }
 	std::vector<std::string> names() const;
 	// set columnNames
-	void setNames(const std::vector<std::string> &names) { this->columnNames = names; }
+	void setNames(const std::vector<std::string> & names) { this->columnNames = names; }
 
 	BlazingTableView toBlazingTableView() const;
 
@@ -35,6 +51,8 @@ public:
 
 	std::unique_ptr<CudfTable> releaseCudfTable();
 	std::vector<std::unique_ptr<BlazingColumn>> releaseBlazingColumns();
+
+	unsigned long long sizeInBytes();
 
 private:
 	std::vector<std::string> columnNames;
@@ -59,7 +77,7 @@ public:
 
 	std::vector<std::string> names() const;
 	// set columnNames
-	void setNames(const std::vector<std::string> &names) { this->columnNames = names; }
+	void setNames(const std::vector<std::string> & names) { this->columnNames = names; }
 
 	cudf::size_type num_columns() const { return table.num_columns(); }
 
@@ -78,6 +96,4 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 std::vector<std::unique_ptr<BlazingColumn>> cudfTableViewToBlazingColumns(const CudfTableView & table);
 
 }  // namespace frame
-
 }  // namespace ral
-

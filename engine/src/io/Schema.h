@@ -45,6 +45,10 @@ public:
 
 	Schema(std::vector<std::string> names, std::vector<cudf::type_id> types);
 
+	Schema(const Schema& ) = default;
+
+	Schema& operator = (const Schema& ) = default;
+
 	virtual ~Schema();
 
 	std::vector<std::string> get_names() const;

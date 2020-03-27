@@ -92,7 +92,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 					consecutive_row_group_start.push_back(row_groups[i]);
 					last_rowgroup = row_groups[i];
 					length_count = 1;
-				}				
+				}
 			}
 			consecutive_row_group_length.push_back(length_count);
 
@@ -101,7 +101,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 				pq_args.row_group_count = consecutive_row_group_length[0];
 
 				auto result = cudf_io::read_parquet(pq_args);
-				return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);				
+				return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 			} else {
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> table_outs;
 				std::vector<ral::frame::BlazingTableView> table_view_outs;
@@ -113,8 +113,8 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 					table_outs.emplace_back(std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names));
 					table_view_outs.emplace_back(table_outs.back()->toBlazingTableView());
 				}
-				return ral::utilities::experimental::concatTables(table_view_outs);				
-			}			
+				return ral::utilities::experimental::concatTables(table_view_outs);
+			}
 		}
 	}
 	return nullptr;

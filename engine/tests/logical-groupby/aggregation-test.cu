@@ -29,7 +29,7 @@ TYPED_TEST(AggregationTest, CheckBasicWithGroupby) {
 	std::vector<std::string> column_names{"A", "B"};
 	ral::frame::BlazingTableView table(CudfTableView{{key, value}}, column_names);
 
-	std::vector<AggregateKind> aggregation_types{AggregateKind::SUM, AggregateKind::COUNT, 
+	std::vector<AggregateKind> aggregation_types{AggregateKind::SUM, AggregateKind::COUNT_VALID, 
 				AggregateKind::MIN, AggregateKind::MAX};
 
 	std::vector<std::string> aggregation_input_expressions{"1", "1", "1", "1"};
@@ -67,8 +67,8 @@ TYPED_TEST(AggregationTest, MoreComplexGroupby) {
 	std::vector<std::string> column_names{"A", "B"};
 	ral::frame::BlazingTableView table(CudfTableView{{key, value}}, column_names);
 
-	std::vector<AggregateKind> aggregation_types{AggregateKind::SUM, AggregateKind::COUNT, 
-				AggregateKind::SUM, AggregateKind::COUNT};
+	std::vector<AggregateKind> aggregation_types{AggregateKind::SUM, AggregateKind::COUNT_VALID, 
+				AggregateKind::SUM, AggregateKind::COUNT_VALID};
 
 	std::vector<std::string> aggregation_input_expressions{"$1", "$1", "$0", "$0"};
 	std::vector<std::string> aggregation_column_assigned_aliases{"", "", "", ""};

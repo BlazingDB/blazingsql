@@ -36,6 +36,9 @@ struct data_handle {
  */
 class data_provider {
 public:
+
+	virtual std::shared_ptr<data_provider> clone() = 0; 
+
 	/**
 	 * tells us if this provider can generate more arrow::io::RandomAccessFile instances
 	 */

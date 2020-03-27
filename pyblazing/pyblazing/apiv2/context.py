@@ -94,7 +94,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    if (allocator is not 'existing'): 
+    if (allocator != 'existing'): 
         cudf.set_allocator(allocator=allocator,
                             pool=pool,
                             initial_pool_size=initial_pool_size,# Default is 1/2 total GPU memory
@@ -121,11 +121,14 @@ def getNodePartitions(df, client):
     worker_part = client.who_has(df)
     worker_partitions = {}
     for key in worker_part:
-        worker = worker_part[key][0]
-        partition = int(key[key.find(",") + 2:(len(key) - 1)])
-        if connectionToId[worker] not in worker_partitions:
-            worker_partitions[connectionToId[worker]] = []
-        worker_partitions[connectionToId[worker]].append(partition)
+        if len(worker_part[key]) > 0:
+            worker = worker_part[key][0]
+            partition = int(key[key.find(",") + 2:(len(key) - 1)])
+            if connectionToId[worker] not in worker_partitions:
+                worker_partitions[connectionToId[worker]] = []
+            worker_partitions[connectionToId[worker]].append(partition)
+        else:
+            print("ERROR: In getNodePartitions, woker has no corresponding partition")
     return worker_partitions
 
 
@@ -136,12 +139,16 @@ def collectPartitionsRunQuery(
         fileTypes,
         ctxToken,
         algebra,
-        accessToken):
+        accessToken,
+        use_execution_graph
+        ):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
             partitions = tables[table_name].get_partitions(worker_id)
+            if partitions is None:
+                print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
             if (len(partitions) == 0):
                 tables[table_name].input = tables[table_name].input.get_partition(
                     0).head(0)
@@ -149,6 +156,11 @@ def collectPartitionsRunQuery(
                 tables[table_name].input = tables[table_name].input.get_partition(
                     partitions[0]).compute()
             else:
+                print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime. 
+This limitation is expected to exist until blazingsql version 0.14. 
+In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
+    dask_df = bc.unify_partitions(dask_df)
+    bc.create_table('my_table', dask_df)""")
                 table_partitions = []
                 for partition in partitions:
                     table_partitions.append(
@@ -161,7 +173,8 @@ def collectPartitionsRunQuery(
         fileTypes,
         ctxToken,
         algebra,
-        accessToken)
+        accessToken,
+        use_execution_graph)
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -191,6 +204,25 @@ def collectPartitionsPerformPartition(
                     ctxToken,
                     input,
                     by)
+
+def workerUnifyPartitions(
+        input,
+        dask_mapping,
+        i):  # this is a dummy variable to make every submit unique which is necessary
+    import dask.distributed
+    worker_id = dask.distributed.get_worker().name
+    partitions = dask_mapping[worker_id]
+    if (len(partitions) == 0):
+        return input.get_partition(0).head(0)
+    elif (len(partitions) == 1):
+        return input.get_partition(partitions[0]).compute()
+    else:
+        table_partitions = []
+        for partition in partitions:
+            table_partitions.append(
+                input.get_partition(partition).compute())
+        return cudf.concat(table_partitions)
+                
 
 # returns a map of table names to the indices of the columns needed. If there are more than one table scan for one table, it merged the needed columns
 # if the column list is empty, it means we want all columns
@@ -335,7 +367,112 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     frame = OrderedDict(((key,value) for (key,value) in zip(final_names, series)))
     result = cudf.DataFrame(frame)
     return result
-    
+
+
+import json
+import collections
+def is_double_children(expr):
+    return "LogicalJoin" in expr  or  "LogicalUnion" in expr
+
+def visit (lines): 
+    stack = collections.deque()
+    root_level = 0
+    dicc = {
+        "expr": lines[root_level][1],
+        "children": []
+    }
+    processed = set()
+    for index in range(len(lines)): 
+        child_level, expr = lines[index]
+        if child_level == root_level + 1:
+            new_dicc = {
+                "expr": expr,
+                "children": []
+            }
+            if len(dicc["children"]) == 0:
+                dicc["children"] = [new_dicc]
+            else:
+                dicc["children"].append(new_dicc)
+            stack.append( (index, child_level, expr, new_dicc) )
+            processed.add(index)
+
+    for index in processed:
+        lines[index][0] = -1 
+
+    while len(stack) > 0: 
+        curr_index, curr_level, curr_expr, curr_dicc = stack.pop()
+        processed = set()
+
+        if curr_index < len(lines)-1: # is brother
+            child_level, expr = lines[curr_index+1]
+            if child_level == curr_level:
+                continue
+            elif child_level == curr_level + 1:
+                index = curr_index + 1
+                if is_double_children(curr_expr):
+                    while index < len(lines) and len(curr_dicc["children"]) < 2: 
+                        child_level, expr = lines[index]
+                        if child_level == curr_level + 1:
+                            new_dicc = {
+                                "expr": expr,
+                                "children": []
+                            }
+                            if len(curr_dicc["children"]) == 0:
+                                curr_dicc["children"] = [new_dicc]
+                            else:
+                                curr_dicc["children"].append(new_dicc)
+                            processed.add(index)
+                            stack.append( (index, child_level, expr, new_dicc) )
+                        index += 1
+                else:
+                    while index < len(lines) and len(curr_dicc["children"]) < 1: 
+                        child_level, expr = lines[index]
+                        if child_level == curr_level + 1:
+                            new_dicc = {
+                                "expr": expr,
+                                "children": []
+                            }
+                            if len(curr_dicc["children"]) == 0:
+                                curr_dicc["children"] = [new_dicc]
+                            else:
+                                curr_dicc["children"].append(new_dicc)
+                            processed.add(index)
+                            stack.append( (index, child_level, expr, new_dicc) )
+                        index += 1
+
+        for index in processed:
+            lines[index][0] = -1 
+    return json.dumps(dicc)
+
+
+def get_plan(algebra):
+    algebra = algebra.replace("  ", "\t")
+    lines = algebra.split("\n")
+    new_lines = []
+    for i in range(len(lines) - 1):
+        line = lines[i]
+        level = line.count("\t")
+        new_lines.append( [level, line.replace("\t", "")] )	
+    return visit(new_lines)    
+
+
+def resolve_relative_path(files):
+    files_out = []
+    for file in files:
+        if isinstance(file, str): 
+            # if its an abolute path or fs path
+            if file.startswith('/') |  file.startswith('hdfs://') | file.startswith('s3://') | file.startswith('gs://'):
+                files_out.append(file)
+            else: # if its not, lets see if its a relative path we can access
+                abs_file = os.path.abspath(os.path.join(os.getcwd(), file))
+                if os.path.exists(abs_file):
+                    files_out.append(abs_file)
+                else: # if its not, lets just leave it and see if somehow the engine can access it
+                    files_out.append(file)
+        else: # we are assuming all are string. If not, lets just return
+            return files
+    return files_out
+
 
 class BlazingTable(object):
     def __init__(
@@ -468,7 +605,10 @@ class BlazingTable(object):
         return nodeFilesList
 
     def get_partitions(self, worker):
-        return self.dask_mapping[worker]
+        if worker in self.dask_mapping:
+            return self.dask_mapping[worker]
+        else: 
+            return None
 
 
 class BlazingContext(object):
@@ -665,6 +805,9 @@ class BlazingContext(object):
             else:
                 table = BlazingTable(input, DataType.CUDF)
         elif isinstance(input, list):
+
+            input = resolve_relative_path(input)
+
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
             
@@ -718,7 +861,7 @@ class BlazingContext(object):
         
         if table is not None:
             self.add_remove_table(table_name, True, table)
-        return table
+        
 
     def drop_table(self, table_name):
         self.add_remove_table(table_name, False)
@@ -884,7 +1027,30 @@ class BlazingContext(object):
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
-    def sql(self, sql, table_list=[], algebra=None):
+    def unify_partitions(self, input):
+        if isinstance(input, dask_cudf.core.DataFrame) and self.dask_client is not None:
+            dask_mapping = getNodePartitions(input, self.dask_client)
+            max_num_partitions_per_node = max([len(x) for x in dask_mapping.values()])
+            if max_num_partitions_per_node > 1:
+                dask_futures = []
+                for i, node in enumerate(self.nodes):
+                    worker = node['worker']
+                    dask_futures.append(
+                        self.dask_client.submit(
+                            workerUnifyPartitions,
+                            input,
+                            dask_mapping,
+                            i,  # this is a dummy variable to make every submit unique which is necessary
+                            workers=[worker]))                    
+                result = dask.dataframe.from_delayed(dask_futures)
+                return result
+            else:
+                return input
+        else:
+            return input
+
+
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph = False):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [{} for _ in range(len(self.nodes))]
@@ -916,6 +1082,12 @@ class BlazingContext(object):
                 else:
                     currentTableNodes = new_tables[table].getSlices(len(self.nodes))
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
+                if new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
+                    print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
+                    temp_df = new_tables[table].input.compute()
+                    new_tables[table].input = dask_cudf.from_cudf(temp_df,npartitions=len(self.nodes))
+                    new_tables[table].input = new_tables[table].input.persist()
+                    new_tables[table].dask_mapping = getNodePartitions(new_tables[table].input, self.dask_client)
                 currentTableNodes = []
                 for node in self.nodes:
                     currentTableNodes.append(new_tables[table])
@@ -932,6 +1104,9 @@ class BlazingContext(object):
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
 
+        if use_execution_graph:
+            algebra = get_plan(algebra)
+
         if self.dask_client is None:
             result = cio.runQueryCaller(
                         masterIndex,
@@ -940,7 +1115,8 @@ class BlazingContext(object):
                         fileTypes,
                         ctxToken,
                         algebra,
-                        accessToken)
+                        accessToken,
+                        use_execution_graph)
         else:
             dask_futures = []
             i = 0
@@ -956,6 +1132,7 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
+                        use_execution_graph,
                         workers=[worker]))
                 i = i + 1
             result = dask.dataframe.from_delayed(dask_futures)
