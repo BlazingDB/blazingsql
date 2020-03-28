@@ -447,13 +447,22 @@ private:
 					get_data_from_buffer(&right_value, buffer, right_position);
 				}
 				right_valid = getColumnValid(row_valids, right_position);
+
+				if(oper == operator_type::BLZ_DIV && right_value == 0){ //if div by zero = null
+					right_valid = false;
+				}
 			}	else if(right_position == SCALAR_INDEX) {
 				if (is_string_type(right_type_id)) {
 					right_str_view = static_cast<cudf::string_scalar_device_view*>(scalars_right[op_index])->value();
+					right_valid = true;
 				} else {
 					right_value = get_scalar_value<RightType>(scalars_right[op_index]);
+
+					if(oper == operator_type::BLZ_DIV && right_value == 0) //if div by zero = null
+						right_valid = false;
+					else
+						right_valid = true;
 				}
-				right_valid = true;
 			} else { // if(right_position == SCALAR_NULL_INDEX)
 				right_valid = false;
 			}
@@ -497,10 +506,7 @@ private:
 				} else if(oper == operator_type::BLZ_MUL) {
 					store_data_in_buffer(left_value * right_value, buffer, output_position);
 				} else if(oper == operator_type::BLZ_DIV) {
-					if(right_value == 0)
-						store_data_in_buffer(std::nan(""), buffer, output_position);
-					else
-						store_data_in_buffer(left_value / right_value, buffer, output_position);
+					store_data_in_buffer(left_value / right_value, buffer, output_position);
 				} else if(oper == operator_type::BLZ_MOD) {
 					if (!is_float_type(left_type_id) && !is_float_type(right_type_id))	{
 						store_data_in_buffer(
