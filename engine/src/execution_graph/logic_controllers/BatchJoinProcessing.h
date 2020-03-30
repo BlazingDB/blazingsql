@@ -323,31 +323,36 @@ public:
             std::unique_ptr<CudfTable> hashed_data;
             std::vector<cudf::size_type> hased_data_offsets;
 			std::cout << "\tbatch.sz: " << batch->num_rows() << std::endl;
+			auto batch_view = batch->view();
+			std::vector<CudfTableView> partitioned;
 			if (batch->num_rows() > 0) {
-				std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), column_indices, num_partitions);
+				std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
 
 				assert(hased_data_offsets.begin() != hased_data_offsets.end());
 				// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
 				std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-				std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
-
-				std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
+				partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
+				
+			} else {
 				for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-					ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-					if (context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
-						// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
-						// if we dont clone it, hashed_data will go out of scope before we get to use the partition
-						// also we need a BlazingTable to put into the cache, we cant cache views.
-						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
-						output->addToCache(std::move(partition_table_clone));
-					} else {
-						partitions_to_send.emplace_back(
-							std::make_pair(context->getNode(nodeIndex), partition_table_view));
-					}
+					partitioned.push_back(batch_view);
 				}
-				ral::distribution::experimental::distributeTablePartitions(context.get(), partitions_to_send);			
-
 			}
+			std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
+			for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+				ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
+				if (context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+					// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
+					// if we dont clone it, hashed_data will go out of scope before we get to use the partition
+					// also we need a BlazingTable to put into the cache, we cant cache views.
+					std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
+					output->addToCache(std::move(partition_table_clone));
+				} else {
+					partitions_to_send.emplace_back(
+						std::make_pair(context->getNode(nodeIndex), partition_table_view));
+				}
+			}
+			ral::distribution::experimental::distributeTablePartitions(context.get(), partitions_to_send);
 
             if (sequence.wait_for_next()){
                 batch = sequence.next();
