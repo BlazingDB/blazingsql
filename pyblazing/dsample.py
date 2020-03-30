@@ -2,8 +2,8 @@ import time
 import pprint
 from blazingsql import BlazingContext
 from dask.distributed import Client
-# bc = BlazingContext(dask_client=Client('127.0.0.1:8786'), network_interface="lo")
-bc = BlazingContext()
+bc = BlazingContext(dask_client=Client('127.0.0.1:8786'), network_interface="lo")
+# bc = BlazingContext()
 
 dir_data_fs = '/home/aocsa/tpch/100MB2Part/tpch/'
 nfiles = 4
@@ -26,7 +26,7 @@ bc.create_table('nation', dir_data_fs + '/nation_*.parquet')
 # query = "SELECT sum(c_nationkey) FROM customer group by c_nationkey"
 # query = "SELECT c_nationkey FROM customer order by c_nationkey"
 # query = "select c_nationkey, c_custkey from customer where c_acctbal < 10000 group by c_nationkey, c_custkey order by c_nationkey desc, c_custkey asc"
-query = "select * from customer as c inner join nation as n on c.c_nationkey = n.n_nationkey"
+query = "select * from customer as c inner join nation as n on c.c_nationkey = n.n_nationkey and c.c_custkey < 10"
 
 
 # [b'c_custkey', b'c_name', b'c_address', b'c_nationkey', b'c_phone', b'c_acctbal', b'c_mktsegment', b'c_comment']
@@ -34,4 +34,4 @@ lp = bc.explain(query)
 print(lp)
 ddf = bc.sql(query, use_execution_graph=True)
 print(query)
-print(ddf)
+print(ddf.compute())
