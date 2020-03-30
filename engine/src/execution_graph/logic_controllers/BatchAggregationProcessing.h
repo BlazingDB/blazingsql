@@ -113,16 +113,24 @@ public:
                     }
                     std::vector<ral::distribution::experimental::NodeColumnView> selfPartition;
                     selfPartition.emplace_back(this->context->getMasterNode(), batch->toBlazingTableView());
-                    ral::distribution::experimental::distributePartitions(this->context.get(), selfPartition);
+                    ral::distribution::experimental::distributeTablePartitions(this->context.get(), selfPartition);
                 }
             } else {
-                std::unique_ptr<CudfTable> hashed_data;
-                std::vector<cudf::size_type> hased_data_offsets;
-                std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), columns_to_hash, num_partitions);
-
-                // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-                std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-                std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
+                CudfTableView batch_view = batch->view();
+                std::vector<CudfTableView> partitioned;
+                std::unique_ptr<CudfTable> hashed_data; // Keep table alive in this scope
+                if (batch_view.num_rows() > 0) {
+                    std::vector<cudf::size_type> hased_data_offsets;
+                    std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), columns_to_hash, num_partitions);
+                    // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
+                    std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+                    partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
+                } else {
+                    //  copy empty view
+                    for (auto i = 0; i < num_partitions; i++) {
+                        partitioned.push_back(batch_view);
+                    }
+                }
 
                 std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
                 for(int nodeIndex = 0; nodeIndex < this->context->getTotalNodes(); nodeIndex++ ){
@@ -142,14 +150,18 @@ public:
             }
 		}
 
-        ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
-
+        if (!(group_column_indices.size() == 0
+              && this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode()))) {
+            // Aggregations without groupby does not send distributeTablePartitions
+            ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
+        }
+        
         // Lets put the server listener to feed the output, but not if its aggregations without group by and its not the master
         if(group_column_indices.size() > 0 || 
                     this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
             ExternalBatchColumnDataSequence external_input(context);
             std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-            while (host_table = external_input.next()) {	
+            while (host_table = external_input.next()) {
                 this->output_cache()->addHostFrameToCache(std::move(host_table));
             }
         }
