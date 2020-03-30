@@ -190,8 +190,6 @@ public:
 		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"));
 		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"));
 
-		// TODO: use split_inequality_join_into_join_and_filter!@
-
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;
 		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
@@ -373,7 +371,6 @@ public:
             }
         }
 		printf("... notifyLastTablePartitions\n");
-        // ALEX add notify final here
 		ral::distribution::experimental::notifyLastTablePartitions(context.get());
     }
 	
@@ -382,8 +379,6 @@ public:
 		BatchSequence left_sequence(this->input_.get_cache("input_a"));
 		BatchSequence right_sequence(this->input_.get_cache("input_b"));
 
-		//TODO:  split inequality: update join statement 
-		// TODO: use split_inequality_join_into_join_and_filter!@
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;
 		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
@@ -416,7 +411,6 @@ public:
 			std::ref(this->output_.get_cache("output_a")));
 
 
-		// ALEX create thread with ExternalBatchColumnDataSequence for the left table being distriubted
 		std::thread t1([context = this->context, output_cache = this->output_.get_cache("output_a")](){
 			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_left(context, message_token);
@@ -428,14 +422,14 @@ public:
 			}
 		});
 
-		// ALEX clone context, increment step counter to make it so that the next partition_table will have different message id
+		// clone context, increment step counter to make it so that the next partition_table will have different message id
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
 		std::thread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
 			std::ref(this->output_.get_cache("output_b")));
 
-		// ALEX create thread with ExternalBatchColumnDataSequence for the right table being distriubted
+		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
 		std::thread t2([cloned_context, output_cache = this->output_.get_cache("output_b")](){
 			auto message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
