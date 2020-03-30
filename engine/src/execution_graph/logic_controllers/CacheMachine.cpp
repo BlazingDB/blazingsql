@@ -98,6 +98,7 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id) {
 	int cacheIndex = 0;
 	while(cacheIndex < memoryPerCache.size()) {
+		// TODO: BlazingMemoryResource::getUsedMemory() 
 		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())) {
 			usedMemory[cacheIndex] += table->sizeInBytes();
 			if(cacheIndex == 0) {

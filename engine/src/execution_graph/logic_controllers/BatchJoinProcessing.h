@@ -213,12 +213,13 @@ public:
 			std::vector<std::string> right_names = right_batch->names();
 			this->result_names.insert(this->result_names.end(), right_names.begin(), right_names.end());
 		}
-
+		printf("Parsing expression\n");
 		bool done = false;
 		int left_ind = 0;
 		int right_ind = 0;
 		
 		while (!done) {
+			printf("normalize\n");
 			normalize(left_batch, right_batch);
 			std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
 			this->output_cache()->addToCache(std::move(joined));
@@ -315,32 +316,38 @@ public:
 
         bool done = false;
         while (!done) {
+			printf("partition_table\n");
             // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
             // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
             int num_partitions = context->getTotalNodes(); 
             std::unique_ptr<CudfTable> hashed_data;
             std::vector<cudf::size_type> hased_data_offsets;
-            std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), column_indices, num_partitions);
+			std::cout << "\tbatch.sz: " << batch->num_rows() << std::endl;
+			if (batch->num_rows() > 0) {
+				std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), column_indices, num_partitions);
 
-            // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-            std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-            std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
+				assert(hased_data_offsets.begin() != hased_data_offsets.end());
+				// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
+				std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+				std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
 
-            std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
-            for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-                ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-                if (context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
-                    // hash_partition followed by split does not create a partition that we can own, so we need to clone it.
-                    // if we dont clone it, hashed_data will go out of scope before we get to use the partition
-                    // also we need a BlazingTable to put into the cache, we cant cache views.
-                    std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
-                    output->addToCache(std::move(partition_table_clone));
-                } else {
-                    partitions_to_send.emplace_back(
-                        std::make_pair(context->getNode(nodeIndex), partition_table_view));
-                }
-            }
-            ral::distribution::experimental::distributeTablePartitions(context.get(), partitions_to_send);			
+				std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
+				for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+					ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
+					if (context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+						// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
+						// if we dont clone it, hashed_data will go out of scope before we get to use the partition
+						// also we need a BlazingTable to put into the cache, we cant cache views.
+						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
+						output->addToCache(std::move(partition_table_clone));
+					} else {
+						partitions_to_send.emplace_back(
+							std::make_pair(context->getNode(nodeIndex), partition_table_view));
+					}
+				}
+				ral::distribution::experimental::distributeTablePartitions(context.get(), partitions_to_send);			
+
+			}
 
             if (sequence.wait_for_next()){
                 batch = sequence.next();
@@ -348,7 +355,9 @@ public:
                 done = true;
             }
         }
+		printf("... notifyLastTablePartitions\n");
         // ALEX add notify final here
+		ral::distribution::experimental::notifyLastTablePartitions(context.get());
     }
 	
 	virtual kstatus run() {
@@ -378,29 +387,48 @@ public:
 				}
 			}
 		}
+		printf("parseJoinConditionToColumnIndices\n");
 
 		std::thread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
 			std::ref(this->output_.get_cache("output_a")));
 
 		// ALEX create thread with ExternalBatchColumnDataSequence for the left table being distriubted
-		// ExternalBatchColumnDataSequence external_input(context);
-		// std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-		// while (host_table = external_input.next()) {	
-        //     this->output_.get_cache("output_a")->addHostFrameToCache(std::move(host_table));
-		// }
+		std::thread t1([context = this->context, output_cache = this->output_.get_cache("output_a")](){
+			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + context->getContextCommunicationToken();
+			ExternalBatchColumnDataSequence external_input_left(context, message_token);
+			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+			printf("... consumming left\n");
 
+			while (host_table = external_input_left.next()) {	
+				output_cache->addHostFrameToCache(std::move(host_table));
+			}
+		});
 
 		// ALEX clone context, increment step counter to make it so that the next partition_table will have different message id
-		
-		std::thread distribute_right_thread(&JoinPartitionKernel::partition_table, context, 
+		auto cloned_context = context->clone();
+		cloned_context->incrementQuerySubstep();
+		std::thread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
 			std::ref(this->output_.get_cache("output_b")));
 
 		// ALEX create thread with ExternalBatchColumnDataSequence for the right table being distriubted
-
+		std::thread t2([cloned_context, output_cache = this->output_.get_cache("output_b")](){
+			auto message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
+			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
+			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+			printf("... consumming right\n");
+			while (host_table = external_input_right.next()) {	
+				output_cache->addHostFrameToCache(std::move(host_table));
+			}
+		});
+	
 		distribute_left_thread.join();
 		distribute_right_thread.join();
+
+		t1.join();
+		t2.join();
+		
 		// ALEX join other threads
 		
 		return kstatus::proceed;

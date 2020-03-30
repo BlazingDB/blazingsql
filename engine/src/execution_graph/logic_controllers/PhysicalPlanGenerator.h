@@ -268,7 +268,8 @@ struct tree_processor {
 			} else {
 				auto child_kernel_type = child->kernel_unit->get_type_id();
 				auto parent_kernel_type = parent->kernel_unit->get_type_id();
-				if ((child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
+				if ((child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel)
+					    || (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
 						|| (child_kernel_type == kernel_type::SortAndSampleSingleNodeKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
 					graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];
 					graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];

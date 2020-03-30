@@ -153,27 +153,31 @@ public:
 
 		std::cout<< ">>>>>> INSIDE PartitionKernel"<< std::endl;
 
-		BatchSequence input(this->input_.get_cache("input_a"));
-		while (input.wait_for_next()) {
-			auto batch = input.next();
-			
-			auto self_partitions = ral::operators::experimental::distribute_table_partitions(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
+		std::thread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, this](){
+			BatchSequence input(input_cache);
+			while (input.wait_for_next()) {
+				auto batch = input.next();
+				auto self_partitions = ral::operators::experimental::distribute_table_partitions(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
 
-			for (auto && self_part : self_partitions) {
-				std::string cache_id = "output_" + std::to_string(self_part.first);
-				this->output_[cache_id]->addToCache(std::move(self_part.second));
+				for (auto && self_part : self_partitions) {
+					std::string cache_id = "output_" + std::to_string(self_part.first);
+					this->output_[cache_id]->addToCache(std::move(self_part.second));
+				}
 			}
-		}
-
-		ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
-
-		ExternalBatchColumnDataSequence external_input(context);
-		std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-		while (host_table = external_input.next()) {
-			std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
-			this->output_[cache_id]->addHostFrameToCache(std::move(host_table));
-		}
-
+			ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
+		});
+		
+		std::thread consumer([this](){
+			ExternalBatchColumnDataSequence external_input(context);
+			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+			while (host_table = external_input.next()) {
+				std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
+				this->output_[cache_id]->addHostFrameToCache(std::move(host_table));
+			}
+		});
+		generator.join();
+		consumer.join();
+		
 		std::cout<< ">>>>>> FINISH PartitionKernel"<< std::endl;
 
 		return kstatus::proceed;

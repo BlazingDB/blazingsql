@@ -51,13 +51,15 @@ using ral::communication::messages::experimental::ReceivedHostMessage;
 
 class ExternalBatchColumnDataSequence {
 public:
-	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context)
+	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, std::string message_token = "")
 		: context{context}, last_message_counter{context->getTotalNodes() - 1}
 	{
 		host_cache = std::make_shared<ral::cache::HostCacheMachine>();
 		std::string context_comm_token = context->getContextCommunicationToken();
 		const uint32_t context_token = context->getContextToken();
-		const std::string message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
+		if (message_token.length() == 0) {
+			message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
+		}
 		while(true){
 				auto message = Server::getInstance().getHostMessage(context_token, message_token);
 				if(!message) {

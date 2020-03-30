@@ -273,7 +273,7 @@ protected:
 protected:
 	std::vector<CacheDataType> cachePolicyTypes;
 	std::vector<unsigned long long> memoryPerCache;
-	std::vector<unsigned long long> usedMemory;
+	std::vector<unsigned long long> usedMemory; // TODO: Singleton: Create Custom Resource Manager (GPU, CPU, DISK)
 };
 
 // class ArrayCache : public CacheMachine {
