@@ -450,7 +450,6 @@ private:
 			}	else if(right_position == SCALAR_INDEX) {
 				if (is_string_type(right_type_id)) {
 					right_str_view = static_cast<cudf::string_scalar_device_view*>(scalars_right[op_index])->value();
-					right_valid = true;
 				} else {
 					right_value = get_scalar_value<RightType>(scalars_right[op_index]);
 				}
