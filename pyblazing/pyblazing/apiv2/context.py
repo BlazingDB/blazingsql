@@ -613,13 +613,15 @@ class BlazingTable(object):
 
 class BlazingContext(object):
     """
-    BlazingContext is BlazingSQL's python API. You must establish a BlazingContext to connect 
-    to a BlazingSQL instance to create tables, run queries, and basically do anything with BlazingSQL.
+    BlazingContext is the Python API of BlazingSQL. Along with initialization arguments allowing for 
+    easy multi-GPU distribution, the BlazingContext class has a number of methods which assist not only 
+    in creating and querying tables, but also in connecting remote data sources and understanding your ETL.
 
     Docs: https://docs.blazingdb.com/docs/blazingcontext
     """
     
-    def __init__(self, dask_client=None, network_interface=None, allocator="managed", pool=False, initial_pool_size=None, enable_logging=False):
+    def __init__(self, dask_client=None, network_interface=None, allocator="managed", 
+                 pool=False, initial_pool_size=None, enable_logging=False):
         """
         Create a BlazingSQL API instance.
         
@@ -628,9 +630,12 @@ class BlazingContext(object):
 
         dask_client (optional) : dask.distributed.Client instance. only necessary for distributed query execution.
         network_interface (optional) : for communicating with the dask-scheduler. see note below.
-        allocator (optional) :  "default" or "managed", where "managed" uses Unified Virtual Memory (UVM) and may use system memory if GPU memory runs out, "default" assumes rmm allocator is already set and does not initialize it.
+        allocator (optional) :  "managed" or "default", where "managed" uses Unified Virtual Memory (UVM) 
+                                and may use system memory if GPU memory runs out, "default" assumes rmm 
+                                allocator is already set and does not initialize it.
         pool (optional) : if True, BlazingContext will self-allocate a GPU memory pool. can greatly improve performance.
-        initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True). if None, defaults to 1/2 GPU memory.
+        initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True). 
+                                       if None, and pool=True, defaults to 1/2 GPU memory.
         enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
 
         Examples
@@ -653,6 +658,11 @@ class BlazingContext(object):
         >>> client = Client(cluster)
         >>> bc = BlazingContext(dask_client=client, network_interface='lo')
         BlazingContext ready
+        
+        
+        Note: When using BlazingSQL with multiple nodes, you will need to set the correct network_interface your 
+        servers are using to communicate with the IP address of the dask-scheduler. You can see the different network 
+        interfaces and what IP addresses they serve with the bash command ifconfig. The default is set to 'eth0'.
         """
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
@@ -775,12 +785,12 @@ class BlazingContext(object):
         
         name : string that represents the name with which you will refer to your S3 bucket.
         bucket_name : string name of your S3 bucket.
-        access_key_id : integer of the Port number of your HDFS NameNode. not required for public buckets.
-        secret_key : string of the HDFS User on your NameNode. not required for public buckets.
-        encryption_type (optional) : string file path to your ticket for kerberos authentication.
-        session_token (optional) : string file path to your ticket for kerberos authentication.
-        root (optional) : string file path to your ticket for kerberos authentication.
-        kms_key_amazon_resource (optional) : string file path to your ticket for kerberos authentication.
+        access_key_id : string of your AWS IAM access key. not required for public buckets.
+        secret_key : string of your AWS IAM secret key. not required for public buckets.
+        encryption_type (optional) : None (default), 'AES_256', or 'AWS_KMS'.
+        session_token (optional) : string of your AWS IAM session token.
+        root (optional) : string path of your bucket that will be used as a shortcut path.
+        kms_key_amazon_resource (optional) : string value, required for KMS encryption only.
         
         Examples
         --------
@@ -788,13 +798,14 @@ class BlazingContext(object):
         Register and create table from a public S3 bucket:
 
         >>> bc.s3('blazingsql-colab', bucket_name='blazingsql-colab')
-        >>> bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/1_0_0.parquet')      
+        >>> bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/1_0_0.parquet')
+        <pyblazing.apiv2.context.BlazingTable at 0x7f6d4e640c90>
         
         
         Register and create table from a private S3 bucket:
         >>> bc.s3('other-data', bucket_name='kws-parquet-data', access_key_id='AKIASPFMPQMQD2OG54IQ',
-                  secret_key='bmt+TLTosdkIelsdw9VQjMe0nBnvAA5nPt0kaSx/Y', encryption_type=S3EncryptionType.AWS_KMS, 
-                  kms_key_amazon_resource_name='arn:aws:kms:region:acct-id:key/key-id')
+        >>>       secret_key='bmt+TLTosdkIelsdw9VQjMe0nBnvAA5nPt0kaSx/Y', encryption_type=S3EncryptionType.AWS_KMS, 
+        >>>       kms_key_amazon_resource_name='arn:aws:kms:region:acct-id:key/key-id')
         >>> bc.create_table('taxi', 's3://other-data/yellow_taxi/1_0_0.parquet')   
         <pyblazing.apiv2.context.BlazingTable at 0x7f12327c0310>
 
@@ -805,7 +816,7 @@ class BlazingContext(object):
 
     def gs(self, prefix, **kwargs):
         """
-        Register an Google Storage bucket.
+        Register a Google Storage bucket.
         
         Parameters
         ----------
@@ -813,7 +824,7 @@ class BlazingContext(object):
         name : string that represents the name with which you will refer to your GS bucket.
         project_id : string name of your Google Cloud Platform project.
         bucket_name : string of the name of your GS bucket.
-        use_default_adc_json_file (optional) : boolean to specify whether or not to use the default GCP ADC JSON on your authenticated device.
+        use_default_adc_json_file (optional) : boolean, whether or not to use the default GCP ADC JSON.
         adc_json_file (optional) : string with the location of your custom ADC JSON.
         
         Examples
@@ -856,21 +867,21 @@ class BlazingContext(object):
         Examples
         --------
 
-        Explain this SQL query:
+        Explain this UNION query:
         
-        >>> query = ''' 
-        >>>         SELECT a.* FROM taxi_1 AS a 
+        >>> query = '''
+        >>>         SELECT a.* 
+        >>>         FROM taxi_1 as a 
         >>>         UNION ALL 
-        >>>         SELECT b.* FROM taxi_2 as b 
-        >>>         UNION ALL 
-        >>>         SELECT c.* FROM taxi_3 as c '''
+        >>>         SELECT b.* 
+        >>>         FROM taxi_2 as b 
+        >>>             WHERE b.fare_amount < 100 OR b.passenger_count <> 4
+                        '''
         >>> plan = bc.explain(query)
         >>> print(plan)     
         LogicalUnion(all=[true])
-          LogicalUnion(all=[true])
-            LogicalTableScan(table=[[main, taxi_1]])
-            LogicalTableScan(table=[[main, taxi_2]])
-          LogicalTableScan(table=[[main, taxi_3]])
+          LogicalTableScan(table=[[main, taxi_1]])
+          BindableTableScan(table=[[main, taxi_2]], filters=[[OR(<($12, 100), <>($3, 4))]])
         
         
         Docs: https://docs.blazingdb.com/docs/explain
@@ -921,7 +932,7 @@ class BlazingContext(object):
         <pyblazing.apiv2.context.BlazingTable at 0x7f73893c0310>
 
         
-        Register and create table from a public S3 bucket:
+        Register and create table from a public AWS S3 bucket:
         
         >>> bc.s3('blazingsql-colab', bucket_name='blazingsql-colab')
         >>> bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/1_0_0.parquet')     
@@ -1215,8 +1226,9 @@ class BlazingContext(object):
 
     def unify_partitions(self, input):
         """
-        Take all partitions that belong to a Dask Worker and concatenate them as one, so that you only have one partition per worker.
-        This improves performance when running multiple queries on a table created from a dask_cudf DataFrame.
+        Concatenate all partitions that belong to a Dask Worker as one, so that 
+        you only have one partition per worker. This improves performance when 
+        running multiple queries on a table created from a dask_cudf DataFrame.
         
         Parameters
         ----------
@@ -1268,7 +1280,9 @@ class BlazingContext(object):
 
     def sql(self, sql, table_list=[], algebra=None, use_execution_graph=False):
         """
-        Query a BlazingSQL table. Returns a cuDF DataFrame on single-GPU or dask_cudf DataFrame when distributed (multi-GPU).
+        Query a BlazingSQL table. 
+        
+        Returns results as cudf.DataFrame on single-GPU or dask_cudf.DataFrame when distributed (multi-GPU).
         
         Parameters
         ----------
@@ -1279,13 +1293,13 @@ class BlazingContext(object):
         Examples
         --------
 
-        Register, create and query a table from a public S3 bucket:
+        Register a public S3 bucket, then create and query a table from it:
         
         >>> from blazingsql import BlazingContext
         >>> bc = BlazingContext()
-        
         >>> bc.s3('blazingsql-colab', bucket_name='blazingsql-colab')
         >>> bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/1_0_0.parquet')   
+        <pyblazing.apiv2.context.BlazingTable at 0x7f186006a310>
         
         >>> result = bc.sql('SELECT vendor_id, tpep_pickup_datetime, passenger_count, Total_amount FROM taxi')
         >>> print(result)
@@ -1297,6 +1311,22 @@ class BlazingContext(object):
         4                 2  2017-01-01 00:00:00                1     52.799999
         ...             ...                  ...              ...           ...
         
+        >>> query = ''' 
+        >>>         SELECT 
+        >>>             tpep_pickup_datetime, trip_distance, Tip_amount,
+        >>>             MTA_tax + Improvement_surcharge + Tolls_amount AS extra
+        >>>         FROM taxi 
+        >>>         WHERE passenger_count = 1 AND Fare_amount > 100
+        >>>         '''
+        >>> df = bc.sql(query)
+        >>> print(df)
+             tpep_pickup_datetime  trip_distance  Tip_amount      extra
+        0     2017-01-01 06:56:01       0.000000    0.000000   1.000000
+        1     2017-01-01 07:11:52       0.000000    0.000000  24.619999
+        2     2017-01-01 07:27:10      37.740002   37.580002  31.179998
+        3     2017-01-01 07:35:13      42.730000    5.540000  26.869999
+        4     2017-01-01 07:42:09      17.540001    0.000000  24.900000
+        ...                   ...            ...         ...        ...
 
 
         Docs: https://docs.blazingdb.com/docs/single-gpu
@@ -1399,7 +1429,7 @@ class BlazingContext(object):
         ----------
         
         query : string value SQL query on bsql_logs table.
-        logs_table_name (optional) : string of non-standard logs table name.
+        logs_table_name (optional) : string of logs table name, 'bsql_logs' by default.
         
         Examples
         --------
@@ -1408,15 +1438,17 @@ class BlazingContext(object):
         
         >>> from blazingsql import BlazingContext
         >>> bc = BlazingContext()
-
+        BlazingContext ready
         >>> log_result = bc.log("SELECT log_time, query_id, duration FROM bsql_logs WHERE info = 'Query Execution Done' ORDER BY log_time DESC")
         >>> print(log_result)
                       log_time  query_id      duration
-        0  2020-03-11 03:17:02     41474   1670.982422
-        1  2020-03-11 03:16:57     32117   6971.748047
-        2  2020-03-11 03:16:49     50629  24558.066406
-        ...
-        
+        0  2020-03-30 23:32:25     28799   1961.016235
+        1  2020-03-30 23:31:41     56005   1942.558960
+        2  2020-03-30 23:27:26       243   3820.107666
+        3  2020-03-30 23:27:16     12974   4591.859375
+        4  2020-03-30 23:10:44     45323   5897.124023
+        ...                ...       ...           ...
+
         
         Docs: https://docs.blazingdb.com/docs/blazingsql-logs
         """
