@@ -126,6 +126,14 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 	assert(cacheIndex < memoryPerCache.size());
 }
 
+void CacheMachine::clear() {
+	std::unique_ptr<message<CacheData>> message_data;
+	while(message_data = waitingCache->pop_or_wait()) {
+		printf("...cleaning cache\n");
+	}
+	this->waitingCache->finish();
+}
+
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id) {
 	int cacheIndex = 0;
 	while(cacheIndex < memoryPerCache.size()) {

@@ -243,6 +243,8 @@ public:
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_or_wait(size_t index);
 
+	virtual void clear();
+
 	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id = 0);
 
 	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, size_t message_id = 0);
