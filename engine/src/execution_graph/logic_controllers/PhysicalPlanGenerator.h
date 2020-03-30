@@ -7,6 +7,7 @@
 #include "BatchOrderByProcessing.h"
 #include "BatchAggregationProcessing.h"
 #include "BatchJoinProcessing.h"
+#include "BatchUnionProcessing.h"
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
@@ -107,6 +108,10 @@ struct tree_processor {
 			k = std::make_shared<JoinPartitionKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::JoinPartitionKernel);
+		} else if (is_union(expr)) {
+			k = std::make_shared<UnionKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::UnionKernel);
 		}
 		k->expr = expr;
 		return k;
