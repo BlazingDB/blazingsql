@@ -43,6 +43,30 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
 };
 
+class BatchSequenceBypass {
+public:
+	BatchSequenceBypass(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr)
+	: cache{cache}
+	{}
+	void set_source(std::shared_ptr<ral::cache::CacheMachine> cache) {
+		this->cache = cache;
+	}
+	std::unique_ptr<ral::cache::CacheData> next() {
+		return cache->pullCacheData();
+	}
+	// cache->addToRawCache(cache->pullFromRawCache())
+	bool wait_for_next() {
+		return cache->wait_for_next();
+	}
+
+	bool has_next_now() {
+		return cache->has_next_now();
+	}
+private:
+	std::shared_ptr<ral::cache::CacheMachine> cache;
+};
+
+
 using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
 typedef ral::communication::network::experimental::Server Server;
 typedef ral::communication::network::experimental::Client Client;

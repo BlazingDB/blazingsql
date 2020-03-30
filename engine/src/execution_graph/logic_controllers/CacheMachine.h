@@ -148,6 +148,7 @@ public:
 		this->message_queue_.pop_front();
 		return std::move(data);
 	}
+
 	bool wait_for_next() {
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
@@ -244,6 +245,8 @@ public:
 
 	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id = 0);
 
+	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, size_t message_id = 0);
+
 	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table);
 
 	virtual void finish();
@@ -258,6 +261,8 @@ public:
 		return this->waitingCache->has_next_now();
 	} 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
+
+	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
 	void setNumberOfBatches(size_t n_batches) {
 		this->waitingCache->setNumberOfBatches(n_batches);

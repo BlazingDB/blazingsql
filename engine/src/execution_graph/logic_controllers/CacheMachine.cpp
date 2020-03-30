@@ -94,6 +94,37 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 	this->addToCache(std::move(table), message_id);
 }
 
+void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, size_t message_id){
+	int cacheIndex = 0;
+	while(cacheIndex < memoryPerCache.size()) {
+		// TODO: BlazingMemoryResource::getUsedMemory() 
+		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + cache_data->sizeInBytes())) {
+			usedMemory[cacheIndex] += cache_data->sizeInBytes();
+			if(cacheIndex == 0) {
+				std::unique_ptr<message<CacheData>> item =
+					std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
+				this->waitingCache->put(std::move(item));
+			} else {
+				if(this->cachePolicyTypes[cacheIndex] == CPU) {
+					std::unique_ptr<message<CacheData>> item =
+						std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
+					this->waitingCache->put(std::move(item));
+				} else if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE) {
+					std::thread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
+					  std::unique_ptr<message<CacheData>> item =
+						  std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
+					  this->waitingCache->put(std::move(item));
+					  // NOTE: Wait don't kill the main process until the last thread is finished!
+					});
+					t.detach();
+				}
+			}
+			break;
+		}
+		cacheIndex++;
+	}
+	assert(cacheIndex < memoryPerCache.size());
+}
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id) {
 	int cacheIndex = 0;
@@ -164,6 +195,16 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	return std::move(cache_data->decache());
 }
 
+std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
+	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
+	if (message_data == nullptr) {
+		return nullptr;
+	}
+	std::unique_ptr<ral::cache::CacheData> cache_data = message_data->releaseData();
+	auto cache_index = message_data->cacheIndex();
+	usedMemory[cache_index] -= cache_data->sizeInBytes();
+	return std::move(cache_data);
+}
 
 NonWaitingCacheMachine::NonWaitingCacheMachine(unsigned long long gpuMemory,
 													 std::vector<unsigned long long> memoryPerCache,
