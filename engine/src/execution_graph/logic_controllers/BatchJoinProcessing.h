@@ -190,9 +190,14 @@ public:
 		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"));
 		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"));
 
+		// TODO: use split_inequality_join_into_join_and_filter!@
+
 		// lets parse part of the expression here, because we need the joinType before we load
-		std::string condition = get_named_expression(this->expression, "condition");
-		this->join_type = get_named_expression(this->expression, "joinType");
+		std::string new_join_statement, filter_statement;
+		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
+		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
+		std::string condition = get_named_expression(new_join_statement, "condition");
+		this->join_type = get_named_expression(new_join_statement, "joinType");
 
 		std::unique_ptr<ral::frame::BlazingTable> left_batch = load_left_set();
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = load_right_set();
@@ -222,7 +227,14 @@ public:
 			printf("normalize\n");
 			normalize(left_batch, right_batch);
 			std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
-			this->output_cache()->addToCache(std::move(joined));
+			
+			if (filter_statement != "") {
+				auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());					
+				this->output_cache()->addToCache(std::move(filter_table));
+			} else{
+				this->output_cache()->addToCache(std::move(joined));
+			}
+
 			mark_set_completed(left_ind, right_ind);
 
 			// We joined a set pair. Now lets see if there is another set pair we can do, but keeping one of the two sides we already have
@@ -370,9 +382,14 @@ public:
 		BatchSequence left_sequence(this->input_.get_cache("input_a"));
 		BatchSequence right_sequence(this->input_.get_cache("input_b"));
 
+		//TODO:  split inequality: update join statement 
+		// TODO: use split_inequality_join_into_join_and_filter!@
 		// lets parse part of the expression here, because we need the joinType before we load
-		std::string condition = get_named_expression(this->expression, "condition");
-		this->join_type = get_named_expression(this->expression, "joinType");
+		std::string new_join_statement, filter_statement;
+		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
+		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
+		std::string condition = get_named_expression(new_join_statement, "condition");
+		this->join_type = get_named_expression(new_join_statement, "joinType");
 
 		std::unique_ptr<ral::frame::BlazingTable> left_batch = left_sequence.next();
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
@@ -397,6 +414,7 @@ public:
 		std::thread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
 			std::ref(this->output_.get_cache("output_a")));
+
 
 		// ALEX create thread with ExternalBatchColumnDataSequence for the left table being distriubted
 		std::thread t1([context = this->context, output_cache = this->output_.get_cache("output_a")](){
