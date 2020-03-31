@@ -45,6 +45,7 @@ public:
 	cudf::size_type num_columns() const { return columns.size(); }
 	cudf::size_type num_rows() const { return columns.size() == 0 ? 0 : columns[0]->view().size(); }
 	std::vector<std::string> names() const;
+	std::vector<cudf::data_type> get_schema() const;
 	// set columnNames
 	void setNames(const std::vector<std::string> & names) { this->columnNames = names; }
 
@@ -77,8 +78,9 @@ public:
 	cudf::column_view const & column(cudf::size_type column_index) const { return table.column(column_index); }
 	std::vector<std::unique_ptr<BlazingColumn>> toBlazingColumns() const;
 
+	std::vector<cudf::data_type> get_schema();
+
 	std::vector<std::string> names() const;
-	// set columnNames
 	void setNames(const std::vector<std::string> & names) { this->columnNames = names; }
 
 	cudf::size_type num_columns() const { return table.num_columns(); }
@@ -94,9 +96,32 @@ private:
 using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
 
 struct BlazingHostTable {
-	BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers)
-		: columns_offsets{columns_offsets}, raw_buffers{std::move(raw_buffers)}
+	BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers, int32_t row_size)
+		: columns_offsets{columns_offsets}, raw_buffers{std::move(raw_buffers)}, row_size{row_size}
 	{
+	
+	}
+
+	std::vector<cudf::data_type> get_schema() {
+		std::vector<cudf::data_type> data_types(this->num_columns());
+		std::transform(columns_offsets.begin(), columns_offsets.end(), data_types.begin(), [](auto & col){ 
+			int32_t dtype = col.metadata.dtype;
+			return cudf::data_type{cudf::type_id(dtype)}; 
+		});
+		return data_types;
+	}
+
+	std::vector<std::string> names() const {
+		std::vector<std::string> col_names(this->num_columns());
+		std::transform(columns_offsets.begin(), columns_offsets.end(), col_names.begin(), [](auto & col){ return col.metadata.col_name; });
+	}
+
+	cudf::size_type num_rows() const { 
+		return row_size; 
+	}
+
+	cudf::size_type num_columns() const {
+		return columns_offsets.at(0).metadata.size; 
 	}
 
 	unsigned long long sizeInBytes() {
@@ -115,6 +140,7 @@ struct BlazingHostTable {
 
 	std::vector<ColumnTransport> 			columns_offsets;
 	std::vector<std::basic_string<char>> 	raw_buffers;
+	int32_t row_size;
 	size_t 						part_id;
 };
 

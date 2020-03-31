@@ -26,21 +26,35 @@ enum CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE };
 
 class CacheData {
 public:
-	// TODO: @JP copy table_schema and row_size to CacheData
-
+	CacheData(std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows)
+		: col_names(col_names), schema(schema), n_rows(n_rows)
+	{
+	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> decache() = 0;
 
 	virtual unsigned long long sizeInBytes() = 0;
 	
 	virtual ~CacheData() {}
 
+	std::vector<std::string> names() const {
+		return col_names;
+	}
+	std::vector<cudf::data_type> get_schema() {
+		return schema;
+	}
+	size_t num_rows() const {
+		return n_rows;
+	}
+	
 protected:
-	std::vector<std::string> names;
+	std::vector<std::string> 		col_names;
+	std::vector<cudf::data_type> 	schema;
+	size_t							n_rows;
 };
 
 class GPUCacheData : public CacheData {
 public:
-	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table) : data{std::move(table)} {}
+	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table) : CacheData(table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
 
@@ -54,12 +68,14 @@ private:
 
  class CPUCacheData : public CacheData {
  public:
- 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) {
+ 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) 
+		: CacheData(gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows()) 
+	{
 		this->host_table = ral::communication::messages::experimental::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
  	}
 
 	CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table)
-		: host_table{std::move(host_table)}
+		: CacheData(host_table->names(), host_table->get_schema(), host_table->num_rows()), host_table{std::move(host_table)}
 	{
 	}
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {

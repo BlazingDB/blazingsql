@@ -132,7 +132,7 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 		cudaMemcpy((void *)buffer.data(), raw_buffers[index], buffer_sizes[index], cudaMemcpyHostToHost);
 		cpu_raw_buffers.emplace_back(buffer);
 	}
-	return std::make_unique<ral::frame::BlazingHostTable>(column_offset, std::move(cpu_raw_buffers));
+	return std::make_unique<ral::frame::BlazingHostTable>(column_offset, std::move(cpu_raw_buffers), table_view.num_rows());
 }
 
 auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & columns_offsets,

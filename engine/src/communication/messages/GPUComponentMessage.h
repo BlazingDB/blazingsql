@@ -127,7 +127,7 @@ public:
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		std::vector<std::basic_string<char>> && raw_buffers) {  
-		auto host_table = std::make_unique<ral::frame::BlazingHostTable>(columns_offsets, std::move(raw_buffers));
+		auto host_table = std::make_unique<ral::frame::BlazingHostTable>(columns_offsets, std::move(raw_buffers), message_metadata.total_row_size);
 		auto node = Node(Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port));
 		return std::make_shared<ReceivedHostMessage>(message_metadata.messageToken, message_metadata.contextToken, node, std::move(host_table), message_metadata.total_row_size, message_metadata.partition_id);
 	}
