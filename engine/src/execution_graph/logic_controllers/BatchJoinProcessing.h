@@ -93,8 +93,10 @@ public:
 		if (completion_matrix.size() <= left_ind){
 			completion_matrix.resize(left_ind + 1);
 		}
-		if (completion_matrix[left_ind].size() <= right_ind){
-			completion_matrix[left_ind].resize(right_ind + 1);
+		if (completion_matrix[left_ind].size() <= right_ind){ // if we need to resize, lets resize the whole matrix, making sure that the default is false
+			for (std::size_t i = 0; i < completion_matrix.size(); i++){
+				completion_matrix[i].resize(right_ind + 1, false);
+			}			
 		}
 		completion_matrix[left_ind][right_ind] = true;
 	}
