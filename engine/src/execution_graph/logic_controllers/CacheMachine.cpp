@@ -36,13 +36,14 @@ unsigned long long CacheDataLocalFile::sizeInBytes() {
 std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath_}};
 	auto result = cudf_io::read_orc(in_args);
-	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names);
+	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
 }
 
-CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table) {
+CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table)
+	: CacheData(table->names(), table->get_schema(), table->num_rows()) 
+{
 	// TODO: make this configurable
 	this->filePath_ = "/tmp/.blazing-temp-" + randomString(64) + ".orc";
-	this->names = table->names();
 	std::cout << "CacheDataLocalFile: " << this->filePath_ << std::endl;
 	cudf_io::table_metadata metadata;
 	for(auto name : table->names()) {

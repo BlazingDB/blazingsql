@@ -35,21 +35,16 @@ public:
 
         BatchSequenceBypass input_a(this->input_.get_cache("input_a"));
         BatchSequenceBypass input_b(this->input_.get_cache("input_b"));
-        auto batch_a = input_a.next()->decache();
-        auto batch_b = input_b.next()->decache();
+        auto batch_a = input_a.next();
+        auto batch_b = input_b.next();
         
-        auto batch_a_view = batch_a->view();
-        std::vector<cudf::data_type> data_types_a(batch_a_view.num_columns());
-        std::transform(batch_a_view.begin(), batch_a_view.end(), data_types_a.begin(), [](auto & col){ return col.type(); });
-
-        auto batch_b_view = batch_b->view();
-        std::vector<cudf::data_type> data_types_b(batch_b_view.num_columns());
-        std::transform(batch_b_view.begin(), batch_b_view.end(), data_types_b.begin(), [](auto & col){ return col.type(); });
+        std::vector<cudf::data_type> data_types_a = batch_a->get_schema();
+        std::vector<cudf::data_type> data_types_b = batch_b->get_schema();
 
         RAL_EXPECTS(std::equal(data_types_a.cbegin(), data_types_a.cend(), data_types_b.cbegin(), data_types_b.cend()), "In UnionKernel: Mismatched column types");
 
-        this->output_cache()->addToCache(std::move(batch_a));
-        this->output_cache()->addToCache(std::move(batch_b));
+        this->output_cache()->addCacheData(std::move(batch_a));
+        this->output_cache()->addCacheData(std::move(batch_b));
 
         while (input_a.wait_for_next()) {
             auto batch = input_a.next();
