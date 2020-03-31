@@ -410,9 +410,13 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
   }
 
   if(join_type == INNER_JOIN) {
+    //Removing nulls on key columns before joining
+    auto table_left_dropna = cudf::experimental::drop_nulls(table_left.view(), left_column_indices);
+    auto table_right_dropna = cudf::experimental::drop_nulls(table_right.view(), right_column_indices);
+
     result_table = cudf::experimental::inner_join(
-      table_left.view(),
-      table_right.view(),
+      table_left_dropna->view(),
+      table_right_dropna->view(),
       left_column_indices,
       right_column_indices,
       columns_in_common);
