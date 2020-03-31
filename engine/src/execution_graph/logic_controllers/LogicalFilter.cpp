@@ -421,9 +421,12 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
       right_column_indices,
       columns_in_common);
   } else if(join_type == LEFT_JOIN) {
+    //Removing nulls on right key columns before joining
+    auto table_right_dropna = cudf::experimental::drop_nulls(table_right.view(), right_column_indices);
+
     result_table = cudf::experimental::left_join(
       table_left.view(),
-      table_right.view(),
+      table_right_dropna->view(),
       left_column_indices,
       right_column_indices,
       columns_in_common);
