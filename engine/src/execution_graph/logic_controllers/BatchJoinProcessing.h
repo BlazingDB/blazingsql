@@ -239,7 +239,7 @@ public:
 			int new_left_ind, new_right_ind;
 			std::tie(new_left_ind, new_right_ind) = check_for_another_set_to_do_with_data_we_already_have(left_ind, right_ind);
 			if (new_left_ind >= 0 || new_right_ind >= 0) {
-				if (new_left_ind >= 0) {
+				if (new_left_ind != left_ind) {
 					this->leftArrayCache->put(left_ind, std::move(left_batch));
 					left_ind = new_left_ind;
 					left_batch = this->leftArrayCache->get_or_wait(left_ind);
