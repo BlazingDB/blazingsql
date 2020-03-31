@@ -218,34 +218,38 @@ public:
 			std::vector<std::string> right_names = right_batch->names();
 			this->result_names.insert(this->result_names.end(), right_names.begin(), right_names.end());
 		}
-		printf("Parsing expression\n");
 		bool done = false;
+		bool produced_output = false;
 		int left_ind = 0;
 		int right_ind = 0;
 		
 		while (!done) {
-			printf("normalize\n");
-			normalize(left_batch, right_batch);
-			std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
-			
-			if (filter_statement != "") {
-				auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());					
-				this->output_cache()->addToCache(std::move(filter_table));
-			} else{
-				this->output_cache()->addToCache(std::move(joined));
+			if (left_batch->num_rows() > 0 && right_batch->num_rows() > 0){
+				normalize(left_batch, right_batch);
+				std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
+				
+				if (joined->num_rows() > 0){
+					produced_output = true;
+					if (filter_statement != "") {
+						auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());					
+						this->output_cache()->addToCache(std::move(filter_table));
+					} else{
+						this->output_cache()->addToCache(std::move(joined));
+					}
+				}
 			}
 
 			mark_set_completed(left_ind, right_ind);
-
+			
 			// We joined a set pair. Now lets see if there is another set pair we can do, but keeping one of the two sides we already have
 			int new_left_ind, new_right_ind;
 			std::tie(new_left_ind, new_right_ind) = check_for_another_set_to_do_with_data_we_already_have(left_ind, right_ind);
 			if (new_left_ind >= 0 || new_right_ind >= 0) {
-				if (new_left_ind != left_ind) {
+				if (new_left_ind != left_ind) { // if we are switching out left
 					this->leftArrayCache->put(left_ind, std::move(left_batch));
 					left_ind = new_left_ind;
 					left_batch = this->leftArrayCache->get_or_wait(left_ind);
-				} else {
+				} else { // if we are switching out right
 					this->rightArrayCache->put(right_ind, std::move(right_batch));
 					right_ind = new_right_ind;
 					right_batch = this->rightArrayCache->get_or_wait(right_ind);
@@ -287,7 +291,12 @@ public:
 				}
 			}
 		}
-
+		
+		if (!produced_output){
+			std::cout<<"WARNING: Join kernel did not produce an output"<<std::endl;
+			// WSM TODO put an empty output into output cache
+		}
+		
 		return kstatus::proceed;
 	}
 

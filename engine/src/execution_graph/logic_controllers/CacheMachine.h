@@ -172,13 +172,14 @@ public:
 	bool wait_for_next() {
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
-		if(this->message_queue_.size() == 0) {
+		if(this->empty()) {
 			return false;	
 		}
 		return true;
 	}
 
 	bool has_next_now() {
+		std::unique_lock<std::mutex> lock(mutex_);
 		return !this->empty();
 	}
 
@@ -200,9 +201,14 @@ public:
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
-		auto data = std::move(this->message_queue_.front());
-		this->message_queue_.pop_front();
-		return std::move(data);  
+		while (true){
+			auto data = this->pop();
+			if (data->get_message_id() == message_id){
+				return std::move(data);
+			} else {
+				putWaitingQueue(std::move(data));				
+			}
+		}
 	}
 
 	message_ptr pop() {
