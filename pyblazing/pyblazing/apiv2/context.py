@@ -265,8 +265,20 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
     return algebra
 
 
+def get_uri_values(files, partitions, base_folder):
+    base_folder = base_folder + '/'
+    uri_values = []
+    for file in files:
+        file_dir = os.path.dirname(file.decode())
+        partition_name = file_dir.replace(base_folder,'')
+        if partition_name in partitions:
+            uri_values.append(partitions[partition_name])
+        else:
+            print("ERROR: Could not get partition values for file: " + file.decode())
+    return uri_values
+        
 
-def parseHiveMetadata(curr_table, partitions):
+def parseHiveMetadata(curr_table, uri_values):
     metadata = {}
     names = []
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
@@ -284,9 +296,9 @@ def parseHiveMetadata(curr_table, partitions):
     names.append('row_group_index') 
     minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
     table_partition = {}
-    for file_index, partition_name  in enumerate(partitions):
-        curr_partition = partitions[partition_name]
-        for index, [col_name, col_value_id] in enumerate(curr_partition):
+    for file_index, uri_value in enumerate(uri_values):
+        curr_partition = uri_values
+        for index, [col_name, col_value_id] in enumerate(uri_value):
             if col_name in columns:
                 col_index = columns.index(col_name)
             else:
@@ -338,7 +350,7 @@ def parseHiveMetadata(curr_table, partitions):
 def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     
     if fileMetadata.shape[0] != hiveMetadata.shape[0]:
-        print('ERROR: number of rows from fileMetadata does not match hiveMetadata')
+        print('ERROR: number of rows from fileMetadata: ' + str(fileMetadata.shape[0]) + ' does not match hiveMetadata: ' + str(hiveMetadata.shape[0]))
         return hiveMetadata 
 
     if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
@@ -752,7 +764,6 @@ class BlazingContext(object):
     def create_table(self, table_name, input, **kwargs):
         table = None
         extra_columns = []
-        uri_values = []
         file_format_hint = kwargs.get(
             'file_format', 'undefined')  # See datasource.file_format
         extra_kwargs = {}
@@ -763,7 +774,7 @@ class BlazingContext(object):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             hive_database_name = kwargs.get('hive_database_name', 'default')
             print("create_table for hive.Cursor hive_table_name: " + hive_table_name + "  hive_database_name: " + hive_database_name)
-            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file, partitions, hive_schema = get_hive_table(
+            folder_list, file_format_hint, extra_kwargs, extra_columns, in_file, hive_schema = get_hive_table(
                 input, hive_table_name, hive_database_name)
 
             kwargs.update(extra_kwargs)
@@ -797,6 +808,11 @@ class BlazingContext(object):
         elif isinstance(input, list):
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
+
+            if is_hive_input: 
+                uri_values = get_uri_values(parsedSchema['files'], hive_schema['partitions'], hive_schema['location'])
+            else:
+                uri_values = []
 
             file_type = parsedSchema['file_type']
             table = BlazingTable(
@@ -843,7 +859,7 @@ class BlazingContext(object):
             
             table.slices = table.getSlices(len(self.nodes))
             if is_hive_input and len(extra_columns) > 0:
-                parsedMetadata = parseHiveMetadata(table, partitions)
+                parsedMetadata = parseHiveMetadata(table, uri_values) 
                 table.metadata = parsedMetadata                
 
             if parsedSchema['file_type'] == DataType.PARQUET :
@@ -964,7 +980,7 @@ class BlazingContext(object):
         file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
-        
+
         if not skipdata_analysis_fail:            
             actual_files = []
             uri_values = []

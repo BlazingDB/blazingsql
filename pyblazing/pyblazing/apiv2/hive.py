@@ -152,7 +152,6 @@ def get_hive_table(cursor, tableName, hive_database_name):
         schema['partitions'] = {}
         file_list.append(schema['location'] + "/*")
 
-    uri_values = []
     extra_kwargs = {}
     extra_kwargs['delimiter'] = schema['delimiter']
     if schema['fileType'] == 'csv':
@@ -171,15 +170,13 @@ def get_hive_table(cursor, tableName, hive_database_name):
         if(column[2]):
             extra_columns.append((column[0], column[1]))
     for partitionName in schema['partitions']:
-        partition = schema['partitions'][partitionName]
         file_list.append(schema['location'] + "/" + partitionName + "/*")
-        uri_values.append(partition)
-
+    
     print("file_list")
     print(file_list)
-    print("uri_values")
-    print(uri_values)
-    return file_list, uri_values, schema['fileType'], extra_kwargs, extra_columns, in_file, schema['partitions'], schema
+    print("schema['partitions']")
+    print(schema['partitions'])
+    return file_list, schema['fileType'], extra_kwargs, extra_columns, in_file, schema
 
 
 def runHiveDDL(cursor, query):
