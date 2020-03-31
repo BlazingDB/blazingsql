@@ -26,8 +26,12 @@ enum CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE };
 
 class CacheData {
 public:
+	// TODO: @JP copy table_schema and row_size to CacheData
+
 	virtual std::unique_ptr<ral::frame::BlazingTable> decache() = 0;
+
 	virtual unsigned long long sizeInBytes() = 0;
+	
 	virtual ~CacheData() {}
 
 protected:
