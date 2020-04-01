@@ -39,7 +39,7 @@ public:
 		this->max_right_ind = -1;
 
         this->left_sequence.set_source(this->input_.get_cache("input_a"));
-        this->left_sequence.set_source(this->input_.get_cache("input_b"));
+        this->right_sequence.set_source(this->input_.get_cache("input_b"));
 
         this->leftArrayCache = 	ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
         this->rightArrayCache = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
@@ -224,21 +224,17 @@ public:
 		int right_ind = 0;
 		
 		while (!done) {
-			if (left_batch->num_rows() > 0 && right_batch->num_rows() > 0){
-				normalize(left_batch, right_batch);
-				std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
-				
-				if (joined->num_rows() > 0){
-					produced_output = true;
-					if (filter_statement != "") {
-						auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());					
-						this->output_cache()->addToCache(std::move(filter_table));
-					} else{
-						// printf("joined table\n");
-						// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
-						this->output_cache()->addToCache(std::move(joined));
-					}
-				}
+			normalize(left_batch, right_batch);
+			std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
+			
+			produced_output = true;
+			if (filter_statement != "") {
+				auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());					
+				this->output_cache()->addToCache(std::move(filter_table));
+			} else{
+				// printf("joined table\n");
+				// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
+				this->output_cache()->addToCache(std::move(joined));
 			}
 
 			mark_set_completed(left_ind, right_ind);
