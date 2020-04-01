@@ -1028,7 +1028,7 @@ class BlazingContext(object):
             return input
 
 
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph = False):
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph = True):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [{} for _ in range(len(self.nodes))]

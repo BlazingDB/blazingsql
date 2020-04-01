@@ -214,7 +214,7 @@ public:
 					this->left_column_indices.push_back(column_indices[i]);
 				}
 			}
-			std::vector<std::string> result_names = left_batch->names();
+			this->result_names = left_batch->names();
 			std::vector<std::string> right_names = right_batch->names();
 			this->result_names.insert(this->result_names.end(), right_names.begin(), right_names.end());
 		}
@@ -234,6 +234,8 @@ public:
 						auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());					
 						this->output_cache()->addToCache(std::move(filter_table));
 					} else{
+						// printf("joined table\n");
+						// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
 						this->output_cache()->addToCache(std::move(joined));
 					}
 				}
