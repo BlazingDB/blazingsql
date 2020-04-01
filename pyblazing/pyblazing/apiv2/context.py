@@ -108,6 +108,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort,
         singleNode)
     cwd = os.getcwd()
+    # TODO: set_DefaultMemoryResource(BlazingMemoryResource) 
     return ralCommunicationPort, workerIp, cwd
 
 

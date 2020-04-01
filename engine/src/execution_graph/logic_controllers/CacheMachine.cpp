@@ -139,7 +139,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 	int cacheIndex = 0;
 	while(cacheIndex < memoryPerCache.size()) {
 		// TODO: BlazingMemoryResource::getUsedMemory() 
-		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + table->sizeInBytes())) {
+		if((usedMemory[cacheIndex] + table->sizeInBytes() <= memoryPerCache[cacheIndex])) {
 			usedMemory[cacheIndex] += table->sizeInBytes();
 			if(cacheIndex == 0) {
 				// before we put into a cache, we need to make sure we fully own the table
