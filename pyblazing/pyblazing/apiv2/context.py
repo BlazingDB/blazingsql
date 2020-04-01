@@ -538,6 +538,11 @@ class BlazingTable(object):
             self.column_names = [x for x in input.columns]
             self.column_types = [np_to_cudf_types[x] for x in input.dtypes]
 
+        # file_column_names are usually the same as column_names, except for when 
+        # in a hive table the column names defined by the hive schema 
+        # are different that the names in actual files
+        self.file_column_names = self.column_names 
+
     def has_metadata(self) :
         if isinstance(self.metadata, dask_cudf.core.DataFrame):
             return not self.metadata.compute().empty
@@ -596,6 +601,7 @@ class BlazingTable(object):
                                 in_file=self.in_file)
             bt.offset = (startIndex, batchSize)
             bt.column_names = self.column_names
+            bt.file_column_names = self.file_column_names
             bt.column_types = self.column_types
             nodeFilesList.append(bt)
             
@@ -826,8 +832,9 @@ class BlazingContext(object):
                 in_file=in_file)
 
             if is_hive_input:
+                table.column_names = hive_schema['column_names'] # table.column_names are the official schema column_names
+                table.file_column_names = parsedSchema['names'] # table.file_column_names are the column_names used by the file (may be different)
                 print("using hive col names")
-                table.column_names = hive_schema['column_names']
                 print("hive_schema['column_names']")
                 print(hive_schema['column_names'])
                 print("hive_schema['column_types']")
@@ -836,8 +843,8 @@ class BlazingContext(object):
                 print(parsedSchema['names'])
                 print("parsedSchema['types']")
                 print(parsedSchema['types'])
+                merged_types = []
                 if len(hive_schema['column_types']) == len(parsedSchema['types']):
-                    merged_types = []
                     for i in range(len(parsedSchema['types'])):
                         if parsedSchema['types'][i] == 0:  # if the type parsed from the file is 0 we want to use the one from Hive
                             merged_types.append(hive_schema['column_types'][i])
@@ -854,7 +861,8 @@ class BlazingContext(object):
                 print(merged_types)
                 table.column_types = merged_types
             else:
-                table.column_names = parsedSchema['names']
+                table.column_names = parsedSchema['names'] # table.column_names are the official schema column_names
+                table.file_column_names = parsedSchema['names'] # table.file_column_names are the column_names used by the file (may be different 
                 table.column_types = parsedSchema['types']
             
             table.slices = table.getSlices(len(self.nodes))
@@ -1009,6 +1017,7 @@ class BlazingContext(object):
                                 row_groups_ids=row_groups_ids,
                                 in_file=current_table.in_file)
                 bt.column_names = current_table.column_names
+                bt.file_column_names = current_table.file_column_names
                 bt.column_types = current_table.column_types
                 nodeFilesList.append(bt)
 
@@ -1025,6 +1034,7 @@ class BlazingContext(object):
                                 row_groups_ids=all_sliced_row_groups_ids[i],
                                 in_file=current_table.in_file)
                     bt.column_names = current_table.column_names
+                    bt.file_column_names = current_table.file_column_names
                     bt.column_types = current_table.column_types
                     nodeFilesList.append(bt)
             return nodeFilesList

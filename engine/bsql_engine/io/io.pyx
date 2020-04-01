@@ -302,11 +302,18 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       names.resize(0)
       fileType = fileTypes[tableIndex]
       
-      for col_name in table.column_names:
-        if type(col_name) == np.str:
-            names.push_back(col_name.encode())
-        else: # from file
-            names.push_back(col_name)
+      if len(table.file_column_names) == 0:      
+        for col_name in table.column_names:
+          if type(col_name) == np.str:
+              names.push_back(col_name.encode())
+          else: # from file
+              names.push_back(col_name)
+      else:
+        for col_name in table.file_column_names:
+          if type(col_name) == np.str:
+              names.push_back(col_name.encode())
+          else: # from file
+              names.push_back(col_name)
 
       for col_type in table.column_types:
         types.push_back(col_type)
