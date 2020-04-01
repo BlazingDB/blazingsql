@@ -46,8 +46,7 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
  *
  * @returns The limit that would be applied to this partition
  *---------------------------------------------------------------------------**/
-cudf::size_type determine_local_limit(Context * context,
-	cudf::size_type local_num_rows, cudf::size_type limit_rows);
+int64_t determine_local_limit(Context * context, int64_t local_num_rows, cudf::size_type limit_rows);
 
 // BATCH FUNCTIONS
 
@@ -58,6 +57,11 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_typ
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part);
 std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>>
 distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,	const ral::frame::BlazingTableView & sortedTable, const std::string & query_part,	Context * context);
+bool has_limit_only(const std::string & query_part);
+int64_t get_local_limit(int64_t total_batch_rows, const std::string & query_part, Context * context);
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, int64_t>
+limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_limit);
+
 
 // END BATCH FUNCTIONS
 

@@ -17,12 +17,12 @@ struct SampleToNodeMasterMessage : GPUComponentMessage {
 		const uint32_t & context_token,
 		Node  & sender_node,
 		const ral::frame::BlazingTableView & samples, 
-		int32_t total_row_size)
+		int64_t total_row_size)
 		: GPUComponentMessage(message_token, context_token, sender_node, samples,  total_row_size) {}
 
 	DefineClassName(SampleToNodeMasterMessage);
 
-	int32_t getTotalRowSize() const { return this->metadata().total_row_size; }
+	int64_t getTotalRowSize() const { return this->metadata().total_row_size; }
 
 	static std::shared_ptr<ReceivedMessage> MakeFrom(const Message::MetaData & message_metadata,
 		const Address::MetaData & address_metadata,

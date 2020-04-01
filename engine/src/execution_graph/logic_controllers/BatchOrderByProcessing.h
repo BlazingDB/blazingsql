@@ -236,5 +236,48 @@ private:
 	std::string expression;
 };
 
+class LimitKernel : public PhysicalPlan {
+public:
+	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context)
+		: expression{queryString}, context{context}  {
+	}
+	
+	virtual kstatus run() {
+		int64_t total_batch_rows = 0;
+		std::vector<std::unique_ptr<ral::cache::CacheData>> cache_vector;
+		BatchSequenceBypass input_seq(this->input_cache());
+		while (input_seq.wait_for_next()) {
+			auto batch = input_seq.next();
+			total_batch_rows += batch->num_rows();
+			cache_vector.push_back(std::move(batch));
+		}
+
+		int64_t rows_limit = ral::operators::experimental::get_local_limit(total_batch_rows, this->expression, this->context.get());
+
+		if (rows_limit < 0) {
+			for (auto &&cache_data : cache_vector) {
+				this->output_cache()->addCacheData(std::move(cache_data));
+			}
+		} else {
+			for (auto &&cache_data : cache_vector)
+			{
+				auto batch = cache_data->decache();
+				std::tie(batch, rows_limit) = ral::operators::experimental::limit_table(std::move(batch), rows_limit);
+				this->output_.get_cache()->addToCache(std::move(batch));
+
+				if (rows_limit == 0){
+					break;
+				}
+			}
+		}
+		
+		return kstatus::proceed;
+	}
+
+private:
+	std::shared_ptr<Context> context;
+	std::string expression;
+};
+
 } // namespace batch
 } // namespace ral

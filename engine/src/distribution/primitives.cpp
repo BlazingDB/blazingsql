@@ -412,7 +412,7 @@ void broadcastMessage(std::vector<Node> nodes,
 	}
 }
 
-void distributeNumRows(Context * context, cudf::size_type num_rows) {
+void distributeNumRows(Context * context, int64_t num_rows) {
 	
 	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
@@ -425,10 +425,10 @@ void distributeNumRows(Context * context, cudf::size_type num_rows) {
 	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
 }
 
-std::vector<cudf::size_type> collectNumRows(Context * context) {
+std::vector<int64_t> collectNumRows(Context * context) {
 	
 	int num_nodes = context->getTotalNodes();
-	std::vector<cudf::size_type> node_num_rows(num_nodes);
+	std::vector<int64_t> node_num_rows(num_nodes);
 	std::vector<bool> received(num_nodes, false);
 
 	std::string context_comm_token = context->getContextCommunicationToken();

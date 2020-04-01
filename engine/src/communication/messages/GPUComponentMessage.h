@@ -55,7 +55,7 @@ public:
 						uint32_t contextToken,
 						Node  & sender_node,
 						std::unique_ptr<ral::frame::BlazingTable> && samples,
-						int32_t total_row_size = 0,
+						int64_t total_row_size = 0,
 						int32_t partition_id = 0)
 		: ReceivedMessage(messageToken, contextToken, sender_node),
 		  table(std::move(samples)) {
@@ -65,7 +65,7 @@ public:
 	
 	std::unique_ptr<ral::frame::BlazingTable>  releaseBlazingTable() { return std::move(table); }
 
-	int32_t getTotalRowSize() { return this->metadata().total_row_size; };
+	int64_t getTotalRowSize() { return this->metadata().total_row_size; };
 	
 	int32_t getPartitionId() { return this->metadata().partition_id; };
 
@@ -78,8 +78,8 @@ public:
 	ReceivedHostMessage(std::string const & messageToken,
 						uint32_t contextToken,
 						Node  & sender_node,
-					    std::unique_ptr<ral::frame::BlazingHostTable> samples,
-						int32_t total_row_size = 0,
+					  std::unique_ptr<ral::frame::BlazingHostTable> samples,
+						int64_t total_row_size = 0,
 						int32_t partition_id = 0)
 		: ReceivedMessage(messageToken, contextToken, sender_node),
 		  table(std::move(samples)) {
@@ -91,7 +91,7 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable>  getBlazingTable() { return deserialize_from_cpu(table.get()); }
 
-	int32_t getTotalRowSize() { return this->metadata().total_row_size; };
+	int64_t getTotalRowSize() { return this->metadata().total_row_size; };
 
 	int32_t getPartitionId() { return this->metadata().partition_id; };
 
@@ -105,7 +105,7 @@ public:
 		uint32_t contextToken,
 		Node  & sender_node,
 		const ral::frame::BlazingTableView & samples,
-		int32_t total_row_size = 0,
+		int64_t total_row_size = 0,
 		int32_t partition_id = 0)
 		: GPUMessage(messageToken, contextToken, sender_node), table_view{samples} {
 		this->metadata().total_row_size = total_row_size;
@@ -127,7 +127,7 @@ public:
 		const Address::MetaData & address_metadata,
 		const std::vector<ColumnTransport> & columns_offsets,
 		std::vector<std::basic_string<char>> && raw_buffers) {  
-		auto host_table = std::make_unique<ral::frame::BlazingHostTable>(columns_offsets, std::move(raw_buffers), message_metadata.total_row_size);
+		auto host_table = std::make_unique<ral::frame::BlazingHostTable>(columns_offsets, std::move(raw_buffers));
 		auto node = Node(Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port));
 		return std::make_shared<ReceivedHostMessage>(message_metadata.messageToken, message_metadata.contextToken, node, std::move(host_table), message_metadata.total_row_size, message_metadata.partition_id);
 	}

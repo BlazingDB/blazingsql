@@ -114,6 +114,7 @@ enum class kernel_type {
 	SortAndSampleKernel,
 	PartitionSingleNodeKernel,
 	SortAndSampleSingleNodeKernel,
+	LimitKernel,
 	AggregateKernel,  // this is the base AggregateKernel that gets replaced
 	ComputeAggregateKernel,
 	DistributeAggregateKernel,

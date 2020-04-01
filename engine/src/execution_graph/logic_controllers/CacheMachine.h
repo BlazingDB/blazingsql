@@ -476,6 +476,8 @@ public:
 		auto output =
 			this->processor(this->context, inputOne->toBlazingTableView(), inputTwo->toBlazingTableView(), queryString);
 		sink->addToCache(std::move(output));
+
+		return true;
 	}
 
 	void resume() { _paused = false; }

@@ -54,7 +54,7 @@ std::shared_ptr<ReceivedMessage> Server::getMessage(
 		uint32_t contextToken = message->getContextTokenValue();
 	 	auto sender_node = message->getSenderNode();
 		std::unique_ptr<ral::frame::BlazingTable> samples = host_msg_ptr->getBlazingTable();
-		int32_t total_row_size = message->metadata().total_row_size;
+		int64_t total_row_size = message->metadata().total_row_size;
 		int32_t partition_id = message->metadata().partition_id;
 		return std::make_shared<messages::experimental::ReceivedDeviceMessage>(messageToken, contextToken, sender_node, std::move(samples), total_row_size, partition_id);
 	}

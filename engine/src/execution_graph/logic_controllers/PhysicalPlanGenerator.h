@@ -80,11 +80,15 @@ struct tree_processor {
 			k = std::make_shared<SortAndSampleKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::SortAndSampleKernel);
-		}  else if (is_merge(expr)) {
+		} else if (is_merge(expr)) {
 			k = std::make_shared<MergeStreamKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::MergeStreamKernel);
-		}  else if (is_aggregate(expr)) {
+		} else if (is_limit(expr)) {
+			k = std::make_shared<LimitKernel>(expr, kernel_context);
+			kernel_context->setKernelId(k->get_id());
+			k->set_type_id(kernel_type::LimitKernel);
+		} else if (is_aggregate(expr)) {
 			k = std::make_shared<ral::cache::AggregateKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::AggregateKernel);
@@ -138,27 +142,39 @@ struct tree_processor {
 		std::string expr = p_tree.get<std::string>("expr", "");
 		std::cout << "transform: " << expr << "\n"; 
 		if (is_sort(expr)){
+			auto limit_expr = expr;
 			auto merge_expr = expr;
 			auto partition_expr = expr;
 			auto sort_and_sample_expr = expr;
-			if (this->context->getTotalNodes() == 1) {
-				StringUtil::findAndReplaceAll(merge_expr, LOGICAL_SORT_TEXT, LOGICAL_MERGE_TEXT);
-				StringUtil::findAndReplaceAll(partition_expr, LOGICAL_SORT_TEXT, LOGICAL_SINGLE_NODE_PARTITION_TEXT);
-				StringUtil::findAndReplaceAll(sort_and_sample_expr, LOGICAL_SORT_TEXT, LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT);
-			}	else {
-				StringUtil::findAndReplaceAll(merge_expr, LOGICAL_SORT_TEXT, LOGICAL_MERGE_TEXT);
-				StringUtil::findAndReplaceAll(partition_expr, LOGICAL_SORT_TEXT, LOGICAL_PARTITION_TEXT);
-				StringUtil::findAndReplaceAll(sort_and_sample_expr, LOGICAL_SORT_TEXT, LOGICAL_SORT_AND_SAMPLE_TEXT);
-			}
-			boost::property_tree::ptree sample_tree;
-			sample_tree.put("expr", sort_and_sample_expr);
-			sample_tree.add_child("children", p_tree.get_child("children"));
-			boost::property_tree::ptree partition_tree;
-			partition_tree.put("expr", partition_expr);
-			partition_tree.add_child("children", create_array_tree(sample_tree)); 
+			if(ral::operators::experimental::has_limit_only(expr)){
+				StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
 
-			p_tree.put("expr", merge_expr);
-			p_tree.put_child("children", create_array_tree(partition_tree));
+				p_tree.put("expr", limit_expr);
+			} else {
+				if (this->context->getTotalNodes() == 1) {
+					StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
+					StringUtil::findAndReplaceAll(merge_expr, LOGICAL_SORT_TEXT, LOGICAL_MERGE_TEXT);
+					StringUtil::findAndReplaceAll(partition_expr, LOGICAL_SORT_TEXT, LOGICAL_SINGLE_NODE_PARTITION_TEXT);
+					StringUtil::findAndReplaceAll(sort_and_sample_expr, LOGICAL_SORT_TEXT, LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT);
+				}	else {
+					StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
+					StringUtil::findAndReplaceAll(merge_expr, LOGICAL_SORT_TEXT, LOGICAL_MERGE_TEXT);
+					StringUtil::findAndReplaceAll(partition_expr, LOGICAL_SORT_TEXT, LOGICAL_PARTITION_TEXT);
+					StringUtil::findAndReplaceAll(sort_and_sample_expr, LOGICAL_SORT_TEXT, LOGICAL_SORT_AND_SAMPLE_TEXT);
+				}
+				boost::property_tree::ptree sample_tree;
+				sample_tree.put("expr", sort_and_sample_expr);
+				sample_tree.add_child("children", p_tree.get_child("children"));
+				boost::property_tree::ptree partition_tree;
+				partition_tree.put("expr", partition_expr);
+				partition_tree.add_child("children", create_array_tree(sample_tree));
+				boost::property_tree::ptree merge_tree;
+				merge_tree.put("expr", merge_expr);
+				merge_tree.add_child("children", create_array_tree(partition_tree)); 
+
+				p_tree.put("expr", limit_expr);
+				p_tree.put_child("children", create_array_tree(merge_tree));
+			}
 		} 
 		else if (is_aggregate(expr)) {
 			auto merge_aggregate_expr = expr;

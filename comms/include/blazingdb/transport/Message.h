@@ -18,7 +18,7 @@ public:
   struct MetaData {
     char messageToken[128]{};  // use  uses '\0' for string ending
     uint32_t contextToken{};
-    int32_t total_row_size{};  // used by SampleToNodeMasterMessage
+    int64_t total_row_size{};  // used by SampleToNodeMasterMessage
     int32_t n_batches{1};
     int32_t partition_id{};    // used by SampleToNodeMasterMessage
     //    int32_t num_columns{}; // used by: writeBuffersFromGPUTCP,

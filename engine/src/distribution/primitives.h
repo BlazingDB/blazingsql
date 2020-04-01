@@ -65,9 +65,9 @@ namespace experimental {
 	void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message);
 			
-	void distributeNumRows(Context * context, cudf::size_type num_rows);
+	void distributeNumRows(Context * context, int64_t num_rows);
 
-	std::vector<cudf::size_type> collectNumRows(Context * context);	
+	std::vector<int64_t> collectNumRows(Context * context);	
 	
 	void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows);
 

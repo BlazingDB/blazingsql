@@ -104,6 +104,8 @@ bool is_scan(std::string query_part) { return is_logical_scan(query_part) || is_
 
 bool is_filter(std::string query_part) { return (query_part.find(LOGICAL_FILTER_TEXT) != std::string::npos); }
 
+bool is_limit(std::string query_part) { return (query_part.find(LOGICAL_LIMIT_TEXT) != std::string::npos); }
+
 bool is_sort(std::string query_part) { return (query_part.find(LOGICAL_SORT_TEXT) != std::string::npos); }
 
 bool is_merge(std::string query_part) { return (query_part.find(LOGICAL_MERGE_TEXT) != std::string::npos); }

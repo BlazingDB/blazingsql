@@ -95,14 +95,14 @@ private:
 };
 using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
 
-struct BlazingHostTable {
-	BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers, int32_t row_size)
-		: columns_offsets{columns_offsets}, raw_buffers{std::move(raw_buffers)}, row_size{row_size}
+class BlazingHostTable {
+public:
+	BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers)
+		: columns_offsets{columns_offsets}, raw_buffers{std::move(raw_buffers)} 
 	{
-	
 	}
 
-	std::vector<cudf::data_type> get_schema() {
+	std::vector<cudf::data_type> get_schema() const {
 		std::vector<cudf::data_type> data_types(this->num_columns());
 		std::transform(columns_offsets.begin(), columns_offsets.end(), data_types.begin(), [](auto & col){ 
 			int32_t dtype = col.metadata.dtype;
@@ -114,14 +114,15 @@ struct BlazingHostTable {
 	std::vector<std::string> names() const {
 		std::vector<std::string> col_names(this->num_columns());
 		std::transform(columns_offsets.begin(), columns_offsets.end(), col_names.begin(), [](auto & col){ return col.metadata.col_name; });
+		return col_names;
 	}
 
 	cudf::size_type num_rows() const { 
-		return row_size; 
+		return columns_offsets.empty() ? 0 : columns_offsets.front().metadata.size; 
 	}
 
 	cudf::size_type num_columns() const {
-		return columns_offsets.at(0).metadata.size; 
+		return columns_offsets.size(); 
 	}
 
 	unsigned long long sizeInBytes() {
@@ -131,17 +132,27 @@ struct BlazingHostTable {
 		}
 		return total_size;
 	}
+
 	void setPartitionId(const size_t &part_id) {
 		this->part_id = part_id;
 	}
+
 	size_t get_part_id() {
 		return this->part_id;
 	}
 
-	std::vector<ColumnTransport> 			columns_offsets;
-	std::vector<std::basic_string<char>> 	raw_buffers;
-	int32_t row_size;
-	size_t 						part_id;
+	const std::vector<ColumnTransport> & get_columns_offsets() const {
+		return columns_offsets;
+	}
+
+	const std::vector<std::basic_string<char>> & get_raw_buffers() const{
+		return raw_buffers;
+	}
+
+private:
+	std::vector<ColumnTransport> columns_offsets;
+	std::vector<std::basic_string<char>> raw_buffers;
+	size_t part_id;
 };
 
 std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::type_id> column_types,

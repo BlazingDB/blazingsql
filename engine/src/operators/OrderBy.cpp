@@ -52,10 +52,7 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
 	return std::make_unique<ral::frame::BlazingTable>( std::move(gathered), table.names() );
   }
 
-std::unique_ptr<cudf::experimental::table> logicalLimit(
-	const cudf::table_view& table,
-	cudf::size_type limitRows)
-{
+std::unique_ptr<cudf::experimental::table> logicalLimit(const cudf::table_view& table, cudf::size_type limitRows) {
 	assert(limitRows < table.num_rows());
 
 	if (limitRows == 0) {
@@ -191,15 +188,15 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	return merged;
 }
 
-cudf::size_type determine_local_limit(Context * context, cudf::size_type local_num_rows, cudf::size_type limit_rows){
+int64_t determine_local_limit(Context * context, int64_t local_num_rows, cudf::size_type limit_rows){
 	context->incrementQuerySubstep();
 	ral::distribution::experimental::distributeNumRows(context, local_num_rows);
 
-	std::vector<cudf::size_type> nodesRowSize = ral::distribution::experimental::collectNumRows(context);
+	std::vector<int64_t> nodesRowSize = ral::distribution::experimental::collectNumRows(context);
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	cudf::size_type prev_total_rows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, 0);
+	int64_t prev_total_rows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, 0);
 
-	return std::min(std::max(limit_rows - prev_total_rows, 0), local_num_rows);
+	return std::min(std::max(limit_rows - prev_total_rows, int64_t{0}), local_num_rows);
 }
 
 std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
@@ -238,7 +235,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 		}
 
 		if(limitRows >= 0) {
-			limitRows = determine_local_limit(context, table_view.num_rows(), limitRows);
+			limitRows = static_cast<cudf::size_type>(determine_local_limit(context, table_view.num_rows(), limitRows));
 
 			if(limitRows >= 0 && limitRows < table_view.num_rows()) {
 				auto out_table = logicalLimit(table_view, limitRows);
@@ -273,6 +270,37 @@ auto get_sort_vars(const std::string & query_part) {
 	cudf::size_type limitRows = !limitRowsStr.empty() ? std::stoi(limitRowsStr) : -1;
 
 	return std::make_tuple(sortColIndices, sortOrderTypes, limitRows);
+}
+
+bool has_limit_only(const std::string & query_part){
+	std::vector<int> sortColIndices;
+	std::tie(sortColIndices, std::ignore, std::ignore) = get_sort_vars(query_part);
+
+	return sortColIndices.empty();
+}
+
+int64_t get_local_limit(int64_t total_batch_rows, const std::string & query_part, Context * context){
+	cudf::size_type limitRows;
+	std::tie(std::ignore, std::ignore, limitRows) = get_sort_vars(query_part);
+
+	if(context->getTotalNodes() > 1 && limitRows >= 0) {
+		limitRows = determine_local_limit(context, total_batch_rows, limitRows);
+	}
+
+	return limitRows;
+}
+
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, int64_t>
+limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_limit) {
+
+	cudf::size_type table_rows = table->num_rows();
+	if (num_rows_limit <= 0) {
+		return std::make_pair(std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(table->view()), table->names()), 0);
+	} else if (num_rows_limit >= table_rows)	{
+		return std::make_pair(std::move(table), num_rows_limit - table_rows);
+	} else {
+		return std::make_pair(std::make_unique<ral::frame::BlazingTable>(logicalLimit(table->view(), num_rows_limit), table->names()), 0);
+	}
 }
 
 std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part){

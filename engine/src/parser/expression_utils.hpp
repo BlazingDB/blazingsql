@@ -107,6 +107,7 @@ const std::string LOGICAL_AGGREGATE_MERGE_TEXT = "Logical_AggregateMerge"; // to
 const std::string LOGICAL_AGGREGATE_PARTITION_TEXT = "Logical_AggregatePartition"; // to be deprecated
 const std::string LOGICAL_AGGREGATE_AND_SAMPLE_TEXT = "Logical_AggregateAndSample"; // to be deprecated
 const std::string LOGICAL_PROJECT_TEXT = "LogicalProject";
+const std::string LOGICAL_LIMIT_TEXT = "LogicalLimit";
 const std::string LOGICAL_SORT_TEXT = "LogicalSort";
 const std::string LOGICAL_MERGE_TEXT = "LogicalMerge";
 const std::string LOGICAL_PARTITION_TEXT = "LogicalPartition";
@@ -125,6 +126,7 @@ bool is_bindable_scan(std::string query_part);
 bool is_filtered_bindable_scan(std::string query_part); 
 bool is_scan(std::string query_part); 
 bool is_filter(std::string query_part);
+bool is_limit(std::string query_part);
 bool is_sort(std::string query_part);
 bool is_merge(std::string query_part);
 bool is_partition(std::string query_part);
