@@ -124,12 +124,7 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 			names = tables[i].names();
 		}
 		if(tables[i].view().num_columns() > 0) { // lets make sure we are trying to concatenate tables that are not empty
-			if (tables[i].view().column(0).offset() > 0){  // WSM this is because a bug in cudf https://github.com/rapidsai/cudf/issues/4055
-				temp_holder.emplace_back(std::make_unique<CudfTable>(CudfTable(tables[i].view())));
-          		table_views_to_concat.emplace_back(temp_holder.back()->view());
-			} else {
-				table_views_to_concat.push_back(tables[i].view());
-			}
+			table_views_to_concat.push_back(tables[i].view());
 		}
 	}
 	// TODO want to integrate data type normalization.
