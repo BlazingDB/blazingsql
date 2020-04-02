@@ -101,7 +101,6 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                             enable_logging=enable_logging)
     
     else:
-        # TODO: set_DefaultMemoryResource(BlazingMemoryResource) 
         cio.blazingSetAllocatorCaller(
             allocator=allocator,
             pool=pool,

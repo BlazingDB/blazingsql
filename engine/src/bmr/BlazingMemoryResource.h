@@ -35,12 +35,12 @@ class blazing_device_memory_resource : public device_memory_resource, BlazingMem
     }
 
 
-  size_t get_used_memory_size();
-  size_t get_total_memory_size();
+    size_t get_used_memory_size();
+    size_t get_total_memory_size();
 
-private:
-  size_t total_memory_size;       // POOL_SIZE, GPU_DRIVER_MEM_INFO, .... 
-  std::atomic<size_t> used_memory{0};    
+  private:
+    size_t total_memory_size;       // POOL_SIZE, GPU_DRIVER_MEM_INFO, .... 
+    std::atomic<size_t> used_memory{0};    
 };
 
 
@@ -49,24 +49,24 @@ class blazing_host_memory_mesource : BlazingMemoryResource{
     blazing_host_memory_mesource() = default;
     virtual ~blazing_host_memory_mesource() = default;
 
-  // Compute the total RAM size in bytes
-  size_t get_total_memory_size() {
-    struct sysinfo si;
-    sysinfo (&si);
+    // Compute the total RAM size in bytes
+    size_t get_total_memory_size() {
+      struct sysinfo si;
+      sysinfo (&si);
 
-    size_t total_ram = si.totalram;
-    return total_ram;
-  }
+      size_t total_ram = si.totalram;
+      return total_ram;
+    }
 
-  //Compute the used RAM size in bytes
-  size_t get_used_memory_size() {
-    struct sysinfo si;
-    sysinfo (&si);
+    //Compute the used RAM size in bytes
+    size_t get_used_memory_size() {
+      struct sysinfo si;
+      sysinfo (&si);
 
-    size_t total_ram = si.totalram;
-    size_t free_ram = si.freeram
-    return total_ram - free_ram;
-  }
+      size_t total_ram = si.totalram;
+      size_t free_ram = si.freeram
+      return total_ram - free_ram;
+    }
 };
 
 
@@ -75,26 +75,25 @@ class blazing_disk_memory_resource : BlazingMemoryResource {
     blazing_disk_memory_resource() = default;
     virtual ~blazing_disk_memory_resource() = default;
 
-  // TODO: cordova change the actual current_path
-  size_t get_total_memory_size(std::string current_path = "/home/") {
-    struct statvfs stat_disk;
-    int ret = statvfs(current_path, &stat_disk);
-    size_t total_disk_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
+    // TODO: cordova change the actual current_path
+    size_t get_total_memory_size(std::string current_path = "/home/") {
+      struct statvfs stat_disk;
+      int ret = statvfs(current_path, &stat_disk);
+      size_t total_disk_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
 
-    return total_disk_size;
+      return total_disk_size;
   }
 
-  // TODO: cordova change the actual current_path
-  size_t get_used_memory_size(std::string current_path = "/home/") {
+    // TODO: cordova change the actual current_path
+    size_t get_used_memory_size(std::string current_path = "/home/") {
     
-    struct statvfs stat_disk;
-    int ret = statvfs(current_path, &stat_disk);
-    size_t total_disk_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
-    size_t available_disk_size = (size_t)(stat_disk.f_bfree * stat_disk.f_frsize);
-    size_t used_disk_size = total_disk_size - available_disk_size;
+      struct statvfs stat_disk;
+      int ret = statvfs(current_path, &stat_disk);
+      size_t total_disk_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
+      size_t available_disk_size = (size_t)(stat_disk.f_bfree * stat_disk.f_frsize);
+      size_t used_disk_size = total_disk_size - available_disk_size;
 
-    return used_disk_size;
-  }
-  
+      return used_disk_size;
+    }
 };
 
