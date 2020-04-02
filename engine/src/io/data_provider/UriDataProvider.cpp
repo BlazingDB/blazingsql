@@ -153,13 +153,11 @@ data_handle uri_data_provider::get_next() {
 			}
 
 			std::string ender = ".crc";
-			std::string hive_copies = "_copy_";
 			std::vector<Uri> new_uris;
 			for(int i = 0; i < this->directory_uris.size(); i++) {
 				std::string fileName = this->directory_uris[i].getPath().toString();
 
-				if(!StringUtil::endsWith(fileName, ender)) { //} && !StringUtil::contains(fileName, hive_copies)) {
-					//  std::cout<<" orig is "<<fileName<<std::endl;
+				if(!StringUtil::endsWith(fileName, ender)) { 
 					new_uris.push_back(this->directory_uris[i]);
 				}
 			}

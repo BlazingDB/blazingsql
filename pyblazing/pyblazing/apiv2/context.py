@@ -283,8 +283,6 @@ def parseHiveMetadata(curr_table, uri_values):
     names = []
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
-    print("in parseHiveMetadata:")
-    print(curr_table.column_types)
     dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
@@ -303,7 +301,6 @@ def parseHiveMetadata(curr_table, uri_values):
                 col_index = columns.index(col_name)
             else:
                 print("ERROR: could not find partition column name " + str(col_name) + " in table names")
-            print("parseHiveMetadata getting partition metadata for " + col_name + " is of type " + str(dtypes[col_index]))
             if(dtypes[col_index] == np.dtype("object")):
                 np_col_value = col_value_id
             elif(dtypes[col_index] == np.dtype("datetime64[s]") or dtypes[col_index] == np.dtype("datetime64[ms]") or dtypes[col_index] == np.dtype("datetime64[us]") or dtypes[col_index] == np.dtype("datetime64[ns]")):
@@ -313,9 +310,8 @@ def parseHiveMetadata(curr_table, uri_values):
             
             table_partition.setdefault(col_name, []).append(np_col_value)
         minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
-        # TODO this assumes that you only have one row group per partitioned file. This should be addressed in the mergeMetadata function, 
+        # this assumes that you only have one row group per partitioned file but is addressed in the mergeMetadata function, 
         # where you will have information about how many rowgroups per file and you can expand the hive metadata accordingly
-        # until this is fixed, if a partition has more than one rowgroup, the mergeMetadata function will throw an error
         minmax_metadata_table[len(minmax_metadata_table) - 1].append(0) # this is the rowgroup index
     for index in range(n_cols):
         col_name = columns[index]
@@ -779,7 +775,6 @@ class BlazingContext(object):
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             hive_database_name = kwargs.get('hive_database_name', 'default')
-            print("create_table for hive.Cursor hive_table_name: " + hive_table_name + "  hive_database_name: " + hive_database_name)
             folder_list, file_format_hint, extra_kwargs, extra_columns, in_file, hive_schema = get_hive_table(
                 input, hive_table_name, hive_database_name)
 
@@ -834,15 +829,6 @@ class BlazingContext(object):
             if is_hive_input:
                 table.column_names = hive_schema['column_names'] # table.column_names are the official schema column_names
                 table.file_column_names = parsedSchema['names'] # table.file_column_names are the column_names used by the file (may be different)
-                print("using hive col names")
-                print("hive_schema['column_names']")
-                print(hive_schema['column_names'])
-                print("hive_schema['column_types']")
-                print(hive_schema['column_types'])
-                print("parsedSchema['names']")
-                print(parsedSchema['names'])
-                print("parsedSchema['types']")
-                print(parsedSchema['types'])
                 merged_types = []
                 if len(hive_schema['column_types']) == len(parsedSchema['types']):
                     for i in range(len(parsedSchema['types'])):
@@ -852,13 +838,7 @@ class BlazingContext(object):
                             merged_types.append(parsedSchema['types'][i])
                 else:
                     print("ERROR: number of hive_schema columns does not match number of parsedSchema columns")
-                    print("hive_schema['column_types']")
-                    print(hive_schema['column_types'])
-                    print("parsedSchema['types'])")
-                    print(parsedSchema['types'])
                 
-                print("merged_types")
-                print(merged_types)
                 table.column_types = merged_types
             else:
                 table.column_names = parsedSchema['names'] # table.column_names are the official schema column_names

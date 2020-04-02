@@ -52,8 +52,6 @@ cudfTypeToCsvType = {
 def getPartitions(tableName, schema, cursor):
     query = "show partitions " + tableName
     result = runHiveQuery(cursor, query)
-    print("result from " + query)
-    print(result)
     partitions = {}
     for partition in result[0]:
         columnPartitions = []
@@ -65,40 +63,28 @@ def getPartitions(tableName, schema, cursor):
                         columnValue = columnData.split("=")[1]
                         columnPartitions.append((columnName, columnValue))
         partitions[partition[0]] = columnPartitions
-    print("partitions output from getPartitions:")
-    print(partitions)
     return partitions
 
 
 def get_hive_table(cursor, tableName, hive_database_name):
-    print("get_hive_table start")
     query = 'use ' + hive_database_name
     runHiveDDL(cursor, query)
-    print(query)
     query = 'describe formatted ' + tableName
     result, description = runHiveQuery(cursor, query)
-    print(query)
-    print("result")
-    print(result)
-    print("description")
-    print(description)
 
     schema = {}
     schema['columns'] = []
     schema['column_types'] = []
     i = 0
-    # print(result)
     parsingColumns = False
     parsingPartitionColumns = False
     startParsingPartitionRows = 0
     schema['delimiter'] = chr(1)
     for triple in result:
-        # print(triple)
         if triple[0] is not None:
             if(i == 2):
                 parsingColumns = True
             if(parsingColumns):
-                # print(triple)
                 if triple[0] == '':
                     parsingColumns = False
                 else:
@@ -135,20 +121,14 @@ def get_hive_table(cursor, tableName, hive_database_name):
                         (triple[0], convertHiveTypeToCudfType(triple[1]), True))                    
         i = i + 1
     
-    print("parsed result")
-    print("schema: ")
-    print(schema)
     hasPartitions = False
     for column in schema['columns']:
         if column[2]:
             hasPartitions = True
     file_list = []
     if hasPartitions:
-        print("hasPartitions")
         schema['partitions'] = getPartitions(tableName, schema, cursor)
-        print("got partitions")
     else:
-        print("does not have partitions")
         schema['partitions'] = {}
         file_list.append(schema['location'] + "/*")
 
@@ -172,10 +152,6 @@ def get_hive_table(cursor, tableName, hive_database_name):
     for partitionName in schema['partitions']:
         file_list.append(schema['location'] + "/" + partitionName + "/*")
     
-    print("file_list")
-    print(file_list)
-    print("schema['partitions']")
-    print(schema['partitions'])
     return file_list, schema['fileType'], extra_kwargs, extra_columns, in_file, schema
 
 

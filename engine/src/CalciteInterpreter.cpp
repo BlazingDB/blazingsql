@@ -122,8 +122,6 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 
 	// MAIN SPLIT
 
-	std::cout<<"starting evaluate_split_query"<<std::endl;
-
 	assert(input_loaders.size() == table_names.size());
 
 	CodeTimer blazing_timer;
@@ -135,7 +133,6 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 		if(is_scan(query[0])) {
 			size_t table_index = get_table_index(table_names, extract_table_name(query[0]));
 			if(is_bindable_scan(query[0])) {
-				std::cout<<"is_bindable_scan querystep: "<<query[0]<<std::endl;
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 				std::string project_string = get_named_expression(query[0], "projects");
 				std::vector<std::string> project_string_split =
@@ -154,7 +151,6 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
 					projections.push_back(0);
 				}
-				std::cout<<"about to load_data"<<std::endl;
 				std::unique_ptr<ral::frame::BlazingTable> input_table = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
 
 				std::vector<std::string> col_names = input_table->names();
