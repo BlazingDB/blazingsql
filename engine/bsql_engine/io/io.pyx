@@ -161,7 +161,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     cdef vector[pair[string,type_id]] extra_columns_cpp
     cdef pair[string,type_id] extra_column_cpp
     for extra_column in extra_columns:
-        extra_column_cpp = (extra_column[0].encode(),np_to_cudf_types(extra_column[1]))
+        extra_column_cpp = (extra_column[0].encode(),extra_column[1])
         extra_columns_cpp.push_back(extra_column_cpp)
     tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
