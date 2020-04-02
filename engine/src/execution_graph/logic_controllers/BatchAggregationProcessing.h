@@ -38,12 +38,12 @@ public:
         std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
             aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
 
-		BatchSequence input(this->input_cache());
+		BatchSequence input(this->input_cache(), this);
         int count=0;
 		while (input.wait_for_next()) {
 			auto batch = input.next();
-            std::cout<<"ComputeAggregateKernel batch "<<count<<std::endl;
-            ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "ComputeAggregateKernel_batch" + std::to_string(count));
+            // std::cout<<"ComputeAggregateKernel batch "<<count<<std::endl;
+            // ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "ComputeAggregateKernel_batch" + std::to_string(count));
             count++;
 
             std::unique_ptr<ral::frame::BlazingTable> output;
@@ -57,10 +57,10 @@ public:
                 output = ral::operators::experimental::compute_aggregations_with_groupby(
                     batch->toBlazingTableView(), aggregation_input_expressions, aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
             }
-            ral::utilities::print_blazing_table_view_schema(output->toBlazingTableView(), "ComputeAggregateKernel_output" + std::to_string(count));
-            this->output_cache()->addToCache(std::move(output));
+            // ral::utilities::print_blazing_table_view_schema(output->toBlazingTableView(), "ComputeAggregateKernel_output" + std::to_string(count));
+            this->add_to_output_cache(std::move(output));
 		}
-        std::cout<<"ComputeAggregateKernel end "<<std::endl;
+        // std::cout<<"ComputeAggregateKernel end "<<std::endl;
 		return kstatus::proceed;
 	}
 
@@ -93,7 +93,7 @@ public:
         int num_partitions = this->context->getTotalNodes(); 
         bool set_empty_part_for_non_master_node = false; // this is only for aggregation without group by
 
-		BatchSequence input(this->input_cache());
+		BatchSequence input(this->input_cache(), this);
         int count = 0;
 		while (input.wait_for_next()) {
 			auto batch = input.next();
@@ -103,12 +103,12 @@ public:
             // If its an aggregation without group by we want to send all the results to the master node
             if (group_column_indices.size() == 0) {
                 if(this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
-                    this->output_cache()->addToCache(std::move(batch));
+                    this->add_to_output_cache(std::move(batch));
                 } else {  
                     if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
                         std::unique_ptr<ral::frame::BlazingTable> empty = 
                             ral::utilities::experimental::create_empty_table(batch->toBlazingTableView());
-                        this->output_cache()->addToCache(std::move(empty));
+                        this->add_to_output_cache(std::move(empty));
                         set_empty_part_for_non_master_node = true;
                     }
                     std::vector<ral::distribution::experimental::NodeColumnView> selfPartition;
@@ -140,7 +140,7 @@ public:
                         // if we dont clone it, hashed_data will go out of scope before we get to use the partition
                         // also we need a BlazingTable to put into the cache, we cant cache views.
                         std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
-                        this->output_cache()->addToCache(std::move(partition_table_clone));
+                        this->add_to_output_cache(std::move(partition_table_clone));
                     } else {
                         partitions_to_send.emplace_back(
                             std::make_pair(this->context->getNode(nodeIndex), partition_table_view));
@@ -162,10 +162,10 @@ public:
             ExternalBatchColumnDataSequence external_input(context);
             std::unique_ptr<ral::frame::BlazingHostTable> host_table;
             while (host_table = external_input.next()) {
-                this->output_cache()->addHostFrameToCache(std::move(host_table));
+                this->add_to_output_cache(std::move(host_table));
             }
         }
-        std::cout<<"DistributeAggregateKernel end "<<std::endl;
+        // std::cout<<"DistributeAggregateKernel end "<<std::endl;
 		return kstatus::proceed;
 	}
 
@@ -187,12 +187,12 @@ public:
 		std::vector<ral::frame::BlazingTableView> tableViewsToConcat;
 
         if (ready_to_execute()){
-            BatchSequence input(this->input_cache());
+            BatchSequence input(this->input_cache(), this);
             int count=0;
             while (input.wait_for_next()) {
                 auto batch = input.next();
-                std::cout<<"MergeAggregateKernel batch "<<count<<std::endl;
-                ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "MergeAggregateKernel_batch" + std::to_string(count));
+                // std::cout<<"MergeAggregateKernel batch "<<count<<std::endl;
+                // ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "MergeAggregateKernel_batch" + std::to_string(count));
                 count++;
                 tableViewsToConcat.emplace_back(batch->toBlazingTableView());
                 tablesToConcat.emplace_back(std::move(batch));
@@ -231,10 +231,10 @@ public:
                         concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
                         mod_aggregation_column_assigned_aliases, mod_group_column_indices);
             }
-            ral::utilities::print_blazing_table_view_schema(output->toBlazingTableView(), "MergeAggregateKernel_output");
-            this->output_cache()->addToCache(std::move(output));
+            // ral::utilities::print_blazing_table_view_schema(output->toBlazingTableView(), "MergeAggregateKernel_output");
+            this->add_to_output_cache(std::move(output));
         }
-		std::cout<<"MergeAggregateKernel end "<<std::endl;
+		// std::cout<<"MergeAggregateKernel end "<<std::endl;
 		return kstatus::proceed;
 	}
 

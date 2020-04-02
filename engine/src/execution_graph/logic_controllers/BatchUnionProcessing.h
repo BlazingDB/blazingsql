@@ -43,17 +43,17 @@ public:
 
         RAL_EXPECTS(std::equal(data_types_a.cbegin(), data_types_a.cend(), data_types_b.cbegin(), data_types_b.cend()), "In UnionKernel: Mismatched column types");
 
-        this->output_cache()->addCacheData(std::move(batch_a));
-        this->output_cache()->addCacheData(std::move(batch_b));
+        this->add_to_output_cache(std::move(batch_a));
+        this->add_to_output_cache(std::move(batch_b));
 
         while (input_a.wait_for_next()) {
             auto batch = input_a.next();
-            this->output_cache()->addCacheData(std::move(batch));
+            this->add_to_output_cache(std::move(batch));
         }
 
         while (input_b.wait_for_next()) {
             auto batch = input_b.next();
-            this->output_cache()->addCacheData(std::move(batch));
+            this->add_to_output_cache(std::move(batch));
         }
 
 		return kstatus::proceed;

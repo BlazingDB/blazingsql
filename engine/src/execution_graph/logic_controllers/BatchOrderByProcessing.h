@@ -30,7 +30,7 @@ public:
 	}
 	
 	virtual kstatus run() {
-		BatchSequence input(this->input_cache());
+		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
 		std::vector<size_t> tableTotalRows;
@@ -45,14 +45,14 @@ public:
 			sampledTableViews.push_back(sampledTable->toBlazingTableView());
 			sampledTables.push_back(std::move(sampledTable));
 			tableTotalRows.push_back(batch->view().num_rows());
-			this->output_.get_cache("output_a")->addToCache(std::move(sortedTable));
+			this->add_to_output_cache(std::move(sortedTable), "output_a");
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
-		auto partitionPlan = ral::operators::experimental::generate_partition_plan(9 /*how many?*/, sampledTableViews, tableTotalRows, this->expression);
+		auto partitionPlan = ral::operators::experimental::generate_partition_plan(32, sampledTableViews, tableTotalRows, this->expression);
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
 ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
-		this->output_.get_cache("output_b")->addToCache(std::move(partitionPlan));
+		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		return kstatus::proceed;
 	}
 
@@ -69,10 +69,10 @@ public:
 	}
 
 	virtual kstatus run() {
-		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"));
+		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 		
-		BatchSequence input(this->input_.get_cache("input_a"));
+		BatchSequence input(this->input_.get_cache("input_a"), this);
 		while (input.wait_for_next()) {
 			auto batch = input.next();
 			
@@ -85,10 +85,9 @@ public:
 
 			for (auto i = 0; i < partitions.size(); i++) {
 				std::string cache_id = "output_" + std::to_string(i);
-				this->output_[cache_id]->addToCache(
-					std::make_unique<ral::frame::BlazingTable>(
-						std::make_unique<cudf::experimental::table>(partitions[i]),
-						batch->names())
+				this->add_to_output_cache(
+					std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::experimental::table>(partitions[i]), batch->names()),
+					cache_id
 					);
 			}
 		}
@@ -110,7 +109,7 @@ public:
 	}
 	
 	virtual kstatus run() {
-		BatchSequence input(this->input_cache());
+		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
 		std::vector<size_t> tableTotalRows;
@@ -122,13 +121,13 @@ public:
 			sampledTableViews.push_back(sampledTable->toBlazingTableView());
 			sampledTables.push_back(std::move(sampledTable));
 			tableTotalRows.push_back(batch->view().num_rows());
-			this->output_.get_cache("output_a")->addToCache(std::move(sortedTable));
+			this->add_to_output_cache(std::move(sortedTable), "output_a");
 		}
 		size_t totalNumRows = std::accumulate(tableTotalRows.begin(), tableTotalRows.end(), 0);
 		auto concatSamples = ral::utilities::experimental::concatTables(sampledTableViews);
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
-		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(9, concatSamples->toBlazingTableView(), totalNumRows, this->expression, this->context.get());
-		this->output_.get_cache("output_b")->addToCache(std::move(partitionPlan));
+		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(32, concatSamples->toBlazingTableView(), totalNumRows, this->expression, this->context.get());
+		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		
 		return kstatus::proceed;
 	}
@@ -146,7 +145,7 @@ public:
 	}
 
 	virtual kstatus run() {
-		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"));
+		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 		
 		context->incrementQuerySubstep();
@@ -154,14 +153,14 @@ public:
 		std::cout<< ">>>>>> INSIDE PartitionKernel"<< std::endl;
 
 		BlazingThread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, this](){
-			BatchSequence input(input_cache);
+			BatchSequence input(input_cache, this);
 			while (input.wait_for_next()) {
 				auto batch = input.next();
 				auto self_partitions = ral::operators::experimental::distribute_table_partitions(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
 
 				for (auto && self_part : self_partitions) {
 					std::string cache_id = "output_" + std::to_string(self_part.first);
-					this->output_[cache_id]->addToCache(std::move(self_part.second));
+					this->add_to_output_cache(std::move(self_part.second), cache_id);
 				}
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
@@ -172,7 +171,7 @@ public:
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			while (host_table = external_input.next()) {
 				std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
-				this->output_[cache_id]->addHostFrameToCache(std::move(host_table));
+				this->add_to_output_cache(std::move(host_table), cache_id);
 			}
 		});
 		generator.join();
@@ -212,7 +211,7 @@ public:
 			if (tableViews.empty()) {
 				// noop
 			} else if(tableViews.size() == 1) {
-				this->output_.get_cache()->addToCache(std::move(tables.front()));
+				this->add_to_output_cache(std::move(tables.front()));
 			}	else {
 				// std::cout<<">>>>>>>>>>>>>>> MERGE PARTITIONS START"<< std::endl;
 				// for (auto view : tableViews)
@@ -224,7 +223,7 @@ public:
 
 //					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 
-				this->output_.get_cache()->addToCache(std::move(output));
+				this->add_to_output_cache(std::move(output));
 			}
 		}
 		
@@ -263,7 +262,7 @@ public:
 			{
 				auto batch = cache_data->decache();
 				std::tie(batch, rows_limit) = ral::operators::experimental::limit_table(std::move(batch), rows_limit);
-				this->output_.get_cache()->addToCache(std::move(batch));
+				this->add_to_output_cache(std::move(batch));
 
 				if (rows_limit == 0){
 					break;

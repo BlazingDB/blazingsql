@@ -244,7 +244,8 @@ struct tree_processor {
 		for(int i = 0; i < level*2 ; ++i) {
 			std::cout << " ";
 		}
-		std::cout << p_tree->kernel_unit->get_id() << " | " << p_tree->expr << std::endl;
+		std::cout << std::to_string((int)p_tree->kernel_unit->get_type_id()) + "_" + std::to_string(p_tree->kernel_unit->get_id())
+							<< "  |  " << expr << std::endl;
 		for (auto &child : p_tree->children) {
 			print_tree(child.get(), level + 1);
 		}
@@ -296,7 +297,7 @@ struct tree_processor {
 					graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
-					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = 10};
+					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = 32};
 					graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				} else {
 					graph +=  *child->kernel_unit >> (*parent->kernel_unit);

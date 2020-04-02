@@ -23,8 +23,8 @@ using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 
 class BatchSequence {
 public:
-	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr)
-	: cache{cache}
+	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr)
+	: cache{cache}, kernel{kernel}
 	{}
 	void set_source(std::shared_ptr<ral::cache::CacheMachine> cache) {
 		this->cache = cache;
@@ -33,6 +33,11 @@ public:
 		return cache->pullFromCache();
 	}
 	bool wait_for_next() {
+		if (kernel) {
+			std::string message_id = std::to_string((int)kernel->get_type_id()) + "_" + std::to_string(kernel->get_id()); 
+			std::cout<<">>>>> WAIT_FOR_NEXT id : " <<  message_id <<std::endl;
+		}
+		
 		return cache->wait_for_next();
 	}
 
@@ -41,6 +46,7 @@ public:
 	}
 private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
+	const ral::cache::kernel * kernel;
 };
 
 class BatchSequenceBypass {
@@ -193,6 +199,38 @@ struct PhysicalPlan : kernel {
 		auto kernel_id = std::to_string(this->get_id());
 		return this->output_.get_cache(kernel_id);
 	}
+
+	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string kernel_id = "") {
+		if (kernel_id.empty()) {
+			kernel_id = std::to_string(this->get_id());
+		}
+		
+		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
+		this->output_.get_cache(kernel_id)->addToCache(std::move(table), message_id);
+	}
+
+	void add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string kernel_id = "") {
+		if (kernel_id.empty()) {
+			kernel_id = std::to_string(this->get_id());
+		}
+
+		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
+		this->output_.get_cache(kernel_id)->addCacheData(std::move(cache_data), message_id);
+	}
+	
+	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string kernel_id = "") {
+		if (kernel_id.empty()) {
+			kernel_id = std::to_string(this->get_id());
+		}
+
+		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
+		this->output_.get_cache(kernel_id)->addHostFrameToCache(std::move(host_table), message_id);
+	}
+
+	std::string get_message_id(){
+		return std::to_string((int)this->get_type_id()) + "_" + std::to_string(this->get_id());
+	}
+
 	size_t n_batches() {
 		return n_batches_; // TODO: use set_n_batches(n_batches) in make_kernel
 	}
@@ -208,7 +246,7 @@ public:
 	virtual kstatus run() {
 		while( input.wait_for_next() ) {
 			auto batch = input.next();
-			this->output_cache()->addToCache(std::move(batch));
+			this->add_to_output_cache(std::move(batch));
 		}
 		return kstatus::proceed;
 	}
@@ -229,10 +267,10 @@ public:
 
 			if(is_filtered_bindable_scan(expression)) {
 				auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
-				this->output_cache()->addToCache(std::move(columns));
+				this->add_to_output_cache(std::move(columns));
 			}
 			else{
-				this->output_cache()->addToCache(std::move(batch));
+				this->add_to_output_cache(std::move(batch));
 			}
 		}
 		return kstatus::proceed;
@@ -251,11 +289,11 @@ public:
 		this->expression = queryString;
 	}
 	virtual kstatus run() {
-		BatchSequence input(this->input_cache());
-		while (input.wait_for_next() ) {
+		BatchSequence input(this->input_cache(), this);
+		while (input.wait_for_next()) {
 			auto batch = input.next();
 			auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
-			this->output_cache()->addToCache(std::move(columns));
+			this->add_to_output_cache(std::move(columns));
 		}
 		return kstatus::proceed;
 	}
@@ -273,11 +311,11 @@ public:
 		this->expression = queryString;
 	}
 	virtual kstatus run() {
-		BatchSequence input(this->input_cache());
+		BatchSequence input(this->input_cache(), this);
 		while (input.wait_for_next() ) {
 			auto batch = input.next();
 			auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
-			this->output_cache()->addToCache(std::move(columns));
+			this->add_to_output_cache(std::move(columns));
 		}
 		return kstatus::proceed;
 	}
@@ -292,7 +330,7 @@ public:
 	Print(std::ostream & stream) : PhysicalPlan() { ofs = &stream; }
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
-		BatchSequence input(this->input_cache());
+		BatchSequence input(this->input_cache(), this);
 		while (input.wait_for_next() ) {
 			auto batch = input.next();
 			ral::utilities::print_blazing_table_view(batch->toBlazingTableView());

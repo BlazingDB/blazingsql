@@ -146,9 +146,9 @@ public:
 
 	kernel_pair operator[](const std::string & portname) { return std::make_pair(this, portname); }
 
-	std::int32_t get_id() { return (kernel_id); }
+	std::int32_t get_id() const { return (kernel_id); }
 
-	kernel_type get_type_id() { return kernel_type_id; }
+	kernel_type get_type_id() const { return kernel_type_id; }
 
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
 
@@ -354,7 +354,7 @@ public:
 						auto state = source->run();
 						if (state == kstatus::proceed) {
 							source->output_.finish();
-							std::cout << "[execute-finish]: {type}" << (int)source->get_type_id() << "|\t {id}" << source->get_id() << std::endl;   
+							std::cout << "[execute-finish]: id : " << std::to_string((int)source->get_type_id()) + "_" + std::to_string(source->get_id()) << std::endl;   
 						}
 						});
 						threads.push_back(std::move(t));

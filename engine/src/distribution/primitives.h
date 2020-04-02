@@ -24,7 +24,7 @@ namespace experimental {
 	std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context);
 
 	std::unique_ptr<BlazingTable> generatePartitionPlans(
-				cudf::size_type number_pivots, const std::vector<BlazingTableView> & samples, 
+				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples, 
 				const std::vector<std::size_t> & table_total_rows, const std::vector<cudf::order> & sortOrderTypes);
 	
 	void distributePartitionPlan(Context * context, const BlazingTableView & pivots);
