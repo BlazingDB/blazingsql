@@ -342,25 +342,25 @@ public:
 			auto source_id = Q.front();
 			Q.pop_front();
 			auto source = get_node(source_id);
-			if(not source) {
-				break;
-			}
-			for(auto edge : get_neighbours(source)) {
-				auto target_id = edge.target;
-				auto target = get_node(target_id);
-				auto edge_id = std::make_pair(source_id, target_id);
-				if(visited.find(edge_id) == visited.end()) {
-					visited.insert(edge_id);
-					Q.push_back(target_id);
-					BlazingThread t([this, source, target, edge] {
-					  auto state = source->run();
-					  if (state == kstatus::proceed) {
-						  source->output_.finish();
-					  }
-					});
-					threads.push_back(std::move(t));
-				} else {
-					// TODO: and circular graph is defined here. Report and error
+			if(source) {
+				for(auto edge : get_neighbours(source)) {
+					auto target_id = edge.target;
+					auto target = get_node(target_id);
+					auto edge_id = std::make_pair(source_id, target_id);
+					if(visited.find(edge_id) == visited.end()) {
+						visited.insert(edge_id);
+						Q.push_back(target_id);
+						BlazingThread t([this, source, target, edge] {
+						auto state = source->run();
+						if (state == kstatus::proceed) {
+							source->output_.finish();
+							std::cout << "[execute-finish]: {type}" << (int)source->get_type_id() << "|\t {id}" << source->get_id() << std::endl;   
+						}
+						});
+						threads.push_back(std::move(t));
+					} else {
+						// TODO: and circular graph is defined here. Report and error
+					}
 				}
 			}
 		}
@@ -384,21 +384,21 @@ public:
 			auto source_id = Q.front();
 			Q.pop_front();
 			auto source = get_node(source_id);
-			if(not source) {
-				break;
-			}
-			for(auto edge : get_neighbours(source)) {
-				auto target_id = edge.target;
-				auto target = get_node(target_id);
-				auto edge_id = std::make_pair(source_id, target_id);
-				if(visited.find(edge_id) == visited.end()) {
-					std::cout << "source_id: " << source_id << " -> " << target_id << std::endl;
-					visited.insert(edge_id);
-					Q.push_back(target_id);
-				} else {
+			if(source) {
+				for(auto edge : get_neighbours(source)) {
+					auto target_id = edge.target;
+					auto target = get_node(target_id);
+					auto edge_id = std::make_pair(source_id, target_id);
+					if(visited.find(edge_id) == visited.end()) {
+						std::cout << "source_id: " << source_id << " -> " << target_id << std::endl;
+						visited.insert(edge_id);
+						Q.push_back(target_id);
+					} else {
 
+					}
 				}
 			}
+
 		}
 	}
 
@@ -421,7 +421,6 @@ public:
 		const cache_settings &config) {
 		add_node(source);
 		add_node(target);
-
 		Edge edge = {.source = (std::int32_t) source->get_id(),
 			.target = target->get_id(),
 			.source_port_name = source_port,
@@ -1147,7 +1146,7 @@ private:
 
 class OutputKernel : public kernel {
 public:
-	OutputKernel() : kernel() {  }
+	OutputKernel() : kernel("OutputKernel") {  }
 	virtual kstatus run() {
 		output = std::move(this->input_.get_cache()->pullFromCache());
 		return kstatus::stop;
