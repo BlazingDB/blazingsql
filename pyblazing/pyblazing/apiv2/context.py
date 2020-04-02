@@ -1,8 +1,7 @@
 # NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
 import cudf
 
-from cudf._libxx.column import np_to_cudf_types
-from cudf._libxx.column import cudf_to_np_types
+from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 from cudf.core.column.column import build_column
 
 from collections import OrderedDict

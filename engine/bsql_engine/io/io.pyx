@@ -1,15 +1,12 @@
 # io.pyx
 
-
-# Copyright (c) 2018, NVIDIA CORPORATION.
+# Copyright (c) 2018, BlazingDB.
 
 # cython: profile=False
 # distutils: language = c++
 # cython: embedsignature = True
 # cython: language_level = 3
 
-from cudf._lib.cudf cimport *
-from cudf._lib.GDFError import GDFError
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
@@ -36,18 +33,15 @@ import rmm
 import nvstrings
 import nvcategory
 
-from cudf._libxx.cpp cimport *
-from cudf._libxx.table cimport *
-from cudf._lib.cudf import *
-
-from cudf._libxx.column import cudf_to_np_types
+from cudf._lib cimport *
 
 from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
 from cpython.ref cimport PyObject
 from cython.operator cimport dereference
 
-from cudf._libxx.table cimport Table as CudfXxTable
+from cudf._lib.table cimport Table as CudfXxTable
+from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
@@ -86,7 +80,7 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
-cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,gdf_dtype]] extra_columns):
+cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns):
     temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns)
     return temp
 
@@ -164,10 +158,10 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
       arg_keys.push_back(str.encode(key))
       arg_values.push_back(str.encode(str(value)))
 
-    cdef vector[pair[string,gdf_dtype]] extra_columns_cpp
-    cdef pair[string,gdf_dtype] extra_column_cpp
+    cdef vector[pair[string,type_id]] extra_columns_cpp
+    cdef pair[string,type_id] extra_column_cpp
     for extra_column in extra_columns:
-        extra_column_cpp = (extra_column[0].encode(),gdf_dtype_from_dtype(extra_column[1]))
+        extra_column_cpp = (extra_column[0].encode(),np_to_cudf_types(extra_column[1]))
         extra_columns_cpp.push_back(extra_column_cpp)
     tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}

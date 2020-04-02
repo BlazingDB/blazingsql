@@ -8,7 +8,6 @@
 #ifndef CALCITEEXPRESSIONPARSING_H_
 #define CALCITEEXPRESSIONPARSING_H_
 
-#include "cudf/legacy/binaryop.hpp"
 #include "cudf/types.h"
 #include "gdf_wrapper/gdf_wrapper.cuh"
 #include "parser/expression_utils.hpp"

@@ -10,7 +10,6 @@
 
 #include "DataParser.h"
 #include "arrow/io/interfaces.h"
-#include <cudf/legacy/io_types.hpp>
 #include <memory>
 #include <vector>
 

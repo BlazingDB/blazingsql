@@ -1,7 +1,5 @@
 #include "OrcParser.h"
 #include <blazingdb/io/Util/StringUtil.h>
-#include <cudf/legacy/column.hpp>
-#include <cudf/legacy/io_functions.hpp>
 
 #include <arrow/io/file.h>
 

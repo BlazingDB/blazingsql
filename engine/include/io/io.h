@@ -1,6 +1,5 @@
 #include "../src/gdf_wrapper/gdf_wrapper.cuh"
 #include "../src/io/DataType.h"
-#include "cudf/legacy/io_types.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -79,7 +78,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
 	std::vector<std::string> arg_values,
-	std::vector<std::pair<std::string, gdf_dtype>> extra_columns);
+	std::vector<std::pair<std::string, cudf::type_id>> extra_columns);
 
 std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	std::pair<int, int> offset,

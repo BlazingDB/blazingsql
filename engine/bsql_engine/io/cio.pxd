@@ -6,14 +6,14 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.map cimport map
 from libcpp.memory cimport shared_ptr
+from cudf._lib.column cimport Column
 
 from libcpp cimport bool
 from pyarrow.lib cimport *
-from cudf._libxx.cpp cimport *
 
 from cudf import DataFrame
 
-from cudf._libxx.table cimport table
+from cudf._lib.table cimport table
 
 from libc.stdint cimport (  # noqa: E211
     uint8_t,
@@ -37,11 +37,11 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseRegisterFileSystemLocalError();
 
 
-from cudf._libxx.cpp.column cimport *
-from cudf._libxx.cpp.column.column_view cimport *
-from cudf._libxx.cpp.types cimport *
-from cudf._libxx.cpp.table cimport *
-from cudf._libxx.cpp.table.table_view cimport *
+from cudf._lib.cpp.column cimport *
+from cudf._lib.cpp.column.column_view cimport *
+from cudf._lib.cpp.types cimport *
+from cudf._lib.cpp.table cimport *
+from cudf._lib.cpp.table.table_view cimport *
 
 ctypedef column_view CudfColumnView
 ctypedef table_view CudfTableView
@@ -258,7 +258,7 @@ cdef extern from "../include/io/io.h":
     pair[bool, string] registerFileSystemGCS( GCS gcs, string root, string authority) except +raiseRegisterFileSystemGCSError
     pair[bool, string] registerFileSystemS3( S3 s3, string root, string authority) except +raiseRegisterFileSystemS3Error
     pair[bool, string] registerFileSystemLocal(  string root, string authority) except +raiseRegisterFileSystemLocalError
-    TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
+    TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,type_id]] types) except +raiseParseSchemaError
     unique_ptr[ResultSet] parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) except +raiseParseSchemaError
 
 cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
