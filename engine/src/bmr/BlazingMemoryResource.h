@@ -1,7 +1,11 @@
 #pragma once 
 
-#include <rmm/device_memory_resource.hpp>
+#include <cassert>
 #include <atomic>
+
+#include <cuda_runtime_api.h>
+
+#include <rmm/device_memory_resource.hpp>
 
 #include <sys/sysinfo.h>
 #include <sys/statvfs.h>
@@ -19,19 +23,27 @@ class blazing_device_memory_resource : public device_memory_resource, BlazingMem
 
   private:
     void* do_allocate(std::size_t bytes, cudaStream_t stream) {
-      if (used_memory + bytes < total_memory_size) {
-        used_memory += bytes;
-        return this->do_allocate(bytes, stream);
+      if (total_memory_size < used_memory + bytes) {
+        throw std::runtime_error("Cannot allocate more memory on the GPU.");
       }
+      if (bytes <= 0) return nullptr;
+      used_memory += bytes;
+
+      void* p{nullptr};
+      CUDA_TRY(cudaMalloc(&p, bytes));
+      return p;
     }
 
     void do_deallocate(void* p, std::size_t bytes, cudaStream_t stream) {
+      if (nullptr == p) return;
       if (used_memory < bytes) {
         used_memory = 0;
       } else {
         used_memory -= bytes;
       }
-      return this->do_deallocate(p, bytes, stream);
+
+      cudaError_t const status = cudaFree(p);
+      assert(cudaSuccess == status);
     }
 
 
