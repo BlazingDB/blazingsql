@@ -280,14 +280,28 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	std::vector<cudf::data_type> metadata_dtypes;
 	std::vector<size_t> columns_with_metadata;
 
-	std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[0]->metadata();
-
+	// NOTE: we must try to use and load always a parquet reader that row groups > 0
+	int valid_parquet_reader = -1;
+		
+	for (int i = 0; i < parquet_readers.size(); ++i) {
+		if (parquet_readers[i]->metadata()->num_row_groups() == 0) {
+			continue;
+		}
+		
+		valid_parquet_reader = i;
+		break;
+	}
+	
+	// TODO percy william alex assert here valid_parquet_reader > 0
+	
+	std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[valid_parquet_reader]->metadata();
+		
 	int num_row_groups = file_metadata->num_row_groups();
 	const parquet::SchemaDescriptor *schema = file_metadata->schema();
 
 	if (num_row_groups > 0) {
 		auto row_group_index = 0;
-		auto groupReader = parquet_readers[0]->RowGroup(row_group_index);
+		auto groupReader = parquet_readers[valid_parquet_reader]->RowGroup(row_group_index);
 		auto *rowGroupMetadata = groupReader->metadata();
 		for (int colIndex = 0; colIndex < file_metadata->num_columns(); colIndex++) {
 			const parquet::ColumnDescriptor *column = schema->Column(colIndex);
@@ -358,6 +372,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			this_minmax_metadata_table[this_minmax_metadata_table.size() - 2].push_back(metadata_offset + file_index);
 			this_minmax_metadata_table[this_minmax_metadata_table.size() - 1].push_back(row_group_index);			  
 		}
+		
 		guard.lock();
 		minmax_metadata_table_per_file[file_index] = std::move(this_minmax_metadata_table);
 		guard.unlock();
@@ -367,7 +382,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		threads[file_index].join();
 	}
 
-	std::vector<std::vector<int64_t>> minmax_metadata_table = minmax_metadata_table_per_file[0];
+	std::vector<std::vector<int64_t>> minmax_metadata_table = minmax_metadata_table_per_file[valid_parquet_reader];
 	for (size_t i = 1; i < 	minmax_metadata_table_per_file.size(); i++) {
 		for (size_t j = 0; j < 	minmax_metadata_table_per_file[i].size(); j++) {
 			std::copy(minmax_metadata_table_per_file[i][j].begin(), minmax_metadata_table_per_file[i][j].end(), std::back_inserter(minmax_metadata_table[j]));
@@ -382,6 +397,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		minmax_metadata_gdf_table[index] = make_cudf_column_from(dtype, content, total_num_row_groups);
 	}
 	auto table = std::make_unique<cudf::experimental::table>(std::move(minmax_metadata_gdf_table));
+	
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), metadata_names);
 }
 #endif	// BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
