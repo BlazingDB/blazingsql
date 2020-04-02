@@ -96,7 +96,13 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 
 					if (schema.all_in_file()){
 						std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
-						blazingTable_per_file[file_index] =  std::move(loaded_table);
+
+						if(filterString != ""){
+							blazingTable_per_file[file_index] = std::move(ral::processor::process_filter(loaded_table->toBlazingTableView(), filterString, context));
+						}
+						else{
+							blazingTable_per_file[file_index] =  std::move(loaded_table);
+						}
 					} else {
 						std::vector<std::unique_ptr<cudf::column>> current_columns;
 						std::vector<std::string> names;
@@ -141,9 +147,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 						}else{
 							blazingTable_per_file[file_index] = std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
 						}
-
 					}
-
 				} else {
 					Library::Logging::Logger().logError(ral::utilities::buildLogString(
 						"", "", "", "ERROR: Was unable to open " + user_readable_file_handles[file_index]));
@@ -196,9 +200,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 			if(blazingTable_per_file[i]->num_rows() > 0){
 				table_views.push_back(std::move(blazingTable_per_file[i]->toBlazingTableView()));	
 			}
-
 		}
-
 
 		return ral::utilities::experimental::concatTables(table_views);
 	}
