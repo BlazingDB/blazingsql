@@ -6,6 +6,12 @@
 namespace ral {
 namespace io {
 
+struct ReaderArgs {
+	cudf_io::read_orc_args orcReaderArg = cudf_io::read_orc_args(cudf_io::source_info(""));
+	cudf_io::read_json_args jsonReaderArg = cudf_io::read_json_args(cudf_io::source_info(""));
+	cudf_io::read_csv_args csvReaderArg = cudf_io::read_csv_args(cudf_io::source_info(""));
+};
+
 DataType inferDataType(std::string file_format_hint);
 
 DataType inferFileType(std::vector<std::string> files, DataType data_type_hint);

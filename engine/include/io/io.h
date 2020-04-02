@@ -19,12 +19,6 @@ struct ResultSet {
 	bool skipdata_analysis_fail;
 };
 
-struct ReaderArgs {
-	cudf_io::read_orc_args orcReaderArg = cudf_io::read_orc_args(cudf_io::source_info(""));
-	cudf_io::read_json_args jsonReaderArg = cudf_io::read_json_args(cudf_io::source_info(""));
-	cudf_io::read_csv_args csvReaderArg = cudf_io::read_csv_args(cudf_io::source_info(""));
-};
-
 struct TableSchema {
 	ral::frame::BlazingTableView blazingTableView;
 	std::vector<cudf::type_id> types;
@@ -34,7 +28,6 @@ struct TableSchema {
 	std::vector<size_t> calcite_to_file_indices;
 	std::vector<bool> in_file;
 	int data_type;
-	ReaderArgs args;
 
 	ral::frame::BlazingTableView metadata;
 	std::vector<std::vector<int>> row_groups_ids;
