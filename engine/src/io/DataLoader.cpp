@@ -183,7 +183,10 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 		bool if_null_empty_load = (parsed_table == nullptr || parsed_table->num_columns() == 0);
 		if (if_null_empty_load) {
 			parsed_table = schema.makeEmptyBlazingTable(column_indices);
+		}else if(filterString != ""){
+			return std::move(ral::processor::process_filter(parsed_table->toBlazingTableView(), filterString, context));
 		}
+
 		return std::move(parsed_table);
 	}
 
@@ -198,7 +201,11 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 		std::vector<ral::frame::BlazingTableView> table_views;
 		for (int i = 0; i < blazingTable_per_file.size(); i++){
 			if(blazingTable_per_file[i]->num_rows() > 0){
-				table_views.push_back(std::move(blazingTable_per_file[i]->toBlazingTableView()));	
+				table_views.push_back(std::move(blazingTable_per_file[i]->toBlazingTableView()));
+			}
+			else{
+				auto empty_table = schema.makeEmptyBlazingTable(column_indices);
+				table_views.push_back(std::move(empty_table->toBlazingTableView()));
 			}
 		}
 
