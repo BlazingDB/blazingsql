@@ -48,10 +48,6 @@ ctypedef table_view CudfTableView
 ctypedef table CudfTable
 
 
-cdef extern from "cudf/types.hpp" namespace "cudf" nogil:
-    ctypedef uint8_t       valid_type
-
-
 cdef extern from "../include/io/io.h":
     cdef struct ResultSet:
         unique_ptr[table] cudfTable
