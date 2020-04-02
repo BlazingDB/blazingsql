@@ -4,6 +4,7 @@
 #include <atomic>
 
 #include <sys/sysinfo.h>
+#include <sys/statvfs.h>
 
 class BlazingMemoryResource {
   virtual size_t get_used_memory_size() = 0 ;
@@ -43,7 +44,6 @@ private:
 };
 
 
-
 class blazing_host_memory_mesource : BlazingMemoryResource{
   public:
     blazing_host_memory_mesource() = default;
@@ -72,12 +72,29 @@ class blazing_host_memory_mesource : BlazingMemoryResource{
 
 class blazing_disk_memory_resource : BlazingMemoryResource {
   public:
-    blazing_host_memory_mesource() = default;
-    virtual ~blazing_host_memory_mesource() = default;
+    blazing_disk_memory_resource() = default;
+    virtual ~blazing_disk_memory_resource() = default;
 
-  // TODO: api DISK TOTAL_MEMORY_SIZE(); kernel linux
+  // TODO: cordova change the actual current_path
+  size_t get_total_memory_size(std::string current_path = "/home/") {
+    struct statvfs stat_disk;
+    int ret = statvfs(current_path, &stat_disk);
+    size_t total_disk_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
 
-  size_t get_used_memory_size();
-  size_t get_total_memory_size();
+    return total_disk_size;
+  }
+
+  // TODO: cordova change the actual current_path
+  size_t get_used_memory_size(std::string current_path = "/home/") {
+    
+    struct statvfs stat_disk;
+    int ret = statvfs(current_path, &stat_disk);
+    size_t total_disk_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
+    size_t available_disk_size = (size_t)(stat_disk.f_bfree * stat_disk.f_frsize);
+    size_t used_disk_size = total_disk_size - available_disk_size;
+
+    return used_disk_size;
+  }
+  
 };
 
