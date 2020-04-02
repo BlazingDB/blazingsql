@@ -79,12 +79,12 @@ CacheMachine::~CacheMachine() {}
 void CacheMachine::finish() {
 	this->waitingCache->finish();
 }
-void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table) {
+void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string message_id) {
 	auto cacheIndex = 1;
 	if(this->cachePolicyTypes[cacheIndex] == CPU) {
 		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
 		std::unique_ptr<message<CacheData>> item =
-			std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex);
+			std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 		this->waitingCache->put(std::move(item));
 	}else {
 		assert(false);
@@ -92,10 +92,10 @@ void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 }
 
 void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table) {
-	this->addToCache(std::move(table), message_id);
+	this->addToCache(std::move(table), std::to_string(message_id));
 }
 
-void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, size_t message_id){
+void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id){
 	int cacheIndex = 0;
 	while(cacheIndex < memoryPerCache.size()) {
 		// TODO: BlazingMemoryResource::getUsedMemory() 
@@ -135,7 +135,7 @@ void CacheMachine::clear() {
 	this->waitingCache->finish();
 }
 
-void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id) {
+void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id) {
 	int cacheIndex = 0;
 	while(cacheIndex < memoryPerCache.size()) {
 		// TODO: BlazingMemoryResource::getUsedMemory() 
@@ -183,7 +183,7 @@ bool CacheMachine::ready_to_execute() {
 
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index) {
-	std::unique_ptr<message<CacheData>> message_data = waitingCache->get_or_wait(index);
+	std::unique_ptr<message<CacheData>> message_data = waitingCache->get_or_wait(std::to_string(index));
 	if (message_data == nullptr) {
 		return nullptr;
 	}
@@ -250,7 +250,9 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		samples.emplace_back(tmp_frame->toBlazingTableView());
 		holder_samples.emplace_back(std::move(tmp_frame));
 	}
-	return ral::utilities::experimental::concatTables(samples);
+
+	auto out = ral::utilities::experimental::concatTables(samples);
+	return out;
 }
 }  // namespace cache
 } // namespace ral

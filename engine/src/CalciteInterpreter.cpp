@@ -404,6 +404,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 		auto graph = tree.build_batch_graph(logicalPlan);
 		if (graph.num_nodes() > 0) {
 			graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			graph.show();
 			graph.execute();
 			output_frame = output.release();
 		}

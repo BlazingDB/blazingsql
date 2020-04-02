@@ -31,7 +31,7 @@ const std::string OUTER_JOIN = "full";
 class PartwiseJoin : public PhysicalPlan {
 public:
 	PartwiseJoin(const std::string & queryString, std::shared_ptr<Context> context)
-		: expression{queryString}, context{context} {
+		: expression{queryString}, context{context}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
 		this->input_.add_port("input_a", "input_b");
 
 		SET_SIZE_THRESHOLD = 300000000;
@@ -189,8 +189,8 @@ public:
 	}
 
     virtual kstatus run() {
-		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"));
-		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"));
+		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this);
+		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this);
 
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;
@@ -230,11 +230,11 @@ public:
 			produced_output = true;
 			if (filter_statement != "") {
 				auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());					
-				this->output_cache()->addToCache(std::move(filter_table));
+				this->add_to_output_cache(std::move(filter_table));
 			} else{
 				// printf("joined table\n");
 				// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
-				this->output_cache()->addToCache(std::move(joined));
+				this->add_to_output_cache(std::move(joined));
 			}
 
 			mark_set_completed(left_ind, right_ind);
@@ -365,6 +365,8 @@ public:
 					// if we dont clone it, hashed_data will go out of scope before we get to use the partition
 					// also we need a BlazingTable to put into the cache, we cant cache views.
 					std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
+
+					// TODO: create message id and send to add add_to_output_cache
 					output->addToCache(std::move(partition_table_clone));
 				} else {
 					partitions_to_send.emplace_back(
@@ -385,8 +387,8 @@ public:
 	
 	virtual kstatus run() {
 		
-		BatchSequence left_sequence(this->input_.get_cache("input_a"));
-		BatchSequence right_sequence(this->input_.get_cache("input_b"));
+		BatchSequence left_sequence(this->input_.get_cache("input_a"), this);
+		BatchSequence right_sequence(this->input_.get_cache("input_b"), this);
 
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;
@@ -415,44 +417,47 @@ public:
 		}
 		printf("parseJoinConditionToColumnIndices\n");
 
-		std::thread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
-			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
-			std::ref(this->output_.get_cache("output_a")));
+		JoinPartitionKernel::partition_table(this->context, 
+			this->left_column_indices, std::move(left_batch), left_sequence,
+			this->output_.get_cache("output_a"));
 
 
-		std::thread t1([context = this->context, output_cache = this->output_.get_cache("output_a")](){
-			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + context->getContextCommunicationToken();
-			ExternalBatchColumnDataSequence external_input_left(context, message_token);
+		// std::thread t1([context = this->context, this](){
+			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
+			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-			printf("... consumming left\n");
+			
+			std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
 
 			while (host_table = external_input_left.next()) {	
-				output_cache->addHostFrameToCache(std::move(host_table));
+				this->add_to_output_cache(std::move(host_table), "output_a");
 			}
-		});
-		distribute_left_thread.join();
-		t1.join();
+		// });
+		// distribute_left_thread.join();
+		// t1.join();
 
 		// clone context, increment step counter to make it so that the next partition_table will have different message id
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
-		std::thread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
-			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
-			std::ref(this->output_.get_cache("output_b")));
+		JoinPartitionKernel::partition_table(cloned_context, 
+			this->right_column_indices, std::move(right_batch), right_sequence, 
+			this->output_.get_cache("output_b"));
 
 		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
-		std::thread t2([cloned_context, output_cache = this->output_.get_cache("output_b")](){
-			auto message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
+		// std::thread t2([cloned_context, this](){
+			message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
-			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-			printf("... consumming right\n");
+			// std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+
+			std::cout << "... consumming right => "<< this->get_message_id()<<std::endl;
+
 			while (host_table = external_input_right.next()) {	
-				output_cache->addHostFrameToCache(std::move(host_table));
+				this->add_to_output_cache(std::move(host_table), "output_b");
 			}
-		});
+		// });
 	
-		distribute_right_thread.join();
-		t2.join();
+		// distribute_right_thread.join();
+		// t2.join();
 		
 		// ALEX join other threads
 		

@@ -114,19 +114,19 @@ using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 template <class T>
 class message {
 public:
-	message(std::unique_ptr<T> content, size_t cache_index, size_t message_id = 0)
+	message(std::unique_ptr<T> content, size_t cache_index, std::string message_id = "")
 		: data(std::move(content)), cache_index{cache_index}, message_id(message_id) {
 	}
 
 	virtual ~message() = default;
 
-	std::size_t get_message_id() { return (message_id); }
+	std::string get_message_id() { return (message_id); }
 
 	std::unique_ptr<T> releaseData() { return std::move(data); }
 	size_t cacheIndex() { return cache_index; }
 
 protected:
-	const std::size_t message_id;
+	const std::string message_id;
 	size_t cache_index;
 	std::unique_ptr<T> data;
 };
@@ -189,7 +189,7 @@ public:
 		return not this->finished;
 	}
 
-	message_ptr get_or_wait(size_t message_id) {
+	message_ptr get_or_wait(std::string message_id) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [message_id, this] { 
 				auto result = std::any_of(this->message_queue_.cbegin(),
@@ -237,16 +237,6 @@ public:
 	}
 
 private:
-	message_ptr getWaitingQueue(const std::size_t & message_id) {
-		auto it = std::partition(message_queue_.begin(), message_queue_.end(), [&message_id](const auto & e) {
-			return e->getMessageTokenValue() != message_id;
-		});
-		assert(it != message_queue_.end());
-		message_ptr message = std::move(*it);
-		message_queue_.erase(it, it + 1);
-		return message;
-	}
-
 	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
 
 private:
@@ -271,11 +261,11 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, size_t message_id = 0);
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "");
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, size_t message_id = 0);
+	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id = "");
 
-	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table);
+	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, std::string message_id = "");
 
 	virtual void finish();
 

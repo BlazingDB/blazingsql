@@ -244,7 +244,8 @@ struct tree_processor {
 		for(int i = 0; i < level*2 ; ++i) {
 			std::cout << " ";
 		}
-		std::cout << p_tree->kernel_unit->get_id() << " | " << p_tree->expr << std::endl;
+		std::cout << std::to_string((int)p_tree->kernel_unit->get_type_id()) + "_" + std::to_string(p_tree->kernel_unit->get_id())
+							<< "  |  " << expr << std::endl;
 		for (auto &child : p_tree->children) {
 			print_tree(child.get(), level + 1);
 		}
