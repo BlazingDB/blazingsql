@@ -48,7 +48,7 @@ public:
 			this->add_to_output_cache(std::move(sortedTable), "output_a");
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
-		auto partitionPlan = ral::operators::experimental::generate_partition_plan(9 /*how many?*/, sampledTableViews, tableTotalRows, this->expression);
+		auto partitionPlan = ral::operators::experimental::generate_partition_plan(32, sampledTableViews, tableTotalRows, this->expression);
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
 ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
@@ -126,7 +126,7 @@ public:
 		size_t totalNumRows = std::accumulate(tableTotalRows.begin(), tableTotalRows.end(), 0);
 		auto concatSamples = ral::utilities::experimental::concatTables(sampledTableViews);
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
-		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(9, concatSamples->toBlazingTableView(), totalNumRows, this->expression, this->context.get());
+		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(32, concatSamples->toBlazingTableView(), totalNumRows, this->expression, this->context.get());
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		
 		return kstatus::proceed;

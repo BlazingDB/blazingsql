@@ -100,7 +100,7 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
-				cudf::size_type number_pivots, const std::vector<BlazingTableView> & samples, 
+				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples, 
 				const std::vector<std::size_t> & table_total_rows, const std::vector<cudf::order> & sortOrderTypes) {
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
@@ -120,7 +120,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 		}
 	}
 
-	return getPivotPointsTable(number_pivots, BlazingTableView(sortedSamples->view(), names));
+	return getPivotPointsTable(number_partitions, BlazingTableView(sortedSamples->view(), names));
 }
 
 void distributePartitionPlan(Context * context, const BlazingTableView & pivots) {
@@ -208,7 +208,6 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	std::vector<std::thread> threads;
-	std::cout<<">>>>>>>distributeTablePartitions total partitions "<<partitions.size()<<std::endl;
 	for (auto i = 0; i < partitions.size(); i++){
 		auto & nodeColumn = partitions[i];
 		if(nodeColumn.first == self_node) {
@@ -221,7 +220,6 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 			auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
 			Client::send(destination_node, *message);
 		}));
-		std::cout<<">>>>>>>distributeTablePartitions "<<i<<" "<<message_id<<std::endl;
 	}
 	for(size_t i = 0; i < threads.size(); i++) {
 		threads[i].join();
@@ -347,12 +345,12 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 }
 
 
-std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_pivots, const BlazingTableView & sortedSamples){
+std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partitions, const BlazingTableView & sortedSamples){
 
 	cudf::size_type outputRowSize = sortedSamples.view().num_rows();
-	cudf::size_type pivotsSize = outputRowSize > 0 ? number_pivots : 0;
+	cudf::size_type pivotsSize = outputRowSize > 0 ? number_partitions - 1 : 0;
 
-	int32_t step = outputRowSize / (number_pivots + 1);
+	int32_t step = outputRowSize / number_partitions;
 
 	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
 	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);

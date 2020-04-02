@@ -130,7 +130,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 		std::vector<size_t> total_rows_tables = samples_pair.second;
 		total_rows_tables.push_back(total_rows_table);
 
-		partitionPlan = generatePartitionPlans(context->getTotalNodes() - 1, samples, total_rows_tables, sortOrderTypes);
+		partitionPlan = generatePartitionPlans(context->getTotalNodes(), samples, total_rows_tables, sortOrderTypes);
 
 		context->incrementQuerySubstep();
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
@@ -328,7 +328,7 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	return selfSamples;
 }
 
-std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_type number_pivots, const std::vector<ral::frame::BlazingTableView> & samples, const std::vector<size_t> & total_rows_tables, const std::string & query_part){
+std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_type number_partitions, const std::vector<ral::frame::BlazingTableView> & samples, const std::vector<size_t> & total_rows_tables, const std::string & query_part){
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
@@ -342,7 +342,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_typ
 
 	// ral::utilities::print_blazing_table_view(sorted_samples->toBlazingTableView());
 
-	return generatePartitionPlans(number_pivots, samples, total_rows_tables, sortOrderTypes);
+	return generatePartitionPlans(number_partitions, samples, total_rows_tables, sortOrderTypes);
 }
 
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part) {
@@ -364,7 +364,7 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	return cudf::experimental::split(sortedTable.view(), host_pivot_indexes.first);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(cudf::size_type number_pivots, const ral::frame::BlazingTableView & selfSamples, size_t table_num_rows, const std::string & query_part, Context * context){
+std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(cudf::size_type number_partitions, const ral::frame::BlazingTableView & selfSamples, size_t table_num_rows, const std::string & query_part, Context * context){
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
@@ -381,7 +381,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(cu
 		samples.push_back(selfSamples);
 		std::vector<size_t> total_rows_tables = samples_pair.second;
 		total_rows_tables.push_back(table_num_rows);
-		partitionPlan = generatePartitionPlans(number_pivots, samples, total_rows_tables, sortOrderTypes);
+		partitionPlan = generatePartitionPlans(number_partitions, samples, total_rows_tables, sortOrderTypes);
 		context->incrementQuerySubstep();
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
 	} else {
