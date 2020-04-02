@@ -503,8 +503,8 @@ def adjust_due_to_missing_rowgroups(metadata, files):
             missing_file_inds.append(prev_group_id + 1)
         prev_group_id = group_id
 
-     missing_file_inds = list(reversed(missing_file_inds))   
-     for ind in missing_file_inds:
+    missing_file_inds = list(reversed(missing_file_inds))
+    for ind in missing_file_inds:
         mask = metadata['file_handle_index'] > ind
         metadata['file_handle_index'][mask] = metadata['file_handle_index'][mask] - 1
     
