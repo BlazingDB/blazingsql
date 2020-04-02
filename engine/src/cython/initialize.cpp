@@ -124,3 +124,10 @@ void finalize() {
 	cudaDeviceReset();
 	exit(0);
 }
+
+void blazingSetAllocator(std::string allocator, 
+	bool pool, 
+	int initial_pool_size, 
+	bool enable_logging) {
+	
+}

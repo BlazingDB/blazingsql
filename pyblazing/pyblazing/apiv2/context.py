@@ -99,7 +99,16 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                             pool=pool,
                             initial_pool_size=initial_pool_size,# Default is 1/2 total GPU memory
                             enable_logging=enable_logging)
-
+    
+    else:
+        # TODO: set_DefaultMemoryResource(BlazingMemoryResource) 
+        cio.blazingSetAllocatorCaller(
+            allocator=allocator,
+            pool=pool,
+            initial_pool_size=initial_pool_size,
+            enable_logging=enable_logging
+        )
+    
     cio.initializeCaller(
         ralId,
         0,
@@ -108,7 +117,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort,
         singleNode)
     cwd = os.getcwd()
-    # TODO: set_DefaultMemoryResource(BlazingMemoryResource) 
+    
     return ralCommunicationPort, workerIp, cwd
 
 

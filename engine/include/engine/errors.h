@@ -1,5 +1,6 @@
 void raiseInitializeError();
 void raiseFinalizeError();
+void raiseBlazingSetAllocatorError();
 void raiseRunQueryError();
 void raiseParseSchemaError();
 void raiseRegisterFileSystemHDFSError();
