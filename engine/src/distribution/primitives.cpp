@@ -207,7 +207,7 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 	const std::string message_id = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<std::thread> threads;
+	std::vector<BlazingThread> threads;
 	std::cout<<">>>>>>>distributeTablePartitions total partitions "<<partitions.size()<<std::endl;
 	for (auto i = 0; i < partitions.size(); i++){
 		auto & nodeColumn = partitions[i];
@@ -217,7 +217,7 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 		BlazingTableView columns = nodeColumn.second;
 		auto destination_node = nodeColumn.first;
 		int partition_id = static_cast<int>(i);
-		threads.push_back(std::thread([message_id, context_token, self_node, destination_node, columns, partition_id]() mutable {
+		threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns, partition_id]() mutable {
 			auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
 			Client::send(destination_node, *message);
 		}));
@@ -252,14 +252,14 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<std::thread> threads;
+	std::vector<BlazingThread> threads;
 	for(auto & nodeColumn : partitions) {
 		if(nodeColumn.first == self_node) {
 			continue;
 		}
 		BlazingTableView columns = nodeColumn.second;
 		auto destination_node = nodeColumn.first;
-		threads.push_back(std::thread([message_id, context_token, self_node, destination_node, columns]() mutable {
+		threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns]() mutable {
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
 		}));
@@ -400,10 +400,10 @@ std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
 
 void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message) {
-	std::vector<std::thread> threads(nodes.size());
+	std::vector<BlazingThread> threads(nodes.size());
 	for(size_t i = 0; i < nodes.size(); i++) {
 		Node node = nodes[i];
-		threads[i] = std::thread([node, message]() {
+		threads[i] = BlazingThread([node, message]() {
 			Client::send(node, *message);
 		});
 	}

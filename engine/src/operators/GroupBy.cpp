@@ -151,7 +151,7 @@ std::unique_ptr<ral::frame::BlazingTable> groupby_without_aggregations(Context *
 		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed groupby_without_aggregations part 1 generateSample"));
 
 		std::unique_ptr<ral::frame::BlazingTable> grouped_table;
-		std::thread groupbyThread{[](Context * context,
+		BlazingThread groupbyThread{[](Context * context,
 								const ral::frame::BlazingTableView & table,
 								const std::vector<int> & group_column_indices,
 								std::unique_ptr<ral::frame::BlazingTable> & grouped_table) {
@@ -395,7 +395,7 @@ std::unique_ptr<ral::frame::BlazingTable> aggregations_with_groupby(Context * co
 		Library::Logging::Logger().logInfo(timer.logDuration(*context, "distributed aggregations_with_groupby part 1 generateSample"));
 
 		std::unique_ptr<ral::frame::BlazingTable> grouped_table;
-		std::thread groupbyThread{[](Context * context,
+		BlazingThread groupbyThread{[](Context * context,
 								const ral::frame::BlazingTableView & table,
 								const std::vector<std::string> & aggregation_input_expressions,
 								const std::vector<AggregateKind> & aggregation_types,								

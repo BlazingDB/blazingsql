@@ -153,7 +153,7 @@ public:
 
 		std::cout<< ">>>>>> INSIDE PartitionKernel"<< std::endl;
 
-		std::thread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, this](){
+		BlazingThread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, this](){
 			BatchSequence input(input_cache);
 			while (input.wait_for_next()) {
 				auto batch = input.next();
@@ -167,7 +167,7 @@ public:
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
 		});
 		
-		std::thread consumer([this](){
+		BlazingThread consumer([this](){
 			ExternalBatchColumnDataSequence external_input(context);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			while (host_table = external_input.next()) {

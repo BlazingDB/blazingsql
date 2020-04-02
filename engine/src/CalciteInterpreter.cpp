@@ -7,7 +7,6 @@
 #include <regex>
 #include <set>
 #include <string>
-#include <thread>
 
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"

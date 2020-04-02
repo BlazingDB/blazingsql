@@ -13,7 +13,7 @@
 #include <rmm/rmm.h>
 #include <src/Traits/RuntimeTraits.h>
 #include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
-#include <thread>
+#include "blazingdb/concurrency/BlazingThread.h"
 
 void set_min_max(
 	std::vector<std::vector<int64_t>> &minmax_metadata_table,
@@ -323,11 +323,11 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	std::vector<std::vector<std::vector<int64_t>>> minmax_metadata_table_per_file(parquet_readers.size());
 
 	size_t file_index = 0;
-	std::vector<std::thread> threads(parquet_readers.size());
+	std::vector<BlazingThread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
 		// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
-		threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, 
+		threads[file_index] = BlazingThread([&guard, metadata_offset,  &parquet_readers, file_index, 
 									&minmax_metadata_table_per_file, num_metadata_cols, columns_with_metadata](){
 		  
 		std::vector<std::vector<int64_t>> this_minmax_metadata_table(num_metadata_cols);

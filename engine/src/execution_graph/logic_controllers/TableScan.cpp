@@ -16,7 +16,6 @@
 #include <regex>
 #include <set>
 #include <string>
-#include <thread>
 
 namespace ral{
 

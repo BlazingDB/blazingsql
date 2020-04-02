@@ -2,7 +2,6 @@
 
 #include <blazingdb/transport/Message.h>
 #include <blazingdb/transport/Server.h>
-#include <thread>
 
 namespace ral {
 namespace communication {
@@ -56,7 +55,6 @@ private:
 	void setEndPoints();
 
 private:
-	std::thread thread;
 	std::shared_ptr<CommServer> comm_server;
 
 private:

@@ -420,7 +420,7 @@ public:
 			std::ref(this->output_.get_cache("output_a")));
 
 
-		std::thread t1([context = this->context, output_cache = this->output_.get_cache("output_a")](){
+		BlazingThread t1([context = this->context, output_cache = this->output_.get_cache("output_a")](){
 			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_left(context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
@@ -441,7 +441,7 @@ public:
 			std::ref(this->output_.get_cache("output_b")));
 
 		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
-		std::thread t2([cloned_context, output_cache = this->output_.get_cache("output_b")](){
+		BlazingThread t2([cloned_context, output_cache = this->output_.get_cache("output_b")](){
 			auto message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;

@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <cuda_runtime.h>
 #include <memory>
-#include <thread>
 
 
 #include <blazingdb/transport/io/reader_writer.h>

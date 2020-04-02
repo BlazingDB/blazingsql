@@ -5,8 +5,6 @@
 
 #include <arrow/io/file.h>
 
-#include <thread>
-
 #include "../Schema.h"
 
 #include <cudf/table/table.hpp>

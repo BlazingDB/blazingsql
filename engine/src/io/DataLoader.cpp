@@ -11,7 +11,7 @@
 #include "utilities/StringUtils.h"
 #include <CodeTimer.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
-#include <thread>
+#include "blazingdb/concurrency/BlazingThread.h"
 #include <cudf/filling.hpp>
 #include "gdf_wrapper.cuh"
 #include "CalciteExpressionParsing.h"
@@ -75,10 +75,10 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 		file_sets[i % MAX_NUM_LOADING_THREADS].emplace_back(std::move(files[i]));
     }
 
-	std::vector<std::thread> threads;
+	std::vector<BlazingThread> threads;
 
 	for(int file_set_index = 0; file_set_index < file_sets.size(); file_set_index++) {
-		threads.push_back(std::thread([&, file_set_index]() {
+		threads.push_back(BlazingThread([&, file_set_index]() {
 			for (int file_in_set = 0; file_in_set < file_sets[file_set_index].size(); file_in_set++) {
 				int file_index = file_in_set * MAX_NUM_LOADING_THREADS + file_set_index;
 				
@@ -144,7 +144,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 			}
 		}));
 	}
-	std::for_each(threads.begin(), threads.end(), [](std::thread & this_thread) { this_thread.join(); });
+	std::for_each(threads.begin(), threads.end(), [](BlazingThread & this_thread) { this_thread.join(); });
 
 	Library::Logging::Logger().logInfo(timer.logDuration(*context, "data_loader::load_data part 1 parse"));
 	timer.reset();

@@ -3,7 +3,6 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <blazingdb/io/Util/StringUtil.h>
 #include <numeric>
-#include <thread>
 
 #include "JSONParser.h"
 #include "../Schema.h"

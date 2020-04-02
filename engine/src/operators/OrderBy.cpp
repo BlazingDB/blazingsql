@@ -12,7 +12,6 @@
 #include <functional>
 #include <iostream>
 #include <numeric>
-#include <thread>
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>
 #include <cudf/search.hpp>
@@ -97,7 +96,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	timer.reset();
 
 	std::unique_ptr<ral::frame::BlazingTable> sortedTable;
-	std::thread sortThread{[](Context * context,
+	BlazingThread sortThread{[](Context * context,
 							   const ral::frame::BlazingTableView & table,
 							   const std::vector<int> & sortColIndices,
 							   const std::vector<cudf::order> & sortOrderTypes,

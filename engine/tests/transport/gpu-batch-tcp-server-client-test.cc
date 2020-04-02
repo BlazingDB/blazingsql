@@ -14,7 +14,6 @@
 #include <memory>
 #include <numeric>
 #include <nvstrings/NVCategory.h>
-#include <thread>
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <cudf/column/column_factories.hpp>
 #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
@@ -75,7 +74,7 @@ void ExecMaster() {
 			}
 		});
 
-	std::thread([cache_machine]() {
+	BlazingThread([cache_machine]() {
 		auto table = cache_machine->pullFromCache();
 		assert(table != nullptr);
 		// auto table = ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());

@@ -14,7 +14,6 @@
 #include <memory>
 #include <numeric>
 #include <nvstrings/NVCategory.h>
-#include <thread>
 
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <cudf/column/column_factories.hpp>
@@ -57,7 +56,7 @@ static void ExecMaster() {
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
 	Server::getInstance().registerContext(context_token);
-	std::thread([]() {
+	BlazingThread([]() {
 		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
 		auto message = Server::getInstance().getMessage(context_token, message_token);
 		//TODO

@@ -14,7 +14,6 @@
 #include <queue>
 #include <src/communication/messages/GPUComponentMessage.h>
 #include <string>
-#include <thread>
 #include <typeindex>
 #include <vector>
 
@@ -535,9 +534,9 @@ private:
 
 template <typename Processor>
 void ProcessMachine<Processor>::run() {
-	std::vector<std::thread> threads;
+	std::vector<BlazingThread> threads;
 	for(int threadIndex = 0; threadIndex < numWorkers; threadIndex++) {
-		std::thread t([this, threadIndex] { this->workerThreads[threadIndex]->process(); });
+		BlazingThread t([this, threadIndex] { this->workerThreads[threadIndex]->process(); });
 		threads.push_back(std::move(t));
 	}
 	for(auto & thread : threads) {

@@ -24,7 +24,7 @@
 #include <parquet/file_reader.h>
 #include <parquet/schema.h>
 #include <parquet/types.h>
-#include <thread>
+#include "blazingdb/concurrency/BlazingThread.h"
 
 #include <parquet/column_writer.h>
 #include <parquet/file_writer.h>
@@ -200,10 +200,10 @@ void parquet_parser::parse_schema(
 
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset){
 	std::vector<size_t> num_row_groups(files.size());
-	std::thread threads[files.size()];
+	BlazingThread threads[files.size()];
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
 	for(int file_index = 0; file_index < files.size(); file_index++) {
-		threads[file_index] = std::thread([&, file_index]() {
+		threads[file_index] = BlazingThread([&, file_index]() {
 		  parquet_readers[file_index] =
 			  std::move(parquet::ParquetFileReader::Open(files[file_index]));
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
