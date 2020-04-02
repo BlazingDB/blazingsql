@@ -114,6 +114,9 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 					pq_args.row_group_count = consecutive_row_group_length[i];
 
 					auto result = cudf_io::read_parquet(pq_args);
+					if (result.tbl->num_columns() == 0){
+						return schema.makeEmptyBlazingTable(column_indices);
+					}
 					table_outs.emplace_back(std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names));
 					table_view_outs.emplace_back(table_outs.back()->toBlazingTableView());
 				}
