@@ -33,7 +33,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto fileType = fileTypes[i];
 		
 		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
-		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
+		ral::io::ReaderArgs args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
 		std::vector<cudf::type_id> types;
 		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
@@ -52,11 +52,11 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
 			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableView);
 		} else if(fileType == ral::io::DataType::ORC) {
-			parser = std::make_shared<ral::io::orc_parser>(tableSchema.args.orcReaderArg);
+			parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {
-			parser = std::make_shared<ral::io::json_parser>(tableSchema.args.jsonReaderArg);
+			parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
 		} else if(fileType == ral::io::DataType::CSV) {
-			parser = std::make_shared<ral::io::csv_parser>(tableSchema.args.csvReaderArg);
+			parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
 		} else if(fileType == ral::io::DataType::ARROW){
 	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		}

@@ -1,6 +1,5 @@
 #include "../src/gdf_wrapper/gdf_wrapper.cuh"
 #include "../src/io/DataType.h"
-#include "cudf/legacy/io_types.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -20,12 +19,6 @@ struct ResultSet {
 	bool skipdata_analysis_fail;
 };
 
-struct ReaderArgs {
-	cudf_io::read_orc_args orcReaderArg = cudf_io::read_orc_args(cudf_io::source_info(""));
-	cudf_io::read_json_args jsonReaderArg = cudf_io::read_json_args(cudf_io::source_info(""));
-	cudf_io::read_csv_args csvReaderArg = cudf_io::read_csv_args(cudf_io::source_info(""));
-};
-
 struct TableSchema {
 	ral::frame::BlazingTableView blazingTableView;
 	std::vector<cudf::type_id> types;
@@ -35,7 +28,6 @@ struct TableSchema {
 	std::vector<size_t> calcite_to_file_indices;
 	std::vector<bool> in_file;
 	int data_type;
-	ReaderArgs args;
 
 	ral::frame::BlazingTableView metadata;
 	std::vector<std::vector<int>> row_groups_ids;
@@ -79,7 +71,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
 	std::vector<std::string> arg_values,
-	std::vector<std::pair<std::string, gdf_dtype>> extra_columns);
+	std::vector<std::pair<std::string, cudf::type_id>> extra_columns);
 
 std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	std::pair<int, int> offset,

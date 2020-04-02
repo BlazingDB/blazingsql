@@ -3,7 +3,6 @@
 
 #include "CalciteExpressionParsing.h"
 #include "Traits/RuntimeTraits.h"
-#include "cudf/legacy/unary.hpp"
 #include "cudf/null_mask.hpp"
 #include "cudf/types.hpp"
 #include <cudf/filling.hpp>
