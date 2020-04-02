@@ -488,6 +488,28 @@ def resolve_relative_path(files):
             return files
     return files_out
 
+# this is to handle the cases where there is a file that does not actually have data
+# files that do not have data wont show up in the metadata and we will want to remove them from the table schema
+def adjust_due_to_missing_rowgroups(metadata, files):
+    metadata_ids = metadata[['file_handle_index', 'row_group_index']].to_pandas()
+    grouped = metadata_ids.groupby('file_handle_index')
+    new_files = []
+    missing_file_inds = []
+    prev_group_id = -1
+    for group_id in grouped.groups:
+        if group_id == prev_group_id + 1:
+            new_files.append(table.files[group_id])
+        else:
+            missing_file_inds.append(prev_group_id + 1)
+        prev_group_id = group_id
+
+     missing_file_inds = list(reversed(missing_file_inds))   
+     for ind in missing_file_inds:
+        mask = metadata['file_handle_index'] > ind
+        metadata['file_handle_index'][mask] = metadata['file_handle_index'][mask] - 1
+    
+    return metadata, new_files    
+
 
 class BlazingTable(object):
     def __init__(
@@ -883,6 +905,13 @@ class BlazingContext(object):
                     table.metadata = mergeMetadata(table, parsedMetadata, table.metadata)
                 else:
                     table.metadata = parsedMetadata
+
+                # lets make sure that the number of files from the metadata actually matches the number of files.
+                # this is to handle the cases where there is a file that does not actually have data
+                # files that do not have data wont show up in the metadata and we will want to remove them from the table schema
+                if len(table.metadata.groupby('file_handle_index')) != len(table.files):
+                    table.metadata, table.files = adjust_due_to_missing_rowgroups(table.metadata, table.files)
+
                 # now lets get the row_groups_ids from the metadata
                 metadata_ids = table.metadata[['file_handle_index', 'row_group_index']].to_pandas()
                 grouped = metadata_ids.groupby('file_handle_index')
