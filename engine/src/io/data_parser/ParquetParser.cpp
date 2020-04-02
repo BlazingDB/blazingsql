@@ -62,13 +62,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 	if(file == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
 	}
-	
-	auto parquet_reader = parquet::ParquetFileReader::Open(file);
-	if (parquet_reader->metadata()->num_row_groups() == 0) {
-		parquet_reader->Close();
-		return schema.makeEmptyBlazingTable(column_indices);
-	}
-	
+		
 	if(column_indices.size() > 0) {
 		// Fill data to pq_args
 		cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
@@ -108,6 +102,9 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 				pq_args.row_group_count = consecutive_row_group_length[0];
 
 				auto result = cudf_io::read_parquet(pq_args);
+				if (result.tbl->num_columns() == 0){
+					return schema.makeEmptyBlazingTable(column_indices);
+				}
 				return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 			} else {
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> table_outs;
@@ -133,12 +130,6 @@ void parquet_parser::parse_schema(
 
 	cudf_io::table_with_metadata table_out;
 	for (auto file : files) {
-		auto parquet_reader = parquet::ParquetFileReader::Open(file);
-		if (parquet_reader->metadata()->num_rows() == 0) {
-			parquet_reader->Close();
-			continue;
-		}
-		
 		cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
 		pq_args.strings_to_categorical = false;
 		pq_args.row_group = 0;

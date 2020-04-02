@@ -292,7 +292,9 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		break;
 	}
 	
-	// TODO percy william alex assert here valid_parquet_reader > 0
+	if (valid_parquet_reader == -1){
+		return nullptr;
+	}
 	
 	std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[valid_parquet_reader]->metadata();
 		
@@ -344,38 +346,41 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, 
 									&minmax_metadata_table_per_file, num_metadata_cols, columns_with_metadata](){
 		  
-		std::vector<std::vector<int64_t>> this_minmax_metadata_table(num_metadata_cols);
 		std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 
-		int num_row_groups = file_metadata->num_row_groups();
-		const parquet::SchemaDescriptor *schema = file_metadata->schema();
+		if (file_metadata->num_row_groups() > 0){
+			std::vector<std::vector<int64_t>> this_minmax_metadata_table(num_metadata_cols);
 
-		for (int row_group_index = 0; row_group_index < num_row_groups; row_group_index++) {
-			auto groupReader = parquet_readers[file_index]->RowGroup(row_group_index);
-			auto *rowGroupMetadata = groupReader->metadata();
-			for (int col_count = 0; col_count < columns_with_metadata.size();
-				col_count++) {
-				const parquet::ColumnDescriptor *column = schema->Column(columns_with_metadata[col_count]);
-				auto columnMetaData = rowGroupMetadata->ColumnChunk(columns_with_metadata[col_count]);
-				if (columnMetaData->is_stats_set()) {
-					auto statistics = columnMetaData->statistics();
-					if (statistics->HasMinMax()) {
-						set_min_max(this_minmax_metadata_table,
-						col_count * 2,
-									column->physical_type(),
-									column->converted_type(),
-									statistics);
-						
+			int num_row_groups = file_metadata->num_row_groups();
+			const parquet::SchemaDescriptor *schema = file_metadata->schema();
+
+			for (int row_group_index = 0; row_group_index < num_row_groups; row_group_index++) {
+				auto groupReader = parquet_readers[file_index]->RowGroup(row_group_index);
+				auto *rowGroupMetadata = groupReader->metadata();
+				for (int col_count = 0; col_count < columns_with_metadata.size();
+					col_count++) {
+					const parquet::ColumnDescriptor *column = schema->Column(columns_with_metadata[col_count]);
+					auto columnMetaData = rowGroupMetadata->ColumnChunk(columns_with_metadata[col_count]);
+					if (columnMetaData->is_stats_set()) {
+						auto statistics = columnMetaData->statistics();
+						if (statistics->HasMinMax()) {
+							set_min_max(this_minmax_metadata_table,
+							col_count * 2,
+										column->physical_type(),
+										column->converted_type(),
+										statistics);
+							
+						}
 					}
 				}
+				this_minmax_metadata_table[this_minmax_metadata_table.size() - 2].push_back(metadata_offset + file_index);
+				this_minmax_metadata_table[this_minmax_metadata_table.size() - 1].push_back(row_group_index);			  
 			}
-			this_minmax_metadata_table[this_minmax_metadata_table.size() - 2].push_back(metadata_offset + file_index);
-			this_minmax_metadata_table[this_minmax_metadata_table.size() - 1].push_back(row_group_index);			  
+			
+			guard.lock();
+			minmax_metadata_table_per_file[file_index] = std::move(this_minmax_metadata_table);
+			guard.unlock();
 		}
-		
-		guard.lock();
-		minmax_metadata_table_per_file[file_index] = std::move(this_minmax_metadata_table);
-		guard.unlock();
 		});
 	}
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
@@ -383,7 +388,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	}
 
 	std::vector<std::vector<int64_t>> minmax_metadata_table = minmax_metadata_table_per_file[valid_parquet_reader];
-	for (size_t i = 1; i < 	minmax_metadata_table_per_file.size(); i++) {
+	for (size_t i = valid_parquet_reader + 1; i < 	minmax_metadata_table_per_file.size(); i++) {
 		for (size_t j = 0; j < 	minmax_metadata_table_per_file[i].size(); j++) {
 			std::copy(minmax_metadata_table_per_file[i][j].begin(), minmax_metadata_table_per_file[i][j].end(), std::back_inserter(minmax_metadata_table[j]));
 		}

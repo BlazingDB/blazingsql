@@ -128,10 +128,10 @@ Schema Schema::fileSchema(size_t current_file_index) const {
 		}
 	}
 	// Just get the associated row_groups for current_file_index
-	//if (this->row_groups_ids.size() > current_file_index){
-		//schema.row_groups_ids.push_back(this->row_groups_ids.at(current_file_index));
+	if (this->row_groups_ids.size() > current_file_index){
+		schema.row_groups_ids.push_back(this->row_groups_ids.at(current_file_index));
 		schema.row_groups_ids = this->row_groups_ids;
-	//}
+	}
 	return schema;
 }
 
