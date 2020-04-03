@@ -12,7 +12,6 @@
 
 #include "any.h"
 #include "column.h"
-#include "gdf_wrapper/gdf_wrapper.cuh"
 #include "hd.h"
 #include "vector.h"
 

@@ -265,8 +265,20 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
     return algebra
 
 
+def get_uri_values(files, partitions, base_folder):
+    base_folder = base_folder + '/'
+    uri_values = []
+    for file in files:
+        file_dir = os.path.dirname(file.decode())
+        partition_name = file_dir.replace(base_folder,'')
+        if partition_name in partitions:
+            uri_values.append(partitions[partition_name])
+        else:
+            print("ERROR: Could not get partition values for file: " + file.decode())
+    return uri_values
+        
 
-def parseHiveMetadata(curr_table, partitions):
+def parseHiveMetadata(curr_table, uri_values):
     metadata = {}
     names = []
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
@@ -282,21 +294,24 @@ def parseHiveMetadata(curr_table, partitions):
     names.append('row_group_index') 
     minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
     table_partition = {}
-    for file_index, partition_name  in enumerate(partitions):
-        curr_partition = partitions[partition_name]
-        for index, [col_name, col_value_id] in enumerate(curr_partition):
-            if(dtypes[index] == np.dtype("object")):
+    for file_index, uri_value in enumerate(uri_values):
+        curr_partition = uri_values
+        for index, [col_name, col_value_id] in enumerate(uri_value):
+            if col_name in columns:
+                col_index = columns.index(col_name)
+            else:
+                print("ERROR: could not find partition column name " + str(col_name) + " in table names")
+            if(dtypes[col_index] == np.dtype("object")):
                 np_col_value = col_value_id
-            elif(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
+            elif(dtypes[col_index] == np.dtype("datetime64[s]") or dtypes[col_index] == np.dtype("datetime64[ms]") or dtypes[col_index] == np.dtype("datetime64[us]") or dtypes[col_index] == np.dtype("datetime64[ns]")):
                 np_col_value = np.datetime64(col_value_id)
             else:
-                np_col_value = np.fromstring(col_value_id, dtypes[index], sep=' ')[0]
+                np_col_value = np.fromstring(col_value_id, dtypes[col_index], sep=' ')[0]
             
             table_partition.setdefault(col_name, []).append(np_col_value)
         minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
-        # TODO this assumes that you only have one row group per partitioned file. This should be addressed in the mergeMetadata function, 
+        # this assumes that you only have one row group per partitioned file but is addressed in the mergeMetadata function, 
         # where you will have information about how many rowgroups per file and you can expand the hive metadata accordingly
-        # until this is fixed, if a partition has more than one rowgroup, the mergeMetadata function will throw an error
         minmax_metadata_table[len(minmax_metadata_table) - 1].append(0) # this is the rowgroup index
     for index in range(n_cols):
         col_name = columns[index]
@@ -331,7 +346,7 @@ def parseHiveMetadata(curr_table, partitions):
 def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     
     if fileMetadata.shape[0] != hiveMetadata.shape[0]:
-        print('ERROR: number of rows from fileMetadata does not match hiveMetadata')
+        print('ERROR: number of rows from fileMetadata: ' + str(fileMetadata.shape[0]) + ' does not match hiveMetadata: ' + str(hiveMetadata.shape[0]))
         return hiveMetadata 
 
     if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
@@ -538,6 +553,11 @@ class BlazingTable(object):
             self.column_names = [x for x in input.columns]
             self.column_types = [np_to_cudf_types[x] for x in input.dtypes]
 
+        # file_column_names are usually the same as column_names, except for when 
+        # in a hive table the column names defined by the hive schema 
+        # are different that the names in actual files
+        self.file_column_names = self.column_names 
+
     def has_metadata(self) :
         if isinstance(self.metadata, dask_cudf.core.DataFrame):
             return not self.metadata.compute().empty
@@ -596,6 +616,7 @@ class BlazingTable(object):
                                 in_file=self.in_file)
             bt.offset = (startIndex, batchSize)
             bt.column_names = self.column_names
+            bt.file_column_names = self.file_column_names
             bt.column_types = self.column_types
             nodeFilesList.append(bt)
             
@@ -764,7 +785,6 @@ class BlazingContext(object):
     def create_table(self, table_name, input, **kwargs):
         table = None
         extra_columns = []
-        uri_values = []
         file_format_hint = kwargs.get(
             'file_format', 'undefined')  # See datasource.file_format
         extra_kwargs = {}
@@ -773,8 +793,9 @@ class BlazingContext(object):
         partitions = {}
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
-            folder_list, uri_values, file_format_hint, extra_kwargs, extra_columns, in_file, partitions = get_hive_table(
-                input, hive_table_name)
+            hive_database_name = kwargs.get('hive_database_name', 'default')
+            folder_list, file_format_hint, extra_kwargs, extra_columns, in_file, hive_schema = get_hive_table(
+                input, hive_table_name, hive_database_name)
 
             kwargs.update(extra_kwargs)
             input = folder_list
@@ -810,7 +831,12 @@ class BlazingContext(object):
 
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns)
-            
+
+            if is_hive_input: 
+                uri_values = get_uri_values(parsedSchema['files'], hive_schema['partitions'], hive_schema['location'])
+            else:
+                uri_values = []
+
             file_type = parsedSchema['file_type']
             table = BlazingTable(
                 parsedSchema['files'],
@@ -822,12 +848,28 @@ class BlazingContext(object):
                 uri_values=uri_values,
                 in_file=in_file)
 
-            table.column_names = parsedSchema['names']
-            table.column_types = parsedSchema['types']
+            if is_hive_input:
+                table.column_names = hive_schema['column_names'] # table.column_names are the official schema column_names
+                table.file_column_names = parsedSchema['names'] # table.file_column_names are the column_names used by the file (may be different)
+                merged_types = []
+                if len(hive_schema['column_types']) == len(parsedSchema['types']):
+                    for i in range(len(parsedSchema['types'])):
+                        if parsedSchema['types'][i] == 0:  # if the type parsed from the file is 0 we want to use the one from Hive
+                            merged_types.append(hive_schema['column_types'][i])
+                        else:
+                            merged_types.append(parsedSchema['types'][i])
+                else:
+                    print("ERROR: number of hive_schema columns does not match number of parsedSchema columns")
+                
+                table.column_types = merged_types
+            else:
+                table.column_names = parsedSchema['names'] # table.column_names are the official schema column_names
+                table.file_column_names = parsedSchema['names'] # table.file_column_names are the column_names used by the file (may be different 
+                table.column_types = parsedSchema['types']
             
             table.slices = table.getSlices(len(self.nodes))
             if is_hive_input and len(extra_columns) > 0:
-                parsedMetadata = parseHiveMetadata(table, partitions)
+                parsedMetadata = parseHiveMetadata(table, uri_values) 
                 table.metadata = parsedMetadata                
 
             if parsedSchema['file_type'] == DataType.PARQUET :
@@ -948,7 +990,7 @@ class BlazingContext(object):
         file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
-        
+
         if not skipdata_analysis_fail:            
             actual_files = []
             uri_values = []
@@ -977,6 +1019,7 @@ class BlazingContext(object):
                                 row_groups_ids=row_groups_ids,
                                 in_file=current_table.in_file)
                 bt.column_names = current_table.column_names
+                bt.file_column_names = current_table.file_column_names
                 bt.column_types = current_table.column_types
                 nodeFilesList.append(bt)
 
@@ -993,6 +1036,7 @@ class BlazingContext(object):
                                 row_groups_ids=all_sliced_row_groups_ids[i],
                                 in_file=current_table.in_file)
                     bt.column_names = current_table.column_names
+                    bt.file_column_names = current_table.file_column_names
                     bt.column_types = current_table.column_types
                     nodeFilesList.append(bt)
             return nodeFilesList
