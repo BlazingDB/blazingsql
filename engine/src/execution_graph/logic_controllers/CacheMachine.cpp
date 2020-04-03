@@ -111,9 +111,10 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 						std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 					this->waitingCache->put(std::move(item));
 				} else if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE) {
-					std::thread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
+					BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
 					  std::unique_ptr<message<CacheData>> item =
 						  std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
+					  
 					  this->waitingCache->put(std::move(item));
 					  // NOTE: Wait don't kill the main process until the last thread is finished!
 					});
@@ -160,7 +161,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 						std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 					this->waitingCache->put(std::move(item));
 				} else if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE) {
-					std::thread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
+					BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
 					  auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table));
 					  std::unique_ptr<message<CacheData>> item =
 						  std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);

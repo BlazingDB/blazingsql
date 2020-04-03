@@ -52,9 +52,26 @@ public:
 
 	void throwException();
 
-private:
+protected:
 	std::thread thread;
 	std::shared_ptr<BlazingExceptionHolder> exceptionHolder;
+};
+
+class BlazingMutableThread : public BlazingThread{
+public:
+	template <class Args>
+	explicit BlazingMutableThread(Args && args) {
+		auto holder = std::make_shared<BlazingExceptionHolder>();
+		this->exceptionHolder = holder;
+
+		this->thread = std::thread([holder, &args ]() mutable {
+			try {
+				args();
+			} catch(...) {
+				holder->setException(std::current_exception());
+			}
+		});
+	}
 };
 
 #endif /* BLAZINGTHREAD_H_ */
