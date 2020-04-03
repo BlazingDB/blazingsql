@@ -762,6 +762,12 @@ class BlazingContext(object):
         user : string of the HDFS User on your NameNode.
         kerb_ticket (optional) : string file path to your ticket for kerberos authentication.
         
+        You may also need to set the following environment variables to properly interface with HDFS.
+        HADOOP_HOME: the root of your installed Hadoop distribution. 
+        JAVA_HOME: the location of your Java SDK installation (should point to CONDA_PREFIX).
+        ARROW_LIBHDFS_DIR: explicit location of libhdfs.so if not installed at $HADOOP_HOME/lib/native.
+        CLASSPATH: must contain the Hadoop jars.
+        
         Examples
         --------
 
@@ -876,7 +882,7 @@ class BlazingContext(object):
         >>>         SELECT b.* 
         >>>         FROM taxi_2 as b 
         >>>             WHERE b.fare_amount < 100 OR b.passenger_count <> 4
-                        '''
+        >>>             '''
         >>> plan = bc.explain(query)
         >>> print(plan)     
         LogicalUnion(all=[true])
@@ -922,9 +928,23 @@ class BlazingContext(object):
         
         table_name : string of table name.
         input : data source for table.
+                cudf.Dataframe, dask_cudf.DataFrame, pandas.DataFrame, filepath for csv, orc, parquet, etc...
         
         Examples
         --------
+        
+        Create table from cudf.DataFrame:
+        
+        >>> import cudf
+        >>> df = cudf.DataFrame()
+        >>> df['a'] = [6, 9, 1, 6, 2]
+        >>> df['b'] = [7, 2, 7, 1, 2]
+
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        BlazingContext ready
+        >>> bc.create_table('sample_df', df)
+        <pyblazing.apiv2.context.BlazingTable at 0x7f22f58371d0>
 
         Create table from local file in 'data' directory:
         
@@ -1288,7 +1308,7 @@ class BlazingContext(object):
         ----------
         
         sql : string of SQL query.
-        algebra (optional) : string of SQL algebra plan.
+        algebra (optional) : string of SQL algebra plan. if you used, sql string is not used.
         
         Examples
         --------
