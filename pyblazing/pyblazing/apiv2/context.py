@@ -498,7 +498,7 @@ def adjust_due_to_missing_rowgroups(metadata, files):
     prev_group_id = -1
     for group_id in grouped.groups:
         if group_id == prev_group_id + 1:
-            new_files.append(table.files[group_id])
+            new_files.append(files[group_id])
         else:
             missing_file_inds.append(prev_group_id + 1)
         prev_group_id = group_id
@@ -909,7 +909,8 @@ class BlazingContext(object):
                 # lets make sure that the number of files from the metadata actually matches the number of files.
                 # this is to handle the cases where there is a file that does not actually have data
                 # files that do not have data wont show up in the metadata and we will want to remove them from the table schema
-                if len(table.metadata.groupby('file_handle_index')) != len(table.files):
+                file_groups = table.metadata.groupby('file_handle_index')._grouped()
+                if len(file_groups) != len(table.files):
                     table.metadata, table.files = adjust_due_to_missing_rowgroups(table.metadata, table.files)
 
                 # now lets get the row_groups_ids from the metadata
