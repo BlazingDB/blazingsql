@@ -112,6 +112,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${CMAKE_SOURCE_DIR}/src/io/Schema.cpp
+              ${CMAKE_SOURCE_DIR}/src/io/data_parser/DataParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/JSONParser.cpp
