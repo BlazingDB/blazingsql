@@ -1,6 +1,5 @@
 include_directories(
-    ${CMAKE_SOURCE_DIR}/thirdparty/jitify
-    ${CMAKE_SOURCE_DIR}/src/gdf_wrapper)
+    ${CMAKE_SOURCE_DIR}/thirdparty/jitify)
 
 set(source_files
     ${CMAKE_SOURCE_DIR}/src/Config/Config.cpp
