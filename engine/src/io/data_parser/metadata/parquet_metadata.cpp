@@ -14,6 +14,38 @@
 #include <src/Traits/RuntimeTraits.h>
 #include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
 #include <thread>
+#include <cudf/column/column_factories.hpp>
+
+std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::string> col_names) {
+	const int ncols = col_names.size();
+	std::vector<std::string> metadata_col_names;
+	metadata_col_names.resize(ncols*2 + 2);
+	
+	int metadata_col_index = -1;
+	for (int colIndex = 0; colIndex < ncols; ++colIndex){
+		std::string col_name = col_names[colIndex];
+		auto col_name_min = "min_" + std::to_string(colIndex) + "_" + col_name;
+		auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + col_name;
+		
+		metadata_col_names[++metadata_col_index] = col_name_min;
+		metadata_col_names[++metadata_col_index] = col_name_max;
+	}
+
+	metadata_col_names[++metadata_col_index] = "file_handle_index";
+	metadata_col_names[++metadata_col_index] = "row_group_index";
+	
+	std::vector<std::unique_ptr<cudf::column>> minmax_metadata_gdf_table;
+	minmax_metadata_gdf_table.resize(metadata_col_names.size());
+	for (int i = 0; i < metadata_col_names.size(); ++i) {
+		std::unique_ptr<cudf::column> empty = cudf::make_empty_column(cudf::data_type(cudf::type_id::INT32));
+		minmax_metadata_gdf_table[i] = std::move(empty);
+	}
+	
+	auto cudf_metadata_table = std::make_unique<cudf::experimental::table>(std::move(minmax_metadata_gdf_table));
+	auto metadata_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_metadata_table), metadata_col_names);
+
+	return metadata_table;
+}
 
 void set_min_max(
 	std::vector<std::vector<int64_t>> &minmax_metadata_table,
@@ -293,7 +325,14 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	}
 	
 	if (valid_parquet_reader == -1){
-		return nullptr;
+		const int ncols = parquet_readers[0]->metadata()->schema()->num_columns();
+		std::vector<std::string> col_names;
+		col_names.resize(ncols);
+		for (int i =0; i < ncols; ++i) {
+			col_names[i] = parquet_readers[0]->metadata()->schema()->Column(i)->name();
+		}
+		
+		return makeMetadataTable(col_names);
 	}
 	
 	std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[valid_parquet_reader]->metadata();
