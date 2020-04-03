@@ -13,7 +13,6 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <thread>
 #include <cudf/filling.hpp>
-#include "gdf_wrapper.cuh"
 #include "CalciteExpressionParsing.h"
 
 namespace ral {
@@ -193,7 +192,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 }
 
 
-void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns) {
+void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, cudf::type_id>> non_file_columns) {
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
 	bool firstIteration = true;
 	std::vector<data_handle> handles = this->provider->get_all();
@@ -207,7 +206,7 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	}
 
 	for(auto extra_column : non_file_columns) {
-		schema.add_column(extra_column.first, to_type_id(extra_column.second), 0, false);
+		schema.add_column(extra_column.first, extra_column.second, 0, false);
 	}
 	this->provider->reset();
 }

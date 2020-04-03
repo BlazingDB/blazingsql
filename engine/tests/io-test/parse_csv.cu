@@ -16,7 +16,6 @@
 #include "io/data_provider/UriDataProvider.h"
 #include <DataFrame.h>
 #include <fstream>
-#include <gdf_wrapper/gdf_wrapper.cuh>
 
 #include <GDFColumn.cuh>
 

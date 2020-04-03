@@ -10,7 +10,6 @@
 
 #include "cudf/legacy/binaryop.hpp"
 #include "cudf/types.h"
-#include "gdf_wrapper/gdf_wrapper.cuh"
 #include "parser/expression_utils.hpp"
 #include <string>
 #include <vector>
