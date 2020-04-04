@@ -52,6 +52,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	std::vector<data_handle> files;
 
 	// iterates through files and parses them into columns
+	this->provider->reset();
 	while(this->provider->has_next()) {
 		// a file handle that we can use in case errors occur to tell the user which file had parsing issues
 		user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
@@ -216,9 +217,11 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 
 	bool firstIteration = true;
 	std::vector<data_handle> handles = this->provider->get_all();
+
 	for(auto handle : handles) {
 		files.push_back(handle.fileHandle);
 	}
+	this->provider->reset();
 	return this->parser->get_metadata(files,  offset);
 }
 

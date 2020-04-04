@@ -497,7 +497,7 @@ def adjust_due_to_missing_rowgroups(metadata, files):
     missing_file_inds = []
     prev_group_id = -1
     for group_id in grouped.groups:
-        if group_id == prev_group_id + 1:
+        if group_id != -1:
             new_files.append(files[group_id])
         else:
             missing_file_inds.append(prev_group_id + 1)
@@ -507,8 +507,7 @@ def adjust_due_to_missing_rowgroups(metadata, files):
     for ind in missing_file_inds:
         mask = metadata['file_handle_index'] > ind
         metadata['file_handle_index'][mask] = metadata['file_handle_index'][mask] - 1
-    
-    return metadata, new_files    
+    return metadata, new_files
 
 
 class BlazingTable(object):

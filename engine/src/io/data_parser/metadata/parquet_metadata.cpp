@@ -15,6 +15,7 @@
 #include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
 #include <thread>
 #include <cudf/column/column_factories.hpp>
+#include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
 
 std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::string> col_names) {
 	const int ncols = col_names.size();
@@ -37,8 +38,9 @@ std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::str
 	std::vector<std::unique_ptr<cudf::column>> minmax_metadata_gdf_table;
 	minmax_metadata_gdf_table.resize(metadata_col_names.size());
 	for (int i = 0; i < metadata_col_names.size(); ++i) {
-		std::unique_ptr<cudf::column> empty = cudf::make_empty_column(cudf::data_type(cudf::type_id::INT32));
-		minmax_metadata_gdf_table[i] = std::move(empty);
+		//std::unique_ptr<cudf::column> empty = cudf::make_empty_column(cudf::data_type(cudf::type_id::INT32));
+		cudf::test::fixed_width_column_wrapper<int32_t> expected_col2{{(int32_t)-1}};
+		minmax_metadata_gdf_table[i] = expected_col2.release();
 	}
 	
 	auto cudf_metadata_table = std::make_unique<cudf::experimental::table>(std::move(minmax_metadata_gdf_table));
@@ -331,7 +333,6 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		for (int i =0; i < ncols; ++i) {
 			col_names[i] = parquet_readers[0]->metadata()->schema()->Column(i)->name();
 		}
-		
 		return makeMetadataTable(col_names);
 	}
 	
