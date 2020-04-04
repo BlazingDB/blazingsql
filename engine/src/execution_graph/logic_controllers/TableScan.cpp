@@ -48,7 +48,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_table_scan(
     if(projections.size() == 0 && aliases_string_split.size() == 1) {
         projections.push_back(0);
     }
-	std::unique_ptr<ral::frame::BlazingTable> input_table = input_loader.load_data(queryContext, projections, schema);
+	std::unique_ptr<ral::frame::BlazingTable> input_table = input_loader.load_data(queryContext, projections, schema, "");
 
     std::vector<std::string> col_names = input_table->names();
 
