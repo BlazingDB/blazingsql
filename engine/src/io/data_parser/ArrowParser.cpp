@@ -7,6 +7,8 @@
 
 #include "ArrowParser.h"
 
+#include <iostream>
+
 #include "arrow/api.h"
 #include "arrow/array.h"
 #include "arrow/table.h"

@@ -9,7 +9,7 @@
 #include "arrow/io/interfaces.h"
 
 #include "cudf.h"
-#include "../../include/io/io.h"
+#include "io/io.h"
 #include <arrow/table.h>
 
 #include <cudf/io/functions.hpp>

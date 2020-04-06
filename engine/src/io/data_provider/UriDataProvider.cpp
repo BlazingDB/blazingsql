@@ -84,7 +84,11 @@ data_handle uri_data_provider::get_next() {
 		data_handle handle;
 		handle.uri = this->directory_uris[this->directory_current_file];
 		if(this->uri_values.size() != 0) {
-			handle.column_values = this->uri_values[this->current_file];
+			if(this->uri_values.size() > this->current_file) {
+				handle.column_values = this->uri_values[this->current_file];
+			} else {
+				std::cout<<"ERROR: Out of range error. this->uri_values.size() is "<<this->uri_values.size()<<" this->current_file is "<<this->current_file<<std::endl;
+			}
 		}
 
 		this->opened_files.push_back(file);
@@ -149,13 +153,11 @@ data_handle uri_data_provider::get_next() {
 			}
 
 			std::string ender = ".crc";
-			std::string hive_copies = "_copy_";
 			std::vector<Uri> new_uris;
 			for(int i = 0; i < this->directory_uris.size(); i++) {
 				std::string fileName = this->directory_uris[i].getPath().toString();
 
-				if(!StringUtil::endsWith(fileName, ender) && !StringUtil::contains(fileName, hive_copies)) {
-					//  std::cout<<" orig is "<<fileName<<std::endl;
+				if(!StringUtil::endsWith(fileName, ender)) { 
 					new_uris.push_back(this->directory_uris[i]);
 				}
 			}
@@ -173,7 +175,11 @@ data_handle uri_data_provider::get_next() {
 			handle.uri = current_uri;
 			handle.fileHandle = file;
 			if(this->uri_values.size() != 0) {
-				handle.column_values = this->uri_values[this->current_file];
+				if(this->uri_values.size() > this->current_file) {
+					handle.column_values = this->uri_values[this->current_file];
+				} else {
+					std::cout<<"ERROR: Out of range error. this->uri_values.size() is "<<this->uri_values.size()<<" this->current_file is "<<this->current_file<<std::endl;
+				}
 			}
 
 			this->current_file++;
