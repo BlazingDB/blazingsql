@@ -2,9 +2,9 @@
 #define GDF_UTILS_H
 
 #include <cudf/utilities/error.hpp>
-#include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
+#include <utilities/legacy/error_utils.hpp>
 #include <cudf/cudf.h>
-#include <from_cudf/cpp_src/bitmask/legacy/bitmask_ops.hpp>
+#include <bitmask/legacy/bitmask_ops.hpp>
 #include <cudf/legacy/bitmask.hpp>
 
 #include <cuda_runtime_api.h>
@@ -94,14 +94,6 @@ inline gdf_error soa_col_info(gdf_column const* const* cols, size_t ncols, void*
 	return GDF_SUCCESS;
 }
 
-
-inline bool isPtrManaged(cudaPointerAttributes attr) {
-#if CUDART_VERSION >= 10000
-    return (attr.type == cudaMemoryTypeManaged);
-#else
-    return attr.isManaged;
-#endif
-}
 
 inline bool isDeviceType(cudaPointerAttributes attrib) {
 #if CUDART_VERSION >= 10000

@@ -179,7 +179,7 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	}
 	if(type_id == cudf::type_id::BOOL8) {
 		auto ret = cudf::make_numeric_scalar(type);
-		using T = cudf::experimental::bool8;
+		using T = bool;
 		using ScalarType = cudf::experimental::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(scalar_string == "true"));
 		return ret;

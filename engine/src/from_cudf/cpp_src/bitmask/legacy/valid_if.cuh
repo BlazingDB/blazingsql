@@ -19,9 +19,9 @@
 
 #include <cudf/types.h>
 #include <cudf/utilities/error.hpp>
-#include <from_cudf/cpp_src/utilities/legacy/bit_util.cuh>
-#include <from_cudf/cpp_src/utilities/legacy/cuda_utils.hpp>
-#include <from_cudf/cpp_src/bitmask/legacy/bit_mask.cuh>
+#include <utilities/legacy/bit_util.cuh>
+#include <utilities/legacy/cuda_utils.hpp>
+#include <bitmask/legacy/bit_mask.cuh>
 
 #include <cub/cub.cuh>
 

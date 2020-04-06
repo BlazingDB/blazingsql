@@ -743,11 +743,11 @@ public:
 //				std::cout<< "PIVOTS indices: " <<std::endl;
 //				cudf::test::print(pivot_indexes->view());
 //				std::cout << std::endl;
-				
-				auto host_pivot_col = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
-				auto host_pivot_indexes = host_pivot_col.first;
 
-				auto partitioned_data = cudf::experimental::split(partitions[i]->view(), host_pivot_indexes);
+				std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
+				CUDA_TRY(cudaMemcpy(host_data.data(), pivot_indexes->view().data<cudf::size_type>(), pivot_indexes->view().size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
+
+				auto partitioned_data = cudf::experimental::split(partitions[i]->view(), host_data);
 
 				// std::cout<< ">>>>>> TOTAL PARTITIONS : " << partitioned_data.size() << std::endl;
 				std::string cache_id = "output_" + std::to_string(i);
@@ -938,11 +938,11 @@ public:
 				// std::cout<< "PIVOTS indices: " <<std::endl;
 				// cudf::test::print(pivot_indexes->view());
 				// std::cout << std::endl;
-				
-				auto host_pivot_col = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
-				auto host_pivot_indexes = host_pivot_col.first;
 
-				auto partitioned_data = cudf::experimental::split(partitions[i]->view(), host_pivot_indexes);
+				std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
+				CUDA_TRY(cudaMemcpy(host_data.data(), pivot_indexes->view().data<cudf::size_type>(), pivot_indexes->view().size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
+
+				auto partitioned_data = cudf::experimental::split(partitions[i]->view(), host_data);
 
 				// std::cout<< ">>>>>> TOTAL PARTITIONS : " << partitioned_data.size() << std::endl;
 				std::string cache_id = "output_" + std::to_string(i);

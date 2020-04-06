@@ -1,11 +1,11 @@
-#include <from_cudf/cpp_src/bitmask/legacy/bit_mask.cuh>
+#include <bitmask/legacy/bit_mask.cuh>
 #include <cudf/legacy/table.hpp>
-#include <from_cudf/cpp_src/bitmask/legacy/legacy_bitmask.hpp>
+#include <bitmask/legacy/legacy_bitmask.hpp>
 #include <cudf/cudf.h>
 #include <cudf/legacy/functions.h>
 #include <rmm/rmm.h>
 #include <rmm/thrust_rmm_allocator.h>
-#include <from_cudf/cpp_src/utilities/legacy/cudf_utils.h>
+#include <utilities/legacy/cudf_utils.h>
 #include <cudf/utilities/error.hpp>
 
 #include <cuda_runtime.h>

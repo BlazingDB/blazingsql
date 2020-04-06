@@ -20,14 +20,14 @@
 #include <cudf/cudf.h>
 #include <cudf/legacy/functions.h>
 #include <cudf/types.h>
-#include <from_cudf/cpp_src/bitmask/legacy/bit_mask.cuh>
-#include <from_cudf/cpp_src/utilities/legacy/cudf_utils.h>
-#include <from_cudf/cpp_src/utilities/legacy/column_utils.hpp>
+#include <bitmask/legacy/bit_mask.cuh>
+#include <utilities/legacy/cudf_utils.h>
+#include <utilities/legacy/column_utils.hpp>
 
 #include <cudf/utilities/legacy/nvcategory_util.hpp>
-#include <from_cudf/cpp_tests/utilities/legacy/cudf_test_utils.cuh>
-#include <from_cudf/cpp_tests/utilities/legacy/cudf_test_fixtures.h>
-#include <from_cudf/cpp_tests/utilities/legacy/nvcategory_utils.cuh>
+#include <tests/utilities/legacy/cudf_test_utils.cuh>
+#include <tests/utilities/legacy/cudf_test_fixtures.h>
+#include <tests/utilities/legacy/nvcategory_utils.cuh>
 
 #include <nvstrings/NVCategory.h>
 #include <nvstrings/NVStrings.h>
