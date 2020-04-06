@@ -1,6 +1,6 @@
 #include "GDFColumn.cuh"
 #include "GDFCounter.cuh"
-#include "gdf_wrapper/utilities/bit_util.cuh"
+#include "from_cudf/cpp_src/utilities/legacy/bit_util.cuh"
 #include "gtest/gtest.h"
 
 namespace {
@@ -78,7 +78,7 @@ TEST_F(GdfColumnCppTest, AssignOperatorInGdfCounter) {
 // void gdf_column_cpp::create_gdf_column(gdf_dtype type,
 //                                        size_t num_values,
 //                                        void * input_data,
-//                                        gdf_valid_type * host_valids,
+//                                        cudf::valid_type * host_valids,
 //                                        size_t width_per_value,
 //                                        const std::string &column_name)
 TEST_F(GdfColumnCppTest, CreateGdfColumnCppTypeOne_DoubleCreation) {
@@ -125,7 +125,7 @@ TEST_F(GdfColumnCppTest, CreateGdfColumnCppNVCategoryValids) {
   gdf_column_cpp cpp_col;
   cpp_col.create_gdf_column(category, totalStrings, "test");
 
-  std::vector<gdf_valid_type> valids(gdf_valid_allocation_size(cpp_col.size()));
+  std::vector<cudf::valid_type> valids(gdf_valid_allocation_size(cpp_col.size()));
   CheckCudaErrors(cudaMemcpy(valids.data(), cpp_col.valid(), valids.size(),
                              cudaMemcpyDeviceToHost));
 

@@ -1,139 +1,118 @@
 
 #include "SkipDataProcessor.h"
 
-
+#include <cudf/column/column_factories.hpp>
 #include "skip_data/expression_tree.hpp"
-#include "DataFrame.h"
-#include <GDFColumn.cuh>
-#include "utilities/RalColumn.h"
-#include "FileSystem/Uri.h"
-#include "io/data_parser/metadata/parquet_metadata.h"
-#include "io/data_provider/UriDataProvider.h"
-#include "io/Schema.h"
-#include "LogicalFilter.h"
-#include <cudf/legacy/table.hpp>
-#include "communication/CommunicationData.h"
-#include "distribution/NodeColumns.h"
-#include "distribution/primitives.h"
-#include "CalciteInterpreter.h"
 #include "CalciteExpressionParsing.h"
-#include "utilities/CommonOperations.h"
-#include "legacy/stream_compaction.hpp"
-#include "../io/data_parser/ParserUtil.h"
+#include "execution_graph/logic_controllers/LogicalFilter.h"
+#include "execution_graph/logic_controllers/LogicalProject.h"
+#include "execution_graph/logic_controllers/BlazingColumn.h"
+#include "execution_graph/logic_controllers/BlazingColumnView.h"
+#include "Utils.cuh"
 
 #include <memory> // this is for std::static_pointer_cast
 #include <string>
 #include <vector>
-
-using namespace ral::distribution;
+#include <numeric>
 
 namespace ral {
 namespace skip_data {
-
-//  file_handle_index | int32 | -        |
-// | row_group_index   | int32 | -    
-std::vector<gdf_column_cpp> create_empty_result() {
-    std::vector<std::string> names = {"file_handle_index", "row_group_index"};
-    std::vector<gdf_dtype> dtypes = {GDF_INT32, GDF_INT32};
-    std::vector<gdf_time_unit> time_units = {TIME_UNIT_NONE, TIME_UNIT_NONE};
-    std::vector<size_t> column_indices = {0, 1};
-    return ral::io::create_empty_columns(names, dtypes, time_units, column_indices);
-}
 
 // "BindableTableScan(table=[[main, customer]], filters=[[OR(AND(<($0, 15000), =($1, 5)), =($0, *($1, $1)), >=($1, 10), <=($2, 500))]], projects=[[0, 3, 5]], aliases=[[c_custkey, c_nationkey, c_acctbal]])"
 //      projects=[[0, 3, 5]]
 // minmax_metadata_table => use these indices [[0, 3, 5]]
 // minmax_metadata_table => minmax_metadata_table[[0, 1,  6, 7,  10, 11, size - 2, size - 1]]
-std::pair<std::vector<gdf_column_cpp>, bool> process_skipdata_for_table(ral::io::data_loader & input_loader, std::vector<gdf_column_cpp> new_minmax_metadata_table_cpp, std::string table_scan, const Context& context) {
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_table(
+    const ral::frame::BlazingTableView & metadata_view, const std::vector<std::string> & names, std::string table_scan) {
      
-    // convert minmax_metadata_table to blazing_frame minmax_metadata_frame which we will use to apply evaluate_expression
-    blazing_frame minmax_metadata_frame;
-    minmax_metadata_frame.add_table(new_minmax_metadata_table_cpp);
-     
-    if (minmax_metadata_frame.get_width() == 0){
-        return std::make_pair(create_empty_result(), true);
-    } 
     std::string filter_string;
     try {
-        filter_string = get_filter_expression(table_scan);
+        filter_string = get_named_expression(table_scan, "condition");
+        if(filter_string.empty()) {
+            filter_string = get_named_expression(table_scan, "filters");
+        }
         if (filter_string.empty()) {
-            return std::make_pair(create_empty_result(), true);
+            return std::make_pair(nullptr, true);
         }
     } catch (...) {
-        return std::make_pair(create_empty_result(), true);
+        return std::make_pair(nullptr, true);
     }
-    filter_string = clean_calcite_expression(filter_string);
+    filter_string = replace_calcite_regex(filter_string);
+    filter_string = expand_if_logical_op(filter_string);
 
+    std::string projects = get_named_expression(table_scan, "projects");
+    std::vector<int> column_indeces;
+    if (projects == ""){
+        column_indeces.resize(names.size());
+        std::iota(column_indeces.begin(), column_indeces.end(), 0);
+    } else {
+        std::vector<std::string> column_index_strings = get_expressions_from_expression_list(projects, true);    
+        for (int i = 0; i < column_index_strings.size(); i++){
+            int index = std::stoi(column_index_strings[i]);
+            column_indeces.push_back(index);        
+        }   
+    }
+
+    cudf::size_type rows = metadata_view.num_rows();
+    std::unique_ptr<cudf::column> temp_no_data = cudf::make_fixed_width_column(
+        cudf::data_type{cudf::type_id::INT8}, rows,
+        cudf::mask_state::UNINITIALIZED);
+    
+    std::vector<std::string> metadata_names = metadata_view.names();
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> metadata_columns = metadata_view.toBlazingColumns();
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> projected_metadata_cols;
+    std::vector<bool> valid_metadata_columns;    
+    for (int i = 0; i < column_indeces.size(); i++){
+        int col_index = column_indeces[i];
+        std::string metadata_min_name = "min_" + std::to_string(col_index) + '_' + names[col_index];
+        std::string metadata_max_name = "max_" + std::to_string(col_index) + '_' + names[col_index];
+        if (std::find(metadata_names.begin(), metadata_names.end(), metadata_min_name) != metadata_names.end() &&
+                std::find(metadata_names.begin(), metadata_names.end(), metadata_max_name) != metadata_names.end()){
+            valid_metadata_columns.push_back(true);
+
+            auto it = std::find(metadata_names.begin(), metadata_names.end(), metadata_min_name);
+            int min_col_index = std::distance(metadata_names.begin(), it);
+            projected_metadata_cols.emplace_back(std::move(metadata_columns[min_col_index]));
+            projected_metadata_cols.emplace_back(std::move(metadata_columns[min_col_index + 1]));            
+        } else {
+            valid_metadata_columns.push_back(false);
+            projected_metadata_cols.emplace_back(std::move(std::make_unique<ral::frame::BlazingColumnView>(temp_no_data->view()))); // these are dummy columns that we wont actually use
+            projected_metadata_cols.emplace_back(std::move(std::make_unique<ral::frame::BlazingColumnView>(temp_no_data->view())));
+        }
+    }
+    
     // process filter_string to convert to skip data version
     expression_tree tree;
     if (tree.build(filter_string)){
         // lets drop all columns that do not have skip data
-        for (size_t i = 0; i < minmax_metadata_frame.get_width()/2 - 1; i++){ // here we are assuming that minmax_metadata_table is 2N+2 columns
-            if (minmax_metadata_frame.get_column(i*2).size() == 0) { // if this column has no metadata lets drop it from the expression tree
+        for (size_t i = 0; i < valid_metadata_columns.size(); i++){ 
+            if (!valid_metadata_columns[i]) { // if this column has no metadata lets drop it from the expression tree
                 tree.drop({"$" + std::to_string(i)});
             }
         }
         tree.apply_skip_data_rules();
-        filter_string =  tree.prefix();
+        filter_string =  tree.rebuildExpression();
 
     } else { // something happened and could not process
-        return std::make_pair(create_empty_result(), true);
+        return std::make_pair(nullptr, true);
     }
+
     if (filter_string.empty()) {
-        return std::make_pair(create_empty_result(), true);
+        return std::make_pair(nullptr, true);
     }
+        
     // then we follow a similar pattern to process_filter
-    gdf_column_cpp stencil;
-    gdf_dtype_extra_info extra_info;
-    extra_info.category = nullptr;
-    stencil.create_gdf_column(GDF_INT8, extra_info, minmax_metadata_frame.get_num_rows_in_table(0),nullptr,1, "");
-    evaluate_expression(minmax_metadata_frame, filter_string, stencil);
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = ral::processor::evaluate_expressions(std::move(projected_metadata_cols), {filter_string});
 
-    stencil.get_gdf_column()->dtype = GDF_BOOL8; // apply_boolean_mask expects the stencil to be a GDF_BOOL8 which for our purposes the way we are using the GDF_INT8 is the same as GDF_BOOL8
+    RAL_EXPECTS(evaluated_table.size() == 1 && evaluated_table[0]->view().type().id() == cudf::type_id::BOOL8, "Expression in skip_data processing did not evaluate to a boolean mask");
 
-    // the last two columns of minmax_metadata_frame are the rowgroup identifying columns, which are the rowgroup id and the filepath
-    std::vector<gdf_column_cpp> row_group_identifiers;
-    for (int i = minmax_metadata_frame.get_width() - 2; i < minmax_metadata_frame.get_width();i++){
-        row_group_identifiers.push_back(minmax_metadata_frame.get_column(i));
-    }
+    CudfTableView metadata_ids = metadata_view.view().select({metadata_view.num_columns()-2,metadata_view.num_columns()-1});
+    std::vector<std::string> metadata_id_names{metadata_view.names()[metadata_view.num_columns()-2], metadata_view.names()[metadata_view.num_columns()-1]};
+    ral::frame::BlazingTableView metadata_ids_view(metadata_ids, metadata_id_names);
 
-    // we apply the filter to the rowgroup identifiers
-    cudf::table inputToFilter = ral::utilities::create_table(row_group_identifiers);
-    cudf::table filteredData = cudf::apply_boolean_mask(inputToFilter, *(stencil.get_gdf_column()));
+    std::unique_ptr<ral::frame::BlazingTable> filtered_metadata_ids = ral::processor::applyBooleanFilter(metadata_ids_view, evaluated_table[0]->view());
 
-    for(int i = 0; i < row_group_identifiers.size();i++){
-        gdf_column* temp_col_view = filteredData.get_column(i);
-        temp_col_view->col_name = nullptr; // lets do this because its not always set properly
-        gdf_column_cpp temp;
-        temp.create_gdf_column(temp_col_view);
-        temp.set_name(row_group_identifiers[i].name());
-        row_group_identifiers[i] = temp;
-    }		
-
-    int totalNumNodes = context.getTotalNodes();
-    int totalNumRowgroups = row_group_identifiers[0].size();
-    int localNodeIndex = context.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
-
-    // lets determine the set of rowgroups this node will process
-    int remaining = totalNumRowgroups;
-    int curStart = 0;
-    int localStart = 0;
-    int localEnd = 0;
-    for (int nodeInd = 0; nodeInd < totalNumNodes; nodeInd++){
-        int batch = remaining/(totalNumNodes-nodeInd);
-        int curEnd = curStart + batch;
-        remaining = remaining- batch;
-        if (nodeInd == localNodeIndex){
-            localStart = curStart;
-            localEnd = curEnd;
-            break;
-        }
-        curStart = curEnd;        
-    }
-    if (localEnd - localStart >= 0){
-        return std::make_pair(row_group_identifiers, false);
-    }
-    return std::make_pair(create_empty_result(), true);
+    return std::make_pair(std::move(filtered_metadata_ids), false);
 }
 
 

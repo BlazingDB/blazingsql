@@ -1,6 +1,6 @@
-# Contributing to BlazingSQL
+# Contributing to blazingSQL
 
-Contributions to BlazingSQL fall into the following three categories.
+Contributions to blazingSQL fall into the following three categories.
 
 1. To report a bug, request a new feature, or report a problem with
     documentation, please file an [issue](https://github.com/blazingdb/blazingsql/issues/new/choose)
@@ -31,4 +31,4 @@ and ask for clarifications!
 
 
 ## Attribution
-Portions adopted from [https://github.com/rapidsai/cudf/CONTRIBUTING.md](https://github.com/rapidsai/cudf/blob/master/CONTRIBUTING.md) 
+Portions adopted from https://github.com/rapidsai/cudf/CONTRIBUTING.md

@@ -27,6 +27,7 @@ import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
 import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.rel.rules.ProjectMergeRule;
 import org.apache.calcite.rel.rules.ProjectRemoveRule;
+import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
@@ -177,8 +178,8 @@ public class RelationalAlgebraGenerator {
 	getOptimizedRelationalAlgebra(RelNode nonOptimizedPlan) throws RelConversionException {
 		if(rules == null) {
 			program = new HepProgramBuilder()
-							.addRuleInstance(AggregateExpandDistinctAggregatesRule.JOIN)
-							.addRuleInstance(FilterAggregateTransposeRule.INSTANCE)
+						  .addRuleInstance(AggregateExpandDistinctAggregatesRule.JOIN)
+						  .addRuleInstance(FilterAggregateTransposeRule.INSTANCE)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.JOIN)
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
@@ -188,7 +189,8 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(ProjectRemoveRule.INSTANCE)
 						  .addRuleInstance(ProjectTableScanRule.INSTANCE)
 						  .addRuleInstance(FilterTableScanRule.INSTANCE)
-							.addRuleInstance(FilterRemoveIsNotDistinctFromRule.INSTANCE)
+						  .addRuleInstance(FilterRemoveIsNotDistinctFromRule.INSTANCE)
+						  .addRuleInstance(AggregateReduceFunctionsRule.INSTANCE)
 						  .build();
 		} else {
 			HepProgramBuilder programBuilder = new HepProgramBuilder();
@@ -236,6 +238,7 @@ public class RelationalAlgebraGenerator {
 		try {
 			response = RelOptUtil.toString(getRelationalAlgebra(sql));
 		} catch(Exception ex) {
+			System.out.println(ex.getMessage());
 			LOGGER.error(ex.getMessage());
 			throw ex;
 		}

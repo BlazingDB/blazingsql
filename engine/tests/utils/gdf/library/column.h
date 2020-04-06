@@ -15,7 +15,7 @@
 #include "types.h"
 #include "vector.h"
 
-#include "gdf_wrapper/utilities/bit_util.cuh"
+#include "from_cudf/cpp_src/utilities/legacy/bit_util.cuh"
 #include <arrow/util/bit_util.h>
 
 
@@ -73,28 +73,28 @@ public:
 	std::string name() const { return name_; }
 
 public:
-	const std::vector<gdf_valid_type> & getValids() const { return valids_; }
+	const std::vector<cudf::valid_type> & getValids() const { return valids_; }
 
-	void setValids(const std::vector<gdf_valid_type> && valids) { valids_ = std::move(valids); }
+	void setValids(const std::vector<cudf::valid_type> && valids) { valids_ = std::move(valids); }
 
 protected:
 	static gdf_column_cpp Create(const std::string & name,
 		const gdf_dtype dtype,
 		const std::size_t length,
 		const void * data,
-		const gdf_valid_type * valid,
+		const cudf::valid_type * valid,
 		const std::size_t size);
 
 protected:
 	const std::string name_;
-	std::vector<gdf_valid_type> valids_;
+	std::vector<cudf::valid_type> valids_;
 };
 
 Column::~Column() {}
 
 
 // TODO: this is slow as shit
-void convert_bools_to_valids(gdf_valid_type * valid_ptr, const std::vector<short> & input) {
+void convert_bools_to_valids(cudf::valid_type * valid_ptr, const std::vector<short> & input) {
 	for(std::size_t row_index = 0; row_index < input.size(); row_index++) {
 		if(input[row_index]) {
 			gdf::util::turn_bit_on(valid_ptr, row_index);
@@ -108,12 +108,12 @@ gdf_column_cpp Column::Create(const std::string & name,
 	const gdf_dtype dtype,
 	const std::size_t length,
 	const void * data,
-	const gdf_valid_type * valid,
+	const cudf::valid_type * valid,
 	const std::size_t size) {
 	gdf_column_cpp column_cpp;
 	gdf_dtype_extra_info extra_info{TIME_UNIT_NONE};
 	column_cpp.create_gdf_column(
-		dtype, extra_info, length, const_cast<void *>(data), const_cast<gdf_valid_type *>(valid), size, "");
+		dtype, extra_info, length, const_cast<void *>(data), const_cast<cudf::valid_type *>(valid), size, "");
 	column_cpp.set_name(name);
 	return column_cpp;
 }
@@ -211,7 +211,7 @@ public:
 		: impl_{std::make_shared<Impl<Callback>>(std::move(name), std::forward<Callback>(callback))} {}
 
 	template <class Callback>
-	ColumnBuilder(const std::string & name, std::vector<gdf_valid_type> && valids, Callback && callback)
+	ColumnBuilder(const std::string & name, std::vector<cudf::valid_type> && valids, Callback && callback)
 		: impl_{
 			  std::make_shared<Impl<Callback>>(std::move(name), std::move(valids), std::forward<Callback>(callback))} {}
 
@@ -236,7 +236,7 @@ private:
 		Impl(const std::string && name, Callable && callback)
 			: name_{std::move(name)}, callback_{std::forward<Callable>(callback)} {}
 
-		Impl(const std::string && name, const std::vector<gdf_valid_type> && valids, Callable && callback)
+		Impl(const std::string && name, const std::vector<cudf::valid_type> && valids, Callable && callback)
 			: name_{std::move(name)}, valids_{std::move(valids)}, callback_{std::forward<Callable>(callback)} {}
 
 		std::unique_ptr<Column> Build(const std::size_t length) final {
@@ -247,7 +247,7 @@ private:
 		}
 
 	private:
-		using valid_vector = std::vector<gdf_valid_type>;
+		using valid_vector = std::vector<cudf::valid_type>;
 
 	private:
 		const std::string name_;
@@ -265,7 +265,7 @@ template <gdf_dtype id>
 class Literals {
 public:
 	using value_type = typename DType<id>::value_type;
-	using valid_type = gdf_valid_type;
+	using valid_type = cudf::valid_type;
 	using initializer_list = std::initializer_list<value_type>;
 	using vector = std::vector<value_type>;
 	using valid_vector = std::vector<valid_type>;
@@ -281,7 +281,7 @@ public:
 	Literals(const vector & values, const bool_vector & bools)
 		: values_{values}, valids_(gdf_valid_allocation_size(values.size()), 0) {
 		assert(values.size() == bools.size());
-		gdf_valid_type * host_valids = (gdf_valid_type *) valids_.data();
+		cudf::valid_type * host_valids = (cudf::valid_type *) valids_.data();
 		convert_bools_to_valids(host_valids, bools);
 		// std::cout << "\tafter: " <<  gdf::util::gdf_valid_to_str(host_valids, values.size()) << std::endl;
 	}

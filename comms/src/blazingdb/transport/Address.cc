@@ -6,6 +6,14 @@
 
 namespace blazingdb {
 namespace transport {
+namespace experimental {
+
+Address::Address(){}
+ 
+Address::Address(const Address& address){
+  this->metadata_ = address.metadata_;
+  memcpy(this->metadata_.ip, address.metadata_.ip, ADDRSTRLEN);
+}
 
 Address::Address(Type type, const std::string &ip,
                  const std::int16_t communication_port,
@@ -26,12 +34,13 @@ public:
 
   virtual ~TCPAddress() = default;
 };
-std::shared_ptr<Address> Address::TCP(const std::string &ip,
+Address Address::TCP(const std::string &ip,
                                       const std::int16_t communication_port,
                                       const std::int16_t protocol_port) {
-  return std::make_shared<TCPAddress>(ip, communication_port, protocol_port);
+  return TCPAddress(ip, communication_port, protocol_port);
 }
 
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb
 

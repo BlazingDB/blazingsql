@@ -5,76 +5,51 @@
  *      Author: felipe
  */
 
-#include "GDFParser.h"
-#include "ral-message.cuh"
+#include <numeric>
 
-#include "io/data_parser/ParserUtil.h"
+#include "GDFParser.h"
+#include <blazingdb/io/Library/Logging/Logger.h>
 
 namespace ral {
 namespace io {
 
-
-gdf_parser::gdf_parser(TableSchema tableSchema) {
-	// TODO Auto-generated constructor stub
-	this->tableSchema = tableSchema;
-
-	// WSM TODO table_schema news to be newed up and copy in the properties
-}
+gdf_parser::gdf_parser(frame::BlazingTableView blazingTableView) : blazingTableView_{blazingTableView} {}
 
 gdf_parser::~gdf_parser() {}
 
-
-void gdf_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
-	std::vector<gdf_column_cpp> & columns_out,
 	const Schema & schema,
-	std::vector<size_t> column_indices_requested) {
-	if(column_indices_requested.size() == 0) {  // including all columns by default
-		column_indices_requested.resize(schema.get_num_columns());
-		std::iota(column_indices_requested.begin(), column_indices_requested.end(), 0);
+	std::vector<std::size_t> column_indices) {
+	
+	if(schema.get_num_columns() == 0) {
+		return nullptr;
 	}
 
-	std::vector<gdf_column_cpp> columns;
-	for(auto column_index : column_indices_requested) {
-		const std::string column_name = this->tableSchema.names[column_index];
+	std::vector<cudf::size_type> indices;
+	indices.reserve(column_indices.size());
+	std::transform(
+		column_indices.cbegin(), column_indices.cend(), std::back_inserter(indices), [](std::size_t x) { return x; });
+	CudfTableView tableView = blazingTableView_.view().select(indices);
 
-		auto column = this->tableSchema.columns[column_index];
-		gdf_column_cpp col;
-		if(column->dtype == GDF_STRING) {
-			NVCategory * category = NVCategory::create_from_strings(*(NVStrings *) column->data);
-			col.create_gdf_column(category, column->size, column_name);
-		} else if(column->dtype == GDF_STRING_CATEGORY) {
-			// The RAL can change the category during execution and the Python side won't
-			// realize update the category so we have to make a copy
-			// this shouldn't be not longer neccesary with the new cudf columns
-			NVCategory * new_category = static_cast<NVCategory *>(column->dtype_info.category)->copy();
-			col.create_gdf_column(new_category, column->size, column_name);
-		} else {
-			col.create_gdf_column(column, false, column_name);
-		}
-
-		columns.push_back(col);
+	if(tableView.num_columns() <= 0) {
+		Library::Logging::Logger().logWarn("gdf_parser::parse no columns were read");
 	}
-	columns_out = columns;
+	
+	std::vector<std::string> column_names_out;
+	column_names_out.resize(column_indices.size());
+	
+	// we need to output the same column names of tableView
+	for (size_t i = 0; i < column_indices.size(); ++i) {
+		size_t idx = column_indices[i];
+		column_names_out[i] = blazingTableView_.names()[idx];
+	}
+	
+	return std::make_unique<ral::frame::BlazingTable>(tableView, column_names_out);
 }
 
 void gdf_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
-	std::vector<std::string> names;
-	std::vector<gdf_dtype> types;
-	std::vector<gdf_time_unit> time_units;
-
-	std::for_each(
-		this->tableSchema.columns.begin(), this->tableSchema.columns.end(), [&types, &time_units](gdf_column * column) {
-			types.push_back(column->dtype);
-			time_units.push_back(column->dtype_info.time_unit);
-		});
-
-	names = this->tableSchema.names;
-	ral::io::Schema temp_schema(names, types, time_units);
-	schema = temp_schema;
-	// generate schema from message here
-}
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {}
 
 
 }  // namespace io

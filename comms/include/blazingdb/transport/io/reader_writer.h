@@ -4,9 +4,11 @@
 #include <stack>
 #include <vector>
 #include "blazingdb/transport/ColumnTransport.h"
+#include <rmm/device_buffer.hpp>
 
 namespace blazingdb {
 namespace transport {
+namespace experimental {
 namespace io {
 
 struct PinnedBuffer {
@@ -42,14 +44,15 @@ PinnedBufferProvider &getPinnedBufferProvider();
 
 void setPinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
-std::vector<char *> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
-                                          void *fileDescriptor, int gpuNum);
-
 void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
                             std::vector<int> bufferSizes,
-                            std::vector<char *> buffers, void *fileDescriptor,
+                            std::vector<const char *> buffers, void *fileDescriptor,
                             int gpuNum);
 
+void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
+                                          void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &);
+
 }  // namespace io
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

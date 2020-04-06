@@ -82,7 +82,7 @@ void getReaderArgJson(std::map<std::string, std::string> args, ReaderArgs & read
 		readerArg.jsonReaderArg.dtype = to_vector_string(args["dtype"]);
 	}
 	if(in("compression", args)) {
-		readerArg.jsonReaderArg.compression = args["compression"];
+		readerArg.jsonReaderArg.compression = static_cast<cudf_io::compression_type>(to_int(args["compression"]));
 	}
 	if(in("lines", args)) {
 		readerArg.jsonReaderArg.lines = to_bool(args["lines"]);
@@ -117,7 +117,7 @@ void getReaderArgOrc(std::map<std::string, std::string> args, ReaderArgs & reade
 
 void getReaderArgCSV(std::map<std::string, std::string> args, ReaderArgs & readerArg) {
 	if(in("compression", args)) {
-		readerArg.csvReaderArg.compression = args["compression"];
+		readerArg.csvReaderArg.compression = (cudf::experimental::io::compression_type) to_int(args["compression"]);
 	}
 	if(in("lineterminator", args)) {
 		readerArg.csvReaderArg.lineterminator = ord(args["lineterminator"]);

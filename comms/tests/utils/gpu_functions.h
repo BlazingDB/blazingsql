@@ -4,12 +4,13 @@
 
 #ifndef BLAZINGDB_GPU_FUNCTIONS_H
 #define BLAZINGDB_GPU_FUNCTIONS_H
+#include <cstring>
 #include <cuda_runtime_api.h>
 #include <cudf.h>
 #include <driver_types.h>
-#include "StringInfo.h"
 #include "Traits/RuntimeTraits.h"
 #include "column_factory.h"
+#include "StringInfo.h"
 
 namespace blazingdb {
 namespace test {
@@ -31,10 +32,12 @@ namespace test {
     }                                                                       \
   }
 
+class StringsInfo;
+class StringInfo;
+
 struct GpuFunctions {
   using DType = gdf_dtype;
   using DTypeInfo = gdf_dtype_extra_info;
-  using TimeUnit = gdf_time_unit;
 
   using DataTypePointer = void *;
   using ValidTypePointer = gdf_valid_type *;
@@ -57,64 +60,64 @@ struct GpuFunctions {
     return (GDF_STRING == column->dtype) ||
            (GDF_STRING_CATEGORY == column->dtype);
   }
-  static const StringsInfo *createStringsInfo(
-      std::vector<gdf_column *> &columns) {
-    const StringsInfo *stringsInfo = new StringsInfo{columns};
-    return stringsInfo;
-  }
-  static std::size_t getStringsCapacity(const StringsInfo *stringsInfo) {
-    return stringsInfo->capacity();
-  }
+  // static const StringsInfo *createStringsInfo(
+  //     std::vector<gdf_column *> &columns) {
+  //   const StringsInfo *stringsInfo = new StringsInfo{columns};
+  //   return stringsInfo;
+  // }
+  // static std::size_t getStringsCapacity(const StringsInfo *stringsInfo) {
+  //   return stringsInfo->capacity();
+  // }
 
-  static void destroyStringsInfo(const StringsInfo *stringsInfo) {
-    delete stringsInfo;
-  }
+  // static void destroyStringsInfo(const StringsInfo *stringsInfo) {
+  //   delete stringsInfo;
+  // }
 
-  static void copyGpuToCpu(std::size_t &binary_pointer, std::string &result,
-                           gdf_column *column, const StringsInfo *stringsInfo) {
-    if (column->size == 0) {
-      return;
-    }
-    if (isGdfString(column)) {
-      const StringsInfo::StringInfo &stringInfo = stringsInfo->At(column);
-      const std::size_t stringsSize = stringInfo.stringsSize();
-      const std::size_t offsetsSize = stringInfo.offsetsSize();
-      const std::size_t nullMaskSize = stringInfo.nullMaskSize();
-      const std::size_t stringsLength = stringInfo.stringsLength();
+//   static void copyGpuToCpu(std::size_t &binary_pointer, std::string &result,
+//                            gdf_column *column, const StringsInfo *stringsInfo) {
+//     if (column->size == 0) {
+//       return;
+//     }
+//     if (isGdfString(column)) {
+//       const StringInfo &stringInfo = stringsInfo->At(column);
+//       const std::size_t stringsSize = stringInfo.stringsSize();
+//       const std::size_t offsetsSize = stringInfo.offsetsSize();
+//       const std::size_t nullMaskSize = stringInfo.nullMaskSize();
+//       const std::size_t stringsLength = stringInfo.stringsLength();
 
-      std::memcpy(&result[binary_pointer], &stringsSize,
-                  sizeof(const std::size_t));
-      std::memcpy(&result[binary_pointer + sizeof(const std::size_t)],
-                  &offsetsSize, sizeof(const std::size_t));
-      std::memcpy(&result[binary_pointer + 2 * sizeof(const std::size_t)],
-                  &nullMaskSize, sizeof(const std::size_t));
-      std::memcpy(&result[binary_pointer + 3 * sizeof(const std::size_t)],
-                  &stringsLength, sizeof(const std::size_t));
-      std::memcpy(&result[binary_pointer + 4 * sizeof(const std::size_t)],
-                  stringInfo.stringsPointer(), stringsSize);
-      std::memcpy(
-          &result[binary_pointer + 4 * sizeof(const std::size_t) + stringsSize],
-          stringInfo.offsetsPointer(), offsetsSize);
-      std::memcpy(&result[binary_pointer + 4 * sizeof(const std::size_t) +
-                          stringsSize + offsetsSize],
-                  stringInfo.nullBitmask(), nullMaskSize);
+//       std::memcpy(&result[binary_pointer], &stringsSize,
+//                   sizeof(const std::size_t));
+//       std::memcpy(&result[binary_pointer + sizeof(const std::size_t)],
+//                   &offsetsSize, sizeof(const std::size_t));
+//       std::memcpy(&result[binary_pointer + 2 * sizeof(const std::size_t)],
+//                   &nullMaskSize, sizeof(const std::size_t));
+//       std::memcpy(&result[binary_pointer + 3 * sizeof(const std::size_t)],
+//                   &stringsLength, sizeof(const std::size_t));
+//       std::memcpy(&result[binary_pointer + 4 * sizeof(const std::size_t)],
+//                   stringInfo.stringsPointer(), stringsSize);
+//       std::memcpy(
+//           &result[binary_pointer + 4 * sizeof(const std::size_t) + stringsSize],
+//           stringInfo.offsetsPointer(), offsetsSize);
+//       std::memcpy(&result[binary_pointer + 4 * sizeof(const std::size_t) +
+//                           stringsSize + offsetsSize],
+//                   stringInfo.nullBitmask(), nullMaskSize);
 
-      binary_pointer += stringInfo.totalSize();
-    } else {
-      std::size_t data_size = getDataCapacity(column);
-      CheckCudaErrors(cudaMemcpy(&result[binary_pointer], column->data,
-                                 data_size, cudaMemcpyDeviceToHost));
-      binary_pointer += data_size;
+//       binary_pointer += stringInfo.totalSize();
+//     } else {
+//       std::size_t data_size = getDataCapacity(column);
+//       CheckCudaErrors(cudaMemcpy(&result[binary_pointer], column->data,
+//                                  data_size, cudaMemcpyDeviceToHost));
+//       binary_pointer += data_size;
 
-      std::size_t valid_size = getValidCapacity(column);
-      CheckCudaErrors(cudaMemcpy(&result[binary_pointer], column->valid,
-                                 valid_size, cudaMemcpyDeviceToHost));
-      binary_pointer += valid_size;
-    }
-  }
+//       std::size_t valid_size = getValidCapacity(column);
+//       CheckCudaErrors(cudaMemcpy(&result[binary_pointer], column->valid,
+//                                  valid_size, cudaMemcpyDeviceToHost));
+//       binary_pointer += valid_size;
+//     }
+//   }
 };
 
-inline bool gdf_is_valid(const gdf_valid_type *valid, gdf_index_type pos) {
+inline bool gdf_is_valid(const gdf_valid_type *valid, gdf_size_type pos) {
   if (valid)
     return (valid[pos / GDF_VALID_BITSIZE] >> (pos % GDF_VALID_BITSIZE)) & 1;
   else

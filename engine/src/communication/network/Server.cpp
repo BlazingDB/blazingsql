@@ -6,6 +6,7 @@
 namespace ral {
 namespace communication {
 namespace network {
+namespace experimental {
 
 unsigned short Server::port_ = 8000;
 std::map<int, Server *> servers_;
@@ -37,7 +38,7 @@ void Server::registerContext(const ContextToken context_token) { comm_server->re
 
 void Server::deregisterContext(const ContextToken context_token) { comm_server->deregisterContext(context_token); }
 
-std::shared_ptr<GPUMessage> Server::getMessage(
+std::shared_ptr<GPUReceivedMessage> Server::getMessage(
 	const ContextToken & token_value, const MessageTokenType & messageToken) {
 	return comm_server->getMessage(token_value, messageToken);
 }
@@ -45,28 +46,30 @@ std::shared_ptr<GPUMessage> Server::getMessage(
 void Server::setEndPoints() {
 	// message SampleToNodeMasterMessage
 	{
-		const std::string endpoint = messages::SampleToNodeMasterMessage::MessageID();
+		const std::string endpoint = ral::communication::messages::experimental::SampleToNodeMasterMessage::MessageID();
 		comm_server->registerEndPoint(endpoint);
-		comm_server->registerMessageForEndPoint(
-			ral::communication::messages::SampleToNodeMasterMessage::MakeFrom, endpoint);
+		comm_server->registerMessageForEndPoint(ral::communication::messages::experimental::SampleToNodeMasterMessage::MakeFrom, endpoint);
+
+	// 	  using MakeCallback = std::function<std::shared_ptr<GPUMessage>(
+    //   const Message::MetaData &, const Address::MetaData &,
+    //   const std::vector<ColumnTransport> &, const std::vector<rmm::device_buffer> &)>;
 	}
 
 	// message ColumnDataMessage
 	{
-		const std::string endpoint = messages::ColumnDataMessage::MessageID();
+		const std::string endpoint = ral::communication::messages::experimental::ColumnDataMessage::MessageID();
 		comm_server->registerEndPoint(endpoint);
-		comm_server->registerMessageForEndPoint(ral::communication::messages::ColumnDataMessage::MakeFrom, endpoint);
+		comm_server->registerMessageForEndPoint(ral::communication::messages::experimental::ColumnDataMessage::MakeFrom, endpoint);
 	}
 
 	// message PartitionPivotsMessage
 	{
-		const std::string endpoint = messages::PartitionPivotsMessage::MessageID();
+		const std::string endpoint = ral::communication::messages::experimental::PartitionPivotsMessage::MessageID();
 		comm_server->registerEndPoint(endpoint);
-		comm_server->registerMessageForEndPoint(
-			ral::communication::messages::PartitionPivotsMessage::MakeFrom, endpoint);
+		comm_server->registerMessageForEndPoint(ral::communication::messages::experimental::PartitionPivotsMessage::MakeFrom, endpoint);
 	}
 }
-
+}  // namespace experimental
 }  // namespace network
 }  // namespace communication
 }  // namespace ral

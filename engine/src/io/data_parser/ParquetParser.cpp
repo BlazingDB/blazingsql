@@ -4,9 +4,7 @@
 #include "ParquetParser.h"
 #include "config/GPUManager.cuh"
 #include <blazingdb/io/Util/StringUtil.h>
-#include <cudf/legacy/column.hpp>
-#include <cudf/legacy/io_functions.hpp>
-
+#include "utilities/CommonOperations.h"
 
 #include <algorithm>
 #include <string>
@@ -16,7 +14,9 @@
 #include <algorithm>
 #include <numeric>
 #include <string>
+#include <iostream>
 #include <cudf/cudf.h>
+#include <cudf/io/functions.hpp>
 
 #include <unordered_map>
 #include <vector>
@@ -34,18 +34,15 @@
 
 #include <parquet/api/reader.h>
 #include <parquet/api/writer.h>
-#include <GDFColumn.cuh>
-#include <GDFCounter.cuh>
 
 #include "../Schema.h"
-#include "../Metadata.h"
-
-#include "io/data_parser/ParserUtil.h"
 
 #include <numeric>
 
 namespace ral {
 namespace io {
+
+namespace cudf_io = cudf::experimental::io;
 
 parquet_parser::parquet_parser() {
 	// TODO Auto-generated constructor stub
@@ -55,151 +52,125 @@ parquet_parser::~parquet_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-void parquet_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
+	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
-	std::vector<gdf_column_cpp> & columns_out,
 	const Schema & schema,
-	std::vector<size_t> column_indices) {
-	if(column_indices.size() == 0) {  // including all columns by default
-		column_indices.resize(schema.get_num_columns());
-		std::iota(column_indices.begin(), column_indices.end(), 0);
-	}
-
+	std::vector<size_t> column_indices) 
+{
+	
 	if(file == nullptr) {
-		columns_out =
-			create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
-		return;
+		return schema.makeEmptyBlazingTable(column_indices);
 	}
-
+		
 	if(column_indices.size() > 0) {
 		// Fill data to pq_args
-		cudf::io::parquet::reader_options pq_args;
+		cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
+
 		pq_args.strings_to_categorical = false;
 		pq_args.columns.resize(column_indices.size());
 
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
 			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
-		// TODO: Use schema.row_groups_ids to read only some row_groups
-		cudf::io::parquet::reader parquet_reader(file, pq_args);
 
-		cudf::table table_out = parquet_reader.read_all();
+		std::vector<int> row_groups = schema.get_rowgroup_ids(0); // because the Schema we are using here was already filtered for a specific file by Schema::fileSchema we are simply getting the first set of rowgroup_ids
+		if (row_groups.size() == 0){
+			// make empty table of the right schema
+			return schema.makeEmptyBlazingTable(column_indices);
+		} else {
+			// now lets get these row_groups in batches of consecutive rowgroups because that is how the reader will want them
+			std::vector<int> consecutive_row_group_start(1, row_groups[0]);
+			std::vector<int> consecutive_row_group_length;
+			int length_count = 1;
+			int last_rowgroup = consecutive_row_group_start.back();
+			for (int i = 1; i < row_groups.size(); i++){
+				if (last_rowgroup + 1 == row_groups[i]){ // consecutive
+					length_count++;
+					last_rowgroup = row_groups[i];
+				} else {
+					consecutive_row_group_length.push_back(length_count);
+					consecutive_row_group_start.push_back(row_groups[i]);
+					last_rowgroup = row_groups[i];
+					length_count = 1;
+				}
+			}
+			consecutive_row_group_length.push_back(length_count);
 
-		assert(table_out.num_columns() > 0);
+			if (consecutive_row_group_start.size() == 1){
+				pq_args.row_group = consecutive_row_group_start[0];
+				pq_args.row_group_count = consecutive_row_group_length[0];
 
-		columns_out.resize(column_indices.size());
-		for(size_t i = 0; i < columns_out.size(); i++) {
-			if(table_out.get_column(i)->dtype == GDF_STRING) {
-				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(i)->data);
-				NVCategory * category = NVCategory::create_from_strings(*strs);
-				std::string column_name(table_out.get_column(i)->col_name);
-				columns_out[i].create_gdf_column(category, table_out.get_column(i)->size, column_name);
-				gdf_column_free(table_out.get_column(i));
+				auto result = cudf_io::read_parquet(pq_args);
+				if (result.tbl->num_columns() == 0){
+					return schema.makeEmptyBlazingTable(column_indices);
+				}
+				return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 			} else {
-				columns_out[i].create_gdf_column(table_out.get_column(i));
+				std::vector<std::unique_ptr<ral::frame::BlazingTable>> table_outs;
+				std::vector<ral::frame::BlazingTableView> table_view_outs;
+				for (int i = 0; i < consecutive_row_group_start.size(); i++){
+					pq_args.row_group = consecutive_row_group_start[i];
+					pq_args.row_group_count = consecutive_row_group_length[i];
+
+					auto result = cudf_io::read_parquet(pq_args);
+					if (result.tbl->num_columns() == 0){
+						return schema.makeEmptyBlazingTable(column_indices);
+					}
+					table_outs.emplace_back(std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names));
+					table_view_outs.emplace_back(table_outs.back()->toBlazingTableView());
+				}
+				return ral::utilities::experimental::concatTables(table_view_outs);
 			}
 		}
 	}
+	return nullptr;
 }
 
-
-// This function is copied and adapted from cudf
-constexpr std::pair<gdf_dtype, gdf_dtype_extra_info> to_dtype(parquet::Type::type physical,
-	parquet::ConvertedType::type logical,
-	bool strings_to_categorical,
-	gdf_time_unit ts_unit = TIME_UNIT_NONE) {
-	// Logical type used for actual data interpretation; the legacy converted type
-	// is superceded by 'logical' type whenever available.
-	switch(logical) {
-	case parquet::ConvertedType::type::UINT_8:
-	case parquet::ConvertedType::type::INT_8: return std::make_pair(GDF_INT8, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::ConvertedType::type::UINT_16:
-	case parquet::ConvertedType::type::INT_16: return std::make_pair(GDF_INT16, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::ConvertedType::type::DATE: return std::make_pair(GDF_DATE32, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::ConvertedType::type::TIMESTAMP_MICROS:
-		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{ts_unit})
-										   : std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{TIME_UNIT_us});
-	case parquet::ConvertedType::type::TIMESTAMP_MILLIS:
-		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{ts_unit})
-										   : std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{TIME_UNIT_ms});
-	default: break;
-	}
-
-	// Physical storage type supported by Parquet; controls the on-disk storage
-	// format in combination with the encoding type.
-	switch(physical) {
-	case parquet::Type::type::BOOLEAN: return std::make_pair(GDF_BOOL8, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::INT32: return std::make_pair(GDF_INT32, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::INT64: return std::make_pair(GDF_INT64, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::FLOAT: return std::make_pair(GDF_FLOAT32, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::DOUBLE: return std::make_pair(GDF_FLOAT64, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::BYTE_ARRAY:
-	case parquet::Type::type::FIXED_LEN_BYTE_ARRAY:
-		// Can be mapped to GDF_CATEGORY (32-bit hash) or GDF_STRING (nvstring)
-		return std::make_pair(strings_to_categorical ? GDF_CATEGORY : GDF_STRING, gdf_dtype_extra_info{TIME_UNIT_NONE});
-	case parquet::Type::type::INT96:
-		return (ts_unit != TIME_UNIT_NONE) ? std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{ts_unit})
-										   : std::make_pair(GDF_TIMESTAMP, gdf_dtype_extra_info{TIME_UNIT_ns});
-	default: break;
-	}
-
-	return std::make_pair(GDF_invalid, gdf_dtype_extra_info{TIME_UNIT_NONE});
-}
 
 void parquet_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema_out) {
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 
-	std::vector<size_t> num_row_groups(files.size());
-	std::thread threads[files.size()];
-	for(int file_index = 0; file_index < files.size(); file_index++) {
-		threads[file_index] = std::thread([&, file_index]() {
-			std::unique_ptr<parquet::ParquetFileReader> parquet_reader =
-				parquet::ParquetFileReader::Open(files[file_index]);
-			std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_reader->metadata();
-			const parquet::SchemaDescriptor * schema = file_metadata->schema();
-			num_row_groups[file_index] = file_metadata->num_row_groups();
+	cudf_io::table_with_metadata table_out;
+	for (auto file : files) {
+		auto parquet_reader = parquet::ParquetFileReader::Open(file);
+		if (parquet_reader->metadata()->num_rows() == 0) {
 			parquet_reader->Close();
-		});
-	}
+			continue;
+		}
 
-	for(int file_index = 0; file_index < files.size(); file_index++) {
-		threads[file_index].join();
-	}
+		cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
+		pq_args.strings_to_categorical = false;
+		pq_args.row_group = 0;
+		pq_args.num_rows = 1;
 
-	cudf::io::parquet::reader_options pq_args;
-	pq_args.strings_to_categorical = false;
-	cudf::io::parquet::reader cudf_parquet_reader(files[0], pq_args);
-	cudf::table table_out = cudf_parquet_reader.read_rows(0, 1);
+		table_out = cudf_io::read_parquet(pq_args);	
 
-
-	// we currently dont support GDF_DATE32 for parquet so lets filter those out
-	std::vector<std::string> column_names_out;
-	std::vector<gdf_dtype> dtypes_out;
-	std::vector<gdf_time_unit> time_units_out;
-	for(size_t i = 0; i < table_out.num_columns(); i++) {
-		if(table_out.get_column(i)->dtype != GDF_DATE32) {
-			column_names_out.push_back(table_out.get_column(i)->col_name);
-			dtypes_out.push_back(table_out.get_column(i)->dtype);
-			time_units_out.push_back(table_out.get_column(i)->dtype_info.time_unit);
+		if (table_out.tbl->num_columns() > 0) {
+			break;
 		}
 	}
-	table_out.destroy();
 
-	std::vector<std::size_t> column_indices(column_names_out.size());
-	std::iota(column_indices.begin(), column_indices.end(), 0);
+	assert(table_out.tbl->num_columns() > 0);
 
-	schema_out = ral::io::Schema(column_names_out, column_indices, dtypes_out, time_units_out, num_row_groups);
+	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
+		cudf::type_id type = table_out.tbl->get_column(i).type().id();
+		size_t file_index = i;
+		bool is_in_file = true;
+		std::string name = table_out.metadata.column_names.at(i);
+		schema.add_column(name, type, file_index, is_in_file);
+	}
 }
 
 
-bool parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Metadata & metadata){
+std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset){
 	std::vector<size_t> num_row_groups(files.size());
 	std::thread threads[files.size()];
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
 	for(int file_index = 0; file_index < files.size(); file_index++) {
 		threads[file_index] = std::thread([&, file_index]() {
 		  parquet_readers[file_index] =
-			  parquet::ParquetFileReader::Open(files[file_index]);
+			  std::move(parquet::ParquetFileReader::Open(files[file_index]));
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 		  const parquet::SchemaDescriptor * schema = file_metadata->schema();
 		  num_row_groups[file_index] = file_metadata->num_row_groups();
@@ -213,12 +184,11 @@ bool parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomA
 	size_t total_num_row_groups =
 		std::accumulate(num_row_groups.begin(), num_row_groups.end(), size_t(0));
 
-	std::vector<gdf_column_cpp> minmax_metadata_table = get_minmax_metadata(parquet_readers, total_num_row_groups, metadata.offset());
+	auto minmax_metadata_table = get_minmax_metadata(parquet_readers, total_num_row_groups, offset);
 	for (auto &reader : parquet_readers) {
 		reader->Close();
 	}
-	metadata.metadata_ =  minmax_metadata_table;
-	return true;
+	return std::move(minmax_metadata_table);
 }
 
 } /* namespace io */

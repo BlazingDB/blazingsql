@@ -1,6 +1,6 @@
 #pragma once
 
-#include <blazingdb/manager/NodeDataMessage.h>
+// #include <blazingdb/manager/NodeDataMessage.h>
 #include <blazingdb/transport/Message.h>
 #include <blazingdb/transport/Status.h>
 #include <memory>
@@ -8,14 +8,13 @@
 namespace ral {
 namespace communication {
 namespace network {
-using Node = blazingdb::transport::Node;
-using GPUMessage = blazingdb::transport::GPUMessage;
-using Message = blazingdb::transport::Message;
+namespace experimental{
+using Node = blazingdb::transport::experimental::Node;
+using GPUMessage = blazingdb::transport::experimental::GPUMessage;
+using Message = blazingdb::transport::experimental::Message;
+using Status = blazingdb::transport::experimental::Status;
 
 class Client {
-public:
-	using Status = blazingdb::transport::Status;
-
 public:
 	static Status send(const Node & node, GPUMessage & message);
 
@@ -23,7 +22,7 @@ public:
 
 	static void closeConnections();
 };
-
+}  // namespace experimental
 }  // namespace network
 }  // namespace communication
 }  // namespace ral

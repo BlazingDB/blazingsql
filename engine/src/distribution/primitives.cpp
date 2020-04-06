@@ -1,392 +1,180 @@
 #include "distribution/primitives.h"
 #include "CalciteExpressionParsing.h"
-#include "ColumnManipulation.cuh"
 #include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
 #include "communication/factory/MessageFactory.h"
 #include "communication/messages/ComponentMessages.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
-#include "config/GPUManager.cuh"
-#include "cuDF/generator/sample_generator.h"
-#include "cuDF/safe_nvcategory_gather.hpp"
-#include "distribution/Exception.h"
-#include "distribution/primitives_util.cuh"
-#include "legacy/groupby.hpp"
-#include "legacy/reduction.hpp"
 #include "operators/GroupBy.h"
-#include "utilities/RalColumn.h"
 #include "utilities/StringUtils.h"
-#include "utilities/TableWrapper.h"
 #include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <cassert>
 #include <cmath>
-#include <cudf/legacy/table.hpp>
 #include <iostream>
 #include <memory>
 #include <numeric>
-#include <types.hpp>
 
-#include "cudf/legacy/copying.hpp"
-#include "cudf/legacy/merge.hpp"
-#include "cudf/legacy/search.hpp"
+#include <cudf/search.hpp>
+#include <cudf/sorting.hpp>
+#include <cudf/copying.hpp>
+#include <cudf/merge.hpp>
+#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
+#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 
 #include "utilities/CommonOperations.h"
+#include "utilities/DebuggingUtils.h"
+#include "utilities/random_generator.cuh"
 
 namespace ral {
 namespace distribution {
-namespace sampling {
+namespace experimental {
 
-double calculateSampleRatio(gdf_size_type tableSize) { return std::ceil(1.0 - std::pow(tableSize / 1.0E11, 8E-4)); }
-
-std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, double ratio) {
-	std::size_t quantity = std::ceil(table[0].size() * ratio);
-	return generateSample(table, quantity);
-}
-
-std::vector<std::vector<gdf_column_cpp>> generateSamples(
-	const std::vector<std::vector<gdf_column_cpp>> & tables, const std::vector<double> & ratios) {
-	std::vector<std::size_t> quantities;
-	quantities.reserve(tables.size());
-
-	for(std::size_t i = 0; i < tables.size(); i++) {
-		quantities.push_back(std::ceil(tables[i][0].size() * ratios[i]));
-	}
-
-	return generateSamples(tables, quantities);
-}
-
-std::vector<gdf_column_cpp> generateSample(const std::vector<gdf_column_cpp> & table, std::size_t quantity) {
-	std::vector<gdf_column_cpp> sample;
-
-	gdf_error gdf_status = cudf::generator::generate_sample(table, sample, quantity);
-	if(GDF_SUCCESS != gdf_status) {
-		throw std::runtime_error(
-			"[ERROR] " + std::string{__FUNCTION__} + " -- CUDF: " + gdf_error_get_name(gdf_status));
-	}
-
-	return sample;
-}
-
-std::vector<std::vector<gdf_column_cpp>> generateSamples(
-	const std::vector<std::vector<gdf_column_cpp>> & input_tables, std::vector<std::size_t> & quantities) {
-	// verify
-	if(input_tables.size() != quantities.size()) {
-		throw std::runtime_error("[ERROR] " + std::string{__FUNCTION__} + " -- size mismatch.");
-	}
-
-	// output data
-	std::vector<std::vector<gdf_column_cpp>> result;
-
-	// make sample for each table
-	for(std::size_t k = 0; k < input_tables.size(); ++k) {
-		result.emplace_back(generateSample(input_tables[k], quantities[k]));
-	}
-
-	// done
-	return result;
-}
-
-void normalizeSamples(std::vector<NodeSamples> & samples) {
-	std::vector<double> representativities(samples.size());
-
-	for(std::size_t i = 0; i < samples.size(); i++) {
-		representativities[i] = (double) samples[i].getColumns()[0].size() / samples[i].getTotalRowSize();
-	}
-
-	const double minimumRepresentativity = *std::min_element(representativities.cbegin(), representativities.cend());
-
-	for(std::size_t i = 0; i < samples.size(); i++) {
-		double representativenessRatio = minimumRepresentativity / representativities[i];
-
-		if(representativenessRatio > THRESHOLD_FOR_SUBSAMPLING) {
-			samples[i].setColumns(generateSample(samples[i].getColumns(), representativenessRatio));
-		}
-	}
-}
-
-}  // namespace sampling
-}  // namespace distribution
-}  // namespace ral
+typedef ral::frame::BlazingTable BlazingTable;
+typedef ral::frame::BlazingTableView BlazingTableView;
+typedef blazingdb::manager::experimental::Context Context;
+typedef blazingdb::transport::experimental::Node Node;
+typedef ral::communication::messages::experimental::Factory Factory;
+typedef ral::communication::messages::experimental::SampleToNodeMasterMessage SampleToNodeMasterMessage;
+typedef ral::communication::messages::experimental::PartitionPivotsMessage PartitionPivotsMessage;
+typedef ral::communication::messages::experimental::ColumnDataMessage ColumnDataMessage;
+typedef ral::communication::messages::experimental::GPUComponentReceivedMessage GPUComponentReceivedMessage;
+typedef ral::communication::experimental::CommunicationData CommunicationData;
+typedef ral::communication::network::experimental::Server Server;
+typedef ral::communication::network::experimental::Client Client;
 
 
-namespace ral {
-namespace distribution {
 
-void sendSamplesToMaster(const Context & context, std::vector<gdf_column_cpp> & samples, std::size_t total_row_size) {
-	using MessageFactory = ral::communication::messages::Factory;
-	using SampleToNodeMasterMessage = ral::communication::messages::SampleToNodeMasterMessage;
-
-	// Get master node
-	const Node & master_node = context.getMasterNode();
+void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
+  // Get master node
+	const Node & master_node = context->getMasterNode();
 
 	// Get self node
-	using CommunicationData = ral::communication::CommunicationData;
-	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
+	Node self_node = CommunicationData::getInstance().getSelfNode();
 
 	// Get context token
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	auto message =
-		MessageFactory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, samples);
+		Factory::createSampleToNodeMaster(message_id, context_token, self_node, table_total_rows, samples);
 
 	// Send message to master
-	using Client = ral::communication::network::Client;
-	Library::Logging::Logger().logTrace(ral::utilities::buildLogString(std::to_string(context_token),
-		std::to_string(context.getQueryStep()),
-		std::to_string(context.getQuerySubstep()),
-		"About to send sendSamplesToMaster message"));
 	Client::send(master_node, *message);
 }
 
-std::vector<NodeSamples> collectSamples(const Context & context) {
-	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Server;
+std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context) {
 
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
-	std::vector<NodeSamples> nodeSamples;
-	size_t size = context.getWorkerNodes().size();
-	std::vector<bool> received(context.getTotalNodes(), false);
+	std::vector<NodeColumn> nodeColumns;
+	std::vector<std::size_t> table_total_rows;
+
+	size_t size = context->getWorkerNodes().size();
+	std::vector<bool> received(context->getTotalNodes(), false);
 	for(int k = 0; k < size; ++k) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
 
-		if(message->getMessageTokenValue() != message_id) {
-			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-		}
-
-		auto concreteMessage = std::static_pointer_cast<SampleToNodeMasterMessage>(message);
 		auto node = message->getSenderNode();
-		int node_idx = context.getNodeIndex(*node);
+		int node_idx = context->getNodeIndex(node);
 		if(received[node_idx]) {
 			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context.getQueryStep()),
-				std::to_string(context.getQuerySubstep()),
+				std::to_string(context->getQueryStep()),
+				std::to_string(context->getQuerySubstep()),
 				"ERROR: Already received collectSamples from node " + std::to_string(node_idx)));
 		}
-		nodeSamples.emplace_back(concreteMessage->getTotalRowSize(), *node, concreteMessage->getSamples());
+		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		table_total_rows.push_back(concreteMessage->getTotalRowSize());
+		nodeColumns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
 		received[node_idx] = true;
 	}
 
-	return nodeSamples;
+	return std::make_pair(std::move(nodeColumns), table_total_rows);
 }
 
-std::vector<gdf_column_cpp> generatePartitionPlans(
-	const Context & context, std::vector<NodeSamples> & samples, std::vector<int8_t> & sortOrderTypes) {
-	std::vector<std::vector<gdf_column_cpp>> tables(samples.size());
-	std::transform(samples.begin(), samples.end(), tables.begin(), [](NodeSamples & nodeSamples) {
-		return nodeSamples.getColumns();
-	});
 
-	std::vector<gdf_column_cpp> concatSamples = ral::utilities::concatTables(tables);
+std::unique_ptr<BlazingTable> generatePartitionPlans(
+				Context * context, std::vector<BlazingTableView> & samples,
+				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes) {
 
-	gdf_size_type outputRowSize = concatSamples[0].size();
+	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
-	std::vector<gdf_column *> rawConcatSamples(concatSamples.size());
-	std::transform(
-		concatSamples.cbegin(), concatSamples.cend(), rawConcatSamples.begin(), [](const gdf_column_cpp & col) {
-			return col.get_gdf_column();
-		});
-
-	// Sort
-	gdf_column_cpp ascDescCol;
-	ascDescCol.create_gdf_column(GDF_INT8,
-		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
-		sortOrderTypes.size(),
-		sortOrderTypes.data(),
-		ral::traits::get_dtype_size_in_bytes(GDF_INT8),
-		"");
-
-	gdf_column_cpp sortedIndexCol;
-	sortedIndexCol.create_gdf_column(GDF_INT32,
-		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
-		outputRowSize,
-		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_INT32),
-		"");
-
-	gdf_context gdfContext;
-	gdfContext.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  // Nulls are are treated as largest
-
-	CUDF_CALL(gdf_order_by(rawConcatSamples.data(),
-		(int8_t *) (ascDescCol.get_gdf_column()->data),
-		rawConcatSamples.size(),
-		sortedIndexCol.get_gdf_column(),
-		&gdfContext));
-
-	std::vector<gdf_column_cpp> sortedSamples(concatSamples.size());
-	for(size_t i = 0; i < sortedSamples.size(); i++) {
-		auto & col = concatSamples[i];
-		if(col.valid()) {
-			sortedSamples[i].create_gdf_column(col.dtype(),
-				col.dtype_info(),
-				col.size(),
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
-				col.name());
-		} else {
-			sortedSamples[i].create_gdf_column(col.dtype(),
-				col.dtype_info(),
-				col.size(),
-				nullptr,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
-				col.name());
-		}
-
-		materialize_column(
-			concatSamples[i].get_gdf_column(), sortedSamples[i].get_gdf_column(), sortedIndexCol.get_gdf_column());
-		sortedSamples[i].update_null_count();
+	std::vector<cudf::order> column_order;
+	for(auto col_order : sortOrderTypes){
+		if(col_order)
+			column_order.push_back(cudf::order::DESCENDING);
+		else
+			column_order.push_back(cudf::order::ASCENDING);
 	}
+	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
+	// TODO this is just a default setting. Will want to be able to properly set null_order
+	std::unique_ptr<cudf::column> sort_indices = cudf::experimental::sorted_order( concatSamples->view(), column_order, null_orders);
 
-	// Gather
-	gdf_size_type pivotsSize = outputRowSize > 0 ? context.getTotalNodes() - 1 : 0;
-	std::vector<gdf_column_cpp> pivots(sortedSamples.size());
-	for(size_t i = 0; i < sortedSamples.size(); i++) {
-		auto & col = sortedSamples[i];
-		if(col.valid()) {
-			pivots[i].create_gdf_column(col.dtype(),
-				col.dtype_info(),
-				pivotsSize,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
-				col.name());
-		} else {
-			pivots[i].create_gdf_column(col.dtype(),
-				col.dtype_info(),
-				pivotsSize,
-				nullptr,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
-				col.name());
+	std::unique_ptr<CudfTable> sortedSamples = cudf::experimental::gather( concatSamples->view(), sort_indices->view() );
+
+	// lets get names from a non-empty table
+	std::vector<std::string> names;
+	for(size_t i = 0; i < samples.size(); i++) {
+		if (samples[i].names().size() > 0){
+			names = samples[i].names();
+			break;
 		}
 	}
 
-	if(outputRowSize > 0) {
-		cudf::table srcTable = ral::utilities::create_table(sortedSamples);
-		cudf::table destTable = ral::utilities::create_table(pivots);
-
-		int step = outputRowSize / context.getTotalNodes();
-		gdf_column_cpp gatherMap;
-		gatherMap.create_gdf_column(GDF_INT32,
-			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
-			context.getTotalNodes() - 1,
-			nullptr,
-			ral::traits::get_dtype_size_in_bytes(GDF_INT32),
-			"");
-		gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.size(), step, step);
-
-		cudf::gather(&srcTable, (gdf_index_type *) (gatherMap.get_gdf_column()->data), &destTable);
-		ral::init_string_category_if_null(destTable);
-	}
-
-	return pivots;
+	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
 }
 
-void distributePartitionPlan(const Context & context, std::vector<gdf_column_cpp> & pivots) {
-	using ral::communication::CommunicationData;
-	using ral::communication::messages::Factory;
-	using ral::communication::messages::PartitionPivotsMessage;
+void distributePartitionPlan(Context * context, const BlazingTableView & pivots) {
 
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + context_comm_token;
 
-	auto node = CommunicationData::getInstance().getSharedSelfNode();
+	auto node = CommunicationData::getInstance().getSelfNode();
 	auto message = Factory::createPartitionPivotsMessage(message_id, context_token, node, pivots);
-	broadcastMessage(context.getWorkerNodes(), message);
+	broadcastMessage(context->getWorkerNodes(), message);
 }
 
-std::vector<gdf_column_cpp> getPartitionPlan(const Context & context) {
-	using ral::communication::messages::PartitionPivotsMessage;
-	using ral::communication::network::Server;
+std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + context_comm_token;
 
 	auto message = Server::getInstance().getMessage(context_token, message_id);
 
-	if(message->getMessageTokenValue() != message_id) {
-		throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-	}
-
-	auto concreteMessage = std::static_pointer_cast<PartitionPivotsMessage>(message);
-
-	return concreteMessage->getColumns();
-}
-
-std::vector<NodeColumns> split_data_into_NodeColumns(
-	const Context & context, const std::vector<gdf_column_cpp> & table, const gdf_column_cpp & indexes) {
-	std::vector<std::vector<gdf_column *>> split_table(table.size());  // this will be [colInd][splitInd]
-	for(std::size_t k = 0; k < table.size(); ++k) {
-		split_table[k] =
-			cudf::split(*(table[k].get_gdf_column()), static_cast<gdf_index_type *>(indexes.data()), indexes.size());
-	}
-
-	// get nodes
-	auto nodes = context.getAllNodes();
-
-	// generate NodeColumns
-	std::vector<NodeColumns> array_node_columns;
-	for(std::size_t i = 0; i < nodes.size(); ++i) {
-		std::vector<gdf_column_cpp> columns(table.size());
-		for(std::size_t k = 0; k < table.size(); ++k) {
-			split_table[k][i]->col_name = nullptr;
-			columns[k].create_gdf_column(split_table[k][i]);
-			columns[k].set_name(table[k].name());
-		}
-
-		array_node_columns.emplace_back(*nodes[i], columns);
-	}
-	return array_node_columns;
+	auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+	return concreteMessage->releaseBlazingTable();
 }
 
 
-std::vector<NodeColumns> partitionData(const Context & context,
-	std::vector<gdf_column_cpp> & table,
-	std::vector<int> & searchColIndices,
-	std::vector<gdf_column_cpp> & pivots,
-	bool isTableSorted,
-	std::vector<int8_t> sortOrderTypes) {
+// This function locates the pivots in the table and partitions the data on those pivot points.
+// IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
+// IMPORTANT: The TableViews of the data returned point to the same data that was input.
+std::vector<NodeColumnView> partitionData(Context * context,
+											const BlazingTableView & table,
+											const BlazingTableView & pivots,
+											const std::vector<int> & searchColIndices,
+											std::vector<int8_t> sortOrderTypes) {
+
 	// verify input
-	if(pivots.size() == 0) {
+	if(pivots.view().num_columns() == 0) {
 		throw std::runtime_error("The pivots array is empty");
 	}
-
-	if(pivots.size() != searchColIndices.size()) {
+	if(pivots.view().num_columns() != searchColIndices.size()) {
 		throw std::runtime_error("The pivots and searchColIndices vectors don't have the same size");
 	}
 
-	auto & pivot = pivots[0];
-	{
-		std::size_t size = pivot.size();
-
-		// verify the size of the pivots.
-		for(std::size_t k = 1; k < pivots.size(); ++k) {
-			if(size != pivots[k].size()) {
-				throw std::runtime_error("The pivots don't have the same size");
-			}
-		}
-
-		// verify the size in pivots and nodes
-		auto nodes = context.getAllNodes();
-		if(nodes.size() != (size + 1)) {
-			throw std::runtime_error("The size of the nodes needs to be the same as the size of the pivots plus one");
-		}
-	}
-
-	gdf_size_type table_row_size = table[0].size();
-	if(table_row_size == 0) {
-		std::vector<NodeColumns> array_node_columns;
-		auto nodes = context.getAllNodes();
+	cudf::size_type num_rows = table.view().num_rows();
+	if(num_rows == 0) {
+		std::vector<NodeColumnView> array_node_columns;
+		auto nodes = context->getAllNodes();
 		for(std::size_t i = 0; i < nodes.size(); ++i) {
-			array_node_columns.emplace_back(*nodes[i], table);
+			array_node_columns.emplace_back(nodes[i], BlazingTableView(table.view(), table.names()));
 		}
 		return array_node_columns;
 	}
@@ -395,148 +183,55 @@ std::vector<NodeColumns> partitionData(const Context & context,
 		sortOrderTypes.assign(searchColIndices.size(), 0);
 	}
 
-	std::vector<bool> desc_flags(sortOrderTypes.begin(), sortOrderTypes.end());
-
-	// Ensure data is sorted.
-	// Would it be better to use gdf_hash instead or gdf_order_by?
-	std::vector<gdf_column_cpp> sortedTable;
-	if(!isTableSorted) {
-		std::vector<gdf_column *> key_cols_vect(searchColIndices.size());
-		std::transform(searchColIndices.cbegin(), searchColIndices.cend(), key_cols_vect.begin(), [&](const int index) {
-			return table[index].get_gdf_column();
-		});
-
-		gdf_column_cpp asc_desc_col;
-		asc_desc_col.create_gdf_column(GDF_INT8,
-			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
-			sortOrderTypes.size(),
-			sortOrderTypes.data(),
-			ral::traits::get_dtype_size_in_bytes(GDF_INT8),
-			"");
-
-		gdf_column_cpp index_col;
-		index_col.create_gdf_column(GDF_INT32,
-			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
-			table_row_size,
-			nullptr,
-			ral::traits::get_dtype_size_in_bytes(GDF_INT32),
-			"");
-
-		gdf_context gdfcontext;
-		gdfcontext.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  // Nulls are are treated as largest
-
-		CUDF_CALL(gdf_order_by(key_cols_vect.data(),
-			(int8_t *) (asc_desc_col.get_gdf_column()->data),
-			key_cols_vect.size(),
-			index_col.get_gdf_column(),
-			&gdfcontext));
-
-		sortedTable.resize(table.size());
-		for(size_t i = 0; i < sortedTable.size(); i++) {
-			auto & col = table[i];
-			if(col.valid()) {
-				sortedTable[i].create_gdf_column(col.dtype(),
-					col.dtype_info(),
-					col.size(),
-					nullptr,
-					ral::traits::get_dtype_size_in_bytes(col.dtype()),
-					col.name());
-			} else {
-				sortedTable[i].create_gdf_column(col.dtype(),
-					col.dtype_info(),
-					col.size(),
-					nullptr,
-					nullptr,
-					ral::traits::get_dtype_size_in_bytes(col.dtype()),
-					col.name());
-			}
-
-			materialize_column(table[i].get_gdf_column(), sortedTable[i].get_gdf_column(), index_col.get_gdf_column());
-			sortedTable[i].update_null_count();
-		}
-
-		table = sortedTable;
+	std::vector<cudf::order> column_order;
+	for(auto col_order : sortOrderTypes){
+		if(col_order)
+			column_order.push_back(cudf::order::DESCENDING);
+		else
+			column_order.push_back(cudf::order::ASCENDING);
 	}
+	// TODO this is just a default setting. Will want to be able to properly set null_order
+	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
 
-	std::vector<gdf_column_cpp> sync_haystack(searchColIndices.size());
-	std::transform(searchColIndices.cbegin(), searchColIndices.cend(), sync_haystack.begin(), [&](const int index) {
-		return table[index];
-	});
-	std::vector<gdf_column_cpp> sync_needles(pivots);
-	for(gdf_size_type i = 0; i < sync_haystack.size(); i++) {
-		gdf_column_cpp & left_col = sync_haystack[i];
-		gdf_column_cpp & right_col = sync_needles[i];
+	CudfTableView columns_to_search = table.view().select(searchColIndices);
 
-		if(left_col.dtype() != GDF_STRING_CATEGORY) {
-			continue;
-		}
+	std::unique_ptr<cudf::column> pivot_indexes = cudf::experimental::upper_bound(columns_to_search,
+                                    pivots.view(),
+                                    column_order,
+                                    null_orders);
 
-		// Sync the nvcategories to make them comparable
-		// Workaround for https://github.com/rapidsai/cudf/issues/2790
+	std::pair<std::vector<cudf::size_type>, std::vector<cudf::bitmask_type>> host_pivot_indexes = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
 
-		gdf_column_cpp new_left_column;
-		new_left_column.allocate_like(left_col);
-		gdf_column * new_left_column_ptr = new_left_column.get_gdf_column();
-		gdf_column_cpp new_right_column;
-		new_right_column.allocate_like(right_col);
-		gdf_column * new_right_column_ptr = new_right_column.get_gdf_column();
+	std::vector<CudfTableView> partitioned_data = cudf::experimental::split(table.view(), host_pivot_indexes.first);
 
-		if(left_col.valid()) {
-			CUDA_TRY(cudaMemcpy(new_left_column_ptr->valid,
-				left_col.valid(),
-				gdf_valid_allocation_size(new_left_column_ptr->size),
-				cudaMemcpyDefault));
-			new_left_column_ptr->null_count = left_col.null_count();
-		}
+	std::vector<Node> all_nodes = context->getAllNodes();
 
-		if(right_col.valid()) {
-			CUDA_TRY(cudaMemcpy(new_right_column_ptr->valid,
-				right_col.valid(),
-				gdf_valid_allocation_size(new_right_column_ptr->size),
-				cudaMemcpyDefault));
-			new_right_column_ptr->null_count = right_col.null_count();
-		}
-
-		gdf_column * tmp_arr_input[2] = {left_col.get_gdf_column(), right_col.get_gdf_column()};
-		gdf_column * tmp_arr_output[2] = {new_left_column_ptr, new_right_column_ptr};
-		CUDF_TRY(sync_column_categories(tmp_arr_input, tmp_arr_output, 2));
-
-		sync_haystack[i] = new_left_column;
-		sync_needles[i] = new_right_column;
+	if(all_nodes.size() != partitioned_data.size()){
+		std::string err = "Number of CudfTableView from partitionData does not match number of nodes";
+		Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context->getContextToken()), std::to_string(context->getQueryStep()), std::to_string(context->getQuerySubstep()), err));
 	}
+	std::vector<NodeColumnView> partitioned_node_column_views;
+	for (int i = 0; i < all_nodes.size(); i++){
+		partitioned_node_column_views.push_back(std::make_pair(all_nodes[i], BlazingTableView(partitioned_data[i], table.names())));
+	}
+	return partitioned_node_column_views;
 
-	cudf::table haystack_table = ral::utilities::create_table(sync_haystack);
-	cudf::table needles_table = ral::utilities::create_table(sync_needles);
-
-	// We want the raw_indexes be on the heap because indexes will call delete when it goes out of scope
-	gdf_column * raw_indexes = new gdf_column{};
-	*raw_indexes = cudf::upper_bound(haystack_table, needles_table, desc_flags,
-		true);  // nulls_as_largest
-	gdf_column_cpp indexes;
-	indexes.create_gdf_column(raw_indexes);
-	sort_indices(indexes);
-
-	return split_data_into_NodeColumns(context, table, indexes);
 }
 
-void distributePartitions(const Context & context, std::vector<NodeColumns> & partitions) {
-	using ral::communication::CommunicationData;
-	using ral::communication::messages::ColumnDataMessage;
-	using ral::communication::messages::Factory;
-	using ral::communication::network::Client;
+void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
 
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
-	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
+	auto self_node = CommunicationData::getInstance().getSelfNode();
 	std::vector<std::thread> threads;
 	for(auto & nodeColumn : partitions) {
-		if(nodeColumn.getNode() == *self_node) {
+		if(nodeColumn.first == self_node) {
 			continue;
 		}
-		std::vector<gdf_column_cpp> columns = nodeColumn.getColumns();
-		auto destination_node = nodeColumn.getNode();
+		BlazingTableView columns = nodeColumn.second;
+		auto destination_node = nodeColumn.first;
 		threads.push_back(std::thread([message_id, context_token, self_node, destination_node, columns]() mutable {
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
@@ -547,499 +242,149 @@ void distributePartitions(const Context & context, std::vector<NodeColumns> & pa
 	}
 }
 
-std::vector<NodeColumns> collectPartitions(const Context & context) {
-	int num_partitions = context.getTotalNodes() - 1;
+std::vector<NodeColumn> collectPartitions(Context * context) {
+	int num_partitions = context->getTotalNodes() - 1;
 	return collectSomePartitions(context, num_partitions);
 }
 
-std::vector<NodeColumns> collectSomePartitions(const Context & context, int num_partitions) {
-	using ral::communication::messages::ColumnDataMessage;
-	using ral::communication::network::Server;
+std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partitions) {
 
 	// Get the numbers of rals in the query
-	int number_rals = context.getTotalNodes() - 1;
-	std::vector<bool> received(context.getTotalNodes(), false);
+	int number_rals = context->getTotalNodes() - 1;
+	std::vector<bool> received(context->getTotalNodes(), false);
 
 	// Create return value
-	std::vector<NodeColumns> node_columns;
+	std::vector<NodeColumn> node_columns;
 
 	// Get message from the server
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = ColumnDataMessage::MessageID() + "_" + std::to_string(context_comm_token);
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
 	while(0 < num_partitions) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
 		num_partitions--;
 
-		if(message->getMessageTokenValue() != message_id) {
-			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-		}
-
-		auto column_message = std::static_pointer_cast<ColumnDataMessage>(message);
 		auto node = message->getSenderNode();
-		int node_idx = context.getNodeIndex(*node);
+		int node_idx = context->getNodeIndex(node);
 		if(received[node_idx]) {
 			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context.getQueryStep()),
-				std::to_string(context.getQuerySubstep()),
+				std::to_string(context->getQueryStep()),
+				std::to_string(context->getQuerySubstep()),
 				"ERROR: Already received collectSomePartitions from node " + std::to_string(node_idx)));
 		}
-		node_columns.emplace_back(*node, column_message->getColumns());
+		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		node_columns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
 		received[node_idx] = true;
 	}
 	return node_columns;
 }
 
-void scatterData(const Context & context, std::vector<gdf_column_cpp> & table) {
-	using ral::communication::CommunicationData;
+void scatterData(Context * context, const BlazingTableView & table) {
 
-	std::vector<NodeColumns> array_node_columns;
-	auto nodes = context.getAllNodes();
+	std::vector<NodeColumnView> node_columns;
+	auto nodes = context->getAllNodes();
 	for(std::size_t i = 0; i < nodes.size(); ++i) {
-		if(!(*(nodes[i].get()) == CommunicationData::getInstance().getSelfNode())) {
-			std::vector<gdf_column_cpp> columns = table;
-			array_node_columns.emplace_back(*nodes[i], std::move(columns));
+		if(!(nodes[i] == CommunicationData::getInstance().getSelfNode())) {
+			node_columns.emplace_back(nodes[i], table);
 		}
 	}
-	distributePartitions(context, array_node_columns);
+	distributePartitions(context, node_columns);
 }
 
-void sortedMerger(std::vector<NodeColumns> & columns,
-	std::vector<int8_t> & sortOrderTypes,
-	std::vector<int> & sortColIndices,
-	blazing_frame & output) {
-	std::vector<order_by_type> ascDesc(sortOrderTypes.size());
-	std::transform(sortOrderTypes.begin(), sortOrderTypes.end(), ascDesc.begin(), [&](int8_t sortOrderType) {
-		return sortOrderType == 1 ? GDF_ORDER_DESC : GDF_ORDER_ASC;
-	});
+std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
+	const std::vector<int8_t> & sortOrderTypes,
+	const std::vector<int> & sortColIndices) {
 
-	std::vector<std::vector<gdf_column_cpp>> gdfColTables;
-	for(size_t i = 0; i < columns.size(); i++) {
-		std::vector<gdf_column_cpp> cols = columns[i].getColumns();
-		if(cols.size() > 0 && cols[0].size() > 0) {
-			gdfColTables.emplace_back(cols);
+	std::vector<cudf::order> column_order;
+	for(auto col_order : sortOrderTypes){
+		if(col_order)
+			column_order.push_back(cudf::order::DESCENDING);
+		else
+			column_order.push_back(cudf::order::ASCENDING);
+	}
+	// TODO this is just a default setting. Will want to be able to properly set null_order
+	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
+
+	std::unique_ptr<CudfTable> merged_table;
+	CudfTableView left_table = tables[0].view();
+	
+	for(size_t i = 1; i < tables.size(); i++) {
+		CudfTableView right_table = tables[i].view();
+		merged_table = cudf::experimental::merge({left_table, right_table}, sortColIndices, column_order, null_orders);
+		left_table = merged_table->view();
+	}
+
+	// lets get names from a non-empty table
+	std::vector<std::string> names;
+	for(size_t i = 0; i < tables.size(); i++) {
+		if (tables[i].names().size() > 0){
+			names = tables[i].names();
+			break;
 		}
 	}
-
-	output.clear();
-
-	if(gdfColTables.empty()) {
-		output.add_table(columns[0].getColumns());
-		return;
-	}
-
-	std::vector<gdf_column_cpp> leftCols(gdfColTables[0]);
-	cudf::table leftTable = ral::utilities::create_table(leftCols);
-	for(size_t i = 1; i < gdfColTables.size(); i++) {
-		std::vector<gdf_column_cpp> rightCols(gdfColTables[i]);
-		cudf::table rightTable = ral::utilities::create_table(rightCols);
-
-		// GDF_STRING_CATEGORY columns are sorted but the underlying nvstring may not be, so gather them
-		// to ensure they're sorted guaranteeing that sync_column_categories (called in cudf::merge)
-		// results are sorted
-		gather_and_remap_nvcategory(leftTable);
-		gather_and_remap_nvcategory(rightTable);
-
-		cudf::table mergedTable = cudf::merge(leftTable, rightTable, sortColIndices, ascDesc);
-
-		for(size_t j = 0; j < mergedTable.num_columns(); j++) {
-			gdf_column * col = mergedTable.get_column(j);
-			std::string colName = leftCols[j].name();
-			leftCols[j].create_gdf_column(col);
-			leftCols[j].set_name(colName);
-		}
-
-		leftTable = mergedTable;
-	}
-
-	output.add_table(leftCols);
+	return std::make_unique<BlazingTable>(std::move(merged_table), names);
 }
 
-std::vector<gdf_column_cpp> generatePartitionPlansGroupBy(const Context & context, std::vector<NodeSamples> & samples) {
-	std::vector<std::vector<gdf_column_cpp>> tables(samples.size());
-	std::transform(samples.begin(), samples.end(), tables.begin(), [](NodeSamples & nodeSamples) {
-		return nodeSamples.getColumns();
-	});
 
-	std::vector<gdf_column_cpp> concatSamples = ral::utilities::concatTables(tables);
+std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const BlazingTableView & sortedSamples){
 
-	std::vector<int> groupColumnIndices(concatSamples.size());
+	cudf::size_type outputRowSize = sortedSamples.view().num_rows();
+	cudf::size_type pivotsSize = outputRowSize > 0 ? context->getTotalNodes() - 1 : 0;
+
+	int32_t step = outputRowSize / context->getTotalNodes();
+
+	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
+	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);
+	CudfColumnView gather_map(gather_map_wrapper);
+	std::unique_ptr<CudfTable> pivots = cudf::experimental::gather( sortedSamples.view(), gather_map );
+
+	return std::make_unique<BlazingTable>(std::move(pivots), sortedSamples.names());
+}
+
+
+std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples) {
+
+	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
+	
+	std::vector<int> groupColumnIndices(concatSamples->num_columns());
 	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
-	std::vector<gdf_column_cpp> groupedSamples =
-		ral::operators::groupby_without_aggregations(concatSamples, groupColumnIndices);
-	size_t number_of_groups = groupedSamples[0].size();
-
+	std::unique_ptr<BlazingTable> groupedSamples = ral::operators::experimental::compute_groupby_without_aggregations(
+														concatSamples->toBlazingTableView(), groupColumnIndices);
+	
 	// Sort
-	std::vector<gdf_column *> rawGroupedSamples{groupedSamples.size()};
-	for(size_t i = 0; i < groupedSamples.size(); i++) {
-		rawGroupedSamples[i] = groupedSamples[i].get_gdf_column();
-	}
+	std::vector<cudf::order> column_order(groupedSamples->num_columns(), cudf::order::ASCENDING);
+	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
+	std::unique_ptr<cudf::column> sort_indices = cudf::experimental::sorted_order( groupedSamples->view(), column_order, null_orders);
+	std::unique_ptr<CudfTable> sortedSamples = cudf::experimental::gather( groupedSamples->view(), sort_indices->view() );
 
-	gdf_column_cpp sortedIndexCol;
-	sortedIndexCol.create_gdf_column(GDF_INT32,
-		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
-		number_of_groups,
-		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_INT32),
-		"");
-
-	gdf_context gdfContext;
-	gdfContext.flag_null_sort_behavior = GDF_NULL_AS_LARGEST;  // Nulls are are treated as largest
-
-	CUDF_CALL(gdf_order_by(
-		rawGroupedSamples.data(), nullptr, rawGroupedSamples.size(), sortedIndexCol.get_gdf_column(), &gdfContext));
-
-	std::vector<gdf_column_cpp> sortedSamples(groupedSamples.size());
-	for(size_t i = 0; i < sortedSamples.size(); i++) {
-		auto & col = groupedSamples[i];
-		if(col.valid()) {
-			sortedSamples[i].create_gdf_column(col.dtype(),
-				col.dtype_info(),
-				col.size(),
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
-				col.name());
-		} else {
-			sortedSamples[i].create_gdf_column(col.dtype(),
-				col.dtype_info(),
-				col.size(),
-				nullptr,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
-				col.name());
-		}
-
-		materialize_column(
-			groupedSamples[i].get_gdf_column(), sortedSamples[i].get_gdf_column(), sortedIndexCol.get_gdf_column());
-		sortedSamples[i].update_null_count();
-	}
-
-	gdf_size_type outputRowSize = sortedSamples[0].size();
-
-	// Gather
-	gdf_size_type pivotsSize = outputRowSize > 0 ? context.getTotalNodes() - 1 : 0;
-	std::vector<gdf_column_cpp> pivots{sortedSamples.size()};
-	for(size_t i = 0; i < sortedSamples.size(); i++) {
-		auto & col = sortedSamples[i];
-		if(col.valid()) {
-			pivots[i].create_gdf_column(col.dtype(),
-				col.dtype_info(),
-				pivotsSize,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
-				col.name());
-		} else {
-			pivots[i].create_gdf_column(col.dtype(),
-				col.dtype_info(),
-				pivotsSize,
-				nullptr,
-				nullptr,
-				ral::traits::get_dtype_size_in_bytes(col.dtype()),
-				col.name());
+	// lets get names from a non-empty table
+	std::vector<std::string> names;
+	for(size_t i = 0; i < samples.size(); i++) {
+		if (samples[i].names().size() > 0){
+			names = samples[i].names();
+			break;
 		}
 	}
 
-	if(number_of_groups > 0) {
-		cudf::table srcTable = ral::utilities::create_table(sortedSamples);
-		cudf::table destTable = ral::utilities::create_table(pivots);
-
-		int step = number_of_groups / context.getTotalNodes();
-		gdf_column_cpp gatherMap;
-		gatherMap.create_gdf_column(GDF_INT32,
-			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
-			context.getTotalNodes() - 1,
-			nullptr,
-			ral::traits::get_dtype_size_in_bytes(GDF_INT32),
-			"");
-		gdf_sequence(static_cast<int32_t *>(gatherMap.get_gdf_column()->data), gatherMap.size(), step, step);
-
-		cudf::gather(&srcTable, (gdf_index_type *) (gatherMap.get_gdf_column()->data), &destTable);
-		ral::init_string_category_if_null(destTable);
-	}
-
-	return pivots;
+	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
 }
 
-void groupByWithoutAggregationsMerger(
-	std::vector<NodeColumns> & groups, const std::vector<int> & groupColIndices, blazing_frame & output) {
-	std::vector<std::vector<gdf_column_cpp>> tables(groups.size());
-	std::transform(groups.begin(), groups.end(), tables.begin(), [](NodeColumns & nodeColumns) {
-		return nodeColumns.getColumns();
-	});
+std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
+	const std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices) {
+	
+	std::unique_ptr<BlazingTable> concatGroups = ral::utilities::experimental::concatTables(tables);
 
-	std::vector<gdf_column_cpp> concatGroups = ral::utilities::concatTables(tables);
-
-	std::vector<gdf_column_cpp> groupedOutput =
-		ral::operators::groupby_without_aggregations(concatGroups, groupColIndices);
-
-	output.clear();
-	output.add_table(groupedOutput);
+	return ral::operators::experimental::compute_groupby_without_aggregations(concatGroups->toBlazingTableView(),  group_column_indices);	
 }
 
-void distributeRowSize(const Context & context, std::size_t total_row_size) {
-	using ral::communication::CommunicationData;
-	using ral::communication::messages::Factory;
-	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Client;
-
-
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
-
-	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
-	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, total_row_size, {});
-
-	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	broadcastMessage(context.getAllOtherNodes(self_node_idx), message);
-}
-
-std::vector<gdf_size_type> collectRowSize(const Context & context) {
-	using ral::communication::CommunicationData;
-	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Server;
-
-	int num_nodes = context.getTotalNodes();
-	std::vector<gdf_size_type> node_row_sizes(num_nodes);
-	std::vector<bool> received(num_nodes, false);
-
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
-
-	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	for(gdf_size_type i = 0; i < num_nodes - 1; ++i) {
-		auto message = Server::getInstance().getMessage(context_token, message_id);
-		if(message->getMessageTokenValue() != message_id) {
-			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-		}
-		auto concrete_message = std::static_pointer_cast<SampleToNodeMasterMessage>(message);
-		auto node = concrete_message->getSenderNode();
-		int node_idx = context.getNodeIndex(*node);
-		assert(node_idx >= 0);
-		if(received[node_idx]) {
-			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context.getQueryStep()),
-				std::to_string(context.getQuerySubstep()),
-				"ERROR: Already received collectRowSize from node " + std::to_string(node_idx)));
-		}
-		node_row_sizes[node_idx] = concrete_message->getTotalRowSize();
-		received[node_idx] = true;
-	}
-
-	return node_row_sizes;
-}
-
-
-void distributeLeftRightNumRows(const Context & context, std::size_t left_num_rows, std::size_t right_num_rows) {
-	using ral::communication::CommunicationData;
-	using ral::communication::messages::Factory;
-	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Client;
-
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
-
-	auto self_node = CommunicationData::getInstance().getSharedSelfNode();
-	std::vector<gdf_column_cpp> num_rows(1);
-	std::vector<int64_t> num_rows_host{left_num_rows, right_num_rows};
-	num_rows[0].create_gdf_column(
-		GDF_INT64, gdf_dtype_extra_info{}, 2, &num_rows_host[0], ral::traits::get_dtype_size_in_bytes(GDF_INT64), "");
-	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_rows);
-
-	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	broadcastMessage(context.getAllOtherNodes(self_node_idx), message);
-}
-
-void collectLeftRightNumRows(const Context & context,
-	std::vector<gdf_size_type> & node_num_rows_left,
-	std::vector<gdf_size_type> & node_num_rows_right) {
-	using ral::communication::CommunicationData;
-	using ral::communication::messages::SampleToNodeMasterMessage;
-	using ral::communication::network::Server;
-
-	int num_nodes = context.getTotalNodes();
-	node_num_rows_left.resize(num_nodes);
-	node_num_rows_right.resize(num_nodes);
-	std::vector<bool> received(num_nodes, false);
-
-	const uint32_t context_comm_token = context.getContextCommunicationToken();
-	const uint32_t context_token = context.getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(context_comm_token);
-
-	int self_node_idx = context.getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	for(gdf_size_type i = 0; i < num_nodes - 1; ++i) {
-		auto message = Server::getInstance().getMessage(context_token, message_id);
-		if(message->getMessageTokenValue() != message_id) {
-			throw createMessageMismatchException(__FUNCTION__, message_id, message->getMessageTokenValue());
-		}
-		auto concrete_message = std::static_pointer_cast<SampleToNodeMasterMessage>(message);
-		auto node = concrete_message->getSenderNode();
-		std::vector<gdf_column_cpp> num_rows_data = concrete_message->getSamples();
-		assert(num_rows_data.size() == 1);
-		assert(num_rows_data[0].size() == 2);
-		assert(num_rows_data[0].dtype() == GDF_INT64);
-		std::vector<int64_t> num_rows_host(2);
-		cudaMemcpy(num_rows_host.data(),
-			num_rows_data[0].data(),
-			ral::traits::get_dtype_size_in_bytes(GDF_INT64) * 2,
-			cudaMemcpyDeviceToHost);
-		int node_idx = context.getNodeIndex(*node);
-		assert(node_idx >= 0);
-		if(received[node_idx]) {
-			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context.getQueryStep()),
-				std::to_string(context.getQuerySubstep()),
-				"ERROR: Already received collectLeftRightNumRows from node " + std::to_string(node_idx)));
-		}
-		node_num_rows_left[node_idx] = num_rows_host[0];
-		node_num_rows_right[node_idx] = num_rows_host[1];
-		received[node_idx] = true;
-	}
-}
-
-
-}  // namespace distribution
-}  // namespace ral
-
-
-namespace ral {
-namespace distribution {
-
-std::vector<gdf_column_cpp> generateOutputColumns(
-	gdf_size_type column_quantity, gdf_size_type column_size, std::vector<gdf_column_cpp> & table) {
-	// Create outcome
-	std::vector<gdf_column_cpp> result(column_quantity);
-
-	// Create columns
-	for(gdf_size_type k = 0; k < column_quantity; ++k) {
-		result[k] = ral::utilities::create_column(column_size, table[k].dtype(), table[k].name());
-	}
-
-	// Done
-	return result;
-}
-
-std::vector<NodeColumns> generateJoinPartitions(
-	const Context & context, std::vector<gdf_column_cpp> & table, std::vector<int> & columnIndices) {
-	assert(table.size() != 0);
-
-	if(table[0].size() == 0) {
-		std::vector<NodeColumns> result;
-		auto nodes = context.getAllNodes();
-		for(gdf_size_type k = 0; k < nodes.size(); ++k) {
-			std::vector<gdf_column_cpp> columns = table;
-			result.emplace_back(*nodes[k], columns);
-		}
-		return result;
-	}
-
-	// Support for GDF_STRING_CATEGORY. We need the string hashes not the category indices
-	std::vector<gdf_column_cpp> temp_input_table(table);
-	std::vector<int> temp_input_col_indices(columnIndices);
-	for(size_t i = 0; i < columnIndices.size(); i++) {
-		gdf_column_cpp & col = table[columnIndices[i]];
-
-		if(col.dtype() != GDF_STRING_CATEGORY)
-			continue;
-
-		NVCategory * nvCategory = static_cast<NVCategory *>(col.get_gdf_column()->dtype_info.category);
-		NVStrings * nvStrings =
-			nvCategory->gather_strings(static_cast<nv_category_index_type *>(col.data()), col.size(), true);
-
-		gdf_column_cpp str_hash;
-		str_hash.create_gdf_column(GDF_INT32,
-			gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
-			nvStrings->size(),
-			nullptr,
-			nullptr,
-			ral::traits::get_dtype_size_in_bytes(GDF_INT32),
-			"");
-		nvStrings->hash(static_cast<unsigned int *>(str_hash.data()));
-		NVStrings::destroy(nvStrings);
-
-		temp_input_col_indices[i] = temp_input_table.size();
-		temp_input_table.push_back(str_hash);
-	}
-
-
-	std::vector<gdf_column *> raw_input_table_col_ptrs(temp_input_table.size());
-	std::transform(
-		temp_input_table.begin(), temp_input_table.end(), raw_input_table_col_ptrs.begin(), [](auto & cpp_col) {
-			return cpp_col.get_gdf_column();
-		});
-	cudf::table input_table_wrapper(raw_input_table_col_ptrs);
-
-	// Generate partition offset vector
-	gdf_size_type number_nodes = context.getTotalNodes();
-	std::vector<gdf_index_type> partition_offset(number_nodes);
-
-	// Preallocate output columns
-	std::vector<gdf_column_cpp> output_columns =
-		generateOutputColumns(input_table_wrapper.num_columns(), input_table_wrapper.num_rows(), temp_input_table);
-
-	// copy over nvcategory to output
-	// NOTE that i am having to do this due to an already identified issue: https://github.com/rapidsai/cudf/issues/1474
-	for(size_t i = 0; i < output_columns.size(); i++) {
-		if(output_columns[i].dtype() == GDF_STRING_CATEGORY && temp_input_table[i].dtype_info().category) {
-			output_columns[i].get_gdf_column()->dtype_info.category =
-				static_cast<void *>(static_cast<NVCategory *>(temp_input_table[i].dtype_info().category)->copy());
-		}
-	}
-
-	std::vector<gdf_column *> raw_output_table_col_ptrs(output_columns.size());
-	std::transform(output_columns.begin(), output_columns.end(), raw_output_table_col_ptrs.begin(), [](auto & cpp_col) {
-		return cpp_col.get_gdf_column();
-	});
-	cudf::table output_table_wrapper(raw_output_table_col_ptrs);
-
-	// Execute operation
-	CUDF_CALL(gdf_hash_partition(input_table_wrapper.num_columns(),
-		input_table_wrapper.begin(),
-		temp_input_col_indices.data(),
-		temp_input_col_indices.size(),
-		number_nodes,
-		output_table_wrapper.begin(),
-		partition_offset.data(),
-		gdf_hash_func::GDF_HASH_MURMUR3));
-
-	std::vector<gdf_column_cpp> temp_output_columns(output_columns.begin(), output_columns.begin() + table.size());
-	for(size_t i = 0; i < table.size(); i++) {
-		gdf_column * srcCol = input_table_wrapper.get_column(i);
-		gdf_column * dstCol = output_table_wrapper.get_column(i);
-
-		if(srcCol->dtype != GDF_STRING_CATEGORY)
-			continue;
-
-		ral::safe_nvcategory_gather_for_string_category(dstCol, srcCol->dtype_info.category);
-	}
-
-	// Erase input table
-	table.clear();
-
-	// lets get the split indices. These are all the partition_offset, except for the first since its just 0
-	gdf_column_cpp indexes;
-	indexes.create_gdf_column(GDF_INT32,
-		gdf_dtype_extra_info{TIME_UNIT_NONE, nullptr},
-		number_nodes - 1,
-		partition_offset.data() + 1,
-		nullptr,
-		ral::traits::get_dtype_size_in_bytes(GDF_INT32),
-		"");
-
-	return split_data_into_NodeColumns(context, temp_output_columns, indexes);
-}
-
-
-void broadcastMessage(
-	std::vector<std::shared_ptr<Node>> nodes, std::shared_ptr<communication::messages::Message> message) {
+void broadcastMessage(std::vector<Node> nodes, 
+			std::shared_ptr<communication::messages::experimental::Message> message) {
 	std::vector<std::thread> threads(nodes.size());
 	for(size_t i = 0; i < nodes.size(); i++) {
-		std::shared_ptr<Node> node = nodes[i];
+		Node node = nodes[i];
 		threads[i] = std::thread([node, message]() {
-			ral::communication::network::Client::send(*node, *message);
+			Client::send(node, *message);
 		});
 	}
 	for(size_t i = 0; i < threads.size(); i++) {
@@ -1047,5 +392,184 @@ void broadcastMessage(
 	}
 }
 
+void distributeNumRows(Context * context, cudf::size_type num_rows) {
+	
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
+
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, num_rows, {});
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+}
+
+std::vector<cudf::size_type> collectNumRows(Context * context) {
+	
+	int num_nodes = context->getTotalNodes();
+	std::vector<cudf::size_type> node_num_rows(num_nodes);
+	std::vector<bool> received(num_nodes, false);
+
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
+		auto message = Server::getInstance().getMessage(context_token, message_id);
+		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto node = concrete_message->getSenderNode();
+		int node_idx = context->getNodeIndex(node);
+		assert(node_idx >= 0);
+		if(received[node_idx]) {
+			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+				std::to_string(context->getQueryStep()),
+				std::to_string(context->getQuerySubstep()),
+				"ERROR: Already received collectRowSize from node " + std::to_string(node_idx)));
+		}
+		node_num_rows[node_idx] = concrete_message->getTotalRowSize();
+		received[node_idx] = true;
+	}
+
+	return node_num_rows;
+}
+
+void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows) {
+	
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
+
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	cudf::test::fixed_width_column_wrapper<cudf::size_type>num_rows_col{left_num_rows, right_num_rows};
+	CudfTableView num_rows_table{{num_rows_col}};
+	std::vector<std::string> names{"left_num_rows", "right_num_rows"};
+	BlazingTableView num_rows_blz_table(num_rows_table, names);
+	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_rows_blz_table);
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+}
+
+void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & node_num_rows_left,
+			std::vector<cudf::size_type> & node_num_rows_right) {
+	
+	int num_nodes = context->getTotalNodes();
+	node_num_rows_left.resize(num_nodes);
+	node_num_rows_right.resize(num_nodes);
+	std::vector<bool> received(num_nodes, false);
+
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
+		auto message = Server::getInstance().getMessage(context_token, message_id);
+		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto node = concrete_message->getSenderNode();
+		std::unique_ptr<BlazingTable> num_rows_data = concrete_message->releaseBlazingTable();
+		assert(num_rows_data->view().num_columns() == 1);
+		assert(num_rows_data->view().num_rows() == 2);
+		
+		std::pair<std::vector<cudf::size_type>, std::vector<cudf::bitmask_type>> num_rows_host = cudf::test::to_host<cudf::size_type>(num_rows_data->view().column(0));
+		
+		int node_idx = context->getNodeIndex(node);
+		assert(node_idx >= 0);
+		if(received[node_idx]) {
+			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+				std::to_string(context->getQueryStep()),
+				std::to_string(context->getQuerySubstep()),
+				"ERROR: Already received collectLeftRightNumRows from node " + std::to_string(node_idx)));
+		}
+		node_num_rows_left[node_idx] = num_rows_host.first[0];
+		node_num_rows_right[node_idx] = num_rows_host.first[1];
+		received[node_idx] = true;
+	}
+}
+
+void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::BlazingTableView & left,
+    		const ral::frame::BlazingTableView & right) {
+
+	int64_t bytes_left = ral::utilities::experimental::get_table_size_bytes(left);
+	int64_t bytes_right = ral::utilities::experimental::get_table_size_bytes(right);
+
+	const std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
+
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	cudf::test::fixed_width_column_wrapper<int64_t>num_bytes_col{bytes_left, bytes_right};
+	CudfTableView num_bytes_table{{num_bytes_col}};
+	std::vector<std::string> names{"left_num_bytes", "right_num_bytes"};
+	BlazingTableView num_bytes_blz_table(num_bytes_table, names);
+	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_bytes_blz_table);
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+}
+
+void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,
+			std::vector<int64_t> & node_num_bytes_right) {
+	
+	int num_nodes = context->getTotalNodes();
+	node_num_bytes_left.resize(num_nodes);
+	node_num_bytes_right.resize(num_nodes);
+	std::vector<bool> received(num_nodes, false);
+
+	const std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
+
+	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
+		auto message = Server::getInstance().getMessage(context_token, message_id);
+		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto node = concrete_message->getSenderNode();
+		std::unique_ptr<BlazingTable> num_bytes_data = concrete_message->releaseBlazingTable();
+		assert(num_bytes_data->view().num_columns() == 1);
+		assert(num_bytes_data->view().num_rows() == 2);
+		
+		std::pair<std::vector<int64_t>, std::vector<cudf::bitmask_type>> num_bytes_host = cudf::test::to_host<int64_t>(num_bytes_data->view().column(0));
+		
+		int node_idx = context->getNodeIndex(node);
+		assert(node_idx >= 0);
+		if(received[node_idx]) {
+			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+				std::to_string(context->getQueryStep()),
+				std::to_string(context->getQuerySubstep()),
+				"ERROR: Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx)));
+		}
+		node_num_bytes_left[node_idx] = num_bytes_host.first[0];
+		node_num_bytes_right[node_idx] = num_bytes_host.first[1];
+		received[node_idx] = true;
+	}
+}
+
+}  // namespace experimental
+}  // namespace distribution
+}  // namespace ral
+
+
+
+namespace ral {
+namespace distribution {
+namespace sampling {
+namespace experimental {
+
+std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
+	const ral::frame::BlazingTableView & table, const double ratio) {
+	return generateSamples(table, std::ceil(table.view().num_rows() * ratio));
+}
+
+std::unique_ptr<ral::frame::BlazingTable> generateSamples(
+	const ral::frame::BlazingTableView & table, const size_t quantile) {
+
+	return ral::generator::generate_sample(table, quantile);
+}
+
+}  // namespace experimental
+}  // namespace sampling
 }  // namespace distribution
 }  // namespace ral

@@ -7,7 +7,6 @@
 
 #include <CalciteInterpreter.h>
 #include <GDFColumn.cuh>
-#include "gdf_wrapper/gdf_wrapper.cuh"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"

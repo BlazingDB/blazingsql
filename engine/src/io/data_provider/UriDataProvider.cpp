@@ -18,17 +18,20 @@ namespace ral {
 namespace io {
 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris)
-	: data_provider(), file_uris(uris), uri_scalars({}), string_scalars({}), is_column_string({}), opened_files({}),
+	: data_provider(), file_uris(uris), uri_values({}), opened_files({}),
 	  current_file(0), errors({}), directory_uris({}), directory_current_file(0) {}
 
+// TODO percy cudf0.12 implement proper scalar support, TODO, finish this to support HIVE with partitions, @alex 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
-	std::vector<std::map<std::string, gdf_scalar>> uri_scalars,
-	std::vector<std::map<std::string, std::string>> string_scalars,
-	std::vector<std::map<std::string, bool>> is_column_string)
-	: data_provider(), file_uris(uris), uri_scalars(uri_scalars), string_scalars(string_scalars),
-	  is_column_string(is_column_string), opened_files({}), current_file(0), errors({}), directory_uris({}),
+	std::vector<std::map<std::string, std::string>> uri_values)
+	: data_provider(), file_uris(uris), uri_values(uri_values), 
+	opened_files({}), current_file(0), errors({}), directory_uris({}),
 	  directory_current_file(0) {
 	// thanks to c++11 we no longer have anything interesting to do here :)
+}
+
+std::shared_ptr<data_provider> uri_data_provider::clone() {
+	return std::make_shared<uri_data_provider>(this->file_uris, this->uri_values);
 }
 
 uri_data_provider::~uri_data_provider() {
@@ -80,10 +83,12 @@ data_handle uri_data_provider::get_next() {
 
 		data_handle handle;
 		handle.uri = this->directory_uris[this->directory_current_file];
-		if(this->uri_scalars.size() != 0) {
-			handle.column_values = this->uri_scalars[this->current_file];
-			handle.string_values = this->string_scalars[this->current_file];
-			handle.is_column_string = this->is_column_string[this->current_file];
+		if(this->uri_values.size() != 0) {
+			if(this->uri_values.size() > this->current_file) {
+				handle.column_values = this->uri_values[this->current_file];
+			} else {
+				std::cout<<"ERROR: Out of range error. this->uri_values.size() is "<<this->uri_values.size()<<" this->current_file is "<<this->current_file<<std::endl;
+			}
 		}
 
 		this->opened_files.push_back(file);
@@ -148,13 +153,11 @@ data_handle uri_data_provider::get_next() {
 			}
 
 			std::string ender = ".crc";
-			std::string hive_copies = "_copy_";
 			std::vector<Uri> new_uris;
 			for(int i = 0; i < this->directory_uris.size(); i++) {
 				std::string fileName = this->directory_uris[i].getPath().toString();
 
-				if(!StringUtil::endsWith(fileName, ender) && !StringUtil::contains(fileName, hive_copies)) {
-					//  std::cout<<" orig is "<<fileName<<std::endl;
+				if(!StringUtil::endsWith(fileName, ender)) { 
 					new_uris.push_back(this->directory_uris[i]);
 				}
 			}
@@ -171,10 +174,12 @@ data_handle uri_data_provider::get_next() {
 			data_handle handle;
 			handle.uri = current_uri;
 			handle.fileHandle = file;
-			if(this->uri_scalars.size() != 0) {
-				handle.column_values = this->uri_scalars[this->current_file];
-				handle.string_values = this->string_scalars[this->current_file];
-				handle.is_column_string = this->is_column_string[this->current_file];
+			if(this->uri_values.size() != 0) {
+				if(this->uri_values.size() > this->current_file) {
+					handle.column_values = this->uri_values[this->current_file];
+				} else {
+					std::cout<<"ERROR: Out of range error. this->uri_values.size() is "<<this->uri_values.size()<<" this->current_file is "<<this->current_file<<std::endl;
+				}
 			}
 
 			this->current_file++;

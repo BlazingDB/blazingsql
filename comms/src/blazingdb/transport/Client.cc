@@ -10,6 +10,8 @@
 namespace blazingdb {
 namespace transport {
 
+namespace experimental {
+
 class Client::SendError : public std::exception {
 public:
   SendError(const std::string& original, const std::string& endpoint,
@@ -46,19 +48,20 @@ public:
 
   Status Send(GPUMessage& message) override {
     void* fd = client_socket.fd();
-    auto node = message.getSenderNode();
+    auto &node = message.getSenderNode();
     auto message_metadata = message.metadata();
 
     // send message metadata
     write_metadata(fd, message_metadata);
     // send address metadata
-    write_metadata(fd, node->address()->metadata());
+    write_metadata(fd, node.address().metadata_);
 
     // send message content (gpu buffers)
     std::vector<int> buffer_sizes;
-    std::vector<char*> buffers;
+    std::vector<const char *> buffers;
     std::vector<ColumnTransport> column_offsets;
-    std::tie(buffer_sizes, buffers, column_offsets) = message.GetRawColumns();
+    std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
+    std::tie(buffer_sizes, buffers, column_offsets, temp_scope_holder) = message.GetRawColumns();
 
     write_metadata(fd, (int32_t)column_offsets.size());
     blazingdb::transport::io::writeToSocket(
@@ -69,8 +72,7 @@ public:
     blazingdb::transport::io::writeToSocket(fd, (char*)buffer_sizes.data(),
                                             sizeof(int) * buffer_sizes.size());
 
-    blazingdb::transport::io::writeBuffersFromGPUTCP(
-        column_offsets, buffer_sizes, buffers, fd, gpuId);
+    blazingdb::transport::experimental::io::writeBuffersFromGPUTCP(column_offsets, buffer_sizes, buffers, fd, gpuId);
     blazingdb::transport::io::writeToSocket(fd, "OK", 2, false);
 
     zmq::socket_t* socket_ptr = (zmq::socket_t*)fd;
@@ -79,9 +81,6 @@ public:
     auto data_past_topic_size{sizeof(data_past_topic)};
     socket_ptr->getsockopt(ZMQ_RCVMORE, &data_past_topic,
                            &data_past_topic_size);
-    if (data_past_topic == 0 || data_past_topic_size == 0) {
-      std::cerr << "Client: No data inside message." << std::endl;
-    }
     // receive the ok
     zmq::message_t local_message;
     auto success = socket_ptr->recv(local_message);
@@ -105,5 +104,6 @@ std::shared_ptr<Client> ClientTCP::Make(const std::string& ip, int16_t port) {
   return std::shared_ptr<Client>(new ConcreteClientTCP(ip, port));
 }
 
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

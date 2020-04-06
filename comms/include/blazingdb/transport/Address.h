@@ -8,6 +8,7 @@
 
 namespace blazingdb {
 namespace transport {
+namespace experimental {
 
 /// \brief Represents the address (ip:port)
 ///
@@ -32,7 +33,11 @@ public:
              comunication_port == rhs.comunication_port and
              protocol_port == rhs.protocol_port;
     }
-  };
+  } metadata_;
+  Address();
+  Address(const Address& address);
+
+  const MetaData &metadata() const { return metadata_; }
 
 protected:
   explicit Address(Type type, const std::string &ip,
@@ -40,17 +45,11 @@ protected:
                    const std::int16_t protocol_port);
 
 public:
-  static std::shared_ptr<Address> TCP(const std::string &ip,
+  static Address TCP(const std::string &ip,
                                       const std::int16_t communication_port,
-                                      const std::int16_t protocol_port);
-
-  const MetaData &metadata() { return metadata_; }
-
-protected:
-  MetaData metadata_;
-
-  BZ_INTERFACE(Address);
+                                      const std::int16_t protocol_port);  
 };
 
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

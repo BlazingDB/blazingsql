@@ -1,6 +1,5 @@
 include_directories(
-    ${CMAKE_SOURCE_DIR}/thirdparty/jitify
-    ${CMAKE_SOURCE_DIR}/src/gdf_wrapper)
+    ${CMAKE_SOURCE_DIR}/thirdparty/jitify)
 
 set(source_files
     ${CMAKE_SOURCE_DIR}/src/Config/Config.cpp
@@ -13,10 +12,8 @@ set(nvcategory_test_SRCS
     ${CMAKE_SOURCE_DIR}/src/GDFColumn.cu
     ${CMAKE_SOURCE_DIR}/src/ColumnManipulation.cu
     ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
-    ${CMAKE_SOURCE_DIR}/src/JoinProcessor.cpp
     ${CMAKE_SOURCE_DIR}/src/LogicalFilter.cpp
     ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
-    ${CMAKE_SOURCE_DIR}/src/ResultSetRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
     ${CMAKE_SOURCE_DIR}/src/CalciteInterpreter.cpp
     ${source_files}

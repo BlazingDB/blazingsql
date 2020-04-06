@@ -108,7 +108,7 @@ static cudf::table build_table() {
 
   cudf::csv_read_arg args(cudf::source_info{filename});
   args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
-  args.dtype = {"int32", "str", "int32", "str"};
+  args.dtype = {"int32", "int64", "int32", "int64"};
   args.header = -1;
   args.delimiter = '|';
   args.use_cols_names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};

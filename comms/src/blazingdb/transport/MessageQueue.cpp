@@ -4,8 +4,9 @@
 
 namespace blazingdb {
 namespace transport {
+namespace experimental {
 
-std::shared_ptr<GPUMessage> MessageQueue::getMessage(
+std::shared_ptr<GPUReceivedMessage> MessageQueue::getMessage(
     const std::string &messageToken) {
   std::unique_lock<std::mutex> lock(mutex_);
   condition_variable_.wait(lock, [&, this] {
@@ -18,14 +19,14 @@ std::shared_ptr<GPUMessage> MessageQueue::getMessage(
   return getMessageQueue(messageToken);
 }
 
-void MessageQueue::putMessage(std::shared_ptr<GPUMessage> &message) {
+void MessageQueue::putMessage(std::shared_ptr<GPUReceivedMessage> &message) {
   std::unique_lock<std::mutex> lock(mutex_);
   putMessageQueue(message);
   lock.unlock();
-  condition_variable_.notify_one();
+  condition_variable_.notify_all(); // Note: Very important to notify all threads
 }
 
-std::shared_ptr<GPUMessage> MessageQueue::getMessageQueue(
+std::shared_ptr<GPUReceivedMessage> MessageQueue::getMessageQueue(
     const std::string &messageToken) {
   auto it = std::partition(message_queue_.begin(), message_queue_.end(),
                            [&messageToken](const auto &e) {
@@ -33,15 +34,15 @@ std::shared_ptr<GPUMessage> MessageQueue::getMessageQueue(
                            });
   assert(it != message_queue_.end());
 
-  std::shared_ptr<GPUMessage> message = *it;
+  std::shared_ptr<GPUReceivedMessage> message = *it;
   message_queue_.erase(it, it + 1);
 
   return message;
 }
 
-void MessageQueue::putMessageQueue(std::shared_ptr<GPUMessage> &message) {
+void MessageQueue::putMessageQueue(std::shared_ptr<GPUReceivedMessage> &message) {
   message_queue_.push_back(message);
 }
-
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

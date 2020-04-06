@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#include "parser/expression_tree.hpp"
 #include "parser/expression_utils.hpp"
 
 namespace ral {
@@ -177,9 +178,16 @@ void expression_tree::drop(std::vector<std::string> const &column_names) {
 }
 
 bool expression_tree::build(std::string str) {
-  auto parts = split(str, " ");
-  return build(root, parts, 0) == -1;
+  // lets use our newest good parser to help us tokenize until we merge both expression tree parsers
+  ral::parser::parse_tree tree;
+	tree.build(str);
+  tree.transform_to_custom_op();
+  std::string tokenizable_string = tree.buildTokenizableString();
+  std::vector<std::string> tokens = split(tokenizable_string, "@#@"); 
+  
+  return build(root, tokens, 0) == -1;
 }
+
 void expression_tree::print() {
   print_helper(root.get(), 0);
   printf("\n");
@@ -191,6 +199,13 @@ std::string expression_tree::prefix() {
   return returned_str.substr(0, returned_str.length() - 1);
 }
 
+std::string expression_tree::rebuildExpression() {
+  std::stringstream ss;
+  rebuild_helper(root.get(), ss);
+  std::string returned_str = ss.str();
+  return returned_str;
+}
+
 int expression_tree::build(std::shared_ptr<abstract_node> &parent,
                            const std::vector<std::string> &parts, int index) {
   // If its the end of the expression
@@ -200,17 +215,17 @@ int expression_tree::build(std::shared_ptr<abstract_node> &parent,
   while (true) {
     auto str = parts[index];
     if (parent == nullptr) {
-      if (is_unary_op(str))
-        parent = std::make_shared<unary_op_node>(str);
-      else if (is_var_column(str))
+      if (is_var_column(str))
         parent = std::make_shared<var_node>(str);
-      else if (is_number(str))
+      else if (is_literal(str))
         parent = std::make_shared<const_node>(str);
+      else if (is_unary_op(str))
+        parent = std::make_shared<unary_op_node>(str);
       else
         parent = std::make_shared<binary_op_node>(str);
     } else {
       // If the character is an operand
-      if (is_var_column(str) || is_number(str)) {
+      if (is_var_column(str) || is_literal(str)) {
         return index;
       }
       bool unary_operation = false;
@@ -264,6 +279,26 @@ void expression_tree::prefix_helper(abstract_node *p, std::stringstream &out) {
     out << p->to_string() << " ";
     prefix_helper(p->left.get(), out);
     prefix_helper(p->right.get(), out);
+  }
+}
+void expression_tree::rebuild_helper(abstract_node *p, std::stringstream &out) {
+  if (p == nullptr) {
+    return;
+  } else {
+    if (p->left.get() != nullptr && p->right.get() != nullptr &&
+            p->left.get()->to_string() != "" && p->right.get()->to_string() != "" ){ // binary op
+      out << p->to_string() << "(";
+      rebuild_helper(p->left.get(), out);
+      out << ", ";
+      rebuild_helper(p->right.get(), out);
+      out << ")";
+    } else if (p->left.get() != nullptr && p->left.get()->to_string() != "") { // unary op
+      out << p->to_string() << "(";
+      rebuild_helper(p->left.get(), out);
+      out << ")";
+    } else {
+      out << p->to_string();
+    }    
   }
 }
 

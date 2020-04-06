@@ -4,6 +4,7 @@
 
 namespace ral {
 namespace communication {
+namespace experimental {
 
 CommunicationData::CommunicationData() : orchestratorPort{0} {}
 
@@ -21,18 +22,17 @@ void CommunicationData::initialize(int unixSocketId,
 	orchestratorIp = orchIp;
 	orchestratorPort = orchCommunicationPort;
 
-	auto address = blazingdb::transport::Address::TCP(selfRalIp, selfRalCommunicationPort, selfRalProtocolPort);
+	auto address = blazingdb::transport::experimental::Address::TCP(selfRalIp, selfRalCommunicationPort, selfRalProtocolPort);
 
-	selfNode = blazingdb::transport::Node::Make(address);
+	selfNode = blazingdb::transport::experimental::Node(address);
 }
 
-const blazingdb::transport::Node & CommunicationData::getSelfNode() { return *selfNode; }
-
-std::shared_ptr<blazingdb::transport::Node> CommunicationData::getSharedSelfNode() { return selfNode; }
+const blazingdb::transport::experimental::Node & CommunicationData::getSelfNode() { return selfNode; }
 
 std::string CommunicationData::getOrchestratorIp() { return orchestratorIp; }
 
 int16_t CommunicationData::getOrchestratorPort() { return orchestratorPort; }
 
+}  // namespace experimental
 }  // namespace communication
 }  // namespace ral

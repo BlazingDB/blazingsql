@@ -149,8 +149,8 @@ TEST_F(calcite_interpreter_TEST, order_by) {
     // indices_col.create_gdf_column(GDF_UINT64,num_values,nullptr,8);
     indices_col.create_gdf_column(GDF_INT64, extra_info, num_values, nullptr, 8, "");
     print_gdf_column(indices_col.get_gdf_column());
-    gdf_valid_type asc_desc_bitmask = 255;
-    gdf_valid_type *asc_desc_bitmask_dev;
+    cudf::valid_type asc_desc_bitmask = 255;
+    cudf::valid_type *asc_desc_bitmask_dev;
 
     cudaMalloc((void **)&asc_desc_bitmask_dev, 1);
 

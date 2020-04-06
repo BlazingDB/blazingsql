@@ -46,8 +46,8 @@ bool HadoopFileSystem::Private::connect(const FileSystemConnection & fileSystemC
 
 	const std::string kerberosTicket = fileSystemConnection.getConnectionProperty(ConnectionProperty::KERBEROS_TICKET);
 
-	// std::cout << "Connecting to HDFS server ..." << std::endl;
-	// std::cout << fileSystemConnection.toString() << std::endl;
+	std::cout << "Connecting to HDFS server ..." << std::endl;
+	std::cout << fileSystemConnection.toString() << std::endl;
 
 	arrow::io::HdfsConnectionConfig hdfsConfig;
 	hdfsConfig.host = host;

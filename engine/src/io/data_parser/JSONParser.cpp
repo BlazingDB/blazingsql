@@ -1,126 +1,95 @@
-/*
- * jsonParser.cpp
- *
- *  Created on: Nov 29, 2018
- *      Author: felipe
- */
-
-#include "JSONParser.h"
-#include <blazingdb/io/Util/StringUtil.h>
-#include <cudf/legacy/column.hpp>
-#include <cudf/legacy/io_functions.hpp>
-
 #include <arrow/io/file.h>
 #include <arrow/status.h>
-
+#include <blazingdb/io/Library/Logging/Logger.h>
+#include <blazingdb/io/Util/StringUtil.h>
+#include <numeric>
 #include <thread>
 
-#include <GDFColumn.cuh>
-#include <GDFCounter.cuh>
-
+#include "JSONParser.h"
 #include "../Schema.h"
-#include "io/data_parser/ParserUtil.h"
-
-#include <numeric>
 
 namespace ral {
 namespace io {
 
-json_parser::json_parser(cudf::json_read_arg args) : args(args) {}
+json_parser::json_parser(cudf::experimental::io::read_json_args args) : args(args) {}
 
 json_parser::~json_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-/**
- * @brief read in a JSON file
- *
- * Read in a JSON file, extract all fields, and return a GDF (array of gdf_columns) using arrow interface
- **/
-
-cudf::table read_json_arrow(std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
-	bool lines,
-	cudf::json_read_arg args,
-	bool first_row_only = false) {
-	int64_t num_bytes;
-	arrow_file_handle->GetSize(&num_bytes);
-
-	if(first_row_only &&
-		num_bytes >
-			48192)  // lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
-		num_bytes = 48192;
-
-	std::string buffer;
-	buffer.resize(num_bytes);
-
-	args.source = cudf::source_info(arrow_file_handle);
+cudf::experimental::io::table_with_metadata read_json_file(
+	cudf::experimental::io::read_json_args args,
+	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
+	bool first_row_only = false)
+{
+	args.source = cudf::experimental::io::source_info(arrow_file_handle);
 
 	if(first_row_only) {
+		int64_t num_bytes;
+		arrow_file_handle->GetSize(&num_bytes);
+		
+		if(num_bytes > 48192) {
+			// lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
+			num_bytes = 48192;
+		}
+
 		args.byte_range_offset = 0;
 		args.byte_range_size = num_bytes;
 	}
 
-	cudf::table table_out = cudf::read_json(args);
+	auto table_and_metadata = cudf::experimental::io::read_json(args);
 
 	arrow_file_handle->Close();
 
-	return table_out;
+	return std::move(table_and_metadata);
 }
 
-void json_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
+	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const std::string & user_readable_file_handle,
-	std::vector<gdf_column_cpp> & columns_out,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
-	if(column_indices.size() == 0) {  // including all columns by default
-		column_indices.resize(schema.get_num_columns());
-		std::iota(column_indices.begin(), column_indices.end(), 0);
-	}
 
 	if(file == nullptr) {
-		columns_out =
-			create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
-		return;
+		return nullptr;
 	}
 
-	if(column_indices.size() > 0) {
-		// NOTE: All json columns will be read, we need to delete the unselected columns
-		cudf::table table_out = read_json_arrow(file, this->args.lines, this->args);
-		assert(table_out.num_columns() > 0);
+	cudf::experimental::io::read_json_args new_json_args = args;
 
-		columns_out.resize(column_indices.size());
-		for(size_t sel_idx = 0; sel_idx < columns_out.size(); sel_idx++) {
-			if(table_out.get_column(column_indices[sel_idx])->dtype == GDF_STRING) {
-				NVStrings * strs = static_cast<NVStrings *>(table_out.get_column(column_indices[sel_idx])->data);
-				NVCategory * category = NVCategory::create_from_strings(*strs);
-				std::string column_name(table_out.get_column(column_indices[sel_idx])->col_name);
-				columns_out[sel_idx].create_gdf_column(
-					category, table_out.get_column(column_indices[sel_idx])->size, column_name);
-				gdf_column_free(table_out.get_column(column_indices[sel_idx]));
-			} else {
-				columns_out[sel_idx].create_gdf_column(table_out.get_column(column_indices[sel_idx]));
-			}
-		}
+	// All json columns are be read
+	auto table_and_metadata = read_json_file(args, file);
 
-		// Releasing the unselected columns
-		for(size_t idx = 0; idx < table_out.num_columns() && column_indices.size() > 0; idx++) {
-			if(std::find(column_indices.begin(), column_indices.end(), idx) == column_indices.end()) {
-				gdf_column_free(table_out.get_column(idx));
-			}
-		}
+	if(table_and_metadata.tbl->num_columns() <= 0)
+		Library::Logging::Logger().logWarn("json_parser::parse no columns were read");
+
+	auto columns = table_and_metadata.tbl->release();
+	auto column_names = std::move(table_and_metadata.metadata.column_names);
+
+	// We just need the columns in column_indices
+	std::vector<std::unique_ptr<cudf::column>> selected_columns;
+	selected_columns.reserve(column_indices.size());
+	std::vector<std::string> selected_column_names;
+	selected_column_names.reserve(column_indices.size());
+	for (auto &&i : column_indices) {
+		selected_columns.push_back(std::move(columns[i]));
+		selected_column_names.push_back(std::move(column_names[i]));
 	}
+
+	return std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::experimental::table>(std::move(selected_columns)), selected_column_names);	
 }
 
 void json_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema_out) {
-	cudf::table table_out = read_json_arrow(files[0], this->args.lines, this->args, true);
-	assert(table_out.num_columns() > 0);
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
 
-	for(size_t i = 0; i < table_out.num_columns(); i++) {
-		gdf_column_cpp c;
-		c.create_gdf_column(table_out.get_column(i));
-		c.set_name(table_out.get_column(i)->col_name);
-		schema_out.add_column(c, i);
+	auto table_and_metadata = read_json_file(args, files[0], true);
+	assert(table_and_metadata.tbl->num_columns() > 0);
+
+	for(auto i = 0; i < table_and_metadata.tbl->num_columns(); i++) {
+		std::string name = table_and_metadata.metadata.column_names[i];
+		cudf::type_id type = table_and_metadata.tbl->get_column(i).type().id();
+		size_t file_index = i;
+		bool is_in_file = true;
+		schema.add_column(name, type, file_index, is_in_file);
 	}
 }
 

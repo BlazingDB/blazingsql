@@ -86,45 +86,43 @@ public class BlazingTable implements ProjectableFilterableTable {
 	convertToSqlType(CatalogColumnDataType dataType, RelDataTypeFactory typeFactory) {
 		RelDataType temp = null;
 		switch(dataType) {
-			case GDF_INT8:
+			case INT8:
 				temp = typeFactory.createSqlType(SqlTypeName.TINYINT);
 				break;
-			case GDF_INT16:
+			case INT16:
 				temp = typeFactory.createSqlType(SqlTypeName.SMALLINT);
 				break;
-			case GDF_INT32:
+			case INT32:
 				temp = typeFactory.createSqlType(SqlTypeName.INTEGER);
 				break;
-			case GDF_INT64:
+			case INT64:
 				temp = typeFactory.createSqlType(SqlTypeName.BIGINT);
 				break;
-			case GDF_FLOAT32:
+			case FLOAT32:
 				temp = typeFactory.createSqlType(SqlTypeName.FLOAT);
 				break;
-			case GDF_FLOAT64:
+			case FLOAT64:
 				temp = typeFactory.createSqlType(SqlTypeName.DOUBLE);
 				break;
-			case GDF_BOOL8:
+			case BOOL8:
 				temp = typeFactory.createSqlType(SqlTypeName.BOOLEAN);
 				break;
-			case GDF_DATE32:
+			case TIMESTAMP_DAYS:
+			case TIMESTAMP_SECONDS:
 				temp = typeFactory.createSqlType(SqlTypeName.DATE);
 				break;
-			case GDF_DATE64:
-				temp = typeFactory.createSqlType(SqlTypeName.DATE);
-				break;
-			case GDF_TIMESTAMP:
+			case TIMESTAMP_MILLISECONDS:
+			case TIMESTAMP_MICROSECONDS:
+			case TIMESTAMP_NANOSECONDS:
 				temp = typeFactory.createSqlType(SqlTypeName.TIMESTAMP);
 				break;
-			case GDF_CATEGORY:
-				temp = null;
-				break;
-			case GDF_STRING:
+			case DICTIONARY32:
+			case STRING:
 				temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);
 				break;
-			case GDF_STRING_CATEGORY:
-				temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);
-				break;
+//			case STRING_CATEGORY:
+//				temp = typeFactory.createSqlType(SqlTypeName.VARCHAR);
+//				break;
 			default:
 				temp = null;
 		}

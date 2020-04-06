@@ -13,7 +13,7 @@
 #include <string>
 
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }  // namespace
 
 class CodeTimer {

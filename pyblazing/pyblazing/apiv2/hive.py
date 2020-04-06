@@ -6,31 +6,47 @@ import cudf
 from itertools import repeat
 import pandas as pd
 
+
 def convertHiveTypeToCudfType(hiveType):
     if(hiveType == 'int' or hiveType == 'integer'):
-        return np.int32
-    elif(hiveType == 'string' or hiveType.startswith('varchar') or hiveType == "char" or hiveType == "binary"):
-        return np.str
+        return 3 # INT32
+    elif(hiveType == 'string' or hiveType.startswith('varchar') or hiveType.startswith('char') or hiveType == "binary"):
+        return 14  # STRING
     elif(hiveType == 'tinyint'):
-        return np.int8
+        return 1  # INT8
     elif(hiveType == 'smallint'):
-        return np.int16
+        return 2  # INT16
     elif(hiveType == 'bigint'):
-        return np.int64
+        return 4  # INT64
     elif(hiveType == 'float'):
-        return np.float32
-    elif(hiveType == 'double' or hiveType == 'double precision'):
-        return np.float64
+        return 5  # FLOAT32
+    elif(hiveType == 'double' or hiveType == 'double precision' or hiveType.startswith('decimal')):
+        return 6  # FLOAT64
     elif(hiveType == 'decimal' or hiveType == 'numeric'):
         return None
     elif(hiveType == 'timestamp'):
-        return np.datetime64
+        return 10  # TIMESTAMP_MILLISECONDS
     elif(hiveType == 'date'):
-        return np.datetime64
+        return 8  # TIMESTAMP_DAYS
     elif(hiveType == 'boolean'):
-        return np.bool
-    elif(hiveType == 'date'):
-        return np.datetime64
+        return 7  # BOOL8
+
+
+cudfTypeToCsvType = {
+    1: "int8",
+    2: "int16",
+    3: "int32",
+    4: "int64",
+    5: "float32",
+    6: "float64",
+    7: "boolean",
+    8: "date32",
+    9: "timestamp[s]",
+    10: "timestamp[ms]",
+    11: "timestamp[us]",
+    12: "timestamp[ns]",
+    14: "str",
+}  
 
 
 def getPartitions(tableName, schema, cursor):
@@ -44,68 +60,36 @@ def getPartitions(tableName, schema, cursor):
                 columnName = columnData.split("=")[0]
                 for column in schema['columns']:
                     if column[0] == columnName:
-                        #print(columnData.split("=")[1])
-                        if(column[1] == np.str):
-                            columnValue = columnData.split("=")[1]
-                        elif(column[1] == np.datetime64):
-                            columnValue = np.datetime64(columnData.split("=")[1])
-                        else:
-                            columnValue = np.fromstring(
-                            columnData.split("=")[1], column[1], sep=' ')[0]
+                        columnValue = columnData.split("=")[1]
                         columnPartitions.append((columnName, columnValue))
         partitions[partition[0]] = columnPartitions
     return partitions
 
 
-dtypes = {
-    np.float64: "double",
-    np.float32: "float",
-    np.int64: "int64",
-    np.longlong: "int64",
-    np.int32: "int32",
-    np.int16: "int16",
-    np.int8: "int8",
-    np.bool_: "bool",
-    np.datetime64: "date64",
-    np.object_: "str",
-    np.str_: "str",
-}
-
-
-def gdf_dtype_from_dtype(dtype):
-    if pd.api.types.is_datetime64_dtype(dtype):
-        time_unit, _ = np.datetime_data(dtype)
-        return "date64"
-    # everything else is a 1-1 mapping
-    dtype = np.dtype(dtype)
-    if dtype.type in dtypes:
-        return dtypes[dtype.type]
-    raise TypeError('cannot convert numpy dtype `%s` to gdf_dtype' % (dtype))
-
-
-def get_hive_table(cursor, tableName):
+def get_hive_table(cursor, tableName, hive_database_name):
+    query = 'use ' + hive_database_name
+    runHiveDDL(cursor, query)
     query = 'describe formatted ' + tableName
     result, description = runHiveQuery(cursor, query)
+
     schema = {}
     schema['columns'] = []
+    schema['column_types'] = []
     i = 0
-    # print(result)
     parsingColumns = False
     parsingPartitionColumns = False
     startParsingPartitionRows = 0
     schema['delimiter'] = chr(1)
     for triple in result:
-        # print(triple)
         if triple[0] is not None:
             if(i == 2):
                 parsingColumns = True
             if(parsingColumns):
-                # print(triple)
                 if triple[0] == '':
                     parsingColumns = False
                 else:
                     schema['columns'].append(
-                        (triple[0], convertHiveTypeToCudfType(triple[1]), False))
+                        (triple[0], convertHiveTypeToCudfType(triple[1]), False))                    
             elif isinstance(triple[0], str) and triple[0].startswith('Location:'):
                 if triple[1].startswith("file:"):
                     schema['location'] = triple[1].replace("file:", "")
@@ -134,8 +118,9 @@ def get_hive_table(cursor, tableName):
                     parsingPartitionColumns = False
                 elif triple[0] != "":
                     schema['columns'].append(
-                        (triple[0], convertHiveTypeToCudfType(triple[1]), True))
+                        (triple[0], convertHiveTypeToCudfType(triple[1]), True))                    
         i = i + 1
+    
     hasPartitions = False
     for column in schema['columns']:
         if column[2]:
@@ -147,12 +132,16 @@ def get_hive_table(cursor, tableName):
         schema['partitions'] = {}
         file_list.append(schema['location'] + "/*")
 
-    uri_values = []
     extra_kwargs = {}
     extra_kwargs['delimiter'] = schema['delimiter']
     if schema['fileType'] == 'csv':
         extra_kwargs['names'] = [col_name for col_name, dtype, is_virtual_col  in schema['columns'] if not is_virtual_col ]
-        extra_kwargs['dtype'] = [gdf_dtype_from_dtype(dtype) for col_name, dtype, is_virtual_col in schema['columns'] if not is_virtual_col]
+        extra_kwargs['dtype'] = [cudfTypeToCsvType[dtype] for col_name, dtype, is_virtual_col in schema['columns'] if not is_virtual_col]
+    
+    #schema['column_names'] and schema['column_types'] will be given to the BlazingTable object. We want to use these instead of that gets returned from _parseSchema because the files and the hive cursor may not agree and we want to go off of the hive cursor
+    schema['column_names'] = [col_name.encode() for col_name, dtype, is_virtual_col  in schema['columns'] ]
+    schema['column_types'] = [dtype for col_name, dtype, is_virtual_col  in schema['columns'] ]
+    
     extra_kwargs['file_format'] = schema['fileType']
     extra_columns = []
     in_file = []
@@ -161,10 +150,9 @@ def get_hive_table(cursor, tableName):
         if(column[2]):
             extra_columns.append((column[0], column[1]))
     for partitionName in schema['partitions']:
-        partition = schema['partitions'][partitionName]
         file_list.append(schema['location'] + "/" + partitionName + "/*")
-        uri_values.append(partition)
-    return file_list, uri_values, schema['fileType'], extra_kwargs, extra_columns, in_file, schema['partitions']
+    
+    return file_list, schema['fileType'], extra_kwargs, extra_columns, in_file, schema
 
 
 def runHiveDDL(cursor, query):

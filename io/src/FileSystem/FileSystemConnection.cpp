@@ -153,14 +153,7 @@ bool verifyConnectionProperties(const std::string & bucketName,
 		return false;
 	}
 
-	// TODO percy for now we need these 2 keys in order to operate, later we need to check sessionToken
-	if(accessKeyId.empty()) {
-		return false;
-	}
-
-	if(secretKey.empty()) {
-		return false;
-	}
+	
 
 	//	if (sessionToken.empty()) {
 	//		return false;

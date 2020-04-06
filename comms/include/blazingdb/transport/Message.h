@@ -6,14 +6,13 @@
 #include "ColumnTransport.h"
 #include "blazingdb/transport/Node.h"
 #include "blazingdb/transport/common/macros.hpp"
+#include <rmm/device_buffer.hpp>
 
 namespace blazingdb {
 namespace transport {
 
-/// \brief Message interface
-///
-/// This is the interface for the messsage. A message can be sent between RAL
-/// instances and between the RAL's and the Orchestrator
+namespace experimental {
+
 class Message {
 public:
   struct MetaData {
@@ -28,8 +27,8 @@ public:
 protected:
   explicit Message(std::string const &messageToken,
                    uint32_t const &contextToken,
-                   std::shared_ptr<blazingdb::transport::Node> &sender_node)
-      : node_{sender_node} {
+                   const blazingdb::transport::experimental::Node& sender_node)
+      : node_{sender_node.address()} {
     set_metadata(messageToken, contextToken);
   }
 
@@ -48,7 +47,7 @@ public:
     return metadata_.messageToken;
   }
 
-  std::shared_ptr<blazingdb::transport::Node> getSenderNode() const {
+  blazingdb::transport::experimental::Node& getSenderNode() {
     return node_;
   }
   const MetaData &metadata() const { return metadata_; }
@@ -56,26 +55,41 @@ public:
 
 protected:
   MetaData metadata_;
-  std::shared_ptr<blazingdb::transport::Node> node_{nullptr};
+  blazingdb::transport::experimental::Node node_;
 
   BZ_INTERFACE(Message);
 };
 
+
 class GPUMessage : public Message {
 public:
-  using raw_buffer = std::tuple<std::vector<int>, std::vector<char *>,
-                                std::vector<ColumnTransport>>;
+  using raw_buffer = std::tuple<std::vector<int>, std::vector<const char *>,
+                                std::vector<ColumnTransport>, std::vector<std::unique_ptr<rmm::device_buffer>> >;
 
 public:
   explicit GPUMessage(std::string const &messageToken,
                       uint32_t const &contextToken,
-                      std::shared_ptr<blazingdb::transport::Node> &sender_node)
+                      const blazingdb::transport::experimental::Node &sender_node)
       : Message{messageToken, contextToken, sender_node} {}
 
-  virtual raw_buffer GetRawColumns() = 0;
+  virtual raw_buffer GetRawColumns() {
+    assert(true);
+  }
 
   BZ_INTERFACE(GPUMessage);
 };
+
+class GPUReceivedMessage : public Message  {
+public:
+  explicit GPUReceivedMessage(std::string const &messageToken,
+                      uint32_t const &contextToken,
+                      const blazingdb::transport::experimental::Node &sender_node)
+      : Message{messageToken, contextToken, sender_node} {}
+
+  BZ_INTERFACE(GPUReceivedMessage);
+};
+
+} // namespace experimental 
 
 }  // namespace transport
 }  // namespace blazingdb

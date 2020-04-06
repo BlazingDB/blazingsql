@@ -141,7 +141,7 @@ define_default_git_package(
 define_default_git_package(
     "AWS_SDK_CPP"
     "https://github.com/aws/aws-sdk-cpp.git"
-    "864eb0bca8b48427f94850b7a8311ef0ae0f433b"
+    "c60299701915c781ebb57c3213b8bdad854a885f"
     "Release"
 )
 

@@ -13,9 +13,11 @@ message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 ###################################################################################################
 # - conda environment -----------------------------------------------------------------------------
 
+set(BSQL_BLD_PREFIX "")
 if ("$ENV{CONDA_BUILD}" STREQUAL "1")
     set(CMAKE_SYSTEM_PREFIX_PATH "$ENV{BUILD_PREFIX};$ENV{PREFIX};${CMAKE_SYSTEM_PREFIX_PATH}")
     message(STATUS "Conda build detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
+    set(BSQL_BLD_PREFIX "$ENV{BUILD_PREFIX}")
 
     set(AWS_SDK_CPP_INSTALL_DIR $ENV{BUILD_PREFIX})
     set(GOOGLE_CLOUD_CPP_INSTALL_DIR $ENV{BUILD_PREFIX})
@@ -26,6 +28,7 @@ if ("$ENV{CONDA_BUILD}" STREQUAL "1")
 elseif (DEFINED ENV{CONDA_PREFIX})
     set(CMAKE_SYSTEM_PREFIX_PATH "$ENV{CONDA_PREFIX};${CMAKE_SYSTEM_PREFIX_PATH}")
     message(STATUS "Conda environment detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
+    set(BSQL_BLD_PREFIX "$ENV{CONDA_PREFIX}")
 
     set(AWS_SDK_CPP_INSTALL_DIR $ENV{CONDA_PREFIX})
     set(GOOGLE_CLOUD_CPP_INSTALL_DIR $ENV{CONDA_PREFIX})
@@ -34,6 +37,7 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     set(ENV{LD_LIBRARY_PATH} $ENV{CONDA_PREFIX}/lib/) # to link the tests correctly against libcurl.so
 
 endif ()
+message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 
 #########################################################################3
 # - compiler stuff ------------------
@@ -72,39 +76,37 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/jitify
-    ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
-    ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
-    $ENV{CONDA_PREFIX}/include
-    $ENV{CONDA_PREFIX}/include/cudf
-    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/cub
-    $ENV{CONDA_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
-    $ENV{CONDA_PREFIX}/include/blazingdb/io
-    $ENV{PREFIX}/include
-    $ENV{PREFIX}/include/cudf
-    $ENV{PREFIX}/include/bsql-rapids-thirdparty/cub
-    $ENV{PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
-    $ENV{PREFIX}/include/blazingdb/io
+    ${BSQL_BLD_PREFIX}/include
+    ${BSQL_BLD_PREFIX}/include/cudf
+    ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/cub
+    ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${BSQL_BLD_PREFIX}/include/blazingdb/io
+    ${PREFIX}/include
+    ${PREFIX}/include/cudf
+    ${PREFIX}/include/bsql-rapids-thirdparty/cub
+    ${PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${PREFIX}/include/blazingdb/io
+    ${CMAKE_INSTALL_PREFIX}/include
+    ${CMAKE_INSTALL_PREFIX}/include/cudf
+    ${CMAKE_INSTALL_PREFIX}/include/bsql-rapids-thirdparty/cub
+    ${CMAKE_INSTALL_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${CMAKE_INSTALL_PREFIX}/include/blazingdb/io
+    $ENV{INSTALL_PREFIX}/include
+    $ENV{INSTALL_PREFIX}/include/cudf
+    $ENV{INSTALL_PREFIX}/include/bsql-rapids-thirdparty/cub
+    $ENV{INSTALL_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    $ENV{INSTALL_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
     )
-
-## cuDF adapter source files
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/cuDF)
-get_directory_property(cudf_adapter_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/src/cuDF DEFINITION source_files)
 
 ## communication primitives
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/communication)
 get_directory_property(communication_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/src/communication DEFINITION source_files)
 
-## communication primitives
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/distribution)
-get_directory_property(distribution_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/src/distribution DEFINITION source_files)
-
 ## Target source files
 set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
-              ${CMAKE_SOURCE_DIR}/src/exception/RalException.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/OrderBy.cpp
-              ${CMAKE_SOURCE_DIR}/src/operators/JoinOperator.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${CMAKE_SOURCE_DIR}/src/io/Schema.cpp
@@ -114,29 +116,29 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/GDFParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/OrcParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArrowParser.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/ParserUtil.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArgsUtil.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/metadata/parquet_metadata.cpp
               ${CMAKE_SOURCE_DIR}/src/Traits/RuntimeTraits.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/RalColumn.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/CommonOperations.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/TableWrapper.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/StringUtils.cpp
-              ${CMAKE_CURRENT_SOURCE_DIR}/src/Config/Config.cpp
+              ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
+              ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
+              ${CMAKE_SOURCE_DIR}/src/utilities/random_generator.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
               ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
               ${CMAKE_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteInterpreter.cpp
-              ${CMAKE_SOURCE_DIR}/src/ColumnManipulation.cu
-              ${CMAKE_SOURCE_DIR}/src/ResultSetRepository.cpp
-              ${CMAKE_SOURCE_DIR}/src/JoinProcessor.cpp
-              ${CMAKE_SOURCE_DIR}/src/LogicalFilter.cpp
-              ${CMAKE_SOURCE_DIR}/src/QueryState.cpp
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
-              ${CMAKE_SOURCE_DIR}/src/Utils.cu
-              ${CMAKE_SOURCE_DIR}/src/GDFCounter.cu
-              ${CMAKE_SOURCE_DIR}/src/GDFColumn.cu
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TableScan.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingThread.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingExceptionHolder.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TaskFlowProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/utils.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/expression_tree.cpp
@@ -144,13 +146,12 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
-              ${cudf_adapter_source_files}
-              ${binary_operation_source_files}
+              ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/column_utilities.cu
+              ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
               ${communication_source_files}
-              ${distribution_source_files}
 )
 
-link_directories($ENV{CONDA_PREFIX}/lib)
+link_directories(${BSQL_BLD_PREFIX}/lib)
 
 add_library(blazingsql-engine SHARED ${SRC_FILES})
 
@@ -192,6 +193,8 @@ target_link_libraries(blazingsql-engine
 
     # Library needed for blazing communication repository (debug)
     gcov
+
+    gtest
 )
 
 #install(TARGETS testing-libgdf_lib DESTINATION lib RENAME libblazingsql-engine.a)

@@ -14,10 +14,13 @@
 #include <cassert>
 #include <queue>
 #include "blazingdb/transport/ColumnTransport.h"
+#include <rmm/device_buffer.hpp>
 
 namespace blazingdb {
 namespace transport {
+namespace experimental {
 namespace io {
+
 
 // numBuffers should be equal to number of threads
 PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
@@ -87,7 +90,7 @@ PinnedBufferProvider &getPinnedBufferProvider() { return *global_instance; }
 
 void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
                             std::vector<int> bufferSizes,
-                            std::vector<char *> buffers, void *fileDescriptor,
+                            std::vector<const char *> buffers, void *fileDescriptor,
                             int gpuNum) {
   if (bufferSizes.size() == 0) {
     return;
@@ -198,7 +201,7 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
 
           if (buffer != nullptr) {
             std::lock_guard<std::mutex> lock(writeMutex);
-            std::size_t amountWritten = writeToSocket(
+            std::size_t amountWritten = blazingdb::transport::io::writeToSocket(
                 fileDescriptor, (char *)buffer->data, amountToWrite);
             writeIndex++;
             if (amountWritten != amountToWrite) {
@@ -228,15 +231,15 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
   getPinnedBufferProvider().freeAll();
 }
 
-std::vector<char *> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
-                                          void *fileDescriptor, int gpuNum) {
+void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
+                                          void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &tempReadAllocations) 
+{
   std::vector<std::thread> allocationThreads(bufferSizes.size());
   std::vector<std::thread> readThreads(bufferSizes.size());
-  std::vector<char *> tempReadAllocations(bufferSizes.size());
+  // std::vector<rmm::device_buffer> tempReadAllocations;
   for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
     cudaSetDevice(gpuNum);
-    RMM_ALLOC(reinterpret_cast<void **>(&tempReadAllocations[bufferIndex]),
-              bufferSizes[bufferIndex], 0);
+    tempReadAllocations.emplace_back(rmm::device_buffer(bufferSizes[bufferIndex]));
   }
   for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
     std::vector<std::thread> copyThreads;
@@ -249,7 +252,7 @@ std::vector<char *> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
               : bufferSizes[bufferIndex] - amountReadTotal;
 
       std::size_t amountRead =
-          readFromSocket(fileDescriptor, (char *)buffer->data, amountToRead);
+          blazingdb::transport::io::readFromSocket(fileDescriptor, (char *)buffer->data, amountToRead);
 
       assert(amountRead == amountToRead);
       if (amountRead != amountToRead) {
@@ -260,7 +263,7 @@ std::vector<char *> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
           [&tempReadAllocations, &bufferSizes, &allocationThreads, bufferIndex,
            buffer, amountRead, amountReadTotal, gpuNum]() {
             cudaSetDevice(gpuNum);
-            cudaMemcpyAsync(tempReadAllocations[bufferIndex] + amountReadTotal,
+            cudaMemcpyAsync(tempReadAllocations[bufferIndex].data() + amountReadTotal,
                             buffer->data, amountRead, cudaMemcpyHostToDevice,
                             nullptr);
             getPinnedBufferProvider().freeBuffer(buffer);
@@ -269,15 +272,17 @@ std::vector<char *> readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
       amountReadTotal += amountRead;
 
     } while (amountReadTotal < bufferSizes[bufferIndex]);
-    for (std::size_t threadIndex = 0; threadIndex < copyThreads.size();
-         threadIndex++) {
+    for (std::size_t threadIndex = 0; threadIndex < copyThreads.size(); threadIndex++) {
       copyThreads[threadIndex].join();
     }
   }
-
-  return tempReadAllocations;
+  // return tempReadAllocations;
 }
 
+
 }  // namespace io
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb
+
+

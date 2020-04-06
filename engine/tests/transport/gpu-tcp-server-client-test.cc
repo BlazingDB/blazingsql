@@ -11,80 +11,98 @@
 #include "communication/messages/GPUComponentMessage.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <memory>
 #include <numeric>
 #include <nvstrings/NVCategory.h>
 #include <thread>
 
-using ral::communication::messages::SampleToNodeMasterMessage;
-using ral::communication::network::Client;
-using ral::communication::network::Node;
-using ral::communication::network::Server;
-using Address = blazingdb::transport::Address;
-using GPUMessage = blazingdb::transport::GPUMessage;
+#include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <cudf/column/column_factories.hpp>
+#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
+#include <cudf/utilities/type_dispatcher.hpp>
+#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
+#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
+#include <from_cudf/cpp_tests/utilities/legacy/cudf_test_utils.cuh>
+#include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
+
+using ral::communication::messages::experimental::SampleToNodeMasterMessage;
+using ral::communication::messages::experimental::GPUComponentReceivedMessage;
+
+using ral::communication::network::experimental::Client;
+using ral::communication::network::experimental::Node;
+using ral::communication::network::experimental::Server;
+using Address = blazingdb::transport::experimental::Address;
+using GPUMessage = blazingdb::transport::experimental::GPUMessage;
 
 constexpr uint32_t context_token = 3465;
 
 
-std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(uint32_t context_token, std::shared_ptr<Node> & sender_node) {
-	std::vector<gdf_column_cpp> samples = blazingdb::test::build_table();
-
-	for(auto & col : samples) {
-		print_gdf_column(col.get_gdf_column());
-	}
-	std::uint64_t total_row_size = samples[0].size();
-	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
-	return std::make_shared<SampleToNodeMasterMessage>(
-		message_token, context_token, sender_node, samples, total_row_size);
-}
-
 // TODO get GPU_MEMORY_SIZE
 auto GPU_MEMORY_SIZE = 4096;
 
+
+// Helper function to compare two floating-point column contents
+template <typename T>
+void expect_column_data_equal(std::vector<T> const& lhs,
+							  cudf::column_view const& rhs) {
+  EXPECT_THAT(cudf::test::to_host<T>(rhs).first, lhs);
+}
+
+
 static void ExecMaster() {
 	cuInit(0);
-	rmmInitialize(nullptr);
 	// Run server
 	Server::start(8000);
 
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
-	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, 1);
+	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
 	Server::getInstance().registerContext(context_token);
 	std::thread([]() {
 		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
-
 		auto message = Server::getInstance().getMessage(context_token, message_token);
-		auto concreteMessage = std::static_pointer_cast<SampleToNodeMasterMessage>(message);
+		//TODO
+		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
 		std::cout << "message received\n";
-		for(gdf_column_cpp & column : concreteMessage->getSamples()) {
-			print_gdf_column(column.get_gdf_column());
-		}
+		auto  table_view = concreteMessage->releaseBlazingTable();
+		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table_view->view().column(0));
+	    cudf::test::strings_column_wrapper expected({"d", "e", "a", "d", "k", "d", "l", "a", "b", "c"}, {1, 0, 1, 1, 1, 1, 1, 1, 0 , 1});
+		cudf::test::expect_columns_equal(table_view->view().column(4), expected);
 	}).join();
 }
 
 static void ExecWorker() {
 	cuInit(0);
-	rmmInitialize(nullptr);
 	// todo get GPU_MEMORY_SIZE
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	auto nthread = 4;
-	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
-	// This lines are not necessary!!
-	//  RalServer::start(8001);
-	//  RalServer::getInstance().registerContext(context_token);
+	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, nthread);
+	auto sender_node = Node(Address::TCP("127.0.0.1", 8001, 1234));
+	auto server_node = Node(Address::TCP("127.0.0.1", 8000, 1234));
 
-	auto sender_node = std::make_shared<Node>(Address::TCP("127.0.0.1", 8001, 1234));
-	auto server_node = std::make_shared<Node>(Address::TCP("127.0.0.1", 8000, 1234));
+	const auto samples = blazingdb::test::build_custom_table();
+	
+	std::uint64_t total_row_size = samples.num_rows();
+	ral::frame::BlazingTableView table_view(samples.view(), samples.names());
+	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
+	auto message = std::make_shared<SampleToNodeMasterMessage>(message_token, context_token, sender_node, table_view, total_row_size);
 
-	auto message = CreateSampleToNodeMaster(context_token, sender_node);
-	Client::send(*server_node, *message);
+	Client::send(server_node, *message);
+	std::this_thread::sleep_for (std::chrono::seconds(1));
 }
+
+
+struct SendSamplesTest : public ::testing::Test {
+
+  void SetUp() { ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS); }
+
+  void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
+};
+
+
 // TODO: move common code of TCP client and server to blazingdb::network in order to be shared by manager and transport
 // TODO: check when the ip, port is busy, return exception!
 // TODO: check when the message is not registered, or the wrong message is registered
-TEST(SendSamplesTest, MasterAndWorker) {
+TEST_F(SendSamplesTest, MasterAndWorker) {
 	if(fork() > 0) {
 		ExecMaster();
 	} else {
@@ -92,12 +110,14 @@ TEST(SendSamplesTest, MasterAndWorker) {
 	}
 }
 
-// // TO use in separate process by:
-// // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Master
-// TEST(SendSamplesTest, Master) {
-//   ExecMaster();
-// }
-// // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Worker
-// TEST(SendSamplesTest, Worker) {
-//   ExecWorker();
-// }
+// // // TO use in separate process by:
+// // // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Master
+// TEST_F(SendSamplesTest, Master) {
+//    ExecMaster();
+//  }
+//
+//
+// //  // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Worker
+// TEST_F(SendSamplesTest, Worker) {
+//    ExecWorker();
+//  }

@@ -92,15 +92,15 @@ void initialize(int ralId,
 	size_t total_gpu_mem_size = ral::config::gpuMemorySize();
 	assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
-	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
+	blazingdb::transport::experimental::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
-	auto & communicationData = ral::communication::CommunicationData::getInstance();
+	auto & communicationData = ral::communication::experimental::CommunicationData::getInstance();
 	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);
 
-	ral::communication::network::Server::start(ralCommunicationPort);
+	ral::communication::network::experimental::Server::start(ralCommunicationPort);
 
 	if(singleNode == true) {
-		ral::communication::network::Server::getInstance().close();
+		ral::communication::network::experimental::Server::getInstance().close();
 	}
 	auto & config = ral::config::BlazingConfig::getInstance();
 
@@ -119,8 +119,8 @@ void initialize(int ralId,
 }
 
 void finalize() {
-	ral::communication::network::Client::closeConnections();
-	ral::communication::network::Server::getInstance().close();
+	ral::communication::network::experimental::Client::closeConnections();
+	ral::communication::network::experimental::Server::getInstance().close();
 	cudaDeviceReset();
 	exit(0);
 }

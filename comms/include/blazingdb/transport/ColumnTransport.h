@@ -3,13 +3,13 @@
 
 namespace blazingdb {
 namespace transport {
+namespace experimental {
 
 struct ColumnTransport {
   struct MetaData {
     int32_t dtype{};
     int32_t size{};
     int32_t null_count{};
-    int32_t time_unit{};
     char col_name[128]{};
   };
   MetaData metadata{};
@@ -18,7 +18,11 @@ struct ColumnTransport {
   int strings_data{};
   int strings_offsets{};
   int strings_nullmask{};
+
+  int strings_data_size{0};
+  int strings_offsets_size{0};
 };
 
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

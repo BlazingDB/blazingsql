@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <cudf.h>
+#include <cudf/table/table_view.hpp>
 #include <iomanip>
 #include <limits>
 #include <map>
@@ -7,52 +9,54 @@
 #include <stack>
 
 #include <blazingdb/io/Util/StringUtil.h>
+#include "Utils.cuh"
 
 #include "CalciteExpressionParsing.h"
-#include "DataFrame.h"
 #include "Traits/RuntimeTraits.h"
-#include "cuDF/datetime_parser.hpp"
 #include "cudf/legacy/binaryop.hpp"
+#include <cudf/scalar/scalar_factories.hpp>
+#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.cuh"
 #include "parser/expression_tree.hpp"
-#include <cudf.h>
+#include "utilities/scalar_timestamp_parser.hpp"
+#include "Interpreter/interpreter_cpp.h"
 
-bool is_type_signed(gdf_dtype type) {
-	return (GDF_INT8 == type || GDF_BOOL8 == type || GDF_INT16 == type || GDF_INT32 == type || GDF_INT64 == type ||
-			GDF_FLOAT32 == type || GDF_FLOAT64 == type || GDF_DATE32 == type || GDF_DATE64 == type ||
-			GDF_TIMESTAMP == type);
+
+bool is_type_signed(cudf::type_id type) {
+	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type ||
+			cudf::type_id::INT32 == type || cudf::type_id::INT64 == type || cudf::type_id::FLOAT32 == type ||
+			cudf::type_id::FLOAT64 == type || cudf::type_id::TIMESTAMP_DAYS == type ||
+			cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
+			cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type);
 }
 
-bool is_type_float(gdf_dtype type) { return (GDF_FLOAT32 == type || GDF_FLOAT64 == type); }
+bool is_type_float(cudf::type_id type) { return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type); }
 
-bool is_type_integer(gdf_dtype type) {
-	return (GDF_INT8 == type || GDF_INT16 == type || GDF_INT32 == type || GDF_INT64 == type);
+bool is_type_integer(cudf::type_id type) {
+	return (cudf::type_id::INT8 == type || cudf::type_id::INT16 == type || cudf::type_id::INT32 == type ||
+			cudf::type_id::INT64 == type);
 }
 
-bool is_date_type(gdf_dtype type) { return (GDF_DATE32 == type || GDF_DATE64 == type || GDF_TIMESTAMP == type); }
+bool is_date_type(cudf::type_id type) {
+	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
+			cudf::type_id::TIMESTAMP_MILLISECONDS == type || cudf::type_id::TIMESTAMP_MICROSECONDS == type ||
+			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
+}
 
 // TODO percy noboa see upgrade to uints
-// bool is_type_unsigned_numeric(gdf_dtype type){
-//	return (GDF_UINT8 == type ||
-//			GDF_UINT16 == type ||
-//			GDF_UINT32 == type ||
-//			GDF_UINT64 == type);
-//}
-
-// TODO percy noboa see upgrade to uints
-bool is_numeric_type(gdf_dtype type) {
+bool is_numeric_type(cudf::type_id type) {
 	// return is_type_signed(type) || is_type_unsigned_numeric(type);
 	return is_type_signed(type);
 }
 
-gdf_dtype get_next_biggest_type(gdf_dtype type) {
-	if(type == GDF_INT8 || type == GDF_BOOL8) {
-		return GDF_INT16;
-	} else if(type == GDF_INT16) {
-		return GDF_INT32;
-	} else if(type == GDF_INT32) {
-		return GDF_INT64;
-	} else if(type == GDF_FLOAT32) {
-		return GDF_FLOAT64;
+cudf::type_id get_next_biggest_type(cudf::type_id type) {
+	if(type == cudf::type_id::INT8 || type == cudf::type_id::BOOL8) {
+		return cudf::type_id::INT16;
+	} else if(type == cudf::type_id::INT16) {
+		return cudf::type_id::INT32;
+	} else if(type == cudf::type_id::INT32) {
+		return cudf::type_id::INT64;
+	} else if(type == cudf::type_id::FLOAT32) {
+		return cudf::type_id::FLOAT64;
 	} else {
 		return type;
 	}
@@ -62,538 +66,280 @@ gdf_dtype get_next_biggest_type(gdf_dtype type) {
 // TODO all these return types need to be revisited later. Right now we have issues with some aggregators that only
 // support returning the same input type. Also pygdf does not currently support unsigned types (for example count should
 // return and unsigned type)
-gdf_dtype get_aggregation_output_type(gdf_dtype input_type, gdf_agg_op aggregation, bool have_groupby) {
-	if(aggregation == GDF_COUNT) {
-		return GDF_INT64;
-	} else if(aggregation == GDF_SUM) {
+cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKind aggregation, bool have_groupby) {
+	if(aggregation == AggregateKind::COUNT_VALID || aggregation == AggregateKind::COUNT_ALL) {
+		return cudf::type_id::INT64;
+	} else if(aggregation == AggregateKind::SUM || aggregation == AggregateKind::SUM0) {
 		if(have_groupby)
 			return input_type;  // current group by function can only handle this
 		else {
 			// we can assume it is numeric based on the oepration
 			// to be safe we should enlarge to the greatest integer or float representation
-			return is_type_float(input_type) ? GDF_FLOAT64 : GDF_INT64;
+			return is_type_float(input_type) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64;
 		}
-	} else if(aggregation == GDF_MIN) {
+	} else if(aggregation == AggregateKind::MIN) {
 		return input_type;
-	} else if(aggregation == GDF_MAX) {
+	} else if(aggregation == AggregateKind::MAX) {
 		return input_type;
-	} else if(aggregation == GDF_AVG) {
-		return GDF_FLOAT64;
-	} else if(aggregation == GDF_COUNT_DISTINCT) {
-		return GDF_INT64;
+	} else if(aggregation == AggregateKind::MEAN) {
+		return cudf::type_id::FLOAT64;
+	// TODO percy cudf0.12 aggregation pass flag for COUNT_DISTINCT cases
+//	} else if(aggregation == GDF_COUNT_DISTINCT) {
+//		return cudf::type_id::INT64;
 	} else {
-		return GDF_invalid;
+		throw std::runtime_error(
+			"In get_aggregation_output_type function: aggregation type not supported: " + aggregation);
 	}
 }
 
-bool is_exponential_operator(gdf_binary_operator_exp operation) { return operation == BLZ_POW; }
-
-bool is_null_check_operator(gdf_unary_operator operation) {
-	return (operation == BLZ_IS_NULL || operation == BLZ_IS_NOT_NULL);
-}
-
-bool is_arithmetic_operation(gdf_binary_operator_exp operation) {
-	return (operation == BLZ_ADD || operation == BLZ_SUB || operation == BLZ_MUL || operation == BLZ_DIV ||
-			operation == BLZ_MOD);
-}
-
-bool is_logical_operation(gdf_binary_operator_exp operation) {
-	return (operation == BLZ_EQUAL || operation == BLZ_NOT_EQUAL || operation == BLZ_GREATER ||
-			operation == BLZ_GREATER_EQUAL || operation == BLZ_LESS || operation == BLZ_LESS_EQUAL ||
-			operation == BLZ_LOGICAL_OR);
-}
-
-bool is_trig_operation(gdf_unary_operator operation) {
-	return (operation == BLZ_SIN || operation == BLZ_COS || operation == BLZ_ASIN || operation == BLZ_ACOS ||
-			operation == BLZ_TAN || operation == BLZ_COTAN || operation == BLZ_ATAN);
-}
-
-gdf_dtype get_signed_type_from_unsigned(gdf_dtype type) {
-	return type;
-	// TODO felipe percy noboa see upgrade to uints
-	//	if(type == GDF_UINT8){
-	//		return GDF_INT16;
-	//	}else if(type == GDF_UINT16){
-	//		return GDF_INT32;
-	//	}else if(type == GDF_UINT32){
-	//		return GDF_INT64;
-	//	}else if(type == GDF_UINT64){
-	//		return GDF_INT64;
-	//	}else{
-	//		return GDF_INT64;
-	//	}
-}
-
-gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_unary_operator operation) {
-	if(operation == BLZ_CAST_INTEGER) {
-		return GDF_INT32;
-	} else if(operation == BLZ_CAST_BIGINT) {
-		return GDF_INT64;
-	} else if(operation == BLZ_CAST_FLOAT) {
-		return GDF_FLOAT32;
-	} else if(operation == BLZ_CAST_DOUBLE) {
-		return GDF_FLOAT64;
-	} else if(operation == BLZ_CAST_DATE) {
-		return GDF_DATE64;
-	} else if(operation == BLZ_CAST_TIMESTAMP) {
-		return GDF_TIMESTAMP;
-	} else if(operation == BLZ_CAST_VARCHAR) {
-		return GDF_STRING_CATEGORY;
-	} else if(is_date_type(input_left_type)) {
-		return GDF_INT16;
-	} else if(is_trig_operation(operation) || operation == BLZ_LOG || operation == BLZ_LN) {
-		if(input_left_type == GDF_FLOAT32 || input_left_type == GDF_FLOAT64) {
-			return input_left_type;
-		} else {
-			return GDF_FLOAT64;
-		}
-	} else if(is_null_check_operator(operation)) {
-		return GDF_BOOL8;  // TODO: change to bools
+cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::string & aggregation) {
+	if(aggregation == "COUNT") {
+		return cudf::type_id::INT64;
+	} else if(aggregation == "SUM" || aggregation == "$SUM0") {
+		return is_type_float(input_type) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64;
+	} else if(aggregation == "MIN") {
+		return input_type;
+	} else if(aggregation == "MAX") {
+		return input_type;
+	} else if(aggregation == "AVG") {
+		return cudf::type_id::FLOAT64;
 	} else {
-		return input_left_type;
+		throw std::runtime_error(
+			"In get_aggregation_output_type function: aggregation type not supported: " + aggregation);
 	}
 }
 
-// todo: get_output_type: add support to coalesce and date operations!
-gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_dtype input_right_type, gdf_binary_operator_exp operation) {
-	if(is_arithmetic_operation(operation)) {
-		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
-			// the output shoudl be ther largest float type
-			if(is_type_float(input_left_type) && is_type_float(input_right_type)) {
-				return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
-						   ral::traits::get_dtype_size_in_bytes(input_right_type))
-						   ? input_left_type
-						   : input_right_type;
-			} else if(is_type_float(input_left_type)) {
-				return input_left_type;
-			} else {
-				return input_right_type;
-			}
-		}
-
-		// ok so now we know we have now floating points left
-		// so only things to worry about now are
-		// if both are signed or unsigned, use largest type
-
-		if((is_type_signed(input_left_type) && is_type_signed(input_right_type)) ||
-			(!is_type_signed(input_left_type) && !is_type_signed(input_right_type))) {
-			return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
-					   ral::traits::get_dtype_size_in_bytes(input_right_type))
-					   ? input_left_type
-					   : input_right_type;
-		}
-
-		// now we know one is signed and the other isnt signed, if signed is larger we can just use signed version, if
-		// unsigned is larger we have to use the signed version one step up e.g. an unsigned int32 requires and int64 to
-		// represent all its numbers, unsigned int64 we are just screwed :)
-		if(is_type_signed(input_left_type)) {
-			// left signed
-			// right unsigned
-			if(ral::traits::get_dtype_size_in_bytes(input_left_type) >
-				ral::traits::get_dtype_size_in_bytes(input_right_type)) {
-				// great the left can represent the right
-				return input_left_type;
-			} else {
-				// right type cannot be represented by left so we need to get a signed type big enough to represent the
-				// unsigned right
-				return get_signed_type_from_unsigned(input_right_type);
-			}
-		} else {
-			// right signed
-			// left unsigned
-			if(ral::traits::get_dtype_size_in_bytes(input_left_type) <
-				ral::traits::get_dtype_size_in_bytes(input_right_type)) {
-				return input_right_type;
-			} else {
-				return get_signed_type_from_unsigned(input_left_type);
-			}
-		}
-
-		// convert to largest type
-		// if signed and unsigned convert to signed, upgrade unsigned if possible to determine size requirements
-	} else if(is_logical_operation(operation)) {
-		return GDF_BOOL8;
-	} else if(is_exponential_operator(operation)) {
-		// assume biggest type unsigned if left is unsigned, signed if left is signed
-
-		if(is_type_float(input_left_type) || is_type_float(input_right_type)) {
-			return GDF_FLOAT64;
-			//		}else if(is_type_signed(input_left_type)){
-			//			return GDF_INT64;
-		} else {
-			// TODO felipe percy noboa see upgrade to uints
-			// return GDF_UINT64;
-			return GDF_INT64;
-		}
-	} else if(operation == BLZ_COALESCE) {
-		return input_left_type;
-	} else if(operation == BLZ_MAGIC_IF_NOT) {
-		return input_right_type;
-	} else if(operation == BLZ_FIRST_NON_MAGIC) {
-		if (is_numeric_type(input_left_type) && is_numeric_type(input_right_type)) {
-			if (is_type_float(input_left_type) && !is_type_float(input_right_type)){
-				return input_left_type;
-			}	else if (!is_type_float(input_left_type) && is_type_float(input_right_type)) {
-				return input_right_type;
-			}
-		}
-		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >=
-				   ral::traits::get_dtype_size_in_bytes(input_right_type))
-				   ? input_left_type
-				   : input_right_type;
-	} else if(operation == BLZ_STR_LIKE) {
-		return GDF_BOOL8;
-	} else if(operation == BLZ_STR_SUBSTRING || operation == BLZ_STR_CONCAT) {
-		return GDF_STRING_CATEGORY;
-	} else {
-		return GDF_invalid;
-	}
-}
-
-gdf_time_unit get_min_time_unit(gdf_time_unit unit1, gdf_time_unit unit2) {
-	gdf_time_unit min_unit = TIME_UNIT_NONE;
-	if(unit1 == TIME_UNIT_ns || unit2 == TIME_UNIT_ns) {
-		min_unit = TIME_UNIT_ns;
-	} else if(unit1 == TIME_UNIT_us || unit2 == TIME_UNIT_us) {
-		min_unit = TIME_UNIT_us;
-	} else if(unit1 == TIME_UNIT_ms || unit2 == TIME_UNIT_ms) {
-		min_unit = TIME_UNIT_ms;
-	} else if(unit1 == TIME_UNIT_s || unit2 == TIME_UNIT_s) {
-		min_unit = TIME_UNIT_s;
-	}
-	return min_unit;
-}
-
-void get_common_type(gdf_dtype type1,
-	gdf_dtype_extra_info info1,
-	gdf_dtype type2,
-	gdf_dtype_extra_info info2,
-	gdf_dtype & type_out,
-	gdf_dtype_extra_info & info_out) {
-	type_out = GDF_invalid;
-	info_out.time_unit = TIME_UNIT_NONE;
+cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2) {
+	
 	if(type1 == type2) {
-		if(type1 == GDF_TIMESTAMP) {
-			if(info1.time_unit == info2.time_unit) {
-				type_out = type1;
-				info_out.time_unit = info1.time_unit;
-			} else {
-				type_out = type1;
-				info_out.time_unit = get_min_time_unit(info1.time_unit, info2.time_unit);
-			}
-		} else {
-			type_out = type1;
-		}
+		return type1;		
 	} else if((is_type_float(type1) && is_type_float(type2)) || (is_type_integer(type1) && is_type_integer(type2))) {
-		type_out = (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2)) ? type1
+		return (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2)) ? type1
 																												: type2;
-	} else if(type1 == GDF_DATE64 || type1 == GDF_DATE32) {
-		if(type2 == GDF_DATE64 || type2 == GDF_DATE32) {
-			type_out = (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2))
-						   ? type1
-						   : type2;
-		} else if(type2 == GDF_TIMESTAMP) {
-			if(type1 == GDF_DATE64) {
-				type_out = GDF_TIMESTAMP;
-				info_out.time_unit = get_min_time_unit(info2.time_unit, TIME_UNIT_ms);
-			} else {
-				type_out = GDF_TIMESTAMP;
-				info_out.time_unit = info2.time_unit;
-			}
-		} else {
-			// No common type, datetime type and non-datetime type are not compatible
-		}
-	} else if(type1 == GDF_TIMESTAMP) {
-		if(type2 == GDF_DATE64) {
-			type_out = GDF_TIMESTAMP;
-			info_out.time_unit = get_min_time_unit(info1.time_unit, TIME_UNIT_ms);
-		} else if(type2 == GDF_DATE32) {
-			type_out = GDF_TIMESTAMP;
-			info_out.time_unit = info1.time_unit;
-		} else {
-			// No common type
-		}
-	} else if((type1 == GDF_STRING || type1 == GDF_STRING_CATEGORY) &&
-			  (type2 == GDF_STRING || type2 == GDF_STRING_CATEGORY)) {
-		type_out = GDF_STRING_CATEGORY;
-	} else {
-		// No common type
-	}
+	} else if(is_date_type(type1) && is_date_type(type2)) { // if they are both datetime, return the highest resolution either has
+		std::vector<cudf::type_id> datetime_types = {cudf::type_id::TIMESTAMP_NANOSECONDS, cudf::type_id::TIMESTAMP_MICROSECONDS,
+						cudf::type_id::TIMESTAMP_MILLISECONDS, cudf::type_id::TIMESTAMP_SECONDS, cudf::type_id::TIMESTAMP_DAYS};
+		for (auto datetime_type : datetime_types){
+			if(type1 == datetime_type || type2 == datetime_type)
+				return datetime_type;	
+		}		
+	} else if((type1 == cudf::type_id::STRING) &&
+			  (type2 == cudf::type_id::STRING)) {
+		return cudf::type_id::STRING;
+	} 
+	return cudf::type_id::EMPTY;	
 }
 
-// Todo: unit tests
-int32_t get_date_32_from_string(std::string scalar_string) {
-	return ral::datetime::parseDateFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
-}
-
-int64_t get_date_64_from_string(std::string scalar_string) {
-	return ral::datetime::parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
-}
-
-// Todo: Consider cases with different unit: ms, us, or ns
-int64_t get_timestamp_from_string(std::string scalar_string) {
-	return ral::datetime::parseDateTimeFormat(scalar_string.c_str(), 0, scalar_string.size() - 1, false);
-}
-
-// TODO: Remove this dirty workaround to get the type for the scalar
-gdf_dtype get_type_from_string(std::string scalar_string) {
-	static const std::regex reInt{R""(^[-+]?[0-9]+$)""};
-	static const std::regex reFloat{R""(^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$)""};
-
-	if(std::regex_match(scalar_string, reInt)) {
-		return GDF_INT64;
-	} else if(std::regex_match(scalar_string, reFloat)) {
-		return GDF_FLOAT64;
-	} else if(scalar_string == "true" || scalar_string == "false") {
-		return GDF_BOOL8;
-	} else {
-		// check timestamp
-		static const std::regex re("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})");
-		bool ret = std::regex_match(scalar_string, re);
-
-		if(ret) {
-			return GDF_TIMESTAMP;
-		}
-	}
-
-	return GDF_DATE64;
-}
-
-gdf_scalar get_scalar_from_string(std::string scalar_string, gdf_dtype type, gdf_dtype_extra_info extra_info) {
-	/*
-	 * void*    invd;
-int8_t   si08;
-int16_t  si16;
-int32_t  si32;
-int64_t  si64;
-uint8_t  ui08;
-uint16_t ui16;
-uint32_t ui32;
-uint64_t ui64;
-float    fp32;
-double   fp64;
-int32_t  dt32;  // GDF_DATE32
-int64_t  dt64;  // GDF_DATE64
-int64_t  tmst;  // GDF_TIMESTAMP
-};*/
-	if(scalar_string == "null") {
-		gdf_data data;
-		return {data, GDF_INT8, false};
-	}
-	if(type == GDF_INT8) {
-		gdf_data data;
-		data.si08 = stoi(scalar_string);
-		return {data, GDF_INT8, true};
-
-	} else if(type == GDF_BOOL8) {
-		gdf_data data;
-		data.si08 = scalar_string == "false" ? 0 : 1;
-		return {data, GDF_BOOL8, true};
-	} else if(type == GDF_INT16) {
-		gdf_data data;
-		data.si16 = stoi(scalar_string);
-		return {data, GDF_INT16, true};
-	} else if(type == GDF_INT32) {
-		gdf_data data;
-		data.si32 = stoi(scalar_string);
-		return {data, GDF_INT32, true};
-	} else if(type == GDF_INT64) {
-		gdf_data data;
-		data.si64 = stoll(scalar_string);
-		return {data, GDF_INT64, true};
-	}
-	//	else if(type == GDF_UINT8){
-	//		gdf_data data;
-	//		data.ui08 = stoull(scalar_string);
-	//		return {data, GDF_UINT8, true};
-	//	}else if(type == GDF_UINT16){
-	//		gdf_data data;
-	//		data.ui16 = stoull(scalar_string);
-	//		return {data, GDF_UINT16, true};
-	//	}else if(type == GDF_UINT32){
-	//		gdf_data data;
-	//		data.ui32 = stoull(scalar_string);
-	//		return {data, GDF_UINT32, true};
-	//	}else if(type == GDF_UINT64){
-	//		gdf_data data;
-	//		data.ui64 = stoull(scalar_string);
-	//		return {data, GDF_UINT64, true};
-	//	}
-	else if(type == GDF_FLOAT32) {
-		gdf_data data;
-		data.fp32 = stof(scalar_string);
-		return {data, GDF_FLOAT32, true};
-	} else if(type == GDF_FLOAT64) {
-		gdf_data data;
-		data.fp64 = stod(scalar_string);
-		return {data, GDF_FLOAT64, true};
-	} else if(type == GDF_DATE32) {
-		// TODO: convert date literals!!!!
-		gdf_data data;
-		// string format o
-		data.dt32 = get_date_32_from_string(scalar_string);
-		return {data, GDF_DATE32, true};
-	} else if(type == GDF_DATE64) {
-		gdf_data data;
-		scalar_string[10] = 'T';
-		data.dt64 = get_date_64_from_string(scalar_string);
-		return {data, GDF_DATE64, true};
-	} else if(type == GDF_TIMESTAMP) {
-		gdf_data data;
-		// TODO percy another dirty hack ... we should not use private cudf api in the engine!
-		scalar_string[10] = 'T';
-		data.tmst = get_timestamp_from_string(scalar_string);  // this returns in ms
-
-		// NOTE percy this fix the time resolution (e.g. orc files)
-		switch(extra_info.time_unit) {
-		case TIME_UNIT_us: data.tmst = data.tmst * 1000; break;
-		case TIME_UNIT_ns: data.tmst = data.tmst * 1000 * 1000; break;
-		}
-
-		return {data, GDF_TIMESTAMP, true};
-	}
-}
-
-gdf_dtype infer_dtype_from_literal(const std::string & token) {
+cudf::type_id infer_dtype_from_literal(const std::string & token) {
 	if(is_null(token)) {
-		return GDF_invalid;
+		// TODO percy cudf0.12 was invalid here, should we return empty?
+		return cudf::type_id::EMPTY;
 	} else if(is_bool(token)) {
-		return GDF_BOOL8;
+		return cudf::type_id::BOOL8;
 	} else if(is_number(token)) {
 		if(token.find_first_of(".eE") != std::string::npos) {
 			double parsed_double = std::stod(token);
 			float casted_float = static_cast<float>(parsed_double);
-			return parsed_double == casted_float ? GDF_FLOAT32 : GDF_FLOAT64;
+			return parsed_double == casted_float ? cudf::type_id::FLOAT32 : cudf::type_id::FLOAT64;
 		} else {
 			int64_t parsed_int64 = std::stoll(token);
 			return parsed_int64 > std::numeric_limits<int32_t>::max() ||
 						   parsed_int64 < std::numeric_limits<int32_t>::min()
-					   ? GDF_INT64
+					   ? cudf::type_id::INT64
 					   : parsed_int64 > std::numeric_limits<int16_t>::max() ||
 								 parsed_int64 < std::numeric_limits<int16_t>::min()
-							 ? GDF_INT32
+							 ? cudf::type_id::INT32
 							 : parsed_int64 > std::numeric_limits<int8_t>::max() ||
 									   parsed_int64 < std::numeric_limits<int8_t>::min()
-								   ? GDF_INT16
-								   : GDF_INT8;
+								   ? cudf::type_id::INT16
+								   : cudf::type_id::INT8;
 		}
 	} else if(is_date(token)) {
-		return GDF_DATE64;
+		return cudf::type_id::TIMESTAMP_DAYS;
 	} else if(is_timestamp(token)) {
-		return GDF_TIMESTAMP;
+		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	} else if(is_string(token)) {
-		return GDF_STRING_CATEGORY;
+		return cudf::type_id::STRING;
+	}
+
+	RAL_FAIL("Invalid literal string");
+}
+
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string) {
+	cudf::type_id type_id = infer_dtype_from_literal(scalar_string);
+	return get_scalar_from_string(scalar_string, type_id);
+}
+
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, const cudf::type_id & type_id) {
+
+	cudf::data_type type{type_id};
+
+	if (type_id == cudf::type_id::EMPTY) {
+		return nullptr;
+	}
+	if(type_id == cudf::type_id::BOOL8) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = cudf::experimental::bool8;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(scalar_string == "true"));
+		return ret;
+	}
+	if(type_id == cudf::type_id::INT8) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int8_t;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::INT16) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int16_t;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::INT32) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int32_t;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::INT64) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int64_t;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoll(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::FLOAT32) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = float;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stof(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::FLOAT64) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = double;
+		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stod(scalar_string)));
+		return ret;
+	}
+	if(type_id == cudf::type_id::TIMESTAMP_DAYS) {
+		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
+	}
+	if(type_id == cudf::type_id::TIMESTAMP_NANOSECONDS) {
+		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
+	}
+	if(type_id == cudf::type_id::STRING)	{
+		auto str_scalar = cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
+		str_scalar->set_valid(true); // https://github.com/rapidsai/cudf/issues/4085
+		return str_scalar;
 	}
 
 	assert(false);
 }
 
 // must pass in temp type as invalid if you are not setting it to something to begin with
-gdf_dtype get_output_type_expression(blazing_frame * input, gdf_dtype * max_temp_type, std::string expression) {
+cudf::type_id get_output_type_expression(const cudf::table_view & table, std::string expression) {
 	std::string clean_expression = clean_calcite_expression(expression);
 
-	if(*max_temp_type == GDF_invalid) {
-		*max_temp_type = GDF_INT8;
-	}
+	// TODO percy cudf0.12 was invalid here, should we consider empty?
+	cudf::type_id max_temp_type = cudf::type_id::INT8;
 
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
-	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(*input, tokens);
+	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
 
-	std::stack<gdf_dtype> operands;
+	std::stack<cudf::type_id> operands;
 	for(std::string token : tokens) {
 		if(is_operator_token(token)) {
-			if(is_binary_operator_token(token)) {
+			interops::operator_type operation = map_to_operator_type(token);
+			if(is_binary_operator(operation)) {
 				if(operands.size() < 2)
 					throw std::runtime_error(
 						"In function get_output_type_expression, the operator cannot be processed on less than one or "
 						"zero elements");
 
-				gdf_dtype left_operand = operands.top();
+				cudf::type_id left_operand = operands.top();
 				operands.pop();
-				gdf_dtype right_operand = operands.top();
+				cudf::type_id right_operand = operands.top();
 				operands.pop();
 
-				if(left_operand == GDF_invalid) {
-					if(right_operand == GDF_invalid) {
+				// TODO percy cudf0.12 was invalid here, should we consider empty?
+				if(left_operand == cudf::type_id::EMPTY) {
+					if(right_operand == cudf::type_id::EMPTY) {
 						throw std::runtime_error("In get_output_type_expression function: invalid operands");
 					} else {
 						left_operand = right_operand;
 					}
 				} else {
-					if(right_operand == GDF_invalid) {
+					if(right_operand == cudf::type_id::EMPTY) {
 						right_operand = left_operand;
 					}
 				}
-				gdf_binary_operator_exp operation = get_binary_operation(token);
+
 				operands.push(get_output_type(left_operand, right_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
-					ral::traits::get_dtype_size_in_bytes(*max_temp_type)) {
-					*max_temp_type = operands.top();
+					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
+					max_temp_type = operands.top();
 				}
-			} else if(is_unary_operator_token(token)) {
-				gdf_dtype left_operand = operands.top();
+			} else if(is_unary_operator(operation)) {
+				cudf::type_id left_operand = operands.top();
 				operands.pop();
-
-				gdf_unary_operator operation = get_unary_operation(token);
 
 				operands.push(get_output_type(left_operand, operation));
 				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
-					ral::traits::get_dtype_size_in_bytes(*max_temp_type)) {
-					*max_temp_type = operands.top();
+					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
+					max_temp_type = operands.top();
 				}
-			} else {
-				throw std::runtime_error(
-					"In get_output_type_expression function: unsupported operator token, " + token);
 			}
-
 		} else {
 			if(is_literal(token)) {
 				operands.push(infer_dtype_from_literal(token));
 			} else {
-				operands.push(input->get_column(get_index(token)).dtype());
+				operands.push(table.column(get_index(token)).type().id());
 			}
 		}
 	}
 	return operands.top();
 }
 
-gdf_agg_op get_aggregation_operation(std::string operator_string) {
+std::string get_aggregation_operation_string(std::string operator_string) {
+
+	// lets check to see if its a full expression. If its not, we assume its the aggregator, so lets return that
+	if (operator_string.find("=[") == std::string::npos && operator_string.find("(") == std::string::npos)
+		return operator_string;
+
 	operator_string = operator_string.substr(
 		operator_string.find("=[") + 2, (operator_string.find("]") - (operator_string.find("=[") + 2)));
 
 	// remove expression
-	operator_string = operator_string.substr(0, operator_string.find("("));
-	if(operator_string == "SUM") {
-		return GDF_SUM;
+	return operator_string.substr(0, operator_string.find("("));
+}
+
+AggregateKind get_aggregation_operation(std::string expression_in) {
+
+	std::string operator_string = get_aggregation_operation_string(expression_in);
+	std::string expression = get_string_between_outer_parentheses(expression_in);
+	if (expression == "" && operator_string == "COUNT"){
+		return AggregateKind::COUNT_ALL;
+	} else if(operator_string == "SUM") {
+		return AggregateKind::SUM;
+	} else if(operator_string == "$SUM0") {
+		return AggregateKind::SUM0;
 	} else if(operator_string == "AVG") {
-		return GDF_AVG;
+		return AggregateKind::MEAN;
 	} else if(operator_string == "MIN") {
-		return GDF_MIN;
+		return AggregateKind::MIN;
 	} else if(operator_string == "MAX") {
-		return GDF_MAX;
+		return AggregateKind::MAX;
 	} else if(operator_string == "COUNT") {
-		return GDF_COUNT;
-	} else if(operator_string == "COUNT_DISTINCT") {
-		return GDF_COUNT_DISTINCT;
+		return AggregateKind::COUNT_VALID;
 	}
 
 	throw std::runtime_error(
 		"In get_aggregation_operation function: aggregation type not supported, " + operator_string);
-}
-
-
-gdf_unary_operator get_unary_operation(std::string operator_string) {
-	if(gdf_unary_operator_map.find(operator_string) != gdf_unary_operator_map.end())
-		return gdf_unary_operator_map[operator_string];
-
-	throw std::runtime_error("In get_unary_operation function: unsupported operator, " + operator_string);
-}
-
-gdf_binary_operator_exp get_binary_operation(std::string operator_string) {
-	if(gdf_binary_operator_map.find(operator_string) != gdf_binary_operator_map.end())
-		return gdf_binary_operator_map[operator_string];
-
-	throw std::runtime_error("In get_binary_operation function: unsupported operator, " + operator_string);
 }
 
 std::vector<std::string> get_tokens_in_reverse_order(const std::string & expression) {
@@ -605,23 +351,15 @@ std::vector<std::string> get_tokens_in_reverse_order(const std::string & express
 // TODO percy dirty hack ... fix this approach for timestamps
 // out arg: tokens will be modified in case need a fix due timestamp
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	blazing_frame & inputs, std::vector<std::string> & tokens) {
-	auto a = inputs.get_columns();
+	const cudf::table_view & inputs, std::vector<std::string> & tokens) {
 	bool has_timestamp = false;
-	for(int i = 0; i < a.size(); ++i) {
-		auto colss = a.at(i);
-		for(int j = 0; j < colss.size(); ++j) {
-			auto cp = colss.at(j);
-
-			if(cp.get_gdf_column() != nullptr && cp.dtype() == gdf_dtype::GDF_TIMESTAMP) {
-				has_timestamp = true;
-				break;
-			}
-		}
-		if(has_timestamp) {
+	for(auto && c : inputs) {
+		if(is_date_type(c.type().id())) {
+			has_timestamp = true;
 			break;
 		}
 	}
+
 	if(has_timestamp) {
 		bool coms = false;
 		for(int i = 0; i < tokens.size(); ++i) {
@@ -674,28 +412,28 @@ void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
 	}
 }
 
-std::size_t get_index(std::string operand_string) {
-	if(operand_string.empty()) {
-		return 0;
-	}
-	std::string cleaned_expression = clean_calcite_expression(operand_string);
-	return std::stoull(is_literal(cleaned_expression) ? cleaned_expression
-													  : cleaned_expression.substr(1, cleaned_expression.size() - 1));
+cudf::size_type get_index(const std::string & operand_string) {
+	assert(is_var_column(operand_string) || is_literal(operand_string));
+
+	return std::stoi(is_literal(operand_string) ? operand_string : operand_string.substr(1, operand_string.size() - 1));
 }
 
-std::string aggregator_to_string(gdf_agg_op aggregation) {
-	if(aggregation == GDF_COUNT) {
+std::string aggregator_to_string(AggregateKind aggregation) {
+	if(aggregation == AggregateKind::COUNT_VALID || aggregation == AggregateKind::COUNT_ALL) {
 		return "count";
-	} else if(aggregation == GDF_SUM) {
+	} else if(aggregation == AggregateKind::SUM) {
 		return "sum";
-	} else if(aggregation == GDF_MIN) {
+	} else if(aggregation == AggregateKind::SUM0) {
+		return "sum0";
+	} else if(aggregation == AggregateKind::MIN) {
 		return "min";
-	} else if(aggregation == GDF_MAX) {
+	} else if(aggregation == AggregateKind::MAX) {
 		return "max";
-	} else if(aggregation == GDF_AVG) {
+	} else if(aggregation == AggregateKind::MEAN) {
 		return "avg";
-	} else if(aggregation == GDF_COUNT_DISTINCT) {
-		return "count_distinct";
+	// TODO percy cudf0.12 aggregation pass flag for COUNT_DISTINCT cases
+//	} else if(aggregation == GDF_COUNT_DISTINCT) {
+//		return "count_distinct";
 	} else {
 		return "";  // FIXME: is really necessary?
 	}
@@ -711,8 +449,12 @@ std::string expand_if_logical_op(std::string expression) {
 
 		int first_and = StringUtil::findFirstNotInQuotes(
 			expression, "AND(", start_pos, is_quoted_vector);  // returns -1 if not found
-		int first_or = StringUtil::findFirstNotInQuotes(
-			expression, "OR(", start_pos, is_quoted_vector);  // returns -1 if not found
+		int first_or = -1;
+
+		std::string floor_str = "FLOOR";
+		if (StringUtil::contains(expression, floor_str) == false) {
+			first_or = StringUtil::findFirstNotInQuotes(expression, "OR(", start_pos, is_quoted_vector);  // returns -1 if not found
+		}
 
 		int first = -1;
 		std::string op = "";
@@ -768,66 +510,26 @@ std::string expand_if_logical_op(std::string expression) {
 	return output;
 }
 
-std::string replace_calcite_regex(std::string expression) {
-	static const std::regex count_re{R""(COUNT\(DISTINCT (\W\(.+?\)|.+)\))"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, count_re, "COUNT_DISTINCT($1)");
 
-	static const std::regex char_collate_re{
-		R""((?:\(\d+\))? CHARACTER SET ".+?" COLLATE ".+?")"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, char_collate_re, "");
-
-	static const std::regex timestamp_re{R""(TIMESTAMP\(\d+\))"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, timestamp_re, "TIMESTAMP");
-
-	static const std::regex number_implicit_cast_re{
-		R""((\d):(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, number_implicit_cast_re, "$1");
-
-	static const std::regex null_implicit_cast_re{
-		R""(null:(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, null_implicit_cast_re, "null");
-
-	static const std::regex varchar_implicit_cast_re{R""(':VARCHAR)"", std::regex_constants::icase};
-	expression = std::regex_replace(expression, varchar_implicit_cast_re, "'");
-
-	StringUtil::findAndReplaceAll(expression, "IS NOT NULL", "IS_NOT_NULL");
-	StringUtil::findAndReplaceAll(expression, "IS NULL", "IS_NULL");
-	StringUtil::findAndReplaceAll(expression, " NOT NULL", "");
-
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(DAY), ", "BL_DAY(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
-	StringUtil::findAndReplaceAll(expression, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
-	StringUtil::findAndReplaceAll(expression, "FLOOR(", "BL_FLOUR(");
-
-
-
-	StringUtil::findAndReplaceAll(expression,"/INT(","/(");
-
-	return expression;
-}
-
-std::string clean_calcite_expression(std::string expression) {
-	expression = replace_calcite_regex(expression);
+std::string clean_calcite_expression(const std::string & expression) {
+	std::string clean_expression = replace_calcite_regex(expression);
 
 	ral::parser::parse_tree tree;
-	tree.build(expression);
+	tree.build(clean_expression);
 	tree.transform_to_custom_op();
-	expression = tree.rebuildExpression();
+	clean_expression = tree.rebuildExpression();
 
-	expression = expand_if_logical_op(expression);
+	clean_expression = expand_if_logical_op(clean_expression);
 
 	std::string new_string = "";
-	new_string.reserve(expression.size());
+	new_string.reserve(clean_expression.size());
 
-	for(int i = 0; i < expression.size(); i++) {
-		if(expression[i] == '(') {
+	for(int i = 0; i < clean_expression.size(); i++) {
+		if(clean_expression[i] == '(') {
 			new_string.push_back(' ');
 
-		} else if(expression[i] != ',' && expression[i] != ')') {
-			new_string.push_back(expression.at(i));
+		} else if(clean_expression[i] != ',' && clean_expression[i] != ')') {
+			new_string.push_back(clean_expression.at(i));
 		}
 	}
 
@@ -892,61 +594,16 @@ int find_closing_char(const std::string & expression, int start) {
 	return -1;
 }
 
-// takes a comma delimited list of expressions and splits it into separate expressions
-std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expression, bool trim) {
-	combined_expression = replace_calcite_regex(combined_expression);
-
-	std::vector<std::string> expressions;
-
-	int curInd = 0;
-	int curStart = 0;
-	bool inQuotes = false;
-	int parenthesisDepth = 0;
-	int sqBraketsDepth = 0;
-	while(curInd < combined_expression.size()) {
-		if(inQuotes) {
-			if(combined_expression[curInd] == '\'') {
-				if(!(curInd + 1 < combined_expression.size() &&
-					   combined_expression[curInd + 1] ==
-						   '\'')) {  // if we are in quotes and we get a double single quotes, that is an escaped quotes
-					inQuotes = false;
-				}
-			}
-		} else {
-			if(combined_expression[curInd] == '\'') {
-				inQuotes = true;
-			} else if(combined_expression[curInd] == '(') {
-				parenthesisDepth++;
-			} else if(combined_expression[curInd] == ')') {
-				parenthesisDepth--;
-			} else if(combined_expression[curInd] == '[') {
-				sqBraketsDepth++;
-			} else if(combined_expression[curInd] == ']') {
-				sqBraketsDepth--;
-			} else if(combined_expression[curInd] == ',' && parenthesisDepth == 0 && sqBraketsDepth == 0) {
-				std::string exp = combined_expression.substr(curStart, curInd - curStart);
-
-				if(trim)
-					expressions.push_back(StringUtil::ltrim(exp));
-				else
-					expressions.push_back(exp);
-
-				curStart = curInd + 1;
-			}
-		}
-		curInd++;
-	}
-
-	if(curStart < combined_expression.size() && curInd <= combined_expression.size()) {
-		std::string exp = combined_expression.substr(curStart, curInd - curStart);
-
-		if(trim)
-			expressions.push_back(StringUtil::trim(exp));
-		else
-			expressions.push_back(exp);
-	}
-
-	return expressions;
-}
-
 bool contains_evaluation(std::string expression) { return expression.find("(") != std::string::npos; }
+
+
+int count_string_occurrence(std::string haystack, std::string needle) {
+	int position = haystack.find(needle, 0);
+	int count = 0;
+	while(position != std::string::npos) {
+		count++;
+		position = haystack.find(needle, position + needle.size());
+	}
+
+	return count;
+}

@@ -4,9 +4,9 @@
 #include <cuda.h>
 #include <chrono>
 #include "cudf/types.h"
-#include "utils/StringInfo.h"
+// #include "utils/StringInfo.h"
 #include "utils/column_factory.h"
-#include "utils/gpu_functions.h"
+// #include "utils/gpu_functions.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -16,51 +16,40 @@
 #include <numeric>
 #include <thread>
 #include "rmm/rmm.h"
+#include <rmm/device_buffer.hpp>
 
 namespace blazingdb {
 namespace transport {
+
+namespace experimental {
 // Alias
-using SimpleServer = blazingdb::transport::Server;
-using GPUMessage = blazingdb::transport::GPUMessage;
+using SimpleServer = blazingdb::transport::experimental::Server;
+using GPUMessage = blazingdb::transport::experimental::GPUMessage;
 
 constexpr uint32_t context_token = 3465;
 
 using GpuFunctions = blazingdb::test::GpuFunctions;
 using StringsInfo = blazingdb::test::StringsInfo;
 
-static std::string serializeToBinary(std::vector<gdf_column *> &columns) {
-  std::string result;
-
-  std::size_t capacity = 0;
-  for (auto column : columns) {
-    if (!GpuFunctions::isGdfString(column)) {
-      capacity += GpuFunctions::getDataCapacity(column);
-      capacity += GpuFunctions::getValidCapacity(column);
-    }
-  }
-  const StringsInfo *stringsInfo = GpuFunctions::createStringsInfo(columns);
-  capacity += GpuFunctions::getStringsCapacity(stringsInfo);
-  result.resize(capacity);
-
-  std::size_t binary_pointer = 0;
-  for (const auto &column : columns) {
-    GpuFunctions::copyGpuToCpu(binary_pointer, result, column, stringsInfo);
-  }
-
-  GpuFunctions::destroyStringsInfo(stringsInfo);
-
-  boost::crc_32_type crc_result;
-  crc_result.process_bytes((char *)result.c_str(), result.size());
-  std::cout << "checksum:" << std::hex << std::uppercase
-            << crc_result.checksum() << std::endl;
-
-  return result;
-}
 typedef int nv_category_index_type;
+
+struct GPUComponentReceivedMessage : public GPUReceivedMessage {
+	GPUComponentReceivedMessage(uint32_t contextToken, const Node &sender_node,
+		std::uint64_t total_row_size,
+	const std::vector<gdf_column *> &samples)
+	: GPUReceivedMessage(GPUComponentReceivedMessage::MessageID(), contextToken, sender_node),
+	samples{samples} {
+		this->metadata().total_row_size = total_row_size;
+	}
+	DefineClassName(GPUComponentMessage);
+
+	std::vector<gdf_column *> samples;
+
+};
 
 class GPUComponentMessage : public GPUMessage {
 public:
-  GPUComponentMessage(uint32_t contextToken, std::shared_ptr<Node> &sender_node,
+  GPUComponentMessage(uint32_t contextToken, const Node &sender_node,
                       std::uint64_t total_row_size,
                       const std::vector<gdf_column *> &samples)
       : GPUMessage(GPUComponentMessage::MessageID(), contextToken, sender_node),
@@ -123,10 +112,11 @@ public:
 
   virtual raw_buffer GetRawColumns() override {
     std::vector<int> buffer_sizes;
-    std::vector<char *> raw_buffers;
+    std::vector<const char *> raw_buffers;
     std::vector<ColumnTransport> column_offset;
+    std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
 
-    serializeToBinary(samples);
+    // serializeToBinary(samples);
 
     for (int i = 0; i < samples.size(); ++i) {
       auto *column = samples[i];
@@ -135,7 +125,6 @@ public:
                               .dtype = column->dtype,
                               .size = column->size,
                               .null_count = column->null_count,
-                              .time_unit = column->dtype_info.time_unit,
                               .col_name = {},
                           },
                           .data = -1,
@@ -149,11 +138,11 @@ public:
                 << col_transport.metadata.null_count << "|"
                 << col_transport.metadata.col_name << std::endl;
       if (blazingdb::test::GpuFunctions::isGdfString(column)) {
-        char *stringsPointer;
+        const char *stringsPointer;
         gdf_size_type stringsSize;
         int *offsetsPointer;
         gdf_size_type offsetsSize;
-        unsigned char *nullBitmask;
+        const unsigned char *nullBitmask;
         gdf_size_type nullMaskSize;
         std::tie(stringsPointer, stringsSize, offsetsPointer, offsetsSize,
                  nullBitmask, nullMaskSize) = get_raw_pointers(column);
@@ -164,12 +153,12 @@ public:
 
         col_transport.strings_offsets = raw_buffers.size();
         buffer_sizes.push_back(offsetsSize);
-        raw_buffers.push_back((char *)offsetsPointer);
+        raw_buffers.push_back((const char *)offsetsPointer);
 
         if (nullBitmask != nullptr) {
           col_transport.strings_nullmask = raw_buffers.size();
           buffer_sizes.push_back(nullMaskSize);
-          raw_buffers.push_back((char *)nullBitmask);
+          raw_buffers.push_back((const char *)nullBitmask);
         }
       } else if (column->valid and column->null_count > 0) {
         // case: valid
@@ -190,15 +179,15 @@ public:
       }
       column_offset.push_back(col_transport);
     }
-    return std::make_tuple(buffer_sizes, raw_buffers, column_offset);
+    return std::make_tuple(buffer_sizes, raw_buffers, column_offset, std::move(temp_scope_holder));
   }
 
-  static std::shared_ptr<GPUMessage> MakeFrom(
+  static std::shared_ptr<GPUReceivedMessage> MakeFrom(
       const Message::MetaData &message_metadata,
       const Address::MetaData &address_metadata,
       const std::vector<ColumnTransport> &columns_offsets,
-      const std::vector<char *> &raw_buffers) {  // gpu pointer
-    auto node = std::make_shared<Node>(
+      const std::vector<rmm::device_buffer> &raw_buffers) {  // gpu pointer
+    Node node(
         Address::TCP(address_metadata.ip, address_metadata.comunication_port,
                      address_metadata.protocol_port));
     auto num_columns = columns_offsets.size();
@@ -215,13 +204,13 @@ public:
 
       if (string_offset != -1) {
         char *stringsPointer =
-            (char *)raw_buffers[columns_offsets[i].strings_data];
+            (char *)raw_buffers[columns_offsets[i].strings_data].data();
         int *offsetsPointer =
-            (int *)raw_buffers[columns_offsets[i].strings_offsets];
+            (int *)raw_buffers[columns_offsets[i].strings_offsets].data();
         unsigned char *nullMaskPointer = nullptr;
         if (columns_offsets[i].strings_nullmask != -1) {
           nullMaskPointer =
-              (unsigned char *)raw_buffers[columns_offsets[i].strings_nullmask];
+              (unsigned char *)raw_buffers[columns_offsets[i].strings_nullmask].data();
         }
 
         auto nvcategory_ptr = NVCategory::create_from_offsets(
@@ -239,24 +228,27 @@ public:
         if (columns_offsets[i].valid != -1) {
           // this is a valid
           auto valid_offset = columns_offsets[i].valid;
-          valid_ptr = (gdf_valid_type *)raw_buffers[valid_offset];
+          valid_ptr = (gdf_valid_type *)raw_buffers[valid_offset].data();
         }
         gdf_error err = gdf_column_view_augmented(
-            received_samples[i], (void *)raw_buffers[data_offset], valid_ptr,
+            received_samples[i], (void *)raw_buffers[data_offset].data(), valid_ptr,
             (gdf_size_type)columns_offsets[i].metadata.size,
             (gdf_dtype)columns_offsets[i].metadata.dtype,
             (gdf_size_type)columns_offsets[i].metadata.null_count,
             gdf_dtype_extra_info{
-                .time_unit =
-                    (gdf_time_unit)columns_offsets[i].metadata.time_unit,
+                .time_unit = gdf_time_unit(0), 
                 .category = nullptr},
             (char *)columns_offsets[i].metadata.col_name);
       }
     }
-    serializeToBinary(received_samples);
-    std::string expected_checksum = "41081C4C";
 
-    return std::make_shared<GPUComponentMessage>(
+
+    // serializeToBinary(received_samples);
+    std::string expected_checksum = "41081C4C";
+    for (gdf_column *column : received_samples) {
+        blazingdb::test::print_gdf_column(column);
+    }
+    return std::make_shared<GPUComponentReceivedMessage>(
         message_metadata.contextToken, node, message_metadata.total_row_size,
         received_samples);
   }
@@ -265,7 +257,7 @@ public:
 };
 
 std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
-    uint32_t context_token, std::shared_ptr<Node> &sender_node) {
+    uint32_t context_token, const Node &sender_node) {
   cudf::table table = blazingdb::test::build_table();
   std::vector<gdf_column *> samples(table.num_columns());
   std::copy(table.begin(), table.end(), samples.begin());
@@ -274,12 +266,12 @@ std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
     blazingdb::test::print_gdf_column(col);
   }
   std::uint64_t total_row_size = samples[0]->size;
-  auto gpu_message = std::make_shared<GPUComponentMessage>(
-      context_token, sender_node, total_row_size, samples);
-  std::vector<char *> buffers;
+  auto gpu_message = std::make_shared<GPUComponentMessage>(context_token, sender_node, total_row_size, samples);
+  std::vector<const char *> buffers;
   std::vector<int> buffer_sizes;
   std::vector<ColumnTransport> column_offsets;
-  std::tie(buffer_sizes, buffers, column_offsets) =
+  std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
+  std::tie(buffer_sizes, buffers, column_offsets, temp_scope_holder) =
       gpu_message->GetRawColumns();
   for (auto &info : column_offsets) {
     std::cout << "\t " << info.strings_data << "|" << info.strings_offsets
@@ -297,15 +289,15 @@ std::shared_ptr<GPUMessage> CreateSampleToNodeMaster(
     std::cout << "\tchecksum_col(" << index << "):" << std::hex
               << std::uppercase << crc_result.checksum() << std::endl;
   }
-  auto gpu_message_copy = std::dynamic_pointer_cast<GPUComponentMessage>(
-      GPUComponentMessage::MakeFrom(
-          gpu_message->metadata(),
-          gpu_message->getSenderNode()->address()->metadata(), column_offsets,
-          buffers));
-  std::cout << "## original_message\n";
-  serializeToBinary(gpu_message->samples);
-  std::cout << "## copy_message\n";
-  serializeToBinary(gpu_message_copy->samples);
+  // auto gpu_message_copy = std::dynamic_pointer_cast<GPUComponentMessage>(
+  //     GPUComponentMessage::MakeFrom(
+  //         gpu_message->metadata(),
+  //         gpu_message->getSenderNode().address().metadata(), column_offsets,
+  //         buffers));
+  // std::cout << "## original_message\n";
+  // serializeToBinary(gpu_message->samples);
+  // std::cout << "## copy_message\n";
+  // serializeToBinary(gpu_message_copy->samples);
   return gpu_message;
 }
 
@@ -360,8 +352,7 @@ private:
     {
       const std::string endpoint = GPUComponentMessage::MessageID();
       comm_server->registerEndPoint(endpoint);
-      comm_server->registerMessageForEndPoint(GPUComponentMessage::MakeFrom,
-                                              endpoint);
+      comm_server->registerMessageForEndPoint(GPUComponentMessage::MakeFrom, endpoint);
     }
   }
 
@@ -377,16 +368,16 @@ class RalClient {
 public:
 public:
   static Status send(const Node &node, GPUMessage &message) {
-    auto client = blazingdb::transport::ClientTCP::Make(
-        node.address()->metadata().ip,
-        node.address()->metadata().comunication_port);
+    auto client = blazingdb::transport::experimental::ClientTCP::Make(
+        node.address().metadata().ip,
+        node.address().metadata().comunication_port);
     std::cout << "send message\n";
     return client->Send(message);
   }
   static Status sendNodeData(const std::string &orchestratorIp,
                              int16_t orchestratorPort, GPUMessage &message) {
     auto client =
-        blazingdb::transport::ClientTCP::Make(orchestratorIp, orchestratorPort);
+        blazingdb::transport::experimental::ClientTCP::Make(orchestratorIp, orchestratorPort);
     return client->Send(message);
   }
 };
@@ -395,34 +386,34 @@ auto GPU_MEMORY_SIZE = 100;
 
 static void ExecMaster() {
   cuInit(0);
+  ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS);
   // Run server
   RalServer::start(8000);
 
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
-  blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, 1);
+  blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
   RalServer::getInstance().registerContext(context_token);
   std::thread([]() {
-    //    while(true){
-    auto message = RalServer::getInstance().getMessage(
-        context_token, GPUComponentMessage::MessageID());
-    auto concreteMessage =
-        std::static_pointer_cast<GPUComponentMessage>(message);
-    std::cout << "***Message begin\n";
-    for (gdf_column *column : concreteMessage->samples) {
-      blazingdb::test::print_gdf_column(column);
-    }
-    std::cout << "***Message end\n";
-    //    }
+    // while(true){
+      auto message = RalServer::getInstance().getMessage(context_token, GPUComponentMessage::MessageID());
+      auto concreteMessage = std::static_pointer_cast<GPUComponentMessage>(message);
+      std::cout << "***Message begin\n";
+      // for (gdf_column *column : concreteMessage->samples) {
+      //   blazingdb::test::print_gdf_column(column);
+      // }
+      std::cout << "***Message end\n";
+    // }
     RalServer::getInstance().close();
   }).join();
 }
 
 static void ExecWorker() {
   cuInit(0);
+  ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS);
   // todo get GPU_MEMORY_SIZE
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
   auto nthread = 4;
-  blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
+  blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, nthread);
   // This lines are not necessary!!
   //  RalServer::start(8001);
   //  RalServer::getInstance().registerContext(context_token);
@@ -432,7 +423,7 @@ static void ExecWorker() {
   auto server_node =
       std::make_shared<Node>(Address::TCP("127.0.0.1", 8000, 1234));
 
-  auto message = CreateSampleToNodeMaster(context_token, sender_node);
+  auto message = CreateSampleToNodeMaster(context_token, *sender_node);
   RalClient::send(*server_node, *message);
 }
 
@@ -440,17 +431,19 @@ static void ExecWorker() {
 // order to be shared by manager and transport
 // TODO: check when the ip, port is busy, return exception!
 // TODO: check when the message is not registered, or the wrong message is
-// registered TEST(SendSamplesTest, MasterAndWorker) {
-//  if (fork() > 0) {
-//    ExecMaster();
-//  } else {
-//    ExecWorker();
-//  }
-//}
+// registered
+TEST(SendSamplesTest, MasterAndWorker) {
+ if (fork() > 0) {
+   ExecMaster();
+ } else {
+   ExecWorker();
+ }
+}
 
-TEST(SendSamplesTest, Master) { ExecMaster(); }
+// TEST(SendSamplesTest, Master) { ExecMaster(); }
 
-TEST(SendSamplesTest, Worker) { ExecWorker(); }
+// TEST(SendSamplesTest, Worker) { ExecWorker(); }
 
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

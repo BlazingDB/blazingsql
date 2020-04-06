@@ -3,7 +3,6 @@
 
 #include <vector>
 
-#include "gdf_wrapper/gdf_wrapper.cuh"
 #include <GDFColumn.cuh>
 
 namespace gdf {
@@ -65,14 +64,14 @@ std::vector<typename DType<U>::value_type> HostVectorFrom(const gdf_column_cpp &
 	return vector;
 }
 
-std::vector<gdf_valid_type> HostValidFrom(const gdf_column_cpp & column_cpp) {
+std::vector<cudf::valid_type> HostValidFrom(const gdf_column_cpp & column_cpp) {
 	auto column = const_cast<gdf_column_cpp &>(column_cpp);
 	std::size_t size = column.get_valid_size();
 
-	std::vector<gdf_valid_type> vector;
+	std::vector<cudf::valid_type> vector;
 	vector.resize(size);
 
-	cudaMemcpy(vector.data(), column.valid(), size * sizeof(gdf_valid_type), cudaMemcpyDeviceToHost);
+	cudaMemcpy(vector.data(), column.valid(), size * sizeof(cudf::valid_type), cudaMemcpyDeviceToHost);
 
 	return vector;
 }

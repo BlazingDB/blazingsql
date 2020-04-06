@@ -18,7 +18,7 @@ if [ -z "$MY_UPLOAD_KEY" ]; then
 fi
 
 if [ "$UPLOAD_BLAZING" == "1" ]; then
-    LABEL_OPTION="--label main --label cuda"$CUDA_VER
+    LABEL_OPTION="--label main --label cuda"$CUDA
     echo "LABEL_OPTION=${LABEL_OPTION}"
 
     test -e ${BLAZINGSQL_FILE}

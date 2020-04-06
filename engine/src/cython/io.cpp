@@ -1,14 +1,15 @@
 #include "../../include/io/io.h"
 #include "../io/DataLoader.h"
 #include "../io/Schema.h"
-#include "../io/Metadata.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/JSONParser.h"
 #include "../io/data_parser/OrcParser.h"
 #include "../io/data_parser/ParquetParser.h"
-#include "../io/data_parser/ParserUtil.h"
 #include "../io/data_provider/UriDataProvider.h"
+
+#include "utilities/CommonOperations.h"
+#include "utilities/DebuggingUtils.h"
 
 #include <blazingdb/io/Config/BlazingContext.h>
 #include <blazingdb/io/FileSystem/FileSystemConnection.h>
@@ -25,7 +26,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
 	std::vector<std::string> arg_values,
-	std::vector<std::pair<std::string, gdf_dtype>> extra_columns) {
+	std::vector<std::pair<std::string, cudf::type_id>> extra_columns) {
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
 	ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
@@ -64,87 +65,60 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::vector<size_t> column_indices(schema.get_num_columns());
 	std::iota(column_indices.begin(), column_indices.end(), 0);
 
-	auto columns_cpp =
-		ral::io::create_empty_columns(schema.get_names(), schema.get_dtypes(), schema.get_time_units(), column_indices);
-
-	for(auto column_cpp : columns_cpp) {
-		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-		tableSchema.columns.push_back(column_cpp.get_gdf_column());
-		tableSchema.names.push_back(column_cpp.name());
-	}
+	tableSchema.types = schema.get_dtypes();
+	tableSchema.names = schema.get_names();
 	tableSchema.files = schema.get_files();
-	tableSchema.num_row_groups = schema.get_num_row_groups();
 	tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
 	tableSchema.in_file = schema.get_in_file();
 
 	return tableSchema;
 }
 
-
-TableSchema parseMetadata(std::vector<std::string> files,
+std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	std::pair<int, int> offset,
 	TableSchema schema,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
-	std::vector<std::string> arg_values,
-	std::vector<std::pair<std::string, gdf_dtype>> extra_columns) {
+	std::vector<std::string> arg_values) {
 	if (offset.second == 0) {
 		// cover case for empty files to parse
-		// std::cout << "empty offset: " << std::endl;
 		
-		std::vector<size_t> column_indices(2 * schema.columns.size() + 2);
+		std::vector<size_t> column_indices(2 * schema.types.size() + 2);
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 
-		std::vector<std::string> names(2 * schema.columns.size() + 2);
-		std::vector<gdf_dtype> dtypes(2 * schema.columns.size() + 2);
-		std::vector<gdf_time_unit> time_units(2 * schema.columns.size() + 2);
+		std::vector<std::string> names(2 * schema.types.size() + 2);
+		std::vector<cudf::type_id> dtypes(2 * schema.types.size() + 2);
 
 		size_t index = 0;
-		for(; index < schema.columns.size(); index++) {
-			auto col = schema.columns[index];
-			auto dtype = col->dtype;
-			if (dtype == GDF_CATEGORY || dtype == GDF_STRING || dtype == GDF_STRING_CATEGORY)
-				dtype = GDF_INT32;
+		for(; index < schema.types.size(); index++) {
+			cudf::type_id dtype = schema.types[index];
+			if (dtype == cudf::type_id::STRING)
+				dtype = cudf::type_id::INT32;
 
 			dtypes[2*index] = dtype;
 			dtypes[2*index + 1] = dtype;
 			
-			time_units[2*index] = col->dtype_info.time_unit;
-			time_units[2*index + 1] = col->dtype_info.time_unit;
-
 			auto col_name_min = "min_" + std::to_string(index) + "_" + schema.names[index];
 			auto col_name_max = "max_" + std::to_string(index)  + "_" + schema.names[index];
 
 			names[2*index] = col_name_min;
 			names[2*index + 1] = col_name_max;
 		}
-		dtypes[2*index] = GDF_INT32;
-		time_units[2*index] = TIME_UNIT_NONE;
+		dtypes[2*index] = cudf::type_id::INT32;
 		names[2*index] = "file_handle_index";
 
-		dtypes[2*index + 1] = GDF_INT32;
-		time_units[2*index + 1] = TIME_UNIT_NONE;
+		dtypes[2*index + 1] = cudf::type_id::INT32;
 		names[2*index + 1] = "row_group_index";
-				
-		auto columns_cpp = ral::io::create_empty_columns(names, dtypes, time_units, column_indices);
-		TableSchema tableSchema;
-
-		for(auto column_cpp : columns_cpp) {
-			GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-			tableSchema.columns.push_back(column_cpp.get_gdf_column());
-			tableSchema.names.push_back(column_cpp.name());
-		}
-		//TODO, @alex init tableShema with valid None Values
-		return tableSchema;
+		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
+		result->names = names;
+		auto table = ral::utilities::experimental::create_empty_table(dtypes);
+		result->cudfTable = std::move(table);
+		result->skipdata_analysis_fail = false;
+		return result;
 	}
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
 	ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
-	TableSchema tableSchema;
-	tableSchema.data_type = fileType;
-	tableSchema.args.orcReaderArg = args.orcReaderArg;
-	tableSchema.args.jsonReaderArg = args.jsonReaderArg;
-	tableSchema.args.csvReaderArg = args.csvReaderArg;
 
 	std::shared_ptr<ral::io::data_parser> parser;
 	if(fileType == ral::io::DataType::PARQUET) {
@@ -162,32 +136,18 @@ TableSchema parseMetadata(std::vector<std::string> files,
 	}
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
-
-	ral::io::Metadata metadata({}, offset);
-
-	try {
-		// loader->get_schema(schema, extra_columns);
-
-		 loader->get_metadata(metadata, extra_columns);
-
-	} catch(std::exception & e) {
-		std::cerr << "**[parseMetadata]** error parsing metadata.\n";
-		return tableSchema;
+	try{
+		std::unique_ptr<ral::frame::BlazingTable> metadata = loader->get_metadata(offset.first);
+		// ral::utilities::print_blazing_table_view(metadata->toBlazingTableView());
+		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
+		result->names = metadata->names();
+		result->cudfTable = metadata->releaseCudfTable();
+		result->skipdata_analysis_fail = false;
+		return result;
+	} catch(std::exception e) {
+		std::cerr << e.what() << std::endl;
+		throw e;
 	}
-
-	auto gdf_columns = metadata.get_columns();
- 
-	for(auto column_cpp : gdf_columns) {
-		GDFRefCounter::getInstance()->deregister_column(column_cpp.get_gdf_column());
-		tableSchema.columns.push_back(column_cpp.get_gdf_column());
-		tableSchema.names.push_back(column_cpp.name());
-	}
-	//TODO: Alexander
-	// tableSchema.files = schema.get_files();
-	// tableSchema.num_row_groups = schema.get_num_row_groups();
-	// tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
-	// tableSchema.in_file = schema.get_in_file();
-	return tableSchema;
 }
 
 

@@ -1,20 +1,32 @@
 #pragma once
-#include "parser/expression_utils.hpp"
+
 #include <algorithm>
 #include <blazingdb/io/Util/StringUtil.h>
-#include <cstring>
 #include <iostream>
 #include <sstream>
-#include <stack>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 #include <vector>
+
+#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace parser {
 
-enum parse_node_type { OPERATOR, OPERAND };
+enum class parse_node_type { OPERATOR, OPERAND };
+
+struct parse_node;
+struct operad_node;
+struct operator_node;
+
+struct parse_node_visitor {
+	virtual void visit(const operad_node& node) = 0;
+	virtual void visit(const operator_node& node) = 0;
+};
+
+struct parse_node_transformer {
+	virtual parse_node * transform(const operad_node& node) = 0;
+	virtual parse_node * transform(const operator_node& node) = 0;
+};
 
 struct parse_node {
 	parse_node_type type;
@@ -23,17 +35,40 @@ struct parse_node {
 
 	parse_node(parse_node_type type, const std::string & value) : type{type}, value{value} {};
 
+	virtual void accept(parse_node_visitor&) = 0;
+	virtual parse_node * accept(parse_node_transformer&) = 0;
+
 	virtual parse_node * transform_to_custom_op() = 0;
 };
 
 struct operad_node : parse_node {
-	operad_node(const std::string & value) : parse_node{OPERAND, value} {};
+	operad_node(const std::string & value) : parse_node{parse_node_type::OPERAND, value} {};
 
+	void accept(parse_node_visitor& visitor) override {	visitor.visit(*this); }
+	parse_node * accept(parse_node_transformer& transformer) override { return transformer.transform(*this); }
+	
 	parse_node * transform_to_custom_op() override { return this; }
 };
 
 struct operator_node : parse_node {
-	operator_node(const std::string & value) : parse_node{OPERATOR, value} {};
+	operator_node(const std::string & value) : parse_node{parse_node_type::OPERATOR, value} {};
+
+	void accept(parse_node_visitor& visitor) override {
+		for(auto && c : this->children) {
+			c->accept(visitor);
+		}
+		visitor.visit(*this);
+	}
+
+	parse_node * accept(parse_node_transformer& transformer) override {
+		for(auto && c : this->children) {
+			parse_node * transformed_node = c->accept(transformer);
+			if(transformed_node != c.get()) {
+				c.reset(transformed_node);
+			}			
+		}
+		return transformer.transform(*this);
+	}
 
 	parse_node * transform_to_custom_op() override {
 		for(auto && c : this->children) {
@@ -51,6 +86,8 @@ struct operator_node : parse_node {
 			return transform_substring();
 		} else if(this->value == "Reinterpret") {
 			return remove_reinterpret();
+		} else if(this->value == "ROUND") {
+			return transform_round();
 		}
 
 		return this;
@@ -114,7 +151,69 @@ private:
 
 		return this->children[0].release();
 	}
+
+	parse_node * transform_round() {
+		assert(this->children.size() == 1 || this->children.size() == 2);
+
+		if (this->children.size() == 1) {
+			parse_node * second_arg = new operad_node{"0"};
+			this->children.push_back(std::unique_ptr<parse_node>(second_arg));
+		}
+
+		return this;
+	}
 };
+
+namespace detail {
+	inline void print_helper(const parse_node * node, size_t depth) {
+		if(!node)
+			return;
+
+		for(size_t i = 0; i < depth; ++i) {
+			std::cout << "    ";
+		}
+
+		std::cout << node->value << "\n";
+
+		for(auto && c : node->children) {
+			print_helper(c.get(), depth + 1);
+		}
+	}
+
+	inline std::string rebuild_helper(const parse_node * node) {
+		if(!node)
+			return "";
+
+		if(node->type == parse_node_type::OPERATOR) {
+			std::string operands = "";
+			for(auto && c : node->children) {
+				std::string sep = operands.empty() ? "" : ", ";
+				operands += sep + rebuild_helper(c.get());
+			}
+
+			return node->value + "(" + operands + ")";
+		}
+
+		return node->value;
+	}
+
+	inline std::string tokenizer_helper(const parse_node * node) {
+		if(!node)
+			return "";
+
+		if(node->type == parse_node_type::OPERATOR) {
+			std::string operands = "";
+			for(auto && c : node->children) {
+				std::string sep = operands.empty() ? "" : "@#@";
+				operands += sep + tokenizer_helper(c.get());
+			}
+
+			return node->value + "@#@" + operands;
+		}
+
+		return node->value;
+	}
+}
 
 struct parse_tree {
 	std::unique_ptr<parse_node> root;
@@ -183,40 +282,8 @@ private:
 		return pos;
 	}
 
-	void print_helper(parse_node * node, size_t depth) {
-		if(!node)
-			return;
-
-		for(size_t i = 0; i < depth; ++i) {
-			std::cout << "    ";
-		}
-
-		std::cout << node->value << "\n";
-
-		for(auto && c : node->children) {
-			print_helper(c.get(), depth + 1);
-		}
-	}
-
-	std::string rebuild_helper(parse_node * node) {
-		if(!node)
-			return "";
-
-		if(node->type == OPERATOR) {
-			std::string operands = "";
-			for(auto && c : node->children) {
-				std::string sep = operands.empty() ? "" : ", ";
-				operands += sep + rebuild_helper(c.get());
-			}
-
-			return node->value + "(" + operands + ")";
-		}
-
-		return node->value;
-	}
-
 public:
-	parse_tree(){};
+	parse_tree() = default;
 
 	void build(const std::string & expression) {
 		build_helper(nullptr, expression, 0);
@@ -225,7 +292,20 @@ public:
 
 	void print() {
 		assert(!!this->root);
-		print_helper(this->root.get(), 0);
+		detail::print_helper(this->root.get(), 0);
+	}
+
+	void visit(parse_node_visitor& visitor) {
+		assert(!!this->root);
+		this->root->accept(visitor);
+	}
+
+	void transform(parse_node_transformer& transformer) {
+		assert(!!this->root);
+		parse_node * transformed_root = this->root->accept(transformer);
+		if(transformed_root != this->root.get()) {
+			this->root.reset(transformed_root);
+		}
 	}
 
 	void transform_to_custom_op() {
@@ -238,7 +318,7 @@ public:
 
 	void split_inequality_join_into_join_and_filter(std::string & join_out, std::string & filter_out) {
 		assert(!!this->root);
-		assert(this->root.get()->type == OPERATOR);
+		assert(this->root.get()->type == parse_node_type::OPERATOR);
 
 		if(this->root.get()->value == "=") {
 			// this would be a regular single equality join
@@ -262,21 +342,21 @@ public:
 					if(this->root.get()->children.size() == 2) {
 						for(auto && c : this->root.get()->children) {
 							if(c.get()->value == "=") {
-								join_out = rebuild_helper(c.get());
+								join_out = detail::rebuild_helper(c.get());
 							} else {
-								filter_out = rebuild_helper(c.get());
+								filter_out = detail::rebuild_helper(c.get());
 							}
 						}
 					} else {
 						parse_node * filter_root = new operator_node{"AND"};
 						for(auto && c : this->root.get()->children) {
 							if(c.get()->value == "=") {
-								join_out = rebuild_helper(c.get());
+								join_out = detail::rebuild_helper(c.get());
 							} else {
 								filter_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
 							}
 						}
-						filter_out = rebuild_helper(filter_root);
+						filter_out = detail::rebuild_helper(filter_root);
 					}
 				} else if(num_equalities == this->root.get()->children.size() -
 												1) {  // only one that does not have an inequality and therefore will be
@@ -286,10 +366,10 @@ public:
 						if(c.get()->value == "=") {
 							join_out_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
 						} else {
-							filter_out = rebuild_helper(c.get());
+							filter_out = detail::rebuild_helper(c.get());
 						}
 					}
-					join_out = rebuild_helper(join_out_root);
+					join_out = detail::rebuild_helper(join_out_root);
 				} else {
 					parse_node * join_out_root = new operator_node{"AND"};
 					parse_node * filter_root = new operator_node{"AND"};
@@ -300,8 +380,8 @@ public:
 							filter_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
 						}
 					}
-					join_out = rebuild_helper(join_out_root);
-					filter_out = rebuild_helper(filter_root);
+					join_out = detail::rebuild_helper(join_out_root);
+					filter_out = detail::rebuild_helper(filter_root);
 				}
 			} else {  // this is not supported. Throw error
 				std::string original_join_condition = this->rebuildExpression();
@@ -317,7 +397,12 @@ public:
 
 	std::string rebuildExpression() {
 		assert(!!this->root);
-		return rebuild_helper(this->root.get());
+		return detail::rebuild_helper(this->root.get());
+	}
+
+	std::string buildTokenizableString() {
+		assert(!!this->root);
+		return detail::tokenizer_helper(this->root.get());		
 	}
 };
 

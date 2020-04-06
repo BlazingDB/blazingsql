@@ -52,7 +52,7 @@ Too see all the ways you can get started with BlazingSQL checkout out our [Getti
 # Install Using Conda
 BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.html), or the full [Anaconda distribution](https://www.anaconda.com/download)) from the [blazingsql](https://anaconda.org/blazingsql/) channel:
 
-Note: BlazingSQL is supported only on Linux, and with Python version 3.7.
+Note: BlazingSQL is supported only on Linux, and with Python version 3.6 and 3.7.
 
 ## Stable Version 
 *For CUDA 9.2 and Python 3.7:*

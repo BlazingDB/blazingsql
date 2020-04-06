@@ -7,6 +7,7 @@
 
 namespace ral {
 namespace communication {
+namespace experimental {
 
 class CommunicationData {
 public:
@@ -19,9 +20,7 @@ public:
 		int16_t selfRalCommunicationPort,
 		int16_t selfRalProtocolPort);
 
-	const blazingdb::transport::Node & getSelfNode();
-
-	std::shared_ptr<blazingdb::transport::Node> getSharedSelfNode();
+	const blazingdb::transport::experimental::Node & getSelfNode();
 
 	std::string getOrchestratorIp();
 	int16_t getOrchestratorPort();
@@ -36,9 +35,10 @@ private:
 
 	std::string orchestratorIp;
 	int16_t orchestratorPort;
-	std::shared_ptr<blazingdb::transport::Node> selfNode;
+	blazingdb::transport::experimental::Node selfNode;
 };
 
+}  // namespace experimental
 }  // namespace communication
 }  // namespace ral
 

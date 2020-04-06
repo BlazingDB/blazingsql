@@ -13,16 +13,19 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 ###################################################################################################
 # - conda environment -----------------------------------------------------------------------------
-
+set(BSQL_BLD_PREFIX "")
 if ("$ENV{CONDA_BUILD}" STREQUAL "1")
     set(CMAKE_SYSTEM_PREFIX_PATH "$ENV{BUILD_PREFIX};$ENV{PREFIX};${CMAKE_SYSTEM_PREFIX_PATH}")
     message(STATUS "Conda build detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
+    set(BSQL_BLD_PREFIX "$ENV{BUILD_PREFIX}")
 elseif (DEFINED ENV{CONDA_PREFIX})
     set(CMAKE_SYSTEM_PREFIX_PATH "$ENV{CONDA_PREFIX};${CMAKE_SYSTEM_PREFIX_PATH}")
     message(STATUS "Conda environment detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
+    set(BSQL_BLD_PREFIX "$ENV{CONDA_PREFIX}")
 endif ()
+message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 
-##########################################################################
+#########################################################################3
 # - compiler stuff ------------------
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -66,9 +69,9 @@ include_directories(
         ${RAPIDJSON_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/include
-        $ENV{CONDA_PREFIX}/include)
+        ${BSQL_BLD_PREFIX}/include)
 
-link_directories($ENV{CONDA_PREFIX}/lib)
+link_directories(${BSQL_BLD_PREFIX}/lib)
 
 function(blazingdb_artifact)
     set(OPTIONS OPTIONAL VIRTUAL)
@@ -116,8 +119,8 @@ function(blazingdb_artifact)
         add_executable(${ARG_TARGET}-gtest ${ARG_TESTS})
         target_include_directories(${ARG_TARGET} PUBLIC src
                 ${CMAKE_SOURCE_DIR}/include
-                $ENV{CONDA_PREFIX}/include
-                $ENV{CONDA_PREFIX}/include/cudf
+                ${BSQL_BLD_PREFIX}/include
+                ${BSQL_BLD_PREFIX}/include/cudf
                 )
         target_compile_options(${ARG_TARGET} PUBLIC -ggdb -O0)
         target_link_libraries(${ARG_TARGET}-gtest
@@ -184,51 +187,15 @@ blazingdb_artifact(
         src/blazingdb/transport/Node.cc
         src/blazingdb/transport/io/reader_writer.cpp
         src/blazingdb/transport/io/fd_reader_writer.cpp
-        src/blazingdb/manager/Manager.cc
         src/blazingdb/manager/Context.cc
-        src/blazingdb/manager/Cluster.cc
-        src/blazingdb/manager/NodeDataMessage.cc
 
     TESTS
+        # tests/utils/StringInfo.cpp
         tests/utils/Traits/RuntimeTraits.cpp
+        
         tests/gpu-tcp-server-client-test.cc
-)
-
-blazingdb_artifact(
-    TARGET
-        blazingdb-manager
-
-    INCLUDES PUBLIC
-        $ENV{PROJECT_SOURCE_DIR}/include
-        ${PROJECT_SOURCE_DIR}/include
-        /usr/local/cuda/include
-
-    LIBRARIES
-        Threads::Threads
-        zmq
-
-    PREFIX
-        blazingdb
-
-        PUBLIC_HEADERS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/
-
-    SOURCES
-        src/blazingdb/transport/Message.cc
-        src/blazingdb/transport/Address.cc
-        src/blazingdb/transport/Node.cc
-        src/blazingdb/manager/Manager.cc
-        src/blazingdb/manager/Context.cc
-        src/blazingdb/manager/Cluster.cc
-        src/blazingdb/manager/NodeDataMessage.cc
-        src/blazingdb/transport/io/fd_reader_writer.cpp
-
-
-    TESTS
         tests/node-test.cc
-        tests/manager-test.cc
 )
-
 
 # Print the project summary
  feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

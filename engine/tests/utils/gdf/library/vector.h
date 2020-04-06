@@ -19,7 +19,6 @@
 #define GDF_TESTS_BINARY_OPERATION_UTIL_VECTOR_H
 
 #include "field.h"
-#include "gdf_wrapper/gdf_wrapper.cuh"
 #include "types.h"
 
 namespace gdf {
@@ -155,7 +154,7 @@ private:
 		mColumn.data = (void *) mData.getGpuData();
 	}
 
-	void updateValid() { mColumn.valid = (gdf_valid_type *) mValid.getGpuData(); }
+	void updateValid() { mColumn.valid = (cudf::valid_type *) mValid.getGpuData(); }
 
 	void clearPaddingBits() {
 		int padding = mData.size() % ValidSize;

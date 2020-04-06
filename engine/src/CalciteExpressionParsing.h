@@ -10,44 +10,47 @@
 
 #include "cudf/legacy/binaryop.hpp"
 #include "cudf/types.h"
-#include "gdf_wrapper/gdf_wrapper.cuh"
 #include "parser/expression_utils.hpp"
 #include <string>
 #include <vector>
+#include <cudf/detail/aggregation/aggregation.hpp>
+#include <cudf/reduction.hpp>
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
+#include "operators/GroupBy.h"
 
-class blazing_frame;
-
-gdf_binary_operator_exp get_binary_operation(std::string operator_string);
-
-gdf_unary_operator get_unary_operation(std::string operator_string);
-
-size_t get_index(std::string operand_string);
+cudf::size_type get_index(const std::string & operand_string);
 
 // interprets the expression and if is n-ary and logical, then returns their corresponding binary version
 std::string expand_if_logical_op(std::string expression);
 
-std::string clean_calcite_expression(std::string expression);
+std::string replace_calcite_regex(const std::string & expression);
+
+std::string clean_calcite_expression(const std::string & expression);
 
 std::vector<std::string> get_tokens_in_reverse_order(const std::string & expression);
 
 // NOTE call this function after use get_tokens_in_reverse_order ... TODO refactos this approach
 void fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(
-	blazing_frame & inputs, std::vector<std::string> & tokens);
+	const cudf::table_view & inputs, std::vector<std::string> & tokens);
 
-gdf_agg_op get_aggregation_operation(std::string operator_string);
+std::string get_aggregation_operation_string(std::string operator_expression);
+
+AggregateKind get_aggregation_operation(std::string operator_string);
 
 std::string get_string_between_outer_parentheses(std::string operator_string);
 
-gdf_dtype infer_dtype_from_literal(const std::string & token);
+cudf::type_id infer_dtype_from_literal(const std::string & token);
 
-gdf_dtype get_output_type_expression(blazing_frame * input, gdf_dtype * max_temp_type, std::string expression);
+cudf::type_id get_output_type_expression(const cudf::table_view & table, std::string expression);
 
-gdf_dtype get_aggregation_output_type(gdf_dtype input_type, gdf_agg_op aggregation, bool have_groupby);
+cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKind aggregation, bool have_groupby);
 
-gdf_dtype get_type_from_string(std::string scalar_string);
-gdf_scalar get_scalar_from_string(std::string scalar_string, gdf_dtype type, gdf_dtype_extra_info extra_info);
+cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::string & aggregation);
 
-std::string aggregator_to_string(gdf_agg_op operation);
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string);
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, const cudf::type_id & type_id);
+
+std::string aggregator_to_string(AggregateKind operation);
 
 // takes an expression and given a starting index pointing at either ( or [, it finds the corresponding closing char )
 // or ]
@@ -57,28 +60,20 @@ int find_closing_char(const std::string & expression, int start);
 // if the flag trim is true, leading and trailing spaces are removed
 std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expressions, bool trim = true);
 
-bool is_type_signed(gdf_dtype type);
-
-bool is_type_float(gdf_dtype type);
-bool is_type_integer(gdf_dtype type);
-bool is_date_type(gdf_dtype type);
-gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_dtype input_right_type, gdf_binary_operator_exp operation);
-gdf_dtype get_output_type(gdf_dtype input_left_type, gdf_unary_operator operation);
+bool is_type_signed(cudf::type_id type);
+bool is_type_float(cudf::type_id type);
+bool is_type_integer(cudf::type_id type);
+bool is_date_type(cudf::type_id type);
+bool is_numeric_type(cudf::type_id type);
 
 // this function takes two data types and returns the a common data type that the both can be losslessly be converted to
-// the function returns true if a common type is possible, or false if there is no common type
+// the function returns cudf::type_id::EMPTY if there is no common type
 // this function assumes that common types are decimal, float, datetime and string. You cannot convert across these
 // general types.
-void get_common_type(gdf_dtype type1,
-	gdf_dtype_extra_info info1,
-	gdf_dtype type2,
-	gdf_dtype_extra_info info2,
-	gdf_dtype & type_out,
-	gdf_dtype_extra_info & info_out);
-
-std::string get_named_expression(std::string query_part, std::string expression_name);
-std::string get_filter_expression(std::string query_part);
+cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2);
 
 bool contains_evaluation(std::string expression);
+
+int count_string_occurrence(std::string haystack, std::string needle);
 
 #endif /* CALCITEEXPRESSIONPARSING_H_ */

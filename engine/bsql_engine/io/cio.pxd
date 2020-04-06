@@ -9,7 +9,11 @@ from libcpp.memory cimport shared_ptr
 
 from libcpp cimport bool
 from pyarrow.lib cimport *
+from cudf._libxx.cpp cimport *
 
+from cudf import DataFrame
+
+from cudf._libxx.table cimport table
 
 from libc.stdint cimport (  # noqa: E211
     uint8_t,
@@ -21,6 +25,7 @@ from libc.stdint cimport (  # noqa: E211
     uintptr_t
 )
 
+
 cdef extern from "../include/engine/errors.h":
     cdef void raiseInitializeError()
     cdef void raiseFinalizeError()
@@ -31,9 +36,19 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseRegisterFileSystemS3Error();
     cdef void raiseRegisterFileSystemLocalError();
 
-cdef extern from "cudf/types.hpp" namespace "cudf" nogil:
 
-    ctypedef int32_t       size_type
+from cudf._libxx.cpp.column cimport *
+from cudf._libxx.cpp.column.column_view cimport *
+from cudf._libxx.cpp.types cimport *
+from cudf._libxx.cpp.table cimport *
+from cudf._libxx.cpp.table.table_view cimport *
+
+ctypedef column_view CudfColumnView
+ctypedef table_view CudfTableView
+ctypedef table CudfTable
+
+
+cdef extern from "cudf/types.hpp" namespace "cudf" nogil:
     ctypedef uint8_t       valid_type
 
 cdef extern from "cudf/cudf.h" nogil:
@@ -187,8 +202,14 @@ cdef extern from "cudf/legacy/io_types.hpp":
         bool use_np_dtypes
         gdf_time_unit timestamp_unit
 
+ctypedef gdf_scalar* gdf_scalar_ptr
 
 cdef extern from "../include/io/io.h":
+    cdef struct ResultSet:
+        unique_ptr[table] cudfTable
+        vector[string]  names
+        bool skipdata_analysis_fail
+    
     ctypedef enum DataType:
         UNDEFINED = 999,
         PARQUET = 0,
@@ -203,19 +224,17 @@ cdef extern from "../include/io/io.h":
         json_read_arg jsonReaderArg
         csv_read_arg csvReaderArg
     cdef struct TableSchema:
-        vector[gdf_column_ptr] columns
+        BlazingTableView blazingTableView
+        vector[type_id] types
         vector[string]  names
         vector[string]  files
         vector[string] datasource
         vector[unsigned long] calcite_to_file_indices
-        vector[unsigned long] num_row_groups
         vector[bool] in_file
         int data_type
         ReaderArgs args
-        vector[gdf_column_ptr] metadata
+        BlazingTableView metadata
         vector[vector[int]] row_groups_ids
-
-
         shared_ptr[CTable] arrow_table
     cdef struct HDFS:
         string host
@@ -239,23 +258,42 @@ cdef extern from "../include/io/io.h":
     pair[bool, string] registerFileSystemGCS( GCS gcs, string root, string authority) except +raiseRegisterFileSystemGCSError
     pair[bool, string] registerFileSystemS3( S3 s3, string root, string authority) except +raiseRegisterFileSystemS3Error
     pair[bool, string] registerFileSystemLocal(  string root, string authority) except +raiseRegisterFileSystemLocalError
-    TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
-    TableSchema parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,gdf_dtype]] types) except +raiseParseSchemaError
+    TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,type_id]] types) except +raiseParseSchemaError
+    unique_ptr[ResultSet] parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) except +raiseParseSchemaError
 
-ctypedef gdf_scalar* gdf_scalar_ptr
+cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
+        cdef cppclass BlazingTable:
+            size_type num_columns
+            size_type num_rows
+            CudfTableView view()
+            vector[string] names()
 
+        cdef cppclass BlazingTableView:
+            BlazingTableView()
+            BlazingTableView(CudfTableView, vector[string]) except +
+            CudfTableView view()
+            vector[string] names()
+
+# REMARK: We have some compilation errors from cython assigning temp = unique_ptr[ResultSet]
+# We force the move using this function
+cdef extern from * namespace "blazing":
+        """
+        namespace blazing {
+        template <class T> inline typename std::remove_reference<T>::type&& blaz_move(T& t) { return std::move(t); }
+        template <class T> inline typename std::remove_reference<T>::type&& blaz_move(T&& t) { return std::move(t); }
+        }
+        """
+        cdef T blaz_move[T](T)
 
 cdef extern from "../include/engine/engine.h":
-        cdef struct ResultSet:
-            vector[gdf_column_ptr] columns
-            vector[string]  names
-            bool error_reported
+
+        unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raiseRunQueryError
 
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
-        ResultSet runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError
-        ResultSet runSkipData(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,gdf_scalar]]] uri_values_cpp,vector[vector[map[string,string]]] string_values_cpp,vector[vector[map[string,bool]]] is_column_string) except +raiseRunQueryError 
+        unique_ptr[ResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, bool use_execution_graph) except +raiseRunQueryError
+        unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunQueryError
 
         cdef struct TableScanInfo:
             vector[string] relational_algebra_steps

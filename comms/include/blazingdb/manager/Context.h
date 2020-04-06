@@ -1,14 +1,14 @@
 #pragma once
 
 #include <vector>
-
-#include <vector>
+#include <mutex>
 #include "blazingdb/transport/Node.h"
 
 namespace blazingdb {
 namespace manager {
+namespace experimental {
 
-using Node = blazingdb::transport::Node;
+using Node = blazingdb::transport::experimental::Node;
 
 /// \brief This is the main component of the transport library
 ///
@@ -16,18 +16,23 @@ using Node = blazingdb::transport::Node;
 class Context {
 public:
   explicit Context(const uint32_t token,
-                   const std::vector<std::shared_ptr<Node>>& taskNodes,
-                   const std::shared_ptr<Node>& masterNode,
+                   const std::vector<Node>& taskNodes,
+                   const Node& masterNode,
                    const std::string& logicalPlan);
+
+      // TODO Cristhian Gonzalez no copies allowed
+  std::shared_ptr<Context> clone();
 
   int getTotalNodes() const;
 
-  std::vector<std::shared_ptr<Node>> getAllNodes() const;
+  std::vector<Node> getAllNodes() const;
 
-  std::vector<std::shared_ptr<Node>> getAllOtherNodes(int selfNodeIndex) const;
+  std::vector<Node> getAllOtherNodes(int selfNodeIndex) const;
 
   /// RAL instances that will run the query
-  std::vector<std::shared_ptr<Node>> getWorkerNodes() const;
+  std::vector<Node> getWorkerNodes() const;
+
+  Node getNode(int node_index) const;
 
   /// A single unique RAL instance that helps to the messages transmition and
   /// processesing between worker RAL's e.g.: see SampleToNodeMasterMessage
@@ -37,7 +42,7 @@ public:
   std::string getLogicalPlan() const;
 
   uint32_t getContextToken() const;
-  uint32_t getContextCommunicationToken() const;
+  std::string getContextCommunicationToken() const;
 
   void incrementQueryStep();
   void incrementQuerySubstep();
@@ -48,14 +53,24 @@ public:
   int getNodeIndex(const Node& node) const;
   bool isMasterNode(const Node& node) const;
 
+  void setKernelId(uint32_t kernel_id) {
+    this->kernel_id_ = kernel_id;
+  }
+  uint32_t getKernelId() const {
+    return this->kernel_id_;
+  }
+
 private:
   const uint32_t token_;
   uint32_t query_step;
   uint32_t query_substep;
-  const std::vector<std::shared_ptr<Node>> taskNodes_;
-  const std::shared_ptr<Node> masterNode_;
+  const std::vector<Node> taskNodes_;
+  const Node masterNode_;
   const std::string logicalPlan_;
+  uint32_t kernel_id_;
+  std::mutex increment_step_mutex;
 };
 
+}  // namespace experimental
 }  // namespace manager
 }  // namespace blazingdb

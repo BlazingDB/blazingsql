@@ -7,34 +7,30 @@
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
-
-#include "../../include/io/io.h"
-#include "GDFColumn.cuh"
 #include "cudf.h"
+
+#include <cudf/io/functions.hpp>
+
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
 
 namespace ral {
 namespace io {
 
 class gdf_parser : public data_parser {
 public:
-	gdf_parser(TableSchema tableSchemas);
+	gdf_parser(frame::BlazingTableView blazingTableView);
 
 	virtual ~gdf_parser();
 
-
-	void parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
+	std::unique_ptr<ral::frame::BlazingTable> parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const std::string & user_readable_file_handle,
-		std::vector<gdf_column_cpp> & columns_out,
 		const Schema & schema,
-		std::vector<size_t> column_indices_requested);
-
+		std::vector<std::size_t> column_indices);
 
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema);
 
-	;
-
 private:
-	TableSchema tableSchema;
+	frame::BlazingTableView blazingTableView_;
 };
 
 } /* namespace io */

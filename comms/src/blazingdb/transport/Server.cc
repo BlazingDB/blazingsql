@@ -16,9 +16,12 @@
 #include <vector>
 #include "blazingdb/network/TCPSocket.h"
 #include "blazingdb/transport/MessageQueue.h"
+#include <rmm/device_buffer.hpp>
 
 namespace blazingdb {
 namespace transport {
+
+namespace experimental {
 
 void Server::registerEndPoint(const std::string &end_point) {
   end_points_.emplace_back(end_point);
@@ -44,15 +47,14 @@ void Server::deregisterContext(const uint32_t context_token) {
   }
 }
 
-std::shared_ptr<GPUMessage> Server::getMessage(
+std::shared_ptr<GPUReceivedMessage> Server::getMessage(
     const uint32_t context_token, const std::string &messageToken) {
-  std::shared_lock<std::shared_timed_mutex> lock(context_messages_mutex_);
   MessageQueue &message_queue = context_messages_map_.at(context_token);
-  return message_queue.getMessage(messageToken);
+  return  message_queue.getMessage(messageToken);
 }
 
 void Server::putMessage(const uint32_t context_token,
-                        std::shared_ptr<GPUMessage> &message) {
+                        std::shared_ptr<GPUReceivedMessage> &message) {
   std::shared_lock<std::shared_timed_mutex> lock(context_messages_mutex_);
   if (context_messages_map_.find(context_token) ==
       context_messages_map_.end()) {
@@ -134,9 +136,8 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
     blazingdb::transport::io::readFromSocket(
         socket, (char *)buffer_sizes.data(), buffer_sizes_size * sizeof(int));
 
-    std::vector<char *> raw_columns;
-    raw_columns = blazingdb::transport::io::readBuffersIntoGPUTCP(
-        buffer_sizes, socket, gpuId);
+    std::vector<rmm::device_buffer> raw_columns;
+    blazingdb::transport::experimental::io::readBuffersIntoGPUTCP(buffer_sizes, socket, gpuId, raw_columns);
     zmq::socket_t *socket_ptr = (zmq::socket_t *)socket;
 
     int data_past_topic{0};
@@ -163,14 +164,16 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
     std::string messageToken = message_metadata.messageToken;
     auto deserialize_function = server->getDeserializationFunction(
         messageToken.substr(0, messageToken.find('_')));
-    std::shared_ptr<GPUMessage> message = deserialize_function(
-        message_metadata, address_metadata, column_offsets, raw_columns);
+    std::shared_ptr<GPUReceivedMessage> message = deserialize_function(message_metadata, address_metadata, column_offsets, raw_columns);
     assert(message != nullptr);
     server->putMessage(message->metadata().contextToken, message);
 
     // TODO: write success
-  } catch (const std::exception &exception) {
-    // std::cerr << "[ERROR] " << exception.what() << std::endl;
+  } catch (const zmq::error_t &e) {
+    // TODO: write failure
+  }
+  catch (const std::runtime_error &exception) {
+    std::cerr << "[ERROR] " << exception.what() << std::endl;
     // TODO: write failure
   }
 }
@@ -191,5 +194,6 @@ std::unique_ptr<Server> Server::TCP(unsigned short port) {
   return std::unique_ptr<Server>(new ServerTCP(port));
 }
 
+}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

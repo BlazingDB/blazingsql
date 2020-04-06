@@ -8,10 +8,11 @@
 #include <memory>
 #include "arrow/io/interfaces.h"
 
-#include "GDFColumn.cuh"
 #include "cudf.h"
-#include "../../include/io/io.h"
+#include "io/io.h"
 #include <arrow/table.h>
+
+#include <cudf/io/functions.hpp>
 
 namespace ral {
 namespace io {
@@ -21,23 +22,18 @@ public:
 	arrow_parser( std::shared_ptr< arrow::Table > table);
 
 	virtual ~arrow_parser();
-
-
-	void parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-			const std::string & user_readable_file_handle,
-			std::vector<gdf_column_cpp> & columns_out,
-			const Schema & schema,
-			std::vector<size_t> column_indices_requested);
-
+	
+	std::unique_ptr<ral::frame::BlazingTable> parse(
+		std::shared_ptr<arrow::io::RandomAccessFile> file,
+		const std::string & user_readable_file_handle,
+		const Schema & schema,
+		std::vector<size_t> column_indices);
 
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile> > files,
 			ral::io::Schema & schema);
 
-;
-
 private:
 	std::shared_ptr< arrow::Table > table;
-
 };
 
 } /* namespace io */

@@ -8,8 +8,6 @@
 #pragma once
 
 #include <FileSystem/Uri.h>
-#include "Metadata.h"
-#include "GDFColumn.cuh"
 #include "data_parser/DataParser.h"
 #include "data_provider/DataProvider.h"
 #include <arrow/io/interfaces.h>
@@ -17,15 +15,14 @@
 #include <vector>
 
 #include <memory>
-#include <nvstrings/NVCategory.h>
-#include <nvstrings/NVStrings.h>
-#include <nvstrings/ipc_transfer.h>
+
 
 namespace ral {
+
 namespace io {
 
 namespace {
-using blazingdb::manager::Context;
+using blazingdb::manager::experimental::Context;
 }  // namespace
 
 /**
@@ -36,25 +33,23 @@ using blazingdb::manager::Context;
 class data_loader {
 public:
 	data_loader(std::shared_ptr<data_parser> parser, std::shared_ptr<data_provider> provider);
-	data_loader() : provider(nullptr), parser(nullptr) {}
+	data_loader(const data_loader& ) = default;
+	std::shared_ptr<data_loader> clone();
+
 	virtual ~data_loader();
 
 	/**
-	 * loads data into a vector of gdf_column_cpp
-	 * @param columns a vector to receive our output should be of size 0 when it is coming in and it will be allocated
-	 * by this function
-	 * @param include_column the different files we can read from can have more columns than we actual want to read,
-	 * this lest us filter some of them out
+	 * returns data into a std::unique_ptr<ral::frame::BlazingTable>
 	 */
-
-	void load_data(const Context & context,
-		std::vector<gdf_column_cpp> & columns,
+	std::unique_ptr<ral::frame::BlazingTable>  load_data(
+		Context * context,
 		const std::vector<size_t> & column_indices,
-		const Schema & schema);
+		const Schema & schema,
+	  std::string filterQuery);
 
-	void get_schema(Schema & schema, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
+	void get_schema(Schema & schema, std::vector<std::pair<std::string, cudf::type_id>> non_file_columns);
 
-	void get_metadata(Metadata & metadata, std::vector<std::pair<std::string, gdf_dtype>> non_file_columns);
+	std::unique_ptr<ral::frame::BlazingTable> get_metadata(int offset);
 
 private:
 	/**
