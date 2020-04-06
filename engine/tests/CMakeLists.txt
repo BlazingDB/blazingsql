@@ -10,7 +10,6 @@ function(configure_test TEST_NAME Tests_SRCS)
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/tests/utils
         ${CMAKE_SOURCE_DIR}/thirdparty/jitify
-        ${CMAKE_SOURCE_DIR}/src/gdf_wrapper
         $ENV{PREFIX}/include
     )
 

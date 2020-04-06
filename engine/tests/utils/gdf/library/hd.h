@@ -3,7 +3,6 @@
 
 #include <vector>
 
-#include "gdf_wrapper/gdf_wrapper.cuh"
 #include <GDFColumn.cuh>
 
 namespace gdf {

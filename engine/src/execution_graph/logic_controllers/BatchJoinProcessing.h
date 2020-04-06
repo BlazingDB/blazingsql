@@ -14,6 +14,7 @@
 #include "distribution/primitives.h"
 #include "Utils.cuh"
 
+#include <cudf/stream_compaction.hpp>
 #include <cudf/hashing.hpp>
 #include <cudf/join.hpp>
 
@@ -158,29 +159,48 @@ public:
 
     std::unique_ptr<ral::frame::BlazingTable> join_set(const ral::frame::BlazingTableView & table_left, const ral::frame::BlazingTableView & table_right){
 		  
-		  std::unique_ptr<CudfTable> result_table;
-		  std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
-		  if(this->join_type == INNER_JOIN) {
+		std::unique_ptr<CudfTable> result_table;
+		std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
+		if(this->join_type == INNER_JOIN) {
+			//Removing nulls on key columns before joining
+			std::unique_ptr<CudfTable> table_left_dropna;
+			std::unique_ptr<CudfTable> table_right_dropna;
+			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
+			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
+			if(has_nulls_left){
+				table_left_dropna = cudf::experimental::drop_nulls(table_left.view(), left_column_indices);
+			}
+			if(has_nulls_right){
+				table_right_dropna = cudf::experimental::drop_nulls(table_right.view(), right_column_indices);
+			}
+
 			result_table = cudf::experimental::inner_join(
-			table_left.view(),
-			table_right.view(),
-			this->left_column_indices,
-			this->right_column_indices,
-			columns_in_common);
+				has_nulls_left ? table_left_dropna->view() : table_left.view(),
+				has_nulls_right ? table_right_dropna->view() : table_right.view(),
+				this->left_column_indices,
+				this->right_column_indices,
+				columns_in_common);
 		} else if(this->join_type == LEFT_JOIN) {
+			//Removing nulls on right key columns before joining
+			std::unique_ptr<CudfTable> table_right_dropna;
+			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
+			if(has_nulls_right){
+				table_right_dropna = cudf::experimental::drop_nulls(table_right.view(), right_column_indices);
+			}
+			
 			result_table = cudf::experimental::left_join(
-			table_left.view(),
-			table_right.view(),
-			this->left_column_indices,
-			this->right_column_indices,
-			columns_in_common);
+				table_left.view(),
+				has_nulls_right ? table_right_dropna->view() : table_right.view(),
+				this->left_column_indices,
+				this->right_column_indices,
+				columns_in_common);
 		} else if(this->join_type == OUTER_JOIN) {
 			result_table = cudf::experimental::full_join(
-			table_left.view(),
-			table_right.view(),
-			this->left_column_indices,
-			this->right_column_indices,
-			columns_in_common);
+				table_left.view(),
+				table_right.view(),
+				this->left_column_indices,
+				this->right_column_indices,
+				columns_in_common);
 		} else {
 			RAL_FAIL("Unsupported join operator");
 		}

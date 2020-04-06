@@ -358,6 +358,15 @@ std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::Blazing
   	}
   }
 
+bool check_if_has_nulls(CudfTableView const& input, std::vector<cudf::size_type> const& keys){
+  auto keys_view = input.select(keys);
+  if (keys_view.num_columns() != 0 && keys_view.num_rows() != 0 && cudf::has_nulls(keys_view)) {
+      return true;
+  }
+
+  return false;
+}
+
 std::unique_ptr<ral::frame::BlazingTable> processJoin(
   const ral::frame::BlazingTableView & table_left_in,
   const ral::frame::BlazingTableView & table_right_in,
@@ -410,16 +419,39 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
   }
 
   if(join_type == INNER_JOIN) {
+    //Removing nulls on key columns before joining
+    std::unique_ptr<CudfTable> table_left_dropna;
+    std::unique_ptr<CudfTable> table_right_dropna;
+
+    bool has_nulls_left = check_if_has_nulls(table_left.view(), left_column_indices);
+    bool has_nulls_right = check_if_has_nulls(table_right.view(), right_column_indices);
+
+    if(has_nulls_left){
+      table_left_dropna = cudf::experimental::drop_nulls(table_left.view(), left_column_indices);
+    }
+    if(has_nulls_right){
+      table_right_dropna = cudf::experimental::drop_nulls(table_right.view(), right_column_indices);
+    }
+
     result_table = cudf::experimental::inner_join(
-      table_left.view(),
-      table_right.view(),
+      has_nulls_left ? table_left_dropna->view() : table_left.view(),
+      has_nulls_right ? table_right_dropna->view() : table_right.view(),
       left_column_indices,
       right_column_indices,
       columns_in_common);
   } else if(join_type == LEFT_JOIN) {
+    //Removing nulls on right key columns before joining
+    std::unique_ptr<CudfTable> table_right_dropna;
+
+    bool has_nulls_right = check_if_has_nulls(table_right.view(), right_column_indices);
+
+    if(has_nulls_right){
+      table_right_dropna = cudf::experimental::drop_nulls(table_right.view(), right_column_indices);
+    }
+
     result_table = cudf::experimental::left_join(
       table_left.view(),
-      table_right.view(),
+      has_nulls_right ? table_right_dropna->view() : table_right.view(),
       left_column_indices,
       right_column_indices,
       columns_in_common);

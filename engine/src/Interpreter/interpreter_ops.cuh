@@ -584,7 +584,11 @@ private:
 					}
 					store_data_in_buffer(computed, buffer, output_position);
 				}
-				setColumnValid(row_valids, output_position, true);
+
+				if(oper == operator_type::BLZ_DIV && right_value == 0) //if div by zero = null
+					setColumnValid(row_valids, output_position, false);
+				else
+					setColumnValid(row_valids, output_position, true);
 			} else {
 				setColumnValid(row_valids, output_position, false);
 			}
