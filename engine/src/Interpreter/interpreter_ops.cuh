@@ -350,7 +350,7 @@ private:
 		switch (scalar_ptr->type().id())
 		{
 		case cudf::type_id::BOOL8:
-			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<cudf::experimental::bool8>*>(scalar_ptr)->value());
+			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<bool>*>(scalar_ptr)->value());
 		case cudf::type_id::INT8:
 			return static_cast<LeftType>(static_cast<cudf::numeric_scalar_device_view<int8_t>*>(scalar_ptr)->value());
 		case cudf::type_id::INT16:

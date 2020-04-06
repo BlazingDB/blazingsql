@@ -18,7 +18,7 @@
  */
 #pragma once
 
-#include <from_cudf/cpp_src/utilities/legacy/cudf_utils.h>
+#include <utilities/legacy/cudf_utils.h>
 #include <cudf/detail/utilities/integer_utils.hpp>
 
 #include <cudf/types.h>

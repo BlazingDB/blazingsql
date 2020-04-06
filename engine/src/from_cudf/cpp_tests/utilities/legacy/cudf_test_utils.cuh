@@ -19,10 +19,10 @@
 // See this header for all of the recursive handling of tuples of vectors
 #include "tuple_vectors.h"
 
-#include <from_cudf/cpp_src/utilities/legacy/cudf_utils.h>
-#include <from_cudf/cpp_src/utilities/legacy/bit_util.cuh>
+#include <utilities/legacy/cudf_utils.h>
+#include <utilities/legacy/bit_util.cuh>
 #include <cudf/utilities/legacy/type_dispatcher.hpp>
-#include <from_cudf/cpp_src/bitmask/legacy/legacy_bitmask.hpp>
+#include <bitmask/legacy/legacy_bitmask.hpp>
 
 #include <cudf/cudf.h>
 
@@ -34,7 +34,7 @@
 #include <numeric> // for std::accumulate
 #include <memory>
 
-#include <from_cudf/cpp_tests/utilities/cudf_gmock.hpp>
+#include <tests/utilities/cudf_gmock.hpp>
 #define ASSERT_RMM_SUCCEEDED(expr)  ASSERT_EQ(RMM_SUCCESS, expr)
 #define EXPECT_RMM_SUCCEEDED(expr)  EXPECT_EQ(RMM_SUCCESS, expr)
 

@@ -200,9 +200,10 @@ std::vector<NodeColumnView> partitionData(Context * context,
                                     column_order,
                                     null_orders);
 
-	std::pair<std::vector<cudf::size_type>, std::vector<cudf::bitmask_type>> host_pivot_indexes = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
-
-	std::vector<CudfTableView> partitioned_data = cudf::experimental::split(table.view(), host_pivot_indexes.first);
+	std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
+	CUDA_TRY(cudaMemcpy(host_data.data(), pivot_indexes->view().data<cudf::size_type>(), pivot_indexes->view().size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
+	
+	std::vector<CudfTableView> partitioned_data = cudf::experimental::split(table.view(), host_data);
 
 	std::vector<Node> all_nodes = context->getAllNodes();
 
@@ -473,7 +474,8 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 		assert(num_rows_data->view().num_columns() == 1);
 		assert(num_rows_data->view().num_rows() == 2);
 		
-		std::pair<std::vector<cudf::size_type>, std::vector<cudf::bitmask_type>> num_rows_host = cudf::test::to_host<cudf::size_type>(num_rows_data->view().column(0));
+		std::vector<cudf::size_type> host_data(num_rows_data->view().column(0).size());
+		CUDA_TRY(cudaMemcpy(host_data.data(), num_rows_data->view().column(0).data<cudf::size_type>(), num_rows_data->view().column(0).size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
 		
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);
@@ -483,8 +485,8 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 				std::to_string(context->getQuerySubstep()),
 				"ERROR: Already received collectLeftRightNumRows from node " + std::to_string(node_idx)));
 		}
-		node_num_rows_left[node_idx] = num_rows_host.first[0];
-		node_num_rows_right[node_idx] = num_rows_host.first[1];
+		node_num_rows_left[node_idx] = host_data[0];
+		node_num_rows_right[node_idx] = host_data[1];
 		received[node_idx] = true;
 	}
 }
@@ -531,7 +533,8 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 		assert(num_bytes_data->view().num_columns() == 1);
 		assert(num_bytes_data->view().num_rows() == 2);
 		
-		std::pair<std::vector<int64_t>, std::vector<cudf::bitmask_type>> num_bytes_host = cudf::test::to_host<int64_t>(num_bytes_data->view().column(0));
+		std::vector<cudf::size_type> host_data(num_bytes_data->view().column(0).size());
+		CUDA_TRY(cudaMemcpy(host_data.data(), num_bytes_data->view().column(0).data<cudf::size_type>(), num_bytes_data->view().column(0).size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
 		
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);
@@ -541,8 +544,8 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 				std::to_string(context->getQuerySubstep()),
 				"ERROR: Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx)));
 		}
-		node_num_bytes_left[node_idx] = num_bytes_host.first[0];
-		node_num_bytes_right[node_idx] = num_bytes_host.first[1];
+		node_num_bytes_left[node_idx] = host_data[0];
+		node_num_bytes_right[node_idx] = host_data[1];
 		received[node_idx] = true;
 	}
 }

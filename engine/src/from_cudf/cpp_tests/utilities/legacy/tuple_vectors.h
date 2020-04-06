@@ -17,7 +17,7 @@
 #define TUPLE_VECTORS_H
 
 // See this header for all of the handling of valids' vectors
-// #include <from_cudf/cpp_tests/utilities/legacy/valid_vectors.h>
+// #include <tests/utilities/legacy/valid_vectors.h>
 
 #include <vector>
 #include <type_traits>
