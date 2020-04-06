@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 
 void initialize(int ralId,
 	int gpuId,
@@ -9,7 +10,8 @@ void initialize(int ralId,
 
 void finalize();
 
-void blazingSetAllocator(std::string allocator, 
-	bool pool, 
+void blazingSetAllocator(
+	int allocation_mode, 
 	int initial_pool_size, 
+	std::vector<int> devices,
 	bool enable_logging);

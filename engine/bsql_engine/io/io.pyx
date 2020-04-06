@@ -116,8 +116,8 @@ cdef void initializePython(int ralId, int gpuId, string network_iface_name, stri
 cdef void finalizePython() except *:
     cio.finalize()
 
-cdef void blazingSetAllocatorPython(string allocator, bool pool, int initial_pool_size, bool enable_logging) except *:
-    cio.blazingSetAllocator(allocator, pool, initial_pool_size, enable_logging)
+cdef void blazingSetAllocatorPython(int allocation_mode, int initial_pool_size, vector[int] devices, bool enable_logging) except *:
+    cio.blazingSetAllocator(allocation_mode, initial_pool_size, devices, enable_logging)
 
 cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     cdef HDFS hdfs
@@ -159,8 +159,8 @@ cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string r
 cpdef finalizeCaller():
     finalizePython()
 
-cpdef blazingSetAllocatorCaller(string allocator, bool pool, int initial_pool_size, bool enable_logging):
-    blazingSetAllocatorPython(allocator, pool, initial_pool_size, enable_logging)
+cpdef blazingSetAllocatorCaller(int allocation_mode, int initial_pool_size, vector[int] devices, bool enable_logging):
+    blazingSetAllocatorPython(allocation_mode, initial_pool_size, devices, enable_logging)
 
 cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     cdef vector[string] files
