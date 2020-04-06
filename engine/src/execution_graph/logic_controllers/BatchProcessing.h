@@ -261,16 +261,23 @@ public:
 	{}
 	virtual kstatus run() {
 		input.set_projections(get_projections(expression));
-
+		int batch_count = 0;
 		while (input.wait_for_next() ) {
-			auto batch = input.next();
+			try {
+				auto batch = input.next();
 
-			if(is_filtered_bindable_scan(expression)) {
-				auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
-				this->add_to_output_cache(std::move(columns));
-			}
-			else{
-				this->add_to_output_cache(std::move(batch));
+				if(is_filtered_bindable_scan(expression)) {
+					auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
+					this->add_to_output_cache(std::move(columns));
+				}
+				else{
+					this->add_to_output_cache(std::move(batch));
+				}
+				batch_count++;
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				std::string err = "ERROR: in BindableTableScan kernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
+				std::cout<<err<<std::endl;
 			}
 		}
 		return kstatus::proceed;
@@ -290,10 +297,18 @@ public:
 	}
 	virtual kstatus run() {
 		BatchSequence input(this->input_cache(), this);
+		int batch_count = 0;
 		while (input.wait_for_next()) {
-			auto batch = input.next();
-			auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
-			this->add_to_output_cache(std::move(columns));
+			try {
+				auto batch = input.next();
+				auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
+				this->add_to_output_cache(std::move(columns));
+				batch_count++;
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				std::string err = "ERROR: in Projection kernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
+				std::cout<<err<<std::endl;
+			}
 		}
 		return kstatus::proceed;
 	}
@@ -312,10 +327,18 @@ public:
 	}
 	virtual kstatus run() {
 		BatchSequence input(this->input_cache(), this);
-		while (input.wait_for_next() ) {
-			auto batch = input.next();
-			auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
-			this->add_to_output_cache(std::move(columns));
+		int batch_count = 0;
+		while (input.wait_for_next()) {
+			try {
+				auto batch = input.next();
+				auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
+				this->add_to_output_cache(std::move(columns));
+				batch_count++;
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				std::string err = "ERROR: in Filter kernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
+				std::cout<<err<<std::endl;
+			}
 		}
 		return kstatus::proceed;
 	}

@@ -199,94 +199,108 @@ public:
 		std::string condition = get_named_expression(new_join_statement, "condition");
 		this->join_type = get_named_expression(new_join_statement, "joinType");
 
-		std::unique_ptr<ral::frame::BlazingTable> left_batch = load_left_set();
-		std::unique_ptr<ral::frame::BlazingTable> right_batch = load_right_set();
-		this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
-		this->max_right_ind = 0; // we have loaded just once. This is the highest index for now
-
-		{ // parsing more of the expression here because we need to have the number of columns of the tables
-			std::vector<int> column_indices;
-			ral::processor::parseJoinConditionToColumnIndices(condition, column_indices);
-			for(int i = 0; i < column_indices.size();i++){
-				if(column_indices[i] >= left_batch->num_columns()){
-					this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
-				}else{
-					this->left_column_indices.push_back(column_indices[i]);
-				}
-			}
-			this->result_names = left_batch->names();
-			std::vector<std::string> right_names = right_batch->names();
-			this->result_names.insert(this->result_names.end(), right_names.begin(), right_names.end());
-		}
+		std::unique_ptr<ral::frame::BlazingTable> left_batch = nullptr;
+		std::unique_ptr<ral::frame::BlazingTable> right_batch = nullptr;
 		bool done = false;
 		bool produced_output = false;
 		int left_ind = 0;
 		int right_ind = 0;
 		
 		while (!done) {
-			normalize(left_batch, right_batch);
-			std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
-			
-			produced_output = true;
-			if (filter_statement != "") {
-				auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());					
-				this->add_to_output_cache(std::move(filter_table));
-			} else{
-				// printf("joined table\n");
-				// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
-				this->add_to_output_cache(std::move(joined));
-			}
-
-			mark_set_completed(left_ind, right_ind);
-			
-			// We joined a set pair. Now lets see if there is another set pair we can do, but keeping one of the two sides we already have
-			int new_left_ind, new_right_ind;
-			std::tie(new_left_ind, new_right_ind) = check_for_another_set_to_do_with_data_we_already_have(left_ind, right_ind);
-			if (new_left_ind >= 0 || new_right_ind >= 0) {
-				if (new_left_ind != left_ind) { // if we are switching out left
-					this->leftArrayCache->put(left_ind, std::move(left_batch));
-					left_ind = new_left_ind;
-					left_batch = this->leftArrayCache->get_or_wait(left_ind);
-				} else { // if we are switching out right
-					this->rightArrayCache->put(right_ind, std::move(right_batch));
-					right_ind = new_right_ind;
-					right_batch = this->rightArrayCache->get_or_wait(right_ind);
-				}
-			} else {
-				// lets try first to just grab the next one that is already available and waiting, but we keep one of the two sides we already have
-				if (this->left_sequence.has_next_now()){
-					this->leftArrayCache->put(left_ind, std::move(left_batch));
+			try {
+				if (left_batch == nullptr && right_batch == nullptr){ // first load
 					left_batch = load_left_set();
-					left_ind = this->max_left_ind;
-				} else if (this->right_sequence.has_next_now()){
-					this->rightArrayCache->put(right_ind, std::move(right_batch));
 					right_batch = load_right_set();
-					right_ind = this->max_right_ind;
-				} else {
-					// lets see if there are any in are matrix that have not been completed
-					std::tie(new_left_ind, new_right_ind) = check_for_set_that_has_not_been_completed();
-					if (new_left_ind >= 0 && new_right_ind >= 0) {
-						this->leftArrayCache->put(left_ind, std::move(left_batch));
-						left_ind = new_left_ind;
-						left_batch = this->leftArrayCache->get_or_wait(left_ind);
-						this->rightArrayCache->put(right_ind, std::move(right_batch));
-						right_ind = new_right_ind;
-						right_batch = this->rightArrayCache->get_or_wait(right_ind);
+					this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
+					this->max_right_ind = 0; // we have loaded just once. This is the highest index for now
+
+					{ // parsing more of the expression here because we need to have the number of columns of the tables
+						std::vector<int> column_indices;
+						ral::processor::parseJoinConditionToColumnIndices(condition, column_indices);
+						for(int i = 0; i < column_indices.size();i++){
+							if(column_indices[i] >= left_batch->num_columns()){
+								this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
+							}else{
+								this->left_column_indices.push_back(column_indices[i]);
+							}
+						}
+						this->result_names = left_batch->names();
+						std::vector<std::string> right_names = right_batch->names();
+						this->result_names.insert(this->result_names.end(), right_names.begin(), right_names.end());
+					}
+
+				} else { // Not first load, so we have joined a set pair. Now lets see if there is another set pair we can do, but keeping one of the two sides we already have
+					
+					int new_left_ind, new_right_ind;
+					std::tie(new_left_ind, new_right_ind) = check_for_another_set_to_do_with_data_we_already_have(left_ind, right_ind);
+					if (new_left_ind >= 0 || new_right_ind >= 0) {
+						if (new_left_ind != left_ind) { // if we are switching out left
+							this->leftArrayCache->put(left_ind, std::move(left_batch));
+							left_ind = new_left_ind;
+							left_batch = this->leftArrayCache->get_or_wait(left_ind);
+						} else { // if we are switching out right
+							this->rightArrayCache->put(right_ind, std::move(right_batch));
+							right_ind = new_right_ind;
+							right_batch = this->rightArrayCache->get_or_wait(right_ind);
+						}
 					} else {
-						// nothing else for us to do buy wait and see if there are any left to do
-						if (this->left_sequence.wait_for_next()){
+						// lets try first to just grab the next one that is already available and waiting, but we keep one of the two sides we already have
+						if (this->left_sequence.has_next_now()){
 							this->leftArrayCache->put(left_ind, std::move(left_batch));
 							left_batch = load_left_set();
 							left_ind = this->max_left_ind;
-						} else if (this->right_sequence.wait_for_next()){
+						} else if (this->right_sequence.has_next_now()){
 							this->rightArrayCache->put(right_ind, std::move(right_batch));
 							right_batch = load_right_set();
 							right_ind = this->max_right_ind;
 						} else {
-							done = true;
+							// lets see if there are any in are matrix that have not been completed
+							std::tie(new_left_ind, new_right_ind) = check_for_set_that_has_not_been_completed();
+							if (new_left_ind >= 0 && new_right_ind >= 0) {
+								this->leftArrayCache->put(left_ind, std::move(left_batch));
+								left_ind = new_left_ind;
+								left_batch = this->leftArrayCache->get_or_wait(left_ind);
+								this->rightArrayCache->put(right_ind, std::move(right_batch));
+								right_ind = new_right_ind;
+								right_batch = this->rightArrayCache->get_or_wait(right_ind);
+							} else {
+								// nothing else for us to do buy wait and see if there are any left to do
+								if (this->left_sequence.wait_for_next()){
+									this->leftArrayCache->put(left_ind, std::move(left_batch));
+									left_batch = load_left_set();
+									left_ind = this->max_left_ind;
+								} else if (this->right_sequence.wait_for_next()){
+									this->rightArrayCache->put(right_ind, std::move(right_batch));
+									right_batch = load_right_set();
+									right_ind = this->max_right_ind;
+								} else {
+									done = true;
+								}
+							}
 						}
 					}
 				}
+				if (!done) {
+					normalize(left_batch, right_batch);
+					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
+					
+					produced_output = true;
+					if (filter_statement != "") {
+						auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());					
+						this->add_to_output_cache(std::move(filter_table));
+					} else{
+						// printf("joined table\n");
+						// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
+						this->add_to_output_cache(std::move(joined));
+					}
+
+					mark_set_completed(left_ind, right_ind);
+				}				
+				
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				std::string err = "ERROR: in PartwiseJoin left_ind " + std::to_string(left_ind) + " right_ind " + std::to_string(right_ind) + " for " + expression + " Error message: " + std::string(e.what());
+				std::cout<<err<<std::endl;
 			}
 		}
 		
@@ -334,52 +348,59 @@ public:
 				std::shared_ptr<ral::cache::CacheMachine> & output){
 
         bool done = false;
-        while (!done) {
-			printf("partition_table\n");
-            // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
-            // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
-            int num_partitions = context->getTotalNodes(); 
-            std::unique_ptr<CudfTable> hashed_data;
-            std::vector<cudf::size_type> hased_data_offsets;
-			std::cout << "\tbatch.sz: " << batch->num_rows() << std::endl;
-			auto batch_view = batch->view();
-			std::vector<CudfTableView> partitioned;
-			if (batch->num_rows() > 0) {
-				std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
+		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
+		// If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
+		int num_partitions = context->getTotalNodes(); 
+		std::unique_ptr<CudfTable> hashed_data;
+		std::vector<cudf::size_type> hased_data_offsets;
+		int batch_count = 0;
+        while (!done) {		
+            try {            
+				std::cout << "\tbatch.sz: " << batch->num_rows() << std::endl;
+				auto batch_view = batch->view();
+				std::vector<CudfTableView> partitioned;
+				if (batch->num_rows() > 0) {
+					std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
 
-				assert(hased_data_offsets.begin() != hased_data_offsets.end());
-				// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-				std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-				partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
-				
-			} else {
-				for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-					partitioned.push_back(batch_view);
-				}
-			}
-			std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
-			for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-				ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-				if (context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
-					// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
-					// if we dont clone it, hashed_data will go out of scope before we get to use the partition
-					// also we need a BlazingTable to put into the cache, we cant cache views.
-					std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
-
-					// TODO: create message id and send to add add_to_output_cache
-					output->addToCache(std::move(partition_table_clone));
+					assert(hased_data_offsets.begin() != hased_data_offsets.end());
+					// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
+					std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+					partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
+					
 				} else {
-					partitions_to_send.emplace_back(
-						std::make_pair(context->getNode(nodeIndex), partition_table_view));
+					for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+						partitioned.push_back(batch_view);
+					}
 				}
-			}
-			ral::distribution::experimental::distributeTablePartitions(context.get(), partitions_to_send);
+				std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
+				for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+					ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
+					if (context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+						// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
+						// if we dont clone it, hashed_data will go out of scope before we get to use the partition
+						// also we need a BlazingTable to put into the cache, we cant cache views.
+						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
-            if (sequence.wait_for_next()){
-                batch = sequence.next();
-            } else {
-                done = true;
-            }
+						// TODO: create message id and send to add add_to_output_cache
+						output->addToCache(std::move(partition_table_clone));
+					} else {
+						partitions_to_send.emplace_back(
+							std::make_pair(context->getNode(nodeIndex), partition_table_view));
+					}
+				}
+				ral::distribution::experimental::distributeTablePartitions(context.get(), partitions_to_send);
+
+				if (sequence.wait_for_next()){
+					batch = sequence.next();
+					batch_count++;
+				} else {
+					done = true;
+				}
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				std::string err = "ERROR: in JoinPartitionKernel batch_count " + std::to_string(batch_count) + " Error message: " + std::string(e.what());
+				std::cout<<err<<std::endl;
+			}
         }
 		printf("... notifyLastTablePartitions\n");
 		ral::distribution::experimental::notifyLastTablePartitions(context.get());
