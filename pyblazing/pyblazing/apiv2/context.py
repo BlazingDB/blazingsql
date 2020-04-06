@@ -115,9 +115,9 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 
         if not pool:
             initial_pool_size = 0
-        elif pool_allocator and initial_pool_size is None:
+        elif pool and initial_pool_size is None:
             initial_pool_size = 0
-        elif pool_allocator and initial_pool_size == 0:
+        elif pool and initial_pool_size == 0:
             initial_pool_size = 1
             
         if devices is None:

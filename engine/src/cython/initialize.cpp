@@ -40,6 +40,11 @@
 #include <blazingdb/manager/Context.h>
 
 
+#include <rmm/rmm.h>
+#include <rmm/rmm_api.h>
+#include <bmr/BlazingMemoryResource.h>
+
+
 std::string get_ip(const std::string & iface_name = "eth0") {
 	int fd;
 	struct ifreq ifr;
@@ -125,9 +130,25 @@ void finalize() {
 	exit(0);
 }
 
-void blazingSetAllocator(std::string allocator, 
-	bool pool, 
-	int initial_pool_size, 
+void blazingSetAllocator(
+	int allocation_mode, 
+	std::size_t initial_pool_size, 
+	std::vector<int> devices,
 	bool enable_logging) {
-	
+
+	rmmFinalize();
+
+	rmmOptions_t rmmValues;
+	rmmValues.allocation_mode = static_cast<rmmAllocationMode_t>(allocation_mode);
+	rmmValues.initial_pool_size = initial_pool_size;
+	rmmValues.enable_logging = enable_logging;
+
+	for (size_t i = 0; i < devices.size(); ++i)
+		rmmValues.devices.push_back(devices[i]);
+
+	blazing_device_memory_resource device_memory_resource(rmmValues);
+	blazing_disk_memory_resource disk_memory_resource;
+	blazing_host_memory_mesource host_memory_mesource;
+
+	rmmInitialize(&rmmValues);
 }

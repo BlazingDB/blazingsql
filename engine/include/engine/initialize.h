@@ -12,6 +12,7 @@ void finalize();
 
 void blazingSetAllocator(
 	int allocation_mode, 
-	int initial_pool_size, 
+	std::size_t initial_pool_size, 
 	std::vector<int> devices,
 	bool enable_logging);
+	

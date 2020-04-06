@@ -305,4 +305,4 @@ cdef extern from "../include/engine/engine.h":
 cdef extern from "../include/engine/initialize.h":
     cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
-    cdef void blazingSetAllocator(int allocation_mode, int initial_pool_size, vector[int] devices , bool enable_logging) except +raiseBlazingSetAllocatorError
+    cdef void blazingSetAllocator(int allocation_mode, size_t initial_pool_size, vector[int] devices , bool enable_logging) except +raiseBlazingSetAllocatorError
