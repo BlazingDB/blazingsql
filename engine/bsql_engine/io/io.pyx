@@ -160,9 +160,11 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
 
     cdef vector[pair[string,type_id]] extra_columns_cpp
     cdef pair[string,type_id] extra_column_cpp
+    
     for extra_column in extra_columns:
         extra_column_cpp = (extra_column[0].encode(),extra_column[1])
         extra_columns_cpp.push_back(extra_column_cpp)
+                
     tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
     return_object = {}
     return_object['datasource'] = files
@@ -291,11 +293,18 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       names.resize(0)
       fileType = fileTypes[tableIndex]
       
-      for col_name in table.column_names:
-        if type(col_name) == np.str:
-            names.push_back(col_name.encode())
-        else: # from file
-            names.push_back(col_name)
+      if len(table.file_column_names) == 0:      
+        for col_name in table.column_names:
+          if type(col_name) == np.str:
+              names.push_back(col_name.encode())
+          else: # from file
+              names.push_back(col_name)
+      else:
+        for col_name in table.file_column_names:
+          if type(col_name) == np.str:
+              names.push_back(col_name.encode())
+          else: # from file
+              names.push_back(col_name)
 
       for col_type in table.column_types:
         types.push_back(col_type)

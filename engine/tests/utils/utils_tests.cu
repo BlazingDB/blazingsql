@@ -6,7 +6,6 @@
 #include "gdf/library/table_group.h"
 #include "gdf/library/types.h"
 
-#include "gdf_wrapper/gdf_wrapper.cuh"
 
 using namespace gdf::library;
 

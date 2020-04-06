@@ -1,4 +1,7 @@
-#include "../src/gdf_wrapper/gdf_wrapper.cuh"
+#pragma once
+
+#include "cudf/cudf.h"
+
 #include "../src/io/DataType.h"
 #include <map>
 #include <string>
@@ -8,7 +11,6 @@
 #include <cudf/io/functions.hpp>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
-#pragma once
 
 typedef ral::io::DataType DataType;
 namespace cudf_io = cudf::experimental::io;

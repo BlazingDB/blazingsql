@@ -18,7 +18,6 @@
 #ifndef GDF_TESTS_BINARY_OPERATION_UTIL_TYPES_H
 #define GDF_TESTS_BINARY_OPERATION_UTIL_TYPES_H
 
-#include "gdf_wrapper/gdf_wrapper.cuh"
 
 namespace gdf {
 namespace library {

@@ -151,7 +151,13 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
 					projections.push_back(0);
 				}
-				std::unique_ptr<ral::frame::BlazingTable> input_table = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index]);
+				std::unique_ptr<ral::frame::BlazingTable> input_table = nullptr;
+				if(is_filtered_bindable_scan(query[0])) {
+					input_table = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index],query[0]);
+				}else{
+					input_table = input_loaders[table_index].load_data(queryContext, projections, schemas[table_index],"");
+				}
+
 
 				std::vector<std::string> col_names = input_table->names();
 
@@ -164,31 +170,17 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 					}
 				}
 				input_table->setNames(col_names);
-				
+
 				int num_rows = input_table->num_rows();
 				Library::Logging::Logger().logInfo(
 					blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
 				blazing_timer.reset();
 
-				if(is_filtered_bindable_scan(query[0])) {
-					const std::string query_part = query[0];
-					input_table = ral::processor::process_filter(input_table->toBlazingTableView(), query_part, queryContext);
-					
-					Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-						"evaluate_split_query process_filter",
-						"num rows",
-						input_table->num_rows()));
-
-					blazing_timer.reset();
-					queryContext->incrementQueryStep();
-					return std::move(input_table);
-				} else {
-					queryContext->incrementQueryStep();
-					return std::move(input_table);
-				}
+				queryContext->incrementQueryStep();
+				return std::move(input_table);
 			} else {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-				std::unique_ptr<ral::frame::BlazingTable> input_table = input_loaders[table_index].load_data(queryContext, {}, schemas[table_index]);
+				std::unique_ptr<ral::frame::BlazingTable> input_table = input_loaders[table_index].load_data(queryContext, {}, schemas[table_index],"");
 
 				queryContext->incrementQueryStep();
 				int num_rows = input_table->num_rows();
@@ -246,7 +238,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			queryContext->incrementQueryStep();
 			if (filter_statement != ""){
 				result_frame = ral::processor::process_filter(result_frame->toBlazingTableView(), filter_statement, queryContext);
-			
+
 				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext, "evaluate_split_query inequality join process_filter", "num rows", result_frame->num_rows()));
 
 				blazing_timer.reset();
@@ -267,7 +259,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 				result_table = std::move(left_frame_result);
 			} else {
 				// WSM TODO refactor this so that its all handled internally by concatTables
-				result_table = process_union(left_frame_result->toBlazingTableView(), right_frame_result->toBlazingTableView(), query[0]);				
+				result_table = process_union(left_frame_result->toBlazingTableView(), right_frame_result->toBlazingTableView(), query[0]);
 			}
 			std::string extraInfo =	"left_side_num_rows:" + std::to_string(numLeft) + ":right_side_num_rows:" + std::to_string(numRight);
 				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
@@ -294,7 +286,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 
 			if (child_frame->num_columns()) {
 				child_frame = ral::processor::process_project(std::move(child_frame), query[0], queryContext);
-				
+
 				Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 					"evaluate_split_query process_project",
 					"num rows",
@@ -309,7 +301,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
 			child_frame = ral::operators::experimental::process_aggregate(child_frame->toBlazingTableView(), query[0], queryContext);
-			
+
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_aggregate",
 				"num rows",
@@ -322,7 +314,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
 			child_frame = ral::operators::experimental::process_sort(child_frame->toBlazingTableView(), query[0], queryContext);
-			
+
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(
 				*queryContext, "evaluate_split_query process_sort", "num rows", child_frame->num_rows()));
 
@@ -333,7 +325,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
 
 			child_frame = ral::processor::process_filter(child_frame->toBlazingTableView(), query[0], queryContext);
-			
+
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
 				"evaluate_split_query process_filter",
 				"num rows",
