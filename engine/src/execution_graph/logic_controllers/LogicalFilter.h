@@ -22,6 +22,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const std::string & query_part,
   blazingdb::manager::experimental::Context * context);
 
+  bool check_if_has_nulls(CudfTableView const& input, std::vector<cudf::size_type> const& keys);
+
 std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::BlazingTableView & table_left,
 															   const ral::frame::BlazingTableView & table_right,
 															   const std::string & expression,

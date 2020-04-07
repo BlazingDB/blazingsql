@@ -98,6 +98,68 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 }
 
 template <typename T>
+struct InteropsTestNumericDivZero : public cudf::test::BaseFixture {};
+
+TYPED_TEST_CASE(InteropsTestNumericDivZero, cudf::test::NumericTypes);
+
+TYPED_TEST(InteropsTestNumericDivZero, test_numeric_types_divzero)
+{
+  using namespace interops;
+
+  using T = TypeParam;
+  cudf::size_type inputRows = 5;
+
+  auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+      return static_cast<T>(row * 2);
+    });
+  cudf::test::fixed_width_column_wrapper<T> col1{sequence1, sequence1 + inputRows};
+
+  cudf::table_view in_table_view {{col1}};
+
+  // 0> / $0 0 | / $0 0
+
+  std::vector<column_index_type> left_inputs =  {0};
+  std::vector<column_index_type> right_inputs = {-2};
+  std::vector<column_index_type> outputs =      {2};
+
+  std::vector<column_index_type> final_output_positions = {2};
+
+  std::vector<operator_type> operators = {operator_type::BLZ_DIV};
+
+  std::unique_ptr<cudf::scalar> arr_s1[] = {nullptr};
+  auto dtype = cudf::data_type{cudf::experimental::type_to_id<T>()};
+  std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
+  std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype)};
+  std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
+  static_cast<cudf::experimental::scalar_type_t<T>*>(right_scalars[0].get())->set_value((T)0);
+
+  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+      return T{};
+    });
+
+  auto validity_iter = cudf::test::make_counting_transform_iterator(0,
+    [](auto row) { return false; });
+
+  cudf::test::fixed_width_column_wrapper<T> out_col1{sequenceOut, sequenceOut + inputRows, validity_iter};
+  cudf::mutable_table_view out_table_view {{out_col1}};
+
+  perform_interpreter_operation(out_table_view,
+                              in_table_view,
+                              left_inputs,
+                              right_inputs,
+                              outputs,
+                              final_output_positions,
+                              operators,
+                              left_scalars,
+                              right_scalars);
+
+  cudf::test::fixed_width_column_wrapper<T> expected_col1{{0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}};
+  cudf::table_view expected_table_view {{expected_col1}};
+
+  cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+}
+
+template <typename T>
 struct InteropsTestTimestamp : public cudf::test::BaseFixture {};
 
 TYPED_TEST_CASE(InteropsTestTimestamp, cudf::test::TimestampTypes);

@@ -1129,7 +1129,7 @@ public:
 	virtual kstatus run() {
 		CodeTimer blazing_timer;
 		blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-		auto table = loader.load_data(context.get(), {}, schema);
+		auto table = loader.load_data(context.get(), {}, schema, "");
 		context->incrementQueryStep();
 		int num_rows = table->num_rows();
 		Library::Logging::Logger().logInfo(blazing_timer.logDuration(*context, "evaluate_split_query load_data", "num rows", num_rows));

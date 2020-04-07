@@ -385,7 +385,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 		}
 	}
 
-	return getPivotPointsTable(context->getTotalNodes() - 1, BlazingTableView(sortedSamples->view(), names));
+	return getPivotPointsTable(context->getTotalNodes(), BlazingTableView(sortedSamples->view(), names));
 }
 
 std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(

@@ -19,7 +19,6 @@
 #define GDF_TESTS_BINARY_OPERATION_UTIL_VECTOR_H
 
 #include "field.h"
-#include "gdf_wrapper/gdf_wrapper.cuh"
 #include "types.h"
 
 namespace gdf {

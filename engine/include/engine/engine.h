@@ -1,5 +1,6 @@
+#pragma once
+
 #include "../io/io.h"
-#include "../src/gdf_wrapper/gdf_wrapper.cuh"
 #include <string>
 #include <vector>
 
