@@ -62,6 +62,10 @@ class FinalizeError(BlazingError):
     """Finalize Error."""
 cdef public PyObject * FinalizeError_ = <PyObject *>FinalizeError
 
+class BlazingSetAllocatorError(BlazingError):
+    """BlazingSetAllocator Error."""
+cdef public PyObject * BlazingSetAllocatorError_ = <PyObject *>BlazingSetAllocatorError
+
 class RunQueryError(BlazingError):
     """RunQuery Error."""
 cdef public PyObject *RunQueryError_ = <PyObject *>RunQueryError
@@ -112,6 +116,9 @@ cdef void initializePython(int ralId, int gpuId, string network_iface_name, stri
 cdef void finalizePython() except *:
     cio.finalize()
 
+cdef void blazingSetAllocatorPython(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging) except *:
+    cio.blazingSetAllocator(allocation_mode, initial_pool_size, devices, enable_logging)
+
 cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     cdef HDFS hdfs
     cdef S3 s3
@@ -151,6 +158,9 @@ cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string r
 
 cpdef finalizeCaller():
     finalizePython()
+
+cpdef blazingSetAllocatorCaller(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging):
+    blazingSetAllocatorPython(allocation_mode, initial_pool_size, devices, enable_logging)
 
 cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
     cdef vector[string] files
