@@ -125,7 +125,7 @@ private:
 class DataSourceSequence {
 public:
 	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-		: context(context), loader(loader), schema(schema), batch_index{0}, file_index{0}, batch_id{0}
+		: context(context), loader(loader), schema(schema), batch_index{0}, file_index{0}, batch_id{0}, n_batches{0}
 	{
 		// n_partitions{n_partitions}: TODO Update n_batches using data_loader
 		this->provider = loader.get_provider();
@@ -153,7 +153,6 @@ public:
 			return schema.makeEmptyBlazingTable(projections);
 		}
 		
-		// std::cout << "Datasource.next: " << file_index << "|" << batch_id << "|" << all_row_groups[file_index].size() << std::endl;
 		auto ret = loader.load_batch(context.get(), projections, schema, user_readable_file_handles[file_index], files[file_index], file_index, batch_id);
 		batch_index++;
 		

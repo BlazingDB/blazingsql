@@ -45,8 +45,6 @@ public:
 	}
 };
 
-std::pair<std::vector<int>, std::vector<int> > get_groups(const Schema & schema);
-
 } /* namespace io */
 } /* namespace ral */
 
