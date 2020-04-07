@@ -460,9 +460,11 @@ public:
 
 		printf("parseJoinConditionToColumnIndices\n");
 
-		std::thread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
-			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
-			std::ref(this->output_.get_cache("output_a")));
+		BlazingMutableThread distribute_left_thread([context = context, this, &left_sequence, left_batch = std::move(left_batch)]() mutable {
+			JoinPartitionKernel::partition_table(context, 
+			this->left_column_indices, std::move(left_batch), left_sequence, 
+			this->output_.get_cache("output_a"));
+		});
 
 		BlazingThread left_consumer([context = this->context, this](){
 			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
@@ -481,9 +483,11 @@ public:
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
 
-		std::thread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
-			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
-			std::ref(this->output_.get_cache("output_b")));
+		BlazingMutableThread distribute_right_thread([cloned_context=cloned_context, this, &right_sequence, right_batch = std::move(right_batch)]() mutable{
+			JoinPartitionKernel::partition_table(cloned_context, 
+			this->right_column_indices, std::move(right_batch), right_sequence, 
+			this->output_.get_cache("output_b"));
+		});
 
 		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
 		BlazingThread right_consumer([cloned_context, this](){
