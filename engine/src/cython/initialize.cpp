@@ -38,6 +38,10 @@
 #include "communication/network/Server.h"
 #include <blazingdb/manager/Context.h>
 
+#include <rmm/rmm_api.h>
+
+#include <bmr/blazing_memory_manager.h>
+
 
 std::string get_ip(const std::string & iface_name = "eth0") {
 	int fd;
@@ -122,4 +126,45 @@ void finalize() {
 	ral::communication::network::experimental::Server::getInstance().close();
 	cudaDeviceReset();
 	exit(0);
+}
+
+// Shutdown memory manager.
+rmmError_t BlazingRMMFinalize()
+{
+	BlazingMemoryManager::getInstance().finalize();
+	return RMM_SUCCESS;
+}
+
+rmmError_t BlazingRMMInitialize(rmmOptions_t *options)
+{
+	BlazingMemoryManager::getInstance().initialize(options);
+ 	return RMM_SUCCESS;
+}
+
+// Query the initialization state of BlazingMemoryManager.
+bool BlazingRMMIsInitialized(rmmOptions_t *options)
+{
+  if (nullptr != options) {
+    *options = BlazingMemoryManager::getOptions();
+  }
+  return BlazingMemoryManager::getInstance().isInitialized();
+}
+
+void blazingSetAllocator(
+	int allocation_mode, 
+	std::size_t initial_pool_size, 
+	std::vector<int> devices,
+	bool enable_logging) {
+
+	BlazingRMMFinalize();
+
+	rmmOptions_t rmmValues;
+	rmmValues.allocation_mode = static_cast<rmmAllocationMode_t>(allocation_mode);
+	rmmValues.initial_pool_size = initial_pool_size;
+	rmmValues.enable_logging = enable_logging;
+
+	for (size_t i = 0; i < devices.size(); ++i)
+		rmmValues.devices.push_back(devices[i]);
+
+	BlazingRMMInitialize(&rmmValues);
 }
