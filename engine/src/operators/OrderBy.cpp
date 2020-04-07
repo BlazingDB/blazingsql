@@ -350,6 +350,10 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	cudf::size_type limitRows;
 	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
+	if(sortedTable.num_rows() == 0) {
+		return {sortedTable.view()};
+	}
+
 	// TODO this is just a default setting. Will want to be able to properly set null_order
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 
