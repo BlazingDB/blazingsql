@@ -17,6 +17,7 @@
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
 #include <blazingdb/transport/ColumnTransport.h>
+#include <bmr/BlazingMemoryResource.h>
 
 typedef cudf::experimental::table CudfTable;
 typedef cudf::table_view CudfTableView;
@@ -99,6 +100,12 @@ public:
 	BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers)
 		: columns_offsets{columns_offsets}, raw_buffers{std::move(raw_buffers)} 
 	{
+		auto size = sizeInBytes();
+		blazing_host_memory_mesource::getInstance().allocate(size);
+	}
+	~BlazingHostTable() {
+		auto size = sizeInBytes();
+		blazing_host_memory_mesource::getInstance().deallocate(size);
 	}
 
 	std::vector<cudf::data_type> get_schema() const {

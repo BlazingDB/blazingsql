@@ -255,20 +255,14 @@ enum spec : std::uint8_t { in = 0, out = 1 };
 }
 
 static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cache_settings& config) {
-	size_t gpuMemory = ral::config::gpuMemorySize() * 0.75;
-	assert(gpuMemory > 0);
-	size_t cpuMemory = ral::config::gpuMemorySize();
-
-	std::vector<unsigned long long> memoryPerCache = {cpuMemory, INT_MAX};
-	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::CPU, ral::cache::CacheDataType::LOCAL_FILE};
 	std::shared_ptr<ral::cache::CacheMachine> machine;
 	if (config.type == CacheType::NON_WAITING) {
-		machine =  std::make_shared<ral::cache::NonWaitingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+		machine =  std::make_shared<ral::cache::NonWaitingCacheMachine>();
 	}
 	else if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
-		machine =  std::make_shared<ral::cache::CacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+		machine =  std::make_shared<ral::cache::CacheMachine>();
 	} else if (config.type == CacheType::CONCATENATING) {
-		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
+		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>();
 	}
 	return machine;
 }

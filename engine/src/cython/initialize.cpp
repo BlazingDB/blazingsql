@@ -40,7 +40,7 @@
 
 #include <rmm/rmm_api.h>
 
-#include <bmr/blazing_memory_manager.h>
+#include <bmr/BlazingMemoryResource.h>
 
 
 std::string get_ip(const std::string & iface_name = "eth0") {
@@ -131,23 +131,23 @@ void finalize() {
 // Shutdown memory manager.
 rmmError_t BlazingRMMFinalize()
 {
-	BlazingMemoryManager::getInstance().finalize();
+	blazing_device_memory_resource::getInstance().finalize();
 	return RMM_SUCCESS;
 }
 
 rmmError_t BlazingRMMInitialize(rmmOptions_t *options)
 {
-	BlazingMemoryManager::getInstance().initialize(options);
+	blazing_device_memory_resource::getInstance().initialize(options);
  	return RMM_SUCCESS;
 }
 
-// Query the initialization state of BlazingMemoryManager.
+// Query the initialization state of blazing_device_memory_resource.
 bool BlazingRMMIsInitialized(rmmOptions_t *options)
 {
   if (nullptr != options) {
-    *options = BlazingMemoryManager::getOptions();
+    *options = blazing_device_memory_resource::getOptions();
   }
-  return BlazingMemoryManager::getInstance().isInitialized();
+  return blazing_device_memory_resource::getInstance().isInitialized();
 }
 
 void blazingSetAllocator(
