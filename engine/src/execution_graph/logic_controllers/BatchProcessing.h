@@ -90,7 +90,7 @@ public:
 		if (message_token.length() == 0) {
 			message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
 		}
-		BlazingMutableThread t([this, message_token, context_token](){
+		std::thread t([this, message_token, context_token](){
 			while(true){
 					auto message = Server::getInstance().getHostMessage(context_token, message_token);
 					if(!message) {
