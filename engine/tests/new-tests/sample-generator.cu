@@ -15,8 +15,10 @@ using NumericTypesForSampling = cudf::test::Types<int8_t, int16_t, int32_t, int6
 TYPED_TEST_SUITE(SampleGeneratorTest, NumericTypesForSampling);
 
 TYPED_TEST(SampleGeneratorTest, BaseCase) {
-	cudf::test::fixed_width_column_wrapper<TypeParam> column1{{0, 1, 2, 3, 4, 5}, {1, 1, 1, 1, 1, 1}};
-	cudf::test::fixed_width_column_wrapper<TypeParam> column2{{4, 5, 6, 7, 8, 9}, {1, 1, 1, 1, 1, 1}};
+	using T =  TypeParam;
+
+	cudf::test::fixed_width_column_wrapper<TypeParam> column1{{T(0), T(1), T(2), T(3), T(4), T(5)}, {1, 1, 1, 1, 1, 1}};
+	cudf::test::fixed_width_column_wrapper<TypeParam> column2{{T(4), T(5), T(6), T(7), T(8), T(9)}, {1, 1, 1, 1, 1, 1}};
 
 	CudfTableView cudfTableView{{column1, column2}};
 
@@ -35,19 +37,16 @@ TYPED_TEST(SampleGeneratorTest, BaseCase) {
 
 	// check samples
 
-	std::vector<TypeParam> data;
-	std::vector<cudf::bitmask_type> valids;
+	auto host = cudf::test::to_host<TypeParam>(sampleView.column(0));
 
-	std::tie(data, valids) = cudf::test::to_host<TypeParam>(sampleView.column(0));
-
-	for(std::size_t i = 0; i < data.size(); i++) {
-		EXPECT_THAT(data[i], testing::AllOf(testing::Ge(0), testing::Le(5)));
+	for(std::size_t i = 0; i < host.first.size(); i++) {
+		EXPECT_THAT(host.first[i], testing::AllOf(testing::Ge(0), testing::Le(5)));
 	}
 
-	std::tie(data, valids) = cudf::test::to_host<TypeParam>(sampleView.column(1));
+	host = cudf::test::to_host<TypeParam>(sampleView.column(1));
 
-	for(std::size_t i = 0; i < data.size(); i++) {
-		EXPECT_THAT(data[i], testing::AllOf(testing::Ge(4), testing::Le(9)));
+	for(std::size_t i = 0; i < host.first.size(); i++) {
+		EXPECT_THAT(host.first[i], testing::AllOf(testing::Ge(4), testing::Le(9)));
 	}
 }
 

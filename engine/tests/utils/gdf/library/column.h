@@ -15,7 +15,7 @@
 #include "types.h"
 #include "vector.h"
 
-#include "from_cudf/cpp_src/utilities/legacy/bit_util.cuh"
+// #include "utilities/legacy/bit_util.cuh"
 #include <arrow/util/bit_util.h>
 
 
