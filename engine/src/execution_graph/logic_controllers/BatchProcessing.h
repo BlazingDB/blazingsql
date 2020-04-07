@@ -90,23 +90,26 @@ public:
 		if (message_token.length() == 0) {
 			message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
 		}
-		while(true){
-				auto message = Server::getInstance().getHostMessage(context_token, message_token);
-				if(!message) {
-					--last_message_counter;
-					std::cout<< ">>>>>> ExternalBatchColumnDataSequence: last_message_counter " << last_message_counter<< std::endl;
-					if (last_message_counter == 0 ){
-						this->host_cache->finish();
-						break;
+		std::thread t([this, message_token, context_token](){
+			while(true){
+					auto message = Server::getInstance().getHostMessage(context_token, message_token);
+					if(!message) {
+						--last_message_counter;
+						std::cout<< ">>>>>> ExternalBatchColumnDataSequence: last_message_counter " << last_message_counter<< std::endl;
+						if (last_message_counter == 0 ){
+							this->host_cache->finish();
+							break;
+						}
+					}	else{
+						auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
+						assert(concreteMessage != nullptr);
+						auto host_table = concreteMessage->releaseBlazingHostTable();
+						host_table->setPartitionId(concreteMessage->getPartitionId());
+						this->host_cache->addToCache(std::move(host_table));			
 					}
-				}	else{
-					auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
-					assert(concreteMessage != nullptr);
-					auto host_table = concreteMessage->releaseBlazingHostTable();
-					host_table->setPartitionId(concreteMessage->getPartitionId());
-					this->host_cache->addToCache(std::move(host_table));			
-				}
-		}
+			}
+		});
+		t.detach();
 	} 
 
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {
