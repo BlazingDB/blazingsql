@@ -107,6 +107,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort,
         singleNode)
     cwd = os.getcwd()
+    # TODO: set_DefaultMemoryResource(BlazingMemoryResource) 
     return ralCommunicationPort, workerIp, cwd
 
 
@@ -1370,7 +1371,7 @@ class BlazingContext(object):
             return input
 
 
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=False):
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True):
         """
         Query a BlazingSQL table. 
         

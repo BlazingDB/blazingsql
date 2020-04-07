@@ -231,7 +231,6 @@ private:
 				if(is_operator_token(token)) {
 					new_node = new operator_node(token);
 				} else {
-					assert(is_var_column(token) || is_literal(token));
 					new_node = new operad_node(token);
 				}
 

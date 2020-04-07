@@ -222,7 +222,7 @@ TEST_F(ExprToGraphProcessor, FromJsonInputAggregation) {
 /*
 TEST_F(ExprToGraphProcessor, TimerIssue) {
 	auto count = 20;
-    std::vector<std::thread> thread_pool;
+    std::vector<BlazingThread> thread_pool;
 
 	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
 	in_args.names = {"n_nationkey", "n_name", "n_regionkey", "n_comment"};
@@ -247,7 +247,7 @@ TEST_F(ExprToGraphProcessor, TimerIssue) {
 	loop_timer.reset();
     for (size_t i = 0; i < count; i++)
     {
-        thread_pool.emplace_back(std::thread([i, in_args, in_pargs](){
+        thread_pool.emplace_back(BlazingThread([i, in_args, in_pargs](){
             CodeTimer timer;
             std::cout << "id: " << i << std::endl;
 			auto result = cudf_io::read_parquet(in_pargs);

@@ -10,7 +10,7 @@
 #include "utilities/StringUtils.h"
 #include <CodeTimer.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
-#include <thread>
+#include "blazingdb/concurrency/BlazingThread.h"
 #include <cudf/filling.hpp>
 #include "CalciteExpressionParsing.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
@@ -75,10 +75,10 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 		file_sets[i % MAX_NUM_LOADING_THREADS].emplace_back(std::move(files[i]));
     }
 
-	std::vector<std::thread> threads;
+	std::vector<BlazingThread> threads;
 
 	for(int file_set_index = 0; file_set_index < file_sets.size(); file_set_index++) {
-		threads.push_back(std::thread([&, file_set_index]() {
+		threads.push_back(BlazingThread([&, file_set_index]() {
 			for (int file_in_set = 0; file_in_set < file_sets[file_set_index].size(); file_in_set++) {
 				int file_index = file_in_set * MAX_NUM_LOADING_THREADS + file_set_index;
 
@@ -154,7 +154,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 			}
 		}));
 	}
-	std::for_each(threads.begin(), threads.end(), [](std::thread & this_thread) { this_thread.join(); });
+	std::for_each(threads.begin(), threads.end(), [](BlazingThread & this_thread) { this_thread.join(); });
 
 	Library::Logging::Logger().logInfo(timer.logDuration(*context, "data_loader::load_data part 1 parse"));
 	timer.reset();
@@ -210,6 +210,32 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 
 		return ral::utilities::experimental::concatTables(table_views);
 	}
+}
+
+
+std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
+	Context * context,
+	const std::vector<size_t> & column_indices_in,
+	const Schema & schema,
+	std::string user_readable_file_handle,
+	data_handle file_data_handle,
+	size_t file_index,
+	size_t batch_id) {
+
+	static CodeTimer timer;
+	timer.reset();
+	auto fileSchema = schema.fileSchema(file_index);
+	std::vector<size_t> column_indices = column_indices_in;
+	if(column_indices.size() == 0) {  // including all columns by default
+		column_indices.resize(fileSchema.get_num_columns());
+		std::iota(column_indices.begin(), column_indices.end(), 0);
+	}
+	std::vector<size_t> column_indices_in_file;
+	for (int i = 0; i < column_indices.size(); i++){
+	  column_indices_in_file.push_back(column_indices[i]);
+	}
+	std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, user_readable_file_handle, fileSchema, column_indices_in_file, batch_id);
+	return std::move(loaded_table);
 }
 
 

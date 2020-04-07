@@ -67,6 +67,19 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	return query_part.substr(start_position, end_position - start_position);
 }
 
+std::vector<size_t> get_projections(const std::string & query_part) {
+	std::string project_string = get_named_expression(query_part, "projects");
+	std::vector<std::string> project_string_split =
+		get_expressions_from_expression_list(project_string, true);
+
+	std::vector<size_t> projections;
+	for(int i = 0; i < project_string_split.size(); i++) {
+		projections.push_back(std::stoull(project_string_split[i]));
+	}
+
+	return projections;
+}
+
 interops::operator_type map_to_operator_type(const std::string & operator_token) {
 	// std::cout << "operator_token: " << operator_token << std::endl;
 	RAL_EXPECTS(operator_map.find(operator_token) != operator_map.end(), "Unsupported operator: " + operator_token);
@@ -91,6 +104,8 @@ bool is_scan(std::string query_part) { return is_logical_scan(query_part) || is_
 
 bool is_filter(std::string query_part) { return (query_part.find(LOGICAL_FILTER_TEXT) != std::string::npos); }
 
+bool is_limit(std::string query_part) { return (query_part.find(LOGICAL_LIMIT_TEXT) != std::string::npos); }
+
 bool is_sort(std::string query_part) { return (query_part.find(LOGICAL_SORT_TEXT) != std::string::npos); }
 
 bool is_merge(std::string query_part) { return (query_part.find(LOGICAL_MERGE_TEXT) != std::string::npos); }
@@ -99,15 +114,29 @@ bool is_partition(std::string query_part) { return (query_part.find(LOGICAL_PART
 
 bool is_sort_and_sample(std::string query_part) { return (query_part.find(LOGICAL_SORT_AND_SAMPLE_TEXT) != std::string::npos); }
 
+bool is_single_node_partition(std::string query_part) { return (query_part.find(LOGICAL_SINGLE_NODE_PARTITION_TEXT) != std::string::npos); }
+
+bool is_single_node_sort_and_sample(std::string query_part) { return (query_part.find(LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT) != std::string::npos); };
+
 bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
+
+bool is_pairwise_join(const std::string & query) { return (query.find(LOGICAL_PARTWISE_JOIN_TEXT) != std::string::npos); }
+
+bool is_join_partition(const std::string & query) { return (query.find(LOGICAL_JOIN_PARTITION_TEXT) != std::string::npos); }
 
 bool is_aggregate(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_aggregate_merge(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_MERGE_TEXT) != std::string::npos); }
+bool is_compute_aggregate(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_aggregate_partition(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_PARTITION_TEXT) != std::string::npos); }
+bool is_distribute_aggregate(std::string query_part) { return (query_part.find(LOGICAL_DISTRIBUTE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_aggregate_and_sample(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_AND_SAMPLE_TEXT) != std::string::npos); }
+bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
+
+bool is_aggregate_merge(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_MERGE_TEXT) != std::string::npos); }  // to be deprecated
+
+bool is_aggregate_partition(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_PARTITION_TEXT) != std::string::npos); }  // to be deprecated
+
+bool is_aggregate_and_sample(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_AND_SAMPLE_TEXT) != std::string::npos); }  // to be deprecated
 
 bool is_double_input(std::string query_part) {
 	if(is_join(query_part)) {

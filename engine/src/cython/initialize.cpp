@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <cuda_runtime.h>
 #include <memory>
-#include <thread>
 
 
 #include <blazingdb/transport/io/reader_writer.h>
@@ -97,7 +96,7 @@ void initialize(int ralId,
 	auto & communicationData = ral::communication::experimental::CommunicationData::getInstance();
 	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);
 
-	ral::communication::network::experimental::Server::start(ralCommunicationPort);
+	ral::communication::network::experimental::Server::start(ralCommunicationPort, true);
 
 	if(singleNode == true) {
 		ral::communication::network::experimental::Server::getInstance().close();

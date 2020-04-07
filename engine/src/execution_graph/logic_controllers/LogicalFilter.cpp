@@ -1,7 +1,6 @@
 #include <stack>
 
 #include <cudf/table/table_view.hpp>
-#include <cudf/hashing.hpp>
 #include <cudf/join.hpp>
 #include <cudf/stream_compaction.hpp>
 #include <cudf/column/column_factories.hpp>

@@ -7,7 +7,6 @@
 #include <regex>
 #include <set>
 #include <string>
-#include <thread>
 
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
@@ -30,7 +29,8 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <cudf/column/column_factories.hpp>
 #include "execution_graph/logic_controllers/LogicalProject.h"
-#include <execution_graph/logic_controllers/TaskFlowProcessor.h>
+#include "execution_graph/logic_controllers/TaskFlowProcessor.h"
+#include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
 
 
 std::unique_ptr<ral::frame::BlazingTable> process_union(const ral::frame::BlazingTableView & left, const ral::frame::BlazingTableView & right, std::string query_part) {
@@ -134,18 +134,12 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			size_t table_index = get_table_index(table_names, extract_table_name(query[0]));
 			if(is_bindable_scan(query[0])) {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-				std::string project_string = get_named_expression(query[0], "projects");
-				std::vector<std::string> project_string_split =
-					get_expressions_from_expression_list(project_string, true);
+
+				std::vector<size_t> projections = get_projections(query[0]);
 
 				std::string aliases_string = get_named_expression(query[0], "aliases");
 				std::vector<std::string> aliases_string_split =
 					get_expressions_from_expression_list(aliases_string, true);
-
-				std::vector<size_t> projections;
-				for(int i = 0; i < project_string_split.size(); i++) {
-					projections.push_back(std::stoull(project_string_split[i]));
-				}
 
 				// This is for the count(*) case, we don't want to load all the columns
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
@@ -388,19 +382,20 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 		assert(input_loaders.size() == table_names.size());
 
 		std::unique_ptr<ral::frame::BlazingTable> output_frame; 
-		ral::cache::parser::expr_tree_processor tree{
+		ral::batch::tree_processor tree{
 			.root = {},
 			.context = queryContext.clone(),
 			.input_loaders = input_loaders,
 			.schemas = schemas,
 			.table_names = table_names,
-			.transform_operators_bigger_than_gpu = false
+			.transform_operators_bigger_than_gpu = true
 		};
 		ral::cache::OutputKernel output;
 
-		auto graph = tree.build_graph(logicalPlan);
+		auto graph = tree.build_batch_graph(logicalPlan);
 		if (graph.num_nodes() > 0) {
 			graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			graph.show();
 			graph.execute();
 			output_frame = output.release();
 		}

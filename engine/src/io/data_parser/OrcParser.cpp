@@ -3,8 +3,6 @@
 
 #include <arrow/io/file.h>
 
-#include <thread>
-
 #include "../Schema.h"
 
 #include <cudf/table/table.hpp>
@@ -63,6 +61,37 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
 			Library::Logging::Logger().logWarn("orc_parser::parse no columns were read");
 
 		return std::make_unique<ral::frame::BlazingTable>(std::move(orc_table.tbl), orc_table.metadata.column_names);		
+	}
+	return nullptr;
+}
+
+std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
+	std::shared_ptr<arrow::io::RandomAccessFile> file,
+	const std::string & user_readable_file_handle,
+	const Schema & schema,
+	std::vector<size_t> column_indices,
+	size_t stripe)
+{
+	if(file == nullptr) {
+		return schema.makeEmptyBlazingTable(column_indices);
+	}
+	if(column_indices.size() > 0) {
+		// Fill data to orc_args
+		cudf_io::read_orc_args orc_args{cudf_io::source_info{file}};
+
+		orc_args.columns.resize(column_indices.size());
+
+		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
+			orc_args.columns[column_i] = schema.get_name(column_indices[column_i]);
+		}
+		std::vector<int> consecutive_stripe_start;
+		std::vector<int> consecutive_stripe_length;
+		std::tie(consecutive_stripe_start, consecutive_stripe_length) = get_groups(schema);
+
+		orc_args.stripe = consecutive_stripe_start[stripe];
+		orc_args.stripe_count = consecutive_stripe_length[stripe];
+		auto result = cudf_io::read_orc(orc_args);
+		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 	}
 	return nullptr;
 }

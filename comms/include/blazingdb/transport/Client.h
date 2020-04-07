@@ -18,6 +18,10 @@ public:
 
   virtual Status Send(GPUMessage& message) = 0;
 
+  virtual bool setNumberOfBatches(const Message::MetaData &message_metadata, size_t n_batches) = 0;
+
+  virtual bool notifyLastMessageEvent(const Message::MetaData &message_metadata) = 0;
+
   virtual void Close() = 0;
 
   virtual void SetDevice(int) = 0;

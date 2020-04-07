@@ -16,7 +16,6 @@
 #include <regex>
 #include <set>
 #include <string>
-#include <thread>
 
 namespace ral{
 
@@ -30,26 +29,25 @@ std::unique_ptr<ral::frame::BlazingTable> process_table_scan(
 {
 	CodeTimer blazing_timer;
 	blazing_timer.reset();
- 
-    std::string project_string = get_named_expression(query_part, "projects");
-    std::vector<std::string> project_string_split =
-        get_expressions_from_expression_list(project_string, true);
+
+    std::vector<size_t> projections = get_projections(query_part);
 
     std::string aliases_string = get_named_expression(query_part, "aliases");
     std::vector<std::string> aliases_string_split =
         get_expressions_from_expression_list(aliases_string, true);
 
-    std::vector<size_t> projections;
-    for(int i = 0; i < project_string_split.size(); i++) {
-        projections.push_back(std::stoull(project_string_split[i]));
-    }
-
     // This is for the count(*) case, we don't want to load all the columns
     if(projections.size() == 0 && aliases_string_split.size() == 1) {
         projections.push_back(0);
     }
-	std::unique_ptr<ral::frame::BlazingTable> input_table = input_loader.load_data(queryContext, projections, schema, "");
 
+    std::unique_ptr<ral::frame::BlazingTable> input_table = nullptr;
+    if(is_filtered_bindable_scan(query_part)) {
+        input_table = input_loader.load_data(queryContext, projections, schema, query_part);
+    }else{
+        input_table = input_loader.load_data(queryContext, projections, schema,"");
+    }
+ 
     std::vector<std::string> col_names = input_table->names();
 
     // Setting the aliases only when is not an empty set
@@ -70,21 +68,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_table_scan(
         blazing_timer.logDuration(*queryContext, "evaluate_split_query load_data", "num rows", num_rows));
     blazing_timer.reset();
 
-    if(is_filtered_bindable_scan(query_part)) {
-        input_table = ral::processor::process_filter(input_table->toBlazingTableView(), query_part, queryContext);
-
-        Library::Logging::Logger().logInfo(blazing_timer.logDuration(*queryContext,
-            "evaluate_split_query process_filter",
-            "num rows",
-            input_table->num_rows()));
-
-        blazing_timer.reset();
-        queryContext->incrementQueryStep();
-        return std::move(input_table);
-    } else {
-        queryContext->incrementQueryStep();
-        return std::move(input_table);
-    }
+    queryContext->incrementQueryStep();
+    return std::move(input_table);
 }
 
 } // end namespace processor

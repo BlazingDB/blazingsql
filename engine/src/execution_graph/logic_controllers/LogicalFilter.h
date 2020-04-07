@@ -22,10 +22,14 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const std::string & query_part,
   blazingdb::manager::experimental::Context * context);
 
+  bool check_if_has_nulls(CudfTableView const& input, std::vector<cudf::size_type> const& keys);
+
 std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::BlazingTableView & table_left,
 															   const ral::frame::BlazingTableView & table_right,
 															   const std::string & expression,
 															   blazingdb::manager::experimental::Context * context);
+
+void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices);
 
 std::unique_ptr<ral::frame::BlazingTable> process_logical_join(blazingdb::manager::experimental::Context * context,
       const ral::frame::BlazingTableView & table_left,

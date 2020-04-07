@@ -18,8 +18,9 @@ public:
   struct MetaData {
     char messageToken[128]{};  // use  uses '\0' for string ending
     uint32_t contextToken{};
-    int32_t total_row_size{};  // used by SampleToNodeMasterMessage
-
+    int64_t total_row_size{};  // used by SampleToNodeMasterMessage
+    int32_t n_batches{1};
+    int32_t partition_id{};    // used by SampleToNodeMasterMessage
     //    int32_t num_columns{}; // used by: writeBuffersFromGPUTCP,
     //    readBuffersIntoGPUTCP, update everywhere! int32_t num_buffers{};
   };
@@ -79,14 +80,20 @@ public:
   BZ_INTERFACE(GPUMessage);
 };
 
-class GPUReceivedMessage : public Message  {
+class ReceivedMessage : public Message  {
 public:
-  explicit GPUReceivedMessage(std::string const &messageToken,
+  explicit ReceivedMessage(std::string const &messageToken,
                       uint32_t const &contextToken,
-                      const blazingdb::transport::experimental::Node &sender_node)
-      : Message{messageToken, contextToken, sender_node} {}
+                      const blazingdb::transport::experimental::Node &sender_node,
+                      bool is_sentinel = false)
+      : Message{messageToken, contextToken, sender_node}, _is_sentinel{is_sentinel} {}
 
-  BZ_INTERFACE(GPUReceivedMessage);
+  bool is_sentinel() { return _is_sentinel; }
+
+  BZ_INTERFACE(ReceivedMessage);
+
+private:
+  bool _is_sentinel;
 };
 
 } // namespace experimental 

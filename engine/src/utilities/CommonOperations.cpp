@@ -113,7 +113,7 @@ namespace experimental {
 
 
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables) {
-	assert(tables.size() > 0);
+	assert(tables.size() >= 0);
 
 	std::vector<std::unique_ptr<CudfTable>> temp_holder;
 	std::vector<std::string> names;

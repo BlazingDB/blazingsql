@@ -33,11 +33,11 @@ using StringsInfo = blazingdb::test::StringsInfo;
 
 typedef int nv_category_index_type;
 
-struct GPUComponentReceivedMessage : public GPUReceivedMessage {
-	GPUComponentReceivedMessage(uint32_t contextToken, const Node &sender_node,
+struct ReceivedDeviceMessage : public ReceivedMessage {
+	ReceivedDeviceMessage(uint32_t contextToken, const Node &sender_node,
 		std::uint64_t total_row_size,
 	const std::vector<gdf_column *> &samples)
-	: GPUReceivedMessage(GPUComponentReceivedMessage::MessageID(), contextToken, sender_node),
+	: ReceivedMessage(ReceivedDeviceMessage::MessageID(), contextToken, sender_node),
 	samples{samples} {
 		this->metadata().total_row_size = total_row_size;
 	}
@@ -182,7 +182,7 @@ public:
     return std::make_tuple(buffer_sizes, raw_buffers, column_offset, std::move(temp_scope_holder));
   }
 
-  static std::shared_ptr<GPUReceivedMessage> MakeFrom(
+  static std::shared_ptr<ReceivedMessage> MakeFrom(
       const Message::MetaData &message_metadata,
       const Address::MetaData &address_metadata,
       const std::vector<ColumnTransport> &columns_offsets,
@@ -248,7 +248,7 @@ public:
     for (gdf_column *column : received_samples) {
         blazingdb::test::print_gdf_column(column);
     }
-    return std::make_shared<GPUComponentReceivedMessage>(
+    return std::make_shared<ReceivedDeviceMessage>(
         message_metadata.contextToken, node, message_metadata.total_row_size,
         received_samples);
   }
@@ -352,7 +352,7 @@ private:
     {
       const std::string endpoint = GPUComponentMessage::MessageID();
       comm_server->registerEndPoint(endpoint);
-      comm_server->registerMessageForEndPoint(GPUComponentMessage::MakeFrom, endpoint);
+      comm_server->registerDeviceDeserializerForEndPoint(GPUComponentMessage::MakeFrom, endpoint);
     }
   }
 
@@ -425,6 +425,7 @@ static void ExecWorker() {
 
   auto message = CreateSampleToNodeMaster(context_token, *sender_node);
   RalClient::send(*server_node, *message);
+  
 }
 
 // TODO: move common code of TCP client and server to blazingdb::network in

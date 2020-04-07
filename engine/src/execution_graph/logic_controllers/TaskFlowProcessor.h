@@ -35,7 +35,7 @@
 #include "distribution/primitives.h"
 #include "config/GPUManager.cuh"
 #include "CacheMachine.h"
-#include "BlazingThread.h"
+#include "blazingdb/concurrency/BlazingThread.h"
 
 namespace ral {
 namespace cache {
@@ -112,12 +112,20 @@ enum class kernel_type {
 	MergeStreamKernel,
 	PartitionKernel,
 	SortAndSampleKernel,
-	AggregateKernel,
-	AggregateAndSampleKernel,
-	AggregatePartitionKernel,
-	AggregateMergeStreamKernel,
+	PartitionSingleNodeKernel,
+	SortAndSampleSingleNodeKernel,
+	LimitKernel,
+	AggregateKernel,  // this is the base AggregateKernel that gets replaced
+	ComputeAggregateKernel,
+	DistributeAggregateKernel,
+	MergeAggregateKernel,
+	AggregateAndSampleKernel, // to be deprecated
+	AggregatePartitionKernel, // to be deprecated
+	AggregateMergeStreamKernel, // to be deprecated
 	TableScanKernel,
-	BindableTableScanKernel
+	BindableTableScanKernel,
+	PartwiseJoinKernel,
+	JoinPartitionKernel
 };
 
 class kernel;
@@ -125,7 +133,7 @@ using kernel_pair = std::pair<kernel *, std::string>;
 
 class kernel {
 public:
-	kernel() : kernel_id(kernel::kernel_count) {
+	kernel(std::string expr = "") :  expr{expr}, kernel_id(kernel::kernel_count) {
 		kernel::kernel_count++;
 		parent_id_ = -1;
 	}
@@ -138,16 +146,21 @@ public:
 
 	kernel_pair operator[](const std::string & portname) { return std::make_pair(this, portname); }
 
-	std::int32_t get_id() { return (kernel_id); }
+	std::int32_t get_id() const { return (kernel_id); }
 
-	kernel_type get_type_id() { return kernel_type_id; }
+	kernel_type get_type_id() const { return kernel_type_id; }
 
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
+
+	virtual std::string expression() {
+		return expr;
+	}
 
 protected:
 	static std::size_t kernel_count;
 
 public:
+	std::string expr;
 	port input_{this};
 	port output_{this};
 	const std::size_t kernel_id;
@@ -244,9 +257,10 @@ enum spec : std::uint8_t { in = 0, out = 1 };
 static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cache_settings& config) {
 	size_t gpuMemory = ral::config::gpuMemorySize() * 0.75;
 	assert(gpuMemory > 0);
-	
-	std::vector<unsigned long long> memoryPerCache = {INT_MAX};
-	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::LOCAL_FILE};
+	size_t cpuMemory = ral::config::gpuMemorySize();
+
+	std::vector<unsigned long long> memoryPerCache = {cpuMemory, INT_MAX};
+	std::vector<ral::cache::CacheDataType> cachePolicyTypes = {ral::cache::CacheDataType::CPU, ral::cache::CacheDataType::LOCAL_FILE};
 	std::shared_ptr<ral::cache::CacheMachine> machine;
 	if (config.type == CacheType::NON_WAITING) {
 		machine =  std::make_shared<ral::cache::NonWaitingCacheMachine>(gpuMemory, memoryPerCache, cachePolicyTypes);
@@ -328,25 +342,25 @@ public:
 			auto source_id = Q.front();
 			Q.pop_front();
 			auto source = get_node(source_id);
-			if(not source) {
-				break;
-			}
-			for(auto edge : get_neighbours(source)) {
-				auto target_id = edge.target;
-				auto target = get_node(target_id);
-				auto edge_id = std::make_pair(source_id, target_id);
-				if(visited.find(edge_id) == visited.end()) {
-					visited.insert(edge_id);
-					Q.push_back(target_id);
-					BlazingThread t([this, source, target, edge] {
-					  auto state = source->run();
-					  if (state == kstatus::proceed) {
-						  source->output_.finish();
-					  }
-					});
-					threads.push_back(std::move(t));
-				} else {
-					// TODO: and circular graph is defined here. Report and error
+			if(source) {
+				for(auto edge : get_neighbours(source)) {
+					auto target_id = edge.target;
+					auto target = get_node(target_id);
+					auto edge_id = std::make_pair(source_id, target_id);
+					if(visited.find(edge_id) == visited.end()) {
+						visited.insert(edge_id);
+						Q.push_back(target_id);
+						BlazingThread t([this, source, target, edge] {
+						auto state = source->run();
+						if (state == kstatus::proceed) {
+							source->output_.finish();
+							std::cout << "[execute-finish]: id : " << std::to_string((int)source->get_type_id()) + "_" + std::to_string(source->get_id()) << std::endl;   
+						}
+						});
+						threads.push_back(std::move(t));
+					} else {
+						// TODO: and circular graph is defined here. Report and error
+					}
 				}
 			}
 		}
@@ -370,21 +384,21 @@ public:
 			auto source_id = Q.front();
 			Q.pop_front();
 			auto source = get_node(source_id);
-			if(not source) {
-				break;
-			}
-			for(auto edge : get_neighbours(source)) {
-				auto target_id = edge.target;
-				auto target = get_node(target_id);
-				auto edge_id = std::make_pair(source_id, target_id);
-				if(visited.find(edge_id) == visited.end()) {
-					std::cout << "source_id: " << source_id << " -> " << target_id << std::endl;
-					visited.insert(edge_id);
-					Q.push_back(target_id);
-				} else {
+			if(source) {
+				for(auto edge : get_neighbours(source)) {
+					auto target_id = edge.target;
+					auto target = get_node(target_id);
+					auto edge_id = std::make_pair(source_id, target_id);
+					if(visited.find(edge_id) == visited.end()) {
+						std::cout << "source_id: " << source_id << " -> " << target_id << std::endl;
+						visited.insert(edge_id);
+						Q.push_back(target_id);
+					} else {
 
+					}
 				}
 			}
+
 		}
 	}
 
@@ -407,7 +421,6 @@ public:
 		const cache_settings &config) {
 		add_node(source);
 		add_node(target);
-
 		Edge edge = {.source = (std::int32_t) source->get_id(),
 			.target = target->get_id(),
 			.source_port_name = source_port,
@@ -781,13 +794,13 @@ public:
 	virtual kstatus run() {
 		try {
 
-			while (not this->input_.get_cache("input_0")->is_finished())
+			while (this->input_.get_cache("input_0")->wait_for_next())
 			{
 				std::vector<ral::frame::BlazingTableView> partitions_to_merge;
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
 				for (size_t index = 0; index < this->input_.count(); index++) {
 					auto cache_id = "input_" + std::to_string(index);
-					if (not this->input_.get_cache(cache_id)->is_finished()) {
+					if (this->input_.get_cache(cache_id)->wait_for_next()) {
 						auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
 						if (input) {
 							partitions_to_merge.emplace_back(input->toBlazingTableView());
@@ -804,7 +817,7 @@ public:
 					for (auto view : partitions_to_merge)
 						ral::utilities::print_blazing_table_view(view);
 
-					auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression, this->context.get());
+					auto output = ral::operators::experimental::merge(partitions_to_merge, this->expression);
 
 //					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 
@@ -836,8 +849,9 @@ public:
 			frame_type input = std::move(this->input_.get_cache()->pullFromCache());
 			std::unique_ptr<ral::frame::BlazingTable> groupedTable;
 			std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
-			std::tie(groupedTable, partitionPlan) =
-				ral::operators::experimental::group_and_sample(input->toBlazingTableView(), this->expression, this->context.get());
+			// WSM commenting this out because groupby is being refactored and this is getting deprecated
+			// std::tie(groupedTable, partitionPlan) =
+			// 	ral::operators::experimental::group_and_sample(input->toBlazingTableView(), this->expression, this->context.get());
 
 			context->incrementQueryStep();
 			this->output_["output_a"]->addToCache(std::move(groupedTable));
@@ -875,16 +889,17 @@ public:
 				return kstatus::proceed;
 			}
 
-			if (context->getTotalNodes() > 1) {
-				partitionPlan = std::move(this->input_["input_b"]->pullFromCache());
-				partitions = ral::operators::experimental::partition_group(partitionPlan->toBlazingTableView(),
-																																	groupedTable->toBlazingTableView(),
-																																	this->expression,
-																																	this->context.get());
-			} else {
-				partitions =
-					ral::operators::experimental::partition_group({}, groupedTable->toBlazingTableView(), this->expression, this->context.get());
-			}
+			// WSM commenting this out because GroupBy was getting refactored and this will be deprecated
+			// if (context->getTotalNodes() > 1) {
+			// 	partitionPlan = std::move(this->input_["input_b"]->pullFromCache());
+			// 	partitions = ral::operators::experimental::partition_group(partitionPlan->toBlazingTableView(),
+			// 																														groupedTable->toBlazingTableView(),
+			// 																														this->expression,
+			// 																														this->context.get());
+			// } else {
+			// 	partitions =
+			// 		ral::operators::experimental::partition_group({}, groupedTable->toBlazingTableView(), this->expression, this->context.get());
+			// }
 			// for(auto& partition : partitions)
 			// 	ral::utilities::print_blazing_table_view(partition->toBlazingTableView());
 
@@ -976,13 +991,13 @@ public:
 	virtual kstatus run() {
 		try {
 
-			while (not this->input_.get_cache("input_0")->is_finished())
+			while (this->input_.get_cache("input_0")->wait_for_next())
 			{
 				std::vector<ral::frame::BlazingTableView> partitions_to_merge;
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge_holder;
 				for (size_t index = 0; index < this->input_.count(); index++) {
 					auto cache_id = "input_" + std::to_string(index);
-					if (not this->input_.get_cache(cache_id)->is_finished()) {
+					if (this->input_.get_cache(cache_id)->wait_for_next()) {
 						auto input = std::move(this->input_.get_cache(cache_id)->pullFromCache());
 						if (input) {
 							partitions_to_merge.emplace_back(input->toBlazingTableView());
@@ -1001,11 +1016,12 @@ public:
 					for (auto view : partitions_to_merge)
 						ral::utilities::print_blazing_table_view(view);
 
-					auto output = ral::operators::experimental::merge_group(partitions_to_merge, this->expression, this->context.get());
+					// WSM commenting this out because groupby is getting some refactoring and this should be getting deprecated soon
+					// auto output = ral::operators::experimental::merge_group(partitions_to_merge, this->expression, this->context.get());
 
-					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
+					// ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 
-					this->output_.get_cache()->addToCache(std::move(output));
+					// this->output_.get_cache()->addToCache(std::move(output));
 				}
 			}
 			
@@ -1130,7 +1146,7 @@ private:
 
 class OutputKernel : public kernel {
 public:
-	OutputKernel() : kernel() {  }
+	OutputKernel() : kernel("OutputKernel") {  }
 	virtual kstatus run() {
 		output = std::move(this->input_.get_cache()->pullFromCache());
 		return kstatus::stop;

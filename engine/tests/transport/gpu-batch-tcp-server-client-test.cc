@@ -14,18 +14,18 @@
 #include <memory>
 #include <numeric>
 #include <nvstrings/NVCategory.h>
-
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <cudf/column/column_factories.hpp>
 #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <from_cudf/cpp_tests/utilities/type_lists.hpp>
 #include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-// #include <from_cudf/cpp_tests/utilities/legacy/cudf_test_utils.cuh>
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
+#include <execution_graph/logic_controllers/TaskFlowProcessor.h>
 
 using ral::communication::messages::experimental::SampleToNodeMasterMessage;
 using ral::communication::messages::experimental::ReceivedDeviceMessage;
+using ral::communication::messages::experimental::ReceivedHostMessage;
 
 using ral::communication::network::experimental::Client;
 using ral::communication::network::experimental::Node;
@@ -48,28 +48,44 @@ void expect_column_data_equal(std::vector<T> const& lhs,
 }
 
 
-static void ExecMaster() {
+void ExecMaster() {
 	cuInit(0);
 	// Run server
-	Server::start(8000);
+	Server::start(8000, true);
 
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
 	Server::getInstance().registerContext(context_token);
-	BlazingThread([]() {
-		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
-		auto message = Server::getInstance().getMessage(context_token, message_token);
-		//TODO
-		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
+	auto cache_machine = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
+	// auto cache_machine = std::make_shared<ral::cache::HostCacheMachine>();
+
+	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
+	Server::getInstance().registerListener(context_token, message_token, 
+		[cache_machine](uint32_t context_token, std::string message_token, int event_id){
+			if (event_id > 0) {
+				auto message = Server::getInstance().getMessage(context_token, message_token);
+				auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
+				auto host_table = concreteMessage->releaseBlazingTable();
+				cache_machine->addToCache(std::move(host_table));
+			}	else {
+				std::cout << "LAST EVENT" << std::endl;
+				cache_machine->finish();
+			}
+		});
+
+	BlazingThread([cache_machine]() {
+		auto table = cache_machine->pullFromCache();
+		assert(table != nullptr);
+		// auto table = ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
 		std::cout << "message received\n";
-		auto  table_view = concreteMessage->releaseBlazingTable();
-		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table_view->view().column(0));
-	    cudf::test::strings_column_wrapper expected({"d", "e", "a", "d", "k", "d", "l", "a", "b", "c"}, {1, 0, 1, 1, 1, 1, 1, 1, 0 , 1});
-		cudf::test::expect_columns_equal(table_view->view().column(4), expected);
+		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table->view().column(0));
+		cudf::test::strings_column_wrapper expected({"d", "e", "a", "d", "k", "d", "l", "a", "b", "c"}, {1, 0, 1, 1, 1, 1, 1, 1, 0 , 1});
+		cudf::test::expect_columns_equal(table->view().column(4), expected);		
+		std::this_thread::sleep_for (std::chrono::seconds(1));
 	}).join();
 }
 
-static void ExecWorker() {
+void ExecWorker() {
 	cuInit(0);
 	// todo get GPU_MEMORY_SIZE
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
@@ -86,11 +102,12 @@ static void ExecWorker() {
 	auto message = std::make_shared<SampleToNodeMasterMessage>(message_token, context_token, sender_node, table_view, total_row_size);
 
 	Client::send(server_node, *message);
+	Client::notifyLastMessageEvent(server_node, message->metadata());
 	std::this_thread::sleep_for (std::chrono::seconds(1));
 }
 
 
-struct SendSamplesTest : public ::testing::Test {
+struct SendBatchSamplesTest : public ::testing::Test {
 
   void SetUp() { ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS); }
 
@@ -101,7 +118,7 @@ struct SendSamplesTest : public ::testing::Test {
 // TODO: move common code of TCP client and server to blazingdb::network in order to be shared by manager and transport
 // TODO: check when the ip, port is busy, return exception!
 // TODO: check when the message is not registered, or the wrong message is registered
-TEST_F(SendSamplesTest, MasterAndWorker) {
+TEST_F(SendBatchSamplesTest, MasterAndWorker) {
 	if(fork() > 0) {
 		ExecMaster();
 	} else {
@@ -109,14 +126,14 @@ TEST_F(SendSamplesTest, MasterAndWorker) {
 	}
 }
 
-// // // TO use in separate process by:
-// // // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Master
-// TEST_F(SendSamplesTest, Master) {
+// // TO use in separate process by:
+// // ./blazingdb-communication-gtest --gtest_filter=SendBatchSamplesTest.Master
+// TEST_F(SendBatchSamplesTest, Master) {
 //    ExecMaster();
 //  }
-//
-//
-// //  // ./blazingdb-communication-gtest --gtest_filter=SendSamplesTest.Worker
-// TEST_F(SendSamplesTest, Worker) {
+
+
+// //  // ./blazingdb-communication-gtest --gtest_filter=SendBatchSamplesTest.Worker
+// TEST_F(SendBatchSamplesTest, Worker) {
 //    ExecWorker();
 //  }

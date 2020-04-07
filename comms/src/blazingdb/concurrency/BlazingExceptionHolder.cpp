@@ -1,4 +1,4 @@
-#include "BlazingExceptionHolder.h"
+#include "blazingdb/concurrency/BlazingExceptionHolder.h"
 #include <utility>
 
 BlazingExceptionHolder::BlazingExceptionHolder() : detached{false}, completed{false}, exception{nullptr} {}

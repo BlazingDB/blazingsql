@@ -26,6 +26,7 @@
 #include "utilities/CommonOperations.h"
 #include "utilities/DebuggingUtils.h"
 #include "utilities/random_generator.cuh"
+#include "Utils.cuh"
 
 namespace ral {
 namespace distribution {
@@ -39,7 +40,8 @@ typedef ral::communication::messages::experimental::Factory Factory;
 typedef ral::communication::messages::experimental::SampleToNodeMasterMessage SampleToNodeMasterMessage;
 typedef ral::communication::messages::experimental::PartitionPivotsMessage PartitionPivotsMessage;
 typedef ral::communication::messages::experimental::ColumnDataMessage ColumnDataMessage;
-typedef ral::communication::messages::experimental::GPUComponentReceivedMessage GPUComponentReceivedMessage;
+typedef ral::communication::messages::experimental::ColumnDataPartitionMessage ColumnDataPartitionMessage;
+typedef ral::communication::messages::experimental::ReceivedDeviceMessage ReceivedDeviceMessage;
 typedef ral::communication::experimental::CommunicationData CommunicationData;
 typedef ral::communication::network::experimental::Server Server;
 typedef ral::communication::network::experimental::Client Client;
@@ -87,7 +89,7 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 				std::to_string(context->getQuerySubstep()),
 				"ERROR: Already received collectSamples from node " + std::to_string(node_idx)));
 		}
-		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		table_total_rows.push_back(concreteMessage->getTotalRowSize());
 		nodeColumns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
 		received[node_idx] = true;
@@ -98,21 +100,14 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
-				Context * context, std::vector<BlazingTableView> & samples,
-				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes) {
+				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples, 
+				const std::vector<std::size_t> & table_total_rows, const std::vector<cudf::order> & sortOrderTypes) {
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
-	std::vector<cudf::order> column_order;
-	for(auto col_order : sortOrderTypes){
-		if(col_order)
-			column_order.push_back(cudf::order::DESCENDING);
-		else
-			column_order.push_back(cudf::order::ASCENDING);
-	}
-	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
+	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 	// TODO this is just a default setting. Will want to be able to properly set null_order
-	std::unique_ptr<cudf::column> sort_indices = cudf::experimental::sorted_order( concatSamples->view(), column_order, null_orders);
+	std::unique_ptr<cudf::column> sort_indices = cudf::experimental::sorted_order( concatSamples->view(), sortOrderTypes, null_orders);
 
 	std::unique_ptr<CudfTable> sortedSamples = cudf::experimental::gather( concatSamples->view(), sort_indices->view() );
 
@@ -125,7 +120,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 		}
 	}
 
-	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
+	return getPivotPointsTable(number_partitions, BlazingTableView(sortedSamples->view(), names));
 }
 
 void distributePartitionPlan(Context * context, const BlazingTableView & pivots) {
@@ -147,7 +142,7 @@ std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 
 	auto message = Server::getInstance().getMessage(context_token, message_id);
 
-	auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+	auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 	return concreteMessage->releaseBlazingTable();
 }
 
@@ -159,15 +154,9 @@ std::vector<NodeColumnView> partitionData(Context * context,
 											const BlazingTableView & table,
 											const BlazingTableView & pivots,
 											const std::vector<int> & searchColIndices,
-											std::vector<int8_t> sortOrderTypes) {
+											std::vector<cudf::order> sortOrderTypes) {
 
-	// verify input
-	if(pivots.view().num_columns() == 0) {
-		throw std::runtime_error("The pivots array is empty");
-	}
-	if(pivots.view().num_columns() != searchColIndices.size()) {
-		throw std::runtime_error("The pivots and searchColIndices vectors don't have the same size");
-	}
+	RAL_EXPECTS(pivots.view().num_columns() == searchColIndices.size(), "Mismatched pivots num_columns and searchColIndices");
 
 	cudf::size_type num_rows = table.view().num_rows();
 	if(num_rows == 0) {
@@ -180,24 +169,17 @@ std::vector<NodeColumnView> partitionData(Context * context,
 	}
 
 	if(sortOrderTypes.size() == 0) {
-		sortOrderTypes.assign(searchColIndices.size(), 0);
+		sortOrderTypes.assign(searchColIndices.size(), cudf::order::ASCENDING);
 	}
 
-	std::vector<cudf::order> column_order;
-	for(auto col_order : sortOrderTypes){
-		if(col_order)
-			column_order.push_back(cudf::order::DESCENDING);
-		else
-			column_order.push_back(cudf::order::ASCENDING);
-	}
 	// TODO this is just a default setting. Will want to be able to properly set null_order
-	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
+	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 
 	CudfTableView columns_to_search = table.view().select(searchColIndices);
 
 	std::unique_ptr<cudf::column> pivot_indexes = cudf::experimental::upper_bound(columns_to_search,
                                     pivots.view(),
-                                    column_order,
+                                    sortOrderTypes,
                                     null_orders);
 
 	std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
@@ -207,16 +189,59 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 	std::vector<Node> all_nodes = context->getAllNodes();
 
-	if(all_nodes.size() != partitioned_data.size()){
-		std::string err = "Number of CudfTableView from partitionData does not match number of nodes";
-		Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context->getContextToken()), std::to_string(context->getQueryStep()), std::to_string(context->getQuerySubstep()), err));
-	}
-	std::vector<NodeColumnView> partitioned_node_column_views;
-	for (int i = 0; i < all_nodes.size(); i++){
-		partitioned_node_column_views.push_back(std::make_pair(all_nodes[i], BlazingTableView(partitioned_data[i], table.names())));
-	}
-	return partitioned_node_column_views;
+	RAL_EXPECTS(all_nodes.size() <= partitioned_data.size(), "Number of table partitions is smalled than total nodes");
 
+	int step = static_cast<int>(partitioned_data.size() / all_nodes.size());
+	std::vector<NodeColumnView> partitioned_node_column_views;
+	for (int i = 0; i < partitioned_data.size(); i++){
+		int node_idx = std::min(i / step, static_cast<int>(all_nodes.size() - 1));
+		partitioned_node_column_views.push_back(std::make_pair(all_nodes[node_idx], BlazingTableView(partitioned_data[i], table.names())));
+	}
+	
+	return partitioned_node_column_views;
+}
+
+void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
+
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
+
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	std::vector<BlazingThread> threads;
+	for (auto i = 0; i < partitions.size(); i++){
+		auto & nodeColumn = partitions[i];
+		if(nodeColumn.first == self_node) {
+			continue;
+		}
+		BlazingTableView columns = nodeColumn.second;
+		auto destination_node = nodeColumn.first;
+		int partition_id = static_cast<int>(i);
+		threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns, partition_id]() mutable {
+			auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
+			Client::send(destination_node, *message);
+		}));
+	}
+	for(size_t i = 0; i < threads.size(); i++) {
+		threads[i].join();
+	}
+}
+
+void notifyLastTablePartitions(Context * context) {
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const uint32_t context_token = context->getContextToken();
+	const std::string message_id = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
+
+	auto self_node = CommunicationData::getInstance().getSelfNode();
+	auto nodes = context->getAllNodes();
+	for(std::size_t i = 0; i < nodes.size(); ++i) {
+		if(!(nodes[i] == self_node)) {
+			blazingdb::transport::experimental::Message::MetaData metadata;
+			std::strcpy(metadata.messageToken, message_id.c_str());
+			metadata.contextToken = context_token;
+			Client::notifyLastMessageEvent(nodes[i], metadata);
+		}
+	}
 }
 
 void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
@@ -226,14 +251,14 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<std::thread> threads;
+	std::vector<BlazingThread> threads;
 	for(auto & nodeColumn : partitions) {
 		if(nodeColumn.first == self_node) {
 			continue;
 		}
 		BlazingTableView columns = nodeColumn.second;
 		auto destination_node = nodeColumn.first;
-		threads.push_back(std::thread([message_id, context_token, self_node, destination_node, columns]() mutable {
+		threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns]() mutable {
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
 		}));
@@ -274,7 +299,7 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 				std::to_string(context->getQuerySubstep()),
 				"ERROR: Already received collectSomePartitions from node " + std::to_string(node_idx)));
 		}
-		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		node_columns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
 		received[node_idx] = true;
 	}
@@ -294,25 +319,18 @@ void scatterData(Context * context, const BlazingTableView & table) {
 }
 
 std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
-	const std::vector<int8_t> & sortOrderTypes,
+	const std::vector<cudf::order> & sortOrderTypes,
 	const std::vector<int> & sortColIndices) {
 
-	std::vector<cudf::order> column_order;
-	for(auto col_order : sortOrderTypes){
-		if(col_order)
-			column_order.push_back(cudf::order::DESCENDING);
-		else
-			column_order.push_back(cudf::order::ASCENDING);
-	}
 	// TODO this is just a default setting. Will want to be able to properly set null_order
-	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
+	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 
 	std::unique_ptr<CudfTable> merged_table;
 	CudfTableView left_table = tables[0].view();
 	
 	for(size_t i = 1; i < tables.size(); i++) {
 		CudfTableView right_table = tables[i].view();
-		merged_table = cudf::experimental::merge({left_table, right_table}, sortColIndices, column_order, null_orders);
+		merged_table = cudf::experimental::merge({left_table, right_table}, sortColIndices, sortOrderTypes, null_orders);
 		left_table = merged_table->view();
 	}
 
@@ -328,12 +346,12 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 }
 
 
-std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const BlazingTableView & sortedSamples){
+std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partitions, const BlazingTableView & sortedSamples){
 
 	cudf::size_type outputRowSize = sortedSamples.view().num_rows();
-	cudf::size_type pivotsSize = outputRowSize > 0 ? context->getTotalNodes() - 1 : 0;
+	cudf::size_type pivotsSize = outputRowSize > 0 ? number_partitions - 1 : 0;
 
-	int32_t step = outputRowSize / context->getTotalNodes();
+	int32_t step = outputRowSize / number_partitions;
 
 	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
 	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);
@@ -368,7 +386,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, s
 		}
 	}
 
-	return getPivotPointsTable(context, BlazingTableView(sortedSamples->view(), names));
+	return getPivotPointsTable(context->getTotalNodes(), BlazingTableView(sortedSamples->view(), names));
 }
 
 std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
@@ -381,10 +399,10 @@ std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
 
 void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message) {
-	std::vector<std::thread> threads(nodes.size());
+	std::vector<BlazingThread> threads(nodes.size());
 	for(size_t i = 0; i < nodes.size(); i++) {
 		Node node = nodes[i];
-		threads[i] = std::thread([node, message]() {
+		threads[i] = BlazingThread([node, message]() {
 			Client::send(node, *message);
 		});
 	}
@@ -393,7 +411,7 @@ void broadcastMessage(std::vector<Node> nodes,
 	}
 }
 
-void distributeNumRows(Context * context, cudf::size_type num_rows) {
+void distributeNumRows(Context * context, int64_t num_rows) {
 	
 	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
@@ -406,10 +424,10 @@ void distributeNumRows(Context * context, cudf::size_type num_rows) {
 	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
 }
 
-std::vector<cudf::size_type> collectNumRows(Context * context) {
+std::vector<int64_t> collectNumRows(Context * context) {
 	
 	int num_nodes = context->getTotalNodes();
-	std::vector<cudf::size_type> node_num_rows(num_nodes);
+	std::vector<int64_t> node_num_rows(num_nodes);
 	std::vector<bool> received(num_nodes, false);
 
 	std::string context_comm_token = context->getContextCommunicationToken();
@@ -419,7 +437,7 @@ std::vector<cudf::size_type> collectNumRows(Context * context) {
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
-		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);
@@ -468,7 +486,7 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
-		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		std::unique_ptr<BlazingTable> num_rows_data = concrete_message->releaseBlazingTable();
 		assert(num_rows_data->view().num_columns() == 1);
@@ -527,7 +545,7 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
-		auto concrete_message = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		std::unique_ptr<BlazingTable> num_bytes_data = concrete_message->releaseBlazingTable();
 		assert(num_bytes_data->view().num_columns() == 1);

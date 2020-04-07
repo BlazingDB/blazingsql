@@ -28,6 +28,15 @@ public:
 			return nullptr; // TODO cordova ask ALexander why is not a pure virtual function as before
 	}
 
+	virtual std::unique_ptr<ral::frame::BlazingTable> parse_batch(
+		std::shared_ptr<arrow::io::RandomAccessFile> file,
+		const std::string & user_readable_file_handle,
+		const Schema & schema,
+		std::vector<size_t> column_indices,
+		size_t row_group) {
+		return nullptr; // TODO cordova ask ALexander why is not a pure virtual function as before
+	}
+
 	virtual void parse_schema(
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) = 0;
 
@@ -35,6 +44,8 @@ public:
 		return nullptr;
 	}
 };
+
+std::pair<std::vector<int>, std::vector<int> > get_groups(const Schema & schema);
 
 } /* namespace io */
 } /* namespace ral */

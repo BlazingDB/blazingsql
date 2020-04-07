@@ -45,6 +45,13 @@ std::vector<std::string> BlazingTable::names() const{
 	return this->columnNames;
 }
 
+std::vector<cudf::data_type> BlazingTable::get_schema() const {
+	std::vector<cudf::data_type> data_types(this->num_columns());
+	auto view = this->view();
+	std::transform(view.begin(), view.end(), data_types.begin(), [](auto & col){ return col.type(); });
+	return data_types;
+}
+
 BlazingTableView BlazingTable::toBlazingTableView() const{
 	return BlazingTableView(this->view(), this->columnNames);
 }
@@ -114,6 +121,13 @@ std::vector<std::unique_ptr<BlazingColumn>> BlazingTableView::toBlazingColumns()
 
 std::vector<std::string> BlazingTableView::names() const{
 	return this->columnNames;
+}
+
+std::vector<cudf::data_type> BlazingTableView::get_schema() {
+	std::vector<cudf::data_type> data_types(this->num_columns());
+	auto view = this->view();
+	std::transform(view.begin(), view.end(), data_types.begin(), [](auto & col){ return col.type(); });
+	return data_types;
 }
 
 std::unique_ptr<BlazingTable> BlazingTableView::clone() const {

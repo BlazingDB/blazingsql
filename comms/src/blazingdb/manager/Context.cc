@@ -22,6 +22,7 @@ std::shared_ptr<Context> Context::clone() {
   auto ptr = std::make_shared<Context>(this->token_, this->taskNodes_, this->masterNode_, this->logicalPlan_);
   ptr->query_step = this->query_step;
   ptr->query_substep = this->query_substep;
+  ptr->kernel_id_ = this->kernel_id_;
   return ptr;
 }
 

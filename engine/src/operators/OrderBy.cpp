@@ -12,12 +12,17 @@
 #include <functional>
 #include <iostream>
 #include <numeric>
-#include <thread>
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>
+#include <cudf/search.hpp>
 #include <cudf/strings/copying.hpp>
 #include <cudf/table/table_view.hpp>
 #include <cudf/column/column_factories.hpp>
+#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
+#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
+
+#include "utilities/CommonOperations.h"
+#include "utilities/DebuggingUtils.h"
 
 namespace ral {
 namespace operators {
@@ -32,32 +37,21 @@ const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
 
 std::unique_ptr<ral::frame::BlazingTable> logicalSort(
-  const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<int8_t> & sortOrderTypes){
-
-	std::vector<cudf::order> column_order;
-	for(auto col_order : sortOrderTypes){
-		if(col_order)
-			column_order.push_back(cudf::order::DESCENDING);
-		else
-			column_order.push_back(cudf::order::ASCENDING);
-	}
+  const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<cudf::order> & sortOrderTypes){
 
 	CudfTableView sortColumns = table.view().select(sortColIndices);
 
 	/*ToDo: Edit this according the Calcite output*/
 	std::vector<cudf::null_order> null_orders(sortColIndices.size(), cudf::null_order::AFTER);
 
-	std::unique_ptr<cudf::column> output = cudf::experimental::sorted_order( sortColumns, column_order, null_orders );
+	std::unique_ptr<cudf::column> output = cudf::experimental::sorted_order( sortColumns, sortOrderTypes, null_orders );
 
 	std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::gather( table.view(), output->view() );
 
 	return std::make_unique<ral::frame::BlazingTable>( std::move(gathered), table.names() );
   }
 
-std::unique_ptr<cudf::experimental::table> logicalLimit(
-	const cudf::table_view& table,
-	cudf::size_type limitRows)
-{
+std::unique_ptr<cudf::experimental::table> logicalLimit(const cudf::table_view& table, cudf::size_type limitRows) {
 	assert(limitRows < table.num_rows());
 
 	if (limitRows == 0) {
@@ -86,7 +80,7 @@ std::unique_ptr<cudf::experimental::table> logicalLimit(
 }
 
 std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
-	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<int8_t> & sortOrderTypes){
+	const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, const std::vector<cudf::order> & sortOrderTypes){
 
 	static CodeTimer timer;
 	timer.reset();
@@ -102,10 +96,10 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	timer.reset();
 
 	std::unique_ptr<ral::frame::BlazingTable> sortedTable;
-	std::thread sortThread{[](Context * context,
+	BlazingThread sortThread{[](Context * context,
 							   const ral::frame::BlazingTableView & table,
 							   const std::vector<int> & sortColIndices,
-							   const std::vector<int8_t> & sortOrderTypes,
+							   const std::vector<cudf::order> & sortOrderTypes,
 							   std::unique_ptr<ral::frame::BlazingTable> & sortedTable) {
 							   static CodeTimer timer2;
 							   sortedTable = logicalSort(table, sortColIndices, sortOrderTypes);
@@ -135,7 +129,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 		std::vector<size_t> total_rows_tables = samples_pair.second;
 		total_rows_tables.push_back(total_rows_table);
 
-		partitionPlan = generatePartitionPlans(context, samples, total_rows_tables, sortOrderTypes);
+		partitionPlan = generatePartitionPlans(context->getTotalNodes(), samples, total_rows_tables, sortOrderTypes);
 
 		context->incrementQuerySubstep();
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
@@ -193,15 +187,15 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 	return merged;
 }
 
-cudf::size_type determine_local_limit(Context * context, cudf::size_type local_num_rows, cudf::size_type limit_rows){
+int64_t determine_local_limit(Context * context, int64_t local_num_rows, cudf::size_type limit_rows){
 	context->incrementQuerySubstep();
 	ral::distribution::experimental::distributeNumRows(context, local_num_rows);
 
-	std::vector<cudf::size_type> nodesRowSize = ral::distribution::experimental::collectNumRows(context);
+	std::vector<int64_t> nodesRowSize = ral::distribution::experimental::collectNumRows(context);
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	cudf::size_type prev_total_rows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, 0);
+	int64_t prev_total_rows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, 0);
 
-	return std::min(std::max(limit_rows - prev_total_rows, 0), local_num_rows);
+	return std::min(std::max(limit_rows - prev_total_rows, int64_t{0}), local_num_rows);
 }
 
 std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
@@ -214,12 +208,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 
 	size_t num_sort_columns = count_string_occurrence(combined_expression, "sort");
 
-	std::vector<int8_t> sortOrderTypes(num_sort_columns);
+	std::vector<cudf::order> sortOrderTypes(num_sort_columns);
 	std::vector<int> sortColIndices(num_sort_columns);
 	for(int i = 0; i < num_sort_columns; i++) {
 		sortColIndices[i] = get_index(get_named_expression(combined_expression, "sort" + std::to_string(i)));
-		sortOrderTypes[i] =
-			(get_named_expression(combined_expression, "dir" + std::to_string(i)) == DESCENDING_ORDER_SORT_TEXT);
+		sortOrderTypes[i] = (get_named_expression(combined_expression, "dir" + std::to_string(i)) == ASCENDING_ORDER_SORT_TEXT ? cudf::order::ASCENDING : cudf::order::DESCENDING);
 	}
 
 	std::unique_ptr<ral::frame::BlazingTable> out_blz_table;
@@ -241,7 +234,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 		}
 
 		if(limitRows >= 0) {
-			limitRows = determine_local_limit(context, table_view.num_rows(), limitRows);
+			limitRows = static_cast<cudf::size_type>(determine_local_limit(context, table_view.num_rows(), limitRows));
 
 			if(limitRows >= 0 && limitRows < table_view.num_rows()) {
 				auto out_table = logicalLimit(table_view, limitRows);
@@ -255,65 +248,128 @@ std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::Blazing
 		out_blz_table = table.clone();
 	}
 
-
-	
 	return out_blz_table;
 }
 
-std::pair<std::vector<int8_t>, std::vector<int> > getSortIndecesAndTypes(std::string combined_expression){
-	size_t num_sort_columns = count_string_occurrence(combined_expression, "sort");
-	std::vector<int8_t> sortOrderTypes(num_sort_columns);
-	std::vector<int> sortColIndices(num_sort_columns);
-	for(int i = 0; i < num_sort_columns; i++) {
-		sortColIndices[i] = get_index(get_named_expression(combined_expression, "sort" + std::to_string(i)));
-		sortOrderTypes[i] =
-			(get_named_expression(combined_expression, "dir" + std::to_string(i)) == DESCENDING_ORDER_SORT_TEXT);
-	}
-	return std::make_pair(sortOrderTypes,sortColIndices);
-}
-std::pair<std::string,cudf::size_type> getCombinedExpressionAndLimit(const std::string & query_part){
+auto get_sort_vars(const std::string & query_part) {
 	auto rangeStart = query_part.find("(");
 	auto rangeEnd = query_part.rfind(")") - rangeStart - 1;
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
+
+	int num_sort_columns = count_string_occurrence(combined_expression, "sort");
+	
+	std::vector<int> sortColIndices(num_sort_columns);
+	std::vector<cudf::order> sortOrderTypes(num_sort_columns);
+	for(auto i = 0; i < num_sort_columns; i++) {
+		sortColIndices[i] = get_index(get_named_expression(combined_expression, "sort" + std::to_string(i)));
+		sortOrderTypes[i] = (get_named_expression(combined_expression, "dir" + std::to_string(i)) == ASCENDING_ORDER_SORT_TEXT ? cudf::order::ASCENDING : cudf::order::DESCENDING);
+	}
+
 	std::string limitRowsStr = get_named_expression(combined_expression, "fetch");
 	cudf::size_type limitRows = !limitRowsStr.empty() ? std::stoi(limitRowsStr) : -1;
-	return std::make_pair(combined_expression,limitRows);
+
+	return std::make_tuple(sortColIndices, sortOrderTypes, limitRows);
 }
 
-auto get_sorted_vars(const std::string & query_part) {
-	auto combinedAndLimit = getCombinedExpressionAndLimit(query_part);
-	std::string combined_expression = combinedAndLimit.first;
-	cudf::size_type limitRows = combinedAndLimit.second;
-	bool apply_limit = (limitRows == -1);
-	auto indexAndTypes = getSortIndecesAndTypes(combined_expression);
-	std::vector<int8_t> sortOrderTypes = indexAndTypes.first;
-	std::vector<int> sortColIndices = indexAndTypes.second;
-	return std::make_tuple(sortColIndices, sortOrderTypes, apply_limit);
-}
-
-std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context){
-	std::vector<int8_t> sortOrderTypes;
+bool has_limit_only(const std::string & query_part){
 	std::vector<int> sortColIndices;
-	bool apply_limit;
-	std::tie(sortColIndices, sortOrderTypes, apply_limit) = get_sorted_vars(query_part);
+	std::tie(sortColIndices, std::ignore, std::ignore) = get_sort_vars(query_part);
 
-	CodeTimer timer2;
-	auto sortedTable = logicalSort(table, sortColIndices, sortOrderTypes);
-	Library::Logging::Logger().logInfo(
-		timer2.logDuration(*context, "distributed_sort part 2 async sort"));
-	timer2.reset();
-	return sortedTable;
+	return sortColIndices.empty();
 }
 
-std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context){
-	std::vector<int8_t> sortOrderTypes;
-	std::vector<int> sortColIndices;
-	bool apply_limit;
-	std::tie(sortColIndices, sortOrderTypes, apply_limit) = get_sorted_vars(query_part);
+int64_t get_local_limit(int64_t total_batch_rows, const std::string & query_part, Context * context){
+	cudf::size_type limitRows;
+	std::tie(std::ignore, std::ignore, limitRows) = get_sort_vars(query_part);
 
-	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), table.names());
+	if(context->getTotalNodes() > 1 && limitRows >= 0) {
+		limitRows = determine_local_limit(context, total_batch_rows, limitRows);
+	}
+
+	return limitRows;
+}
+
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, int64_t>
+limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_limit) {
+
+	cudf::size_type table_rows = table->num_rows();
+	if (num_rows_limit <= 0) {
+		return std::make_pair(std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(table->view()), table->names()), 0);
+	} else if (num_rows_limit >= table_rows)	{
+		return std::make_pair(std::move(table), num_rows_limit - table_rows);
+	} else {
+		return std::make_pair(std::make_unique<ral::frame::BlazingTable>(logicalLimit(table->view(), num_rows_limit), table->names()), 0);
+	}
+}
+
+std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part){
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	cudf::size_type limitRows;
+	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	return logicalSort(table, sortColIndices, sortOrderTypes);
+}
+
+std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part){
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	cudf::size_type limitRows;
+	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	auto tableNames = table.names();
+	std::vector<std::string> sortColNames(sortColIndices.size());
+  std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
+	
+	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), sortColNames);
 
 	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(sortColumns, 0.1);
+	return selfSamples;
+}
+
+std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_type number_partitions, const std::vector<ral::frame::BlazingTableView> & samples, const std::vector<size_t> & total_rows_tables, const std::string & query_part){
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	cudf::size_type limitRows;
+	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	// Normalize indices, samples contains the filtered columns
+	std::iota(sortColIndices.begin(), sortColIndices.end(), 0);
+
+	auto concat_samples = ral::utilities::experimental::concatTables(samples);
+	auto sorted_samples = logicalSort(concat_samples->toBlazingTableView(), sortColIndices, sortOrderTypes);
+
+	// ral::utilities::print_blazing_table_view(sorted_samples->toBlazingTableView());
+
+	return generatePartitionPlans(number_partitions, samples, total_rows_tables, sortOrderTypes);
+}
+
+std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part) {
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	cudf::size_type limitRows;
+	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	// TODO this is just a default setting. Will want to be able to properly set null_order
+	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
+
+	cudf::table_view columns_to_search = sortedTable.view().select(sortColIndices);
+	auto pivot_indexes = cudf::experimental::upper_bound(columns_to_search,
+																											partitionPlan.view(),
+																											sortOrderTypes,
+																											null_orders);
+
+	auto host_pivot_indexes = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
+	std::vector<cudf::size_type> split_indexes(host_pivot_indexes.first.begin(), host_pivot_indexes.first.end());
+	return cudf::experimental::split(sortedTable.view(), split_indexes);
+}
+
+std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(cudf::size_type number_partitions, const ral::frame::BlazingTableView & selfSamples, size_t table_num_rows, const std::string & query_part, Context * context){
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	cudf::size_type limitRows;
+	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 	if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
 		context->incrementQuerySubstep();
@@ -322,27 +378,53 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 		for (int i = 0; i < samples_pair.first.size(); i++){
 			samples.push_back(samples_pair.first[i].second->toBlazingTableView());
 		}
-		samples.push_back(selfSamples->toBlazingTableView());
+		samples.push_back(selfSamples);
 		std::vector<size_t> total_rows_tables = samples_pair.second;
-		total_rows_tables.push_back(table.view().num_rows());
-		partitionPlan = generatePartitionPlans(context, samples, total_rows_tables, sortOrderTypes);
+		total_rows_tables.push_back(table_num_rows);
+		partitionPlan = generatePartitionPlans(number_partitions, samples, total_rows_tables, sortOrderTypes);
 		context->incrementQuerySubstep();
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
 	} else {
 		context->incrementQuerySubstep();
-		sendSamplesToMaster(context, selfSamples->toBlazingTableView(), table.view().num_rows());
+		sendSamplesToMaster(context, selfSamples, table_num_rows);
 		context->incrementQuerySubstep();
 		partitionPlan = getPartitionPlan(context);
 	}
 	return partitionPlan;
 }
 
+std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>>
+distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
+													const ral::frame::BlazingTableView & sortedTable,
+													const std::string & query_part,
+													blazingdb::manager::experimental::Context * context) {
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	cudf::size_type limitRows;
+	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	std::vector<NodeColumnView> partitions = partitionData(context, sortedTable, partitionPlan, sortColIndices, sortOrderTypes);
+
+	distributeTablePartitions(context, partitions);
+	
+	std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>> self_partitions;
+	for (size_t i = 0; i < partitions.size(); i++) {
+		auto & partition = partitions[i];
+		if(partition.first == CommunicationData::getInstance().getSelfNode()) {
+			std::unique_ptr<ral::frame::BlazingTable> table = partition.second.clone();
+			self_partitions.emplace_back(i, std::move(table));
+		}
+	}
+	return self_partitions;
+}
+
 std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable>>
 sort_and_sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
-	auto sortedTable = sort(table, query_part, context);
+	auto sortedTable = sort(table, query_part);
+	auto tableSamples = sample(table, query_part);
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan = nullptr;
 	if(context->getTotalNodes() > 1) {
-		partitionPlan = sample(table, query_part, context);
+		partitionPlan = generate_distributed_partition_plan(context->getTotalNodes() - 1, tableSamples->toBlazingTableView(), sortedTable->view().num_rows(), query_part, context);
 	}
 	return std::make_pair(std::move(sortedTable), std::move(partitionPlan));
 }
@@ -357,14 +439,16 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition_sort(const ral:
 		v.push_back(std::move(sortedTable.clone()));
 		return v;
 	}
-	std::vector<int8_t> sortOrderTypes;
+	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
-	bool apply_limit;
-	std::tie(sortColIndices, sortOrderTypes, apply_limit) = get_sorted_vars(query_part);
+	cudf::size_type limitRows;
+	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
 	std::vector<NodeColumnView> partitions = partitionData(context, sortedTable, partitionPlan, sortColIndices, sortOrderTypes);
 
 	distributePartitions(context, partitions);
+
+	context->incrementQuerySubstep();
 	std::vector<NodeColumn> collected_partitions = collectPartitions(context);
 
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge;
@@ -382,11 +466,11 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition_sort(const ral:
 	return partitions_to_merge;
 }
 
-std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part, Context * context) {
-	std::vector<int8_t> sortOrderTypes;
+std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part) {
+	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
-	bool apply_limit;
-	std::tie(sortColIndices, sortOrderTypes, apply_limit) = get_sorted_vars(query_part);
+	cudf::size_type limitRows;
+	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 	return sortedMerger(partitions_to_merge, sortOrderTypes, sortColIndices);
 }
 

@@ -110,6 +110,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${CMAKE_SOURCE_DIR}/src/io/Schema.cpp
+              ${CMAKE_SOURCE_DIR}/src/io/data_parser/DataParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/JSONParser.cpp
@@ -136,8 +137,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TableScan.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingThread.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingExceptionHolder.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TaskFlowProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/utils.cpp
@@ -147,6 +146,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
               ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/column_utilities.cu
+              ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
               ${communication_source_files}
 )
