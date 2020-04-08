@@ -106,12 +106,12 @@ message(STATUS "******** Configuring tests ********")
 #add_subdirectory(resultset-repository)
 #add_subdirectory(parser)
 
-add_subdirectory(logical-groupby)
+# add_subdirectory(sort)
 
+add_subdirectory(logical-groupby)
+add_subdirectory(new-tests)
 add_subdirectory(transport)
 add_subdirectory(skipdata)
-add_subdirectory(new-tests)
-# add_subdirectory(sort)
 add_subdirectory(cache_machine)
 
 message(STATUS "******** Tests are ready ********")

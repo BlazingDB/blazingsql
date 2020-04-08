@@ -147,12 +147,9 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
 			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
-		std::vector<int> consecutive_row_group_start;
-		std::vector<int> consecutive_row_group_length;
-		std::tie(consecutive_row_group_start, consecutive_row_group_length) = get_groups(schema);
 
-		pq_args.row_group = consecutive_row_group_start[row_group];
-		pq_args.row_group_count = consecutive_row_group_length[row_group];
+		pq_args.row_group = row_group;
+
 		auto result = cudf_io::read_parquet(pq_args);
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 	}
@@ -175,7 +172,7 @@ void parquet_parser::parse_schema(
 		pq_args.row_group = 0;
 		pq_args.num_rows = 1;
 
-		table_out = cudf_io::read_parquet(pq_args);	
+		table_out = cudf_io::read_parquet(pq_args);
 
 		if (table_out.tbl->num_columns() > 0) {
 			break;

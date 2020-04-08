@@ -90,23 +90,26 @@ public:
 		if (message_token.length() == 0) {
 			message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
 		}
-		while(true){
-				auto message = Server::getInstance().getHostMessage(context_token, message_token);
-				if(!message) {
-					--last_message_counter;
-					std::cout<< ">>>>>> ExternalBatchColumnDataSequence: last_message_counter " << last_message_counter<< std::endl;
-					if (last_message_counter == 0 ){
-						this->host_cache->finish();
-						break;
+		std::thread t([this, message_token, context_token](){
+			while(true){
+					auto message = Server::getInstance().getHostMessage(context_token, message_token);
+					if(!message) {
+						--last_message_counter;
+						std::cout<< ">>>>>> ExternalBatchColumnDataSequence: last_message_counter " << last_message_counter<< std::endl;
+						if (last_message_counter == 0 ){
+							this->host_cache->finish();
+							break;
+						}
+					}	else{
+						auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
+						assert(concreteMessage != nullptr);
+						auto host_table = concreteMessage->releaseBlazingHostTable();
+						host_table->setPartitionId(concreteMessage->getPartitionId());
+						this->host_cache->addToCache(std::move(host_table));			
 					}
-				}	else{
-					auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
-					assert(concreteMessage != nullptr);
-					auto host_table = concreteMessage->releaseBlazingHostTable();
-					host_table->setPartitionId(concreteMessage->getPartitionId());
-					this->host_cache->addToCache(std::move(host_table));			
-				}
-		}
+			}
+		});
+		t.detach();
 	} 
 
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {
@@ -122,7 +125,7 @@ private:
 class DataSourceSequence {
 public:
 	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-		: context(context), loader(loader), schema(schema), batch_index{0}, file_index{0}, batch_id{0}
+		: context(context), loader(loader), schema(schema), batch_index{0}, file_index{0}, batch_id{0}, n_batches{0}
 	{
 		// n_partitions{n_partitions}: TODO Update n_batches using data_loader
 		this->provider = loader.get_provider();
@@ -150,7 +153,11 @@ public:
 			return schema.makeEmptyBlazingTable(projections);
 		}
 		
-		// std::cout << "Datasource.next: " << file_index << "|" << batch_id << "|" << all_row_groups[file_index].size() << std::endl;
+		//This is just a workaround, mainly for ORC files
+		if(all_row_groups[file_index].size()==1 && all_row_groups[file_index][0]==-1){
+			batch_id = -1; //load all the stripes when can't get the rowgroups size
+		}
+
 		auto ret = loader.load_batch(context.get(), projections, schema, user_readable_file_handles[file_index], files[file_index], file_index, batch_id);
 		batch_index++;
 		

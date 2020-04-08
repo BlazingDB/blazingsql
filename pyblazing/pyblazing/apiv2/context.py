@@ -40,6 +40,8 @@ import netifaces as ni
 
 import random
 
+from enum import IntEnum
+
 jpype.addClassPath(
     os.path.join(
         os.getenv("CONDA_PREFIX"),
@@ -85,8 +87,15 @@ def checkSocket(socketNum):
     return socket_free
 
 
+class blazing_allocation_mode(IntEnum):
+    CudaDefaultAllocation = (0,)
+    PoolAllocation = (1,)
+    CudaManagedMemory = (2,)
+
+
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
-                      allocator="managed", pool=False,initial_pool_size=None,enable_logging=False):
+                      allocator="managed", pool=False,
+                      initial_pool_size=None, enable_logging=False, devices=0):
     
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
@@ -94,11 +103,34 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
     if (allocator != 'existing'): 
-        cudf.set_allocator(allocator=allocator,
-                            pool=pool,
-                            initial_pool_size=initial_pool_size,# Default is 1/2 total GPU memory
-                            enable_logging=enable_logging)
 
+        managed_memory = True if allocator == "managed" else False
+        allocation_mode = 0
+
+        if pool:
+            allocation_mode |= blazing_allocation_mode.PoolAllocation
+        if managed_memory:
+            allocation_mode |= blazing_allocation_mode.CudaManagedMemory
+
+        if not pool:
+            initial_pool_size = 0
+        elif pool and initial_pool_size is None:
+            initial_pool_size = 0
+        elif pool and initial_pool_size == 0:
+            initial_pool_size = 1
+            
+        if devices is None:
+            devices = [0]
+        elif isinstance(devices, int):
+            devices = [devices]
+
+        cio.blazingSetAllocatorCaller(
+            allocation_mode,
+            initial_pool_size,
+            devices,
+            enable_logging
+        )
+    
     cio.initializeCaller(
         ralId,
         0,
@@ -107,7 +139,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort,
         singleNode)
     cwd = os.getcwd()
-    # TODO: set_DefaultMemoryResource(BlazingMemoryResource) 
+    
     return ralCommunicationPort, workerIp, cwd
 
 

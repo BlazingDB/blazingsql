@@ -37,6 +37,7 @@
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
 #include <blazingdb/manager/Context.h>
+#include <bmr/initializer.h>
 
 
 std::string get_ip(const std::string & iface_name = "eth0") {
@@ -122,4 +123,24 @@ void finalize() {
 	ral::communication::network::experimental::Server::getInstance().close();
 	cudaDeviceReset();
 	exit(0);
+}
+
+
+void blazingSetAllocator(
+	int allocation_mode, 
+	std::size_t initial_pool_size, 
+	std::vector<int> devices,
+	bool enable_logging) {
+
+	BlazingRMMFinalize();
+
+	rmmOptions_t rmmValues;
+	rmmValues.allocation_mode = static_cast<rmmAllocationMode_t>(allocation_mode);
+	rmmValues.initial_pool_size = initial_pool_size;
+	rmmValues.enable_logging = enable_logging;
+
+	for (size_t i = 0; i < devices.size(); ++i)
+		rmmValues.devices.push_back(devices[i]);
+
+	BlazingRMMInitialize(&rmmValues);
 }

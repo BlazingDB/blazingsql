@@ -62,13 +62,9 @@ public:
   DefineClassName(ComponentMessage);
 };
 
-static size_t number_of_samples = 10;
-// TEST(IntegrationServerClientTest, SendMessageToServerFromClient) {
- 
-// }
 void ExecMaster(){
  // Create server
-  std::unique_ptr<Server> server = Server::TCP(8000);
+  std::unique_ptr<Server> server = Server::BatchProcessing(8000);
 
   // Configure server
   auto endpoint = ComponentMessage::MessageID();
@@ -82,12 +78,10 @@ void ExecMaster(){
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   std::thread([&]() {
-    auto n_batches = server->getNumberOfBatches(context_token, endpoint);
-    std::cout << "n_batches: " << n_batches << std::endl;
-    for (size_t i = 0; i < n_batches; i++) {
-      auto message = server->getMessage(context_token, endpoint);
+    std::shared_ptr<ReceivedMessage> message;
+    while (message = server->getMessage(context_token, endpoint) ) {
       auto mock_message = std::dynamic_pointer_cast<ComponentMessage>(message);
-      std::cout << ">>> batch: " << i << "|" << message->metadata().contextToken << std::endl;
+      std::cout << ">>> batch: " << "|" << message->metadata().contextToken << std::endl;
       // mockFlag.Flag();
     }
     std::cout << ">>> finishh: "<< std::endl;
@@ -101,7 +95,7 @@ void ExecWorker(){
   ComponentMessage message{context_token, *node, 0};
 
   auto client = blazingdb::transport::experimental::ClientTCP::Make("localhost", 8000);
-  client->setNumberOfBatches(message.metadata(), number_of_samples);
+  size_t number_of_samples = 10;
   for (size_t i = 0; i < number_of_samples; i++) {
     try {
       std::cout << "######### " << i << std::endl;
@@ -111,16 +105,16 @@ void ExecWorker(){
       FAIL() << e.what();
     }
   }
-  // client->notifyLastMessageEvent(message.metadata()); 
+  client->notifyLastMessageEvent(message.metadata()); 
 }
 
-TEST(SendInBatches, MasterAndWorker) {
- if (fork() > 0) {
-   ExecMaster();
- } else {
-   ExecWorker();
- }
-}
+// TEST(SendInBatches, MasterAndWorker) {
+//  if (fork() > 0) {
+//    ExecMaster();
+//  } else {
+//    ExecWorker();
+//  }
+// }
 
 // TEST(SendInBatches, Master) { ExecMaster(); }
 // TEST(SendInBatches, Worker) { ExecWorker(); }

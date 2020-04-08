@@ -70,11 +70,6 @@ size_t Server::getNumberOfBatches(const ContextToken & token_value, const Messag
 	return comm_server->getNumberOfBatches(token_value, messageToken);
 }
 
-void Server::registerListener(uint32_t context_token, std::string message_token, HostCallback callback){
-	assert(use_batch_processing_);
-	comm_server->registerListener(context_token, message_token, callback);
-}
-
 void Server::setEndPoints() {
 	// device messages
 	{
