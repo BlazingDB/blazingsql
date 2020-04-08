@@ -143,13 +143,13 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types5)
         query_part,
         context);
 
-    if (std::is_same<T, cudf::experimental::bool8>::value) {
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{0, 0, 0, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
+    if (std::is_same<T, bool>::value) {
+        cudf::test::fixed_width_column_wrapper<bool> expect_col1{{0, 0, 0, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
         CudfTableView expect_cudf_table_view {{expect_col1}};
 
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
     } else {
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{1, 1, 0, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
+        cudf::test::fixed_width_column_wrapper<bool> expect_col1{{1, 1, 0, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
         CudfTableView expect_cudf_table_view {{expect_col1}};
     
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
@@ -177,15 +177,15 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types6)
         query_part,
         context);
 
-    if (std::is_same<T, cudf::experimental::bool8>::value) {
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{0, 0, 0, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col3{{1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
+    if (std::is_same<T, bool>::value) {
+        cudf::test::fixed_width_column_wrapper<bool> expect_col1{{0, 0, 0, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
+        cudf::test::fixed_width_column_wrapper<bool> expect_col3{{1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
         CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
 
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
     } else {
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col1{{1, 1, 0, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
-        cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expect_col3{{0, 0, 0, 0, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
+        cudf::test::fixed_width_column_wrapper<bool> expect_col1{{1, 1, 0, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
+        cudf::test::fixed_width_column_wrapper<bool> expect_col3{{0, 0, 0, 0, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
         CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
 
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
@@ -205,8 +205,8 @@ TEST_F(ProjectTestString, test_string_like)
                                                     "LogicalProject(EXPR$0=[LIKE($0, '_')], EXPR$1=[LIKE($0, '%o')])",
                                                     nullptr);
   
-    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expected_col1{{0,1,1,1,0,1,1,1,0,0}};
-    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expected_col2{{1,0,0,0,1,0,0,0,0,0}};
+    cudf::test::fixed_width_column_wrapper<bool> expected_col1{{0,1,1,1,0,1,1,1,0,0}};
+    cudf::test::fixed_width_column_wrapper<bool> expected_col2{{1,0,0,0,1,0,0,0,0,0}};
     cudf::table_view expected_table_view {{expected_col1, expected_col2}};
 
     cudf::test::expect_tables_equal(expected_table_view, out_table->view());
@@ -250,7 +250,7 @@ TEST_F(ProjectTestString, test_string_concat)
 
 TEST_F(ProjectTestString, test_cast_to_string)
 {
-    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> col1{{true, false, true, true, true, false, false, true, false, false}};
+    cudf::test::fixed_width_column_wrapper<bool> col1{{true, false, true, true, true, false, false, true, false, false}};
     cudf::test::fixed_width_column_wrapper<int32_t> col2{{1, 5, 10, 15, 100, 500, 1000, 5000, 10000, 999999}};
     cudf::test::fixed_width_column_wrapper<double> col3{{1.0, 5.5, 10.00003, 15.45, 100.656, 500.756756, 0.45435436, 0.0000324, 0.1, 999999.001}};
     cudf::test::fixed_width_column_wrapper<cudf::timestamp_s> col4{{0, 10, 2600, 89260, 579500, 6834000, 86796400, 135768000, 715360000, 1230720000}};
@@ -332,7 +332,7 @@ TEST_F(ProjectTestString, test_string_nested_case)
                                                     "LogicalProject(EXPR$0=[=(CASE(=(MOD($0, 2), 0), $1, 'LOL'), 'LOL')])",
                                                     nullptr);
   
-    cudf::test::fixed_width_column_wrapper<cudf::experimental::bool8> expected_col1{{false, true, false, true, false, true, false, true, false}, {1, 1, 1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::fixed_width_column_wrapper<bool> expected_col1{{false, true, false, true, false, true, false, true, false}, {1, 1, 1, 1, 1, 1, 1, 1, 1}};
     cudf::table_view expected_table_view {{expected_col1}};
 
     cudf::test::expect_tables_equal(expected_table_view, out_table->view());

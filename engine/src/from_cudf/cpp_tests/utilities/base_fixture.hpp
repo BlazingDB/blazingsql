@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <tests/utilities/cudf_gtest.hpp>
+#include <src/from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
 #include "cxxopts.hpp"
 #include <cudf/utilities/traits.hpp>
 
