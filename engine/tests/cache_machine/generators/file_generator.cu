@@ -1,19 +1,24 @@
 #include "file_generator.h"
 
-#include <fstream>
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/random_generator.cuh"
 #include <cudf/cudf.h>
 #include <cudf/io/functions.hpp>
 #include <cudf/types.hpp>
+#include <fstream>
+#include <src/io/data_parser/CSVParser.h>
+#include <src/io/data_parser/ParquetParser.h>
+#include <src/io/data_provider/UriDataProvider.h>
 
 namespace blazingdb {
 namespace test {
+using data_provider_pair = std::pair<std::shared_ptr<ral::io::csv_parser>, std::shared_ptr<ral::io::uri_data_provider>>;
+
 
 data_provider_pair CreateCsvCustomerTableProvider(int index) {
-    const std::string content =
-    R"(1|Customer#000000001|IVhzIApeRb ot,c,E|15|25-989-741-2988|711.56|BUILDING|to the even, regular platelets. regular, ironic epitaphs nag e
+	const std::string content =
+		R"(1|Customer#000000001|IVhzIApeRb ot,c,E|15|25-989-741-2988|711.56|BUILDING|to the even, regular platelets. regular, ironic epitaphs nag e
     2|Customer#000000002|XSTf4,NCwDVaWNe6tEgvwfmRchLXak|13|23-768-687-3665|121.65|AUTOMOBILE|l accounts. blithely ironic theodolites integrate boldly: caref
     3|Customer#000000003|MG9kdTD2WBHm|1|11-719-748-3364|7498.12|AUTOMOBILE| deposits eat slyly ironic, even instructions. express foxes detect slyly. blithely even accounts abov
     4|Customer#000000004|XxVSJsLAGtn|4|14-128-190-5944|2866.83|MACHINERY| requests. final, regular ideas sleep final accou
@@ -34,43 +39,42 @@ data_provider_pair CreateCsvCustomerTableProvider(int index) {
     19|Customer#000000019|uc,3bHIx84H,wdrmLOjVsiqXCq2tr|18|28-396-526-5053|8914.71|HOUSEHOLD| nag. furiously careful packages are slyly at the accounts. furiously regular in
     20|Customer#000000020|JrPk8Pqplj4Ne|22|32-957-234-8742|7603.4|FURNITURE|g alongside of the special excuses-- fluffily enticing packages wake)";
 
-    std::string filename = "/tmp/customer_" + std::to_string(index) + ".psv";
-    std::ofstream outfile(filename, std::ofstream::out);
-    outfile << content << std::endl;
-    outfile.close();
+	std::string filename = "/tmp/customer_" + std::to_string(index) + ".psv";
+	std::ofstream outfile(filename, std::ofstream::out);
+	outfile << content << std::endl;
+	outfile.close();
 
-    std::vector<std::pair<std::string, std::string>> customer_map = {
-        {"c_custkey", "int64"},
-        {"c_name", "str"},
-        {"c_address", "str"},
-        {"c_nationkey", "int64"},
-        {"c_phone", "str"},
-        {"c_acctbal", "float64"},
-        {"c_mktsegment", "str"},
-        {"c_comment", "str"}};
-    std::vector<std::string> col_names;
-    std::vector<std::string> dtypes;
-    for(auto pair : customer_map) {
-        col_names.push_back(pair.first);
-        dtypes.push_back(pair.second);
-    }
-    cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
-    in_args.names = col_names;
-    in_args.dtype = dtypes;
-    in_args.delimiter = '|';
-    in_args.header = -1;
+	std::vector<std::pair<std::string, std::string>> customer_map = {{"c_custkey", "int64"},
+		{"c_name", "str"},
+		{"c_address", "str"},
+		{"c_nationkey", "int64"},
+		{"c_phone", "str"},
+		{"c_acctbal", "float64"},
+		{"c_mktsegment", "str"},
+		{"c_comment", "str"}};
+	std::vector<std::string> col_names;
+	std::vector<std::string> dtypes;
+	for(auto pair : customer_map) {
+		col_names.push_back(pair.first);
+		dtypes.push_back(pair.second);
+	}
+	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
+	in_args.names = col_names;
+	in_args.dtype = dtypes;
+	in_args.delimiter = '|';
+	in_args.header = -1;
 
-    std::vector<Uri> uris;
-    uris.push_back(Uri{filename});
+	std::vector<Uri> uris;
+	uris.push_back(Uri{filename});
 
-    auto parser = std::make_shared<ral::io::csv_parser>(in_args);
-    auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
-    return std::make_pair(parser, provider);
+	auto parser = std::make_shared<ral::io::csv_parser>(in_args);
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	return std::make_pair(parser, provider);
 }
 
-data_provider_pair CreateOrderTableProvider(int index) {
-    const std::string content =
-    R"(1|3691|O|194029.55|1996-01-02T00:00:00.000Z|5-LOW|Clerk#000000951|0|nstructions sleep furiously among
+data_provider_pair CreateCsvOrderTableProvider(int index) {
+	const std::string content =
+		R"(1|3691|O|194029.55|1996-01-02T00:00:00.000Z|5-LOW|Clerk#000000951|0|nstructions sleep furiously among
     2|7801|O|60951.63|1996-12-01T00:00:00.000Z|1-URGENT|Clerk#000000880|0| foxes. pending accounts at the pending, silent asymptot
     3|12332|F|247296.05|1993-10-14T00:00:00.000Z|5-LOW|Clerk#000000955|0|sly final accounts boost. carefully regular ideas cajole carefully. depos
     4|13678|O|53829.87|1995-10-11T00:00:00.000Z|5-LOW|Clerk#000000124|0|sits. slyly regular warthogs cajole. regular, regular theodolites acro
@@ -88,49 +92,124 @@ data_provider_pair CreateOrderTableProvider(int index) {
     64|3212|F|30616.9|1994-07-16T00:00:00.000Z|3-MEDIUM|Clerk#000000661|0|wake fluffily. sometimes ironic pinto beans about the dolphin
     65|1627|P|99763.79|1995-03-18T00:00:00.000Z|1-URGENT|Clerk#000000632|0|ular requests are blithely pending orbits-- even requests against the deposit)";
 
-    std::string filename = "/tmp/orders_" + std::to_string(index) + ".psv";
-    std::ofstream outfile(filename, std::ofstream::out);
-    outfile << content << std::endl;
-    outfile.close();
+	std::string filename = "/tmp/orders_" + std::to_string(index) + ".psv";
+	std::ofstream outfile(filename, std::ofstream::out);
+	outfile << content << std::endl;
+	outfile.close();
 
-    std::vector<std::pair<std::string, std::string>> orders_map = {
-        {"o_orderkey", "int64"},
-        {"o_custkey", "int64"},
-        {"o_orderstatus", "str"},
-        {"o_totalprice", "float64"},
-        {"o_orderdatetime64", "str"},
-        {"o_orderpriority", "str"},
-        {"o_clerk", "str"},
-        {"o_shippriority", "str"},
-        {"o_comment", "str"}};
+	std::vector<std::pair<std::string, std::string>> orders_map = {{"o_orderkey", "int64"},
+		{"o_custkey", "int64"},
+		{"o_orderstatus", "str"},
+		{"o_totalprice", "float64"},
+		{"o_orderdatetime64", "str"},
+		{"o_orderpriority", "str"},
+		{"o_clerk", "str"},
+		{"o_shippriority", "str"},
+		{"o_comment", "str"}};
 
-    std::vector<std::string> col_names;
-    std::vector<std::string> dtypes;
-    for(auto pair : orders_map) {
-        col_names.push_back(pair.first);
-        dtypes.push_back(pair.second);
-    }
-    cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
-    in_args.names = col_names;
-    in_args.dtype = dtypes;
-    in_args.delimiter = '|';
-    in_args.header = -1;
+	std::vector<std::string> col_names;
+	std::vector<std::string> dtypes;
+	for(auto pair : orders_map) {
+		col_names.push_back(pair.first);
+		dtypes.push_back(pair.second);
+	}
+	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
+	in_args.names = col_names;
+	in_args.dtype = dtypes;
+	in_args.delimiter = '|';
+	in_args.header = -1;
 
-    std::vector<Uri> uris;
-    uris.push_back(Uri{filename});
+	std::vector<Uri> uris;
+	uris.push_back(Uri{filename});
 
-    auto parser = std::make_shared<ral::io::csv_parser>(in_args);
-    auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
-    return std::make_pair(parser, provider);
+	auto parser = std::make_shared<ral::io::csv_parser>(in_args);
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	return std::make_pair(parser, provider);
 }
 
-// data_parquet_provider_pair CreateParquetCustomerTableProvider(int index ) {
+data_provider_pair CreateCsvNationTableProvider(int index) {
+const std::string content =
+		R"(0|ALGERIA|0| haggle. carefully final deposits detect slyly agai
+1|ARGENTINA|1|al foxes promise slyly according to the regular accounts. bold requests alon
+2|BRAZIL|1|y alongside of the pending deposits. carefully special packages are about the ironic forges. slyly special
+3|CANADA|1|eas hang ironic, silent packages. slyly regular packages are furiously over the tithes. fluffily bold
+4|EGYPT|4|y above the carefully unusual theodolites. final dugouts are quickly across the furiously regular d
+5|ETHIOPIA|0|ven packages wake quickly. regu
+6|FRANCE|3|refully final requests. regular, ironi
+7|GERMANY|3|l platelets. regular accounts x-ray: unusual, regular acco
+8|INDIA|2|ss excuses cajole slyly across the packages. deposits print aroun
+9|INDONESIA|2| slyly express asymptotes. regular deposits haggle slyly. carefully
+)";
 
+	std::string filename = "/tmp/nation_" + std::to_string(index) + ".psv";
+	std::ofstream outfile(filename, std::ofstream::out);
+	outfile << content << std::endl;
+	outfile.close();
+
+	std::vector<std::pair<std::string, std::string>> columns_map = {
+        {"n_nationkey", "int32"},
+		{"n_name", "str"},
+		{"n_regionkey", "int32"},
+		{"n_comment", "str"}};
+
+	std::vector<std::string> col_names;
+	std::vector<std::string> dtypes;
+	for(auto pair : columns_map) {
+		col_names.push_back(pair.first);
+		dtypes.push_back(pair.second);
+	}
+	cudf_io::read_csv_args in_args{cudf_io::source_info{filename}};
+	in_args.names = col_names;
+	in_args.dtype = dtypes;
+	in_args.delimiter = '|';
+	in_args.header = -1;
+
+	std::vector<Uri> uris;
+	uris.push_back(Uri{filename});
+
+	auto parser = std::make_shared<ral::io::csv_parser>(in_args);
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	return std::make_pair(parser, provider);
+}
+
+
+// data_parquet_provider_pair CreateParquetCustomerTableProvider(int n_batches) {
+   
+// }
+
+// data_parquet_provider_pair CreateParquetOrderTableProvider(int n_batches){
 
 // }
 
-// data_parquet_provider_pair CreateParquetOrderTableProvider(int index ){
+// data_parquet_provider_pair CreateParquetNationTableProvider(int n_batches) {
+//     std::vector<Uri> uris;
+//     std::vector<std::vector<int>> all_row_groups{};
 
+//     for (int index = 0; index < n_batches; index++) {
+//         auto provider = CreateCsvNationTableProvider(index);
+//         ral::io::data_loader loader(provider.first, provider.second);
+//         loader.load_data(context, column_indices, schema, "");
+
+//         std::string filepath = "/tmp/nation_" + std::to_string(index) + ".parquet";
+//         // TODO: use provider and write parquet file here `filepath`
+//         cudf_io::write_parquet_args out_args{cudf_io::sink_info{filepath}, table->view()};
+//         cudf_io::write_parquet(out_args);
+
+//         uris.push_back(Uir{filename});
+//         std::vector<int> row_group{0};
+//         all_row_groups.push_back(row_group);
+//     }
+//     auto parser = std::make_shared<ral::io::parquet_parser>();
+//     auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+// 	ral::io::Schema tableSchema;
+//     ral::io::data_loader loader(parser, provider);
+// 	loader.get_schema(tableSchema, {});
+// 	ral::io::Schema schema(tableSchema.get_names(),
+// 						  tableSchema.get_calcite_to_file_indices(),
+// 						  tableSchema.get_dtypes(),
+// 						  tableSchema.get_in_file(),
+// 						  all_row_groups); 
+// 	return std::make_tuple(parser, provider, schema);
 // }
 
 
