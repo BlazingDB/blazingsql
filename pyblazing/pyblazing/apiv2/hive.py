@@ -137,6 +137,8 @@ def get_hive_table(cursor, tableName, hive_database_name):
     if schema['fileType'] == 'csv':
         extra_kwargs['names'] = [col_name for col_name, dtype, is_virtual_col  in schema['columns'] if not is_virtual_col ]
         extra_kwargs['dtype'] = [cudfTypeToCsvType[dtype] for col_name, dtype, is_virtual_col in schema['columns'] if not is_virtual_col]
+        if schema['delimiter'] == chr(1): # if the delimiter was not set and its infering its a csv file, we may have a problem
+            print("WARNING: Hive cursor is infering the file_format to be a csv, but no delimiter can be infered from the Hive cursor")
     
     #schema['column_names'] and schema['column_types'] will be given to the BlazingTable object. We want to use these instead of that gets returned from _parseSchema because the files and the hive cursor may not agree and we want to go off of the hive cursor
     schema['column_names'] = [col_name.encode() for col_name, dtype, is_virtual_col  in schema['columns'] ]
