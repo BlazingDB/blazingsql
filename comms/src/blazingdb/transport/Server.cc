@@ -27,12 +27,6 @@ namespace experimental {
 
 void Server::registerEndPoint(const std::string & end_point) { end_points_.insert(end_point); }
 
-void Server::registerListener(uint32_t context_token, std::string message_token, HostCallback callback) {
-	std::unique_lock<std::shared_timed_mutex> lock(context_messages_mutex_);
-	auto listener_key = std::to_string(context_token) + "_" + message_token;
-	this->listeners_[listener_key] = callback;
-}
-
 void Server::registerDeviceDeserializerForEndPoint(MakeDeviceFrameCallback deserializer, const std::string & end_point) {
 	device_deserializer_[end_point] = deserializer;
 }
@@ -281,13 +275,7 @@ public:
 
 						auto sentinel_message = std::make_shared<ReceivedMessage>(messageToken, contextToken, tmp_node, true);
 						this->putMessage(contextToken, sentinel_message);
-
-						auto listener_key = std::to_string(message_metadata.contextToken) + "_" +  message_metadata.messageToken;
-						auto iter = this->listeners_.find(listener_key);
-						if (iter != this->listeners_.end()) {
-							auto callback = iter->second;
-							callback(message_metadata.contextToken, message_metadata.messageToken, -1);
-						}
+					
 					} else if(message_topic_str == "GPUS") {
 						Message::MetaData message_metadata;
 						Address::MetaData address_metadata;
@@ -306,12 +294,6 @@ public:
 						uint32_t contextToken = message->metadata().contextToken; 
 						this->putMessage(contextToken, message);
 						
-						auto listener_key = std::to_string(contextToken) + "_" +  messageToken;
-						auto iter = this->listeners_.find(listener_key);
-						if (iter != this->listeners_.end()) {
-							auto callback = iter->second;
-							callback(contextToken, messageToken, 1);
-						}
 					}
 				} catch(const std::runtime_error & exception) {
 					std::cerr << "[ERROR] " << exception.what() << std::endl;

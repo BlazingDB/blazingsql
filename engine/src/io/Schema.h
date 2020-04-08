@@ -69,7 +69,8 @@ public:
 		if (this->row_groups_ids.size() > file_index){
 			return this->row_groups_ids.at(file_index);
 		} else {
-			return std::vector<int>();
+			//if no metadata read, return a rowgroup/stripe representing all stripes/rowgroups
+			return std::vector<int>{-1};
 		}
 	}
 	

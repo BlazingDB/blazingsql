@@ -2,8 +2,8 @@ import time
 import pprint
 from blazingsql import BlazingContext
 from dask.distributed import Client
-# bc = BlazingContext(dask_client=Client('127.0.0.1:8786'), network_interface="lo")
-bc = BlazingContext()
+bc = BlazingContext(dask_client=Client('127.0.0.1:8786'), network_interface="lo")
+# bc = BlazingContext()
 
 dir_data_fs = '/home/aocsa/tpch/DataSet5Part100MB/'
 dir_data_fs = '/home/aocsa/tpch/100MB2Part/tpch/'
@@ -54,11 +54,29 @@ bc.create_table('supplier', dir_data_fs + '/supplier_*.parquet')
 #         inner join orders as o on c.c_custkey = o.o_custkey 
 #         inner join nation as n on c.c_nationkey = n.n_nationkey order by c_custkey, o.o_orderkey"""
 
-query = """select partSuppTemp.partKey, partAnalysis.avgSize from
-                (select min(p_partkey) as partKey, avg(p_size) as avgSize, max(p_retailprice) as maxPrice, min(p_retailprice) as minPrice from part ) as partAnalysis
-                inner join (select ps_partkey as partKey, ps_suppkey as suppKey from partsupp where ps_availqty > 2) as partSuppTemp on partAnalysis.partKey = partSuppTemp.partKey
-                inner join (select s_suppkey as suppKey from supplier ) as supplierTemp on supplierTemp.suppKey = partSuppTemp.suppKey"""
-
+query = """ select 
+                        s.s_acctbal, s.s_name, n.n_name, p.p_partkey, p.p_mfgr, s.s_address, s.s_phone, s.s_comment
+                    from 
+                        supplier as s 
+                    INNER JOIN nation as n ON s.s_nationkey = n.n_nationkey 
+                    INNER JOIN partsupp as ps ON s.s_suppkey = ps.ps_suppkey
+                    INNER JOIN part as p ON p.p_partkey = ps.ps_partkey 
+                    INNER JOIN region as r ON r.r_regionkey = n.n_regionkey
+                    where r.r_name = 'EUROPE' and p.p_size = 15
+                        and p.p_type like '%BRASS'
+                        and ps.ps_supplycost = (
+                            select 
+                                min(psq.ps_supplycost)
+                            from 
+                                partsupp as psq
+                            INNER JOIN supplier as sq ON sq.s_suppkey = psq.ps_suppkey
+                            INNER JOIN nation as nq ON nq.n_nationkey = sq.s_nationkey
+                            INNER JOIN region as rq ON rq.r_regionkey = nq.n_regionkey
+                            where
+                                rq.r_name = 'EUROPE'
+                        )
+                    order by 
+                        s.s_acctbal desc, n.n_name, s.s_name, p.p_partkey"""
 lp = bc.explain(query)
 print(lp)
 ddf = bc.sql(query, use_execution_graph=True)

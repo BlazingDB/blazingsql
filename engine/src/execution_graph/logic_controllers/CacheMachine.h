@@ -16,6 +16,7 @@
 #include <string>
 #include <typeindex>
 #include <vector>
+#include <bmr/BlazingMemoryResource.h>
 
 namespace ral {
 namespace cache {
@@ -248,9 +249,7 @@ private:
 
 class CacheMachine {
 public:
-	CacheMachine(unsigned long long gpuMemory,
-		std::vector<unsigned long long> memoryPerCache,
-		std::vector<CacheDataType> cachePolicyTypes_);
+	CacheMachine();
 
 	~CacheMachine();
 
@@ -293,20 +292,9 @@ protected:
 	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
 
 protected:
-	std::vector<CacheDataType> cachePolicyTypes;
-	std::vector<unsigned long long> memoryPerCache;
-	std::vector<unsigned long long> usedMemory; // TODO: Singleton: Create Custom Resource Manager (GPU, CPU, DISK)
+	std::vector<BlazingMemoryResource*> memory_resources;
 };
-
-// class ArrayCache : public CacheMachine {
-// public:
-// 	CacheMachine(unsigned long long gpuMemory,
-// 		std::vector<unsigned long long> memoryPerCache,
-// 		std::vector<CacheDataType> cachePolicyTypes_);
-
-// 	~CacheMachine();
-// };
-
+ 
 class HostCacheMachine {
 public:
 	HostCacheMachine() {
@@ -360,9 +348,7 @@ protected:
 
 class NonWaitingCacheMachine : public CacheMachine {
 public:
-	NonWaitingCacheMachine(unsigned long long gpuMemory,
-		std::vector<unsigned long long> memoryPerCache,
-		std::vector<CacheDataType> cachePolicyTypes_);
+	NonWaitingCacheMachine();
 
 	~NonWaitingCacheMachine() = default;
 
@@ -372,9 +358,7 @@ public:
 
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine(unsigned long long gpuMemory,
-		std::vector<unsigned long long> memoryPerCache,
-		std::vector<CacheDataType> cachePolicyTypes_);
+	ConcatenatingCacheMachine();
 
 	~ConcatenatingCacheMachine() = default;
 

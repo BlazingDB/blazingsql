@@ -29,6 +29,7 @@ from libc.stdint cimport (  # noqa: E211
 cdef extern from "../include/engine/errors.h":
     cdef void raiseInitializeError()
     cdef void raiseFinalizeError()
+    cdef void raiseBlazingSetAllocatorError()
     cdef void raiseRunQueryError()
     cdef void raiseParseSchemaError()
     cdef void raiseRegisterFileSystemHDFSError();
@@ -154,3 +155,4 @@ cdef extern from "../include/engine/engine.h":
 cdef extern from "../include/engine/initialize.h":
     cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
+    cdef void blazingSetAllocator(int allocation_mode, size_t initial_pool_size, vector[int] devices , bool enable_logging) except +raiseBlazingSetAllocatorError

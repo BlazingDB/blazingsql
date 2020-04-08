@@ -12,7 +12,7 @@
 #include <Utils.cuh>
 #include <blazingdb/io/Util/StringUtil.h>
 #include <gdf/library/table_group.h>
-#include "../query_test.h"
+#include "../BlazingUnitTest.h"
 
 
 class TestEnvironment : public testing::Environment {
@@ -31,7 +31,7 @@ using gdf::library::TableGroupBuilder;
 
 using RType = DType<GDF_INT32>;
 
-struct calcite_interpreter_TEST : public  query_test {
+struct calcite_interpreter_TEST : public  BlazingUnitTest {
 
   gdf::library::TableGroup group;
 

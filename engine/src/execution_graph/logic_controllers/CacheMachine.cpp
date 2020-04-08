@@ -56,21 +56,12 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine(unsigned long long gpuMemory,
-						   std::vector<unsigned long long> memoryPerCache_,
-						   std::vector<CacheDataType> cachePolicyTypes_)
-	{
+CacheMachine::CacheMachine()
+{
 	waitingCache = std::make_unique<WaitingQueue<CacheData>>();
-	this->memoryPerCache.push_back(gpuMemory);
-	for(auto mem : memoryPerCache_) {
-		this->memoryPerCache.push_back(mem);
-	}
-
-	this->usedMemory.resize(cachePolicyTypes_.size() + 1, 0UL);
-	this->cachePolicyTypes.push_back(GPU);
-	for(auto policy : cachePolicyTypes_) {
-		this->cachePolicyTypes.push_back(policy);
-	}
+	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
+	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() ); 
+	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() ); 
 }
 
 CacheMachine::~CacheMachine() {}
@@ -80,15 +71,11 @@ void CacheMachine::finish() {
 	this->waitingCache->finish();
 }
 void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string message_id) {
-	auto cacheIndex = 1;
-	if(this->cachePolicyTypes[cacheIndex] == CPU) {
-		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
-		std::unique_ptr<message<CacheData>> item =
-			std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
-		this->waitingCache->put(std::move(item));
-	}else {
-		assert(false);
-	}
+	auto cacheIndex = 1; // HOST MEMORY
+	auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
+	std::unique_ptr<message<CacheData>> item =
+		std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
+	this->waitingCache->put(std::move(item));
 }
 
 void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table) {
@@ -97,35 +84,31 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 
 void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id){
 	int cacheIndex = 0;
-	while(cacheIndex < memoryPerCache.size()) {
-		// TODO: BlazingMemoryResource::getUsedMemory() 
-		if(usedMemory[cacheIndex] <= (memoryPerCache[cacheIndex] + cache_data->sizeInBytes())) {
-			usedMemory[cacheIndex] += cache_data->sizeInBytes();
+	while(cacheIndex < this->memory_resources.size()) {
+		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
+		if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
 			if(cacheIndex == 0) {
 				std::unique_ptr<message<CacheData>> item =
 					std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 				this->waitingCache->put(std::move(item));
 			} else {
-				if(this->cachePolicyTypes[cacheIndex] == CPU) {
+				if(cacheIndex == 1) {
 					std::unique_ptr<message<CacheData>> item =
 						std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 					this->waitingCache->put(std::move(item));
-				} else if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE) {
-					BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
+				} else if(cacheIndex == 2) {
+					// BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
 					  std::unique_ptr<message<CacheData>> item =
 						  std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
-					  
 					  this->waitingCache->put(std::move(item));
 					  // NOTE: Wait don't kill the main process until the last thread is finished!
-					});
-					t.detach();
+					// }); t.detach();
 				}
 			}
 			break;
 		}
 		cacheIndex++;
 	}
-	assert(cacheIndex < memoryPerCache.size());
 }
 
 void CacheMachine::clear() {
@@ -138,10 +121,9 @@ void CacheMachine::clear() {
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id) {
 	int cacheIndex = 0;
-	while(cacheIndex < memoryPerCache.size()) {
-		// TODO: BlazingMemoryResource::getUsedMemory() 
-		if((usedMemory[cacheIndex] + table->sizeInBytes() <= memoryPerCache[cacheIndex])) {
-			usedMemory[cacheIndex] += table->sizeInBytes();
+	while(cacheIndex < memory_resources.size()) {
+		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
+		if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
 			if(cacheIndex == 0) {
 				// before we put into a cache, we need to make sure we fully own the table
 				auto column_names = table->names();
@@ -155,27 +137,25 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 				this->waitingCache->put(std::move(item));
 
 			} else {
-				if(this->cachePolicyTypes[cacheIndex] == CPU) {
+				if(cacheIndex == 1) {
 					auto cache_data = std::make_unique<CPUCacheData>(std::move(table));
 					std::unique_ptr<message<CacheData>> item =
 						std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 					this->waitingCache->put(std::move(item));
-				} else if(this->cachePolicyTypes[cacheIndex] == LOCAL_FILE) {
-					BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
+				} else if(cacheIndex == 2) {
+					// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
 					  auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table));
 					  std::unique_ptr<message<CacheData>> item =
 						  std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 					  this->waitingCache->put(std::move(item));
 					  // NOTE: Wait don't kill the main process until the last thread is finished!
-					});
-					t.detach();
+					// });t.detach();
 				}
 			}
 			break;
 		}
 		cacheIndex++;
 	}
-	assert(cacheIndex < memoryPerCache.size());
 }
 
 bool CacheMachine::ready_to_execute() {
@@ -190,7 +170,6 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 	}
 	auto cache_data = message_data->releaseData();
 	auto cache_index = message_data->cacheIndex();
-	usedMemory[cache_index] -= cache_data->sizeInBytes();
 	return std::move(cache_data->decache());
 }
 
@@ -201,7 +180,6 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	}
 	auto cache_data = message_data->releaseData();
 	auto cache_index = message_data->cacheIndex();
-	usedMemory[cache_index] -= cache_data->sizeInBytes();
 	return std::move(cache_data->decache());
 }
 
@@ -212,14 +190,11 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	}
 	std::unique_ptr<ral::cache::CacheData> cache_data = message_data->releaseData();
 	auto cache_index = message_data->cacheIndex();
-	usedMemory[cache_index] -= cache_data->sizeInBytes();
 	return std::move(cache_data);
 }
 
-NonWaitingCacheMachine::NonWaitingCacheMachine(unsigned long long gpuMemory,
-													 std::vector<unsigned long long> memoryPerCache,
-													 std::vector<CacheDataType> cachePolicyTypes_)
-	: CacheMachine(gpuMemory, memoryPerCache, cachePolicyTypes_)
+NonWaitingCacheMachine::NonWaitingCacheMachine()
+	: CacheMachine()
 {
 }
 
@@ -227,15 +202,12 @@ std::unique_ptr<ral::frame::BlazingTable> NonWaitingCacheMachine::pullFromCache(
 	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop();
 	auto cache_data = message_data->releaseData();
 	auto cache_index = message_data->cacheIndex();
-	usedMemory[cache_index] -= cache_data->sizeInBytes();
 	return std::move(cache_data->decache());
 }
 
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(unsigned long long gpuMemory,
-													 std::vector<unsigned long long> memoryPerCache,
-													 std::vector<CacheDataType> cachePolicyTypes_)
-	: CacheMachine(gpuMemory, memoryPerCache, cachePolicyTypes_)
+ConcatenatingCacheMachine::ConcatenatingCacheMachine()
+	: CacheMachine()
 {
 }
 
@@ -246,7 +218,6 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	for (auto& message_data : all_messages_data) {
 		auto cache_data = message_data->releaseData();
 		auto cache_index = message_data->cacheIndex();
-		usedMemory[cache_index] -= cache_data->sizeInBytes();
 		auto tmp_frame = cache_data->decache();
 		samples.emplace_back(tmp_frame->toBlazingTableView());
 		holder_samples.emplace_back(std::move(tmp_frame));

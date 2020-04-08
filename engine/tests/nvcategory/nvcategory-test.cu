@@ -19,7 +19,7 @@
 
 #include <nvstrings/NVCategory.h>
 #include <utilities/bit_mask.h>
-#include "../query_test.h"
+#include "../BlazingUnitTest.h"
 class TestEnvironment : public testing::Environment {
 public:
   virtual ~TestEnvironment() {}
@@ -40,7 +40,7 @@ std::string const default_chars =
     "abcdefghijklmnaoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 }
 
-struct NVCategoryTest : public query_test {
+struct NVCategoryTest : public BlazingUnitTest {
 
   std::string random_string(size_t len = 15,
                             std::string const &allowed_chars = default_chars) {

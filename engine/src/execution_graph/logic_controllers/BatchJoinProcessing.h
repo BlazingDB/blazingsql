@@ -13,6 +13,7 @@
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "distribution/primitives.h"
 #include "Utils.cuh"
+#include "blazingdb/concurrency/BlazingThread.h"
 
 #include <cudf/stream_compaction.hpp>
 #include <cudf/partitioning.hpp>
@@ -456,51 +457,49 @@ public:
 				}
 			}
 		}
+
 		printf("parseJoinConditionToColumnIndices\n");
 
-		JoinPartitionKernel::partition_table(this->context, 
-			this->left_column_indices, std::move(left_batch), left_sequence,
-			this->output_.get_cache("output_a"));
+		std::thread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
+			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
+			std::ref(this->output_.get_cache("output_a")));
 
-
-		// std::thread t1([context = this->context, this](){
+		BlazingThread left_consumer([context = this->context, this](){
 			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-			
 			std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
-
 			while (host_table = external_input_left.next()) {	
 				this->add_to_output_cache(std::move(host_table), "output_a");
 			}
-		// });
-		// distribute_left_thread.join();
-		// t1.join();
+		});
+		
+		distribute_left_thread.join();
+		left_consumer.join();
 
 		// clone context, increment step counter to make it so that the next partition_table will have different message id
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
-		JoinPartitionKernel::partition_table(cloned_context, 
-			this->right_column_indices, std::move(right_batch), right_sequence, 
-			this->output_.get_cache("output_b"));
+
+		std::thread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
+			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
+			std::ref(this->output_.get_cache("output_b")));
 
 		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
-		// std::thread t2([cloned_context, this](){
-			message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
+		BlazingThread right_consumer([cloned_context, this](){
+			auto message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
-			// std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 
 			std::cout << "... consumming right => "<< this->get_message_id()<<std::endl;
 
 			while (host_table = external_input_right.next()) {	
 				this->add_to_output_cache(std::move(host_table), "output_b");
 			}
-		// });
+		});
 	
-		// distribute_right_thread.join();
-		// t2.join();
-		
-		// ALEX join other threads
+		distribute_right_thread.join();
+		right_consumer.join();
 		
 		return kstatus::proceed;
 	}

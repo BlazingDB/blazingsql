@@ -84,12 +84,9 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
 			orc_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
-		std::vector<int> consecutive_stripe_start;
-		std::vector<int> consecutive_stripe_length;
-		std::tie(consecutive_stripe_start, consecutive_stripe_length) = get_groups(schema);
 
-		orc_args.stripe = consecutive_stripe_start[stripe];
-		orc_args.stripe_count = consecutive_stripe_length[stripe];
+		orc_args.stripe = stripe;
+
 		auto result = cudf_io::read_orc(orc_args);
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 	}

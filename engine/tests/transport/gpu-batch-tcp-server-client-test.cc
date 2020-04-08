@@ -22,6 +22,7 @@
 #include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 #include <execution_graph/logic_controllers/TaskFlowProcessor.h>
+#include "../BlazingUnitTest.h"
 
 using ral::communication::messages::experimental::SampleToNodeMasterMessage;
 using ral::communication::messages::experimental::ReceivedDeviceMessage;
@@ -60,19 +61,7 @@ void ExecMaster() {
 	// auto cache_machine = std::make_shared<ral::cache::HostCacheMachine>();
 
 	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
-	Server::getInstance().registerListener(context_token, message_token, 
-		[cache_machine](uint32_t context_token, std::string message_token, int event_id){
-			if (event_id > 0) {
-				auto message = Server::getInstance().getMessage(context_token, message_token);
-				auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-				auto host_table = concreteMessage->releaseBlazingTable();
-				cache_machine->addToCache(std::move(host_table));
-			}	else {
-				std::cout << "LAST EVENT" << std::endl;
-				cache_machine->finish();
-			}
-		});
-
+	
 	BlazingThread([cache_machine]() {
 		auto table = cache_machine->pullFromCache();
 		assert(table != nullptr);
@@ -103,31 +92,16 @@ void ExecWorker() {
 
 	Client::send(server_node, *message);
 	Client::notifyLastMessageEvent(server_node, message->metadata());
-	std::this_thread::sleep_for (std::chrono::seconds(1));
 }
 
 
-struct SendBatchSamplesTest : public ::testing::Test {
+struct SendBatchSamplesTest : public BlazingUnitTest {
 
-  void SetUp() { ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS); }
-
-  void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
 };
 
 
-// TODO: move common code of TCP client and server to blazingdb::network in order to be shared by manager and transport
-// TODO: check when the ip, port is busy, return exception!
-// TODO: check when the message is not registered, or the wrong message is registered
-TEST_F(SendBatchSamplesTest, MasterAndWorker) {
-	if(fork() > 0) {
-		ExecMaster();
-	} else {
-		ExecWorker();
-	}
-}
-
-// // TO use in separate process by:
-// // ./blazingdb-communication-gtest --gtest_filter=SendBatchSamplesTest.Master
+// TO use in separate process by:
+// ./blazingdb-communication-gtest --gtest_filter=SendBatchSamplesTest.Master
 // TEST_F(SendBatchSamplesTest, Master) {
 //    ExecMaster();
 //  }
