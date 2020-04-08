@@ -1,7 +1,10 @@
 import time
+import cudf
 import pprint
 from blazingsql import BlazingContext
 from dask.distributed import Client
+import dask_cudf
+
 bc = BlazingContext(dask_client=Client('127.0.0.1:8786'), network_interface="lo")
 # bc = BlazingContext()
 
@@ -20,65 +23,127 @@ bc.create_table('part', dir_data_fs + '/part_*.parquet')
 bc.create_table('partsupp', dir_data_fs + '/partsupp_*.parquet')
 bc.create_table('supplier', dir_data_fs + '/supplier_*.parquet')
 
+def run_query(bc, sql, title):
+    print(title, sql)
+    # print(bc.explain(sql))
+    result_gdf = bc.sql(sql, use_execution_graph=True)
+    if isinstance(result_gdf, dask_cudf.core.DataFrame) : 
+        print(result_gdf.compute())
+    else:
+        print(result_gdf)
 
-# "BindableTableScan(table=[[main, customer]], 
-# filters=[[OR(AND(<($0, 15000), =($1, 5)), =($0, *($1, $1)), >=($1, 10), <=($2, 500))]], 
-# projects=[[0, 3, 5]], aliases=[[c_custkey, c_nationkey, c_acctbal]])"
-# query = """select c_custkey, c_nationkey, c_acctbal
-#             from 
-#               customer
-#             where 
-#               c_custkey > 2990 and c_custkey < 3010 
-#             """
+# distributed sort
+queryId = 'TEST_01: distributed sort'
+sql = "select c_custkey, c_nationkey from customer order by c_nationkey"
+run_query(bc, sql, queryId)
 
-# query = "SELECT sum(c_nationkey) FROM customer group by c_nationkey"
-# query = "SELECT c_nationkey FROM customer order by c_nationkey"
-# query = "select c_nationkey, c_custkey from customer where c_acctbal < 10000 group by c_nationkey, c_custkey order by c_nationkey desc, c_custkey asc"
-# query = "select * from customer as c inner join nation as n on c.c_nationkey = n.n_nationkey and c.c_custkey < 10"
+queryId = 'TEST_02: distributed sort'
+sql = "select c_custkey, c_acctbal from customer order by c_acctbal desc, c_custkey"
+run_query(bc, sql, queryId) 
 
-# query = """select c.c_custkey, c.c_nationkey, o.o_orderkey from customer as c 
-#             inner join orders as o on c.c_custkey = o.o_orderkey 
-#             inner join nation as n on c.c_nationkey = n.n_nationkey 
-#             order by c_custkey
-# """
-# query = "select nation.n_nationkey, region.r_regionkey from nation inner join region on region.r_regionkey = nation.n_nationkey"
-# query = "select count(p_partkey) + sum(p_partkey), (max(p_partkey) + min(p_partkey))/2 from part where p_partkey < 100"
+queryId = 'TEST_03: distributed sort'
+sql = "select o_orderkey, o_custkey from orders order by o_orderkey desc, o_custkey"
+run_query(bc, sql, queryId) 
 
-# query = "select count(n1.n_nationkey) as n1key, count(n2.n_nationkey) as n2key, count(*) as cstar from nation as n1 full outer join nation as n2 on n1.n_nationkey = n2.n_nationkey + 6"
+# distributed join
+queryId = 'TEST_01: distributed join'
+sql = "select count(c.c_custkey), sum(c.c_nationkey), n.n_regionkey from customer as c inner join nation as n on c.c_nationkey = n.n_nationkey group by n.n_regionkey"
+run_query(bc, sql, queryId)
 
-# query = "select count(c.c_custkey), sum(c.c_nationkey), n.n_regionkey from customer as c inner join nation as n on c.c_nationkey = n.n_nationkey group by n.n_regionkey"
+queryId = 'TEST_02: distributed join'
+sql = "select c.c_custkey, c.c_nationkey, n.n_regionkey from customer as c inner join nation as n on c.c_nationkey = n.n_nationkey where n.n_regionkey = 1 and c.c_custkey < 50"
+run_query(bc, sql, queryId)
 
-# # TODO:
-# query = "select count(n1.n_nationkey) as n1key, count(n2.n_nationkey) as n2key, count(*) as cstar from nation as n1 full outer join nation as n2 on n1.n_nationkey = n2.n_nationkey + 6"
-# query = """select c.c_custkey, c.c_nationkey, o.o_orderkey from customer as c 
-#         inner join orders as o on c.c_custkey = o.o_custkey 
-#         inner join nation as n on c.c_nationkey = n.n_nationkey order by c_custkey, o.o_orderkey"""
+queryId = 'TEST_03: distributed join'
+sql = "select c.c_custkey, c.c_nationkey, n.o_orderkey from customer as c inner join orders as n on c.c_custkey = n.o_orderkey where n.o_orderkey < 1000"
+run_query(bc, sql, queryId)
 
-query = """ select 
-                        s.s_acctbal, s.s_name, n.n_name, p.p_partkey, p.p_mfgr, s.s_address, s.s_phone, s.s_comment
-                    from 
-                        supplier as s 
-                    INNER JOIN nation as n ON s.s_nationkey = n.n_nationkey 
-                    INNER JOIN partsupp as ps ON s.s_suppkey = ps.ps_suppkey
-                    INNER JOIN part as p ON p.p_partkey = ps.ps_partkey 
-                    INNER JOIN region as r ON r.r_regionkey = n.n_regionkey
-                    where r.r_name = 'EUROPE' and p.p_size = 15
-                        and p.p_type like '%BRASS'
-                        and ps.ps_supplycost = (
-                            select 
-                                min(psq.ps_supplycost)
-                            from 
-                                partsupp as psq
-                            INNER JOIN supplier as sq ON sq.s_suppkey = psq.ps_suppkey
-                            INNER JOIN nation as nq ON nq.n_nationkey = sq.s_nationkey
-                            INNER JOIN region as rq ON rq.r_regionkey = nq.n_regionkey
-                            where
-                                rq.r_name = 'EUROPE'
-                        )
-                    order by 
-                        s.s_acctbal desc, n.n_name, s.s_name, p.p_partkey"""
-lp = bc.explain(query)
-print(lp)
-ddf = bc.sql(query, use_execution_graph=True)
-print(query)
-print(ddf)
+# distributed group_by
+queryId = 'TEST_01: distributed group_by'
+sql = "select count(c_custkey), sum(c_acctbal), sum(c_acctbal)/count(c_acctbal), min(c_custkey), max(c_nationkey), c_nationkey from customer group by c_nationkey"
+run_query(bc, sql, queryId)
+
+queryId = 'TEST_02: distributed group_by'
+sql = "select count(c_custkey), sum(c_acctbal), sum(c_acctbal)/count(c_acctbal), min(c_custkey), max(c_custkey), c_nationkey from customer where c_custkey < 50 group by c_nationkey"
+run_query(bc, sql, queryId)
+
+queryId = 'TEST_04: distributed group_by'
+sql = "select c_nationkey, count(c_acctbal) from customer group by c_nationkey, c_custkey"
+run_query(bc, sql, queryId)
+
+# all queries 
+queryId = 'TEST_01: all distributed operations'
+sql = """select c.c_custkey, c.c_nationkey, o.o_orderkey from customer as c 
+            inner join orders as o on c.c_custkey = o.o_orderkey 
+            inner join nation as n on c.c_nationkey = n.n_nationkey 
+            order by c_custkey"""
+run_query(bc, sql, queryId)
+
+
+queryId = 'TEST_01: issue'
+sql = """select l_orderkey, l_partkey, l_suppkey, l_returnflag from lineitem 
+                where l_returnflag='N' and l_linenumber < 3 and l_orderkey < 50"""
+run_query(bc, sql, queryId)
+
+
+sql = """(select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1,2, 3 limit 10)
+                union all
+                (select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1, 3 desc, 2 limit 10)"""
+run_query(bc, sql, "union issue")
+
+sql = "select count(n1.n_nationkey) as n1key, count(n2.n_nationkey) as n2key, count(*) as cstar from nation as n1 full outer join nation as n2 on n1.n_nationkey = n2.n_nationkey + 6"
+run_query(bc, sql, "join issue")
+
+sql = """(select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1,2, 3 limit 10)
+                union all
+                (select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1, 3 desc, 2 limit 10)"""
+run_query(bc, sql, "union issue")
+
+
+
+sql = """select l.l_orderkey, l.l_linenumber from lineitem as l 
+                        inner join orders as o on l.l_orderkey = o.o_orderkey 
+                        and l.l_commitdate < o.o_orderdate 
+                        and l.l_receiptdate > o.o_orderdate"""
+run_query(bc, sql, "union issue")
+
+
+sql = "select count(n_nationkey), count(*) from nation group by n_nationkey"
+run_query(bc, sql, "count issue")
+
+sql = "select CASE WHEN mod(l_linenumber,  2) <> 1 THEN 0 ELSE l_quantity END as s, l_linenumber, l_quantity from lineitem limit 100"
+run_query(bc, sql, "case issue")
+
+
+
+query = """select n1.n_nationkey as n1key, n2.n_nationkey as n2key, n1.n_nationkey + n2.n_nationkey 
+            from nation as n1 full outer join nation as n2 on n1.n_nationkey = n2.n_nationkey + 6 
+            where n1.n_nationkey < 10 and n1.n_nationkey > 5"""
+run_query(bc, query, "join issue")
+
+
+
+query = """select customer.c_nationkey, customer.c_name, orders.o_orderdate, lineitem.l_receiptdate 
+            from customer left outer join orders on customer.c_custkey = orders.o_custkey
+            inner join lineitem on lineitem.l_orderkey = orders.o_orderkey
+            where customer.c_nationkey = 3 and customer.c_custkey < 100 and orders.o_orderdate < '1990-01-01'
+            order by orders.o_orderkey, lineitem.l_linenumber"""
+
+run_query(bc, query, "date issue")
+
+queryId = 'TEST_18'
+query = """ select
+        c.c_name, c.c_custkey, o.o_orderkey, o.o_orderdate, o.o_totalprice, sum(l.l_quantity)
+    from
+        customer c
+        inner join orders o on c.c_custkey = o.o_custkey
+        inner join lineitem l on o.o_orderkey = l.l_orderkey
+    where
+        o.o_orderkey in (select l2.l_orderkey from lineitem l2 group by l2.l_orderkey having
+                        sum(l2.l_quantity) > 300)
+    group by
+        c.c_name, c.c_custkey, o.o_orderkey, o.o_orderdate, o.o_totalprice
+    order by
+        o.o_totalprice desc, o.o_orderdate"""
+
+run_query(bc, query, queryId)
