@@ -14,10 +14,10 @@
 #include <Utils.cuh>
 
 #include "gdf/library/api.h"
-#include "../query_test.h"
+#include "../BlazingUnitTest.h"
 using namespace gdf::library;
 
-struct EvaluateQueryTest : public query_test {
+struct EvaluateQueryTest : public BlazingUnitTest {
   struct InputTestItem {
     std::string query;
     std::string logicalPlan;

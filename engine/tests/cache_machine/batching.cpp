@@ -16,18 +16,15 @@
 #include <src/io/data_parser/ParquetParser.h>
 #include <src/io/data_provider/UriDataProvider.h>
 #include <execution_graph/logic_controllers/PhysicalPlanGenerator.h>
+#include "../BlazingUnitTest.h"
 
 using blazingdb::manager::experimental::Context;
 using blazingdb::transport::experimental::Address;
 using blazingdb::transport::experimental::Node;
-struct Batching : public cudf::test::BaseFixture {
-	 
-
+struct Batching : public BlazingUnitTest {
 	Batching() {
-		 
 
 	}
-
 	~Batching() {}
 };
 

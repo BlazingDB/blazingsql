@@ -35,7 +35,7 @@ public:
 	internal_blazing_device_memory_resource(rmmOptions_t rmmValues, float custom_threshold = 0.75)
      {
 		total_memory_size = ral::config::gpuMemorySize();
-		used_memory = ral::config::gpuUsedMemory();
+		used_memory = 0;
 
 		rmmAllocationMode_t allocation_mode = static_cast<rmmAllocationMode_t>(rmmValues.allocation_mode);
 		if (allocation_mode == (CudaManagedMemory | PoolAllocation) || allocation_mode == PoolAllocation) {
@@ -77,21 +77,19 @@ public:
 	bool supports_streams() const noexcept override { return false; }
 	bool supports_get_mem_info() const noexcept override { return true; }
 
-private:
+private: 
 	void* do_allocate(std::size_t bytes, cudaStream_t stream) override {
-		if (bytes <= 0) return nullptr;
-		if (total_memory_size <= used_memory + bytes) {
-			throw std::runtime_error("Cannot allocate this size memory on the GPU.");
+		if (bytes <= 0) { 
+            return nullptr;
 		}
 		used_memory += bytes;
-
 		return memory_resource->allocate(bytes, stream);
 	}
 
 	void do_deallocate(void* p, std::size_t bytes, cudaStream_t stream) override {
 		if (nullptr == p || bytes == 0) return;
 		if (used_memory < bytes) {
-			std::cerr << "Deallocating more bytes than used right now, used_memory: " << used_memory << " less than " << bytes << " bytes." << std::endl;
+			std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory << " less than " << bytes << " bytes." << std::endl;
 			used_memory = 0;
 		} else {
 			used_memory -= bytes;

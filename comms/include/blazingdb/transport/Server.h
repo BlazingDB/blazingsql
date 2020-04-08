@@ -51,8 +51,6 @@ public:
   virtual void registerHostDeserializerForEndPoint(MakeHostFrameCallback deserializer,
                                           const std::string &end_point);
 
-  void registerListener(uint32_t context_token, std::string message_token, HostCallback callback);
-
 public:
   /**
    * It is used to create an endpoint and choose the HTTP method for that
@@ -166,8 +164,6 @@ protected:
 
 
   std::map<std::string, MakeHostFrameCallback> host_deserializer_;
-
-  std::map<std::string, HostCallback> listeners_;
 
 public:
   /**

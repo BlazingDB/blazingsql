@@ -15,7 +15,7 @@
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 #include <blazingdb/io/Library/Logging/CoutOutput.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
-#include "../query_test.h"
+#include "../BlazingUnitTest.h"
 
 class TestEnvironment : public testing::Environment {
 public:
@@ -31,7 +31,7 @@ public:
   }
 };
 
-struct calcite_interpreter_TEST : public query_test {
+struct calcite_interpreter_TEST : public BlazingUnitTest {
 
   void SetUp() {
 	rmmInitialize(nullptr);

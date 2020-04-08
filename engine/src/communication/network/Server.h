@@ -40,8 +40,6 @@ public:
 
 	size_t getNumberOfBatches(const ContextToken & token_value, const MessageTokenType & messageToken);
 
-	void registerListener(uint32_t context_token, std::string message_token, HostCallback callback);
-
 private:
 	Server(Server &&) = delete;
 
