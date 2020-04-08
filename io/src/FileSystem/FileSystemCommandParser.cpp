@@ -99,9 +99,10 @@ FileSystemEntity parseRegisterFileSystem(const std::string & command, std::strin
 			const std::string accessKeyId = connectionTokens[3];
 			const std::string secretKey = connectionTokens[4];
 			const std::string sessionToken = connectionTokens[5];
+			const std::string endpointOverride = connectionTokens[6];
 
 			fileSystemConnection = FileSystemConnection(
-				bucketName, encryptionType, kmsKeyAmazonResourceName, accessKeyId, secretKey, sessionToken);
+				bucketName, encryptionType, kmsKeyAmazonResourceName, accessKeyId, secretKey, sessionToken, endpointOverride);
 		}
 
 		const size_t rootToken = connRoot.find("root");
