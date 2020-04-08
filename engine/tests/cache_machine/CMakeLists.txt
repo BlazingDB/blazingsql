@@ -3,5 +3,7 @@ set(cache_test_sources
         graph_processor_test.cpp
         expr_to_graph_processor.cpp
         batching.cpp
+        ../utilities/MemoryConsumer.cu
+        memory_consumer_test.cpp
 )
 configure_test(cache_test "${cache_test_sources}")
