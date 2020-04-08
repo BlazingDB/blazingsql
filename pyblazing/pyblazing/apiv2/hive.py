@@ -133,7 +133,8 @@ def get_hive_table(cursor, tableName, hive_database_name):
         file_list.append(schema['location'] + "/*")
 
     extra_kwargs = {}
-    extra_kwargs['delimiter'] = schema['delimiter']
+    if schema['delimiter'] != chr(1):
+        extra_kwargs['delimiter'] = schema['delimiter']
     if schema['fileType'] == 'csv':
         extra_kwargs['names'] = [col_name for col_name, dtype, is_virtual_col  in schema['columns'] if not is_virtual_col ]
         extra_kwargs['dtype'] = [cudfTypeToCsvType[dtype] for col_name, dtype, is_virtual_col in schema['columns'] if not is_virtual_col]
