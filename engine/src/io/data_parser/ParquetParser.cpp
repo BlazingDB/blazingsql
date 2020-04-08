@@ -172,7 +172,7 @@ void parquet_parser::parse_schema(
 		pq_args.row_group = 0;
 		pq_args.num_rows = 1;
 
-		table_out = cudf_io::read_parquet(pq_args);	
+		table_out = cudf_io::read_parquet(pq_args);
 
 		if (table_out.tbl->num_columns() > 0) {
 			break;

@@ -153,6 +153,11 @@ public:
 			return schema.makeEmptyBlazingTable(projections);
 		}
 		
+		//This is just a workaround, mainly for ORC files
+		if(all_row_groups[file_index].size()==1 && all_row_groups[file_index][0]==-1){
+			batch_id = -1; //load all the stripes when can't get the rowgroups size
+		}
+
 		auto ret = loader.load_batch(context.get(), projections, schema, user_readable_file_handles[file_index], files[file_index], file_index, batch_id);
 		batch_index++;
 		
