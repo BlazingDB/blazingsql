@@ -1013,8 +1013,13 @@ class BlazingContext(object):
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             hive_database_name = kwargs.get('hive_database_name', 'default')
-            folder_list, file_format_hint, extra_kwargs, extra_columns, in_file, hive_schema = get_hive_table(
+            folder_list, hive_file_format_hint, extra_kwargs, extra_columns, in_file, hive_schema = get_hive_table(
                 input, hive_table_name, hive_database_name)
+            
+            if file_format_hint == 'undefined':
+                file_format_hint = hive_file_format_hint
+            elif file_format_hint != hive_file_format_hint:
+                print("WARNING: file_format specified (" + str(file_format_hint) + ") does not match the file_format infered by the Hive cursor (" + str(hive_file_format_hint) + "). Using user specified file_format")
 
             kwargs.update(extra_kwargs)
             input = folder_list
