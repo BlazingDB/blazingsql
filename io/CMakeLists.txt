@@ -87,7 +87,6 @@ set(FILESYSTEM_SRC_FILES
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemManager.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemEntity.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemRepository.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemCommandParser.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3ReadableFile.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3OutputStream.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageReadableFile.cpp

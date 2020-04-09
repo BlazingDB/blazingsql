@@ -90,8 +90,8 @@ class FileSystem(object):
         secret_key = kwargs.get('secret_key', '')
         session_token = kwargs.get('session_token', '')
         encryption_type = kwargs.get('encryption_type', S3EncryptionType.NONE)
-        kms_key_amazon_resource_name = kwargs.get(
-            'kms_key_amazon_resource_name', '')
+        kms_key_amazon_resource_name = kwargs.get('kms_key_amazon_resource_name', '')
+        endpoint_override = kwargs.get('endpoint_override', '')
 
         fs = OrderedDict()
         fs['type'] = 's3'
@@ -101,6 +101,7 @@ class FileSystem(object):
         fs['session_token'] = session_token
         fs['encryption_type'] = encryption_type
         fs['kms_key_amazon_resource_name'] = kms_key_amazon_resource_name
+        fs['endpoint_override'] = endpoint_override
         return registerFileSystem(client, fs, root, prefix)
 
     def gs(self, client, prefix, **kwargs):
