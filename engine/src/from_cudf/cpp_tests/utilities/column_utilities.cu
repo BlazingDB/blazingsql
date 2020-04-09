@@ -24,8 +24,8 @@
 #include <cudf/strings/convert/convert_datetime.hpp>
 #include <cudf/detail/copy.hpp>
 
-#include "cudf_gtest.hpp"
-#include "column_wrapper.hpp"
+#include <src/from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
+#include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 
 #include <thrust/equal.h>
 #include <thrust/logical.h>
