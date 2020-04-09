@@ -146,11 +146,25 @@ public:
 		}
 
 		is_empty_data_source = (n_files == 0);
+
+		if(is_empty_data_source){
+			n_batches = parser->get_num_partitions();
+		}
 	}
 	RecordBatch next() {
 		if (is_empty_data_source) {
-			is_empty_data_source = false;
-			return schema.makeEmptyBlazingTable(projections);
+			//is_empty_data_source = false;
+			//return schema.makeEmptyBlazingTable(projections);
+
+			auto ret = loader.load_batch(context.get(), projections, schema, "", ral::io::data_handle(), file_index, batch_id);
+			batch_index++;
+			batch_id++;
+
+			if(batch_index == n_batches){
+				is_empty_data_source = false;
+			}
+
+			return std::move(ret);
 		}
 		
 		//This is just a workaround, mainly for ORC files

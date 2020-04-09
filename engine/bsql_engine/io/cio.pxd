@@ -68,7 +68,7 @@ cdef extern from "../include/io/io.h":
 
 
     cdef struct TableSchema:
-        BlazingTableView blazingTableView
+        vector[BlazingTableView] blazingTableViews
         vector[type_id] types
         vector[string]  names
         vector[string]  files

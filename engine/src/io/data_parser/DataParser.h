@@ -37,6 +37,10 @@ public:
 		return nullptr; // TODO cordova ask ALexander why is not a pure virtual function as before
 	}
 
+	virtual size_t get_num_partitions() {
+		return 0;
+	}
+
 	virtual void parse_schema(
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) = 0;
 

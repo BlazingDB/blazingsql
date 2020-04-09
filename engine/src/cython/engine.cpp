@@ -50,7 +50,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableView);
+			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableViews);
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {
