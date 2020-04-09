@@ -1018,7 +1018,7 @@ class BlazingContext(object):
             
             if file_format_hint == 'undefined':
                 file_format_hint = hive_file_format_hint
-            elif: file_format_hint != hive_file_format_hint:
+            elif file_format_hint != hive_file_format_hint:
                 print("WARNING: file_format specified (" + str(file_format_hint) + ") does not match the file_format infered by the Hive cursor (" + str(hive_file_format_hint) + "). Using user specified file_format")
 
             kwargs.update(extra_kwargs)
