@@ -92,6 +92,7 @@ const std::string connectionPropertyName(ConnectionProperty connectionProperty) 
 	case ConnectionProperty::ACCESS_KEY_ID: return "s3.access_key_id"; break;
 	case ConnectionProperty::SECRET_KEY: return "s3.secret_key"; break;
 	case ConnectionProperty::SESSION_TOKEN: return "s3.session_token"; break;
+	case ConnectionProperty::ENDPOINT_OVERRIDE: return "s3.endpoint_override"; break;
 	}
 
 	return "UNDEFINED";
@@ -138,7 +139,8 @@ bool verifyConnectionProperties(const std::string & bucketName,
 	const std::string & kmsKeyAmazonResourceName,
 	const std::string & accessKeyId,
 	const std::string & secretKey,
-	const std::string & sessionToken) {
+	const std::string & sessionToken,
+	const std::string & endpointOverride) {
 	// TODO percy more checks, use regular expressions here
 
 	if(bucketName.empty()) {
@@ -260,11 +262,12 @@ FileSystemConnection::FileSystemConnection(const std::string & bucketName,
 	const std::string & kmsKeyAmazonResourceName,
 	const std::string & accessKeyId,
 	const std::string & secretKey,
-	const std::string & sessionToken) {
+	const std::string & sessionToken,
+	const std::string & endpointOverride) {
 	using namespace S3FileSystemConnection;
 
 	const bool valid = verifyConnectionProperties(
-		bucketName, encryptionType, kmsKeyAmazonResourceName, accessKeyId, secretKey, sessionToken);
+		bucketName, encryptionType, kmsKeyAmazonResourceName, accessKeyId, secretKey, sessionToken, endpointOverride);
 
 	if(valid == false) {
 		this->invalidate();
@@ -280,7 +283,8 @@ FileSystemConnection::FileSystemConnection(const std::string & bucketName,
 		{connectionPropertyName(ConnectionProperty::KMS_KEY_AMAZON_RESOURCE_NAME), kmsKeyAmazonResourceName},
 		{connectionPropertyName(ConnectionProperty::ACCESS_KEY_ID), accessKeyId},
 		{connectionPropertyName(ConnectionProperty::SECRET_KEY), secretKey},
-		{connectionPropertyName(ConnectionProperty::SESSION_TOKEN), sessionToken}};
+		{connectionPropertyName(ConnectionProperty::SESSION_TOKEN), sessionToken},
+		{connectionPropertyName(ConnectionProperty::ENDPOINT_OVERRIDE), endpointOverride}};
 
 	this->fileSystemType = FileSystemType::S3;
 	this->connectionProperties = std::move(connectionProperties);

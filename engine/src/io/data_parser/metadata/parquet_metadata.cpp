@@ -12,7 +12,6 @@
 #include <mutex>
 #include <rmm/rmm.h>
 #include <src/Traits/RuntimeTraits.h>
-#include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
 #include <thread>
 #include <cudf/column/column_factories.hpp>
 #include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"

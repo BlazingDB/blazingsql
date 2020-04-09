@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include <tests/utilities/scalar_utilities.hpp>
+#include <src/from_cudf/cpp_tests/utilities/scalar_utilities.hpp>
 
 #include <cudf/utilities/type_dispatcher.hpp>
-#include <tests/utilities/cudf_gtest.hpp>
+#include <src/from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
 #include <cudf/scalar/scalar.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
 #include <sstream>

@@ -49,7 +49,8 @@ enum class ConnectionProperty : char {
 								   // (ARN) of the AWS KMS key to use
 	ACCESS_KEY_ID,
 	SECRET_KEY,
-	SESSION_TOKEN
+	SESSION_TOKEN,
+	ENDPOINT_OVERRIDE  // if this url:port is given then we can connect to differente S3 provider (e.g. Apache MinIO)
 };
 
 const std::string encryptionTypeName(EncryptionType encryptionType);
@@ -105,7 +106,8 @@ public:
 		const std::string & kmsKeyAmazonResourceName,
 		const std::string & accessKeyId,
 		const std::string & secretKey,
-		const std::string & sessionToken);
+		const std::string & sessionToken,
+		const std::string & endpointOverride = "");
 
 	/**
 	 * @brief Constructs a GoogleCloudStorage connection
