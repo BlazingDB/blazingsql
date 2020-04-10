@@ -50,7 +50,7 @@ enum class ConnectionProperty : char {
 	ACCESS_KEY_ID,
 	SECRET_KEY,
 	SESSION_TOKEN,
-	ENDPOINT_OVERRIDE  // if this url:port is given then we can connect to differente S3 provider (e.g. Apache MinIO)
+	ENDPOINT_OVERRIDE  // if url:port is given then we can connect to different S3 provider (e.g. Apache MinIO)
 };
 
 const std::string encryptionTypeName(EncryptionType encryptionType);

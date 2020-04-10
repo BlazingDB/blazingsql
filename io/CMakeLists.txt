@@ -1,7 +1,7 @@
 #=============================================================================
-# Copyright 2018 BlazingDB, Inc.
+# Copyright 2018-2020 BlazingDB, Inc.
 #     Copyright 2018 Felipe Aramburu <felipe@blazingdb.com>
-#     Copyright 2018-2019 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+#     Copyright 2018-2020 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
