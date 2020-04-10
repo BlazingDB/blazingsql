@@ -214,8 +214,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 
 void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, cudf::type_id>> non_file_columns) {
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
-	bool firstIteration = true;
-	std::vector<data_handle> handles = this->provider->get_all();
+	std::vector<data_handle> handles = this->provider->get_some(5); // we only need one to get the schema, but we will get a couple in-case the first couple files are empty
 	for(auto handle : handles) {
 		files.push_back(handle.fileHandle);
 	}
@@ -225,6 +224,14 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 		schema.add_file(handle.uri.toString(true));
 	}
 
+	bool open_file = false;
+	while (this->provider->has_next()){
+		handles = this->provider->get_some(32, open_file);
+		for(auto handle : handles) {
+			schema.add_file(handle.uri.toString(true));
+		}		
+	}
+
 	for(auto extra_column : non_file_columns) {
 		schema.add_column(extra_column.first, extra_column.second, 0, false);
 	}
@@ -232,16 +239,27 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 }
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) {
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
-
-	bool firstIteration = true;
-	std::vector<data_handle> handles = this->provider->get_all();
-
-	for(auto handle : handles) {
-		files.push_back(handle.fileHandle);
+	
+	std::size_t NUM_FILES_AT_A_TIME = 32;
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> metadata_batches;
+	std::vector<ral::frame::BlazingTableView> metadata_batche_views;
+	while(this->provider->has_next()){
+		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
+		std::vector<data_handle> handles = this->provider->get_some(NUM_FILES_AT_A_TIME);
+		for(auto handle : handles) {
+			files.push_back(handle.fileHandle);
+		}
+		metadata_batches.emplace_back(this->parser->get_metadata(files,  offset));
+		metadata_batche_views.emplace_back(metadata_batches.back()->toBlazingTableView());
+		offset += files.size();
+		this->provider->close_file_handles();
 	}
 	this->provider->reset();
-	return this->parser->get_metadata(files,  offset);
+	if (metadata_batches.size() == 1){
+		return std::move(metadata_batches[0]);
+	} else {
+		return ral::utilities::experimental::concatTables(metadata_batche_views);
+	}	
 }
 
 } /* namespace io */

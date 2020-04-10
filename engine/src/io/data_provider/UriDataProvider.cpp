@@ -38,11 +38,7 @@ std::shared_ptr<data_provider> uri_data_provider::clone() {
 uri_data_provider::~uri_data_provider() {
 	// TODO: when a shared_ptr to a randomaccessfile goes out of scope does it close files automatically?
 	// in case it doesnt we can close that here
-	for(size_t file_index = 0; file_index < this->opened_files.size(); file_index++) {
-		// TODO: perhaps consider capturing status here and complainig if it fails
-		this->opened_files[file_index]->Close();
-		//
-	}
+	this->close_file_handles(); 
 }
 
 bool uri_data_provider::has_next() { return this->current_file < this->file_uris.size(); }
@@ -52,25 +48,33 @@ void uri_data_provider::reset() {
 	this->directory_current_file = 0;
 }
 
-std::vector<data_handle> uri_data_provider::get_all() {
+/**
+ * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
+ * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
+ * open_file = true will actually open the file and return a std::shared_ptr<arrow::io::RandomAccessFile>. If its false it will return a nullptr
+ */
+std::vector<data_handle> uri_data_provider::get_some(std::size_t num_files, bool open_file){
+	std::size_t count = 0;
 	std::vector<data_handle> file_handles;
-	while(this->has_next()) {
-		auto handle = this->get_next();
+	while(this->has_next() && count < num_files) {
+		auto handle = this->get_next(open_file);
 		if (handle.is_valid())
 			file_handles.emplace_back(std::move(handle));
+		count++;
 	}
 	return file_handles;
 }
 
-data_handle uri_data_provider::get_next() {
+
+data_handle uri_data_provider::get_next(bool open_file) {
 	// TODO: Take a look at this later, just calling this function to ensure
 	// the uri is in a valid state otherwise throw an exception
 	// because openReadable doens't  validate it and just return a nullptr
 
 	if(this->directory_uris.size() > 0 && this->directory_current_file < this->directory_uris.size()) {
-		std::shared_ptr<arrow::io::RandomAccessFile> file =
+		std::shared_ptr<arrow::io::RandomAccessFile> file = open_file ? 
 			BlazingContext::getInstance()->getFileSystemManager()->openReadable(
-				this->directory_uris[this->directory_current_file]);
+				this->directory_uris[this->directory_current_file]) : nullptr;
 
 		data_handle handle;
 		handle.uri = this->directory_uris[this->directory_current_file];
@@ -82,7 +86,9 @@ data_handle uri_data_provider::get_next() {
 			}
 		}
 
-		this->opened_files.push_back(file);
+		if (open_file){
+			this->opened_files.push_back(file);
+		}
 
 		this->directory_current_file++;
 		if(this->directory_current_file >= directory_uris.size()) {
@@ -155,13 +161,15 @@ data_handle uri_data_provider::get_next() {
 			this->directory_uris = new_uris;
 
 			this->directory_current_file = 0;
-			return get_next();
+			return get_next(open_file);
 
 		} else if(fileStatus.isFile()) {
-			std::shared_ptr<arrow::io::RandomAccessFile> file =
-				BlazingContext::getInstance()->getFileSystemManager()->openReadable(current_uri);
+			std::shared_ptr<arrow::io::RandomAccessFile> file = open_file ? 
+				BlazingContext::getInstance()->getFileSystemManager()->openReadable(current_uri) : nullptr;
 
-			this->opened_files.push_back(file);
+			if (open_file){
+				this->opened_files.push_back(file);
+			}
 			data_handle handle;
 			handle.uri = current_uri;
 			handle.fileHandle = file;
@@ -178,7 +186,7 @@ data_handle uri_data_provider::get_next() {
 		} else {
 			// this is a file we cannot parse apparently
 			this->current_file++;
-			return get_next();
+			return get_next(open_file);
 		}
 	} else {
 		data_handle empty_handle;
@@ -186,12 +194,16 @@ data_handle uri_data_provider::get_next() {
 	}
 }
 
-data_handle uri_data_provider::get_first() {
-	this->reset();
-	data_handle handle = this->get_next();
-	this->reset();
-	this->directory_uris = {};
-	return handle;
+/**
+ * Closes currently open set of file handles maintained by the provider
+*/
+void uri_data_provider::close_file_handles() {
+	for(size_t file_index = 0; file_index < this->opened_files.size(); file_index++) {
+		// TODO: perhaps consider capturing status here and complainig if it fails
+		this->opened_files[file_index]->Close();
+		//
+	}
+	this->opened_files.resize(0);
 }
 
 std::vector<std::string> uri_data_provider::get_errors() { return this->errors; }
