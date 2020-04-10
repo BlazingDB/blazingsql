@@ -315,8 +315,8 @@ private:
 	}
 
 	CUDA_DEVICE_CALLABLE void read_valid_data(cudf::size_type column_idx, cudf::bitmask_type * buffer, cudf::size_type row_index) {
-		if(table.column(column_idx).has_nulls()) {
-			const cudf::bitmask_type * valid_in = table.column(column_idx).null_mask();
+		const cudf::bitmask_type * valid_in = table.column(column_idx).null_mask();
+		if(valid_in != nullptr) {			
 			buffer[column_idx] = valid_in[cudf::word_index(row_index)];
 		} else {
 			buffer[column_idx] = 0xffffffff;
