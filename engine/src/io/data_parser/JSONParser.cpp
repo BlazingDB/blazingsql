@@ -46,7 +46,6 @@ cudf::experimental::io::table_with_metadata read_json_file(
 
 std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 

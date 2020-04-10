@@ -29,6 +29,10 @@ struct data_handle {
 	std::shared_ptr<arrow::io::RandomAccessFile> fileHandle;
 	std::map<std::string, std::string> column_values;  // allows us to add hive values
 	Uri uri;										  // in case the data was loaded from a file
+
+	bool is_valid(){
+		return fileHandle != nullptr || !uri.isEmpty();
+	}
 };
 
 /**
@@ -58,7 +62,6 @@ public:
 	 */
 	virtual data_handle get_first() = 0;
 	virtual std::vector<std::string> get_errors() = 0;
-	virtual std::string get_current_user_readable_file_handle() = 0;
 
 	virtual std::vector<data_handle> get_all() = 0;
 

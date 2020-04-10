@@ -18,7 +18,6 @@ gdf_parser::gdf_parser(frame::BlazingTableView blazingTableView) : blazingTableV
 gdf_parser::~gdf_parser() {}
 
 std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<std::size_t> column_indices) {
 	

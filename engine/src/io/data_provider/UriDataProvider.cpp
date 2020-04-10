@@ -17,16 +17,17 @@
 namespace ral {
 namespace io {
 
-uri_data_provider::uri_data_provider(std::vector<Uri> uris)
+uri_data_provider::uri_data_provider(std::vector<Uri> uris, bool ignore_missing_paths)
 	: data_provider(), file_uris(uris), uri_values({}), opened_files({}),
-	  current_file(0), errors({}), directory_uris({}), directory_current_file(0) {}
+	  current_file(0), errors({}), directory_uris({}), directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {}
 
 // TODO percy cudf0.12 implement proper scalar support, TODO, finish this to support HIVE with partitions, @alex 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
-	std::vector<std::map<std::string, std::string>> uri_values)
+	std::vector<std::map<std::string, std::string>> uri_values,
+	bool ignore_missing_paths)
 	: data_provider(), file_uris(uris), uri_values(uri_values), 
 	opened_files({}), current_file(0), errors({}), directory_uris({}),
-	  directory_current_file(0) {
+	  directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {
 	// thanks to c++11 we no longer have anything interesting to do here :)
 }
 
@@ -44,14 +45,6 @@ uri_data_provider::~uri_data_provider() {
 	}
 }
 
-std::string uri_data_provider::get_current_user_readable_file_handle() {
-	if(directory_uris.size() == 0) {
-		return this->file_uris[this->current_file].toString();
-	} else {
-		return this->directory_uris[this->directory_current_file].toString();
-	}
-}
-
 bool uri_data_provider::has_next() { return this->current_file < this->file_uris.size(); }
 
 void uri_data_provider::reset() {
@@ -62,9 +55,10 @@ void uri_data_provider::reset() {
 std::vector<data_handle> uri_data_provider::get_all() {
 	std::vector<data_handle> file_handles;
 	while(this->has_next()) {
-		file_handles.push_back(this->get_next());
+		auto handle = this->get_next();
+		if (handle.is_valid())
+			file_handles.emplace_back(std::move(handle));
 	}
-
 	return file_handles;
 }
 
@@ -74,9 +68,6 @@ data_handle uri_data_provider::get_next() {
 	// because openReadable doens't  validate it and just return a nullptr
 
 	if(this->directory_uris.size() > 0 && this->directory_current_file < this->directory_uris.size()) {
-		auto fileStatus = BlazingContext::getInstance()->getFileSystemManager()->getFileStatus(
-			this->directory_uris[this->directory_current_file]);
-
 		std::shared_ptr<arrow::io::RandomAccessFile> file =
 			BlazingContext::getInstance()->getFileSystemManager()->openReadable(
 				this->directory_uris[this->directory_current_file]);
@@ -101,7 +92,7 @@ data_handle uri_data_provider::get_next() {
 
 		handle.fileHandle = file;
 		return handle;
-	} else {
+	} else if (this->current_file < this->file_uris.size()) {
 		FileStatus fileStatus;
 		auto current_uri = this->file_uris[this->current_file];
 		const bool hasWildcard = current_uri.getPath().hasWildcard();
@@ -117,7 +108,7 @@ data_handle uri_data_provider::get_next() {
 
 			if(fs_manager && fs_manager->exists(target_uri)) {
 				fileStatus = BlazingContext::getInstance()->getFileSystemManager()->getFileStatus(target_uri);
-			} else {
+			} else if (!ignore_missing_paths){
 				throw std::runtime_error(
 					"Path '" + target_uri.toString() +
 					"' does not exist. File or directory paths are expected to be in one of the following formats: " +
@@ -133,7 +124,7 @@ data_handle uri_data_provider::get_next() {
 					"For HDFS file paths: 'hdfs://registeredFileSystemName/folder0/folder1/fileName.extension'    " +
 					"For HDFS file paths with wildcard: '/folder0/folder1/*fileName*.*'    " +
 					"For HDFS directory paths: 'hdfs://registeredFileSystemName/folder0/folder1/'");
-			}
+			} 
 		} catch(const std::exception & e) {
 			std::cerr << e.what() << std::endl;
 			throw;
@@ -186,8 +177,12 @@ data_handle uri_data_provider::get_next() {
 			return handle;
 		} else {
 			// this is a file we cannot parse apparently
+			this->current_file++;
 			return get_next();
 		}
+	} else {
+		data_handle empty_handle;
+		return empty_handle;
 	}
 }
 

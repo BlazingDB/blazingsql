@@ -26,8 +26,10 @@ namespace io {
 class uri_data_provider : public data_provider {
 public:
 	uri_data_provider(std::vector<Uri> uris,
-		std::vector<std::map<std::string, std::string>> uri_values);
-	uri_data_provider(std::vector<Uri> uris);
+		std::vector<std::map<std::string, std::string>> uri_values,
+		bool ignore_missing_paths = false);
+	uri_data_provider(std::vector<Uri> uris, 
+		bool ignore_missing_paths = false);
 
 	std::shared_ptr<data_provider> clone() override; 
 
@@ -53,11 +55,6 @@ public:
 	 * returns any errors that were encountered when opening arrow::io::RandomAccessFile
 	 */
 	std::vector<std::string> get_errors();
-	/**
-	 * returns a string that the user should be able to use to identify which file is being referred to in error
-	 * messages
-	 */
-	std::string get_current_user_readable_file_handle();
 	/**
 	 * returns all of the file handles
 	 */
@@ -96,6 +93,7 @@ private:
 	std::vector<std::map<std::string,  std::string>> uri_values;
 	std::vector<Uri> directory_uris;
 	size_t directory_current_file;
+	bool ignore_missing_paths;
 };
 
 } /* namespace io */

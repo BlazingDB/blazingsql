@@ -49,8 +49,6 @@ public:
 
 	std::vector<std::string> get_errors() { return {}; }
 
-	std::string get_current_user_readable_file_handle() { return ""; }
-
 	std::vector<data_handle> get_all() { return {}; }
 
 

@@ -41,7 +41,6 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args orc_arg,
 
 std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle, // TODO where is this param used?
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 

@@ -1091,8 +1091,9 @@ class BlazingContext(object):
 
             input = resolve_relative_path(input)
 
+            ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find. 
             parsedSchema = self._parseSchema(
-                input, file_format_hint, kwargs, extra_columns)
+                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
 
             if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(parsedSchema['files'], hive_schema['partitions'], hive_schema['location'])
@@ -1138,8 +1139,8 @@ class BlazingContext(object):
                 table.metadata = parsedMetadata                
 
             if parsedSchema['file_type'] == DataType.PARQUET :
-                parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs)
-            
+                parsedMetadata = self._parseMetadata(file_format_hint, table.slices, parsedSchema, kwargs)
+                
                 if isinstance(parsedMetadata, dask_cudf.core.DataFrame):
                     parsedMetadata = parsedMetadata.compute()
                     parsedMetadata = parsedMetadata.reset_index()
@@ -1199,7 +1200,7 @@ class BlazingContext(object):
         """
         self.add_remove_table(table_name, False)
 
-    def _parseSchema(self, input, file_format_hint, kwargs, extra_columns):
+    def _parseSchema(self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths):
         if self.dask_client:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
             connection = self.dask_client.submit(
@@ -1208,13 +1209,14 @@ class BlazingContext(object):
                 file_format_hint,
                 kwargs,
                 extra_columns,
+                ignore_missing_paths,
                 workers=[worker])
             return connection.result()
         else:
             return cio.parseSchemaCaller(
-                input, file_format_hint, kwargs, extra_columns)
+                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
 
-    def _parseMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs):
+    def _parseMetadata(self, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
@@ -1233,8 +1235,9 @@ class BlazingContext(object):
             return dask.dataframe.from_delayed(dask_futures)
 
         else:
+            files = [ file.decode() for file in currentTableNodes[0].files]
             return cio.parseMetadataCaller(
-                input, currentTableNodes[0].offset, schema, file_format_hint, kwargs)
+                files, currentTableNodes[0].offset, schema, file_format_hint, kwargs)
 
     def _sliceRowGroups(self, numSlices, files, uri_values, row_groups_ids):
         nodeFilesList = []
