@@ -26,7 +26,7 @@ public:
 		const Schema & schema,
 		std::vector<std::size_t> column_indices);
 
-	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema);
+	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema);
 
 private:
 	frame::BlazingTableView blazingTableView_;

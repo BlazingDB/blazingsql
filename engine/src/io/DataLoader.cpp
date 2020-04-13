@@ -213,20 +213,24 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 
 
 void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, cudf::type_id>> non_file_columns) {
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
-	std::vector<data_handle> handles = this->provider->get_some(5); // we only need one to get the schema, but we will get a couple in-case the first couple files are empty
-	for(auto handle : handles) {
-		files.push_back(handle.fileHandle);
+	bool got_schema = false;
+	while (!got_schema && this->provider->has_next()){
+		data_handle handle = this->provider->get_next();
+		if (handle.fileHandle != nullptr){
+			this->parser->parse_schema(handle.fileHandle, schema);
+			if (schema.get_num_columns() > 0){
+				got_schema = true;
+				schema.add_file(handle.uri.toString(true));
+			}
+		}		
 	}
-	this->parser->parse_schema(files, schema);
-
-	for(auto handle : handles) {
-		schema.add_file(handle.uri.toString(true));
+	if (!got_schema){
+		std::cout<<"ERROR: Could not get schema"<<std::endl;
 	}
-
+	
 	bool open_file = false;
 	while (this->provider->has_next()){
-		handles = this->provider->get_some(32, open_file);
+		std::vector<data_handle> handles = this->provider->get_some(64, open_file);
 		for(auto handle : handles) {
 			schema.add_file(handle.uri.toString(true));
 		}		
@@ -240,7 +244,7 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) {
 	
-	std::size_t NUM_FILES_AT_A_TIME = 32;
+	std::size_t NUM_FILES_AT_A_TIME = 64;
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> metadata_batches;
 	std::vector<ral::frame::BlazingTableView> metadata_batche_views;
 	while(this->provider->has_next()){

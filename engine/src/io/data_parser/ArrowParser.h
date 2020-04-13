@@ -28,7 +28,7 @@ public:
 		const Schema & schema,
 		std::vector<size_t> column_indices);
 
-	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile> > files,
+	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file,
 			ral::io::Schema & schema);
 
 private:

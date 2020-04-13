@@ -48,7 +48,7 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse(std::shared_ptr<arro
 }
 
 void gdf_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {}
+	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {}
 
 
 }  // namespace io
