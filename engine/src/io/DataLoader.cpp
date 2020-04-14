@@ -213,6 +213,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 
 
 void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, cudf::type_id>> non_file_columns) {
+	std::cout<<"get_schema start"<<std::endl;
 	bool got_schema = false;
 	while (!got_schema && this->provider->has_next()){
 		data_handle handle = this->provider->get_next();
@@ -227,19 +228,22 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	if (!got_schema){
 		std::cout<<"ERROR: Could not get schema"<<std::endl;
 	}
+	std::cout<<"get_schema got schema"<<std::endl;
 	
 	bool open_file = false;
 	while (this->provider->has_next()){
 		std::vector<data_handle> handles = this->provider->get_some(64, open_file);
 		for(auto handle : handles) {
 			schema.add_file(handle.uri.toString(true));
-		}		
+		}
+		std::cout<<"get_schema got some file paths"<<std::endl;
 	}
 
 	for(auto extra_column : non_file_columns) {
 		schema.add_column(extra_column.first, extra_column.second, 0, false);
 	}
 	this->provider->reset();
+	std::cout<<"get_schema end"<<std::endl;
 }
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) {

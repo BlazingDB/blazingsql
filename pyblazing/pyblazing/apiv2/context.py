@@ -278,11 +278,18 @@ def get_uri_values(files, partitions, base_folder):
         
 
 def parseHiveMetadata(curr_table, uri_values):
+    print("parseHiveMetadata start")
     metadata = {}
     names = []
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
-    dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
+
+    if all(type in cudf_to_np_types for type in curr_table.column_types):
+        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types] 
+    else:
+        for i in range(len(curr_table.column_types)):
+            if not (curr_table.column_types[i] in cudf_to_np_types):
+                print("ERROR: Column " + curr_table.column_names[i] + " has type that cannot be mapped: " + curr_table.column_types[i])
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
         col_name = columns[index]
@@ -339,6 +346,7 @@ def parseHiveMetadata(curr_table, uri_values):
 
     frame = OrderedDict(((key,value) for (key,value) in zip(final_names, series)))
     metadata = cudf.DataFrame(frame)
+    print("parseHiveMetadata end")
     return metadata
 
 
@@ -1201,6 +1209,7 @@ class BlazingContext(object):
         self.add_remove_table(table_name, False)
 
     def _parseSchema(self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths):
+        print("_parseSchema start")
         if self.dask_client:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
             connection = self.dask_client.submit(

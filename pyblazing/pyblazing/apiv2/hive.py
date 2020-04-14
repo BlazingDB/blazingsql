@@ -25,7 +25,8 @@ def convertTypeNameStrToCudfType(hiveType):
     elif(hiveType == 'boolean'):
         return 7  # BOOL8
     elif(hiveType == 'date'):
-        return 8  # TIMESTAMP_DAYS
+        # return 8  # TIMESTAMP_DAYS
+        return 10  # TIMESTAMP_MILLISECONDS will use ms here until there is better support for days 
     elif(hiveType == 'timestamp[s]'):
         return 9  # TIMESTAMP_SECONDS
     elif(hiveType == 'timestamp' or hiveType == 'timestamp[ms]'):
@@ -130,10 +131,14 @@ def getFolderListFromPartitions(partitions, base_location):
 
 
 def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
+    print("get_hive_table start")
     query = 'use ' + hive_database_name
     runHiveDDL(cursor, query)
     query = 'describe formatted ' + tableName
     result, description = runHiveQuery(cursor, query)
+
+    print("runHiveQuery result")
+    print(result)
 
     schema = {}
     schema['columns'] = []
@@ -190,11 +195,15 @@ def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
             hasPartitions = True
     file_list = []
     if hasPartitions:
+        print("hasPartitions")
         schema['partitions'] = getPartitions(tableName, schema, cursor)
+        print("gotPartitions num partitions: " + str(len(schema['partitions'])))
+        
         if user_partitions is not None:
             schema['partitions'] = filterHivePartitionsWithUserPartitions(schema['partitions'], user_partitions)
         
         file_list = getFolderListFromPartitions(schema['partitions'], schema['location'])        
+        print("file_list num: " + str(len(file_list)))
     else:
         schema['partitions'] = {}
         file_list.append(schema['location'] + "/*")
@@ -217,7 +226,8 @@ def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
     for column in schema['columns']:
         if(column[2]):
             extra_columns.append((column[0], column[1]))
-        
+    
+    print("get_hive_table end")
     return file_list, schema['fileType'], extra_kwargs, extra_columns, schema
 
 
