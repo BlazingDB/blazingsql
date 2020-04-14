@@ -322,6 +322,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         types.push_back(col_type)
 
       if table.fileType in (4, 5):
+        blazingTableViews.resize(0)
         for cython_table in table.input:
           column_views.resize(0)
           for cython_col in cython_table._data.values():
