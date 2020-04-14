@@ -403,7 +403,7 @@ public:
 		int batch_count = 0;
         while (!done) {		
             try {            
-				std::cout << "\tbatch.sz: " << batch->num_rows() << std::endl;
+				//std::cout << "\tbatch.sz: " << batch->num_rows() << std::endl;
 				auto batch_view = batch->view();
 				std::vector<CudfTableView> partitioned;
 				if (batch->num_rows() > 0) {
@@ -449,7 +449,7 @@ public:
 				std::cout<<err<<std::endl;
 			}
         }
-		printf("... notifyLastTablePartitions\n");
+		//printf("... notifyLastTablePartitions\n");
 		ral::distribution::experimental::notifyLastTablePartitions(context.get());
     }
 	
@@ -494,7 +494,7 @@ public:
 			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-			std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
+			//std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
 			while (host_table = external_input_left.next()) {	
 				this->add_to_output_cache(std::move(host_table), "output_a");
 			}
@@ -517,7 +517,7 @@ public:
 			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 
-			std::cout << "... consumming right => "<< this->get_message_id()<<std::endl;
+			//std::cout << "... consumming right => "<< this->get_message_id()<<std::endl;
 
 			while (host_table = external_input_right.next()) {	
 				this->add_to_output_cache(std::move(host_table), "output_b");

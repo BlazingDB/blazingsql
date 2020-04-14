@@ -95,7 +95,6 @@ public:
 					auto message = Server::getInstance().getHostMessage(context_token, message_token);
 					if(!message) {
 						--last_message_counter;
-						std::cout<< ">>>>>> ExternalBatchColumnDataSequence: last_message_counter " << last_message_counter<< std::endl;
 						if (last_message_counter == 0 ){
 							this->host_cache->finish();
 							break;
