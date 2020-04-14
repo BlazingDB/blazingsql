@@ -35,7 +35,7 @@ public:
 	bool wait_for_next() {
 		if (kernel) {
 			std::string message_id = std::to_string((int)kernel->get_type_id()) + "_" + std::to_string(kernel->get_id()); 
-			std::cout<<">>>>> WAIT_FOR_NEXT id : " <<  message_id <<std::endl;
+			// std::cout<<">>>>> WAIT_FOR_NEXT id : " <<  message_id <<std::endl;
 		}
 		
 		return cache->wait_for_next();
