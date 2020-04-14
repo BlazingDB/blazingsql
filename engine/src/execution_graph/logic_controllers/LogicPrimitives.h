@@ -161,6 +161,9 @@ private:
 	size_t part_id;
 };
 
+std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::data_type> column_types,
+									   std::vector<std::string> column_names);
+
 std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::type_id> column_types,
 									   std::vector<std::string> column_names);
 
