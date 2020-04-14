@@ -30,6 +30,14 @@ const std::string LEFT_JOIN = "left";
 const std::string RIGHT_JOIN = "right";
 const std::string OUTER_JOIN = "full";
 
+struct TableSchema {
+	std::vector<cudf::data_type> column_types;
+	std::vector<std::string> column_names;
+	TableSchema(std::vector<cudf::data_type> column_types, std::vector<std::string> column_names) 
+		: column_types{column_types}, column_names{column_names}
+	{}
+};
+
 class PartwiseJoin : public PhysicalPlan {
 public:
 	PartwiseJoin(const std::string & queryString, std::shared_ptr<Context> context)
@@ -47,6 +55,9 @@ public:
         this->rightArrayCache = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
 	}
 
+	std::unique_ptr<TableSchema> left_schema{nullptr};
+ 	std::unique_ptr<TableSchema> right_schema{nullptr};
+	
 	std::unique_ptr<ral::frame::BlazingTable> load_set(BatchSequence & input, bool load_all){
 		
 		std::size_t bytes_loaded = 0;
@@ -81,14 +92,28 @@ public:
 		this->max_left_ind++;
 		// need to load all the left side, only if doing a FULL OUTER JOIN
 		bool load_all = this->join_type == OUTER_JOIN ?  true : false;
-		return load_set(this->left_sequence, load_all);
+		auto table = load_set(this->left_sequence, load_all);
+		if (not left_schema) {
+			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
+		}
+		if (table == nullptr) {
+			return ral::frame::createEmptyBlazingTable(left_schema->column_types, left_schema->column_names);
+		}
+		return std::move(table);
 	}
 
 	std::unique_ptr<ral::frame::BlazingTable> load_right_set(){
 		this->max_right_ind++;
 		// need to load all the right side, if doing any type of outer join
 		bool load_all = this->join_type != INNER_JOIN ?  true : false;
-		return load_set(this->right_sequence, load_all);
+		auto table = load_set(this->right_sequence, load_all);
+		if (not right_schema) {
+			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
+		}
+		if (table == nullptr) {
+			return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
+		}
+		return std::move(table);
 	}
 
     void mark_set_completed(int left_ind, int right_ind){
@@ -322,6 +347,7 @@ public:
 				// TODO add retry here
 				std::string err = "ERROR: in PartwiseJoin left_ind " + std::to_string(left_ind) + " right_ind " + std::to_string(right_ind) + " for " + expression + " Error message: " + std::string(e.what());
 				std::cout<<err<<std::endl;
+				throw e;
 			}
 		}
 		
@@ -377,7 +403,7 @@ public:
 		int batch_count = 0;
         while (!done) {		
             try {            
-				std::cout << "\tbatch.sz: " << batch->num_rows() << std::endl;
+				//std::cout << "\tbatch.sz: " << batch->num_rows() << std::endl;
 				auto batch_view = batch->view();
 				std::vector<CudfTableView> partitioned;
 				if (batch->num_rows() > 0) {
@@ -423,7 +449,7 @@ public:
 				std::cout<<err<<std::endl;
 			}
         }
-		printf("... notifyLastTablePartitions\n");
+		//printf("... notifyLastTablePartitions\n");
 		ral::distribution::experimental::notifyLastTablePartitions(context.get());
     }
 	
@@ -468,7 +494,7 @@ public:
 			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-			std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
+			//std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
 			while (host_table = external_input_left.next()) {	
 				this->add_to_output_cache(std::move(host_table), "output_a");
 			}
@@ -491,7 +517,7 @@ public:
 			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 
-			std::cout << "... consumming right => "<< this->get_message_id()<<std::endl;
+			//std::cout << "... consumming right => "<< this->get_message_id()<<std::endl;
 
 			while (host_table = external_input_right.next()) {	
 				this->add_to_output_cache(std::move(host_table), "output_b");

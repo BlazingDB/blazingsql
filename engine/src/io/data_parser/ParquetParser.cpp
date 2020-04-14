@@ -151,7 +151,16 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 		pq_args.row_group = row_group;
 
 		auto result = cudf_io::read_parquet(pq_args);
-		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
+
+		auto result_table = std::move(result.tbl);
+		if (result.metadata.column_names.size() > column_indices.size()) {
+			auto columns = result_table->release();
+			// Assuming columns are in the same order as column_indices and any extra columns (i.e. index column) are put last
+			columns.resize(column_indices.size());
+			result_table = std::make_unique<cudf::experimental::table>(std::move(columns));
+		}
+
+		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), result.metadata.column_names);
 	}
 	return nullptr;
 }
