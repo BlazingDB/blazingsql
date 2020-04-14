@@ -323,6 +323,7 @@ public:
 		}
 	}
 
+
 	void execute() {
 		check_and_complete_work_flow();
 
@@ -396,6 +397,37 @@ public:
 		}
 	}
 
+	void show_from_kernel (int32_t id) {
+		std::cout<<"show_from_kernel "<<id<<std::endl;
+		check_and_complete_work_flow();
+
+		std::set<std::pair<size_t, size_t>> visited;
+		std::deque<size_t> Q;
+		for(auto start_node : get_reverse_neighbours(id)) {
+			Q.push_back(start_node.source);
+		}
+		while(not Q.empty()) {
+			auto target_id = Q.front();
+			Q.pop_front();
+			auto target = get_node(target_id);
+			if(target) {
+				for(auto edge : get_reverse_neighbours(target)) {
+					auto source_id = edge.source;
+					auto source = get_node(source_id);
+					auto edge_id = std::make_pair(target_id, source_id);
+					if(visited.find(edge_id) == visited.end()) {
+						std::cout << "target_id: " << target_id << " <- " << source_id << std::endl;
+						visited.insert(edge_id);
+						Q.push_back(source_id);
+					} else {
+
+					}
+				}
+			}
+
+		}
+	}
+
 	kernel& get_last_kernel () {
 		return *kernels_.at(kernels_.size() - 1);
 	}
@@ -420,6 +452,8 @@ public:
 			.source_port_name = source_port,
 			.target_port_name = target_port};
 		edges_[source->get_id()].insert(edge);
+		reverse_edges_[target->get_id()].insert(edge);
+
 		target->set_parent(source->get_id());
 		{
 			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config);
@@ -445,12 +479,15 @@ public:
 	kernel * get_node(size_t id) { return container_[id]; }
 	std::set<Edge> get_neighbours(kernel * from) { return edges_[from->get_id()]; }
 	std::set<Edge> get_neighbours(int32_t id) { return edges_[id]; }
+	std::set<Edge> get_reverse_neighbours(kernel * from) { return reverse_edges_[from->get_id()]; }
+	std::set<Edge> get_reverse_neighbours(int32_t id) { return reverse_edges_[id]; }
 
 private:
 	const std::int32_t head_id_{-1};
 	std::vector<kernel *> kernels_;
 	std::map<std::int32_t, kernel *> container_;
 	std::map<std::int32_t, std::set<Edge>> edges_;
+	std::map<std::int32_t, std::set<Edge>> reverse_edges_;
 };
 
 using Context = blazingdb::manager::experimental::Context;
