@@ -1624,4 +1624,4 @@ class BlazingContext(object):
                 file_format='csv')
             self.logs_initialized = True
 
-        return self.sql(query)
+        return self.sql(query, use_execution_graph=False)

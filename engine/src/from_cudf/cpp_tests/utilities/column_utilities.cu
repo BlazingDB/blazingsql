@@ -336,12 +336,22 @@ struct column_view_printer {
     auto h_data = cudf::test::to_host<std::string>(col);
 
     out.resize(col.size());
-    std::transform(thrust::make_counting_iterator(size_type{0}),
-                   thrust::make_counting_iterator(col.size()),
-                   out.begin(),
-                   [&h_data](auto idx) {
-                     return bit_is_set(h_data.second.data(), idx) ? h_data.first[idx] : std::string("NULL");
-                   });
+
+    if (col.nullable()) {
+
+      std::transform(thrust::make_counting_iterator(size_type{0}),
+                    thrust::make_counting_iterator(col.size()),
+                    out.begin(),
+                    [&h_data](auto idx) {
+                      return bit_is_set(h_data.second.data(), idx) ? h_data.first[idx] : std::string("NULL");
+                    });
+
+    } else {
+
+      std::transform(h_data.first.begin(), h_data.first.end(), out.begin(),
+        [] (const std::string & el) { return el; });
+      
+    }
   }
 
   template <typename Element, typename std::enable_if_t<std::is_same<Element, cudf::dictionary32>::value>* = nullptr>

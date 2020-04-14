@@ -150,6 +150,20 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 	return std::make_unique<BlazingTable>(std::move(cudf_table), column_names);
 }
 
+std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::data_type> column_types,
+									   std::vector<std::string> column_names) {
+	std::vector< std::unique_ptr<cudf::column> > empty_columns;
+	empty_columns.resize(column_types.size());
+	for(int i = 0; i < column_types.size(); ++i) {
+		auto dtype = column_types[i];
+		std::unique_ptr<cudf::column> empty_column = cudf::make_empty_column(dtype);
+		empty_columns[i] = std::move(empty_column);
+	}
+
+	std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(empty_columns));
+	return std::make_unique<BlazingTable>(std::move(cudf_table), column_names);
+}
+
 std::vector<std::unique_ptr<BlazingColumn>> cudfTableViewToBlazingColumns(const CudfTableView & table){
 	std::vector<std::unique_ptr<BlazingColumn>> columns_out;
 	for (size_t i = 0; i < table.num_columns(); i++){
