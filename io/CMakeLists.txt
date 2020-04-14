@@ -1,7 +1,7 @@
 #=============================================================================
-# Copyright 2018 BlazingDB, Inc.
+# Copyright 2018-2020 BlazingDB, Inc.
 #     Copyright 2018 Felipe Aramburu <felipe@blazingdb.com>
-#     Copyright 2018-2019 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+#     Copyright 2018-2020 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -87,7 +87,6 @@ set(FILESYSTEM_SRC_FILES
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemManager.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemEntity.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemRepository.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemCommandParser.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3ReadableFile.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3OutputStream.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageReadableFile.cpp
