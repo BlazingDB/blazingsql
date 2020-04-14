@@ -348,7 +348,6 @@ public:
 						auto state = source->run();
 						if (state == kstatus::proceed) {
 							source->output_.finish();
-							std::cout << "[execute-finish]: id : " << std::to_string((int)source->get_type_id()) + "_" + std::to_string(source->get_id()) << std::endl;   
 						}
 						});
 						threads.push_back(std::move(t));

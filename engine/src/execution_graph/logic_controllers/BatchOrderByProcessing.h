@@ -130,7 +130,6 @@ public:
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
 		std::vector<size_t> tableTotalRows;
-		std::cout<< ">>>>>> INSIDE SortAndSampleKernel"<< std::endl;
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
@@ -176,8 +175,6 @@ public:
 		
 		context->incrementQuerySubstep();
 
-		std::cout<< ">>>>>> INSIDE PartitionKernel"<< std::endl;
-
 		BlazingThread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, this](){
 			BatchSequence input(input_cache, this);
 			int batch_count = 0;
@@ -210,8 +207,6 @@ public:
 		});
 		generator.join();
 		consumer.join();
-		
-		std::cout<< ">>>>>> FINISH PartitionKernel"<< std::endl;
 
 		return kstatus::proceed;
 	}
@@ -228,7 +223,6 @@ public:
 	}
 	
 	virtual kstatus run() {
-		std::cout<< ">>>>>> INSIDE MergeStreamKernel"<< std::endl;
 		int cache_count = 0;
 		for (auto idx = 0; idx < this->input_.count(); idx++)
 		{	

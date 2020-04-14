@@ -21,18 +21,18 @@
 
 class BlazingMemoryResource {
 public:
-	virtual std::size_t get_from_driver_available_memory() = 0 ; // driver.get_available_memory()
-	virtual std::size_t get_memory_limit() = 0 ; // memory_limite = total_memory * threshold
+	virtual size_t get_from_driver_available_memory() = 0 ; // driver.get_available_memory()
+	virtual size_t get_memory_limit() = 0 ; // memory_limite = total_memory * threshold
 
-	virtual std::size_t get_memory_used() = 0 ; // atomic 
-	virtual std::size_t get_total_memory() = 0 ; // total_memory
+	virtual size_t get_memory_used() = 0 ; // atomic 
+	virtual size_t get_total_memory() = 0 ; // total_memory
 };
 
 class internal_blazing_device_memory_resource : public rmm::mr::device_memory_resource { 
 public:
     // TODO: use another constructor for memory in bytes
 
-	internal_blazing_device_memory_resource(rmmOptions_t rmmValues, float custom_threshold = 0.75)
+	internal_blazing_device_memory_resource(rmmOptions_t rmmValues, float custom_threshold = 0.95)
      {
 		total_memory_size = ral::config::gpuMemorySize();
 		used_memory = 0;
@@ -60,17 +60,17 @@ public:
 
 	virtual ~internal_blazing_device_memory_resource() = default;
 
-	std::size_t get_memory_used() {
+	size_t get_memory_used() {
 		return used_memory;
 	}
-    std::size_t get_from_driver_available_memory() {
+    size_t get_from_driver_available_memory() {
 	    return ral::config::gpuUsedMemory();
     }
 
-	std::size_t get_total_memory() {
+	size_t get_total_memory() {
 		return total_memory_size;
 	}
-	std::size_t get_memory_limit() {
+	size_t get_memory_limit() {
         return memory_limit;
     }
 
@@ -78,7 +78,7 @@ public:
 	bool supports_get_mem_info() const noexcept override { return true; }
 
 private: 
-	void* do_allocate(std::size_t bytes, cudaStream_t stream) override {
+	void* do_allocate(size_t bytes, cudaStream_t stream) override {
 		if (bytes <= 0) { 
             return nullptr;
 		}
@@ -86,7 +86,7 @@ private:
 		return memory_resource->allocate(bytes, stream);
 	}
 
-	void do_deallocate(void* p, std::size_t bytes, cudaStream_t stream) override {
+	void do_deallocate(void* p, size_t bytes, cudaStream_t stream) override {
 		if (nullptr == p || bytes == 0) return;
 		if (used_memory < bytes) {
 			std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory << " less than " << bytes << " bytes." << std::endl;
@@ -103,14 +103,14 @@ private:
 	}
 
 	std::pair<size_t, size_t> do_get_mem_info(cudaStream_t) const override {
-		std::size_t free_size;
-		std::size_t total_size;
+		size_t free_size;
+		size_t total_size;
 		return std::make_pair(free_size, total_size);
 	}
 
-	std::size_t total_memory_size;
-	std::size_t memory_limit;
-	std::atomic<std::size_t> used_memory;
+	size_t total_memory_size;
+	size_t memory_limit;
+	std::atomic<size_t> used_memory;
     std::unique_ptr<rmm::mr::device_memory_resource> memory_resource;
 };
 
@@ -138,20 +138,21 @@ public:
         return instance;
     }
 
-	std::size_t get_memory_used() {
+	size_t get_memory_used() {
 		// std::cout << "blazing_device_memory_resource: " << initialized_resource->get_memory_used() << std::endl; 
 		return initialized_resource->get_memory_used();
 	}
 
-	std::size_t get_total_memory() {
+	size_t get_total_memory() {
 		return initialized_resource->get_total_memory() ;
 	}
 
-    std::size_t get_from_driver_available_memory()  {
+    size_t get_from_driver_available_memory()  {
         return initialized_resource->get_from_driver_available_memory();
     }
-	std::size_t get_memory_limit() {
-		// JUST FOR DEBUGGING: return 6511224;
+	size_t get_memory_limit() {
+		// JUST FOR DEBUGGING: 
+        // return 5*6511224;
 		return initialized_resource->get_memory_limit() ;
     }
 
@@ -274,53 +275,56 @@ public:
         return instance;
     }
 	// TODO: percy,cordova. Improve the design of get memory in real time 
-	blazing_host_memory_mesource(float custom_threshold = 0.75) 
+	blazing_host_memory_mesource(float custom_threshold = 0.95) 
     {
 		struct sysinfo si;
-		sysinfo (&si);
-
-		total_memory_size = (std::size_t)si.totalram;
-		used_memory_size =  total_memory_size - (std::size_t)si.freeram;;
-        memory_limit = custom_threshold * used_memory_size;
+		if (sysinfo(&si) < 0) {
+            std::cerr << "@@ error sysinfo host "<< std::endl;
+        } 
+        total_memory_size = (size_t)si.freeram;
+        used_memory_size = 0;
+        memory_limit = custom_threshold * total_memory_size;
+        // std::cout << "@@ memory_limit: " << memory_limit << "| used_memory" << used_memory_size << std::endl;
 	}
 
 	virtual ~blazing_host_memory_mesource() = default;
 
     // TODO
-    void allocate(std::size_t bytes)  {
+    void allocate(size_t bytes)  {
 		used_memory_size +=  bytes;
 	}
 
-	void deallocate(std::size_t bytes)  {
+	void deallocate(size_t bytes)  {
 		used_memory_size -= bytes;
 	}
 
-	std::size_t get_from_driver_available_memory()  {
+	size_t get_from_driver_available_memory()  {
         struct sysinfo si;
 		sysinfo (&si);
         // NOTE: sync point 
-		total_memory_size = (std::size_t)si.totalram;
-		used_memory_size = total_memory_size - (std::size_t)si.freeram;;
+		total_memory_size = (size_t)si.totalram;
+		used_memory_size = total_memory_size - (size_t)si.freeram;;
         return used_memory_size;
     }
 
-	std::size_t get_memory_used() override {
+	size_t get_memory_used() override {
 		return used_memory_size;
 	}
 
-	std::size_t get_total_memory() override {
+	size_t get_total_memory() override {
 		return total_memory_size;
 	}
 
-    std::size_t get_memory_limit() {
+    size_t get_memory_limit() {
         // JUST FOR DEBUGGING: return 6586224;
+        // return 6511224;
         return memory_limit;
     }
 
 private:
-    std::size_t memory_limit;
-	std::size_t total_memory_size;
-	std::atomic<std::size_t> used_memory_size;
+    size_t memory_limit;
+	size_t total_memory_size;
+	std::atomic<size_t> used_memory_size;
 };
 
 
@@ -337,8 +341,8 @@ public:
 		struct statvfs stat_disk;
 		int ret = statvfs("/", &stat_disk);
 
-		total_memory_size = (std::size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
-		std::size_t available_disk_size = (std::size_t)(stat_disk.f_bfree * stat_disk.f_frsize);
+		total_memory_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
+		size_t available_disk_size = (size_t)(stat_disk.f_bfree * stat_disk.f_frsize);
 		used_memory_size = total_memory_size - available_disk_size;
 
         memory_limit = custom_threshold *  total_memory_size;
@@ -346,28 +350,28 @@ public:
 
 	virtual ~blazing_disk_memory_resource() = default;
 
-	virtual std::size_t get_from_driver_available_memory()  {
+	virtual size_t get_from_driver_available_memory()  {
         struct sysinfo si;
         sysinfo (&si);
         // NOTE: sync point 
-        total_memory_size = (std::size_t)si.totalram;
-        used_memory_size =  total_memory_size - (std::size_t)si.freeram;
+        total_memory_size = (size_t)si.totalram;
+        used_memory_size =  total_memory_size - (size_t)si.freeram;
         return used_memory_size;
     }
-	std::size_t get_memory_limit()  {
+	size_t get_memory_limit()  {
         return memory_limit;
     }
 
-	std::size_t get_memory_used() {
+	size_t get_memory_used() {
         return used_memory_size;
 	}
 
-	std::size_t get_total_memory() {
+	size_t get_total_memory() {
 		return total_memory_size;
 	}
 
 private:
-	std::size_t total_memory_size;
-    std::size_t memory_limit;
-	std::atomic<std::size_t> used_memory_size;
+	size_t total_memory_size;
+    size_t memory_limit;
+	std::atomic<size_t> used_memory_size;
 };
