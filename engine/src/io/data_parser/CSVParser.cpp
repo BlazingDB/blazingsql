@@ -121,14 +121,22 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 	if(file == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
 	}
-	if(column_indices.size() > 0) {
-		// Fill data to pq_args
-		
+
+	if (column_indices.size() > 0) {
+		// Fill data to csv_args_
 		cudf_io::read_csv_args csv_args_{cudf_io::source_info{file}};
 
-		// TODO get this parameters better
-		csv_args_.delimiter = '|'; 
-		csv_args_.header = -1;
+		// Get parameters passed since python
+		csv_args_.delimiter = csv_args.delimiter; 
+		csv_args_.header = csv_args.header;
+		csv_args_.skipfooter = csv_args.skipfooter;
+		csv_args_.lineterminator = csv_args.lineterminator;
+		csv_args_.skiprows = csv_args.skiprows;
+		csv_args_.skipinitialspace = csv_args.skipinitialspace;
+		csv_args_.delim_whitespace = csv_args.delim_whitespace;
+		csv_args_.nrows = csv_args.nrows; 
+		csv_args_.skipfooter = csv_args.skipfooter;
+		csv_args_.skip_blank_lines = csv_args.skip_blank_lines;
 
 		csv_args_.names.resize(column_indices.size());
 

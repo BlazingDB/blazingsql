@@ -225,16 +225,14 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 	static CodeTimer timer;
 	timer.reset();
 	auto fileSchema = schema.fileSchema(file_index);
+
 	std::vector<size_t> column_indices = column_indices_in;
-	if(column_indices.size() == 0) {  // including all columns by default
+	if (column_indices.size() == 0) {  // including all columns by default
 		column_indices.resize(fileSchema.get_num_columns());
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 	}
-	std::vector<size_t> column_indices_in_file;
-	for (int i = 0; i < column_indices.size(); i++){
-	  column_indices_in_file.push_back(column_indices[i]);
-	}
-	std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, user_readable_file_handle, fileSchema, column_indices_in_file, batch_id);
+
+	std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, user_readable_file_handle, fileSchema, column_indices, batch_id);
 	return std::move(loaded_table);
 }
 
