@@ -81,10 +81,8 @@ void ExecMaster(){
     std::shared_ptr<ReceivedMessage> message;
     while (message = server->getMessage(context_token, endpoint) ) {
       auto mock_message = std::dynamic_pointer_cast<ComponentMessage>(message);
-      std::cout << ">>> batch: " << "|" << message->metadata().contextToken << std::endl;
       // mockFlag.Flag();
     }
-    std::cout << ">>> finishh: "<< std::endl;
     server->Close();
   }).join();
 }
@@ -98,7 +96,6 @@ void ExecWorker(){
   size_t number_of_samples = 10;
   for (size_t i = 0; i < number_of_samples; i++) {
     try {
-      std::cout << "######### " << i << std::endl;
       auto status = client->Send(message);
       EXPECT_TRUE(status.IsOk());
     } catch (std::exception &e) {
