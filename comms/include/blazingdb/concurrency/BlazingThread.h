@@ -83,6 +83,7 @@ public:
 	{
 		auto holder = std::make_shared<BlazingExceptionHolder>();
 		this->exceptionHolder = holder;
+		// create a tuple based on variadic args.
 		auto tpl = std::make_tuple(std::forward<Args>(args)...);
 		this->thread = std::thread([holder, 
 									func = std::forward<Func>(func), 
