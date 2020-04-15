@@ -58,12 +58,14 @@ protected:
 };
 
 namespace detail {
+//call function f and  move their arguments inside a tuple t because it is mutable
 template <class F, class Tuple, std::size_t... I>
 constexpr decltype(auto) apply_impl( F&& f, Tuple&& t, std::index_sequence<I...> )
 {
   return f(std::get<I>(std::move<Tuple>(t))...);
 }
 
+// call apply_impl to use function f and its arguments inside a tuple t 
 template <class F, class Tuple>
 constexpr decltype(auto) apply(F&& f, Tuple&& t)
 {
