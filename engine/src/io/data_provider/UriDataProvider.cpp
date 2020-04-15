@@ -9,10 +9,8 @@
 
 #include "UriDataProvider.h"
 #include "Config/BlazingContext.h"
-#include "ExceptionHandling/BlazingException.h"
 #include "arrow/status.h"
 #include <blazingdb/io/Util/StringUtil.h>
-#include <iostream>
 
 namespace ral {
 namespace io {

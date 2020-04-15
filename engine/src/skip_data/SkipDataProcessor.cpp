@@ -6,13 +6,8 @@
 #include "CalciteExpressionParsing.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
-#include "execution_graph/logic_controllers/BlazingColumn.h"
-#include "execution_graph/logic_controllers/BlazingColumnView.h"
 #include "Utils.cuh"
 
-#include <memory> // this is for std::static_pointer_cast
-#include <string>
-#include <vector>
 #include <numeric>
 
 namespace ral {

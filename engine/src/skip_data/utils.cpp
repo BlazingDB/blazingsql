@@ -3,10 +3,6 @@
 #include <cstring>
 #include <iostream>
 #include <regex>
-#include <sstream>
-#include <stack>
-#include <string>
-#include <vector>
 
 #include "parser/expression_utils.hpp"
 

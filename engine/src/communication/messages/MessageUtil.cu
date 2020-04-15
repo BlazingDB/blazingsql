@@ -1,6 +1,4 @@
 #include <cudf/copying.hpp>
-#include <rmm/thrust_rmm_allocator.h>
-#include <thrust/transform.h>
 
 #include "MessageUtil.cuh"
 

@@ -16,21 +16,16 @@
 
 #include "column_utilities.hpp"
 
-#include <cudf/column/column_view.hpp>
 #include <cudf/dictionary/dictionary_column_view.hpp>
 #include <cudf/table/row_operators.cuh>
-#include <cudf/table/table_device_view.cuh>
-#include <cudf/utilities/bit.hpp>
 #include <cudf/strings/convert/convert_datetime.hpp>
 #include <cudf/detail/copy.hpp>
 
 #include <src/from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
 #include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 
-#include <thrust/equal.h>
 #include <thrust/logical.h>
 
-#include <gmock/gmock.h>
 #include <numeric>
 
 namespace cudf {

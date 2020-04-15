@@ -1,28 +1,16 @@
 #include "OrderBy.h"
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "cudf.h"
-#include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
 #include "distribution/primitives.h"
-#include <algorithm>
 #include <blazingdb/io/Library/Logging/Logger.h>
-#include <blazingdb/io/Util/StringUtil.h>
-#include <blazingdb/manager/Context.h>
-#include <functional>
-#include <iostream>
-#include <numeric>
 #include <cudf/sorting.hpp>
-#include <cudf/copying.hpp>
 #include <cudf/search.hpp>
 #include <cudf/strings/copying.hpp>
-#include <cudf/table/table_view.hpp>
-#include <cudf/column/column_factories.hpp>
 #include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 
 #include "utilities/CommonOperations.h"
-#include "utilities/DebuggingUtils.h"
 
 namespace ral {
 namespace operators {

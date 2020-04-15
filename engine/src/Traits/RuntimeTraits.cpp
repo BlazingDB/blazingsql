@@ -1,6 +1,5 @@
 #include <cudf/types.hpp>
 #include <cudf/utilities/traits.hpp>
-#include <cudf/utilities/type_dispatcher.hpp>
 
 #include "Traits/RuntimeTraits.h"
 #include "Utils.cuh"

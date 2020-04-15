@@ -1,6 +1,4 @@
 #include "GPUComponentMessage.h"
-#include <cuda_runtime.h>
-#include <cuda.h>
 
 namespace ral {
 namespace communication {

@@ -1,5 +1,4 @@
 #include "communication/network/Client.h"
-#include "config/GPUManager.cuh"
 // #include <blazingdb/manager/Manager.h>
 #include <blazingdb/transport/Client.h>
 #include <blazingdb/transport/api.h>

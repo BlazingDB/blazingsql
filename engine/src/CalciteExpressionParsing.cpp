@@ -2,11 +2,8 @@
 #include <cudf.h>
 #include <cudf/table/table_view.hpp>
 #include <iomanip>
-#include <limits>
 #include <map>
 #include <regex>
-#include <sstream>
-#include <stack>
 
 #include <blazingdb/io/Util/StringUtil.h>
 #include "Utils.cuh"
@@ -15,10 +12,8 @@
 #include "Traits/RuntimeTraits.h"
 #include "cudf/legacy/binaryop.hpp"
 #include <cudf/scalar/scalar_factories.hpp>
-#include "from_cudf/cpp_src/io/csv/legacy/datetime_parser.cuh"
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
-#include "Interpreter/interpreter_cpp.h"
 
 
 bool is_type_signed(cudf::type_id type) {

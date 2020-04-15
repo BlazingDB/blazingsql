@@ -1,7 +1,5 @@
 #include "communication/network/Server.h"
 #include "communication/messages/ComponentMessages.h"
-#include "communication/messages/GPUComponentMessage.h"
-#include "config/GPUManager.cuh"
 
 namespace ral {
 namespace communication {

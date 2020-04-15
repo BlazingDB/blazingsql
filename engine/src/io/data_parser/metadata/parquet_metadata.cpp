@@ -6,14 +6,8 @@
 #define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
 
 #include "parquet_metadata.h"
-#include "parquet/api/reader.h"
-#include "parquet/statistics.h"
-#include <iostream>
-#include <mutex>
 #include <rmm/rmm.h>
-#include <src/Traits/RuntimeTraits.h>
 #include "blazingdb/concurrency/BlazingThread.h"
-#include <thread>
 #include <cudf/column/column_factories.hpp>
 #include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
 
