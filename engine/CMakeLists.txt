@@ -105,6 +105,14 @@ get_directory_property(communication_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/
 
 ## Target source files
 set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TableScan.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TaskFlowProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
               ${CMAKE_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
@@ -130,13 +138,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/CalciteInterpreter.cpp
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TableScan.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TaskFlowProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/utils.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/expression_tree.cpp
@@ -148,7 +149,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
               ${communication_source_files}
-)
+        )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
