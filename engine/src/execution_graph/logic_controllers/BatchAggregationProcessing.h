@@ -105,7 +105,7 @@ public:
                 auto batch = input.next();
 
                 try {
-                    std::cout<<"DistributeAggregateKernel batch "<<batch_count<<std::endl;
+                    //std::cout<<"DistributeAggregateKernel batch "<<batch_count<<std::endl;
 
                     // If its an aggregation without group by we want to send all the results to the master node
                     if (group_column_indices.size() == 0) {
