@@ -13,11 +13,12 @@
 #include <typeindex>
 #include <vector>
 #include <string>
+#include <blazingdb/transport/ColumnTransport.h>
+#include <bmr/BlazingMemoryResource.h>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
-#include <blazingdb/transport/ColumnTransport.h>
-#include <bmr/BlazingMemoryResource.h>
+
 
 typedef cudf::experimental::table CudfTable;
 typedef cudf::table_view CudfTableView;
