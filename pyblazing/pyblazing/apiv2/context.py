@@ -1507,14 +1507,7 @@ class BlazingContext(object):
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:
-                    inputdf = new_tables[table].input
-
-                    usage = inputdf.memory_usage(deep=True).sum()
-                    if usage > 1073741824: #1GB
-                        print("WARNING: DataFrame table has more than 1 GB size. Repartitioning ... ")
-                        new_tables[table].input = inputdf.partition_by_hash([inputdf.columns[0]], 10) # TODO 10 partititions
-                    else:
-                        new_tables[table].input = [inputdf]
+                    new_tables[table].input = [new_tables[table].input]
                     currentTableNodes.append(new_tables[table])
 
             for j, nodeList in enumerate(nodeTableList):
