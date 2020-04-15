@@ -150,8 +150,10 @@ public:
 	}
 	RecordBatch next() {
 		if (is_empty_data_source) {
-			//is_empty_data_source = false;
-			//return schema.makeEmptyBlazingTable(projections);
+			if(n_batches==0){
+				is_empty_data_source = false;
+				return schema.makeEmptyBlazingTable(projections);
+			}
 
 			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), cur_file_index, cur_row_group_index);
 			batch_index++;
