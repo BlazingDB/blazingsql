@@ -217,10 +217,9 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 	Context * context,
 	const std::vector<size_t> & column_indices_in,
 	const Schema & schema,
-	std::string user_readable_file_handle,
 	data_handle file_data_handle,
 	size_t file_index,
-	size_t batch_id) {
+	size_t row_group_id) {
 
 	static CodeTimer timer;
 	timer.reset();
@@ -234,7 +233,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 	for (int i = 0; i < column_indices.size(); i++){
 	  column_indices_in_file.push_back(column_indices[i]);
 	}
-	std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, user_readable_file_handle, fileSchema, column_indices_in_file, batch_id);
+	std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, column_indices_in_file, row_group_id);
 	return std::move(loaded_table);
 }
 

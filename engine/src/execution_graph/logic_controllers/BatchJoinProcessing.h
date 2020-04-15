@@ -484,8 +484,6 @@ public:
 			}
 		}
 
-		printf("parseJoinConditionToColumnIndices\n");
-
 		std::thread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
 			std::ref(this->output_.get_cache("output_a")));
