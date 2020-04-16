@@ -330,8 +330,13 @@ def parseHiveMetadata(curr_table, uri_values):
     for index in range(n_cols):
         col_name = columns[index]
         if col_name in table_partition:
-            col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[index], name=names[2*index])
-            col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
+            if(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
+                # when creating a pandas series, for a datetime type, it has to be in ns because that is the only internal datetime representation
+                col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.dtype("datetime64[ns]"), name=names[2*index])
+                col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=np.dtype("datetime64[ns]"), name=names[2*index+1])
+            else:
+                col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[index], name=names[2*index])
+                col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
             series.append(col1)
             series.append(col2)
             final_names.append(names[2*index])
@@ -346,6 +351,15 @@ def parseHiveMetadata(curr_table, uri_values):
 
     frame = OrderedDict(((key,value) for (key,value) in zip(final_names, series)))
     metadata = cudf.DataFrame(frame)
+    for index, col_type in enumerate(dtypes):
+        min_col_name = names[2*index]
+        max_col_name = names[2*index+1]
+        if(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
+            if metadata[min_col_name].dtype != dtypes[index] or metadata[max_col_name].dtype != dtypes[index]:
+                # here we are casting the timestamp types from ns to their correct desired types
+                print("parseHiveMetadata casting to right type")
+                metadata[min_col_name] = metadata[min_col_name].astype(dtypes[index])
+                metadata[max_col_name] = metadata[max_col_name].astype(dtypes[index])
     print("parseHiveMetadata end")
     return metadata
 
