@@ -148,6 +148,7 @@ public:
 			n_batches = parser->get_num_partitions();
 		}
 	}
+
 	RecordBatch next() {
 		if (is_empty_data_source) {
 			if(n_batches==0){
@@ -167,7 +168,7 @@ public:
 		}
 		
 		size_t row_group_id = all_row_groups[cur_file_index][cur_row_group_index];
-		
+
 		auto ret = loader.load_batch(context.get(), projections, schema, files[cur_file_index], cur_file_index, row_group_id);
 		batch_index++;
 		cur_row_group_index++;
@@ -175,8 +176,10 @@ public:
 			cur_file_index++;
 			cur_row_group_index = 0;
 		}
+
 		return std::move(ret);
 	}
+
 	bool wait_for_next() {
 		return is_empty_data_source || (cur_file_index < n_files and batch_index < n_batches);
 	}
@@ -202,6 +205,7 @@ private:
 	size_t n_files;
 	std::vector<std::vector<int>> all_row_groups; 
 	bool is_empty_data_source;
+	bool is_csv{true};
 };
 
 struct PhysicalPlan : kernel {
@@ -266,6 +270,7 @@ public:
 		}
 		return kstatus::proceed;
 	}
+
 private:
 	DataSourceSequence input;
 };
@@ -298,6 +303,7 @@ public:
 		}
 		return kstatus::proceed;
 	}
+	
 private:
 	DataSourceSequence input;
 	std::shared_ptr<Context> context;
