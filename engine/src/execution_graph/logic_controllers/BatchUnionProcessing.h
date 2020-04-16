@@ -2,7 +2,6 @@
 
 #include <cudf/types.hpp>
 #include "BatchProcessing.h"
-#include "TaskFlowProcessor.h"
 #include "BlazingColumn.h"
 #include "LogicPrimitives.h"
 #include "CacheMachine.h"
@@ -21,7 +20,7 @@ using ral::cache::kernel_type;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 
 
-class UnionKernel : public PhysicalPlan {
+class UnionKernel :public kernel {
 public:
 	UnionKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {

@@ -112,7 +112,8 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TableScan.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TaskFlowProcessor.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
               ${CMAKE_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp

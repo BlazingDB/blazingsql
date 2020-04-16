@@ -1,11 +1,9 @@
 #pragma once
 
 #include "BatchProcessing.h"
-#include "TaskFlowProcessor.h"
 #include "BlazingColumn.h"
 #include "LogicPrimitives.h"
 #include "CacheMachine.h"
-#include "TaskFlowProcessor.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
@@ -24,7 +22,7 @@ using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 
 
 
-class ComputeAggregateKernel : public PhysicalPlan {
+class ComputeAggregateKernel :public kernel {
 public:
 	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {
@@ -75,7 +73,7 @@ private:
 
 
 
-class DistributeAggregateKernel : public PhysicalPlan {
+class DistributeAggregateKernel :public kernel {
 public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {
@@ -193,7 +191,7 @@ private:
 };
 
 
-class MergeAggregateKernel : public PhysicalPlan {
+class MergeAggregateKernel :public kernel {
 public:
 	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {

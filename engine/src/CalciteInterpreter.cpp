@@ -16,7 +16,7 @@
 
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
-#include "execution_graph/logic_controllers/TaskFlowProcessor.h"
+#include "execution_graph/logic_controllers/BatchProcessing.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
 
 
@@ -377,7 +377,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 			.table_names = table_names,
 			.transform_operators_bigger_than_gpu = true
 		};
-		ral::cache::OutputKernel output;
+		ral::batch::OutputKernel output;
 
 		auto graph = tree.build_batch_graph(logicalPlan);
 		if (graph.num_nodes() > 0) {
