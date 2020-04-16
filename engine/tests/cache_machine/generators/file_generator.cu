@@ -1,15 +1,7 @@
 #include "file_generator.h"
 
 #include "io/DataLoader.h"
-#include "io/Schema.h"
-#include "utilities/random_generator.cuh"
-#include <cudf/cudf.h>
-#include <cudf/io/functions.hpp>
-#include <cudf/types.hpp>
 #include <fstream>
-#include <src/io/data_parser/CSVParser.h>
-#include <src/io/data_parser/ParquetParser.h>
-#include <src/io/data_provider/UriDataProvider.h>
 
 namespace blazingdb {
 namespace test {

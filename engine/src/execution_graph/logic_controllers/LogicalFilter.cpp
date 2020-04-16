@@ -12,17 +12,12 @@
 #include "../../CalciteExpressionParsing.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
 
-#include "blazingdb/transport/Node.h"
-
 #include "distribution/primitives.h"
 #include "communication/CommunicationData.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/DebuggingUtils.h"
 #include "utilities/StringUtils.h"
 #include "Utils.cuh"
-
-#include "../../Interpreter/interpreter_cpp.h"
-#include "execution_graph/logic_controllers/BlazingColumn.h"
 
 namespace ral {
 namespace processor {

@@ -1,6 +1,5 @@
 #include "../../include/io/io.h"
 #include "../io/DataLoader.h"
-#include "../io/Schema.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/JSONParser.h"
@@ -12,10 +11,6 @@
 #include "utilities/DebuggingUtils.h"
 
 #include <blazingdb/io/Config/BlazingContext.h>
-#include <blazingdb/io/FileSystem/FileSystemConnection.h>
-#include <blazingdb/io/FileSystem/FileSystemManager.h>
-#include <blazingdb/io/FileSystem/HadoopFileSystem.h>
-#include <blazingdb/io/FileSystem/S3FileSystem.h>
 
 // #include <blazingdb/io/Library/Logging/TcpOutput.h>
 // #include "blazingdb/io/Library/Network/NormalSyncSocket.h"

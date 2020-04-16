@@ -3,31 +3,18 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <blazingdb/io/Util/StringUtil.h>
 
-#include <algorithm>
 #include <regex>
-#include <set>
-#include <string>
 
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "Interpreter/interpreter_cpp.h"
-#include "Traits/RuntimeTraits.h"
-#include "Utils.cuh"
 #include "communication/network/Server.h"
-#include "config/GPUManager.cuh"
-#include "io/DataLoader.h"
-#include "operators/GroupBy.h"
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/StringUtils.h"
-#include <cudf/filling.hpp>
 #include "parser/expression_tree.hpp"
-#include "Interpreter/interpreter_cpp.h"
 #include "utilities/DebuggingUtils.h"
 
 #include "execution_graph/logic_controllers/LogicalFilter.h"
-#include "execution_graph/logic_controllers/LogicalProject.h"
-#include <cudf/column/column_factories.hpp>
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include "execution_graph/logic_controllers/TaskFlowProcessor.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"

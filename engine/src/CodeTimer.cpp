@@ -7,8 +7,6 @@
 
 #include "CodeTimer.h"
 
-#include <iostream>
-
 namespace {
 using blazingdb::manager::experimental::Context;
 }  // namespace

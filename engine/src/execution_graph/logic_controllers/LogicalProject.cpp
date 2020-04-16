@@ -9,17 +9,13 @@
 #include <cudf/strings/convert/convert_datetime.hpp>
 #include <cudf/strings/convert/convert_floats.hpp>
 #include <cudf/strings/convert/convert_integers.hpp>
-#include <memory>
 #include <regex>
-#include <utility>
 
 #include "LogicalProject.h"
 #include "CalciteExpressionParsing.h"
-#include "Interpreter/interpreter_cpp.h"
 #include "parser/expression_tree.hpp"
 #include "Utils.cuh"
 #include "utilities/CommonOperations.h"
-#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 
 namespace ral {
 namespace processor {

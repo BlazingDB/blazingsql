@@ -1,4 +1,6 @@
 #pragma once
+
+#include "blazingdb/transport/ColumnTransport.h"
 #include "blazingdb/manager/Context.h"
 #include "blazingdb/transport/Address.h"
 #include "blazingdb/transport/Client.h"

@@ -22,6 +22,7 @@
 #include <cudf/strings/strings_column_view.hpp>
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
+#include <execution_graph/logic_controllers/BlazingHostTable.h>
 #include "Traits/RuntimeTraits.h"
 namespace ral {
 namespace communication {

@@ -1,21 +1,11 @@
 
 #include "TableScan.h"
 
-#include <blazingdb/manager/Context.h>
-
-#include "LogicPrimitives.h"
-#include "LogicalFilter.h"
-
 #include <blazingdb/io/Library/Logging/Logger.h>
-#include <blazingdb/io/Util/StringUtil.h>
 #include "CodeTimer.h"
-#include "Traits/RuntimeTraits.h"
 #include "CalciteExpressionParsing.h"
 
-#include <algorithm>
 #include <regex>
-#include <set>
-#include <string>
 
 namespace ral{
 

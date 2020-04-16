@@ -1,14 +1,8 @@
 #include "OrcParser.h"
-#include <blazingdb/io/Util/StringUtil.h>
 
 #include <arrow/io/file.h>
 
-#include "../Schema.h"
-
-#include <cudf/table/table.hpp>
-#include <cudf/io/functions.hpp>
 #include <blazingdb/io/Library/Logging/Logger.h>
-#include <cudf/types.hpp>
 
 #include <numeric>
 

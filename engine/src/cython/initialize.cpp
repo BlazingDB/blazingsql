@@ -5,10 +5,7 @@
 
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <netinet/in.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 
 
 #include <algorithm>
@@ -19,15 +16,11 @@
 #include <blazingdb/transport/io/reader_writer.h>
 
 
-#include <blazingdb/io/Util/StringUtil.h>
-
 #include <blazingdb/io/Config/BlazingContext.h>
 #include <blazingdb/io/Library/Logging/FileOutput.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 #include "utilities/StringUtils.h"
-
-#include "Traits/RuntimeTraits.h"
 
 
 #include "config/BlazingConfig.h"
@@ -36,7 +29,6 @@
 #include "communication/CommunicationData.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
-#include <blazingdb/manager/Context.h>
 #include <bmr/initializer.h>
 
 

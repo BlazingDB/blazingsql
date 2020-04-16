@@ -1,20 +1,13 @@
 #include <cudf/column/column_device_view.cuh>
-#include <cudf/column/column_view.hpp>
 #include <cudf/scalar/scalar.hpp>
 #include <cudf/scalar/scalar_device_view.cuh>
 #include <cudf/table/table_view.hpp>
 #include <cudf/table/table_device_view.cuh>
-#include <cudf/utilities/error.hpp>
-#include <algorithm>
 #include <stack>
-#include <vector>
 #include <map>
 #include <regex>
-#include <functional>
-#include <rmm/rmm.h>
 
 #include "CalciteExpressionParsing.h"
-#include "interpreter_cpp.h"
 #include "interpreter_ops.cuh"
 #include "Traits/RuntimeTraits.h"
 

@@ -1,6 +1,4 @@
 #include "CommunicationData.h"
-#include <blazingdb/transport/Address.h>
-#include <blazingdb/transport/Node.h>
 
 namespace ral {
 namespace communication {

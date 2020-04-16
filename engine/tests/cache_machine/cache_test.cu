@@ -2,16 +2,10 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include <cudf/cudf.h>
-#include <cudf/io/functions.hpp>
-#include <cudf/types.hpp>
-#include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 #include <src/utilities/DebuggingUtils.h>
-#include <stack>
-#include <thrust/sequence.h>
-#include <bmr/initializer.h>
 #include "../BlazingUnitTest.h"
 
 using blazingdb::manager::experimental::Context;

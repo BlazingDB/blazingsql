@@ -3,22 +3,11 @@
 #include <blazingdb/transport/Node.h>
 #include <blazingdb/transport/api.h>
 #include <blazingdb/transport/io/reader_writer.h>
-#include <chrono>
-#include <cuda.h>
 
-#include "Utils.cuh"
 #include "communication/messages/ComponentMessages.h"
-#include "communication/messages/GPUComponentMessage.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
-#include <memory>
-#include <numeric>
-#include <nvstrings/NVCategory.h>
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
-#include <cudf/column/column_factories.hpp>
-#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
-#include <cudf/utilities/type_dispatcher.hpp>
-#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
 #include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 #include <execution_graph/logic_controllers/TaskFlowProcessor.h>
