@@ -146,6 +146,7 @@ public:
 
 		is_empty_data_source = (n_files == 0);
 	}
+
 	RecordBatch next() {
 		if (is_empty_data_source) {
 			is_empty_data_source = false;
@@ -162,11 +163,20 @@ public:
 		
 		batch_id++;
 		if (batch_id == all_row_groups[file_index].size()) {
+			is_csv = false;
 			file_index++;
 			batch_id = 0;
 		}
+
+		// file_index++ also for CSV
+		if (is_csv) {
+			file_index++;
+			batch_id = 0;
+		}
+
 		return std::move(ret);
 	}
+
 	bool wait_for_next() {
 		return is_empty_data_source || (file_index < n_files and batch_index < n_batches);
 	}
@@ -192,6 +202,7 @@ private:
 	size_t n_files;
 	std::vector<std::vector<int>> all_row_groups; 
 	bool is_empty_data_source;
+	bool is_csv{true};
 };
 
 struct PhysicalPlan : kernel {
@@ -256,6 +267,7 @@ public:
 		}
 		return kstatus::proceed;
 	}
+
 private:
 	DataSourceSequence input;
 };
@@ -288,6 +300,7 @@ public:
 		}
 		return kstatus::proceed;
 	}
+	
 private:
 	DataSourceSequence input;
 	std::shared_ptr<Context> context;
