@@ -1,30 +1,17 @@
 #include "GroupBy.h"
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "../Interpreter/interpreter_cpp.h"
-#include "Traits/RuntimeTraits.h"
 #include "communication/CommunicationData.h"
 #include "distribution/primitives.h"
 #include "utilities/CommonOperations.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <blazingdb/io/Util/StringUtil.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"
-#include <functional>
-#include <future>
-#include <iostream>
-#include <iterator>
-#include <numeric>
 #include <regex>
-#include <tuple>
 
-#include <cudf/copying.hpp>
 #include <cudf/sorting.hpp>
-#include <cudf/groupby.hpp>
-#include <cudf/reduction.hpp>
 #include <cudf/replace.hpp>
-#include <cudf/detail/aggregation/aggregation.hpp>
 #include <cudf/stream_compaction.hpp>
-#include <cudf/column/column_factories.hpp>
 #include <cudf/filling.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
 

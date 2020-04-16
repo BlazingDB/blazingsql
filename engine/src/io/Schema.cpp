@@ -6,7 +6,6 @@
  */
 
 #include "Schema.h"
-#include <algorithm>
 
 namespace ral {
 namespace io {

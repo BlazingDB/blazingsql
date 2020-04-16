@@ -2,42 +2,15 @@
 #include "metadata/parquet_metadata.h"
 
 #include "ParquetParser.h"
-#include "config/GPUManager.cuh"
-#include <blazingdb/io/Util/StringUtil.h>
 #include "utilities/CommonOperations.h"
 
-#include <algorithm>
-#include <string>
-#include <unordered_map>
-#include <vector>
-#include <memory>
-#include <algorithm>
 #include <numeric>
-#include <string>
-#include <iostream>
-#include <cudf/cudf.h>
-#include <cudf/io/functions.hpp>
 
-#include <unordered_map>
-#include <vector>
 #include <arrow/io/file.h>
-#include <parquet/file_reader.h>
-#include <parquet/schema.h>
-#include <parquet/types.h>
 #include "blazingdb/concurrency/BlazingThread.h"
 
 #include <parquet/column_writer.h>
 #include <parquet/file_writer.h>
-#include <parquet/properties.h>
-#include <parquet/schema.h>
-#include <parquet/types.h>
-
-#include <parquet/api/reader.h>
-#include <parquet/api/writer.h>
-
-#include "../Schema.h"
-
-#include <numeric>
 
 namespace ral {
 namespace io {

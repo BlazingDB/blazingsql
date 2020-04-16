@@ -33,7 +33,7 @@ public:
     // TODO: use another constructor for memory in bytes
 
 	internal_blazing_device_memory_resource(rmmOptions_t rmmValues, float custom_threshold = 0.95)
-     {
+    {
 		total_memory_size = ral::config::gpuMemorySize();
 		used_memory = 0;
 
@@ -74,8 +74,8 @@ public:
         return memory_limit;
     }
 
-	bool supports_streams() const noexcept override { return false; }
-	bool supports_get_mem_info() const noexcept override { return true; }
+	bool supports_streams() const noexcept override { return memory_resource->supports_streams(); }
+	bool supports_get_mem_info() const noexcept override { return memory_resource->supports_get_mem_info(); }
 
 private: 
 	void* do_allocate(size_t bytes, cudaStream_t stream) override {
@@ -99,13 +99,11 @@ private:
 	}
 
 	bool do_is_equal(device_memory_resource const& other) const noexcept override {
-		return dynamic_cast<internal_blazing_device_memory_resource const*>(&other) != nullptr;
+		return memory_resource->is_equal(other);
 	}
 
-	std::pair<size_t, size_t> do_get_mem_info(cudaStream_t) const override {
-		size_t free_size;
-		size_t total_size;
-		return std::make_pair(free_size, total_size);
+	std::pair<size_t, size_t> do_get_mem_info(cudaStream_t stream) const override {
+		return memory_resource->get_mem_info(stream);
 	}
 
 	size_t total_memory_size;

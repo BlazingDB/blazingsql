@@ -1,10 +1,6 @@
 #include <cudf/types.hpp>
 #include <cudf/scalar/scalar.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
-#include <cudf/utilities/type_dispatcher.hpp>
-#include <cudf/utilities/traits.hpp>
-#include <cudf/wrappers/timestamps.hpp>
-#include <vector>
 #include <map>
 
 #include "../Utils.cuh"

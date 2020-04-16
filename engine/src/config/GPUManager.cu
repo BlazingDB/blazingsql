@@ -1,9 +1,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cudf/utilities/error.hpp>
-#include <exception>
 #include "GPUManager.cuh"
-#include "Utils.cuh"
 
 namespace ral {
 namespace config {

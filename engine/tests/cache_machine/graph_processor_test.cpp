@@ -1,14 +1,7 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "io/DataLoader.h"
-#include "io/Schema.h"
-#include "utilities/random_generator.cuh"
-#include <boost/foreach.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <cudf/cudf.h>
-#include <cudf/io/functions.hpp>
-#include <cudf/types.hpp>
 #include <execution_graph/logic_controllers/TaskFlowProcessor.h>
 #include <src/from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <bmr/initializer.h>

@@ -1,16 +1,5 @@
 #include "expression_tree.hpp"
-#include "utils.hpp"
-#include <algorithm>
-#include <cstring>
-#include <iostream>
-#include <sstream>
-#include <stack>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <vector>
 #include "parser/expression_tree.hpp"
-#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace skip_data {

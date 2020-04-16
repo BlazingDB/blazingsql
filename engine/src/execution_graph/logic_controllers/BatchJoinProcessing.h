@@ -484,7 +484,7 @@ public:
 			}
 		}
 
-		std::thread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
+		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
 			std::ref(this->output_.get_cache("output_a")));
 
@@ -505,7 +505,7 @@ public:
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
 
-		std::thread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
+		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
 			std::ref(this->output_.get_cache("output_b")));
 

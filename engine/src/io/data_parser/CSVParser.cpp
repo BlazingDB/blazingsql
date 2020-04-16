@@ -6,19 +6,11 @@
  */
 
 #include "CSVParser.h"
-#include "Utils.cuh"
-#include "cudf/legacy/io_types.hpp"
 #include <arrow/buffer.h>
-#include <arrow/io/interfaces.h>
 #include <arrow/io/memory.h>
-#include <iostream>
 #include <numeric>
 
-#include <cudf/table/table.hpp>
 #include <blazingdb/io/Library/Logging/Logger.h>
-#include <cudf/types.hpp>
-
-#include <algorithm>
 
 #define checkError(error, txt)                                                                                         \
 	if(error != GDF_SUCCESS) {                                                                                         \

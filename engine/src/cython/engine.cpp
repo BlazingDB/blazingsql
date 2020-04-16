@@ -1,7 +1,5 @@
 #include "../../include/engine/engine.h"
 #include "../CalciteInterpreter.h"
-#include "../io/DataLoader.h"
-#include "../io/Schema.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/GDFParser.h"

@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include <string>
 
 #include <Python.h>
 

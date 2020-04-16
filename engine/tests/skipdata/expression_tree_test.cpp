@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <iostream>
 #include "skip_data/expression_tree.hpp"
 
 using namespace ral;
