@@ -261,26 +261,13 @@ public:
 	: PhysicalPlan(), input(loader, schema, context)
 	{}
 	virtual kstatus run() {
-		while ( input.wait_for_next() ) {
+		while( input.wait_for_next() ) {
 			auto batch = input.next();
-
-			// For large files
-			if (batch->sizeInBytes() > 1073741824) {  // Threshold 1GB
-				std::size_t total_partitions = 10;    // TODO: Looking for the optimal value
-				std::vector<cudf::size_type> splits(total_partitions);
-				std::iota(splits.begin(), splits.end(), 0);
-
-				std::vector<CudfTableView> partitioned = cudf::experimental::split(batch->view(), splits);
-				for (std::size_t batch_i = 0; batch_i < partitioned.size(); ++batch_i) {
-					ral::frame::BlazingTableView batch_small(partitioned[batch_i], batch->names());
-					this->add_to_output_cache(batch_small.clone());
-				}
-			} else {
-				this->add_to_output_cache(std::move(batch));
-			}
+			this->add_to_output_cache(std::move(batch));
 		}
 		return kstatus::proceed;
 	}
+
 private:
 	DataSourceSequence input;
 };
@@ -297,38 +284,12 @@ public:
 			try {
 				auto batch = input.next();
 
-				if (is_filtered_bindable_scan(expression)) {
-					// For large files
-					if (batch->sizeInBytes() > 1073741824) {  // Threshold 1GB
-						std::size_t total_partitions = 10;    // TODO: Looking for the optimal value
-						std::vector<cudf::size_type> splits(total_partitions);
-						std::iota(splits.begin(), splits.end(), 0);
-
-						std::vector<CudfTableView> partitioned = cudf::experimental::split(batch->view(), splits);
-						for (std::size_t batch_i = 0; batch_i < partitioned.size(); ++batch_i) {
-							ral::frame::BlazingTableView batch_small(partitioned[batch_i], batch->names());
-							auto columns = ral::processor::process_filter(batch_small, expression, context.get());
-							this->add_to_output_cache(std::move(columns));
-						}
-					} else {
-						auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
-						this->add_to_output_cache(std::move(columns));
-					}
-				} else {
-					// For large files
-					if (batch->sizeInBytes() > 1073741824) {  // Threshold 1GB
-						std::size_t total_partitions = 10;    // TODO: Looking for the optimal value
-						std::vector<cudf::size_type> splits(total_partitions);
-						std::iota(splits.begin(), splits.end(), 0);
-
-						std::vector<CudfTableView> partitioned = cudf::experimental::split(batch->view(), splits);
-						for (std::size_t batch_i = 0; batch_i < partitioned.size(); ++batch_i) {
-							ral::frame::BlazingTableView batch_small(partitioned[batch_i], batch->names());
-							this->add_to_output_cache(batch_small.clone());
-						}
-					} else {
-						this->add_to_output_cache(std::move(batch));
-					}
+				if(is_filtered_bindable_scan(expression)) {
+					auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
+					this->add_to_output_cache(std::move(columns));
+				}
+				else{
+					this->add_to_output_cache(std::move(batch));
 				}
 				batch_count++;
 			} catch(const std::exception& e) {
@@ -339,6 +300,7 @@ public:
 		}
 		return kstatus::proceed;
 	}
+	
 private:
 	DataSourceSequence input;
 	std::shared_ptr<Context> context;
