@@ -75,11 +75,11 @@ TEST_F(Batching, SimpleQuery) {
 		.table_names = {"nation"}
 	};
 	Print print;
-	auto graph = tree.build_batch_graph(json);
+	std::shared_ptr<ral::cache::graph> graph = tree.build_batch_graph(json);
 	try {
 		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
-		graph += link(graph.get_last_kernel(), print, simple_cache_config);
-		graph.execute();
+		*graph += link(graph->get_last_kernel(), print, simple_cache_config);
+		graph->execute();
 	} catch(std::exception & ex) {
 		std::cout << ex.what() << "\n";
 	}
@@ -118,11 +118,11 @@ TEST_F(Batching, BindableQuery) {
 		.table_names = {"nation"}
 	};
 	Print print;
-	auto graph = tree.build_batch_graph(json);
+	std::shared_ptr<ral::cache::graph> graph = tree.build_batch_graph(json);
 	try {
 		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
-		graph += link(graph.get_last_kernel(), print, simple_cache_config);
-		graph.execute();
+		*graph += link(graph->get_last_kernel(), print, simple_cache_config);
+		graph->execute();
 	} catch(std::exception & ex) {
 		std::cout << ex.what() << "\n";
 	}

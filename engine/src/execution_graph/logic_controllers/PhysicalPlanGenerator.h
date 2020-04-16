@@ -120,15 +120,16 @@ struct tree_processor {
 		k->expr = expr;
 		return k;
 	}
-	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, node * root_ptr, int level) {
+	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, node * root_ptr, int level, std::shared_ptr<ral::cache::graph> graph) {
 		auto expr = p_tree.get<std::string>("expr", "");
 		root_ptr->expr = expr;
 		root_ptr->level = level;
+		// root_ptr->kernel_unit = make_kernel(expr, graph); //WSM
 		root_ptr->kernel_unit = make_kernel(expr);
 		for (auto &child : p_tree.get_child("children")) {
 			auto child_node_ptr = std::make_shared<node>();
 			root_ptr->children.push_back(child_node_ptr);
-			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1);
+			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1, graph);
 		}
 	} 
 
@@ -251,14 +252,15 @@ struct tree_processor {
 		}
 	} 
 	
-	ral::cache::graph build_batch_graph(std::string json) {
+	std::shared_ptr<ral::cache::graph> build_batch_graph(std::string json) {
+		auto graph = std::make_shared<ral::cache::graph>();
 		try {
 			std::istringstream input(json);
 			boost::property_tree::ptree p_tree;
 			boost::property_tree::read_json(input, p_tree);
 			transform_json_tree(p_tree);
 
-			expr_tree_from_json(p_tree, &this->root, 0);
+			expr_tree_from_json(p_tree, &this->root, 0, graph);
 		} catch (std::exception & e) {
 			std::cerr << "property_tree:" << e.what() <<  std::endl;
 			throw e;
@@ -268,10 +270,10 @@ struct tree_processor {
 		print_tree(&this->root);
 		printf("==============================================================\n");
 
-		ral::cache::graph graph;
+		
 		if (this->root.kernel_unit != nullptr) {
-			graph.add_node(this->root.kernel_unit.get()); // register first node
-			visit(graph, &this->root, this->root.children);
+			graph->add_node(this->root.kernel_unit.get()); // register first node
+			visit(*graph, &this->root, this->root.children);
 		}
 		return graph;
 	}

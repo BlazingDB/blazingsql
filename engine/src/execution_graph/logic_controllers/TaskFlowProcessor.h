@@ -195,6 +195,7 @@ public:
 	std::int32_t parent_id_;
 	bool execution_done = false;
 	kernel_type kernel_type_id;
+	// std::shared_ptr<ral::cache::graph> query_graph;
 };
 
 
@@ -455,22 +456,22 @@ public:
 		}
 	}
 
-	std::pair<bool, uint64_t> get_estimated_input_rows_to_kernel(int32_t id){
-		auto target_kernel = get_node(id);
-		if (target_kernel->input_all_finished()){
-			return std::make_pair(true,target_kernel->total_rows_added());
-		}
-		std::set<std::pair<size_t, size_t>> visited;
-		std::deque<size_t> Q;
-		std::set<Edge> source_edges = get_reverse_neighbours(id);
-		if (source_edges.size() == 1){
-			target_kernel = get_node(source_edges.source);
-			return target_kernel->get_estimated_output();
-			// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
-			// or do something more complicated for other kernels
-		}
+	// std::pair<bool, uint64_t> get_estimated_input_rows_to_kernel(int32_t id){
+	// 	auto target_kernel = get_node(id);
+	// 	if (target_kernel->input_all_finished()){
+	// 		return std::make_pair(true,target_kernel->total_rows_added());
+	// 	}
+	// 	std::set<std::pair<size_t, size_t>> visited;
+	// 	std::deque<size_t> Q;
+	// 	std::set<Edge> source_edges = get_reverse_neighbours(id);
+	// 	if (source_edges.size() == 1){
+	// 		target_kernel = get_node(source_edges.source);
+	// 		return target_kernel->get_estimated_output_num_rows();
+	// 		// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
+	// 		// or do something more complicated for other kernels
+	// 	}
 
-	}
+	// }
 
 	kernel& get_last_kernel () {
 		return *kernels_.at(kernels_.size() - 1);
@@ -1310,7 +1311,7 @@ struct expr_tree_processor {
 	std::vector<std::string> table_names;
 	const bool transform_operators_bigger_than_gpu = false;
 
-	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level) {
+	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, expr_tree_processor::node * root_ptr, int level, std::shared_ptr<ral::cache::graph> graph) {
 		auto expr = p_tree.get<std::string>("expr", "");
 		// for(int i = 0; i < level*2 ; ++i) {
 		// 	std::cout << " ";
@@ -1318,11 +1319,12 @@ struct expr_tree_processor {
 		// std::cout << expr << std::endl;
 		root_ptr->expr = expr;
 		root_ptr->level = level;
-		root_ptr->kernel_unit = make_kernel(expr);
+		root_ptr->kernel_unit = make_kernel(expr); // WSM
+		// root_ptr->kernel_unit = make_kernel(expr, graph);
 		for (auto &child : p_tree.get_child("children")) {
 			auto child_node_ptr = std::make_shared<expr_tree_processor::node>();
 			root_ptr->children.push_back(child_node_ptr);
-			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1);
+			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1, graph);
 		}
 	}
 
@@ -1397,7 +1399,7 @@ struct expr_tree_processor {
 			std::istringstream input(json);
 			boost::property_tree::ptree p_tree;
 			boost::property_tree::read_json(input, p_tree);
-			expr_tree_from_json(p_tree, &this->root, 0);
+			expr_tree_from_json(p_tree, &this->root, 0, nullptr);
 		} catch (std::exception & e) {
 			std::cerr << e.what() <<  std::endl;
 		}
@@ -1509,7 +1511,7 @@ struct expr_tree_processor {
 			std::istringstream input(json);
 			boost::property_tree::ptree p_tree;
 			boost::property_tree::read_json(input, p_tree);
-			expr_tree_from_json(p_tree, &this->root, 0);
+			expr_tree_from_json(p_tree, &this->root, 0, nullptr);
 
 		} catch (std::exception & e) {
 			std::cerr << e.what() <<  std::endl;
