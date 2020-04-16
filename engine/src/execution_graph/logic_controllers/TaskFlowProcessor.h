@@ -98,6 +98,30 @@ public:
 
 	std::shared_ptr<CacheMachine> & operator[](const std::string & port_name) { return cache_machines_[port_name]; }
 
+	bool all_finished(){
+		for (auto cache : cache_machines_){
+			if (!cache.second->is_finished())
+				return false;
+		}
+		return true;
+	}
+
+	uint64_t total_bytes_added(){
+		uint64_t total = 0;
+		for (auto cache : cache_machines_){
+			total += cache.second->get_num_bytes_added();
+		}
+		return total;
+	}
+
+	uint64_t total_rows_added(){
+		uint64_t total = 0;
+		for (auto cache : cache_machines_){
+			total += cache.second->get_num_rows_added();
+		}
+		return total;
+	}
+
 public:
 	kernel * kernel_;
 	std::map<std::string, std::shared_ptr<CacheMachine>> cache_machines_;
@@ -154,6 +178,10 @@ public:
 
 	virtual std::string expression() {
 		return expr;
+	}
+
+	virtual bool input_all_finished() {
+		return input_.all_finished();
 	}
 
 protected:
@@ -425,6 +453,23 @@ public:
 			}
 
 		}
+	}
+
+	std::pair<bool, uint64_t> get_estimated_input_rows_to_kernel(int32_t id){
+		auto target_kernel = get_node(id);
+		if (target_kernel->input_all_finished()){
+			return std::make_pair(true,target_kernel->total_rows_added());
+		}
+		std::set<std::pair<size_t, size_t>> visited;
+		std::deque<size_t> Q;
+		std::set<Edge> source_edges = get_reverse_neighbours(id);
+		if (source_edges.size() == 1){
+			target_kernel = get_node(source_edges.source);
+			return target_kernel->get_estimated_output();
+			// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
+			// or do something more complicated for other kernels
+		}
+
 	}
 
 	kernel& get_last_kernel () {

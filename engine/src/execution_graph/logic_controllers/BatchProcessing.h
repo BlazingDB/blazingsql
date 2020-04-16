@@ -240,6 +240,8 @@ struct PhysicalPlan : kernel {
 	size_t n_batches() {
 		return n_batches_; // TODO: use set_n_batches(n_batches) in make_kernel
 	}
+
+
 private:
 	size_t n_batches_;
 };
