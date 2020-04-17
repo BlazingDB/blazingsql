@@ -54,26 +54,24 @@ BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.h
 
 Note: BlazingSQL is supported only on Linux, and with Python version 3.6 and 3.7.
 
-## Stable Version 
-*For CUDA 9.2 and Python 3.7:*
+## Stable Version
 ```bash
-conda install -c blazingsql/label/cuda9.2 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=9.2
+conda install -c blazingsql/label/cuda$CUDA_VERSION -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
 ```
-
-*For CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
+*For example for CUDA 10.0 and Python 3.7:*
 ```bash
-conda install -c blazingsql/label/cuda10.0 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=10.0
-```
+conda install -c blazingsql/label/cuda10.0 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+``` 
 
 ## Nightly Version
-*For CUDA 9.2 and Python 3.7:*
 ```bash
-conda install -c blazingsql-nightly/label/cuda9.2 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql-nightly/label/cuda$CUDA_VERSION -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
 ```
-
-*For CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
+*For example for CUDA 10.0 and Python 3.7:*
 ```bash
-conda install -c blazingsql-nightly/label/cuda10.0 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql-nightly/label/cuda10.0 -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7
 ```
 
 # Build/Install from Source (Conda Environment)
@@ -82,22 +80,21 @@ This is the recommended way of building all of the BlazingSQL components and dep
 ## Stable Version
 
 ### Install build dependencies
-*For CUDA 9.2 and Python 3.7:*
 ```bash
-conda create -n bsql python=3.7
+conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql bsql-toolchain
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.12 dask-cudf=0.12 dask-cuda=0.12 cudatoolkit=9.2
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.13 dask-cudf=0.13 dask-cuda=0.13 cudatoolkit=$CUDA_VERSION
 ```
-
-*For CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
+*For example for CUDA 10.0 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql bsql-toolchain
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.12 dask-cudf=0.12 dask-cuda=0.12 cudatoolkit=10.0
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.13 dask-cudf=0.13 dask-cuda=0.13 cudatoolkit=10.0
 ```
 
 ### Build
@@ -118,16 +115,15 @@ $CONDA_PREFIX now has a folder for the blazingsql repository.
 ## Nightly Version
 
 ### Install build dependencies
-*For CUDA 9.2:*
 ```bash
-conda create -n bsql python=3.7
+conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.14 cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=9.2
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.14 cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=$CUDA_VERSION
 ```
-
-*For CUDA 10.0:*
+Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
+*For example for CUDA 10.0 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
