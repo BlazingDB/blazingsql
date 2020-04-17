@@ -33,7 +33,7 @@ public:
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
 		std::vector<size_t> column_indices,
-		size_t partition);
+		cudf::size_type partition);
 
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema);
 

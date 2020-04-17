@@ -137,7 +137,7 @@ public:
 		}
 		n_files = files.size();
 		for (size_t index = 0; index < n_files; index++) {
-			std::vector<int> row_groups = schema.get_rowgroup_ids(index);
+			std::vector<cudf::size_type> row_groups = schema.get_rowgroup_ids(index);
 			n_batches += row_groups.size();
 			all_row_groups.push_back(row_groups);
 		}
@@ -167,7 +167,7 @@ public:
 			return std::move(ret);
 		}
 		
-		size_t row_group_id = all_row_groups[cur_file_index][cur_row_group_index];
+		cudf::size_type row_group_id = all_row_groups[cur_file_index][cur_row_group_index];
 
 		auto ret = loader.load_batch(context.get(), projections, schema, files[cur_file_index], cur_file_index, row_group_id);
 		batch_index++;

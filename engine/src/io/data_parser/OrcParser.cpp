@@ -63,7 +63,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
 	std::vector<size_t> column_indices,
-	size_t stripe)
+	cudf::size_type stripe)
 {
 	if(file == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);

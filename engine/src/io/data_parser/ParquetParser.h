@@ -31,7 +31,7 @@ public:
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
 		std::vector<size_t> column_indices,
-		size_t row_group);
+		cudf::size_type row_group);
 
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, Schema & schema);
 

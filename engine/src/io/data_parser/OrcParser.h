@@ -29,7 +29,7 @@ public:
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
 		std::vector<size_t> column_indices,
-		size_t stripe);
+		cudf::size_type stripe);
 
 	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, Schema & schema);
 

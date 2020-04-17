@@ -216,7 +216,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 	const Schema & schema,
 	data_handle file_data_handle,
 	size_t file_index,
-	size_t row_group_id) {
+	cudf::size_type row_group_id) {
 
 	static CodeTimer timer;
 	timer.reset();

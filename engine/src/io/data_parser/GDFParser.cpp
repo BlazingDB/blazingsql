@@ -62,7 +62,7 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
 		std::vector<size_t> column_indices,
-		size_t partition){
+		cudf::size_type partition){
 	
 	if(schema.get_num_columns() == 0) {
 		return nullptr;
