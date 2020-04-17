@@ -212,13 +212,6 @@ public:
 		batch_index++;
 		cur_row_group_index++;
 		if (cur_row_group_index == all_row_groups[cur_file_index].size()) {
-			is_csv = false;
-			cur_file_index++;
-			cur_row_group_index = 0;
-		}
-
-		// file_index++ also for CSV
-		if (is_csv) {
 			cur_file_index++;
 			cur_row_group_index = 0;
 		}
@@ -251,7 +244,6 @@ private:
 	size_t n_files;
 	std::vector<std::vector<int>> all_row_groups; 
 	bool is_empty_data_source;
-	bool is_csv{true};
 };
 
 class TableScan : public kernel {
