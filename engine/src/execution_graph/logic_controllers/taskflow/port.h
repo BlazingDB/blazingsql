@@ -67,6 +67,12 @@ public:
 
 	std::shared_ptr<CacheMachine> & operator[](const std::string & port_name) { return cache_machines_[port_name]; }
 
+	bool all_finished();
+
+	uint64_t total_bytes_added();
+
+	uint64_t total_rows_added();
+
 public:
 	kernel * kernel_;
 	std::map<std::string, std::shared_ptr<CacheMachine>> cache_machines_;

@@ -72,6 +72,10 @@ public:
 		return std::to_string((int)this->get_type_id()) + "_" + std::to_string(this->get_id());
 	}
 
+	virtual bool input_all_finished() {
+		return input_.all_finished();
+	}
+
 protected:
 	static std::size_t kernel_count;
 

@@ -25,6 +25,30 @@ void port::finish() {
 	}
 }
 
+bool port::all_finished(){
+	for (auto cache : cache_machines_){
+		if (!cache.second->is_finished())
+			return false;
+	}
+	return true;
+}
+
+uint64_t port::total_bytes_added(){
+	uint64_t total = 0;
+	for (auto cache : cache_machines_){
+		total += cache.second->get_num_bytes_added();
+	}
+	return total;
+}
+
+uint64_t port::total_rows_added(){
+	uint64_t total = 0;
+	for (auto cache : cache_machines_){
+		total += cache.second->get_num_rows_added();
+	}
+	return total;
+}
+
 
 }  // end namespace cache
 }  // end namespace ral
