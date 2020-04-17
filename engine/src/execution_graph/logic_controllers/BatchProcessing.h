@@ -235,8 +235,8 @@ private:
 
 class TableScan : public kernel {
 public:
-	TableScan(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-	: kernel(), input(loader, schema, context)
+	TableScan(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> graph)
+	: kernel(), input(loader, schema, context), graph{graph} 
 	{}
 	virtual kstatus run() {
 		while( input.wait_for_next() ) {
@@ -251,8 +251,9 @@ private:
 
 class BindableTableScan : public kernel {
 public:
-	BindableTableScan(std::string & expression, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-	: kernel(), input(loader, schema, context), expression(expression), context(context)
+	BindableTableScan(std::string & expression, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, 
+		std::shared_ptr<ral::cache::graph> graph)
+	: kernel(), input(loader, schema, context), expression(expression), context(context), graph{graph}
 	{}
 	virtual kstatus run() {
 		input.set_projections(get_projections(expression));
@@ -285,10 +286,11 @@ private:
 
 class Projection : public kernel {
 public:
-	Projection(const std::string & queryString, std::shared_ptr<Context> context)
+	Projection(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> graph)
 	{
 		this->context = context;
 		this->expression = queryString;
+		this->graph = graph;
 	}
 	virtual kstatus run() {
 		BatchSequence input(this->input_cache(), this);
@@ -315,10 +317,11 @@ private:
 
 class Filter : public kernel {
 public:
-	Filter(const std::string & queryString, std::shared_ptr<Context> context)
+	Filter(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> graph)
 	{
 		this->context = context;
 		this->expression = queryString;
+		this->graph = graph;
 	}
 	virtual kstatus run() {
 		BatchSequence input(this->input_cache(), this);

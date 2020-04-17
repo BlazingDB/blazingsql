@@ -1,10 +1,12 @@
 #pragma once
 
 #include "port.h"
+#include "kernel.h"
 
 namespace ral {
 namespace cache { 
 
+using kernel_pair = std::pair<kernel *, std::string>;
 enum class CacheType { NON_WAITING, SIMPLE, CONCATENATING, FOR_EACH };
 
 struct cache_settings {

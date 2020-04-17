@@ -2,6 +2,7 @@
 
 #include "kernel_type.h"
 #include "port.h"
+#include "graph.h"
 
 namespace ral {
 namespace cache { 
@@ -87,6 +88,7 @@ public:
 	std::int32_t parent_id_;
 	bool execution_done = false;
 	kernel_type kernel_type_id;
+	std::shared_ptr<ral::cache::graph> graph;
 };
 
  
