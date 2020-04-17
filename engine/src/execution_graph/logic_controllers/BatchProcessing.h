@@ -3,7 +3,6 @@
 #include "BlazingColumn.h"
 #include "LogicPrimitives.h"
 #include "CacheMachine.h"
-#include "TaskFlowProcessor.h"
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
@@ -12,6 +11,45 @@
 #include <src/communication/network/Client.h>
 #include "parser/expression_utils.hpp"
 
+
+#include "utilities/random_generator.cuh"
+#include <cudf/cudf.h>
+#include <cudf/io/functions.hpp>
+#include <cudf/types.hpp>
+#include "execution_graph/logic_controllers/TableScan.h"
+#include "execution_graph/logic_controllers/LogicalProject.h"
+#include <execution_graph/logic_controllers/LogicPrimitives.h>
+#include <src/execution_graph/logic_controllers/LogicalFilter.h>
+#include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
+#include <blazingdb/io/Library/Logging/Logger.h>
+
+#include <src/operators/OrderBy.h>
+#include <src/operators/GroupBy.h>
+#include <src/utilities/DebuggingUtils.h>
+#include <stack>
+#include "io/DataLoader.h"
+#include "io/Schema.h"
+#include <Util/StringUtil.h>
+#include "CodeTimer.h"
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/foreach.hpp>
+#include "parser/expression_utils.hpp"
+
+#include <cudf/copying.hpp>
+#include <cudf/merge.hpp>
+#include <cudf/search.hpp>
+#include <cudf/sorting.hpp>
+#include <src/CalciteInterpreter.h>
+#include <src/utilities/CommonOperations.h>
+
+#include "distribution/primitives.h"
+#include "config/GPUManager.cuh"
+#include "CacheMachine.h"
+#include "blazingdb/concurrency/BlazingThread.h"
+
+#include "taskflow/graph.h"
 namespace ral {
 namespace batch {
 
@@ -20,7 +58,8 @@ using ral::cache::kernel;
 using ral::cache::kernel_type;
 
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
-
+using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
+using Context = blazingdb::manager::experimental::Context;
 class BatchSequence {
 public:
 	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr)
@@ -205,60 +244,10 @@ private:
 	bool is_csv{true};
 };
 
-struct PhysicalPlan : kernel {
-	virtual kstatus run() = 0;
-
-	std::shared_ptr<ral::cache::CacheMachine>  input_cache() {
-		auto kernel_id = std::to_string(this->get_id());
-		return this->input_.get_cache(kernel_id);
-	}
-	std::shared_ptr<ral::cache::CacheMachine>  output_cache() {
-		auto kernel_id = std::to_string(this->get_id());
-		return this->output_.get_cache(kernel_id);
-	}
-
-	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string kernel_id = "") {
-		if (kernel_id.empty()) {
-			kernel_id = std::to_string(this->get_id());
-		}
-		
-		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
-		this->output_.get_cache(kernel_id)->addToCache(std::move(table), message_id);
-	}
-
-	void add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string kernel_id = "") {
-		if (kernel_id.empty()) {
-			kernel_id = std::to_string(this->get_id());
-		}
-
-		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
-		this->output_.get_cache(kernel_id)->addCacheData(std::move(cache_data), message_id);
-	}
-	
-	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string kernel_id = "") {
-		if (kernel_id.empty()) {
-			kernel_id = std::to_string(this->get_id());
-		}
-
-		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
-		this->output_.get_cache(kernel_id)->addHostFrameToCache(std::move(host_table), message_id);
-	}
-
-	std::string get_message_id(){
-		return std::to_string((int)this->get_type_id()) + "_" + std::to_string(this->get_id());
-	}
-
-	size_t n_batches() {
-		return n_batches_; // TODO: use set_n_batches(n_batches) in make_kernel
-	}
-private:
-	size_t n_batches_;
-};
-
-class TableScan : public PhysicalPlan {
+class TableScan : public kernel {
 public:
 	TableScan(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-	: PhysicalPlan(), input(loader, schema, context)
+	: kernel(), input(loader, schema, context)
 	{}
 	virtual kstatus run() {
 		while( input.wait_for_next() ) {
@@ -272,10 +261,10 @@ private:
 	DataSourceSequence input;
 };
 
-class BindableTableScan : public PhysicalPlan {
+class BindableTableScan : public kernel {
 public:
 	BindableTableScan(std::string & expression, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-	: PhysicalPlan(), input(loader, schema, context), expression(expression), context(context)
+	: kernel(), input(loader, schema, context), expression(expression), context(context)
 	{}
 	virtual kstatus run() {
 		input.set_projections(get_projections(expression));
@@ -307,7 +296,7 @@ private:
 	std::string expression;
 };
 
-class Projection : public PhysicalPlan {
+class Projection : public kernel {
 public:
 	Projection(const std::string & queryString, std::shared_ptr<Context> context)
 	{
@@ -337,7 +326,7 @@ private:
 	std::string expression;
 };
 
-class Filter : public PhysicalPlan {
+class Filter : public kernel {
 public:
 	Filter(const std::string & queryString, std::shared_ptr<Context> context)
 	{
@@ -366,10 +355,10 @@ private:
 	std::string expression;
 };
 
-class Print : public PhysicalPlan {
+class Print : public kernel {
 public:
-	Print() : PhysicalPlan() { ofs = &(std::cout); }
-	Print(std::ostream & stream) : PhysicalPlan() { ofs = &stream; }
+	Print() : kernel() { ofs = &(std::cout); }
+	Print(std::ostream & stream) : kernel() { ofs = &stream; }
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
 		BatchSequence input(this->input_cache(), this);
@@ -384,6 +373,50 @@ protected:
 	std::ostream * ofs = nullptr;
 	std::mutex print_lock;
 };
+ 
+
+class OutputKernel : public kernel {
+public:
+	OutputKernel() : kernel("OutputKernel") {  }
+	virtual kstatus run() {
+		output = std::move(this->input_.get_cache()->pullFromCache());
+		return kstatus::stop;
+	}
+	
+	frame_type	release() {
+		return std::move(output);
+	}
+
+protected:
+	frame_type output;
+};
+
+
+namespace test {
+class generate : public kernel {
+public:
+	generate(std::int64_t count = 1000) : kernel(), count(count) {}
+	virtual kstatus run() {
+
+		cudf::test::fixed_width_column_wrapper<int32_t> column1{{0, 1, 2, 3, 4, 5}, {1, 1, 1, 1, 1, 1}};
+
+		CudfTableView cudfTableView{{column1} };
+
+		const std::vector<std::string> columnNames{"column1"};
+		ral::frame::BlazingTableView blazingTableView{cudfTableView, columnNames};
+
+		std::unique_ptr<ral::frame::BlazingTable> table = ral::generator::generate_sample(blazingTableView, 4);
+
+		this->output_.get_cache()->addToCache(std::move(table));
+		return (kstatus::proceed);
+	}
+
+private:
+	std::int64_t count;
+};
+}
+using GeneratorKernel = test::generate;
+
 
 } // namespace batch
 } // namespace ral

@@ -10,7 +10,7 @@
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
-#include <execution_graph/logic_controllers/TaskFlowProcessor.h>
+#include <execution_graph/logic_controllers/BatchProcessing.h>
 #include "../BlazingUnitTest.h"
 
 using ral::communication::messages::experimental::SampleToNodeMasterMessage;

@@ -1,11 +1,9 @@
 #pragma once
 
 #include "BatchProcessing.h"
-#include "TaskFlowProcessor.h"
 #include "BlazingColumn.h"
 #include "LogicPrimitives.h"
 #include "CacheMachine.h"
-#include "TaskFlowProcessor.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
@@ -21,7 +19,7 @@ using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
 
-class SortAndSampleSingleNodeKernel : public PhysicalPlan {
+class SortAndSampleSingleNodeKernel :public kernel {
 public:
 	SortAndSampleSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context}
@@ -71,7 +69,7 @@ private:
 	std::string expression;
 };
 
-class PartitionSingleNodeKernel : public PhysicalPlan {
+class PartitionSingleNodeKernel :public kernel {
 public:
 	PartitionSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {
@@ -117,7 +115,7 @@ private:
 	std::string expression;
 };
 
-class SortAndSampleKernel : public PhysicalPlan {
+class SortAndSampleKernel :public kernel {
 public:
 	SortAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context}
@@ -162,7 +160,7 @@ private:
 	std::string expression;
 };
 
-class PartitionKernel : public PhysicalPlan {
+class PartitionKernel :public kernel {
 public:
 	PartitionKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {
@@ -216,7 +214,7 @@ private:
 	std::string expression;
 };
 
-class MergeStreamKernel : public PhysicalPlan {
+class MergeStreamKernel :public kernel {
 public:
 	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context}  {
@@ -272,7 +270,7 @@ private:
 };
 
 
-class LimitKernel : public PhysicalPlan {
+class LimitKernel :public kernel {
 public:
 	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context}  {

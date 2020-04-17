@@ -1,11 +1,9 @@
 #pragma once
 
 #include "BatchProcessing.h"
-#include "TaskFlowProcessor.h"
 #include "BlazingColumn.h"
 #include "LogicPrimitives.h"
 #include "CacheMachine.h"
-#include "TaskFlowProcessor.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
@@ -38,7 +36,7 @@ struct TableSchema {
 	{}
 };
 
-class PartwiseJoin : public PhysicalPlan {
+class PartwiseJoin :public kernel {
 public:
 	PartwiseJoin(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
@@ -378,7 +376,7 @@ private:
 };
 
 
-class JoinPartitionKernel : public PhysicalPlan {
+class JoinPartitionKernel :public kernel {
 public:
 	JoinPartitionKernel(const std::string & queryString, std::shared_ptr<Context> context)
 		: expression{queryString}, context{context} {

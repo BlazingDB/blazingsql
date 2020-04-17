@@ -46,7 +46,7 @@ struct tree_processor {
 			k = std::make_shared<Filter>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::FilterKernel);
-		}	else if ( is_logical_scan(expr) ) {
+		} else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
 			auto schema = this->schemas[table_index];
@@ -60,10 +60,6 @@ struct tree_processor {
 			k = std::make_shared<BindableTableScan>(expr, *loader, schema, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::BindableTableScanKernel);
-		} else if ( is_sort(expr) ) {
-			k = std::make_shared<ral::cache::SortKernel>(expr, kernel_context);
-			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::SortKernel);
 		}  else if (is_single_node_partition(expr)) {
 			k = std::make_shared<PartitionSingleNodeKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
@@ -88,10 +84,6 @@ struct tree_processor {
 			k = std::make_shared<LimitKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::LimitKernel);
-		} else if (is_aggregate(expr)) {
-			k = std::make_shared<ral::cache::AggregateKernel>(expr, kernel_context);
-			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::AggregateKernel);
 		}  else if (is_compute_aggregate(expr)) {
 			k = std::make_shared<ComputeAggregateKernel>(expr, kernel_context);
 			kernel_context->setKernelId(k->get_id());
