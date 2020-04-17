@@ -451,33 +451,80 @@ public:
 		//printf("... notifyLastTablePartitions\n");
 		ral::distribution::experimental::notifyLastTablePartitions(context.get());
     }
-	
-	virtual kstatus run() {
-		
-		BatchSequence left_sequence(this->input_.get_cache("input_a"), this);
-		BatchSequence right_sequence(this->input_.get_cache("input_b"), this);
 
-		// lets parse part of the expression here, because we need the joinType before we load
-		std::string new_join_statement, filter_statement;
-		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
-		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
-		std::string condition = get_named_expression(new_join_statement, "condition");
-		this->join_type = get_named_expression(new_join_statement, "joinType");
+	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view, 
+		const ral::frame::BlazingTableView & right_batch_view ){
 
-		std::unique_ptr<ral::frame::BlazingTable> left_batch = left_sequence.next();
-		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
-
-		if (left_batch == nullptr || left_batch->num_columns() == 0){
-			std::cout<<"ERROR JoinPartitionKernel has empty left side and cannot determine join column indices"<<std::endl;
+		std::pair<bool, uint64_t> left_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_a");	
+		std::pair<bool, uint64_t> right_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_b");	
+		double left_batch_rows = (double)left_batch_view.num_rows();
+		double left_batch_bytes = (double)ral::utilities::experimental::get_table_size_bytes(left_batch_view);
+		double right_batch_rows = (double)right_batch_view.num_rows();
+		double right_batch_bytes = (double)ral::utilities::experimental::get_table_size_bytes(right_batch_view);
+		int64_t left_bytes_estimate;
+		if (left_num_rows_estimate.second > 0 && left_batch_rows == 0 && left_batch_bytes == 0){
+			// if we cant get a good estimate of current bytes, then we will set to -1 to signify that
+			left_bytes_estimate = -1;
+		} else {
+			left_bytes_estimate = (int64_t)(left_batch_bytes*(((double)left_num_rows_estimate.second)/left_batch_rows));
+		}
+		int64_t right_bytes_estimate;
+		if (right_num_rows_estimate.second > 0 && right_batch_rows == 0 && right_batch_bytes == 0){
+			// if we cant get a good estimate of current bytes, then we will set to -1 to signify that
+			right_bytes_estimate = -1;
+		} else {
+			right_bytes_estimate = (int64_t)(right_batch_bytes*(((double)right_num_rows_estimate.second)/right_batch_rows));
 		}
 
-		std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
-		std::cout<<"JoinPartitionKernel get_estimated_input_rows_to_kernel: "<<total_in.second<<std::endl;
-		std::pair<bool, uint64_t> in_a = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_a");	
-		std::cout<<"JoinPartitionKernel get_estimated_input_rows_to_cache in_a: "<<in_a.second<<std::endl;
-		std::pair<bool, uint64_t> in_b = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_b");	
-		std::cout<<"JoinPartitionKernel get_estimated_input_rows_to_cache in_b: "<<in_b.second<<std::endl;
-		
+		int self_node_idx = context->getNodeIndex(ral::communication::experimental::CommunicationData::getInstance().getSelfNode());
+
+		context->incrementQuerySubstep();
+		ral::distribution::experimental::distributeLeftRightTableSizeBytes(context.get(), left_bytes_estimate, right_bytes_estimate);
+		std::vector<int64_t> nodes_num_bytes_left;
+		std::vector<int64_t> nodes_num_bytes_right;
+		ral::distribution::experimental::collectLeftRightTableSizeBytes(context.get(), nodes_num_bytes_left, nodes_num_bytes_right);
+		nodes_num_bytes_left[self_node_idx] = left_bytes_estimate;
+		nodes_num_bytes_right[self_node_idx] = right_bytes_estimate;
+
+		bool any_unknowns_left = std::any_of(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), [](int64_t bytes){return bytes == -1;});
+		bool any_unknowns_right = std::any_of(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), [](int64_t bytes){return bytes == -1;});
+
+		if (any_unknowns_left || any_unknowns_right){
+			return std::make_pair(false, false); // we wont do any small table scatter if we have unknowns
+		}
+
+		int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), int64_t(0));
+		int64_t total_bytes_right = std::accumulate(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), int64_t(0));
+
+		int num_nodes = context->getTotalNodes();
+
+		bool scatter_left = false;
+		bool scatter_right = false;
+		int64_t estimate_regular_distribution = (total_bytes_left + total_bytes_right) * (num_nodes - 1) / num_nodes;
+		int64_t estimate_scatter_left = (total_bytes_left) * (num_nodes - 1);
+		int64_t estimate_scatter_right = (total_bytes_right) * (num_nodes - 1);
+		int64_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
+													// WSM TODO get this value from config
+
+		if(estimate_scatter_left < estimate_regular_distribution ||
+			estimate_scatter_right < estimate_regular_distribution) {
+			if(estimate_scatter_left < estimate_scatter_right &&
+				total_bytes_left < MAX_SCATTER_MEM_OVERHEAD) {
+				scatter_left = true;
+			} else if(estimate_scatter_right < estimate_scatter_left &&
+					total_bytes_right < MAX_SCATTER_MEM_OVERHEAD) {
+				scatter_right = true;
+			}
+		}
+		return std::make_pair(scatter_left, scatter_right);
+	}
+
+	void perform_standard_hash_partitioning(const std::string & condition, 
+		std::unique_ptr<ral::frame::BlazingTable> left_batch,
+		std::unique_ptr<ral::frame::BlazingTable> right_batch,
+		BatchSequence left_sequence,
+		BatchSequence right_sequence){
+				
 		{ // parsing more of the expression here because we need to have the number of columns of the tables
 			std::vector<int> column_indices;
 			ral::processor::parseJoinConditionToColumnIndices(condition, column_indices);
@@ -530,6 +577,44 @@ public:
 	
 		distribute_right_thread.join();
 		right_consumer.join();
+	}
+	
+	virtual kstatus run() {
+		
+		BatchSequence left_sequence(this->input_.get_cache("input_a"), this);
+		BatchSequence right_sequence(this->input_.get_cache("input_b"), this);
+
+		// lets parse part of the expression here, because we need the joinType before we load
+		std::string new_join_statement, filter_statement;
+		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
+		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
+		std::string condition = get_named_expression(new_join_statement, "condition");
+		this->join_type = get_named_expression(new_join_statement, "joinType");
+
+		std::unique_ptr<ral::frame::BlazingTable> left_batch = left_sequence.next();
+		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
+
+		if (left_batch == nullptr || left_batch->num_columns() == 0){
+			std::cout<<"ERROR JoinPartitionKernel has empty left side and cannot determine join column indices"<<std::endl;
+		}
+
+		std::pair<bool, bool> scatter_left_right;
+		if (this->join_type == OUTER_JOIN){ // cant scatter a full outer join
+			scatter_left_right = std::make_pair(false, false);
+		} else {
+			scatter_left_right = determine_if_we_are_scattering_a_small_table(left_batch->toBlazingTableView(), 
+																				right_batch->toBlazingTableView());
+			if (scatter_left_right.first && this->join_type == LEFT_JOIN){
+				scatter_left_right.first = false; // cant scatter the left side for a left outer join
+			}
+		}
+
+		if (scatter_left_right.first || scatter_left_right.second){
+			
+		} else {
+			perform_standard_hash_partitioning(condition, std::move(left_batch), std::move(right_batch),
+				std::move(left_sequence), std::move(right_sequence));
+		}			
 		
 		return kstatus::proceed;
 	}

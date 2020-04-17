@@ -499,11 +499,7 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 	}
 }
 
-void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::BlazingTableView & left,
-    		const ral::frame::BlazingTableView & right) {
-
-	int64_t bytes_left = ral::utilities::experimental::get_table_size_bytes(left);
-	int64_t bytes_right = ral::utilities::experimental::get_table_size_bytes(right);
+void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, int64_t bytes_right) {
 
 	const std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
