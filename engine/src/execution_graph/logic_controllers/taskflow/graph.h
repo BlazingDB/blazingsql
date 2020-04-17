@@ -57,7 +57,7 @@ public:
 
 	void show_from_kernel (int32_t id);
 
-	// std::pair<bool, uint64_t> get_estimated_input_rows_to_kernel(int32_t id);
+	std::pair<bool, uint64_t> get_estimated_input_rows_to_kernel(int32_t id);
 
 	kernel & get_last_kernel();
 

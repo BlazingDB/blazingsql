@@ -134,22 +134,24 @@ namespace cache {
 		}
 	}
 
-	// std::pair<bool, uint64_t> graph::get_estimated_input_rows_to_kernel(int32_t id){
-	// 	auto target_kernel = get_node(id);
-	// 	if (target_kernel->input_all_finished()){
-	// 		return std::make_pair(true,target_kernel->total_rows_added());
-	// 	}
-	// 	std::set<std::pair<size_t, size_t>> visited;
-	// 	std::deque<size_t> Q;
-	// 	std::set<Edge> source_edges = get_reverse_neighbours(id);
-	// 	if (source_edges.size() == 1){
-	// 		target_kernel = get_node(source_edges.source);
-	// 		return target_kernel->get_estimated_output_num_rows();
-	// 		// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
-	// 		// or do something more complicated for other kernels
-	// 	}
+	std::pair<bool, uint64_t> graph::get_estimated_input_rows_to_kernel(int32_t id){
+		auto target_kernel = get_node(id);
+		if (target_kernel->input_all_finished()){
+			return std::make_pair(true, target_kernel->total_input_rows_added());
+		}
+		std::set<std::pair<size_t, size_t>> visited;
+		std::deque<size_t> Q;
+		std::set<Edge> source_edges = get_reverse_neighbours(id);
+		if (source_edges.size() == 1){
+			target_kernel = get_node((*(source_edges.begin())).source);
+			return target_kernel->get_estimated_output_num_rows();
+			// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
+			// or do something more complicated for other kernels
+		} else {
+			return std::make_pair(false, target_kernel->total_input_rows_added());
+		}
 
-	// }
+	}
 
 	kernel & graph::get_last_kernel() { return *kernels_.at(kernels_.size() - 1); }
 	

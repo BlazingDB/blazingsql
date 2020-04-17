@@ -207,11 +207,20 @@ public:
 		return std::move(ret);
 	}
 	bool wait_for_next() {
-		return is_empty_data_source || (file_index < n_files and batch_index < n_batches);
+		return is_empty_data_source || (file_index < n_files and batch_index.load() < n_batches);
 	}
 
 	void set_projections(std::vector<size_t> projections) {
 		this->projections = projections;
+	}
+
+	// this function can be called from a parallel thread, so we want it to be thread safe
+	size_t get_batch_index() {
+		return batch_index.load();
+	}
+
+	size_t get_num_batches() {
+		return n_batches;
 	}
 
 private:
@@ -225,7 +234,7 @@ private:
 	ral::io::data_loader loader;
 	ral::io::Schema  schema;
 	size_t file_index;
-	size_t batch_index;
+	std::atomic<size_t> batch_index;
 	size_t batch_id;
 	size_t n_batches;
 	size_t n_files;
@@ -247,6 +256,14 @@ public:
 		}
 		return kstatus::proceed;
 	}
+
+	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
+		double rows_so_far = (double)this->output_.total_rows_added();
+		double num_batches = (double)this->input.get_num_batches();
+		double current_batch = (double)this->input.get_batch_index();
+		return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+	}
+
 private:
 	DataSourceSequence input;
 };
@@ -282,6 +299,14 @@ public:
 		}
 		return kstatus::proceed;
 	}
+	
+	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
+		double rows_so_far = (double)this->output_.total_rows_added();
+		double num_batches = (double)this->input.get_num_batches();
+		double current_batch = (double)this->input.get_batch_index();
+		return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+	}
+
 private:
 	DataSourceSequence input;
 	std::shared_ptr<Context> context;
@@ -344,6 +369,17 @@ public:
 		}
 		return kstatus::proceed;
 	}
+	
+	std::pair<bool, uint64_t> get_estimated_output_num_rows(){
+		std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
+		if (total_in.first){
+			double out_so_far = (double)this->output_.total_rows_added();
+			double in_so_far = (double)this->input_.total_rows_added();
+			return std::make_pair(true, (uint64_t)( ((double)total_in.second) *out_so_far/in_so_far) );
+		} else {
+			return std::make_pair(false, 0);
+		}        
+    }
 private:
 	std::shared_ptr<Context> context;
 	std::string expression;

@@ -74,9 +74,17 @@ public:
 		return std::to_string((int)this->get_type_id()) + "_" + std::to_string(this->get_id());
 	}
 
-	virtual bool input_all_finished() {
+	bool input_all_finished() {
 		return input_.all_finished();
 	}
+
+	uint64_t total_input_rows_added() {
+		return input_.total_rows_added();
+	}
+
+	// this function gets the estimated num_rows for the output
+	// the default is that its the same as the input (i.e. project, sort, ...)
+	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
 
 protected:
 	static std::size_t kernel_count;
