@@ -470,6 +470,13 @@ public:
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
 			std::cout<<"ERROR JoinPartitionKernel has empty left side and cannot determine join column indices"<<std::endl;
 		}
+
+		std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
+		std::cout<<"JoinPartitionKernel get_estimated_input_rows_to_kernel: "<<total_in.second<<std::endl;
+		std::pair<bool, uint64_t> in_a = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_a");	
+		std::cout<<"JoinPartitionKernel get_estimated_input_rows_to_cache in_a: "<<in_a.second<<std::endl;
+		std::pair<bool, uint64_t> in_b = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_b");	
+		std::cout<<"JoinPartitionKernel get_estimated_input_rows_to_cache in_b: "<<in_b.second<<std::endl;
 		
 		{ // parsing more of the expression here because we need to have the number of columns of the tables
 			std::vector<int> column_indices;

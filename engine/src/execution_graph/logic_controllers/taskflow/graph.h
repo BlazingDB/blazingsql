@@ -36,8 +36,12 @@ protected:
 		std::string source_port_name;
 		std::string target_port_name;
 
-		bool operator<(const Edge & e) const { return this->target < e.target; }
-		bool operator==(const Edge & e) const { return this->target == e.target; }
+		bool operator<(const Edge & e) const { return this->target < e.target || (this->target == e.target && this->source < e.source); }
+		bool operator==(const Edge & e) const { return this->target == e.target && this->source == e.source; }
+
+		void print() const {
+			std::cout<<"Edge: source id: "<<source<<" name: "<<source_port_name<<" target id: "<<target<<" name: "<<target_port_name<<std::endl;
+		}
 	};
 
 public:
@@ -58,6 +62,8 @@ public:
 	void show_from_kernel (int32_t id);
 
 	std::pair<bool, uint64_t> get_estimated_input_rows_to_kernel(int32_t id);
+
+	std::pair<bool, uint64_t> get_estimated_input_rows_to_cache(int32_t id, const std::string & port_name);	
 
 	kernel & get_last_kernel();
 

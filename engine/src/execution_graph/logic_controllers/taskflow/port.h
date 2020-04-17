@@ -69,9 +69,13 @@ public:
 
 	bool all_finished();
 
+	bool is_finished(const std::string & port_name);
+
 	uint64_t total_bytes_added();
 
 	uint64_t total_rows_added();
+
+	uint64_t get_num_rows_added(const std::string & port_name);
 
 public:
 	kernel * kernel_;

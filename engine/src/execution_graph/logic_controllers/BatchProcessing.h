@@ -261,7 +261,11 @@ public:
 		double rows_so_far = (double)this->output_.total_rows_added();
 		double num_batches = (double)this->input.get_num_batches();
 		double current_batch = (double)this->input.get_batch_index();
-		return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+		if (current_batch == 0 || num_batches == 0){
+			return std::make_pair(false,0);
+		} else {
+			return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+		}
 	}
 
 private:
@@ -304,7 +308,12 @@ public:
 		double rows_so_far = (double)this->output_.total_rows_added();
 		double num_batches = (double)this->input.get_num_batches();
 		double current_batch = (double)this->input.get_batch_index();
-		return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+		std::cout<<"BindableTableScan get_estimated_output_num_rows rows_so_far: "<<rows_so_far<<" num_batches: "<<num_batches<<" current_batch: "<<current_batch<<std::endl;
+		if (current_batch == 0 || num_batches == 0){
+			return std::make_pair(false,0);
+		} else {
+			return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+		}
 	}
 
 private:
@@ -375,10 +384,14 @@ public:
 		if (total_in.first){
 			double out_so_far = (double)this->output_.total_rows_added();
 			double in_so_far = (double)this->input_.total_rows_added();
-			return std::make_pair(true, (uint64_t)( ((double)total_in.second) *out_so_far/in_so_far) );
+			if (in_so_far == 0){
+				return std::make_pair(false, 0);    
+			} else {
+				return std::make_pair(true, (uint64_t)( ((double)total_in.second) *out_so_far/in_so_far) );
+			}
 		} else {
 			return std::make_pair(false, 0);
-		}        
+		}    
     }
 private:
 	std::shared_ptr<Context> context;

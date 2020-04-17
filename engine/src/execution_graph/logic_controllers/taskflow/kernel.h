@@ -74,12 +74,24 @@ public:
 		return std::to_string((int)this->get_type_id()) + "_" + std::to_string(this->get_id());
 	}
 
+	// returns true if all the caches of an input are finished
 	bool input_all_finished() {
-		return input_.all_finished();
+		return this->input_.all_finished();
 	}
 
+	// returns sum of all the rows added to all caches of the input port
 	uint64_t total_input_rows_added() {
-		return input_.total_rows_added();
+		return this->input_.total_rows_added();
+	}
+
+	// returns true if a specific input cache is finished
+	bool input_cache_finished(const std::string & port_name) {
+		return this->input_.is_finished(port_name);
+	}
+
+	// returns the number of rows added to a specific input cache
+	uint64_t input_cache_num_rows_added(const std::string & port_name) {
+		return this->input_.get_num_rows_added(port_name);
 	}
 
 	// this function gets the estimated num_rows for the output

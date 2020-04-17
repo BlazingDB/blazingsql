@@ -73,7 +73,11 @@ public:
             if (total_in.first){
                 double out_so_far = (double)this->output_.total_rows_added();
                 double in_so_far = (double)this->input_.total_rows_added();
-                return std::make_pair(true, (uint64_t)( ((double)total_in.second) *out_so_far/in_so_far) );
+                if (in_so_far == 0){
+                    return std::make_pair(false, 0);    
+                } else {
+                    return std::make_pair(true, (uint64_t)( ((double)total_in.second) *out_so_far/in_so_far) );
+                }
             } else {
                 return std::make_pair(false, 0);
             }

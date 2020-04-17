@@ -135,22 +135,53 @@ namespace cache {
 	}
 
 	std::pair<bool, uint64_t> graph::get_estimated_input_rows_to_kernel(int32_t id){
+		std::cout<<"get_estimated_input_rows_to_kernel start for id "<<id<<std::endl;
 		auto target_kernel = get_node(id);
 		if (target_kernel->input_all_finished()){
+			std::cout<<"get_estimated_input_rows_to_kernel retuning due to finished cache for id "<<id<<std::endl;
 			return std::make_pair(true, target_kernel->total_input_rows_added());
 		}
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		std::set<Edge> source_edges = get_reverse_neighbours(id);
+		std::cout<<"reverse_neighbors edges"<<std::endl;
+		for (auto edge : source_edges){
+			edge.print();
+		}
 		if (source_edges.size() == 1){
 			target_kernel = get_node((*(source_edges.begin())).source);
-			return target_kernel->get_estimated_output_num_rows();
 			// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
 			// or do something more complicated for other kernels
+			return target_kernel->get_estimated_output_num_rows();			
 		} else {
-			return std::make_pair(false, target_kernel->total_input_rows_added());
+			return std::make_pair(false, 0);
 		}
+	}
 
+	std::pair<bool, uint64_t> graph::get_estimated_input_rows_to_cache(int32_t id, const std::string & port_name){
+		std::cout<<"get_estimated_input_rows_to_cache start for id "<<id<<" port_name: "<<port_name<<std::endl;
+		auto target_kernel = get_node(id);
+		if (target_kernel->input_cache_finished(port_name)){
+			std::cout<<"get_estimated_input_rows_to_cache retuning due to finished cache for id "<<id<<" port_name: "<<port_name<<std::endl;
+			return std::make_pair(true, target_kernel->input_cache_num_rows_added(port_name));
+		}
+		std::set<std::pair<size_t, size_t>> visited;
+		std::deque<size_t> Q;
+		std::set<Edge> source_edges = get_reverse_neighbours(id);
+		std::cout<<"reverse_neighbors edges"<<std::endl;
+		for (auto edge : source_edges){
+			edge.print();
+		}
+		for (auto edge : source_edges){
+			if (edge.target_port_name == port_name){
+				target_kernel = get_node(edge.source);
+				// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
+				// or do something more complicated for other kernels
+				return target_kernel->get_estimated_output_num_rows();				
+			}
+		}
+		std::cout<<"ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel "<<id<<" cache "<<port_name<<std::endl;
+		return std::make_pair(false, 0);
 	}
 
 	kernel & graph::get_last_kernel() { return *kernels_.at(kernels_.size() - 1); }
