@@ -1507,7 +1507,8 @@ class BlazingContext(object):
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:
-                    new_tables[table].input = [new_tables[table].input]
+                    if not isinstance(new_tables[table].input, list):
+                        new_tables[table].input = [new_tables[table].input]
                     currentTableNodes.append(new_tables[table])
 
             for j, nodeList in enumerate(nodeTableList):

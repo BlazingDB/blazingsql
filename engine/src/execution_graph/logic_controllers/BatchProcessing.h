@@ -173,6 +173,13 @@ public:
 		batch_index++;
 		cur_row_group_index++;
 		if (cur_row_group_index == all_row_groups[cur_file_index].size()) {
+			is_csv = false;
+			cur_file_index++;
+			cur_row_group_index = 0;
+		}
+
+		// file_index++ also for CSV
+		if (is_csv) {
 			cur_file_index++;
 			cur_row_group_index = 0;
 		}
