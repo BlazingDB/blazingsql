@@ -39,7 +39,8 @@ struct TableSchema {
 class PartwiseJoin :public kernel {
 public:
 	PartwiseJoin(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}, query_graph{query_graph}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
+		: expression{queryString}, context{context}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
+		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
 		SET_SIZE_THRESHOLD = 300000000;
@@ -379,8 +380,8 @@ private:
 class JoinPartitionKernel :public kernel {
 public:
 	JoinPartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}, query_graph{query_graph} {
-
+		: expression{queryString}, context{context} {
+		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
 	}

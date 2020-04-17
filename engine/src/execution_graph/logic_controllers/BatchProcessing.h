@@ -235,9 +235,11 @@ private:
 
 class TableScan : public kernel {
 public:
-	TableScan(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> graph)
-	: kernel(), input(loader, schema, context), query_graph{query_graph} 
-	{}
+	TableScan(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(), input(loader, schema, context)
+	{
+		this->query_graph = query_graph;
+	}
 	virtual kstatus run() {
 		while( input.wait_for_next() ) {
 			auto batch = input.next();
@@ -253,8 +255,10 @@ class BindableTableScan : public kernel {
 public:
 	BindableTableScan(std::string & expression, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, 
 		std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(), input(loader, schema, context), expression(expression), context(context), query_graph{query_graph}
-	{}
+	: kernel(), input(loader, schema, context), expression(expression), context(context)
+	{
+		this->query_graph = query_graph;
+	}
 	virtual kstatus run() {
 		input.set_projections(get_projections(expression));
 		int batch_count = 0;

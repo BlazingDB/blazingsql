@@ -25,7 +25,8 @@ using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 class ComputeAggregateKernel :public kernel {
 public:
 	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}, query_graph{query_graph} {
+		: expression{queryString}, context{context} {
+        this->query_graph = query_graph;
 	}
 
 	virtual kstatus run() {
@@ -76,7 +77,8 @@ private:
 class DistributeAggregateKernel :public kernel {
 public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}, query_graph{query_graph} {
+		: expression{queryString}, context{context} {
+        this->query_graph = query_graph;
 	}
 
 	virtual kstatus run() {
@@ -194,7 +196,8 @@ private:
 class MergeAggregateKernel :public kernel {
 public:
 	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> graph)
-		: expression{queryString}, context{context}, query_graph{query_graph} {
+		: expression{queryString}, context{context} {
+        this->query_graph = query_graph;
 	}
 
 	virtual kstatus run() {
