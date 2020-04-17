@@ -355,11 +355,12 @@ def parseHiveMetadata(curr_table, uri_values):
         min_col_name = names[2*index]
         max_col_name = names[2*index+1]
         if(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
-            if metadata[min_col_name].dtype != dtypes[index] or metadata[max_col_name].dtype != dtypes[index]:
-                # here we are casting the timestamp types from ns to their correct desired types
-                print("parseHiveMetadata casting to right type")
-                metadata[min_col_name] = metadata[min_col_name].astype(dtypes[index])
-                metadata[max_col_name] = metadata[max_col_name].astype(dtypes[index])
+            if (min_col_name in metadata) and (max_col_name in metadata):
+                if metadata[min_col_name].dtype != dtypes[index] or metadata[max_col_name].dtype != dtypes[index]:
+                    # here we are casting the timestamp types from ns to their correct desired types
+                    print("parseHiveMetadata casting to right type")
+                    metadata[min_col_name] = metadata[min_col_name].astype(dtypes[index])
+                    metadata[max_col_name] = metadata[max_col_name].astype(dtypes[index])
     print("parseHiveMetadata end")
     return metadata
 
