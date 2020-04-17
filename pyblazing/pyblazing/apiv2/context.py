@@ -278,7 +278,6 @@ def get_uri_values(files, partitions, base_folder):
         
 
 def parseHiveMetadata(curr_table, uri_values):
-    print("parseHiveMetadata start")
     metadata = {}
     names = []
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
@@ -358,10 +357,8 @@ def parseHiveMetadata(curr_table, uri_values):
             if (min_col_name in metadata) and (max_col_name in metadata):
                 if metadata[min_col_name].dtype != dtypes[index] or metadata[max_col_name].dtype != dtypes[index]:
                     # here we are casting the timestamp types from ns to their correct desired types
-                    print("parseHiveMetadata casting to right type")
                     metadata[min_col_name] = metadata[min_col_name].astype(dtypes[index])
                     metadata[max_col_name] = metadata[max_col_name].astype(dtypes[index])
-    print("parseHiveMetadata end")
     return metadata
 
 
@@ -1224,7 +1221,6 @@ class BlazingContext(object):
         self.add_remove_table(table_name, False)
 
     def _parseSchema(self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths):
-        print("_parseSchema start")
         if self.dask_client:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
             connection = self.dask_client.submit(

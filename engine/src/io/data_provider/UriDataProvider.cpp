@@ -21,7 +21,6 @@ uri_data_provider::uri_data_provider(std::vector<Uri> uris, bool ignore_missing_
 	: data_provider(), file_uris(uris), uri_values({}), opened_files({}),
 	  current_file(0), errors({}), directory_uris({}), directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {}
 
-// TODO percy cudf0.12 implement proper scalar support, TODO, finish this to support HIVE with partitions, @alex 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
 	std::vector<std::map<std::string, std::string>> uri_values,
 	bool ignore_missing_paths)
