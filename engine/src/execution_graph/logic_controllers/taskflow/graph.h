@@ -6,6 +6,7 @@
 namespace ral {
 namespace cache {
 
+class kernel;
 
 static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cache_settings& config) {
 	std::shared_ptr<ral::cache::CacheMachine> machine;

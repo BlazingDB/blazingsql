@@ -7,6 +7,7 @@
 namespace ral {
 namespace cache { 
 class kernel;
+class graph;
 using kernel_pair = std::pair<kernel *, std::string>;
 
 class kernel {
@@ -88,7 +89,7 @@ public:
 	std::int32_t parent_id_;
 	bool execution_done = false;
 	kernel_type kernel_type_id;
-	std::shared_ptr<ral::cache::graph> graph;
+	std::shared_ptr<graph> query_graph;
 };
 
  
