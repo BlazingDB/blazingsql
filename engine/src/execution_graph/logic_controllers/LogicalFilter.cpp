@@ -379,6 +379,9 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
   std::vector<int> column_indices;
   parseJoinConditionToColumnIndices(condition, column_indices);
 
+  ral::utilities::print_blazing_table_view_schema(table_left_in, "table_left_in");
+  ral::utilities::print_blazing_table_view_schema(table_right_in, "table_right_in");
+
   std::vector<cudf::size_type> left_column_indices;
   std::vector<cudf::size_type> right_column_indices;
   for(int i = 0; i < column_indices.size();i++){
@@ -388,6 +391,21 @@ std::unique_ptr<ral::frame::BlazingTable> processJoin(
       left_column_indices.push_back(column_indices[i]);
     }
   }
+
+  std::cout<<"column_indices: ";
+  for (auto ind : column_indices)
+    std::cout<<ind<<", ";
+  std::cout<<std::endl;
+
+  std::cout<<"left_column_indices: ";
+  for (auto ind : left_column_indices)
+    std::cout<<ind<<", ";
+  std::cout<<std::endl;
+
+  std::cout<<"right_column_indices: ";
+  for (auto ind : right_column_indices)
+    std::cout<<ind<<", ";
+  std::cout<<std::endl;
 
   // Here lets make sure that the columns being joined are of the same type so that we can join them properly
   std::vector<std::unique_ptr<ral::frame::BlazingColumn>> left_columns = table_left_in.toBlazingColumns();
