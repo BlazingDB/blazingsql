@@ -1,11 +1,7 @@
-# BlazingSQL 0.14.0 (Date TBD)
-
-## New Features
-
-
-## Improvements
-
-- PR #538 Introduced ability for user to define partitions in create_table and also limiting how many file handles can be open
-
-## Bug Fixes
-
+#####################################################################
+# Use this file to document any changes made during a PR. Every PR  #
+# should have an entry.                                             #
+#####################################################################
+#391 Added the ability to run count distinct queries in a distruted fashion
+#392 Remove the unnecessary messages on distributed mode
+#560 Fixed bug where parsing errors would lead to crash
