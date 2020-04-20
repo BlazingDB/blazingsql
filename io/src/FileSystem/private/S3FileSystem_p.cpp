@@ -376,16 +376,28 @@ FileStatus S3FileSystem::Private::getFileStatus(const Uri & uri) const {
 				//				}
 				throw BlazingFileNotFoundException(uriWithRoot);
 			}
-		} else {
-			//			bool shouldRetry = outcome.GetError().ShouldRetry();
-			//			if (shouldRetry){
-			//				std::cout<<"ERROR: "<<outcome.GetError().GetExceptionName()<<" :
-			//"<<outcome.GetError().GetMessage()<<"  SHOULD RETRY"<<std::endl; 			} else { 				std::cout<<"ERROR:
-			//"<<outcome.GetError().GetExceptionName()<<" : "<<outcome.GetError().GetMessage()<<"  SHOULD NOT
-			//RETRY"<<std::endl;
-			//			}
-			throw BlazingFileNotFoundException(uriWithRoot);
+		} else {  // if contains / at the end
+			Aws::S3::Model::ListObjectsV2Request request;
+			request.WithBucket(bucket);
+			request.WithDelimiter(
+				"/");  // NOTE percy since we control how to create files in S3 we should use this convention
+			request.WithPrefix(objectKey);
+
+			auto objectsOutcome = this->s3Client->ListObjectsV2(request);
+
+			if(objectsOutcome.IsSuccess()) {
+				const FileStatus fileStatus(uri, FileType::DIRECTORY, 0);
+				return fileStatus;
+			}
 		}
+		//			bool shouldRetry = outcome.GetError().ShouldRetry();
+		//			if (shouldRetry){
+		//				std::cout<<"ERROR: "<<outcome.GetError().GetExceptionName()<<" :
+		//"<<outcome.GetError().GetMessage()<<"  SHOULD RETRY"<<std::endl; 			} else { 				std::cout<<"ERROR:
+		//"<<outcome.GetError().GetExceptionName()<<" : "<<outcome.GetError().GetMessage()<<"  SHOULD NOT
+		//RETRY"<<std::endl;
+		//			}
+		throw BlazingFileNotFoundException(uriWithRoot);
 	}
 }
 
