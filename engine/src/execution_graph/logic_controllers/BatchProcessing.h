@@ -163,7 +163,7 @@ private:
 class DataSourceSequence {
 public:
 	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-		: context(context), loader(loader), schema(schema), batch_index{0}, file_index{0}, batch_id{0}, n_batches{0}
+		: context(context), loader(loader), schema(schema), batch_index{0}, cur_file_index{0}, cur_row_group_index{0}, n_batches{0}
 	{
 		// n_partitions{n_partitions}: TODO Update n_batches using data_loader
 		this->provider = loader.get_provider();
@@ -172,52 +172,55 @@ public:
 		// iterates through files and parses them into columns
 		while(this->provider->has_next()) {
 			// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-			user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
 			files.push_back(this->provider->get_next());
 		}
 		n_files = files.size();
 		for (size_t index = 0; index < n_files; index++) {
-			ral::io::Schema fileSchema = schema.fileSchema(file_index);
-			std::vector<int> row_groups = fileSchema.get_rowgroup_ids(0);
+			std::vector<cudf::size_type> row_groups = schema.get_rowgroup_ids(index);
 			n_batches += row_groups.size();
 			all_row_groups.push_back(row_groups);
 		}
 
 		is_empty_data_source = (n_files == 0);
+
+		if(is_empty_data_source){
+			n_batches = parser->get_num_partitions();
+		}
 	}
 
 	RecordBatch next() {
 		if (is_empty_data_source) {
-			is_empty_data_source = false;
-			return schema.makeEmptyBlazingTable(projections);
+			if(n_batches==0){
+				is_empty_data_source = false;
+				return schema.makeEmptyBlazingTable(projections);
+			}
+
+			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), cur_file_index, cur_row_group_index);
+			batch_index++;
+			cur_row_group_index++;
+
+			if(batch_index == n_batches){
+				is_empty_data_source = false;
+			}
+
+			return std::move(ret);
 		}
 		
-		//This is just a workaround, mainly for ORC files
-		if(all_row_groups[file_index].size()==1 && all_row_groups[file_index][0]==-1){
-			batch_id = -1; //load all the stripes when can't get the rowgroups size
-		}
+		cudf::size_type row_group_id = all_row_groups[cur_file_index][cur_row_group_index];
 
-		auto ret = loader.load_batch(context.get(), projections, schema, user_readable_file_handles[file_index], files[file_index], file_index, batch_id);
+		auto ret = loader.load_batch(context.get(), projections, schema, files[cur_file_index], cur_file_index, row_group_id);
 		batch_index++;
-		
-		batch_id++;
-		if (batch_id == all_row_groups[file_index].size()) {
-			is_csv = false;
-			file_index++;
-			batch_id = 0;
-		}
-
-		// file_index++ also for CSV
-		if (is_csv) {
-			file_index++;
-			batch_id = 0;
+		cur_row_group_index++;
+		if (cur_row_group_index == all_row_groups[cur_file_index].size()) {
+			cur_file_index++;
+			cur_row_group_index = 0;
 		}
 
 		return std::move(ret);
 	}
 
 	bool wait_for_next() {
-		return is_empty_data_source || (file_index < n_files and batch_index < n_batches);
+		return is_empty_data_source || (cur_file_index < n_files and batch_index < n_batches);
 	}
 
 	void set_projections(std::vector<size_t> projections) {
@@ -234,14 +237,13 @@ private:
 	std::vector<size_t> projections;
 	ral::io::data_loader loader;
 	ral::io::Schema  schema;
-	size_t file_index;
+	size_t cur_file_index;
+	size_t cur_row_group_index;
 	size_t batch_index;
-	size_t batch_id;
 	size_t n_batches;
 	size_t n_files;
 	std::vector<std::vector<int>> all_row_groups; 
 	bool is_empty_data_source;
-	bool is_csv{true};
 };
 
 class TableScan : public kernel {
