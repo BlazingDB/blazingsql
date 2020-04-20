@@ -147,10 +147,9 @@ void getReaderArgCSV(std::map<std::string, std::string> args, ReaderArgs & reade
 	if(in("skipfooter", args)) {
 		readerArg.csvReaderArg.skipfooter = (cudf::size_type) to_int(args["skipfooter"]);
 	}
-	if(in("header", args)) {
+	if(in("header", args) && args["header"] != "None" ) {
 		readerArg.csvReaderArg.header = (cudf::size_type) to_int(args["header"]);
-	} else {
-		// NOTE check this default value percy c.cordova
+	} else if(args["header"] == "None"){
 		readerArg.csvReaderArg.header = -1;
 	}
 	if(in("names", args)) {
