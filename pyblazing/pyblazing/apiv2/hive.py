@@ -7,29 +7,40 @@ from itertools import repeat
 import pandas as pd
 
 
-def convertHiveTypeToCudfType(hiveType):
-    if(hiveType == 'int' or hiveType == 'integer'):
+def convertTypeNameStrToCudfType(hiveType):
+    if(hiveType == 'int' or hiveType == 'integer' or hiveType == 'int32'):
         return 3 # INT32
-    elif(hiveType == 'string' or hiveType.startswith('varchar') or hiveType.startswith('char') or hiveType == "binary"):
+    elif(hiveType == 'str' or hiveType == 'string' or hiveType.startswith('varchar') or hiveType.startswith('char') or hiveType == "binary"):
         return 14  # STRING
-    elif(hiveType == 'tinyint'):
+    elif(hiveType == 'tinyint' or hiveType == 'int8'):
         return 1  # INT8
-    elif(hiveType == 'smallint'):
+    elif(hiveType == 'smallint' or hiveType == 'int16'):
         return 2  # INT16
-    elif(hiveType == 'bigint'):
+    elif(hiveType == 'bigint' or hiveType == 'int64'):
         return 4  # INT64
-    elif(hiveType == 'float'):
+    elif(hiveType == 'float' or hiveType == 'float32'):
         return 5  # FLOAT32
-    elif(hiveType == 'double' or hiveType == 'double precision' or hiveType.startswith('decimal')):
+    elif(hiveType == 'double' or hiveType == 'double precision' or hiveType.startswith('decimal') or hiveType == 'float64'):
         return 6  # FLOAT64
-    elif(hiveType == 'decimal' or hiveType == 'numeric'):
-        return None
-    elif(hiveType == 'timestamp'):
-        return 10  # TIMESTAMP_MILLISECONDS
-    elif(hiveType == 'date'):
-        return 8  # TIMESTAMP_DAYS
     elif(hiveType == 'boolean'):
         return 7  # BOOL8
+    elif(hiveType == 'date'):
+        # return 8  # TIMESTAMP_DAYS
+        return 10  # TIMESTAMP_MILLISECONDS will use ms here until there is better support for days 
+    elif(hiveType == 'timestamp[s]'):
+        return 9  # TIMESTAMP_SECONDS
+    elif(hiveType == 'timestamp' or hiveType == 'timestamp[ms]'):
+        return 10  # TIMESTAMP_MILLISECONDS
+    elif(hiveType == 'timestamp[us]'):
+        return 11  # TIMESTAMP_MICROSECONDS
+    elif(hiveType == 'timestamp[ns]'):
+        return 12  # TIMESTAMP_NANOSECONDS
+    elif(hiveType == 'decimal' or hiveType == 'numeric'):
+        return None
+    else:
+        print("ERROR: Data type " + str(hiveType) + " did not match any understood type")
+        return None
+    
 
 
 cudfTypeToCsvType = {
@@ -65,8 +76,61 @@ def getPartitions(tableName, schema, cursor):
         partitions[partition[0]] = columnPartitions
     return partitions
 
+def filterHivePartitionsWithUserPartitions(hive_partitions, user_partitions):
+    new_hive_partitions = {}
+    for user_partition in user_partitions:
+        user_partition_values_str = [str(val) for val in user_partitions[user_partition]]
+        for hive_partition in hive_partitions:
+            for col_tuple in hive_partitions[hive_partition]:
+                if col_tuple[0] == user_partition:
+                    if col_tuple[1] in user_partition_values_str:
+                        new_hive_partitions[hive_partition] = hive_partitions[hive_partition]
+                        break
+        hive_partitions = new_hive_partitions
+        new_hive_partitions = {}
+    return hive_partitions
 
-def get_hive_table(cursor, tableName, hive_database_name):
+def getPartitionsFromUserPartitions(user_partitions):
+    partitions_out = {}
+    num_partition_cols = len(user_partitions)
+    partition_columns = list(user_partitions.keys())
+    num_partitions_per_column = [len(user_partitions[col]) for col in partition_columns]
+    per_column_count = [0]*num_partition_cols
+    done = False
+    partition_key = ''
+    partition_values = []
+    cur_col_ind = 0
+    while not done:
+        col = partition_columns[cur_col_ind]
+        val = user_partitions[col][per_column_count[cur_col_ind]]
+        if partition_key == '':
+            partition_key = col + "=" + str(val)
+        else:
+            partition_key = partition_key + "/" + col + "=" + str(val)
+        partition_values.append((col,str(val)))
+        
+        cur_col_ind = (cur_col_ind + 1) % num_partition_cols
+        
+        if cur_col_ind == 0: # if we cycled back to the first column, then we are done building one of the partitions
+            partitions_out[partition_key] = partition_values
+            partition_key = ''
+            partition_values = []
+            # now lets increment the per_column_count
+            for reverse_ind in list(range(num_partition_cols))[::-1]:
+                per_column_count[reverse_ind] = (per_column_count[reverse_ind] + 1) % num_partitions_per_column[reverse_ind]
+                if per_column_count[reverse_ind] != 0:
+                    break
+            done = all([count == 0 for count in per_column_count]) 
+    return partitions_out
+
+def getFolderListFromPartitions(partitions, base_location):
+    folder_list = []
+    for partition_name in partitions:
+        folder_list.append(base_location + "/" + partition_name + "/*")
+    return folder_list
+
+
+def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
     query = 'use ' + hive_database_name
     runHiveDDL(cursor, query)
     query = 'describe formatted ' + tableName
@@ -89,7 +153,7 @@ def get_hive_table(cursor, tableName, hive_database_name):
                     parsingColumns = False
                 else:
                     schema['columns'].append(
-                        (triple[0], convertHiveTypeToCudfType(triple[1]), False))                    
+                        (triple[0], convertTypeNameStrToCudfType(triple[1]), False))                    
             elif isinstance(triple[0], str) and triple[0].startswith('Location:'):
                 if triple[1].startswith("file:"):
                     schema['location'] = triple[1].replace("file:", "")
@@ -118,7 +182,7 @@ def get_hive_table(cursor, tableName, hive_database_name):
                     parsingPartitionColumns = False
                 elif triple[0] != "":
                     schema['columns'].append(
-                        (triple[0], convertHiveTypeToCudfType(triple[1]), True))                    
+                        (triple[0], convertTypeNameStrToCudfType(triple[1]), True))                    
         i = i + 1
     
     hasPartitions = False
@@ -128,6 +192,11 @@ def get_hive_table(cursor, tableName, hive_database_name):
     file_list = []
     if hasPartitions:
         schema['partitions'] = getPartitions(tableName, schema, cursor)
+        
+        if user_partitions is not None:
+            schema['partitions'] = filterHivePartitionsWithUserPartitions(schema['partitions'], user_partitions)
+        
+        file_list = getFolderListFromPartitions(schema['partitions'], schema['location'])        
     else:
         schema['partitions'] = {}
         file_list.append(schema['location'] + "/*")
@@ -147,15 +216,11 @@ def get_hive_table(cursor, tableName, hive_database_name):
     
     extra_kwargs['file_format'] = schema['fileType']
     extra_columns = []
-    in_file = []
     for column in schema['columns']:
-        in_file.append(column[2] == False)
         if(column[2]):
             extra_columns.append((column[0], column[1]))
-    for partitionName in schema['partitions']:
-        file_list.append(schema['location'] + "/" + partitionName + "/*")
     
-    return file_list, schema['fileType'], extra_kwargs, extra_columns, in_file, schema
+    return file_list, schema['fileType'], extra_kwargs, extra_columns, schema
 
 
 def runHiveDDL(cursor, query):

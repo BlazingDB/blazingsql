@@ -282,7 +282,13 @@ def parseHiveMetadata(curr_table, uri_values):
     names = []
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
-    dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
+
+    if all(type in cudf_to_np_types for type in curr_table.column_types):
+        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types] 
+    else:
+        for i in range(len(curr_table.column_types)):
+            if not (curr_table.column_types[i] in cudf_to_np_types):
+                print("ERROR: Column " + curr_table.column_names[i] + " has type that cannot be mapped: " + curr_table.column_types[i])
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
         col_name = columns[index]
@@ -323,8 +329,13 @@ def parseHiveMetadata(curr_table, uri_values):
     for index in range(n_cols):
         col_name = columns[index]
         if col_name in table_partition:
-            col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[index], name=names[2*index])
-            col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
+            if(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
+                # when creating a pandas series, for a datetime type, it has to be in ns because that is the only internal datetime representation
+                col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.dtype("datetime64[ns]"), name=names[2*index])
+                col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=np.dtype("datetime64[ns]"), name=names[2*index+1])
+            else:
+                col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[index], name=names[2*index])
+                col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
             series.append(col1)
             series.append(col2)
             final_names.append(names[2*index])
@@ -339,6 +350,15 @@ def parseHiveMetadata(curr_table, uri_values):
 
     frame = OrderedDict(((key,value) for (key,value) in zip(final_names, series)))
     metadata = cudf.DataFrame(frame)
+    for index, col_type in enumerate(dtypes):
+        min_col_name = names[2*index]
+        max_col_name = names[2*index+1]
+        if(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
+            if (min_col_name in metadata) and (max_col_name in metadata):
+                if metadata[min_col_name].dtype != dtypes[index] or metadata[max_col_name].dtype != dtypes[index]:
+                    # here we are casting the timestamp types from ns to their correct desired types
+                    metadata[min_col_name] = metadata[min_col_name].astype(dtypes[index])
+                    metadata[max_col_name] = metadata[max_col_name].astype(dtypes[index])
     return metadata
 
 
@@ -1013,19 +1033,35 @@ class BlazingContext(object):
         Docs: https://docs.blazingdb.com/docs/create_table
         """
         table = None
-        extra_columns = []
-        file_format_hint = kwargs.get(
-            'file_format', 'undefined')  # See datasource.file_format
         extra_kwargs = {}
         in_file = []
         is_hive_input = False
         partitions = {}
+        extra_columns = []
+
+        file_format_hint = kwargs.get('file_format', 'undefined')  # See datasource.file_format
+        user_partitions = kwargs.get('partitions', None) # these are user defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}
+        if user_partitions is not None and type(user_partitions) != type({}):
+            print("ERROR: User defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}")
+            return
+        user_partitions_schema = kwargs.get('partitions_schema', None) # for user defined partitions, partitions_schema should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]
+        if user_partitions_schema is not None:
+            if user_partitions is None:
+                print("ERROR: 'partitions_schema' was defined, but 'partitions' was not. The parameter 'partitions_schema' is only to be used when defining 'partitions'")
+                return
+            elif type(user_partitions_schema) != type([]) and all(len(part_schema) == 2 for part_schema in user_partitions_schema):
+                print("ERROR: 'partitions_schema' should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
+                return
+            elif len(user_partitions_schema) != len(user_partitions):
+                print("ERROR: The number of columns in 'partitions' should be the same as 'partitions_schema'")
+                return
+                    
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             hive_database_name = kwargs.get('hive_database_name', 'default')
-            folder_list, hive_file_format_hint, extra_kwargs, extra_columns, in_file, hive_schema = get_hive_table(
-                input, hive_table_name, hive_database_name)
-
+            folder_list, hive_file_format_hint, extra_kwargs, extra_columns, hive_schema = get_hive_table(
+                input, hive_table_name, hive_database_name, user_partitions)
+            
             if file_format_hint == 'undefined':
                 file_format_hint = hive_file_format_hint
             elif file_format_hint != hive_file_format_hint:
@@ -1034,6 +1070,28 @@ class BlazingContext(object):
             kwargs.update(extra_kwargs)
             input = folder_list
             is_hive_input = True
+        elif user_partitions is not None:
+            if user_partitions_schema is None:
+                print("ERROR: When using 'partitions' without a Hive cursor, you also need to set 'partitions_schema' which should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
+                return
+            
+            hive_schema = {}
+            if isinstance(input, str):
+                hive_schema['location'] = input
+            elif isinstance(input, list) and len(input) == 1:
+                hive_schema['location'] = input[0]
+            else:
+                print("ERROR: When using 'partitions' without a Hive cursor, the input needs to be a path to the base folder of the partitioned data")
+                return
+
+            hive_schema['partitions'] = getPartitionsFromUserPartitions(user_partitions)
+            input = getFolderListFromPartitions(hive_schema['partitions'], hive_schema['location'] )
+
+        if user_partitions_schema is not None:
+            extra_columns = []
+            for part_schema in user_partitions_schema:
+                extra_columns.append((part_schema[0], convertTypeNameStrToCudfType(part_schema[1])))
+        
         if isinstance(input, str):
             input = [input, ]
 
@@ -1063,11 +1121,15 @@ class BlazingContext(object):
 
             input = resolve_relative_path(input)
 
+            ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find. 
             parsedSchema = self._parseSchema(
-                input, file_format_hint, kwargs, extra_columns)
+                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
 
-            if is_hive_input:
+            if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(parsedSchema['files'], hive_schema['partitions'], hive_schema['location'])
+                num_cols = len(parsedSchema['names'])
+                num_partition_cols = len(extra_columns)
+                in_file = [True]*(num_cols - num_partition_cols) + [False]*num_partition_cols
             else:
                 uri_values = []
 
@@ -1102,18 +1164,19 @@ class BlazingContext(object):
                 table.column_types = parsedSchema['types']
 
             table.slices = table.getSlices(len(self.nodes))
-            if is_hive_input and len(extra_columns) > 0:
-                parsedMetadata = parseHiveMetadata(table, uri_values)
-                table.metadata = parsedMetadata
+
+            if len(uri_values) > 0:
+                parsedMetadata = parseHiveMetadata(table, uri_values) 
+                table.metadata = parsedMetadata                
 
             if parsedSchema['file_type'] == DataType.PARQUET :
-                parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs)
-
+                parsedMetadata = self._parseMetadata(file_format_hint, table.slices, parsedSchema, kwargs)
+                
                 if isinstance(parsedMetadata, dask_cudf.core.DataFrame):
                     parsedMetadata = parsedMetadata.compute()
                     parsedMetadata = parsedMetadata.reset_index()
 
-                if is_hive_input:
+                if len(uri_values) > 0:
                     table.metadata = mergeMetadata(table, parsedMetadata, table.metadata)
                 else:
                     table.metadata = parsedMetadata
@@ -1168,7 +1231,7 @@ class BlazingContext(object):
         """
         self.add_remove_table(table_name, False)
 
-    def _parseSchema(self, input, file_format_hint, kwargs, extra_columns):
+    def _parseSchema(self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths):
         if self.dask_client:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
             connection = self.dask_client.submit(
@@ -1177,13 +1240,14 @@ class BlazingContext(object):
                 file_format_hint,
                 kwargs,
                 extra_columns,
+                ignore_missing_paths,
                 workers=[worker])
             return connection.result()
         else:
             return cio.parseSchemaCaller(
-                input, file_format_hint, kwargs, extra_columns)
+                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
 
-    def _parseMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs):
+    def _parseMetadata(self, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
@@ -1202,8 +1266,9 @@ class BlazingContext(object):
             return dask.dataframe.from_delayed(dask_futures)
 
         else:
+            files = [ file.decode() for file in currentTableNodes[0].files]
             return cio.parseMetadataCaller(
-                input, currentTableNodes[0].offset, schema, file_format_hint, kwargs)
+                files, currentTableNodes[0].offset, schema, file_format_hint, kwargs)
 
     def _sliceRowGroups(self, numSlices, files, uri_values, row_groups_ids):
         nodeFilesList = []

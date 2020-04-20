@@ -61,8 +61,7 @@ public:
 	std::string get_name(size_t schema_index) const;
 	std::vector<size_t> get_calcite_to_file_indices() const { return this->calcite_to_file_indices; }
 	Schema fileSchema(size_t current_file_index) const;
-	size_t get_file_index(size_t schema_index) const;
-
+	
 	size_t get_num_columns() const;
 
 	std::vector<int> get_rowgroup_ids(size_t file_index) const { 
