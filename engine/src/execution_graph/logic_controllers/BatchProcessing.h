@@ -277,9 +277,11 @@ public:
 
 				if(is_filtered_bindable_scan(expression)) {
 					auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
+					columns->setNames(fix_column_aliases(columns->names(), expression));
 					this->add_to_output_cache(std::move(columns));
 				}
 				else{
+					batch->setNames(fix_column_aliases(batch->names(), expression));
 					this->add_to_output_cache(std::move(batch));
 				}
 				batch_count++;

@@ -55,6 +55,25 @@ bool is_inequality(const std::string& token){
 	return token == "<" || token == "<=" || token == ">" || token == ">=" || token == "<>";
 }
 
+std::vector<std::string> fix_column_aliases(std::vector<std::string> column_names, std::string expression){
+	std::string aliases_string = get_named_expression(expression, "aliases");
+	std::vector<std::string> aliases_string_split =
+		get_expressions_from_expression_list(aliases_string, true);
+
+	std::vector<std::string> col_names = column_names;
+
+	// Setting the aliases only when is not an empty set
+	for(size_t col_idx = 0; col_idx < aliases_string_split.size(); col_idx++) {
+		// TODO: Rommel, this check is needed when for example the scan has not projects but there are extra
+		// aliases
+		if(col_idx < column_names.size()) {
+			col_names[col_idx] = aliases_string_split[col_idx];
+		}
+	}
+
+	return col_names;
+}
+
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
 	if(query_part.find(expression_name + "=[") == query_part.npos) {
 		return "";  // expression not found

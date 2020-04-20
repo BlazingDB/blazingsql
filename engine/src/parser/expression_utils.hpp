@@ -153,3 +153,6 @@ std::string extract_table_name(std::string query_part);
 std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expression, bool trim);
 
 std::string replace_calcite_regex(const std::string & expression);
+
+//Returns the column names according to the corresponding algebra expression
+std::vector<std::string> fix_column_aliases(std::vector<std::string> column_names, std::string expression);
