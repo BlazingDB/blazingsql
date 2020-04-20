@@ -113,6 +113,7 @@ void initialize(int ralId,
 void finalize() {
 	ral::communication::network::experimental::Client::closeConnections();
 	ral::communication::network::experimental::Server::getInstance().close();
+	BlazingRMMFinalize();
 	cudaDeviceReset();
 	exit(0);
 }
@@ -123,8 +124,6 @@ void blazingSetAllocator(
 	std::size_t initial_pool_size, 
 	std::vector<int> devices,
 	bool enable_logging) {
-
-	BlazingRMMFinalize();
 
 	rmmOptions_t rmmValues;
 	rmmValues.allocation_mode = static_cast<rmmAllocationMode_t>(allocation_mode);

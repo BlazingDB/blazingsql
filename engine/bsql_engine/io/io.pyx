@@ -271,6 +271,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef NodeMetaDataTCP currentMetadataCpp
     cdef vector[vector[string]] filesAll
     cdef vector[string] currentFilesAll
+    cdef vector[BlazingTableView] blazingTableViews
 
     cdef vector[vector[map[string,string]]] uri_values_cpp_all
     cdef vector[map[string,string]] uri_values_cpp
@@ -321,10 +322,13 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         types.push_back(col_type)
 
       if table.fileType in (4, 5):
+        blazingTableViews.resize(0)
+        for cython_table in table.input:
           column_views.resize(0)
-          for cython_col in table.input._data.values():
-              column_views.push_back(cython_col.view())
-          currentTableSchemaCpp.blazingTableView = BlazingTableView(table_view(column_views), names)
+          for cython_col in cython_table._data.values():
+            column_views.push_back(cython_col.view())
+          blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
+        currentTableSchemaCpp.blazingTableViews = blazingTableViews
 
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.types = types

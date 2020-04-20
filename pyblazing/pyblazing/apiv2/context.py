@@ -182,11 +182,11 @@ def collectPartitionsRunQuery(
             if partitions is None:
                 print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
             if (len(partitions) == 0):
-                tables[table_name].input = tables[table_name].input.get_partition(
-                    0).head(0)
+                tables[table_name].input = [tables[table_name].input.get_partition(
+                    0).head(0)]
             elif (len(partitions) == 1):
-                tables[table_name].input = tables[table_name].input.get_partition(
-                    partitions[0]).compute()
+                tables[table_name].input = [tables[table_name].input.get_partition(
+                    partitions[0]).compute()]
             else:
                 print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime. 
 This limitation is expected to exist until blazingsql version 0.14. 
@@ -197,7 +197,10 @@ In the mean time, for better performance we recommend using the unify_partitions
                 for partition in partitions:
                     table_partitions.append(
                         tables[table_name].input.get_partition(partition).compute())
-                tables[table_name].input = cudf.concat(table_partitions)
+                if use_execution_graph:
+                    tables[table_name].input = table_partitions #no concat
+                else:
+                    tables[table_name].input = [cudf.concat(table_partitions)]
     return cio.runQueryCaller(
         masterIndex,
         nodes,
@@ -1504,11 +1507,13 @@ class BlazingContext(object):
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:
+                    if not isinstance(new_tables[table].input, list):
+                        new_tables[table].input = [new_tables[table].input]
                     currentTableNodes.append(new_tables[table])
-            
+
             for j, nodeList in enumerate(nodeTableList):
                 nodeList[table] = currentTableNodes[j]
-                
+
         ctxToken = random.randint(0, 64000)
         accessToken = 0
         if (len(table_list) > 0):
