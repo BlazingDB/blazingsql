@@ -2,7 +2,7 @@
 
 <a href='https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb'><img src="https://github.com/BlazingDB/blazingsql/blob/roaramburu-readme-update/img/bsql_rapids.PNG"/></a>
 
-[Getting Started](#getting-started) | [Documentation](https://docs.blazingdb.com) | [Examples](#examples) | [Contributing](#contributing) | [License](LICENSE) | [Blog](https://blog.blazingdb.com)
+[Getting Started](#getting-started) | [Documentation](https://docs.blazingdb.com) | [Examples](#examples) | [Contributing](#contributing) | [License](LICENSE) | [Blog](https://blog.blazingdb.com) | [Try Now](https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb)
 
 BlazingSQL is a GPU accelerated SQL engine built on top of the RAPIDS ecosystem. RAPIDS is based on the [Apache Arrow](http://arrow.apache.org) columnar memory format, and [cuDF](https://github.com/rapidsai/cudf) is a GPU DataFrame library for loading, joining, aggregating, filtering, and otherwise manipulating data.
 
@@ -11,11 +11,11 @@ BlazingSQL is a SQL interface for cuDF, with various features to support large s
 * **Simple SQL** - incredibly easy to use, run a SQL query and the results are GPU DataFrames (GDFs).
 * **Interoperable** - GDFs are immediately accessible to any [RAPIDS](htts://github.com/rapidsai) library for data science workloads.
 
-Try our 5-min Welcome Notebook [![BlazingSQL Notebooks Badge](https://colab.research.google.com/assets/colab-badge.svg)](https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb) to start using BlazingSQL and RAPIDS AI.
+Try our 5-min [Welcome Notebook](https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb) to start using BlazingSQL and RAPIDS AI.
 
 # Getting Started
 
-Here's 2 copy + paste reproducable BlazingSQL snippets, keep scrolling to find [example Notebooks](#examples) below.
+Here's two copy + paste reproducable BlazingSQL snippets, keep scrolling to find [example Notebooks](#examples) below.
 
 Create and query a table from a `cudf.DataFrame`:
 
