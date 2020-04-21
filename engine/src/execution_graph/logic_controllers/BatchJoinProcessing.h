@@ -116,7 +116,14 @@ public:
 
     void mark_set_completed(int left_ind, int right_ind){
 		if (completion_matrix.size() <= left_ind){
+			size_t old_row_size = completion_matrix.size();
 			completion_matrix.resize(left_ind + 1);
+			if (old_row_size > 0) {
+				size_t column_size = completion_matrix[0].size();
+				for (size_t i = old_row_size; i < completion_matrix.size(); i++) {
+					completion_matrix[i].resize(column_size, false);
+				}
+			}			
 		}
 		if (completion_matrix[left_ind].size() <= right_ind){ // if we need to resize, lets resize the whole matrix, making sure that the default is false
 			for (std::size_t i = 0; i < completion_matrix.size(); i++){
