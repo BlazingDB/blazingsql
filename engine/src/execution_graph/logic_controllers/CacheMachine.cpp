@@ -138,8 +138,6 @@ void CacheMachine::clear() {
 }
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id) {
-	std::cout<<"addToCache "<<message_id<<std::endl;
-	ral::utilities::print_blazing_table_view_schema(table->toBlazingTableView(), message_id);
 	num_rows_added += table->num_rows();
 	num_bytes_added += table->sizeInBytes();
 	int cacheIndex = 0;

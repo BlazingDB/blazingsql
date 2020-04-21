@@ -325,7 +325,6 @@ public:
 		double rows_so_far = (double)this->output_.total_rows_added();
 		double num_batches = (double)this->input.get_num_batches();
 		double current_batch = (double)this->input.get_batch_index();
-		std::cout<<"BindableTableScan get_estimated_output_num_rows rows_so_far: "<<rows_so_far<<" num_batches: "<<num_batches<<" current_batch: "<<current_batch<<std::endl;
 		if (current_batch == 0 || num_batches == 0){
 			return std::make_pair(false,0);
 		} else {

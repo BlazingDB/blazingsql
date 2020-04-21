@@ -79,20 +79,16 @@ public:
 			return std::move(tables_loaded[0]);
 		} else {
 			std::vector<ral::frame::BlazingTableView> tables_to_concat(tables_loaded.size());
-			std::cout<<"load_set concatTables schemas"<<std::endl;
 			for (std::size_t i = 0; i < tables_loaded.size(); i++){
 				tables_to_concat[i] = tables_loaded[i]->toBlazingTableView();
-				ral::utilities::print_blazing_table_view_schema(tables_to_concat[i], std::to_string(i));
 			}
-			std::cout<<"load_set concatTables start"<<std::endl;
 			return ral::utilities::experimental::concatTables(tables_to_concat);			
 		}
 	}
 
 
     std::unique_ptr<ral::frame::BlazingTable> load_left_set(){
-		std::cout<<"load_left_set start"<<std::endl;
-
+		
 		this->max_left_ind++;
 		// need to load all the left side, only if doing a FULL OUTER JOIN
 		bool load_all = this->join_type == OUTER_JOIN ?  true : false;
@@ -101,41 +97,26 @@ public:
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
 		if (table == nullptr) {
-			std::cout<<"load_left_set emtpy"<<std::endl;
 			return ral::frame::createEmptyBlazingTable(left_schema->column_types, left_schema->column_names);
 		}
-		std::cout<<"load_left_set end"<<std::endl;
 		return std::move(table);
 	}
 
 	std::unique_ptr<ral::frame::BlazingTable> load_right_set(){
-		std::cout<<"load_right_set start"<<std::endl;
 		this->max_right_ind++;
 		// need to load all the right side, if doing any type of outer join
 		bool load_all = this->join_type != INNER_JOIN ?  true : false;
 		auto table = load_set(this->right_sequence, load_all);
-		std::cout<<"load_right_set load_set done"<<std::endl;
-		
-		if (table)
-			std::cout<<"table not null"<<std::endl;
-		else
-			std::cout<<"table null"<<std::endl;
-
 		if (not right_schema && table != nullptr) {
-			std::cout<<"load_right_set not right_schema"<<std::endl;
 			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
-			std::cout<<"load_right_set not right_schema done"<<std::endl;
 		}
 		if (table == nullptr) {
-			std::cout<<"load_right_set emtpy"<<std::endl;
 			return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
 		}
-		std::cout<<"load_right_set end"<<std::endl;
 		return std::move(table);
 	}
 
     void mark_set_completed(int left_ind, int right_ind){
-		std::cout<<"mark_set_completed start"<<std::endl;
 		if (completion_matrix.size() <= left_ind){
 			completion_matrix.resize(left_ind + 1);
 		}
@@ -144,8 +125,7 @@ public:
 				completion_matrix[i].resize(right_ind + 1, false);
 			}			
 		}
-		completion_matrix[left_ind][right_ind] = true;
-		std::cout<<"mark_set_completed end"<<std::endl;
+		completion_matrix[left_ind][right_ind] = true;		
 	}
 
     // This function checks to see if there is a set from our current completion_matix (data we have already loaded once)
@@ -186,7 +166,6 @@ public:
 
     // this function makes sure that the columns being joined are of the same type so that we can join them properly
 	void normalize(std::unique_ptr<ral::frame::BlazingTable> & left, std::unique_ptr<ral::frame::BlazingTable> & right){
-		std::cout<<"normalize start"<<std::endl;
 		std::vector<std::unique_ptr<ral::frame::BlazingColumn>> left_columns = left->releaseBlazingColumns();
 		std::vector<std::unique_ptr<ral::frame::BlazingColumn>> right_columns = right->releaseBlazingColumns();
 		for (size_t i = 0; i < this->left_column_indices.size(); i++){
@@ -201,12 +180,10 @@ public:
 		}
 		left = std::make_unique<ral::frame::BlazingTable>(std::move(left_columns), left->names());
 		right = std::make_unique<ral::frame::BlazingTable>(std::move(right_columns), right->names());
-		std::cout<<"normalize end"<<std::endl;
 	}
 
 
     std::unique_ptr<ral::frame::BlazingTable> join_set(const ral::frame::BlazingTableView & table_left, const ral::frame::BlazingTableView & table_right){
-		  std::cout<<"join_set start"<<std::endl;
 		std::unique_ptr<CudfTable> result_table;
 		std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 		if(this->join_type == INNER_JOIN) {
@@ -252,17 +229,13 @@ public:
 		} else {
 			RAL_FAIL("Unsupported join operator");
 		}
-	std::cout<<"join_set end"<<std::endl;
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), this->result_names);
 	}
 
     virtual kstatus run() {
 
-		std::cout<<"PartwiseJoin run start"<<std::endl;
 		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this);
 		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this);
-
-		std::cout<<"PartwiseJoin made batchSequences"<<std::endl;
 
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;
@@ -280,7 +253,6 @@ public:
 		
 		while (!done) {
 			try {
-				std::cout<<"PartwiseJoin while left_ind: "<<left_ind<<" right_ind: "<<right_ind<<std::endl;
 
 				if (left_batch == nullptr && right_batch == nullptr){ // first load
 					left_batch = load_left_set();
@@ -431,7 +403,6 @@ public:
 		int batch_count = 0;
         while (!done) {		
             try {            
-				//std::cout << "\tbatch.sz: " << batch->num_rows() << std::endl;
 				auto batch_view = batch->view();
 				std::vector<CudfTableView> partitioned;
 				if (batch->num_rows() > 0) {
@@ -494,19 +465,15 @@ public:
 		if (!left_num_rows_estimate.first || left_batch_bytes == 0){
 			// if we cant get a good estimate of current bytes, then we will set to -1 to signify that
 			left_bytes_estimate = -1;
-			std::cout<<"could not get left left_bytes_estimate: "<<left_bytes_estimate<<" left_batch_bytes: "<<left_batch_bytes<<" left_num_rows_estimate.second: "<<left_num_rows_estimate.second<<" left_batch_rows: "<<left_batch_rows<<std::endl;
 		} else {
 			left_bytes_estimate = (int64_t)(left_batch_bytes*(((double)left_num_rows_estimate.second)/left_batch_rows));
-			std::cout<<"left_bytes_estimate: "<<left_bytes_estimate<<" left_batch_bytes: "<<left_batch_bytes<<" left_num_rows_estimate.second: "<<left_num_rows_estimate.second<<" left_batch_rows: "<<left_batch_rows<<std::endl;
 		}
 		int64_t right_bytes_estimate;
 		if (!right_num_rows_estimate.first || right_batch_bytes == 0){
 			// if we cant get a good estimate of current bytes, then we will set to -1 to signify that
 			right_bytes_estimate = -1;
-			std::cout<<"could not get right right_bytes_estimate: "<<right_bytes_estimate<<" right_batch_bytes: "<<right_batch_bytes<<" right_num_rows_estimate.second: "<<right_num_rows_estimate.second<<" right_batch_rows: "<<right_batch_rows<<std::endl;
 		} else {
 			right_bytes_estimate = (int64_t)(right_batch_bytes*(((double)right_num_rows_estimate.second)/right_batch_rows));
-			std::cout<<"right_bytes_estimate: "<<right_bytes_estimate<<" right_batch_bytes: "<<right_batch_bytes<<" right_num_rows_estimate.second: "<<right_num_rows_estimate.second<<" right_batch_rows: "<<right_batch_rows<<std::endl;
 		}
 
 		int self_node_idx = context->getNodeIndex(ral::communication::experimental::CommunicationData::getInstance().getSelfNode());
@@ -518,20 +485,11 @@ public:
 		ral::distribution::experimental::collectLeftRightTableSizeBytes(context.get(), nodes_num_bytes_left, nodes_num_bytes_right);
 		nodes_num_bytes_left[self_node_idx] = left_bytes_estimate;
 		nodes_num_bytes_right[self_node_idx] = right_bytes_estimate;
-		std::cout<<"determine_if_we_are_scattering_a_small_table nodes_num_bytes_left for node: "<<self_node_idx<<" : ";
-		for (auto bytes : nodes_num_bytes_left)
-			std::cout<<bytes<<" ";
-		std::cout<<std::endl;
-		std::cout<<"determine_if_we_are_scattering_a_small_table nodes_num_bytes_right: "<<self_node_idx<<" : ";
-		for (auto bytes : nodes_num_bytes_right)
-			std::cout<<bytes<<" ";
-		std::cout<<std::endl;
 
 		bool any_unknowns_left = std::any_of(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), [](int64_t bytes){return bytes == -1;});
 		bool any_unknowns_right = std::any_of(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), [](int64_t bytes){return bytes == -1;});
 
 		if (any_unknowns_left || any_unknowns_right){
-			std::cout<<"we have unknowns"<<std::endl;
 			return std::make_pair(false, false); // we wont do any small table scatter if we have unknowns
 		}
 
@@ -589,7 +547,7 @@ public:
 			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-			//std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
+
 			while (host_table = external_input_left.next()) {	
 				this->add_to_output_cache(std::move(host_table), "output_a");
 			}
@@ -612,8 +570,6 @@ public:
 			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 
-			//std::cout << "... consumming right => "<< this->get_message_id()<<std::endl;
-
 			while (host_table = external_input_right.next()) {	
 				this->add_to_output_cache(std::move(host_table), "output_b");
 			}
@@ -621,32 +577,6 @@ public:
 	
 		distribute_right_thread.join();
 		right_consumer.join();
-	}
-
-	static void scatter_small_table(std::shared_ptr<Context> context, std::unique_ptr<ral::frame::BlazingTable> batch, 
-		BatchSequence sequence, std::shared_ptr<ral::cache::CacheMachine> & output){
-
-		bool done = false;
-		int batch_count = 0;
-		while (!done) {		
-			try {  
-				if(batch->num_rows() > 0) {
-					ral::distribution::experimental::scatterData(context.get(), batch->toBlazingTableView());
-				}
-				output->addToCache(std::move(batch));
-				if (sequence.wait_for_next()){
-					batch = sequence.next();
-					batch_count++;
-				} else {
-					done = true;
-				}
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				std::string err = "ERROR: in JoinPartitionKernel scatter_small_table batch_count " + std::to_string(batch_count) + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
-			}
-		}
-		ral::distribution::experimental::notifyLastTablePartitions(context.get(), ColumnDataMessage::MessageID());
 	}
 
 	void small_table_scatter_distribution(std::unique_ptr<ral::frame::BlazingTable> small_table_batch,
@@ -657,25 +587,13 @@ public:
 
 		this->context->incrementQuerySubstep();
 
-			std::cout<<"small_table_scatter_distribution start"<<std::endl;
-
 		// In this function we are assuming that one and only one of the two bools in scatter_left_right is true
 		assert((scatter_left_right.first || scatter_left_right.second) && not (scatter_left_right.first && scatter_left_right.second)); 
 		
 		std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
 		std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
 
-		// scatter_small_table(context, std::move(small_table_batch), std::move(small_table_sequence), this->output_.get_cache(small_output_cache_name));
-		// std::cout<<"scatter_small_table end"<<std::endl;
-		
-		// BlazingMutableThread distribute_small_table_thread(&JoinPartitionKernel::scatter_small_table, context, 
-		// 	std::move(small_table_batch), std::move(small_table_sequence), 
-		// 	std::ref(this->output_.get_cache(small_output_cache_name)));
-
-
-
-
-		// BlazingThread distribute_small_table_thread([this, small_table_batch, &small_table_sequence, small_output_cache_name](){
+		BlazingThread distribute_small_table_thread([this, &small_table_batch, &small_table_sequence, small_output_cache_name](){
 			bool done = false;
 			int batch_count = 0;
 			while (!done) {		
@@ -697,45 +615,30 @@ public:
 				}
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
-		// });
-		std::cout<<"scatter_small_table end"<<std::endl;
-
+		});
 		
-
-
-
-
-
-		// BlazingThread collect_small_table_thread([this, small_output_cache_name](){
+		BlazingThread collect_small_table_thread([this, small_output_cache_name](){
 			auto  message_token = ColumnDataMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
 			
-			//std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
 			while (external_input_left.wait_for_next()) {	
 				std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_left.next();
 				this->add_to_output_cache(std::move(host_table), small_output_cache_name);
 			}
-		// });
-		std::cout<<"collect_small_table_thread end"<<std::endl;
-
-		std::cout<<"add_to_output_cache big_table_batch rows: "<<big_table_batch->num_rows()<<std::endl;
+		});
 
 		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
-		std::cout<<"big_table_batch end"<<std::endl;
 
-		// BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name](){
+		BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name](){
 			while (big_table_sequence.wait_for_next()) {	
-				std::cout<<"big_table_sequence.wait_for_next("<<std::endl;
 				auto batch = big_table_sequence.next();
-				std::cout<<"add_to_output_cache big_table_batch batch rows: "<<batch->num_rows()<<std::endl;
 				this->add_to_output_cache(std::move(batch), big_output_cache_name);
 			}
-		// });
-		std::cout<<"big_table_passthrough_thread end"<<std::endl;
+		});
 		
-		// distribute_small_table_thread.join();
-		// collect_small_table_thread.join();
-		// big_table_passthrough_thread.join();		
+		distribute_small_table_thread.join();
+		collect_small_table_thread.join();
+		big_table_passthrough_thread.join();		
 	}
 	
 	virtual kstatus run() {
@@ -769,23 +672,17 @@ public:
 		}
 		// scatter_left_right = std::make_pair(false, false); // Do this for debugging if you want to disable small table join optmization
 		if (scatter_left_right.first){
-			std::cout<<"Doing left small table scatter for "<<condition<<std::endl;
 			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_b"));
-			std::cout<<"made big_table_sequence "<<condition<<std::endl;
 			small_table_scatter_distribution( std::move(left_batch), std::move(right_batch),
 						std::move(left_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else if (scatter_left_right.second) {
-			std::cout<<"Doing right small table scatter for "<<condition<<std::endl;
 			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_a"));
 			small_table_scatter_distribution( std::move(right_batch), std::move(left_batch),
 						std::move(right_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else {
-			std::cout<<"Doing perform_standard_hash_partitioning for "<<condition<<std::endl;
 			perform_standard_hash_partitioning(condition, std::move(left_batch), std::move(right_batch),
 				std::move(left_sequence), std::move(right_sequence));
 		}		
-
-		std::cout<<"joinPartitionKernel end "<<condition<<std::endl;	
 		
 		return kstatus::proceed;
 	}

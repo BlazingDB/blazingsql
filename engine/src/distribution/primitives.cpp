@@ -548,7 +548,6 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 				std::to_string(context->getQuerySubstep()),
 				"ERROR: Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx)));
 		}
-		std::cout<<"collectLeftRightTableSizeBytes for node: "<<node_idx<<" left: "<<host_data[0]<<" right: "<<host_data[1]<<std::endl;
 		node_num_bytes_left[node_idx] = host_data[0];
 		node_num_bytes_right[node_idx] = host_data[1];
 		received[node_idx] = true;

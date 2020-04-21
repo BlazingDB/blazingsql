@@ -59,29 +59,27 @@ namespace cache {
 						if(visited.find(edge_id) == visited.end()) {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
-							// BlazingThread t([this, source, source_id, edge] {
-								std::cout<<"launching source->run() for "<<source_id<<std::endl;
+							BlazingThread t([this, source, source_id, edge] {
 								auto state = source->run();
 								if(state == kstatus::proceed) {
 									source->output_.finish();
 								} else if (edge.target != -1) { // not a dummy node
 									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
 								}
-							// });
-							// threads.push_back(std::move(t));
+							});
+							threads.push_back(std::move(t));
 						} else {
 							// TODO: and circular graph is defined here. Report and error
 						}
 					}
 				}
 			} else { // if we dont have all the dependencies, lets put it back at the back and try it later
-				std::cout<<"put back "<<source_id<<std::endl;
 				Q.push_back(source_id);
 			}
 		}
-		// for(auto & thread : threads) {
-		// 	thread.join();
-		// }
+		for(auto & thread : threads) {
+			thread.join();
+		}
 	}
 
 	void graph::show() {
@@ -148,19 +146,13 @@ namespace cache {
 	}
 
 	std::pair<bool, uint64_t> graph::get_estimated_input_rows_to_kernel(int32_t id){
-		std::cout<<"get_estimated_input_rows_to_kernel start for id "<<id<<std::endl;
 		auto target_kernel = get_node(id);
 		if (target_kernel->input_all_finished()){
-			std::cout<<"get_estimated_input_rows_to_kernel retuning due to finished cache for id "<<id<<std::endl;
 			return std::make_pair(true, target_kernel->total_input_rows_added());
 		}
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		std::set<Edge> source_edges = get_reverse_neighbours(id);
-		std::cout<<"reverse_neighbors edges"<<std::endl;
-		for (auto edge : source_edges){
-			edge.print();
-		}
 		if (source_edges.size() == 1){
 			target_kernel = get_node((*(source_edges.begin())).source);
 			// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
@@ -172,19 +164,13 @@ namespace cache {
 	}
 
 	std::pair<bool, uint64_t> graph::get_estimated_input_rows_to_cache(int32_t id, const std::string & port_name){
-		std::cout<<"get_estimated_input_rows_to_cache start for id "<<id<<" port_name: "<<port_name<<std::endl;
 		auto target_kernel = get_node(id);
 		if (target_kernel->input_cache_finished(port_name)){
-			std::cout<<"get_estimated_input_rows_to_cache retuning due to finished cache for id "<<id<<" port_name: "<<port_name<<std::endl;
 			return std::make_pair(true, target_kernel->input_cache_num_rows_added(port_name));
 		}
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		std::set<Edge> source_edges = get_reverse_neighbours(id);
-		std::cout<<"reverse_neighbors edges"<<std::endl;
-		for (auto edge : source_edges){
-			edge.print();
-		}
 		for (auto edge : source_edges){
 			if (edge.target_port_name == port_name){
 				target_kernel = get_node(edge.source);

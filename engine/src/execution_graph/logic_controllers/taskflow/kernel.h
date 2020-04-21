@@ -65,11 +65,7 @@ public:
 		if (kernel_id.empty()) {
 			kernel_id = std::to_string(this->get_id());
 		}
-		std::cout<<"add_to_output_cache "<<kernel_id<<std::endl;
-		for (auto name : host_table->names()){
-			std::cout<<"column name "<<name<<std::endl;
-		}
-
+		
 		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
 		this->output_.get_cache(kernel_id)->addHostFrameToCache(std::move(host_table), message_id);
 	}
