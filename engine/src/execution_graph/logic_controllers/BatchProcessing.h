@@ -150,6 +150,10 @@ public:
 		t.detach();
 	} 
 
+	bool wait_for_next() {
+		return host_cache->wait_for_next();
+	}
+
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {
 		return host_cache->pullFromCache();
 	}

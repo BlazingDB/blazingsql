@@ -53,10 +53,13 @@ namespace cache {
 					if(visited.find(edge_id) == visited.end()) {
 						visited.insert(edge_id);
 						Q.push_back(target_id);
-						BlazingThread t([this, source, target, edge] {
+						BlazingThread t([this, source, source_id, target, edge] {
+							std::cout<<"launching source->run() for "<<source_id<<std::endl;
 							auto state = source->run();
 							if(state == kstatus::proceed) {
 								source->output_.finish();
+							} else if (edge.target != -1) { // not a dummy node
+								std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
 							}
 						});
 						threads.push_back(std::move(t));
