@@ -43,35 +43,45 @@ namespace cache {
 		}
 		while(not Q.empty()) {
 			auto source_id = Q.front();
-			Q.pop_front();
 			auto source = get_node(source_id);
-			if(source) {
-				for(auto edge : get_neighbours(source)) {
-					auto target_id = edge.target;
-					auto target = get_node(target_id);
-					auto edge_id = std::make_pair(source_id, target_id);
-					if(visited.find(edge_id) == visited.end()) {
-						visited.insert(edge_id);
-						Q.push_back(target_id);
-						BlazingThread t([this, source, source_id, target, edge] {
-							std::cout<<"launching source->run() for "<<source_id<<std::endl;
-							auto state = source->run();
-							if(state == kstatus::proceed) {
-								source->output_.finish();
-							} else if (edge.target != -1) { // not a dummy node
-								std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
-							}
-						});
-						threads.push_back(std::move(t));
-					} else {
-						// TODO: and circular graph is defined here. Report and error
+			auto source_edges = get_reverse_neighbours(source);
+			bool node_has_all_dependencies = source_edges.size() == 0 ? true : 
+				std::all_of(source_edges.begin(), source_edges.end(), [visited](Edge edge) { 
+					auto edge_id = std::make_pair(edge.source, edge.target);
+					return visited.find(edge_id) != visited.end();});
+			Q.pop_front();
+			if (node_has_all_dependencies){
+				if(source) {
+					for(auto edge : get_neighbours(source)) {
+						auto target_id = edge.target;
+						auto target = get_node(target_id);
+						auto edge_id = std::make_pair(source_id, target_id);
+						if(visited.find(edge_id) == visited.end()) {
+							visited.insert(edge_id);
+							Q.push_back(target_id);
+							// BlazingThread t([this, source, source_id, edge] {
+								std::cout<<"launching source->run() for "<<source_id<<std::endl;
+								auto state = source->run();
+								if(state == kstatus::proceed) {
+									source->output_.finish();
+								} else if (edge.target != -1) { // not a dummy node
+									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
+								}
+							// });
+							// threads.push_back(std::move(t));
+						} else {
+							// TODO: and circular graph is defined here. Report and error
+						}
 					}
 				}
+			} else { // if we dont have all the dependencies, lets put it back at the back and try it later
+				std::cout<<"put back "<<source_id<<std::endl;
+				Q.push_back(source_id);
 			}
 		}
-		for(auto & thread : threads) {
-			thread.join();
-		}
+		// for(auto & thread : threads) {
+		// 	thread.join();
+		// }
 	}
 
 	void graph::show() {
@@ -240,8 +250,20 @@ namespace cache {
 
 	std::set<graph::Edge> graph::get_neighbours(kernel * from) { return edges_[from->get_id()]; }
 	std::set<graph::Edge> graph::get_neighbours(int32_t id) { return edges_[id]; }
-	std::set<graph::Edge> graph::get_reverse_neighbours(kernel * from) { return reverse_edges_[from->get_id()]; }
-	std::set<graph::Edge> graph::get_reverse_neighbours(int32_t id) { return reverse_edges_[id]; }
+	std::set<graph::Edge> graph::get_reverse_neighbours(kernel * from) { 
+		if (from) {
+			return get_reverse_neighbours(from->get_id());
+		} else {
+			return std::set<graph::Edge>();
+		}
+	}
+	std::set<graph::Edge> graph::get_reverse_neighbours(int32_t id) { 
+		if (reverse_edges_.find(id) != reverse_edges_.end()){
+			return reverse_edges_[id]; 
+		} else {
+			return std::set<graph::Edge>();
+		}
+	}
 	
 }  // namespace cache
 }  // namespace ral

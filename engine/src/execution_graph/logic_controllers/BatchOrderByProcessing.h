@@ -196,7 +196,7 @@ public:
 					std::cout<<err<<std::endl;
 				}	
 			}
-			ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
+			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
 		});
 		
 		BlazingThread consumer([this](){

@@ -196,27 +196,14 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
-	std::cout<<"pullFromCache start"<<std::endl;
 	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
-	std::cout<<"pullFromCache poped"<<std::endl;
 	if (message_data == nullptr) {
-		std::cout<<"pullFromCache its null"<<std::endl;
 		return nullptr;
 	}
 	auto cache_data = message_data->releaseData();
-	std::cout<<"pullFromCache releasedData"<<std::endl;
 	auto cache_index = message_data->cacheIndex();
-	std::cout<<"pullFromCache cacheIndex"<<std::endl;
-
-	std::unique_ptr<ral::frame::BlazingTable> decached = cache_data->decache();
-	if (decached)
-		std::cout<<"pullFromCache decached "<<decached->num_rows()<<std::endl;
-	else
-	{
-		std::cout<<"decached is null"<<std::endl;
-	}
 	
-	return std::move(decached);
+	return std::move(cache_data->decache());	
 }
 
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {

@@ -22,6 +22,7 @@ namespace batch {
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
+using ColumnDataMessage = ral::communication::messages::experimental::ColumnDataMessage;
 
 const std::string INNER_JOIN = "inner";
 const std::string LEFT_JOIN = "left";
@@ -58,13 +59,10 @@ public:
  	std::unique_ptr<TableSchema> right_schema{nullptr};
 	
 	std::unique_ptr<ral::frame::BlazingTable> load_set(BatchSequence & input, bool load_all){
-		std::cout<<"load_set start"<<std::endl;
 		std::size_t bytes_loaded = 0;
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_loaded;
 		if (input.wait_for_next()){
-			std::cout<<"load_set wait_for_next"<<std::endl;
 			tables_loaded.emplace_back(input.next());
-			std::cout<<"load_set next done"<<std::endl;
 			bytes_loaded += tables_loaded.back()->sizeInBytes(); 
 		} else {
 			return nullptr;
@@ -72,9 +70,7 @@ public:
 
 		while ((input.has_next_now() && bytes_loaded < SET_SIZE_THRESHOLD) ||
 					(load_all && input.wait_for_next())) {
-						std::cout<<"load_set wait_for_next again"<<std::endl;
 			tables_loaded.emplace_back(input.next());
-			std::cout<<"load_set next again done"<<std::endl;
 			bytes_loaded += tables_loaded.back()->sizeInBytes(); 
 		}
 		if (tables_loaded.size() == 0){
@@ -83,8 +79,10 @@ public:
 			return std::move(tables_loaded[0]);
 		} else {
 			std::vector<ral::frame::BlazingTableView> tables_to_concat(tables_loaded.size());
+			std::cout<<"load_set concatTables schemas"<<std::endl;
 			for (std::size_t i = 0; i < tables_loaded.size(); i++){
 				tables_to_concat[i] = tables_loaded[i]->toBlazingTableView();
+				ral::utilities::print_blazing_table_view_schema(tables_to_concat[i], std::to_string(i));
 			}
 			std::cout<<"load_set concatTables start"<<std::endl;
 			return ral::utilities::experimental::concatTables(tables_to_concat);			
@@ -480,7 +478,7 @@ public:
 			}
         }
 		//printf("... notifyLastTablePartitions\n");
-		ral::distribution::experimental::notifyLastTablePartitions(context.get());
+		ral::distribution::experimental::notifyLastTablePartitions(context.get(), ColumnDataPartitionMessage::MessageID());
     }
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view, 
@@ -493,18 +491,22 @@ public:
 		double right_batch_rows = (double)right_batch_view.num_rows();
 		double right_batch_bytes = (double)ral::utilities::experimental::get_table_size_bytes(right_batch_view);
 		int64_t left_bytes_estimate;
-		if (left_num_rows_estimate.second > 0 && left_batch_rows == 0 && left_batch_bytes == 0){
+		if (!left_num_rows_estimate.first || left_batch_bytes == 0){
 			// if we cant get a good estimate of current bytes, then we will set to -1 to signify that
 			left_bytes_estimate = -1;
+			std::cout<<"could not get left left_bytes_estimate: "<<left_bytes_estimate<<" left_batch_bytes: "<<left_batch_bytes<<" left_num_rows_estimate.second: "<<left_num_rows_estimate.second<<" left_batch_rows: "<<left_batch_rows<<std::endl;
 		} else {
 			left_bytes_estimate = (int64_t)(left_batch_bytes*(((double)left_num_rows_estimate.second)/left_batch_rows));
+			std::cout<<"left_bytes_estimate: "<<left_bytes_estimate<<" left_batch_bytes: "<<left_batch_bytes<<" left_num_rows_estimate.second: "<<left_num_rows_estimate.second<<" left_batch_rows: "<<left_batch_rows<<std::endl;
 		}
 		int64_t right_bytes_estimate;
-		if (right_num_rows_estimate.second > 0 && right_batch_rows == 0 && right_batch_bytes == 0){
+		if (!right_num_rows_estimate.first || right_batch_bytes == 0){
 			// if we cant get a good estimate of current bytes, then we will set to -1 to signify that
 			right_bytes_estimate = -1;
+			std::cout<<"could not get right right_bytes_estimate: "<<right_bytes_estimate<<" right_batch_bytes: "<<right_batch_bytes<<" right_num_rows_estimate.second: "<<right_num_rows_estimate.second<<" right_batch_rows: "<<right_batch_rows<<std::endl;
 		} else {
 			right_bytes_estimate = (int64_t)(right_batch_bytes*(((double)right_num_rows_estimate.second)/right_batch_rows));
+			std::cout<<"right_bytes_estimate: "<<right_bytes_estimate<<" right_batch_bytes: "<<right_batch_bytes<<" right_num_rows_estimate.second: "<<right_num_rows_estimate.second<<" right_batch_rows: "<<right_batch_rows<<std::endl;
 		}
 
 		int self_node_idx = context->getNodeIndex(ral::communication::experimental::CommunicationData::getInstance().getSelfNode());
@@ -516,11 +518,20 @@ public:
 		ral::distribution::experimental::collectLeftRightTableSizeBytes(context.get(), nodes_num_bytes_left, nodes_num_bytes_right);
 		nodes_num_bytes_left[self_node_idx] = left_bytes_estimate;
 		nodes_num_bytes_right[self_node_idx] = right_bytes_estimate;
+		std::cout<<"determine_if_we_are_scattering_a_small_table nodes_num_bytes_left for node: "<<self_node_idx<<" : ";
+		for (auto bytes : nodes_num_bytes_left)
+			std::cout<<bytes<<" ";
+		std::cout<<std::endl;
+		std::cout<<"determine_if_we_are_scattering_a_small_table nodes_num_bytes_right: "<<self_node_idx<<" : ";
+		for (auto bytes : nodes_num_bytes_right)
+			std::cout<<bytes<<" ";
+		std::cout<<std::endl;
 
 		bool any_unknowns_left = std::any_of(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), [](int64_t bytes){return bytes == -1;});
 		bool any_unknowns_right = std::any_of(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), [](int64_t bytes){return bytes == -1;});
 
 		if (any_unknowns_left || any_unknowns_right){
+			std::cout<<"we have unknowns"<<std::endl;
 			return std::make_pair(false, false); // we wont do any small table scatter if we have unknowns
 		}
 
@@ -555,6 +566,8 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch,
 		BatchSequence left_sequence,
 		BatchSequence right_sequence){
+		
+		this->context->incrementQuerySubstep();
 				
 		{ // parsing more of the expression here because we need to have the number of columns of the tables
 			std::vector<int> column_indices;
@@ -633,15 +646,16 @@ public:
 				std::cout<<err<<std::endl;
 			}
 		}
-		ral::distribution::experimental::notifyLastTablePartitions(context.get());
+		ral::distribution::experimental::notifyLastTablePartitions(context.get(), ColumnDataMessage::MessageID());
 	}
 
 	void small_table_scatter_distribution(std::unique_ptr<ral::frame::BlazingTable> small_table_batch,
 		std::unique_ptr<ral::frame::BlazingTable> big_table_batch,
 		BatchSequence small_table_sequence,
-		// BatchSequenceBypass big_table_sequence, 
-		BatchSequence big_table_sequence, 
+		BatchSequenceBypass big_table_sequence, 
 		const std::pair<bool, bool> & scatter_left_right){
+
+		this->context->incrementQuerySubstep();
 
 			std::cout<<"small_table_scatter_distribution start"<<std::endl;
 
@@ -649,17 +663,51 @@ public:
 		assert((scatter_left_right.first || scatter_left_right.second) && not (scatter_left_right.first && scatter_left_right.second)); 
 		
 		std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
-		std::string big_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
+		std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
 
-		scatter_small_table(context, std::move(small_table_batch), std::move(small_table_sequence), this->output_.get_cache(small_output_cache_name));
-		std::cout<<"scatter_small_table end"<<std::endl;
+		// scatter_small_table(context, std::move(small_table_batch), std::move(small_table_sequence), this->output_.get_cache(small_output_cache_name));
+		// std::cout<<"scatter_small_table end"<<std::endl;
 		
 		// BlazingMutableThread distribute_small_table_thread(&JoinPartitionKernel::scatter_small_table, context, 
-		// 	std::move(small_table_batch), std::ref(small_table_sequence), 
-		// 	std::ref(this->output_.get_cache(output_cache_name)));
+		// 	std::move(small_table_batch), std::move(small_table_sequence), 
+		// 	std::ref(this->output_.get_cache(small_output_cache_name)));
 
-		// BlazingThread collect_small_table_thread([this, output_cache_name](){
-			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
+
+
+
+		// BlazingThread distribute_small_table_thread([this, small_table_batch, &small_table_sequence, small_output_cache_name](){
+			bool done = false;
+			int batch_count = 0;
+			while (!done) {		
+				try {  
+					if(small_table_batch->num_rows() > 0) {
+						ral::distribution::experimental::scatterData(this->context.get(), small_table_batch->toBlazingTableView());
+					}
+					this->add_to_output_cache(std::move(small_table_batch), small_output_cache_name);
+					if (small_table_sequence.wait_for_next()){
+						small_table_batch = small_table_sequence.next();
+						batch_count++;
+					} else {
+						done = true;
+					}
+				} catch(const std::exception& e) {
+					// TODO add retry here
+					std::string err = "ERROR: in JoinPartitionKernel scatter_small_table batch_count " + std::to_string(batch_count) + " Error message: " + std::string(e.what());
+					std::cout<<err<<std::endl;
+				}
+			}
+			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
+		// });
+		std::cout<<"scatter_small_table end"<<std::endl;
+
+		
+
+
+
+
+
+		// BlazingThread collect_small_table_thread([this, small_output_cache_name](){
+			auto  message_token = ColumnDataMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
 			
 			//std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
@@ -675,11 +723,11 @@ public:
 		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
 		std::cout<<"big_table_batch end"<<std::endl;
 
-		// BlazingThread big_table_passthrough_thread([this, &big_table_sequence, output_cache_name](){
+		// BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name](){
 			while (big_table_sequence.wait_for_next()) {	
 				std::cout<<"big_table_sequence.wait_for_next("<<std::endl;
 				auto batch = big_table_sequence.next();
-				std::cout<<"add_to_output_cache big_table_batch batch rows: "<<big_table_batch->num_rows()<<std::endl;
+				std::cout<<"add_to_output_cache big_table_batch batch rows: "<<batch->num_rows()<<std::endl;
 				this->add_to_output_cache(std::move(batch), big_output_cache_name);
 			}
 		// });
@@ -687,7 +735,7 @@ public:
 		
 		// distribute_small_table_thread.join();
 		// collect_small_table_thread.join();
-		// big_table_passthrough_thread.join();
+		// big_table_passthrough_thread.join();		
 	}
 	
 	virtual kstatus run() {
@@ -719,17 +767,18 @@ public:
 				scatter_left_right.first = false; // cant scatter the left side for a left outer join
 			}
 		}
+		// scatter_left_right = std::make_pair(false, false); // Do this for debugging if you want to disable small table join optmization
 		if (scatter_left_right.first){
 			std::cout<<"Doing left small table scatter for "<<condition<<std::endl;
-			// BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_b"));
+			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_b"));
 			std::cout<<"made big_table_sequence "<<condition<<std::endl;
 			small_table_scatter_distribution( std::move(left_batch), std::move(right_batch),
-						std::move(left_sequence), std::move(right_sequence), scatter_left_right);
+						std::move(left_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else if (scatter_left_right.second) {
 			std::cout<<"Doing right small table scatter for "<<condition<<std::endl;
-			// BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_a"));
+			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_a"));
 			small_table_scatter_distribution( std::move(right_batch), std::move(left_batch),
-						std::move(right_sequence), std::move(left_sequence), scatter_left_right);
+						std::move(right_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else {
 			std::cout<<"Doing perform_standard_hash_partitioning for "<<condition<<std::endl;
 			perform_standard_hash_partitioning(condition, std::move(left_batch), std::move(right_batch),

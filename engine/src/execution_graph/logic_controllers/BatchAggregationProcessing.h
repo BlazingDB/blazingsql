@@ -185,7 +185,7 @@ public:
             if (!(group_column_indices.size() == 0
                 && this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode()))) {
                 // Aggregations without groupby does not send distributeTablePartitions
-                ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
+                ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
             }
         });
         
