@@ -55,7 +55,7 @@ bool is_inequality(const std::string& token){
 	return token == "<" || token == "<=" || token == ">" || token == ">=" || token == "<>";
 }
 
-std::vector<std::string> fix_column_aliases(std::vector<std::string> column_names, std::string expression){
+std::vector<std::string> fix_column_aliases(const std::vector<std::string> & column_names, std::string expression){
 	std::string aliases_string = get_named_expression(expression, "aliases");
 	std::vector<std::string> aliases_string_split =
 		get_expressions_from_expression_list(aliases_string, true);
