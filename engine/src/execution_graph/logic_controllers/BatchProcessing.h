@@ -243,7 +243,6 @@ public:
 private:
 	std::shared_ptr<ral::io::data_provider> provider;
 	std::shared_ptr<ral::io::data_parser> parser;
-	std::vector<std::string> user_readable_file_handles;
 	std::vector<ral::io::data_handle> files;
 
 	std::shared_ptr<Context> context;

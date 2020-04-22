@@ -42,7 +42,6 @@ cudf::experimental::io::table_with_metadata read_json_file(
 
 std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 
@@ -75,11 +74,10 @@ std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
 }
 
 void json_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
+	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
-	auto table_and_metadata = read_json_file(args, files[0], true);
-	assert(table_and_metadata.tbl->num_columns() > 0);
-
+	auto table_and_metadata = read_json_file(args, file, true);
+	
 	for(auto i = 0; i < table_and_metadata.tbl->num_columns(); i++) {
 		std::string name = table_and_metadata.metadata.column_names[i];
 		cudf::type_id type = table_and_metadata.tbl->get_column(i).type().id();
