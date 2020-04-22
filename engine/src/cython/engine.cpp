@@ -63,6 +63,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		std::vector<Uri> uris;
 		for(int fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
 			uris.push_back(Uri{filesAll[i][fileIndex]});
+			schema.add_file(filesAll[i][fileIndex]);
 		}
 
 		if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
