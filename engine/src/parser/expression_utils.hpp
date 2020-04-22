@@ -150,7 +150,9 @@ size_t get_table_index(std::vector<std::string> table_names, std::string table_n
 // Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
 std::string extract_table_name(std::string query_part);
 
-std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expression, bool trim);
+// takes a comma delimited list of expressions and splits it into separate expressions
+// if the flag trim is true, leading and trailing spaces are removed
+std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expressions, bool trim = true);
 
 std::string replace_calcite_regex(const std::string & expression);
 

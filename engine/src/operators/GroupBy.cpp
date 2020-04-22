@@ -344,9 +344,9 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 		// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
 		if(aggregation_column_assigned_aliases[i] == "") {
 			if(aggregation_input_expressions[i] == "" && aggregation_types[i] == AggregateKind::COUNT_ALL) { // this is a COUNT(*)
-				agg_output_column_names.push_back(aggregation_types[i] + "(*)");
+				agg_output_column_names.push_back(get_agg_str(aggregation_types[i]) + "(*)");
 			} else {
-				agg_output_column_names.push_back(aggregation_types[i] + "(" + table.names().at(get_index(aggregation_input_expressions[i])) + ")");
+				agg_output_column_names.push_back(get_agg_str(aggregation_types[i]) + "(" + table.names().at(get_index(aggregation_input_expressions[i])) + ")");
 			}
 		} else {
 			agg_output_column_names.push_back(aggregation_column_assigned_aliases[i]);
@@ -706,6 +706,25 @@ auto groupby_without_aggregations_and_sample(Context * context,
 	}
 
 	return std::make_pair(std::move(grouped_table), std::move(partitionPlan));
+}
+
+std::string get_agg_str(AggregateKind kind){
+	switch(kind){
+		case SUM:
+		case SUM0:
+			return "sum";
+		case MEAN:
+			return "mean";
+		case MIN:
+			return "min";
+		case MAX:
+			return "max";
+		case COUNT_VALID:
+		case COUNT_ALL:
+			return "count";
+		default:
+			return "agg";
+	}
 }
 
 // auto aggregations_without_groupby_and_sample(Context * context,
