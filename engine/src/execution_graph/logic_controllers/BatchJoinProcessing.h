@@ -116,16 +116,23 @@ public:
 		return std::move(table);
 	}
 
-    void mark_set_completed(int left_ind, int right_ind){
+   void mark_set_completed(int left_ind, int right_ind){
 		if (completion_matrix.size() <= left_ind){
+			size_t old_row_size = completion_matrix.size();
 			completion_matrix.resize(left_ind + 1);
+			if (old_row_size > 0) {
+				size_t column_size = completion_matrix[0].size();
+				for (size_t i = old_row_size; i < completion_matrix.size(); i++) {
+					completion_matrix[i].resize(column_size, false);
+				}
+			}			
 		}
 		if (completion_matrix[left_ind].size() <= right_ind){ // if we need to resize, lets resize the whole matrix, making sure that the default is false
 			for (std::size_t i = 0; i < completion_matrix.size(); i++){
 				completion_matrix[i].resize(right_ind + 1, false);
 			}			
 		}
-		completion_matrix[left_ind][right_ind] = true;		
+		completion_matrix[left_ind][right_ind] = true;
 	}
 
     // This function checks to see if there is a set from our current completion_matix (data we have already loaded once)
@@ -388,7 +395,7 @@ public:
 	}
 
 
-    static void partition_table(std::shared_ptr<Context> context, 
+    static void partition_table(std::shared_ptr<Context> local_context, 
 				std::vector<cudf::size_type> column_indices, 
 				std::unique_ptr<ral::frame::BlazingTable> batch, 
 				BatchSequence & sequence, 
@@ -397,7 +404,7 @@ public:
         bool done = false;
 		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
 		// If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
-		int num_partitions = context->getTotalNodes(); 
+		int num_partitions = local_context->getTotalNodes(); 
 		std::unique_ptr<CudfTable> hashed_data;
 		std::vector<cudf::size_type> hased_data_offsets;
 		int batch_count = 0;
@@ -414,14 +421,14 @@ public:
 					partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
 					
 				} else {
-					for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+					for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
 						partitioned.push_back(batch_view);
 					}
 				}
 				std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
-				for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
+				for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
 					ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-					if (context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+					if (local_context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
 						// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
 						// if we dont clone it, hashed_data will go out of scope before we get to use the partition
 						// also we need a BlazingTable to put into the cache, we cant cache views.
@@ -431,10 +438,10 @@ public:
 						output->addToCache(std::move(partition_table_clone));
 					} else {
 						partitions_to_send.emplace_back(
-							std::make_pair(context->getNode(nodeIndex), partition_table_view));
+							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
 					}
 				}
-				ral::distribution::experimental::distributeTablePartitions(context.get(), partitions_to_send);
+				ral::distribution::experimental::distributeTablePartitions(local_context.get(), partitions_to_send);
 
 				if (sequence.wait_for_next()){
 					batch = sequence.next();
@@ -449,7 +456,7 @@ public:
 			}
         }
 		//printf("... notifyLastTablePartitions\n");
-		ral::distribution::experimental::notifyLastTablePartitions(context.get(), ColumnDataPartitionMessage::MessageID());
+		ral::distribution::experimental::notifyLastTablePartitions(local_context.get(), ColumnDataPartitionMessage::MessageID());
     }
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view, 
@@ -539,23 +546,20 @@ public:
 			}
 		}
 
-		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
+		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context, 
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
 			std::ref(this->output_.get_cache("output_a")));
 
 		BlazingThread left_consumer([context = this->context, this](){
 			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
-			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-
-			while (host_table = external_input_left.next()) {	
+			
+			while (external_input_left.wait_for_next()) {	
+				std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_left.next();
 				this->add_to_output_cache(std::move(host_table), "output_a");
 			}
 		});
 		
-		distribute_left_thread.join();
-		left_consumer.join();
-
 		// clone context, increment step counter to make it so that the next partition_table will have different message id
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
@@ -568,13 +572,15 @@ public:
 		BlazingThread right_consumer([cloned_context, this](){
 			auto message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
-			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-
-			while (host_table = external_input_right.next()) {	
+			
+			while (external_input_right.wait_for_next()) {	
+				std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_right.next();
 				this->add_to_output_cache(std::move(host_table), "output_b");
 			}
 		});
 	
+		distribute_left_thread.join();
+		left_consumer.join();
 		distribute_right_thread.join();
 		right_consumer.join();
 	}
