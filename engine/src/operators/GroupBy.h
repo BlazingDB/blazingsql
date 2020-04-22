@@ -63,7 +63,6 @@ namespace experimental {
 		const ral::frame::BlazingTableView & table, const std::vector<std::string> & aggregation_input_expressions, const std::vector<AggregateKind> & aggregation_types,
 		const std::vector<std::string> & aggregation_column_assigned_aliases, const std::vector<int> & group_column_indices);
 
-
 	// Bigger than GPU functions
 	bool is_aggregations_without_groupby(const std::string& query_part);
 
