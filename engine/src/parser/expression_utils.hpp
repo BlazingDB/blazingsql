@@ -157,4 +157,4 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 std::string replace_calcite_regex(const std::string & expression);
 
 //Returns the column names according to the corresponding algebra expression
-std::vector<std::string> fix_column_aliases(std::vector<std::string> column_names, std::string expression);
+std::vector<std::string> fix_column_aliases(const std::vector<std::string> & column_names, std::string expression);
