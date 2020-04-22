@@ -30,11 +30,14 @@ public:
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const std::string & user_readable_file_handle,
 		const Schema & schema,
 		std::vector<size_t> column_indices,
-		size_t row_group) {
+		cudf::size_type row_group) {
 		return nullptr; // TODO cordova ask ALexander why is not a pure virtual function as before
+	}
+
+	virtual size_t get_num_partitions() {
+		return 0;
 	}
 
 	virtual void parse_schema(
