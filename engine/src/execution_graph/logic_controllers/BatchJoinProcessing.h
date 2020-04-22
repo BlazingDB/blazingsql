@@ -552,10 +552,10 @@ public:
 
 		BlazingThread left_consumer([context = this->context, this](){
 			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
-			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
-			
-			while (external_input_left.wait_for_next()) {	
-				std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_left.next();
+			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);			
+			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+
+			while (host_table = external_input_left.next()) {	
 				this->add_to_output_cache(std::move(host_table), "output_a");
 			}
 		});
@@ -572,9 +572,9 @@ public:
 		BlazingThread right_consumer([cloned_context, this](){
 			auto message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
 			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
+			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			
-			while (external_input_right.wait_for_next()) {	
-				std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_right.next();
+			while (host_table = external_input_right.next()) {
 				this->add_to_output_cache(std::move(host_table), "output_b");
 			}
 		});
