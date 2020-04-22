@@ -165,15 +165,16 @@ void expression_tree::drop(std::vector<std::string> const &column_names) {
     });
   }
 }
-
+//TODO remove all this class
 bool expression_tree::build(std::string str) {
-  // lets use our newest good parser to help us tokenize until we merge both expression tree parsers
+//  // lets use our newest good parser to help us tokenize until we merge both expression tree parsers
   ral::parser::parse_tree tree;
-	tree.build(str);
+  tree.build(str);
   tree.transform_to_custom_op();
-  std::string tokenizable_string = tree.buildTokenizableString();
-  std::vector<std::string> tokens = split(tokenizable_string, "@#@"); 
-  
+  std::string tokenizable_string = tree.prefix();
+  std::cout << "tokenizable_string: " << tokenizable_string << std::endl;
+  std::vector<std::string> tokens = split(tokenizable_string, " ");
+
   return build(root, tokens, 0) == -1;
 }
 
