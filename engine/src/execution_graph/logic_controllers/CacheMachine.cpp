@@ -85,6 +85,11 @@ uint64_t CacheMachine::get_num_rows_added(){
 }
 
 void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string message_id) {
+	// std::cout<<"addHostFrameToCache "<<message_id<<std::endl;
+	// std::cout<<"num_rows: "<<host_table->num_rows()<<std::endl;
+	// for (auto name : host_table->names()){
+	// 	std::cout<<name<<std::endl;
+	// }
 	num_rows_added += host_table->num_rows();
 	num_bytes_added += host_table->sizeInBytes();
 	auto cacheIndex = 1; // HOST MEMORY
@@ -99,6 +104,12 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 }
 
 void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id){
+	// std::cout<<"addCacheData "<<message_id<<std::endl;
+	// std::cout<<"num_rows: "<<cache_data->num_rows()<<std::endl;
+	// for (auto name : cache_data->names()){
+	// 	std::cout<<name<<std::endl;
+	// }
+
 	num_rows_added += cache_data->num_rows();
 	num_bytes_added += cache_data->sizeInBytes();
 	int cacheIndex = 0;
@@ -138,6 +149,8 @@ void CacheMachine::clear() {
 }
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id) {
+	// std::cout<<"addToCache "<<message_id<<std::endl;
+ 	// ral::utilities::print_blazing_table_view_schema(table->toBlazingTableView(), message_id);
 	num_rows_added += table->num_rows();
 	num_bytes_added += table->sizeInBytes();
 	int cacheIndex = 0;

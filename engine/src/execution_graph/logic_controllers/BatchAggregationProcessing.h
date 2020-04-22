@@ -214,7 +214,7 @@ private:
 
 class MergeAggregateKernel :public kernel {
 public:
-	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> graph)
+	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context} {
         this->query_graph = query_graph;
 	}
