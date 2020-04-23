@@ -55,10 +55,6 @@ std::string aggregator_to_string(AggregateKind operation);
 // or ]
 int find_closing_char(const std::string & expression, int start);
 
-// takes a comma delimited list of expressions and splits it into separate expressions
-// if the flag trim is true, leading and trailing spaces are removed
-std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expressions, bool trim = true);
-
 bool is_type_signed(cudf::type_id type);
 bool is_type_float(cudf::type_id type);
 bool is_type_integer(cudf::type_id type);
