@@ -666,7 +666,9 @@ public:
                     "Join condition is currently not supported. Join received: " + original_join_condition);
         }
     }
-
+    bool is_valid() {
+        return this->root->value.length() > 0;
+    }
     std::string rebuildExpression() {
         assert(!!this->root);
         return detail::rebuild_helper(this->root.get());

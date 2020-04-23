@@ -86,8 +86,9 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
             }
         }
         tree.apply_skip_data_rules();
-        filter_string =  tree.rebuildExpression();
-
+        if (tree.is_valid()) {
+            filter_string =  tree.rebuildExpression();
+        }
     } else { // something happened and could not process
         return std::make_pair(nullptr, true);
     }
