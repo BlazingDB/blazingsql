@@ -165,7 +165,7 @@ In the mean time, for better performance we recommend using the unify_partitions
                     table_partitions.append(
                         tables[table_name].input.get_partition(partition).compute())
                 tables[table_name].input = cudf.concat(table_partitions)
-    
+
     return cio.runQueryCaller(
         masterIndex,
         nodes,
@@ -1311,7 +1311,7 @@ class BlazingContext(object):
         return all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids
 
 
-    def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query):
+    def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query,single_gpu=False):
         nodeFilesList = []
         file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
@@ -1350,9 +1350,9 @@ class BlazingContext(object):
                 nodeFilesList.append(bt)
 
             else:
-                all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
-
-                for i, node in enumerate(self.nodes):
+                if single_gpu:
+                    all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(1, actual_files, uri_values, row_groups_ids)
+                    i = 0
                     bt = BlazingTable(current_table.input,
                                 current_table.fileType,
                                 files=all_sliced_files[i],
@@ -1365,9 +1365,29 @@ class BlazingContext(object):
                     bt.file_column_names = current_table.file_column_names
                     bt.column_types = current_table.column_types
                     nodeFilesList.append(bt)
+                else:
+
+                    all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
+
+                    for i, node in enumerate(self.nodes):
+                        bt = BlazingTable(current_table.input,
+                                    current_table.fileType,
+                                    files=all_sliced_files[i],
+                                    calcite_to_file_indices=current_table.calcite_to_file_indices,
+                                    uri_values=all_sliced_uri_values[i],
+                                    args=current_table.args,
+                                    row_groups_ids=all_sliced_row_groups_ids[i],
+                                    in_file=current_table.in_file)
+                        bt.column_names = current_table.column_names
+                        bt.file_column_names = current_table.file_column_names
+                        bt.column_types = current_table.column_types
+                        nodeFilesList.append(bt)
             return nodeFilesList
         else:
-            return current_table.getSlices(len(self.nodes))
+            if single_gpu:
+                return current_table.getSlices(1)
+            else:
+                return current_table.getSlices(len(self.nodes))
 
     def partition(self, input, by=[]):
         masterIndex = 0
