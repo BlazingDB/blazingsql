@@ -165,6 +165,7 @@ In the mean time, for better performance we recommend using the unify_partitions
                     table_partitions.append(
                         tables[table_name].input.get_partition(partition).compute())
                 tables[table_name].input = cudf.concat(table_partitions)
+    
     return cio.runQueryCaller(
         masterIndex,
         nodes,
@@ -284,7 +285,7 @@ def parseHiveMetadata(curr_table, uri_values):
     n_cols = len(curr_table.column_names)
 
     if all(type in cudf_to_np_types for type in curr_table.column_types):
-        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types] 
+        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
     else:
         for i in range(len(curr_table.column_types)):
             if not (curr_table.column_types[i] in cudf_to_np_types):
@@ -1055,13 +1056,13 @@ class BlazingContext(object):
             elif len(user_partitions_schema) != len(user_partitions):
                 print("ERROR: The number of columns in 'partitions' should be the same as 'partitions_schema'")
                 return
-                    
+
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             hive_database_name = kwargs.get('hive_database_name', 'default')
             folder_list, hive_file_format_hint, extra_kwargs, extra_columns, hive_schema = get_hive_table(
                 input, hive_table_name, hive_database_name, user_partitions)
-            
+
             if file_format_hint == 'undefined':
                 file_format_hint = hive_file_format_hint
             elif file_format_hint != hive_file_format_hint:
@@ -1074,7 +1075,7 @@ class BlazingContext(object):
             if user_partitions_schema is None:
                 print("ERROR: When using 'partitions' without a Hive cursor, you also need to set 'partitions_schema' which should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
                 return
-            
+
             hive_schema = {}
             if isinstance(input, str):
                 hive_schema['location'] = input
@@ -1091,7 +1092,7 @@ class BlazingContext(object):
             extra_columns = []
             for part_schema in user_partitions_schema:
                 extra_columns.append((part_schema[0], convertTypeNameStrToCudfType(part_schema[1])))
-        
+
         if isinstance(input, str):
             input = [input, ]
 
@@ -1121,7 +1122,7 @@ class BlazingContext(object):
 
             input = resolve_relative_path(input)
 
-            ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find. 
+            ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find.
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
 
@@ -1166,12 +1167,12 @@ class BlazingContext(object):
             table.slices = table.getSlices(len(self.nodes))
 
             if len(uri_values) > 0:
-                parsedMetadata = parseHiveMetadata(table, uri_values) 
-                table.metadata = parsedMetadata                
+                parsedMetadata = parseHiveMetadata(table, uri_values)
+                table.metadata = parsedMetadata
 
             if parsedSchema['file_type'] == DataType.PARQUET :
                 parsedMetadata = self._parseMetadata(file_format_hint, table.slices, parsedSchema, kwargs)
-                
+
                 if isinstance(parsedMetadata, dask_cudf.core.DataFrame):
                     parsedMetadata = parsedMetadata.compute()
                     parsedMetadata = parsedMetadata.reset_index()
@@ -1450,7 +1451,7 @@ class BlazingContext(object):
             return input
 
 
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=False):
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=False, return_futures=False, single_gpu=False):
         """
         Query a BlazingSQL table.
 
@@ -1505,9 +1506,12 @@ class BlazingContext(object):
         """
         # TODO: remove hardcoding
         masterIndex = 0
-        nodeTableList = [{} for _ in range(len(self.nodes))]
-        fileTypes = []
 
+        nodeTableList = [{} for _ in range(len(self.nodes))]
+        if single_gpu:
+            nodeTableList = [{},]
+        fileTypes = []
+        #print(nodeTableList)
         if (algebra is None):
             algebra = self.explain(sql)
 
@@ -1515,7 +1519,7 @@ class BlazingContext(object):
             print("Parsing Error")
             return
 
-        if self.dask_client is None:
+        if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
         else:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
@@ -1536,9 +1540,15 @@ class BlazingContext(object):
                     scan_table_query = relational_algebra_steps[table]['table_scans'][0]
                     currentTableNodes = self._optimize_with_skip_data_getSlices(new_tables[table], scan_table_query)
                 else:
-                    currentTableNodes = new_tables[table].getSlices(len(self.nodes))
+                    if single_gpu == True:
+                        currentTableNodes = new_tables[table].getSlices(1)
+                    else:
+                        currentTableNodes = new_tables[table].getSlices(len(self.nodes))
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
-                if new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
+                if single_gpu == True:
+                    #TODO: repartition onto the node that does the work
+                    print("Unsupported running single_gpu queries on dask_cudf please use files")
+                elif new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
                     print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
                     temp_df = new_tables[table].input.compute()
                     new_tables[table].input = dask_cudf.from_cudf(temp_df,npartitions=len(self.nodes))
@@ -1573,25 +1583,45 @@ class BlazingContext(object):
                         algebra,
                         accessToken,
                         use_execution_graph)
+
         else:
-            dask_futures = []
-            i = 0
-            for node in self.nodes:
-                worker = node['worker']
-                dask_futures.append(
-                    self.dask_client.submit(
+            if single_gpu == True:
+                #the following is wrapped in an array because .sql expects to return
+                #an array of dask_futures or a df, this makes it consistent
+                result = [self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
-                        self.nodes,
-                        nodeTableList[i],
+                        [self.nodes[0],],
+                        nodeTableList[0],
                         fileTypes,
                         ctxToken,
                         algebra,
                         accessToken,
-                        use_execution_graph,
-                        workers=[worker]))
-                i = i + 1
-            result = dask.dataframe.from_delayed(dask_futures)
+                        use_execution_graph)]
+                if return_futures == False:
+                    result = dask.dataframe.from_delayed(result)
+            else:
+                dask_futures = []
+                i = 0
+                for node in self.nodes:
+                    worker = node['worker']
+                    dask_futures.append(
+                        self.dask_client.submit(
+                            collectPartitionsRunQuery,
+                            masterIndex,
+                            self.nodes,
+                            nodeTableList[i],
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            use_execution_graph,
+                            workers=[worker]))
+                    i = i + 1
+                if(return_futures):
+                    result  = dask_futures
+                else:
+                    result = dask.dataframe.from_delayed(dask_futures)
         return result
 
     # END SQL interface

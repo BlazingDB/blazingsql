@@ -31,7 +31,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
-		
+
 		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 		ral::io::ReaderArgs args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
@@ -122,7 +122,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		} else {
 			frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 		}
-		
+
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = frame->names();
 		result->cudfTable = frame->releaseCudfTable();
@@ -183,11 +183,11 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 }
 
 
-std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata, 
+std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 	std::vector<std::string> all_column_names, std::string query) {
 
 	try {
-	
+
 		std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> result_pair = ral::skip_data::process_skipdata_for_table(
 				metadata, all_column_names, query);
 
