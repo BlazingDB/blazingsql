@@ -1558,7 +1558,7 @@ class BlazingContext(object):
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
                 if new_tables[table].has_metadata():
                     scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-                    currentTableNodes = self._optimize_with_skip_data_getSlices(new_tables[table], scan_table_query)
+                    currentTableNodes = self._optimize_with_skip_data_getSlices(new_tables[table], scan_table_query,single_gpu)
                 else:
                     if single_gpu == True:
                         currentTableNodes = new_tables[table].getSlices(1)
