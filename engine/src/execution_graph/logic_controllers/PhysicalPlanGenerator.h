@@ -288,7 +288,8 @@ struct tree_processor {
 					graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
-					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = 32};
+					int num_partitions = this->context->getTotalNodes() * 4; // WSM TODO this is a hardcoded number for now. THis needs to change in the near future
+					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = num_partitions};
 					graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				} else {
 					graph +=  *child->kernel_unit >> (*parent->kernel_unit);
