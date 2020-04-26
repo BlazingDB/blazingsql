@@ -87,7 +87,10 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         }
         tree.apply_skip_data_rules();
         if (tree.is_valid()) {
+            // std::cout << " skiP-data: " << filter_string << " | " << tree.rebuildExpression() << std::endl; 
             filter_string =  tree.rebuildExpression();
+        } else{
+            return std::make_pair(nullptr, true);
         }
     } else { // something happened and could not process
         return std::make_pair(nullptr, true);
