@@ -2,7 +2,7 @@
 #include "SkipDataProcessor.h"
 
 #include <cudf/column/column_factories.hpp>
-#include "skip_data/expression_tree.hpp"
+#include "parser/expression_tree.hpp"
 #include "CalciteExpressionParsing.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
@@ -77,7 +77,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     }
     
     // process filter_string to convert to skip data version
-    expression_tree tree;
+    ral::parser::parse_tree tree;
     if (tree.build(filter_string)){
         // lets drop all columns that do not have skip data
         for (size_t i = 0; i < valid_metadata_columns.size(); i++){ 
@@ -86,8 +86,12 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
             }
         }
         tree.apply_skip_data_rules();
-        filter_string =  tree.rebuildExpression();
-
+        if (tree.is_valid()) {
+            // std::cout << " skiP-data: " << filter_string << " | " << tree.rebuildExpression() << std::endl; 
+            filter_string =  tree.rebuildExpression();
+        } else{
+            return std::make_pair(nullptr, true);
+        }
     } else { // something happened and could not process
         return std::make_pair(nullptr, true);
     }
