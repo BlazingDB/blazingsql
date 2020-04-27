@@ -47,7 +47,7 @@ PinnedBufferProvider &getPinnedBufferProvider();
 void setPinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
 void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
-                            std::vector<int> bufferSizes,
+                            std::vector<unsigned long long> bufferSizes,
                             std::vector<const char *> buffers, void *fileDescriptor,
                             int gpuNum);
 

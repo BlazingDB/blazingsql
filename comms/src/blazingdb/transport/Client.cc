@@ -117,7 +117,7 @@ public:
     write_metadata(fd, node.address().metadata_);
 
     // send message content (gpu buffers)
-    std::vector<int> buffer_sizes;
+    std::vector<unsigned long long> buffer_sizes;
     std::vector<const char *> buffers;
     std::vector<ColumnTransport> column_offsets;
     std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
