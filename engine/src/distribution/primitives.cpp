@@ -217,17 +217,17 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 	}
 }
 
-void notifyLastTablePartitions(Context * context) {
+void notifyLastTablePartitions(Context * context, std::string message_id) {
 	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
+	const std::string full_message_id = message_id + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	auto nodes = context->getAllNodes();
 	for(std::size_t i = 0; i < nodes.size(); ++i) {
 		if(!(nodes[i] == self_node)) {
 			blazingdb::transport::experimental::Message::MetaData metadata;
-			std::strcpy(metadata.messageToken, message_id.c_str());
+			std::strcpy(metadata.messageToken, full_message_id.c_str());
 			metadata.contextToken = context_token;
 			Client::notifyLastMessageEvent(nodes[i], metadata);
 		}
@@ -499,11 +499,7 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 	}
 }
 
-void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::BlazingTableView & left,
-    		const ral::frame::BlazingTableView & right) {
-
-	int64_t bytes_left = ral::utilities::experimental::get_table_size_bytes(left);
-	int64_t bytes_right = ral::utilities::experimental::get_table_size_bytes(right);
+void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, int64_t bytes_right) {
 
 	const std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
@@ -541,8 +537,8 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 		assert(num_bytes_data->view().num_columns() == 1);
 		assert(num_bytes_data->view().num_rows() == 2);
 		
-		std::vector<cudf::size_type> host_data(num_bytes_data->view().column(0).size());
-		CUDA_TRY(cudaMemcpy(host_data.data(), num_bytes_data->view().column(0).data<cudf::size_type>(), num_bytes_data->view().column(0).size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
+		std::vector<int64_t> host_data(num_bytes_data->view().column(0).size());
+		CUDA_TRY(cudaMemcpy(host_data.data(), num_bytes_data->view().column(0).data<int64_t>(), num_bytes_data->view().column(0).size() * sizeof(int64_t), cudaMemcpyDeviceToHost));
 		
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);

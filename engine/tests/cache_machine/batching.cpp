@@ -67,11 +67,11 @@ TEST_F(Batching, SimpleQuery) {
 		.table_names = {"nation"}
 	};
 	Print print;
-	auto graph = tree.build_batch_graph(json);
+	std::shared_ptr<ral::cache::graph> graph = tree.build_batch_graph(json);
 	try {
 		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
-		graph += link(graph.get_last_kernel(), print, simple_cache_config);
-		graph.execute();
+		*graph += link(graph->get_last_kernel(), print, simple_cache_config);
+		graph->execute();
 	} catch(std::exception & ex) {
 		std::cout << ex.what() << "\n";
 	}
@@ -110,11 +110,11 @@ TEST_F(Batching, BindableQuery) {
 		.table_names = {"nation"}
 	};
 	Print print;
-	auto graph = tree.build_batch_graph(json);
+	std::shared_ptr<ral::cache::graph> graph = tree.build_batch_graph(json);
 	try {
 		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
-		graph += link(graph.get_last_kernel(), print, simple_cache_config);
-		graph.execute();
+		*graph += link(graph->get_last_kernel(), print, simple_cache_config);
+		graph->execute();
 	} catch(std::exception & ex) {
 		std::cout << ex.what() << "\n";
 	}
@@ -135,17 +135,17 @@ TEST_F(Batching, SortSamplePartitionTest) {
 
 	ral::io::data_loader loader(parser, provider);
 
-	TableScan customer_generator(loader, schema, queryContext);
+	TableScan customer_generator(loader, schema, queryContext, nullptr);
 
-	SortAndSampleSingleNodeKernel sort_and_sample("Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext);
-	PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext);
-	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext);
+	SortAndSampleSingleNodeKernel sort_and_sample("Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
+	PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
+	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
 
 	// SortAndSampleSingleNodeKernel sort_and_sample("Logical_SortAndSample(sort0=[$0], dir0=[ASC])", queryContext);
 	// PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$0], dir0=[ASC])", queryContext);
 	// MergeStreamKernel merge("LogicalMerge(sort0=[$0], dir0=[ASC])", queryContext);
-	Projection project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext);
-	Filter filter("LogicalFilter(condition=[<($0, 100)])", queryContext);
+	Projection project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext, nullptr);
+	Filter filter("LogicalFilter(condition=[<($0, 100)])", queryContext, nullptr);
 	Print print;
 	ral::cache::graph m;
 	try {
