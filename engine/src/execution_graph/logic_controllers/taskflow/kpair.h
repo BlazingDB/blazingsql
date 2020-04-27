@@ -6,8 +6,15 @@
 namespace ral {
 namespace cache { 
 
+/// \brief An enum type that  represent a cache machine type  
+/// `SIMPLE` is used to identify a CacheMachine class.
+/// `CONCATENATING` is used to identify a ConcatenatingCacheMachine class. 
+/// `FOR_EACH` is used to identify a graph execution with kernels that need to send many partitions at once, 
+/// for example for kernels PartitionSingleNodeKernel and MergeStreamKernel. 
 enum class CacheType {SIMPLE, CONCATENATING, FOR_EACH };
 
+/// \brief An object that  represent a cache machine configuration (type and num_partitions) 
+/// used in create_cache_machine and create_cache_machine functions. 
 struct cache_settings {
 	CacheType type = CacheType::SIMPLE;
 	const int num_partitions = 1;

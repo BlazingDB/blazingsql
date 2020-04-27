@@ -21,7 +21,8 @@
 namespace ral {
 namespace cache {
 
-enum CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE };
+/// \brief An enum type to represent the cache level ID
+enum CacheDataType { GPU, CPU, LOCAL_FILE};
 
 /// \brief An interface which represent a CacheData 
 class CacheData {
