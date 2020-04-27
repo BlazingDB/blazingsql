@@ -7,7 +7,7 @@ namespace experimental {
 
 
 gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::BlazingTableView table_view){
-    std::vector<int> buffer_sizes;
+    std::vector<unsigned long long> buffer_sizes;
     std::vector<const char *> raw_buffers;
     std::vector<ColumnTransport> column_offset;
     std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
@@ -93,7 +93,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
                 }
         } else {
             col_transport.data = raw_buffers.size();
-            buffer_sizes.push_back(column.size() * cudf::size_of(column.type()));
+            buffer_sizes.push_back((unsigned long long) column.size() * (unsigned long long) cudf::size_of(column.type()));
 			col_transport.size_in_bytes += column.size() * cudf::size_of(column.type());
 
 			raw_buffers.push_back(column.head<char>() + column.offset() * cudf::size_of(column.type())); // here we are getting the beginning of the buffer and manually calculating the offset.
@@ -116,7 +116,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
 }
 
 std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_table(ral::frame::BlazingTableView table_view) {
-	std::vector<int> buffer_sizes;
+	std::vector<unsigned long long> buffer_sizes;
 	std::vector<const char *> raw_buffers;
 	std::vector<ColumnTransport> column_offset;
 	std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
