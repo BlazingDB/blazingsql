@@ -42,7 +42,7 @@ namespace experimental {
 
 	void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
-	void notifyLastTablePartitions(Context * context);
+	void notifyLastTablePartitions(Context * context, std::string message_id);
 
 	void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
@@ -74,8 +74,7 @@ namespace experimental {
 	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
 				std::vector<cudf::size_type> & node_num_rows_right);
 
-	void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::BlazingTableView & left,
-    		const ral::frame::BlazingTableView & right);
+	void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, int64_t bytes_right);
 
 	void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,
 			std::vector<int64_t> & node_num_bytes_right);

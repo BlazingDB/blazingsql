@@ -24,16 +24,15 @@ using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 
 class ComputeAggregateKernel :public kernel {
 public:
-	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context} {
+        this->query_graph = query_graph;
 	}
 
 	virtual kstatus run() {
 
-        std::vector<int> group_column_indices;
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
-        std::vector<AggregateKind> aggregation_types;
-        std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
+        std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types, 
             aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
 
 		BatchSequence input(this->input_cache(), this);
@@ -43,15 +42,15 @@ public:
 
             try {
                 std::unique_ptr<ral::frame::BlazingTable> output;
-                if(aggregation_types.size() == 0) {
+                if(this->aggregation_types.size() == 0) {
                     output = ral::operators::experimental::compute_groupby_without_aggregations(
-                            batch->toBlazingTableView(), group_column_indices);
-                } else if (group_column_indices.size() == 0) {
+                            batch->toBlazingTableView(), this->group_column_indices);
+                } else if (this->group_column_indices.size() == 0) {
                     output = ral::operators::experimental::compute_aggregations_without_groupby(
-                            batch->toBlazingTableView(), aggregation_input_expressions, aggregation_types, aggregation_column_assigned_aliases);                
+                            batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases);                
                 } else {
                     output = ral::operators::experimental::compute_aggregations_with_groupby(
-                        batch->toBlazingTableView(), aggregation_input_expressions, aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
+                        batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
                 }
                 
                 this->add_to_output_cache(std::move(output));
@@ -66,17 +65,39 @@ public:
 		return kstatus::proceed;
 	}
 
+    std::pair<bool, uint64_t> get_estimated_output_num_rows(){
+        if(this->aggregation_types.size() > 0 && this->group_column_indices.size() == 0) { // aggregation without groupby
+            return std::make_pair(true, 1);
+        } else {
+            std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
+            if (total_in.first){
+                double out_so_far = (double)this->output_.total_rows_added();
+                double in_so_far = (double)this->input_.total_rows_added();
+                if (in_so_far == 0){
+                    return std::make_pair(false, 0);    
+                } else {
+                    return std::make_pair(true, (uint64_t)( ((double)total_in.second) *out_so_far/in_so_far) );
+                }
+            } else {
+                return std::make_pair(false, 0);
+            }
+        }
+    }
+
 private:
 	std::shared_ptr<Context> context;
 	std::string expression;
+    std::vector<AggregateKind> aggregation_types;
+    std::vector<int> group_column_indices;
 };
 
 
 
 class DistributeAggregateKernel :public kernel {
 public:
-	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context} {
+        this->query_graph = query_graph;
 	}
 
 	virtual kstatus run() {
@@ -164,7 +185,7 @@ public:
             if (!(group_column_indices.size() == 0
                 && this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode()))) {
                 // Aggregations without groupby does not send distributeTablePartitions
-                ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
+                ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
             }
         });
         
@@ -193,8 +214,9 @@ private:
 
 class MergeAggregateKernel :public kernel {
 public:
-	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context} {
+        this->query_graph = query_graph;
 	}
 
 	virtual kstatus run() {
