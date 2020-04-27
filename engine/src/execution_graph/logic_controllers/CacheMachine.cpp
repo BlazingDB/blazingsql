@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <random>
 #include <src/utilities/CommonOperations.h>
+#include <src/utilities/DebuggingUtils.h>
 
 namespace ral {
 namespace cache {
@@ -60,6 +61,8 @@ CacheMachine::CacheMachine()
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
 	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() ); 
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
+	this->num_bytes_added = 0;
+	this->num_rows_added = 0;
 
 	logger = spdlog::get("batch_logger");
 }
@@ -70,9 +73,24 @@ CacheMachine::~CacheMachine() {}
 void CacheMachine::finish() {
 	this->waitingCache->finish();
 }
+
+bool CacheMachine::is_finished() {
+	return this->waitingCache->is_finished();
+}
+
+uint64_t CacheMachine::get_num_bytes_added(){
+	return num_bytes_added.load();
+}
+
+uint64_t CacheMachine::get_num_rows_added(){
+	return num_rows_added.load();
+}
+
 void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string message_id) {
 	logger->trace("Add to CacheMachine id[{}] rows[{}]", message_id, host_table->num_rows());
 
+	num_rows_added += host_table->num_rows();
+	num_bytes_added += host_table->sizeInBytes();
 	auto cacheIndex = 1; // HOST MEMORY
 	auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
 	std::unique_ptr<message<CacheData>> item =
@@ -87,6 +105,8 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id){
 	logger->trace("Add to CacheMachine id[{}] rows[{}]", message_id, cache_data->num_rows());
 
+	num_rows_added += cache_data->num_rows();
+	num_bytes_added += cache_data->sizeInBytes();
 	int cacheIndex = 0;
 	while(cacheIndex < this->memory_resources.size()) {
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
@@ -126,6 +146,8 @@ void CacheMachine::clear() {
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id) {
 	logger->trace("Add to CacheMachine id[{}] rows[{}]", message_id, table->num_rows());
 
+	num_rows_added += table->num_rows();
+	num_bytes_added += table->sizeInBytes();
 	int cacheIndex = 0;
 	while(cacheIndex < memory_resources.size()) {
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());

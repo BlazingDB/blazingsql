@@ -302,9 +302,13 @@ class function_evaluator_transformer : public parser::parse_node_transformer {
 public:
     function_evaluator_transformer(const cudf::table_view & table) : table{table} {}
 
-    parser::parse_node * transform(const parser::operad_node& node) override { return const_cast<parser::operad_node *>(&node); }
-    
-    parser::parse_node * transform(const parser::operator_node& node) override {
+    std::shared_ptr<parser::parse_node> transform(const parser::operad_node& node) override { 
+        auto out =  std::make_shared<parser::operad_node>(node.value); 
+        out->children = node.children;
+        return out;
+    }
+
+    std::shared_ptr<parser::parse_node> transform(const parser::operator_node& node) override {
         interops::operator_type op = map_to_operator_type(node.value);
 
         std::unique_ptr<cudf::column> computed_col;
@@ -346,10 +350,12 @@ public:
             std::string computed_var_token = "$" + std::to_string(table.num_columns() + computed_columns.size());
             computed_columns.push_back(std::move(computed_col));
             
-            return new parser::operad_node(computed_var_token);
+            return std::make_shared<parser::operad_node>(computed_var_token);
         }
-
-        return const_cast<parser::operator_node *>(&node); 
+        auto out =  std::make_shared<parser::operator_node>(node.value); 
+        out->children = node.children;
+        return out;
+        // return std::shared_ptr<parser::operator_node>((parser::operator_node*)&node);
     }
 
     cudf::table_view computed_columns_view() {

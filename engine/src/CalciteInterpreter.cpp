@@ -379,18 +379,17 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 		};
 		ral::batch::OutputKernel output;
 
-		auto graph = tree.build_batch_graph(logicalPlan);
+		auto query_graph = tree.build_batch_graph(logicalPlan);
 		
 		auto logger = spdlog::get("batch_logger");
 		logger->info("********** Query Start **********\n{}\n{}", logicalPlan, tree.to_string());
 		
-		if (graph.num_nodes() > 0) {
-			graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
-			// graph.show();
-			graph.execute();
+		if (query_graph->num_nodes() > 0) {
+			*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			// query_graph.show();
+			query_graph->execute();
 			output_frame = output.release();
 		}
-		// output_frame = tree.execute_plan(logicalPlan);
 
 		logger->info("********** Query Execution Done in {} ms **********", blazing_timer.elapsed_time());
 

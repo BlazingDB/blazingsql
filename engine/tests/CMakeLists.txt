@@ -113,5 +113,6 @@ add_subdirectory(new-tests)
 add_subdirectory(transport)
 add_subdirectory(skipdata)
 add_subdirectory(cache_machine)
+add_subdirectory(parser)
 
 message(STATUS "******** Tests are ready ********")
