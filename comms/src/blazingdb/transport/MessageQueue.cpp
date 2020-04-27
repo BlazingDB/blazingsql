@@ -51,7 +51,7 @@ std::shared_ptr<ReceivedMessage> MessageQueue::getMessageQueue(
     const std::string &messageToken) {
   auto it = std::find_if(message_queue_.begin(), message_queue_.end(),
                            [&messageToken](const auto &e) {
-                             return e->getMessageTokenValue() != messageToken;
+                             return e->getMessageTokenValue() == messageToken;
                            });
   assert(it != message_queue_.end());
 
