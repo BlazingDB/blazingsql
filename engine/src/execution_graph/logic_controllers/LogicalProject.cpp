@@ -397,15 +397,6 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     function_evaluator_transformer evaluator{table};
     for(size_t i = 0; i < expressions.size(); i++){
         std::string expression = replace_calcite_regex(expressions[i]);
-        {
-            parser::parse_tree parse_tree;
-            parse_tree.build(expression);
-        }
-        {
-            parser::parse_tree parse_tree;
-            parse_tree.build(expression);
-            parse_tree.transform_to_custom_op();
-        }
         parser::parse_tree parse_tree;
         parse_tree.build(expression);
         parse_tree.transform_to_custom_op();
