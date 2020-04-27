@@ -151,7 +151,7 @@ public:
 		auto concatSamples = ral::utilities::experimental::concatTables(sampledTableViews);
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
 		cudf::size_type num_partitions = context->getTotalNodes() * 4; // WSM TODO this is a hardcoded number for now. THis needs to change in the near future
-		auto partitionPlan = ral::operators::experimental::generate_partition_plan(num_partitions, sampledTableViews, tableTotalRows, this->expression);
+		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(num_partitions, concatSamples->toBlazingTableView(), totalNumRows, this->expression, this->context.get());
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		
 		return kstatus::proceed;
