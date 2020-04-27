@@ -44,7 +44,7 @@ public:
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
-		SET_SIZE_THRESHOLD = 300000000;
+		SET_SIZE_THRESHOLD = 400000000;
 		this->max_left_ind = -1;
 		this->max_right_ind = -1;
 
@@ -68,7 +68,7 @@ public:
 			return nullptr;
 		}
 
-		while ((input.has_next_now() && bytes_loaded < SET_SIZE_THRESHOLD) ||
+		while ((input.wait_for_next() && bytes_loaded < SET_SIZE_THRESHOLD) ||
 					(load_all && input.wait_for_next())) {
 			tables_loaded.emplace_back(input.next());
 			bytes_loaded += tables_loaded.back()->sizeInBytes(); 
@@ -560,9 +560,6 @@ public:
 			}
 		});
 
-		distribute_left_thread.join();
-		left_consumer.join();
-		
 		// clone context, increment step counter to make it so that the next partition_table will have different message id
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
@@ -583,6 +580,8 @@ public:
 		});
 	
 		
+		distribute_left_thread.join();
+		left_consumer.join();
 		distribute_right_thread.join();
 		right_consumer.join();
 	}
