@@ -44,7 +44,7 @@ public:
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
-		SET_SIZE_THRESHOLD = 300000000;
+		SET_SIZE_THRESHOLD = 400000000; // WSM we should make this a configurable parameter
 		this->max_left_ind = -1;
 		this->max_right_ind = -1;
 
@@ -67,8 +67,14 @@ public:
 		} else {
 			return nullptr;
 		}
+		// NOTE this used to be like this:
+		// while ((input.has_next_now() && bytes_loaded < SET_SIZE_THRESHOLD) ||
+		//  	(load_all && input.wait_for_next())) {
+		// with the idea that it would just start processing as soon as there was data to process. 
+		// This actually does not make it faster, because it makes it so that there are more chunks to do pairwise joins and therefore more join operations
+		// We may want to revisit or rethink this
 
-		while ((input.has_next_now() && bytes_loaded < SET_SIZE_THRESHOLD) ||
+		while ((input.wait_for_next() && bytes_loaded < SET_SIZE_THRESHOLD) ||
 					(load_all && input.wait_for_next())) {
 			tables_loaded.emplace_back(input.next());
 			bytes_loaded += tables_loaded.back()->sizeInBytes(); 
@@ -559,7 +565,7 @@ public:
 				this->add_to_output_cache(std::move(host_table), "output_a");
 			}
 		});
-		
+
 		// clone context, increment step counter to make it so that the next partition_table will have different message id
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
@@ -579,6 +585,7 @@ public:
 			}
 		});
 	
+		
 		distribute_left_thread.join();
 		left_consumer.join();
 		distribute_right_thread.join();

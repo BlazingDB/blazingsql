@@ -1,4 +1,3 @@
-#include "GDFColumn.cuh"
 #include "parser/expression_tree.hpp"
 #include <gtest/gtest.h>
 #include <iostream>
@@ -8,8 +7,6 @@ struct ExpressionTreeTest : public ::testing::Test {
 	ExpressionTreeTest() {}
 
 	~ExpressionTreeTest() {}
-
-	void SetUp() override { rmmInitialize(nullptr); }
 };
 
 TEST_F(ExpressionTreeTest, case_1) {
