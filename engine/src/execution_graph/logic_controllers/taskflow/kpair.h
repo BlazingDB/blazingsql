@@ -5,13 +5,17 @@
 namespace ral {
 namespace cache { 
 
-enum class CacheType { NON_WAITING, SIMPLE, CONCATENATING, FOR_EACH };
+enum class CacheType {SIMPLE, CONCATENATING, FOR_EACH };
 
 struct cache_settings {
 	CacheType type = CacheType::SIMPLE;
 	const int num_partitions = 1;
 };
 
+
+/**
+	@brief A temporary object to represent a pair of two kernels linked into the execution graph.
+*/
 class kpair {
 public:
 	kpair(kernel & a, kernel & b, const cache_settings & config = cache_settings{}) : cache_machine_config(config) {

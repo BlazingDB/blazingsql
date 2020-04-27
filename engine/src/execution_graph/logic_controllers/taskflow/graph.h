@@ -9,10 +9,7 @@ namespace cache {
 
 static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cache_settings& config) {
 	std::shared_ptr<ral::cache::CacheMachine> machine;
-	if (config.type == CacheType::NON_WAITING) {
-		machine =  std::make_shared<ral::cache::NonWaitingCacheMachine>();
-	}
-	else if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
+	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
 		machine =  std::make_shared<ral::cache::CacheMachine>();
 	} else if (config.type == CacheType::CONCATENATING) {
 		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>();
@@ -28,6 +25,10 @@ static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machi
 	return machines;
 }
 
+/**
+	@brief A class that represents the execution graph in a taskflow scheme.
+	The taskflow scheme is basically implemeted by the execution graph and the kernels associated to each node in the graph.
+*/ 
 class graph {
 protected:
 	struct Edge {

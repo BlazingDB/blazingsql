@@ -191,18 +191,6 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	return std::move(cache_data);
 }
 
-NonWaitingCacheMachine::NonWaitingCacheMachine()
-	: CacheMachine()
-{
-}
-
-std::unique_ptr<ral::frame::BlazingTable> NonWaitingCacheMachine::pullFromCache() {
-	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop();
-	auto cache_data = message_data->releaseData();
-	auto cache_index = message_data->cacheIndex();
-	return std::move(cache_data->decache());
-}
-
 
 ConcatenatingCacheMachine::ConcatenatingCacheMachine()
 	: CacheMachine()

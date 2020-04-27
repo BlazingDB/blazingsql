@@ -23,7 +23,7 @@ namespace cache {
 
 enum CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE };
 
-
+/// \brief An interface which represent a CacheData 
 class CacheData {
 public:
 	CacheData(std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows)
@@ -52,6 +52,7 @@ protected:
 	size_t							n_rows;
 };
 
+/// \brief A specific class for a CacheData on GPU Memory 
 class GPUCacheData : public CacheData {
 public:
 	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table) : CacheData(table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
@@ -66,6 +67,7 @@ private:
 	std::unique_ptr<ral::frame::BlazingTable> data;
 };
 
+/// \brief A specific class for a CacheData on CPU Memory 
  class CPUCacheData : public CacheData {
  public:
  	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) 
@@ -93,7 +95,7 @@ protected:
 	 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
  };
 
-
+/// \brief A specific class for a CacheData on Disk Memory 
 class CacheDataLocalFile : public CacheData {
 public:
 	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table);
@@ -111,6 +113,9 @@ private:
 
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 
+/// \brief This class represents a  messsage into que WaitingQueue. 
+/// We use this class to represent not only the CacheData 
+/// but also the message_id and the cache level (`cache_index`) where the data is stored.
 template <class T>
 class message {
 public:
@@ -131,6 +136,13 @@ protected:
 	std::unique_ptr<T> data;
 };
 
+/**
+	@brief A class that represents a Waiting Queue which is used 
+	into the multi-tier cache system to stores data (GPUCacheData, CPUCacheData, CacheDataLocalFile). 
+	This class brings concurrency support the all cache machines into the  execution graph. 
+	A blocking messaging system for `pop_or_wait` method is implemeted by using a condition variable.
+	Note: WaitingQueue class is based on communication MessageQueue. 
+*/
 template <class T>
 class WaitingQueue {
 public:
@@ -246,7 +258,10 @@ private:
 	std::atomic<size_t> n_batches{1};
 	std::condition_variable condition_variable_;
 };
-
+/**
+	@brief A class that represents a Cache Machine on a
+	multi-tier (GPU memory, CPU memory, Disk memory) cache system. 
+*/
 class CacheMachine {
 public:
 	CacheMachine();
@@ -289,12 +304,19 @@ public:
 	}
 
 protected:
+	/// This property represents a waiting queue object which stores all CacheData Objects  
 	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
 
 protected:
+	/// References to the properties of the multi-tier cache system
 	std::vector<BlazingMemoryResource*> memory_resources;
 };
- 
+
+/**
+	@brief A class that represents a Host Cache Machine on a
+	multi-tier cache system, however this cache machine only stores CacheData of type CPUCacheData.
+	This class is used to by pass BatchSequences.
+*/ 
 class HostCacheMachine {
 public:
 	HostCacheMachine() {
@@ -346,16 +368,11 @@ protected:
 	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
 };
 
-class NonWaitingCacheMachine : public CacheMachine {
-public:
-	NonWaitingCacheMachine();
-
-	~NonWaitingCacheMachine() = default;
-
-	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
-
-};
-
+/**
+	@brief A class that represents a Cache Machine on a
+	multi-tier cache system. Moreover, it only returns a single BlazingTable by concatenating all batches.
+	This Cache Machine is used in the last Kernel (OutputKernel) in the ExecutionGraph.
+*/ 
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine();
@@ -364,159 +381,7 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
 };
-using Context = blazingdb::manager::experimental::Context;
 
-class WorkerThread {
-public:
-	WorkerThread() {}
-	virtual ~WorkerThread() {}
-	virtual bool process() = 0;
-
-protected:
-	blazingdb::manager::experimental::Context * context;
-	std::string queryString;
-	bool _paused;
-};
-
-template <typename Processor>
-class SingleSourceWorkerThread : public WorkerThread {
-public:
-	SingleSourceWorkerThread(std::shared_ptr<CacheMachine> cacheSource,
-		std::shared_ptr<CacheMachine> cacheSink,
-		std::string queryString,
-		Processor * processor,
-		blazingdb::manager::experimental::Context * context)
-		: source(cacheSource), sink(cacheSink), WorkerThread() {
-		this->context = context;
-		this->queryString = queryString;
-		this->_paused = false;
-		this->processor = processor;
-	}
-
-	// returns true when theres nothing left to process
-	bool process() override {
-		if(_paused || source->ready_to_execute()) {
-			return false;
-		}
-		auto input = source->pullFromCache();
-		if(input == nullptr) {
-			return true;
-		}
-		auto output = this->processor(input->toBlazingTableView(), queryString, nullptr);
-		sink->addToCache(std::move(output));
-		return process();
-	}
-	void resume() { _paused = false; }
-	void pause() { _paused = true; }
-	virtual ~SingleSourceWorkerThread() {}
-
-private:
-	std::shared_ptr<CacheMachine> source;
-	std::shared_ptr<CacheMachine> sink;
-	Processor * processor;
-};
-//
-////Has two sources, waits until at least one is complte before proceeding
-template <typename Processor>
-class DoubleSourceWaitingWorkerThread : public WorkerThread {
-public:
-	DoubleSourceWaitingWorkerThread(std::shared_ptr<CacheMachine> cacheSourceOne,
-		std::shared_ptr<CacheMachine> cacheSourceTwo,
-		std::shared_ptr<CacheMachine> cacheSink,
-		std::string queryString,
-		Processor * processor,
-		blazingdb::manager::experimental::Context * context)
-		: sourceOne(cacheSourceOne), sourceTwo(cacheSourceTwo), sink(cacheSink) {
-		this->context = context;
-		this->queryString = queryString;
-		this->_paused = false;
-		this->processor = processor;
-	}
-	virtual ~DoubleSourceWaitingWorkerThread() {}
-
-	// returns true when theres nothing left to process
-	bool process() override {
-		if(_paused || sourceOne->ready_to_execute()) {
-			return false;
-		}
-		auto inputOne = sourceOne->pullFromCache();
-
-		if(_paused || sourceTwo->ready_to_execute()) {
-			return false;
-		}
-		auto inputTwo = sourceTwo->pullFromCache();
-
-		auto output =
-			this->processor(this->context, inputOne->toBlazingTableView(), inputTwo->toBlazingTableView(), queryString);
-		sink->addToCache(std::move(output));
-
-		return true;
-	}
-
-	void resume() { _paused = false; }
-
-	void pause() { _paused = true; }
-
-private:
-	std::shared_ptr<CacheMachine> sourceOne;
-	std::shared_ptr<CacheMachine> sourceTwo;
-	std::shared_ptr<CacheMachine> sink;
-	Processor * processor;
-};
-
-template <typename Processor>
-class ProcessMachine {
-public:
-	ProcessMachine(std::shared_ptr<CacheMachine> cacheSource,
-		std::shared_ptr<CacheMachine> cacheSink,
-		Processor * processor,
-		std::string queryString,
-		blazingdb::manager::experimental::Context * context,
-		int numWorkers)
-		: source(cacheSource), sink(cacheSink), context(context), queryString(queryString), numWorkers(numWorkers) {
-		for(int i = 0; i < numWorkers; i++) {
-			auto thread = std::make_unique<SingleSourceWorkerThread<Processor>>(
-				cacheSource, cacheSink, queryString, processor, context);
-			workerThreads.emplace_back(std::move(thread));
-		}
-	}
-	ProcessMachine(std::shared_ptr<CacheMachine> cacheSourceOne,
-		std::shared_ptr<CacheMachine> cacheSourceTwo,
-		std::shared_ptr<CacheMachine> cacheSink,
-		Processor * processor,
-		std::string queryString,
-		blazingdb::manager::experimental::Context * context,
-		int numWorkers)
-		: sink(cacheSink), context(context), queryString(queryString), numWorkers(numWorkers) {
-		for(int i = 0; i < numWorkers; i++) {
-			auto thread = std::make_unique<DoubleSourceWaitingWorkerThread<Processor>>(
-				cacheSourceOne, cacheSourceTwo, cacheSink, queryString, processor, context);
-			workerThreads.emplace_back(std::move(thread));
-		}
-	}
-	void run();
-	void adjustWorkerCount(int numWorkers);
-
-private:
-	std::shared_ptr<CacheMachine> source;
-	std::shared_ptr<CacheMachine> sink;
-	std::vector<std::unique_ptr<WorkerThread>> workerThreads;
-	int numWorkers;
-	blazingdb::manager::experimental::Context * context;
-	std::string queryString;
-};
-
-template <typename Processor>
-void ProcessMachine<Processor>::run() {
-	std::vector<BlazingThread> threads;
-	for(int threadIndex = 0; threadIndex < numWorkers; threadIndex++) {
-		BlazingThread t([this, threadIndex] { this->workerThreads[threadIndex]->process(); });
-		threads.push_back(std::move(t));
-	}
-	for(auto & thread : threads) {
-		thread.join();
-	}
-}
 
 }  // namespace cache
 } // namespace ral

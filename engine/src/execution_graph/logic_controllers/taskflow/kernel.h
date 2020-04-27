@@ -8,6 +8,11 @@ namespace cache {
 class kernel;
 using kernel_pair = std::pair<kernel *, std::string>;
 
+/**
+	@brief This interface represents a computation unit in the execution graph.
+	Each kernel has basically and input and output ports and the expression asocciated to the computation unit.
+	Each class that implements this interface should define how the computation is executed. See `run()` method.  
+*/
 class kernel {
 public:
 	kernel(std::string expr = "") : expr{expr}, kernel_id(kernel::kernel_count) {
