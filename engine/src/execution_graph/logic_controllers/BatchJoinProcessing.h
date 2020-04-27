@@ -44,7 +44,7 @@ public:
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
-		SET_SIZE_THRESHOLD = 400000000;
+		SET_SIZE_THRESHOLD = 400000000; // WSM we should make this a configurable parameter
 		this->max_left_ind = -1;
 		this->max_right_ind = -1;
 
@@ -67,6 +67,12 @@ public:
 		} else {
 			return nullptr;
 		}
+		// NOTE this used to be like this:
+		// while ((input.has_next_now() && bytes_loaded < SET_SIZE_THRESHOLD) ||
+		//  	(load_all && input.wait_for_next())) {
+		// with the idea that it would just start processing as soon as there was data to process. 
+		// This actually does not make it faster, because it makes it so that there are more chunks to do pairwise joins and therefore more join operations
+		// We may want to revisit or rethink this
 
 		while ((input.wait_for_next() && bytes_loaded < SET_SIZE_THRESHOLD) ||
 					(load_all && input.wait_for_next())) {
