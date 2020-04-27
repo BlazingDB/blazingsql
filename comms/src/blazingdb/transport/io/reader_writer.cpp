@@ -89,7 +89,7 @@ void setPinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers) {
 PinnedBufferProvider &getPinnedBufferProvider() { return *global_instance; }
 
 void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
-                            std::vector<unsigned long long> bufferSizes,
+                            std::vector<std::size_t> bufferSizes,
                             std::vector<const char *> buffers, void *fileDescriptor,
                             int gpuNum) {
   if (bufferSizes.size() == 0) {
@@ -231,7 +231,7 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
   getPinnedBufferProvider().freeAll();
 }
 
-void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
+void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,
                                           void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &tempReadAllocations) 
 {
   std::vector<std::thread> allocationThreads(bufferSizes.size());
@@ -279,7 +279,7 @@ void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
   // return tempReadAllocations;
 }
 
-void readBuffersIntoCPUTCP(std::vector<int> bufferSizes,
+void readBuffersIntoCPUTCP(std::vector<std::size_t> bufferSizes,
                                           void *fileDescriptor, int gpuNum, std::vector<Buffer> & tempReadAllocations)
 {
   std::vector<std::thread> allocationThreads(bufferSizes.size());

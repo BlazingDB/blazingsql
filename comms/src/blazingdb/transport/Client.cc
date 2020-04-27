@@ -117,7 +117,7 @@ public:
     write_metadata(fd, node.address().metadata_);
 
     // send message content (gpu buffers)
-    std::vector<unsigned long long> buffer_sizes;
+    std::vector<std::size_t> buffer_sizes;
     std::vector<const char *> buffers;
     std::vector<ColumnTransport> column_offsets;
     std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
@@ -130,7 +130,7 @@ public:
 
     write_metadata(fd, (int32_t)buffer_sizes.size());
     blazingdb::transport::io::writeToSocket(fd, (char*)buffer_sizes.data(),
-                                            sizeof(int) * buffer_sizes.size());
+                                            sizeof(std::size_t) * buffer_sizes.size());
 
     blazingdb::transport::experimental::io::writeBuffersFromGPUTCP(column_offsets, buffer_sizes, buffers, fd, gpuId);
     blazingdb::transport::io::writeToSocket(fd, "OK", 2, false);
