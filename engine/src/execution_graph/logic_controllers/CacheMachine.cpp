@@ -59,7 +59,9 @@ CacheMachine::CacheMachine()
 	waitingCache = std::make_unique<WaitingQueue<CacheData>>();
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
 	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() ); 
-	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() ); 
+	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
+
+	logger = spdlog::get("batch_logger");
 }
 
 CacheMachine::~CacheMachine() {}
@@ -69,6 +71,8 @@ void CacheMachine::finish() {
 	this->waitingCache->finish();
 }
 void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string message_id) {
+	logger->trace("Add to CacheMachine id[{}] rows[{}]", message_id, host_table->num_rows());
+
 	auto cacheIndex = 1; // HOST MEMORY
 	auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
 	std::unique_ptr<message<CacheData>> item =
@@ -81,6 +85,8 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 }
 
 void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id){
+	logger->trace("Add to CacheMachine id[{}] rows[{}]", message_id, cache_data->num_rows());
+
 	int cacheIndex = 0;
 	while(cacheIndex < this->memory_resources.size()) {
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
@@ -118,6 +124,8 @@ void CacheMachine::clear() {
 }
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id) {
+	logger->trace("Add to CacheMachine id[{}] rows[{}]", message_id, table->num_rows());
+
 	int cacheIndex = 0;
 	while(cacheIndex < memory_resources.size()) {
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
@@ -178,6 +186,9 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	}
 	auto cache_data = message_data->releaseData();
 	auto cache_index = message_data->cacheIndex();
+
+	logger->trace("Pull from CacheMachine id[{}] rows[{}]", message_data->get_message_id(), cache_data->num_rows());
+
 	return std::move(cache_data->decache());
 }
 
@@ -188,6 +199,9 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	}
 	std::unique_ptr<ral::cache::CacheData> cache_data = message_data->releaseData();
 	auto cache_index = message_data->cacheIndex();
+
+	logger->trace("Pull from CacheMachine id[{}] rows[{}]", message_data->get_message_id(), cache_data->num_rows());
+
 	return std::move(cache_data);
 }
 

@@ -10,8 +10,8 @@
 #include "operators/GroupBy.h"
 #include "distribution/primitives.h"
 #include "utilities/DebuggingUtils.h"
-
 #include <cudf/partitioning.hpp>
+#include "CodeTimer.h"
 
 namespace ral {
 namespace batch {
@@ -20,8 +20,6 @@ using ral::cache::kernel;
 using ral::cache::kernel_type;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 
-
-
 class ComputeAggregateKernel :public kernel {
 public:
 	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context)
@@ -29,6 +27,7 @@ public:
 	}
 
 	virtual kstatus run() {
+		CodeTimer timer;
 
         std::vector<int> group_column_indices;
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
@@ -58,11 +57,12 @@ public:
                 batch_count++;
             } catch(const std::exception& e) {
                 // TODO add retry here
-    			std::string err = "ERROR: in ComputeAggregateKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-                std::cout<<err<<std::endl;
+                logger->error("In ComputeAggregate kernel batch {} for {}. What: {}", batch_count, expression, e.what());
             }
 		}
-        // std::cout<<"ComputeAggregateKernel end "<<std::endl;
+
+        logger->debug("ComputeAggregate Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 
@@ -71,8 +71,6 @@ private:
 	std::string expression;
 };
 
-
-
 class DistributeAggregateKernel :public kernel {
 public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context)
@@ -80,6 +78,7 @@ public:
 	}
 
 	virtual kstatus run() {
+        CodeTimer timer;
 		
         std::vector<int> group_column_indices;
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases; // not used in this kernel
@@ -172,7 +171,7 @@ public:
             // Lets put the server listener to feed the output, but not if its aggregations without group by and its not the master
             if(group_column_indices.size() > 0 || 
                         this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
-                ExternalBatchColumnDataSequence external_input(context);
+                ExternalBatchColumnDataSequence external_input(context, this->get_message_id());
                 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
                 while (host_table = external_input.next()) {
                     this->add_to_output_cache(std::move(host_table));
@@ -181,7 +180,9 @@ public:
         });
         producer_thread.join();
         consumer_thread.join();
-        // std::cout<<"DistributeAggregateKernel end "<<std::endl;
+        
+        logger->debug("DistributeAggregate Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 
@@ -198,6 +199,7 @@ public:
 	}
 
 	virtual kstatus run() {
+        CodeTimer timer;
 
         std::vector<std::unique_ptr<ral::frame::BlazingTable>> tablesToConcat;
 		std::vector<ral::frame::BlazingTableView> tableViewsToConcat;
@@ -252,11 +254,12 @@ public:
                 this->add_to_output_cache(std::move(output));
              } catch(const std::exception& e) {
                 // TODO add retry here
-    			std::string err = "ERROR: in MergeAggregateKernel for " + expression + " Error message: " + std::string(e.what());
-                std::cout<<err<<std::endl;
+                logger->error("In MergeAggregateKernel kernel for {}. What: {}", expression, e.what());
             }
         }
-		// std::cout<<"MergeAggregateKernel end "<<std::endl;
+		
+        logger->debug("MergeAggregate Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 

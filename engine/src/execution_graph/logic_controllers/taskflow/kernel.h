@@ -1,5 +1,6 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
 #include "kernel_type.h"
 #include "port.h"
 
@@ -13,6 +14,8 @@ public:
 	kernel(std::string expr = "") : expr{expr}, kernel_id(kernel::kernel_count) {
 		kernel::kernel_count++;
 		parent_id_ = -1;
+
+		logger = spdlog::get("batch_logger");
 	}
 	void set_parent(size_t id) { parent_id_ = id; }
 	bool has_parent() const { return parent_id_ != -1; }
@@ -41,31 +44,25 @@ public:
 		return this->output_.get_cache(kernel_id);
 	}
 
-    void add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string kernel_id = "") {
-		if (kernel_id.empty()) {
-			kernel_id = std::to_string(this->get_id());
-		}
-		
-		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
-		this->output_.get_cache(kernel_id)->addToCache(std::move(table), message_id);
+    void add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "") {
+		std::string message_id = get_message_id();
+		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
+		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+		this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id);
 	}
 
-	void add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string kernel_id = "") {
-		if (kernel_id.empty()) {
-			kernel_id = std::to_string(this->get_id());
-		}
-
-		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
-		this->output_.get_cache(kernel_id)->addCacheData(std::move(cache_data), message_id);
+	void add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id = "") {
+		std::string message_id = get_message_id();
+		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
+		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+		this->output_.get_cache(cache_id)->addCacheData(std::move(cache_data), message_id);
 	}
 	
-	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string kernel_id = "") {
-		if (kernel_id.empty()) {
-			kernel_id = std::to_string(this->get_id());
-		}
-
-		std::string message_id = std::to_string((int)this->get_type_id()) + "_" + kernel_id;
-		this->output_.get_cache(kernel_id)->addHostFrameToCache(std::move(host_table), message_id);
+	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id = "") {
+		std::string message_id = get_message_id();
+		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
+		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+		this->output_.get_cache(cache_id)->addHostFrameToCache(std::move(host_table), message_id);
 	}
 
 	std::string get_message_id(){
@@ -83,6 +80,8 @@ public:
 	std::int32_t parent_id_;
 	bool execution_done = false;
 	kernel_type kernel_type_id;
+
+	std::shared_ptr<spdlog::logger> logger;
 };
 
  

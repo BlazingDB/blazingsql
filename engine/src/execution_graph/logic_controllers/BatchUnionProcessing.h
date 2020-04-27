@@ -11,6 +11,7 @@
 #include "distribution/primitives.h"
 #include "utilities/DebuggingUtils.h"
 #include "Utils.cuh"
+#include "CodeTimer.h"
 
 namespace ral {
 namespace batch {
@@ -28,7 +29,8 @@ public:
 	}
 
 	virtual kstatus run() {
-        
+		CodeTimer timer;
+
         bool isUnionAll = (get_named_expression(this->expression, "all") == "true");
         RAL_EXPECTS(isUnionAll, "In UnionKernel: UNION is not supported, use UNION ALL");
 
@@ -36,7 +38,7 @@ public:
         BatchSequenceBypass input_b(this->input_.get_cache("input_b"));
         auto batch_a = input_a.next();
         auto batch_b = input_b.next();
-        
+
         std::vector<cudf::data_type> data_types_a = batch_a->get_schema();
         std::vector<cudf::data_type> data_types_b = batch_b->get_schema();
 
@@ -54,6 +56,8 @@ public:
             auto batch = input_b.next();
             this->add_to_output_cache(std::move(batch));
         }
+
+        logger->debug("Union Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
 
 		return kstatus::proceed;
 	}

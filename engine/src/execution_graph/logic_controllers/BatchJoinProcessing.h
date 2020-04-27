@@ -12,7 +12,7 @@
 #include "distribution/primitives.h"
 #include "Utils.cuh"
 #include "blazingdb/concurrency/BlazingThread.h"
-
+#include "CodeTimer.h"
 #include <cudf/stream_compaction.hpp>
 #include <cudf/partitioning.hpp>
 #include <cudf/join.hpp>
@@ -233,6 +233,8 @@ public:
 	}
 
     virtual kstatus run() {
+		CodeTimer timer;
+
 		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this);
 		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this);
 
@@ -343,16 +345,17 @@ public:
 				
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in PartwiseJoin left_ind " + std::to_string(left_ind) + " right_ind " + std::to_string(right_ind) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("In PartwiseJoin kernel left_idx[{}] right_ind[{}] for {}. What: {}", left_ind, right_ind, expression, e.what());
 				throw e;
 			}
 		}
 		
 		if (!produced_output){
-			std::cout<<"WARNING: Join kernel did not produce an output"<<std::endl;
+			logger->warn("PartwiseJoin kernel did not produce an output");
 			// WSM TODO put an empty output into output cache
 		}
+
+		logger->debug("PartwiseJoin Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
 		
 		return kstatus::proceed;
 	}
@@ -390,7 +393,8 @@ public:
 				std::vector<cudf::size_type> column_indices, 
 				std::unique_ptr<ral::frame::BlazingTable> batch, 
 				BatchSequence & sequence, 
-				std::shared_ptr<ral::cache::CacheMachine> & output){
+				std::shared_ptr<ral::cache::CacheMachine> & output,
+				const std::string & message_id){
 
         bool done = false;
 		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
@@ -427,7 +431,7 @@ public:
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
 						// TODO: create message id and send to add add_to_output_cache
-						output->addToCache(std::move(partition_table_clone));
+						output->addToCache(std::move(partition_table_clone), message_id);
 					} else {
 						partitions_to_send.emplace_back(
 							std::make_pair(context->getNode(nodeIndex), partition_table_view));
@@ -452,7 +456,8 @@ public:
     }
 	
 	virtual kstatus run() {
-		
+		CodeTimer timer;
+
 		BatchSequence left_sequence(this->input_.get_cache("input_a"), this);
 		BatchSequence right_sequence(this->input_.get_cache("input_b"), this);
 
@@ -467,7 +472,7 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
 
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
-			std::cout<<"ERROR JoinPartitionKernel has empty left side and cannot determine join column indices"<<std::endl;
+			logger->error("JoinPartitionKernel has empty left side and cannot determine join column indices");
 		}
 		
 		{ // parsing more of the expression here because we need to have the number of columns of the tables
@@ -484,11 +489,10 @@ public:
 
 		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, context, 
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
-			std::ref(this->output_.get_cache("output_a")));
+			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id());
 
 		BlazingThread left_consumer([context = this->context, this](){
-			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
-			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
+			ExternalBatchColumnDataSequence external_input_left(this->context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			//std::cout << "... consumming left => "<< this->get_message_id()<<std::endl;
 			while (host_table = external_input_left.next()) {	
@@ -505,12 +509,11 @@ public:
 
 		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
-			std::ref(this->output_.get_cache("output_b")));
+			std::ref(this->output_.get_cache("output_b")), "output_b_" + this->get_message_id());
 
 		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
 		BlazingThread right_consumer([cloned_context, this](){
-			auto message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
-			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
+			ExternalBatchColumnDataSequence external_input_right(cloned_context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 
 			//std::cout << "... consumming right => "<< this->get_message_id()<<std::endl;
@@ -523,6 +526,8 @@ public:
 		distribute_right_thread.join();
 		right_consumer.join();
 		
+		logger->debug("JoinPartition Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 

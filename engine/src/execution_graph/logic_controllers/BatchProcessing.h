@@ -16,12 +16,10 @@
 #include <cudf/cudf.h>
 #include <cudf/io/functions.hpp>
 #include <cudf/types.hpp>
-#include "execution_graph/logic_controllers/TableScan.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-#include <blazingdb/io/Library/Logging/Logger.h>
 
 #include <src/operators/OrderBy.h>
 #include <src/operators/GroupBy.h>
@@ -30,7 +28,6 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include <Util/StringUtil.h>
-#include "CodeTimer.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -50,6 +47,9 @@
 #include "blazingdb/concurrency/BlazingThread.h"
 
 #include "taskflow/graph.h"
+
+#include "CodeTimer.h"
+
 namespace ral {
 namespace batch {
 
@@ -120,18 +120,17 @@ using ral::communication::messages::experimental::ReceivedHostMessage;
 
 class ExternalBatchColumnDataSequence {
 public:
-	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, std::string message_token = "")
+	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id)
 		: context{context}, last_message_counter{context->getTotalNodes() - 1}
 	{
 		host_cache = std::make_shared<ral::cache::HostCacheMachine>();
 		std::string context_comm_token = context->getContextCommunicationToken();
 		const uint32_t context_token = context->getContextToken();
-		if (message_token.length() == 0) {
-			message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
-		}
-		BlazingMutableThread t([this, message_token, context_token](){
+		std::string comms_message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
+
+		BlazingMutableThread t([this, comms_message_token, context_token, message_id](){
 			while(true){
-					auto message = Server::getInstance().getHostMessage(context_token, message_token);
+					auto message = Server::getInstance().getHostMessage(context_token, comms_message_token);
 					if(!message) {
 						--last_message_counter;
 						if (last_message_counter == 0 ){
@@ -143,7 +142,7 @@ public:
 						assert(concreteMessage != nullptr);
 						auto host_table = concreteMessage->releaseBlazingHostTable();
 						host_table->setPartitionId(concreteMessage->getPartitionId());
-						this->host_cache->addToCache(std::move(host_table));			
+						this->host_cache->addToCache(std::move(host_table), message_id);			
 					}
 			}
 		});
@@ -249,17 +248,23 @@ private:
 class TableScan : public kernel {
 public:
 	TableScan(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-	: kernel(), input(loader, schema, context)
+	: kernel(), input(loader, schema, context), context(context)
 	{}
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		while( input.wait_for_next() ) {
 			auto batch = input.next();
 			this->add_to_output_cache(std::move(batch));
 		}
+		
+		logger->debug("TableScan Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		
 		return kstatus::proceed;
 	}
 
 private:
+	std::shared_ptr<Context> context;
 	DataSourceSequence input;
 };
 
@@ -267,8 +272,12 @@ class BindableTableScan : public kernel {
 public:
 	BindableTableScan(std::string & expression, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
 	: kernel(), input(loader, schema, context), expression(expression), context(context)
-	{}
+	{
+	}
+
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		input.set_projections(get_projections(expression));
 		int batch_count = 0;
 		while (input.wait_for_next() ) {
@@ -287,10 +296,12 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in BindableTableScan kernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("In BindableTableScan kernel batch {} for {}. What: {}", batch_count, expression, e.what());
 			}
 		}
+
+		logger->debug("BindableTableScan Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 	
@@ -307,7 +318,10 @@ public:
 		this->context = context;
 		this->expression = queryString;
 	}
+
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input(this->input_cache(), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
@@ -318,10 +332,12 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in Projection kernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("In Projection kernel batch {} for {}. What: {}", batch_count, expression, e.what());
 			}
 		}
+
+		logger->debug("Projection Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 
@@ -337,7 +353,10 @@ public:
 		this->context = context;
 		this->expression = queryString;
 	}
+
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input(this->input_cache(), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
@@ -348,10 +367,12 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in Filter kernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("In Filter kernel batch {} for {}. What: {}", batch_count, expression, e.what());
 			}
 		}
+
+		logger->debug("Filter Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 private:

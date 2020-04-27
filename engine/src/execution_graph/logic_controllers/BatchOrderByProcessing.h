@@ -7,11 +7,9 @@
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
-
 #include "distribution/primitives.h"
-
 #include "operators/OrderBy.h"
-
+#include "CodeTimer.h"
 
 namespace ral {
 namespace batch {
@@ -28,6 +26,8 @@ public:
 	}
 	
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
@@ -38,9 +38,6 @@ public:
 			try {
 				auto batch = input.next();
 				auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
-	// std::cout<<">>>>>>>>>>>>>>> sortedTable START"<< std::endl;
-	// ral::utilities::print_blazing_table_view(sortedTable->toBlazingTableView());
-	// std::cout<<">>>>>>>>>>>>>>> sortedTable END"<< std::endl;
 				auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
 				sampledTableViews.push_back(sampledTable->toBlazingTableView());
 				sampledTables.push_back(std::move(sampledTable));
@@ -50,17 +47,15 @@ public:
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples 
-				std::string err = "ERROR: in SortAndSampleSingleNodeKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("In SortAndSampleSingleNodeKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
 			}
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
 		auto partitionPlan = ral::operators::experimental::generate_partition_plan(32, sampledTableViews, tableTotalRows, this->expression);
-// std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
-// ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
-// std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
-			
+		
+		logger->debug("SortAndSampleSingleNode Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 
@@ -77,6 +72,8 @@ public:
 	}
 
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 		
@@ -102,10 +99,11 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in PartitionSingleNodeKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("In PartitionSingleNodeKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
 			}
 		}
+
+		logger->debug("PartitionSingleNode Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
 
 		return kstatus::proceed;
 	}
@@ -124,6 +122,8 @@ public:
 	}
 	
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
@@ -142,8 +142,7 @@ public:
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples 
-				std::string err = "ERROR: in SortAndSampleKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("In SortAndSampleKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
 			}
 		}
 		size_t totalNumRows = std::accumulate(tableTotalRows.begin(), tableTotalRows.end(), 0);
@@ -152,6 +151,8 @@ public:
 		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(32, concatSamples->toBlazingTableView(), totalNumRows, this->expression, this->context.get());
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		
+		logger->debug("SortAndSample Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 
@@ -168,6 +169,8 @@ public:
 	}
 
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 		
@@ -188,15 +191,14 @@ public:
 					batch_count++;
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					std::string err = "ERROR: in PartitionKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-					std::cout<<err<<std::endl;
+					logger->error("In PartitionKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
 				}	
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
 		});
 		
 		BlazingThread consumer([this](){
-			ExternalBatchColumnDataSequence external_input(context);
+			ExternalBatchColumnDataSequence external_input(context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			while (host_table = external_input.next()) {
 				std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
@@ -205,6 +207,8 @@ public:
 		});
 		generator.join();
 		consumer.join();
+
+		logger->debug("Partition Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
 
 		return kstatus::proceed;
 	}
@@ -221,7 +225,9 @@ public:
 	}
 	
 	virtual kstatus run() {
-		int cache_count = 0;
+		CodeTimer timer;
+
+		int batch_count = 0;
 		for (auto idx = 0; idx < this->input_.count(); idx++)
 		{	
 			try {
@@ -253,13 +259,14 @@ public:
 
 					this->add_to_output_cache(std::move(output));
 				}
-				cache_count++;
+				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in MergeStreamKernel cache " + std::to_string(cache_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("In MergeStreamKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
 			}
 		}
+
+		logger->debug("MergeStream Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
 		
 		return kstatus::proceed;
 	}
@@ -277,6 +284,8 @@ public:
 	}
 	
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		int64_t total_batch_rows = 0;
 		std::vector<std::unique_ptr<ral::cache::CacheData>> cache_vector;
 		BatchSequenceBypass input_seq(this->input_cache());
@@ -290,7 +299,7 @@ public:
 
 		if (rows_limit < 0) {
 			for (auto &&cache_data : cache_vector) {
-				this->output_cache()->addCacheData(std::move(cache_data));
+				this->add_to_output_cache(std::move(cache_data));
 			}
 		} else {
 			int batch_count = 0;
@@ -307,12 +316,13 @@ public:
 					batch_count++;
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					std::string err = "ERROR: in LimitKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-					std::cout<<err<<std::endl;
+					logger->error("In LimitKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
 				}
 			}
 		}
 		
+		logger->debug("Limit Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+
 		return kstatus::proceed;
 	}
 

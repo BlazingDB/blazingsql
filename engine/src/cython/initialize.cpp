@@ -7,21 +7,18 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
-
 #include <algorithm>
 #include <cuda_runtime.h>
 #include <memory>
-
+#include <chrono>
 
 #include <blazingdb/transport/io/reader_writer.h>
-
 
 #include <blazingdb/io/Config/BlazingContext.h>
 #include <blazingdb/io/Library/Logging/FileOutput.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 #include "utilities/StringUtils.h"
-
 
 #include "config/BlazingConfig.h"
 #include "config/GPUManager.cuh"
@@ -31,6 +28,10 @@
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 std::string get_ip(const std::string & iface_name = "eth0") {
 	int fd;
@@ -108,12 +109,26 @@ void initialize(int ralId,
 
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
+
+	// spdlog batch logger
+	spdlog::init_thread_pool(8192, 1);
+	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
+	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("spdlog/" + loggingName);
+	file_sink->set_pattern("[%Y-%m-%d %T.%e] [%^%l%$] %v");
+	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
+	auto logger = std::make_shared<spdlog::async_logger>("batch_logger", sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+	logger->set_level(spdlog::level::trace);
+	spdlog::register_logger(logger);
+
+	spdlog::flush_every(std::chrono::seconds(1));
 }
 
 void finalize() {
 	ral::communication::network::experimental::Client::closeConnections();
 	ral::communication::network::experimental::Server::getInstance().close();
 	BlazingRMMFinalize();
+	spdlog::shutdown();
 	cudaDeviceReset();
 	exit(0);
 }
