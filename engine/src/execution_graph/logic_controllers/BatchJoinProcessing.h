@@ -559,6 +559,9 @@ public:
 				this->add_to_output_cache(std::move(host_table), "output_a");
 			}
 		});
+
+		distribute_left_thread.join();
+		left_consumer.join();
 		
 		// clone context, increment step counter to make it so that the next partition_table will have different message id
 		auto cloned_context = context->clone();
@@ -579,8 +582,7 @@ public:
 			}
 		});
 	
-		distribute_left_thread.join();
-		left_consumer.join();
+		
 		distribute_right_thread.join();
 		right_consumer.join();
 	}
