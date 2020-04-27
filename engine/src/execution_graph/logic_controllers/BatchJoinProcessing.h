@@ -666,29 +666,29 @@ public:
 			std::cout<<"ERROR JoinPartitionKernel has empty left side and cannot determine join column indices"<<std::endl;
 		}
 
-		std::pair<bool, bool> scatter_left_right;
-		if (this->join_type == OUTER_JOIN){ // cant scatter a full outer join
-			scatter_left_right = std::make_pair(false, false);
-		} else {
-			scatter_left_right = determine_if_we_are_scattering_a_small_table(left_batch->toBlazingTableView(), 
-																				right_batch->toBlazingTableView());
-			if (scatter_left_right.first && this->join_type == LEFT_JOIN){
-				scatter_left_right.first = false; // cant scatter the left side for a left outer join
-			}
-		}
-		// scatter_left_right = std::make_pair(false, false); // Do this for debugging if you want to disable small table join optmization
-		if (scatter_left_right.first){
-			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_b"));
-			small_table_scatter_distribution( std::move(left_batch), std::move(right_batch),
-						std::move(left_sequence), std::move(big_table_sequence), scatter_left_right);
-		} else if (scatter_left_right.second) {
-			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_a"));
-			small_table_scatter_distribution( std::move(right_batch), std::move(left_batch),
-						std::move(right_sequence), std::move(big_table_sequence), scatter_left_right);
-		} else {
+		// std::pair<bool, bool> scatter_left_right;
+		// if (this->join_type == OUTER_JOIN){ // cant scatter a full outer join
+		// 	scatter_left_right = std::make_pair(false, false);
+		// } else {
+		// 	scatter_left_right = determine_if_we_are_scattering_a_small_table(left_batch->toBlazingTableView(), 
+		// 																		right_batch->toBlazingTableView());
+		// 	if (scatter_left_right.first && this->join_type == LEFT_JOIN){
+		// 		scatter_left_right.first = false; // cant scatter the left side for a left outer join
+		// 	}
+		// }
+		// // scatter_left_right = std::make_pair(false, false); // Do this for debugging if you want to disable small table join optmization
+		// if (scatter_left_right.first){
+		// 	BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_b"));
+		// 	small_table_scatter_distribution( std::move(left_batch), std::move(right_batch),
+		// 				std::move(left_sequence), std::move(big_table_sequence), scatter_left_right);
+		// } else if (scatter_left_right.second) {
+		// 	BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_a"));
+		// 	small_table_scatter_distribution( std::move(right_batch), std::move(left_batch),
+		// 				std::move(right_sequence), std::move(big_table_sequence), scatter_left_right);
+		// } else {
 			perform_standard_hash_partitioning(condition, std::move(left_batch), std::move(right_batch),
 				std::move(left_sequence), std::move(right_sequence));
-		}		
+		// }		
 		
 		return kstatus::proceed;
 	}
