@@ -11,7 +11,9 @@ namespace experimental {
 Address::Address(){}
  
 Address::Address(const Address& address){
-  this->metadata_ = address.metadata_;
+  this->metadata_.type = address.metadata_.type;
+  this->metadata_.comunication_port = address.metadata_.comunication_port;
+  this->metadata_.protocol_port = address.metadata_.protocol_port;
   memcpy(this->metadata_.ip, address.metadata_.ip, ADDRSTRLEN);
 }
 
