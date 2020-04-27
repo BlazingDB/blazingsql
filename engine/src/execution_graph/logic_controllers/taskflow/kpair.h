@@ -1,6 +1,7 @@
 #pragma once
 
 #include "port.h"
+#include "kernel.h"
 
 namespace ral {
 namespace cache { 

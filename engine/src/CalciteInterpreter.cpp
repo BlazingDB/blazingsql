@@ -379,11 +379,11 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 		};
 		ral::batch::OutputKernel output;
 
-		auto graph = tree.build_batch_graph(logicalPlan);
-		if (graph.num_nodes() > 0) {
-			graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
-			// graph.show();
-			graph.execute();
+		auto query_graph = tree.build_batch_graph(logicalPlan);
+		if (query_graph->num_nodes() > 0) {
+			*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			// query_graph->show();
+			query_graph->execute();
 			output_frame = output.release();
 		}
 		// output_frame = tree.execute_plan(logicalPlan);

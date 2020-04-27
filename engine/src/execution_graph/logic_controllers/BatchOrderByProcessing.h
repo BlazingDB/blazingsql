@@ -21,9 +21,10 @@ using ral::cache::kernel_type;
 
 class SortAndSampleSingleNodeKernel :public kernel {
 public:
-	SortAndSampleSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	SortAndSampleSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context}
 	{
+		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
 	
@@ -71,8 +72,9 @@ private:
 
 class PartitionSingleNodeKernel :public kernel {
 public:
-	PartitionSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	PartitionSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context} {
+		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
 
@@ -117,9 +119,10 @@ private:
 
 class SortAndSampleKernel :public kernel {
 public:
-	SortAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	SortAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context}
 	{
+		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
 	
@@ -162,8 +165,9 @@ private:
 
 class PartitionKernel :public kernel {
 public:
-	PartitionKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	PartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context} {
+		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
 
@@ -192,7 +196,7 @@ public:
 					std::cout<<err<<std::endl;
 				}	
 			}
-			ral::distribution::experimental::notifyLastTablePartitions(this->context.get());
+			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
 		});
 		
 		BlazingThread consumer([this](){
@@ -216,8 +220,9 @@ private:
 
 class MergeStreamKernel :public kernel {
 public:
-	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context}  {
+		this->query_graph = query_graph;
 	}
 	
 	virtual kstatus run() {
@@ -272,8 +277,9 @@ private:
 
 class LimitKernel :public kernel {
 public:
-	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context)
+	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: expression{queryString}, context{context}  {
+		this->query_graph = query_graph;
 	}
 	
 	virtual kstatus run() {

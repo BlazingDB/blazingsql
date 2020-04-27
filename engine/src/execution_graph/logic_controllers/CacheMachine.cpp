@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <random>
 #include <src/utilities/CommonOperations.h>
+#include <src/utilities/DebuggingUtils.h>
 
 namespace ral {
 namespace cache {
@@ -60,6 +61,8 @@ CacheMachine::CacheMachine()
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
 	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() ); 
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() ); 
+	this->num_bytes_added = 0;
+	this->num_rows_added = 0;
 }
 
 CacheMachine::~CacheMachine() {}
@@ -68,7 +71,27 @@ CacheMachine::~CacheMachine() {}
 void CacheMachine::finish() {
 	this->waitingCache->finish();
 }
+
+bool CacheMachine::is_finished() {
+	return this->waitingCache->is_finished();
+}
+
+uint64_t CacheMachine::get_num_bytes_added(){
+	return num_bytes_added.load();
+}
+
+uint64_t CacheMachine::get_num_rows_added(){
+	return num_rows_added.load();
+}
+
 void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string message_id) {
+	// std::cout<<"addHostFrameToCache "<<message_id<<std::endl;
+	// std::cout<<"num_rows: "<<host_table->num_rows()<<std::endl;
+	// for (auto name : host_table->names()){
+	// 	std::cout<<name<<std::endl;
+	// }
+	num_rows_added += host_table->num_rows();
+	num_bytes_added += host_table->sizeInBytes();
 	auto cacheIndex = 1; // HOST MEMORY
 	auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
 	std::unique_ptr<message<CacheData>> item =
@@ -81,6 +104,14 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 }
 
 void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id){
+	// std::cout<<"addCacheData "<<message_id<<std::endl;
+	// std::cout<<"num_rows: "<<cache_data->num_rows()<<std::endl;
+	// for (auto name : cache_data->names()){
+	// 	std::cout<<name<<std::endl;
+	// }
+
+	num_rows_added += cache_data->num_rows();
+	num_bytes_added += cache_data->sizeInBytes();
 	int cacheIndex = 0;
 	while(cacheIndex < this->memory_resources.size()) {
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
@@ -118,6 +149,10 @@ void CacheMachine::clear() {
 }
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id) {
+	// std::cout<<"addToCache "<<message_id<<std::endl;
+ 	// ral::utilities::print_blazing_table_view_schema(table->toBlazingTableView(), message_id);
+	num_rows_added += table->num_rows();
+	num_bytes_added += table->sizeInBytes();
 	int cacheIndex = 0;
 	while(cacheIndex < memory_resources.size()) {
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
@@ -178,7 +213,8 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	}
 	auto cache_data = message_data->releaseData();
 	auto cache_index = message_data->cacheIndex();
-	return std::move(cache_data->decache());
+	
+	return std::move(cache_data->decache());	
 }
 
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {

@@ -244,12 +244,14 @@ std::unique_ptr<ral::frame::BlazingTable> process_join(const ral::frame::Blazing
   	int self_node_idx = context->getNodeIndex(ral::communication::experimental::CommunicationData::getInstance().getSelfNode());
 
   	context->incrementQuerySubstep();
-  	ral::distribution::experimental::distributeLeftRightTableSizeBytes(context, left, right);
+    int64_t local_left_bytes = ral::utilities::experimental::get_table_size_bytes(left);
+    int64_t local_right_bytes = ral::utilities::experimental::get_table_size_bytes(left);
+  	ral::distribution::experimental::distributeLeftRightTableSizeBytes(context, local_left_bytes, local_right_bytes);
   	std::vector<int64_t> nodes_num_bytes_left;
   	std::vector<int64_t> nodes_num_bytes_right;
   	ral::distribution::experimental::collectLeftRightTableSizeBytes(context, nodes_num_bytes_left, nodes_num_bytes_right);
-  	nodes_num_bytes_left[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(left);
-  	nodes_num_bytes_right[self_node_idx] = ral::utilities::experimental::get_table_size_bytes(right);
+  	nodes_num_bytes_left[self_node_idx] = local_left_bytes;
+  	nodes_num_bytes_right[self_node_idx] = local_right_bytes;
 
     int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), int64_t(0));
   	int64_t total_bytes_right = std::accumulate(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), int64_t(0));

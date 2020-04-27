@@ -168,6 +168,11 @@ public:
 		this->finished = true;
 		condition_variable_.notify_all(); 
 	}
+
+	bool is_finished() {
+		return this->finished.load(std::memory_order_seq_cst);
+	}
+
 	bool empty() const { return this->message_queue_.size() == 0; }
 
 	message_ptr pop_or_wait() {
@@ -282,6 +287,12 @@ public:
 
 	virtual void finish();
 
+	virtual bool is_finished();
+
+	uint64_t get_num_bytes_added();
+
+	uint64_t get_num_rows_added();
+
 	bool ready_to_execute();
 
 	bool wait_for_next() {
@@ -310,6 +321,8 @@ protected:
 protected:
 	/// References to the properties of the multi-tier cache system
 	std::vector<BlazingMemoryResource*> memory_resources;
+	std::atomic<uint64_t> num_bytes_added;
+	std::atomic<uint64_t> num_rows_added;
 };
 
 /**
