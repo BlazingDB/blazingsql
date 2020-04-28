@@ -25,7 +25,7 @@ namespace experimental {
 
 	std::unique_ptr<BlazingTable> generatePartitionPlans(
 				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples, 
-				const std::vector<std::size_t> & table_total_rows, const std::vector<cudf::order> & sortOrderTypes);
+				const std::vector<cudf::order> & sortOrderTypes);
 	
 	void distributePartitionPlan(Context * context, const BlazingTableView & pivots);
 
@@ -40,7 +40,7 @@ namespace experimental {
 											const std::vector<int> & searchColIndices,
 											std::vector<cudf::order> sortOrderTypes);
 
-	void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & partitions);
+	void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & partitions, const std::vector<int32_t> & part_ids = std::vector<int32_t>());
 
 	void notifyLastTablePartitions(Context * context, std::string message_id);
 

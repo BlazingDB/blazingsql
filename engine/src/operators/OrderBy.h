@@ -52,7 +52,7 @@ int64_t determine_local_limit(Context * context, int64_t local_num_rows, cudf::s
 
 std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part);
 std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part);
-std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(cudf::size_type number_partitions, const ral::frame::BlazingTableView & selfSamples, size_t table_num_rows, const std::string & query_part, Context * context);
+std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, unsigned long long table_num_rows, unsigned long long avg_bytes_per_row, const std::string & query_part, Context * context);
 std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_type number_partitions, const std::vector<ral::frame::BlazingTableView> & samples, const std::vector<size_t> & total_rows_tables, const std::string & query_part);
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part);
 std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>>
@@ -64,14 +64,6 @@ limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_li
 
 
 // END BATCH FUNCTIONS
-
-std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable>>
-	sort_and_sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context);
-
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition_sort(const ral::frame::BlazingTableView & partitionPlan,
-												const ral::frame::BlazingTableView & sortedTable,
-												const std::string & query_part,
-												Context * context);
 
 std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part);
 
