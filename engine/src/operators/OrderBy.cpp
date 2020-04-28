@@ -414,7 +414,7 @@ distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
 	int num_partitions = partitions.size();
 	std::vector<int32_t> part_ids(num_partitions);
     int32_t count = 0;
-	std::generate(part_ids.begin(), part_ids.end(), [count, num_nodes] () mutable { return (count++)%num_nodes; });
+	std::generate(part_ids.begin(), part_ids.end(), [count, num_partitions_per_node=num_partitions/num_nodes] () mutable { return (count++)%(num_partitions_per_node); });
 
 	distributeTablePartitions(context, partitions, part_ids);
 	
