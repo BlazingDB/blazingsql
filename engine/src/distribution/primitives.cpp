@@ -91,7 +91,7 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
 				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples, 
-				const std::vector<std::size_t> & table_total_rows, const std::vector<cudf::order> & sortOrderTypes) {
+				const std::vector<cudf::order> & sortOrderTypes) {
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
 
@@ -191,7 +191,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 	return partitioned_node_column_views;
 }
 
-void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & partitions) {
+void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & partitions, const std::vector<int32_t> & part_ids) {
 
 	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
@@ -206,7 +206,8 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 		}
 		BlazingTableView columns = nodeColumn.second;
 		auto destination_node = nodeColumn.first;
-		int partition_id = static_cast<int>(i);
+		int partition_id = part_ids.size() > i ? part_ids[i] : 0; // if part_ids is not set, then it does not matter and we can just use 0 as the partition_id
+		
 		threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns, partition_id]() mutable {
 			auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
 			Client::send(destination_node, *message);
