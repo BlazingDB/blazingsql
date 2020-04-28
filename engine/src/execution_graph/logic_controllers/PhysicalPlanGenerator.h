@@ -240,8 +240,8 @@ struct tree_processor {
 			str += " ";
 		}
 
-		str += std::to_string((int)p_tree->kernel_unit->get_type_id()) + "_" + std::to_string(p_tree->kernel_unit->get_id())
-						+ "  |  " + p_tree->expr;
+		str += "[" + std::to_string((int)p_tree->kernel_unit->get_type_id()) + "_" + std::to_string(p_tree->kernel_unit->get_id()) + "] "
+				+ p_tree->expr;
 
 		for (auto &child : p_tree->children) {
 			str += "\n" + to_string(child.get(), level + 1);

@@ -74,10 +74,10 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 		auto node = message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
 		if(received[node_idx]) {
-			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context->getQueryStep()),
-				std::to_string(context->getQuerySubstep()),
-				"ERROR: Already received collectSamples from node " + std::to_string(node_idx)));
+			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+			// 	std::to_string(context->getQueryStep()),
+			// 	std::to_string(context->getQuerySubstep()),
+			// 	"ERROR: Already received collectSamples from node " + std::to_string(node_idx)));
 		}
 		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		table_total_rows.push_back(concreteMessage->getTotalRowSize());
@@ -285,10 +285,10 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 		auto node = message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
 		if(received[node_idx]) {
-			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context->getQueryStep()),
-				std::to_string(context->getQuerySubstep()),
-				"ERROR: Already received collectSomePartitions from node " + std::to_string(node_idx)));
+			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+			// 	std::to_string(context->getQueryStep()),
+			// 	std::to_string(context->getQuerySubstep()),
+			// 	"ERROR: Already received collectSomePartitions from node " + std::to_string(node_idx)));
 		}
 		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		node_columns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
@@ -433,10 +433,10 @@ std::vector<int64_t> collectNumRows(Context * context) {
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);
 		if(received[node_idx]) {
-			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context->getQueryStep()),
-				std::to_string(context->getQuerySubstep()),
-				"ERROR: Already received collectRowSize from node " + std::to_string(node_idx)));
+			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+			// 	std::to_string(context->getQueryStep()),
+			// 	std::to_string(context->getQuerySubstep()),
+			// 	"ERROR: Already received collectRowSize from node " + std::to_string(node_idx)));
 		}
 		node_num_rows[node_idx] = concrete_message->getTotalRowSize();
 		received[node_idx] = true;
@@ -489,10 +489,10 @@ void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & n
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);
 		if(received[node_idx]) {
-			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context->getQueryStep()),
-				std::to_string(context->getQuerySubstep()),
-				"ERROR: Already received collectLeftRightNumRows from node " + std::to_string(node_idx)));
+			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+			// 	std::to_string(context->getQueryStep()),
+			// 	std::to_string(context->getQuerySubstep()),
+			// 	"ERROR: Already received collectLeftRightNumRows from node " + std::to_string(node_idx)));
 		}
 		node_num_rows_left[node_idx] = host_data[0];
 		node_num_rows_right[node_idx] = host_data[1];
@@ -544,10 +544,10 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);
 		if(received[node_idx]) {
-			Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-				std::to_string(context->getQueryStep()),
-				std::to_string(context->getQuerySubstep()),
-				"ERROR: Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx)));
+			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
+			// 	std::to_string(context->getQueryStep()),
+			// 	std::to_string(context->getQuerySubstep()),
+			// 	"ERROR: Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx)));
 		}
 		node_num_bytes_left[node_idx] = host_data[0];
 		node_num_bytes_right[node_idx] = host_data[1];
