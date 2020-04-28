@@ -423,7 +423,7 @@ distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
 		auto & partition = partitions[i];
 		if(partition.first == CommunicationData::getInstance().getSelfNode()) {
 			std::unique_ptr<ral::frame::BlazingTable> table = partition.second.clone();
-			self_partitions.emplace_back(i, std::move(table));
+			self_partitions.emplace_back(part_ids[i], std::move(table));
 		}
 	}
 	return self_partitions;
