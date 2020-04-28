@@ -516,8 +516,14 @@ public:
 		int64_t estimate_regular_distribution = (total_bytes_left + total_bytes_right) * (num_nodes - 1) / num_nodes;
 		int64_t estimate_scatter_left = (total_bytes_left) * (num_nodes - 1);
 		int64_t estimate_scatter_right = (total_bytes_right) * (num_nodes - 1);
-		int64_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
-													// WSM TODO get this value from config
+		
+		unsigned long long MAX_JOIN_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		auto it = config_options.find("MAX_JOIN_SCATTER_MEM_OVERHEAD");
+		if (it != config_options.end()){
+			MAX_JOIN_SCATTER_MEM_OVERHEAD = std::stoull(config_options["MAX_JOIN_SCATTER_MEM_OVERHEAD"]);
+			std::cout<<"GOT CONFIG MAX_JOIN_SCATTER_MEM_OVERHEAD VALUE OF "<<MAX_JOIN_SCATTER_MEM_OVERHEAD<<std::endl;
+		}
 
 		if(estimate_scatter_left < estimate_regular_distribution ||
 			estimate_scatter_right < estimate_regular_distribution) {

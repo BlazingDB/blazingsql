@@ -124,7 +124,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	bool use_execution_graph) {
+	bool use_execution_graph,
+	std::map<std::string, std::string> config_options ) {
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;

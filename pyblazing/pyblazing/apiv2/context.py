@@ -172,8 +172,8 @@ def collectPartitionsRunQuery(
         ctxToken,
         algebra,
         accessToken,
-        use_execution_graph
-        ):
+        use_execution_graph,
+        config_options):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     for table_name in tables:
@@ -209,7 +209,8 @@ In the mean time, for better performance we recommend using the unify_partitions
         ctxToken,
         algebra,
         accessToken,
-        use_execution_graph)
+        use_execution_graph,
+        config_options)
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -698,7 +699,7 @@ class BlazingContext(object):
     """
     
     def __init__(self, dask_client=None, network_interface=None, allocator="managed", 
-                 pool=False, initial_pool_size=None, enable_logging=False):
+                 pool=False, initial_pool_size=None, enable_logging=False, config_options={}):
         """
         Create a BlazingSQL API instance.
         
@@ -747,6 +748,7 @@ class BlazingContext(object):
         self.nodes = []
         self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
+        self.config_options = config_options
 
         if(dask_client is not None):
             if network_interface is None:
@@ -1531,7 +1533,8 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
-                        use_execution_graph)
+                        use_execution_graph,
+                        self.config_options)
         else:
             dask_futures = []
             i = 0
@@ -1548,6 +1551,7 @@ class BlazingContext(object):
                         algebra,
                         accessToken,
                         use_execution_graph,
+                        self.config_options,
                         workers=[worker]))
                 i = i + 1
             result = dask.dataframe.from_delayed(dask_futures)

@@ -18,7 +18,8 @@ public:
   explicit Context(const uint32_t token,
                    const std::vector<Node>& taskNodes,
                    const Node& masterNode,
-                   const std::string& logicalPlan);
+                   const std::string& logicalPlan,
+                   const std::map<std::string, std::string>& config_options);
 
       // TODO Cristhian Gonzalez no copies allowed
   std::shared_ptr<Context> clone();
@@ -59,6 +60,9 @@ public:
   uint32_t getKernelId() const {
     return this->kernel_id_;
   }
+  std::map<std::string, std::string> getConfigOptions() const {
+    return config_options_;
+  }
 
 private:
   const uint32_t token_;
@@ -69,6 +73,7 @@ private:
   const std::string logicalPlan_;
   uint32_t kernel_id_;
   std::mutex increment_step_mutex;
+  std::map<std::string, std::string> config_options_;
 };
 
 }  // namespace experimental
