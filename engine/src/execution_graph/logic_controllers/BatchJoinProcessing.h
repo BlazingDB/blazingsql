@@ -22,7 +22,6 @@ namespace batch {
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
-using ColumnDataMessage = ral::communication::messages::experimental::ColumnDataMessage;
 using namespace fmt::literals;
 
 const std::string INNER_JOIN = "inner";
@@ -418,14 +417,16 @@ public:
 	}
 
 
-    static void partition_table(std::shared_ptr<Context> local_context, 
+	static void partition_table(std::shared_ptr<Context> local_context,
 				std::vector<cudf::size_type> column_indices, 
 				std::unique_ptr<ral::frame::BlazingTable> batch, 
 				BatchSequence & sequence, 
 				std::shared_ptr<ral::cache::CacheMachine> & output,
-				const std::string & message_id){
+				const std::string & message_id)
+	{
+		using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
 
-        bool done = false;
+		bool done = false;
 		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
 		// If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
 		int num_partitions = local_context->getTotalNodes(); 
@@ -555,6 +556,7 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch,
 		BatchSequence left_sequence,
 		BatchSequence right_sequence){
+		using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
 		
 		this->context->incrementQuerySubstep();
 				
@@ -575,7 +577,7 @@ public:
 			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id());
 
 		BlazingThread left_consumer([context = this->context, this](){
-			ExternalBatchColumnDataSequence external_input_left(this->context, this->get_message_id());
+			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_left(this->context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 
 			while (host_table = external_input_left.next()) {	
@@ -593,7 +595,7 @@ public:
 
 		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
 		BlazingThread right_consumer([cloned_context, this](){
-			ExternalBatchColumnDataSequence external_input_right(cloned_context, this->get_message_id());
+			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_right(cloned_context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			
 			while (host_table = external_input_right.next()) {
@@ -613,6 +615,7 @@ public:
 		BatchSequence small_table_sequence,
 		BatchSequenceBypass big_table_sequence, 
 		const std::pair<bool, bool> & scatter_left_right){
+		using ColumnDataMessage = ral::communication::messages::experimental::ColumnDataMessage;
 
 		this->context->incrementQuerySubstep();
 
@@ -651,8 +654,7 @@ public:
 		});
 		
 		BlazingThread collect_small_table_thread([this, small_output_cache_name](){
-			auto  message_token = ColumnDataMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
-			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
+			ExternalBatchColumnDataSequence<ColumnDataMessage> external_input_left(this->context, this->get_message_id());
 			
 			while (external_input_left.wait_for_next()) {	
 				std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_left.next();

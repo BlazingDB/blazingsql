@@ -111,6 +111,8 @@ void initialize(int ralId,
 	BlazingContext::getInstance()->initExternalSystems();
 
 	// spdlog batch logger
+	spdlog::shutdown();
+	
 	spdlog::init_thread_pool(8192, 1);
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");

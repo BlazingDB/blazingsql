@@ -109,6 +109,8 @@ public:
 	}
 
 	virtual kstatus run() {
+        using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
+        
         CodeTimer timer;
 		
         std::vector<int> group_column_indices;
@@ -206,7 +208,7 @@ public:
             // Lets put the server listener to feed the output, but not if its aggregations without group by and its not the master
             if(group_column_indices.size() > 0 || 
                         this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
-                ExternalBatchColumnDataSequence external_input(context, this->get_message_id());
+                ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id());
                 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
                 while (host_table = external_input.next()) {
                     this->add_to_output_cache(std::move(host_table));

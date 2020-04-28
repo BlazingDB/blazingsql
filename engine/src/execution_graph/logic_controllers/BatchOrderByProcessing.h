@@ -209,6 +209,8 @@ public:
 	}
 
 	virtual kstatus run() {
+		using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
+		
 		CodeTimer timer;
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
@@ -243,7 +245,7 @@ public:
 		});
 		
 		BlazingThread consumer([this](){
-			ExternalBatchColumnDataSequence external_input(context, this->get_message_id());
+			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			while (host_table = external_input.next()) {
 				std::string cache_id = "output_" + std::to_string(host_table->get_part_id());

@@ -112,13 +112,11 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
 };
 
-
-using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
 typedef ral::communication::network::experimental::Server Server;
 typedef ral::communication::network::experimental::Client Client;
 using ral::communication::messages::experimental::ReceivedHostMessage;
 
-
+template<class MessageType>
 class ExternalBatchColumnDataSequence {
 public:
 	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id)
@@ -127,7 +125,7 @@ public:
 		host_cache = std::make_shared<ral::cache::HostCacheMachine>();
 		std::string context_comm_token = context->getContextCommunicationToken();
 		const uint32_t context_token = context->getContextToken();
-		std::string comms_message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
+		std::string comms_message_token = MessageType::MessageID() + "_" + context_comm_token;
 
 		BlazingMutableThread t([this, comms_message_token, context_token, message_id](){
 			while(true){
