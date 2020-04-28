@@ -50,7 +50,7 @@ struct tree_processor {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
 			auto schema = this->schemas[table_index];
-			k = std::make_shared<TableScan>(*loader, schema, kernel_context, query_graph);
+			k = std::make_shared<TableScan>(expr, *loader, schema, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::TableScanKernel);
 		} else if (is_bindable_scan(expr)) {
@@ -109,7 +109,6 @@ struct tree_processor {
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::UnionKernel);
 		}
-		k->expr = expr;
 		return k;
 	}
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, node * root_ptr, int level, std::shared_ptr<ral::cache::graph> query_graph) {

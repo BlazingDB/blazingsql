@@ -21,10 +21,10 @@ using ral::cache::kernel_type;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using namespace fmt::literals;
 
-class ComputeAggregateKernel :public kernel {
+class ComputeAggregateKernel : public kernel {
 public:
 	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
         this->query_graph = query_graph;
 	}
 
@@ -97,16 +97,14 @@ public:
     }
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
     std::vector<AggregateKind> aggregation_types;
     std::vector<int> group_column_indices;
 };
 
-class DistributeAggregateKernel :public kernel {
+class DistributeAggregateKernel : public kernel {
 public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
         this->query_graph = query_graph;
 	}
 
@@ -188,8 +186,12 @@ public:
                     batch_count++;
                 } catch(const std::exception& e) {
                     // TODO add retry here
-                    std::string err = "ERROR: in DistributeAggregateKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-                    std::cout<<err<<std::endl;
+                    this->logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                        "query_id"_a=context->getContextToken(),
+                                        "step"_a=context->getQueryStep(),
+                                        "substep"_a=context->getQuerySubstep(),
+                                        "info"_a="In DistributeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+                                        "duration"_a="");
                 }
             }
 
@@ -226,15 +228,14 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 
-class MergeAggregateKernel :public kernel {
+class MergeAggregateKernel : public kernel {
 public:
 	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
         this->query_graph = query_graph;
 	}
 
@@ -320,8 +321,7 @@ public:
     }
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 

@@ -22,6 +22,7 @@
 namespace ral {
 namespace cache {
 
+using Context = blazingdb::manager::experimental::Context;
 using namespace fmt::literals;
 
 enum CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE };
@@ -267,11 +268,11 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "");
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", Context * ctx = nullptr);
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "");
+	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", Context * ctx = nullptr);
 
-	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
+	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "", Context * ctx = nullptr);
 
 	virtual void finish();
 
@@ -290,9 +291,9 @@ public:
 	bool has_next_now() {
 		return this->waitingCache->has_next_now();
 	} 
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr);
 
-	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
+	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(Context * ctx = nullptr);
 
 	void setNumberOfBatches(size_t n_batches) {
 		this->waitingCache->setNumberOfBatches(n_batches);
@@ -320,11 +321,11 @@ public:
 
 	~HostCacheMachine() {}
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "") {
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "", Context * ctx = nullptr) {
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-									"query_id"_a="",//context->getContextToken(),
-									"step"_a="",//context->getQueryStep(),
-									"substep"_a="",//context->getQuerySubstep(),
+									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
 									"info"_a="Add to HostCacheMachine",
 									"duration"_a="",
 									"kernel_id"_a=message_id,
@@ -351,7 +352,7 @@ public:
 		return this->waitingCache->has_next_now();
 	} 
 	
-	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache() {
+	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache(Context * ctx = nullptr) {
 		std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
 		if (message_data == nullptr) {
 			return nullptr;
@@ -361,9 +362,9 @@ public:
 		auto cpu_data = (CPUCacheData * )(cache_data.get());
 		
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-									"query_id"_a="",//context->getContextToken(),
-									"step"_a="",//context->getQueryStep(),
-									"substep"_a="",//context->getQuerySubstep(),
+									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
 									"info"_a="Pull from HostCacheMachine",
 									"duration"_a="",
 									"kernel_id"_a=message_data->get_message_id(),
@@ -391,7 +392,7 @@ public:
 
 	~NonWaitingCacheMachine() = default;
 
-	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+	std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr) override;
 
 };
 
@@ -401,9 +402,9 @@ public:
 
 	~ConcatenatingCacheMachine() = default;
 
-	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+	std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr) override;
 };
-using Context = blazingdb::manager::experimental::Context;
+
 
 // class WorkerThread {
 // public:

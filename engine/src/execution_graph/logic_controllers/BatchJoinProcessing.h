@@ -38,10 +38,10 @@ struct TableSchema {
 	{}
 };
 
-class PartwiseJoin :public kernel {
+class PartwiseJoin : public kernel {
 public:
 	PartwiseJoin(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
+		: kernel{queryString, context}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
@@ -392,28 +392,26 @@ public:
 	}
 
 private:
-    BatchSequence left_sequence, right_sequence;
+	BatchSequence left_sequence, right_sequence;
 
-    int max_left_ind;
-    int max_right_ind;
-	std::shared_ptr<Context> context;
-	std::string expression;
+	int max_left_ind;
+	int max_right_ind;
 	std::vector<std::vector<bool>> completion_matrix;
 	std::shared_ptr<ral::cache::CacheMachine> leftArrayCache;
-    std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
+	std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
 	std::size_t SET_SIZE_THRESHOLD;
 
 	// parsed expression related parameters
 	std::string join_type;
 	std::vector<cudf::size_type> left_column_indices, right_column_indices;
-  	std::vector<std::string> result_names;
+	std::vector<std::string> result_names;
 };
 
 
-class JoinPartitionKernel :public kernel {
+class JoinPartitionKernel : public kernel {
 public:
 	JoinPartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
@@ -461,7 +459,7 @@ public:
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
 						// TODO: create message id and send to add add_to_output_cache
-						output->addToCache(std::move(partition_table_clone), message_id);
+						output->addToCache(std::move(partition_table_clone), message_id, local_context.get());
 					} else {
 						partitions_to_send.emplace_back(
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
@@ -713,14 +711,38 @@ public:
 		}
 		// scatter_left_right = std::make_pair(false, false); // Do this for debugging if you want to disable small table join optmization
 		if (scatter_left_right.first){
+			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="JoinPartition Scattering left table",
+										"duration"_a="",
+										"kernel_id"_a=this->get_id());
+
 			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_b"));
 			small_table_scatter_distribution( std::move(left_batch), std::move(right_batch),
 						std::move(left_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else if (scatter_left_right.second) {
+			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="JoinPartition Scattering right table",
+										"duration"_a="",
+										"kernel_id"_a=this->get_id());
+
 			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_a"));
 			small_table_scatter_distribution( std::move(right_batch), std::move(left_batch),
 						std::move(right_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else {
+			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="JoinPartition Standard hash partition",
+										"duration"_a="",
+										"kernel_id"_a=this->get_id());
+
 			perform_standard_hash_partitioning(condition, std::move(left_batch), std::move(right_batch),
 				std::move(left_sequence), std::move(right_sequence));
 		}		
@@ -737,9 +759,6 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
-	
 	// parsed expression related parameters
 	std::string join_type;
 	std::vector<cudf::size_type> left_column_indices, right_column_indices;

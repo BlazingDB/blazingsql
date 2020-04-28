@@ -70,7 +70,7 @@ public:
 		this->cache = cache;
 	}
 	RecordBatch next() {
-		return cache->pullFromCache();
+		return cache->pullFromCache(kernel ? kernel->get_context(): nullptr);
 	}
 	bool wait_for_next() {
 		if (kernel) {
@@ -143,7 +143,7 @@ public:
 						assert(concreteMessage != nullptr);
 						auto host_table = concreteMessage->releaseBlazingHostTable();
 						host_table->setPartitionId(concreteMessage->getPartitionId());
-						this->host_cache->addToCache(std::move(host_table), message_id);			
+						this->host_cache->addToCache(std::move(host_table), message_id, this->context.get());			
 					}
 			}
 		});
@@ -155,7 +155,7 @@ public:
 	}
 
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {
-		return host_cache->pullFromCache();
+		return host_cache->pullFromCache(context.get());
 	}
 private:
 	std::shared_ptr<Context> context;
@@ -261,8 +261,8 @@ private:
 
 class TableScan : public kernel {
 public:
-	TableScan(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(), input(loader, schema, context), context(context)
+	TableScan(const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(queryString, context), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
@@ -299,14 +299,13 @@ public:
 
 private:
 	DataSourceSequence input;
-	std::shared_ptr<Context> context;
 };
 
 class BindableTableScan : public kernel {
 public:
-	BindableTableScan(std::string & expression, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, 
+	BindableTableScan(std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, 
 		std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(), input(loader, schema, context), expression(expression), context(context)
+	: kernel(queryString, context), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
@@ -365,16 +364,13 @@ public:
 
 private:
 	DataSourceSequence input;
-	std::shared_ptr<Context> context;
-	std::string expression;
 };
 
 class Projection : public kernel {
 public:
 	Projection(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(queryString, context)
 	{
-		this->context = context;
-		this->expression = queryString;
 		this->query_graph = query_graph;
 	}
 
@@ -412,16 +408,14 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 class Filter : public kernel {
 public:
 	Filter(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(queryString, context)
 	{
-		this->context = context;
-		this->expression = queryString;
 		this->query_graph = query_graph;
 	}
 
@@ -472,15 +466,15 @@ public:
 			return std::make_pair(false, 0);
 		}    
     }
+
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 class Print : public kernel {
 public:
-	Print() : kernel() { ofs = &(std::cout); }
-	Print(std::ostream & stream) : kernel() { ofs = &stream; }
+	Print() : kernel("Print", nullptr) { ofs = &(std::cout); }
+	Print(std::ostream & stream) : kernel("Print", nullptr) { ofs = &stream; }
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
 		BatchSequence input(this->input_cache(), this);
@@ -499,7 +493,7 @@ protected:
 
 class OutputKernel : public kernel {
 public:
-	OutputKernel() : kernel("OutputKernel") {  }
+	OutputKernel() : kernel("OutputKernel", nullptr) {  }
 	virtual kstatus run() {
 		output = std::move(this->input_.get_cache()->pullFromCache());
 		return kstatus::stop;
@@ -517,7 +511,7 @@ protected:
 namespace test {
 class generate : public kernel {
 public:
-	generate(std::int64_t count = 1000) : kernel(), count(count) {}
+	generate(std::int64_t count = 1000) : kernel("", nullptr), count(count) {}
 	virtual kstatus run() {
 
 		cudf::test::fixed_width_column_wrapper<int32_t> column1{{0, 1, 2, 3, 4, 5}, {1, 1, 1, 1, 1, 1}};

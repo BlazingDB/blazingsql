@@ -18,10 +18,10 @@ using ral::cache::kernel;
 using ral::cache::kernel_type;
 using namespace fmt::literals;
 
-class SortAndSampleSingleNodeKernel :public kernel {
+class SortAndSampleSingleNodeKernel : public kernel {
 public:
 	SortAndSampleSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}
+		: kernel{queryString, context}
 	{
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
@@ -73,14 +73,13 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
-class PartitionSingleNodeKernel :public kernel {
+class PartitionSingleNodeKernel : public kernel {
 public:
 	PartitionSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
@@ -134,14 +133,13 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
-class SortAndSampleKernel :public kernel {
+class SortAndSampleKernel : public kernel {
 public:
 	SortAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}
+		: kernel{queryString, context}
 	{
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
@@ -194,14 +192,13 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
-class PartitionKernel :public kernel {
+class PartitionKernel : public kernel {
 public:
 	PartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
@@ -263,14 +260,13 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
-class MergeStreamKernel :public kernel {
+class MergeStreamKernel : public kernel {
 public:
 	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}  {
+		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
 	}
 	
@@ -285,7 +281,7 @@ public:
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
 				auto cache_id = "input_" + std::to_string(idx);
 				while (this->input_.get_cache(cache_id)->wait_for_next()) {
-					auto table = this->input_.get_cache(cache_id)->pullFromCache();
+					auto table = this->input_.get_cache(cache_id)->pullFromCache(context.get());
 					if (table) {
 						tableViews.emplace_back(table->toBlazingTableView());
 						tables.emplace_back(std::move(table));
@@ -333,15 +329,14 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 
-class LimitKernel :public kernel {
+class LimitKernel : public kernel {
 public:
 	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}  {
+		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
 	}
 	
@@ -400,8 +395,7 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 } // namespace batch

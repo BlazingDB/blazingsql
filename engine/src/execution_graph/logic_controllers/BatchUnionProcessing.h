@@ -21,10 +21,10 @@ using ral::cache::kernel_type;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using namespace fmt::literals;
 
-class UnionKernel :public kernel {
+class UnionKernel : public kernel {
 public:
 	UnionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
         this->query_graph = query_graph;
         this->input_.add_port("input_a", "input_b");
 	}
@@ -70,8 +70,7 @@ public:
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 } // namespace batch
