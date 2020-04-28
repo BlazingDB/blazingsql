@@ -15,7 +15,7 @@
 #include <blazingdb/transport/io/reader_writer.h>
 
 #include <blazingdb/io/Config/BlazingContext.h>
-#include <blazingdb/io/Library/Logging/FileOutput.h>
+#include <blazingdb/io/Library/Logging/CoutOutput.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 #include "utilities/StringUtils.h"
@@ -100,12 +100,11 @@ void initialize(int ralId,
 	// NOTE IMPORTANT PERCY aqui es que pyblazing se entera que este es el ip del RAL en el _send de pyblazing
 	config.setLogName(loggingName).setSocketPath(ralHost);
 
-	auto output = new Library::Logging::FileOutput(config.getLogName(), false);
-	Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
-	Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(ralId);
+	// auto output = new Library::Logging::CoutOutput();
+	// Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
+	// Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(ralId);
 	
-	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",
-		initLogMsg));
+	// Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",	initLogMsg));
 
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
@@ -116,8 +115,10 @@ void initialize(int ralId,
 	spdlog::init_thread_pool(8192, 1);
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
-	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("spdlog/" + loggingName);
-	file_sink->set_pattern("%Y-%m-%d %T.%e|%^%l%$|%v");
+	stdout_sink->set_level(spdlog::level::err);
+	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(loggingName);
+	file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
+	file_sink->set_level(spdlog::level::trace);
 	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
 	auto logger = std::make_shared<spdlog::async_logger>("batch_logger", sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
 	logger->set_level(spdlog::level::trace);
