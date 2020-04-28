@@ -94,7 +94,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
         } else {
             col_transport.data = raw_buffers.size();
             buffer_sizes.push_back((std::size_t) column.size() * cudf::size_of(column.type()));
-			col_transport.size_in_bytes += column.size() * cudf::size_of(column.type());
+			col_transport.size_in_bytes += (std::size_t) column.size() * cudf::size_of(column.type());
 
 			raw_buffers.push_back(column.head<char>() + column.offset() * cudf::size_of(column.type())); // here we are getting the beginning of the buffer and manually calculating the offset.
             if(column.has_nulls()) {
