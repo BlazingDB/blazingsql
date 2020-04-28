@@ -693,6 +693,14 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
 
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
+			while (left_sequence.wait_for_next()){
+				left_batch = left_sequence.next();
+				if (left_batch != nullptr && left_batch->num_columns() > 0){
+					break;
+				}
+			}
+		}
+		if (left_batch == nullptr || left_batch->num_columns() == 0){
 			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
 										"query_id"_a=context->getContextToken(),
 										"step"_a=context->getQueryStep(),

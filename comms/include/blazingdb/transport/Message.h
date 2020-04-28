@@ -64,7 +64,7 @@ protected:
 
 class GPUMessage : public Message {
 public:
-  using raw_buffer = std::tuple<std::vector<int>, std::vector<const char *>,
+  using raw_buffer = std::tuple<std::vector<std::size_t>, std::vector<const char *>,
                                 std::vector<ColumnTransport>, std::vector<std::unique_ptr<rmm::device_buffer>> >;
 
 public:

@@ -16,7 +16,7 @@ namespace experimental {
 
 using Buffer = std::basic_string<char>;
 
-using gpu_raw_buffer_container = std::tuple<std::vector<int>, std::vector<const char *>,
+using gpu_raw_buffer_container = std::tuple<std::vector<std::size_t>, std::vector<const char *>,
 											std::vector<ColumnTransport>,
 											std::vector<std::unique_ptr<rmm::device_buffer>> >;
 
