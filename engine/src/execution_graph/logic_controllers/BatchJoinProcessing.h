@@ -670,6 +670,14 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
 
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
+			while (left_sequence.wait_for_next()){
+				left_batch = left_sequence.next();
+				if (left_batch != nullptr && left_batch->num_columns() > 0){
+					break;
+				}
+			}
+		}
+		if (left_batch == nullptr || left_batch->num_columns() == 0){
 			std::cout<<"ERROR JoinPartitionKernel has empty left side and cannot determine join column indices"<<std::endl;
 		}
 

@@ -117,7 +117,7 @@ std::unique_ptr<ral::frame::BlazingTable>  distributed_sort(Context * context,
 		std::vector<size_t> total_rows_tables = samples_pair.second;
 		total_rows_tables.push_back(total_rows_table);
 
-		partitionPlan = generatePartitionPlans(context->getTotalNodes(), samples, total_rows_tables, sortOrderTypes);
+		partitionPlan = generatePartitionPlans(context->getTotalNodes(), samples, sortOrderTypes);
 
 		context->incrementQuerySubstep();
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
@@ -329,7 +329,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_typ
 
 	// ral::utilities::print_blazing_table_view(sorted_samples->toBlazingTableView());
 
-	return generatePartitionPlans(number_partitions, samples, total_rows_tables, sortOrderTypes);
+	return generatePartitionPlans(number_partitions, samples, sortOrderTypes);
 }
 
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part) {
@@ -356,7 +356,8 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	return cudf::experimental::split(sortedTable.view(), split_indexes);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(cudf::size_type number_partitions, const ral::frame::BlazingTableView & selfSamples, size_t table_num_rows, const std::string & query_part, Context * context){
+std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, 
+	unsigned long long table_num_rows, unsigned long long avg_bytes_per_row, const std::string & query_part, Context * context){
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
@@ -373,7 +374,19 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(cu
 		samples.push_back(selfSamples);
 		std::vector<size_t> total_rows_tables = samples_pair.second;
 		total_rows_tables.push_back(table_num_rows);
-		partitionPlan = generatePartitionPlans(number_partitions, samples, total_rows_tables, sortOrderTypes);
+		unsigned long long totalNumRows = std::accumulate(total_rows_tables.begin(), total_rows_tables.end(), 0);
+
+		const unsigned long long NUM_BYTES_PER_PARTITION = 400000000; // WSM TODO make this a configurable parameter
+		const int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; // WSM TODO make this dynamic or configurable. ALso used in PhysicalPlanGenerator.h
+
+		int num_nodes = context->getTotalNodes();
+		cudf::size_type total_num_partitions = (double)totalNumRows*(double)avg_bytes_per_row/(double)NUM_BYTES_PER_PARTITION;
+		total_num_partitions = total_num_partitions <= 0 ? 1 : total_num_partitions;
+		// want to make the total_num_partitions to be a multiple of the number of nodes to evenly distribute
+		total_num_partitions = ((total_num_partitions + num_nodes - 1) / num_nodes) * num_nodes;
+		total_num_partitions = total_num_partitions > MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE * num_nodes ? MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE * num_nodes : total_num_partitions;
+		
+		partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
 		context->incrementQuerySubstep();
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
 	} else {
@@ -397,66 +410,25 @@ distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
 
 	std::vector<NodeColumnView> partitions = partitionData(context, sortedTable, partitionPlan, sortColIndices, sortOrderTypes);
 
-	distributeTablePartitions(context, partitions);
+	int num_nodes = context->getTotalNodes();
+	int num_partitions = partitions.size();
+	std::vector<int32_t> part_ids(num_partitions);
+    int32_t count = 0;
+	std::generate(part_ids.begin(), part_ids.end(), [count, num_partitions_per_node=num_partitions/num_nodes] () mutable { return (count++)%(num_partitions_per_node); });
+
+	distributeTablePartitions(context, partitions, part_ids);
 	
 	std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>> self_partitions;
 	for (size_t i = 0; i < partitions.size(); i++) {
 		auto & partition = partitions[i];
 		if(partition.first == CommunicationData::getInstance().getSelfNode()) {
 			std::unique_ptr<ral::frame::BlazingTable> table = partition.second.clone();
-			self_partitions.emplace_back(i, std::move(table));
+			self_partitions.emplace_back(part_ids[i], std::move(table));
 		}
 	}
 	return self_partitions;
 }
 
-std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable>>
-sort_and_sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context) {
-	auto sortedTable = sort(table, query_part);
-	auto tableSamples = sample(table, query_part);
-	std::unique_ptr<ral::frame::BlazingTable> partitionPlan = nullptr;
-	if(context->getTotalNodes() > 1) {
-		partitionPlan = generate_distributed_partition_plan(context->getTotalNodes() - 1, tableSamples->toBlazingTableView(), sortedTable->view().num_rows(), query_part, context);
-	}
-	return std::make_pair(std::move(sortedTable), std::move(partitionPlan));
-}
-
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition_sort(const ral::frame::BlazingTableView & partitionPlan,
-													const ral::frame::BlazingTableView & sortedTable,
-													const std::string & query_part,
-													blazingdb::manager::experimental::Context * context) {
-	if(context->getTotalNodes() <= 1) {
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> v;
-		//TODO  @alex  FIX THIS clone!
-		v.push_back(std::move(sortedTable.clone()));
-		return v;
-	}
-	std::vector<cudf::order> sortOrderTypes;
-	std::vector<int> sortColIndices;
-	cudf::size_type limitRows;
-	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
-
-	std::vector<NodeColumnView> partitions = partitionData(context, sortedTable, partitionPlan, sortColIndices, sortOrderTypes);
-
-	distributePartitions(context, partitions);
-
-	context->incrementQuerySubstep();
-	std::vector<NodeColumn> collected_partitions = collectPartitions(context);
-
-	std::vector<std::unique_ptr<ral::frame::BlazingTable>> partitions_to_merge;
-	for (int i = 0; i < collected_partitions.size(); i++){
-		partitions_to_merge.push_back( std::move(collected_partitions[i].second));
-	}
-	for (auto partition : partitions) {
-		if(partition.first == CommunicationData::getInstance().getSelfNode()) {
-			//TODO  @alex  FIX THIS clone!
-			std::unique_ptr<ral::frame::BlazingTable> table = partition.second.clone();
-			partitions_to_merge.push_back(std::move(table));
-			break;
-		}
-	}
-	return partitions_to_merge;
-}
 
 std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part) {
 	std::vector<cudf::order> sortOrderTypes;
