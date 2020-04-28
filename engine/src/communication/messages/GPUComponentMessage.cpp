@@ -93,10 +93,6 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
                 }
         } else {
             col_transport.data = raw_buffers.size();
-			std::cout<<"mul op a: "<<column.size()<<std::endl;
-			std::cout<<"mul op a casted: "<<(std::size_t) column.size()<<std::endl;
-			std::cout<<"mul op b: "<<cudf::size_of(column.type())<<std::endl;
-			std::cout<<"mul op b casted: "<<(std::size_t) cudf::size_of(column.type())<<std::endl;
             buffer_sizes.push_back((std::size_t) column.size() * cudf::size_of(column.type()));
 			col_transport.size_in_bytes += column.size() * cudf::size_of(column.type());
 
