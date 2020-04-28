@@ -118,15 +118,7 @@ void CacheMachine::clear() {
 }
 
 void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, Context * ctx){
-	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Add to CacheMachine",
-								"duration"_a="",
-								"kernel_id"_a=message_id,
-								"rows"_a=cache_data->num_rows());
-
+	
 	num_rows_added += cache_data->num_rows();
 	num_bytes_added += cache_data->sizeInBytes();
 	int cacheIndex = 0;
@@ -134,15 +126,42 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
 		if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
 			if(cacheIndex == 0) {
+				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Add to CacheMachine general CacheData object into GPU cache ",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=cache_data->num_rows());
+
 				std::unique_ptr<message<CacheData>> item =
 					std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 				this->waitingCache->put(std::move(item));
 			} else {
 				if(cacheIndex == 1) {
+					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Add to CacheMachine general CacheData object into CPU cache ",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=cache_data->num_rows());
+
 					std::unique_ptr<message<CacheData>> item =
 						std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 					this->waitingCache->put(std::move(item));
 				} else if(cacheIndex == 2) {
+					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Add to CacheMachine general CacheData object into Disk cache ",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=cache_data->num_rows());
+
 					// BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
 					  std::unique_ptr<message<CacheData>> item =
 						  std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
@@ -158,14 +177,6 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 }
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, Context * ctx) {
-	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Add to CacheMachine",
-								"duration"_a="",
-								"kernel_id"_a=message_id,
-								"rows"_a=table->num_rows());
 
 	num_rows_added += table->num_rows();
 	num_bytes_added += table->sizeInBytes();
@@ -174,6 +185,15 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
 		if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
 			if(cacheIndex == 0) {
+				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+							"info"_a="Add to CacheMachine into GPU cache",
+							"duration"_a="",
+							"kernel_id"_a=message_id,
+							"rows"_a=table->num_rows());
+
 				// before we put into a cache, we need to make sure we fully own the table
 				auto column_names = table->names();
 				auto cudf_table = table->releaseCudfTable();
@@ -187,11 +207,29 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 
 			} else {
 				if(cacheIndex == 1) {
+					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+							"info"_a="Add to CacheMachine into CPU cache",
+							"duration"_a="",
+							"kernel_id"_a=message_id,
+							"rows"_a=table->num_rows());
+
 					auto cache_data = std::make_unique<CPUCacheData>(std::move(table));
 					std::unique_ptr<message<CacheData>> item =
 						std::make_unique<message<CacheData>>(std::move(cache_data), cacheIndex, message_id);
 					this->waitingCache->put(std::move(item));
 				} else if(cacheIndex == 2) {
+					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+							"info"_a="Add to CacheMachine into Disk cache",
+							"duration"_a="",
+							"kernel_id"_a=message_id,
+							"rows"_a=table->num_rows());
+
 					// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
 					  auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table));
 					  std::unique_ptr<message<CacheData>> item =
@@ -234,7 +272,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * 
 								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull from CacheMachine",
+								"info"_a="Pull from CacheMachine from cache_index " + std::to_string(cache_index),
 								"duration"_a="",
 								"kernel_id"_a=message_data->get_message_id(),
 								"rows"_a=cache_data->num_rows());
@@ -254,7 +292,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx
 								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull from CacheMachine",
+								"info"_a="Pull from CacheMachine CacheData object from cache_index " + std::to_string(cache_index),
 								"duration"_a="",
 								"kernel_id"_a=message_data->get_message_id(),
 								"rows"_a=cache_data->num_rows());
