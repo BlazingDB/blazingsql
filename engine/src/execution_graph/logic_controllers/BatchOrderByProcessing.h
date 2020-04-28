@@ -16,6 +16,7 @@ namespace batch {
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
+using namespace fmt::literals;
 
 class SortAndSampleSingleNodeKernel :public kernel {
 public:
@@ -48,14 +49,25 @@ public:
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples 
-				logger->error("In SortAndSampleSingleNodeKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In SortAndSampleSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
 		auto partitionPlan = ral::operators::experimental::generate_partition_plan(32, sampledTableViews, tableTotalRows, this->expression);
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		
-		logger->debug("SortAndSampleSingleNode Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="SortAndSampleSingleNode Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
@@ -101,11 +113,22 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				logger->error("In PartitionSingleNodeKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In PartitionSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
 
-		logger->debug("PartitionSingleNode Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="PartitionSingleNode Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
@@ -145,7 +168,12 @@ public:
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples 
-				logger->error("In SortAndSampleKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In SortAndSample kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
 		size_t totalNumRows = std::accumulate(tableTotalRows.begin(), tableTotalRows.end(), 0);
@@ -154,7 +182,13 @@ public:
 		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(32, concatSamples->toBlazingTableView(), totalNumRows, this->expression, this->context.get());
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		
-		logger->debug("SortAndSample Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="SortAndSample Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
@@ -195,7 +229,12 @@ public:
 					batch_count++;
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					logger->error("In PartitionKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=context->getContextToken(),
+												"step"_a=context->getQueryStep(),
+												"substep"_a=context->getQuerySubstep(),
+												"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 				}	
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
@@ -212,7 +251,13 @@ public:
 		generator.join();
 		consumer.join();
 
-		logger->debug("Partition Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Partition Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
@@ -267,11 +312,22 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				logger->error("In MergeStreamKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=context->getContextToken(),
+												"step"_a=context->getQueryStep(),
+												"substep"_a=context->getQuerySubstep(),
+												"info"_a="In MergeStream kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 			}
 		}
 
-		logger->debug("MergeStream Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="MergeStream Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 		
 		return kstatus::proceed;
 	}
@@ -322,12 +378,23 @@ public:
 					batch_count++;
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					logger->error("In LimitKernel kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=context->getContextToken(),
+												"step"_a=context->getQueryStep(),
+												"substep"_a=context->getQuerySubstep(),
+												"info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 				}
 			}
 		}
 		
-		logger->debug("Limit Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Limit Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}

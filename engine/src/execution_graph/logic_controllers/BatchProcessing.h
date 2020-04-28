@@ -56,6 +56,7 @@ namespace batch {
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
+using namespace fmt::literals;
 
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
@@ -261,7 +262,7 @@ private:
 class TableScan : public kernel {
 public:
 	TableScan(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(), input(loader, schema, context)
+	: kernel(), input(loader, schema, context), context(context)
 	{
 		this->query_graph = query_graph;
 	}
@@ -274,7 +275,13 @@ public:
 			this->add_to_output_cache(std::move(batch));
 		}
 		
-		logger->debug("TableScan Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="TableScan Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 		
 		return kstatus::proceed;
 	}
@@ -292,6 +299,7 @@ public:
 
 private:
 	DataSourceSequence input;
+	std::shared_ptr<Context> context;
 };
 
 class BindableTableScan : public kernel {
@@ -324,11 +332,22 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				logger->error("In BindableTableScan kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=context->getContextToken(),
+												"step"_a=context->getQueryStep(),
+												"substep"_a=context->getQuerySubstep(),
+												"info"_a="In BindableTableScan kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 			}
 		}
 
-		logger->debug("BindableTableScan Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
@@ -372,11 +391,22 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				logger->error("In Projection kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In Projection kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
 
-		logger->debug("Projection Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Projection Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
@@ -408,11 +438,22 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				logger->error("In Filter kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In Filter kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
 
-		logger->debug("Filter Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Filter Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}

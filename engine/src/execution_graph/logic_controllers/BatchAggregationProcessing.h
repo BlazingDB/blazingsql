@@ -19,6 +19,7 @@ using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
+using namespace fmt::literals;
 
 class ComputeAggregateKernel :public kernel {
 public:
@@ -56,11 +57,22 @@ public:
                 batch_count++;
             } catch(const std::exception& e) {
                 // TODO add retry here
-                logger->error("In ComputeAggregate kernel batch {} for {}. What: {}", batch_count, expression, e.what());
+                logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                            "query_id"_a=context->getContextToken(),
+                            "step"_a=context->getQueryStep(),
+                            "substep"_a=context->getQuerySubstep(),
+                            "info"_a="In ComputeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+                            "duration"_a="");
             }
 		}
 
-        logger->debug("ComputeAggregate Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="ComputeAggregate Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
@@ -202,7 +214,13 @@ public:
         producer_thread.join();
         consumer_thread.join();
         
-        logger->debug("DistributeAggregate Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="DistributeAggregate Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
@@ -276,11 +294,22 @@ public:
                 this->add_to_output_cache(std::move(output));
              } catch(const std::exception& e) {
                 // TODO add retry here
-                logger->error("In MergeAggregateKernel kernel for {}. What: {}", expression, e.what());
+                logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                            "query_id"_a=context->getContextToken(),
+                            "step"_a=context->getQueryStep(),
+                            "substep"_a=context->getQuerySubstep(),
+                            "info"_a="In MergeAggregate kernel for {}. What: {}"_format(expression, e.what()),
+                            "duration"_a="");
             }
         }
 		
-        logger->debug("MergeAggregate Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="MergeAggregate Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}

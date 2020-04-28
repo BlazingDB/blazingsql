@@ -86,8 +86,15 @@ uint64_t CacheMachine::get_num_rows_added(){
 	return num_rows_added.load();
 }
 
-void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string message_id) {
-	logger->trace("Add to CacheMachine id[{}] rows[{}]", message_id, host_table->num_rows());
+void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id) {
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a="",//context->getContextToken(),
+								"step"_a="",//context->getQueryStep(),
+								"substep"_a="",//context->getQuerySubstep(),
+								"info"_a="Add to CacheMachine",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=host_table->num_rows());
 
 	num_rows_added += host_table->num_rows();
 	num_bytes_added += host_table->sizeInBytes();
@@ -102,8 +109,15 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 	this->addToCache(std::move(table), std::to_string(message_id));
 }
 
-void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id){
-	logger->trace("Add to CacheMachine id[{}] rows[{}]", message_id, cache_data->num_rows());
+void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id){
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a="",//context->getContextToken(),
+								"step"_a="",//context->getQueryStep(),
+								"substep"_a="",//context->getQuerySubstep(),
+								"info"_a="Add to CacheMachine",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=cache_data->num_rows());
 
 	num_rows_added += cache_data->num_rows();
 	num_bytes_added += cache_data->sizeInBytes();
@@ -143,8 +157,15 @@ void CacheMachine::clear() {
 	this->waitingCache->finish();
 }
 
-void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id) {
-	logger->trace("Add to CacheMachine id[{}] rows[{}]", message_id, table->num_rows());
+void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id) {
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a="",//context->getContextToken(),
+								"step"_a="",//context->getQueryStep(),
+								"substep"_a="",//context->getQuerySubstep(),
+								"info"_a="Add to CacheMachine",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=table->num_rows());
 
 	num_rows_added += table->num_rows();
 	num_bytes_added += table->sizeInBytes();
@@ -209,7 +230,14 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	auto cache_data = message_data->releaseData();
 	auto cache_index = message_data->cacheIndex();
 
-	logger->trace("Pull from CacheMachine id[{}] rows[{}]", message_data->get_message_id(), cache_data->num_rows());
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a="",//context->getContextToken(),
+								"step"_a="",//context->getQueryStep(),
+								"substep"_a="",//context->getQuerySubstep(),
+								"info"_a="Pull from CacheMachine",
+								"duration"_a="",
+								"kernel_id"_a=message_data->get_message_id(),
+								"rows"_a=cache_data->num_rows());
 
 	return std::move(cache_data->decache());
 }
@@ -222,7 +250,14 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	std::unique_ptr<ral::cache::CacheData> cache_data = message_data->releaseData();
 	auto cache_index = message_data->cacheIndex();
 
-	logger->trace("Pull from CacheMachine id[{}] rows[{}]", message_data->get_message_id(), cache_data->num_rows());
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a="",//context->getContextToken(),
+								"step"_a="",//context->getQueryStep(),
+								"substep"_a="",//context->getQuerySubstep(),
+								"info"_a="Pull from CacheMachine",
+								"duration"_a="",
+								"kernel_id"_a=message_data->get_message_id(),
+								"rows"_a=cache_data->num_rows());
 
 	return std::move(cache_data);
 }

@@ -23,6 +23,7 @@ using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
 using ColumnDataMessage = ral::communication::messages::experimental::ColumnDataMessage;
+using namespace fmt::literals;
 
 const std::string INNER_JOIN = "inner";
 const std::string LEFT_JOIN = "left";
@@ -359,17 +360,33 @@ public:
 				
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				logger->error("In PartwiseJoin kernel left_idx[{}] right_ind[{}] for {}. What: {}", left_ind, right_ind, expression, e.what());
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In PartwiseJoin kernel left_idx[{}] right_ind[{}] for {}. What: {}"_format(left_ind, right_ind, expression, e.what()),
+											"duration"_a="");
 				throw e;
 			}
 		}
 		
 		if (!produced_output){
-			logger->warn("PartwiseJoin kernel did not produce an output");
+			logger->warn("{query_id}|{step}|{substep}|{info}|{duration}||||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="PartwiseJoin kernel did not produce an output",
+										"duration"_a="");
 			// WSM TODO put an empty output into output cache
 		}
 
-		logger->debug("PartwiseJoin Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="PartwiseJoin Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 		
 		return kstatus::proceed;
 	}
@@ -624,7 +641,12 @@ public:
 					}
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					logger->error("In JoinPartitionKernel scatter_small_table batch_count [{}]. What: {}", batch_count, expression, e.what());
+					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=this->context->getContextToken(),
+												"step"_a=this->context->getQueryStep(),
+												"substep"_a=this->context->getQuerySubstep(),
+												"info"_a="In JoinPartitionKernel scatter_small_table batch_count [{}]. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 				}
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
@@ -671,7 +693,12 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
 
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
-			logger->error("In JoinPartitionKernel left side is empty and cannot determine join column indices");
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="In JoinPartitionKernel left side is empty and cannot determine join column indices",
+										"duration"_a="");
 		}
 
 		std::pair<bool, bool> scatter_left_right;
@@ -698,7 +725,13 @@ public:
 				std::move(left_sequence), std::move(right_sequence));
 		}		
 		
-		logger->debug("JoinPartition Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="JoinPartition Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}

@@ -22,6 +22,8 @@
 namespace ral {
 namespace cache {
 
+using namespace fmt::literals;
+
 enum CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE };
 
 
@@ -265,11 +267,11 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "");
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "");
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id = "");
+	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "");
 
-	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, std::string message_id = "");
+	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
 
 	virtual void finish();
 
@@ -318,8 +320,15 @@ public:
 
 	~HostCacheMachine() {}
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string message_id = "") {
-		logger->trace("Add to HostCacheMachine id[{}] rows[{}]", message_id, host_table->num_rows());
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "") {
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+									"query_id"_a="",//context->getContextToken(),
+									"step"_a="",//context->getQueryStep(),
+									"substep"_a="",//context->getQuerySubstep(),
+									"info"_a="Add to HostCacheMachine",
+									"duration"_a="",
+									"kernel_id"_a=message_id,
+									"rows"_a=host_table->num_rows());
 
 		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
 		std::unique_ptr<message<CacheData>> item = std::make_unique<message<CacheData>>(std::move(cache_data), 0, message_id);
@@ -351,7 +360,14 @@ public:
 		std::unique_ptr<CacheData> cache_data = message_data->releaseData();
 		auto cpu_data = (CPUCacheData * )(cache_data.get());
 		
-		logger->trace("Pull from HostCacheMachine id[{}] rows[{}]", message_data->get_message_id(), cpu_data->num_rows());
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+									"query_id"_a="",//context->getContextToken(),
+									"step"_a="",//context->getQueryStep(),
+									"substep"_a="",//context->getQuerySubstep(),
+									"info"_a="Pull from HostCacheMachine",
+									"duration"_a="",
+									"kernel_id"_a=message_data->get_message_id(),
+									"rows"_a=cpu_data->num_rows());
 		
 		return cpu_data->releaseHostTable();
 	}

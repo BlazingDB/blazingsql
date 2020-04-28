@@ -115,7 +115,7 @@ void initialize(int ralId,
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
 	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("spdlog/" + loggingName);
-	file_sink->set_pattern("[%Y-%m-%d %T.%e] [%^%l%$] %v");
+	file_sink->set_pattern("%Y-%m-%d %T.%e|%^%l%$|%v");
 	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
 	auto logger = std::make_shared<spdlog::async_logger>("batch_logger", sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
 	logger->set_level(spdlog::level::trace);

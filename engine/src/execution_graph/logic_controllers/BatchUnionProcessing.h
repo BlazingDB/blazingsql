@@ -19,7 +19,7 @@ using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
-
+using namespace fmt::literals;
 
 class UnionKernel :public kernel {
 public:
@@ -58,7 +58,13 @@ public:
             this->add_to_output_cache(std::move(batch));
         }
 
-        logger->debug("Union Kernel [{}] Completed in [{}] ms", this->get_id(), timer.elapsed_time());
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="Union Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}

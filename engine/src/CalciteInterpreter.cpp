@@ -21,6 +21,8 @@
 
 #include <spdlog/spdlog.h>
 
+using namespace fmt::literals;
+
 std::unique_ptr<ral::frame::BlazingTable> process_union(const ral::frame::BlazingTableView & left, const ral::frame::BlazingTableView & right, std::string query_part) {
 	bool isUnionAll = (get_named_expression(query_part, "all") == "true");
 	if(!isUnionAll) {
@@ -362,8 +364,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 	Context & queryContext)  {
 
 	CodeTimer blazing_timer;
-
-	Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "\"Query Start\n" + logicalPlan + "\""));
+	auto logger = spdlog::get("batch_logger");
 
 	try {
 		assert(input_loaders.size() == table_names.size());
@@ -381,8 +382,12 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 
 		auto query_graph = tree.build_batch_graph(logicalPlan);
 		
-		auto logger = spdlog::get("batch_logger");
-		logger->info("********** Query Start **********\n{}\n{}", logicalPlan, tree.to_string());
+		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="==============> Query Start\n{}\n{}"_format(logicalPlan, tree.to_string()),
+									"duration"_a="");
 		
 		if (query_graph->num_nodes() > 0) {
 			*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
@@ -391,13 +396,22 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 			output_frame = output.release();
 		}
 
-		logger->info("********** Query Execution Done in {} ms **********", blazing_timer.elapsed_time());
+		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="==============> Query Execution Done",
+									"duration"_a=blazing_timer.elapsed_time());
 
 		assert(output_frame != nullptr);
 		return output_frame;
 	} catch(const std::exception& e) {
-		std::string err = "ERROR: in execute_plan " + std::string(e.what());
-		Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
+		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="In execute_plan. What: {}"_format(e.what()),
+									"duration"_a="");
 		throw;
 	}
 }
