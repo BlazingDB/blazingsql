@@ -288,11 +288,11 @@ public:
 	virtual ~blazing_host_memory_mesource() = default;
 
     // TODO
-    void allocate(size_t bytes)  {
+    void allocate(std::size_t bytes)  {
 		used_memory_size +=  bytes;
 	}
 
-	void deallocate(size_t bytes)  {
+	void deallocate(std::size_t bytes)  {
 		used_memory_size -= bytes;
 	}
 
@@ -322,7 +322,7 @@ public:
 private:
     size_t memory_limit;
 	size_t total_memory_size;
-	std::atomic<size_t> used_memory_size;
+	std::atomic<std::size_t> used_memory_size;
 };
 
 
