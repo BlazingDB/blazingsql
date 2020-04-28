@@ -302,7 +302,7 @@ public:
 protected:
 	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
 	std::vector<BlazingMemoryResource*> memory_resources;
-	std::atomic<uint64_t> num_bytes_added;
+	std::atomic<std::size_t> num_bytes_added;
 	std::atomic<uint64_t> num_rows_added;
 };
  
