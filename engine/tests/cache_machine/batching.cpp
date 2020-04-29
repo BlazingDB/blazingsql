@@ -135,7 +135,7 @@ TEST_F(Batching, SortSamplePartitionTest) {
 
 	ral::io::data_loader loader(parser, provider);
 
-	TableScan customer_generator(loader, schema, queryContext, nullptr);
+	TableScan customer_generator("", loader, schema, queryContext, nullptr);
 
 	SortAndSampleSingleNodeKernel sort_and_sample("Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
 	PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);

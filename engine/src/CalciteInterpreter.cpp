@@ -386,7 +386,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
 									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="==============> Query Start\n{}"_format(tree.to_string()),
+									"info"_a="Query Start\n{}"_format(tree.to_string()),
 									"duration"_a="");
 		
 		if (query_graph->num_nodes() > 0) {
@@ -400,7 +400,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
 									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="==============> Query Execution Done",
+									"info"_a="Query Execution Done",
 									"duration"_a=blazing_timer.elapsed_time());
 
 		assert(output_frame != nullptr);
