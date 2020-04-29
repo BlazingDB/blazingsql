@@ -38,7 +38,7 @@ public:
 
     cudf::size_type num_columns() const ;
 
-    unsigned long long sizeInBytes() ;
+    std::size_t sizeInBytes() ;
 
     void setPartitionId(const size_t &part_id) ;
 

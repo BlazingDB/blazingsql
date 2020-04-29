@@ -21,7 +21,7 @@ struct ColumnTransport {
   int strings_data_size{0};
   int strings_offsets_size{0};
 
-  int size_in_bytes{0};
+  std::size_t size_in_bytes{0};
 };
 
 }  // namespace experimental

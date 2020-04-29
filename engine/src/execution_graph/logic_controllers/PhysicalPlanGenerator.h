@@ -288,8 +288,11 @@ struct tree_processor {
 					query_graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
-					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = 32};
+					
+					const int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; // WSM TODO make this dynamic or configurable. ALso used in generate_distributed_partition_plan function
+					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE};
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+
 				} else {
 					query_graph +=  *child->kernel_unit >> (*parent->kernel_unit);
 				}	

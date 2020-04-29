@@ -148,7 +148,7 @@ Message::MetaData collect_last_event(void * socket, Server * server) {
 template <typename buffer_container_type = std::vector<rmm::device_buffer>>
 std::tuple<Message::MetaData, Address::MetaData, std::vector<ColumnTransport>, buffer_container_type>
 collect_gpu_message(
-	void * socket, int gpuId, void (*read_tpc_message)(std::vector<int>, void *, int, buffer_container_type &)) {
+	void * socket, int gpuId, void (*read_tpc_message)(std::vector<std::size_t>, void *, int, buffer_container_type &)) {
 	zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
 	// begin of message
 	Message::MetaData message_metadata = read_metadata<Message::MetaData>(socket);
@@ -161,8 +161,8 @@ collect_gpu_message(
 		socket, (char *) column_offsets.data(), column_offset_size * sizeof(ColumnTransport));
 
 	auto buffer_sizes_size = read_metadata<int32_t>(socket);
-	std::vector<int> buffer_sizes(buffer_sizes_size);
-	blazingdb::transport::io::readFromSocket(socket, (char *) buffer_sizes.data(), buffer_sizes_size * sizeof(int));
+	std::vector<std::size_t> buffer_sizes(buffer_sizes_size);
+	blazingdb::transport::io::readFromSocket(socket, (char *) buffer_sizes.data(), buffer_sizes_size * sizeof(std::size_t));
 
 	buffer_container_type raw_columns;
 	read_tpc_message(buffer_sizes, socket, gpuId, raw_columns);
