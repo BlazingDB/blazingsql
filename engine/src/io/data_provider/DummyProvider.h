@@ -34,27 +34,27 @@ public:
 		// does nothing
 	}
 
-	data_handle get_next() {
+	data_handle get_next(bool open_file = true) {
 		data_handle handle;
 		handle.fileHandle = nullptr;
 		return handle;
 	}
-
-	data_handle get_first() {
-		data_handle handle;
-		handle.fileHandle = nullptr;
-		return handle;
-	}
-
 
 	std::vector<std::string> get_errors() { return {}; }
 
-	std::string get_current_user_readable_file_handle() { return ""; }
+	/**
+	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
+	 * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
+	 */
+	std::vector<data_handle> get_some(std::size_t num_files, bool open_file = true) { return {}; }
 
-	std::vector<data_handle> get_all() { return {}; }
-
-
-	size_t get_file_index() { return 0; }
+	/**
+	 * Closes currently open set of file handles maintained by the provider
+	 */
+	void close_file_handles() {
+		// does nothing
+	}
+	
 
 private:
 };

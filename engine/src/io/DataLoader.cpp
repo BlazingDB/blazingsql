@@ -45,15 +45,14 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 	}
 
-	std::vector<std::string> user_readable_file_handles;
 	std::vector<data_handle> files;
 
 	// iterates through files and parses them into columns
 	this->provider->reset();
 	while(this->provider->has_next()) {
-		// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-		user_readable_file_handles.push_back(this->provider->get_current_user_readable_file_handle());
-		files.push_back(this->provider->get_next());
+		auto handle = this->provider->get_next();
+		if (handle.is_valid())
+			files.emplace_back(std::move(handle));
 	}
 	size_t num_files = files.size();
 
@@ -91,7 +90,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 					}
 
 					if (schema.all_in_file()){
-						std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
+						std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, fileSchema, column_indices_in_file);
 
 						if(filterString != ""){
 							blazingTable_per_file[file_index] = std::move(ral::processor::process_filter(loaded_table->toBlazingTableView(), filterString, context));
@@ -100,21 +99,23 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 							blazingTable_per_file[file_index] =  std::move(loaded_table);
 						}
 					} else {
-						std::vector<std::unique_ptr<cudf::column>> current_columns;
+						std::vector<std::unique_ptr<cudf::column>> all_columns(column_indices.size());
+						std::vector<std::unique_ptr<cudf::column>> file_columns;
 						std::vector<std::string> names;
 						cudf::size_type num_rows;
 						if (column_indices_in_file.size() > 0){
-							std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, column_indices_in_file);
+							std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, fileSchema, column_indices_in_file);
 							names = current_blazing_table->names();
 							std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
 							num_rows = current_table->num_rows();
-							current_columns = current_table->release();
+							file_columns = current_table->release();
 						} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
 							std::vector<size_t> temp_column_indices = {0};
-							std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, user_readable_file_handles[file_index], fileSchema, temp_column_indices);
+							std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse(file_sets[file_set_index][file_in_set].fileHandle, fileSchema, temp_column_indices);
 							num_rows = loaded_table->num_rows();
 						}
 
+						int in_file_column_counter = 0;
 						for(int i = 0; i < column_indices.size(); i++) {
 							int col_ind = column_indices[i];
 							if(!schema.get_in_file()[col_ind]) {
@@ -123,7 +124,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 								cudf::type_id type = schema.get_dtype(col_ind);
 								std::string scalar_string = file_sets[file_set_index][file_in_set].column_values[name];
 								if(type == cudf::type_id::STRING){
-									current_columns.emplace_back(ral::utilities::experimental::make_string_column_from_scalar(scalar_string, num_rows));
+									all_columns[i] = ral::utilities::experimental::make_string_column_from_scalar(scalar_string, num_rows);
 								} else {
 									std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
 									size_t width_per_value = cudf::size_of(scalar->type());
@@ -132,11 +133,14 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 									auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
 									auto mutable_scalar_col = scalar_column->mutable_view();
 									cudf::experimental::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
-									current_columns.emplace_back(std::move(scalar_column));
+									all_columns[i] = std::move(scalar_column);
 								}
+							} else {
+								all_columns[i] = std::move(file_columns[in_file_column_counter]);
+								in_file_column_counter++;
 							}
 						}
-						auto unique_table = std::make_unique<cudf::experimental::table>(std::move(current_columns));
+						auto unique_table = std::make_unique<cudf::experimental::table>(std::move(all_columns));
 						if(filterString != ""){
 							auto temp = std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
 							blazingTable_per_file[file_index] = std::move(ral::processor::process_filter(temp->toBlazingTableView(), filterString, context));
@@ -146,7 +150,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 					}
 				} else {
 					Library::Logging::Logger().logError(ral::utilities::buildLogString(
-						"", "", "", "ERROR: Was unable to open " + user_readable_file_handles[file_index]));
+						"", "", "", "ERROR: Was unable to open " + file_sets[file_set_index][file_in_set].uri.toString()));
 				}
 			}
 		}));
@@ -175,7 +179,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 
 	if(num_files == 0 || num_columns == 0) {
 		// GDFParse is parsed here
-		std::unique_ptr<ral::frame::BlazingTable> parsed_table = parser->parse(nullptr, "", schema, column_indices);
+		std::unique_ptr<ral::frame::BlazingTable> parsed_table = parser->parse(nullptr, schema, column_indices);
 		bool if_null_empty_load = (parsed_table == nullptr || parsed_table->num_columns() == 0);
 		if (if_null_empty_load) {
 			parsed_table = schema.makeEmptyBlazingTable(column_indices);
@@ -234,35 +238,57 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 
 
 void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, cudf::type_id>> non_file_columns) {
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
-	bool firstIteration = true;
-	std::vector<data_handle> handles = this->provider->get_all();
-	for(auto handle : handles) {
-		files.push_back(handle.fileHandle);
+	bool got_schema = false;
+	while (!got_schema && this->provider->has_next()){
+		data_handle handle = this->provider->get_next();
+		if (handle.fileHandle != nullptr){
+			this->parser->parse_schema(handle.fileHandle, schema);
+			if (schema.get_num_columns() > 0){
+				got_schema = true;
+				schema.add_file(handle.uri.toString(true));
+			}
+		}		
 	}
-	this->parser->parse_schema(files, schema);
-
-	for(auto handle : handles) {
-		schema.add_file(handle.uri.toString(true));
+	if (!got_schema){
+		std::cout<<"ERROR: Could not get schema"<<std::endl;
+	}
+	
+	bool open_file = false;
+	while (this->provider->has_next()){
+		std::vector<data_handle> handles = this->provider->get_some(64, open_file);
+		for(auto handle : handles) {
+			schema.add_file(handle.uri.toString(true));
+		}
 	}
 
 	for(auto extra_column : non_file_columns) {
 		schema.add_column(extra_column.first, extra_column.second, 0, false);
 	}
-	this->provider->reset();
+	this->provider->reset();	
 }
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) {
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
-
-	bool firstIteration = true;
-	std::vector<data_handle> handles = this->provider->get_all();
-
-	for(auto handle : handles) {
-		files.push_back(handle.fileHandle);
+	
+	std::size_t NUM_FILES_AT_A_TIME = 64;
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> metadata_batches;
+	std::vector<ral::frame::BlazingTableView> metadata_batche_views;
+	while(this->provider->has_next()){
+		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
+		std::vector<data_handle> handles = this->provider->get_some(NUM_FILES_AT_A_TIME);
+		for(auto handle : handles) {
+			files.push_back(handle.fileHandle);
+		}
+		metadata_batches.emplace_back(this->parser->get_metadata(files,  offset));
+		metadata_batche_views.emplace_back(metadata_batches.back()->toBlazingTableView());
+		offset += files.size();
+		this->provider->close_file_handles();
 	}
 	this->provider->reset();
-	return this->parser->get_metadata(files,  offset);
+	if (metadata_batches.size() == 1){
+		return std::move(metadata_batches[0]);
+	} else {
+		return ral::utilities::experimental::concatTables(metadata_batche_views);
+	}	
 }
 
 } /* namespace io */

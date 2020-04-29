@@ -90,12 +90,6 @@ cudf::type_id Schema::get_dtype(size_t schema_index) const { return this->types[
 
 std::string Schema::get_name(size_t schema_index) const { return this->names[schema_index]; }
 
-size_t Schema::get_file_index(size_t schema_index) const {
-	if(this->calcite_to_file_indices.size() == 0) {
-		return schema_index;
-	}
-	return this->calcite_to_file_indices[schema_index];
-}
 
 size_t Schema::get_num_columns() const { return this->names.size(); }
 
@@ -129,6 +123,9 @@ Schema Schema::fileSchema(size_t current_file_index) const {
 	// Just get the associated row_groups for current_file_index
 	if (this->row_groups_ids.size() > current_file_index){
 		schema.row_groups_ids.push_back(this->row_groups_ids.at(current_file_index));
+	}
+	if (this->files.size() > current_file_index){
+		schema.files.push_back(this->files.at(current_file_index));
 	}
 	return schema;
 }

@@ -54,7 +54,6 @@ cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_a
 
 std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 
@@ -109,16 +108,15 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 	std::vector<size_t> column_indices,
 	cudf::size_type row_group) {
 
-	return parse(file, "", schema, column_indices);
+	return parse(file, schema, column_indices);
 }
 
 
 void csv_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
+	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
-	cudf_io::table_with_metadata table_out = read_csv_arg_arrow(csv_args, files[0], true);
-	assert(table_out.tbl->num_columns() > 0);
-
+	cudf_io::table_with_metadata table_out = read_csv_arg_arrow(csv_args, file, true);
+	
 	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
 		size_t file_index = i;

@@ -237,10 +237,21 @@ public class RelationalAlgebraGenerator {
 
 		try {
 			response = RelOptUtil.toString(getRelationalAlgebra(sql));
+		}catch(SqlValidationException ex){
+			//System.out.println(ex.getMessage());
+			//System.out.println("Found validation err!");
+			return "fail: \n " + ex.getMessage();
+		}catch(SqlSyntaxException ex){
+			//System.out.println(ex.getMessage());
+			//System.out.println("Found syntax err!");
+			return "fail: \n " + ex.getMessage();
 		} catch(Exception ex) {
-			System.out.println(ex.getMessage());
+			//System.out.println(ex.toString());
+			//System.out.println(ex.getMessage());
+			ex.printStackTrace();
+
 			LOGGER.error(ex.getMessage());
-			throw ex;
+			return "fail: \n " + ex.getMessage();
 		}
 
 		return response;
