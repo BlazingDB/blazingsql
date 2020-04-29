@@ -173,12 +173,12 @@ public:
 		this->provider = loader.get_provider();
 		this->parser = loader.get_parser();
 
-		// iterates through files and parses them into columns
-		while(this->provider->has_next()) {
+		if(this->provider->has_next()) {
 			// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-			files.push_back(this->provider->get_next());
+			this->cur_data_handle = this->provider->get_next();
 		}
-		n_files = files.size();
+
+		n_files = schema.get_files().size();
 		for (size_t index = 0; index < n_files; index++) {
 			std::vector<cudf::size_type> row_groups = schema.get_rowgroup_ids(index);
 			n_batches += row_groups.size();
@@ -211,13 +211,16 @@ public:
 		}
 		
 		cudf::size_type row_group_id = all_row_groups[cur_file_index][cur_row_group_index];
-
-		auto ret = loader.load_batch(context.get(), projections, schema, files[cur_file_index], cur_file_index, row_group_id);
+		auto ret = loader.load_batch(context.get(), projections, schema, this->cur_data_handle, cur_file_index, row_group_id);
 		batch_index++;
 		cur_row_group_index++;
 		if (cur_row_group_index == all_row_groups[cur_file_index].size()) {
 			cur_file_index++;
 			cur_row_group_index = 0;
+			if(this->provider->has_next()) {
+				// a file handle that we can use in case errors occur to tell the user which file had parsing issues
+				this->cur_data_handle = this->provider->get_next();
+			}
 		}
 
 		return std::move(ret);
@@ -243,15 +246,14 @@ public:
 private:
 	std::shared_ptr<ral::io::data_provider> provider;
 	std::shared_ptr<ral::io::data_parser> parser;
-	std::vector<std::string> user_readable_file_handles;
-	std::vector<ral::io::data_handle> files;
-
+	
 	std::shared_ptr<Context> context;
 	std::vector<size_t> projections;
 	ral::io::data_loader loader;
 	ral::io::Schema  schema;
 	size_t cur_file_index;
 	size_t cur_row_group_index;
+	ral::io::data_handle cur_data_handle;
 	std::atomic<size_t> batch_index;
 	size_t n_batches;
 	size_t n_files;

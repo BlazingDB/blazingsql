@@ -26,8 +26,10 @@ namespace io {
 class uri_data_provider : public data_provider {
 public:
 	uri_data_provider(std::vector<Uri> uris,
-		std::vector<std::map<std::string, std::string>> uri_values);
-	uri_data_provider(std::vector<Uri> uris);
+		std::vector<std::map<std::string, std::string>> uri_values,
+		bool ignore_missing_paths = false);
+	uri_data_provider(std::vector<Uri> uris, 
+		bool ignore_missing_paths = false);
 
 	std::shared_ptr<data_provider> clone() override; 
 
@@ -42,31 +44,27 @@ public:
 	void reset();
 	/**
 	 * gets a randomaccessfile to the uri at file_uris[current_file] and advances current_file by 1
+	 * open_file = true will actually open the file and return a std::shared_ptr<arrow::io::RandomAccessFile>. If its false it will return a nullptr
 	 */
-	data_handle get_next();
-	/**
-	 * gets a randomaccessfile to the uri at file_uris[0]
-	 */
-	data_handle get_first();
-
+	data_handle get_next(bool open_file = true);
+	
 	/**
 	 * returns any errors that were encountered when opening arrow::io::RandomAccessFile
 	 */
 	std::vector<std::string> get_errors();
+	
 	/**
-	 * returns a string that the user should be able to use to identify which file is being referred to in error
-	 * messages
+	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
+	 * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
+	 * open_file = true will actually open the file and return a std::shared_ptr<arrow::io::RandomAccessFile>. If its false it will return a nullptr
 	 */
-	std::string get_current_user_readable_file_handle();
-	/**
-	 * returns all of the file handles
-	 */
-	std::vector<data_handle> get_all();
+	std::vector<data_handle> get_some(std::size_t num_files, bool open_file = true);
 
 	/**
-	 * returns the current file index
+	 * Closes currently open set of file handles maintained by the provider
 	 */
-	size_t get_file_index();
+	void close_file_handles();
+
 
 private:
 	/**
@@ -96,6 +94,7 @@ private:
 	std::vector<std::map<std::string,  std::string>> uri_values;
 	std::vector<Uri> directory_uris;
 	size_t directory_current_file;
+	bool ignore_missing_paths;
 };
 
 } /* namespace io */

@@ -84,8 +84,8 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
-cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns):
-    temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns)
+cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns, bool ignore_missing_paths):
+    temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns, ignore_missing_paths)
     return temp
 
 cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values):
@@ -157,7 +157,7 @@ cpdef finalizeCaller():
 cpdef blazingSetAllocatorCaller(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging):
     blazingSetAllocatorPython(allocation_mode, initial_pool_size, devices, enable_logging)
 
-cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
+cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_missing_paths):
     cdef vector[string] files
     for file in fileList:
       files.push_back(str.encode(file))
@@ -176,7 +176,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
         extra_column_cpp = (extra_column[0].encode(),extra_column[1])
         extra_columns_cpp.push_back(extra_column_cpp)
                 
-    tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
+    tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp, ignore_missing_paths)
     return_object = {}
     return_object['datasource'] = files
     return_object['files'] = tableSchema.files

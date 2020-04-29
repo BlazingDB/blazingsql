@@ -15,16 +15,16 @@
 namespace ral {
 namespace io {
 
-uri_data_provider::uri_data_provider(std::vector<Uri> uris)
+uri_data_provider::uri_data_provider(std::vector<Uri> uris, bool ignore_missing_paths)
 	: data_provider(), file_uris(uris), uri_values({}), opened_files({}),
-	  current_file(0), errors({}), directory_uris({}), directory_current_file(0) {}
+	  current_file(0), errors({}), directory_uris({}), directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {}
 
-// TODO percy cudf0.12 implement proper scalar support, TODO, finish this to support HIVE with partitions, @alex 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
-	std::vector<std::map<std::string, std::string>> uri_values)
+	std::vector<std::map<std::string, std::string>> uri_values,
+	bool ignore_missing_paths)
 	: data_provider(), file_uris(uris), uri_values(uri_values), 
 	opened_files({}), current_file(0), errors({}), directory_uris({}),
-	  directory_current_file(0) {
+	  directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {
 	// thanks to c++11 we no longer have anything interesting to do here :)
 }
 
@@ -35,19 +35,7 @@ std::shared_ptr<data_provider> uri_data_provider::clone() {
 uri_data_provider::~uri_data_provider() {
 	// TODO: when a shared_ptr to a randomaccessfile goes out of scope does it close files automatically?
 	// in case it doesnt we can close that here
-	for(size_t file_index = 0; file_index < this->opened_files.size(); file_index++) {
-		// TODO: perhaps consider capturing status here and complainig if it fails
-		this->opened_files[file_index]->Close();
-		//
-	}
-}
-
-std::string uri_data_provider::get_current_user_readable_file_handle() {
-	if(directory_uris.size() == 0) {
-		return this->file_uris[this->current_file].toString();
-	} else {
-		return this->directory_uris[this->directory_current_file].toString();
-	}
+	this->close_file_handles(); 
 }
 
 bool uri_data_provider::has_next() { return this->current_file < this->file_uris.size(); }
@@ -57,27 +45,33 @@ void uri_data_provider::reset() {
 	this->directory_current_file = 0;
 }
 
-std::vector<data_handle> uri_data_provider::get_all() {
+/**
+ * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
+ * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
+ * open_file = true will actually open the file and return a std::shared_ptr<arrow::io::RandomAccessFile>. If its false it will return a nullptr
+ */
+std::vector<data_handle> uri_data_provider::get_some(std::size_t num_files, bool open_file){
+	std::size_t count = 0;
 	std::vector<data_handle> file_handles;
-	while(this->has_next()) {
-		file_handles.push_back(this->get_next());
+	while(this->has_next() && count < num_files) {
+		auto handle = this->get_next(open_file);
+		if (handle.is_valid())
+			file_handles.emplace_back(std::move(handle));
+		count++;
 	}
-
 	return file_handles;
 }
 
-data_handle uri_data_provider::get_next() {
+
+data_handle uri_data_provider::get_next(bool open_file) {
 	// TODO: Take a look at this later, just calling this function to ensure
 	// the uri is in a valid state otherwise throw an exception
 	// because openReadable doens't  validate it and just return a nullptr
 
 	if(this->directory_uris.size() > 0 && this->directory_current_file < this->directory_uris.size()) {
-		auto fileStatus = BlazingContext::getInstance()->getFileSystemManager()->getFileStatus(
-			this->directory_uris[this->directory_current_file]);
-
-		std::shared_ptr<arrow::io::RandomAccessFile> file =
+		std::shared_ptr<arrow::io::RandomAccessFile> file = open_file ? 
 			BlazingContext::getInstance()->getFileSystemManager()->openReadable(
-				this->directory_uris[this->directory_current_file]);
+				this->directory_uris[this->directory_current_file]) : nullptr;
 
 		data_handle handle;
 		handle.uri = this->directory_uris[this->directory_current_file];
@@ -89,7 +83,9 @@ data_handle uri_data_provider::get_next() {
 			}
 		}
 
-		this->opened_files.push_back(file);
+		if (open_file){
+			this->opened_files.push_back(file);
+		}
 
 		this->directory_current_file++;
 		if(this->directory_current_file >= directory_uris.size()) {
@@ -99,7 +95,7 @@ data_handle uri_data_provider::get_next() {
 
 		handle.fileHandle = file;
 		return handle;
-	} else {
+	} else if (this->current_file < this->file_uris.size()) {
 		FileStatus fileStatus;
 		auto current_uri = this->file_uris[this->current_file];
 		const bool hasWildcard = current_uri.getPath().hasWildcard();
@@ -115,7 +111,7 @@ data_handle uri_data_provider::get_next() {
 
 			if(fs_manager && fs_manager->exists(target_uri)) {
 				fileStatus = BlazingContext::getInstance()->getFileSystemManager()->getFileStatus(target_uri);
-			} else {
+			} else if (!ignore_missing_paths){
 				throw std::runtime_error(
 					"Path '" + target_uri.toString() +
 					"' does not exist. File or directory paths are expected to be in one of the following formats: " +
@@ -131,7 +127,7 @@ data_handle uri_data_provider::get_next() {
 					"For HDFS file paths: 'hdfs://registeredFileSystemName/folder0/folder1/fileName.extension'    " +
 					"For HDFS file paths with wildcard: '/folder0/folder1/*fileName*.*'    " +
 					"For HDFS directory paths: 'hdfs://registeredFileSystemName/folder0/folder1/'");
-			}
+			} 
 		} catch(const std::exception & e) {
 			std::cerr << e.what() << std::endl;
 			throw;
@@ -162,13 +158,15 @@ data_handle uri_data_provider::get_next() {
 			this->directory_uris = new_uris;
 
 			this->directory_current_file = 0;
-			return get_next();
+			return get_next(open_file);
 
 		} else if(fileStatus.isFile()) {
-			std::shared_ptr<arrow::io::RandomAccessFile> file =
-				BlazingContext::getInstance()->getFileSystemManager()->openReadable(current_uri);
+			std::shared_ptr<arrow::io::RandomAccessFile> file = open_file ? 
+				BlazingContext::getInstance()->getFileSystemManager()->openReadable(current_uri) : nullptr;
 
-			this->opened_files.push_back(file);
+			if (open_file){
+				this->opened_files.push_back(file);
+			}
 			data_handle handle;
 			handle.uri = current_uri;
 			handle.fileHandle = file;
@@ -184,17 +182,25 @@ data_handle uri_data_provider::get_next() {
 			return handle;
 		} else {
 			// this is a file we cannot parse apparently
-			return get_next();
+			this->current_file++;
+			return get_next(open_file);
 		}
+	} else {
+		data_handle empty_handle;
+		return empty_handle;
 	}
 }
 
-data_handle uri_data_provider::get_first() {
-	this->reset();
-	data_handle handle = this->get_next();
-	this->reset();
-	this->directory_uris = {};
-	return handle;
+/**
+ * Closes currently open set of file handles maintained by the provider
+*/
+void uri_data_provider::close_file_handles() {
+	for(size_t file_index = 0; file_index < this->opened_files.size(); file_index++) {
+		// TODO: perhaps consider capturing status here and complainig if it fails
+		this->opened_files[file_index]->Close();
+		//
+	}
+	this->opened_files.resize(0);
 }
 
 std::vector<std::string> uri_data_provider::get_errors() { return this->errors; }

@@ -29,6 +29,10 @@ struct data_handle {
 	std::shared_ptr<arrow::io::RandomAccessFile> fileHandle;
 	std::map<std::string, std::string> column_values;  // allows us to add hive values
 	Uri uri;										  // in case the data was loaded from a file
+
+	bool is_valid(){
+		return fileHandle != nullptr || !uri.isEmpty();
+	}
 };
 
 /**
@@ -52,15 +56,22 @@ public:
 	/**
 	 * gets us the next arrow::io::RandomAccessFile
 	 */
-	virtual data_handle get_next() = 0;
+	virtual data_handle get_next(bool open_file = true) = 0;
 	/**
 	 * gets any errors that occured while opening the files
 	 */
-	virtual data_handle get_first() = 0;
 	virtual std::vector<std::string> get_errors() = 0;
-	virtual std::string get_current_user_readable_file_handle() = 0;
 
-	virtual std::vector<data_handle> get_all() = 0;
+	/**
+	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
+	 * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
+	 */
+	virtual std::vector<data_handle> get_some(std::size_t num_files, bool open_file = true) = 0;
+
+	/**
+	 * Closes currently open set of file handles maintained by the provider
+	 */
+	virtual void close_file_handles() = 0;
 
 private:
 };
