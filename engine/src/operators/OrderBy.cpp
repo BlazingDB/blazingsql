@@ -376,11 +376,20 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(co
 		total_rows_tables.push_back(table_num_rows);
 		unsigned long long totalNumRows = std::accumulate(total_rows_tables.begin(), total_rows_tables.end(), 0);
 
-		const unsigned long long NUM_BYTES_PER_PARTITION = 400000000; // WSM TODO make this a configurable parameter
-		const int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; // WSM TODO make this dynamic or configurable. ALso used in PhysicalPlanGenerator.h
+		unsigned long long NUM_BYTES_PER_ORDER_BY_PARTITION = 400000000; 
+		int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; 
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		auto it = config_options.find("NUM_BYTES_PER_ORDER_BY_PARTITION");
+		if (it != config_options.end()){
+			NUM_BYTES_PER_ORDER_BY_PARTITION = std::stoull(config_options["NUM_BYTES_PER_ORDER_BY_PARTITION"]);
+		}
+		it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
+		if (it != config_options.end()){
+			MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
+		}
 
 		int num_nodes = context->getTotalNodes();
-		cudf::size_type total_num_partitions = (double)totalNumRows*(double)avg_bytes_per_row/(double)NUM_BYTES_PER_PARTITION;
+		cudf::size_type total_num_partitions = (double)totalNumRows*(double)avg_bytes_per_row/(double)NUM_BYTES_PER_ORDER_BY_PARTITION;
 		total_num_partitions = total_num_partitions <= 0 ? 1 : total_num_partitions;
 		// want to make the total_num_partitions to be a multiple of the number of nodes to evenly distribute
 		total_num_partitions = ((total_num_partitions + num_nodes - 1) / num_nodes) * num_nodes;

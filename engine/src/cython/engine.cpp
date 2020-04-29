@@ -143,7 +143,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 			contextNodes.push_back(Node(address));
 		}
 
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
+		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
@@ -188,7 +188,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 			contextNodes.push_back(Node(address));
 		}
 
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
+		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		const std::vector<std::string> & table_col_names = table.names();

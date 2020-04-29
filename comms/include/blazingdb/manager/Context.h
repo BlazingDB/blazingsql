@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include <mutex>
 #include "blazingdb/transport/Node.h"
 

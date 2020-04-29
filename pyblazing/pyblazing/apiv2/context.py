@@ -748,8 +748,10 @@ class BlazingContext(object):
         self.nodes = []
         self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
-        self.config_options = config_options
-
+        self.config_options = {} 
+        for option in config_options:
+            self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+        
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
