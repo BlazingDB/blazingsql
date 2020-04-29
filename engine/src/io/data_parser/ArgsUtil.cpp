@@ -38,7 +38,8 @@ DataType inferFileType(std::vector<std::string> files, DataType data_type_hint) 
 	std::transform(
 		files.begin(), files.end(), std::back_inserter(uris), [](std::string uri) -> Uri { return Uri(uri); });
 	ral::io::uri_data_provider udp(uris);
-	const ral::io::data_handle dh = udp.get_first();
+	bool open_file = false;
+	const ral::io::data_handle dh = udp.get_next(open_file);
 	std::string ext = dh.uri.getPath().getFileExtension();
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
@@ -146,10 +147,9 @@ void getReaderArgCSV(std::map<std::string, std::string> args, ReaderArgs & reade
 	if(in("skipfooter", args)) {
 		readerArg.csvReaderArg.skipfooter = (cudf::size_type) to_int(args["skipfooter"]);
 	}
-	if(in("header", args)) {
+	if(in("header", args) && args["header"] != "None" ) { // this is how it was in branch-0.14 at some point, but it makes testing fail
 		readerArg.csvReaderArg.header = (cudf::size_type) to_int(args["header"]);
-	} else {
-		// NOTE check this default value percy c.cordova
+	} else if((in("header", args) && args["header"] == "None") || (!in("header", args) && in("names", args))) {
 		readerArg.csvReaderArg.header = -1;
 	}
 	if(in("names", args)) {
