@@ -188,8 +188,8 @@ def collectPartitionsRunQuery(
                 tables[table_name].input = [tables[table_name].input.get_partition(
                     partitions[0]).compute()]
             else:
-                print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime. 
-This limitation is expected to exist until blazingsql version 0.14. 
+                print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
+This limitation is expected to exist until blazingsql version 0.14.
 In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
     dask_df = bc.unify_partitions(dask_df)
     bc.create_table('my_table', dask_df)""")
@@ -257,7 +257,7 @@ def workerUnifyPartitions(
             table_partitions.append(
                 input.get_partition(partition).compute())
         return cudf.concat(table_partitions)
-                
+
 
 # returns a map of table names to the indices of the columns needed. If there are more than one table scan for one table, it merged the needed columns
 # if the column list is empty, it means we want all columns
@@ -311,22 +311,28 @@ def get_uri_values(files, partitions, base_folder):
         else:
             print("ERROR: Could not get partition values for file: " + file.decode())
     return uri_values
-        
+
 
 def parseHiveMetadata(curr_table, uri_values):
     metadata = {}
     names = []
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
-    dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
+
+    if all(type in cudf_to_np_types for type in curr_table.column_types):
+        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types] 
+    else:
+        for i in range(len(curr_table.column_types)):
+            if not (curr_table.column_types[i] in cudf_to_np_types):
+                print("ERROR: Column " + curr_table.column_names[i] + " has type that cannot be mapped: " + curr_table.column_types[i])
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
         col_name = columns[index]
-        names.append('min_' + str(index) + '_' + col_name) 
-        names.append('max_' + str(index) + '_' + col_name) 
-    
-    names.append('file_handle_index') 
-    names.append('row_group_index') 
+        names.append('min_' + str(index) + '_' + col_name)
+        names.append('max_' + str(index) + '_' + col_name)
+
+    names.append('file_handle_index')
+    names.append('row_group_index')
     minmax_metadata_table = [[] for _ in range(2 * n_cols + 2)]
     table_partition = {}
     for file_index, uri_value in enumerate(uri_values):
@@ -342,10 +348,10 @@ def parseHiveMetadata(curr_table, uri_values):
                 np_col_value = np.datetime64(col_value_id)
             else:
                 np_col_value = np.fromstring(col_value_id, dtypes[col_index], sep=' ')[0]
-            
+
             table_partition.setdefault(col_name, []).append(np_col_value)
         minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
-        # this assumes that you only have one row group per partitioned file but is addressed in the mergeMetadata function, 
+        # this assumes that you only have one row group per partitioned file but is addressed in the mergeMetadata function,
         # where you will have information about how many rowgroups per file and you can expand the hive metadata accordingly
         minmax_metadata_table[len(minmax_metadata_table) - 1].append(0) # this is the rowgroup index
     for index in range(n_cols):
@@ -354,18 +360,23 @@ def parseHiveMetadata(curr_table, uri_values):
             col_value_ids = table_partition[col_name]
             minmax_metadata_table[2*index] = col_value_ids
             minmax_metadata_table[2*index+1] = col_value_ids
-            
+
     series = []
     for index in range(n_cols):
         col_name = columns[index]
         if col_name in table_partition:
-            col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[index], name=names[2*index])
-            col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
+            if(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
+                # when creating a pandas series, for a datetime type, it has to be in ns because that is the only internal datetime representation
+                col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.dtype("datetime64[ns]"), name=names[2*index])
+                col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=np.dtype("datetime64[ns]"), name=names[2*index+1])
+            else:
+                col1 = pd.Series(minmax_metadata_table[2*index], dtype=dtypes[index], name=names[2*index])
+                col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=dtypes[index], name=names[2*index+1])
             series.append(col1)
             series.append(col2)
             final_names.append(names[2*index])
             final_names.append(names[2*index+1])
-    index = n_cols 
+    index = n_cols
     col1 = pd.Series(minmax_metadata_table[2*index], dtype=np.int32, name=names[2*index])
     col2 = pd.Series(minmax_metadata_table[2*index+1], dtype=np.int32, name=names[2*index+1])
     final_names.append(names[2*index])
@@ -375,18 +386,27 @@ def parseHiveMetadata(curr_table, uri_values):
 
     frame = OrderedDict(((key,value) for (key,value) in zip(final_names, series)))
     metadata = cudf.DataFrame(frame)
+    for index, col_type in enumerate(dtypes):
+        min_col_name = names[2*index]
+        max_col_name = names[2*index+1]
+        if(dtypes[index] == np.dtype("datetime64[s]") or dtypes[index] == np.dtype("datetime64[ms]") or dtypes[index] == np.dtype("datetime64[us]") or dtypes[index] == np.dtype("datetime64[ns]")):
+            if (min_col_name in metadata) and (max_col_name in metadata):
+                if metadata[min_col_name].dtype != dtypes[index] or metadata[max_col_name].dtype != dtypes[index]:
+                    # here we are casting the timestamp types from ns to their correct desired types
+                    metadata[min_col_name] = metadata[min_col_name].astype(dtypes[index])
+                    metadata[max_col_name] = metadata[max_col_name].astype(dtypes[index])
     return metadata
 
 
 def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
-    
+
     if fileMetadata.shape[0] != hiveMetadata.shape[0]:
         print('ERROR: number of rows from fileMetadata: ' + str(fileMetadata.shape[0]) + ' does not match hiveMetadata: ' + str(hiveMetadata.shape[0]))
-        return hiveMetadata 
+        return hiveMetadata
 
     if not fileMetadata['file_handle_index'].equals(hiveMetadata['file_handle_index']):
         print('ERROR: file_handle_index of fileMetadata does not match the same order as in hiveMetadata')
-        return hiveMetadata 
+        return hiveMetadata
 
     result = fileMetadata
     columns = [c.decode() for c in curr_table.column_names]
@@ -396,16 +416,16 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     for index in range(n_cols):
         col_name = columns[index]
-        names.append('min_' + str(index) + '_' + col_name) 
-        names.append('max_' + str(index) + '_' + col_name) 
-    names.append('file_handle_index') 
-    names.append('row_group_index') 
+        names.append('min_' + str(index) + '_' + col_name)
+        names.append('max_' + str(index) + '_' + col_name)
+    names.append('file_handle_index')
+    names.append('row_group_index')
 
     for col_name in hiveMetadata._data.keys():
         result[col_name] = hiveMetadata[col_name]
-    
+
     result_col_names = [col_name for col_name in result._data.keys()]
-                
+
     # reorder dataframes using original min_max col_name order
     series = []
     for col_name in names:
@@ -424,7 +444,7 @@ import collections
 def is_double_children(expr):
     return "LogicalJoin" in expr  or  "LogicalUnion" in expr
 
-def visit (lines): 
+def visit (lines):
     stack = collections.deque()
     root_level = 0
     dicc = {
@@ -432,7 +452,7 @@ def visit (lines):
         "children": []
     }
     processed = set()
-    for index in range(len(lines)): 
+    for index in range(len(lines)):
         child_level, expr = lines[index]
         if child_level == root_level + 1:
             new_dicc = {
@@ -447,9 +467,9 @@ def visit (lines):
             processed.add(index)
 
     for index in processed:
-        lines[index][0] = -1 
+        lines[index][0] = -1
 
-    while len(stack) > 0: 
+    while len(stack) > 0:
         curr_index, curr_level, curr_expr, curr_dicc = stack.pop()
         processed = set()
 
@@ -460,7 +480,7 @@ def visit (lines):
             elif child_level == curr_level + 1:
                 index = curr_index + 1
                 if is_double_children(curr_expr):
-                    while index < len(lines) and len(curr_dicc["children"]) < 2: 
+                    while index < len(lines) and len(curr_dicc["children"]) < 2:
                         child_level, expr = lines[index]
                         if child_level == curr_level + 1:
                             new_dicc = {
@@ -475,7 +495,7 @@ def visit (lines):
                             stack.append( (index, child_level, expr, new_dicc) )
                         index += 1
                 else:
-                    while index < len(lines) and len(curr_dicc["children"]) < 1: 
+                    while index < len(lines) and len(curr_dicc["children"]) < 1:
                         child_level, expr = lines[index]
                         if child_level == curr_level + 1:
                             new_dicc = {
@@ -491,7 +511,7 @@ def visit (lines):
                         index += 1
 
         for index in processed:
-            lines[index][0] = -1 
+            lines[index][0] = -1
     return json.dumps(dicc)
 
 
@@ -502,14 +522,14 @@ def get_plan(algebra):
     for i in range(len(lines) - 1):
         line = lines[i]
         level = line.count("\t")
-        new_lines.append( [level, line.replace("\t", "")] )	
-    return visit(new_lines)    
+        new_lines.append( [level, line.replace("\t", "")] )
+    return visit(new_lines)
 
 
 def resolve_relative_path(files):
     files_out = []
     for file in files:
-        if isinstance(file, str): 
+        if isinstance(file, str):
             # if its an abolute path or fs path
             if file.startswith('/') |  file.startswith('hdfs://') | file.startswith('s3://') | file.startswith('gs://'):
                 files_out.append(file)
@@ -593,7 +613,7 @@ class BlazingTable(object):
         # slices, this is computed in create table, and then reused in sql method
         self.slices = None
         # metadata, this is computed in create table, after call get_metadata
-        self.metadata = metadata        
+        self.metadata = metadata
         # row_groups_ids, vector<vector<int>> one vector of row_groups per file
         self.row_groups_ids = row_groups_ids
         # a pair of values with the startIndex and batchSize info for each slice
@@ -609,10 +629,10 @@ class BlazingTable(object):
             self.column_names = [x for x in input.columns]
             self.column_types = [np_to_cudf_types[x] for x in input.dtypes]
 
-        # file_column_names are usually the same as column_names, except for when 
-        # in a hive table the column names defined by the hive schema 
+        # file_column_names are usually the same as column_names, except for when
+        # in a hive table the column names defined by the hive schema
         # are different that the names in actual files
-        self.file_column_names = self.column_names 
+        self.file_column_names = self.column_names
 
     def has_metadata(self) :
         if isinstance(self.metadata, dask_cudf.core.DataFrame):
@@ -675,7 +695,7 @@ class BlazingTable(object):
             bt.file_column_names = self.file_column_names
             bt.column_types = self.column_types
             nodeFilesList.append(bt)
-            
+
             startIndex = startIndex + batchSize
             remaining = remaining - batchSize
 
@@ -684,34 +704,34 @@ class BlazingTable(object):
     def get_partitions(self, worker):
         if worker in self.dask_mapping:
             return self.dask_mapping[worker]
-        else: 
+        else:
             return None
 
 
 class BlazingContext(object):
     """
-    BlazingContext is the Python API of BlazingSQL. Along with initialization arguments allowing for 
-    easy multi-GPU distribution, the BlazingContext class has a number of methods which assist not only 
+    BlazingContext is the Python API of BlazingSQL. Along with initialization arguments allowing for
+    easy multi-GPU distribution, the BlazingContext class has a number of methods which assist not only
     in creating and querying tables, but also in connecting remote data sources and understanding your ETL.
 
     Docs: https://docs.blazingdb.com/docs/blazingcontext
     """
-    
-    def __init__(self, dask_client=None, network_interface=None, allocator="managed", 
+
+    def __init__(self, dask_client=None, network_interface=None, allocator="managed",
                  pool=False, initial_pool_size=None, enable_logging=False):
         """
         Create a BlazingSQL API instance.
-        
+
         Parameters
         -------------------
 
         dask_client (optional) : dask.distributed.Client instance. only necessary for distributed query execution.
         network_interface (optional) : for communicating with the dask-scheduler. see note below.
-        allocator (optional) :  "managed" or "default", where "managed" uses Unified Virtual Memory (UVM) 
-                                and may use system memory if GPU memory runs out, "default" assumes rmm 
+        allocator (optional) :  "managed" or "default", where "managed" uses Unified Virtual Memory (UVM)
+                                and may use system memory if GPU memory runs out, "default" assumes rmm
                                 allocator is already set and does not initialize it.
         pool (optional) : if True, BlazingContext will self-allocate a GPU memory pool. can greatly improve performance.
-        initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True). 
+        initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
                                        if None, and pool=True, defaults to 1/2 GPU memory.
         enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
 
@@ -735,10 +755,10 @@ class BlazingContext(object):
         >>> client = Client(cluster)
         >>> bc = BlazingContext(dask_client=client, network_interface='lo')
         BlazingContext ready
-        
-        
-        Note: When using BlazingSQL with multiple nodes, you will need to set the correct network_interface your 
-        servers are using to communicate with the IP address of the dask-scheduler. You can see the different network 
+
+
+        Note: When using BlazingSQL with multiple nodes, you will need to set the correct network_interface your
+        servers are using to communicate with the IP address of the dask-scheduler. You can see the different network
         interfaces and what IP addresses they serve with the bash command ifconfig. The default is set to 'eth0'.
         """
         self.lock = Lock()
@@ -829,32 +849,32 @@ class BlazingContext(object):
     def hdfs(self, prefix, **kwargs):
         """
         Register a Hadoop Distributed File System (HDFS) Cluster.
-        
+
         Parameters
         ----------
-        
+
         name : string that represents the name with which you will refer to your HDFS cluster.
         host : string IP Address of your HDFS NameNode.
         port : integer of the Port number of your HDFS NameNode.
         user : string of the HDFS User on your NameNode.
         kerb_ticket (optional) : string file path to your ticket for kerberos authentication.
-        
+
         You may also need to set the following environment variables to properly interface with HDFS.
-        HADOOP_HOME: the root of your installed Hadoop distribution. 
+        HADOOP_HOME: the root of your installed Hadoop distribution.
         JAVA_HOME: the location of your Java SDK installation (should point to CONDA_PREFIX).
         ARROW_LIBHDFS_DIR: explicit location of libhdfs.so if not installed at $HADOOP_HOME/lib/native.
         CLASSPATH: must contain the Hadoop jars.
-        
+
         Examples
         --------
 
         Register and create table from HDFS:
 
         >>> bc.hdfs('dir_name', host='name_node_ip', port=port_number, user='hdfs_user')
-        >>> bc.create_table('table_name', 'hdfs://dir_name/file.csv')        
+        >>> bc.create_table('table_name', 'hdfs://dir_name/file.csv')
         <pyblazing.apiv2.context.BlazingTable at 0x7f11897c0310>
 
-        
+
         Docs: https://docs.blazingdb.com/docs/hdfs
         """
         return self.fs.hdfs(self.dask_client, prefix, **kwargs)
@@ -862,10 +882,10 @@ class BlazingContext(object):
     def s3(self, prefix, **kwargs):
         """
         Register an AWS S3 bucket.
-        
+
         Parameters
         ----------
-        
+
         name : string that represents the name with which you will refer to your S3 bucket.
         bucket_name : string name of your S3 bucket.
         access_key_id : string of your AWS IAM access key. not required for public buckets.
@@ -874,7 +894,7 @@ class BlazingContext(object):
         session_token (optional) : string of your AWS IAM session token.
         root (optional) : string path of your bucket that will be used as a shortcut path.
         kms_key_amazon_resource (optional) : string value, required for KMS encryption only.
-        
+
         Examples
         --------
 
@@ -883,16 +903,16 @@ class BlazingContext(object):
         >>> bc.s3('blazingsql-colab', bucket_name='blazingsql-colab')
         >>> bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/1_0_0.parquet')
         <pyblazing.apiv2.context.BlazingTable at 0x7f6d4e640c90>
-        
-        
+
+
         Register and create table from a private S3 bucket:
         >>> bc.s3('other-data', bucket_name='kws-parquet-data', access_key_id='AKIASPFMPQMQD2OG54IQ',
-        >>>       secret_key='bmt+TLTosdkIelsdw9VQjMe0nBnvAA5nPt0kaSx/Y', encryption_type=S3EncryptionType.AWS_KMS, 
+        >>>       secret_key='bmt+TLTosdkIelsdw9VQjMe0nBnvAA5nPt0kaSx/Y', encryption_type=S3EncryptionType.AWS_KMS,
         >>>       kms_key_amazon_resource_name='arn:aws:kms:region:acct-id:key/key-id')
-        >>> bc.create_table('taxi', 's3://other-data/yellow_taxi/1_0_0.parquet')   
+        >>> bc.create_table('taxi', 's3://other-data/yellow_taxi/1_0_0.parquet')
         <pyblazing.apiv2.context.BlazingTable at 0x7f12327c0310>
 
-        
+
         Docs: https://docs.blazingdb.com/docs/s3
         """
         return self.fs.s3(self.dask_client, prefix, **kwargs)
@@ -900,26 +920,26 @@ class BlazingContext(object):
     def gs(self, prefix, **kwargs):
         """
         Register a Google Storage bucket.
-        
+
         Parameters
         ----------
-        
+
         name : string that represents the name with which you will refer to your GS bucket.
         project_id : string name of your Google Cloud Platform project.
         bucket_name : string of the name of your GS bucket.
         use_default_adc_json_file (optional) : boolean, whether or not to use the default GCP ADC JSON.
         adc_json_file (optional) : string with the location of your custom ADC JSON.
-        
+
         Examples
         --------
 
         Register and create table from a GS bucket:
 
         >>> bc.gs('gs_1gb', project_id='blazingsql-enduser', bucket_name='bsql')
-        >>> bc.create_table('nation', 'gs://gs_1gb/tpch_sf1/nation/0_0_0.parquet')      
+        >>> bc.create_table('nation', 'gs://gs_1gb/tpch_sf1/nation/0_0_0.parquet')
         <pyblazing.apiv2.context.BlazingTable at 0x7f11897c0310>
 
-        
+
         Docs: https://docs.blazingdb.com/docs/google-storage
         """
         return self.fs.gs(self.dask_client, prefix, **kwargs)
@@ -941,35 +961,45 @@ class BlazingContext(object):
     def explain(self, sql):
         """
         Returns break down of a given query's Logical Relational Algebra plan.
-        
+
         Parameters
         ----------
-        
+
         sql : string SQL query.
-        
+
         Examples
         --------
 
         Explain this UNION query:
-        
+
         >>> query = '''
-        >>>         SELECT a.* 
-        >>>         FROM taxi_1 as a 
-        >>>         UNION ALL 
-        >>>         SELECT b.* 
-        >>>         FROM taxi_2 as b 
+        >>>         SELECT a.*
+        >>>         FROM taxi_1 as a
+        >>>         UNION ALL
+        >>>         SELECT b.*
+        >>>         FROM taxi_2 as b
         >>>             WHERE b.fare_amount < 100 OR b.passenger_count <> 4
         >>>             '''
         >>> plan = bc.explain(query)
-        >>> print(plan)     
+        >>> print(plan)
         LogicalUnion(all=[true])
           LogicalTableScan(table=[[main, taxi_1]])
           BindableTableScan(table=[[main, taxi_2]], filters=[[OR(<($12, 100), <>($3, 4))]])
-        
-        
+
+
         Docs: https://docs.blazingdb.com/docs/explain
         """
-        return str(self.generator.getRelationalAlgebraString(sql))
+        try:
+            algebra = str(self.generator.getRelationalAlgebraString(sql))
+        except jpype.JException as exception:
+            algebra = ""
+            print("SQL Parsing Error")
+            print(exception.message())
+        if algebra.startswith("fail:"):
+            print("Error found")
+            print(algebra)
+            algebra=""
+        return algebra
 
     def add_remove_table(self, tableName, addTable, table=None):
         self.lock.acquire()
@@ -999,19 +1029,19 @@ class BlazingContext(object):
     def create_table(self, table_name, input, **kwargs):
         """
         Create a BlazingSQL table.
-        
+
         Parameters
         ----------
-        
+
         table_name : string of table name.
         input : data source for table.
                 cudf.Dataframe, dask_cudf.DataFrame, pandas.DataFrame, filepath for csv, orc, parquet, etc...
-        
+
         Examples
         --------
-        
+
         Create table from cudf.DataFrame:
-        
+
         >>> import cudf
         >>> df = cudf.DataFrame()
         >>> df['a'] = [6, 9, 1, 6, 2]
@@ -1024,33 +1054,49 @@ class BlazingContext(object):
         <pyblazing.apiv2.context.BlazingTable at 0x7f22f58371d0>
 
         Create table from local file in 'data' directory:
-        
+
         >>> bc.create_table('taxi', 'data/nyc_taxi.csv', header=0)
         <pyblazing.apiv2.context.BlazingTable at 0x7f73893c0310>
 
-        
+
         Register and create table from a public AWS S3 bucket:
-        
+
         >>> bc.s3('blazingsql-colab', bucket_name='blazingsql-colab')
-        >>> bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/1_0_0.parquet')     
+        >>> bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/1_0_0.parquet')
         <pyblazing.apiv2.context.BlazingTable at 0x7f09264c0310>
 
-        
+
         Docs: https://docs.blazingdb.com/docs/create_table
         """
         table = None
-        extra_columns = []
-        file_format_hint = kwargs.get(
-            'file_format', 'undefined')  # See datasource.file_format
         extra_kwargs = {}
         in_file = []
         is_hive_input = False
         partitions = {}
+        extra_columns = []
+
+        file_format_hint = kwargs.get('file_format', 'undefined')  # See datasource.file_format
+        user_partitions = kwargs.get('partitions', None) # these are user defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}
+        if user_partitions is not None and type(user_partitions) != type({}):
+            print("ERROR: User defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}")
+            return
+        user_partitions_schema = kwargs.get('partitions_schema', None) # for user defined partitions, partitions_schema should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]
+        if user_partitions_schema is not None:
+            if user_partitions is None:
+                print("ERROR: 'partitions_schema' was defined, but 'partitions' was not. The parameter 'partitions_schema' is only to be used when defining 'partitions'")
+                return
+            elif type(user_partitions_schema) != type([]) and all(len(part_schema) == 2 for part_schema in user_partitions_schema):
+                print("ERROR: 'partitions_schema' should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
+                return
+            elif len(user_partitions_schema) != len(user_partitions):
+                print("ERROR: The number of columns in 'partitions' should be the same as 'partitions_schema'")
+                return
+                    
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             hive_database_name = kwargs.get('hive_database_name', 'default')
-            folder_list, hive_file_format_hint, extra_kwargs, extra_columns, in_file, hive_schema = get_hive_table(
-                input, hive_table_name, hive_database_name)
+            folder_list, hive_file_format_hint, extra_kwargs, extra_columns, hive_schema = get_hive_table(
+                input, hive_table_name, hive_database_name, user_partitions)
             
             if file_format_hint == 'undefined':
                 file_format_hint = hive_file_format_hint
@@ -1060,6 +1106,28 @@ class BlazingContext(object):
             kwargs.update(extra_kwargs)
             input = folder_list
             is_hive_input = True
+        elif user_partitions is not None:
+            if user_partitions_schema is None:
+                print("ERROR: When using 'partitions' without a Hive cursor, you also need to set 'partitions_schema' which should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
+                return
+            
+            hive_schema = {}
+            if isinstance(input, str):
+                hive_schema['location'] = input
+            elif isinstance(input, list) and len(input) == 1:
+                hive_schema['location'] = input[0]
+            else:
+                print("ERROR: When using 'partitions' without a Hive cursor, the input needs to be a path to the base folder of the partitioned data")
+                return
+
+            hive_schema['partitions'] = getPartitionsFromUserPartitions(user_partitions)
+            input = getFolderListFromPartitions(hive_schema['partitions'], hive_schema['location'] )
+
+        if user_partitions_schema is not None:
+            extra_columns = []
+            for part_schema in user_partitions_schema:
+                extra_columns.append((part_schema[0], convertTypeNameStrToCudfType(part_schema[1])))
+        
         if isinstance(input, str):
             input = [input, ]
 
@@ -1089,11 +1157,15 @@ class BlazingContext(object):
 
             input = resolve_relative_path(input)
 
+            ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find. 
             parsedSchema = self._parseSchema(
-                input, file_format_hint, kwargs, extra_columns)
+                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
 
-            if is_hive_input: 
+            if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(parsedSchema['files'], hive_schema['partitions'], hive_schema['location'])
+                num_cols = len(parsedSchema['names'])
+                num_partition_cols = len(extra_columns)
+                in_file = [True]*(num_cols - num_partition_cols) + [False]*num_partition_cols
             else:
                 uri_values = []
 
@@ -1120,26 +1192,27 @@ class BlazingContext(object):
                             merged_types.append(parsedSchema['types'][i])
                 else:
                     print("ERROR: number of hive_schema columns does not match number of parsedSchema columns")
-                
+
                 table.column_types = merged_types
             else:
                 table.column_names = parsedSchema['names'] # table.column_names are the official schema column_names
-                table.file_column_names = parsedSchema['names'] # table.file_column_names are the column_names used by the file (may be different 
+                table.file_column_names = parsedSchema['names'] # table.file_column_names are the column_names used by the file (may be different
                 table.column_types = parsedSchema['types']
-            
+
             table.slices = table.getSlices(len(self.nodes))
-            if is_hive_input and len(extra_columns) > 0:
+
+            if len(uri_values) > 0:
                 parsedMetadata = parseHiveMetadata(table, uri_values) 
                 table.metadata = parsedMetadata                
 
             if parsedSchema['file_type'] == DataType.PARQUET :
-                parsedMetadata = self._parseMetadata(input, file_format_hint, table.slices, parsedSchema, kwargs)
-            
+                parsedMetadata = self._parseMetadata(file_format_hint, table.slices, parsedSchema, kwargs)
+                
                 if isinstance(parsedMetadata, dask_cudf.core.DataFrame):
                     parsedMetadata = parsedMetadata.compute()
                     parsedMetadata = parsedMetadata.reset_index()
 
-                if is_hive_input:
+                if len(uri_values) > 0:
                     table.metadata = mergeMetadata(table, parsedMetadata, table.metadata)
                 else:
                     table.metadata = parsedMetadata
@@ -1168,33 +1241,33 @@ class BlazingContext(object):
                 input,
                 DataType.DASK_CUDF,
                 client=self.dask_client)
-        
+
         if table is not None:
             self.add_remove_table(table_name, True, table)
-        
+
 
     def drop_table(self, table_name):
         """
         Drop table from BlazingContext memory.
-        
+
         Parameters
         ----------
-        
+
         table_name : string of table name to drop.
-        
+
         Examples
         --------
 
         Drop 'taxi' table:
-        
+
         >>> bc.drop_table('taxi')
-        
-        
+
+
         Docs: https://docs.blazingdb.com/docs/using-blazingsql#section-drop-tables
         """
         self.add_remove_table(table_name, False)
 
-    def _parseSchema(self, input, file_format_hint, kwargs, extra_columns):
+    def _parseSchema(self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths):
         if self.dask_client:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
             connection = self.dask_client.submit(
@@ -1203,13 +1276,14 @@ class BlazingContext(object):
                 file_format_hint,
                 kwargs,
                 extra_columns,
+                ignore_missing_paths,
                 workers=[worker])
             return connection.result()
         else:
             return cio.parseSchemaCaller(
-                input, file_format_hint, kwargs, extra_columns)
+                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
 
-    def _parseMetadata(self, input, file_format_hint, currentTableNodes, schema, kwargs):
+    def _parseMetadata(self, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()['workers'])
@@ -1224,16 +1298,17 @@ class BlazingContext(object):
                         file_format_hint,
                         kwargs,
                         workers=[worker])
-                    dask_futures.append(connection)                
+                    dask_futures.append(connection)
             return dask.dataframe.from_delayed(dask_futures)
 
         else:
+            files = [ file.decode() for file in currentTableNodes[0].files]
             return cio.parseMetadataCaller(
-                input, currentTableNodes[0].offset, schema, file_format_hint, kwargs)
+                files, currentTableNodes[0].offset, schema, file_format_hint, kwargs)
 
     def _sliceRowGroups(self, numSlices, files, uri_values, row_groups_ids):
         nodeFilesList = []
-       
+
         total_num_rowgroups = sum([len(x) for x in row_groups_ids])
         file_index_per_rowgroups = [file_index  for file_index, row_groups_for_file in enumerate(row_groups_ids) for row_group in row_groups_for_file]
         flattened_rowgroup_ids = [row_group  for row_groups_for_file in row_groups_ids for row_group in row_groups_for_file]
@@ -1252,7 +1327,7 @@ class BlazingContext(object):
                 sliced_uri_values = [uri_values[i] for i in unique_file_indexes_for_slice]
             else:
                 sliced_uri_values = []
-            
+
             sliced_rowgroup_ids = []
             last_file_index = None
             for ind, file_index in enumerate(file_indexes_for_slice):
@@ -1267,21 +1342,21 @@ class BlazingContext(object):
             all_sliced_files.append(sliced_files)
             all_sliced_uri_values.append(sliced_uri_values)
             all_sliced_row_groups_ids.append(sliced_rowgroup_ids)
-            
+
         return all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids
-    
-    
+
+
     def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query):
         nodeFilesList = []
         file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
 
-        if not skipdata_analysis_fail:            
+        if not skipdata_analysis_fail:
             actual_files = []
             uri_values = []
             row_groups_ids = []
-            
+
             if not file_indices_and_rowgroup_indices.empty: #skipdata did not filter everything
                 file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                 files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
@@ -1309,7 +1384,7 @@ class BlazingContext(object):
                 bt.column_types = current_table.column_types
                 nodeFilesList.append(bt)
 
-            else:            
+            else:
                 all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
 
                 for i, node in enumerate(self.nodes):
@@ -1353,26 +1428,26 @@ class BlazingContext(object):
                             dask_mapping,
                             by,
                             i,  # this is a dummy variable to make every submit unique which is necessary
-                            workers=[worker]))                    
+                            workers=[worker]))
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
     def unify_partitions(self, input):
         """
-        Concatenate all partitions that belong to a Dask Worker as one, so that 
-        you only have one partition per worker. This improves performance when 
+        Concatenate all partitions that belong to a Dask Worker as one, so that
+        you only have one partition per worker. This improves performance when
         running multiple queries on a table created from a dask_cudf DataFrame.
-        
+
         Parameters
         ----------
-        
+
         input : a dask_cudf DataFrame.
-        
+
         Examples
         --------
 
         Distribute BlazingSQL then create and query a table from a dask_cudf DataFrame:
-        
+
         >>> from blazingsql import BlazingContext
         >>> from dask.distributed import Client
         >>> from dask_cuda import LocalCUDACluster
@@ -1385,8 +1460,8 @@ class BlazingContext(object):
         >>> dask_df = bc.unify_partitions(dask_df)
         >>> bc.create_table("unified_partitions_table", dask_df)
         >>> result = bc.sql("SELECT * FROM unified_partitions_table")
-        
-        
+
+
         Docs: https://docs.blazingdb.com/docs/unify_partitions
         """
         if isinstance(input, dask_cudf.core.DataFrame) and self.dask_client is not None:
@@ -1402,7 +1477,7 @@ class BlazingContext(object):
                             input,
                             dask_mapping,
                             i,  # this is a dummy variable to make every submit unique which is necessary
-                            workers=[worker]))                    
+                            workers=[worker]))
                 result = dask.dataframe.from_delayed(dask_futures)
                 return result
             else:
@@ -1413,27 +1488,27 @@ class BlazingContext(object):
 
     def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True):
         """
-        Query a BlazingSQL table. 
-        
+        Query a BlazingSQL table.
+
         Returns results as cudf.DataFrame on single-GPU or dask_cudf.DataFrame when distributed (multi-GPU).
-        
+
         Parameters
         ----------
-        
+
         sql : string of SQL query.
         algebra (optional) : string of SQL algebra plan. if you used, sql string is not used.
-        
+
         Examples
         --------
 
         Register a public S3 bucket, then create and query a table from it:
-        
+
         >>> from blazingsql import BlazingContext
         >>> bc = BlazingContext()
         >>> bc.s3('blazingsql-colab', bucket_name='blazingsql-colab')
-        >>> bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/1_0_0.parquet')   
+        >>> bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/1_0_0.parquet')
         <pyblazing.apiv2.context.BlazingTable at 0x7f186006a310>
-        
+
         >>> result = bc.sql('SELECT vendor_id, tpep_pickup_datetime, passenger_count, Total_amount FROM taxi')
         >>> print(result)
                   vendor_id tpep_pickup_datetime  passenger_count  Total_amount
@@ -1443,12 +1518,12 @@ class BlazingContext(object):
         3                 1  2017-01-09 11:52:13                1      8.500000
         4                 2  2017-01-01 00:00:00                1     52.799999
         ...             ...                  ...              ...           ...
-        
-        >>> query = ''' 
-        >>>         SELECT 
+
+        >>> query = '''
+        >>>         SELECT
         >>>             tpep_pickup_datetime, trip_distance, Tip_amount,
         >>>             MTA_tax + Improvement_surcharge + Tolls_amount AS extra
-        >>>         FROM taxi 
+        >>>         FROM taxi
         >>>         WHERE passenger_count = 1 AND Fare_amount > 100
         >>>         '''
         >>> df = bc.sql(query)
@@ -1463,7 +1538,7 @@ class BlazingContext(object):
 
 
         Docs: https://docs.blazingdb.com/docs/single-gpu
-        """        
+        """
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [{} for _ in range(len(self.nodes))]
@@ -1471,7 +1546,11 @@ class BlazingContext(object):
 
         if (algebra is None):
             algebra = self.explain(sql)
-        
+
+        if algebra == '':
+            print("Parsing Error")
+            return
+
         if self.dask_client is None:
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
         else:
@@ -1484,7 +1563,7 @@ class BlazingContext(object):
             new_tables, relational_algebra_steps = connection.result()
 
         algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
-        
+
         for table in new_tables:
             fileTypes.append(new_tables[table].fileType)
             ftype = new_tables[table].fileType
@@ -1558,19 +1637,19 @@ class BlazingContext(object):
     # BEGIN LOG interface
     def log(self, query, logs_table_name='bsql_logs'):
         """
-        Query BlazingSQL's internal log (bsql_logs) that records events from all queries run. 
-        
+        Query BlazingSQL's internal log (bsql_logs) that records events from all queries run.
+
         Parameters
         ----------
-        
+
         query : string value SQL query on bsql_logs table.
         logs_table_name (optional) : string of logs table name, 'bsql_logs' by default.
-        
+
         Examples
         --------
 
         Initialize BlazingContext and query bsql_logs for how long each query took:
-        
+
         >>> from blazingsql import BlazingContext
         >>> bc = BlazingContext()
         BlazingContext ready
@@ -1584,7 +1663,7 @@ class BlazingContext(object):
         4  2020-03-30 23:10:44     45323   5897.124023
         ...                ...       ...           ...
 
-        
+
         Docs: https://docs.blazingdb.com/docs/blazingsql-logs
         """
         if not self.logs_initialized:

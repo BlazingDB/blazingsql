@@ -21,7 +21,6 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> parse(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const std::string & user_readable_file_handle,
 		const Schema & schema,
 		std::vector<size_t> column_indices);
 
@@ -31,7 +30,7 @@ public:
 		std::vector<size_t> column_indices,
 		cudf::size_type stripe);
 
-	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, Schema & schema);
+	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 private:
 	cudf::experimental::io::read_orc_args orc_args{cudf_io::source_info("")};

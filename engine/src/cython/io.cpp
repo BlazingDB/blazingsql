@@ -21,7 +21,8 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
 	std::vector<std::string> arg_values,
-	std::vector<std::pair<std::string, cudf::type_id>> extra_columns) {
+	std::vector<std::pair<std::string, cudf::type_id>> extra_columns,
+	bool ignore_missing_paths) {
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
 	ral::io::ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
@@ -43,7 +44,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	for(auto file_path : files) {
 		uris.push_back(Uri{file_path});
 	}
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, ignore_missing_paths);
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 
 	ral::io::Schema schema;

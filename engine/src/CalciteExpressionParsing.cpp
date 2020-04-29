@@ -224,8 +224,14 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	if(type_id == cudf::type_id::TIMESTAMP_DAYS) {
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
 	}
-	if(type_id == cudf::type_id::TIMESTAMP_NANOSECONDS) {
-		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
+	if(type_id == cudf::type_id::TIMESTAMP_SECONDS || type_id == cudf::type_id::TIMESTAMP_MILLISECONDS 
+		|| type_id == cudf::type_id::TIMESTAMP_MICROSECONDS || type_id == cudf::type_id::TIMESTAMP_NANOSECONDS) {
+		if (scalar_string.find(":") != std::string::npos){
+			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
+		} else {
+			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
+		}
+		
 	}
 	if(type_id == cudf::type_id::STRING)	{
 		auto str_scalar = cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));

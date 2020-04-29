@@ -25,7 +25,6 @@ public:
 	virtual ~gdf_parser();
 
 	std::unique_ptr<ral::frame::BlazingTable> parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const std::string & user_readable_file_handle,
 		const Schema & schema,
 		std::vector<std::size_t> column_indices);
 
@@ -35,7 +34,7 @@ public:
 		std::vector<size_t> column_indices,
 		cudf::size_type partition);
 
-	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema);
+	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema);
 
 private:
 	std::vector<frame::BlazingTableView> blazingTableViews_;
