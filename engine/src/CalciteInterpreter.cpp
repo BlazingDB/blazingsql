@@ -404,6 +404,9 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"duration"_a=blazing_timer.elapsed_time());
 
 		assert(output_frame != nullptr);
+
+		logger->flush();
+
 		return output_frame;
 	} catch(const std::exception& e) {
 		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
