@@ -149,7 +149,7 @@ void getReaderArgCSV(std::map<std::string, std::string> args, ReaderArgs & reade
 	}
 	if(in("header", args) && args["header"] != "None" ) { // this is how it was in branch-0.14 at some point, but it makes testing fail
 		readerArg.csvReaderArg.header = (cudf::size_type) to_int(args["header"]);
-	} else if((in("header", args) && args["header"] == "None") || (!in("header", args) && in("names", args)) {
+	} else if((in("header", args) && args["header"] == "None") || (!in("header", args) && in("names", args))) {
 		readerArg.csvReaderArg.header = -1;
 	}
 	if(in("names", args)) {
