@@ -56,7 +56,8 @@ public:
 			}
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
-		auto partitionPlan = ral::operators::experimental::generate_partition_plan(32, sampledTableViews, tableTotalRows, this->expression);
+		cudf::size_type num_partitions = context->getTotalNodes() * 4; // WSM TODO this is a hardcoded number for now. THis needs to change in the near future
+		auto partitionPlan = ral::operators::experimental::generate_partition_plan(num_partitions, sampledTableViews, tableTotalRows, this->expression);
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
 // ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
@@ -130,7 +131,8 @@ public:
 		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
-		std::vector<size_t> tableTotalRows;
+		size_t localTotalNumRows = 0;
+		size_t localTotalBytes = 0;
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
@@ -139,7 +141,8 @@ public:
 				auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
 				sampledTableViews.push_back(sampledTable->toBlazingTableView());
 				sampledTables.push_back(std::move(sampledTable));
-				tableTotalRows.push_back(batch->view().num_rows());
+				localTotalNumRows += batch->view().num_rows();
+				localTotalBytes += batch->sizeInBytes();
 				this->add_to_output_cache(std::move(sortedTable), "output_a");
 				batch_count++;
 			} catch(const std::exception& e) {
@@ -149,10 +152,10 @@ public:
 				std::cout<<err<<std::endl;
 			}
 		}
-		size_t totalNumRows = std::accumulate(tableTotalRows.begin(), tableTotalRows.end(), 0);
+		unsigned long long avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 		auto concatSamples = ral::utilities::experimental::concatTables(sampledTableViews);
-		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
-		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(32, concatSamples->toBlazingTableView(), totalNumRows, this->expression, this->context.get());
+		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
+			localTotalNumRows, avg_bytes_per_row, this->expression, this->context.get());
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		
 		return kstatus::proceed;

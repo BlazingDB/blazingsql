@@ -13,6 +13,7 @@
 #include "../execution_graph/logic_controllers/LogicalFilter.h"
 #include "communication/network/Server.h"
 #include <numeric>
+#include <map>
 
 std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_loaders_and_schemas(
 	const std::vector<TableSchema> & tableSchemas,
@@ -80,6 +81,38 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 	return std::make_pair(std::move(input_loaders), std::move(schemas));
 }
 
+// In case there are columns with the same name, we add a numerical suffix, example:
+//
+// q1: select n1.n_nationkey, n2.n_nationkey
+//         from nation n1 inner join nation n2 on n1.n_nationkey = n2.n_nationkey
+//
+// original column names:
+//     [n_nationkey, n_nationkey]
+// final column names:
+//     [n_nationkey, n_nationkey0]
+//
+// q2: select n_nationkey as n_nationkey0,
+//         n_regionkey as n_nationkey,
+//         n_regionkey + n_regionkey as n_nationkey
+//         from nation
+//
+// original column names:
+//     [n_nationkey0, n_nationkey, n_nationkey]
+// final column names:
+//     [n_nationkey0, n_nationkey, n_nationkey1]
+
+void fix_column_names_duplicated(std::vector<std::string> & col_names){
+	std::map<std::string,int> unique_names;
+
+	for(auto & col_name : col_names){
+		if(unique_names.find(col_name) == unique_names.end()){
+			unique_names[col_name]=-1;
+		} else {
+			col_name = col_name + std::to_string(++unique_names[col_name]);
+		}
+	}
+}
+
 std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
@@ -124,6 +157,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = frame->names();
+		fix_column_names_duplicated(result->names);
 		result->cudfTable = frame->releaseCudfTable();
 		result->skipdata_analysis_fail = false;
 		return result;

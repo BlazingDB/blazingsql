@@ -47,8 +47,8 @@ cudf::size_type BlazingHostTable::num_columns() const {
     return columns_offsets.size();
 }
 
-unsigned long long BlazingHostTable::sizeInBytes() {
-    unsigned long long total_size = 0L;
+std::size_t BlazingHostTable::sizeInBytes() {
+    std::size_t total_size = 0L;
     for (auto &col : columns_offsets) {
         total_size += col.size_in_bytes;
     }
