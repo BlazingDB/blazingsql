@@ -45,36 +45,6 @@ public:
   void Close() override { client_socket.close(); }
 
   void SetDevice(int gpuId) override { this->gpuId = gpuId; }
-
-  bool setNumberOfBatches(const Message::MetaData &message_metadata, size_t n_batches) override {
-    void* fd = client_socket.fd();
-    zmq::socket_t* socket_ptr = (zmq::socket_t*)fd;
-    std::string topic_id = "N_BATCHES";
-    blazingdb::transport::io::writeToSocket(fd, topic_id.c_str(), topic_id.length());
-    Message::MetaData message_copy = message_metadata;
-    message_copy.n_batches = n_batches;
-    
-    write_metadata(fd, message_copy);
-
-    blazingdb::transport::io::writeToSocket(fd, "OK", 2, false);
-
-    int data_past_topic{0};
-    auto data_past_topic_size{sizeof(data_past_topic)};
-    socket_ptr->getsockopt(ZMQ_RCVMORE, &data_past_topic,
-                           &data_past_topic_size);
-    // receive the ok
-    zmq::message_t local_message;
-    auto success = socket_ptr->recv(local_message);
-    if (success.value() == false || local_message.size() == 0) {
-      std::cerr << "Client:   throw zmq::error_t()" << std::endl;
-      throw zmq::error_t();
-    }
-
-    std::string end_message(static_cast<char*>(local_message.data()),
-                            local_message.size());
-    assert(end_message == "END");
-    return true;
-  }
   
   bool notifyLastMessageEvent(const Message::MetaData &message_metadata) override {
     void* fd = client_socket.fd();

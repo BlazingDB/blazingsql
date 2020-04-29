@@ -20,6 +20,7 @@ struct cache_settings {
 	const int num_partitions = 1;
 };
 
+using kernel_pair = std::pair<kernel *, std::string>;
 
 /**
 	@brief A temporary object to represent a pair of two kernels linked into the execution graph.

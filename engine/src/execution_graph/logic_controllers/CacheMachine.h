@@ -246,14 +246,6 @@ public:
 		return response;
 	} 
 	
-	void setNumberOfBatches(size_t n_batches) {
-		this->n_batches = n_batches;
-	}
-
-	size_t getNumberOfBatches() {
-		return this->n_batches;
-	}
-
 private:
 	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
 
@@ -261,7 +253,6 @@ private:
 	std::mutex mutex_;
 	std::deque<message_ptr> message_queue_;
 	std::atomic<bool> finished;
-	std::atomic<size_t> n_batches{1};
 	std::condition_variable condition_variable_;
 };
 /**
@@ -307,13 +298,6 @@ public:
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
-	void setNumberOfBatches(size_t n_batches) {
-		this->waitingCache->setNumberOfBatches(n_batches);
-	}
-
-	size_t getNumberOfBatches() {
-		return this->waitingCache->getNumberOfBatches();
-	}
 
 protected:
 	/// This property represents a waiting queue object which stores all CacheData Objects  
@@ -370,14 +354,7 @@ public:
 		auto cpu_data = (CPUCacheData * )(cache_data.get());
 		return cpu_data->releaseHostTable();
 	}
-
-	void setNumberOfBatches(size_t n_batches) {
-		this->waitingCache->setNumberOfBatches(n_batches);
-	}
-
-	size_t getNumberOfBatches() {
-		return this->waitingCache->getNumberOfBatches();
-	}
+	
 protected:
 	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
 };

@@ -18,6 +18,12 @@ namespace frame {
 
 using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
 
+/**
+	@brief A class that represents the BlazingTable store in host memory.
+    This implementation uses only raw buffers and offtets that represent a BlazingTable.
+    The reference to implement this class was based on the way how BlazingTable objects are send/received 
+    by the communication library.
+*/ 
 class BlazingHostTable {
 public:
     BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers);

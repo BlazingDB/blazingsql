@@ -31,22 +31,6 @@ void MessageQueue::putMessage(std::shared_ptr<ReceivedMessage> &message) {
   condition_variable_.notify_all(); // Note: Very important to notify all threads
 }
 
-void MessageQueue::setNumberOfBatches(const std::string& messageToken, size_t n_batches) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  this->n_batches_map_[messageToken] = n_batches;
-  condition_variable_n_batches_.notify_all(); // Note: Very important to notify all threads
-}
-
-size_t MessageQueue::getNumberOfBatches(const std::string& messageToken) {
-  std::unique_lock<std::mutex> lock(mutex_);
-
-  condition_variable_n_batches_.wait(lock, [&, this] {
-    auto iter = this->n_batches_map_.find(messageToken);
-    return iter != this->n_batches_map_.end();
-  });
-  return this->n_batches_map_[messageToken];
-}
-
 std::shared_ptr<ReceivedMessage> MessageQueue::getMessageQueue(
     const std::string &messageToken) {
   auto it = std::find_if(message_queue_.begin(), message_queue_.end(),
