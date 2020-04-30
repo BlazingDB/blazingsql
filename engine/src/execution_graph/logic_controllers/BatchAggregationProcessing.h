@@ -10,8 +10,8 @@
 #include "operators/GroupBy.h"
 #include "distribution/primitives.h"
 #include "utilities/DebuggingUtils.h"
-
 #include <cudf/partitioning.hpp>
+#include "CodeTimer.h"
 
 namespace ral {
 namespace batch {
@@ -19,17 +19,17 @@ using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
+using namespace fmt::literals;
 
-
-
-class ComputeAggregateKernel :public kernel {
+class ComputeAggregateKernel : public kernel {
 public:
 	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
         this->query_graph = query_graph;
 	}
 
 	virtual kstatus run() {
+		CodeTimer timer;
 
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
         std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types, 
@@ -57,11 +57,23 @@ public:
                 batch_count++;
             } catch(const std::exception& e) {
                 // TODO add retry here
-    			std::string err = "ERROR: in ComputeAggregateKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-                std::cout<<err<<std::endl;
+                logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                            "query_id"_a=context->getContextToken(),
+                            "step"_a=context->getQueryStep(),
+                            "substep"_a=context->getQuerySubstep(),
+                            "info"_a="In ComputeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+                            "duration"_a="");
             }
 		}
-        // std::cout<<"ComputeAggregateKernel end "<<std::endl;
+
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="ComputeAggregate Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
@@ -85,22 +97,21 @@ public:
     }
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
     std::vector<AggregateKind> aggregation_types;
     std::vector<int> group_column_indices;
 };
 
-
-
-class DistributeAggregateKernel :public kernel {
+class DistributeAggregateKernel : public kernel {
 public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
         this->query_graph = query_graph;
 	}
 
 	virtual kstatus run() {
+        using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
+        
+        CodeTimer timer;
 		
         std::vector<int> group_column_indices;
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases; // not used in this kernel
@@ -177,8 +188,12 @@ public:
                     batch_count++;
                 } catch(const std::exception& e) {
                     // TODO add retry here
-                    std::string err = "ERROR: in DistributeAggregateKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-                    std::cout<<err<<std::endl;
+                    this->logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                        "query_id"_a=context->getContextToken(),
+                                        "step"_a=context->getQueryStep(),
+                                        "substep"_a=context->getQuerySubstep(),
+                                        "info"_a="In DistributeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+                                        "duration"_a="");
                 }
             }
 
@@ -193,7 +208,7 @@ public:
             // Lets put the server listener to feed the output, but not if its aggregations without group by and its not the master
             if(group_column_indices.size() > 0 || 
                         this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
-                ExternalBatchColumnDataSequence external_input(context);
+                ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id());
                 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
                 while (host_table = external_input.next()) {
                     this->add_to_output_cache(std::move(host_table));
@@ -202,24 +217,32 @@ public:
         });
         producer_thread.join();
         consumer_thread.join();
-        // std::cout<<"DistributeAggregateKernel end "<<std::endl;
+        
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="DistributeAggregate Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 
-class MergeAggregateKernel :public kernel {
+class MergeAggregateKernel : public kernel {
 public:
 	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
         this->query_graph = query_graph;
 	}
 
 	virtual kstatus run() {
+        CodeTimer timer;
 
         std::vector<std::unique_ptr<ral::frame::BlazingTable>> tablesToConcat;
 		std::vector<ral::frame::BlazingTableView> tableViewsToConcat;
@@ -274,11 +297,23 @@ public:
                 this->add_to_output_cache(std::move(output));
              } catch(const std::exception& e) {
                 // TODO add retry here
-    			std::string err = "ERROR: in MergeAggregateKernel for " + expression + " Error message: " + std::string(e.what());
-                std::cout<<err<<std::endl;
+                logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                            "query_id"_a=context->getContextToken(),
+                            "step"_a=context->getQueryStep(),
+                            "substep"_a=context->getQuerySubstep(),
+                            "info"_a="In MergeAggregate kernel for {}. What: {}"_format(expression, e.what()),
+                            "duration"_a="");
             }
         }
-		// std::cout<<"MergeAggregateKernel end "<<std::endl;
+		
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="MergeAggregate Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
@@ -288,8 +323,7 @@ public:
     }
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 

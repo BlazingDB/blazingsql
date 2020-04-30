@@ -60,9 +60,11 @@ CacheMachine::CacheMachine()
 	waitingCache = std::make_unique<WaitingQueue>();
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
 	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() ); 
-	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() ); 
+	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
+
+	logger = spdlog::get("batch_logger");
 }
 
 CacheMachine::~CacheMachine() {}
@@ -84,12 +86,16 @@ uint64_t CacheMachine::get_num_rows_added(){
 	return num_rows_added.load();
 }
 
-void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string message_id) {
-	// std::cout<<"addHostFrameToCache "<<message_id<<std::endl;
-	// std::cout<<"num_rows: "<<host_table->num_rows()<<std::endl;
-	// for (auto name : host_table->names()){
-	// 	std::cout<<name<<std::endl;
-	// }
+void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id, Context * ctx) {
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Add to CacheMachine",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=host_table->num_rows());
+
 	num_rows_added += host_table->num_rows();
 	num_bytes_added += host_table->sizeInBytes();
 	auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
@@ -101,13 +107,16 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 	this->addToCache(std::move(table), std::to_string(message_id));
 }
 
-void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id){
-	// std::cout<<"addCacheData "<<message_id<<std::endl;
-	// std::cout<<"num_rows: "<<cache_data->num_rows()<<std::endl;
-	// for (auto name : cache_data->names()){
-	// 	std::cout<<name<<std::endl;
-	// }
+void CacheMachine::clear() {
+	std::unique_ptr<message<CacheData>> message_data;
+	while(message_data = waitingCache->pop_or_wait()) {
+		printf("...cleaning cache\n");
+	}
+	this->waitingCache->finish();
+}
 
+void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, Context * ctx){
+	
 	num_rows_added += cache_data->num_rows();
 	num_bytes_added += cache_data->sizeInBytes();
 	int cacheIndex = 0;
@@ -115,13 +124,40 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
 		if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
 			if(cacheIndex == 0) {
+				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                      "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+                      "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+                      "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+                      "info"_a="Add to CacheMachine general CacheData object into GPU cache ",
+                      "duration"_a="",
+                      "kernel_id"_a=message_id,
+                      "rows"_a=cache_data->num_rows());
+        
 				auto item = std::make_unique<message>(std::move(cache_data), message_id);
 				this->waitingCache->put(std::move(item));
 			} else {
 				if(cacheIndex == 1) {
+          logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                        "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+                        "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+                        "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+                        "info"_a="Add to CacheMachine general CacheData object into CPU cache ",
+                        "duration"_a="",
+                        "kernel_id"_a=message_id,
+                        "rows"_a=cache_data->num_rows());
+          
 					auto item = std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
 				} else if(cacheIndex == 2) {
+					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                        "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+                        "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+                        "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+                        "info"_a="Add to CacheMachine general CacheData object into Disk cache ",
+                        "duration"_a="",
+                        "kernel_id"_a=message_id,
+                        "rows"_a=cache_data->num_rows());
+
 					// BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
 					  auto item = std::make_unique<message>(std::move(cache_data), message_id);
 					  this->waitingCache->put(std::move(item));
@@ -143,9 +179,7 @@ void CacheMachine::clear() {
 	this->waitingCache->finish();
 }
 
-void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id) {
-	// std::cout<<"addToCache "<<message_id<<std::endl;
- 	// ral::utilities::print_blazing_table_view_schema(table->toBlazingTableView(), message_id);
+void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, Context * ctx) {
 	num_rows_added += table->num_rows();
 	num_bytes_added += table->sizeInBytes();
 	int cacheIndex = 0;
@@ -153,6 +187,15 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 		auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
 		if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
 			if(cacheIndex == 0) {
+				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                      "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+                      "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+                      "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+                      "info"_a="Add to CacheMachine into GPU cache",
+                      "duration"_a="",
+                      "kernel_id"_a=message_id,
+                      "rows"_a=table->num_rows());
+
 				// before we put into a cache, we need to make sure we fully own the table
 				auto column_names = table->names();
 				auto cudf_table = table->releaseCudfTable();
@@ -162,13 +205,30 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 				auto cache_data = std::make_unique<GPUCacheData>(std::move(fully_owned_table));
 				auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 				this->waitingCache->put(std::move(item));
-
 			} else {
 				if(cacheIndex == 1) {
+					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                        "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+                        "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+                        "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+                        "info"_a="Add to CacheMachine into CPU cache",
+                        "duration"_a="",
+                        "kernel_id"_a=message_id,
+                        "rows"_a=table->num_rows());
+
 					auto cache_data = std::make_unique<CPUCacheData>(std::move(table));
 					auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
 				} else if(cacheIndex == 2) {
+					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                        "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+                        "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+                        "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+                        "info"_a="Add to CacheMachine into Disk cache",
+                        "duration"_a="",
+                        "kernel_id"_a=message_id,
+                        "rows"_a=table->num_rows());
+
 					// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
 					  auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table));
 					  auto item =	std::make_unique<message>(std::move(cache_data), message_id);
@@ -197,20 +257,38 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 	return message_data->get_data().decache();
 }
 
-std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
-	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
-	if (message_data == nullptr) {
-		return nullptr;
-	}	
-	
-	return message_data->get_data().decache();
-}
-
-std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
-	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
+std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * ctx) {
+	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
 	}
+
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Pull from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+								"duration"_a="",
+								"kernel_id"_a=message_data->get_message_id(),
+								"rows"_a=cache_data->num_rows());
+
+	return message_data->get_data().decache();
+}
+
+std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx) {
+	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
+	if (message_data == nullptr) {
+		return nullptr;
+	}
+
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+								"duration"_a="",
+								"kernel_id"_a=message_data->get_message_id(),
+								"rows"_a=cache_data->num_rows());
 
 	return message_data->release_data();
 }
@@ -220,11 +298,10 @@ NonWaitingCacheMachine::NonWaitingCacheMachine()
 {
 }
 
-std::unique_ptr<ral::frame::BlazingTable> NonWaitingCacheMachine::pullFromCache() {
+std::unique_ptr<ral::frame::BlazingTable> NonWaitingCacheMachine::pullFromCache(Context * ctx) {
 	std::unique_ptr<message> message_data = waitingCache->pop();
 	return message_data->get_data().decache();
 }
-
 
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(size_t bytes_max_size)
 	: CacheMachine(), bytes_max_size_(bytes_max_size)
@@ -232,7 +309,7 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(size_t bytes_max_size)
 }
 
 // This method does not guarantee the relative order of the messages to be preserved
-std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
+std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache(Context * ctx) {
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> holder_samples;
 	std::vector<ral::frame::BlazingTableView> samples;
 

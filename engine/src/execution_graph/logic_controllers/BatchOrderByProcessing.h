@@ -7,28 +7,29 @@
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
-
 #include "distribution/primitives.h"
-
 #include "operators/OrderBy.h"
-
+#include "CodeTimer.h"
 
 namespace ral {
 namespace batch {
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
+using namespace fmt::literals;
 
-class SortAndSampleSingleNodeKernel :public kernel {
+class SortAndSampleSingleNodeKernel : public kernel {
 public:
 	SortAndSampleSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}
+		: kernel{queryString, context}
 	{
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
 	
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
@@ -39,9 +40,6 @@ public:
 			try {
 				auto batch = input.next();
 				auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
-	// std::cout<<">>>>>>>>>>>>>>> sortedTable START"<< std::endl;
-	// ral::utilities::print_blazing_table_view(sortedTable->toBlazingTableView());
-	// std::cout<<">>>>>>>>>>>>>>> sortedTable END"<< std::endl;
 				auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
 				sampledTableViews.push_back(sampledTable->toBlazingTableView());
 				sampledTables.push_back(std::move(sampledTable));
@@ -51,8 +49,12 @@ public:
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples 
-				std::string err = "ERROR: in SortAndSampleSingleNodeKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In SortAndSampleSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
@@ -62,24 +64,33 @@ public:
 // ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
-			
+		
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="SortAndSampleSingleNode Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
-class PartitionSingleNodeKernel :public kernel {
+class PartitionSingleNodeKernel : public kernel {
 public:
 	PartitionSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
 
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 		
@@ -105,29 +116,42 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in PartitionSingleNodeKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In PartitionSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="PartitionSingleNode Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
-class SortAndSampleKernel :public kernel {
+class SortAndSampleKernel : public kernel {
 public:
 	SortAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}
+		: kernel{queryString, context}
 	{
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
 	
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
@@ -148,8 +172,12 @@ public:
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples 
-				std::string err = "ERROR: in SortAndSampleKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In SortAndSample kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
 		unsigned long long avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
@@ -158,23 +186,34 @@ public:
 			localTotalNumRows, avg_bytes_per_row, this->expression, this->context.get());
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="SortAndSample Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
-class PartitionKernel :public kernel {
+class PartitionKernel : public kernel {
 public:
 	PartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
 
 	virtual kstatus run() {
+		using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
+		
+		CodeTimer timer;
+
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 		
@@ -195,15 +234,19 @@ public:
 					batch_count++;
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					std::string err = "ERROR: in PartitionKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-					std::cout<<err<<std::endl;
+					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=context->getContextToken(),
+												"step"_a=context->getQueryStep(),
+												"substep"_a=context->getQuerySubstep(),
+												"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 				}	
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
 		});
 		
 		BlazingThread consumer([this](){
-			ExternalBatchColumnDataSequence external_input(context);
+			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			while (host_table = external_input.next()) {
 				std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
@@ -213,23 +256,32 @@ public:
 		generator.join();
 		consumer.join();
 
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Partition Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
-class MergeStreamKernel :public kernel {
+class MergeStreamKernel : public kernel {
 public:
 	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}  {
+		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
 	}
 	
 	virtual kstatus run() {
-		int cache_count = 0;
+		CodeTimer timer;
+
+		int batch_count = 0;
 		for (auto idx = 0; idx < this->input_.count(); idx++)
 		{	
 			try {
@@ -237,7 +289,7 @@ public:
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
 				auto cache_id = "input_" + std::to_string(idx);
 				while (this->input_.get_cache(cache_id)->wait_for_next()) {
-					auto table = this->input_.get_cache(cache_id)->pullFromCache();
+					auto table = this->input_.get_cache(cache_id)->pullFromCache(context.get());
 					if (table) {
 						tableViews.emplace_back(table->toBlazingTableView());
 						tables.emplace_back(std::move(table));
@@ -261,31 +313,44 @@ public:
 
 					this->add_to_output_cache(std::move(output));
 				}
-				cache_count++;
+				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in MergeStreamKernel cache " + std::to_string(cache_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=context->getContextToken(),
+												"step"_a=context->getQueryStep(),
+												"substep"_a=context->getQuerySubstep(),
+												"info"_a="In MergeStream kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 			}
 		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="MergeStream Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 		
 		return kstatus::proceed;
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 
-class LimitKernel :public kernel {
+class LimitKernel : public kernel {
 public:
 	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}  {
+		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
 	}
 	
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		int64_t total_batch_rows = 0;
 		std::vector<std::unique_ptr<ral::cache::CacheData>> cache_vector;
 		BatchSequenceBypass input_seq(this->input_cache());
@@ -299,7 +364,7 @@ public:
 
 		if (rows_limit < 0) {
 			for (auto &&cache_data : cache_vector) {
-				this->output_cache()->addCacheData(std::move(cache_data));
+				this->add_to_output_cache(std::move(cache_data));
 			}
 		} else {
 			int batch_count = 0;
@@ -316,18 +381,29 @@ public:
 					batch_count++;
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					std::string err = "ERROR: in LimitKernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-					std::cout<<err<<std::endl;
+					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=context->getContextToken(),
+												"step"_a=context->getQueryStep(),
+												"substep"_a=context->getQuerySubstep(),
+												"info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 				}
 			}
 		}
 		
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Limit Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 } // namespace batch
