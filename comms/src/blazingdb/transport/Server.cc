@@ -53,16 +53,6 @@ std::shared_ptr<ReceivedMessage> Server::getMessage(const uint32_t context_token
 	return message_queue.getMessage(messageToken);
 }
 
-size_t Server::getNumberOfBatches(const uint32_t context_token, const std::string & messageToken) {
-	MessageQueue & message_queue = context_messages_map_.at(context_token);
-	return message_queue.getNumberOfBatches(messageToken);
-}
-
-void Server::setNumberOfBatches(const uint32_t context_token, const std::string & messageToken, size_t n_batches) {
-	MessageQueue & message_queue = context_messages_map_.at(context_token);
-	return message_queue.setNumberOfBatches(messageToken, n_batches);
-}
-
 void Server::putMessage(const uint32_t context_token, std::shared_ptr<ReceivedMessage> & message) {
 	std::shared_lock<std::shared_timed_mutex> lock(context_messages_mutex_);
 	if(context_messages_map_.find(context_token) == context_messages_map_.end()) {
@@ -102,6 +92,14 @@ MetadataType read_metadata(void * fd) {
 
 namespace {
 
+/**
+	@brief  A clas that implements the Server interface. Here each data frames are processed as GPU Messages.
+	this class has special event names to specify the type of message.
+	"GPUS" this represent a dataframe Message
+	"LAST" this represent a last event used to indicate that there is 
+	not going to be more message with the same message_token
+	"" 
+*/ 
 class ServerTCP : public Server {
 public:
 	ServerTCP(unsigned short port) : server_socket{port} {}
@@ -130,24 +128,6 @@ protected:
 
 	int gpuId{0};
 };
-
-void collect_n_batches_event(void * socket, Server * server) {
-	zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
-	Message::MetaData message_metadata = read_metadata<Message::MetaData>(socket);
-
-	zmq::message_t local_message;
-	auto success = socket_ptr->recv(local_message);
-	if(success.value() == false || local_message.size() == 0) {
-		throw zmq::error_t();
-	}
-	std::string ok_message(static_cast<char *>(local_message.data()), local_message.size());
-
-	server->setNumberOfBatches(
-		message_metadata.contextToken, message_metadata.messageToken, message_metadata.n_batches);
-
-	assert(ok_message == "OK");
-	blazingdb::transport::io::writeToSocket(socket, "END", 3, false);
-}
 Message::MetaData collect_last_event(void * socket, Server * server) {
 	zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
 	Message::MetaData message_metadata = read_metadata<Message::MetaData>(socket);
@@ -218,9 +198,7 @@ void ServerTCP::Run() {
 					throw zmq::error_t();
 				}
 				std::string message_topic_str(static_cast<char *>(message_topic.data()), message_topic.size());
-				if(message_topic_str == "N_BATCHES") {
-					collect_n_batches_event(socket, this);
-				} else if(message_topic_str == "LAST") {
+				if(message_topic_str == "LAST") {
 					collect_last_event(socket, this);
 				} else if(message_topic_str == "GPUS") {
 					Message::MetaData message_metadata;
@@ -249,6 +227,17 @@ void ServerTCP::Run() {
 	std::this_thread::yield();
 }
 
+/**
+	@brief  A clas that extends a ServerTPC class. The difference is that this class enable the API client to decide when 
+	the BlazingTable is going to be materialized by maintaning its host representation as a HostMessage.
+	This class uses getHostDeserializationFunction method to decode the dataframe message as a BlazingHostTable.
+
+	This class has special event names to specify the type of message.
+	"GPUS" this represent a dataframe Message
+	"LAST" this represent a last event used to indicate that there is 
+	not going to be more message with the same message_token
+	"" 
+*/ 
 class ServerForBatchProcessing : public ServerTCP {
 public:
 	ServerForBatchProcessing(unsigned short port) : ServerTCP(port) {}
@@ -264,9 +253,7 @@ public:
 						throw zmq::error_t();
 					}
 					std::string message_topic_str(static_cast<char *>(message_topic.data()), message_topic.size());
-					if(message_topic_str == "N_BATCHES") {
-						collect_n_batches_event(socket, this);
-					} else if(message_topic_str == "LAST") {
+					if(message_topic_str == "LAST") {
 						auto message_metadata = collect_last_event(socket, this);
 
 						std::string messageToken = message_metadata.messageToken;

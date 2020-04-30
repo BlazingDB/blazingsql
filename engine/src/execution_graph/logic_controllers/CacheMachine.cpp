@@ -285,16 +285,6 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx
 	return message_data->release_data();
 }
 
-NonWaitingCacheMachine::NonWaitingCacheMachine()
-	: CacheMachine()
-{
-}
-
-std::unique_ptr<ral::frame::BlazingTable> NonWaitingCacheMachine::pullFromCache(Context * ctx) {
-	std::unique_ptr<message> message_data = waitingCache->pop();
-	return message_data->get_data().decache();
-}
-
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(size_t bytes_max_size)
 	: CacheMachine(), bytes_max_size_(bytes_max_size)
 {

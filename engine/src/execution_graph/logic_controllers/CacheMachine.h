@@ -26,8 +26,10 @@ namespace cache {
 using Context = blazingdb::manager::experimental::Context;
 using namespace fmt::literals;
 
+/// \brief An enum type to represent the cache level ID
 enum class CacheDataType { GPU, CPU, LOCAL_FILE };
 
+/// \brief An interface which represent a CacheData 
 class CacheData {
 public:
 	CacheData(CacheDataType cache_type, std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows)
@@ -60,6 +62,7 @@ protected:
 	size_t n_rows;
 };
 
+/// \brief A specific class for a CacheData on GPU Memory 
 class GPUCacheData : public CacheData {
 public:
 	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table)
@@ -75,6 +78,7 @@ private:
 	std::unique_ptr<ral::frame::BlazingTable> data;
 };
 
+/// \brief A specific class for a CacheData on CPU Memory 
  class CPUCacheData : public CacheData {
  public:
  	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) 
@@ -102,7 +106,7 @@ protected:
 	 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
  };
 
-
+/// \brief A specific class for a CacheData on Disk Memory 
 class CacheDataLocalFile : public CacheData {
 public:
 	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table);
@@ -120,6 +124,9 @@ private:
 
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 
+/// \brief This class represents a  messsage into que WaitingQueue. 
+/// We use this class to represent not only the CacheData 
+/// but also the message_id and the cache level (`cache_index`) where the data is stored.
 class message {
 public:
 	message(std::unique_ptr<CacheData> content, std::string message_id = "")
@@ -141,6 +148,13 @@ protected:
 	std::unique_ptr<CacheData> data;
 };
 
+/**
+	@brief A class that represents a Waiting Queue which is used 
+	into the multi-tier cache system to stores data (GPUCacheData, CPUCacheData, CacheDataLocalFile). 
+	This class brings concurrency support the all cache machines into the  execution graph. 
+	A blocking messaging system for `pop_or_wait` method is implemeted by using a condition variable.
+	Note: WaitingQueue class is based on communication MessageQueue. 
+*/
 class WaitingQueue {
 public:
 	using message_ptr = std::unique_ptr<message>;
@@ -242,14 +256,6 @@ public:
 		return response;
 	} 
 	
-	void setNumberOfBatches(size_t n_batches) {
-		this->n_batches = n_batches;
-	}
-
-	size_t getNumberOfBatches() {
-		return this->n_batches;
-	}
-
 private:
 	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
 
@@ -257,10 +263,12 @@ private:
 	std::mutex mutex_;
 	std::deque<message_ptr> message_queue_;
 	std::atomic<bool> finished;
-	std::atomic<size_t> n_batches{1};
 	std::condition_variable condition_variable_;
 };
-
+/**
+	@brief A class that represents a Cache Machine on a
+	multi-tier (GPU memory, CPU memory, Disk memory) cache system. 
+*/
 class CacheMachine {
 public:
 	CacheMachine();
@@ -300,23 +308,24 @@ public:
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(Context * ctx = nullptr);
 
-	void setNumberOfBatches(size_t n_batches) {
-		this->waitingCache->setNumberOfBatches(n_batches);
-	}
-
-	size_t getNumberOfBatches() {
-		return this->waitingCache->getNumberOfBatches();
-	}
 
 protected:
+	/// This property represents a waiting queue object which stores all CacheData Objects  
 	std::unique_ptr<WaitingQueue> waitingCache;
+
+	/// References to the properties of the multi-tier cache system
 	std::vector<BlazingMemoryResource*> memory_resources;
 	std::atomic<std::size_t> num_bytes_added;
 	std::atomic<uint64_t> num_rows_added;
 
 	std::shared_ptr<spdlog::logger> logger;
 };
- 
+
+/**
+	@brief A class that represents a Host Cache Machine on a
+	multi-tier cache system, however this cache machine only stores CacheData of type CPUCacheData.
+	This class is used to by pass BatchSequences.
+*/ 
 class HostCacheMachine {
 public:
 	HostCacheMachine() {
@@ -376,32 +385,21 @@ public:
     
 		return static_cast<CPUCacheData&>(message_data->get_data()).releaseHostTable();
 	}
-
-	void setNumberOfBatches(size_t n_batches) {
-		this->waitingCache->setNumberOfBatches(n_batches);
-	}
-
-	size_t getNumberOfBatches() {
-		return this->waitingCache->getNumberOfBatches();
-	}
+	
 protected:
 	std::unique_ptr<WaitingQueue> waitingCache;
 
   std::shared_ptr<spdlog::logger> logger;
 };
 
-class NonWaitingCacheMachine : public CacheMachine {
-public:
-	NonWaitingCacheMachine();
-
-	~NonWaitingCacheMachine() = default;
-
-	std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr) override;
-
-};
-
-// This ConcatenatingCacheMachine::pullFromCache method does not guarantee the relative order
-// of the messages to be preserved
+/**
+	@brief A class that represents a Cache Machine on a
+	multi-tier cache system. Moreover, it only returns a single BlazingTable by concatenating all batches.
+	This Cache Machine is used in the last Kernel (OutputKernel) in the ExecutionGraph.
+	
+	This ConcatenatingCacheMachine::pullFromCache method does not guarantee the relative order
+	of the messages to be preserved
+*/ 
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine() = default;

@@ -6,15 +6,26 @@
 namespace ral {
 namespace cache { 
 
-using kernel_pair = std::pair<kernel *, std::string>;
-enum class CacheType { NON_WAITING, SIMPLE, CONCATENATING, FOR_EACH };
+/// \brief An enum type that  represent a cache machine type  
+/// `SIMPLE` is used to identify a CacheMachine class.
+/// `CONCATENATING` is used to identify a ConcatenatingCacheMachine class. 
+/// `FOR_EACH` is used to identify a graph execution with kernels that need to send many partitions at once, 
+/// for example for kernels PartitionSingleNodeKernel and MergeStreamKernel. 
+enum class CacheType {SIMPLE, CONCATENATING, FOR_EACH };
 
+/// \brief An object that  represent a cache machine configuration (type and num_partitions) 
+/// used in create_cache_machine and create_cache_machine functions. 
 struct cache_settings {
 	CacheType type = CacheType::SIMPLE;
 	int num_partitions = 1;
 	size_t max_concat_byte_size = std::numeric_limits<size_t>::max();
 };
 
+using kernel_pair = std::pair<kernel *, std::string>;
+
+/**
+	@brief A temporary object to represent a pair of two kernels linked into the execution graph.
+*/
 class kpair {
 public:
 	kpair(kernel & a, kernel & b, const cache_settings & config = cache_settings{}) : cache_machine_config(config) {

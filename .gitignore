@@ -8,3 +8,5 @@
 engine/cmake-build-debug/
 
 algebra.log
+
+engine/Doxyfile
