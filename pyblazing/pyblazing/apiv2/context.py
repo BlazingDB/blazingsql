@@ -1309,9 +1309,14 @@ class BlazingContext(object):
     def _sliceRowGroups(self, numSlices, files, uri_values, row_groups_ids):
         nodeFilesList = []
 
+        print("numSlices: " + str(numSlices))
+
         total_num_rowgroups = sum([len(x) for x in row_groups_ids])
+        print("total_num_rowgroups: " + str(total_num_rowgroups))
         file_index_per_rowgroups = [file_index  for file_index, row_groups_for_file in enumerate(row_groups_ids) for row_group in row_groups_for_file]
+        print("file_index_per_rowgroups: " + str(file_index_per_rowgroups))
         flattened_rowgroup_ids = [row_group  for row_groups_for_file in row_groups_ids for row_group in row_groups_for_file]
+        print("flattened_rowgroup_ids: " + str(flattened_rowgroup_ids))
 
         all_sliced_files = []
         all_sliced_uri_values = []
@@ -1387,14 +1392,15 @@ class BlazingContext(object):
 
             else:
                 all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
+                print("")
 
                 for i, node in enumerate(self.nodes):
-                    print(node)
+                    #print(node)
 
-                    print("all_sliced:")
-                    for j in range(len(all_sliced_files[i])):
-                        print([all_sliced_files[i][j], all_sliced_row_groups_ids[i][j]])
-                    print("")
+                    #print("all_sliced:")
+                    #for j in range(len(all_sliced_files[i])):
+                    #    print([all_sliced_files[i][j], all_sliced_row_groups_ids[i][j]])
+                    #print("")
 
                     bt = BlazingTable(current_table.input,
                                 current_table.fileType,
