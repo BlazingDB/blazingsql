@@ -61,18 +61,18 @@ public:
 	std::string get_name(size_t schema_index) const;
 	std::vector<size_t> get_calcite_to_file_indices() const { return this->calcite_to_file_indices; }
 	Schema fileSchema(size_t current_file_index) const;
-	
+
 	size_t get_num_columns() const;
 
-	std::vector<int> get_rowgroup_ids(size_t file_index) const { 
+	std::vector<int> get_rowgroup_ids(size_t file_index) const {
 		if (this->row_groups_ids.size() > file_index){
 			return this->row_groups_ids.at(file_index);
 		} else {
-			//if no metadata read, return a rowgroup/stripe representing all stripes/rowgroups
-			return std::vector<int>{-1};
+			
+			return std::vector<int>{};
 		}
 	}
-	
+
 	void add_file(std::string file);
 
 	void add_column(std::string name,
@@ -94,7 +94,7 @@ private:
 	std::vector<cudf::type_id> types;
 	std::vector<bool> in_file;
 	std::vector<std::string> files;
-	
+
 	std::vector<std::vector<int>> row_groups_ids;
 };
 

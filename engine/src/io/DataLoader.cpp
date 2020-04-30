@@ -220,7 +220,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 	const Schema & schema,
 	data_handle file_data_handle,
 	size_t file_index,
-	cudf::size_type row_group_id) {
+	std::vector<cudf::size_type> row_group_ids) {
 
 	static CodeTimer timer;
 	timer.reset();
@@ -232,7 +232,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 	}
 
-	std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, column_indices, row_group_id);
+	std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, column_indices, row_group_ids);
 	return std::move(loaded_table);
 }
 
@@ -247,12 +247,12 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 				got_schema = true;
 				schema.add_file(handle.uri.toString(true));
 			}
-		}		
+		}
 	}
 	if (!got_schema){
 		std::cout<<"ERROR: Could not get schema"<<std::endl;
 	}
-	
+
 	bool open_file = false;
 	while (this->provider->has_next()){
 		std::vector<data_handle> handles = this->provider->get_some(64, open_file);
@@ -264,11 +264,11 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	for(auto extra_column : non_file_columns) {
 		schema.add_column(extra_column.first, extra_column.second, 0, false);
 	}
-	this->provider->reset();	
+	this->provider->reset();
 }
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) {
-	
+
 	std::size_t NUM_FILES_AT_A_TIME = 64;
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> metadata_batches;
 	std::vector<ral::frame::BlazingTableView> metadata_batche_views;
@@ -288,7 +288,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 		return std::move(metadata_batches[0]);
 	} else {
 		return ral::utilities::experimental::concatTables(metadata_batche_views);
-	}	
+	}
 }
 
 } /* namespace io */

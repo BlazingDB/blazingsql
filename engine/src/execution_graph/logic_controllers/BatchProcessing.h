@@ -74,10 +74,10 @@ public:
 	}
 	bool wait_for_next() {
 		if (kernel) {
-			std::string message_id = std::to_string((int)kernel->get_type_id()) + "_" + std::to_string(kernel->get_id()); 
+			std::string message_id = std::to_string((int)kernel->get_type_id()) + "_" + std::to_string(kernel->get_id());
 			// std::cout<<">>>>> WAIT_FOR_NEXT id : " <<  message_id <<std::endl;
 		}
-		
+
 		return cache->wait_for_next();
 	}
 
@@ -146,7 +146,7 @@ public:
 			}
 		});
 		t.detach();
-	} 
+	}
 
 	bool wait_for_next() {
 		return host_cache->wait_for_next();
@@ -177,9 +177,9 @@ public:
 		}
 
 		n_files = schema.get_files().size();
+		n_batches = n_files;
 		for (size_t index = 0; index < n_files; index++) {
 			std::vector<cudf::size_type> row_groups = schema.get_rowgroup_ids(index);
-			n_batches += row_groups.size();
 			all_row_groups.push_back(row_groups);
 		}
 
@@ -197,7 +197,7 @@ public:
 				return schema.makeEmptyBlazingTable(projections);
 			}
 
-			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), cur_file_index, cur_row_group_index);
+			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), cur_file_index,std::vector<cudf::size_type>(1,cur_row_group_index)	);
 			batch_index++;
 			cur_row_group_index++;
 
@@ -207,19 +207,17 @@ public:
 
 			return std::move(ret);
 		}
-		
+
 		cudf::size_type row_group_id = all_row_groups[cur_file_index][cur_row_group_index];
-		auto ret = loader.load_batch(context.get(), projections, schema, this->cur_data_handle, cur_file_index, row_group_id);
+		auto ret = loader.load_batch(context.get(), projections, schema, this->cur_data_handle, cur_file_index, this->all_row_groups[cur_file_index]);
 		batch_index++;
-		cur_row_group_index++;
-		if (cur_row_group_index == all_row_groups[cur_file_index].size()) {
-			cur_file_index++;
-			cur_row_group_index = 0;
-			if(this->provider->has_next()) {
-				// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-				this->cur_data_handle = this->provider->get_next();
-			}
+		cur_file_index++;
+
+		if(this->provider->has_next()) {
+			// a file handle that we can use in case errors occur to tell the user which file had parsing issues
+			this->cur_data_handle = this->provider->get_next();
 		}
+
 
 		return std::move(ret);
 	}
@@ -244,7 +242,7 @@ public:
 private:
 	std::shared_ptr<ral::io::data_provider> provider;
 	std::shared_ptr<ral::io::data_parser> parser;
-	
+
 	std::shared_ptr<Context> context;
 	std::vector<size_t> projections;
 	ral::io::data_loader loader;
@@ -255,7 +253,7 @@ private:
 	std::atomic<size_t> batch_index;
 	size_t n_batches;
 	size_t n_files;
-	std::vector<std::vector<int>> all_row_groups; 
+	std::vector<std::vector<int>> all_row_groups;
 	bool is_empty_data_source;
 };
 
@@ -303,7 +301,7 @@ private:
 
 class BindableTableScan : public kernel {
 public:
-	BindableTableScan(std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, 
+	BindableTableScan(const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
 		std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel(queryString, context), input(loader, schema, context)
 	{
@@ -350,7 +348,7 @@ public:
 
 		return kstatus::proceed;
 	}
-	
+
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 		double rows_so_far = (double)this->output_.total_rows_added();
 		double num_batches = (double)this->input.get_num_batches();
@@ -451,20 +449,20 @@ public:
 
 		return kstatus::proceed;
 	}
-	
+
 	std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 		std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
 		if (total_in.first){
 			double out_so_far = (double)this->output_.total_rows_added();
 			double in_so_far = (double)this->input_.total_rows_added();
 			if (in_so_far == 0){
-				return std::make_pair(false, 0);    
+				return std::make_pair(false, 0);
 			} else {
 				return std::make_pair(true, (uint64_t)( ((double)total_in.second) *out_so_far/in_so_far) );
 			}
 		} else {
 			return std::make_pair(false, 0);
-		}    
+		}
     }
 
 private:
@@ -489,7 +487,7 @@ protected:
 	std::ostream * ofs = nullptr;
 	std::mutex print_lock;
 };
- 
+
 
 class OutputKernel : public kernel {
 public:
@@ -498,7 +496,7 @@ public:
 		output = std::move(this->input_.get_cache()->pullFromCache());
 		return kstatus::stop;
 	}
-	
+
 	frame_type	release() {
 		return std::move(output);
 	}
