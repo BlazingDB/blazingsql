@@ -64,11 +64,11 @@ public:
 
 	size_t get_num_columns() const;
 
-	std::vector<int> get_rowgroup_ids(size_t file_index) const { 
+	std::vector<int> get_rowgroup_ids(size_t file_index) const {
 		if (this->row_groups_ids.size() > file_index){
 			return this->row_groups_ids.at(file_index);
 		} else {
-			//if no metadata read, return a rowgroup/stripe representing all stripes/rowgroups
+			
 			return std::vector<int>{};
 		}
 	}

@@ -198,7 +198,7 @@ public:
 				is_empty_data_source = false;
 				return schema.makeEmptyBlazingTable(projections);
 			}
-			//not that i condone it but this basically reads a
+
 			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), cur_file_index,std::vector<cudf::size_type>(1,cur_row_group_index)	);
 			batch_index++;
 			cur_row_group_index++;
