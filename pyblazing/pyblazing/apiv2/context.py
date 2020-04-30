@@ -1389,14 +1389,11 @@ class BlazingContext(object):
                 all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
 
                 for i, node in enumerate(self.nodes):
-                    print("")
                     print(node)
-                    print("all_sliced_files")
-                    print(all_sliced_files[i])
-                    print("all_sliced_uri_values")
-                    print(all_sliced_uri_values[i])
-                    print("all_sliced_row_groups_ids")
-                    print(all_sliced_row_groups_ids[i])
+
+                    print("all_sliced:")
+                    for j in range(len(all_sliced_files[i])):
+                        print([all_sliced_files[i][j], all_sliced_row_groups_ids[i][j]])
                     print("")
 
                     bt = BlazingTable(current_table.input,
