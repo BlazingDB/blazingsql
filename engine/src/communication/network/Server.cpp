@@ -64,10 +64,6 @@ std::shared_ptr<ReceivedMessage> Server::getHostMessage(const ContextToken & tok
 	return comm_server->getMessage(token_value, messageToken);
 }
 
-size_t Server::getNumberOfBatches(const ContextToken & token_value, const MessageTokenType & messageToken) {
-	return comm_server->getNumberOfBatches(token_value, messageToken);
-}
-
 void Server::setEndPoints() {
 	// device messages
 	{
