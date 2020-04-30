@@ -62,6 +62,7 @@ include(ConfigureGoogleCloudCPP)
 
 find_package(Threads)
 find_package(PythonLibs)
+find_package(spdlog REQUIRED)
 
 # BEGIN MAIN #
 
@@ -111,7 +112,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TableScan.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
@@ -191,6 +191,8 @@ target_link_libraries(blazingsql-engine
     libboost_filesystem.a
     libboost_system.a
     libboost_regex.a
+
+    spdlog::spdlog
 
     # Library needed for blazing communication repository (debug)
     gcov
