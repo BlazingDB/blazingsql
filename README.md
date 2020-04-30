@@ -1,8 +1,8 @@
 > A lightweight, GPU accelerated, SQL engine built on the [RAPIDS.ai](https://rapids.ai) ecosystem.
 
-<a href='https://colab.research.google.com/drive/1r7S15Ie33yRw8cmET7_bjCpvjJiDOdub'> <p align="center"><img src="https://github.com/BlazingDB/blazingsql/blob/roaramburu-readme-update/img/bsql_rapids.PNG"/></p></a>
+<a href='https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb'><img src="https://github.com/BlazingDB/blazingsql/blob/roaramburu-readme-update/img/bsql_rapids.PNG"/></a>
 
-[Getting Started](https://github.com/BlazingDB/blazingsql#getting-started) | [Documentation](https://docs.blazingdb.com) | [Examples](https://github.com/BlazingDB/blazingsql#examples) | [Contributing](https://github.com/BlazingDB/blazingsql#contributing) | [License](https://github.com/BlazingDB/blazingsql/blob/develop/LICENSE) | [Blog](https://blog.blazingdb.com)
+[Getting Started](#getting-started) | [Documentation](https://docs.blazingdb.com) | [Examples](#examples) | [Contributing](#contributing) | [License](LICENSE) | [Blog](https://blog.blazingdb.com) | [Try Now](https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb)
 
 BlazingSQL is a GPU accelerated SQL engine built on top of the RAPIDS ecosystem. RAPIDS is based on the [Apache Arrow](http://arrow.apache.org) columnar memory format, and [cuDF](https://github.com/rapidsai/cudf) is a GPU DataFrame library for loading, joining, aggregating, filtering, and otherwise manipulating data.
 
@@ -11,69 +11,88 @@ BlazingSQL is a SQL interface for cuDF, with various features to support large s
 * **Simple SQL** - incredibly easy to use, run a SQL query and the results are GPU DataFrames (GDFs).
 * **Interoperable** - GDFs are immediately accessible to any [RAPIDS](htts://github.com/rapidsai) library for data science workloads.
 
-Check out our 5-min quick start notebook [![Google Colab Badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1r7S15Ie33yRw8cmET7_bjCpvjJiDOdub) using BlazingSQL.
+Try our 5-min [Welcome Notebook](https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb) to start using BlazingSQL and RAPIDS AI.
 
 # Getting Started
 
-Please reference our [docs](https://docs.blazingdb.com/docs/blazingsql) to find out how to install BlazingSQL.
+Here's two copy + paste reproducable BlazingSQL snippets, keep scrolling to find [example Notebooks](#examples) below.
 
-Querying a CSV file in Amazon S3 with BlazingSQL:
+Create and query a table from a `cudf.DataFrame`:
 
-For example:
+```python
+import cudf
+
+df = cudf.DataFrame()
+
+df['key'] = ['a', 'b', 'c', 'd', 'e']
+df['val'] = [7.6, 2.9, 7.1, 1.6, 2.2]
+
+from blazingsql import BlazingContext
+bc = BlazingContext()
+
+bc.create_table('game_1', df)
+
+bc.sql('SELECT * FROM game_1 WHERE val > 4')
+```
+
+| | Key | Value |
+| - | -:| ---:|
+| 0 | a | 7.6 |
+| 1 | b | 7.1 |
+
+Create and query a table from a AWS S3 bucket:
+
 ```python
 from blazingsql import BlazingContext
 bc = BlazingContext()
 
-bc.s3('dir_name', bucket_name='bucket_name', access_key_id='access_key', secret_key='secret_key')
+bc.s3('blazingsql-colab', bucket_name='blazingsql-colab')
 
-# Create Table from CSV
-bc.create_table('taxi', '/dir_name/taxi.csv')
+bc.create_table('taxi', 's3://blazingsql-colab/yellow_taxi/taxi_data.parquet')
 
-# Query
-result_gdf = bc.sql('SELECT count(*) FROM taxi GROUP BY year(key)')
-
-#Print GDF
-print(result_gdf)
+bc.sql('SELECT passenger_count, trip_distance FROM taxi LIMIT 2')
 ```
+
+| | passenger_count | fare_amount |
+| - | -:| ---:|
+| 0 | 1.0 | 1.1 |
+| 1 | 1.0 | 0.7 |
+
 ## Examples
 
-* Getting Started Guide - [Google Colab](https://colab.research.google.com/drive/1r7S15Ie33yRw8cmET7_bjCpvjJiDOdub#scrollTo=14GwxmLsTV_p)
-* Netflow Demo - [Google Colab](https://colab.research.google.com/drive/1RYOYthqxUl922LYMAuNneKgmWB8YGTKB)
-* Taxi cuML Linear Regression - [Google Colab](https://colab.research.google.com/drive/10il0C55uRhsgu2vqRVLqdB7Zp0gDt8Me)
+| Notebook Title | Description | Try Now |
+| -------------- | ----------- | ------- |
+| Welcome Notebook | An introduction to BlazingSQL Notebooks and the GPU Data Science Ecosystem. | <a href='https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb'><img src="https://blazingsql.com/launch-notebooks.png" alt="Launch on BlazingSQL Notebooks" width="500"/></a> |
+| The DataFrame | Learn how to use BlazingSQL and cuDF to create GPU DataFrames with SQL and Pandas-like APIs. | <a href='https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/intro_notebooks/the_dataframe.ipynb'><img src="https://blazingsql.com/launch-notebooks.png" alt="Launch on BlazingSQL Notebooks" width="500"/></a> |
+| Data Visualization | Plug in your favorite Python visualization packages, or use GPU accelerated visualization tools to render millions of rows in a flash. | <a href='https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/intro_notebooks/data_visualization.ipynb'><img src="https://blazingsql.com/launch-notebooks.png" alt="Launch on BlazingSQL Notebooks" width="500"/></a> |
+| Machine Learning | Learn about cuML, mirrored after the Scikit-Learn API, it offers GPU accelerated machine learning on GPU DataFrames. | <a href='https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/intro_notebooks/machine_learning.ipynb'><img src="https://blazingsql.com/launch-notebooks.png" alt="Launch on BlazingSQL Notebooks" width="500"/></a> |
 
 ## Documentation
-You can find our full documentation at [the following site](https://docs.blazingdb.com/docs/)
-
-
-## Quick Start
-
-Too see all the ways you can get started with BlazingSQL checkout out our [Getting Started Page](https://blazingsql.com/#/getstarted)
+You can find our full documentation at [docs.blazingdb.com](https://docs.blazingdb.com/docs).
 
 # Install Using Conda
 BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.html), or the full [Anaconda distribution](https://www.anaconda.com/download)) from the [blazingsql](https://anaconda.org/blazingsql/) channel:
 
 Note: BlazingSQL is supported only on Linux, and with Python version 3.6 and 3.7.
 
-## Stable Version 
-*For CUDA 9.2 and Python 3.7:*
+## Stable Version
 ```bash
-conda install -c blazingsql/label/cuda9.2 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=9.2
+conda install -c blazingsql/label/cuda$CUDA_VERSION -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
 ```
-
-*For CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
+*For example for CUDA 10.0 and Python 3.7:*
 ```bash
-conda install -c blazingsql/label/cuda10.0 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=10.0
-```
+conda install -c blazingsql/label/cuda10.0 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+``` 
 
 ## Nightly Version
-*For CUDA 9.2 and Python 3.7:*
 ```bash
-conda install -c blazingsql-nightly/label/cuda9.2 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql-nightly/label/cuda$CUDA_VERSION -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
 ```
-
-*For CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
+*For example for CUDA 10.0 and Python 3.7:*
 ```bash
-conda install -c blazingsql-nightly/label/cuda10.0 -c blazingsql-nightly -c rapidsai-nightly -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql-nightly/label/cuda10.0 -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7
 ```
 
 # Build/Install from Source (Conda Environment)
@@ -82,22 +101,21 @@ This is the recommended way of building all of the BlazingSQL components and dep
 ## Stable Version
 
 ### Install build dependencies
-*For CUDA 9.2 and Python 3.7:*
 ```bash
-conda create -n bsql python=3.7
+conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql bsql-toolchain
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.12 dask-cudf=0.12 dask-cuda=0.12 cudatoolkit=9.2
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.13 dask-cudf=0.13 dask-cuda=0.13 cudatoolkit=$CUDA_VERSION
 ```
-
-*For CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
+*For example for CUDA 10.0 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql bsql-toolchain
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.12 dask-cudf=0.12 dask-cuda=0.12 cudatoolkit=10.0
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.13 dask-cudf=0.13 dask-cuda=0.13 cudatoolkit=10.0
 ```
 
 ### Build
@@ -118,16 +136,15 @@ $CONDA_PREFIX now has a folder for the blazingsql repository.
 ## Nightly Version
 
 ### Install build dependencies
-*For CUDA 9.2:*
 ```bash
-conda create -n bsql python=3.7
+conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.14 cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=9.2
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.14 cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=$CUDA_VERSION
 ```
-
-*For CUDA 10.0:*
+Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
+*For example for CUDA 10.0 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
@@ -157,12 +174,12 @@ Have questions or feedback? Post a [new github issue](https://github.com/blazing
 Please see our [guide for contributing to BlazingSQL](CONTRIBUTING.md).
 
 ## Contact
-Feel free to join our Slack chat room: [RAPIDS Slack Channel](https://join.slack.com/t/rapids-goai/shared_invite/enQtMjE0Njg5NDQ1MDQxLTJiN2FkNTFkYmQ2YjY1OGI4NTc5Y2NlODQ3ZDdiODEwYmRiNTFhMzNlNTU5ZWJhZjA3NTg4NDZkMThkNTkxMGQ)
+Feel free to join our channel (#blazingsql) in the RAPIDS-GoAi Slack: [![join RAPIDS-GoAi workspace](https://badgen.net/badge/slack/RAPIDS-GoAi/purple?icon=slack)](https://join.slack.com/t/rapids-goai/shared_invite/enQtMjE0Njg5NDQ1MDQxLTJiN2FkNTFkYmQ2YjY1OGI4NTc5Y2NlODQ3ZDdiODEwYmRiNTFhMzNlNTU5ZWJhZjA3NTg4NDZkMThkNTkxMGQ).
 
-You may also email us at [info@blazingsql.com](info@blazingsql.com) or find out more details on the [BlazingSQL site](https://blazingsql.com)
+You can also email us at [info@blazingsql.com](info@blazingsql.com) or find out more details on [BlazingSQL.com](https://blazingsql.com).
 
 ## License
-[Apache License 2.0](https://github.com/BlazingDB/blazingsql/blob/develop/LICENSE)
+[Apache License 2.0](LICENSE)
 
 ## RAPIDS AI - Open GPU Data Science
 

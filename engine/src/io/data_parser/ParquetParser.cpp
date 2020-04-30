@@ -27,7 +27,6 @@ parquet_parser::~parquet_parser() {
 
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) 
 {
@@ -138,29 +137,20 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 }
 
 void parquet_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
+	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
-	cudf_io::table_with_metadata table_out;
-	for (auto file : files) {
-		auto parquet_reader = parquet::ParquetFileReader::Open(file);
-		if (parquet_reader->metadata()->num_rows() == 0) {
-			parquet_reader->Close();
-			continue;
-		}
-
-		cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
-		pq_args.strings_to_categorical = false;
-		pq_args.row_group = 0;
-		pq_args.num_rows = 1;
-
-		table_out = cudf_io::read_parquet(pq_args);
-
-		if (table_out.tbl->num_columns() > 0) {
-			break;
-		}
+	auto parquet_reader = parquet::ParquetFileReader::Open(file);
+	if (parquet_reader->metadata()->num_rows() == 0) {
+		parquet_reader->Close();
+		return; // if the file has no rows, we dont want cudf_io to try to read it
 	}
 
-	assert(table_out.tbl->num_columns() > 0);
+	cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
+	pq_args.strings_to_categorical = false;
+	pq_args.row_group = 0;
+	pq_args.num_rows = 1;
+
+	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);	
 
 	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();

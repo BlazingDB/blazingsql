@@ -33,7 +33,6 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args orc_arg,
 
 std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle, // TODO where is this param used?
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 
@@ -87,11 +86,10 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 }
 
 void orc_parser::parse_schema(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema) {
+	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 	
-	cudf_io::table_with_metadata table_out = get_new_orc(orc_args, files[0], true);
-	assert(table_out.tbl->num_columns() > 0);
-
+	cudf_io::table_with_metadata table_out = get_new_orc(orc_args, file, true);
+	
 	for(cudf::size_type i = 0; i < table_out.tbl->num_columns() ; i++) {
 		std::string name = table_out.metadata.column_names[i];
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();

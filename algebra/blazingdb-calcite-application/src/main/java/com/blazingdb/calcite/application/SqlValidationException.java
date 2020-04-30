@@ -17,25 +17,8 @@ public class SqlValidationException extends SqlException {
 
 	private static String
 	description(final String queryString, final String message) {
-		final Matcher matcher = pattern.matcher(message);
-		final StringBuilder builder = new StringBuilder();
 
-		matcher.find();
+		return message;
 
-		final int lineNum = Integer.parseInt(matcher.group(1));
-		final int columnNum = Integer.parseInt(matcher.group(2));
-		final int endLineNum = Integer.parseInt(matcher.group(3));
-		final int endColumnNum = Integer.parseInt(matcher.group(4));
-		final String cause = matcher.group(0);
-
-		builder.append("SqlValidationException\n\n");
-
-		SqlException.pointInQueryString(
-			builder, queryString, new SqlPosition(lineNum, columnNum, endLineNum, endColumnNum));
-
-		builder.append('\n');
-		builder.append(cause);
-
-		return builder.toString();
 	}
 }

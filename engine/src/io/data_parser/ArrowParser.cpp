@@ -24,7 +24,6 @@ arrow_parser::~arrow_parser() {}
 // TODO: cordova erase this code when the new GDF parse works well with the new API
 // using UNIT TEST to check when it's ready
 // void arrow_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-// 		const std::string & user_readable_file_handle,
 // 		std::vector<gdf_column_cpp> & columns_out,
 // 		const Schema & schema,
 // 		std::vector<size_t> column_indices_requested){
@@ -37,14 +36,13 @@ arrow_parser::~arrow_parser() {}
 
 std::unique_ptr<ral::frame::BlazingTable> arrow_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const std::string & user_readable_file_handle,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 		// TODO: cordova Implements the new ARROW parser with 0.12 API
 	return nullptr;
 }	
 
-void arrow_parser::parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile> > files,
+void arrow_parser::parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		ral::io::Schema & schema){
 	std::vector<std::string> names;
 	std::vector<cudf::type_id> types;
