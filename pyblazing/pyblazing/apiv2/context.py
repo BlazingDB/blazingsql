@@ -735,6 +735,19 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
                                        if None, and pool=True, defaults to 1/2 GPU memory.
         enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
+        config_options (optional) : this is a dictionary for setting certain parameters in the engine:
+                                    JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join 
+                                           before doing the join. Too small can lead to overpartitioning, too big can lead to OOM errors.
+                                           default: 400000000
+                                    MAX_JOIN_SCATTER_MEM_OVERHEAD : The bigger this value, the more likely one of the tables of join will be 
+                                           scattered to all the nodes, instead of doing a standard hash based partitioning shuffle. Value is in bytes.
+                                           default: 500000000
+                                    MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE : The maximum number of partitions that will be made for an order by. 
+                                           Increse this number if running into OOM issues when doing order bys with large amounts of data.                                           
+                                           default: 8
+                                    NUM_BYTES_PER_ORDER_BY_PARTITION : The max number size in bytes for each order by partition. Note that,
+                                           MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE will be enforced over this parameter.
+                                           default: 400000000
 
         Examples
         --------
