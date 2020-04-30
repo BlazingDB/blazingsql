@@ -16,12 +16,10 @@
 #include <cudf/cudf.h>
 #include <cudf/io/functions.hpp>
 #include <cudf/types.hpp>
-#include "execution_graph/logic_controllers/TableScan.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-#include <blazingdb/io/Library/Logging/Logger.h>
 
 #include <src/operators/OrderBy.h>
 #include <src/operators/GroupBy.h>
@@ -30,7 +28,6 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include <Util/StringUtil.h>
-#include "CodeTimer.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -50,12 +47,16 @@
 #include "blazingdb/concurrency/BlazingThread.h"
 
 #include "taskflow/graph.h"
+
+#include "CodeTimer.h"
+
 namespace ral {
 namespace batch {
 
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
+using namespace fmt::literals;
 
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
@@ -69,14 +70,14 @@ public:
 		this->cache = cache;
 	}
 	RecordBatch next() {
-		return cache->pullFromCache();
+		return cache->pullFromCache(kernel ? kernel->get_context(): nullptr);
 	}
 	bool wait_for_next() {
 		if (kernel) {
-			std::string message_id = std::to_string((int)kernel->get_type_id()) + "_" + std::to_string(kernel->get_id()); 
+			std::string message_id = std::to_string((int)kernel->get_type_id()) + "_" + std::to_string(kernel->get_id());
 			// std::cout<<">>>>> WAIT_FOR_NEXT id : " <<  message_id <<std::endl;
 		}
-		
+
 		return cache->wait_for_next();
 	}
 
@@ -111,27 +112,24 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
 };
 
-
-using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
 typedef ral::communication::network::experimental::Server Server;
 typedef ral::communication::network::experimental::Client Client;
 using ral::communication::messages::experimental::ReceivedHostMessage;
 
-
+template<class MessageType>
 class ExternalBatchColumnDataSequence {
 public:
-	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, std::string message_token = "")
+	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id)
 		: context{context}, last_message_counter{context->getTotalNodes() - 1}
 	{
 		host_cache = std::make_shared<ral::cache::HostCacheMachine>();
 		std::string context_comm_token = context->getContextCommunicationToken();
 		const uint32_t context_token = context->getContextToken();
-		if (message_token.length() == 0) {
-			message_token = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
-		}
-		BlazingMutableThread t([this, message_token, context_token](){
+		std::string comms_message_token = MessageType::MessageID() + "_" + context_comm_token;
+
+		BlazingMutableThread t([this, comms_message_token, context_token, message_id](){
 			while(true){
-					auto message = Server::getInstance().getHostMessage(context_token, message_token);
+					auto message = Server::getInstance().getHostMessage(context_token, comms_message_token);
 					if(!message) {
 						--last_message_counter;
 						if (last_message_counter == 0 ){
@@ -143,19 +141,19 @@ public:
 						assert(concreteMessage != nullptr);
 						auto host_table = concreteMessage->releaseBlazingHostTable();
 						host_table->setPartitionId(concreteMessage->getPartitionId());
-						this->host_cache->addToCache(std::move(host_table));			
+						this->host_cache->addToCache(std::move(host_table), message_id, this->context.get());			
 					}
 			}
 		});
 		t.detach();
-	} 
+	}
 
 	bool wait_for_next() {
 		return host_cache->wait_for_next();
 	}
 
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {
-		return host_cache->pullFromCache();
+		return host_cache->pullFromCache(context.get());
 	}
 private:
 	std::shared_ptr<Context> context;
@@ -179,9 +177,9 @@ public:
 		}
 
 		n_files = schema.get_files().size();
+		n_batches = n_files;
 		for (size_t index = 0; index < n_files; index++) {
 			std::vector<cudf::size_type> row_groups = schema.get_rowgroup_ids(index);
-			n_batches += row_groups.size();
 			all_row_groups.push_back(row_groups);
 		}
 
@@ -199,7 +197,7 @@ public:
 				return schema.makeEmptyBlazingTable(projections);
 			}
 
-			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), cur_file_index, cur_row_group_index);
+			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), cur_file_index,std::vector<cudf::size_type>(1,cur_row_group_index)	);
 			batch_index++;
 			cur_row_group_index++;
 
@@ -209,19 +207,17 @@ public:
 
 			return std::move(ret);
 		}
-		
+
 		cudf::size_type row_group_id = all_row_groups[cur_file_index][cur_row_group_index];
-		auto ret = loader.load_batch(context.get(), projections, schema, this->cur_data_handle, cur_file_index, row_group_id);
+		auto ret = loader.load_batch(context.get(), projections, schema, this->cur_data_handle, cur_file_index, this->all_row_groups[cur_file_index]);
 		batch_index++;
-		cur_row_group_index++;
-		if (cur_row_group_index == all_row_groups[cur_file_index].size()) {
-			cur_file_index++;
-			cur_row_group_index = 0;
-			if(this->provider->has_next()) {
-				// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-				this->cur_data_handle = this->provider->get_next();
-			}
+		cur_file_index++;
+
+		if(this->provider->has_next()) {
+			// a file handle that we can use in case errors occur to tell the user which file had parsing issues
+			this->cur_data_handle = this->provider->get_next();
 		}
+
 
 		return std::move(ret);
 	}
@@ -246,7 +242,7 @@ public:
 private:
 	std::shared_ptr<ral::io::data_provider> provider;
 	std::shared_ptr<ral::io::data_parser> parser;
-	
+
 	std::shared_ptr<Context> context;
 	std::vector<size_t> projections;
 	ral::io::data_loader loader;
@@ -257,22 +253,34 @@ private:
 	std::atomic<size_t> batch_index;
 	size_t n_batches;
 	size_t n_files;
-	std::vector<std::vector<int>> all_row_groups; 
+	std::vector<std::vector<int>> all_row_groups;
 	bool is_empty_data_source;
 };
 
 class TableScan : public kernel {
 public:
-	TableScan(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(), input(loader, schema, context)
+	TableScan(const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(queryString, context), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
+	
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		while( input.wait_for_next() ) {
 			auto batch = input.next();
 			this->add_to_output_cache(std::move(batch));
 		}
+		
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="TableScan Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+		
 		return kstatus::proceed;
 	}
 
@@ -293,13 +301,16 @@ private:
 
 class BindableTableScan : public kernel {
 public:
-	BindableTableScan(std::string & expression, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, 
+	BindableTableScan(std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, 
 		std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(), input(loader, schema, context), expression(expression), context(context)
+	: kernel(queryString, context), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
+
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		input.set_projections(get_projections(expression));
 		int batch_count = 0;
 		while (input.wait_for_next() ) {
@@ -318,13 +329,26 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in BindableTableScan kernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=context->getContextToken(),
+												"step"_a=context->getQueryStep(),
+												"substep"_a=context->getQuerySubstep(),
+												"info"_a="In BindableTableScan kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 			}
 		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
-	
+
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 		double rows_so_far = (double)this->output_.total_rows_added();
 		double num_batches = (double)this->input.get_num_batches();
@@ -338,19 +362,19 @@ public:
 
 private:
 	DataSourceSequence input;
-	std::shared_ptr<Context> context;
-	std::string expression;
 };
 
 class Projection : public kernel {
 public:
 	Projection(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(queryString, context)
 	{
-		this->context = context;
-		this->expression = queryString;
 		this->query_graph = query_graph;
 	}
+
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input(this->input_cache(), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
@@ -361,27 +385,41 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in Projection kernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In Projection kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Projection Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 class Filter : public kernel {
 public:
 	Filter(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(queryString, context)
 	{
-		this->context = context;
-		this->expression = queryString;
 		this->query_graph = query_graph;
 	}
+
 	virtual kstatus run() {
+		CodeTimer timer;
+
 		BatchSequence input(this->input_cache(), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
@@ -392,36 +430,49 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in Filter kernel batch " + std::to_string(batch_count) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In Filter kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
 			}
 		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Filter Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
-	
+
 	std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 		std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
 		if (total_in.first){
 			double out_so_far = (double)this->output_.total_rows_added();
 			double in_so_far = (double)this->input_.total_rows_added();
 			if (in_so_far == 0){
-				return std::make_pair(false, 0);    
+				return std::make_pair(false, 0);
 			} else {
 				return std::make_pair(true, (uint64_t)( ((double)total_in.second) *out_so_far/in_so_far) );
 			}
 		} else {
 			return std::make_pair(false, 0);
-		}    
+		}
     }
+
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
+
 };
 
 class Print : public kernel {
 public:
-	Print() : kernel() { ofs = &(std::cout); }
-	Print(std::ostream & stream) : kernel() { ofs = &stream; }
+	Print() : kernel("Print", nullptr) { ofs = &(std::cout); }
+	Print(std::ostream & stream) : kernel("Print", nullptr) { ofs = &stream; }
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
 		BatchSequence input(this->input_cache(), this);
@@ -436,16 +487,16 @@ protected:
 	std::ostream * ofs = nullptr;
 	std::mutex print_lock;
 };
- 
+
 
 class OutputKernel : public kernel {
 public:
-	OutputKernel() : kernel("OutputKernel") {  }
+	OutputKernel() : kernel("OutputKernel", nullptr) {  }
 	virtual kstatus run() {
 		output = std::move(this->input_.get_cache()->pullFromCache());
 		return kstatus::stop;
 	}
-	
+
 	frame_type	release() {
 		return std::move(output);
 	}
@@ -458,7 +509,7 @@ protected:
 namespace test {
 class generate : public kernel {
 public:
-	generate(std::int64_t count = 1000) : kernel(), count(count) {}
+	generate(std::int64_t count = 1000) : kernel("", nullptr), count(count) {}
 	virtual kstatus run() {
 
 		cudf::test::fixed_width_column_wrapper<int32_t> column1{{0, 1, 2, 3, 4, 5}, {1, 1, 1, 1, 1, 1}};

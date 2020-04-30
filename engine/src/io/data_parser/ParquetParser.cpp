@@ -28,13 +28,13 @@ parquet_parser::~parquet_parser() {
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
-	std::vector<size_t> column_indices) 
+	std::vector<size_t> column_indices)
 {
-	
+
 	if(file == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
 	}
-		
+
 	if(column_indices.size() > 0) {
 		// Fill data to pq_args
 		cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
@@ -103,7 +103,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
 	std::vector<size_t> column_indices,
-	cudf::size_type row_group)
+	std::vector<cudf::size_type> row_groups)
 {
 	if(file == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
@@ -119,7 +119,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		pq_args.row_group = row_group;
+		pq_args.row_group_list = row_groups;
 
 		auto result = cudf_io::read_parquet(pq_args);
 
@@ -150,7 +150,7 @@ void parquet_parser::parse_schema(
 	pq_args.row_group = 0;
 	pq_args.num_rows = 1;
 
-	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);	
+	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);
 
 	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();

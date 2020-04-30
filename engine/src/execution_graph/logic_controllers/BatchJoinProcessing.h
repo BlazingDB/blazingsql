@@ -12,7 +12,7 @@
 #include "distribution/primitives.h"
 #include "Utils.cuh"
 #include "blazingdb/concurrency/BlazingThread.h"
-
+#include "CodeTimer.h"
 #include <cudf/stream_compaction.hpp>
 #include <cudf/partitioning.hpp>
 #include <cudf/join.hpp>
@@ -22,7 +22,7 @@ namespace batch {
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
-using ColumnDataMessage = ral::communication::messages::experimental::ColumnDataMessage;
+using namespace fmt::literals;
 
 const std::string INNER_JOIN = "inner";
 const std::string LEFT_JOIN = "left";
@@ -37,14 +37,19 @@ struct TableSchema {
 	{}
 };
 
-class PartwiseJoin :public kernel {
+class PartwiseJoin : public kernel {
 public:
 	PartwiseJoin(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
+		: kernel{queryString, context}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
-		SET_SIZE_THRESHOLD = 400000000; // WSM we should make this a configurable parameter
+		JOIN_PARTITION_SIZE_THRESHOLD = 400000000; // Threshold for how big to try to make each partition for joining
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		auto it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
+		if (it != config_options.end()){
+			JOIN_PARTITION_SIZE_THRESHOLD = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
+		}
 		this->max_left_ind = -1;
 		this->max_right_ind = -1;
 
@@ -68,13 +73,13 @@ public:
 			return nullptr;
 		}
 		// NOTE this used to be like this:
-		// while ((input.has_next_now() && bytes_loaded < SET_SIZE_THRESHOLD) ||
+		// while ((input.has_next_now() && bytes_loaded < JOIN_PARTITION_SIZE_THRESHOLD) ||
 		//  	(load_all && input.wait_for_next())) {
 		// with the idea that it would just start processing as soon as there was data to process. 
 		// This actually does not make it faster, because it makes it so that there are more chunks to do pairwise joins and therefore more join operations
 		// We may want to revisit or rethink this
 
-		while ((input.wait_for_next() && bytes_loaded < SET_SIZE_THRESHOLD) ||
+		while ((input.wait_for_next() && bytes_loaded < JOIN_PARTITION_SIZE_THRESHOLD) ||
 					(load_all && input.wait_for_next())) {
 			tables_loaded.emplace_back(input.next());
 			bytes_loaded += tables_loaded.back()->sizeInBytes(); 
@@ -246,6 +251,7 @@ public:
 	}
 
     virtual kstatus run() {
+		CodeTimer timer;
 
 		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this);
 		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this);
@@ -358,56 +364,74 @@ public:
 				
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in PartwiseJoin left_ind " + std::to_string(left_ind) + " right_ind " + std::to_string(right_ind) + " for " + expression + " Error message: " + std::string(e.what());
-				std::cout<<err<<std::endl;
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In PartwiseJoin kernel left_idx[{}] right_ind[{}] for {}. What: {}"_format(left_ind, right_ind, expression, e.what()),
+											"duration"_a="");
 				throw e;
 			}
 		}
 		
 		if (!produced_output){
-			std::cout<<"WARNING: Join kernel did not produce an output"<<std::endl;
+			logger->warn("{query_id}|{step}|{substep}|{info}|{duration}||||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="PartwiseJoin kernel did not produce an output",
+										"duration"_a="");
 			// WSM TODO put an empty output into output cache
 		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="PartwiseJoin Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 		
 		return kstatus::proceed;
 	}
 
 private:
-    BatchSequence left_sequence, right_sequence;
+	BatchSequence left_sequence, right_sequence;
 
-    int max_left_ind;
-    int max_right_ind;
-	std::shared_ptr<Context> context;
-	std::string expression;
+	int max_left_ind;
+	int max_right_ind;
 	std::vector<std::vector<bool>> completion_matrix;
 	std::shared_ptr<ral::cache::CacheMachine> leftArrayCache;
-    std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
-	std::size_t SET_SIZE_THRESHOLD;
+	std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
+	std::size_t JOIN_PARTITION_SIZE_THRESHOLD;
 
 	// parsed expression related parameters
 	std::string join_type;
 	std::vector<cudf::size_type> left_column_indices, right_column_indices;
-  	std::vector<std::string> result_names;
+	std::vector<std::string> result_names;
 };
 
 
-class JoinPartitionKernel :public kernel {
+class JoinPartitionKernel : public kernel {
 public:
 	JoinPartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: expression{queryString}, context{context} {
+		: kernel{queryString, context} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
 	}
 
 
-    static void partition_table(std::shared_ptr<Context> local_context, 
+	static void partition_table(std::shared_ptr<Context> local_context,
 				std::vector<cudf::size_type> column_indices, 
 				std::unique_ptr<ral::frame::BlazingTable> batch, 
 				BatchSequence & sequence, 
-				std::shared_ptr<ral::cache::CacheMachine> & output){
+				std::shared_ptr<ral::cache::CacheMachine> & output,
+				const std::string & message_id)
+	{
+		using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
 
-        bool done = false;
+		bool done = false;
 		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
 		// If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
 		int num_partitions = local_context->getTotalNodes(); 
@@ -441,7 +465,7 @@ public:
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
 						// TODO: create message id and send to add add_to_output_cache
-						output->addToCache(std::move(partition_table_clone));
+						output->addToCache(std::move(partition_table_clone), message_id, local_context.get());
 					} else {
 						partitions_to_send.emplace_back(
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
@@ -516,16 +540,21 @@ public:
 		int64_t estimate_regular_distribution = (total_bytes_left + total_bytes_right) * (num_nodes - 1) / num_nodes;
 		int64_t estimate_scatter_left = (total_bytes_left) * (num_nodes - 1);
 		int64_t estimate_scatter_right = (total_bytes_right) * (num_nodes - 1);
-		int64_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
-													// WSM TODO get this value from config
+		
+		unsigned long long MAX_JOIN_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		auto it = config_options.find("MAX_JOIN_SCATTER_MEM_OVERHEAD");
+		if (it != config_options.end()){
+			MAX_JOIN_SCATTER_MEM_OVERHEAD = std::stoull(config_options["MAX_JOIN_SCATTER_MEM_OVERHEAD"]);
+		}
 
 		if(estimate_scatter_left < estimate_regular_distribution ||
 			estimate_scatter_right < estimate_regular_distribution) {
 			if(estimate_scatter_left < estimate_scatter_right &&
-				total_bytes_left < MAX_SCATTER_MEM_OVERHEAD) {
+				total_bytes_left < MAX_JOIN_SCATTER_MEM_OVERHEAD) {
 				scatter_left = true;
 			} else if(estimate_scatter_right < estimate_scatter_left &&
-					total_bytes_right < MAX_SCATTER_MEM_OVERHEAD) {
+					total_bytes_right < MAX_JOIN_SCATTER_MEM_OVERHEAD) {
 				scatter_right = true;
 			}
 		}
@@ -537,6 +566,7 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch,
 		BatchSequence left_sequence,
 		BatchSequence right_sequence){
+		using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
 		
 		this->context->incrementQuerySubstep();
 				
@@ -554,11 +584,10 @@ public:
 
 		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context, 
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
-			std::ref(this->output_.get_cache("output_a")));
+			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id());
 
 		BlazingThread left_consumer([context = this->context, this](){
-			auto  message_token = ColumnDataPartitionMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
-			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);			
+			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_left(this->context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 
 			while (host_table = external_input_left.next()) {	
@@ -572,12 +601,11 @@ public:
 
 		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
-			std::ref(this->output_.get_cache("output_b")));
+			std::ref(this->output_.get_cache("output_b")), "output_b_" + this->get_message_id());
 
 		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
 		BlazingThread right_consumer([cloned_context, this](){
-			auto message_token = ColumnDataPartitionMessage::MessageID() + "_" + cloned_context->getContextCommunicationToken();
-			ExternalBatchColumnDataSequence external_input_right(cloned_context, message_token);
+			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_right(cloned_context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			
 			while (host_table = external_input_right.next()) {
@@ -597,6 +625,7 @@ public:
 		BatchSequence small_table_sequence,
 		BatchSequenceBypass big_table_sequence, 
 		const std::pair<bool, bool> & scatter_left_right){
+		using ColumnDataMessage = ral::communication::messages::experimental::ColumnDataMessage;
 
 		this->context->incrementQuerySubstep();
 
@@ -623,16 +652,19 @@ public:
 					}
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					std::string err = "ERROR: in JoinPartitionKernel scatter_small_table batch_count " + std::to_string(batch_count) + " Error message: " + std::string(e.what());
-					std::cout<<err<<std::endl;
+					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+												"query_id"_a=this->context->getContextToken(),
+												"step"_a=this->context->getQueryStep(),
+												"substep"_a=this->context->getQuerySubstep(),
+												"info"_a="In JoinPartitionKernel scatter_small_table batch_count [{}]. What: {}"_format(batch_count, expression, e.what()),
+												"duration"_a="");
 				}
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
 		});
 		
 		BlazingThread collect_small_table_thread([this, small_output_cache_name](){
-			auto  message_token = ColumnDataMessage::MessageID() + "_" + this->context->getContextCommunicationToken();
-			ExternalBatchColumnDataSequence external_input_left(this->context, message_token);
+			ExternalBatchColumnDataSequence<ColumnDataMessage> external_input_left(this->context, this->get_message_id());
 			
 			while (external_input_left.wait_for_next()) {	
 				std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_left.next();
@@ -655,7 +687,8 @@ public:
 	}
 	
 	virtual kstatus run() {
-		
+		CodeTimer timer;
+
 		BatchSequence left_sequence(this->input_.get_cache("input_a"), this);
 		BatchSequence right_sequence(this->input_.get_cache("input_b"), this);
 
@@ -678,7 +711,12 @@ public:
 			}
 		}
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
-			std::cout<<"ERROR JoinPartitionKernel has empty left side and cannot determine join column indices"<<std::endl;
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="In JoinPartitionKernel left side is empty and cannot determine join column indices",
+										"duration"_a="");
 		}
 
 		std::pair<bool, bool> scatter_left_right;
@@ -693,25 +731,54 @@ public:
 		}
 		// scatter_left_right = std::make_pair(false, false); // Do this for debugging if you want to disable small table join optmization
 		if (scatter_left_right.first){
+			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="JoinPartition Scattering left table",
+										"duration"_a="",
+										"kernel_id"_a=this->get_id());
+
 			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_b"));
 			small_table_scatter_distribution( std::move(left_batch), std::move(right_batch),
 						std::move(left_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else if (scatter_left_right.second) {
+			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="JoinPartition Scattering right table",
+										"duration"_a="",
+										"kernel_id"_a=this->get_id());
+
 			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_a"));
 			small_table_scatter_distribution( std::move(right_batch), std::move(left_batch),
 						std::move(right_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else {
+			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="JoinPartition Standard hash partition",
+										"duration"_a="",
+										"kernel_id"_a=this->get_id());
+
 			perform_standard_hash_partitioning(condition, std::move(left_batch), std::move(right_batch),
 				std::move(left_sequence), std::move(right_sequence));
 		}		
 		
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="JoinPartition Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
 private:
-	std::shared_ptr<Context> context;
-	std::string expression;
-	
 	// parsed expression related parameters
 	std::string join_type;
 	std::vector<cudf::size_type> left_column_indices, right_column_indices;

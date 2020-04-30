@@ -53,7 +53,7 @@ public:
 		const Schema & schema,
 		data_handle file_data_handle,
 		size_t file_index,
-		cudf::size_type row_group_id);
+		std::vector<cudf::size_type> row_group_ids);
 
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, cudf::type_id>> non_file_columns);
 

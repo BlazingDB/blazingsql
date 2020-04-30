@@ -17,12 +17,15 @@
 #include <typeindex>
 #include <vector>
 #include <bmr/BlazingMemoryResource.h>
+#include <spdlog/spdlog.h>
 
 namespace ral {
 namespace cache {
 
+using Context = blazingdb::manager::experimental::Context;
+using namespace fmt::literals;
 /// \brief An enum type to represent the cache level ID
-enum CacheDataType { GPU, CPU, LOCAL_FILE};
+enum CacheDataType { GPU, CPU, LOCAL_FILE };
 
 /// \brief An interface which represent a CacheData 
 class CacheData {
@@ -271,11 +274,11 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "");
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", Context * ctx = nullptr);
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id = "");
+	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", Context * ctx = nullptr);
 
-	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, std::string message_id = "");
+	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "", Context * ctx = nullptr);
 
 	virtual void finish();
 
@@ -294,9 +297,9 @@ public:
 	bool has_next_now() {
 		return this->waitingCache->has_next_now();
 	} 
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr);
 
-	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
+	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(Context * ctx = nullptr);
 
 
 protected:
@@ -308,6 +311,8 @@ protected:
 	std::vector<BlazingMemoryResource*> memory_resources;
 	std::atomic<std::size_t> num_bytes_added;
 	std::atomic<uint64_t> num_rows_added;
+
+	std::shared_ptr<spdlog::logger> logger;
 };
 
 /**
@@ -319,13 +324,23 @@ class HostCacheMachine {
 public:
 	HostCacheMachine() {
 		waitingCache = std::make_unique<WaitingQueue<CacheData>>();
+		logger = spdlog::get("batch_logger");
 	}
 
 	~HostCacheMachine() {}
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table) {
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "", Context * ctx = nullptr) {
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+									"info"_a="Add to HostCacheMachine",
+									"duration"_a="",
+									"kernel_id"_a=message_id,
+									"rows"_a=host_table->num_rows());
+
 		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
-		std::unique_ptr<message<CacheData>> item = std::make_unique<message<CacheData>>(std::move(cache_data), 0);
+		std::unique_ptr<message<CacheData>> item = std::make_unique<message<CacheData>>(std::move(cache_data), 0, message_id);
 		this->waitingCache->put(std::move(item));
 	}
 
@@ -345,18 +360,31 @@ public:
 		return this->waitingCache->has_next_now();
 	} 
 	
-	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache() {
+	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache(Context * ctx = nullptr) {
 		std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
 		if (message_data == nullptr) {
 			return nullptr;
 		}
+		
 		std::unique_ptr<CacheData> cache_data = message_data->releaseData();
 		auto cpu_data = (CPUCacheData * )(cache_data.get());
+		
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+									"info"_a="Pull from HostCacheMachine",
+									"duration"_a="",
+									"kernel_id"_a=message_data->get_message_id(),
+									"rows"_a=cpu_data->num_rows());
+		
 		return cpu_data->releaseHostTable();
 	}
 	
 protected:
 	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
+
+	std::shared_ptr<spdlog::logger> logger;
 };
 
 /**
@@ -370,9 +398,8 @@ public:
 
 	~ConcatenatingCacheMachine() = default;
 
-	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+	std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr) override;
 };
-
 
 }  // namespace cache
 } // namespace ral
