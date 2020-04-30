@@ -25,6 +25,7 @@
 #include <src/operators/GroupBy.h>
 #include <src/utilities/DebuggingUtils.h>
 #include <stack>
+#include <mutex>
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include <Util/StringUtil.h>
@@ -171,59 +172,57 @@ public:
 		this->provider = loader.get_provider();
 		this->parser = loader.get_parser();
 
-		if(this->provider->has_next()) {
-			// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-			this->cur_data_handle = this->provider->get_next();
-		}
-
 		n_files = schema.get_files().size();
-		n_batches = n_files;
 		for (size_t index = 0; index < n_files; index++) {
-			std::vector<cudf::size_type> row_groups = schema.get_rowgroup_ids(index);
-			all_row_groups.push_back(row_groups);
+			all_row_groups.push_back(schema.get_rowgroup_ids(index));
 		}
 
-		is_empty_data_source = (n_files == 0);
-
-		if(is_empty_data_source){
+		is_empty_data_source = (n_files == 0 && parser->get_num_partitions() == 0);
+		is_gdf_parser = parser->get_num_partitions() > 0;
+		if(is_gdf_parser){
 			n_batches = parser->get_num_partitions();
+		} else {
+			n_batches = n_files;
 		}
 	}
 
 	RecordBatch next() {
-		if (is_empty_data_source) {
-			if(n_batches==0){
-				is_empty_data_source = false;
-				return schema.makeEmptyBlazingTable(projections);
-			}
+		std::unique_lock<std::mutex> lock(mutex_);
 
-			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), cur_file_index,std::vector<cudf::size_type>(1,cur_row_group_index)	);
+		if (!has_next()) {
+			return nullptr;
+		}
+
+		if (is_empty_data_source) {
+			batch_index++;
+			return schema.makeEmptyBlazingTable(projections);
+		}
+
+		if(is_gdf_parser){
+			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), 0, std::vector<cudf::size_type>(1, cur_row_group_index));
 			batch_index++;
 			cur_row_group_index++;
-
-			if(batch_index == n_batches){
-				is_empty_data_source = false;
-			}
 
 			return std::move(ret);
 		}
 
-		cudf::size_type row_group_id = all_row_groups[cur_file_index][cur_row_group_index];
-		auto ret = loader.load_batch(context.get(), projections, schema, this->cur_data_handle, cur_file_index, this->all_row_groups[cur_file_index]);
+		// a file handle that we can use in case errors occur to tell the user which file had parsing issues
+		assert(this->provider->has_next());
+
+		auto local_cur_data_handle = this->provider->get_next();
+		auto local_cur_file_index = cur_file_index;
+		auto local_all_row_groups = this->all_row_groups[cur_file_index];
 		batch_index++;
 		cur_file_index++;
 
-		if(this->provider->has_next()) {
-			// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-			this->cur_data_handle = this->provider->get_next();
-		}
+		lock.unlock();
 
-
+		auto ret = loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
 		return std::move(ret);
 	}
 
-	bool wait_for_next() {
-		return is_empty_data_source || (cur_file_index < n_files and batch_index.load() < n_batches);
+	bool has_next() {
+		return (is_empty_data_source && batch_index < 1) || (is_gdf_parser && batch_index.load() < n_batches) || (cur_file_index < n_files);
 	}
 
 	void set_projections(std::vector<size_t> projections) {
@@ -249,12 +248,14 @@ private:
 	ral::io::Schema  schema;
 	size_t cur_file_index;
 	size_t cur_row_group_index;
-	ral::io::data_handle cur_data_handle;
+	std::vector<std::vector<int>> all_row_groups;
 	std::atomic<size_t> batch_index;
 	size_t n_batches;
 	size_t n_files;
-	std::vector<std::vector<int>> all_row_groups;
 	bool is_empty_data_source;
+	bool is_gdf_parser;
+
+	std::mutex mutex_;
 };
 
 class TableScan : public kernel {
@@ -268,10 +269,25 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-		while( input.wait_for_next() ) {
-			auto batch = input.next();
-			this->add_to_output_cache(std::move(batch));
+		int TABLE_SCAN_KERNEL_NUM_THREADS = 1;
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
+		if (it != config_options.end()){
+			TABLE_SCAN_KERNEL_NUM_THREADS = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
 		}
+
+		std::vector<BlazingThread> threads;
+		for (int i = 0; i < TABLE_SCAN_KERNEL_NUM_THREADS; i++) {
+			threads.push_back(BlazingThread([this]() {
+				std::unique_ptr<ral::frame::BlazingTable> batch;
+				while(batch = input.next()) {
+					this->add_to_output_cache(std::move(batch));
+				}
+			}));
+		}
+		for (auto &&t : threads) {
+			t.join();
+		}		
 		
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -312,30 +328,43 @@ public:
 		CodeTimer timer;
 
 		input.set_projections(get_projections(expression));
-		int batch_count = 0;
-		while (input.wait_for_next() ) {
-			try {
-				auto batch = input.next();
 
-				if(is_filtered_bindable_scan(expression)) {
-					auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
-					columns->setNames(fix_column_aliases(columns->names(), expression));
-					this->add_to_output_cache(std::move(columns));
+		int TABLE_SCAN_KERNEL_NUM_THREADS = 1;
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
+		if (it != config_options.end()){
+			TABLE_SCAN_KERNEL_NUM_THREADS = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
+		}
+
+		std::vector<BlazingThread> threads;
+		for (int i = 0; i < TABLE_SCAN_KERNEL_NUM_THREADS; i++) {
+			threads.push_back(BlazingThread([expression = this->expression, this]() {
+				std::unique_ptr<ral::frame::BlazingTable> batch;
+				while(batch = input.next()) {
+					try {
+						if(is_filtered_bindable_scan(expression)) {
+							auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, this->context.get());
+							columns->setNames(fix_column_aliases(columns->names(), expression));
+							this->add_to_output_cache(std::move(columns));
+						}
+						else{
+							batch->setNames(fix_column_aliases(batch->names(), expression));
+							this->add_to_output_cache(std::move(batch));
+						}
+					} catch(const std::exception& e) {
+						// TODO add retry here
+						logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+														"query_id"_a=context->getContextToken(),
+														"step"_a=context->getQueryStep(),
+														"substep"_a=context->getQuerySubstep(),
+														"info"_a="In BindableTableScan kernel batch for {}. What: {}"_format(expression, e.what()),
+														"duration"_a="");
+					}
 				}
-				else{
-					batch->setNames(fix_column_aliases(batch->names(), expression));
-					this->add_to_output_cache(std::move(batch));
-				}
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-												"query_id"_a=context->getContextToken(),
-												"step"_a=context->getQueryStep(),
-												"substep"_a=context->getQuerySubstep(),
-												"info"_a="In BindableTableScan kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-												"duration"_a="");
-			}
+			}));
+		}
+		for (auto &&t : threads) {
+			t.join();
 		}
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
