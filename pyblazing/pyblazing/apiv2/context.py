@@ -1353,6 +1353,7 @@ class BlazingContext(object):
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
 
         if not skipdata_analysis_fail:
+            print("skipdata_analysis_fail: FALSE")
             actual_files = []
             uri_values = []
             row_groups_ids = []
@@ -1388,6 +1389,16 @@ class BlazingContext(object):
                 all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
 
                 for i, node in enumerate(self.nodes):
+                    print("")
+                    print(node)
+                    print("all_sliced_files")
+                    print(all_sliced_files[i])
+                    print("all_sliced_uri_values")
+                    print(all_sliced_uri_values[i])
+                    print("all_sliced_row_groups_ids")
+                    print(all_sliced_row_groups_ids[i])
+                    print("")
+
                     bt = BlazingTable(current_table.input,
                                 current_table.fileType,
                                 files=all_sliced_files[i],
