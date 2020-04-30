@@ -289,7 +289,12 @@ struct tree_processor {
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
 					
-					const int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; // WSM TODO make this dynamic or configurable. ALso used in generate_distributed_partition_plan function
+					int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; 
+					std::map<std::string, std::string> config_options = context->getConfigOptions();
+					auto it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
+					if (it != config_options.end()){
+						MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
+					}
 					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE};
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 
