@@ -50,7 +50,7 @@ struct tree_processor {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
 			auto schema = this->schemas[table_index];
-			k = std::make_shared<TableScan>(*loader, schema, kernel_context, query_graph);
+			k = std::make_shared<TableScan>(expr, *loader, schema, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::TableScanKernel);
 		} else if (is_bindable_scan(expr)) {
@@ -109,7 +109,6 @@ struct tree_processor {
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::UnionKernel);
 		}
-		k->expr = expr;
 		return k;
 	}
 	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, node * root_ptr, int level, std::shared_ptr<ral::cache::graph> query_graph) {
@@ -230,16 +229,25 @@ struct tree_processor {
 		}
 	}
 
-	void print_tree(node* p_tree, int level = 0) {
-		auto expr = p_tree->expr;
-		for(int i = 0; i < level*2 ; ++i) {
-			std::cout << " ";
+	std::string to_string() {
+		return to_string(&this->root, 0);
+	}
+
+	std::string to_string(node* p_tree, int level) {
+		std::string str;
+		
+		for(int i = 0; i < level * 2; ++i) {
+			str += " ";
 		}
-		std::cout << std::to_string((int)p_tree->kernel_unit->get_type_id()) + "_" + std::to_string(p_tree->kernel_unit->get_id())
-							<< "  |  " << expr << std::endl;
+
+		str += "[" + std::to_string((int)p_tree->kernel_unit->get_type_id()) + "_" + std::to_string(p_tree->kernel_unit->get_id()) + "] "
+				+ p_tree->expr;
+
 		for (auto &child : p_tree->children) {
-			print_tree(child.get(), level + 1);
+			str += "\n" + to_string(child.get(), level + 1);
 		}
+
+		return str;
 	} 
 	
 	std::shared_ptr<ral::cache::graph> build_batch_graph(std::string json) {
@@ -255,10 +263,6 @@ struct tree_processor {
 			std::cerr << "property_tree:" << e.what() <<  std::endl;
 			throw e;
 		}
-
-		printf("==============================================================\n");
-		print_tree(&this->root);
-		printf("==============================================================\n");
 
 		if (this->root.kernel_unit != nullptr) {
 			query_graph->add_node(this->root.kernel_unit.get()); // register first node
