@@ -38,8 +38,6 @@ public:
 
 	std::shared_ptr<ReceivedMessage> getHostMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
 
-	size_t getNumberOfBatches(const ContextToken & token_value, const MessageTokenType & messageToken);
-
 private:
 	Server(Server &&) = delete;
 

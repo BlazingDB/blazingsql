@@ -100,10 +100,6 @@ public:
   virtual void SetDevice(int) = 0;
 
 public:
-  
-  void setNumberOfBatches(const uint32_t context_token, const std::string &messageToken, size_t n_batches);
-
-  size_t getNumberOfBatches(const uint32_t context_token, const std::string &messageToken);
 
   /**
    * It retrieves the message that it is stored in the message queue.

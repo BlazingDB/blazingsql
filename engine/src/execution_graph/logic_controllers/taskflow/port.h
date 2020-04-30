@@ -44,6 +44,10 @@ static void kick_port_helper(PORT & port, PORTNAMES &&... ports) {
 
 class kernel;
 
+/**
+	@brief This class represent a diccionary of tuples <port_name, cache_machine> used by
+	each kernel (input and outputs) into the execution graph.
+*/
 class port {
 public:
 	port(kernel * const k) { this->kernel_ = k; }

@@ -16,12 +16,6 @@ Status Client::send(const Node & node, GPUMessage & message) {
 	return ral_client->Send(message);
 }
 
-bool Client::setNumberOfBatches(const Node & node, Message::MetaData &message_metadata, size_t n_batches) {
-	const auto & metadata = node.address().metadata();
-	auto ral_client = blazingdb::transport::experimental::ClientTCP::Make(metadata.ip, metadata.comunication_port);
-	return ral_client->setNumberOfBatches(message_metadata, n_batches);
-}
-
 bool Client::notifyLastMessageEvent(const Node & node, const Message::MetaData &message_metadata) {
 	const auto & metadata = node.address().metadata();
 	auto ral_client = blazingdb::transport::experimental::ClientTCP::Make(metadata.ip, metadata.comunication_port);

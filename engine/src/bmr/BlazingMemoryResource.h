@@ -18,7 +18,12 @@
 #include <sys/sysinfo.h>
 #include <sys/statvfs.h>
 
-
+/**
+	@brief This interface represents a custom memory resource used in the cache system.
+    The Cache Machines uses singleton references to device, host and disk memory resources. 
+    Each object of the CacheMachine class has knownlegde about the status of the memory resource by using
+    `get_memory_limit`  and `get_memory_used` methods.
+*/
 class BlazingMemoryResource {
 public:
 	virtual size_t get_from_driver_available_memory() = 0 ; // driver.get_available_memory()
@@ -28,6 +33,9 @@ public:
 	virtual size_t get_total_memory() = 0 ; // total_memory
 };
 
+/**
+	@brief This class represents the internal implementation of a custom device  memory resource.
+*/
 class internal_blazing_device_memory_resource : public rmm::mr::device_memory_resource { 
 public:
     // TODO: use another constructor for memory in bytes
@@ -116,7 +124,7 @@ private:
 typedef struct CUstream_st *cudaStream_t;
 
 /** -------------------------------------------------------------------------*
- * @brief RMM blazing_device_memory_resource class maintains the memory manager context, including
+ * @brief RMM blazing_device_memory_resource class maintains the device memory manager context, including
  * the RMM event log, configuration options, and registered streams.
  * 
  * blazing_device_memory_resource is a singleton class, and should be accessed via getInstance(). 
@@ -265,6 +273,9 @@ private:
     std::unique_ptr<internal_blazing_device_memory_resource> initialized_resource{};
 };
 
+/**
+	@brief This class represents a custom host memory resource used in the cache system.
+*/
 class blazing_host_memory_mesource : public BlazingMemoryResource{
 public:
     static blazing_host_memory_mesource& getInstance(){
@@ -326,6 +337,9 @@ private:
 };
 
 
+/**
+	@brief This class represents a custom disk memory resource used in the cache system.
+*/
 class blazing_disk_memory_resource : public  BlazingMemoryResource {
 public:
     static blazing_disk_memory_resource& getInstance(){
