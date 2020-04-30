@@ -108,7 +108,7 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 }
 
 void CacheMachine::clear() {
-	std::unique_ptr<message<CacheData>> message_data;
+	std::unique_ptr<message> message_data;
 	while(message_data = waitingCache->pop_or_wait()) {
 		printf("...cleaning cache\n");
 	}
@@ -169,14 +169,6 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		}
 		cacheIndex++;
 	}
-}
-
-void CacheMachine::clear() {
-	std::unique_ptr<message> message_data;
-	while(message_data = waitingCache->pop_or_wait()) {
-		printf("...cleaning cache\n");
-	}
-	this->waitingCache->finish();
 }
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, Context * ctx) {
@@ -258,7 +250,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * ctx) {
-	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
+	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
 	}
@@ -270,13 +262,13 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * 
 								"info"_a="Pull from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
 								"duration"_a="",
 								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=cache_data->num_rows());
+								"rows"_a=message_data->get_data().num_rows());
 
 	return message_data->get_data().decache();
 }
 
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx) {
-	std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
+	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
 	}
@@ -288,7 +280,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx
 								"info"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type())),
 								"duration"_a="",
 								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=cache_data->num_rows());
+								"rows"_a=message_data->get_data().num_rows());
 
 	return message_data->release_data();
 }
