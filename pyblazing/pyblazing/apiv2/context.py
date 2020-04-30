@@ -1338,7 +1338,7 @@ class BlazingContext(object):
         for i in range(0, numSlices):
             batchSize = int(remaining / (numSlices - i))
             file_indexes_for_slice = file_index_per_rowgroups[startIndex: startIndex + batchSize]
-            unique_file_indexes_for_slice = list(set(file_indexes_for_slice)) # lets get the unique indexes
+            unique_file_indexes_for_slice = list(dict.fromkeys(file_indexes_for_slice)) # lets get the unique indexes, but preserving order
             sliced_files = [files[i] for i in unique_file_indexes_for_slice]
             if uri_values is not None and len(uri_values) > 0:
                 sliced_uri_values = [uri_values[i] for i in unique_file_indexes_for_slice]
