@@ -31,7 +31,7 @@ public:
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
 		std::vector<size_t> column_indices,
-		cudf::size_type row_group) {
+		std::vector<cudf::size_type> row_groups) {
 		return nullptr; // TODO cordova ask ALexander why is not a pure virtual function as before
 	}
 
