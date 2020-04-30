@@ -172,8 +172,8 @@ def collectPartitionsRunQuery(
         ctxToken,
         algebra,
         accessToken,
-        use_execution_graph
-        ):
+        use_execution_graph,
+        config_options):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     for table_name in tables:
@@ -209,7 +209,8 @@ In the mean time, for better performance we recommend using the unify_partitions
         ctxToken,
         algebra,
         accessToken,
-        use_execution_graph)
+        use_execution_graph,
+        config_options)
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -716,9 +717,9 @@ class BlazingContext(object):
 
     Docs: https://docs.blazingdb.com/docs/blazingcontext
     """
-
-    def __init__(self, dask_client=None, network_interface=None, allocator="managed",
-                 pool=False, initial_pool_size=None, enable_logging=False):
+    
+    def __init__(self, dask_client=None, network_interface=None, allocator="managed", 
+                 pool=False, initial_pool_size=None, enable_logging=False, config_options={}):
         """
         Create a BlazingSQL API instance.
 
@@ -734,6 +735,19 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
                                        if None, and pool=True, defaults to 1/2 GPU memory.
         enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
+        config_options (optional) : this is a dictionary for setting certain parameters in the engine:
+                                    JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join 
+                                           before doing the join. Too small can lead to overpartitioning, too big can lead to OOM errors.
+                                           default: 400000000
+                                    MAX_JOIN_SCATTER_MEM_OVERHEAD : The bigger this value, the more likely one of the tables of join will be 
+                                           scattered to all the nodes, instead of doing a standard hash based partitioning shuffle. Value is in bytes.
+                                           default: 500000000
+                                    MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE : The maximum number of partitions that will be made for an order by. 
+                                           Increse this number if running into OOM issues when doing order bys with large amounts of data.                                           
+                                           default: 8
+                                    NUM_BYTES_PER_ORDER_BY_PARTITION : The max number size in bytes for each order by partition. Note that,
+                                           MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE will be enforced over this parameter.
+                                           default: 400000000
 
         Examples
         --------
@@ -767,7 +781,10 @@ class BlazingContext(object):
         self.nodes = []
         self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
-
+        self.config_options = {} 
+        for option in config_options:
+            self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+        
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
@@ -1610,7 +1627,8 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
-                        use_execution_graph)
+                        use_execution_graph,
+                        self.config_options)
         else:
             dask_futures = []
             i = 0
@@ -1627,6 +1645,7 @@ class BlazingContext(object):
                         algebra,
                         accessToken,
                         use_execution_graph,
+                        self.config_options,
                         workers=[worker]))
                 i = i + 1
             result = dask.dataframe.from_delayed(dask_futures)

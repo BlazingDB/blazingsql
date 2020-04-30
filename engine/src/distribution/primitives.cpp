@@ -316,14 +316,11 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 	// TODO this is just a default setting. Will want to be able to properly set null_order
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 
-	std::unique_ptr<CudfTable> merged_table;
-	CudfTableView left_table = tables[0].view();
-	
-	for(size_t i = 1; i < tables.size(); i++) {
-		CudfTableView right_table = tables[i].view();
-		merged_table = cudf::experimental::merge({left_table, right_table}, sortColIndices, sortOrderTypes, null_orders);
-		left_table = merged_table->view();
+	std::vector<CudfTableView> cudf_table_views(tables.size());	
+	for(size_t i = 0; i < tables.size(); i++) {
+		cudf_table_views[i] = tables[i].view();	
 	}
+	std::unique_ptr<CudfTable> merged_table = cudf::experimental::merge(cudf_table_views, sortColIndices, sortOrderTypes, null_orders);
 
 	// lets get names from a non-empty table
 	std::vector<std::string> names;

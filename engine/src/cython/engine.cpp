@@ -125,7 +125,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	bool use_execution_graph) {
+	bool use_execution_graph,
+	std::map<std::string, std::string> config_options ) {
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
@@ -143,7 +144,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 			contextNodes.push_back(Node(address));
 		}
 
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
+		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
@@ -188,7 +189,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 			contextNodes.push_back(Node(address));
 		}
 
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
+		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		const std::vector<std::string> & table_col_names = table.names();

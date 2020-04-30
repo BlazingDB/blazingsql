@@ -44,7 +44,12 @@ public:
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
-		SET_SIZE_THRESHOLD = 400000000; // WSM we should make this a configurable parameter
+		JOIN_PARTITION_SIZE_THRESHOLD = 400000000; // Threshold for how big to try to make each partition for joining
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		auto it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
+		if (it != config_options.end()){
+			JOIN_PARTITION_SIZE_THRESHOLD = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
+		}
 		this->max_left_ind = -1;
 		this->max_right_ind = -1;
 
@@ -68,13 +73,13 @@ public:
 			return nullptr;
 		}
 		// NOTE this used to be like this:
-		// while ((input.has_next_now() && bytes_loaded < SET_SIZE_THRESHOLD) ||
+		// while ((input.has_next_now() && bytes_loaded < JOIN_PARTITION_SIZE_THRESHOLD) ||
 		//  	(load_all && input.wait_for_next())) {
 		// with the idea that it would just start processing as soon as there was data to process. 
 		// This actually does not make it faster, because it makes it so that there are more chunks to do pairwise joins and therefore more join operations
 		// We may want to revisit or rethink this
 
-		while ((input.wait_for_next() && bytes_loaded < SET_SIZE_THRESHOLD) ||
+		while ((input.wait_for_next() && bytes_loaded < JOIN_PARTITION_SIZE_THRESHOLD) ||
 					(load_all && input.wait_for_next())) {
 			tables_loaded.emplace_back(input.next());
 			bytes_loaded += tables_loaded.back()->sizeInBytes(); 
@@ -398,7 +403,7 @@ private:
 	std::vector<std::vector<bool>> completion_matrix;
 	std::shared_ptr<ral::cache::CacheMachine> leftArrayCache;
 	std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
-	std::size_t SET_SIZE_THRESHOLD;
+	std::size_t JOIN_PARTITION_SIZE_THRESHOLD;
 
 	// parsed expression related parameters
 	std::string join_type;
@@ -535,16 +540,21 @@ public:
 		int64_t estimate_regular_distribution = (total_bytes_left + total_bytes_right) * (num_nodes - 1) / num_nodes;
 		int64_t estimate_scatter_left = (total_bytes_left) * (num_nodes - 1);
 		int64_t estimate_scatter_right = (total_bytes_right) * (num_nodes - 1);
-		int64_t MAX_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
-													// WSM TODO get this value from config
+		
+		unsigned long long MAX_JOIN_SCATTER_MEM_OVERHEAD = 500000000;  // 500Mb  how much extra memory consumption per node are we ok with
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		auto it = config_options.find("MAX_JOIN_SCATTER_MEM_OVERHEAD");
+		if (it != config_options.end()){
+			MAX_JOIN_SCATTER_MEM_OVERHEAD = std::stoull(config_options["MAX_JOIN_SCATTER_MEM_OVERHEAD"]);
+		}
 
 		if(estimate_scatter_left < estimate_regular_distribution ||
 			estimate_scatter_right < estimate_regular_distribution) {
 			if(estimate_scatter_left < estimate_scatter_right &&
-				total_bytes_left < MAX_SCATTER_MEM_OVERHEAD) {
+				total_bytes_left < MAX_JOIN_SCATTER_MEM_OVERHEAD) {
 				scatter_left = true;
 			} else if(estimate_scatter_right < estimate_scatter_left &&
-					total_bytes_right < MAX_SCATTER_MEM_OVERHEAD) {
+					total_bytes_right < MAX_JOIN_SCATTER_MEM_OVERHEAD) {
 				scatter_right = true;
 			}
 		}
