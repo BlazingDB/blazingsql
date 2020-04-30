@@ -11,7 +11,8 @@ enum class CacheType { NON_WAITING, SIMPLE, CONCATENATING, FOR_EACH };
 
 struct cache_settings {
 	CacheType type = CacheType::SIMPLE;
-	const int num_partitions = 1;
+	int num_partitions = 1;
+	size_t max_concat_byte_size = std::numeric_limits<size_t>::max();
 };
 
 class kpair {

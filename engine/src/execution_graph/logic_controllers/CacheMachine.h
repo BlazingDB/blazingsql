@@ -16,49 +16,55 @@
 #include <string>
 #include <typeindex>
 #include <vector>
+#include <limits>
 #include <bmr/BlazingMemoryResource.h>
 
 namespace ral {
 namespace cache {
 
-enum CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE };
 
 
 class CacheData {
 public:
-	CacheData(std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows)
-		: col_names(col_names), schema(schema), n_rows(n_rows)
+	CacheData(CacheDataType cache_type, std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows)
+		: cache_type(cache_type), col_names(col_names), schema(schema), n_rows(n_rows)
 	{
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> decache() = 0;
 
-	virtual unsigned long long sizeInBytes() = 0;
+	virtual size_t sizeInBytes() const = 0;
 	
 	virtual ~CacheData() {}
 
 	std::vector<std::string> names() const {
 		return col_names;
 	}
-	std::vector<cudf::data_type> get_schema() {
+	std::vector<cudf::data_type> get_schema() const {
 		return schema;
 	}
 	size_t num_rows() const {
 		return n_rows;
 	}
+	CacheDataType get_type() const {
+		return cache_type;
+	}
 	
 protected:
-	std::vector<std::string> 		col_names;
-	std::vector<cudf::data_type> 	schema;
-	size_t							n_rows;
+	CacheDataType cache_type;
+	std::vector<std::string> col_names;
+	std::vector<cudf::data_type> schema;
+	size_t n_rows;
 };
 
 class GPUCacheData : public CacheData {
 public:
-	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table) : CacheData(table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
+	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table)
+		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
 
-	unsigned long long sizeInBytes() override { return data->sizeInBytes(); }
+	size_t sizeInBytes() const override { return data->sizeInBytes(); }
 
 	virtual ~GPUCacheData() {}
 
@@ -69,13 +75,13 @@ private:
  class CPUCacheData : public CacheData {
  public:
  	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) 
-		: CacheData(gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows()) 
+		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows()) 
 	{
 		this->host_table = ral::communication::messages::experimental::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
  	}
 
 	CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table)
-		: CacheData(host_table->names(), host_table->get_schema(), host_table->num_rows()), host_table{std::move(host_table)}
+		: CacheData(CacheDataType::CPU, host_table->names(), host_table->get_schema(), host_table->num_rows()), host_table{std::move(host_table)}
 	{
 	}
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {
@@ -85,7 +91,7 @@ private:
 	std::unique_ptr<ral::frame::BlazingHostTable> releaseHostTable() {
  		return std::move(host_table);
  	}
- 	unsigned long long sizeInBytes() override { return host_table->sizeInBytes(); }
+ 	size_t sizeInBytes() const override { return host_table->sizeInBytes(); }
 
  	virtual ~CPUCacheData() {}
 
@@ -100,7 +106,7 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override;
 
-	unsigned long long sizeInBytes() override;
+	size_t sizeInBytes() const override;
 	virtual ~CacheDataLocalFile() {}
 	std::string filePath() const { return filePath_; }
 
@@ -111,30 +117,30 @@ private:
 
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 
-template <class T>
 class message {
 public:
-	message(std::unique_ptr<T> content, size_t cache_index, std::string message_id = "")
-		: data(std::move(content)), cache_index{cache_index}, message_id(message_id) {
+	message(std::unique_ptr<CacheData> content, std::string message_id = "")
+		: data(std::move(content)), message_id(message_id)
+	{
+		assert(data != nullptr);
 	}
 
-	virtual ~message() = default;
+	~message() = default;
 
-	std::string get_message_id() { return (message_id); }
+	std::string get_message_id() const { return (message_id); }
 
-	std::unique_ptr<T> releaseData() { return std::move(data); }
-	size_t cacheIndex() { return cache_index; }
+	CacheData& get_data() const { return *data; }
+
+	std::unique_ptr<CacheData> release_data() { return std::move(data); }
 
 protected:
 	const std::string message_id;
-	size_t cache_index;
-	std::unique_ptr<T> data;
+	std::unique_ptr<CacheData> data;
 };
 
-template <class T>
 class WaitingQueue {
 public:
-	using message_ptr = std::unique_ptr<message<T>>;
+	using message_ptr = std::unique_ptr<message>;
 
 	WaitingQueue() : finished{false} {}
 	~WaitingQueue() = default;
@@ -300,7 +306,7 @@ public:
 	}
 
 protected:
-	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
+	std::unique_ptr<WaitingQueue> waitingCache;
 	std::vector<BlazingMemoryResource*> memory_resources;
 	std::atomic<std::size_t> num_bytes_added;
 	std::atomic<uint64_t> num_rows_added;
@@ -309,14 +315,14 @@ protected:
 class HostCacheMachine {
 public:
 	HostCacheMachine() {
-		waitingCache = std::make_unique<WaitingQueue<CacheData>>();
+		waitingCache = std::make_unique<WaitingQueue>();
 	}
 
 	~HostCacheMachine() {}
 
 	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table) {
 		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
-		std::unique_ptr<message<CacheData>> item = std::make_unique<message<CacheData>>(std::move(cache_data), 0);
+		auto item = std::make_unique<message>(std::move(cache_data));
 		this->waitingCache->put(std::move(item));
 	}
 
@@ -337,13 +343,14 @@ public:
 	} 
 	
 	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache() {
-		std::unique_ptr<message<CacheData>> message_data = waitingCache->pop_or_wait();
+		std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 		if (message_data == nullptr) {
 			return nullptr;
 		}
-		std::unique_ptr<CacheData> cache_data = message_data->releaseData();
-		auto cpu_data = (CPUCacheData * )(cache_data.get());
-		return cpu_data->releaseHostTable();
+		
+		assert(message_data->get_data().get_type() == CacheDataType::CPU);
+		
+		return static_cast<CPUCacheData&>(message_data->get_data()).releaseHostTable();
 	}
 
 	void setNumberOfBatches(size_t n_batches) {
@@ -354,7 +361,7 @@ public:
 		return this->waitingCache->getNumberOfBatches();
 	}
 protected:
-	std::unique_ptr<WaitingQueue<CacheData>> waitingCache;
+	std::unique_ptr<WaitingQueue> waitingCache;
 };
 
 class NonWaitingCacheMachine : public CacheMachine {
@@ -369,11 +376,15 @@ public:
 
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine();
+	ConcatenatingCacheMachine() = default;
+	ConcatenatingCacheMachine(size_t bytes_max_size);
 
 	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+
+private:
+	size_t bytes_max_size_ = std::numeric_limits<size_t>::max();
 };
 using Context = blazingdb::manager::experimental::Context;
 

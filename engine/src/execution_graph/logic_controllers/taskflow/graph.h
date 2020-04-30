@@ -16,7 +16,7 @@ static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cach
 	else if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
 		machine =  std::make_shared<ral::cache::CacheMachine>();
 	} else if (config.type == CacheType::CONCATENATING) {
-		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>();
+		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.max_concat_byte_size);
 	}
 	return machine;
 }

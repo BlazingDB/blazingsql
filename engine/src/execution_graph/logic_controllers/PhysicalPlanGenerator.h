@@ -293,7 +293,13 @@ struct tree_processor {
 					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE};
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 
-				} else {
+				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
+					const int MAX_CONCAT_BYTE_SIZE = 419430400; // 400 MB
+					cache_settings cache_machine_config;
+					cache_machine_config.type = CacheType::CONCATENATING;
+					cache_machine_config.max_concat_byte_size = MAX_CONCAT_BYTE_SIZE;
+					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+				}	else {
 					query_graph +=  *child->kernel_unit >> (*parent->kernel_unit);
 				}	
 			}
