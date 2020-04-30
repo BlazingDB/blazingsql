@@ -68,7 +68,7 @@ public:
 	}
 
 	virtual raw_buffer GetRawColumns() override {
-		std::vector<int> buffer_sizes;
+		std::vector<std::size_t> buffer_sizes;
 		std::vector<const char *> raw_buffers;
 		std::vector<ColumnTransport> column_offset;
 		std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
@@ -143,7 +143,7 @@ public:
 					}
 			} else {
 				col_transport.data = raw_buffers.size();
-				buffer_sizes.push_back(column.size() * cudf::size_of(column.type()));
+				buffer_sizes.push_back((std::size_t)column.size() * cudf::size_of(column.type()));
 				raw_buffers.push_back(column.head<char>() + column.offset() * cudf::size_of(column.type())); // here we are getting the beginning of the buffer and manually calculating the offset.
 				if(column.has_nulls()) {
 					col_transport.valid = raw_buffers.size();

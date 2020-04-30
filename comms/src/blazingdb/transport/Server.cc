@@ -129,12 +129,12 @@ void connectionHandler(ServerTCP *server, void *socket, int gpuId) {
     std::vector<ColumnTransport> column_offsets(column_offset_size);
     blazingdb::transport::io::readFromSocket(
         socket, (char *)column_offsets.data(),
-        column_offset_size * sizeof(ColumnTransport));
+        (std::size_t)column_offset_size * sizeof(ColumnTransport));
 
     auto buffer_sizes_size = read_metadata<int32_t>(socket);
-    std::vector<int> buffer_sizes(buffer_sizes_size);
+    std::vector<std::size_t> buffer_sizes(buffer_sizes_size);
     blazingdb::transport::io::readFromSocket(
-        socket, (char *)buffer_sizes.data(), buffer_sizes_size * sizeof(int));
+        socket, (char *)buffer_sizes.data(), (std::size_t)buffer_sizes_size * sizeof(std::size_t));
 
     std::vector<rmm::device_buffer> raw_columns;
     blazingdb::transport::experimental::io::readBuffersIntoGPUTCP(buffer_sizes, socket, gpuId, raw_columns);

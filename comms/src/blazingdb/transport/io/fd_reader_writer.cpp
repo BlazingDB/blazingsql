@@ -12,7 +12,7 @@ namespace blazingdb {
 namespace transport {
 namespace io {
 
-size_t readFromSocket(void* fileDescriptor, char* buf, size_t nbyte) {
+std::size_t readFromSocket(void* fileDescriptor, char* buf, std::size_t nbyte) {
   zmq::socket_t* socket = (zmq::socket_t*)fileDescriptor;
   zmq::message_t msg;
   try {
@@ -24,7 +24,7 @@ size_t readFromSocket(void* fileDescriptor, char* buf, size_t nbyte) {
   return nbyte;
 }
 
-size_t writeToSocket(void* fileDescriptor, char* buf, size_t nbyte, bool more) {
+std::size_t writeToSocket(void* fileDescriptor, char* buf, std::size_t nbyte, bool more) {
   zmq::socket_t* socket = (zmq::socket_t*)fileDescriptor;
   zmq::message_t message(nbyte);
   try {
