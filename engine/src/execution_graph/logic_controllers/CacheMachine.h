@@ -374,6 +374,8 @@ public:
 
 };
 
+// This ConcatenatingCacheMachine::pullFromCache method does not guarantee the relative order
+// of the messages to be preserved
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine() = default;

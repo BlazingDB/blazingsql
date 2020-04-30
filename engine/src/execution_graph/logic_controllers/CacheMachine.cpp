@@ -231,14 +231,15 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(size_t bytes_max_size)
 {
 }
 
+// This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> holder_samples;
 	std::vector<ral::frame::BlazingTableView> samples;
 
 	size_t total_bytes = 0;
-	while (waitingCache->wait_for_next())
+	std::unique_ptr<message> message_data;
+	while (message_data = waitingCache->pop_or_wait())
 	{
-		auto message_data = waitingCache->pop_or_wait();
 		auto& cache_data = message_data->get_data();
 		if (total_bytes + cache_data.sizeInBytes() <= bytes_max_size_)	{
 			total_bytes += cache_data.sizeInBytes();
