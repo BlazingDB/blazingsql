@@ -311,10 +311,12 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		}
 	}
 
-	if (holder_samples.size() > 1) {
-		return ral::utilities::experimental::concatTables(samples);
-	}	else {
+	if(holder_samples){
+		return nullptr;
+	} else if (holder_samples.size() == 1) {
 		return std::move(holder_samples[0]);
+	}	else {
+		return ral::utilities::experimental::concatTables(samples);
 	}	
 }
 
