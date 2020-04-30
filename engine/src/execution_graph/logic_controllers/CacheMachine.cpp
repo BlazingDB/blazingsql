@@ -300,7 +300,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
-		if (total_bytes + cache_data.sizeInBytes() <= bytes_max_size_)	{
+		if (holder_samples.empty() || total_bytes + cache_data.sizeInBytes() <= bytes_max_size_)	{
 			total_bytes += cache_data.sizeInBytes();
 			auto tmp_frame = cache_data.decache();
 			samples.emplace_back(tmp_frame->toBlazingTableView());
@@ -311,7 +311,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		}
 	}
 
-	if(holder_samples){
+	if(holder_samples.empty()){
 		return nullptr;
 	} else if (holder_samples.size() == 1) {
 		return std::move(holder_samples[0]);
