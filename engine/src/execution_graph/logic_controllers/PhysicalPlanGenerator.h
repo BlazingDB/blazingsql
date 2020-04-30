@@ -299,10 +299,15 @@ struct tree_processor {
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
-					const int MAX_CONCAT_BYTE_SIZE = 419430400; // 400 MB
+					size_t MAX_CONCAT_CACHE_BYTE_SIZE = 400000000; // 400 MB
+					std::map<std::string, std::string> config_options = context->getConfigOptions();
+					auto it = config_options.find("MAX_CONCAT_CACHE_BYTE_SIZE");
+					if (it != config_options.end()){
+						MAX_CONCAT_CACHE_BYTE_SIZE = std::stoull(config_options["MAX_CONCAT_CACHE_BYTE_SIZE"]);
+					}
 					cache_settings cache_machine_config;
 					cache_machine_config.type = CacheType::CONCATENATING;
-					cache_machine_config.max_concat_byte_size = MAX_CONCAT_BYTE_SIZE;
+					cache_machine_config.max_concat_byte_size = MAX_CONCAT_CACHE_BYTE_SIZE;
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				}	else {
 					query_graph +=  *child->kernel_unit >> (*parent->kernel_unit);
