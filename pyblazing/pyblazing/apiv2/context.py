@@ -748,6 +748,8 @@ class BlazingContext(object):
                                     NUM_BYTES_PER_ORDER_BY_PARTITION : The max number size in bytes for each order by partition. Note that,
                                            MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE will be enforced over this parameter.
                                            default: 400000000
+                                    MAX_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
+                                           default: 400000000
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
                                            calculate the number of samples
                                            default: 0.25
