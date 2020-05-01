@@ -370,6 +370,7 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In PartwiseJoin kernel left_idx[{}] right_ind[{}] for {}. What: {}"_format(left_ind, right_ind, expression, e.what()),
 											"duration"_a="");
+				logger->flush();
 				throw e;
 			}
 		}
@@ -658,6 +659,7 @@ public:
 												"substep"_a=this->context->getQuerySubstep(),
 												"info"_a="In JoinPartitionKernel scatter_small_table batch_count [{}]. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
+					logger->flush();
 				}
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
@@ -717,6 +719,7 @@ public:
 										"substep"_a=context->getQuerySubstep(),
 										"info"_a="In JoinPartitionKernel left side is empty and cannot determine join column indices",
 										"duration"_a="");
+			logger->flush();
 		}
 
 		std::pair<bool, bool> scatter_left_right;

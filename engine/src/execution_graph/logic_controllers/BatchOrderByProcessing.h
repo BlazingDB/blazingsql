@@ -55,6 +55,7 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In SortAndSampleSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
+				logger->flush();
 			}
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
@@ -122,6 +123,7 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In PartitionSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
+				logger->flush();
 			}
 		}
 
@@ -178,6 +180,7 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In SortAndSample kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
+				logger->flush();
 			}
 		}
 		unsigned long long avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
@@ -240,6 +243,7 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
+					logger->flush();
 				}	
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
@@ -295,12 +299,12 @@ public:
 						tables.emplace_back(std::move(table));
 					}
 				}
-
+				
 				if (tableViews.empty()) {
 					// noop
 				} else if(tableViews.size() == 1) {
 					this->add_to_output_cache(std::move(tables.front()));
-				}	else {
+				} else {
 					// std::cout<<">>>>>>>>>>>>>>> MERGE PARTITIONS START"<< std::endl;
 					// for (auto view : tableViews)
 					// 	ral::utilities::print_blazing_table_view(view);
@@ -322,6 +326,7 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In MergeStream kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
+				logger->flush();
 			}
 		}
 
@@ -387,6 +392,7 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
+					logger->flush();
 				}
 			}
 		}
