@@ -415,6 +415,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"substep"_a=queryContext.getQuerySubstep(),
 									"info"_a="In execute_plan. What: {}"_format(e.what()),
 									"duration"_a="");
+		logger->flush();
 		throw;
 	}
 }
