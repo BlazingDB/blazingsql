@@ -157,8 +157,8 @@ public:
 		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
-		size_t localTotalNumRows = 0;
-		size_t localTotalBytes = 0;
+		std::size_t localTotalNumRows = 0;
+		std::size_t localTotalBytes = 0;
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
@@ -183,7 +183,7 @@ public:
 				logger->flush();
 			}
 		}
-		unsigned long long avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+		std::size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 		auto concatSamples = ral::utilities::experimental::concatTables(sampledTableViews);
 		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
 			localTotalNumRows, avg_bytes_per_row, this->expression, this->context.get());

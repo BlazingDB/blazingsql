@@ -52,7 +52,7 @@ int64_t determine_local_limit(Context * context, int64_t local_num_rows, cudf::s
 
 std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part);
 std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part);
-std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, unsigned long long table_num_rows, unsigned long long avg_bytes_per_row, const std::string & query_part, Context * context);
+std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context);
 std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_type number_partitions, const std::vector<ral::frame::BlazingTableView> & samples, const std::vector<size_t> & total_rows_tables, const std::string & query_part);
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part);
 std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>>
