@@ -178,6 +178,21 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, Context * ctx) {
 
+	for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
+		if (table->view().column(col_ind).offset() > 0){
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|offset|{offset}",
+							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+							"info"_a="Add to CacheMachine into cache table column " + table->names()[col_ind] + " has offset",
+							"duration"_a="",
+							"kernel_id"_a=message_id,
+							"offset"_a=table->view().column(col_ind).offset());
+			logger->flush();
+		}
+	}
+	
+
 	num_rows_added += table->num_rows();
 	num_bytes_added += table->sizeInBytes();
 	int cacheIndex = 0;

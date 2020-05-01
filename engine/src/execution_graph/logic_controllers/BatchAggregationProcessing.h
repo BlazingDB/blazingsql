@@ -63,6 +63,7 @@ public:
                             "substep"_a=context->getQuerySubstep(),
                             "info"_a="In ComputeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
                             "duration"_a="");
+                logger->flush();
             }
 		}
 
@@ -194,6 +195,7 @@ public:
                                         "substep"_a=context->getQuerySubstep(),
                                         "info"_a="In DistributeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
                                         "duration"_a="");
+                    logger->flush();
                 }
             }
 
@@ -303,6 +305,7 @@ public:
                             "substep"_a=context->getQuerySubstep(),
                             "info"_a="In MergeAggregate kernel for {}. What: {}"_format(expression, e.what()),
                             "duration"_a="");
+                logger->flush();
             }
         }
 		
