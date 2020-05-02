@@ -752,7 +752,7 @@ class BlazingContext(object):
                                            default: 400000000
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
                                            calculate the number of samples
-                                           default: 0.25
+                                           default: 0.1
 
         Examples
         --------

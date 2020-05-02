@@ -164,10 +164,10 @@ public:
 
 		bool try_num_rows_estimation = true;
 		bool estimate_samples = false;
-		uint64_t num_sample_rows_estimate = 0;
-		uint64_t sum_sample_rows = 0;
+		uint64_t population_to_sample = 0;
+		uint64_t population_sampled = 0;
 		BlazingThread partition_plan_thread;
-		float ORDER_BY_SAMPLES_RATIO = 0.25;
+		float ORDER_BY_SAMPLES_RATIO = 0.1;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("ORDER_BY_SAMPLES_RATIO");
 		if (it != config_options.end()){
@@ -194,11 +194,11 @@ public:
 				if(try_num_rows_estimation) {
 					uint64_t num_rows_estimate;
 					std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
-					num_sample_rows_estimate = static_cast<uint64_t>(num_sample_rows_estimate * ORDER_BY_SAMPLES_RATIO);
+					population_to_sample = static_cast<uint64_t>(num_rows_estimate * ORDER_BY_SAMPLES_RATIO);
 					try_num_rows_estimation = false;
 				}
-				sum_sample_rows += sampledTables.back()->num_rows();
-				if (estimate_samples && sum_sample_rows > num_sample_rows_estimate)	{
+				population_sampled += batch->num_rows();
+				if (estimate_samples && population_sampled > population_to_sample)	{
 					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, localTotalNumRows, localTotalBytes);
 					estimate_samples = false;
 				}
