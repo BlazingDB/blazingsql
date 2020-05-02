@@ -105,7 +105,9 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = names;
 		auto table = ral::utilities::experimental::create_empty_table(dtypes);
-		result->cudfTable = std::move(table);
+		std::vector<std::unique_ptr<cudf::experimental::table>> tables;
+		tables.emplace_back(std::move(table));
+		result->cudfTables = std::move(tables);
 		result->skipdata_analysis_fail = false;
 		return result;
 	}
@@ -134,7 +136,9 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		// ral::utilities::print_blazing_table_view(metadata->toBlazingTableView());
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = metadata->names();
-		result->cudfTable = metadata->releaseCudfTable();
+		std::vector<std::unique_ptr<cudf::experimental::table>> tables;
+		tables.emplace_back(std::move(metadata->releaseCudfTable()));
+		result->cudfTables = std::move(tables);
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(std::exception e) {
