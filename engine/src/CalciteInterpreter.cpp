@@ -356,7 +356,7 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_query(
 		}
 }
 
-std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data_loader> input_loaders,
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::string logicalPlan,
@@ -369,7 +369,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 	try {
 		assert(input_loaders.size() == table_names.size());
 
-		std::unique_ptr<ral::frame::BlazingTable> output_frame; 
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> output_frame; 
 		ral::batch::tree_processor tree{
 			.root = {},
 			.context = queryContext.clone(),
@@ -403,7 +403,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"info"_a="Query Execution Done",
 									"duration"_a=blazing_timer.elapsed_time());
 
-		assert(output_frame != nullptr);
+		//assert(output_frame != nullptr); check for empty
 
 		logger->flush();
 

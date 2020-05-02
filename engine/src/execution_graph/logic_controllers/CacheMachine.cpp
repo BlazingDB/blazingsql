@@ -335,5 +335,36 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	}	
 }
 
+// This method does not guarantee the relative order of the messages to be preserved
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> ConcatenatingCacheMachine::pullFromCacheOutput(Context * ctx) {
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> holder_samples;
+	std::vector<ral::frame::BlazingTableView> samples;
+
+	std::size_t total_bytes = 0;
+	bool CONCATENATE = true;
+
+	auto all_messages_data = waitingCache->get_all_or_wait();
+	for (auto& message_data : all_messages_data) {
+		auto& cache_data = message_data->get_data();
+
+		if(total_bytes + cache_data.sizeInBytes() <= bytes_max_size_) {
+			total_bytes += cache_data.sizeInBytes();
+		} else {
+			CONCATENATE = false;
+		}
+
+		auto tmp_frame = cache_data.decache();
+		samples.emplace_back(tmp_frame->toBlazingTableView());
+		holder_samples.emplace_back(std::move(tmp_frame));
+	}
+
+	if(CONCATENATE){
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> concat_samples;
+		concat_samples.emplace_back(ral::utilities::experimental::concatTables(samples));
+	} else {
+		return holder_samples;
+	}
+}
+
 }  // namespace cache
 } // namespace ral

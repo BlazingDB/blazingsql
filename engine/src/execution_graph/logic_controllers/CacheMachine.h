@@ -122,7 +122,7 @@ private:
 	// ideally would be a writeable file
 };
 
-using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
+//using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 
 /// \brief This class represents a  messsage into que WaitingQueue. 
 /// We use this class to represent not only the CacheData 
@@ -306,6 +306,8 @@ public:
 	} 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr);
 
+	virtual std::vector<std::unique_ptr<ral::frame::BlazingTable>> pullFromCacheOutput(Context * ctx = nullptr);
+
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(Context * ctx = nullptr);
 
 
@@ -408,6 +410,8 @@ public:
 	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr) override;
+
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> pullFromCacheOutput(Context * ctx = nullptr) override;
 
 private:
 	size_t bytes_max_size_ = std::numeric_limits<size_t>::max();

@@ -59,7 +59,7 @@ using ral::cache::kernel_type;
 using namespace fmt::literals;
 
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
-using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
+using frame_type = std::vector<std::unique_ptr<ral::frame::BlazingTable>>;
 using Context = blazingdb::manager::experimental::Context;
 class BatchSequence {
 public:
@@ -496,7 +496,7 @@ class OutputKernel : public kernel {
 public:
 	OutputKernel() : kernel("OutputKernel", nullptr) {  }
 	virtual kstatus run() {
-		output = std::move(this->input_.get_cache()->pullFromCache());
+		output = this->input_.get_cache()->pullFromCacheOutput();
 		return kstatus::stop;
 	}
 

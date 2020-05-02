@@ -148,18 +148,22 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
-		std::unique_ptr<ral::frame::BlazingTable> frame;
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
 		if (use_execution_graph) {
-			frame = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+			frames = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 
 		} else {
-			frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+			frames.emplace_back(std::move(evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext)));
 		}
 		
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
-		result->names = frame->names();
+		result->names = frames[0]->names();
 		fix_column_names_duplicated(result->names);
-		result->cudfTable = frame->releaseCudfTable();
+
+		for(auto& cudfTable : frames){
+			result->cudfTables.emplace_back(std::move(cudfTable->releaseCudfTable()));
+		}
+
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(const std::exception & e) {
@@ -204,8 +208,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		std::unique_ptr<ral::frame::BlazingTable> frame = ral::processor::process_distribution_table(
 			table, columnIndices, &queryContext);
 
-		result->names = frame->names();
-		result->cudfTable = frame->releaseCudfTable();
+		result->cudfTables.emplace_back(std::move(frame->releaseCudfTable()));
 		result->skipdata_analysis_fail = false;
 		return result;
 
@@ -229,7 +232,7 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 		result->skipdata_analysis_fail = result_pair.second;
 		if (!result_pair.second){ // if could process skip-data
 			result->names = result_pair.first->names();
-			result->cudfTable = result_pair.first->releaseCudfTable();
+			result->cudfTables.emplace_back(std::move(result_pair.first->releaseCudfTable()));
 		}
 		return result;
 
