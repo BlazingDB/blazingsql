@@ -273,6 +273,8 @@ public:
 		CodeTimer timer;
 
 		while( input.wait_for_next() ) {
+			this->output_cache()->wait_if_cache_is_saturated();
+
 			auto batch = input.next();
 			this->add_to_output_cache(std::move(batch));
 		}
@@ -323,6 +325,8 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next() ) {
 			try {
+				this->output_cache()->wait_if_cache_is_saturated();
+				
 				auto batch = input.next();
 
 				if(is_filtered_bindable_scan(expression)) {
@@ -391,6 +395,8 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache()->wait_if_cache_is_saturated();
+
 				auto batch = input.next();
 				auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
 				this->add_to_output_cache(std::move(columns));
@@ -440,6 +446,8 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache()->wait_if_cache_is_saturated();
+
 				auto batch = input.next();
 				auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
 				this->add_to_output_cache(std::move(columns));

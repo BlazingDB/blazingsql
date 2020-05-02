@@ -42,6 +42,7 @@ public:
 		BatchSequence input(this->input_cache(), this);
         int batch_count = 0;
         while (input.wait_for_next()) {
+            this->output_cache()->wait_if_cache_is_saturated();
 			auto batch = input.next();
 
             try {

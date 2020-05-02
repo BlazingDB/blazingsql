@@ -42,6 +42,8 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache("output_a")->wait_if_cache_is_saturated();
+
 				auto batch = input.next();
 				auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
 				auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
@@ -174,6 +176,7 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache("output_a")->wait_if_cache_is_saturated();
 				auto batch = input.next();
 				auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
 				auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
