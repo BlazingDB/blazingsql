@@ -277,44 +277,77 @@ struct tree_processor {
 			visit(query_graph, child.get(), child->children);
 			std::string port_name = "input";
 
+			std::uint32_t FLOW_CONTROL_BATCHES_THRESHOLD = std::numeric_limits<std::uint32_t>::max();
+			std::size_t FLOW_CONTROL_BYTES_THRESHOLD = std::numeric_limits<std::size_t>::max();
+			std::map<std::string, std::string> config_options = context->getConfigOptions();
+			auto it = config_options.find("FLOW_CONTROL_BATCHES_THRESHOLD");
+			if (it != config_options.end()){
+				FLOW_CONTROL_BATCHES_THRESHOLD = std::stoi(config_options["FLOW_CONTROL_BATCHES_THRESHOLD"]);
+			}
+			it = config_options.find("FLOW_CONTROL_BYTES_THRESHOLD");
+			if (it != config_options.end()){
+				FLOW_CONTROL_BYTES_THRESHOLD = std::stoi(config_options["FLOW_CONTROL_BYTES_THRESHOLD"]);
+			}
+			cache_settings default_throttled_cache_machine_config = cache_settings{.type = CacheType::SIMPLE, .num_partitions = 1,
+						.flow_control_batches_threshold = FLOW_CONTROL_BATCHES_THRESHOLD, .flow_control_bytes_threshold = FLOW_CONTROL_BYTES_THRESHOLD};
+			
 			if (children.size() > 1) {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
 				port_name.push_back(index_char);
-				query_graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
+				if (parent->kernel_unit->can_you_throttle_my_input()){
+					query_graph += link(*child->kernel_unit, *parent->kernel_unit, default_throttled_cache_machine_config);
+				} else {
+					query_graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
+				}
 			} else {
 				auto child_kernel_type = child->kernel_unit->get_type_id();
 				auto parent_kernel_type = parent->kernel_unit->get_type_id();
 				if ((child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel)
 					    || (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
 						|| (child_kernel_type == kernel_type::SortAndSampleSingleNodeKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
-					query_graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];
-					query_graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
+					
+					if (parent->kernel_unit->can_you_throttle_my_input()){
+						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], default_throttled_cache_machine_config);
+						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], default_throttled_cache_machine_config);
+					} else {
+						query_graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];
+						query_graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
+					}	
+
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
 					
 					int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; 
-					std::map<std::string, std::string> config_options = context->getConfigOptions();
-					auto it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
+					it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
 					if (it != config_options.end()){
 						MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
 					}
-					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE};
-					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+					if (parent->kernel_unit->can_you_throttle_my_input()){
+						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE,
+								.flow_control_batches_threshold = FLOW_CONTROL_BATCHES_THRESHOLD, .flow_control_bytes_threshold = FLOW_CONTROL_BYTES_THRESHOLD};
+						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+					} else {
+						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE};
+						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+					}
 
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
-					size_t MAX_CONCAT_CACHE_BYTE_SIZE = 400000000; // 400 MB
-					std::map<std::string, std::string> config_options = context->getConfigOptions();
-					auto it = config_options.find("MAX_CONCAT_CACHE_BYTE_SIZE");
+					size_t MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE = 400000000; // 400 MB
+					config_options = context->getConfigOptions();
+					it = config_options.find("MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE");
 					if (it != config_options.end()){
-						MAX_CONCAT_CACHE_BYTE_SIZE = std::stoull(config_options["MAX_CONCAT_CACHE_BYTE_SIZE"]);
+						MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE = std::stoull(config_options["MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE"]);
 					}
-					cache_settings cache_machine_config;
-					cache_machine_config.type = CacheType::CONCATENATING;
-					cache_machine_config.max_concat_byte_size = MAX_CONCAT_CACHE_BYTE_SIZE;
+					cache_settings cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1,
+						.flow_control_batches_threshold = FLOW_CONTROL_BATCHES_THRESHOLD, .flow_control_bytes_threshold = MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE};
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				}	else {
-					query_graph +=  *child->kernel_unit >> (*parent->kernel_unit);
+					if (parent->kernel_unit->can_you_throttle_my_input()){
+						query_graph += link(*child->kernel_unit, *parent->kernel_unit, default_throttled_cache_machine_config);
+					} else {
+						query_graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
+					}
 				}	
 			}
 		}

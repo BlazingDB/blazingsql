@@ -28,6 +28,10 @@ public:
         this->query_graph = query_graph;
 	}
 
+    bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -107,6 +111,10 @@ public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context} {
         this->query_graph = query_graph;
+	}
+
+    bool can_you_throttle_my_input() {
+		return true;
 	}
 
 	virtual kstatus run() {
@@ -241,6 +249,10 @@ public:
 	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context} {
         this->query_graph = query_graph;
+	}
+
+    bool can_you_throttle_my_input() {
+		return false;
 	}
 
 	virtual kstatus run() {

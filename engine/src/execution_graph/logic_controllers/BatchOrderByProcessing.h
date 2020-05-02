@@ -26,6 +26,10 @@ public:
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
+
+	bool can_you_throttle_my_input() {
+		return true;
+	}
 	
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -89,6 +93,10 @@ public:
 		this->input_.add_port("input_a", "input_b");
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -150,6 +158,10 @@ public:
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
+
+	bool can_you_throttle_my_input() {
+		return true;
+	}
 	
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -210,6 +222,10 @@ public:
 		: kernel{queryString, context} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
+	}
+
+	bool can_you_throttle_my_input() {
+		return true;
 	}
 
 	virtual kstatus run() {
@@ -281,6 +297,10 @@ public:
 		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
 	}
+
+	bool can_you_throttle_my_input() {
+		return false;
+	}
 	
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -351,6 +371,10 @@ public:
 	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
+	}
+
+	bool can_you_throttle_my_input() {
+		return false;
 	}
 	
 	virtual kstatus run() {

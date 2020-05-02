@@ -60,6 +60,10 @@ public:
         this->rightArrayCache = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
 	}
 
+	bool can_you_throttle_my_input() {
+		return false;  // join has its own sort of limiter, so its not good to try to apply another limiter
+	}
+
 	std::unique_ptr<TableSchema> left_schema{nullptr};
  	std::unique_ptr<TableSchema> right_schema{nullptr};
 	
@@ -422,6 +426,9 @@ public:
 		this->output_.add_port("output_a", "output_b");
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
 
 	static void partition_table(std::shared_ptr<Context> local_context,
 				std::vector<cudf::size_type> column_indices, 

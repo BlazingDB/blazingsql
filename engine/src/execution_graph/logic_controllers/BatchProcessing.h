@@ -264,6 +264,10 @@ public:
 	{
 		this->query_graph = query_graph;
 	}
+
+	bool can_you_throttle_my_input() {
+		return false;
+	}
 	
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -308,6 +312,10 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return false;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -335,7 +343,6 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In BindableTableScan kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -373,6 +380,10 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -392,7 +403,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In Projection kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -419,6 +429,10 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -438,7 +452,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In Filter kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -476,6 +489,11 @@ class Print : public kernel {
 public:
 	Print() : kernel("Print", nullptr) { ofs = &(std::cout); }
 	Print(std::ostream & stream) : kernel("Print", nullptr) { ofs = &stream; }
+
+	bool can_you_throttle_my_input() {
+		return false;
+	}
+
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
 		BatchSequence input(this->input_cache(), this);
@@ -498,6 +516,10 @@ public:
 	virtual kstatus run() {
 		output = std::move(this->input_.get_cache()->pullFromCache());
 		return kstatus::stop;
+	}
+
+	bool can_you_throttle_my_input() {
+		return false;
 	}
 
 	frame_type	release() {

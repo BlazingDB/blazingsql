@@ -10,6 +10,7 @@
 #include <cudf/io/functions.hpp>
 #include <future>
 #include <memory>
+#include <condition_variable>
 #include <mutex>
 #include <queue>
 #include <src/communication/messages/GPUComponentMessage.h>
@@ -273,6 +274,8 @@ class CacheMachine {
 public:
 	CacheMachine();
 
+	CacheMachine(std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
+
 	~CacheMachine();
 
 	virtual void put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table);
@@ -308,6 +311,10 @@ public:
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(Context * ctx = nullptr);
 
+	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
+	
+	virtual void wait_if_cache_is_saturated();
+
 
 protected:
 	/// This property represents a waiting queue object which stores all CacheData Objects  
@@ -319,6 +326,14 @@ protected:
 	std::atomic<uint64_t> num_rows_added;
 
 	std::shared_ptr<spdlog::logger> logger;
+
+	std::uint32_t flow_control_batches_threshold;
+	std::size_t flow_control_bytes_threshold;
+	std::uint32_t flow_control_batches_count;
+	std::size_t flow_control_bytes_count;
+	std::mutex flow_control_mutex;
+	std::condition_variable flow_control_condition_variable;
+
 };
 
 /**
@@ -403,7 +418,7 @@ protected:
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine() = default;
-	ConcatenatingCacheMachine(size_t bytes_max_size);
+	ConcatenatingCacheMachine(std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
 
 	~ConcatenatingCacheMachine() = default;
 
