@@ -208,7 +208,6 @@ public:
 			return std::move(ret);
 		}
 
-		cudf::size_type row_group_id = all_row_groups[cur_file_index][cur_row_group_index];
 		auto ret = loader.load_batch(context.get(), projections, schema, this->cur_data_handle, cur_file_index, this->all_row_groups[cur_file_index]);
 		batch_index++;
 		cur_file_index++;
