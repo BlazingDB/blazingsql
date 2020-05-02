@@ -296,7 +296,7 @@ struct tree_processor {
 				port_name = std::string("input_");
 				port_name.push_back(index_char);
 				if (parent->kernel_unit->can_you_throttle_my_input()){
-					query_graph += link(*child->kernel_unit, *parent->kernel_unit, default_throttled_cache_machine_config);
+					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], default_throttled_cache_machine_config);
 				} else {
 					query_graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
 				}
@@ -311,7 +311,7 @@ struct tree_processor {
 						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], default_throttled_cache_machine_config);
 						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], default_throttled_cache_machine_config);
 					} else {
-						query_graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];
+						query_graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];	
 						query_graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
 					}	
 
@@ -344,15 +344,15 @@ struct tree_processor {
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				}	else {
 					if (parent->kernel_unit->can_you_throttle_my_input()){
-						query_graph += link(*child->kernel_unit, *parent->kernel_unit, default_throttled_cache_machine_config);
+						query_graph += link(*child->kernel_unit, (*parent->kernel_unit), default_throttled_cache_machine_config);
 					} else {
-						query_graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
+						query_graph +=  *child->kernel_unit >> (*parent->kernel_unit);
 					}
 				}	
 			}
 		}
 	}
-
+	
 };
  
 
