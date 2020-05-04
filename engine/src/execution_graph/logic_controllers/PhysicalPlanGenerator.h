@@ -286,7 +286,7 @@ struct tree_processor {
 			}
 			it = config_options.find("FLOW_CONTROL_BYTES_THRESHOLD");
 			if (it != config_options.end()){
-				FLOW_CONTROL_BYTES_THRESHOLD = std::stoi(config_options["FLOW_CONTROL_BYTES_THRESHOLD"]);
+				FLOW_CONTROL_BYTES_THRESHOLD = std::stoull(config_options["FLOW_CONTROL_BYTES_THRESHOLD"]);
 			}
 			// if only one of these is set, we need to set the other one to 0
 			if (FLOW_CONTROL_BATCHES_THRESHOLD != std::numeric_limits<std::uint32_t>::max() || FLOW_CONTROL_BYTES_THRESHOLD != std::numeric_limits<std::size_t>::max()){
