@@ -216,10 +216,8 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
         decoded_names.append(names[i].decode('utf-8'))
 
     dfs = []
-    tables = dereference(resultSet).cudfTables
-
-    for i in range(tables.size()):
-      df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(tables[i]), decoded_names)._data)
+    for i in range(dereference(resultSet).cudfTables.size()):
+      df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data)
       df._rename_columns(decoded_names)
       dfs.append(df)
 
@@ -262,12 +260,6 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
       dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
 
     return dfs
-
-    #dfs = []
-    #for table in dereference(resultSet).cudfTables:
-    #  dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(table), decoded_names)._data))
-
-    #return dfs
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, bool use_execution_graph, map[string,string] config_options):
     cdef string query
@@ -420,9 +412,6 @@ cpdef runSkipDataCaller(table, queryPy):
       decoded_names = []
       for i in range(names.size()):
           decoded_names.append(names[i].decode('utf-8'))
-
-      #df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-      #return_object['metadata'] = df 
 
       dfs = []
       for i in range(dereference(resultSet).cudfTables.size()):
