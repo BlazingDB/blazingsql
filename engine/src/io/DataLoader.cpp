@@ -222,8 +222,6 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 	size_t file_index,
 	std::vector<cudf::size_type> row_group_ids) {
 
-	static CodeTimer timer;
-	timer.reset();
 	auto fileSchema = schema.fileSchema(file_index);
 
 	std::vector<size_t> column_indices = column_indices_in;
