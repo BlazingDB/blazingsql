@@ -1312,17 +1312,38 @@ class BlazingContext(object):
 
 
     def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query,single_gpu=False):
+        print("_optimize_with_skip_data_getSlices start")
+        print("column_names: ")
+        print(current_table.column_names)
+        print("files: ")
+        print(current_table.files)
+        print("metadata: ")
+        print(current_table.metadata)
+        print("uri_values: ")
+        print(uri_values)
+                
+        print("scan_table_query")
+        print(scan_table_query)
+
         nodeFilesList = []
         file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
 
+        print("skipdata_analysis_fail")
+        print(skipdata_analysis_fail)
+        print("file_indices_and_rowgroup_indices")
+        print(file_indices_and_rowgroup_indices)
+
         if not skipdata_analysis_fail:
+            print("not skipdata_analysis_fail start")
             actual_files = []
             uri_values = []
             row_groups_ids = []
 
             if not file_indices_and_rowgroup_indices.empty: #skipdata did not filter everything
+                print("not file_indices_and_rowgroup_indices.empty start")
+
                 file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
                 files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
                 grouped = file_and_rowgroup_indices.groupby('file_handle_index')
@@ -1336,6 +1357,14 @@ class BlazingContext(object):
                     row_groups_ids.append(row_group_ids)
 
             if self.dask_client is None:
+                print("self.dask_client is None start")
+                print("row_groups_ids")
+                print(row_groups_ids)
+                print("actual_files")
+                print(actual_files)
+                print("uri_values")
+                print(uri_values)
+
                 bt = BlazingTable(current_table.input,
                                 current_table.fileType,
                                 files=actual_files,
@@ -1350,9 +1379,23 @@ class BlazingContext(object):
                 nodeFilesList.append(bt)
 
             else:
+                print("else NOT self.dask_client is None start")
+                print("row_groups_ids")
+                print(row_groups_ids)
                 if single_gpu:
+                    print("single_gpu start")
+
                     all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(1, actual_files, uri_values, row_groups_ids)
                     i = 0
+
+                    print("all_sliced_files[" + str(i) + "]")
+                    print(all_sliced_files[i])
+                    print("all_sliced_uri_values[" + str(i) + "]")
+                    print(all_sliced_uri_values[i])
+                    print("all_sliced_row_groups_ids[" + str(i) + "]")
+                    print(all_sliced_row_groups_ids[i])
+                    
+
                     bt = BlazingTable(current_table.input,
                                 current_table.fileType,
                                 files=all_sliced_files[i],
@@ -1366,10 +1409,18 @@ class BlazingContext(object):
                     bt.column_types = current_table.column_types
                     nodeFilesList.append(bt)
                 else:
+                    print("not single_gpu start")
 
                     all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
 
                     for i, node in enumerate(self.nodes):
+                        print("all_sliced_files[" + str(i) + "]")
+                        print(all_sliced_files[i])
+                        print("all_sliced_uri_values[" + str(i) + "]")
+                        print(all_sliced_uri_values[i])
+                        print("all_sliced_row_groups_ids[" + str(i) + "]")
+                        print(all_sliced_row_groups_ids[i])
+
                         bt = BlazingTable(current_table.input,
                                     current_table.fileType,
                                     files=all_sliced_files[i],
@@ -1384,6 +1435,8 @@ class BlazingContext(object):
                         nodeFilesList.append(bt)
             return nodeFilesList
         else:
+            print("skipdata_analysis_fail start")
+
             if single_gpu:
                 return current_table.getSlices(1)
             else:
@@ -1584,6 +1637,8 @@ class BlazingContext(object):
 
             for j, nodeList in enumerate(nodeTableList):
                 nodeList[table] = currentTableNodes[j]
+                print("Table: " + table + " node " + str(j))
+                print(nodeList[table].files)
 
         ctxToken = random.randint(0, 64000)
         accessToken = 0
