@@ -51,7 +51,7 @@ ctypedef table CudfTable
 
 cdef extern from "../include/io/io.h":
     cdef struct ResultSet:
-        unique_ptr[table] cudfTable
+        vector[unique_ptr[table]] cudfTables
         vector[string]  names
         bool skipdata_analysis_fail
 
