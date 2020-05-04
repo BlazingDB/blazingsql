@@ -1320,7 +1320,7 @@ class BlazingContext(object):
         print("metadata: ")
         print(current_table.metadata)
         print("uri_values: ")
-        print(uri_values)
+        print(current_table.uri_values)
                 
         print("scan_table_query")
         print(scan_table_query)
