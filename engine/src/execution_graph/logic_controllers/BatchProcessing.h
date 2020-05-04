@@ -212,6 +212,7 @@ public:
 		auto local_cur_data_handle = this->provider->get_next();
 		auto local_cur_file_index = cur_file_index;
 		auto local_all_row_groups = this->all_row_groups[cur_file_index];
+
 		batch_index++;
 		cur_file_index++;
 
