@@ -10,9 +10,9 @@ static rmmError_t BlazingRMMFinalize()
 	return RMM_SUCCESS;
 }
 
-static rmmError_t BlazingRMMInitialize(rmmOptions_t *options)
+static rmmError_t BlazingRMMInitialize(rmmOptions_t *options, float BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD = 0.95)
 {
-  blazing_device_memory_resource::getInstance().initialize(options);
+  blazing_device_memory_resource::getInstance().initialize(options, BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD);
  	return RMM_SUCCESS;
 }
 

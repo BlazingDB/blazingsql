@@ -171,7 +171,7 @@ public:
    * 
    * @param[in] options Optional options to set
    * ----------------------------------------------------------------------**/
-    void initialize(const rmmOptions_t *new_options) {
+    void initialize(const rmmOptions_t *new_options, float BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD) {
         
         std::lock_guard<std::mutex> guard(manager_mutex);
 
@@ -180,7 +180,7 @@ public:
 
         if (nullptr != new_options) options = *new_options;
 
-        initialized_resource.reset(new internal_blazing_device_memory_resource(options));
+        initialized_resource.reset(new internal_blazing_device_memory_resource(options, BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD));
         
         rmm::mr::set_default_resource(initialized_resource.get());
         
