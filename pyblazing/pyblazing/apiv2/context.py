@@ -755,6 +755,9 @@ class BlazingContext(object):
                                            default: 1
                                     MAX_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
+                                    BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource 
+                                            will consider to be full
+                                            default: 0.95
 
         Examples
         --------
