@@ -146,22 +146,21 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 def getNodePartitions(df, client):
     df = df.persist()
     workers = client.scheduler_info()['workers']
-    connectionToId = {}
+    worker_partitions = {}
     for worker in workers:
-        connectionToId[worker] = workers[worker]['name']
+        worker_partitions[worker] = []
+
     dask.distributed.wait(df)
     worker_part = client.who_has(df)
-    worker_partitions = {}
     for key in worker_part:
         if len(worker_part[key]) > 0:
             worker = worker_part[key][0]
             partition = int(key[key.find(",") + 2:(len(key) - 1)])
-            if connectionToId[worker] not in worker_partitions:
-                worker_partitions[connectionToId[worker]] = []
-            worker_partitions[connectionToId[worker]].append(partition)
+            worker_partitions[worker].append(partition)
         else:
             print("ERROR: In getNodePartitions, woker has no corresponding partition")
-    return worker_partitions
+    
+    return dict((workers[worker]['name'], partitions) for worker, partitions in worker_partitions.items())
 
 
 def collectPartitionsRunQuery(
@@ -182,8 +181,7 @@ def collectPartitionsRunQuery(
             if partitions is None:
                 print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
             if (len(partitions) == 0):
-                tables[table_name].input = [tables[table_name].input.get_partition(
-                    0).head(0)]
+                tables[table_name].input = [tables[table_name].df_schema]
             elif (len(partitions) == 1):
                 tables[table_name].input = [tables[table_name].input.get_partition(
                     partitions[0]).compute()]
@@ -601,6 +599,7 @@ class BlazingTable(object):
         self.datasource = datasource
 
         self.args = args
+        self.df_schema = None
         if fileType == DataType.CUDF or DataType.DASK_CUDF:
             if(convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame)):
                 self.input = dask_cudf.from_cudf(
@@ -608,6 +607,7 @@ class BlazingTable(object):
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
                 self.input = self.input.persist()
                 self.dask_mapping = getNodePartitions(self.input, client)
+                self.df_schema = self.input.get_partition(0).head(0)
         self.uri_values = uri_values
         self.in_file = in_file
 
@@ -703,10 +703,10 @@ class BlazingTable(object):
         return nodeFilesList
 
     def get_partitions(self, worker):
-        if worker in self.dask_mapping:
-            return self.dask_mapping[worker]
-        else:
-            return None
+        if worker not in self.dask_mapping:
+            assert False, "Worker [{}] is not in the table dask_mapping".format(worker)
+            
+        return self.dask_mapping[worker]
 
 
 class BlazingContext(object):
