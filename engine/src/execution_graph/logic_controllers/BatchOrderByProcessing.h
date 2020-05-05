@@ -292,6 +292,10 @@ public:
 				std::vector<ral::frame::BlazingTableView> tableViews;
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
 				auto cache_id = "input_" + std::to_string(idx);
+
+				// This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
+				this->input_.get_cache(cache_id)->wait_until_finished();
+				
 				while (this->input_.get_cache(cache_id)->wait_for_next()) {
 					auto table = this->input_.get_cache(cache_id)->pullFromCache(context.get());
 					if (table) {

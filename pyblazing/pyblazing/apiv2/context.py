@@ -95,7 +95,8 @@ class blazing_allocation_mode(IntEnum):
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
-                      initial_pool_size=None, enable_logging=False, devices=0):
+
+                      initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
 
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
@@ -128,7 +129,8 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
             allocation_mode,
             initial_pool_size,
             devices,
-            enable_logging
+            enable_logging,
+            config_options
         )
 
     cio.initializeCaller(
@@ -137,7 +139,8 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         networkInterface.encode(),
         workerIp.encode(),
         ralCommunicationPort,
-        singleNode)
+        singleNode,
+        config_options)
     cwd = os.getcwd()
 
     return ralCommunicationPort, workerIp, cwd
@@ -753,6 +756,9 @@ class BlazingContext(object):
                                            default: 1
                                     MAX_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
+                                    BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource 
+                                            will consider to be full
+                                            default: 0.95
 
         Examples
         --------
@@ -809,6 +815,7 @@ class BlazingContext(object):
                         pool=pool,
                         initial_pool_size=initial_pool_size,
                         enable_logging=enable_logging,
+                        config_options=self.config_options,
                         workers=[worker]))
                 worker_list.append(worker)
                 i = i + 1
@@ -825,7 +832,8 @@ class BlazingContext(object):
         else:
             ralPort, ralIp, cwd = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
-                allocator=allocator, pool=pool, initial_pool_size=initial_pool_size, enable_logging=enable_logging)
+                allocator=allocator, pool=pool, initial_pool_size=initial_pool_size, 
+                enable_logging=enable_logging, config_options=self.config_options)
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
