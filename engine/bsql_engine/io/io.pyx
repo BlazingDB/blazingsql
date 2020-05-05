@@ -7,6 +7,8 @@
 # cython: embedsignature = True
 # cython: language_level = 3
 
+from collections import OrderedDict
+
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
@@ -168,7 +170,7 @@ cpdef blazingSetAllocatorCaller(int allocation_mode, size_t initial_pool_size, v
 cpdef getProductDetailsCaller():
     my_map = getProductDetailsPython()
     cdef map[string,string].iterator it = my_map.begin()
-    new_map = {}
+    new_map = OrderedDict()
     while(it != my_map.end()):
         key = dereference(it).first
         key = key.decode('utf-8')

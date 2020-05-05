@@ -6,7 +6,7 @@
 
 std::map<std::string, std::string> getProductDetails() {
 	std::map<std::string, std::string> ret;
-	std::vector<std::pair<std::string, std::string>> descriptiveMetadata = SIMPLICITY_DESCRIPTIVE_METADATA;
+	std::vector<std::pair<std::string, std::string>> descriptiveMetadata = BLAZINGSQL_DESCRIPTIVE_METADATA;
 	for (const auto description : descriptiveMetadata) {
 		ret[description.first] = description.second;
 	}
