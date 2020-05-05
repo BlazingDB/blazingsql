@@ -372,7 +372,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(co
 		std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > samples_pair = collectSamples(context);
 		std::vector<ral::frame::BlazingTableView> samples;
 		for (int i = 0; i < samples_pair.first.size(); i++){
-			samples.push_back(samples_pair.first[i].second->toBlazingTableView());
+		samples.push_back(samples_pair.first[i].second->toBlazingTableView());
 		}
 		samples.push_back(selfSamples);
 		std::vector<size_t> total_rows_tables = samples_pair.second;

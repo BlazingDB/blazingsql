@@ -264,8 +264,8 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 	}
 }
 
-bool CacheMachine::ready_to_execute() {
-	return waitingCache->ready_to_execute();
+void CacheMachine::wait_until_finished() {
+	return waitingCache->wait_until_finished();
 }
 
 
