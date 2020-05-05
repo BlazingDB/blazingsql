@@ -755,18 +755,15 @@ class BlazingContext(object):
                                            default: 1
                                     MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
-<<<<<<< HEAD
                                     FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to 
                                             stop execution until the output cache contains less.
                                             default: max int (makes it not applicable)
                                     FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to 
                                             stop execution until the output cache contains less.
                                             default: max size_t (makes it not applicable)
-=======
                                     BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource 
                                             will consider to be full
                                             default: 0.95
->>>>>>> upstream/feature/bigger_than_gpu_0.14
 
         Examples
         --------
