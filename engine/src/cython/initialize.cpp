@@ -61,7 +61,8 @@ void initialize(int ralId,
 	std::string network_iface_name,
 	std::string ralHost,
 	int ralCommunicationPort,
-	bool singleNode) {
+	bool singleNode,
+	std::map<std::string, std::string> config_options) {
   // ---------------------------------------------------------------------------
   // DISCLAIMER
   // TODO: Support proper locale support for non-US cases (percy)
@@ -141,7 +142,8 @@ void blazingSetAllocator(
 	int allocation_mode, 
 	std::size_t initial_pool_size, 
 	std::vector<int> devices,
-	bool enable_logging) {
+	bool enable_logging,
+	std::map<std::string, std::string> config_options) {
 
 	rmmOptions_t rmmValues;
 	rmmValues.allocation_mode = static_cast<rmmAllocationMode_t>(allocation_mode);
@@ -151,5 +153,11 @@ void blazingSetAllocator(
 	for (size_t i = 0; i < devices.size(); ++i)
 		rmmValues.devices.push_back(devices[i]);
 
-	BlazingRMMInitialize(&rmmValues);
+	float device_mem_resouce_consumption_thresh = 0.95;
+	auto it = config_options.find("BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD");
+	if (it != config_options.end()){
+		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
+	}
+
+	BlazingRMMInitialize(&rmmValues, device_mem_resouce_consumption_thresh);
 }

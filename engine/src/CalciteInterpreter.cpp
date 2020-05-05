@@ -389,6 +389,22 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"info"_a="\"Query Start\n{}\""_format(tree.to_string()),
 									"duration"_a="");
 		
+		std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
+		// Lets build a string with all the configuration parameters set.
+		std::string config_info = "";
+		std::map<std::string, std::string>::iterator it = config_options.begin(); 
+		while (it != config_options.end())
+		{
+			config_info += it->first + ": " + it->second + "; ";
+			it++;
+		}
+		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="\"Config Options: {}\""_format(config_info),
+									"duration"_a="");
+		
 		if (query_graph->num_nodes() > 0) {
 			*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
 			// query_graph.show();
