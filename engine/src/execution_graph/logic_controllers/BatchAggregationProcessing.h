@@ -249,65 +249,67 @@ public:
         std::vector<std::unique_ptr<ral::frame::BlazingTable>> tablesToConcat;
 		std::vector<ral::frame::BlazingTableView> tableViewsToConcat;
 
-        if (ready_to_execute()){
-            BatchSequence input(this->input_cache(), this);
-            int batch_count=0;
-            try {
-                while (input.wait_for_next()) {
-                    auto batch = input.next();
-                    // std::cout<<"MergeAggregateKernel batch "<<batch_count<<std::endl;
-                    // ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "MergeAggregateKernel_batch" + std::to_string(batch_count));
-                    batch_count++;
-                    tableViewsToConcat.emplace_back(batch->toBlazingTableView());
-                    tablesToConcat.emplace_back(std::move(batch));
-                }
-                auto concatenated = ral::utilities::experimental::concatTables(tableViewsToConcat);
-                        
-                std::vector<int> group_column_indices;
-                std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
-                std::vector<AggregateKind> aggregation_types;
-                std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
-                    aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
+        // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
+        this->input_cache()->wait_until_finished();
 
-                std::vector<int> mod_group_column_indices;
-                std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
-                std::vector<AggregateKind> mod_aggregation_types;
-                std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types, 
-                    mod_aggregation_column_assigned_aliases) = ral::operators::experimental::modGroupByParametersForMerge(
-                    group_column_indices, aggregation_types, concatenated->names());
-
-                std::unique_ptr<ral::frame::BlazingTable> output;
-                if(aggregation_types.size() == 0) {
-                    output = ral::operators::experimental::compute_groupby_without_aggregations(
-                            concatenated->toBlazingTableView(), mod_group_column_indices);
-                } else if (group_column_indices.size() == 0) {
-                    // aggregations without groupby are only merged on the master node
-                    if(context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
-                        output = ral::operators::experimental::compute_aggregations_without_groupby(
-                                concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types, 
-                                mod_aggregation_column_assigned_aliases);
-                    } else {
-                        // with aggregations without groupby the distribution phase should deposit an empty dataframe with the right schema into the cache, which is then output here
-                        output = std::move(concatenated);
-                    }
-                } else {
-                    output = ral::operators::experimental::compute_aggregations_with_groupby(
-                            concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
-                            mod_aggregation_column_assigned_aliases, mod_group_column_indices);
-                }
-                // ral::utilities::print_blazing_table_view_schema(output->toBlazingTableView(), "MergeAggregateKernel_output");
-                this->add_to_output_cache(std::move(output));
-             } catch(const std::exception& e) {
-                // TODO add retry here
-                logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                            "query_id"_a=context->getContextToken(),
-                            "step"_a=context->getQueryStep(),
-                            "substep"_a=context->getQuerySubstep(),
-                            "info"_a="In MergeAggregate kernel for {}. What: {}"_format(expression, e.what()),
-                            "duration"_a="");
-                logger->flush();
+        BatchSequence input(this->input_cache(), this);
+        int batch_count=0;
+        try {
+            while (input.wait_for_next()) {
+                auto batch = input.next();
+                // std::cout<<"MergeAggregateKernel batch "<<batch_count<<std::endl;
+                // ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "MergeAggregateKernel_batch" + std::to_string(batch_count));
+                batch_count++;
+                tableViewsToConcat.emplace_back(batch->toBlazingTableView());
+                tablesToConcat.emplace_back(std::move(batch));
             }
+            auto concatenated = ral::utilities::experimental::concatTables(tableViewsToConcat);
+                    
+            std::vector<int> group_column_indices;
+            std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
+            std::vector<AggregateKind> aggregation_types;
+            std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
+                aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
+
+            std::vector<int> mod_group_column_indices;
+            std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
+            std::vector<AggregateKind> mod_aggregation_types;
+            std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types, 
+                mod_aggregation_column_assigned_aliases) = ral::operators::experimental::modGroupByParametersForMerge(
+                group_column_indices, aggregation_types, concatenated->names());
+
+            std::unique_ptr<ral::frame::BlazingTable> output;
+            if(aggregation_types.size() == 0) {
+                output = ral::operators::experimental::compute_groupby_without_aggregations(
+                        concatenated->toBlazingTableView(), mod_group_column_indices);
+            } else if (group_column_indices.size() == 0) {
+                // aggregations without groupby are only merged on the master node
+                if(context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
+                    output = ral::operators::experimental::compute_aggregations_without_groupby(
+                            concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types, 
+                            mod_aggregation_column_assigned_aliases);
+                } else {
+                    // with aggregations without groupby the distribution phase should deposit an empty dataframe with the right schema into the cache, which is then output here
+                    output = std::move(concatenated);
+                }
+            } else {
+                output = ral::operators::experimental::compute_aggregations_with_groupby(
+                        concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
+                        mod_aggregation_column_assigned_aliases, mod_group_column_indices);
+            }
+            // ral::utilities::print_blazing_table_view_schema(output->toBlazingTableView(), "MergeAggregateKernel_output");
+            this->add_to_output_cache(std::move(output));
+            } catch(const std::exception& e) {
+            // TODO add retry here
+            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                        "query_id"_a=context->getContextToken(),
+                        "step"_a=context->getQueryStep(),
+                        "substep"_a=context->getQuerySubstep(),
+                        "info"_a="In MergeAggregate kernel for {}. What: {}"_format(expression, e.what()),
+                        "duration"_a="");
+            logger->flush();
         }
+        
 		
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),

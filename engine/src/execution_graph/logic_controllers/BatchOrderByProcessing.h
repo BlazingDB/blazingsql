@@ -167,11 +167,11 @@ public:
 		uint64_t population_to_sample = 0;
 		uint64_t population_sampled = 0;
 		BlazingThread partition_plan_thread;
-		float ORDER_BY_SAMPLES_RATIO = 0.1;
+		float order_by_samples_ratio = 0.1;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("ORDER_BY_SAMPLES_RATIO");
 		if (it != config_options.end()){
-			ORDER_BY_SAMPLES_RATIO = std::stof(config_options["ORDER_BY_SAMPLES_RATIO"]);
+			order_by_samples_ratio = std::stof(config_options["ORDER_BY_SAMPLES_RATIO"]);
 		}
 		
 		BatchSequence input(this->input_cache(), this);
@@ -194,7 +194,7 @@ public:
 				if(try_num_rows_estimation) {
 					uint64_t num_rows_estimate;
 					std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
-					population_to_sample = static_cast<uint64_t>(num_rows_estimate * ORDER_BY_SAMPLES_RATIO);
+					population_to_sample = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
 					try_num_rows_estimation = false;
 				}
 				population_sampled += batch->num_rows();
@@ -328,6 +328,10 @@ public:
 				std::vector<ral::frame::BlazingTableView> tableViews;
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
 				auto cache_id = "input_" + std::to_string(idx);
+
+				// This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
+				this->input_.get_cache(cache_id)->wait_until_finished();
+				
 				while (this->input_.get_cache(cache_id)->wait_for_next()) {
 					auto table = this->input_.get_cache(cache_id)->pullFromCache(context.get());
 					if (table) {
