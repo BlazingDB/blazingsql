@@ -150,10 +150,30 @@ public:
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
+
+	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, size_t localTotalNumRows, size_t localTotalBytes) {
+		size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+		auto concatSamples = ral::utilities::experimental::concatTables(sampledTableViews);
+		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
+			localTotalNumRows, avg_bytes_per_row, this->expression, this->context.get());
+		this->add_to_output_cache(std::move(partitionPlan), "output_b");
+	}
 	
 	virtual kstatus run() {
 		CodeTimer timer;
 
+		bool try_num_rows_estimation = true;
+		bool estimate_samples = false;
+		uint64_t population_to_sample = 0;
+		uint64_t population_sampled = 0;
+		BlazingThread partition_plan_thread;
+		float order_by_samples_ratio = 0.1;
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		auto it = config_options.find("ORDER_BY_SAMPLES_RATIO");
+		if (it != config_options.end()){
+			order_by_samples_ratio = std::stof(config_options["ORDER_BY_SAMPLES_RATIO"]);
+		}
+		
 		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
@@ -169,6 +189,21 @@ public:
 				sampledTables.push_back(std::move(sampledTable));
 				localTotalNumRows += batch->view().num_rows();
 				localTotalBytes += batch->sizeInBytes();
+
+				// Try samples estimation
+				if(try_num_rows_estimation) {
+					uint64_t num_rows_estimate;
+					std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
+					population_to_sample = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
+					try_num_rows_estimation = false;
+				}
+				population_sampled += batch->num_rows();
+				if (estimate_samples && population_sampled > population_to_sample)	{
+					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, localTotalNumRows, localTotalBytes);
+					estimate_samples = false;
+				}
+				// End estimation
+
 				this->add_to_output_cache(std::move(sortedTable), "output_a");
 				batch_count++;
 			} catch(const std::exception& e) {
@@ -183,11 +218,12 @@ public:
 				logger->flush();
 			}
 		}
-		std::size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-		auto concatSamples = ral::utilities::experimental::concatTables(sampledTableViews);
-		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
-			localTotalNumRows, avg_bytes_per_row, this->expression, this->context.get());
-		this->add_to_output_cache(std::move(partitionPlan), "output_b");
+
+		if (partition_plan_thread.joinable()){
+			partition_plan_thread.join();
+		} else {
+			compute_partition_plan(sampledTableViews, localTotalNumRows, localTotalBytes);
+		}		
 		
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -292,6 +328,10 @@ public:
 				std::vector<ral::frame::BlazingTableView> tableViews;
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
 				auto cache_id = "input_" + std::to_string(idx);
+
+				// This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
+				this->input_.get_cache(cache_id)->wait_until_finished();
+				
 				while (this->input_.get_cache(cache_id)->wait_for_next()) {
 					auto table = this->input_.get_cache(cache_id)->pullFromCache(context.get());
 					if (table) {

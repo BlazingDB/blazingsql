@@ -293,25 +293,25 @@ struct tree_processor {
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
 					
-					int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; 
+					int max_num_order_by_partitions_per_node = 8; 
 					std::map<std::string, std::string> config_options = context->getConfigOptions();
 					auto it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
 					if (it != config_options.end()){
-						MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
+						max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
 					}
-					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE};
+					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = max_num_order_by_partitions_per_node};
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
-					size_t MAX_CONCAT_CACHE_BYTE_SIZE = 400000000; // 400 MB
+					size_t max_concat_cache_byte_size = 400000000; // 400 MB
 					std::map<std::string, std::string> config_options = context->getConfigOptions();
 					auto it = config_options.find("MAX_CONCAT_CACHE_BYTE_SIZE");
 					if (it != config_options.end()){
-						MAX_CONCAT_CACHE_BYTE_SIZE = std::stoull(config_options["MAX_CONCAT_CACHE_BYTE_SIZE"]);
+						max_concat_cache_byte_size = std::stoull(config_options["MAX_CONCAT_CACHE_BYTE_SIZE"]);
 					}
 					cache_settings cache_machine_config;
 					cache_machine_config.type = CacheType::CONCATENATING;
-					cache_machine_config.max_concat_byte_size = MAX_CONCAT_CACHE_BYTE_SIZE;
+					cache_machine_config.max_concat_byte_size = max_concat_cache_byte_size;
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				}	else {
 					query_graph +=  *child->kernel_unit >> (*parent->kernel_unit);
