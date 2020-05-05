@@ -211,10 +211,9 @@ public:
 		return !this->empty();
 	}
 
-	bool ready_to_execute() {
+	void wait_until_finished() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
-		return not this->finished;
+		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });		
 	}
 
 	message_ptr get_or_wait(std::string message_id) {
@@ -295,7 +294,7 @@ public:
 
 	uint64_t get_num_rows_added();
 
-	bool ready_to_execute();
+	void wait_until_finished();
 
 	bool wait_for_next() {
 		return this->waitingCache->wait_for_next();
@@ -361,8 +360,8 @@ public:
 		this->waitingCache->finish();
 	}
 
-	bool ready_to_execute() {
-		return waitingCache->ready_to_execute();
+	void wait_until_finished() {
+		waitingCache->wait_until_finished();
 	}
 
 	bool wait_for_next() {

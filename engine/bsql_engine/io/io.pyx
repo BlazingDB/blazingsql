@@ -104,14 +104,14 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except *:
-    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode)
+cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
+    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cdef void finalizePython() except *:
     cio.finalize()
 
-cdef void blazingSetAllocatorPython(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging) except *:
-    cio.blazingSetAllocator(allocation_mode, initial_pool_size, devices, enable_logging)
+cdef void blazingSetAllocatorPython(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options) except *:
+    cio.blazingSetAllocator(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
 
 cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     cdef HDFS hdfs
@@ -148,14 +148,14 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
 
-cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode):
-    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode)
+cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
+    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cpdef finalizeCaller():
     finalizePython()
 
-cpdef blazingSetAllocatorCaller(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging):
-    blazingSetAllocatorPython(allocation_mode, initial_pool_size, devices, enable_logging)
+cpdef blazingSetAllocatorCaller(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options):
+    blazingSetAllocatorPython(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
 
 cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_missing_paths):
     cdef vector[string] files
