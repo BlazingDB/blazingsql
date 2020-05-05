@@ -30,6 +30,7 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseInitializeError()
     cdef void raiseFinalizeError()
     cdef void raiseBlazingSetAllocatorError()
+    cdef void raiseGetProductDetailsError()
     cdef void raiseRunQueryError()
     cdef void raiseParseSchemaError()
     cdef void raiseRegisterFileSystemHDFSError();
@@ -157,3 +158,6 @@ cdef extern from "../include/engine/initialize.h":
     cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
     cdef void blazingSetAllocator(int allocation_mode, size_t initial_pool_size, vector[int] devices , bool enable_logging) except +raiseBlazingSetAllocatorError
+
+cdef extern from "../include/engine/static.h":
+    cdef map[string,string] getProductDetails() except +raiseGetProductDetailsError
