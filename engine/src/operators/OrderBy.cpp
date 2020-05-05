@@ -379,28 +379,28 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(co
 		total_rows_tables.push_back(table_num_rows);
 		std::size_t totalNumRows = std::accumulate(total_rows_tables.begin(), total_rows_tables.end(), std::size_t(0));
 
-		std::size_t NUM_BYTES_PER_ORDER_BY_PARTITION = 400000000; 
-		int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; 
+		std::size_t num_bytes_per_order_by_partition = 400000000; 
+		int max_num_order_by_partitions_per_node = 8; 
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("NUM_BYTES_PER_ORDER_BY_PARTITION");
 		if (it != config_options.end()){
-			NUM_BYTES_PER_ORDER_BY_PARTITION = std::stoull(config_options["NUM_BYTES_PER_ORDER_BY_PARTITION"]);
+			num_bytes_per_order_by_partition = std::stoull(config_options["NUM_BYTES_PER_ORDER_BY_PARTITION"]);
 		}
 		it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
 		if (it != config_options.end()){
-			MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
+			max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
 		}
 
 		int num_nodes = context->getTotalNodes();
-		cudf::size_type total_num_partitions = (double)totalNumRows*(double)avg_bytes_per_row/(double)NUM_BYTES_PER_ORDER_BY_PARTITION;
+		cudf::size_type total_num_partitions = (double)totalNumRows*(double)avg_bytes_per_row/(double)num_bytes_per_order_by_partition;
 		total_num_partitions = total_num_partitions <= 0 ? 1 : total_num_partitions;
 		// want to make the total_num_partitions to be a multiple of the number of nodes to evenly distribute
 		total_num_partitions = ((total_num_partitions + num_nodes - 1) / num_nodes) * num_nodes;
-		total_num_partitions = total_num_partitions > MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE * num_nodes ? MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE * num_nodes : total_num_partitions;
+		total_num_partitions = total_num_partitions > max_num_order_by_partitions_per_node * num_nodes ? max_num_order_by_partitions_per_node * num_nodes : total_num_partitions;
 
 		std::string info = "local_table_num_rows: " + std::to_string(table_num_rows) + " avg_bytes_per_row: " + std::to_string(avg_bytes_per_row) +
 								" totalNumRows: " + std::to_string(totalNumRows) + " total_num_partitions: " + std::to_string(total_num_partitions) + 
-								" NUM_BYTES_PER_ORDER_BY_PARTITION: " + std::to_string(NUM_BYTES_PER_ORDER_BY_PARTITION) + " MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE: " + std::to_string(MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE);
+								" NUM_BYTES_PER_ORDER_BY_PARTITION: " + std::to_string(num_bytes_per_order_by_partition) + " MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE: " + std::to_string(max_num_order_by_partitions_per_node);
 		
 		auto logger = spdlog::get("batch_logger");
 		logger->debug("{query_id}|{step}|{substep}|{info}|||||",

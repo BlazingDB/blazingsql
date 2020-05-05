@@ -153,11 +153,11 @@ void blazingSetAllocator(
 	for (size_t i = 0; i < devices.size(); ++i)
 		rmmValues.devices.push_back(devices[i]);
 
-	float BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD = 0.95;
+	float device_mem_resouce_consumption_thresh = 0.95;
 	auto it = config_options.find("BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD");
 	if (it != config_options.end()){
-		BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD = std::stof(config_options["BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
+		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
 	}
 
-	BlazingRMMInitialize(&rmmValues, BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD);
+	BlazingRMMInitialize(&rmmValues, device_mem_resouce_consumption_thresh);
 }
