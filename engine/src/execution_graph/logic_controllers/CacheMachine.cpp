@@ -282,6 +282,26 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * 
 	return message_data->get_data().decache();
 }
 
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> CacheMachine::pullFromCacheOutput(Context * ctx) {
+	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
+	if (message_data == nullptr) {
+		return std::vector<std::unique_ptr<ral::frame::BlazingTable>>();
+	}
+
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Pull from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+								"duration"_a="",
+								"kernel_id"_a=message_data->get_message_id(),
+								"rows"_a=message_data->get_data().num_rows());
+
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_ref;
+	tables_ref.emplace_back(message_data->get_data().decache());
+	return tables_ref;
+}
+
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx) {
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
