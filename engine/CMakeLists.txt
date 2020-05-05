@@ -62,6 +62,7 @@ include(ConfigureGoogleCloudCPP)
 
 find_package(Threads)
 find_package(PythonLibs)
+find_package(spdlog REQUIRED)
 
 # BEGIN MAIN #
 
@@ -105,6 +106,15 @@ get_directory_property(communication_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/
 
 ## Target source files
 set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
               ${CMAKE_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
@@ -130,26 +140,17 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/CalciteInterpreter.cpp
               ${CMAKE_SOURCE_DIR}/src/CodeTimer.cpp
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TableScan.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingThread.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingExceptionHolder.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/TaskFlowProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/utils.cpp
-              ${CMAKE_SOURCE_DIR}/src/skip_data/expression_tree.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/initialize.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
               ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/column_utilities.cu
+              ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
               ${communication_source_files}
-)
+        )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
@@ -190,6 +191,8 @@ target_link_libraries(blazingsql-engine
     libboost_filesystem.a
     libboost_system.a
     libboost_regex.a
+
+    spdlog::spdlog
 
     # Library needed for blazing communication repository (debug)
     gcov

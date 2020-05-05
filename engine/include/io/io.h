@@ -22,7 +22,7 @@ struct ResultSet {
 };
 
 struct TableSchema {
-	ral::frame::BlazingTableView blazingTableView;
+	std::vector<ral::frame::BlazingTableView> blazingTableViews;
 	std::vector<cudf::type_id> types;
 	std::vector<std::string> files;
 	std::vector<std::string> datasource;

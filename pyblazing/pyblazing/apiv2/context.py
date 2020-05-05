@@ -40,6 +40,8 @@ import netifaces as ni
 
 import random
 
+from enum import IntEnum
+
 jpype.addClassPath(
     os.path.join(
         os.getenv("CONDA_PREFIX"),
@@ -85,28 +87,61 @@ def checkSocket(socketNum):
     return socket_free
 
 
-def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
-                      allocator="managed", pool=False,initial_pool_size=None,enable_logging=False):
+class blazing_allocation_mode(IntEnum):
+    CudaDefaultAllocation = (0,)
+    PoolAllocation = (1,)
+    CudaManagedMemory = (2,)
 
+
+def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
+                      allocator="managed", pool=False,
+                      initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
+    
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    if (allocator != 'existing'):
-        cudf.set_allocator(allocator=allocator,
-                            pool=pool,
-                            initial_pool_size=initial_pool_size,# Default is 1/2 total GPU memory
-                            enable_logging=enable_logging)
+    if (allocator != 'existing'): 
 
+        managed_memory = True if allocator == "managed" else False
+        allocation_mode = 0
+
+        if pool:
+            allocation_mode |= blazing_allocation_mode.PoolAllocation
+        if managed_memory:
+            allocation_mode |= blazing_allocation_mode.CudaManagedMemory
+
+        if not pool:
+            initial_pool_size = 0
+        elif pool and initial_pool_size is None:
+            initial_pool_size = 0
+        elif pool and initial_pool_size == 0:
+            initial_pool_size = 1
+            
+        if devices is None:
+            devices = [0]
+        elif isinstance(devices, int):
+            devices = [devices]
+
+        cio.blazingSetAllocatorCaller(
+            allocation_mode,
+            initial_pool_size,
+            devices,
+            enable_logging,
+            config_options
+        )
+    
     cio.initializeCaller(
         ralId,
         0,
         networkInterface.encode(),
         workerIp.encode(),
         ralCommunicationPort,
-        singleNode)
+        singleNode,
+        config_options)
     cwd = os.getcwd()
+    
     return ralCommunicationPort, workerIp, cwd
 
 
@@ -139,8 +174,8 @@ def collectPartitionsRunQuery(
         ctxToken,
         algebra,
         accessToken,
-        use_execution_graph
-        ):
+        use_execution_graph,
+        config_options):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     for table_name in tables:
@@ -149,11 +184,11 @@ def collectPartitionsRunQuery(
             if partitions is None:
                 print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
             if (len(partitions) == 0):
-                tables[table_name].input = tables[table_name].input.get_partition(
-                    0).head(0)
+                tables[table_name].input = [tables[table_name].input.get_partition(
+                    0).head(0)]
             elif (len(partitions) == 1):
-                tables[table_name].input = tables[table_name].input.get_partition(
-                    partitions[0]).compute()
+                tables[table_name].input = [tables[table_name].input.get_partition(
+                    partitions[0]).compute()]
             else:
                 print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
 This limitation is expected to exist until blazingsql version 0.14.
@@ -164,7 +199,10 @@ In the mean time, for better performance we recommend using the unify_partitions
                 for partition in partitions:
                     table_partitions.append(
                         tables[table_name].input.get_partition(partition).compute())
-                tables[table_name].input = cudf.concat(table_partitions)
+                if use_execution_graph:
+                    tables[table_name].input = table_partitions #no concat
+                else:
+                    tables[table_name].input = [cudf.concat(table_partitions)]
     return cio.runQueryCaller(
         masterIndex,
         nodes,
@@ -173,7 +211,8 @@ In the mean time, for better performance we recommend using the unify_partitions
         ctxToken,
         algebra,
         accessToken,
-        use_execution_graph)
+        use_execution_graph,
+        config_options)
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -680,9 +719,9 @@ class BlazingContext(object):
 
     Docs: https://docs.blazingdb.com/docs/blazingcontext
     """
-
-    def __init__(self, dask_client=None, network_interface=None, allocator="managed",
-                 pool=False, initial_pool_size=None, enable_logging=False):
+    
+    def __init__(self, dask_client=None, network_interface=None, allocator="managed", 
+                 pool=False, initial_pool_size=None, enable_logging=False, config_options={}):
         """
         Create a BlazingSQL API instance.
 
@@ -698,6 +737,33 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
                                        if None, and pool=True, defaults to 1/2 GPU memory.
         enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
+        config_options (optional) : this is a dictionary for setting certain parameters in the engine:
+                                    JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join 
+                                           before doing the join. Too small can lead to overpartitioning, too big can lead to OOM errors.
+                                           default: 400000000
+                                    MAX_JOIN_SCATTER_MEM_OVERHEAD : The bigger this value, the more likely one of the tables of join will be 
+                                           scattered to all the nodes, instead of doing a standard hash based partitioning shuffle. Value is in bytes.
+                                           default: 500000000
+                                    MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE : The maximum number of partitions that will be made for an order by. 
+                                           Increse this number if running into OOM issues when doing order bys with large amounts of data.                                           
+                                           default: 8
+                                    NUM_BYTES_PER_ORDER_BY_PARTITION : The max number size in bytes for each order by partition. Note that,
+                                           MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE will be enforced over this parameter.
+                                           default: 400000000
+                                    TABLE_SCAN_KERNEL_NUM_THREADS: The number of threads used in the TableScan and BindableTableScan kernels for
+                                           reading batches
+                                           default: 1
+                                    MAX_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
+                                           default: 400000000
+<<<<<<< HEAD
+                                    ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
+                                           calculate the number of samples
+                                           default: 0.1
+=======
+                                    BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource 
+                                            will consider to be full
+                                            default: 0.95
+>>>>>>> upstream/feature/bigger_than_gpu_0.14
 
         Examples
         --------
@@ -731,7 +797,10 @@ class BlazingContext(object):
         self.nodes = []
         self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
-
+        self.config_options = {} 
+        for option in config_options:
+            self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+        
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
@@ -751,6 +820,7 @@ class BlazingContext(object):
                         pool=pool,
                         initial_pool_size=initial_pool_size,
                         enable_logging=enable_logging,
+                        config_options=self.config_options,
                         workers=[worker]))
                 worker_list.append(worker)
                 i = i + 1
@@ -767,7 +837,8 @@ class BlazingContext(object):
         else:
             ralPort, ralIp, cwd = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
-                allocator=allocator, pool=pool, initial_pool_size=initial_pool_size, enable_logging=enable_logging)
+                allocator=allocator, pool=pool, initial_pool_size=initial_pool_size, 
+                enable_logging=enable_logging, config_options=self.config_options)
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
@@ -1285,7 +1356,7 @@ class BlazingContext(object):
         for i in range(0, numSlices):
             batchSize = int(remaining / (numSlices - i))
             file_indexes_for_slice = file_index_per_rowgroups[startIndex: startIndex + batchSize]
-            unique_file_indexes_for_slice = list(set(file_indexes_for_slice)) # lets get the unique indexes
+            unique_file_indexes_for_slice = list(dict.fromkeys(file_indexes_for_slice)) # lets get the unique indexes, but preserving order
             sliced_files = [files[i] for i in unique_file_indexes_for_slice]
             if uri_values is not None and len(uri_values) > 0:
                 sliced_uri_values = [uri_values[i] for i in unique_file_indexes_for_slice]
@@ -1450,7 +1521,7 @@ class BlazingContext(object):
             return input
 
 
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=False):
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True):
         """
         Query a BlazingSQL table.
 
@@ -1550,6 +1621,8 @@ class BlazingContext(object):
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:
+                    if not isinstance(new_tables[table].input, list):
+                        new_tables[table].input = [new_tables[table].input]
                     currentTableNodes.append(new_tables[table])
 
             for j, nodeList in enumerate(nodeTableList):
@@ -1572,7 +1645,8 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
-                        use_execution_graph)
+                        use_execution_graph,
+                        self.config_options)
         else:
             dask_futures = []
             i = 0
@@ -1589,6 +1663,7 @@ class BlazingContext(object):
                         algebra,
                         accessToken,
                         use_execution_graph,
+                        self.config_options,
                         workers=[worker]))
                 i = i + 1
             result = dask.dataframe.from_delayed(dask_futures)
@@ -1667,4 +1742,4 @@ class BlazingContext(object):
                 file_format='csv')
             self.logs_initialized = True
 
-        return self.sql(query)
+        return self.sql(query, use_execution_graph=False)

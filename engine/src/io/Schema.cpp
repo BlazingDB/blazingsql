@@ -6,7 +6,6 @@
  */
 
 #include "Schema.h"
-#include <algorithm>
 
 namespace ral {
 namespace io {
@@ -124,6 +123,9 @@ Schema Schema::fileSchema(size_t current_file_index) const {
 	// Just get the associated row_groups for current_file_index
 	if (this->row_groups_ids.size() > current_file_index){
 		schema.row_groups_ids.push_back(this->row_groups_ids.at(current_file_index));
+	}
+	if (this->files.size() > current_file_index){
+		schema.files.push_back(this->files.at(current_file_index));
 	}
 	return schema;
 }

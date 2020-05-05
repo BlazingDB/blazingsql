@@ -6,19 +6,11 @@
  */
 
 #include "CSVParser.h"
-#include "Utils.cuh"
-#include "cudf/legacy/io_types.hpp"
 #include <arrow/buffer.h>
-#include <arrow/io/interfaces.h>
 #include <arrow/io/memory.h>
-#include <iostream>
 #include <numeric>
 
-#include <cudf/table/table.hpp>
 #include <blazingdb/io/Library/Logging/Logger.h>
-#include <cudf/types.hpp>
-
-#include <algorithm>
 
 #define checkError(error, txt)                                                                                         \
 	if(error != GDF_SUCCESS) {                                                                                         \
@@ -36,7 +28,7 @@ csv_parser::~csv_parser() {}
 cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_args,
 	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
 	bool first_row_only = false) {
-	
+
 	int64_t num_bytes;
 	arrow_file_handle->GetSize(&num_bytes);
 
@@ -58,14 +50,14 @@ cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_a
 
 	return std::move(table_out);
 }
- 
+
 
 std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
 	std::vector<size_t> column_indices) {
 
-	if(file == nullptr) { 
+	if(file == nullptr) {
 		// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);  // do we need to create an empty table that has metadata?
 		return nullptr;
 	}
@@ -89,7 +81,7 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 		std::sort(idx.begin(), idx.end(), [&column_indices](size_t i1, size_t i2) {
 			return column_indices[i1] < column_indices[i2];
 		});
-		
+
 		std::vector< std::unique_ptr<cudf::column> > columns_out;
 		std::vector<std::string> column_names_out;
 
@@ -104,16 +96,27 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 		}
 
 		std::unique_ptr<CudfTable> cudf_tb = std::make_unique<CudfTable>(std::move(columns_out));
-		return std::make_unique<ral::frame::BlazingTable>(std::move(cudf_tb), column_names_out);		
+		return std::make_unique<ral::frame::BlazingTable>(std::move(cudf_tb), column_names_out);
 	}
 	return nullptr;
 }
+
+
+std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
+	std::shared_ptr<arrow::io::RandomAccessFile> file,
+	const Schema & schema,
+	std::vector<size_t> column_indices,
+	std::vector<cudf::size_type> row_groups) {
+
+	return parse(file, schema, column_indices);
+}
+
 
 void csv_parser::parse_schema(
 	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
 	cudf_io::table_with_metadata table_out = read_csv_arg_arrow(csv_args, file, true);
-	
+
 	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
 		size_t file_index = i;

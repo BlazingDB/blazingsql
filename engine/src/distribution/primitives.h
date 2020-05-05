@@ -24,8 +24,8 @@ namespace experimental {
 	std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context);
 
 	std::unique_ptr<BlazingTable> generatePartitionPlans(
-				Context * context, std::vector<BlazingTableView> & samples, 
-				const std::vector<std::size_t> & table_total_rows, const std::vector<int8_t> & sortOrderTypes);
+				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples, 
+				const std::vector<cudf::order> & sortOrderTypes);
 	
 	void distributePartitionPlan(Context * context, const BlazingTableView & pivots);
 
@@ -38,8 +38,11 @@ namespace experimental {
 											const BlazingTableView & table,
 											const BlazingTableView & pivots,
 											const std::vector<int> & searchColIndices,
-											std::vector<int8_t> sortOrderTypes);
+											std::vector<cudf::order> sortOrderTypes);
 
+	void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & partitions, const std::vector<int32_t> & part_ids = std::vector<int32_t>());
+
+	void notifyLastTablePartitions(Context * context, std::string message_id);
 
 	void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
@@ -50,9 +53,9 @@ namespace experimental {
 	void scatterData(Context * context, const BlazingTableView & table);
 
 	std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
-				const std::vector<int8_t> & sortOrderTypes, const std::vector<int> & sortColIndices);
+				const std::vector<cudf::order> & sortOrderTypes, const std::vector<int> & sortColIndices);
 	
-	std::unique_ptr<BlazingTable> getPivotPointsTable(Context * context, const BlazingTableView & sortedSamples);
+	std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_pivots, const BlazingTableView & sortedSamples);
 
 	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples);
 
@@ -62,17 +65,16 @@ namespace experimental {
 	void broadcastMessage(std::vector<Node> nodes, 
 			std::shared_ptr<communication::messages::experimental::Message> message);
 			
-	void distributeNumRows(Context * context, cudf::size_type num_rows);
+	void distributeNumRows(Context * context, int64_t num_rows);
 
-	std::vector<cudf::size_type> collectNumRows(Context * context);	
+	std::vector<int64_t> collectNumRows(Context * context);	
 	
 	void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows);
 
 	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
 				std::vector<cudf::size_type> & node_num_rows_right);
 
-	void distributeLeftRightTableSizeBytes(Context * context, const ral::frame::BlazingTableView & left,
-    		const ral::frame::BlazingTableView & right);
+	void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, int64_t bytes_right);
 
 	void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,
 			std::vector<int64_t> & node_num_bytes_right);

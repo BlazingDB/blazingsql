@@ -16,21 +16,16 @@
 
 #include "column_utilities.hpp"
 
-#include <cudf/column/column_view.hpp>
 #include <cudf/dictionary/dictionary_column_view.hpp>
 #include <cudf/table/row_operators.cuh>
-#include <cudf/table/table_device_view.cuh>
-#include <cudf/utilities/bit.hpp>
 #include <cudf/strings/convert/convert_datetime.hpp>
 #include <cudf/detail/copy.hpp>
 
 #include <src/from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
 #include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 
-#include <thrust/equal.h>
 #include <thrust/logical.h>
 
-#include <gmock/gmock.h>
 #include <numeric>
 
 namespace cudf {
@@ -336,12 +331,22 @@ struct column_view_printer {
     auto h_data = cudf::test::to_host<std::string>(col);
 
     out.resize(col.size());
-    std::transform(thrust::make_counting_iterator(size_type{0}),
-                   thrust::make_counting_iterator(col.size()),
-                   out.begin(),
-                   [&h_data](auto idx) {
-                     return bit_is_set(h_data.second.data(), idx) ? h_data.first[idx] : std::string("NULL");
-                   });
+
+    if (col.nullable()) {
+
+      std::transform(thrust::make_counting_iterator(size_type{0}),
+                    thrust::make_counting_iterator(col.size()),
+                    out.begin(),
+                    [&h_data](auto idx) {
+                      return bit_is_set(h_data.second.data(), idx) ? h_data.first[idx] : std::string("NULL");
+                    });
+
+    } else {
+
+      std::transform(h_data.first.begin(), h_data.first.end(), out.begin(),
+        [] (const std::string & el) { return el; });
+      
+    }
   }
 
   template <typename Element, typename std::enable_if_t<std::is_same<Element, cudf::dictionary32>::value>* = nullptr>

@@ -5,7 +5,7 @@
  *      Author: felipe
  */
 
-#include "BlazingThread.h"
+#include "blazingdb/concurrency/BlazingThread.h"
 
 BlazingThread::BlazingThread() {}
 

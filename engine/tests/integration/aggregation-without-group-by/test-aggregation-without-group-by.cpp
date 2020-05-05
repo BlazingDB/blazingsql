@@ -12,12 +12,12 @@
 #include <blazingdb/io/Util/StringUtil.h>
 #include <gtest/gtest.h>
 
-#include "../../query_test.h"
+#include "../../BlazingUnitTest.h"
 #include "gdf/library/api.h"
 
 using namespace gdf::library;
 
-struct EvaluateQueryTest : public query_test {
+struct EvaluateQueryTest : public BlazingUnitTest {
 	struct InputTestItem {
 		std::string query;
 		std::string logicalPlan;

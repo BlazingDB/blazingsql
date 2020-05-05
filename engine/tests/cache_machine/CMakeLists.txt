@@ -1,6 +1,8 @@
 set(cache_test_sources
-        # cache_test.cu
-        # graph_processor_test.cpp
-        # expr_to_graph_processor.cpp
+        generators/file_generator.cu
+        ../utilities/MemoryConsumer.cu
+        cache_test.cu
+        batching.cpp
+        # memory_consumer_test.cpp
 )
 configure_test(cache_test "${cache_test_sources}")

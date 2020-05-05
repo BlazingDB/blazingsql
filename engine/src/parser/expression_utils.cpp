@@ -55,6 +55,25 @@ bool is_inequality(const std::string& token){
 	return token == "<" || token == "<=" || token == ">" || token == ">=" || token == "<>";
 }
 
+std::vector<std::string> fix_column_aliases(const std::vector<std::string> & column_names, std::string expression){
+	std::string aliases_string = get_named_expression(expression, "aliases");
+	std::vector<std::string> aliases_string_split =
+		get_expressions_from_expression_list(aliases_string, true);
+
+	std::vector<std::string> col_names = column_names;
+
+	// Setting the aliases only when is not an empty set
+	for(size_t col_idx = 0; col_idx < aliases_string_split.size(); col_idx++) {
+		// TODO: Rommel, this check is needed when for example the scan has not projects but there are extra
+		// aliases
+		if(col_idx < column_names.size()) {
+			col_names[col_idx] = aliases_string_split[col_idx];
+		}
+	}
+
+	return col_names;
+}
+
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
 	if(query_part.find(expression_name + "=[") == query_part.npos) {
 		return "";  // expression not found
@@ -65,6 +84,19 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	}
 	int end_position = (query_part.find("]", start_position));
 	return query_part.substr(start_position, end_position - start_position);
+}
+
+std::vector<size_t> get_projections(const std::string & query_part) {
+	std::string project_string = get_named_expression(query_part, "projects");
+	std::vector<std::string> project_string_split =
+		get_expressions_from_expression_list(project_string, true);
+
+	std::vector<size_t> projections;
+	for(int i = 0; i < project_string_split.size(); i++) {
+		projections.push_back(std::stoull(project_string_split[i]));
+	}
+
+	return projections;
 }
 
 interops::operator_type map_to_operator_type(const std::string & operator_token) {
@@ -91,6 +123,8 @@ bool is_scan(std::string query_part) { return is_logical_scan(query_part) || is_
 
 bool is_filter(std::string query_part) { return (query_part.find(LOGICAL_FILTER_TEXT) != std::string::npos); }
 
+bool is_limit(std::string query_part) { return (query_part.find(LOGICAL_LIMIT_TEXT) != std::string::npos); }
+
 bool is_sort(std::string query_part) { return (query_part.find(LOGICAL_SORT_TEXT) != std::string::npos); }
 
 bool is_merge(std::string query_part) { return (query_part.find(LOGICAL_MERGE_TEXT) != std::string::npos); }
@@ -99,15 +133,23 @@ bool is_partition(std::string query_part) { return (query_part.find(LOGICAL_PART
 
 bool is_sort_and_sample(std::string query_part) { return (query_part.find(LOGICAL_SORT_AND_SAMPLE_TEXT) != std::string::npos); }
 
+bool is_single_node_partition(std::string query_part) { return (query_part.find(LOGICAL_SINGLE_NODE_PARTITION_TEXT) != std::string::npos); }
+
+bool is_single_node_sort_and_sample(std::string query_part) { return (query_part.find(LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT) != std::string::npos); };
+
 bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
+
+bool is_pairwise_join(const std::string & query) { return (query.find(LOGICAL_PARTWISE_JOIN_TEXT) != std::string::npos); }
+
+bool is_join_partition(const std::string & query) { return (query.find(LOGICAL_JOIN_PARTITION_TEXT) != std::string::npos); }
 
 bool is_aggregate(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_aggregate_merge(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_MERGE_TEXT) != std::string::npos); }
+bool is_compute_aggregate(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_aggregate_partition(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_PARTITION_TEXT) != std::string::npos); }
+bool is_distribute_aggregate(std::string query_part) { return (query_part.find(LOGICAL_DISTRIBUTE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_aggregate_and_sample(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_AND_SAMPLE_TEXT) != std::string::npos); }
+bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
 bool is_double_input(std::string query_part) {
 	if(is_join(query_part)) {

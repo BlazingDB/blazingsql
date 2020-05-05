@@ -14,7 +14,6 @@
 #include <memory>
 #include <numeric>
 #include <nvstrings/NVCategory.h>
-#include <thread>
 
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <cudf/column/column_factories.hpp>
@@ -26,7 +25,7 @@
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 
 using ral::communication::messages::experimental::SampleToNodeMasterMessage;
-using ral::communication::messages::experimental::GPUComponentReceivedMessage;
+using ral::communication::messages::experimental::ReceivedDeviceMessage;
 
 using ral::communication::network::experimental::Client;
 using ral::communication::network::experimental::Node;
@@ -57,11 +56,11 @@ static void ExecMaster() {
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
 	Server::getInstance().registerContext(context_token);
-	std::thread([]() {
+	BlazingThread([]() {
 		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
 		auto message = Server::getInstance().getMessage(context_token, message_token);
 		//TODO
-		auto concreteMessage = std::static_pointer_cast<GPUComponentReceivedMessage>(message);
+		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		std::cout << "message received\n";
 		auto  table_view = concreteMessage->releaseBlazingTable();
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table_view->view().column(0));

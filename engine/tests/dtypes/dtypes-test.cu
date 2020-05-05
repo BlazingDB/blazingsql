@@ -6,10 +6,10 @@
 #include <GDFColumn.cuh>
 
 #include "../utils/gdf/library/table_group.h"
-#include "../query_test.h"
+#include "../BlazingUnitTest.h"
 
 template <class T>
-class DTypesTest : public query_test {
+class DTypesTest : public BlazingUnitTest {
 protected:
   void SetUp() {
 	  rmmInitialize(nullptr);

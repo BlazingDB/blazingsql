@@ -179,6 +179,8 @@ blazingdb_artifact(
         ${CMAKE_CURRENT_SOURCE_DIR}/include/
 
     SOURCES
+        src/blazingdb/concurrency/BlazingExceptionHolder.cpp
+        src/blazingdb/concurrency/BlazingThread.cpp
         src/blazingdb/transport/Message.cc
         src/blazingdb/transport/Client.cc
         src/blazingdb/transport/Server.cc
@@ -193,7 +195,8 @@ blazingdb_artifact(
         # tests/utils/StringInfo.cpp
         tests/utils/Traits/RuntimeTraits.cpp
         
-        tests/gpu-tcp-server-client-test.cc
+        # tests/gpu-tcp-server-client-test.cc
+        tests/integration-server-client-test.cc
         tests/node-test.cc
 )
 

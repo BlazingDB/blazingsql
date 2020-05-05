@@ -18,6 +18,8 @@ class Client {
 public:
 	static Status send(const Node & node, GPUMessage & message);
 
+	static bool notifyLastMessageEvent(const Node & node, const Message::MetaData &message_metadata);
+
 	static Status sendNodeData(std::string ip, int16_t port, Message & message);
 
 	static void closeConnections();

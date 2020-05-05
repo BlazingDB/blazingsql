@@ -89,7 +89,7 @@ void setPinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers) {
 PinnedBufferProvider &getPinnedBufferProvider() { return *global_instance; }
 
 void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
-                            std::vector<int> bufferSizes,
+                            std::vector<std::size_t> bufferSizes,
                             std::vector<const char *> buffers, void *fileDescriptor,
                             int gpuNum) {
   if (bufferSizes.size() == 0) {
@@ -231,7 +231,7 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
   getPinnedBufferProvider().freeAll();
 }
 
-void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
+void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,
                                           void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &tempReadAllocations) 
 {
   std::vector<std::thread> allocationThreads(bufferSizes.size());
@@ -277,6 +277,53 @@ void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
     }
   }
   // return tempReadAllocations;
+}
+
+void readBuffersIntoCPUTCP(std::vector<std::size_t> bufferSizes,
+                                          void *fileDescriptor, int gpuNum, std::vector<Buffer> & tempReadAllocations)
+{
+  std::vector<std::thread> allocationThreads(bufferSizes.size());
+  std::vector<std::thread> readThreads(bufferSizes.size());
+  for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
+    cudaSetDevice(gpuNum);
+    tempReadAllocations.emplace_back(Buffer(bufferSizes[bufferIndex], '0'));
+  }
+  for (int bufferIndex = 0; bufferIndex < bufferSizes.size(); bufferIndex++) {
+    std::vector<std::thread> copyThreads;
+    std::size_t amountReadTotal = 0;
+    do {
+      PinnedBuffer *buffer = getPinnedBufferProvider().getBuffer();
+      std::size_t amountToRead =
+          (bufferSizes[bufferIndex] - amountReadTotal) > buffer->size
+              ? buffer->size
+              : bufferSizes[bufferIndex] - amountReadTotal;
+
+      std::size_t amountRead =
+          blazingdb::transport::io::readFromSocket(fileDescriptor, (char *)buffer->data, amountToRead);
+
+      assert(amountRead == amountToRead);
+      if (amountRead != amountToRead) {
+        getPinnedBufferProvider().freeBuffer(buffer);
+        throw std::exception();
+      }
+      copyThreads.push_back(std::thread(
+          [&tempReadAllocations, &bufferSizes, &allocationThreads, bufferIndex,
+           buffer, amountRead, amountReadTotal, gpuNum]() {
+            cudaSetDevice(gpuNum);
+            cudaMemcpyAsync((void *)tempReadAllocations[bufferIndex].data() + amountReadTotal,
+                            buffer->data, amountRead, cudaMemcpyHostToHost, // use cudaMemcpyHostToHost for lazy loading into gpu memory
+                            nullptr);
+            getPinnedBufferProvider().freeBuffer(buffer);
+            cudaStreamSynchronize(nullptr);
+          }));
+      amountReadTotal += amountRead;
+
+    } while (amountReadTotal < bufferSizes[bufferIndex]);
+    for (std::size_t threadIndex = 0; threadIndex < copyThreads.size(); threadIndex++) {
+      copyThreads[threadIndex].join();
+    }
+  }
+
 }
 
 

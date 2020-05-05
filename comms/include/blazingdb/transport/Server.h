@@ -8,19 +8,32 @@
 #include "MessageQueue.h"
 #include "blazingdb/transport/Message.h"
 #include <rmm/device_buffer.hpp>
+#include "blazingdb/concurrency/BlazingThread.h"
 
 namespace blazingdb {
 namespace transport {
 namespace experimental {
+
+using Buffer = std::basic_string<char>;
+
+using gpu_raw_buffer_container = std::tuple<std::vector<std::size_t>, std::vector<const char *>,
+											std::vector<ColumnTransport>,
+											std::vector<std::unique_ptr<rmm::device_buffer>> >;
+
+using HostCallback = std::function<void (uint32_t, std::string, int)>;
 
 class Server {
 public:
   /**
    * Alias of the message class used in the implementation of the server.
    */
-  using MakeCallback = std::function<std::shared_ptr<GPUReceivedMessage>(
+  using MakeDeviceFrameCallback = std::function<std::shared_ptr<ReceivedMessage>(
       const Message::MetaData &, const Address::MetaData &,
       const std::vector<ColumnTransport> &, const std::vector<rmm::device_buffer> &)>;
+
+  using MakeHostFrameCallback = std::function<std::shared_ptr<ReceivedMessage>(
+      const Message::MetaData &, const Address::MetaData &,
+      const std::vector<ColumnTransport> &, std::vector<std::basic_string<char>> &&)>;
 
 public:
   virtual ~Server() = default;
@@ -32,7 +45,10 @@ public:
    * @param end_point     name of the endpoint.
    * @param deserializer  function used to deserialize the message.
    */
-  virtual void registerMessageForEndPoint(MakeCallback deserializer,
+  virtual void registerDeviceDeserializerForEndPoint(MakeDeviceFrameCallback deserializer,
+                                          const std::string &end_point);
+
+  virtual void registerHostDeserializerForEndPoint(MakeHostFrameCallback deserializer,
                                           const std::string &end_point);
 
 public:
@@ -75,11 +91,16 @@ public:
    */
   virtual void Run() = 0;
 
+  virtual void Run(HostCallback callback) {
+    assert(false);
+  }
+
   virtual void Close() = 0;
 
   virtual void SetDevice(int) = 0;
 
 public:
+
   /**
    * It retrieves the message that it is stored in the message queue.
    * In case that the message queue is empty and the function is called, the
@@ -91,7 +112,7 @@ public:
    * @param context_token  identifier for the message queue using ContextToken.
    * @return               a shared pointer of a base message class.
    */
-  virtual std::shared_ptr<GPUReceivedMessage> getMessage(
+  virtual std::shared_ptr<ReceivedMessage> getMessage(
       const uint32_t context_token, const std::string &messageToken);
 
   /**
@@ -106,10 +127,13 @@ public:
    * queue.
    */
   virtual void putMessage(const uint32_t context_token,
-                          std::shared_ptr<GPUReceivedMessage> &message);
+                          std::shared_ptr<ReceivedMessage> &message);
 
-  //
-  Server::MakeCallback getDeserializationFunction(const std::string &endpoint);
+
+  Server::MakeDeviceFrameCallback getDeviceDeserializationFunction(const std::string &endpoint);
+
+
+  Server::MakeHostFrameCallback getHostDeserializationFunction(const std::string & endpoint);
 
 protected:
   /**
@@ -127,12 +151,15 @@ protected:
   /**
    * It associates the endpoint to a HTTP Method.
    */
-  std::vector<std::string> end_points_;
+  std::set<std::string> end_points_;
 
   /**
    * It associate the endpoint with a unique deserialize message function.
    */
-  std::map<std::string, MakeCallback> deserializer_;
+  std::map<std::string, MakeDeviceFrameCallback> device_deserializer_;
+
+
+  std::map<std::string, MakeHostFrameCallback> host_deserializer_;
 
 public:
   /**
@@ -141,6 +168,8 @@ public:
    * @return  unique pointer of the TCP server.
    */
   static std::unique_ptr<Server> TCP(unsigned short port);
+
+  static std::unique_ptr<Server> BatchProcessing(unsigned short port);
 };
 }  // namespace experimental
 }  // namespace transport

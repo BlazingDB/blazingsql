@@ -1,6 +1,5 @@
 #include <cudf/copying.hpp>
 #include <thrust/random.h>
-#include <vector>
 
 #include "random_generator.cuh"
 

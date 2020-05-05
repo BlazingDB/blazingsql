@@ -2,7 +2,6 @@
 
 #include <blazingdb/transport/Message.h>
 #include <blazingdb/transport/Server.h>
-#include <thread>
 
 namespace ral {
 namespace communication {
@@ -13,11 +12,12 @@ using CommServer = blazingdb::transport::experimental::Server;
 using ContextToken = uint32_t;
 using MessageTokenType = std::string;
 using GPUMessage = blazingdb::transport::experimental::GPUMessage;
-using GPUReceivedMessage = blazingdb::transport::experimental::GPUReceivedMessage;
+using ReceivedMessage = blazingdb::transport::experimental::ReceivedMessage;
+using HostCallback = blazingdb::transport::experimental::HostCallback;
 
 class Server {
 public:
-	static void start(unsigned short port = 8000);
+	static void start(unsigned short port = 8000, bool use_batch_processing = false);
 
 	static void close();
 
@@ -34,7 +34,9 @@ public:
 	void deregisterContext(const ContextToken context_token);
 
 public:
-	std::shared_ptr<GPUReceivedMessage> getMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
+	std::shared_ptr<ReceivedMessage> getMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
+
+	std::shared_ptr<ReceivedMessage> getHostMessage(const ContextToken & token_value, const MessageTokenType & messageToken);
 
 private:
 	Server(Server &&) = delete;
@@ -49,12 +51,13 @@ private:
 	void setEndPoints();
 
 private:
-	std::thread thread;
 	std::shared_ptr<CommServer> comm_server;
 
 private:
 	static unsigned short port_;
+	static bool use_batch_processing_;
 };
+
 
 }  // namespace experimental
 }  // namespace network

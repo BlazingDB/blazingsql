@@ -45,11 +45,41 @@ public:
   void Close() override { client_socket.close(); }
 
   void SetDevice(int gpuId) override { this->gpuId = gpuId; }
+  
+  bool notifyLastMessageEvent(const Message::MetaData &message_metadata) override {
+    void* fd = client_socket.fd();
+    zmq::socket_t* socket_ptr = (zmq::socket_t*)fd;
+    blazingdb::transport::io::writeToSocket(fd, "LAST", 4);
+
+    write_metadata(fd, message_metadata);
+
+    blazingdb::transport::io::writeToSocket(fd, "OK", 2, false);
+
+    int data_past_topic{0};
+    auto data_past_topic_size{sizeof(data_past_topic)};
+    socket_ptr->getsockopt(ZMQ_RCVMORE, &data_past_topic,
+                           &data_past_topic_size);
+    // receive the ok
+    zmq::message_t local_message;
+    auto success = socket_ptr->recv(local_message);
+    if (success.value() == false || local_message.size() == 0) {
+      std::cerr << "Client:   throw zmq::error_t()" << std::endl;
+      throw zmq::error_t();
+    }
+
+    std::string end_message(static_cast<char*>(local_message.data()),
+                            local_message.size());
+    assert(end_message == "END");
+    return true;
+  }
 
   Status Send(GPUMessage& message) override {
     void* fd = client_socket.fd();
     auto &node = message.getSenderNode();
     auto message_metadata = message.metadata();
+
+    // Initialize the topic message to be sent.
+    blazingdb::transport::io::writeToSocket(fd, "GPUS", 4);
 
     // send message metadata
     write_metadata(fd, message_metadata);
@@ -57,7 +87,7 @@ public:
     write_metadata(fd, node.address().metadata_);
 
     // send message content (gpu buffers)
-    std::vector<int> buffer_sizes;
+    std::vector<std::size_t> buffer_sizes;
     std::vector<const char *> buffers;
     std::vector<ColumnTransport> column_offsets;
     std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
@@ -70,7 +100,7 @@ public:
 
     write_metadata(fd, (int32_t)buffer_sizes.size());
     blazingdb::transport::io::writeToSocket(fd, (char*)buffer_sizes.data(),
-                                            sizeof(int) * buffer_sizes.size());
+                                            sizeof(std::size_t) * buffer_sizes.size());
 
     blazingdb::transport::experimental::io::writeBuffersFromGPUTCP(column_offsets, buffer_sizes, buffers, fd, gpuId);
     blazingdb::transport::io::writeToSocket(fd, "OK", 2, false);

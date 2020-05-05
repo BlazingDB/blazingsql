@@ -29,6 +29,7 @@ from libc.stdint cimport (  # noqa: E211
 cdef extern from "../include/engine/errors.h":
     cdef void raiseInitializeError()
     cdef void raiseFinalizeError()
+    cdef void raiseBlazingSetAllocatorError()
     cdef void raiseRunQueryError()
     cdef void raiseParseSchemaError()
     cdef void raiseRegisterFileSystemHDFSError();
@@ -67,7 +68,7 @@ cdef extern from "../include/io/io.h":
 
 
     cdef struct TableSchema:
-        BlazingTableView blazingTableView
+        vector[BlazingTableView] blazingTableViews
         vector[type_id] types
         vector[string]  names
         vector[string]  files
@@ -143,7 +144,7 @@ cdef extern from "../include/engine/engine.h":
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
-        unique_ptr[ResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, bool use_execution_graph) except +raiseRunQueryError
+        unique_ptr[ResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, bool use_execution_graph, map[string,string] config_options) except +raiseRunQueryError
         unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunQueryError
 
         cdef struct TableScanInfo:
@@ -153,5 +154,6 @@ cdef extern from "../include/engine/engine.h":
         TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h":
-    cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except +raiseInitializeError
+    cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
+    cdef void blazingSetAllocator(int allocation_mode, size_t initial_pool_size, vector[int] devices , bool enable_logging, map[string,string] config_options) except +raiseBlazingSetAllocatorError

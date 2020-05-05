@@ -4,10 +4,6 @@
 #include <cudf/datetime.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
-#include <cudf/table/table_view.hpp>
-#include <cudf/types.hpp>
-#include <cudf/utilities/type_dispatcher.hpp>
-#include <vector>
 
 #include "from_cudf/cpp_tests/utilities/base_fixture.hpp"
 #include "from_cudf/cpp_tests/utilities/column_utilities.hpp"

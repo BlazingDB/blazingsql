@@ -56,6 +56,10 @@ class FinalizeError(BlazingError):
     """Finalize Error."""
 cdef public PyObject * FinalizeError_ = <PyObject *>FinalizeError
 
+class BlazingSetAllocatorError(BlazingError):
+    """BlazingSetAllocator Error."""
+cdef public PyObject * BlazingSetAllocatorError_ = <PyObject *>BlazingSetAllocatorError
+
 class RunQueryError(BlazingError):
     """RunQuery Error."""
 cdef public PyObject *RunQueryError_ = <PyObject *>RunQueryError
@@ -87,8 +91,8 @@ cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_
 cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values):
     return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, bool use_execution_graph) except *:
-    return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp, use_execution_graph))
+cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, bool use_execution_graph, map[string,string] config_options) except *:
+    return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp, use_execution_graph, config_options))
 
 cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) except *:
     return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
@@ -100,11 +104,14 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except *:
-    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode)
+cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
+    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cdef void finalizePython() except *:
     cio.finalize()
+
+cdef void blazingSetAllocatorPython(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options) except *:
+    cio.blazingSetAllocator(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
 
 cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     cdef HDFS hdfs
@@ -141,11 +148,14 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
 
-cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode):
-    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode)
+cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
+    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cpdef finalizeCaller():
     finalizePython()
+
+cpdef blazingSetAllocatorCaller(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options):
+    blazingSetAllocatorPython(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
 
 cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_missing_paths):
     cdef vector[string] files
@@ -245,7 +255,7 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
     
     return df
 
-cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, bool use_execution_graph):
+cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, bool use_execution_graph, map[string,string] config_options):
     cdef string query
     query = str.encode(queryPy)
     cdef vector[NodeMetaDataTCP] tcpMetadataCpp
@@ -261,6 +271,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef NodeMetaDataTCP currentMetadataCpp
     cdef vector[vector[string]] filesAll
     cdef vector[string] currentFilesAll
+    cdef vector[BlazingTableView] blazingTableViews
 
     cdef vector[vector[map[string,string]]] uri_values_cpp_all
     cdef vector[map[string,string]] uri_values_cpp
@@ -311,10 +322,13 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         types.push_back(col_type)
 
       if table.fileType in (4, 5):
+        blazingTableViews.resize(0)
+        for cython_table in table.input:
           column_views.resize(0)
-          for cython_col in table.input._data.values():
-              column_views.push_back(cython_col.view())
-          currentTableSchemaCpp.blazingTableView = BlazingTableView(table_view(column_views), names)
+          for cython_col in cython_table._data.values():
+            column_views.push_back(cython_col.view())
+          blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
+        currentTableSchemaCpp.blazingTableViews = blazingTableViews
 
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.types = types
@@ -344,7 +358,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, use_execution_graph))
+    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, use_execution_graph, config_options))
 
     names = dereference(resultSet).names
     decoded_names = []

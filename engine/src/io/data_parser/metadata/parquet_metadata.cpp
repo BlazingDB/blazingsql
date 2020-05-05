@@ -6,13 +6,8 @@
 #define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
 
 #include "parquet_metadata.h"
-#include "parquet/api/reader.h"
-#include "parquet/statistics.h"
-#include <iostream>
-#include <mutex>
 #include <rmm/rmm.h>
-#include <src/Traits/RuntimeTraits.h>
-#include <thread>
+#include "blazingdb/concurrency/BlazingThread.h"
 #include <cudf/column/column_factories.hpp>
 #include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
 
@@ -378,11 +373,11 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	std::vector<std::vector<std::vector<int64_t>>> minmax_metadata_table_per_file(parquet_readers.size());
 
 	size_t file_index = 0;
-	std::vector<std::thread> threads(parquet_readers.size());
+	std::vector<BlazingThread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
 		// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
-		threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, 
+		threads[file_index] = BlazingThread([&guard, metadata_offset,  &parquet_readers, file_index, 
 									&minmax_metadata_table_per_file, num_metadata_cols, columns_with_metadata](){
 		  
 		std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();

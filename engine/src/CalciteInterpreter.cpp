@@ -3,35 +3,25 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <blazingdb/io/Util/StringUtil.h>
 
-#include <algorithm>
 #include <regex>
-#include <set>
-#include <string>
-#include <thread>
 
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "Interpreter/interpreter_cpp.h"
-#include "Traits/RuntimeTraits.h"
-#include "Utils.cuh"
 #include "communication/network/Server.h"
-#include "config/GPUManager.cuh"
-#include "io/DataLoader.h"
-#include "operators/GroupBy.h"
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/StringUtils.h"
-#include <cudf/filling.hpp>
 #include "parser/expression_tree.hpp"
-#include "Interpreter/interpreter_cpp.h"
 #include "utilities/DebuggingUtils.h"
 
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
-#include <cudf/column/column_factories.hpp>
-#include "execution_graph/logic_controllers/LogicalProject.h"
-#include <execution_graph/logic_controllers/TaskFlowProcessor.h>
+#include "execution_graph/logic_controllers/BatchProcessing.h"
+#include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
 
+#include <spdlog/spdlog.h>
+
+using namespace fmt::literals;
 
 std::unique_ptr<ral::frame::BlazingTable> process_union(const ral::frame::BlazingTableView & left, const ral::frame::BlazingTableView & right, std::string query_part) {
 	bool isUnionAll = (get_named_expression(query_part, "all") == "true");
@@ -134,18 +124,12 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			size_t table_index = get_table_index(table_names, extract_table_name(query[0]));
 			if(is_bindable_scan(query[0])) {
 				blazing_timer.reset();  // doing a reset before to not include other calls to evaluate_split_query
-				std::string project_string = get_named_expression(query[0], "projects");
-				std::vector<std::string> project_string_split =
-					get_expressions_from_expression_list(project_string, true);
+
+				std::vector<size_t> projections = get_projections(query[0]);
 
 				std::string aliases_string = get_named_expression(query[0], "aliases");
 				std::vector<std::string> aliases_string_split =
 					get_expressions_from_expression_list(aliases_string, true);
-
-				std::vector<size_t> projections;
-				for(int i = 0; i < project_string_split.size(); i++) {
-					projections.push_back(std::stoull(project_string_split[i]));
-				}
 
 				// This is for the count(*) case, we don't want to load all the columns
 				if(projections.size() == 0 && aliases_string_split.size() == 1) {
@@ -362,7 +346,6 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_query(
 		try {
 			std::unique_ptr<ral::frame::BlazingTable> output_frame = evaluate_split_query(input_loaders, schemas,table_names, splitted, &queryContext);
 
-			double duration = blazing_timer.getDuration();
 			Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
 
 			return std::move(output_frame);
@@ -381,37 +364,74 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 	Context & queryContext)  {
 
 	CodeTimer blazing_timer;
-
-	Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "\"Query Start\n" + logicalPlan + "\""));
+	auto logger = spdlog::get("batch_logger");
 
 	try {
 		assert(input_loaders.size() == table_names.size());
 
 		std::unique_ptr<ral::frame::BlazingTable> output_frame; 
-		ral::cache::parser::expr_tree_processor tree{
+		ral::batch::tree_processor tree{
 			.root = {},
 			.context = queryContext.clone(),
 			.input_loaders = input_loaders,
 			.schemas = schemas,
 			.table_names = table_names,
-			.transform_operators_bigger_than_gpu = false
+			.transform_operators_bigger_than_gpu = true
 		};
-		ral::cache::OutputKernel output;
+		ral::batch::OutputKernel output;
 
-		auto graph = tree.build_graph(logicalPlan);
-		if (graph.num_nodes() > 0) {
-			graph += link(graph.get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
-			graph.execute();
+		auto query_graph = tree.build_batch_graph(logicalPlan);
+		
+		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="\"Query Start\n{}\""_format(tree.to_string()),
+									"duration"_a="");
+		
+		std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
+		// Lets build a string with all the configuration parameters set.
+		std::string config_info = "";
+		std::map<std::string, std::string>::iterator it = config_options.begin(); 
+		while (it != config_options.end())
+		{
+			config_info += it->first + ": " + it->second + "; ";
+			it++;
+		}
+		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="\"Config Options: {}\""_format(config_info),
+									"duration"_a="");
+		
+		if (query_graph->num_nodes() > 0) {
+			*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			// query_graph.show();
+			query_graph->execute();
 			output_frame = output.release();
 		}
-		// output_frame = tree.execute_plan(logicalPlan);
-		double duration = blazing_timer.getDuration();
-		Library::Logging::Logger().logInfo(blazing_timer.logDuration(queryContext, "Query Execution Done"));
+
+		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="Query Execution Done",
+									"duration"_a=blazing_timer.elapsed_time());
+
 		assert(output_frame != nullptr);
+
+		logger->flush();
+
 		return output_frame;
 	} catch(const std::exception& e) {
-		std::string err = "ERROR: in execute_plan " + std::string(e.what());
-		Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(queryContext.getContextToken()), std::to_string(queryContext.getQueryStep()), std::to_string(queryContext.getQuerySubstep()), err));
+		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="In execute_plan. What: {}"_format(e.what()),
+									"duration"_a="");
+		logger->flush();
 		throw;
 	}
 }

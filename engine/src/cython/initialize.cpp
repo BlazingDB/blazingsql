@@ -5,31 +5,20 @@
 
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <netinet/in.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-
 
 #include <algorithm>
 #include <cuda_runtime.h>
 #include <memory>
-#include <thread>
-
+#include <chrono>
 
 #include <blazingdb/transport/io/reader_writer.h>
 
-
-#include <blazingdb/io/Util/StringUtil.h>
-
 #include <blazingdb/io/Config/BlazingContext.h>
-#include <blazingdb/io/Library/Logging/FileOutput.h>
+#include <blazingdb/io/Library/Logging/CoutOutput.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 #include "utilities/StringUtils.h"
-
-#include "Traits/RuntimeTraits.h"
-
 
 #include "config/BlazingConfig.h"
 #include "config/GPUManager.cuh"
@@ -37,8 +26,12 @@
 #include "communication/CommunicationData.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
-#include <blazingdb/manager/Context.h>
+#include <bmr/initializer.h>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 std::string get_ip(const std::string & iface_name = "eth0") {
 	int fd;
@@ -68,7 +61,8 @@ void initialize(int ralId,
 	std::string network_iface_name,
 	std::string ralHost,
 	int ralCommunicationPort,
-	bool singleNode) {
+	bool singleNode,
+	std::map<std::string, std::string> config_options) {
   // ---------------------------------------------------------------------------
   // DISCLAIMER
   // TODO: Support proper locale support for non-US cases (percy)
@@ -97,7 +91,7 @@ void initialize(int ralId,
 	auto & communicationData = ral::communication::experimental::CommunicationData::getInstance();
 	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);
 
-	ral::communication::network::experimental::Server::start(ralCommunicationPort);
+	ral::communication::network::experimental::Server::start(ralCommunicationPort, true);
 
 	if(singleNode == true) {
 		ral::communication::network::experimental::Server::getInstance().close();
@@ -107,20 +101,63 @@ void initialize(int ralId,
 	// NOTE IMPORTANT PERCY aqui es que pyblazing se entera que este es el ip del RAL en el _send de pyblazing
 	config.setLogName(loggingName).setSocketPath(ralHost);
 
-	auto output = new Library::Logging::FileOutput(config.getLogName(), false);
-	Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
-	Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(ralId);
+	// auto output = new Library::Logging::CoutOutput();
+	// Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
+	// Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(ralId);
 	
-	Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",
-		initLogMsg));
+	// Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",	initLogMsg));
 
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
+
+	// spdlog batch logger
+	spdlog::shutdown();
+	
+	spdlog::init_thread_pool(8192, 1);
+	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
+	stdout_sink->set_level(spdlog::level::err);
+	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(loggingName);
+	file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
+	file_sink->set_level(spdlog::level::trace);
+	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
+	auto logger = std::make_shared<spdlog::async_logger>("batch_logger", sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+	logger->set_level(spdlog::level::trace);
+	spdlog::register_logger(logger);
+
+	spdlog::flush_every(std::chrono::seconds(1));
 }
 
 void finalize() {
 	ral::communication::network::experimental::Client::closeConnections();
 	ral::communication::network::experimental::Server::getInstance().close();
+	BlazingRMMFinalize();
+	spdlog::shutdown();
 	cudaDeviceReset();
 	exit(0);
+}
+
+
+void blazingSetAllocator(
+	int allocation_mode, 
+	std::size_t initial_pool_size, 
+	std::vector<int> devices,
+	bool enable_logging,
+	std::map<std::string, std::string> config_options) {
+
+	rmmOptions_t rmmValues;
+	rmmValues.allocation_mode = static_cast<rmmAllocationMode_t>(allocation_mode);
+	rmmValues.initial_pool_size = initial_pool_size;
+	rmmValues.enable_logging = enable_logging;
+
+	for (size_t i = 0; i < devices.size(); ++i)
+		rmmValues.devices.push_back(devices[i]);
+
+	float device_mem_resouce_consumption_thresh = 0.95;
+	auto it = config_options.find("BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD");
+	if (it != config_options.end()){
+		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
+	}
+
+	BlazingRMMInitialize(&rmmValues, device_mem_resouce_consumption_thresh);
 }

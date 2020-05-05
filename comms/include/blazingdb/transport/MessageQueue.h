@@ -4,6 +4,9 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <set>
+#include <map>
+
 #include "blazingdb/transport/Message.h"
 
 namespace blazingdb {
@@ -12,7 +15,7 @@ namespace experimental {
 
 class MessageQueue {
 public:
-  MessageQueue() = default;
+  MessageQueue();
 
   ~MessageQueue() = default;
 
@@ -25,18 +28,19 @@ public:
   MessageQueue& operator=(const MessageQueue&) = delete;
 
 public:
-  std::shared_ptr<GPUReceivedMessage> getMessage(const std::string& messageToken);
+  std::shared_ptr<ReceivedMessage> getMessage(const std::string& messageToken);
 
-  void putMessage(std::shared_ptr<GPUReceivedMessage>& message);
+  void putMessage(std::shared_ptr<ReceivedMessage>& message);
 
+  
 private:
-  std::shared_ptr<GPUReceivedMessage> getMessageQueue(const std::string& messageToken);
+  std::shared_ptr<ReceivedMessage> getMessageQueue(const std::string& messageToken);
 
-  void putMessageQueue(std::shared_ptr<GPUReceivedMessage>& message);
+  void putMessageQueue(std::shared_ptr<ReceivedMessage>& message);
 
 private:
   std::mutex mutex_;
-  std::vector<std::shared_ptr<GPUReceivedMessage>> message_queue_;
+  std::vector<std::shared_ptr<ReceivedMessage>> message_queue_;
   std::condition_variable condition_variable_;
 };
 }  // namespace experimental

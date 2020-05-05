@@ -1,7 +1,5 @@
 #include "../../include/engine/engine.h"
 #include "../CalciteInterpreter.h"
-#include "../io/DataLoader.h"
-#include "../io/Schema.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/GDFParser.h"
@@ -15,6 +13,7 @@
 #include "../execution_graph/logic_controllers/LogicalFilter.h"
 #include "communication/network/Server.h"
 #include <numeric>
+#include <map>
 
 std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_loaders_and_schemas(
 	const std::vector<TableSchema> & tableSchemas,
@@ -50,7 +49,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableView);
+			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableViews);
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {
@@ -65,6 +64,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		std::vector<Uri> uris;
 		for(int fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
 			uris.push_back(Uri{filesAll[i][fileIndex]});
+			schema.add_file(filesAll[i][fileIndex]);
 		}
 
 		if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
@@ -81,6 +81,38 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 	return std::make_pair(std::move(input_loaders), std::move(schemas));
 }
 
+// In case there are columns with the same name, we add a numerical suffix, example:
+//
+// q1: select n1.n_nationkey, n2.n_nationkey
+//         from nation n1 inner join nation n2 on n1.n_nationkey = n2.n_nationkey
+//
+// original column names:
+//     [n_nationkey, n_nationkey]
+// final column names:
+//     [n_nationkey, n_nationkey0]
+//
+// q2: select n_nationkey as n_nationkey0,
+//         n_regionkey as n_nationkey,
+//         n_regionkey + n_regionkey as n_nationkey
+//         from nation
+//
+// original column names:
+//     [n_nationkey0, n_nationkey, n_nationkey]
+// final column names:
+//     [n_nationkey0, n_nationkey, n_nationkey1]
+
+void fix_column_names_duplicated(std::vector<std::string> & col_names){
+	std::map<std::string,int> unique_names;
+
+	for(auto & col_name : col_names){
+		if(unique_names.find(col_name) == unique_names.end()){
+			unique_names[col_name]=-1;
+		} else {
+			col_name = col_name + std::to_string(++unique_names[col_name]);
+		}
+	}
+}
+
 std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
@@ -93,7 +125,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	bool use_execution_graph) {
+	bool use_execution_graph,
+	std::map<std::string, std::string> config_options ) {
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
@@ -111,7 +144,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 			contextNodes.push_back(Node(address));
 		}
 
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
+		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
@@ -125,6 +158,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = frame->names();
+		fix_column_names_duplicated(result->names);
 		result->cudfTable = frame->releaseCudfTable();
 		result->skipdata_analysis_fail = false;
 		return result;
@@ -155,7 +189,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 			contextNodes.push_back(Node(address));
 		}
 
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
+		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
 		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
 
 		const std::vector<std::string> & table_col_names = table.names();

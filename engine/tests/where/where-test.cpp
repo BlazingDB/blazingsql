@@ -2,7 +2,7 @@
 
 #include <gdf/library/table_group.h>
 
-#include "../query_test.h"
+#include "../BlazingUnitTest.h"
 #include <gtest/gtest.h>
 
 class Item {

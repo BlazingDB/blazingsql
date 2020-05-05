@@ -88,22 +88,29 @@ bool is_inequality(const std::string& token);
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name);
 
+std::vector<size_t> get_projections(const std::string & query_part);
+
 interops::operator_type map_to_operator_type(const std::string & operator_token);
 
 
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
+const std::string LOGICAL_PARTWISE_JOIN_TEXT = "PartwiseJoin";
+const std::string LOGICAL_JOIN_PARTITION_TEXT = "JoinPartition";
 const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
 const std::string LOGICAL_SCAN_TEXT = "LogicalTableScan";
 const std::string BINDABLE_SCAN_TEXT = "BindableTableScan";
-const std::string LOGICAL_AGGREGATE_TEXT = "LogicalAggregate";
-const std::string LOGICAL_AGGREGATE_MERGE_TEXT = "Logical_AggregateMerge";
-const std::string LOGICAL_AGGREGATE_PARTITION_TEXT = "Logical_AggregatePartition";
-const std::string LOGICAL_AGGREGATE_AND_SAMPLE_TEXT = "Logical_AggregateAndSample";
+const std::string LOGICAL_AGGREGATE_TEXT = "LogicalAggregate";  // this is the base Aggregate that gets replaced
+const std::string LOGICAL_COMPUTE_AGGREGATE_TEXT = "ComputeAggregate";
+const std::string LOGICAL_DISTRIBUTE_AGGREGATE_TEXT = "DistributeAggregate";
+const std::string LOGICAL_MERGE_AGGREGATE_TEXT = "MergeAggregate";
 const std::string LOGICAL_PROJECT_TEXT = "LogicalProject";
+const std::string LOGICAL_LIMIT_TEXT = "LogicalLimit";
 const std::string LOGICAL_SORT_TEXT = "LogicalSort";
 const std::string LOGICAL_MERGE_TEXT = "LogicalMerge";
 const std::string LOGICAL_PARTITION_TEXT = "LogicalPartition";
 const std::string LOGICAL_SORT_AND_SAMPLE_TEXT = "Logical_SortAndSample";
+const std::string LOGICAL_SINGLE_NODE_PARTITION_TEXT = "LogicalSingleNodePartition";
+const std::string LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT = "LogicalSingleNodeSortAndSample";
 const std::string LOGICAL_FILTER_TEXT = "LogicalFilter";
 const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
@@ -116,15 +123,23 @@ bool is_bindable_scan(std::string query_part);
 bool is_filtered_bindable_scan(std::string query_part); 
 bool is_scan(std::string query_part); 
 bool is_filter(std::string query_part);
+bool is_limit(std::string query_part);
 bool is_sort(std::string query_part);
 bool is_merge(std::string query_part);
 bool is_partition(std::string query_part);
 bool is_sort_and_sample(std::string query_part);
+bool is_single_node_partition(std::string query_part);
+bool is_single_node_sort_and_sample(std::string query_part);
 bool is_join(const std::string & query);
-bool is_aggregate(std::string query_part);
-bool is_aggregate_merge(std::string query_part);
-bool is_aggregate_partition(std::string query_part);
-bool is_aggregate_and_sample(std::string query_part);
+bool is_pairwise_join(const std::string & query);
+bool is_join_partition(const std::string & query);
+bool is_aggregate(std::string query_part); // this is the base Aggregate that gets replaced
+bool is_compute_aggregate(std::string query_part);
+bool is_distribute_aggregate(std::string query_part);
+bool is_merge_aggregate(std::string query_part);
+bool is_aggregate_merge(std::string query_part); // to be deprecated
+bool is_aggregate_partition(std::string query_part); // to be deprecated
+bool is_aggregate_and_sample(std::string query_part); // to be deprecated
 
 bool is_double_input(std::string query_part);
 
@@ -135,6 +150,11 @@ size_t get_table_index(std::vector<std::string> table_names, std::string table_n
 // Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
 std::string extract_table_name(std::string query_part);
 
-std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expression, bool trim);
+// takes a comma delimited list of expressions and splits it into separate expressions
+// if the flag trim is true, leading and trailing spaces are removed
+std::vector<std::string> get_expressions_from_expression_list(std::string & combined_expressions, bool trim = true);
 
 std::string replace_calcite_regex(const std::string & expression);
+
+//Returns the column names according to the corresponding algebra expression
+std::vector<std::string> fix_column_aliases(const std::vector<std::string> & column_names, std::string expression);
