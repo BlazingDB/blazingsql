@@ -274,15 +274,15 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-		int TABLE_SCAN_KERNEL_NUM_THREADS = 1;
+		int table_scan_kernel_num_threads = 1;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
 		if (it != config_options.end()){
-			TABLE_SCAN_KERNEL_NUM_THREADS = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
+			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
 		}
 
 		std::vector<BlazingThread> threads;
-		for (int i = 0; i < TABLE_SCAN_KERNEL_NUM_THREADS; i++) {
+		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
 			threads.push_back(BlazingThread([this]() {
 				this->output_cache()->wait_if_cache_is_saturated();
 				std::unique_ptr<ral::frame::BlazingTable> batch;
@@ -341,15 +341,15 @@ public:
 
 		input.set_projections(get_projections(expression));
 
-		int TABLE_SCAN_KERNEL_NUM_THREADS = 1;
+		int table_scan_kernel_num_threads = 1;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
 		if (it != config_options.end()){
-			TABLE_SCAN_KERNEL_NUM_THREADS = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
+			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
 		}
 
 		std::vector<BlazingThread> threads;
-		for (int i = 0; i < TABLE_SCAN_KERNEL_NUM_THREADS; i++) {
+		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
 			threads.push_back(BlazingThread([expression = this->expression, this]() {
 				this->output_cache()->wait_if_cache_is_saturated();
 				std::unique_ptr<ral::frame::BlazingTable> batch;

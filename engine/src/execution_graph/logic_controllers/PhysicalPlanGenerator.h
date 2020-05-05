@@ -277,28 +277,28 @@ struct tree_processor {
 			visit(query_graph, child.get(), child->children);
 			std::string port_name = "input";
 
-			std::uint32_t FLOW_CONTROL_BATCHES_THRESHOLD = std::numeric_limits<std::uint32_t>::max();
-			std::size_t FLOW_CONTROL_BYTES_THRESHOLD = std::numeric_limits<std::size_t>::max();
+			std::uint32_t flow_control_batches_threshold = std::numeric_limits<std::uint32_t>::max();
+			std::size_t flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
 			std::map<std::string, std::string> config_options = context->getConfigOptions();
 			auto it = config_options.find("FLOW_CONTROL_BATCHES_THRESHOLD");
 			if (it != config_options.end()){
-				FLOW_CONTROL_BATCHES_THRESHOLD = std::stoi(config_options["FLOW_CONTROL_BATCHES_THRESHOLD"]);
+				flow_control_batches_threshold = std::stoi(config_options["FLOW_CONTROL_BATCHES_THRESHOLD"]);
 			}
 			it = config_options.find("FLOW_CONTROL_BYTES_THRESHOLD");
 			if (it != config_options.end()){
-				FLOW_CONTROL_BYTES_THRESHOLD = std::stoull(config_options["FLOW_CONTROL_BYTES_THRESHOLD"]);
+				flow_control_bytes_threshold = std::stoull(config_options["FLOW_CONTROL_BYTES_THRESHOLD"]);
 			}
 			// if only one of these is set, we need to set the other one to 0
-			if (FLOW_CONTROL_BATCHES_THRESHOLD != std::numeric_limits<std::uint32_t>::max() || FLOW_CONTROL_BYTES_THRESHOLD != std::numeric_limits<std::size_t>::max()){
-				if (FLOW_CONTROL_BATCHES_THRESHOLD == std::numeric_limits<std::uint32_t>::max()){
-					FLOW_CONTROL_BATCHES_THRESHOLD = 0;
+			if (flow_control_batches_threshold != std::numeric_limits<std::uint32_t>::max() || flow_control_bytes_threshold != std::numeric_limits<std::size_t>::max()){
+				if (flow_control_batches_threshold == std::numeric_limits<std::uint32_t>::max()){
+					flow_control_batches_threshold = 0;
 				}
-				if (FLOW_CONTROL_BYTES_THRESHOLD == std::numeric_limits<std::size_t>::max()){
-					FLOW_CONTROL_BYTES_THRESHOLD = 0;
+				if (flow_control_bytes_threshold == std::numeric_limits<std::size_t>::max()){
+					flow_control_bytes_threshold = 0;
 				}
 			}
 			cache_settings default_throttled_cache_machine_config = cache_settings{.type = CacheType::SIMPLE, .num_partitions = 1,
-						.flow_control_batches_threshold = FLOW_CONTROL_BATCHES_THRESHOLD, .flow_control_bytes_threshold = FLOW_CONTROL_BYTES_THRESHOLD};
+						.flow_control_batches_threshold = flow_control_batches_threshold, .flow_control_bytes_threshold = flow_control_bytes_threshold};
 			
 			if (children.size() > 1) {
 				char index_char = 'a' + index;
@@ -327,34 +327,34 @@ struct tree_processor {
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
 					
-					int MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = 8; 
-					it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
+					int max_num_order_by_partitions_per_node = 8; 
+					auto it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
 					if (it != config_options.end()){
-						MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
+						max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
 					}
 					if (parent->kernel_unit->can_you_throttle_my_input()){
-						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE,
-								.flow_control_batches_threshold = FLOW_CONTROL_BATCHES_THRESHOLD, .flow_control_bytes_threshold = FLOW_CONTROL_BYTES_THRESHOLD};
+						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = max_num_order_by_partitions_per_node,
+								.flow_control_batches_threshold = flow_control_batches_threshold, .flow_control_bytes_threshold = flow_control_bytes_threshold};
 						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 					} else {
-						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE};
+						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = max_num_order_by_partitions_per_node};
 						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 					}
 
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
-					size_t MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE = 400000000; // 400 MB
+					size_t max_data_load_concat_cache_bytes_size = 400000000; // 400 MB
 					config_options = context->getConfigOptions();
-					it = config_options.find("MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE");
+					it = config_options.find("MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE");
 					if (it != config_options.end()){
-						MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE = std::stoull(config_options["MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE"]);
+						max_data_load_concat_cache_bytes_size = std::stoull(config_options["MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE"]);
 					}
-					// if FLOW_CONTROL_BATCHES_THRESHOLD is set then lets use it. Otherwise lets use 0 so that only MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE applies
-					std::uint32_t loading_FLOW_CONTROL_BATCHES_THRESHOLD = 0;
-					if (FLOW_CONTROL_BATCHES_THRESHOLD != std::numeric_limits<std::uint32_t>::max()){
-						loading_FLOW_CONTROL_BATCHES_THRESHOLD = FLOW_CONTROL_BATCHES_THRESHOLD;
+					// if flow_control_batches_threshold is set then lets use it. Otherwise lets use 0 so that only MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE applies
+					std::uint32_t loading_flow_control_batches_threshold = 0;
+					if (flow_control_batches_threshold != std::numeric_limits<std::uint32_t>::max()){
+						loading_flow_control_batches_threshold = flow_control_batches_threshold;
 					}
 					cache_settings cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1,
-						.flow_control_batches_threshold = loading_FLOW_CONTROL_BATCHES_THRESHOLD, .flow_control_bytes_threshold = MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE};
+						.flow_control_batches_threshold = loading_flow_control_batches_threshold, .flow_control_bytes_threshold = max_data_load_concat_cache_bytes_size};
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				}	else {
 					if (parent->kernel_unit->can_you_throttle_my_input()){
