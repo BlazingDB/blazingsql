@@ -211,10 +211,9 @@ public:
 		return !this->empty();
 	}
 
-	bool ready_to_execute() {
+	void wait_until_finished() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
-		return not this->finished;
+		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });		
 	}
 
 	message_ptr get_or_wait(std::string message_id) {
@@ -295,7 +294,7 @@ public:
 
 	uint64_t get_num_rows_added();
 
-	bool ready_to_execute();
+	void wait_until_finished();
 
 	bool wait_for_next() {
 		return this->waitingCache->wait_for_next();
@@ -317,6 +316,8 @@ protected:
 	std::vector<BlazingMemoryResource*> memory_resources;
 	std::atomic<std::size_t> num_bytes_added;
 	std::atomic<uint64_t> num_rows_added;
+	/// This variable is to keep track of if anything has been added to the cache. Its useful to keep from adding empty tables to the cache, where we might want an empty table at least to know the schema
+	bool something_added;
 
 	std::shared_ptr<spdlog::logger> logger;
 };
@@ -330,32 +331,37 @@ class HostCacheMachine {
 public:
 	HostCacheMachine() {
 		waitingCache = std::make_unique<WaitingQueue>();
-    logger = spdlog::get("batch_logger");
+    	logger = spdlog::get("batch_logger");
+		something_added = false;
 	}
 
 	~HostCacheMachine() {}
 
 	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "", Context * ctx = nullptr) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-									"info"_a="Add to HostCacheMachine",
-									"duration"_a="",
-									"kernel_id"_a=message_id,
-									"rows"_a=host_table->num_rows());
+		// we dont want to add empty tables to a cache, unless we have never added anything
+		if (!this->something_added || host_table->num_rows() > 0){
+			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+										"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+										"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+										"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+										"info"_a="Add to HostCacheMachine",
+										"duration"_a="",
+										"kernel_id"_a=message_id,
+										"rows"_a=host_table->num_rows());
 
-		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
-		auto item = std::make_unique<message>(std::move(cache_data), message_id);
-		this->waitingCache->put(std::move(item));
+			auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
+			auto item = std::make_unique<message>(std::move(cache_data), message_id);
+			this->waitingCache->put(std::move(item));
+			this->something_added = true;
+		}
 	}
 
 	virtual void finish() {
 		this->waitingCache->finish();
 	}
 
-	bool ready_to_execute() {
-		return waitingCache->ready_to_execute();
+	void wait_until_finished() {
+		waitingCache->wait_until_finished();
 	}
 
 	bool wait_for_next() {
@@ -390,6 +396,7 @@ protected:
 	std::unique_ptr<WaitingQueue> waitingCache;
 
   std::shared_ptr<spdlog::logger> logger;
+  bool something_added;
 };
 
 /**
