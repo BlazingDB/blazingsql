@@ -13,7 +13,7 @@ __compiler_version__ = getProductDetailsCaller()["CXX_COMPILER_ID"] + " " + getP
 __cuda_flags__ = getProductDetailsCaller()["CMAKE_CUDA_FLAGS"]
 
 
-def info():
+def __info__():
     print("BlazingSQL version (git hash): %s" % __version__)
     print("BlazingSQL branch name: %s" % __branch_name__)
     print("BlazingSQL branch tag: %s" % __branch_tag__)
