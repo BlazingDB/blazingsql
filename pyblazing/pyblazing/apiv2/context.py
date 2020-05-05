@@ -195,7 +195,7 @@ In the mean time, for better performance we recommend using the unify_partitions
     bc.create_table('my_table', dask_df)""")
                 table_partitions = []
                 for partition in partitions:
-                    table_partitions.append(collectParti
+                    table_partitions.append(
                         tables[table_name].input.get_partition(partition).compute())
                 if use_execution_graph:
                     tables[table_name].input = table_partitions #no concat
