@@ -55,10 +55,8 @@ TEST_F(Batching, SimpleQuery) {
 	std::shared_ptr<ral::io::parquet_parser> parser;
 	std::shared_ptr<ral::io::uri_data_provider> provider;
 	ral::io::Schema schema;
-	std::cout<<"CreateParquetNationTableProvider \n";
 	std::tie(parser, provider, schema) = blazingdb::test::CreateParquetNationTableProvider(queryContext.get(), n_batches);
-	std::cout<<"CreateParquetNationTableProvider end\n";
-
+	
 	ral::io::data_loader loader(parser, provider);
 
 	tree_processor tree{

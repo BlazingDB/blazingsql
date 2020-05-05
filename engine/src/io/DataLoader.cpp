@@ -236,16 +236,11 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 
 
 void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string, cudf::type_id>> non_file_columns) {
-	std::cout<<"get_schema start"<<std::endl;
 	bool got_schema = false;
 	while (!got_schema && this->provider->has_next()){
-		std::cout<<"get_schema has next"<<std::endl;
 		data_handle handle = this->provider->get_next();
-		std::cout<<"get_schema got next"<<std::endl;
 		if (handle.fileHandle != nullptr){
-			std::cout<<"get_schema about to parse schema "<<handle.uri.toString()<<std::endl;
 			this->parser->parse_schema(handle.fileHandle, schema);
-			std::cout<<"get_schema parsed schema"<<std::endl;
 			if (schema.get_num_columns() > 0){
 				got_schema = true;
 				schema.add_file(handle.uri.toString(true));
@@ -256,23 +251,17 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 		std::cout<<"ERROR: Could not get schema"<<std::endl;
 	}
 
-	std::cout<<"get_schema while done"<<std::endl;
-
 	bool open_file = false;
 	while (this->provider->has_next()){
-		std::cout<<"get_schema has more"<<std::endl;
 		std::vector<data_handle> handles = this->provider->get_some(64, open_file);
-		std::cout<<"get_schema got some"<<std::endl;
 		for(auto handle : handles) {
 			schema.add_file(handle.uri.toString(true));
 		}
-		std::cout<<"get_schema got some files"<<std::endl;
 	}
 
 	for(auto extra_column : non_file_columns) {
 		schema.add_column(extra_column.first, extra_column.second, 0, false);
 	}
-	std::cout<<"get_schema about to reset"<<std::endl;
 	this->provider->reset();
 }
 

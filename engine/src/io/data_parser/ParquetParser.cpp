@@ -139,22 +139,9 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 void parquet_parser::parse_schema(
 	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
-		std::cout<<"parquet_parser::parse_schema start"<<std::endl;
-		if (file != nullptr)
-			std::cout<<"parquet_parser::parse_schema file not null"<<std::endl;
-		else
-			std::cout<<"parquet_parser::parse_schema file is null"<<std::endl;
-
-		if (file.get() != nullptr)
-			std::cout<<"parquet_parser::parse_schema file not with get null"<<std::endl;
-		else
-			std::cout<<"parquet_parser::parse_schema file is with get null"<<std::endl;
-
 	auto parquet_reader = parquet::ParquetFileReader::Open(file);
-	std::cout<<"parquet_parser::parse_schema opened file"<<std::endl;
 	if (parquet_reader->metadata()->num_rows() == 0) {
 		parquet_reader->Close();
-		std::cout<<"parquet_parser::parse_schema exit"<<std::endl;
 		return; // if the file has no rows, we dont want cudf_io to try to read it
 	}
 
@@ -163,22 +150,14 @@ void parquet_parser::parse_schema(
 	pq_args.row_group = 0;
 	pq_args.num_rows = 1;
 
-	std::cout<<"parquet_parser::parse_schema about to read"<<std::endl;
-
 	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);
 
-	std::cout<<"parquet_parser::parse_schema read"<<std::endl;
-
 	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
-		std::cout<<"parquet_parser::parse_schema column "<<i<<std::endl;
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
 		size_t file_index = i;
 		bool is_in_file = true;
-		std::cout<<"parquet_parser::parse_schema about to get column names"<<i<<std::endl;
 		std::string name = table_out.metadata.column_names.at(i);
-		std::cout<<"parquet_parser::parse_schema got column name "<<i<<std::endl;
 		schema.add_column(name, type, file_index, is_in_file);
-		std::cout<<"parquet_parser::parse_schema added column "<<i<<std::endl;
 	}
 }
 
