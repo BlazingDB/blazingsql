@@ -450,15 +450,50 @@ public:
 	}
 
 	virtual kstatus run() {
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Filter Kernel run start",
+									"duration"_a="",
+									"kernel_id"_a=this->get_id());
 		CodeTimer timer;
 
 		BatchSequence input(this->input_cache(), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Filter while start",
+									"duration"_a="",
+									"kernel_id"_a=this->get_id());
 				auto batch = input.next();
+				logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Filter got batch",
+									"duration"_a="",
+									"kernel_id"_a=this->get_id());
 				auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
+				logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="processed filter",
+									"duration"_a="",
+									"kernel_id"_a=this->get_id());
 				this->add_to_output_cache(std::move(columns));
+				logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Filter cached output",
+									"duration"_a="",
+									"kernel_id"_a=this->get_id());
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
