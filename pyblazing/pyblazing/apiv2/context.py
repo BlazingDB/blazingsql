@@ -90,7 +90,7 @@ def checkSocket(socketNum):
 class blazing_allocation_mode(IntEnum):
     CudaDefaultAllocation = (0,)
     PoolAllocation = (1,)
-    CudaManagedMemory = (2,)blazingdb/blazingsql
+    CudaManagedMemory = (2,)
 
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
