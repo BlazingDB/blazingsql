@@ -1705,7 +1705,7 @@ collectParti
                             algebra,
                             accessToken,
                             use_execution_graph,
-                            self.config_options
+                            self.config_options,
                             workers=[worker]))
                     i = i + 1
                 if(return_futures):
