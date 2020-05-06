@@ -305,8 +305,6 @@ public:
 	} 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr);
 
-	virtual std::vector<std::unique_ptr<ral::frame::BlazingTable>> pullFromCacheOutput(Context * ctx = nullptr);
-
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(Context * ctx = nullptr);
 
 
@@ -417,8 +415,6 @@ public:
 	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr) override;
-
-	std::vector<std::unique_ptr<ral::frame::BlazingTable>> pullFromCacheOutput(Context * ctx = nullptr) override;
 
 private:
 	size_t bytes_max_size_ = std::numeric_limits<size_t>::max();

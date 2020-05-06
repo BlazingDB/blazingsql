@@ -296,26 +296,6 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * 
 	return message_data->get_data().decache();
 }
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> CacheMachine::pullFromCacheOutput(Context * ctx) {
-	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
-	if (message_data == nullptr) {
-		return std::vector<std::unique_ptr<ral::frame::BlazingTable>>();
-	}
-
-	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
-								"duration"_a="",
-								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=message_data->get_data().num_rows());
-
-	std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_ref;
-	tables_ref.emplace_back(message_data->get_data().decache());
-	return tables_ref;
-}
-
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx) {
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
@@ -349,12 +329,15 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
+		std::cout<<"Checking: "<<holder_samples.empty()<<" <- or -> "<<total_bytes<<" + "<<cache_data.sizeInBytes()<<" <= "<<bytes_max_size_<<"\n"<<std::flush;
 		if (holder_samples.empty() || total_bytes + cache_data.sizeInBytes() <= bytes_max_size_)	{
+			std::cout<<"Table will be concatenated\n"<<std::flush;
 			total_bytes += cache_data.sizeInBytes();
 			auto tmp_frame = cache_data.decache();
 			samples.emplace_back(tmp_frame->toBlazingTableView());
 			holder_samples.emplace_back(std::move(tmp_frame));
 		} else {
+			std::cout<<"Table will be back to cache\n"<<std::flush;
 			waitingCache->put(std::move(message_data));
 			break;
 		}
@@ -365,39 +348,9 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	} else if (holder_samples.size() == 1) {
 		return std::move(holder_samples[0]);
 	}	else {
+		std::cout<<"Trying to concat -> "<<samples.size()<<" <- tables\n"<<std::flush;
 		return ral::utilities::experimental::concatTables(samples);
 	}	
-}
-
-// This method does not guarantee the relative order of the messages to be preserved
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> ConcatenatingCacheMachine::pullFromCacheOutput(Context * ctx) {
-	std::vector<std::unique_ptr<ral::frame::BlazingTable>> holder_samples;
-	std::vector<ral::frame::BlazingTableView> samples;
-
-	std::size_t total_bytes = 0;
-	bool CONCATENATE = true;
-
-	auto all_messages_data = waitingCache->get_all_or_wait();
-	for (auto& message_data : all_messages_data) {
-		auto& cache_data = message_data->get_data();
-
-		if(total_bytes + cache_data.sizeInBytes() <= bytes_max_size_) {
-			total_bytes += cache_data.sizeInBytes();
-		} else {
-			CONCATENATE = false;
-		}
-
-		auto tmp_frame = cache_data.decache();
-		samples.emplace_back(tmp_frame->toBlazingTableView());
-		holder_samples.emplace_back(std::move(tmp_frame));
-	}
-
-	if(CONCATENATE){
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> concat_samples;
-		concat_samples.emplace_back(ral::utilities::experimental::concatTables(samples));
-	} else {
-		return holder_samples;
-	}
 }
 
 }  // namespace cache
