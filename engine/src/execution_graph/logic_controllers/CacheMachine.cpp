@@ -365,14 +365,14 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx
 }
 
 bool CacheMachine::thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count){
-	return batches_count < this->flow_control_batches_threshold || bytes_count < this->flow_control_bytes_threshold;
+	return batches_count > this->flow_control_batches_threshold && bytes_count > this->flow_control_bytes_threshold;
 }
 
 void CacheMachine::wait_if_cache_is_saturated() {
 
 	std::unique_lock<std::mutex> lock(flow_control_mutex);
 	flow_control_condition_variable.wait(lock, [&, this] { 
-		return thresholds_are_met(flow_control_batches_count, flow_control_bytes_count);
+		return !thresholds_are_met(flow_control_batches_count, flow_control_bytes_count);
 	});
 }
 
@@ -401,11 +401,13 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	size_t total_bytes = 0;
 	std::vector<std::unique_ptr<message>> collected_messages;
 	std::unique_ptr<message> message_data;
+	std::string message_id = "";
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
-		if (collected_messages.empty() || thresholds_are_met(collected_messages.size(), total_bytes + cache_data.sizeInBytes())) {
+		if (collected_messages.empty() || !thresholds_are_met(collected_messages.size(), total_bytes + cache_data.sizeInBytes())) {
 			total_bytes += cache_data.sizeInBytes();
+			message_id = message_data->get_message_id();
 			collected_messages.push_back(std::move(message_data));
 		} else {
 			waitingCache->put(std::move(message_data));
@@ -432,9 +434,19 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		}
 		output = ral::utilities::experimental::concatTables(table_views);
 	}	
+
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Pull from ConcatenatingCacheMachine",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=output->num_rows());
+
 	std::unique_lock<std::mutex> lock(flow_control_mutex);
 	flow_control_batches_count -=  output_batches_count;
-	flow_control_bytes_count -= output_bytes_count;
+	flow_control_bytes_count -= output->sizeInBytes();
 	flow_control_condition_variable.notify_all();
 	return std::move(output);
 }
