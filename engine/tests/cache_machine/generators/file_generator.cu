@@ -174,7 +174,8 @@ data_parquet_provider_pair CreateParquetCustomerTableProvider(Context * context,
         ral::io::data_loader loader(provider.first, provider.second);
         ral::io::Schema schema;
 	    loader.get_schema(schema, {});
-        auto table = loader.load_data(context, {}, schema, "");
+		auto local_cur_data_handle = provider.second->get_next();
+		auto table = loader.load_batch(context, {}, schema, local_cur_data_handle, 0, {});
         std::string filepath = "/tmp/customer_" + std::to_string(index) + ".parquet";
         cudf_io::write_parquet_args out_args{cudf_io::sink_info{filepath}, table->view()};
         cudf_io::write_parquet(out_args);
@@ -205,7 +206,8 @@ data_parquet_provider_pair CreateParquetOrderTableProvider(Context * context, in
         ral::io::data_loader loader(provider.first, provider.second);
         ral::io::Schema schema;
 	    loader.get_schema(schema, {});
-        auto table = loader.load_data(context, {}, schema, "");
+		auto local_cur_data_handle = provider.second->get_next();
+		auto table = loader.load_batch(context, {}, schema, local_cur_data_handle, 0, {});
         std::string filepath = "/tmp/orders_" + std::to_string(index) + ".parquet";
         cudf_io::write_parquet_args out_args{cudf_io::sink_info{filepath}, table->view()};
         cudf_io::write_parquet(out_args);
@@ -231,22 +233,23 @@ data_parquet_provider_pair CreateParquetNationTableProvider(Context * context, i
     std::vector<Uri> uris;
     std::vector<std::vector<int>> all_row_groups{};
 
-    for (int index = 0; index < n_batches; index++) {
-        auto provider = CreateCsvNationTableProvider(index);
-        ral::io::data_loader loader(provider.first, provider.second);
-        ral::io::Schema schema;
+	for (int index = 0; index < n_batches; index++) {
+	    auto provider = CreateCsvNationTableProvider(index);
+	    ral::io::data_loader loader(provider.first, provider.second);
+	    ral::io::Schema schema;
 	    loader.get_schema(schema, {});
-        auto table = loader.load_data(context, {}, schema, "");
-        std::string filepath = "/tmp/nation_" + std::to_string(index) + ".parquet";
+		auto local_cur_data_handle = provider.second->get_next();
+		auto table = loader.load_batch(context, {}, schema, local_cur_data_handle, 0, {});
+	    std::string filepath = "/tmp/nation_" + std::to_string(index) + ".parquet";
         cudf_io::write_parquet_args out_args{cudf_io::sink_info{filepath}, table->view()};
         cudf_io::write_parquet(out_args);
-
+	
         uris.push_back(Uri{filepath});
         std::vector<int> row_group{0};
         all_row_groups.push_back(row_group);
     }
     auto parser = std::make_shared<ral::io::parquet_parser>();
-    auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 	ral::io::Schema tableSchema;
     ral::io::data_loader loader(parser, provider);
 	loader.get_schema(tableSchema, {});

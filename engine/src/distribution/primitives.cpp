@@ -204,14 +204,17 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 		if(nodeColumn.first == self_node) {
 			continue;
 		}
-		BlazingTableView columns = nodeColumn.second;
-		auto destination_node = nodeColumn.first;
-		int partition_id = part_ids.size() > i ? part_ids[i] : 0; // if part_ids is not set, then it does not matter and we can just use 0 as the partition_id
-		
-		threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns, partition_id]() mutable {
-			auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
-			Client::send(destination_node, *message);
-		}));
+		// we dont want to send empty tables
+		if (nodeColumn.second.num_rows() > 0){
+			BlazingTableView columns = nodeColumn.second;
+			auto destination_node = nodeColumn.first;
+			int partition_id = part_ids.size() > i ? part_ids[i] : 0; // if part_ids is not set, then it does not matter and we can just use 0 as the partition_id
+			
+			threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns, partition_id]() mutable {
+				auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
+				Client::send(destination_node, *message);
+			}));
+		}
 	}
 	for(size_t i = 0; i < threads.size(); i++) {
 		threads[i].join();
