@@ -1607,7 +1607,7 @@ collectParti
             print("Parsing Error")
             return
 
-        if self.dask_client is None or single_gpu == True ::
+        if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
         else:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
