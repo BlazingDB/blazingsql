@@ -329,15 +329,12 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
-		std::cout<<"Checking: "<<holder_samples.empty()<<" <- or -> "<<total_bytes<<" + "<<cache_data.sizeInBytes()<<" <= "<<bytes_max_size_<<"\n"<<std::flush;
 		if (holder_samples.empty() || total_bytes + cache_data.sizeInBytes() <= bytes_max_size_)	{
-			std::cout<<"Table will be concatenated\n"<<std::flush;
 			total_bytes += cache_data.sizeInBytes();
 			auto tmp_frame = cache_data.decache();
 			samples.emplace_back(tmp_frame->toBlazingTableView());
 			holder_samples.emplace_back(std::move(tmp_frame));
 		} else {
-			std::cout<<"Table will be back to cache\n"<<std::flush;
 			waitingCache->put(std::move(message_data));
 			break;
 		}
@@ -348,7 +345,15 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	} else if (holder_samples.size() == 1) {
 		return std::move(holder_samples[0]);
 	}	else {
-		std::cout<<"Trying to concat -> "<<samples.size()<<" <- tables\n"<<std::flush;
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Trying to concat {} tables"_format(samples.size()),
+								"duration"_a="",
+								"kernel_id"_a="",
+								"rows"_a="");
+
 		return ral::utilities::experimental::concatTables(samples);
 	}	
 }
