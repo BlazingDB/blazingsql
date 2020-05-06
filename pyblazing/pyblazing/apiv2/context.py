@@ -90,7 +90,7 @@ def checkSocket(socketNum):
 class blazing_allocation_mode(IntEnum):
     CudaDefaultAllocation = (0,)
     PoolAllocation = (1,)
-    CudaManagedMemory = (2,)
+    CudaManagedMemory = (2,)blazingdb/blazingsql
 
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
@@ -148,7 +148,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 
 def getNodePartitions(df, client):
     df = df.persist()
-    workers = client.scheduler_info()['workers']
+    workers = client.scheduler_info()['workers']blazingdb/blazingsql
     connectionToId = {}
     for worker in workers:
         connectionToId[worker] = workers[worker]['name']
@@ -198,7 +198,7 @@ In the mean time, for better performance we recommend using the unify_partitions
     bc.create_table('my_table', dask_df)""")
                 table_partitions = []
                 for partition in partitions:
-                    table_partitions.append(collectParti
+                    table_partitions.append(
                         tables[table_name].input.get_partition(partition).compute())
                 if use_execution_graph:
                     tables[table_name].input = table_partitions #no concat
