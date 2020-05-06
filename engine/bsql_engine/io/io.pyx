@@ -7,6 +7,8 @@
 # cython: embedsignature = True
 # cython: language_level = 3
 
+from collections import OrderedDict
+
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
@@ -38,7 +40,7 @@ from cudf._lib cimport *
 from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
 from cpython.ref cimport PyObject
-from cython.operator cimport dereference
+from cython.operator cimport dereference, postincrement
 
 from cudf._lib.table cimport Table as CudfXxTable
 from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
@@ -59,6 +61,10 @@ cdef public PyObject * FinalizeError_ = <PyObject *>FinalizeError
 class BlazingSetAllocatorError(BlazingError):
     """BlazingSetAllocator Error."""
 cdef public PyObject * BlazingSetAllocatorError_ = <PyObject *>BlazingSetAllocatorError
+
+class GetProductDetailsError(BlazingError):
+    """GetProductDetails Error."""
+cdef public PyObject * GetProductDetailsError_ = <PyObject *>GetProductDetailsError
 
 class RunQueryError(BlazingError):
     """RunQuery Error."""
@@ -113,6 +119,9 @@ cdef void finalizePython() except *:
 cdef void blazingSetAllocatorPython(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options) except *:
     cio.blazingSetAllocator(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
 
+cdef map[string, string] getProductDetailsPython() except *:
+    return cio.getProductDetails()
+
 cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     cdef HDFS hdfs
     cdef S3 s3
@@ -156,6 +165,25 @@ cpdef finalizeCaller():
 
 cpdef blazingSetAllocatorCaller(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options):
     blazingSetAllocatorPython(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
+
+
+cpdef getProductDetailsCaller():
+    my_map = getProductDetailsPython()
+    cdef map[string,string].iterator it = my_map.begin()
+    new_map = OrderedDict()
+    while(it != my_map.end()):
+        key = dereference(it).first
+        key = key.decode('utf-8')
+        
+        value = dereference(it).second
+        value = value.decode('utf-8')
+        
+        new_map[key] = value
+        
+        postincrement(it)
+
+    return new_map
+
 
 cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_missing_paths):
     cdef vector[string] files

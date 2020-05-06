@@ -72,6 +72,7 @@ get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COM
 message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 
 include_directories(
+    ${PROJECT_BINARY_DIR}
     ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     ${CMAKE_SOURCE_DIR}/src
@@ -142,6 +143,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
               ${CMAKE_SOURCE_DIR}/src/skip_data/utils.cpp
+              ${CMAKE_SOURCE_DIR}/src/cython/static.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/initialize.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
@@ -220,6 +222,9 @@ if(GBENCHMARK_FOUND)
 else()
     message(AUTHOR_WARNING "Google C++ Benchmarking Framework (Google Benchmark) not found")
 endif()
+
+
+include(ConfigureProductVersion)
 
 # Print the project summary
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
