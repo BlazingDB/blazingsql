@@ -526,7 +526,9 @@ class OutputKernel : public kernel {
 public:
 	OutputKernel() : kernel("OutputKernel", nullptr) {  }
 	virtual kstatus run() {
-		output = this->input_.get_cache()->pullFromCacheOutput();
+		while (this->input_.get_cache()->wait_for_next()) {
+			output.emplace_back(this->input_.get_cache()->pullFromCache());
+		}
 		return kstatus::stop;
 	}
 
