@@ -49,14 +49,14 @@ TEST_F(Batching, SimpleQuery) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "", std::map<std::string, std::string>());
 
 	auto n_batches = 5;
 	std::shared_ptr<ral::io::parquet_parser> parser;
 	std::shared_ptr<ral::io::uri_data_provider> provider;
 	ral::io::Schema schema;
 	std::tie(parser, provider, schema) = blazingdb::test::CreateParquetNationTableProvider(queryContext.get(), n_batches);
-
+	
 	ral::io::data_loader loader(parser, provider);
 
 	tree_processor tree{
@@ -92,7 +92,7 @@ TEST_F(Batching, BindableQuery) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "", std::map<std::string, std::string>());
 
 	auto n_batches = 5;
 	std::shared_ptr<ral::io::parquet_parser> parser;
@@ -125,7 +125,7 @@ TEST_F(Batching, SortSamplePartitionTest) {
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
 	contextNodes.push_back(Node(address));
 	uint32_t ctxToken = 123;
-	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "");;
+	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "", std::map<std::string, std::string>());
 
 	auto n_batches = 5;
 	std::shared_ptr<ral::io::parquet_parser> parser;

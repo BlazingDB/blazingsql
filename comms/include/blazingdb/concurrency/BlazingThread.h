@@ -45,6 +45,8 @@ public:
 	void join();
 	void detach();
 
+	bool joinable() const { return thread.joinable(); };
+
 	static unsigned int hardware_concurrency() { return std::thread::hardware_concurrency(); }
 
 public:

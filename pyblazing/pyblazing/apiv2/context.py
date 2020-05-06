@@ -83,7 +83,7 @@ def checkSocket(socketNum):
             # something else raised the socket.error exception
             print("ERROR: Something happened when checking socket " + str(socketNum))
             #print(e)
-    s.close()
+    s.close()blazingdb/blazingsql
     return socket_free
 
 
@@ -756,6 +756,9 @@ class BlazingContext(object):
                                            default: 1
                                     MAX_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
+                                    ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
+                                           calculate the number of samples
+                                           default: 0.1
                                     BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource 
                                             will consider to be full
                                             default: 0.95
