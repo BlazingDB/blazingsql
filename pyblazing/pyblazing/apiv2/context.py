@@ -1379,7 +1379,7 @@ class BlazingContext(object):
         return all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids
 
 
-    def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query):
+    def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query,single_gpu):
         nodeFilesList = []
         file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
@@ -1705,6 +1705,7 @@ collectParti
                             algebra,
                             accessToken,
                             use_execution_graph,
+                            self.config_options
                             workers=[worker]))
                     i = i + 1
                 if(return_futures):
