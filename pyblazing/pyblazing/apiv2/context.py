@@ -761,6 +761,9 @@ class BlazingContext(object):
                                     FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to 
                                             stop execution until the output cache contains less.
                                             default: max size_t (makes it not applicable)
+                                    ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
+                                           calculate the number of samples
+                                           default: 0.1
                                     BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource 
                                             will consider to be full
                                             default: 0.95
