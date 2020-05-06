@@ -1393,18 +1393,19 @@ class BlazingContext(object):
             uri_values = []
             row_groups_ids = []
 
-            if not file_indices_and_rowgroup_indices.empty: #skipdata did not filter everything
-                file_and_rowgroup_indices = file_indices_and_rowgroup_indices.to_pandas()
-                files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
-                grouped = file_and_rowgroup_indices.groupby('file_handle_index')
-                for group_id in grouped.groups:
-                    row_indices = grouped.groups[group_id].values.tolist()
-                    actual_files.append(current_table.files[group_id])
-                    if group_id < len(current_table.uri_values):
-                        uri_values.append(current_table.uri_values[group_id])
-                    row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
-                    row_group_ids = [row_groups_col[i] for i in row_indices]
-                    row_groups_ids.append(row_group_ids)
+            for file_indices_and_rowgroup_indices_item in file_indices_and_rowgroup_indices:
+                if not file_indices_and_rowgroup_indices_item.empty: #skipdata did not filter everything
+                    file_and_rowgroup_indices = file_indices_and_rowgroup_indices_item.to_pandas()
+                    files = file_and_rowgroup_indices['file_handle_index'].values.tolist()
+                    grouped = file_and_rowgroup_indices.groupby('file_handle_index')
+                    for group_id in grouped.groups:
+                        row_indices = grouped.groups[group_id].values.tolist()
+                        actual_files.append(current_table.files[group_id])
+                        if group_id < len(current_table.uri_values):
+                            uri_values.append(current_table.uri_values[group_id])
+                        row_groups_col = file_and_rowgroup_indices['row_group_index'].values.tolist()
+                        row_group_ids = [row_groups_col[i] for i in row_indices]
+                        row_groups_ids.append(row_group_ids)
 
             if self.dask_client is None:
                 bt = BlazingTable(current_table.input,
