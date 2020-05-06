@@ -221,7 +221,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
       df._rename_columns(decoded_names)
       dfs.append(df)
 
-    return dfs
+    return dfs[0]
 
 cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, by):
     cdef vector[NodeMetaDataTCP] tcpMetadataCpp

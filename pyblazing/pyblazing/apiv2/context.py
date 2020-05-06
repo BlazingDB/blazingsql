@@ -68,6 +68,8 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass(
     'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
+def get_element(dfs, i):
+        return dfs[i]
 
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -201,7 +203,7 @@ In the mean time, for better performance we recommend using the unify_partitions
                     tables[table_name].input = table_partitions #no concat
                 else:
                     tables[table_name].input = [cudf.concat(table_partitions)]
-    return cio.runQueryCaller(
+    dfs = cio.runQueryCaller(
         masterIndex,
         nodes,
         tables,
@@ -211,6 +213,8 @@ In the mean time, for better performance we recommend using the unify_partitions
         accessToken,
         use_execution_graph,
         config_options)
+
+    return len(dfs), dask.dataframe.utils.make_meta(dfs[0]), dfs
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -1650,7 +1654,15 @@ class BlazingContext(object):
                         self.config_options,
                         workers=[worker]))
                 i = i + 1
-            result = dask.dataframe.from_delayed(dask_futures)
+
+            meta_results = self.dask_client.gather(dask_futures)
+
+            futures = []
+            for length, meta, dfs in meta_results:
+                for i in range(0,length):
+                    futures.append(self.dask_client.submit(get_element, dfs, 0))
+
+            result = dask.dataframe.from_delayed(futures, meta=meta)
         return result
 
     # END SQL interface
