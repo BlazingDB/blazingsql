@@ -83,7 +83,7 @@ def checkSocket(socketNum):
             # something else raised the socket.error exception
             print("ERROR: Something happened when checking socket " + str(socketNum))
             #print(e)
-    s.close()
+    s.close()blazingdb/blazingsql
     return socket_free
 
 
@@ -148,7 +148,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 
 def getNodePartitions(df, client):
     df = df.persist()
-    workers = client.scheduler_info()['workers']blazingdb/blazingsql
+    workers = client.scheduler_info()['workers']
     connectionToId = {}
     for worker in workers:
         connectionToId[worker] = workers[worker]['name']
