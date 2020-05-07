@@ -20,7 +20,6 @@
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 #include "utilities/StringUtils.h"
 
-#include "config/BlazingConfig.h"
 #include "config/GPUManager.cuh"
 
 #include "communication/CommunicationData.h"
