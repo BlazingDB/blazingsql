@@ -53,7 +53,7 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse(std::shared_ptr<arro
 		column_names_out[i] = blazingTableViews_[0].names()[idx];
 	}
 
-	std::unique_ptr<CudfTable> concatenated_tables = cudf::experimental::concatenate(tableViews);
+	std::unique_ptr<CudfTable> concatenated_tables = cudf::concatenate(tableViews);
 	return std::make_unique<ral::frame::BlazingTable>(std::move(concatenated_tables), column_names_out);
 }
 
