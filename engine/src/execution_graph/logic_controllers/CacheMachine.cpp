@@ -365,6 +365,13 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx
 }
 
 bool CacheMachine::thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count){
+		
+		logger->trace("|||{info}||kernel_id||rows|",
+								"info"_a="thresholds_are_met batches_count: " + std::to_string(batches_count) 
+								+ " flow_control_batches_threshold: " + std::to_string(flow_control_batches_threshold)
+								+ " bytes_count: " + std::to_string(bytes_count)
+								+ " flow_control_bytes_threshold: " + std::to_string(flow_control_bytes_threshold));
+
 	return batches_count > this->flow_control_batches_threshold && bytes_count > this->flow_control_bytes_threshold;
 }
 

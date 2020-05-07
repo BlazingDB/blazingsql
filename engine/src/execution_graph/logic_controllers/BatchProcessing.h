@@ -348,12 +348,40 @@ public:
 			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
 		}
 
+				logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan table_scan_kernel_num_threads: " + std::to_string(table_scan_kernel_num_threads),
+									"kernel_id"_a=this->get_id());
+
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
 			threads.push_back(BlazingThread([expression = this->expression, this]() {
+				logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan thread start",
+									"kernel_id"_a=this->get_id());
+
 				this->output_cache()->wait_if_cache_is_saturated();
+
+				logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan thread start post wait_if_cache_is_saturated",
+									"kernel_id"_a=this->get_id());
+
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 				while(batch = input.next()) {
+					logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan while start",
+									"kernel_id"_a=this->get_id());
 					try {
 						if(is_filtered_bindable_scan(expression)) {
 							auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, this->context.get());
@@ -364,7 +392,20 @@ public:
 							batch->setNames(fix_column_aliases(batch->names(), expression));
 							this->add_to_output_cache(std::move(batch));
 						}
+						logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan processed",
+									"kernel_id"_a=this->get_id());
 						this->output_cache()->wait_if_cache_is_saturated();
+
+						logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan processed post wait_if_cache_is_saturated",
+									"kernel_id"_a=this->get_id());
 					} catch(const std::exception& e) {
 						// TODO add retry here
 						logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
