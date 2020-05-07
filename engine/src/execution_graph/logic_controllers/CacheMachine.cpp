@@ -7,6 +7,37 @@
 namespace ral {
 namespace cache {
 
+std::vector<cudf::size_type> get_string_sizes(ral::frame::BlazingTableView table){
+	std::vector<cudf::size_type> str_sizes;
+	size_t num_columns = table.num_columns();
+
+	for(int i=0;i<num_columns;i++){
+		auto column = table.column(i);
+		if(column.type().id() == cudf::type_id::STRING){
+			auto num_children = column.num_children();
+			if(num_children == 2) {
+				cudf::size_type total_size = 0;
+
+				auto offsets_column = column.child(0);
+				auto chars_column = column.child(1);
+
+				total_size += chars_column.size();
+				cudf::data_type offset_dtype(cudf::type_id::INT32);
+				total_size += offsets_column.size() * cudf::size_of(offset_dtype);
+				if(column.has_nulls()) {
+					total_size += cudf::bitmask_allocation_size_bytes(column.size());
+				}
+
+				str_sizes.push_back(total_size);
+			}
+			str_sizes.push_back(0);
+		}else{
+			str_sizes.push_back(0);
+		}
+	}
+	return str_sizes;
+}
+
 std::string randomString(std::size_t length) {
 	const std::string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -39,8 +70,10 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 }
 
 CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table)
-	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows()) 
+	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows(), get_string_sizes(table->toBlazingTableView())) 
 {
+	this->col_string_sizes = get_string_sizes(table->toBlazingTableView());
+
 	// TODO: make this configurable
 	this->filePath_ = "/tmp/.blazing-temp-" + randomString(64) + ".orc";
 	std::cout << "CacheDataLocalFile: " << this->filePath_ << std::endl;
@@ -345,15 +378,6 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	} else if (holder_samples.size() == 1) {
 		return std::move(holder_samples[0]);
 	}	else {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Trying to concat {} tables"_format(samples.size()),
-								"duration"_a="",
-								"kernel_id"_a="",
-								"rows"_a="");
-
 		return ral::utilities::experimental::concatTables(samples);
 	}	
 }
