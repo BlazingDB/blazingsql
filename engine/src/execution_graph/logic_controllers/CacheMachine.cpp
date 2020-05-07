@@ -393,7 +393,7 @@ void CacheMachine::wait_if_cache_is_saturated() {
 
 
 
-
+ConcatenatingCacheMachine::ConcatenatingCacheMachine() : CacheMachine(){}
 
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold)
 	: CacheMachine( flow_control_batches_threshold, flow_control_bytes_threshold)

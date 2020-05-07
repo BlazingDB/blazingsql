@@ -424,7 +424,7 @@ protected:
 */ 
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine() = default;
+	ConcatenatingCacheMachine();
 	ConcatenatingCacheMachine(std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
 
 	~ConcatenatingCacheMachine() = default;

@@ -349,7 +349,7 @@ struct tree_processor {
 					}
 
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
-					size_t max_data_load_concat_cache_bytes_size = 400000000; // 400 MB
+					std::size_t max_data_load_concat_cache_bytes_size = 400000000; // 400 MB
 					config_options = context->getConfigOptions();
 					it = config_options.find("MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE");
 					if (it != config_options.end()){
