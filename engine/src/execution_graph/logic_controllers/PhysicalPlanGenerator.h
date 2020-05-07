@@ -11,6 +11,8 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
+#include <spdlog/spdlog.h>
+using namespace fmt::literals;
 
 namespace ral {
 namespace batch {
@@ -260,6 +262,11 @@ struct tree_processor {
 
 			expr_tree_from_json(p_tree, &this->root, 0, query_graph);
 		} catch (std::exception & e) {
+			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+			logger->error("|||{info}|||||",
+										"info"_a="In build_batch_graph. What: {}"_format(e.what()));
+			logger->flush();
+
 			std::cerr << "property_tree:" << e.what() <<  std::endl;
 			throw e;
 		}
