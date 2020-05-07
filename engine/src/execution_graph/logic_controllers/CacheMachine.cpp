@@ -7,33 +7,36 @@
 namespace ral {
 namespace cache {
 
+cudf::size_type get_string_size(cudf::column_view column){
+	if(column.type().id() == cudf::type_id::STRING){
+		auto num_children = column.num_children();
+		if(num_children == 2) {
+			cudf::size_type total_size = 0;
+
+			auto offsets_column = column.child(0);
+			auto chars_column = column.child(1);
+
+			total_size += chars_column.size();
+			cudf::data_type offset_dtype(cudf::type_id::INT32);
+			total_size += offsets_column.size() * cudf::size_of(offset_dtype);
+			if(column.has_nulls()) {
+				total_size += cudf::bitmask_allocation_size_bytes(column.size());
+			}
+
+			return total_size;
+		}
+	}
+
+	return 0;
+}
+
 std::vector<cudf::size_type> get_string_sizes(ral::frame::BlazingTableView table){
 	std::vector<cudf::size_type> str_sizes;
 	size_t num_columns = table.num_columns();
 
 	for(int i=0;i<num_columns;i++){
 		auto column = table.column(i);
-		if(column.type().id() == cudf::type_id::STRING){
-			auto num_children = column.num_children();
-			if(num_children == 2) {
-				cudf::size_type total_size = 0;
-
-				auto offsets_column = column.child(0);
-				auto chars_column = column.child(1);
-
-				total_size += chars_column.size();
-				cudf::data_type offset_dtype(cudf::type_id::INT32);
-				total_size += offsets_column.size() * cudf::size_of(offset_dtype);
-				if(column.has_nulls()) {
-					total_size += cudf::bitmask_allocation_size_bytes(column.size());
-				}
-
-				str_sizes.push_back(total_size);
-			}
-			str_sizes.push_back(0);
-		}else{
-			str_sizes.push_back(0);
-		}
+		str_sizes.push_back(get_string_size(column));
 	}
 	return str_sizes;
 }
