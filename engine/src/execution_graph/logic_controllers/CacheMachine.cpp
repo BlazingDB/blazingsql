@@ -63,8 +63,8 @@ CacheMachine::CacheMachine()
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
-	this->flow_control_batches_threshold = 0;
-	this->flow_control_bytes_threshold = 0;
+	this->flow_control_batches_threshold = std::numeric_limits<std::uint32_t>::max();
+	this->flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
 	this->flow_control_batches_count = 0;
 	this->flow_control_bytes_count = 0;
 
