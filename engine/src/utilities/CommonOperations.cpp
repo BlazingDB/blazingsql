@@ -47,7 +47,7 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 		return std::make_unique<ral::frame::BlazingTable>(table_views_to_concat[0], names);	
 	}	
 
-	std::unique_ptr<CudfTable> concatenated_tables = cudf::experimental::concatenate(table_views_to_concat);
+	std::unique_ptr<CudfTable> concatenated_tables = cudf::concatenate(table_views_to_concat);
 	return std::make_unique<BlazingTable>(std::move(concatenated_tables), names);
 }
 
