@@ -367,31 +367,16 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx
 
 bool CacheMachine::thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count){
 		
-		logger->trace("|||{info}||kernel_id||rows|",
-								"info"_a="thresholds_are_met batches_count: " + std::to_string(batches_count) 
-								+ " flow_control_batches_threshold: " + std::to_string(flow_control_batches_threshold)
-								+ " bytes_count: " + std::to_string(bytes_count)
-								+ " flow_control_bytes_threshold: " + std::to_string(flow_control_bytes_threshold));
-
 	return batches_count > this->flow_control_batches_threshold && bytes_count > this->flow_control_bytes_threshold;
 }
 
 void CacheMachine::wait_if_cache_is_saturated() {
 
-	logger->trace("|||{info}||kernel_id||rows|",
-								"info"_a="wait_if_cache_is_saturated start");
-
 	std::unique_lock<std::mutex> lock(flow_control_mutex);
 	flow_control_condition_variable.wait(lock, [&, this] { 
 		return !thresholds_are_met(flow_control_batches_count, flow_control_bytes_count);
 	});
-
-	logger->trace("|||{info}||kernel_id||rows|",
-								"info"_a="wait_if_cache_is_saturated end");
 }
-
-
-
 
 
 
@@ -409,13 +394,8 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::uint32_t flow_control_
 }
 
 
-
 // This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache(Context * ctx) {
-	
-	logger->trace("|||{info}||kernel_id||rows|",
-								"info"_a="ConcatenatingCacheMachine::pullFromCache start");
-	
 	
 	size_t total_bytes = 0;
 	std::vector<std::unique_ptr<message>> collected_messages;

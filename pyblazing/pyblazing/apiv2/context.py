@@ -1444,7 +1444,6 @@ class BlazingContext(object):
             return current_table.getSlices(len(self.nodes))
 
     def partition(self, input, by=[]):
-        print("partition start")
         masterIndex = 0
         ctxToken = random.randint(0, 64000)
 
@@ -1454,12 +1453,8 @@ class BlazingContext(object):
             if(not isinstance(input, dask_cudf.core.DataFrame)):
                 print("Not supported...")
             else:
-                print("partition getNodePartitions")
                 dask_mapping = getNodePartitions(input, self.dask_client)
-                print("partition df_schema")
                 df_schema = input.get_partition(0).head(0)
-                print("partition df_schema done")
-                breakpoint()
                 dask_futures = []
                 for i, node in enumerate(self.nodes):
                     worker = node['worker']
