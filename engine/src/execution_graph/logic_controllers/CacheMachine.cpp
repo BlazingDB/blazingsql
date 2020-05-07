@@ -195,7 +195,6 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 								"duration"_a="",
 								"kernel_id"_a=message_id,
 								"offset"_a=table->view().column(col_ind).offset());
-				logger->flush();
 			}
 		}
 		

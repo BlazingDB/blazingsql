@@ -360,7 +360,6 @@ public:
 														"substep"_a=context->getQuerySubstep(),
 														"info"_a="In BindableTableScan kernel batch for {}. What: {}"_format(expression, e.what()),
 														"duration"_a="");
-						logger->flush();
 					}
 				}
 			}));
@@ -422,7 +421,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In Projection kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -468,7 +466,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In Filter kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 

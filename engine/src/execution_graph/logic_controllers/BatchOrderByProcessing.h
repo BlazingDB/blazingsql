@@ -55,7 +55,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In SortAndSampleSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
@@ -123,7 +122,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In PartitionSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -215,7 +213,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In SortAndSample kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -279,7 +276,6 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
-					logger->flush();
 				}	
 			}
 			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
@@ -366,7 +362,6 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In MergeStream kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -432,7 +427,6 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
-					logger->flush();
 				}
 			}
 		}

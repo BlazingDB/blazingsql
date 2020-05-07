@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "Traits/RuntimeTraits.h"
 
 #include "io/DataLoader.h"
 #include "io/data_parser/CSVParser.h"

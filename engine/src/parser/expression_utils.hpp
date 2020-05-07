@@ -141,9 +141,6 @@ bool is_aggregate_merge(std::string query_part); // to be deprecated
 bool is_aggregate_partition(std::string query_part); // to be deprecated
 bool is_aggregate_and_sample(std::string query_part); // to be deprecated
 
-bool is_double_input(std::string query_part);
-
-
 // Returns the index from table if exists
 size_t get_table_index(std::vector<std::string> table_names, std::string table_name);
 

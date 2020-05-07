@@ -23,7 +23,6 @@
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <execution_graph/logic_controllers/BlazingHostTable.h>
-#include "Traits/RuntimeTraits.h"
 namespace ral {
 namespace communication {
 namespace messages {

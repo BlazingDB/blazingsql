@@ -125,6 +125,7 @@ void initialize(int ralId,
 	logger->set_level(spdlog::level::trace);
 	spdlog::register_logger(logger);
 
+	spdlog::flush_on(spdlog::level::err);
 	spdlog::flush_every(std::chrono::seconds(1));
 }
 
