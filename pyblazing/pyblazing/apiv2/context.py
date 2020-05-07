@@ -97,14 +97,15 @@ class blazing_allocation_mode(IntEnum):
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
+
                       initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
-    
+
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    if (allocator != 'existing'): 
+    if (allocator != 'existing'):
 
         managed_memory = True if allocator == "managed" else False
         allocation_mode = 0
@@ -120,7 +121,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
             initial_pool_size = 0
         elif pool and initial_pool_size == 0:
             initial_pool_size = 1
-            
+
         if devices is None:
             devices = [0]
         elif isinstance(devices, int):
@@ -133,7 +134,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
             enable_logging,
             config_options
         )
-    
+
     cio.initializeCaller(
         ralId,
         0,
@@ -143,7 +144,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         singleNode,
         config_options)
     cwd = os.getcwd()
-    
+
     return ralCommunicationPort, workerIp, cwd
 
 
@@ -325,7 +326,7 @@ def parseHiveMetadata(curr_table, uri_values):
     n_cols = len(curr_table.column_names)
 
     if all(type in cudf_to_np_types for type in curr_table.column_types):
-        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types] 
+        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
     else:
         for i in range(len(curr_table.column_types)):
             if not (curr_table.column_types[i] in cudf_to_np_types):
@@ -723,8 +724,8 @@ class BlazingContext(object):
 
     Docs: https://docs.blazingdb.com/docs/blazingcontext
     """
-    
-    def __init__(self, dask_client=None, network_interface=None, allocator="managed", 
+
+    def __init__(self, dask_client=None, network_interface=None, allocator="managed",
                  pool=False, initial_pool_size=None, enable_logging=False, config_options={}):
         """
         Create a BlazingSQL API instance.
@@ -742,14 +743,14 @@ class BlazingContext(object):
                                        if None, and pool=True, defaults to 1/2 GPU memory.
         enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
         config_options (optional) : this is a dictionary for setting certain parameters in the engine:
-                                    JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join 
+                                    JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join
                                            before doing the join. Too small can lead to overpartitioning, too big can lead to OOM errors.
                                            default: 400000000
-                                    MAX_JOIN_SCATTER_MEM_OVERHEAD : The bigger this value, the more likely one of the tables of join will be 
+                                    MAX_JOIN_SCATTER_MEM_OVERHEAD : The bigger this value, the more likely one of the tables of join will be
                                            scattered to all the nodes, instead of doing a standard hash based partitioning shuffle. Value is in bytes.
                                            default: 500000000
-                                    MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE : The maximum number of partitions that will be made for an order by. 
-                                           Increse this number if running into OOM issues when doing order bys with large amounts of data.                                           
+                                    MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE : The maximum number of partitions that will be made for an order by.
+                                           Increse this number if running into OOM issues when doing order bys with large amounts of data.
                                            default: 8
                                     NUM_BYTES_PER_ORDER_BY_PARTITION : The max number size in bytes for each order by partition. Note that,
                                            MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE will be enforced over this parameter.
@@ -762,7 +763,7 @@ class BlazingContext(object):
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
                                            calculate the number of samples
                                            default: 0.1
-                                    BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource 
+                                    BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource
                                             will consider to be full
                                             default: 0.95
 
@@ -798,10 +799,10 @@ class BlazingContext(object):
         self.nodes = []
         self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
-        self.config_options = {} 
+        self.config_options = {}
         for option in config_options:
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
-        
+
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
@@ -838,7 +839,7 @@ class BlazingContext(object):
         else:
             ralPort, ralIp, cwd = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
-                allocator=allocator, pool=pool, initial_pool_size=initial_pool_size, 
+                allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
                 enable_logging=enable_logging, config_options=self.config_options)
             node = {}
             node['ip'] = ralIp
@@ -1127,13 +1128,13 @@ class BlazingContext(object):
             elif len(user_partitions_schema) != len(user_partitions):
                 print("ERROR: The number of columns in 'partitions' should be the same as 'partitions_schema'")
                 return
-                    
+
         if(isinstance(input, hive.Cursor)):
             hive_table_name = kwargs.get('hive_table_name', table_name)
             hive_database_name = kwargs.get('hive_database_name', 'default')
             folder_list, hive_file_format_hint, extra_kwargs, extra_columns, hive_schema = get_hive_table(
                 input, hive_table_name, hive_database_name, user_partitions)
-            
+
             if file_format_hint == 'undefined':
                 file_format_hint = hive_file_format_hint
             elif file_format_hint != hive_file_format_hint:
@@ -1146,7 +1147,7 @@ class BlazingContext(object):
             if user_partitions_schema is None:
                 print("ERROR: When using 'partitions' without a Hive cursor, you also need to set 'partitions_schema' which should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
                 return
-            
+
             hive_schema = {}
             if isinstance(input, str):
                 hive_schema['location'] = input
@@ -1163,7 +1164,7 @@ class BlazingContext(object):
             extra_columns = []
             for part_schema in user_partitions_schema:
                 extra_columns.append((part_schema[0], convertTypeNameStrToCudfType(part_schema[1])))
-        
+
         if isinstance(input, str):
             input = [input, ]
 
@@ -1193,7 +1194,7 @@ class BlazingContext(object):
 
             input = resolve_relative_path(input)
 
-            ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find. 
+            ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find.
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
 
@@ -1238,12 +1239,12 @@ class BlazingContext(object):
             table.slices = table.getSlices(len(self.nodes))
 
             if len(uri_values) > 0:
-                parsedMetadata = parseHiveMetadata(table, uri_values) 
-                table.metadata = parsedMetadata                
+                parsedMetadata = parseHiveMetadata(table, uri_values)
+                table.metadata = parsedMetadata
 
             if parsedSchema['file_type'] == DataType.PARQUET :
                 parsedMetadata = self._parseMetadata(file_format_hint, table.slices, parsedSchema, kwargs)
-                
+
                 if isinstance(parsedMetadata, dask_cudf.core.DataFrame):
                     parsedMetadata = parsedMetadata.compute()
                     parsedMetadata = parsedMetadata.reset_index()
@@ -1382,7 +1383,7 @@ class BlazingContext(object):
         return all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids
 
 
-    def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query):
+    def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query,single_gpu):
         nodeFilesList = []
         file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
@@ -1422,9 +1423,9 @@ class BlazingContext(object):
                 nodeFilesList.append(bt)
 
             else:
-                all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
-
-                for i, node in enumerate(self.nodes):
+                if single_gpu:
+                    all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(1, actual_files, uri_values, row_groups_ids)
+                    i = 0
                     bt = BlazingTable(current_table.input,
                                 current_table.fileType,
                                 files=all_sliced_files[i],
@@ -1437,9 +1438,30 @@ class BlazingContext(object):
                     bt.file_column_names = current_table.file_column_names
                     bt.column_types = current_table.column_types
                     nodeFilesList.append(bt)
+                else:
+
+                    all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
+
+                    for i, node in enumerate(self.nodes):
+                        bt = BlazingTable(current_table.input,
+                                    current_table.fileType,
+                                    files=all_sliced_files[i],
+                                    calcite_to_file_indices=current_table.calcite_to_file_indices,
+                                    uri_values=all_sliced_uri_values[i],
+                                    args=current_table.args,
+                                    row_groups_ids=all_sliced_row_groups_ids[i],
+                                    in_file=current_table.in_file)
+                        bt.column_names = current_table.column_names
+                        bt.file_column_names = current_table.file_column_names
+                        bt.column_types = current_table.column_types
+                        nodeFilesList.append(bt)
+
             return nodeFilesList
         else:
-            return current_table.getSlices(len(self.nodes))
+            if single_gpu:
+                return current_table.getSlices(1)
+            else:
+                return current_table.getSlices(len(self.nodes))
 
     def partition(self, input, by=[]):
         masterIndex = 0
@@ -1484,7 +1506,7 @@ class BlazingContext(object):
         --------
 
         Distribute BlazingSQL then create and query a table from a dask_cudf DataFrame:
-
+collectParti
         >>> from blazingsql import BlazingContext
         >>> from dask.distributed import Client
         >>> from dask_cuda import LocalCUDACluster
@@ -1523,7 +1545,7 @@ class BlazingContext(object):
             return input
 
 
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True):
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True, return_futures=False, single_gpu=False):
         """
         Query a BlazingSQL table.
 
@@ -1579,6 +1601,8 @@ class BlazingContext(object):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [{} for _ in range(len(self.nodes))]
+        if single_gpu:
+            nodeTableList = [{},]
         fileTypes = []
 
         if (algebra is None):
@@ -1588,7 +1612,7 @@ class BlazingContext(object):
             print("Parsing Error")
             return
 
-        if self.dask_client is None:
+        if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
         else:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
@@ -1607,11 +1631,17 @@ class BlazingContext(object):
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
                 if new_tables[table].has_metadata():
                     scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-                    currentTableNodes = self._optimize_with_skip_data_getSlices(new_tables[table], scan_table_query)
+                    currentTableNodes = self._optimize_with_skip_data_getSlices(new_tables[table], scan_table_query,single_gpu)
                 else:
-                    currentTableNodes = new_tables[table].getSlices(len(self.nodes))
+                    if single_gpu == True:
+                        currentTableNodes = new_tables[table].getSlices(1)
+                    else:
+                        currentTableNodes = new_tables[table].getSlices(len(self.nodes))
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
-                if new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
+                if single_gpu == True:
+                    #TODO: repartition onto the node that does the work
+                    print("Unsupported running single_gpu queries on dask_cudf please use files")
+                elif new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
                     print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
                     temp_df = new_tables[table].input.compute()
                     new_tables[table].input = dask_cudf.from_cudf(temp_df,npartitions=len(self.nodes))
@@ -1650,33 +1680,51 @@ class BlazingContext(object):
                         use_execution_graph,
                         self.config_options)
         else:
-            dask_futures = []
-            i = 0
-            for node in self.nodes:
-                worker = node['worker']
-                dask_futures.append(
-                    self.dask_client.submit(
+            if single_gpu == True:
+                #the following is wrapped in an array because .sql expects to return
+                #an array of dask_futures or a df, this makes it consistent
+                result = [self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
-                        self.nodes,
-                        nodeTableList[i],
+                        [self.nodes[0],],
+                        nodeTableList[0],
                         fileTypes,
                         ctxToken,
                         algebra,
                         accessToken,
                         use_execution_graph,
-                        self.config_options,
-                        workers=[worker]))
-                i = i + 1
+                        self.config_options)]
+            else:
+                dask_futures = []
+                i = 0
+                for node in self.nodes:
+                    worker = node['worker']
+                    dask_futures.append(
+                        self.dask_client.submit(
+                            collectPartitionsRunQuery,
+                            masterIndex,
+                            self.nodes,
+                            nodeTableList[i],
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            use_execution_graph,
+                            self.config_options,
+                            workers=[worker]))
+                    i = i + 1
+                if(return_futures):
+                    result  = dask_futures
+                else:
+                    meta_results = self.dask_client.gather(dask_futures)
 
-            meta_results = self.dask_client.gather(dask_futures)
+                    futures = []
+                    for length, meta, dfs in meta_results:
+                        for i in range(0,length):
+                            futures.append(self.dask_client.submit(get_element, dfs, 0))
 
-            futures = []
-            for length, meta, dfs in meta_results:
-                for i in range(0,length):
-                    futures.append(self.dask_client.submit(get_element, dfs, 0))
+                    result = dask.dataframe.from_delayed(futures, meta=meta)
 
-            result = dask.dataframe.from_delayed(futures, meta=meta)
         return result
 
     # END SQL interface
