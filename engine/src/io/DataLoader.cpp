@@ -36,9 +36,6 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	const Schema & schema,
   std::string filterString) {
 
-	static CodeTimer timer;
-	timer.reset();
-
 	std::vector<size_t> column_indices = column_indices_in;
 	if(column_indices.size() == 0) {  // including all columns by default
 		column_indices.resize(schema.get_num_columns());
@@ -157,9 +154,6 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 	}
 	std::for_each(threads.begin(), threads.end(), [](BlazingThread & this_thread) { this_thread.join(); });
 
-	Library::Logging::Logger().logInfo(timer.logDuration(*context, "data_loader::load_data part 1 parse"));
-	timer.reset();
-
 	// checking if any errors occurred
 	std::vector<std::string> provider_errors = this->provider->get_errors();
 	if(provider_errors.size() != 0) {
@@ -189,9 +183,6 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 
 		return std::move(parsed_table);
 	}
-
-	Library::Logging::Logger().logInfo(timer.logDuration(*context, "data_loader::load_data part 2 concat"));
-	timer.reset();
 
 	if(num_files == 1) {  // we have only one file so we can just return the columns we parsed from that file
 		return std::move(blazingTable_per_file[0]);
