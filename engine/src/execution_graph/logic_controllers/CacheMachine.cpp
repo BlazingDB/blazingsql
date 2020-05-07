@@ -371,8 +371,7 @@ bool CacheMachine::thresholds_are_met(std::uint32_t batches_count, std::size_t b
 void CacheMachine::wait_if_cache_is_saturated() {
 
 	logger->trace("|||{info}||kernel_id||rows|",
-								"info"_a="wait_if_cache_is_saturated start",
-								);
+								"info"_a="wait_if_cache_is_saturated start");
 
 	std::unique_lock<std::mutex> lock(flow_control_mutex);
 	flow_control_condition_variable.wait(lock, [&, this] { 
@@ -380,8 +379,7 @@ void CacheMachine::wait_if_cache_is_saturated() {
 	});
 
 	logger->trace("|||{info}||kernel_id||rows|",
-								"info"_a="wait_if_cache_is_saturated end",
-								);
+								"info"_a="wait_if_cache_is_saturated end");
 }
 
 
@@ -408,8 +406,7 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::uint32_t flow_control_
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache(Context * ctx) {
 	
 	logger->trace("|||{info}||kernel_id||rows|",
-								"info"_a="ConcatenatingCacheMachine::pullFromCache start",
-								);
+								"info"_a="ConcatenatingCacheMachine::pullFromCache start");
 	
 	
 	size_t total_bytes = 0;
