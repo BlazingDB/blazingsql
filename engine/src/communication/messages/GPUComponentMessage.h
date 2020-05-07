@@ -27,7 +27,6 @@ namespace ral {
 namespace communication {
 namespace messages {
 
-namespace experimental {
 
 using Node = blazingdb::transport::experimental::Node;
 using Address = blazingdb::transport::experimental::Address;
@@ -138,7 +137,6 @@ protected:
 	ral::frame::BlazingTableView table_view; 
 };
 
-}  // namespace experimental
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral

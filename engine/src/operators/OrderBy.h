@@ -8,7 +8,6 @@
 
 namespace ral {
 namespace operators {
-namespace experimental {
 
 namespace {
   using blazingdb::manager::experimental::Context;
@@ -36,6 +35,5 @@ limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_li
 
 std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part);
 
-}  // namespace experimental
 }  // namespace operators
 }  // namespace ral

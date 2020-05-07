@@ -149,8 +149,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     }
 
   	context->incrementQuerySubstep();
-    ral::distribution::experimental::distributePartitions(context, partitions);
-    std::vector<NodeColumn> remote_node_columns = ral::distribution::experimental::collectPartitions(context);
+    ral::distribution::distributePartitions(context, partitions);
+    std::vector<NodeColumn> remote_node_columns = ral::distribution::collectPartitions(context);
 
     std::vector<ral::frame::BlazingTableView> partitions_to_concat;
     for (int i = 0; i < remote_node_columns.size(); i++){
@@ -158,14 +158,14 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     }
     bool found_self_partition = false;
     for (auto partition : partitions){
-      if (partition.first == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+      if (partition.first == ral::communication::CommunicationData::getInstance().getSelfNode()){
         partitions_to_concat.emplace_back(partition.second);
         found_self_partition = true;
         break;
       }
     }
     assert(found_self_partition);
-    return ral::utilities::experimental::concatTables(partitions_to_concat);
+    return ral::utilities::concatTables(partitions_to_concat);
   }
 
 bool check_if_has_nulls(CudfTableView const& input, std::vector<cudf::size_type> const& keys){

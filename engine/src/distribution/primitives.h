@@ -7,7 +7,7 @@
 
 namespace ral {
 namespace distribution {
-namespace experimental {
+
 	namespace {
 		using Context = blazingdb::manager::experimental::Context;
 		using Node = blazingdb::transport::experimental::Node;
@@ -56,7 +56,7 @@ namespace experimental {
 
 	// multi-threaded message sender
 	void broadcastMessage(std::vector<Node> nodes, 
-			std::shared_ptr<communication::messages::experimental::Message> message);
+			std::shared_ptr<communication::messages::Message> message);
 			
 	void distributeNumRows(Context * context, int64_t num_rows);
 
@@ -67,14 +67,12 @@ namespace experimental {
 	void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,
 			std::vector<int64_t> & node_num_bytes_right);
 	
-}  // namespace experimental
 }  // namespace distribution
 }  // namespace ral
 
 namespace ral {
 namespace distribution {
 namespace sampling {
-namespace experimental {
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
 	const ral::frame::BlazingTableView & table, const double ratio);
@@ -82,7 +80,6 @@ std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
 std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	const ral::frame::BlazingTableView & table, const size_t quantile);
 
-}  // namespace experimental
 }  // namespace sampling
 }  // namespace distribution
 }  // namespace ral

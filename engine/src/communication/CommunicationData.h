@@ -1,5 +1,4 @@
-#ifndef COMMUNICATION_DATA_H_
-#define COMMUNICATION_DATA_H_
+#pragma once 
 
 #include <blazingdb/transport/Node.h>
 #include <memory>
@@ -7,7 +6,6 @@
 
 namespace ral {
 namespace communication {
-namespace experimental {
 
 class CommunicationData {
 public:
@@ -38,8 +36,5 @@ private:
 	blazingdb::transport::experimental::Node selfNode;
 };
 
-}  // namespace experimental
 }  // namespace communication
 }  // namespace ral
-
-#endif /* COMMUNICATION_DATA_H_ */

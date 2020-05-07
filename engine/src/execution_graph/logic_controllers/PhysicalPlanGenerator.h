@@ -136,7 +136,7 @@ struct tree_processor {
 			auto merge_expr = expr;
 			auto partition_expr = expr;
 			auto sort_and_sample_expr = expr;
-			if(ral::operators::experimental::has_limit_only(expr)){
+			if(ral::operators::has_limit_only(expr)){
 				StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
 
 				p_tree.put("expr", limit_expr);

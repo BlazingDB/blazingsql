@@ -144,7 +144,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
-		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
+		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
 		std::unique_ptr<ral::frame::BlazingTable> frame;
@@ -184,7 +184,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
-		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
+		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		const std::vector<std::string> & table_col_names = table.names();
 

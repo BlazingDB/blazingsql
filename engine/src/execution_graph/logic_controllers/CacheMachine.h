@@ -84,7 +84,7 @@ private:
  	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) 
 		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows()) 
 	{
-		this->host_table = ral::communication::messages::experimental::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
+		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
  	}
 
 	CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table)
@@ -92,7 +92,7 @@ private:
 	{
 	}
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {
- 		return ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
+ 		return ral::communication::messages::deserialize_from_cpu(host_table.get());
  	}
 
 	std::unique_ptr<ral::frame::BlazingHostTable> releaseHostTable() {

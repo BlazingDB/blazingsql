@@ -6,7 +6,6 @@
 namespace ral {
 namespace communication {
 namespace network {
-namespace experimental {
 
 using CommServer = blazingdb::transport::experimental::Server;
 using ContextToken = uint32_t;
@@ -58,8 +57,6 @@ private:
 	static bool use_batch_processing_;
 };
 
-
-}  // namespace experimental
 }  // namespace network
 }  // namespace communication
 }  // namespace ral

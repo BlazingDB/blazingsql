@@ -6,8 +6,6 @@
 namespace ral {
 namespace communication {
 namespace network {
-namespace experimental{
-// static std::map<std::pair<std::string, int16_t>, std::shared_ptr<blazingdb::transport::Client> > ral_clients;
 
 // concurrent::send
 Status Client::send(const Node & node, GPUMessage & message) {
@@ -37,7 +35,7 @@ Status Client::sendNodeData(std::string ip, int16_t port, Message & message) {
 	// return client->Send(message);
 	return Status{};
 }
-}  // namespace experimental
+
 }  // namespace network
 }  // namespace communication
 }  // namespace ral

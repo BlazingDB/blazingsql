@@ -24,7 +24,6 @@ enum AggregateKind{
 
 namespace ral {
 namespace operators {
-namespace experimental {
 
 	std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>, std::vector<std::string>> 
 		parseGroupByExpression(const std::string & queryString);
@@ -44,6 +43,5 @@ namespace experimental {
 		const ral::frame::BlazingTableView & table, const std::vector<std::string> & aggregation_input_expressions, const std::vector<AggregateKind> & aggregation_types,
 		const std::vector<std::string> & aggregation_column_assigned_aliases, const std::vector<int> & group_column_indices);
 
-}  // namespace experimental
 }  // namespace operators
 }  // namespace ral

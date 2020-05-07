@@ -124,7 +124,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 								cudf::type_id type = schema.get_dtype(col_ind);
 								std::string scalar_string = file_sets[file_set_index][file_in_set].column_values[name];
 								if(type == cudf::type_id::STRING){
-									all_columns[i] = ral::utilities::experimental::make_string_column_from_scalar(scalar_string, num_rows);
+									all_columns[i] = ral::utilities::make_string_column_from_scalar(scalar_string, num_rows);
 								} else {
 									std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
 									size_t width_per_value = cudf::size_of(scalar->type());
@@ -209,7 +209,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 			}
 		}
 
-		return ral::utilities::experimental::concatTables(table_views);
+		return ral::utilities::concatTables(table_views);
 	}
 }
 
@@ -285,7 +285,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 	if (metadata_batches.size() == 1){
 		return std::move(metadata_batches[0]);
 	} else {
-		return ral::utilities::experimental::concatTables(metadata_batche_views);
+		return ral::utilities::concatTables(metadata_batche_views);
 	}
 }
 

@@ -8,7 +8,7 @@
 namespace ral {
 namespace communication {
 namespace network {
-namespace experimental{
+
 using Node = blazingdb::transport::experimental::Node;
 using GPUMessage = blazingdb::transport::experimental::GPUMessage;
 using Message = blazingdb::transport::experimental::Message;
@@ -24,7 +24,7 @@ public:
 
 	static void closeConnections();
 };
-}  // namespace experimental
+
 }  // namespace network
 }  // namespace communication
 }  // namespace ral

@@ -16,8 +16,6 @@
 namespace ral {
 namespace operators {
 
-namespace experimental {
-
 cudf::experimental::aggregation::Kind convertAggregationCudf(AggregateKind input){
 	if(input == AggregateKind::SUM){
 		return cudf::experimental::aggregation::Kind::SUM;
@@ -111,7 +109,7 @@ std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind
 		std::move(mod_aggregation_types), std::move(mod_aggregation_column_assigned_aliases));
 }
 
-using namespace ral::distribution::experimental;
+using namespace ral::distribution;
 
 std::unique_ptr<ral::frame::BlazingTable> compute_groupby_without_aggregations(
 		const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
@@ -284,6 +282,5 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	return std::make_unique<BlazingTable>(std::move(output_table), output_names);
 }
 
-}  // namespace experimental
 }  // namespace operators
 }  // namespace ral

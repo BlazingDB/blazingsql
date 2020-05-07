@@ -20,21 +20,20 @@
 
 namespace ral {
 namespace distribution {
-namespace experimental {
 
 typedef ral::frame::BlazingTable BlazingTable;
 typedef ral::frame::BlazingTableView BlazingTableView;
 typedef blazingdb::manager::experimental::Context Context;
 typedef blazingdb::transport::experimental::Node Node;
-typedef ral::communication::messages::experimental::Factory Factory;
-typedef ral::communication::messages::experimental::SampleToNodeMasterMessage SampleToNodeMasterMessage;
-typedef ral::communication::messages::experimental::PartitionPivotsMessage PartitionPivotsMessage;
-typedef ral::communication::messages::experimental::ColumnDataMessage ColumnDataMessage;
-typedef ral::communication::messages::experimental::ColumnDataPartitionMessage ColumnDataPartitionMessage;
-typedef ral::communication::messages::experimental::ReceivedDeviceMessage ReceivedDeviceMessage;
-typedef ral::communication::experimental::CommunicationData CommunicationData;
-typedef ral::communication::network::experimental::Server Server;
-typedef ral::communication::network::experimental::Client Client;
+typedef ral::communication::messages::Factory Factory;
+typedef ral::communication::messages::SampleToNodeMasterMessage SampleToNodeMasterMessage;
+typedef ral::communication::messages::PartitionPivotsMessage PartitionPivotsMessage;
+typedef ral::communication::messages::ColumnDataMessage ColumnDataMessage;
+typedef ral::communication::messages::ColumnDataPartitionMessage ColumnDataPartitionMessage;
+typedef ral::communication::messages::ReceivedDeviceMessage ReceivedDeviceMessage;
+typedef ral::communication::CommunicationData CommunicationData;
+typedef ral::communication::network::Server Server;
+typedef ral::communication::network::Client Client;
 
 
 
@@ -93,7 +92,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples, 
 				const std::vector<cudf::order> & sortOrderTypes) {
 
-	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
+	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::concatTables(samples);
 
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 	// TODO this is just a default setting. Will want to be able to properly set null_order
@@ -353,7 +352,7 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 }
 
 void broadcastMessage(std::vector<Node> nodes, 
-			std::shared_ptr<communication::messages::experimental::Message> message) {
+			std::shared_ptr<communication::messages::Message> message) {
 	std::vector<BlazingThread> threads(nodes.size());
 	for(size_t i = 0; i < nodes.size(); i++) {
 		Node node = nodes[i];
@@ -464,7 +463,6 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 	}
 }
 
-}  // namespace experimental
 }  // namespace distribution
 }  // namespace ral
 
@@ -473,7 +471,6 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 namespace ral {
 namespace distribution {
 namespace sampling {
-namespace experimental {
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
 	const ral::frame::BlazingTableView & table, const double ratio) {
@@ -486,7 +483,6 @@ std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	return ral::generator::generate_sample(table, quantile);
 }
 
-}  // namespace experimental
 }  // namespace sampling
 }  // namespace distribution
 }  // namespace ral

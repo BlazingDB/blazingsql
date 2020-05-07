@@ -14,8 +14,6 @@
 
 namespace ral {
 namespace utilities {
-namespace experimental {
-
 
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables) {
 	assert(tables.size() >= 0);
@@ -148,6 +146,5 @@ int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
 	}
 }
 
-}  // namespace experimental
 }  // namespace utilities
 }  // namespace ral

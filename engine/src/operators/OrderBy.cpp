@@ -17,12 +17,11 @@ using namespace fmt::literals;
 
 namespace ral {
 namespace operators {
-namespace experimental {
 
 using blazingdb::manager::experimental::Context;
 using blazingdb::transport::experimental::Node;
-using ral::communication::experimental::CommunicationData;
-using namespace ral::distribution::experimental;
+using ral::communication::CommunicationData;
+using namespace ral::distribution;
 
 const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
@@ -96,9 +95,9 @@ std::unique_ptr<cudf::experimental::table> logicalLimit(const cudf::table_view& 
  *---------------------------------------------------------------------------**/
 int64_t determine_local_limit(Context * context, int64_t local_num_rows, cudf::size_type limit_rows){
 	context->incrementQuerySubstep();
-	ral::distribution::experimental::distributeNumRows(context, local_num_rows);
+	ral::distribution::distributeNumRows(context, local_num_rows);
 
-	std::vector<int64_t> nodesRowSize = ral::distribution::experimental::collectNumRows(context);
+	std::vector<int64_t> nodesRowSize = ral::distribution::collectNumRows(context);
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
 	int64_t prev_total_rows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, int64_t(0));
 
@@ -177,7 +176,7 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	
 	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), sortColNames);
 
-	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::experimental::generateSamplesFromRatio(sortColumns, 0.1);
+	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::generateSamplesFromRatio(sortColumns, 0.1);
 	return selfSamples;
 }
 
@@ -190,7 +189,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_typ
 	// Normalize indices, samples contains the filtered columns
 	std::iota(sortColIndices.begin(), sortColIndices.end(), 0);
 
-	auto concat_samples = ral::utilities::experimental::concatTables(samples);
+	auto concat_samples = ral::utilities::concatTables(samples);
 	auto sorted_samples = logicalSort(concat_samples->toBlazingTableView(), sortColIndices, sortOrderTypes);
 
 	// ral::utilities::print_blazing_table_view(sorted_samples->toBlazingTableView());
@@ -324,6 +323,5 @@ std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingT
 	return sortedMerger(partitions_to_merge, sortOrderTypes, sortColIndices);
 }
 
-}  // namespace experimental
 }  // namespace operators
 }  // namespace ral

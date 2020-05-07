@@ -2,7 +2,6 @@
 
 namespace ral {
 namespace communication {
-namespace experimental {
 
 CommunicationData::CommunicationData() : orchestratorPort{0} {}
 
@@ -31,6 +30,5 @@ std::string CommunicationData::getOrchestratorIp() { return orchestratorIp; }
 
 int16_t CommunicationData::getOrchestratorPort() { return orchestratorPort; }
 
-}  // namespace experimental
 }  // namespace communication
 }  // namespace ral

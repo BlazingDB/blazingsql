@@ -33,7 +33,7 @@ public:
 
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
         std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types, 
-            aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
+            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
 		BatchSequence input(this->input_cache(), this);
         int batch_count = 0;
@@ -43,13 +43,13 @@ public:
             try {
                 std::unique_ptr<ral::frame::BlazingTable> output;
                 if(this->aggregation_types.size() == 0) {
-                    output = ral::operators::experimental::compute_groupby_without_aggregations(
+                    output = ral::operators::compute_groupby_without_aggregations(
                             batch->toBlazingTableView(), this->group_column_indices);
                 } else if (this->group_column_indices.size() == 0) {
-                    output = ral::operators::experimental::compute_aggregations_without_groupby(
+                    output = ral::operators::compute_aggregations_without_groupby(
                             batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases);                
                 } else {
-                    output = ral::operators::experimental::compute_aggregations_with_groupby(
+                    output = ral::operators::compute_aggregations_with_groupby(
                         batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
                 }
                 
@@ -109,7 +109,7 @@ public:
 	}
 
 	virtual kstatus run() {
-        using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
+        using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
         
         CodeTimer timer;
 		
@@ -117,7 +117,7 @@ public:
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases; // not used in this kernel
         std::vector<AggregateKind> aggregation_types; // not used in this kernel
         std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
-            aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
+            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
         std::vector<cudf::size_type> columns_to_hash;
         std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
@@ -139,18 +139,18 @@ public:
 
                     // If its an aggregation without group by we want to send all the results to the master node
                     if (group_column_indices.size() == 0) {
-                        if(this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
+                        if(this->context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
                             this->add_to_output_cache(std::move(batch));
                         } else {  
                             if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
                                 std::unique_ptr<ral::frame::BlazingTable> empty = 
-                                    ral::utilities::experimental::create_empty_table(batch->toBlazingTableView());
+                                    ral::utilities::create_empty_table(batch->toBlazingTableView());
                                 this->add_to_output_cache(std::move(empty));
                                 set_empty_part_for_non_master_node = true;
                             }
-                            std::vector<ral::distribution::experimental::NodeColumnView> selfPartition;
+                            std::vector<ral::distribution::NodeColumnView> selfPartition;
                             selfPartition.emplace_back(this->context->getMasterNode(), batch->toBlazingTableView());
-                            ral::distribution::experimental::distributeTablePartitions(this->context.get(), selfPartition);
+                            ral::distribution::distributeTablePartitions(this->context.get(), selfPartition);
                         }
                     } else {
                         CudfTableView batch_view = batch->view();
@@ -169,10 +169,10 @@ public:
                             }
                         }
 
-                        std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
+                        std::vector<ral::distribution::NodeColumnView > partitions_to_send;
                         for(int nodeIndex = 0; nodeIndex < this->context->getTotalNodes(); nodeIndex++ ){
                             ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-                            if (this->context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+                            if (this->context->getNode(nodeIndex) == ral::communication::CommunicationData::getInstance().getSelfNode()){
                                 // hash_partition followed by split does not create a partition that we can own, so we need to clone it.
                                 // if we dont clone it, hashed_data will go out of scope before we get to use the partition
                                 // also we need a BlazingTable to put into the cache, we cant cache views.
@@ -183,7 +183,7 @@ public:
                                     std::make_pair(this->context->getNode(nodeIndex), partition_table_view));
                             }
                         }
-                        ral::distribution::experimental::distributeTablePartitions(this->context.get(), partitions_to_send);			
+                        ral::distribution::distributeTablePartitions(this->context.get(), partitions_to_send);			
                     }
                     batch_count++;
                 } catch(const std::exception& e) {
@@ -198,16 +198,16 @@ public:
             }
 
             if (!(group_column_indices.size() == 0
-                && this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode()))) {
+                && this->context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode()))) {
                 // Aggregations without groupby does not send distributeTablePartitions
-                ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
+                ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
             }
         });
         
         BlazingThread consumer_thread([this, group_column_indices](){
             // Lets put the server listener to feed the output, but not if its aggregations without group by and its not the master
             if(group_column_indices.size() > 0 || 
-                        this->context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
+                        this->context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
                 ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id());
                 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
                 while (host_table = external_input.next()) {
@@ -261,29 +261,29 @@ public:
                 tableViewsToConcat.emplace_back(batch->toBlazingTableView());
                 tablesToConcat.emplace_back(std::move(batch));
             }
-            auto concatenated = ral::utilities::experimental::concatTables(tableViewsToConcat);
+            auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
                     
             std::vector<int> group_column_indices;
             std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
             std::vector<AggregateKind> aggregation_types;
             std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
-                aggregation_column_assigned_aliases) = ral::operators::experimental::parseGroupByExpression(this->expression);
+                aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
             std::vector<int> mod_group_column_indices;
             std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
             std::vector<AggregateKind> mod_aggregation_types;
             std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types, 
-                mod_aggregation_column_assigned_aliases) = ral::operators::experimental::modGroupByParametersForMerge(
+                mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersForMerge(
                 group_column_indices, aggregation_types, concatenated->names());
 
             std::unique_ptr<ral::frame::BlazingTable> output;
             if(aggregation_types.size() == 0) {
-                output = ral::operators::experimental::compute_groupby_without_aggregations(
+                output = ral::operators::compute_groupby_without_aggregations(
                         concatenated->toBlazingTableView(), mod_group_column_indices);
             } else if (group_column_indices.size() == 0) {
                 // aggregations without groupby are only merged on the master node
-                if(context->isMasterNode(ral::communication::experimental::CommunicationData::getInstance().getSelfNode())) {
-                    output = ral::operators::experimental::compute_aggregations_without_groupby(
+                if(context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
+                    output = ral::operators::compute_aggregations_without_groupby(
                             concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types, 
                             mod_aggregation_column_assigned_aliases);
                 } else {
@@ -291,7 +291,7 @@ public:
                     output = std::move(concatenated);
                 }
             } else {
-                output = ral::operators::experimental::compute_aggregations_with_groupby(
+                output = ral::operators::compute_aggregations_with_groupby(
                         concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
                         mod_aggregation_column_assigned_aliases, mod_group_column_indices);
             }

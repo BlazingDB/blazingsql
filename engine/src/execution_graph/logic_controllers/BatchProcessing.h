@@ -113,9 +113,9 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
 };
 
-typedef ral::communication::network::experimental::Server Server;
-typedef ral::communication::network::experimental::Client Client;
-using ral::communication::messages::experimental::ReceivedHostMessage;
+using ral::communication::network::Server;
+using ral::communication::network::Client;
+using ral::communication::messages::ReceivedHostMessage;
 
 template<class MessageType>
 class ExternalBatchColumnDataSequence {
