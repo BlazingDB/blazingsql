@@ -1024,6 +1024,7 @@ class BlazingContext(object):
         """
         try:
             algebra = str(self.generator.getRelationalAlgebraString(sql))
+            algebraNonOptimized = str(self.generator.getRelationalAlgebraNonOptimizedString(sql))
         except jpype.JException as exception:
             algebra = ""
             print("SQL Parsing Error")
@@ -1032,6 +1033,11 @@ class BlazingContext(object):
             print("Error found")
             print(algebra)
             algebra=""
+
+        # When there is neither TableScan nor BindableTableScan nor Project and we still need the schema. An empty table will be returned
+        if algebra.find("LogicalValues(tuples=[[]])"):
+            algebra = algebraNonOptimized
+
         return algebra
 
     def add_remove_table(self, tableName, addTable, table=None):

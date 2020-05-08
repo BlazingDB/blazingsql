@@ -256,4 +256,49 @@ public class RelationalAlgebraGenerator {
 
 		return response;
 	}
+	
+	/**
+	 * Takes a sql statement and converts it into an Non-optimized relational algebra
+	 * node.
+	 *
+	 * @param sql a string sql query that is to be parsed and converted into
+	 *     relational algebra
+	 * @return a RelNode which contains the relational algebra tree generated from
+	 *     the sql statement provided 
+	 * @throws SqlSyntaxException, SqlValidationException, RelConversionException
+	 */
+	public RelNode
+	getRelationalAlgebraNonOptimized(String sql) throws SqlSyntaxException, SqlValidationException, RelConversionException {
+		RelNode nonOptimizedPlan = getNonOptimizedRelationalAlgebra(sql);
+		LOGGER.debug("non optimized\n" + RelOptUtil.toString(nonOptimizedPlan));
+
+		return nonOptimizedPlan;
+	}
+	
+	public String
+	getRelationalAlgebraNonOptimizedString(String sql) throws SqlSyntaxException, SqlValidationException, RelConversionException {
+		String response = "";
+
+		try {
+			response = RelOptUtil.toString(getRelationalAlgebraNonOptimized(sql));
+		}catch(SqlValidationException ex){
+			//System.out.println(ex.getMessage());
+			//System.out.println("Found validation err!");
+			return "fail: \n " + ex.getMessage();
+		}catch(SqlSyntaxException ex){
+			//System.out.println(ex.getMessage());
+			//System.out.println("Found syntax err!");
+			return "fail: \n " + ex.getMessage();
+		} catch(Exception ex) {
+			//System.out.println(ex.toString());
+			//System.out.println(ex.getMessage());
+			ex.printStackTrace();
+
+			LOGGER.error(ex.getMessage());
+			return "fail: \n " + ex.getMessage();
+		}
+
+		return response;
+	}
+	
 }
