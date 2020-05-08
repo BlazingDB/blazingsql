@@ -738,7 +738,8 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
                                        if None, and pool=True, defaults to 1/2 GPU memory.
         enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
-        config_options (optional) : this is a dictionary for setting certain parameters in the engine:
+        config_options (optional) : this is a dictionary for setting certain parameters in the engine. These parameters will be used for all queries except
+                                    if overriden by setting these parameters when running the query itself. The possible parameters are:
                                     JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join
                                            before doing the join. Too small can lead to overpartitioning, too big can lead to OOM errors.
                                            default: 400000000
@@ -1540,7 +1541,7 @@ collectParti
             return input
 
 
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True, return_futures=False, single_gpu=False):
+    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True, return_futures=False, single_gpu=False, config_options={}):
         """
         Query a BlazingSQL table.
 
@@ -1548,9 +1549,14 @@ collectParti
 
         Parameters
         ----------
-
-        sql : string of SQL query.
-        algebra (optional) : string of SQL algebra plan. if you used, sql string is not used.
+        query :                     string of SQL query.
+        algebra (optional) :        string of SQL algebra plan. Use this to run on a relational algebra, instead of the query string 
+        return_futures (optional) : defaulted to false. Set to true if you want the `sql` function to return futures instead of data
+        single_gpu (optional) :     defaulted to false. Set to true if you want to run the query on a single gpu, even is the BlazingContext
+                                    is setup with a dask cluster. This is useful for manually running different queries on different gpus
+                                    simultaneously.
+        config_options (optional) : defaulted to empty. You can use this to set a specific set of config_options for this query instead
+                                    of the ones set in BlazingContext. See BlazingContext for more info on this parameter
 
         Examples
         --------
@@ -1601,11 +1607,16 @@ collectParti
         fileTypes = []
 
         if (algebra is None):
-            algebra = self.explain(sql)
+            algebra = self.explain(query)
 
         if algebra == '':
             print("Parsing Error")
             return
+
+        if len(config_options) == 0:
+            query_config_options = self.config_options 
+        else:
+            query_config_options = config_options
 
         if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
@@ -1673,7 +1684,7 @@ collectParti
                         algebra,
                         accessToken,
                         use_execution_graph,
-                        self.config_options)
+                        query_config_options)
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
@@ -1688,7 +1699,7 @@ collectParti
                         algebra,
                         accessToken,
                         use_execution_graph,
-                        self.config_options)]
+                        query_config_options)]
             else:
                 dask_futures = []
                 i = 0
@@ -1705,7 +1716,7 @@ collectParti
                             algebra,
                             accessToken,
                             use_execution_graph,
-                            self.config_options,
+                            query_config_options,
                             workers=[worker]))
                     i = i + 1
                 if(return_futures):
