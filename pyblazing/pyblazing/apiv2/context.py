@@ -1035,7 +1035,7 @@ class BlazingContext(object):
             algebra=""
 
         # When there is neither TableScan nor BindableTableScan nor Project and we still need the schema. An empty table will be returned
-        if algebra.find("LogicalValues(tuples=[[]])"):
+        if algebra.find("LogicalValues(tuples=[[]])") or algebra.rstrip() == "LogicalValues(tuples=[[]])":
             algebra = algebraNonOptimized
 
         return algebra
