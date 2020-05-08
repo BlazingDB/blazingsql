@@ -23,7 +23,7 @@
 namespace ral {
 namespace cache {
 
-using Context = blazingdb::manager::experimental::Context;
+using Context = blazingdb::manager::Context;
 using namespace fmt::literals;
 
 /// \brief An enum type to represent the cache level ID

@@ -9,10 +9,10 @@ namespace ral {
 namespace communication {
 namespace network {
 
-using Node = blazingdb::transport::experimental::Node;
-using GPUMessage = blazingdb::transport::experimental::GPUMessage;
-using Message = blazingdb::transport::experimental::Message;
-using Status = blazingdb::transport::experimental::Status;
+using Node = blazingdb::transport::Node;
+using GPUMessage = blazingdb::transport::GPUMessage;
+using Message = blazingdb::transport::Message;
+using Status = blazingdb::transport::Status;
 
 class Client {
 public:

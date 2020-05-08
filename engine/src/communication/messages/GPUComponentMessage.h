@@ -28,13 +28,13 @@ namespace communication {
 namespace messages {
 
 
-using Node = blazingdb::transport::experimental::Node;
-using Address = blazingdb::transport::experimental::Address;
-using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
-using GPUMessage = blazingdb::transport::experimental::GPUMessage;
-using ReceivedMessage = blazingdb::transport::experimental::ReceivedMessage;
-using MessageMetadata = blazingdb::transport::experimental::Message::MetaData;
-using gpu_raw_buffer_container = blazingdb::transport::experimental::gpu_raw_buffer_container;
+using Node = blazingdb::transport::Node;
+using Address = blazingdb::transport::Address;
+using ColumnTransport = blazingdb::transport::ColumnTransport;
+using GPUMessage = blazingdb::transport::GPUMessage;
+using ReceivedMessage = blazingdb::transport::ReceivedMessage;
+using MessageMetadata = blazingdb::transport::Message::MetaData;
+using gpu_raw_buffer_container = blazingdb::transport::gpu_raw_buffer_container;
 
 gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::BlazingTableView table_view);
 

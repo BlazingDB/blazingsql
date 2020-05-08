@@ -8,7 +8,6 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 /// \brief Represents the address (ip:port)
 ///
@@ -50,6 +49,5 @@ public:
                                       const std::int16_t protocol_port);  
 };
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

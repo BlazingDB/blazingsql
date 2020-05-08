@@ -22,8 +22,8 @@
 #include <arrow/io/file.h>
 #include <arrow/util/logging.h>
 
-using blazingdb::manager::experimental::Context;
-using Node = blazingdb::transport::experimental::Node;
+using blazingdb::manager::Context;
+using Node = blazingdb::transport::Node;
 
 struct ParseCSVTest : public ::testing::Test {
 

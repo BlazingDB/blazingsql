@@ -10,7 +10,7 @@ namespace ral {
 namespace operators {
 
 namespace {
-  using blazingdb::manager::experimental::Context;
+  using blazingdb::manager::Context;
 }
 
 std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part);

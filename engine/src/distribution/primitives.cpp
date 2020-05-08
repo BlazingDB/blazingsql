@@ -23,8 +23,8 @@ namespace distribution {
 
 typedef ral::frame::BlazingTable BlazingTable;
 typedef ral::frame::BlazingTableView BlazingTableView;
-typedef blazingdb::manager::experimental::Context Context;
-typedef blazingdb::transport::experimental::Node Node;
+typedef blazingdb::manager::Context Context;
+typedef blazingdb::transport::Node Node;
 typedef ral::communication::messages::Factory Factory;
 typedef ral::communication::messages::SampleToNodeMasterMessage SampleToNodeMasterMessage;
 typedef ral::communication::messages::PartitionPivotsMessage PartitionPivotsMessage;
@@ -34,7 +34,6 @@ typedef ral::communication::messages::ReceivedDeviceMessage ReceivedDeviceMessag
 typedef ral::communication::CommunicationData CommunicationData;
 typedef ral::communication::network::Server Server;
 typedef ral::communication::network::Client Client;
-
 
 
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
@@ -229,7 +228,7 @@ void notifyLastTablePartitions(Context * context, std::string message_id) {
 	auto nodes = context->getAllNodes();
 	for(std::size_t i = 0; i < nodes.size(); ++i) {
 		if(!(nodes[i] == self_node)) {
-			blazingdb::transport::experimental::Message::MetaData metadata;
+			blazingdb::transport::Message::MetaData metadata;
 			std::strcpy(metadata.messageToken, full_message_id.c_str());
 			metadata.contextToken = context_token;
 			Client::notifyLastMessageEvent(nodes[i], metadata);

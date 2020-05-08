@@ -133,13 +133,13 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
 	try {
-		using blazingdb::manager::experimental::Context;
-		using blazingdb::transport::experimental::Node;
+		using blazingdb::manager::Context;
+		using blazingdb::transport::Node;
 
 		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
 			contextNodes.push_back(Node(address));
 		}
 
@@ -173,13 +173,13 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 
 		std::vector<int> columnIndices;
 
-		using blazingdb::manager::experimental::Context;
-		using blazingdb::transport::experimental::Node;
+		using blazingdb::manager::Context;
+		using blazingdb::transport::Node;
 
 		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
 			contextNodes.push_back(Node(address));
 		}
 

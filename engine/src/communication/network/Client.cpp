@@ -10,13 +10,13 @@ namespace network {
 // concurrent::send
 Status Client::send(const Node & node, GPUMessage & message) {
 	const auto & metadata = node.address().metadata();
-	auto ral_client = blazingdb::transport::experimental::ClientTCP::Make(metadata.ip, metadata.comunication_port);
+	auto ral_client = blazingdb::transport::ClientTCP::Make(metadata.ip, metadata.comunication_port);
 	return ral_client->Send(message);
 }
 
 bool Client::notifyLastMessageEvent(const Node & node, const Message::MetaData &message_metadata) {
 	const auto & metadata = node.address().metadata();
-	auto ral_client = blazingdb::transport::experimental::ClientTCP::Make(metadata.ip, metadata.comunication_port);
+	auto ral_client = blazingdb::transport::ClientTCP::Make(metadata.ip, metadata.comunication_port);
 	return ral_client->notifyLastMessageEvent(message_metadata);
 }
 

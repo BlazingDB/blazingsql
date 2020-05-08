@@ -9,12 +9,12 @@ namespace ral {
 namespace distribution {
 
 	namespace {
-		using Context = blazingdb::manager::experimental::Context;
-		using Node = blazingdb::transport::experimental::Node;
+		using Context = blazingdb::manager::Context;
+		using Node = blazingdb::transport::Node;
 	}  // namespace
 
-	typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
-	typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
+	typedef std::pair<blazingdb::transport::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
+	typedef std::pair<blazingdb::transport::Node, ral::frame::BlazingTableView > NodeColumnView;
 	using namespace ral::frame;
 
 	void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows);

@@ -15,7 +15,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
 std::unique_ptr<ral::frame::BlazingTable> process_project(
   std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
   const std::string & query_part,
-  blazingdb::manager::experimental::Context * context);
+  blazingdb::manager::Context * context);
 
 } // namespace processor
 } // namespace ral

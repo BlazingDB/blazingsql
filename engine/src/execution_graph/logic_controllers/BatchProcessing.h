@@ -61,7 +61,7 @@ using namespace fmt::literals;
 
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
-using Context = blazingdb::manager::experimental::Context;
+using Context = blazingdb::manager::Context;
 class BatchSequence {
 public:
 	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr)

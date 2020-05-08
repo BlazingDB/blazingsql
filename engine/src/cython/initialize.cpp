@@ -85,7 +85,7 @@ void initialize(int ralId,
 	size_t total_gpu_mem_size = ral::config::gpuMemorySize();
 	assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
-	blazingdb::transport::experimental::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
+	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);

@@ -18,8 +18,8 @@ using namespace fmt::literals;
 namespace ral {
 namespace operators {
 
-using blazingdb::manager::experimental::Context;
-using blazingdb::transport::experimental::Node;
+using blazingdb::manager::Context;
+using blazingdb::transport::Node;
 using ral::communication::CommunicationData;
 using namespace ral::distribution;
 
@@ -287,7 +287,7 @@ std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>>
 distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
 													const ral::frame::BlazingTableView & sortedTable,
 													const std::string & query_part,
-													blazingdb::manager::experimental::Context * context) {
+													blazingdb::manager::Context * context) {
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;

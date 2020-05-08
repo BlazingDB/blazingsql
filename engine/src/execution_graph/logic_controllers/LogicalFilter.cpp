@@ -48,7 +48,7 @@ std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const ral::frame::BlazingTableView & table_view,
   const std::string & query_part,
-  blazingdb::manager::experimental::Context * context) {
+  blazingdb::manager::Context * context) {
 
 	if(table_view.num_rows() == 0) {
 		return std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(table_view.view()), table_view.names());
@@ -68,8 +68,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 
 
   namespace{
-    typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
-    typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
+    typedef std::pair<blazingdb::transport::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
+    typedef std::pair<blazingdb::transport::Node, ral::frame::BlazingTableView > NodeColumnView;
   }
 
   void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices) {
@@ -120,7 +120,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   std::unique_ptr<ral::frame::BlazingTable> process_distribution_table(
   	const ral::frame::BlazingTableView & table,
     std::vector<int> & columnIndices,
-    blazingdb::manager::experimental::Context * context) {
+    blazingdb::manager::Context * context) {
 
     std::vector<NodeColumnView > partitions;
     std::unique_ptr<CudfTable> hashed_data;
