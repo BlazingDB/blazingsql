@@ -151,6 +151,36 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         computed_col = cudf::experimental::type_dispatcher(column.type(), cast_to_str_functor{}, column);
         break;
     }
+    case interops::operator_type::BLZ_CAST_TINYINT:
+    {
+        assert(arg_tokens.size() == 1);
+
+        if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
+            break;
+        }
+        
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (column.type().id() == cudf::type_id::STRING) {
+            computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT8});
+        }
+        break;
+    }
+    case interops::operator_type::BLZ_CAST_SMALLINT:
+    {
+        assert(arg_tokens.size() == 1);
+
+        if (!is_var_column(arg_tokens[0])) {
+            // Will be handled by interops
+            break;
+        }
+        
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        if (column.type().id() == cudf::type_id::STRING) {
+            computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT16});
+        }
+        break;
+    }
     case interops::operator_type::BLZ_CAST_INTEGER:
     {
         assert(arg_tokens.size() == 1);
