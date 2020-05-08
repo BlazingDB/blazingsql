@@ -310,6 +310,7 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CAST_DATE:
 	case operator_type::BLZ_CAST_TIMESTAMP:
 	case operator_type::BLZ_CAST_VARCHAR:
+	case operator_type::BLZ_CHAR_LENGTH:
 		return true;
 	default:
 		return false;
@@ -394,6 +395,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
 		return cudf::type_id::BOOL8;
+	case operator_type::BLZ_CHAR_LENGTH:
+		return cudf::type_id::INT32;
 	default:
 	 	assert(false);
 		return cudf::type_id::EMPTY;

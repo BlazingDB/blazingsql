@@ -35,6 +35,7 @@ static std::map<std::string, interops::operator_type> operator_map = {
 	{"CAST_DATE", interops::operator_type::BLZ_CAST_DATE},
 	{"CAST_TIMESTAMP", interops::operator_type::BLZ_CAST_TIMESTAMP},
 	{"CAST_VARCHAR", interops::operator_type::BLZ_CAST_VARCHAR},
+	{"CHAR_LENGTH", interops::operator_type::BLZ_CHAR_LENGTH},
 	
 	// Binary operators
 	{"=", interops::operator_type::BLZ_EQUAL},
