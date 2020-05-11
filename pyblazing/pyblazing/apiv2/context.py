@@ -1032,6 +1032,13 @@ class BlazingContext(object):
             print("Error found")
             print(algebra)
             algebra=""
+
+        # when `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
+        # this line avoid engine crashes
+        if algebra.find("LogicalValues"):
+            print("Make sure your SQL statement is well defined")
+            algebra = ""
+            
         return algebra
 
     def add_remove_table(self, tableName, addTable, table=None):
