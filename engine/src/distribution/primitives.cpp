@@ -4,7 +4,6 @@
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
 #include "utilities/StringUtils.h"
-#include <blazingdb/io/Library/Logging/Logger.h>
 #include <cmath>
 
 #include <cudf/search.hpp>
@@ -17,6 +16,9 @@
 #include "utilities/DebuggingUtils.h"
 #include "utilities/random_generator.cuh"
 #include "Utils.cuh"
+
+#include <spdlog/spdlog.h>
+using namespace fmt::literals;
 
 namespace ral {
 namespace distribution {
@@ -72,10 +74,13 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 		auto node = message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
 		if(received[node_idx]) {
-			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-			// 	std::to_string(context->getQueryStep()),
-			// 	std::to_string(context->getQuerySubstep()),
-			// 	"ERROR: Already received collectSamples from node " + std::to_string(node_idx)));
+			auto logger = spdlog::get("batch_logger");
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+							"query_id"_a=context->getContextToken(),
+							"step"_a=context->getQueryStep(),
+							"substep"_a=context->getQuerySubstep(),
+							"info"_a="Already received collectSamples from node " + std::to_string(node_idx),
+							"duration"_a="");			
 		}
 		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		table_total_rows.push_back(concreteMessage->getTotalRowSize());
@@ -286,10 +291,13 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 		auto node = message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
 		if(received[node_idx]) {
-			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-			// 	std::to_string(context->getQueryStep()),
-			// 	std::to_string(context->getQuerySubstep()),
-			// 	"ERROR: Already received collectSomePartitions from node " + std::to_string(node_idx)));
+			auto logger = spdlog::get("batch_logger");
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+							"query_id"_a=context->getContextToken(),
+							"step"_a=context->getQueryStep(),
+							"substep"_a=context->getQuerySubstep(),
+							"info"_a="Already received collectSomePartitions from node " + std::to_string(node_idx),
+							"duration"_a="");
 		}
 		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		node_columns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
@@ -395,10 +403,13 @@ std::vector<int64_t> collectNumRows(Context * context) {
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);
 		if(received[node_idx]) {
-			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-			// 	std::to_string(context->getQueryStep()),
-			// 	std::to_string(context->getQuerySubstep()),
-			// 	"ERROR: Already received collectRowSize from node " + std::to_string(node_idx)));
+			auto logger = spdlog::get("batch_logger");
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+							"query_id"_a=context->getContextToken(),
+							"step"_a=context->getQueryStep(),
+							"substep"_a=context->getQuerySubstep(),
+							"info"_a="Already received collectNumRows from node " + std::to_string(node_idx),
+							"duration"_a="");			
 		}
 		node_num_rows[node_idx] = concrete_message->getTotalRowSize();
 		received[node_idx] = true;
@@ -451,10 +462,13 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 		int node_idx = context->getNodeIndex(node);
 		assert(node_idx >= 0);
 		if(received[node_idx]) {
-			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-			// 	std::to_string(context->getQueryStep()),
-			// 	std::to_string(context->getQuerySubstep()),
-			// 	"ERROR: Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx)));
+			auto logger = spdlog::get("batch_logger");
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+							"query_id"_a=context->getContextToken(),
+							"step"_a=context->getQueryStep(),
+							"substep"_a=context->getQuerySubstep(),
+							"info"_a="Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx),
+							"duration"_a="");				
 		}
 		node_num_bytes_left[node_idx] = host_data[0];
 		node_num_bytes_right[node_idx] = host_data[1];

@@ -18,67 +18,6 @@ using ral::cache::kernel;
 using ral::cache::kernel_type;
 using namespace fmt::literals;
 
-class SortAndSampleSingleNodeKernel : public kernel {
-public:
-	SortAndSampleSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context}
-	{
-		this->query_graph = query_graph;
-		this->output_.add_port("output_a", "output_b");
-	}
-	
-	virtual kstatus run() {
-		CodeTimer timer;
-
-		BatchSequence input(this->input_cache(), this);
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
-		std::vector<ral::frame::BlazingTableView> sampledTableViews;
-		std::vector<size_t> tableTotalRows;
-		size_t total_num_rows = 0;
-		int batch_count = 0;
-		while (input.wait_for_next()) {
-			try {
-				auto batch = input.next();
-				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
-				auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
-				sampledTableViews.push_back(sampledTable->toBlazingTableView());
-				sampledTables.push_back(std::move(sampledTable));
-				tableTotalRows.push_back(batch->view().num_rows());
-				this->add_to_output_cache(std::move(sortedTable), "output_a");
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples 
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In SortAndSampleSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-											"duration"_a="");
-			}
-		}
-		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
-		cudf::size_type num_partitions = context->getTotalNodes() * 4; // WSM TODO this is a hardcoded number for now. THis needs to change in the near future
-		auto partitionPlan = ral::operators::generate_partition_plan(num_partitions, sampledTableViews, tableTotalRows, this->expression);
-// std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
-// ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
-// std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
-		this->add_to_output_cache(std::move(partitionPlan), "output_b");
-		
-		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-									"query_id"_a=context->getContextToken(),
-									"step"_a=context->getQueryStep(),
-									"substep"_a=context->getQuerySubstep(),
-									"info"_a="SortAndSampleSingleNode Kernel Completed",
-									"duration"_a=timer.elapsed_time(),
-									"kernel_id"_a=this->get_id());
-
-		return kstatus::proceed;
-	}
-
-private:
-
-};
 
 class PartitionSingleNodeKernel : public kernel {
 public:
@@ -149,12 +88,17 @@ public:
 		this->output_.add_port("output_a", "output_b");
 	}
 
-	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, size_t localTotalNumRows, size_t localTotalBytes) {
-		size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-		auto concatSamples = ral::utilities::concatTables(sampledTableViews);
-		auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
-			localTotalNumRows, avg_bytes_per_row, this->expression, this->context.get());
-		this->add_to_output_cache(std::move(partitionPlan), "output_b");
+	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, std::size_t avg_bytes_per_row, std::size_t local_total_num_rows) {
+		if (this->context->getAllNodes().size() == 1){ // single node mode
+			auto partitionPlan = ral::operators::generate_partition_plan(sampledTableViews, 
+				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
+			this->add_to_output_cache(std::move(partitionPlan), "output_b");
+		} else { // distributed mode
+			auto concatSamples = ral::utilities::concatTables(sampledTableViews);
+			auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
+				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
+			this->add_to_output_cache(std::move(partitionPlan), "output_b");
+		}
 	}
 	
 	virtual kstatus run() {
@@ -162,6 +106,7 @@ public:
 
 		bool try_num_rows_estimation = true;
 		bool estimate_samples = false;
+		uint64_t num_rows_estimate = 0;
 		uint64_t population_to_sample = 0;
 		uint64_t population_sampled = 0;
 		BlazingThread partition_plan_thread;
@@ -190,14 +135,14 @@ public:
 
 				// Try samples estimation
 				if(try_num_rows_estimation) {
-					uint64_t num_rows_estimate;
 					std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
 					population_to_sample = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
 					try_num_rows_estimation = false;
 				}
 				population_sampled += batch->num_rows();
 				if (estimate_samples && population_sampled > population_to_sample)	{
-					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, localTotalNumRows, localTotalBytes);
+					size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, num_rows_estimate);
 					estimate_samples = false;
 				}
 				// End estimation
@@ -219,7 +164,8 @@ public:
 		if (partition_plan_thread.joinable()){
 			partition_plan_thread.join();
 		} else {
-			compute_partition_plan(sampledTableViews, localTotalNumRows, localTotalBytes);
+			size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+			compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
 		}		
 		
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",

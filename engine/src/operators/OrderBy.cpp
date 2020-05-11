@@ -180,22 +180,6 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	return selfSamples;
 }
 
-std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_type number_partitions, const std::vector<ral::frame::BlazingTableView> & samples, const std::vector<size_t> & total_rows_tables, const std::string & query_part){
-	std::vector<cudf::order> sortOrderTypes;
-	std::vector<int> sortColIndices;
-	cudf::size_type limitRows;
-	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
-
-	// Normalize indices, samples contains the filtered columns
-	std::iota(sortColIndices.begin(), sortColIndices.end(), 0);
-
-	auto concat_samples = ral::utilities::concatTables(samples);
-	auto sorted_samples = logicalSort(concat_samples->toBlazingTableView(), sortColIndices, sortOrderTypes);
-
-	// ral::utilities::print_blazing_table_view(sorted_samples->toBlazingTableView());
-
-	return generatePartitionPlans(number_partitions, samples, sortOrderTypes);
-}
 
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part) {
 	std::vector<cudf::order> sortOrderTypes;
@@ -221,6 +205,52 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	return cudf::experimental::split(sortedTable.view(), split_indexes);
 }
 
+std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vector<ral::frame::BlazingTableView> & samples, 
+	std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context){
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	cudf::size_type limitRows;
+	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+	
+	std::size_t num_bytes_per_order_by_partition = 400000000; 
+	int max_num_order_by_partitions_per_node = 8; 
+	std::map<std::string, std::string> config_options = context->getConfigOptions();
+	auto it = config_options.find("NUM_BYTES_PER_ORDER_BY_PARTITION");
+	if (it != config_options.end()){
+		num_bytes_per_order_by_partition = std::stoull(config_options["NUM_BYTES_PER_ORDER_BY_PARTITION"]);
+	}
+	it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
+	if (it != config_options.end()){
+		max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
+	}
+
+	int num_nodes = context->getTotalNodes();
+	cudf::size_type total_num_partitions = (double)table_num_rows*(double)avg_bytes_per_row/(double)num_bytes_per_order_by_partition;
+	total_num_partitions = total_num_partitions <= 0 ? 1 : total_num_partitions;
+	// want to make the total_num_partitions to be a multiple of the number of nodes to evenly distribute
+	total_num_partitions = ((total_num_partitions + num_nodes - 1) / num_nodes) * num_nodes;
+	total_num_partitions = total_num_partitions > max_num_order_by_partitions_per_node * num_nodes ? max_num_order_by_partitions_per_node * num_nodes : total_num_partitions;
+
+	std::string info = "table_num_rows: " + std::to_string(table_num_rows) + " avg_bytes_per_row: " + std::to_string(avg_bytes_per_row) +
+							" total_num_partitions: " + std::to_string(total_num_partitions) + 
+							" NUM_BYTES_PER_ORDER_BY_PARTITION: " + std::to_string(num_bytes_per_order_by_partition) + 
+							" MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE: " + std::to_string(max_num_order_by_partitions_per_node);
+	
+	auto logger = spdlog::get("batch_logger");
+	logger->debug("{query_id}|{step}|{substep}|{info}|||||",
+								"query_id"_a=context->getContextToken(),
+								"step"_a=context->getQueryStep(),
+								"substep"_a=context->getQuerySubstep(),
+								"info"_a="Determining Number of Order By Partitions " + info);
+	
+	partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
+	context->incrementQuerySubstep();
+		
+	return partitionPlan;
+}
+
 std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, 
 	std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context){
 	std::vector<cudf::order> sortOrderTypes;
@@ -241,38 +271,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(co
 		total_rows_tables.push_back(table_num_rows);
 		std::size_t totalNumRows = std::accumulate(total_rows_tables.begin(), total_rows_tables.end(), std::size_t(0));
 
-		std::size_t num_bytes_per_order_by_partition = 400000000; 
-		int max_num_order_by_partitions_per_node = 8; 
-		std::map<std::string, std::string> config_options = context->getConfigOptions();
-		auto it = config_options.find("NUM_BYTES_PER_ORDER_BY_PARTITION");
-		if (it != config_options.end()){
-			num_bytes_per_order_by_partition = std::stoull(config_options["NUM_BYTES_PER_ORDER_BY_PARTITION"]);
-		}
-		it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
-		if (it != config_options.end()){
-			max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
-		}
-
-		int num_nodes = context->getTotalNodes();
-		cudf::size_type total_num_partitions = (double)totalNumRows*(double)avg_bytes_per_row/(double)num_bytes_per_order_by_partition;
-		total_num_partitions = total_num_partitions <= 0 ? 1 : total_num_partitions;
-		// want to make the total_num_partitions to be a multiple of the number of nodes to evenly distribute
-		total_num_partitions = ((total_num_partitions + num_nodes - 1) / num_nodes) * num_nodes;
-		total_num_partitions = total_num_partitions > max_num_order_by_partitions_per_node * num_nodes ? max_num_order_by_partitions_per_node * num_nodes : total_num_partitions;
-
-		std::string info = "local_table_num_rows: " + std::to_string(table_num_rows) + " avg_bytes_per_row: " + std::to_string(avg_bytes_per_row) +
-								" totalNumRows: " + std::to_string(totalNumRows) + " total_num_partitions: " + std::to_string(total_num_partitions) + 
-								" NUM_BYTES_PER_ORDER_BY_PARTITION: " + std::to_string(num_bytes_per_order_by_partition) + " MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE: " + std::to_string(max_num_order_by_partitions_per_node);
-		
-		auto logger = spdlog::get("batch_logger");
-		logger->debug("{query_id}|{step}|{substep}|{info}|||||",
-									"query_id"_a=context->getContextToken(),
-									"step"_a=context->getQueryStep(),
-									"substep"_a=context->getQuerySubstep(),
-									"info"_a="Determining Number of Order By Partitions " + info);
-		
-		partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
-		context->incrementQuerySubstep();
+		partitionPlan = generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, query_part, context);
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
 	} else {
 		context->incrementQuerySubstep();
