@@ -7,3 +7,4 @@
 #560 Fixed bug where parsing errors would lead to crash
 #565 made us have same behaviour as cudf for reading csv
 #612 Print product version: print(blazingsql.__version__) # shows the git hash
+#631 Implemented ability to send config_options to bc.sql function
