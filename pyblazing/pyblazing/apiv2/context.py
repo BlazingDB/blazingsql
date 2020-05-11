@@ -796,10 +796,8 @@ class BlazingContext(object):
         self.nodes = []
         self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
-        self.config_options = {}
-        for option in config_options:
-            self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
-
+        self.config_options = config_options
+        
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
@@ -1541,7 +1539,7 @@ collectParti
             return input
 
 
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True, return_futures=False, single_gpu=False, config_options={}):
+    def sql(self, query, table_list=[], algebra=None, use_execution_graph=True, return_futures=False, single_gpu=False, config_options={}):
         """
         Query a BlazingSQL table.
 
@@ -1614,9 +1612,11 @@ collectParti
             return
 
         if len(config_options) == 0:
-            query_config_options = self.config_options 
-        else:
-            query_config_options = config_options
+            config_options = self.config_options 
+        
+        query_config_options = {}
+        for option in config_options:
+            query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
         if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
