@@ -246,7 +246,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
     df._rename_columns(decoded_names)
 
-    return dfs
+    return df
 
 cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, by):
     cdef vector[NodeMetaDataTCP] tcpMetadataCpp

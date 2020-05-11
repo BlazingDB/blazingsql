@@ -358,13 +358,14 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(size_t bytes_max_size)
 {
 }
 
-bool checkStrings(std::vector<std::unique_ptr<ral::frame::BlazingTable>> & holder_samples, CacheData & cache_data){
+bool checkIfConcatenatingStringsWillOverflowStringLength(std::vector<std::unique_ptr<ral::frame::BlazingTable>> & holder_samples, CacheData & cache_data){
 	if(holder_samples.size()>=1){
 		for(int i=0;i<holder_samples[0]->view().num_columns();i++){
 			if(holder_samples[0]->view().column(i).type().id() == cudf::type_id::STRING){
 				for(int j=0;j<holder_samples.size();j++){
 					if(((std::size_t) get_string_size(holder_samples[j]->view().column(i)) + (std::size_t)cache_data.sizeStr(j)) > (std::size_t) std::numeric_limits<cudf::size_type>::max())
-						return false;
+						throw std::runtime_error(
+							"In pullFromCache function: Concatenating Strings will overflow strings length");
 				}
 			}
 		}
@@ -382,7 +383,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
-		if (holder_samples.empty() || (total_bytes + cache_data.sizeInBytes() <= bytes_max_size_ && checkStrings(holder_samples, cache_data))) {
+		if (holder_samples.empty() || (total_bytes + cache_data.sizeInBytes() <= bytes_max_size_ && checkIfConcatenatingStringsWillOverflowStringLength(holder_samples, cache_data))) {
 			total_bytes += cache_data.sizeInBytes();
 			auto tmp_frame = cache_data.decache();
 			samples.emplace_back(tmp_frame->toBlazingTableView());
