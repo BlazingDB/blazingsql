@@ -113,7 +113,7 @@ void fix_column_names_duplicated(std::vector<std::string> & col_names){
 	}
 }
 
-std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
+std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -156,7 +156,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 			frames.emplace_back(std::move(evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext)));
 		}
 		
-		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
+		std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
 		result->names = frames[0]->names();
 		fix_column_names_duplicated(result->names);
 
@@ -208,7 +208,8 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		std::unique_ptr<ral::frame::BlazingTable> frame = ral::processor::process_distribution_table(
 			table, columnIndices, &queryContext);
 
-		result->cudfTables.emplace_back(std::move(frame->releaseCudfTable()));
+		result->names = frame->names();
+		result->cudfTable = frame->releaseCudfTable();
 		result->skipdata_analysis_fail = false;
 		return result;
 
@@ -232,7 +233,7 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 		result->skipdata_analysis_fail = result_pair.second;
 		if (!result_pair.second){ // if could process skip-data
 			result->names = result_pair.first->names();
-			result->cudfTables.emplace_back(std::move(result_pair.first->releaseCudfTable()));
+			result->cudfTable = result_pair.first->releaseCudfTable();
 		}
 		return result;
 

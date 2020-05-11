@@ -52,10 +52,14 @@ ctypedef table CudfTable
 
 cdef extern from "../include/io/io.h":
     cdef struct ResultSet:
-        vector[unique_ptr[table]] cudfTables
+        unique_ptr[table] cudfTable
         vector[string]  names
         bool skipdata_analysis_fail
 
+    cdef struct PartitionedResultSet:
+        vector[unique_ptr[table]] cudfTables
+        vector[string]  names
+        bool skipdata_analysis_fail
 
     ctypedef enum DataType:
         UNDEFINED = 999,
@@ -145,7 +149,7 @@ cdef extern from "../include/engine/engine.h":
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
-        unique_ptr[ResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, bool use_execution_graph, map[string,string] config_options) except +raiseRunQueryError
+        unique_ptr[PartitionedResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, bool use_execution_graph, map[string,string] config_options) except +raiseRunQueryError
         unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunQueryError
 
         cdef struct TableScanInfo:

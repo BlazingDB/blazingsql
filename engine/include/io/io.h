@@ -15,8 +15,14 @@
 typedef ral::io::DataType DataType;
 namespace cudf_io = cudf::experimental::io;
 
-struct ResultSet {
+struct PartitionedResultSet {
 	std::vector<std::unique_ptr<cudf::experimental::table>> cudfTables;
+	std::vector<std::string> names;
+	bool skipdata_analysis_fail;
+};
+
+struct ResultSet {
+	std::unique_ptr<cudf::experimental::table> cudfTable;
 	std::vector<std::string> names;
 	bool skipdata_analysis_fail;
 };

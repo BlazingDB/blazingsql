@@ -7,6 +7,8 @@
 namespace ral {
 namespace cache {
 
+/// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns,
+/// for non-string columns the size is set to zero
 cudf::size_type get_string_size(cudf::column_view column){
 	if(column.type().id() == cudf::type_id::STRING){
 		auto num_children = column.num_children();
@@ -30,6 +32,7 @@ cudf::size_type get_string_size(cudf::column_view column){
 	return 0;
 }
 
+/// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns
 std::vector<cudf::size_type> get_string_sizes(ral::frame::BlazingTableView table){
 	std::vector<cudf::size_type> str_sizes;
 	size_t num_columns = table.num_columns();

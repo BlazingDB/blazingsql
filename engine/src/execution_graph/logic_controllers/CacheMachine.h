@@ -62,6 +62,7 @@ public:
 protected:
 	CacheDataType cache_type;
 	std::vector<std::string> col_names;
+	/// Stores the size in bytes for string columns
 	std::vector<cudf::size_type> col_string_sizes;
 	std::vector<cudf::data_type> schema;
 	size_t n_rows;
