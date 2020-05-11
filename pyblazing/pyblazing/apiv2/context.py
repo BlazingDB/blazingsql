@@ -1035,7 +1035,7 @@ class BlazingContext(object):
 
         # when `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
         # this line avoid engine crashes
-        if algebra.find("LogicalValues"):
+        if "LogicalValues" in algebra:
             print("Make sure your SQL statement is well defined")
             algebra = ""
             
