@@ -1034,10 +1034,9 @@ class BlazingContext(object):
             algebra=""
 
         # when `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
-        # this line avoid engine crashes
-        if "LogicalValues" in algebra:
-            print("Make sure your SQL statement is well defined")
-            algebra = ""
+        if "LogicalValues(tuples=[[]])" in algebra:
+            print("This SQL statement returns empty result. Please double check your query.")
+            #algebra = ""
             
         return algebra
 

@@ -108,6 +108,8 @@ struct tree_processor {
 			k = std::make_shared<UnionKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::UnionKernel);
+		} else {
+			throw std::runtime_error("There is a step on the Algebra Relational which is currently not supported.");
 		}
 		return k;
 	}
