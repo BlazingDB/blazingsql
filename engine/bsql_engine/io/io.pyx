@@ -283,7 +283,7 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
     return df
 
-cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, bool use_execution_graph, map[string,string] config_options):
+cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, bool use_execution_graph, map[string,string] config_options, bool is_single_node):
     cdef string query
     query = str.encode(queryPy)
     cdef vector[NodeMetaDataTCP] tcpMetadataCpp
@@ -393,11 +393,14 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     for i in range(names.size()):
         decoded_names.append(names[i].decode('utf-8'))
 
-    dfs = []
-    for i in range(dereference(resultSet).cudfTables.size()):
-      dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
-
-    return dfs
+    if is_single_node: # the engine returns a concatenated dataframe
+      df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[0]), decoded_names)._data)
+      return df
+    else: # the engine returns a vector of dataframes
+      dfs = []
+      for i in range(dereference(resultSet).cudfTables.size()):
+        dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
+      return dfs
 
 
 cpdef runSkipDataCaller(table, queryPy):

@@ -213,7 +213,8 @@ In the mean time, for better performance we recommend using the unify_partitions
         algebra,
         accessToken,
         use_execution_graph,
-        config_options)
+        config_options,
+        False) # False indicates distributed mode
 
     return len(dfs), dask.dataframe.utils.make_meta(dfs[0]), dfs
 
@@ -1677,7 +1678,8 @@ collectParti
                         algebra,
                         accessToken,
                         use_execution_graph,
-                        self.config_options)
+                        self.config_options,
+                        True) # True indicates single node
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
