@@ -406,7 +406,11 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 									"duration"_a="");
 		
 		if (query_graph->num_nodes() > 0) {
-			*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			if(queryContext.getTotalNodes() <= 1) {
+				*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			} else {
+				*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
+			}
 			// query_graph.show();
 			query_graph->execute();
 			output_frame = output.release();
@@ -419,7 +423,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 									"info"_a="Query Execution Done",
 									"duration"_a=blazing_timer.elapsed_time());
 
-		//assert(output_frame != nullptr); check for empty
+		assert(!output_frame.empty());
 
 		logger->flush();
 
