@@ -308,6 +308,8 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef vector[column_view] column_views
     cdef Column cython_col
 
+    print("runQueryCaller start")
+
     tableIndex = 0
     for tableName in tables:
       uri_values_cpp.empty()
@@ -386,6 +388,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
+    print("runQueryPython start")
     resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, use_execution_graph, config_options))
 
     names = dereference(resultSet).names

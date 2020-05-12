@@ -149,12 +149,20 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 def getNodePartitions(df, client):
     df = df.persist()
     workers = client.scheduler_info()['workers']
+    print('getNodePartitions num workers: ' + str(len(workers)))
+    print('workers:')
+    print(workers)
+
     worker_partitions = {}
     for worker in workers:
         worker_partitions[worker] = []
 
     dask.distributed.wait(df)
     worker_part = client.who_has(df)
+    print('getNodePartitions workers who have df: ' + str(len(worker_part)))
+    print('worker_part:')
+    print(worker_part)
+
     for key in worker_part:
         if len(worker_part[key]) > 0:
             worker = worker_part[key][0]
@@ -178,12 +186,14 @@ def collectPartitionsRunQuery(
         config_options):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
+    print("running collectPartitionsRunQuery for " + str(worker_id) + " for algebra " + algebra)
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
             partitions = tables[table_name].get_partitions(worker_id)
             if partitions is None:
                 print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
             if (len(partitions) == 0):
+                print("wARNING: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
                 tables[table_name].input = [tables[table_name].df_schema]
             elif (len(partitions) == 1):
                 tables[table_name].input = [tables[table_name].input.get_partition(
@@ -609,6 +619,7 @@ class BlazingTable(object):
                     self.input, npartitions=convert_gdf_to_dask_partitions)
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
                 self.input = self.input.persist()
+                print("BlazingTable getNodePartitions")
                 self.dask_mapping = getNodePartitions(self.input, client)
                 self.df_schema = self.input.get_partition(0).head(0)
         self.uri_values = uri_values
@@ -1690,6 +1701,7 @@ collectParti
                         use_execution_graph,
                         self.config_options)]
             else:
+                print("about to run collectPartitionsRunQuery. num nodes is: " + str(len(self.nodes)))
                 dask_futures = []
                 i = 0
                 for node in self.nodes:
