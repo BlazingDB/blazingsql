@@ -10,8 +10,6 @@
 
 namespace blazingdb {
 namespace transport {
-// Alias
-namespace experimental {
 
 class MockFlag {
 public:
@@ -92,7 +90,7 @@ void ExecWorker(){
   auto node = std::make_shared<Node>(Address::TCP("localhost", 8000, 9999));
   ComponentMessage message{context_token, *node, 0};
 
-  auto client = blazingdb::transport::experimental::ClientTCP::Make("localhost", 8000);
+  auto client = blazingdb::transport::ClientTCP::Make("localhost", 8000);
   size_t number_of_samples = 10;
   for (size_t i = 0; i < number_of_samples; i++) {
     try {
@@ -116,6 +114,5 @@ void ExecWorker(){
 // TEST(SendInBatches, Master) { ExecMaster(); }
 // TEST(SendInBatches, Worker) { ExecWorker(); }
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

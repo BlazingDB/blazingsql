@@ -3,8 +3,6 @@
 namespace ral {
 namespace communication {
 namespace messages {
-namespace experimental {
-
 
 gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::BlazingTableView table_view){
     std::vector<std::size_t> buffer_sizes;
@@ -217,8 +215,6 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame:
 	return deserialize_from_gpu_raw_buffers(host_table->get_columns_offsets(), gpu_raw_buffers);
 }
 
-
-} // namespace experimental
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral

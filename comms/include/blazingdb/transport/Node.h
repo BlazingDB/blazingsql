@@ -6,7 +6,6 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 /// \brief A Node is the representation of a RAL component used in the transport
 /// process.
@@ -35,6 +34,5 @@ protected:
   bool isAvailable_{false};
 };
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

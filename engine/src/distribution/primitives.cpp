@@ -20,22 +20,20 @@
 
 namespace ral {
 namespace distribution {
-namespace experimental {
 
 typedef ral::frame::BlazingTable BlazingTable;
 typedef ral::frame::BlazingTableView BlazingTableView;
-typedef blazingdb::manager::experimental::Context Context;
-typedef blazingdb::transport::experimental::Node Node;
-typedef ral::communication::messages::experimental::Factory Factory;
-typedef ral::communication::messages::experimental::SampleToNodeMasterMessage SampleToNodeMasterMessage;
-typedef ral::communication::messages::experimental::PartitionPivotsMessage PartitionPivotsMessage;
-typedef ral::communication::messages::experimental::ColumnDataMessage ColumnDataMessage;
-typedef ral::communication::messages::experimental::ColumnDataPartitionMessage ColumnDataPartitionMessage;
-typedef ral::communication::messages::experimental::ReceivedDeviceMessage ReceivedDeviceMessage;
-typedef ral::communication::experimental::CommunicationData CommunicationData;
-typedef ral::communication::network::experimental::Server Server;
-typedef ral::communication::network::experimental::Client Client;
-
+typedef blazingdb::manager::Context Context;
+typedef blazingdb::transport::Node Node;
+typedef ral::communication::messages::Factory Factory;
+typedef ral::communication::messages::SampleToNodeMasterMessage SampleToNodeMasterMessage;
+typedef ral::communication::messages::PartitionPivotsMessage PartitionPivotsMessage;
+typedef ral::communication::messages::ColumnDataMessage ColumnDataMessage;
+typedef ral::communication::messages::ColumnDataPartitionMessage ColumnDataPartitionMessage;
+typedef ral::communication::messages::ReceivedDeviceMessage ReceivedDeviceMessage;
+typedef ral::communication::CommunicationData CommunicationData;
+typedef ral::communication::network::Server Server;
+typedef ral::communication::network::Client Client;
 
 
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
@@ -93,7 +91,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples, 
 				const std::vector<cudf::order> & sortOrderTypes) {
 
-	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
+	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::concatTables(samples);
 
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 	// TODO this is just a default setting. Will want to be able to properly set null_order
@@ -230,7 +228,7 @@ void notifyLastTablePartitions(Context * context, std::string message_id) {
 	auto nodes = context->getAllNodes();
 	for(std::size_t i = 0; i < nodes.size(); ++i) {
 		if(!(nodes[i] == self_node)) {
-			blazingdb::transport::experimental::Message::MetaData metadata;
+			blazingdb::transport::Message::MetaData metadata;
 			std::strcpy(metadata.messageToken, full_message_id.c_str());
 			metadata.contextToken = context_token;
 			Client::notifyLastMessageEvent(nodes[i], metadata);
@@ -352,44 +350,8 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 	return std::make_unique<BlazingTable>(std::move(pivots), sortedSamples.names());
 }
 
-
-std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples) {
-
-	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::experimental::concatTables(samples);
-	
-	std::vector<int> groupColumnIndices(concatSamples->num_columns());
-	std::iota(groupColumnIndices.begin(), groupColumnIndices.end(), 0);
-	std::unique_ptr<BlazingTable> groupedSamples = ral::operators::experimental::compute_groupby_without_aggregations(
-														concatSamples->toBlazingTableView(), groupColumnIndices);
-	
-	// Sort
-	std::vector<cudf::order> column_order(groupedSamples->num_columns(), cudf::order::ASCENDING);
-	std::vector<cudf::null_order> null_orders(column_order.size(), cudf::null_order::AFTER);
-	std::unique_ptr<cudf::column> sort_indices = cudf::experimental::sorted_order( groupedSamples->view(), column_order, null_orders);
-	std::unique_ptr<CudfTable> sortedSamples = cudf::experimental::gather( groupedSamples->view(), sort_indices->view() );
-
-	// lets get names from a non-empty table
-	std::vector<std::string> names;
-	for(size_t i = 0; i < samples.size(); i++) {
-		if (samples[i].names().size() > 0){
-			names = samples[i].names();
-			break;
-		}
-	}
-
-	return getPivotPointsTable(context->getTotalNodes(), BlazingTableView(sortedSamples->view(), names));
-}
-
-std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(
-	const std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices) {
-	
-	std::unique_ptr<BlazingTable> concatGroups = ral::utilities::experimental::concatTables(tables);
-
-	return ral::operators::experimental::compute_groupby_without_aggregations(concatGroups->toBlazingTableView(),  group_column_indices);	
-}
-
 void broadcastMessage(std::vector<Node> nodes, 
-			std::shared_ptr<communication::messages::experimental::Message> message) {
+			std::shared_ptr<communication::messages::Message> message) {
 	std::vector<BlazingThread> threads(nodes.size());
 	for(size_t i = 0; i < nodes.size(); i++) {
 		Node node = nodes[i];
@@ -443,61 +405,6 @@ std::vector<int64_t> collectNumRows(Context * context) {
 	}
 
 	return node_num_rows;
-}
-
-void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows) {
-	
-	std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
-
-	auto self_node = CommunicationData::getInstance().getSelfNode();
-	cudf::test::fixed_width_column_wrapper<cudf::size_type>num_rows_col{left_num_rows, right_num_rows};
-	CudfTableView num_rows_table{{num_rows_col}};
-	std::vector<std::string> names{"left_num_rows", "right_num_rows"};
-	BlazingTableView num_rows_blz_table(num_rows_table, names);
-	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_rows_blz_table);
-
-	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
-}
-
-void collectLeftRightNumRows(Context * context,	std::vector<cudf::size_type> & node_num_rows_left,
-			std::vector<cudf::size_type> & node_num_rows_right) {
-	
-	int num_nodes = context->getTotalNodes();
-	node_num_rows_left.resize(num_nodes);
-	node_num_rows_right.resize(num_nodes);
-	std::vector<bool> received(num_nodes, false);
-
-	std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
-
-	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
-		auto message = Server::getInstance().getMessage(context_token, message_id);
-		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-		auto node = concrete_message->getSenderNode();
-		std::unique_ptr<BlazingTable> num_rows_data = concrete_message->releaseBlazingTable();
-		assert(num_rows_data->view().num_columns() == 1);
-		assert(num_rows_data->view().num_rows() == 2);
-		
-		std::vector<cudf::size_type> host_data(num_rows_data->view().column(0).size());
-		CUDA_TRY(cudaMemcpy(host_data.data(), num_rows_data->view().column(0).data<cudf::size_type>(), num_rows_data->view().column(0).size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
-		
-		int node_idx = context->getNodeIndex(node);
-		assert(node_idx >= 0);
-		if(received[node_idx]) {
-			// Library::Logging::Logger().logError(ral::utilities::buildLogString(std::to_string(context_token),
-			// 	std::to_string(context->getQueryStep()),
-			// 	std::to_string(context->getQuerySubstep()),
-			// 	"ERROR: Already received collectLeftRightNumRows from node " + std::to_string(node_idx)));
-		}
-		node_num_rows_left[node_idx] = host_data[0];
-		node_num_rows_right[node_idx] = host_data[1];
-		received[node_idx] = true;
-	}
 }
 
 void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, int64_t bytes_right) {
@@ -555,7 +462,6 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 	}
 }
 
-}  // namespace experimental
 }  // namespace distribution
 }  // namespace ral
 
@@ -564,7 +470,6 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 namespace ral {
 namespace distribution {
 namespace sampling {
-namespace experimental {
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
 	const ral::frame::BlazingTableView & table, const double ratio) {
@@ -577,7 +482,6 @@ std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	return ral::generator::generate_sample(table, quantile);
 }
 
-}  // namespace experimental
 }  // namespace sampling
 }  // namespace distribution
 }  // namespace ral

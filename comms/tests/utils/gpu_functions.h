@@ -8,7 +8,6 @@
 #include <cuda_runtime_api.h>
 #include <cudf.h>
 #include <driver_types.h>
-#include "Traits/RuntimeTraits.h"
 #include "column_factory.h"
 #include "StringInfo.h"
 
