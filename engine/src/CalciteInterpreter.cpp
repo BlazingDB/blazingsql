@@ -174,6 +174,8 @@ std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::
 			}
 		} else {
 			// i dont think there are any other type of end nodes at the moment
+			// LogicalValues
+			throw std::runtime_error("There is a step on the Algebra Relational which is currently not supported.");
 		}
 	}
 

@@ -1032,11 +1032,6 @@ class BlazingContext(object):
             print("Error found")
             print(algebra)
             algebra=""
-
-        # when `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
-        if "LogicalValues(tuples=[[]])" in algebra:
-            print("This SQL statement returns empty result. Please double check your query.")
-            #algebra = ""
             
         return algebra
 
@@ -1608,6 +1603,11 @@ collectParti
 
         if (algebra is None):
             algebra = self.explain(sql)
+
+        # when `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
+        if "LogicalValues(tuples=[[]])" in algebra:
+            print("This SQL statement returns empty result. Please double check your query.")
+            return
 
         if algebra == '':
             print("Parsing Error")
