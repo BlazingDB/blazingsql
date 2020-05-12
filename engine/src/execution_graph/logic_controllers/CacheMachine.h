@@ -62,7 +62,7 @@ public:
 protected:
 	CacheDataType cache_type;
 	std::vector<std::string> col_names;
-	/// Stores the size in bytes for string columns
+	// Stores the size in bytes for string columns
 	std::vector<cudf::size_type> col_string_sizes;
 	std::vector<cudf::data_type> schema;
 	size_t n_rows;
@@ -127,8 +127,6 @@ private:
 	std::string filePath_;
 	// ideally would be a writeable file
 };
-
-//using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 
 /// \brief This class represents a  messsage into que WaitingQueue. 
 /// We use this class to represent not only the CacheData 

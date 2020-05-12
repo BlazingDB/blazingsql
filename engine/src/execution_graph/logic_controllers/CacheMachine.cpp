@@ -7,8 +7,8 @@
 namespace ral {
 namespace cache {
 
-/// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns,
-/// for non-string columns the size is set to zero
+// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns,
+// for non-string columns the size is set to zero
 cudf::size_type get_string_size(cudf::column_view column){
 	if(column.type().id() == cudf::type_id::STRING){
 		auto num_children = column.num_children();
@@ -32,7 +32,7 @@ cudf::size_type get_string_size(cudf::column_view column){
 	return 0;
 }
 
-/// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns
+// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns
 std::vector<cudf::size_type> get_string_sizes(ral::frame::BlazingTableView table){
 	std::vector<cudf::size_type> str_sizes;
 	size_t num_columns = table.num_columns();
@@ -358,14 +358,24 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(size_t bytes_max_size)
 {
 }
 
+// Check if concatenating string columns will overflow
 bool checkIfConcatenatingStringsWillOverflowStringLength(std::vector<std::unique_ptr<ral::frame::BlazingTable>> & holder_samples, CacheData & cache_data){
 	if(holder_samples.size()>=1){
-		for(int i=0;i<holder_samples[0]->view().num_columns();i++){
-			if(holder_samples[0]->view().column(i).type().id() == cudf::type_id::STRING){
-				for(int j=0;j<holder_samples.size();j++){
-					if(((std::size_t) get_string_size(holder_samples[j]->view().column(i)) + (std::size_t)cache_data.sizeStr(j)) > (std::size_t) std::numeric_limits<cudf::size_type>::max())
-						throw std::runtime_error(
-							"In pullFromCache function: Concatenating Strings will overflow strings length");
+		for(int col_idx=0; col_idx<holder_samples[0]->view().num_columns(); col_idx++){
+			if(holder_samples[0]->view().column(col_idx).type().id() == cudf::type_id::STRING){
+				// Column i-th from the holder_samples and the cache_data are expected to have the same string data type
+				assert(cache_data.get_schema()[col_idx].id() == cudf::type_id::STRING );
+
+				std::size_t total_bytes = 0;
+				for(int sample_idx=0; sample_idx<holder_samples.size(); sample_idx++){
+					total_bytes += static_cast<std::size_t>(get_string_size(holder_samples[sample_idx]->view().column(col_idx)));
+				}
+
+				assert(holder_samples[holder_samples.size()-1]->view().num_columns() == cache_data.get_schema().size());
+
+				if(total_bytes + static_cast<std::size_t>(cache_data.sizeStr(col_idx)) > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max())){
+					throw std::runtime_error(
+						"In pullFromCache function: Concatenating Strings will overflow strings length");
 				}
 			}
 		}
@@ -378,7 +388,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> holder_samples;
 	std::vector<ral::frame::BlazingTableView> samples;
 
-	size_t total_bytes = 0;
+	std::size_t total_bytes = 0;
 	std::unique_ptr<message> message_data;
 	while (message_data = waitingCache->pop_or_wait())
 	{
