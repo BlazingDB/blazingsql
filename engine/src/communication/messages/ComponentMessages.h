@@ -8,9 +8,8 @@
 namespace ral {
 namespace communication {
 namespace messages {
-namespace experimental {
 
-
+using blazingdb::transport::Node;
 
 struct SampleToNodeMasterMessage : GPUComponentMessage {
 	SampleToNodeMasterMessage(const std::string & message_token,
@@ -90,7 +89,6 @@ struct ColumnDataPartitionMessage : GPUComponentMessage {
 	}
 };
 
-} // namespace experimental
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral

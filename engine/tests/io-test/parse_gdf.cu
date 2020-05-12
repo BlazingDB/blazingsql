@@ -22,8 +22,8 @@
 using namespace ral::frame;
 using namespace ral::processor;
 
-using blazingdb::manager::experimental::Context;
-using Node = blazingdb::transport::experimental::Node;
+using blazingdb::manager::Context;
+using Node = blazingdb::transport::Node;
 
 
 template <typename T>

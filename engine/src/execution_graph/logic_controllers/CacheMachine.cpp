@@ -195,7 +195,6 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 								"duration"_a="",
 								"kernel_id"_a=message_id,
 								"offset"_a=table->view().column(col_ind).offset());
-				logger->flush();
 			}
 		}
 		
@@ -345,7 +344,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	} else if (holder_samples.size() == 1) {
 		return std::move(holder_samples[0]);
 	}	else {
-		return ral::utilities::experimental::concatTables(samples);
+		return ral::utilities::concatTables(samples);
 	}	
 }
 

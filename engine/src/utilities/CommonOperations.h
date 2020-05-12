@@ -7,7 +7,6 @@
 
 namespace ral {
 namespace utilities {
-namespace experimental {
 
 using namespace ral::frame;
 
@@ -26,7 +25,6 @@ std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& 
 
 int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table);
 
-}  // namespace experimental
 }  // namespace utilities
 }  // namespace ral
 

@@ -8,9 +8,9 @@
 #include <src/utilities/DebuggingUtils.h>
 #include "../BlazingUnitTest.h"
 
-using blazingdb::manager::experimental::Context;
-using blazingdb::transport::experimental::Address;
-using blazingdb::transport::experimental::Node;
+using blazingdb::manager::Context;
+using blazingdb::transport::Address;
+using blazingdb::transport::Node;
 
 struct CacheMachineTest : public BlazingUnitTest {
 	CacheMachineTest() {}
@@ -81,4 +81,3 @@ TEST_F(CacheMachineTest, CacheMachineTest) {
 	}
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
-

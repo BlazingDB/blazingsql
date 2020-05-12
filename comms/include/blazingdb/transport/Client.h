@@ -10,7 +10,6 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 class Client {
 public:
@@ -36,6 +35,5 @@ public:
   static std::shared_ptr<Client> Make(const std::string& ip, int16_t port);
 };
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

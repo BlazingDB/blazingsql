@@ -4,7 +4,6 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 MessageQueue::MessageQueue()
 {
@@ -52,6 +51,6 @@ std::shared_ptr<ReceivedMessage> MessageQueue::getMessageQueue(
 void MessageQueue::putMessageQueue(std::shared_ptr<ReceivedMessage> &message) {
   message_queue_.push_back(message);
 }
-}  // namespace experimental
+
 }  // namespace transport
 }  // namespace blazingdb

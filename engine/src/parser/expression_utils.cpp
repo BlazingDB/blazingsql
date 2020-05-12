@@ -151,18 +151,6 @@ bool is_distribute_aggregate(std::string query_part) { return (query_part.find(L
 
 bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_double_input(std::string query_part) {
-	if(is_join(query_part)) {
-		return true;
-	} else if(is_union(query_part)) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-
-
 // Returns the index from table if exists
 size_t get_table_index(std::vector<std::string> table_names, std::string table_name) {
 	if(StringUtil::beginsWith(table_name, "main.")) {
