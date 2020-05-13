@@ -23,8 +23,6 @@
 namespace blazingdb {
 namespace transport {
 
-namespace experimental {
-
 void Server::registerEndPoint(const std::string & end_point) { end_points_.insert(end_point); }
 
 void Server::registerDeviceDeserializerForEndPoint(MakeDeviceFrameCallback deserializer, const std::string & end_point) {
@@ -207,7 +205,7 @@ void ServerTCP::Run() {
 					std::vector<rmm::device_buffer> raw_columns;
 
 					std::tie(message_metadata, address_metadata, column_offsets, raw_columns) = collect_gpu_message(
-						socket, gpuId, &blazingdb::transport::experimental::io::readBuffersIntoGPUTCP);
+						socket, gpuId, &blazingdb::transport::io::readBuffersIntoGPUTCP);
 
 					std::string messageToken = message_metadata.messageToken;
 					auto deserialize_function =
@@ -258,7 +256,7 @@ public:
 
 						std::string messageToken = message_metadata.messageToken;
 						uint32_t contextToken = message_metadata.contextToken;
-						blazingdb::transport::experimental::Node tmp_node;
+						blazingdb::transport::Node tmp_node;
 
 						auto sentinel_message = std::make_shared<ReceivedMessage>(messageToken, contextToken, tmp_node, true);
 						this->putMessage(contextToken, sentinel_message);
@@ -271,7 +269,7 @@ public:
 
 						std::tie(message_metadata, address_metadata, column_offsets, raw_columns) =
 							collect_gpu_message<std::vector<Buffer>>(
-								socket, gpuId, blazingdb::transport::experimental::io::readBuffersIntoCPUTCP);
+								socket, gpuId, blazingdb::transport::io::readBuffersIntoCPUTCP);
 						std::string messageToken = message_metadata.messageToken;
 						auto deserialize_function =
 						this->getHostDeserializationFunction(messageToken.substr(0, messageToken.find('_')));
@@ -301,7 +299,5 @@ std::unique_ptr<Server> Server::BatchProcessing(unsigned short port) {
 	return std::unique_ptr<Server>(new ServerForBatchProcessing(port));
 }
 
-
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

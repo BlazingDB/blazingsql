@@ -11,7 +11,7 @@ using data_provider_pair = std::pair<std::shared_ptr<ral::io::csv_parser>, std::
 
 using data_parquet_provider_pair = std::tuple<std::shared_ptr<ral::io::parquet_parser>, std::shared_ptr<ral::io::uri_data_provider>, ral::io::Schema>;
 
-using Context = blazingdb::manager::experimental::Context;
+using Context = blazingdb::manager::Context;
 
 data_provider_pair CreateCsvCustomerTableProvider(int index = 0);
 

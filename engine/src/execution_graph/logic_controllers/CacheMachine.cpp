@@ -225,7 +225,6 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 								"duration"_a="",
 								"kernel_id"_a=message_id,
 								"offset"_a=table->view().column(col_ind).offset());
-				logger->flush();
 			}
 		}
 
@@ -433,7 +432,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 			tables_holder[i] = std::move(data->decache());
 			table_views[i] = tables_holder[i]->toBlazingTableView();
 		}
-		output = ral::utilities::experimental::concatTables(table_views);
+		output = ral::utilities::concatTables(table_views);
 	}	
 
 	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",

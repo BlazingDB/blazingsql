@@ -8,10 +8,9 @@
 namespace ral {
 namespace communication {
 namespace messages {
-namespace experimental {
 
-using Node = blazingdb::transport::experimental::Node;
-using Message = blazingdb::transport::experimental::GPUMessage;
+using Node = blazingdb::transport::Node;
+using Message = blazingdb::transport::GPUMessage;
 using ContextToken = uint32_t;
 
 struct Factory {
@@ -39,7 +38,6 @@ struct Factory {
 																const ral::frame::BlazingTableView & columns);
 };
 
-}  // namespace experimental
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral

@@ -1,12 +1,8 @@
-#ifndef BLAZINGDB_COMMUNICATION_ADDRESS_INTERNAL_H_
-#define BLAZINGDB_COMMUNICATION_ADDRESS_INTERNAL_H_
-
 #include "blazingdb/transport/Address.h"
 #include <cassert>
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 Address::Address(){}
  
@@ -42,8 +38,5 @@ Address Address::TCP(const std::string &ip,
   return TCPAddress(ip, communication_port, protocol_port);
 }
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb
-
-#endif

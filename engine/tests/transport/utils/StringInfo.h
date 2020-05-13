@@ -4,7 +4,6 @@
 
 #ifndef BLAZINGDB_COMMUNICATION_TESTS_UTILS_STRINGINFO_H_
 #define BLAZINGDB_COMMUNICATION_TESTS_UTILS_STRINGINFO_H_
-#include "Traits/RuntimeTraits.h"
 #include "column_factory.h"
 #include <cuda_runtime_api.h>
 #include <cudf.h>

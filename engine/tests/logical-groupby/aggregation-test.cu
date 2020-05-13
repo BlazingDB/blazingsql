@@ -36,7 +36,7 @@ TYPED_TEST(AggregationTest, CheckBasicWithGroupby) {
 	std::vector<std::string> aggregation_column_assigned_aliases{"agg0", "agg1", "agg2", "agg3"};
 	std::vector<int> group_column_indices{0};
 
-	std::unique_ptr<ral::frame::BlazingTable> result = ral::operators::experimental::compute_aggregations_with_groupby(
+	std::unique_ptr<ral::frame::BlazingTable> result = ral::operators::compute_aggregations_with_groupby(
 		table, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases, group_column_indices);
 
 	for (int i = 0; i < result->view().num_columns(); i++){
@@ -74,7 +74,7 @@ TYPED_TEST(AggregationTest, MoreComplexGroupby) {
 	std::vector<std::string> aggregation_column_assigned_aliases{"", "", "", ""};
 	std::vector<int> group_column_indices{0};
 
-	std::unique_ptr<ral::frame::BlazingTable> result = ral::operators::experimental::compute_aggregations_with_groupby(
+	std::unique_ptr<ral::frame::BlazingTable> result = ral::operators::compute_aggregations_with_groupby(
 		table, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases, group_column_indices);
 
 	for (int i = 0; i < result->view().num_columns(); i++){
@@ -108,7 +108,7 @@ using T = TypeParam;
 
 	std::vector<int> group_column_indices{0, 1};
 
-	std::unique_ptr<ral::frame::BlazingTable> result = ral::operators::experimental::compute_groupby_without_aggregations(
+	std::unique_ptr<ral::frame::BlazingTable> result = ral::operators::compute_groupby_without_aggregations(
 		table, group_column_indices);
 
 	for (int i = 0; i < result->view().num_columns(); i++){
@@ -141,7 +141,7 @@ using T = TypeParam;
 	std::vector<std::string> aggregation_input_expressions{"0", "1", "2", "2", "1", "", "1", "2"};
 	std::vector<std::string> aggregation_column_assigned_aliases{"agg0", "agg1", "agg2", "agg3", "cstar","agg4", "agg5", "agg6"};
 	
-	std::unique_ptr<ral::frame::BlazingTable> result = ral::operators::experimental::compute_aggregations_without_groupby(
+	std::unique_ptr<ral::frame::BlazingTable> result = ral::operators::compute_aggregations_without_groupby(
 		table, aggregation_types, aggregation_input_expressions, aggregation_column_assigned_aliases);
 
 	for (int i = 0; i < result->view().num_columns(); i++){

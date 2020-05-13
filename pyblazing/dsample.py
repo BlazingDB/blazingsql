@@ -26,7 +26,7 @@ bc.create_table('supplier', dir_data_fs + '/supplier_*.parquet')
 def run_query(bc, sql, title):
     print(title, sql)
     # print(bc.explain(sql))
-    result_gdf = bc.sql(sql, use_execution_graph=True)
+    result_gdf = bc.sql(sql)
     if isinstance(result_gdf, dask_cudf.core.DataFrame) : 
         print(result_gdf.compute())
     else:

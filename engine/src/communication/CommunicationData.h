@@ -1,5 +1,4 @@
-#ifndef COMMUNICATION_DATA_H_
-#define COMMUNICATION_DATA_H_
+#pragma once 
 
 #include <blazingdb/transport/Node.h>
 #include <memory>
@@ -7,7 +6,6 @@
 
 namespace ral {
 namespace communication {
-namespace experimental {
 
 class CommunicationData {
 public:
@@ -20,7 +18,7 @@ public:
 		int16_t selfRalCommunicationPort,
 		int16_t selfRalProtocolPort);
 
-	const blazingdb::transport::experimental::Node & getSelfNode();
+	const blazingdb::transport::Node & getSelfNode();
 
 	std::string getOrchestratorIp();
 	int16_t getOrchestratorPort();
@@ -35,11 +33,8 @@ private:
 
 	std::string orchestratorIp;
 	int16_t orchestratorPort;
-	blazingdb::transport::experimental::Node selfNode;
+	blazingdb::transport::Node selfNode;
 };
 
-}  // namespace experimental
 }  // namespace communication
 }  // namespace ral
-
-#endif /* COMMUNICATION_DATA_H_ */

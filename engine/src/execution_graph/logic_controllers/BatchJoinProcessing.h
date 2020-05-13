@@ -97,7 +97,7 @@ public:
 			for (std::size_t i = 0; i < tables_loaded.size(); i++){
 				tables_to_concat[i] = tables_loaded[i]->toBlazingTableView();
 			}
-			return ral::utilities::experimental::concatTables(tables_to_concat);			
+			return ral::utilities::concatTables(tables_to_concat);			
 		}
 	}
 
@@ -195,7 +195,7 @@ public:
 			std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_to_normalize;
 			columns_to_normalize.emplace_back(std::move(left_columns[this->left_column_indices[i]]));
 			columns_to_normalize.emplace_back(std::move(right_columns[this->right_column_indices[i]]));
-			std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalized_columns = ral::utilities::experimental::normalizeColumnTypes(std::move(columns_to_normalize));
+			std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalized_columns = ral::utilities::normalizeColumnTypes(std::move(columns_to_normalize));
 			left_columns[this->left_column_indices[i]] = std::move(normalized_columns[0]);
 			right_columns[this->right_column_indices[i]] = std::move(normalized_columns[1]);
 			}
@@ -374,7 +374,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In PartwiseJoin kernel left_idx[{}] right_ind[{}] for {}. What: {}"_format(left_ind, right_ind, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 				throw e;
 			}
 		}
@@ -438,7 +437,7 @@ public:
 				const std::string & message_id,
 				std::shared_ptr<spdlog::logger> logger)
 	{
-		using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
+		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 
 		bool done = false;
 		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
@@ -464,10 +463,10 @@ public:
 						partitioned.push_back(batch_view);
 					}
 				}
-				std::vector<ral::distribution::experimental::NodeColumnView > partitions_to_send;
+				std::vector<ral::distribution::NodeColumnView > partitions_to_send;
 				for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
 					ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-					if (local_context->getNode(nodeIndex) == ral::communication::experimental::CommunicationData::getInstance().getSelfNode()){
+					if (local_context->getNode(nodeIndex) == ral::communication::CommunicationData::getInstance().getSelfNode()){
 						// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
 						// if we dont clone it, hashed_data will go out of scope before we get to use the partition
 						// also we need a BlazingTable to put into the cache, we cant cache views.
@@ -480,7 +479,7 @@ public:
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
 					}
 				}
-				ral::distribution::experimental::distributeTablePartitions(local_context.get(), partitions_to_send);
+				ral::distribution::distributeTablePartitions(local_context.get(), partitions_to_send);
 
 				if (sequence.wait_for_next()){
 					batch = sequence.next();
@@ -504,7 +503,7 @@ public:
 			}
         }
 		//printf("... notifyLastTablePartitions\n");
-		ral::distribution::experimental::notifyLastTablePartitions(local_context.get(), ColumnDataPartitionMessage::MessageID());
+		ral::distribution::notifyLastTablePartitions(local_context.get(), ColumnDataPartitionMessage::MessageID());
     }
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view, 
@@ -513,9 +512,9 @@ public:
 		std::pair<bool, uint64_t> left_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_a");	
 		std::pair<bool, uint64_t> right_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_b");	
 		double left_batch_rows = (double)left_batch_view.num_rows();
-		double left_batch_bytes = (double)ral::utilities::experimental::get_table_size_bytes(left_batch_view);
+		double left_batch_bytes = (double)ral::utilities::get_table_size_bytes(left_batch_view);
 		double right_batch_rows = (double)right_batch_view.num_rows();
-		double right_batch_bytes = (double)ral::utilities::experimental::get_table_size_bytes(right_batch_view);
+		double right_batch_bytes = (double)ral::utilities::get_table_size_bytes(right_batch_view);
 		int64_t left_bytes_estimate;
 		if (!left_num_rows_estimate.first || left_batch_bytes == 0){
 			// if we cant get a good estimate of current bytes, then we will set to -1 to signify that
@@ -531,13 +530,13 @@ public:
 			right_bytes_estimate = (int64_t)(right_batch_bytes*(((double)right_num_rows_estimate.second)/right_batch_rows));
 		}
 
-		int self_node_idx = context->getNodeIndex(ral::communication::experimental::CommunicationData::getInstance().getSelfNode());
+		int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
 
 		context->incrementQuerySubstep();
-		ral::distribution::experimental::distributeLeftRightTableSizeBytes(context.get(), left_bytes_estimate, right_bytes_estimate);
+		ral::distribution::distributeLeftRightTableSizeBytes(context.get(), left_bytes_estimate, right_bytes_estimate);
 		std::vector<int64_t> nodes_num_bytes_left;
 		std::vector<int64_t> nodes_num_bytes_right;
-		ral::distribution::experimental::collectLeftRightTableSizeBytes(context.get(), nodes_num_bytes_left, nodes_num_bytes_right);
+		ral::distribution::collectLeftRightTableSizeBytes(context.get(), nodes_num_bytes_left, nodes_num_bytes_right);
 		nodes_num_bytes_left[self_node_idx] = left_bytes_estimate;
 		nodes_num_bytes_right[self_node_idx] = right_bytes_estimate;
 
@@ -584,7 +583,7 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch,
 		BatchSequence left_sequence,
 		BatchSequence right_sequence){
-		using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
+		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 		
 		this->context->incrementQuerySubstep();
 				
@@ -645,7 +644,7 @@ public:
 		BatchSequence small_table_sequence,
 		BatchSequenceBypass big_table_sequence, 
 		const std::pair<bool, bool> & scatter_left_right){
-		using ColumnDataMessage = ral::communication::messages::experimental::ColumnDataMessage;
+		using ColumnDataMessage = ral::communication::messages::ColumnDataMessage;
 
 		this->context->incrementQuerySubstep();
 
@@ -661,7 +660,7 @@ public:
 			while (!done) {		
 				try {  
 					if(small_table_batch->num_rows() > 0) {
-						ral::distribution::experimental::scatterData(this->context.get(), small_table_batch->toBlazingTableView());
+						ral::distribution::scatterData(this->context.get(), small_table_batch->toBlazingTableView());
 					}
 					this->add_to_output_cache(std::move(small_table_batch), small_output_cache_name);
 					if (small_table_sequence.wait_for_next()){
@@ -678,10 +677,9 @@ public:
 												"substep"_a=this->context->getQuerySubstep(),
 												"info"_a="In JoinPartitionKernel scatter_small_table batch_count [{}]. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
-					logger->flush();
 				}
 			}
-			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
+			ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
 		});
 		
 		BlazingThread collect_small_table_thread([this, small_output_cache_name](){
@@ -738,7 +736,6 @@ public:
 										"substep"_a=context->getQuerySubstep(),
 										"info"_a="In JoinPartitionKernel left side is empty and cannot determine join column indices",
 										"duration"_a="");
-			logger->flush();
 		}
 
 		std::pair<bool, bool> scatter_left_right;

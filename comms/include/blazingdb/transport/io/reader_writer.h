@@ -8,7 +8,6 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 namespace io {
 
 using Buffer = std::basic_string<char>;
@@ -58,6 +57,5 @@ void readBuffersIntoCPUTCP(std::vector<std::size_t> bufferSizes,
                                           void *fileDescriptor, int gpuNum, std::vector<Buffer> &);
 
 }  // namespace io
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb
