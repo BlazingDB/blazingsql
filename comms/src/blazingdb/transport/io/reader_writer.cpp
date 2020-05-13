@@ -18,9 +18,7 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 namespace io {
-
 
 // numBuffers should be equal to number of threads
 PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
@@ -328,8 +326,5 @@ void readBuffersIntoCPUTCP(std::vector<std::size_t> bufferSizes,
 
 
 }  // namespace io
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb
-
-

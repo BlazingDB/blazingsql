@@ -6,19 +6,17 @@
 namespace ral {
 namespace communication {
 namespace network {
-namespace experimental{
-// static std::map<std::pair<std::string, int16_t>, std::shared_ptr<blazingdb::transport::Client> > ral_clients;
 
 // concurrent::send
 Status Client::send(const Node & node, GPUMessage & message) {
 	const auto & metadata = node.address().metadata();
-	auto ral_client = blazingdb::transport::experimental::ClientTCP::Make(metadata.ip, metadata.comunication_port);
+	auto ral_client = blazingdb::transport::ClientTCP::Make(metadata.ip, metadata.comunication_port);
 	return ral_client->Send(message);
 }
 
 bool Client::notifyLastMessageEvent(const Node & node, const Message::MetaData &message_metadata) {
 	const auto & metadata = node.address().metadata();
-	auto ral_client = blazingdb::transport::experimental::ClientTCP::Make(metadata.ip, metadata.comunication_port);
+	auto ral_client = blazingdb::transport::ClientTCP::Make(metadata.ip, metadata.comunication_port);
 	return ral_client->notifyLastMessageEvent(message_metadata);
 }
 
@@ -37,7 +35,7 @@ Status Client::sendNodeData(std::string ip, int16_t port, Message & message) {
 	// return client->Send(message);
 	return Status{};
 }
-}  // namespace experimental
+
 }  // namespace network
 }  // namespace communication
 }  // namespace ral

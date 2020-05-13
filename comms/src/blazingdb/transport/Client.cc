@@ -10,8 +10,6 @@
 namespace blazingdb {
 namespace transport {
 
-namespace experimental {
-
 class Client::SendError : public std::exception {
 public:
   SendError(const std::string& original, const std::string& endpoint,
@@ -102,7 +100,7 @@ public:
     blazingdb::transport::io::writeToSocket(fd, (char*)buffer_sizes.data(),
                                             sizeof(std::size_t) * buffer_sizes.size());
 
-    blazingdb::transport::experimental::io::writeBuffersFromGPUTCP(column_offsets, buffer_sizes, buffers, fd, gpuId);
+    blazingdb::transport::io::writeBuffersFromGPUTCP(column_offsets, buffer_sizes, buffers, fd, gpuId);
     blazingdb::transport::io::writeToSocket(fd, "OK", 2, false);
 
     zmq::socket_t* socket_ptr = (zmq::socket_t*)fd;
@@ -134,6 +132,5 @@ std::shared_ptr<Client> ClientTCP::Make(const std::string& ip, int16_t port) {
   return std::shared_ptr<Client>(new ConcreteClientTCP(ip, port));
 }
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

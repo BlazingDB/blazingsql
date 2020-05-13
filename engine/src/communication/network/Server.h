@@ -6,14 +6,13 @@
 namespace ral {
 namespace communication {
 namespace network {
-namespace experimental {
 
-using CommServer = blazingdb::transport::experimental::Server;
+using CommServer = blazingdb::transport::Server;
 using ContextToken = uint32_t;
 using MessageTokenType = std::string;
-using GPUMessage = blazingdb::transport::experimental::GPUMessage;
-using ReceivedMessage = blazingdb::transport::experimental::ReceivedMessage;
-using HostCallback = blazingdb::transport::experimental::HostCallback;
+using GPUMessage = blazingdb::transport::GPUMessage;
+using ReceivedMessage = blazingdb::transport::ReceivedMessage;
+using HostCallback = blazingdb::transport::HostCallback;
 
 class Server {
 public:
@@ -58,8 +57,6 @@ private:
 	static bool use_batch_processing_;
 };
 
-
-}  // namespace experimental
 }  // namespace network
 }  // namespace communication
 }  // namespace ral

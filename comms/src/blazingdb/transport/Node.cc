@@ -5,7 +5,6 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 Node::Node(){}
 
@@ -30,6 +29,5 @@ void Node::print() const {
             << "|protocol_port:" << metadata.protocol_port << "\n";
 }
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

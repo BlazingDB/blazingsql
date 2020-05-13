@@ -1,22 +1,21 @@
 #pragma once
+
 #include <vector>
 #include <string>
 #include "cudf/table/table.hpp"
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 struct ColumnTransport;
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb
 
 namespace ral {
 namespace frame {
 
-using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
+using ColumnTransport = blazingdb::transport::ColumnTransport;
 
 /**
 	@brief A class that represents the BlazingTable store in host memory.

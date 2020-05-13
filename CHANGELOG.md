@@ -8,3 +8,5 @@
 #565 made us have same behaviour as cudf for reading csv
 #612 Print product version: print(blazingsql.__version__) # shows the git hash
 #631 Implemented ability to send config_options to bc.sql function
+#621 Clean dead code
+#602 Implements cache flow control feature

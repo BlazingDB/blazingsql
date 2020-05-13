@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <climits>
 #include <mutex>
+
 namespace blazingdb {
 namespace manager {
-namespace experimental { 
 
 Context::Context(const uint32_t token,
                  const std::vector<Node> &taskNodes,
@@ -99,6 +99,5 @@ bool Context::isMasterNode(const Node &node) const {
   return masterNode_ == node;
 }
 
-}  // namespace experimental
 }  // namespace manager
 }  // namespace blazingdb
