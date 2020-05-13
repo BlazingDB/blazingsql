@@ -215,6 +215,7 @@ def collectPartitionsPerformPartition(
         ctxToken,
         input,
         dask_mapping,
+        df_schema,
         by,
         i):  # this is a dummy variable to make every submit unique which is necessary
     import dask.distributed
@@ -222,7 +223,7 @@ def collectPartitionsPerformPartition(
     if(isinstance(input, dask_cudf.core.DataFrame)):
         partitions = dask_mapping[worker_id]
         if (len(partitions) == 0):
-            input = input.get_partition(0).head(0)
+            input = df_schema
         elif (len(partitions) == 1):
             input = input.get_partition(partitions[0]).compute()
         else:
@@ -734,7 +735,8 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
                                        if None, and pool=True, defaults to 1/2 GPU memory.
         enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
-        config_options (optional) : this is a dictionary for setting certain parameters in the engine:
+        config_options (optional) : this is a dictionary for setting certain parameters in the engine. These parameters will be used for all queries except
+                                    if overriden by setting these parameters when running the query itself. The possible parameters are:
                                     JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join
                                            before doing the join. Too small can lead to overpartitioning, too big can lead to OOM errors.
                                            default: 400000000
@@ -750,8 +752,14 @@ class BlazingContext(object):
                                     TABLE_SCAN_KERNEL_NUM_THREADS: The number of threads used in the TableScan and BindableTableScan kernels for
                                            reading batches
                                            default: 1
-                                    MAX_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
+                                    MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
+                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to 
+                                            stop execution until the output cache contains less.
+                                            default: max int (makes it not applicable)
+                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to 
+                                            stop execution until the output cache contains less.
+                                            default: max size_t (makes it not applicable)
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
                                            calculate the number of samples
                                            default: 0.1
@@ -791,10 +799,8 @@ class BlazingContext(object):
         self.nodes = []
         self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
-        self.config_options = {}
-        for option in config_options:
-            self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
-
+        self.config_options = config_options
+        
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
@@ -1466,6 +1472,7 @@ class BlazingContext(object):
                 print("Not supported...")
             else:
                 dask_mapping = getNodePartitions(input, self.dask_client)
+                df_schema = input.get_partition(0).head(0)
                 dask_futures = []
                 for i, node in enumerate(self.nodes):
                     worker = node['worker']
@@ -1477,67 +1484,16 @@ class BlazingContext(object):
                             ctxToken,
                             input,
                             dask_mapping,
+                            df_schema,
                             by,
                             i,  # this is a dummy variable to make every submit unique which is necessary
                             workers=[worker]))
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
-    def unify_partitions(self, input):
-        """
-        Concatenate all partitions that belong to a Dask Worker as one, so that
-        you only have one partition per worker. This improves performance when
-        running multiple queries on a table created from a dask_cudf DataFrame.
+    
 
-        Parameters
-        ----------
-
-        input : a dask_cudf DataFrame.
-
-        Examples
-        --------
-
-        Distribute BlazingSQL then create and query a table from a dask_cudf DataFrame:
-collectParti
-        >>> from blazingsql import BlazingContext
-        >>> from dask.distributed import Client
-        >>> from dask_cuda import LocalCUDACluster
-
-        >>> cluster = LocalCUDACluster()
-        >>> client = Client(cluster)
-        >>> bc = BlazingContext(dask_client=client)
-
-        >>> dask_df = dask_cudf.read_parquet('/Data/my_file.parquet')
-        >>> dask_df = bc.unify_partitions(dask_df)
-        >>> bc.create_table("unified_partitions_table", dask_df)
-        >>> result = bc.sql("SELECT * FROM unified_partitions_table")
-
-
-        Docs: https://docs.blazingdb.com/docs/unify_partitions
-        """
-        if isinstance(input, dask_cudf.core.DataFrame) and self.dask_client is not None:
-            dask_mapping = getNodePartitions(input, self.dask_client)
-            max_num_partitions_per_node = max([len(x) for x in dask_mapping.values()])
-            if max_num_partitions_per_node > 1:
-                dask_futures = []
-                for i, node in enumerate(self.nodes):
-                    worker = node['worker']
-                    dask_futures.append(
-                        self.dask_client.submit(
-                            workerUnifyPartitions,
-                            input,
-                            dask_mapping,
-                            i,  # this is a dummy variable to make every submit unique which is necessary
-                            workers=[worker]))
-                result = dask.dataframe.from_delayed(dask_futures)
-                return result
-            else:
-                return input
-        else:
-            return input
-
-
-    def sql(self, sql, table_list=[], algebra=None, return_futures=False, single_gpu=False):
+    def sql(self, sql, table_list=[], algebra=None, return_futures=False, single_gpu=False, config_options={}):
         """
         Query a BlazingSQL table.
 
@@ -1545,9 +1501,14 @@ collectParti
 
         Parameters
         ----------
-
-        sql : string of SQL query.
-        algebra (optional) : string of SQL algebra plan. if you used, sql string is not used.
+        query :                     string of SQL query.
+        algebra (optional) :        string of SQL algebra plan. Use this to run on a relational algebra, instead of the query string 
+        return_futures (optional) : defaulted to false. Set to true if you want the `sql` function to return futures instead of data
+        single_gpu (optional) :     defaulted to false. Set to true if you want to run the query on a single gpu, even is the BlazingContext
+                                    is setup with a dask cluster. This is useful for manually running different queries on different gpus
+                                    simultaneously.
+        config_options (optional) : defaulted to empty. You can use this to set a specific set of config_options for this query instead
+                                    of the ones set in BlazingContext. See BlazingContext for more info on this parameter
 
         Examples
         --------
@@ -1598,7 +1559,7 @@ collectParti
         fileTypes = []
 
         if (algebra is None):
-            algebra = self.explain(sql)
+            algebra = self.explain(query)
 
         # when an empty `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
         if "LogicalValues(tuples=[[]])" in algebra:
@@ -1609,6 +1570,13 @@ collectParti
         if algebra == '':
             print("Parsing Error")
             return
+
+        if len(config_options) == 0:
+            config_options = self.config_options 
+        
+        query_config_options = {}
+        for option in config_options:
+            query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
         if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
@@ -1674,7 +1642,7 @@ collectParti
                         ctxToken,
                         algebra,
                         accessToken,
-                        self.config_options)
+                        query_config_options)
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
@@ -1688,7 +1656,7 @@ collectParti
                         ctxToken,
                         algebra,
                         accessToken,
-                        self.config_options)]
+                        query_config_options)]
             else:
                 dask_futures = []
                 i = 0
@@ -1704,7 +1672,7 @@ collectParti
                             ctxToken,
                             algebra,
                             accessToken,
-                            self.config_options,
+                            query_config_options,
                             workers=[worker]))
                     i = i + 1
                 if(return_futures):

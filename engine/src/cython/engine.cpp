@@ -14,6 +14,8 @@
 #include "communication/network/Server.h"
 #include <numeric>
 #include <map>
+#include <spdlog/spdlog.h>
+using namespace fmt::literals;
 
 std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_loaders_and_schemas(
 	const std::vector<TableSchema> & tableSchemas,
@@ -132,19 +134,21 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
+	
+	using blazingdb::manager::Context;
+	using blazingdb::transport::Node;
+
+	std::vector<Node> contextNodes;
+	for(auto currentMetadata : tcpMetadata) {
+		auto address =
+			blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+		contextNodes.push_back(Node(address));
+	}
+
+	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
+	ral::communication::network::Server::getInstance().registerContext(ctxToken);
+	
 	try {
-		using blazingdb::manager::Context;
-		using blazingdb::transport::Node;
-
-		std::vector<Node> contextNodes;
-		for(auto currentMetadata : tcpMetadata) {
-			auto address =
-				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node(address));
-		}
-
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
-		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
 		std::unique_ptr<ral::frame::BlazingTable> frame;
@@ -157,6 +161,14 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(const std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="In runQuery. What: {}"_format(e.what()),
+									"duration"_a="");
+		logger->flush();
 		std::cerr << e.what() << std::endl;
 		throw;
 	}
@@ -204,6 +216,11 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		return result;
 
 	} catch(const std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("|||{info}|||||",
+									"info"_a="In performPartition. What: {}"_format(e.what()));
+		logger->flush();
+
 		std::cerr << "**[performPartition]** error partitioning table.\n";
 		std::cerr << e.what() << std::endl;
 		throw;
@@ -228,6 +245,11 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 		return result;
 
 	} catch(const std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("|||{info}|||||",
+									"info"_a="In runSkipData. What: {}"_format(e.what()));
+		logger->flush();
+		
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
 		std::cerr << e.what() << std::endl;
 		throw;
