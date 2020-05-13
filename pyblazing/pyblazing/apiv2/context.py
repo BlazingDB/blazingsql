@@ -40,6 +40,8 @@ import netifaces as ni
 
 import random
 
+import logging
+
 from enum import IntEnum
 
 jpype.addClassPath(
@@ -93,13 +95,20 @@ class blazing_allocation_mode(IntEnum):
     CudaManagedMemory = (2,)
 
 
+
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
 
                       initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
 
+    FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||%(message)s||||||'
+    filename = 'pyblazing.' + str(ralId) + '.log'
+    logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
+
+    logging.info('Worker IP: %s   Port: %d', workerIp, ralCommunicationPort)
+    
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
