@@ -15,15 +15,6 @@
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
 
-
-bool is_type_signed(cudf::type_id type) {
-	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type ||
-			cudf::type_id::INT32 == type || cudf::type_id::INT64 == type || cudf::type_id::FLOAT32 == type ||
-			cudf::type_id::FLOAT64 == type || cudf::type_id::TIMESTAMP_DAYS == type ||
-			cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
-			cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type);
-}
-
 bool is_type_float(cudf::type_id type) { return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type); }
 
 bool is_type_integer(cudf::type_id type) {
@@ -35,12 +26,6 @@ bool is_date_type(cudf::type_id type) {
 	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
 			cudf::type_id::TIMESTAMP_MILLISECONDS == type || cudf::type_id::TIMESTAMP_MICROSECONDS == type ||
 			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
-}
-
-// TODO percy noboa see upgrade to uints
-bool is_numeric_type(cudf::type_id type) {
-	// return is_type_signed(type) || is_type_unsigned_numeric(type);
-	return is_type_signed(type);
 }
 
 cudf::type_id get_next_biggest_type(cudf::type_id type) {
@@ -105,9 +90,9 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::s
 }
 
 cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2) {
-	
+
 	if(type1 == type2) {
-		return type1;		
+		return type1;
 	} else if((is_type_float(type1) && is_type_float(type2)) || (is_type_integer(type1) && is_type_integer(type2))) {
 		return (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2)) ? type1
 																												: type2;
@@ -116,13 +101,13 @@ cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2) {
 						cudf::type_id::TIMESTAMP_MILLISECONDS, cudf::type_id::TIMESTAMP_SECONDS, cudf::type_id::TIMESTAMP_DAYS};
 		for (auto datetime_type : datetime_types){
 			if(type1 == datetime_type || type2 == datetime_type)
-				return datetime_type;	
-		}		
+				return datetime_type;
+		}
 	} else if((type1 == cudf::type_id::STRING) &&
 			  (type2 == cudf::type_id::STRING)) {
 		return cudf::type_id::STRING;
-	} 
-	return cudf::type_id::EMPTY;	
+	}
+	return cudf::type_id::EMPTY;
 }
 
 cudf::type_id infer_dtype_from_literal(const std::string & token) {
@@ -224,14 +209,14 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	if(type_id == cudf::type_id::TIMESTAMP_DAYS) {
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
 	}
-	if(type_id == cudf::type_id::TIMESTAMP_SECONDS || type_id == cudf::type_id::TIMESTAMP_MILLISECONDS 
+	if(type_id == cudf::type_id::TIMESTAMP_SECONDS || type_id == cudf::type_id::TIMESTAMP_MILLISECONDS
 		|| type_id == cudf::type_id::TIMESTAMP_MICROSECONDS || type_id == cudf::type_id::TIMESTAMP_NANOSECONDS) {
 		if (scalar_string.find(":") != std::string::npos){
 			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
 		} else {
 			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
 		}
-		
+
 	}
 	if(type_id == cudf::type_id::STRING)	{
 		auto str_scalar = cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));

@@ -135,6 +135,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/config/BlazingConfig.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/random_generator.cu
+              ${CMAKE_SOURCE_DIR}/src/utilities/transform.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
               ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
               ${CMAKE_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu

@@ -9,6 +9,7 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/concurrency/BlazingThread.h"
 #include <cudf/filling.hpp>
+#include <cudf/column/column_factories.hpp>
 #include "CalciteExpressionParsing.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 namespace ral {
@@ -122,11 +123,12 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 								std::string name = schema.get_name(col_ind);
 								names.push_back(name);
 								cudf::type_id type = schema.get_dtype(col_ind);
-								std::string scalar_string = file_sets[file_set_index][file_in_set].column_values[name];
+								std::string literal_str = file_sets[file_set_index][file_in_set].column_values[name];
 								if(type == cudf::type_id::STRING){
-									all_columns[i] = ral::utilities::experimental::make_string_column_from_scalar(scalar_string, num_rows);
+									cudf::string_scalar str_scalar(literal_str);
+									all_columns[i] = cudf::make_column_from_scalar(str_scalar, num_rows);
 								} else {
-									std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
+									std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(literal_str, type);
 									size_t width_per_value = cudf::size_of(scalar->type());
 									auto buffer_size = width_per_value * num_rows;
 									rmm::device_buffer gpu_buffer(buffer_size);
