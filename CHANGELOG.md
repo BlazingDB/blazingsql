@@ -9,3 +9,4 @@
 #612 Print product version: print(blazingsql.__version__) # shows the git hash
 #638 Refactores and fixes SortAndSample kernels
 #621 Clean dead code
+#602 Implements cache flow control feature

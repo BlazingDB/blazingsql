@@ -266,6 +266,10 @@ public:
 	{
 		this->query_graph = query_graph;
 	}
+
+	bool can_you_throttle_my_input() {
+		return false;
+	}
 	
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -280,9 +284,12 @@ public:
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
 			threads.push_back(BlazingThread([this]() {
+				this->output_cache()->wait_if_cache_is_saturated();
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 				while(batch = input.next()) {
 					this->add_to_output_cache(std::move(batch));
+
+					this->output_cache()->wait_if_cache_is_saturated();
 				}
 			}));
 		}
@@ -325,6 +332,10 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return false;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -340,6 +351,9 @@ public:
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
 			threads.push_back(BlazingThread([expression = this->expression, this]() {
+
+				this->output_cache()->wait_if_cache_is_saturated();
+
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 				while(batch = input.next()) {
 					try {
@@ -352,6 +366,9 @@ public:
 							batch->setNames(fix_column_aliases(batch->names(), expression));
 							this->add_to_output_cache(std::move(batch));
 						}
+						
+						this->output_cache()->wait_if_cache_is_saturated();
+
 					} catch(const std::exception& e) {
 						// TODO add retry here
 						logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
@@ -402,6 +419,10 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -409,6 +430,8 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache()->wait_if_cache_is_saturated();
+
 				auto batch = input.next();
 				auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
 				this->add_to_output_cache(std::move(columns));
@@ -447,6 +470,10 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -454,6 +481,8 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache()->wait_if_cache_is_saturated();
+
 				auto batch = input.next();
 				auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
 				this->add_to_output_cache(std::move(columns));
@@ -503,6 +532,11 @@ class Print : public kernel {
 public:
 	Print() : kernel("Print", nullptr) { ofs = &(std::cout); }
 	Print(std::ostream & stream) : kernel("Print", nullptr) { ofs = &stream; }
+
+	bool can_you_throttle_my_input() {
+		return false;
+	}
+
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
 		BatchSequence input(this->input_cache(), this);
@@ -525,6 +559,10 @@ public:
 	virtual kstatus run() {
 		output = std::move(this->input_.get_cache()->pullFromCache());
 		return kstatus::stop;
+	}
+
+	bool can_you_throttle_my_input() {
+		return false;
 	}
 
 	frame_type	release() {
