@@ -9,3 +9,4 @@
 #612 Print product version: print(blazingsql.__version__) # shows the git hash
 #621 Clean dead code
 #626 Avoid the engine crashes when a LogicalValues is found out on the optimized plan
+#635 Handle behavior when the optimized plan contains a LogicalValue
