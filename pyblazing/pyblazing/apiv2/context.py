@@ -1635,12 +1635,7 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
-<<<<<<< HEAD
-                        use_execution_graph,
                         query_config_options)
-=======
-                        self.config_options)
->>>>>>> upstream/branch-0.14
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
@@ -1654,12 +1649,7 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
-<<<<<<< HEAD
-                        use_execution_graph,
                         query_config_options)]
-=======
-                        self.config_options)]
->>>>>>> upstream/branch-0.14
             else:
                 dask_futures = []
                 i = 0
@@ -1675,12 +1665,7 @@ class BlazingContext(object):
                             ctxToken,
                             algebra,
                             accessToken,
-<<<<<<< HEAD
-                            use_execution_graph,
                             query_config_options,
-=======
-                            self.config_options,
->>>>>>> upstream/branch-0.14
                             workers=[worker]))
                     i = i + 1
                 if(return_futures):
