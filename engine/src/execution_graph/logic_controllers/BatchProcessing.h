@@ -61,7 +61,7 @@ using namespace fmt::literals;
 
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
-using Context = blazingdb::manager::experimental::Context;
+using Context = blazingdb::manager::Context;
 class BatchSequence {
 public:
 	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr)
@@ -113,9 +113,9 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
 };
 
-typedef ral::communication::network::experimental::Server Server;
-typedef ral::communication::network::experimental::Client Client;
-using ral::communication::messages::experimental::ReceivedHostMessage;
+using ral::communication::network::Server;
+using ral::communication::network::Client;
+using ral::communication::messages::ReceivedHostMessage;
 
 template<class MessageType>
 class ExternalBatchColumnDataSequence {
@@ -360,7 +360,6 @@ public:
 														"substep"_a=context->getQuerySubstep(),
 														"info"_a="In BindableTableScan kernel batch for {}. What: {}"_format(expression, e.what()),
 														"duration"_a="");
-						logger->flush();
 					}
 				}
 			}));
@@ -422,7 +421,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In Projection kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -468,7 +466,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In Filter kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 

@@ -11,9 +11,9 @@
 #include "../BlazingUnitTest.h"
 #include "generators/file_generator.h"
 
-using blazingdb::manager::experimental::Context;
-using blazingdb::transport::experimental::Address;
-using blazingdb::transport::experimental::Node;
+using blazingdb::manager::Context;
+using blazingdb::transport::Address;
+using blazingdb::transport::Node;
 struct Batching : public BlazingUnitTest {
 	Batching() {
 

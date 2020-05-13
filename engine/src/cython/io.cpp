@@ -104,7 +104,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		names[2*index + 1] = "row_group_index";
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = names;
-		auto table = ral::utilities::experimental::create_empty_table(dtypes);
+		auto table = ral::utilities::create_empty_table(dtypes);
 		result->cudfTable = std::move(table);
 		result->skipdata_analysis_fail = false;
 		return result;

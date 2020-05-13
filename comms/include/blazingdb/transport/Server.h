@@ -12,7 +12,6 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 using Buffer = std::basic_string<char>;
 
@@ -171,6 +170,6 @@ public:
 
   static std::unique_ptr<Server> BatchProcessing(unsigned short port);
 };
-}  // namespace experimental
+
 }  // namespace transport
 }  // namespace blazingdb

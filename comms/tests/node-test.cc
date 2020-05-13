@@ -3,8 +3,8 @@
 #include <gtest/gtest.h>
 
 TEST(NodeTest, NodeCreationFromCreatedBuffer) {
-  using Address = blazingdb::transport::experimental::Address;
-  using Node = blazingdb::transport::experimental::Node;
+  using Address = blazingdb::transport::Address;
+  using Node = blazingdb::transport::Node;
 
   const std::shared_ptr<Node> node1 =
       std::make_shared<Node>(Node(Address::TCP("1.2.3.4", 9999, 1234)));

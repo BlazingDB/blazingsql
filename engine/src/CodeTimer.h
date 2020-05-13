@@ -1,12 +1,6 @@
 #pragma once
 
-#include <blazingdb/manager/Context.h>
 #include <chrono>
-#include <string>
-
-namespace {
-using blazingdb::manager::experimental::Context;
-}  // namespace
 
 // Based on https://github.com/andremaravilha/cxxtimer
 class CodeTimer {
@@ -48,8 +42,6 @@ public:
 			paused_ = false;
 			start_point_ = Clock::now();
 			accumulated_ = Clock::duration(0);
-			
-			start(); // Just to keep the same behavior
 		}
 	}
 
@@ -65,22 +57,6 @@ public:
 			return Clock::duration(0).count();
 		}
 	}
-
-	std::string logDuration(const Context & context,
-		std::string eventDescription,
-		std::string eventExtraInfo = "",
-		int measure = 0,
-		std::string eventExtraInfo2 = "",
-		int measure2 = 0);
-	std::string logDuration(uint32_t contextToken,
-		uint32_t query_step,
-		uint32_t query_substep,
-		std::string eventDescription,
-		std::string eventExtraInfo = "",
-		int measure = 0,
-		std::string eventExtraInfo2 = "",
-		int measure2 = 0);
-
 
 private:
 	bool started_;

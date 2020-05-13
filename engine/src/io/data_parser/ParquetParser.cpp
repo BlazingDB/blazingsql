@@ -92,7 +92,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse(
 					table_outs.emplace_back(std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names));
 					table_view_outs.emplace_back(table_outs.back()->toBlazingTableView());
 				}
-				return ral::utilities::experimental::concatTables(table_view_outs);
+				return ral::utilities::concatTables(table_view_outs);
 			}
 		}
 	}
