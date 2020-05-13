@@ -55,6 +55,23 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 	return the_ip;
 }
 
+void create_logger(std::string fileName, std::string loggingName, int ralId){
+	spdlog::init_thread_pool(8192, 1);
+	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
+	stdout_sink->set_level(spdlog::level::err);
+	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(fileName);
+	file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
+	file_sink->set_level(spdlog::level::trace);
+	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
+	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+	logger->set_level(spdlog::level::trace);
+	spdlog::register_logger(logger);
+
+	spdlog::flush_on(spdlog::level::err);
+	spdlog::flush_every(std::chrono::seconds(1));
+}
+
 void initialize(int ralId,
 	int gpuId,
 	std::string network_iface_name,
@@ -70,8 +87,6 @@ void initialize(int ralId,
   // ---------------------------------------------------------------------------
 
 	ralHost = get_ip(network_iface_name);
-
-	std::string loggingName = "RAL." + std::to_string(ralId) + ".log";
 	
 	std::string initLogMsg = "INITIALIZING RAL. RAL ID: " + std::to_string(ralId)  + ", ";
 	initLogMsg = initLogMsg + "RAL Host: " + ralHost + ":" + std::to_string(ralCommunicationPort) + ", ";
@@ -106,21 +121,9 @@ void initialize(int ralId,
 
 	// spdlog batch logger
 	spdlog::shutdown();
-	
-	spdlog::init_thread_pool(8192, 1);
-	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
-	stdout_sink->set_level(spdlog::level::err);
-	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(loggingName);
-	file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
-	file_sink->set_level(spdlog::level::trace);
-	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
-	auto logger = std::make_shared<spdlog::async_logger>("batch_logger", sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-	logger->set_level(spdlog::level::trace);
-	spdlog::register_logger(logger);
 
-	spdlog::flush_on(spdlog::level::err);
-	spdlog::flush_every(std::chrono::seconds(1));
+	std::string fileName = "RAL." + std::to_string(ralId) + ".log";
+	create_logger(fileName, "batch_logger", ralId);
 }
 
 void finalize() {
