@@ -56,7 +56,6 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 }
 
 void create_logger(std::string fileName, std::string loggingName, int ralId){
-	spdlog::init_thread_pool(8192, 1);
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
 	stdout_sink->set_level(spdlog::level::err);
@@ -122,8 +121,19 @@ void initialize(int ralId,
 	// spdlog batch logger
 	spdlog::shutdown();
 
-	std::string fileName = "RAL." + std::to_string(ralId) + ".log";
-	create_logger(fileName, "batch_logger", ralId);
+	spdlog::init_thread_pool(8192, 1);
+
+	std::string oldfileName = "RAL." + std::to_string(ralId) + ".log";
+	create_logger(oldfileName, "batch_logger", ralId);
+
+	std::string queriesFileName = "queries." + std::to_string(ralId) + ".log";
+	create_logger(queriesFileName, "queries_logger", ralId);
+
+	std::string kernelsFileName = "kernels." + std::to_string(ralId) + ".log";
+	create_logger(kernelsFileName, "kernels_logger", ralId);
+
+	std::string eventsFileName = "events." + std::to_string(ralId) + ".log";
+	create_logger(eventsFileName, "events_logger", ralId);
 }
 
 void finalize() {

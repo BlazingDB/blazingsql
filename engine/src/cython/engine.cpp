@@ -14,6 +14,10 @@
 #include "communication/network/Server.h"
 #include <numeric>
 #include <map>
+#include "communication/CommunicationData.h"
+#include <spdlog/spdlog.h>
+
+using namespace fmt::literals;
 
 std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_loaders_and_schemas(
 	const std::vector<TableSchema> & tableSchemas,
@@ -132,6 +136,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
+	auto logger = spdlog::get("queries_logger");
+
 	try {
 		using blazingdb::manager::Context;
 		using blazingdb::transport::Node;
@@ -145,6 +151,10 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
 		ral::communication::network::Server::getInstance().registerContext(ctxToken);
+
+		logger->info("{query_id}|{plan}",
+									"query_id"_a=queryContext.getContextToken(),
+									"plan"_a=query);
 
 		// Execute query
 		std::unique_ptr<ral::frame::BlazingTable> frame;
