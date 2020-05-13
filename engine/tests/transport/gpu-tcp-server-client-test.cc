@@ -24,14 +24,14 @@
 // #include <from_cudf/cpp_tests/utilities/legacy/cudf_test_utils.cuh>
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 
-using ral::communication::messages::experimental::SampleToNodeMasterMessage;
-using ral::communication::messages::experimental::ReceivedDeviceMessage;
+using ral::communication::messages::SampleToNodeMasterMessage;
+using ral::communication::messages::ReceivedDeviceMessage;
 
-using ral::communication::network::experimental::Client;
-using ral::communication::network::experimental::Node;
-using ral::communication::network::experimental::Server;
-using Address = blazingdb::transport::experimental::Address;
-using GPUMessage = blazingdb::transport::experimental::GPUMessage;
+using ral::communication::network::Client;
+using ral::communication::network::Node;
+using ral::communication::network::Server;
+using Address = blazingdb::transport::Address;
+using GPUMessage = blazingdb::transport::GPUMessage;
 
 constexpr uint32_t context_token = 3465;
 
@@ -54,7 +54,7 @@ static void ExecMaster() {
 	Server::start(8000);
 
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
-	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
+	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, 1);
 	Server::getInstance().registerContext(context_token);
 	BlazingThread([]() {
 		std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
@@ -74,7 +74,7 @@ static void ExecWorker() {
 	// todo get GPU_MEMORY_SIZE
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	auto nthread = 4;
-	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, nthread);
+	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
 	auto sender_node = Node(Address::TCP("127.0.0.1", 8001, 1234));
 	auto server_node = Node(Address::TCP("127.0.0.1", 8000, 1234));
 

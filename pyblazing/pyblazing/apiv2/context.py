@@ -174,7 +174,6 @@ def collectPartitionsRunQuery(
         ctxToken,
         algebra,
         accessToken,
-        use_execution_graph,
         config_options):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
@@ -198,10 +197,8 @@ In the mean time, for better performance we recommend using the unify_partitions
                 for partition in partitions:
                     table_partitions.append(
                         tables[table_name].input.get_partition(partition).compute())
-                if use_execution_graph:
                     tables[table_name].input = table_partitions #no concat
-                else:
-                    tables[table_name].input = [cudf.concat(table_partitions)]
+
     return cio.runQueryCaller(
         masterIndex,
         nodes,
@@ -210,7 +207,6 @@ In the mean time, for better performance we recommend using the unify_partitions
         ctxToken,
         algebra,
         accessToken,
-        use_execution_graph,
         config_options)
 
 def collectPartitionsPerformPartition(
@@ -1540,7 +1536,7 @@ collectParti
             return input
 
 
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True, return_futures=False, single_gpu=False):
+    def sql(self, sql, table_list=[], algebra=None, return_futures=False, single_gpu=False):
         """
         Query a BlazingSQL table.
 
@@ -1660,8 +1656,7 @@ collectParti
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
 
-        if use_execution_graph:
-            algebra = get_plan(algebra)
+        algebra = get_plan(algebra)
 
         if self.dask_client is None:
             result = cio.runQueryCaller(
@@ -1672,7 +1667,6 @@ collectParti
                         ctxToken,
                         algebra,
                         accessToken,
-                        use_execution_graph,
                         self.config_options)
         else:
             if single_gpu == True:
@@ -1687,7 +1681,6 @@ collectParti
                         ctxToken,
                         algebra,
                         accessToken,
-                        use_execution_graph,
                         self.config_options)]
             else:
                 dask_futures = []
@@ -1704,7 +1697,6 @@ collectParti
                             ctxToken,
                             algebra,
                             accessToken,
-                            use_execution_graph,
                             self.config_options,
                             workers=[worker]))
                     i = i + 1
@@ -1787,4 +1779,4 @@ collectParti
                 file_format='csv')
             self.logs_initialized = True
 
-        return self.sql(query, use_execution_graph=False)
+        return self.sql(query)

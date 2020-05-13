@@ -9,7 +9,6 @@
 #include <driver_types.h>
 #include <map>
 #include <numeric>
-#include "Traits/RuntimeTraits.h"
 #include "column_factory.h"
 
 namespace blazingdb {

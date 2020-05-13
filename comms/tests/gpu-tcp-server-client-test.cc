@@ -21,10 +21,9 @@
 namespace blazingdb {
 namespace transport {
 
-namespace experimental {
 // Alias
-using SimpleServer = blazingdb::transport::experimental::Server;
-using GPUMessage = blazingdb::transport::experimental::GPUMessage;
+using SimpleServer = blazingdb::transport::Server;
+using GPUMessage = blazingdb::transport::GPUMessage;
 
 constexpr uint32_t context_token = 3465;
 
@@ -368,7 +367,7 @@ class RalClient {
 public:
 public:
   static Status send(const Node &node, GPUMessage &message) {
-    auto client = blazingdb::transport::experimental::ClientTCP::Make(
+    auto client = blazingdb::transport::ClientTCP::Make(
         node.address().metadata().ip,
         node.address().metadata().comunication_port);
     std::cout << "send message\n";
@@ -377,7 +376,7 @@ public:
   static Status sendNodeData(const std::string &orchestratorIp,
                              int16_t orchestratorPort, GPUMessage &message) {
     auto client =
-        blazingdb::transport::experimental::ClientTCP::Make(orchestratorIp, orchestratorPort);
+        blazingdb::transport::ClientTCP::Make(orchestratorIp, orchestratorPort);
     return client->Send(message);
   }
 };
@@ -391,7 +390,7 @@ static void ExecMaster() {
   RalServer::start(8000);
 
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
-  blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
+  blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, 1);
   RalServer::getInstance().registerContext(context_token);
   std::thread([]() {
     // while(true){
@@ -413,7 +412,7 @@ static void ExecWorker() {
   // todo get GPU_MEMORY_SIZE
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
   auto nthread = 4;
-  blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, nthread);
+  blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
   // This lines are not necessary!!
   //  RalServer::start(8001);
   //  RalServer::getInstance().registerContext(context_token);
@@ -445,6 +444,5 @@ TEST(SendSamplesTest, MasterAndWorker) {
 
 // TEST(SendSamplesTest, Worker) { ExecWorker(); }
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

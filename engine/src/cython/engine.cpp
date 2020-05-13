@@ -125,7 +125,6 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	bool use_execution_graph,
 	std::map<std::string, std::string> config_options ) {
 
 	std::vector<ral::io::data_loader> input_loaders;
@@ -134,27 +133,22 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
 	try {
-		using blazingdb::manager::experimental::Context;
-		using blazingdb::transport::experimental::Node;
+		using blazingdb::manager::Context;
+		using blazingdb::transport::Node;
 
 		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
 			contextNodes.push_back(Node(address));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
-		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
+		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		// Execute query
 		std::unique_ptr<ral::frame::BlazingTable> frame;
-		if (use_execution_graph) {
-			frame = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
-
-		} else {
-			frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
-		}
+		frame = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 		
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = frame->names();
@@ -179,18 +173,18 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 
 		std::vector<int> columnIndices;
 
-		using blazingdb::manager::experimental::Context;
-		using blazingdb::transport::experimental::Node;
+		using blazingdb::manager::Context;
+		using blazingdb::transport::Node;
 
 		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
 			contextNodes.push_back(Node(address));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
-		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
+		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		const std::vector<std::string> & table_col_names = table.names();
 

@@ -123,7 +123,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 column1 = table.column(get_index(arg_tokens[0]));
             } else {
                 std::string literal_str = arg_tokens[0].substr(1, arg_tokens[0].size() - 2);
-                temp_col1 = ral::utilities::experimental::make_string_column_from_scalar(literal_str, table.num_rows());
+                temp_col1 = ral::utilities::make_string_column_from_scalar(literal_str, table.num_rows());
                 column1 = temp_col1->view();
             }
             
@@ -133,7 +133,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 column2 = table.column(get_index(arg_tokens[1]));
             } else {
                 std::string literal_str = arg_tokens[1].substr(1, arg_tokens[1].size() - 2);
-                temp_col2 = ral::utilities::experimental::make_string_column_from_scalar(literal_str, table.num_rows());
+                temp_col2 = ral::utilities::make_string_column_from_scalar(literal_str, table.num_rows());
                 column2 = temp_col2->view();
             }
 
@@ -458,7 +458,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
             cudf::type_id col_type = infer_dtype_from_literal(expression);
             if(col_type == cudf::type_id::STRING){
                 std::string scalar_str = expression.substr(1, expression.length() - 2);
-                out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(ral::utilities::experimental::make_string_column_from_scalar(scalar_str, table.num_rows()));
+                out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(ral::utilities::make_string_column_from_scalar(scalar_str, table.num_rows()));
             } else {
                 std::unique_ptr<CudfColumn> fixed_with_col = cudf::make_fixed_width_column(cudf::data_type{col_type}, table.num_rows());
                 std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(expression);
@@ -576,7 +576,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
 std::unique_ptr<ral::frame::BlazingTable> process_project(
   std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
   const std::string & query_part,
-  blazingdb::manager::experimental::Context * context) {
+  blazingdb::manager::Context * context) {
 
     std::string combined_expression = query_part.substr(
         query_part.find("(") + 1,

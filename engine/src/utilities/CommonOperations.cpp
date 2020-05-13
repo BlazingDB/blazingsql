@@ -2,7 +2,6 @@
 #include "utilities/StringUtils.h"
 
 #include "CalciteExpressionParsing.h"
-#include "Traits/RuntimeTraits.h"
 #include <cudf/filling.hpp>
 #include <cudf/concatenate.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
@@ -15,8 +14,6 @@
 
 namespace ral {
 namespace utilities {
-namespace experimental {
-
 
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables) {
 	assert(tables.size() >= 0);
@@ -92,13 +89,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std
 
 	cudf::type_id common_type = columns[0]->view().type().id();
 	for(size_t j = 1; j < columns.size(); j++) {
-		cudf::type_id type_out = get_common_type(common_type, columns[j]->view().type().id());
-
-		if(type_out == cudf::type_id::EMPTY) {
-			throw std::runtime_error("In normalizeColumnTypes function: no common type between " +
-									 std::to_string(common_type) + " and " + std::to_string(columns[j]->view().type().id()));
-		}
-		common_type = type_out;
+		common_type = get_common_type(common_type, columns[j]->view().type().id());
 	}
 
 	std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_out;
@@ -148,13 +139,12 @@ int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
 				bytes += (int64_t)(chars_column.size());
 				bytes += (int64_t)(offsets_column.size()) * (int64_t)(sizeof(int32_t));
 			} else {
-				bytes += (int64_t)(ral::traits::get_dtype_size_in_bytes(table_view.column(i).type().id())) * (int64_t)(table_view.num_rows());
+				bytes += (int64_t)(cudf::size_of(table_view.column(i).type()) * (int64_t)(table_view.num_rows()));
 			}
 		}
 		return bytes;
 	}
 }
 
-}  // namespace experimental
 }  // namespace utilities
 }  // namespace ral
