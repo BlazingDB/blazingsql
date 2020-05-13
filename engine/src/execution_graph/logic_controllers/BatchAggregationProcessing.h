@@ -28,6 +28,10 @@ public:
         this->query_graph = query_graph;
 	}
 
+    bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -38,6 +42,7 @@ public:
 		BatchSequence input(this->input_cache(), this);
         int batch_count = 0;
         while (input.wait_for_next()) {
+            this->output_cache()->wait_if_cache_is_saturated();
 			auto batch = input.next();
 
             try {
@@ -106,6 +111,10 @@ public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context} {
         this->query_graph = query_graph;
+	}
+
+    bool can_you_throttle_my_input() {
+		return true;
 	}
 
 	virtual kstatus run() {
@@ -239,6 +248,10 @@ public:
 	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context} {
         this->query_graph = query_graph;
+	}
+
+    bool can_you_throttle_my_input() {
+		return false;
 	}
 
 	virtual kstatus run() {

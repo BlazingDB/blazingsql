@@ -8,3 +8,4 @@
 #565 made us have same behaviour as cudf for reading csv
 #612 Print product version: print(blazingsql.__version__) # shows the git hash
 #621 Clean dead code
+#602 Implements cache flow control feature

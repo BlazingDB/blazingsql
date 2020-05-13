@@ -99,12 +99,31 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 
 		auto query_graph = tree.build_batch_graph(logicalPlan);
 		
-		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+		logger->info("{query_id}|{step}|{substep}|{info}|||||",
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
 									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="\"Query Start\n{}\""_format(tree.to_string()),
-									"duration"_a="");
+									"info"_a="\"Query Start\n{}\""_format(tree.to_string()));
+
+		std::string tables_info = "";
+		for (int i = 0; i < table_names.size(); i++){
+			int num_files = schemas[i].get_files().size();
+			if (num_files > 0){
+				tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; ";
+			} else {
+				int num_partitions = input_loaders[i].get_parser()->get_num_partitions();
+				if (num_files > 0){
+					tables_info += "Table " + table_names[i] + ": num partitions = " + std::to_string(num_partitions) + "; ";
+				} else {
+					tables_info += "Table " + table_names[i] + ": empty table; ";
+				}
+			}			
+		}
+		logger->info("{query_id}|{step}|{substep}|{info}|||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="\"" + tables_info + "\"");		
 		
 		std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
 		// Lets build a string with all the configuration parameters set.

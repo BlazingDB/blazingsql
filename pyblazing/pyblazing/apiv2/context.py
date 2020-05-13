@@ -215,6 +215,7 @@ def collectPartitionsPerformPartition(
         ctxToken,
         input,
         dask_mapping,
+        df_schema,
         by,
         i):  # this is a dummy variable to make every submit unique which is necessary
     import dask.distributed
@@ -222,7 +223,7 @@ def collectPartitionsPerformPartition(
     if(isinstance(input, dask_cudf.core.DataFrame)):
         partitions = dask_mapping[worker_id]
         if (len(partitions) == 0):
-            input = input.get_partition(0).head(0)
+            input = df_schema
         elif (len(partitions) == 1):
             input = input.get_partition(partitions[0]).compute()
         else:
@@ -750,8 +751,14 @@ class BlazingContext(object):
                                     TABLE_SCAN_KERNEL_NUM_THREADS: The number of threads used in the TableScan and BindableTableScan kernels for
                                            reading batches
                                            default: 1
-                                    MAX_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
+                                    MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
+                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to 
+                                            stop execution until the output cache contains less.
+                                            default: max int (makes it not applicable)
+                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to 
+                                            stop execution until the output cache contains less.
+                                            default: max size_t (makes it not applicable)
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
                                            calculate the number of samples
                                            default: 0.1
@@ -1465,6 +1472,7 @@ class BlazingContext(object):
                 print("Not supported...")
             else:
                 dask_mapping = getNodePartitions(input, self.dask_client)
+                df_schema = input.get_partition(0).head(0)
                 dask_futures = []
                 for i, node in enumerate(self.nodes):
                     worker = node['worker']
@@ -1476,65 +1484,14 @@ class BlazingContext(object):
                             ctxToken,
                             input,
                             dask_mapping,
+                            df_schema,
                             by,
                             i,  # this is a dummy variable to make every submit unique which is necessary
                             workers=[worker]))
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
-    def unify_partitions(self, input):
-        """
-        Concatenate all partitions that belong to a Dask Worker as one, so that
-        you only have one partition per worker. This improves performance when
-        running multiple queries on a table created from a dask_cudf DataFrame.
-
-        Parameters
-        ----------
-
-        input : a dask_cudf DataFrame.
-
-        Examples
-        --------
-
-        Distribute BlazingSQL then create and query a table from a dask_cudf DataFrame:
-collectParti
-        >>> from blazingsql import BlazingContext
-        >>> from dask.distributed import Client
-        >>> from dask_cuda import LocalCUDACluster
-
-        >>> cluster = LocalCUDACluster()
-        >>> client = Client(cluster)
-        >>> bc = BlazingContext(dask_client=client)
-
-        >>> dask_df = dask_cudf.read_parquet('/Data/my_file.parquet')
-        >>> dask_df = bc.unify_partitions(dask_df)
-        >>> bc.create_table("unified_partitions_table", dask_df)
-        >>> result = bc.sql("SELECT * FROM unified_partitions_table")
-
-
-        Docs: https://docs.blazingdb.com/docs/unify_partitions
-        """
-        if isinstance(input, dask_cudf.core.DataFrame) and self.dask_client is not None:
-            dask_mapping = getNodePartitions(input, self.dask_client)
-            max_num_partitions_per_node = max([len(x) for x in dask_mapping.values()])
-            if max_num_partitions_per_node > 1:
-                dask_futures = []
-                for i, node in enumerate(self.nodes):
-                    worker = node['worker']
-                    dask_futures.append(
-                        self.dask_client.submit(
-                            workerUnifyPartitions,
-                            input,
-                            dask_mapping,
-                            i,  # this is a dummy variable to make every submit unique which is necessary
-                            workers=[worker]))
-                result = dask.dataframe.from_delayed(dask_futures)
-                return result
-            else:
-                return input
-        else:
-            return input
-
+    
 
     def sql(self, sql, table_list=[], algebra=None, return_futures=False, single_gpu=False):
         """
