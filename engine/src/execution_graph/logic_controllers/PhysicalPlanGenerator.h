@@ -11,6 +11,7 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
+#include "utilities/BlazingSqlInvalidAlgebraException.h"
 
 namespace ral {
 namespace batch {
@@ -109,7 +110,7 @@ struct tree_processor {
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::UnionKernel);
 		} else {
-			throw std::runtime_error("There is a step on the Algebra Relational which is currently not supported.");
+			throw ral::utilities::BlazingSqlInvalidAlgebraException("expression in the Algebra Relational is currently not supported: " + expr);
 		}
 		return k;
 	}

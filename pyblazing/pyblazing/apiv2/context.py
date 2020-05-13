@@ -1600,10 +1600,11 @@ collectParti
         if (algebra is None):
             algebra = self.explain(sql)
 
-        # when `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
+        # when an empty `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
         if "LogicalValues(tuples=[[]])" in algebra:
             print("This SQL statement returns empty result. Please double check your query.")
-            return
+            result = cudf.DataFrame()  # it will return an empty DataFrame
+            return result
 
         if algebra == '':
             print("Parsing Error")
