@@ -45,6 +45,8 @@ from cython.operator cimport dereference, postincrement
 from cudf._lib.table cimport Table as CudfXxTable
 from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 
+import logging
+
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
     """Base class for blazing errors."""
@@ -308,7 +310,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef vector[column_view] column_views
     cdef Column cython_col
 
-    print("runQueryCaller start")
+    logging.info('runQueryCaller start')
 
     tableIndex = 0
     for tableName in tables:
@@ -352,6 +354,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         types.push_back(col_type)
 
       if table.fileType in (4, 5):
+        logging.info('runQueryCaller cythonizing table ' + tableName)
         blazingTableViews.resize(0)
         for cython_table in table.input:
           column_views.resize(0)
@@ -359,6 +362,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
             column_views.push_back(cython_col.view())
           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
         currentTableSchemaCpp.blazingTableViews = blazingTableViews
+        logging.info('runQueryCaller cythonized table ' + tableName)
 
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.types = types
@@ -388,7 +392,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    print("runQueryPython start")
+    logging.info('runQueryPython start')
     resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options))
 
     names = dereference(resultSet).names

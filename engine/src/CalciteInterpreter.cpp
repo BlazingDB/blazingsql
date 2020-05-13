@@ -82,6 +82,12 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 
 	CodeTimer blazing_timer;
 	auto logger = spdlog::get("batch_logger");
+	logger->debug("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="execute_plan start",
+									"duration"_a="");
 
 	try {
 		assert(input_loaders.size() == table_names.size());

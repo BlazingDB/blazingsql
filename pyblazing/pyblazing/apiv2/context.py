@@ -101,7 +101,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 
                       initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
 
-    FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||%(message)s||||||'
+    FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||"%(message)s"||||||'
     filename = 'pyblazing.' + str(ralId) + '.log'
     logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
@@ -158,9 +158,9 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 def getNodePartitions(df, client):
     df = df.persist()
     workers = client.scheduler_info()['workers']
-    print('getNodePartitions num workers: ' + str(len(workers)))
-    print('workers:')
-    print(workers)
+    
+    logging.info('getNodePartitions num workers: ' + str(len(workers)))
+    logging.info('workers object: ' + str(workers))    
 
     worker_partitions = {}
     for worker in workers:
@@ -168,16 +168,16 @@ def getNodePartitions(df, client):
 
     dask.distributed.wait(df)
     worker_part = client.who_has(df)
-    print('getNodePartitions workers who have df: ' + str(len(worker_part)))
-    print('worker_part:')
-    print(worker_part)
-
+    logging.info('getNodePartitions workers who have df: ' + str(len(worker_part)))
+    logging.info('worker_part object:' + str(worker_part))
+    
     for key in worker_part:
         if len(worker_part[key]) > 0:
             worker = worker_part[key][0]
             partition = int(key[key.find(",") + 2:(len(key) - 1)])
             worker_partitions[worker].append(partition)
         else:
+            logging.error("ERROR: In getNodePartitions, woker has no corresponding partition")
             print("ERROR: In getNodePartitions, woker has no corresponding partition")
     
     return dict((workers[worker]['name'], partitions) for worker, partitions in worker_partitions.items())
@@ -194,24 +194,20 @@ def collectPartitionsRunQuery(
         config_options):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
-    print("running collectPartitionsRunQuery for " + str(worker_id) + " for algebra " + algebra)
+    logging.info('running collectPartitionsRunQuery for ' + str(worker_id) + ' for algebra ' + algebra)
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
             partitions = tables[table_name].get_partitions(worker_id)
             if partitions is None:
+                logging.error("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
                 print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
             if (len(partitions) == 0):
-                print("wARNING: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
+                logging.warning("wARNING: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
                 tables[table_name].input = [tables[table_name].df_schema]
             elif (len(partitions) == 1):
                 tables[table_name].input = [tables[table_name].input.get_partition(
                     partitions[0]).compute()]
             else:
-                print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
-This limitation is expected to exist until blazingsql version 0.14.
-In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
-    dask_df = bc.unify_partitions(dask_df)
-    bc.create_table('my_table', dask_df)""")
                 table_partitions = []
                 for partition in partitions:
                     table_partitions.append(
@@ -618,13 +614,14 @@ class BlazingTable(object):
 
         self.args = args
         self.df_schema = None
-        if fileType == DataType.CUDF or DataType.DASK_CUDF:
+        if self.fileType == DataType.CUDF or self.fileType == DataType.DASK_CUDF:
+            logging.info('BlazingTable self.fileType == DataType.CUDF or self.fileType == DataType.DASK_CUDF')
             if(convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame)):
                 self.input = dask_cudf.from_cudf(
                     self.input, npartitions=convert_gdf_to_dask_partitions)
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
                 self.input = self.input.persist()
-                print("BlazingTable getNodePartitions")
+                logging.info("BlazingTable getNodePartitions")
                 self.dask_mapping = getNodePartitions(self.input, client)
                 self.df_schema = self.input.get_partition(0).head(0)
         self.uri_values = uri_values
@@ -642,10 +639,10 @@ class BlazingTable(object):
         self.column_names = []
         self.column_types = []
 
-        if fileType == DataType.CUDF:
+        if self.fileType == DataType.CUDF:
             self.column_names = [x for x in self.input._data.keys()]
             self.column_types = [np_to_cudf_types[x.dtype] for x in self.input._data.values()]
-        elif fileType == DataType.DASK_CUDF:
+        elif self.fileType == DataType.DASK_CUDF:
             self.column_names = [x for x in input.columns]
             self.column_types = [np_to_cudf_types[x] for x in input.dtypes]
 
@@ -848,6 +845,11 @@ class BlazingContext(object):
                 self.nodes.append(node)
                 self.node_cwds.append(cwd)
                 i = i + 1
+
+            # this one is for the non dask side
+            FORMAT='%(asctime)s||%(levelname)s|||"%(message)s"||||||'
+            filename = 'pyblazing.log'
+            logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
         else:
             ralPort, ralIp, cwd = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
@@ -1117,6 +1119,9 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/create_table
         """
+
+        logging.info('create_table start for ' + table_name)
+
         table = None
         extra_kwargs = {}
         in_file = []
@@ -1128,17 +1133,21 @@ class BlazingContext(object):
         user_partitions = kwargs.get('partitions', None) # these are user defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}
         if user_partitions is not None and type(user_partitions) != type({}):
             print("ERROR: User defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}")
+            logging.error("ERROR: User defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}")
             return
         user_partitions_schema = kwargs.get('partitions_schema', None) # for user defined partitions, partitions_schema should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]
         if user_partitions_schema is not None:
             if user_partitions is None:
                 print("ERROR: 'partitions_schema' was defined, but 'partitions' was not. The parameter 'partitions_schema' is only to be used when defining 'partitions'")
+                logging.error("ERROR: 'partitions_schema' was defined, but 'partitions' was not. The parameter 'partitions_schema' is only to be used when defining 'partitions'")
                 return
             elif type(user_partitions_schema) != type([]) and all(len(part_schema) == 2 for part_schema in user_partitions_schema):
                 print("ERROR: 'partitions_schema' should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
+                logging.error("ERROR: 'partitions_schema' should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
                 return
             elif len(user_partitions_schema) != len(user_partitions):
                 print("ERROR: The number of columns in 'partitions' should be the same as 'partitions_schema'")
+                logging.error("ERROR: The number of columns in 'partitions' should be the same as 'partitions_schema'")
                 return
 
         if(isinstance(input, hive.Cursor)):
@@ -1151,6 +1160,7 @@ class BlazingContext(object):
                 file_format_hint = hive_file_format_hint
             elif file_format_hint != hive_file_format_hint:
                 print("WARNING: file_format specified (" + str(file_format_hint) + ") does not match the file_format infered by the Hive cursor (" + str(hive_file_format_hint) + "). Using user specified file_format")
+                logging.warning("WARNING: file_format specified (" + str(file_format_hint) + ") does not match the file_format infered by the Hive cursor (" + str(hive_file_format_hint) + "). Using user specified file_format")
 
             kwargs.update(extra_kwargs)
             input = folder_list
@@ -1158,6 +1168,7 @@ class BlazingContext(object):
         elif user_partitions is not None:
             if user_partitions_schema is None:
                 print("ERROR: When using 'partitions' without a Hive cursor, you also need to set 'partitions_schema' which should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
+                logging.error("ERROR: When using 'partitions' without a Hive cursor, you also need to set 'partitions_schema' which should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
                 return
 
             hive_schema = {}
@@ -1167,6 +1178,7 @@ class BlazingContext(object):
                 hive_schema['location'] = input[0]
             else:
                 print("ERROR: When using 'partitions' without a Hive cursor, the input needs to be a path to the base folder of the partitioned data")
+                logging.error("ERROR: When using 'partitions' without a Hive cursor, the input needs to be a path to the base folder of the partitioned data")
                 return
 
             hive_schema['partitions'] = getPartitionsFromUserPartitions(user_partitions)
@@ -1192,6 +1204,7 @@ class BlazingContext(object):
                 DataType.ARROW)
 
         if isinstance(input, cudf.DataFrame):
+            logging.info('creating table from cudf.DataFrame')
             if (self.dask_client is not None):
                 table = BlazingTable(
                     input,
@@ -1203,6 +1216,7 @@ class BlazingContext(object):
             else:
                 table = BlazingTable(input, DataType.CUDF)
         elif isinstance(input, list):
+            logging.info('creating table from list')
 
             input = resolve_relative_path(input)
 
@@ -1241,6 +1255,7 @@ class BlazingContext(object):
                             merged_types.append(parsedSchema['types'][i])
                 else:
                     print("ERROR: number of hive_schema columns does not match number of parsedSchema columns")
+                    logging.error("ERROR: number of hive_schema columns does not match number of parsedSchema columns")
 
                 table.column_types = merged_types
             else:
@@ -1286,6 +1301,7 @@ class BlazingContext(object):
 
 
         elif isinstance(input, dask_cudf.core.DataFrame):
+            logging.info('creating table from dask_cudf.core.DataFrame')
             table = BlazingTable(
                 input,
                 DataType.DASK_CUDF,
@@ -1703,7 +1719,8 @@ collectParti
                         accessToken,
                         self.config_options)]
             else:
-                print("about to run collectPartitionsRunQuery. num nodes is: " + str(len(self.nodes)))
+                logging.info("about to run collectPartitionsRunQuery. num nodes is: " + str(len(self.nodes)))
+                logging.info("self.nodes Object: " + str(self.nodes))
                 dask_futures = []
                 i = 0
                 for node in self.nodes:
