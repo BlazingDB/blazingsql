@@ -1,23 +1,20 @@
-#ifndef BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H
-#define BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H
+#pragma once
 
 #include "blazingdb/manager/Context.h"
 #include "communication/factory/MessageFactory.h"
 #include <vector>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
-
 namespace ral {
-
 namespace distribution {
-namespace experimental {
+
 	namespace {
-		using Context = blazingdb::manager::experimental::Context;
-		using Node = blazingdb::transport::experimental::Node;
+		using Context = blazingdb::manager::Context;
+		using Node = blazingdb::transport::Node;
 	}  // namespace
 
-	typedef std::pair<blazingdb::transport::experimental::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
-	typedef std::pair<blazingdb::transport::experimental::Node, ral::frame::BlazingTableView > NodeColumnView;
+	typedef std::pair<blazingdb::transport::Node, std::unique_ptr<ral::frame::BlazingTable> > NodeColumn;
+	typedef std::pair<blazingdb::transport::Node, ral::frame::BlazingTableView > NodeColumnView;
 	using namespace ral::frame;
 
 	void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows);
@@ -57,36 +54,25 @@ namespace experimental {
 	
 	std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_pivots, const BlazingTableView & sortedSamples);
 
-	std::unique_ptr<BlazingTable> generatePartitionPlansGroupBy(Context * context, std::vector<BlazingTableView> & samples);
-
-	std::unique_ptr<BlazingTable> groupByWithoutAggregationsMerger(const std::vector<BlazingTableView> & tables, const std::vector<int> & group_column_indices);
-	
 	// multi-threaded message sender
 	void broadcastMessage(std::vector<Node> nodes, 
-			std::shared_ptr<communication::messages::experimental::Message> message);
+			std::shared_ptr<communication::messages::Message> message);
 			
 	void distributeNumRows(Context * context, int64_t num_rows);
 
 	std::vector<int64_t> collectNumRows(Context * context);	
 	
-	void distributeLeftRightNumRows(Context * context, std::size_t left_num_rows, std::size_t right_num_rows);
-
-	void collectLeftRightNumRows(Context * context, std::vector<cudf::size_type> & node_num_rows_left,
-				std::vector<cudf::size_type> & node_num_rows_right);
-
 	void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, int64_t bytes_right);
 
 	void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,
 			std::vector<int64_t> & node_num_bytes_right);
 	
-}  // namespace experimental
 }  // namespace distribution
 }  // namespace ral
 
 namespace ral {
 namespace distribution {
 namespace sampling {
-namespace experimental {
 
 std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
 	const ral::frame::BlazingTableView & table, const double ratio);
@@ -94,9 +80,6 @@ std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
 std::unique_ptr<ral::frame::BlazingTable> generateSamples(
 	const ral::frame::BlazingTableView & table, const size_t quantile);
 
-}  // namespace experimental
 }  // namespace sampling
 }  // namespace distribution
 }  // namespace ral
-
-#endif  // BLAZINGDB_RAL_DISTRIBUTION_PRIMITIVES_H

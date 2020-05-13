@@ -11,8 +11,6 @@
 namespace blazingdb {
 namespace transport {
 
-namespace experimental {
-
 class Message {
 public:
   struct MetaData {
@@ -28,7 +26,7 @@ public:
 protected:
   explicit Message(std::string const &messageToken,
                    uint32_t const &contextToken,
-                   const blazingdb::transport::experimental::Node& sender_node)
+                   const blazingdb::transport::Node& sender_node)
       : node_{sender_node.address()} {
     set_metadata(messageToken, contextToken);
   }
@@ -48,7 +46,7 @@ public:
     return metadata_.messageToken;
   }
 
-  blazingdb::transport::experimental::Node& getSenderNode() {
+  blazingdb::transport::Node& getSenderNode() {
     return node_;
   }
   const MetaData &metadata() const { return metadata_; }
@@ -56,7 +54,7 @@ public:
 
 protected:
   MetaData metadata_;
-  blazingdb::transport::experimental::Node node_;
+  blazingdb::transport::Node node_;
 
   BZ_INTERFACE(Message);
 };
@@ -70,7 +68,7 @@ public:
 public:
   explicit GPUMessage(std::string const &messageToken,
                       uint32_t const &contextToken,
-                      const blazingdb::transport::experimental::Node &sender_node)
+                      const blazingdb::transport::Node &sender_node)
       : Message{messageToken, contextToken, sender_node} {}
 
   virtual raw_buffer GetRawColumns() {
@@ -84,7 +82,7 @@ class ReceivedMessage : public Message  {
 public:
   explicit ReceivedMessage(std::string const &messageToken,
                       uint32_t const &contextToken,
-                      const blazingdb::transport::experimental::Node &sender_node,
+                      const blazingdb::transport::Node &sender_node,
                       bool is_sentinel = false)
       : Message{messageToken, contextToken, sender_node}, _is_sentinel{is_sentinel} {}
 
@@ -95,8 +93,6 @@ public:
 private:
   bool _is_sentinel;
 };
-
-} // namespace experimental 
 
 }  // namespace transport
 }  // namespace blazingdb

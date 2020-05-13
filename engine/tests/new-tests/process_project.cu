@@ -27,7 +27,7 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types1)
     ral::frame::BlazingTableView table(cudf_table_in_view, names);
 
     std::string query_part = "LogicalProject(A=[$0])";
-    blazingdb::manager::experimental::Context * context = nullptr;
+    blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
         table, 
@@ -54,7 +54,7 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types2)
     ral::frame::BlazingTableView table(cudf_table_in_view, names);
 
     std::string query_part = "LogicalProject(C=[$2])";
-    blazingdb::manager::experimental::Context * context = nullptr;
+    blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
         table, 
@@ -81,7 +81,7 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types3)
     ral::frame::BlazingTableView table(cudf_table_in_view, names);
 
     std::string query_part = "LogicalProject(A=[$0], C=[$2])";
-    blazingdb::manager::experimental::Context * context = nullptr;
+    blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
         table, 
@@ -109,7 +109,7 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types4)
     ral::frame::BlazingTableView table(cudf_table_in_view, names);
 
     std::string query_part = "LogicalProject(EXPR$0=[1])";
-    blazingdb::manager::experimental::Context * context = nullptr;
+    blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
         table, 
@@ -136,7 +136,7 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types5)
     ral::frame::BlazingTableView table(cudf_table_in_view, names);
 
     std::string query_part = "LogicalProject(EXPR$0=[>($0, 3)])";
-    blazingdb::manager::experimental::Context * context = nullptr;
+    blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
         table,
@@ -170,7 +170,7 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types6)
     ral::frame::BlazingTableView table(cudf_table_in_view, names);
 
     std::string query_part = "LogicalProject(EXPR$0=[>($0, 3)], EXPR$1=[<($2, 3)])";
-    blazingdb::manager::experimental::Context * context = nullptr;
+    blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
         table, 

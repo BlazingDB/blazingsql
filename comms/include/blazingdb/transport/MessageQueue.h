@@ -11,7 +11,6 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 class MessageQueue {
 public:
@@ -43,6 +42,6 @@ private:
   std::vector<std::shared_ptr<ReceivedMessage>> message_queue_;
   std::condition_variable condition_variable_;
 };
-}  // namespace experimental
+
 }  // namespace transport
 }  // namespace blazingdb

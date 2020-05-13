@@ -26,6 +26,10 @@ public:
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
+
+	bool can_you_throttle_my_input() {
+		return true;
+	}
 	
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -38,9 +42,11 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache("output_a")->wait_if_cache_is_saturated();
+
 				auto batch = input.next();
-				auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
-				auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
+				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
+				auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
 				sampledTableViews.push_back(sampledTable->toBlazingTableView());
 				sampledTables.push_back(std::move(sampledTable));
 				tableTotalRows.push_back(batch->view().num_rows());
@@ -55,12 +61,11 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In SortAndSampleSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 		// call total_num_partitions = partition_function(size_of_all_data, number_of_nodes, avaiable_memory, ....)
 		cudf::size_type num_partitions = context->getTotalNodes() * 4; // WSM TODO this is a hardcoded number for now. THis needs to change in the near future
-		auto partitionPlan = ral::operators::experimental::generate_partition_plan(num_partitions, sampledTableViews, tableTotalRows, this->expression);
+		auto partitionPlan = ral::operators::generate_partition_plan(num_partitions, sampledTableViews, tableTotalRows, this->expression);
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
 // ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
@@ -89,6 +94,10 @@ public:
 		this->input_.add_port("input_a", "input_b");
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -100,7 +109,7 @@ public:
 		while (input.wait_for_next()) {
 			try {
 				auto batch = input.next();			
-				auto partitions = ral::operators::experimental::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
+				auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
 
 				// std::cout<<">>>>>>>>>>>>>>> PARTITIONS START"<< std::endl;
 				// for(auto& partition : partitions)
@@ -123,7 +132,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In PartitionSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -151,10 +159,14 @@ public:
 		this->output_.add_port("output_a", "output_b");
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+	
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, size_t localTotalNumRows, size_t localTotalBytes) {
 		size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-		auto concatSamples = ral::utilities::experimental::concatTables(sampledTableViews);
-		auto partitionPlan = ral::operators::experimental::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
+		auto concatSamples = ral::utilities::concatTables(sampledTableViews);
+		auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
 			localTotalNumRows, avg_bytes_per_row, this->expression, this->context.get());
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 	}
@@ -182,9 +194,10 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache("output_a")->wait_if_cache_is_saturated();
 				auto batch = input.next();
-				auto sortedTable = ral::operators::experimental::sort(batch->toBlazingTableView(), this->expression);
-				auto sampledTable = ral::operators::experimental::sample(batch->toBlazingTableView(), this->expression);
+				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
+				auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
 				sampledTableViews.push_back(sampledTable->toBlazingTableView());
 				sampledTables.push_back(std::move(sampledTable));
 				localTotalNumRows += batch->view().num_rows();
@@ -215,7 +228,6 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In SortAndSample kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -248,8 +260,12 @@ public:
 		this->input_.add_port("input_a", "input_b");
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
-		using ColumnDataPartitionMessage = ral::communication::messages::experimental::ColumnDataPartitionMessage;
+		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 		
 		CodeTimer timer;
 
@@ -264,7 +280,7 @@ public:
 			while (input.wait_for_next()) {
 				try {
 					auto batch = input.next();
-					auto self_partitions = ral::operators::experimental::distribute_table_partitions(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
+					auto self_partitions = ral::operators::distribute_table_partitions(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
 
 					for (auto && self_part : self_partitions) {
 						std::string cache_id = "output_" + std::to_string(self_part.first);
@@ -279,10 +295,9 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
-					logger->flush();
 				}	
 			}
-			ral::distribution::experimental::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
+			ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
 		});
 		
 		BlazingThread consumer([this](){
@@ -316,6 +331,10 @@ public:
 	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
+	}
+
+	bool can_you_throttle_my_input() {
+		return false;
 	}
 	
 	virtual kstatus run() {
@@ -351,7 +370,7 @@ public:
 
 					// std::cout<<">>>>>>>>>>>>>>> MERGE PARTITIONS END"<< std::endl;
 
-					auto output = ral::operators::experimental::merge(tableViews, this->expression);
+					auto output = ral::operators::merge(tableViews, this->expression);
 
 	//					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
 
@@ -366,7 +385,6 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In MergeStream kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
-				logger->flush();
 			}
 		}
 
@@ -392,6 +410,10 @@ public:
 		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
 	}
+
+	bool can_you_throttle_my_input() {
+		return false;
+	}
 	
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -405,7 +427,7 @@ public:
 			cache_vector.push_back(std::move(batch));
 		}
 
-		int64_t rows_limit = ral::operators::experimental::get_local_limit(total_batch_rows, this->expression, this->context.get());
+		int64_t rows_limit = ral::operators::get_local_limit(total_batch_rows, this->expression, this->context.get());
 
 		if (rows_limit < 0) {
 			for (auto &&cache_data : cache_vector) {
@@ -417,7 +439,7 @@ public:
 			{
 				try {
 					auto batch = cache_data->decache();
-					std::tie(batch, rows_limit) = ral::operators::experimental::limit_table(std::move(batch), rows_limit);
+					std::tie(batch, rows_limit) = ral::operators::limit_table(std::move(batch), rows_limit);
 					this->add_to_output_cache(std::move(batch));
 
 					if (rows_limit == 0){
@@ -432,7 +454,6 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
-					logger->flush();
 				}
 			}
 		}

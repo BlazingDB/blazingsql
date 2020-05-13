@@ -607,7 +607,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
 std::unique_ptr<ral::frame::BlazingTable> process_project(
   std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
   const std::string & query_part,
-  blazingdb::manager::experimental::Context * context) {
+  blazingdb::manager::Context * context) {
 
     std::string combined_expression = query_part.substr(
         query_part.find("(") + 1,

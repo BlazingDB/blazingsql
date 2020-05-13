@@ -20,7 +20,6 @@
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 #include "utilities/StringUtils.h"
 
-#include "config/BlazingConfig.h"
 #include "config/GPUManager.cuh"
 
 #include "communication/CommunicationData.h"
@@ -86,25 +85,20 @@ void initialize(int ralId,
 	size_t total_gpu_mem_size = ral::config::gpuMemorySize();
 	assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
-	blazingdb::transport::experimental::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
+	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
-	auto & communicationData = ral::communication::experimental::CommunicationData::getInstance();
+	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);
 
-	ral::communication::network::experimental::Server::start(ralCommunicationPort, true);
+	ral::communication::network::Server::start(ralCommunicationPort, true);
 
 	if(singleNode == true) {
-		ral::communication::network::experimental::Server::getInstance().close();
+		ral::communication::network::Server::getInstance().close();
 	}
-	auto & config = ral::config::BlazingConfig::getInstance();
-
-	// NOTE IMPORTANT PERCY aqui es que pyblazing se entera que este es el ip del RAL en el _send de pyblazing
-	config.setLogName(loggingName).setSocketPath(ralHost);
 
 	// auto output = new Library::Logging::CoutOutput();
 	// Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
 	// Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(ralId);
-	
 	// Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",	initLogMsg));
 
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
@@ -125,12 +119,13 @@ void initialize(int ralId,
 	logger->set_level(spdlog::level::trace);
 	spdlog::register_logger(logger);
 
+	spdlog::flush_on(spdlog::level::err);
 	spdlog::flush_every(std::chrono::seconds(1));
 }
 
 void finalize() {
-	ral::communication::network::experimental::Client::closeConnections();
-	ral::communication::network::experimental::Server::getInstance().close();
+	ral::communication::network::Client::closeConnections();
+	ral::communication::network::Server::getInstance().close();
 	BlazingRMMFinalize();
 	spdlog::shutdown();
 	cudaDeviceReset();

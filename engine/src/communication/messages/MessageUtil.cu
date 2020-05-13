@@ -5,7 +5,6 @@
 namespace ral {
 namespace communication {
 namespace messages {
-namespace experimental {
 
 	std::pair<int32_t, int32_t> getCharsColumnStartAndEnd(const cudf::strings_column_view & column){
 		cudf::size_type offset = column.offset();
@@ -39,7 +38,6 @@ namespace experimental {
 		return new_offsets;
 	}
 
-}  // namespace experimental
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral

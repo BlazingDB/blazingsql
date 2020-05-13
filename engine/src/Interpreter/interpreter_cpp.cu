@@ -9,7 +9,7 @@
 
 #include "CalciteExpressionParsing.h"
 #include "interpreter_ops.cuh"
-#include "Traits/RuntimeTraits.h"
+#include "Utils.cuh"
 
 namespace interops {
 namespace detail {
@@ -408,6 +408,14 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
 }
 
 cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, operator_type op) {
+	RAL_EXPECTS(input_left_type != cudf::type_id::EMPTY || input_right_type != cudf::type_id::EMPTY, "In get_output_type function: both operands types are empty");
+	
+	if(input_left_type == cudf::type_id::EMPTY) {
+		input_left_type = input_right_type;
+	} else if(input_right_type == cudf::type_id::EMPTY) {
+		input_right_type = input_left_type;
+	}
+
 	switch (op)
 	{
 	case operator_type::BLZ_ADD:
@@ -416,7 +424,7 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 	case operator_type::BLZ_DIV:
 	case operator_type::BLZ_MOD:
 		if(is_type_float(input_left_type) && is_type_float(input_right_type)) {
-			return (ral::traits::get_dtype_size_in_bytes(input_left_type) >= ral::traits::get_dtype_size_in_bytes(input_right_type))
+			return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
 							? input_left_type
 							: input_right_type;
 		}	else if(is_type_float(input_left_type)) {
@@ -424,7 +432,7 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 		} else if(is_type_float(input_right_type)) {
 			return input_right_type;
 		} else {
-			return (ral::traits::get_dtype_size_in_bytes(input_left_type) >= ral::traits::get_dtype_size_in_bytes(input_right_type))
+			return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
 							? input_left_type
 							: input_right_type;
 		}
@@ -439,13 +447,13 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_POW:
 	case operator_type::BLZ_ROUND:
-		return ral::traits::get_dtype_size_in_bytes(input_left_type) <= ral::traits::get_dtype_size_in_bytes(cudf::type_id::FLOAT32)
+		return cudf::size_of(cudf::data_type{input_left_type}) <= cudf::size_of(cudf::data_type{cudf::type_id::FLOAT32})
 					 ? cudf::type_id::FLOAT32
 					 : cudf::type_id::FLOAT64;
 	case operator_type::BLZ_MAGIC_IF_NOT:
 		return input_right_type;
 	case operator_type::BLZ_FIRST_NON_MAGIC:
-		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >= ral::traits::get_dtype_size_in_bytes(input_right_type))
+		return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
 				   ? input_left_type
 				   : input_right_type;
 	case operator_type::BLZ_STR_LIKE:

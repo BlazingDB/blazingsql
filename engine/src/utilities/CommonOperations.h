@@ -6,7 +6,6 @@
 
 namespace ral {
 namespace utilities {
-namespace experimental {
 
 using namespace ral::frame;
 
@@ -23,6 +22,5 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std
 
 int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table);
 
-}  // namespace experimental
 }  // namespace utilities
 }  // namespace ral

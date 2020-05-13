@@ -1,9 +1,9 @@
 #pragma once
+
 #include <cstdint>
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 struct ColumnTransport {
   struct MetaData {
@@ -24,6 +24,5 @@ struct ColumnTransport {
   std::size_t size_in_bytes{0};
 };
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb
