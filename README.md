@@ -140,7 +140,7 @@ $CONDA_PREFIX now has a folder for the blazingsql repository.
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
+conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain=0.14
 conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.14 cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=$CUDA_VERSION
 ```
 Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
@@ -149,7 +149,7 @@ Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain
+conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain=0.14
 conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.14 cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=10.0
 ```
 
