@@ -156,7 +156,6 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 
 
 def getNodePartitions(df, client):
-    df = df.persist()
     workers = client.scheduler_info()['workers']
     
     logging.info('getNodePartitions num workers: ' + str(len(workers)))
@@ -198,6 +197,7 @@ def collectPartitionsRunQuery(
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
             partitions = tables[table_name].get_partitions(worker_id)
+            logging.info('collectPartitionsRunQuery num partitions ' + str(len(partitions)))
             if partitions is None:
                 logging.error("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
                 print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
@@ -205,14 +205,19 @@ def collectPartitionsRunQuery(
                 logging.warning("wARNING: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
                 tables[table_name].input = [tables[table_name].df_schema]
             elif (len(partitions) == 1):
+                logging.info('collectPartitionsRunQuery 1 partition about to compute')
                 tables[table_name].input = [tables[table_name].input.get_partition(
                     partitions[0]).compute()]
+                logging.info('collectPartitionsRunQuery 1 partition computed')
             else:
+                logging.info('collectPartitionsRunQuery more than 1 partitions')
                 table_partitions = []
-                for partition in partitions:
+                for i, partition in enumerate(partitions):
+                    logging.info('collectPartitionsRunQuery about to compute partition ' + str(i))
                     table_partitions.append(
                         tables[table_name].input.get_partition(partition).compute())
-                    tables[table_name].input = table_partitions #no concat
+                    logging.info('collectPartitionsRunQuery computed partition ' + str(i))
+                tables[table_name].input = table_partitions #no concat
 
     return cio.runQueryCaller(
         masterIndex,
@@ -720,6 +725,7 @@ class BlazingTable(object):
 
     def get_partitions(self, worker):
         if worker not in self.dask_mapping:
+            logging.error("Worker " + str(worker) + " is not in the table dask_mapping")
             assert False, "Worker [{}] is not in the table dask_mapping".format(worker)
             
         return self.dask_mapping[worker]
@@ -1670,6 +1676,7 @@ collectParti
                     print("Unsupported running single_gpu queries on dask_cudf please use files")
                 elif new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
                     print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
+                    logging.warning("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
                     temp_df = new_tables[table].input.compute()
                     new_tables[table].input = dask_cudf.from_cudf(temp_df,npartitions=len(self.nodes))
                     new_tables[table].input = new_tables[table].input.persist()
