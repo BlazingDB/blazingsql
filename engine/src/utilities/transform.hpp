@@ -8,7 +8,12 @@ namespace utilities {
 /**
  * Used for the substring function in LogicalProject
  */
-void inplace_length_to_end_transform(cudf::mutable_column_view& target, const cudf::column_view & start);
+void transform_length_to_end(cudf::mutable_column_view& length, const cudf::column_view & start);
+
+/**
+ * Used for the substring function in LogicalProject
+ */
+void transform_start_to_zero_based_indexing(cudf::mutable_column_view& start);
 
 }  // namespace utilities
 }  // namespace ral

@@ -83,9 +83,19 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_STR_LIKE:
     {
         assert(arg_tokens.size() == 2);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "LIKE operator not supported for intermediate columns or literals");
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "LIKE operator not supported for string literals");
 
-        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        std::unique_ptr<cudf::column> computed_column;
+        cudf::column_view column;
+        if (is_var_column(arg_tokens[0])) {
+            column = table.column(get_index(arg_tokens[0]));
+        } else {
+            auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[0]});
+            assert(evaluated_col.size() == 1);
+            computed_column = evaluated_col[0]->release();
+            column = computed_column->view();
+        }
+
         std::string regex = like_expression_to_regex_str(arg_tokens[1].substr(1, arg_tokens[1].size() - 2));
 
         computed_col = cudf::strings::contains_re(column, regex);
@@ -98,16 +108,16 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
 
         if (is_var_column(arg_tokens[0]) && is_literal(arg_tokens[1]) && (arg_tokens.size() == 3 ? is_literal(arg_tokens[2]) : true)) {
             cudf::column_view column = table.column(get_index(arg_tokens[0]));
-            int start = std::max(std::stoi(arg_tokens[1]), 1) - 1;
-            int length = arg_tokens.size() == 3 ? std::stoi(arg_tokens[2]) : -1;
-            int end = length >= 0 ? start + length : -1;
+            int32_t start = std::max(std::stoi(arg_tokens[1]), 1) - 1;
+            int32_t length = arg_tokens.size() == 3 ? std::stoi(arg_tokens[2]) : -1;
+            int32_t end = length >= 0 ? start + length : 0;
 
-            computed_col = cudf::strings::slice_strings(column, start, end);
+            computed_col = cudf::strings::slice_strings(column, start, cudf::numeric_scalar<int32_t>(end, length >= 0));
         } else {
             // TODO: create a version of cudf::strings::slice_strings that uses start and length columns
-            // so we can remove the calculations for start and endS
+            // so we can remove all the calculations for start and end
 
-            std::unique_ptr<ral::frame::BlazingColumn> computed_string_column;
+            std::unique_ptr<cudf::column> computed_string_column;
             cudf::column_view column;
             if (is_var_column(arg_tokens[0])) {
                 column = table.column(get_index(arg_tokens[0]));
@@ -115,53 +125,51 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[0]});
                 RAL_EXPECTS(evaluated_col.size() == 1 && evaluated_col[0]->view().type().id() == cudf::type_id::STRING, "Expression does not evaluate to a string column");
 
-                computed_string_column = std::move(evaluated_col[0]);
+                computed_string_column = evaluated_col[0]->release();
                 column = computed_string_column->view();
             }
 
-            std::unique_ptr<ral::frame::BlazingColumn> computed_start_column;
+            std::unique_ptr<cudf::column> computed_start_column;
             cudf::column_view start_column;
             if (is_var_column(arg_tokens[1])) {
-                start_column = table.column(get_index(arg_tokens[1]));
+                computed_start_column = std::make_unique<cudf::column>(table.column(get_index(arg_tokens[1])));
             } else if(is_literal(arg_tokens[1])) {
-                int start = std::max(std::stoi(arg_tokens[1]), 1) - 1;
+                int32_t start = std::max(std::stoi(arg_tokens[1]), 1);
 
                 cudf::numeric_scalar<int32_t> start_scalar(start);
-                auto start_cudf_column = cudf::make_column_from_scalar(start_scalar, table.num_rows());
-                computed_start_column = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(start_cudf_column));;
-                start_column = computed_start_column->view();
+                computed_start_column = cudf::make_column_from_scalar(start_scalar, table.num_rows());
             } else {
                 auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[1]});
                 RAL_EXPECTS(evaluated_col.size() == 1 && is_type_integer(evaluated_col[0]->view().type().id()), "Expression does not evaluate to an integer column");
 
-                computed_start_column = std::move(evaluated_col[0]);
-                start_column = computed_start_column->view();
+                computed_start_column = evaluated_col[0]->release();
             }
+            cudf::mutable_column_view mutable_view = computed_start_column->mutable_view();
+            ral::utilities::transform_start_to_zero_based_indexing(mutable_view);
+            start_column = computed_start_column->view();
 
-            std::unique_ptr<ral::frame::BlazingColumn> computed_end_column;
+            std::unique_ptr<cudf::column> computed_end_column;
             cudf::column_view end_column;
             if (arg_tokens.size() == 3) {
                 if (is_var_column(arg_tokens[2])) {
-                    end_column = table.column(get_index(arg_tokens[2]));
+                    computed_end_column = std::make_unique<cudf::column>(table.column(get_index(arg_tokens[2])));
                 } else if(is_literal(arg_tokens[2])) {
-                    // int length = std::stoi(arg_tokens[2]);
-                    // int end = length >= 0 ? start + length : -1;
+                    int32_t length = std::stoi(arg_tokens[2]);
 
-                    // cudf::numeric_scalar<int16_t> end_scalar(end);
-                    // auto end_cudf_column = cudf::make_column_from_scalar(end_scalar, table.num_rows());
-                    // computed_end_column = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(end_cudf_column));;
-                    // end_column = computed_end_column->view();
+                    cudf::numeric_scalar<int32_t> end_scalar(length);
+                    computed_end_column = cudf::make_column_from_scalar(end_scalar, table.num_rows());
                 } else {
                     auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[2]});
                     RAL_EXPECTS(evaluated_col.size() == 1 && is_type_integer(evaluated_col[0]->view().type().id()), "Expression does not evaluate to an integer column");
 
-                    computed_end_column = std::move(evaluated_col[0]);
-                    end_column = computed_end_column->view();
+                    computed_end_column = evaluated_col[0]->release();
                 }
+                cudf::mutable_column_view mutable_view = computed_end_column->mutable_view();
+                ral::utilities::transform_length_to_end(mutable_view, start_column);
+                end_column = computed_end_column->view();
             } else {
-                cudf::numeric_scalar<int32_t> end_scalar(-1);
-                auto end_cudf_column = cudf::make_column_from_scalar(end_scalar, table.num_rows());
-                computed_end_column = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(end_cudf_column));;
+                cudf::numeric_scalar<int32_t> end_scalar(0, false);
+                computed_end_column = cudf::make_column_from_scalar(end_scalar, table.num_rows());
                 end_column = computed_end_column->view();
             }
 
@@ -172,8 +180,6 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_STR_CONCAT:
     {
         assert(arg_tokens.size() == 2);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]) || is_string(arg_tokens[0]), "CONCAT operator not supported for intermediate columns");
-        RAL_EXPECTS(is_var_column(arg_tokens[1]) || is_string(arg_tokens[1]), "CONCAT operator not supported for intermediate columns");
         RAL_EXPECTS(!(is_string(arg_tokens[0]) && is_string(arg_tokens[1])), "CONCAT operator between literals is not supported");
 
         if (is_var_column(arg_tokens[0]) && is_var_column(arg_tokens[1])) {
@@ -186,10 +192,15 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             cudf::column_view column1;
             if (is_var_column(arg_tokens[0])) {
                 column1 = table.column(get_index(arg_tokens[0]));
-            } else {
+            } else if(is_literal(arg_tokens[0])) {
                 std::string literal_str = arg_tokens[0].substr(1, arg_tokens[0].size() - 2);
                 cudf::string_scalar str_scalar(literal_str);
                 temp_col1 = cudf::make_column_from_scalar(str_scalar, table.num_rows());
+                column1 = temp_col1->view();
+            } else {
+                auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[0]});
+                assert(evaluated_col.size() == 1);
+                temp_col1 = evaluated_col[0]->release();
                 column1 = temp_col1->view();
             }
 
@@ -197,10 +208,15 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             cudf::column_view column2;
             if (is_var_column(arg_tokens[1])) {
                 column2 = table.column(get_index(arg_tokens[1]));
-            } else {
+            } else if(is_literal(arg_tokens[1])) {
                 std::string literal_str = arg_tokens[1].substr(1, arg_tokens[1].size() - 2);
                 cudf::string_scalar str_scalar(literal_str);
                 temp_col2 = cudf::make_column_from_scalar(str_scalar, table.num_rows());
+                column2 = temp_col2->view();
+            } else {
+                auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[1]});
+                assert(evaluated_col.size() == 1);
+                temp_col2 = evaluated_col[0]->release();
                 column2 = temp_col2->view();
             }
 
@@ -211,9 +227,18 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case interops::operator_type::BLZ_CAST_VARCHAR:
     {
         assert(arg_tokens.size() == 1);
-        RAL_EXPECTS(is_var_column(arg_tokens[0]), "CAST operator not supported for intermediate columns or literals");
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "CAST operator not supported for literals");
 
-        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        std::unique_ptr<cudf::column> computed_column;
+        cudf::column_view column;
+        if (is_var_column(arg_tokens[0])) {
+            column = table.column(get_index(arg_tokens[0]));
+        } else {
+            auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[0]});
+            assert(evaluated_col.size() == 1);
+            computed_column = evaluated_col[0]->release();
+            column = computed_column->view();
+        }
 
         computed_col = cudf::experimental::type_dispatcher(column.type(), cast_to_str_functor{}, column);
         break;
