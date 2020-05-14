@@ -199,15 +199,21 @@ In the mean time, for better performance we recommend using the unify_partitions
                         tables[table_name].input.get_partition(partition).compute())
                     tables[table_name].input = table_partitions #no concat
 
-    return cio.runQueryCaller(
-        masterIndex,
-        nodes,
-        tables,
-        fileTypes,
-        ctxToken,
-        algebra,
-        accessToken,
-        config_options)
+    try:
+        result = cio.runQueryCaller(
+                            masterIndex,
+                            nodes,
+                            tables,
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            config_options)
+    except cio.RunQueryError as e:
+        print(">>>>>>>> ", e)
+        result = cudf.DataFrame()
+    except Exception as e:
+        raise e
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -1637,15 +1643,21 @@ class BlazingContext(object):
         algebra = get_plan(algebra)
 
         if self.dask_client is None:
-            result = cio.runQueryCaller(
-                        masterIndex,
-                        self.nodes,
-                        nodeTableList[0],
-                        fileTypes,
-                        ctxToken,
-                        algebra,
-                        accessToken,
-                        query_config_options)
+            try:
+                result = cio.runQueryCaller(
+                            masterIndex,
+                            self.nodes,
+                            nodeTableList[0],
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            query_config_options)
+            except cio.RunQueryError as e:
+                print(">>>>>>>> ", e)
+                result = cudf.DataFrame()
+            except Exception as e:
+                raise e
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
