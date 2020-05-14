@@ -1492,7 +1492,7 @@ class BlazingContext(object):
 
     
 
-    def sql(self, sql, table_list=[], algebra=None, return_futures=False, single_gpu=False, config_options={}):
+    def sql(self, query, table_list=[], algebra=None, return_futures=False, single_gpu=False, config_options={}):
         """
         Query a BlazingSQL table.
 
