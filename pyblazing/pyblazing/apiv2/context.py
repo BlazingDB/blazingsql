@@ -1604,7 +1604,7 @@ class BlazingContext(object):
                 if single_gpu == True:
                     #TODO: repartition onto the node that does the work
                     if new_tables[table].input.npartitions != 1:
-                        new_tables[table].input = temp_df.repartition(npartitions=1)
+                        new_tables[table].input = new_tables[table].input.repartition(npartitions=1)
                         new_tables[table].input = new_tables[table].input.persist()
                 elif new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
                     print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
