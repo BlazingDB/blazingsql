@@ -40,7 +40,7 @@ struct TableSchema {
 class PartwiseJoin : public kernel {
 public:
 	PartwiseJoin(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
+		: kernel{queryString, context, kernel_type::PartwiseJoinKernel}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
@@ -415,7 +415,7 @@ private:
 class JoinPartitionKernel : public kernel {
 public:
 	JoinPartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::JoinPartitionKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");

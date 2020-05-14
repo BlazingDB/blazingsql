@@ -24,7 +24,7 @@ using namespace fmt::literals;
 class ComputeAggregateKernel : public kernel {
 public:
 	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::ComputeAggregateKernel} {
         this->query_graph = query_graph;
 	}
 
@@ -104,7 +104,7 @@ private:
 class DistributeAggregateKernel : public kernel {
 public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::DistributeAggregateKernel} {
         this->query_graph = query_graph;
 	}
 
@@ -237,7 +237,7 @@ private:
 class MergeAggregateKernel : public kernel {
 public:
 	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::MergeAggregateKernel} {
         this->query_graph = query_graph;
 	}
 

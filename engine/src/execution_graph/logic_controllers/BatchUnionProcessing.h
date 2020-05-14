@@ -24,7 +24,7 @@ using namespace fmt::literals;
 class UnionKernel : public kernel {
 public:
 	UnionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::UnionKernel} {
         this->query_graph = query_graph;
         this->input_.add_port("input_a", "input_b");
 	}

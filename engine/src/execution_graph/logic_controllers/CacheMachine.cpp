@@ -316,6 +316,12 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(size_t bytes_max_size)
 	: CacheMachine(), bytes_max_size_(bytes_max_size)
 {
+		std::shared_ptr<spdlog::logger> kernels_logger;
+		kernels_logger = spdlog::get("kernels_logger");
+
+		kernels_logger->info("{is_kernel}|{type}",
+								"is_kernel"_a=false,
+								"type"_a="concat_cache");
 }
 
 // This method does not guarantee the relative order of the messages to be preserved

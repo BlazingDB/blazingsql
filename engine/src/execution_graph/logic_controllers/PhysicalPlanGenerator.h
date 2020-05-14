@@ -41,73 +41,57 @@ struct tree_processor {
 		if ( is_project(expr) ) {
 			k = std::make_shared<Projection>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::ProjectKernel);
 		} else if ( is_filter(expr) ) {
 			k = std::make_shared<Filter>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::FilterKernel);
 		} else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
 			auto schema = this->schemas[table_index];
 			k = std::make_shared<TableScan>(expr, *loader, schema, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::TableScanKernel);
 		} else if (is_bindable_scan(expr)) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
 			auto schema = this->schemas[table_index];
 			k = std::make_shared<BindableTableScan>(expr, *loader, schema, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::BindableTableScanKernel);
 		}  else if (is_single_node_partition(expr)) {
 			k = std::make_shared<PartitionSingleNodeKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::PartitionSingleNodeKernel);
 		} else if (is_single_node_sort_and_sample(expr)) {
 			k = std::make_shared<SortAndSampleSingleNodeKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::SortAndSampleSingleNodeKernel);
 		} else if (is_partition(expr)) {
 			k = std::make_shared<PartitionKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::PartitionKernel);
 		} else if (is_sort_and_sample(expr)) {
 			k = std::make_shared<SortAndSampleKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::SortAndSampleKernel);
 		} else if (is_merge(expr)) {
 			k = std::make_shared<MergeStreamKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::MergeStreamKernel);
 		} else if (is_limit(expr)) {
 			k = std::make_shared<LimitKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::LimitKernel);
 		}  else if (is_compute_aggregate(expr)) {
 			k = std::make_shared<ComputeAggregateKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::ComputeAggregateKernel);
 		}  else if (is_distribute_aggregate(expr)) {
 			k = std::make_shared<DistributeAggregateKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::DistributeAggregateKernel);
 		}  else if (is_merge_aggregate(expr)) {
 			k = std::make_shared<MergeAggregateKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::MergeAggregateKernel);
 		}  else if (is_pairwise_join(expr)) {
 			k = std::make_shared<PartwiseJoin>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::PartwiseJoinKernel);
 		} else if (is_join_partition(expr)) {
 			k = std::make_shared<JoinPartitionKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::JoinPartitionKernel);
 		} else if (is_union(expr)) {
 			k = std::make_shared<UnionKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
-			k->set_type_id(kernel_type::UnionKernel);
 		}
 		return k;
 	}

@@ -49,6 +49,7 @@ protected:
 public:
 	graph() {
 		container_[head_id_] = nullptr;	 // sentinel node
+		kernels_edges_logger = spdlog::get("kernels_edges_logger");
 	}
 	graph(const graph &) = default;
 	graph & operator=(const graph &) = default;
@@ -92,6 +93,8 @@ private:
 	std::map<std::int32_t, kernel *> container_;
 	std::map<std::int32_t, std::set<Edge>> edges_;
 	std::map<std::int32_t, std::set<Edge>> reverse_edges_;
+
+	std::shared_ptr<spdlog::logger> kernels_edges_logger;
 };
 
 

@@ -14,6 +14,11 @@ namespace cache {
 			target_port_name = p.dst_port_name;
 		}
 		this->add_edge(p.src, p.dst, source_port_name, target_port_name, p.cache_machine_config);
+
+		kernels_edges_logger->info("{source}|{sink}",
+								"source"_a=p.src->get_id(),
+								"sink"_a=p.dst->get_id());
+
 		return p;
 	}
 

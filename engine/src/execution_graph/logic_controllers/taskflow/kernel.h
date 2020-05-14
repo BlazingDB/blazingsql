@@ -18,11 +18,32 @@ using kernel_pair = std::pair<kernel *, std::string>;
 */
 class kernel {
 public:
-	kernel(std::string expr, std::shared_ptr<Context> context) : expression{expr}, kernel_id(kernel::kernel_count), context{context} {
+	kernel(std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel::kernel_count), context{context}, kernel_type_id{kernel_type_id} {
 		kernel::kernel_count++;
 		parent_id_ = -1;
 
 		logger = spdlog::get("batch_logger");
+
+		std::shared_ptr<spdlog::logger> kernels_logger;
+		kernels_logger = spdlog::get("kernels_logger");
+
+		/*if(this->context){
+			kernels_logger->info("{query_id}|{kernel_id}|{type}",
+									"query_id"_a=this->context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"type"_a=get_kernel_type_name(this->get_type_id()));
+		}else{
+			kernels_logger->info("{query_id}|{kernel_id}|{type}",
+									"query_id"_a="null",
+									"kernel_id"_a=this->get_id(),
+									"type"_a=get_kernel_type_name(this->get_type_id()));
+		}*/
+
+		kernels_logger->info("{kernel_id}|{is_kernel}|{type}",
+								"kernel_id"_a=this->get_id(),
+								"is_kernel"_a=true,
+								"type"_a=get_kernel_type_name(this->get_type_id()));
+		
 	}
 	void set_parent(size_t id) { parent_id_ = id; }
 	bool has_parent() const { return parent_id_ != -1; }

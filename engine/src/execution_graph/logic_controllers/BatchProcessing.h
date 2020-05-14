@@ -262,7 +262,7 @@ private:
 class TableScan : public kernel {
 public:
 	TableScan(const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context), input(loader, schema, context)
+	: kernel(queryString, context, kernel_type::TableScanKernel), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
@@ -320,7 +320,7 @@ class BindableTableScan : public kernel {
 public:
 	BindableTableScan(const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
 		std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context), input(loader, schema, context)
+	: kernel(queryString, context, kernel_type::BindableTableScanKernel), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
@@ -397,7 +397,7 @@ private:
 class Projection : public kernel {
 public:
 	Projection(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context)
+	: kernel(queryString, context, kernel_type::ProjectKernel)
 	{
 		this->query_graph = query_graph;
 	}
@@ -442,7 +442,7 @@ private:
 class Filter : public kernel {
 public:
 	Filter(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context)
+	: kernel(queryString, context, kernel_type::FilterKernel)
 	{
 		this->query_graph = query_graph;
 	}
@@ -501,8 +501,8 @@ private:
 
 class Print : public kernel {
 public:
-	Print() : kernel("Print", nullptr) { ofs = &(std::cout); }
-	Print(std::ostream & stream) : kernel("Print", nullptr) { ofs = &stream; }
+	Print() : kernel("Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
+	Print(std::ostream & stream) : kernel("Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
 		BatchSequence input(this->input_cache(), this);
@@ -521,7 +521,8 @@ protected:
 
 class OutputKernel : public kernel {
 public:
-	OutputKernel() : kernel("OutputKernel", nullptr) {  }
+	OutputKernel() : kernel("OutputKernel", nullptr, kernel_type::OutputKernel) { }
+
 	virtual kstatus run() {
 		output = std::move(this->input_.get_cache()->pullFromCache());
 		return kstatus::stop;
@@ -539,7 +540,7 @@ protected:
 namespace test {
 class generate : public kernel {
 public:
-	generate(std::int64_t count = 1000) : kernel("", nullptr), count(count) {}
+	generate(std::int64_t count = 1000) : kernel("", nullptr, kernel_type::GenerateKernel), count(count) {}
 	virtual kstatus run() {
 
 		cudf::test::fixed_width_column_wrapper<int32_t> column1{{0, 1, 2, 3, 4, 5}, {1, 1, 1, 1, 1, 1}};

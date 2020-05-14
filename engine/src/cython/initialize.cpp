@@ -55,12 +55,18 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 	return the_ip;
 }
 
-void create_logger(std::string fileName, std::string loggingName, int ralId){
+// simple_log: true (no timestamp or log level)
+void create_logger(std::string fileName, std::string loggingName, int ralId, bool simple_log=true){
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
 	stdout_sink->set_level(spdlog::level::err);
 	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(fileName);
-	file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
+	if(simple_log){
+		file_sink->set_pattern(fmt::format("{}|%v", ralId));
+	}else{
+		file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
+	}
+
 	file_sink->set_level(spdlog::level::trace);
 	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
 	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
@@ -124,13 +130,16 @@ void initialize(int ralId,
 	spdlog::init_thread_pool(8192, 1);
 
 	std::string oldfileName = "RAL." + std::to_string(ralId) + ".log";
-	create_logger(oldfileName, "batch_logger", ralId);
+	create_logger(oldfileName, "batch_logger", ralId, false);
 
 	std::string queriesFileName = "queries." + std::to_string(ralId) + ".log";
 	create_logger(queriesFileName, "queries_logger", ralId);
 
 	std::string kernelsFileName = "kernels." + std::to_string(ralId) + ".log";
 	create_logger(kernelsFileName, "kernels_logger", ralId);
+
+	std::string kernelsEdgesFileName = "kernels_edges." + std::to_string(ralId) + ".log";
+	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId);
 
 	std::string eventsFileName = "events." + std::to_string(ralId) + ".log";
 	create_logger(eventsFileName, "events_logger", ralId);

@@ -21,7 +21,7 @@ using namespace fmt::literals;
 class SortAndSampleSingleNodeKernel : public kernel {
 public:
 	SortAndSampleSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context}
+		: kernel{queryString, context, kernel_type::SortAndSampleSingleNodeKernel}
 	{
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
@@ -83,7 +83,7 @@ private:
 class PartitionSingleNodeKernel : public kernel {
 public:
 	PartitionSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::PartitionSingleNodeKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
@@ -143,7 +143,7 @@ private:
 class SortAndSampleKernel : public kernel {
 public:
 	SortAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context}
+		: kernel{queryString, context, kernel_type::SortAndSampleKernel}
 	{
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
@@ -240,7 +240,7 @@ private:
 class PartitionKernel : public kernel {
 public:
 	PartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::PartitionKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
@@ -310,7 +310,7 @@ private:
 class MergeStreamKernel : public kernel {
 public:
 	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context}  {
+		: kernel{queryString, context, kernel_type::MergeStreamKernel}  {
 		this->query_graph = query_graph;
 	}
 	
@@ -384,7 +384,7 @@ private:
 class LimitKernel : public kernel {
 public:
 	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context}  {
+		: kernel{queryString, context, kernel_type::LimitKernel}  {
 		this->query_graph = query_graph;
 	}
 	
