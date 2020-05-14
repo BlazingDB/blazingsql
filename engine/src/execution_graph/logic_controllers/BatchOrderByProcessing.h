@@ -26,6 +26,10 @@ public:
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
+
+	bool can_you_throttle_my_input() {
+		return true;
+	}
 	
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -38,6 +42,8 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache("output_a")->wait_if_cache_is_saturated();
+
 				auto batch = input.next();
 				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
 				auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
@@ -86,6 +92,10 @@ public:
 		: kernel{queryString, context} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
+	}
+
+	bool can_you_throttle_my_input() {
+		return true;
 	}
 
 	virtual kstatus run() {
@@ -149,6 +159,10 @@ public:
 		this->output_.add_port("output_a", "output_b");
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+	
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, size_t localTotalNumRows, size_t localTotalBytes) {
 		size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 		auto concatSamples = ral::utilities::concatTables(sampledTableViews);
@@ -180,6 +194,7 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache("output_a")->wait_if_cache_is_saturated();
 				auto batch = input.next();
 				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
 				auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
@@ -243,6 +258,10 @@ public:
 		: kernel{queryString, context} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
+	}
+
+	bool can_you_throttle_my_input() {
+		return true;
 	}
 
 	virtual kstatus run() {
@@ -312,6 +331,10 @@ public:
 	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
+	}
+
+	bool can_you_throttle_my_input() {
+		return false;
 	}
 	
 	virtual kstatus run() {
@@ -386,6 +409,10 @@ public:
 	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context}  {
 		this->query_graph = query_graph;
+	}
+
+	bool can_you_throttle_my_input() {
+		return false;
 	}
 	
 	virtual kstatus run() {
