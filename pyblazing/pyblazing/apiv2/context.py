@@ -1383,7 +1383,15 @@ class BlazingContext(object):
 
     def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query,single_gpu):
         nodeFilesList = []
-        file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
+
+        try:
+            file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
+        except cio.RunSkipDataError:
+            file_indices_and_rowgroup_indices = {}
+            file_indices_and_rowgroup_indices['skipdata_analysis_fail'] = False
+            file_indices_and_rowgroup_indices['metadata'] = cudf.DataFrame()
+            pass
+
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
 
