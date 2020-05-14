@@ -1034,6 +1034,7 @@ class BlazingContext(object):
             print("Error found")
             print(algebra)
             algebra=""
+            
         return algebra
 
     def add_remove_table(self, tableName, addTable, table=None):
@@ -1559,6 +1560,12 @@ class BlazingContext(object):
 
         if (algebra is None):
             algebra = self.explain(query)
+
+        # when an empty `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
+        if "LogicalValues(tuples=[[]])" in algebra:
+            print("This SQL statement returns empty result. Please double check your query.")
+            result = cudf.DataFrame()  # it will return an empty DataFrame
+            return result
 
         if algebra == '':
             print("Parsing Error")
