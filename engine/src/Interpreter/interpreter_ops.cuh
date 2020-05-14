@@ -680,7 +680,7 @@ private:
 					int64_t computed = cudf::experimental::type_dispatcher(cudf::data_type{type_id},
 						launch_extract_component<datetime_component::SECOND>{}, static_cast<int64_t>(left_value));
 					store_data_in_buffer(computed, buffer, output_position);
-				} else if(oper == operator_type::BLZ_CAST_INTEGER || oper == operator_type::BLZ_CAST_BIGINT) {
+				} else if(oper == operator_type::BLZ_CAST_TINYINT || oper == operator_type::BLZ_CAST_SMALLINT || oper == operator_type::BLZ_CAST_INTEGER || oper == operator_type::BLZ_CAST_BIGINT) {
 					store_data_in_buffer(static_cast<int64_t>(left_value), buffer, output_position);
 				} else if(oper == operator_type::BLZ_CAST_FLOAT || oper == operator_type::BLZ_CAST_DOUBLE) {
 					store_data_in_buffer(static_cast<double>(left_value), buffer, output_position);

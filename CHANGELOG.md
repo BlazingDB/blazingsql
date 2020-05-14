@@ -10,4 +10,5 @@
 #631 Implemented ability to send config_options to bc.sql function
 #621 Clean dead code
 #602 Implements cache flow control feature
+#625 Implement CAST to TINYINT and SMALLINT
 #653 Handle exceptions on python side
