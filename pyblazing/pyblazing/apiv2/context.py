@@ -807,7 +807,9 @@ class BlazingContext(object):
         self.nodes = []
         self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
-        self.config_options = config_options
+        self.config_options = {}
+        for option in config_options:
+            self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
         
         if(dask_client is not None):
             if network_interface is None:
@@ -1590,11 +1592,11 @@ class BlazingContext(object):
             return
 
         if len(config_options) == 0:
-            config_options = self.config_options 
-        
-        query_config_options = {}
-        for option in config_options:
-            query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+            query_config_options = self.config_options 
+        else:        
+            query_config_options = {}
+            for option in config_options:
+                query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
         if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
