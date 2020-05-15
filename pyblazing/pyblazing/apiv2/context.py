@@ -215,6 +215,8 @@ In the mean time, for better performance we recommend using the unify_partitions
     except Exception as e:
         raise e
 
+    return result
+
 def collectPartitionsPerformPartition(
         masterIndex,
         nodes,
