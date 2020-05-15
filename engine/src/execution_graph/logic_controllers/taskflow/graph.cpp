@@ -213,7 +213,7 @@ namespace cache {
 
 		target->set_parent(source->get_id());
 		{
-			std::size_t cache_id = target->get_id()*100 + source->get_id() * 10000;
+			std::size_t cache_id = target->get_id()*10000 + source->get_id()*100000000;
 
 			kernels_edges_logger->info("{source}|{sink}",
 								"source"_a=source->get_id(),
