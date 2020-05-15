@@ -15,10 +15,6 @@ namespace cache {
 		}
 		this->add_edge(p.src, p.dst, source_port_name, target_port_name, p.cache_machine_config);
 
-		kernels_edges_logger->info("{source}|{sink}",
-								"source"_a=p.src->get_id(),
-								"sink"_a=p.dst->get_id());
-
 		return p;
 	}
 
@@ -217,7 +213,11 @@ namespace cache {
 
 		target->set_parent(source->get_id());
 		{
-			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config);
+			kernels_edges_logger->info("{source}|{sink}",
+								"source"_a=source->get_id(),
+								"sink"_a=target->get_id());
+
+			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config, target->get_id()*100 + source->get_id() * 10000);
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
 					source->output_.register_cache("output_" + std::to_string(index), cache_machines[index]);

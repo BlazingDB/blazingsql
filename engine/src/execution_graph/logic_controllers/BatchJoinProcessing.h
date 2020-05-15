@@ -56,8 +56,8 @@ public:
         this->left_sequence.set_source(this->input_.get_cache("input_a"));
         this->right_sequence.set_source(this->input_.get_cache("input_b"));
 
-        this->leftArrayCache = 	ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
-        this->rightArrayCache = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
+        this->leftArrayCache = 	ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE}, 0); //todo assing right id
+        this->rightArrayCache = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE}, 0); //todo assing right id
 	}
 
 	std::unique_ptr<TableSchema> left_schema{nullptr};

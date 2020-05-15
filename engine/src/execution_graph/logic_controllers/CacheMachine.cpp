@@ -176,7 +176,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 					}
 				}
 				break;
-			}"query_id"_a=this->context.getContextToken(),
+			}//"query_id"_a=this->context.getContextToken(),
 			cacheIndex++;
 		}
 		this->something_added = true;
@@ -316,7 +316,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 }
 
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size, const std::size_t id)
-	: CacheMachine(context,id), bytes_max_size_(bytes_max_size)
+	: CacheMachine(context, id), bytes_max_size_(bytes_max_size)
 {
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");

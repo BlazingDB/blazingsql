@@ -270,7 +270,7 @@ private:
 */
 class CacheMachine {
 public:
-	CacheMachine(std::shared_ptr<Context> context);
+	CacheMachine(std::shared_ptr<Context> context, const std::size_t id);
 
 	~CacheMachine();
 
@@ -295,7 +295,7 @@ public:
 	uint64_t get_num_rows_added();
 
 	void wait_until_finished();
-std::int32_t get_id() const;
+
 	std::int32_t get_id() const;
 
 	bool wait_for_next() {
@@ -332,9 +332,9 @@ protected:
 */
 class HostCacheMachine {
 public:
-	HostCacheMachine(std::shared_ptr<Context> context) : ctx(context) {
+	HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id) : ctx(context), cache_id(id) {
 		waitingCache = std::make_unique<WaitingQueue>();
-    	logger = spdlog::get("batch_logger");
+		logger = spdlog::get("batch_logger");
 		something_added = false;
 	}
 
@@ -400,9 +400,9 @@ public:
 protected:
 	std::unique_ptr<WaitingQueue> waitingCache;
 	std::shared_ptr<Context> ctx;
-  std::shared_ptr<spdlog::logger> logger;
-  bool something_added;
-	const std::size_t cache_id
+	std::shared_ptr<spdlog::logger> logger;
+	bool something_added;
+	const std::size_t cache_id;
 };
 
 /**
@@ -415,11 +415,11 @@ protected:
 */
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context): CacheMachine(context){
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, const std::size_t id): CacheMachine(context, id){
 
 	}
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context,size_t bytes_max_size);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size, const std::size_t id);
 
 	~ConcatenatingCacheMachine() = default;
 

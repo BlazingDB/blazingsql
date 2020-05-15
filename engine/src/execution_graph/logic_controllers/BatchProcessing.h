@@ -123,7 +123,7 @@ public:
 	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id)
 		: context{context}, last_message_counter{context->getTotalNodes() - 1}
 	{
-		host_cache = std::make_shared<ral::cache::HostCacheMachine>(context);
+		host_cache = std::make_shared<ral::cache::HostCacheMachine>(context, 0); //todo assing right id
 		std::string context_comm_token = context->getContextCommunicationToken();
 		const uint32_t context_token = context->getContextToken();
 		std::string comms_message_token = MessageType::MessageID() + "_" + context_comm_token;
