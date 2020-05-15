@@ -256,13 +256,15 @@ namespace cache {
 	void graph::check_how_data_looks() {
 		size_t num_kernels = container_.size() - 2;  // discard the first element, container_[-1]
 		if ( get_node(num_kernels)->get_type_id() == kernel_type::TableScanKernel  &&
-			 get_node(num_kernels - 1)->kernel_type_id == static_cast<kernel_type>(kernel_type::LimitKernel) &&
+			 get_node(num_kernels - 1)->kernel_type_id == kernel_type::LimitKernel &&
 			 get_node(num_kernels - 2)->expression == "OutputKernel" ) 
 		{
 			get_node(num_kernels)->has_limit_ = true;
 
 			// get the limit value from LogicalLimit
-			get_node(num_kernels - 1)->limit_rows_ = ral::operators::get_limit_rows_when_relational_alg_is_simple(get_node(num_kernels - 1)->expression);
+			std::string LimitExpression = get_node(num_kernels - 1)->expression;
+			int64_t scan_only_rows = ral::operators::get_limit_rows_when_relational_alg_is_simple(LimitExpression);
+			get_node(num_kernels)->limit_rows_ = scan_only_rows;
 
 		}
 	}
