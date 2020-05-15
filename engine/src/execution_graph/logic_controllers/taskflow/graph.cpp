@@ -213,11 +213,17 @@ namespace cache {
 
 		target->set_parent(source->get_id());
 		{
+			std::size_t cache_id = target->get_id()*100 + source->get_id() * 10000;
+
 			kernels_edges_logger->info("{source}|{sink}",
 								"source"_a=source->get_id(),
+								"sink"_a=cache_id);
+
+			kernels_edges_logger->info("{source}|{sink}",
+								"source"_a=cache_id,
 								"sink"_a=target->get_id());
 
-			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config, target->get_id()*100 + source->get_id() * 10000);
+			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config, cache_id);
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
 					source->output_.register_cache("output_" + std::to_string(index), cache_machines[index]);
