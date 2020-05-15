@@ -521,7 +521,7 @@ protected:
 
 class OutputKernel : public kernel {
 public:
-	OutputKernel() : kernel("OutputKernel", nullptr, kernel_type::OutputKernel) { }
+	OutputKernel(std::shared_ptr<Context> context) : kernel("OutputKernel", context, kernel_type::OutputKernel) { }
 
 	virtual kstatus run() {
 		output = std::move(this->input_.get_cache()->pullFromCache());

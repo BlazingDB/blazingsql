@@ -283,7 +283,11 @@ struct tree_processor {
 					if (it != config_options.end()){
 						max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
 					}
-					auto cache_machine_config =	cache_settings{.type = CacheType::FOR_EACH, .num_partitions = max_num_order_by_partitions_per_node};
+
+					ral::cache::cache_settings cache_machine_config;
+					cache_machine_config.type = ral::cache::CacheType::FOR_EACH;
+					cache_machine_config.num_partitions = max_num_order_by_partitions_per_node;
+					cache_machine_config.context = context->clone();
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
@@ -296,10 +300,12 @@ struct tree_processor {
 					cache_settings cache_machine_config;
 					cache_machine_config.type = CacheType::CONCATENATING;
 					cache_machine_config.max_concat_byte_size = max_concat_cache_byte_size;
+					cache_machine_config.context = context->clone();
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+
 				}	else {
 					query_graph +=  *child->kernel_unit >> (*parent->kernel_unit);
-				}	
+				}
 			}
 		}
 	}

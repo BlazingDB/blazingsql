@@ -53,11 +53,15 @@ public:
 		this->max_left_ind = -1;
 		this->max_right_ind = -1;
 
-        this->left_sequence.set_source(this->input_.get_cache("input_a"));
-        this->right_sequence.set_source(this->input_.get_cache("input_b"));
+		this->left_sequence.set_source(this->input_.get_cache("input_a"));
+		this->right_sequence.set_source(this->input_.get_cache("input_b"));
 
-        this->leftArrayCache = 	ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE}, 0); //todo assing right id
-        this->rightArrayCache = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE}, 0); //todo assing right id
+		ral::cache::cache_settings cache_machine_config;
+		cache_machine_config.type = ral::cache::CacheType::SIMPLE;
+		cache_machine_config.context = context->clone();
+
+		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config, 0); //todo assing right id
+		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config, 0); //todo assing right id
 	}
 
 	std::unique_ptr<TableSchema> left_schema{nullptr};
