@@ -265,15 +265,23 @@ struct tree_processor {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
 				port_name.push_back(index_char);
-				query_graph +=  *child->kernel_unit >> (*parent->kernel_unit)[port_name];
+
+				cache_settings cache_machine_config;
+				cache_machine_config.context = context->clone();
+
+				query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], cache_machine_config);
 			} else {
 				auto child_kernel_type = child->kernel_unit->get_type_id();
 				auto parent_kernel_type = parent->kernel_unit->get_type_id();
 				if ((child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel)
 					    || (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
 						|| (child_kernel_type == kernel_type::SortAndSampleSingleNodeKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
-					query_graph += (*(child->kernel_unit))["output_a"] >> (*(parent->kernel_unit))["input_a"];
-					query_graph += (*(child->kernel_unit))["output_b"] >> (*(parent->kernel_unit))["input_b"];
+					
+					cache_settings cache_machine_config;
+					cache_machine_config.context = context->clone();
+
+					query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], cache_machine_config);
+					query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], cache_machine_config);
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
 					
@@ -304,7 +312,9 @@ struct tree_processor {
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 
 				}	else {
-					query_graph +=  *child->kernel_unit >> (*parent->kernel_unit);
+					cache_settings cache_machine_config;
+					cache_machine_config.context = context->clone();
+					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 				}
 			}
 		}

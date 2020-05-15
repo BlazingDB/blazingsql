@@ -83,5 +83,9 @@ static kpair link(kernel_pair a, kernel & b, const cache_settings & config = cac
 	return kpair(std::move(a), b, config);
 }
 
+static kpair link(kernel_pair a, kernel_pair b, const cache_settings & config = cache_settings{}) {
+	return kpair(std::move(a), std::move(b), config);
+}
+
 }  // namespace cache
 }  // namespace ral
