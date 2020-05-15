@@ -71,7 +71,7 @@ public:
 		this->cache = cache;
 	}
 	RecordBatch next() {
-		return cache->pullFromCache(kernel ? kernel->get_context(): nullptr);
+		return cache->pullFromCache();
 	}
 	bool wait_for_next() {
 		if (kernel) {
@@ -123,7 +123,7 @@ public:
 	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id)
 		: context{context}, last_message_counter{context->getTotalNodes() - 1}
 	{
-		host_cache = std::make_shared<ral::cache::HostCacheMachine>();
+		host_cache = std::make_shared<ral::cache::HostCacheMachine>(context);
 		std::string context_comm_token = context->getContextCommunicationToken();
 		const uint32_t context_token = context->getContextToken();
 		std::string comms_message_token = MessageType::MessageID() + "_" + context_comm_token;
@@ -142,7 +142,7 @@ public:
 						assert(concreteMessage != nullptr);
 						auto host_table = concreteMessage->releaseBlazingHostTable();
 						host_table->setPartitionId(concreteMessage->getPartitionId());
-						this->host_cache->addToCache(std::move(host_table), message_id, this->context.get());			
+						this->host_cache->addToCache(std::move(host_table), message_id);
 					}
 			}
 		});
@@ -266,7 +266,7 @@ public:
 	{
 		this->query_graph = query_graph;
 	}
-	
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -288,8 +288,8 @@ public:
 		}
 		for (auto &&t : threads) {
 			t.join();
-		}		
-		
+		}
+
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -297,7 +297,7 @@ public:
 									"info"_a="TableScan Kernel Completed",
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
-		
+
 		return kstatus::proceed;
 	}
 

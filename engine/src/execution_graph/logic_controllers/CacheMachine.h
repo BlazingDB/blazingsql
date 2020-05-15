@@ -29,7 +29,7 @@ using namespace fmt::literals;
 /// \brief An enum type to represent the cache level ID
 enum class CacheDataType { GPU, CPU, LOCAL_FILE };
 
-/// \brief An interface which represent a CacheData 
+/// \brief An interface which represent a CacheData
 class CacheData {
 public:
 	CacheData(CacheDataType cache_type, std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows)
@@ -39,7 +39,7 @@ public:
 	virtual std::unique_ptr<ral::frame::BlazingTable> decache() = 0;
 
 	virtual size_t sizeInBytes() const = 0;
-	
+
 	virtual ~CacheData() {}
 
 	std::vector<std::string> names() const {
@@ -54,7 +54,7 @@ public:
 	CacheDataType get_type() const {
 		return cache_type;
 	}
-	
+
 protected:
 	CacheDataType cache_type;
 	std::vector<std::string> col_names;
@@ -62,7 +62,7 @@ protected:
 	size_t n_rows;
 };
 
-/// \brief A specific class for a CacheData on GPU Memory 
+/// \brief A specific class for a CacheData on GPU Memory
 class GPUCacheData : public CacheData {
 public:
 	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table)
@@ -78,11 +78,11 @@ private:
 	std::unique_ptr<ral::frame::BlazingTable> data;
 };
 
-/// \brief A specific class for a CacheData on CPU Memory 
+/// \brief A specific class for a CacheData on CPU Memory
  class CPUCacheData : public CacheData {
  public:
- 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) 
-		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows()) 
+ 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table)
+		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows())
 	{
 		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
  	}
@@ -106,7 +106,7 @@ protected:
 	 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
  };
 
-/// \brief A specific class for a CacheData on Disk Memory 
+/// \brief A specific class for a CacheData on Disk Memory
 class CacheDataLocalFile : public CacheData {
 public:
 	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table);
@@ -124,8 +124,8 @@ private:
 
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 
-/// \brief This class represents a  messsage into que WaitingQueue. 
-/// We use this class to represent not only the CacheData 
+/// \brief This class represents a  messsage into que WaitingQueue.
+/// We use this class to represent not only the CacheData
 /// but also the message_id and the cache level (`cache_index`) where the data is stored.
 class message {
 public:
@@ -149,11 +149,11 @@ protected:
 };
 
 /**
-	@brief A class that represents a Waiting Queue which is used 
-	into the multi-tier cache system to stores data (GPUCacheData, CPUCacheData, CacheDataLocalFile). 
-	This class brings concurrency support the all cache machines into the  execution graph. 
+	@brief A class that represents a Waiting Queue which is used
+	into the multi-tier cache system to stores data (GPUCacheData, CPUCacheData, CacheDataLocalFile).
+	This class brings concurrency support the all cache machines into the  execution graph.
 	A blocking messaging system for `pop_or_wait` method is implemeted by using a condition variable.
-	Note: WaitingQueue class is based on communication MessageQueue. 
+	Note: WaitingQueue class is based on communication MessageQueue.
 */
 class WaitingQueue {
 public:
@@ -174,10 +174,10 @@ public:
 		condition_variable_.notify_all();
 	}
 
-	void finish() { 
+	void finish() {
 		std::unique_lock<std::mutex> lock(mutex_);
 		this->finished = true;
-		condition_variable_.notify_all(); 
+		condition_variable_.notify_all();
 	}
 
 	bool is_finished() {
@@ -201,7 +201,7 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
 		if(this->empty()) {
-			return false;	
+			return false;
 		}
 		return true;
 	}
@@ -213,12 +213,12 @@ public:
 
 	void wait_until_finished() {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });		
+		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });
 	}
 
 	message_ptr get_or_wait(std::string message_id) {
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [message_id, this] { 
+		condition_variable_.wait(lock, [message_id, this] {
 				auto result = std::any_of(this->message_queue_.cbegin(),
 							this->message_queue_.cend(), [&](auto &e) {
 								return e->get_message_id() == message_id;
@@ -233,7 +233,7 @@ public:
 			if (data->get_message_id() == message_id){
 				return std::move(data);
 			} else {
-				putWaitingQueue(std::move(data));				
+				putWaitingQueue(std::move(data));
 			}
 		}
 	}
@@ -253,8 +253,8 @@ public:
 		}
 		message_queue_.erase(message_queue_.begin(), message_queue_.end());
 		return response;
-	} 
-	
+	}
+
 private:
 	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
 
@@ -266,11 +266,11 @@ private:
 };
 /**
 	@brief A class that represents a Cache Machine on a
-	multi-tier (GPU memory, CPU memory, Disk memory) cache system. 
+	multi-tier (GPU memory, CPU memory, Disk memory) cache system.
 */
 class CacheMachine {
 public:
-	CacheMachine();
+	CacheMachine(std::shared_ptr<Context> context);
 
 	~CacheMachine();
 
@@ -280,11 +280,11 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", Context * ctx = nullptr);
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "");
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", Context * ctx = nullptr);
+	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "");
 
-	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "", Context * ctx = nullptr);
+	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
 
 	virtual void finish();
 
@@ -295,21 +295,23 @@ public:
 	uint64_t get_num_rows_added();
 
 	void wait_until_finished();
+std::int32_t get_id() const;
+	std::int32_t get_id() const;
 
 	bool wait_for_next() {
 		return this->waitingCache->wait_for_next();
 	}
-	
+
 	bool has_next_now() {
 		return this->waitingCache->has_next_now();
-	} 
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr);
+	}
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
-	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(Context * ctx = nullptr);
+	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
 
 protected:
-	/// This property represents a waiting queue object which stores all CacheData Objects  
+	/// This property represents a waiting queue object which stores all CacheData Objects
 	std::unique_ptr<WaitingQueue> waitingCache;
 
 	/// References to the properties of the multi-tier cache system
@@ -318,18 +320,19 @@ protected:
 	std::atomic<uint64_t> num_rows_added;
 	/// This variable is to keep track of if anything has been added to the cache. Its useful to keep from adding empty tables to the cache, where we might want an empty table at least to know the schema
 	bool something_added;
-
+	std::shared_ptr<Context> ctx;
 	std::shared_ptr<spdlog::logger> logger;
+	const std::size_t cache_id;
 };
 
 /**
 	@brief A class that represents a Host Cache Machine on a
 	multi-tier cache system, however this cache machine only stores CacheData of type CPUCacheData.
 	This class is used to by pass BatchSequences.
-*/ 
+*/
 class HostCacheMachine {
 public:
-	HostCacheMachine() {
+	HostCacheMachine(std::shared_ptr<Context> context) : ctx(context) {
 		waitingCache = std::make_unique<WaitingQueue>();
     	logger = spdlog::get("batch_logger");
 		something_added = false;
@@ -337,7 +340,7 @@ public:
 
 	~HostCacheMachine() {}
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "", Context * ctx = nullptr) {
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "") {
 		// we dont want to add empty tables to a cache, unless we have never added anything
 		if (!this->something_added || host_table->num_rows() > 0){
 			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
@@ -356,6 +359,8 @@ public:
 		}
 	}
 
+	std::int32_t get_id() const { return cache_id; }
+
 	virtual void finish() {
 		this->waitingCache->finish();
 	}
@@ -367,17 +372,17 @@ public:
 	bool wait_for_next() {
 		return this->waitingCache->wait_for_next();
 	}
-	
+
 	bool has_next_now() {
 		return this->waitingCache->has_next_now();
-	} 
-	
+	}
+
 	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache(Context * ctx = nullptr) {
 		std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 		if (message_data == nullptr) {
 			return nullptr;
 		}
-		
+
 		assert(message_data->get_data().get_type() == CacheDataType::CPU);
 
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
@@ -388,36 +393,41 @@ public:
 									"duration"_a="",
 									"kernel_id"_a=message_data->get_message_id(),
 									"rows"_a=message_data->get_data().num_rows());
-    
+
 		return static_cast<CPUCacheData&>(message_data->get_data()).releaseHostTable();
 	}
-	
+
 protected:
 	std::unique_ptr<WaitingQueue> waitingCache;
-
+	std::shared_ptr<Context> ctx;
   std::shared_ptr<spdlog::logger> logger;
   bool something_added;
+	const std::size_t cache_id
 };
 
 /**
 	@brief A class that represents a Cache Machine on a
 	multi-tier cache system. Moreover, it only returns a single BlazingTable by concatenating all batches.
 	This Cache Machine is used in the last Kernel (OutputKernel) in the ExecutionGraph.
-	
+
 	This ConcatenatingCacheMachine::pullFromCache method does not guarantee the relative order
 	of the messages to be preserved
-*/ 
+*/
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine() = default;
-	ConcatenatingCacheMachine(size_t bytes_max_size);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context): CacheMachine(context){
+
+	}
+
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context,size_t bytes_max_size);
 
 	~ConcatenatingCacheMachine() = default;
 
-	std::unique_ptr<ral::frame::BlazingTable> pullFromCache(Context * ctx = nullptr) override;
+	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
 
 private:
 	size_t bytes_max_size_ = std::numeric_limits<size_t>::max();
+
 };
 
 }  // namespace cache

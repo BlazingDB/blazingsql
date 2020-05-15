@@ -8,12 +8,12 @@ namespace cache {
 
 class kernel;
 
-static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cache_settings& config) {
+static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cache_settings& config) {
 	std::shared_ptr<ral::cache::CacheMachine> machine;
 	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
-		machine =  std::make_shared<ral::cache::CacheMachine>();
+		machine =  std::make_shared<ral::cache::CacheMachine>(config.context);
 	} else if (config.type == CacheType::CONCATENATING) {
-		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.max_concat_byte_size);
+		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context,config.max_concat_byte_size);
 	}
 	return machine;
 }
@@ -29,7 +29,7 @@ static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machi
 /**
 	@brief A class that represents the execution graph in a taskflow scheme.
 	The taskflow scheme is basically implemeted by the execution graph and the kernels associated to each node in the graph.
-*/ 
+*/
 class graph {
 protected:
 	struct Edge {
@@ -66,7 +66,7 @@ public:
 
 	std::pair<bool, uint64_t> get_estimated_input_rows_to_kernel(int32_t id);
 
-	std::pair<bool, uint64_t> get_estimated_input_rows_to_cache(int32_t id, const std::string & port_name);	
+	std::pair<bool, uint64_t> get_estimated_input_rows_to_cache(int32_t id, const std::string & port_name);
 
 	kernel & get_last_kernel();
 

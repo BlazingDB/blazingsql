@@ -39,7 +39,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 }
 
 CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table)
-	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows()) 
+	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
 {
 	// TODO: make this configurable
 	this->filePath_ = "/tmp/.blazing-temp-" + randomString(64) + ".orc";
@@ -55,11 +55,11 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine()
+CacheMachine::CacheMachine(std::shared_ptr<Context> context, const std::size_t id): ctx(context), cache_id(id)
 {
 	waitingCache = std::make_unique<WaitingQueue>();
-	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
-	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() ); 
+	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
+	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
@@ -70,6 +70,8 @@ CacheMachine::CacheMachine()
 
 CacheMachine::~CacheMachine() {}
 
+
+std::int32_t CacheMachine::get_id() const { return (cache_id); }
 
 void CacheMachine::finish() {
 	this->waitingCache->finish();
@@ -87,8 +89,8 @@ uint64_t CacheMachine::get_num_rows_added(){
 	return num_rows_added.load();
 }
 
-void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id, Context * ctx) {
-	
+void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id) {
+
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || host_table->num_rows() > 0){
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
@@ -121,8 +123,8 @@ void CacheMachine::clear() {
 	this->waitingCache->finish();
 }
 
-void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, Context * ctx){
-	
+void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id){
+
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || cache_data->num_rows() > 0){
 		num_rows_added += cache_data->num_rows();
@@ -140,7 +142,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 						"duration"_a="",
 						"kernel_id"_a=message_id,
 						"rows"_a=cache_data->num_rows());
-			
+
 					auto item = std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
 				} else {
@@ -153,7 +155,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 							"duration"_a="",
 							"kernel_id"_a=message_id,
 							"rows"_a=cache_data->num_rows());
-			
+
 						auto item = std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
 					} else if(cacheIndex == 2) {
@@ -174,14 +176,14 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 					}
 				}
 				break;
-			}
+			}"query_id"_a=this->context.getContextToken(),
 			cacheIndex++;
 		}
 		this->something_added = true;
 	}
 }
 
-void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, Context * ctx) {
+void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id) {
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || table->num_rows() > 0){
@@ -197,7 +199,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 								"offset"_a=table->view().column(col_ind).offset());
 			}
 		}
-		
+
 		num_rows_added += table->num_rows();
 		num_bytes_added += table->sizeInBytes();
 		int cacheIndex = 0;
@@ -217,7 +219,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 					// before we put into a cache, we need to make sure we fully own the table
 					auto column_names = table->names();
 					auto cudf_table = table->releaseCudfTable();
-					std::unique_ptr<ral::frame::BlazingTable> fully_owned_table = 
+					std::unique_ptr<ral::frame::BlazingTable> fully_owned_table =
 						std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), column_names);
 
 					auto cache_data = std::make_unique<GPUCacheData>(std::move(fully_owned_table));
@@ -273,11 +275,11 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 	if (message_data == nullptr) {
 		return nullptr;
 	}
-	
+
 	return message_data->get_data().decache();
 }
 
-std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * ctx) {
+std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
@@ -295,7 +297,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * 
 	return message_data->get_data().decache();
 }
 
-std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx) {
+std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
@@ -313,8 +315,8 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx
 	return message_data->release_data();
 }
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(size_t bytes_max_size)
-	: CacheMachine(), bytes_max_size_(bytes_max_size)
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size, const std::size_t id)
+	: CacheMachine(context,id), bytes_max_size_(bytes_max_size)
 {
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
@@ -325,7 +327,7 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(size_t bytes_max_size)
 }
 
 // This method does not guarantee the relative order of the messages to be preserved
-std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache(Context * ctx) {
+std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> holder_samples;
 	std::vector<ral::frame::BlazingTableView> samples;
 
@@ -351,7 +353,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		return std::move(holder_samples[0]);
 	}	else {
 		return ral::utilities::concatTables(samples);
-	}	
+	}
 }
 
 }  // namespace cache

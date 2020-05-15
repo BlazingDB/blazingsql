@@ -6,7 +6,7 @@
 #include "graph.h"
 
 namespace ral {
-namespace cache { 
+namespace cache {
 class kernel;
 class graph;
 using kernel_pair = std::pair<kernel *, std::string>;
@@ -14,7 +14,7 @@ using kernel_pair = std::pair<kernel *, std::string>;
 /**
 	@brief This interface represents a computation unit in the execution graph.
 	Each kernel has basically and input and output ports and the expression asocciated to the computation unit.
-	Each class that implements this interface should define how the computation is executed. See `run()` method.  
+	Each class that implements this interface should define how the computation is executed. See `run()` method.
 */
 class kernel {
 public:
@@ -39,11 +39,12 @@ public:
 									"type"_a=get_kernel_type_name(this->get_type_id()));
 		}*/
 
-		kernels_logger->info("{kernel_id}|{is_kernel}|{type}",
+		kernels_logger->info("{query_id}|{kernel_id}|{is_kernel}|{type}",
+								"query_id"_a=this->context->getContextToken(),
 								"kernel_id"_a=this->get_id(),
 								"is_kernel"_a=true,
 								"type"_a=get_kernel_type_name(this->get_type_id()));
-		
+
 	}
 	void set_parent(size_t id) { parent_id_ = id; }
 	bool has_parent() const { return parent_id_ != -1; }
@@ -64,7 +65,7 @@ public:
 		auto kernel_id = std::to_string(this->get_id());
 		return this->input_.get_cache(kernel_id);
 	}
-    
+
 	std::shared_ptr<ral::cache::CacheMachine>  output_cache() {
 		auto kernel_id = std::to_string(this->get_id());
 		return this->output_.get_cache(kernel_id);
@@ -74,21 +75,21 @@ public:
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id, context.get());
+		this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id);
 	}
 
 	void add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id = "") {
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		this->output_.get_cache(cache_id)->addCacheData(std::move(cache_data), message_id, context.get());
+		this->output_.get_cache(cache_id)->addCacheData(std::move(cache_data), message_id);
 	}
-	
+
 	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id = "") {
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		this->output_.get_cache(cache_id)->addHostFrameToCache(std::move(host_table), message_id, context.get());
+		this->output_.get_cache(cache_id)->addHostFrameToCache(std::move(host_table), message_id);
 	}
 
 	Context * get_context() const {
@@ -140,6 +141,6 @@ public:
 	std::shared_ptr<spdlog::logger> logger;
 };
 
- 
+
 }  // namespace cache
 }  // namespace ral

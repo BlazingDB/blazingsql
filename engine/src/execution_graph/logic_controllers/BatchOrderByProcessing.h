@@ -26,7 +26,7 @@ public:
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
 	}
-	
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -48,7 +48,7 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples 
+				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples
 				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
 											"query_id"_a=context->getContextToken(),
 											"step"_a=context->getQueryStep(),
@@ -64,7 +64,7 @@ public:
 // ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
-		
+
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -93,12 +93,12 @@ public:
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
-		
+
 		BatchSequence input(this->input_.get_cache("input_a"), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
-				auto batch = input.next();			
+				auto batch = input.next();
 				auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
 
 				// std::cout<<">>>>>>>>>>>>>>> PARTITIONS START"<< std::endl;
@@ -152,11 +152,11 @@ public:
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, size_t localTotalNumRows, size_t localTotalBytes) {
 		size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 		auto concatSamples = ral::utilities::concatTables(sampledTableViews);
-		auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
+		auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(),
 			localTotalNumRows, avg_bytes_per_row, this->expression, this->context.get());
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
 	}
-	
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -171,7 +171,7 @@ public:
 		if (it != config_options.end()){
 			order_by_samples_ratio = std::stof(config_options["ORDER_BY_SAMPLES_RATIO"]);
 		}
-		
+
 		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
@@ -206,7 +206,7 @@ public:
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples 
+				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples
 				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
 											"query_id"_a=context->getContextToken(),
 											"step"_a=context->getQueryStep(),
@@ -220,8 +220,8 @@ public:
 			partition_plan_thread.join();
 		} else {
 			compute_partition_plan(sampledTableViews, localTotalNumRows, localTotalBytes);
-		}		
-		
+		}
+
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -247,12 +247,12 @@ public:
 
 	virtual kstatus run() {
 		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
-		
+
 		CodeTimer timer;
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
-		
+
 		context->incrementQuerySubstep();
 
 		BlazingThread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, this](){
@@ -276,11 +276,11 @@ public:
 												"substep"_a=context->getQuerySubstep(),
 												"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 												"duration"_a="");
-				}	
+				}
 			}
 			ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
 		});
-		
+
 		BlazingThread consumer([this](){
 			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id());
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
@@ -313,13 +313,13 @@ public:
 		: kernel{queryString, context, kernel_type::MergeStreamKernel}  {
 		this->query_graph = query_graph;
 	}
-	
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
 		int batch_count = 0;
 		for (auto idx = 0; idx < this->input_.count(); idx++)
-		{	
+		{
 			try {
 				std::vector<ral::frame::BlazingTableView> tableViews;
 				std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
@@ -327,15 +327,15 @@ public:
 
 				// This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
 				this->input_.get_cache(cache_id)->wait_until_finished();
-				
+
 				while (this->input_.get_cache(cache_id)->wait_for_next()) {
-					auto table = this->input_.get_cache(cache_id)->pullFromCache(context.get());
+					auto table = this->input_.get_cache(cache_id)->pullFromCache();
 					if (table) {
 						tableViews.emplace_back(table->toBlazingTableView());
 						tables.emplace_back(std::move(table));
 					}
 				}
-				
+
 				if (tableViews.empty()) {
 					// noop
 				} else if(tableViews.size() == 1) {
@@ -372,7 +372,7 @@ public:
 									"info"_a="MergeStream Kernel Completed",
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
-		
+
 		return kstatus::proceed;
 	}
 
@@ -387,7 +387,7 @@ public:
 		: kernel{queryString, context, kernel_type::LimitKernel}  {
 		this->query_graph = query_graph;
 	}
-	
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -430,7 +430,7 @@ public:
 				}
 			}
 		}
-		
+
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
