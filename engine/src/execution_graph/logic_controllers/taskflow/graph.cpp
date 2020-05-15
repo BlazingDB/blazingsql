@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "operators/OrderBy.h"
 
 namespace ral {
 namespace cache {
@@ -248,6 +249,21 @@ namespace cache {
 			return reverse_edges_[id]; 
 		} else {
 			return std::set<graph::Edge>();
+		}
+	}
+
+	// This function will work when the Relational Algebra only contains: LogicalTableScan and LogicalLimit
+	void graph::check_how_data_looks() {
+		size_t num_kernels = container_.size() - 2;  // discard the first element, container_[-1]
+		if ( get_node(num_kernels)->get_type_id() == kernel_type::TableScanKernel  &&
+			 get_node(num_kernels - 1)->kernel_type_id == static_cast<kernel_type>(kernel_type::LimitKernel) &&
+			 get_node(num_kernels - 2)->expression == "OutputKernel" ) 
+		{
+			get_node(num_kernels)->has_limit_ = true;
+
+			// get the limit value from LogicalLimit
+			get_node(num_kernels - 1)->limit_rows_ = ral::operators::get_limit_rows_when_relational_alg_is_simple(get_node(num_kernels - 1)->expression);
+
 		}
 	}
 	

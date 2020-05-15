@@ -86,6 +86,8 @@ public:
 	std::set<Edge> get_reverse_neighbours(kernel * from);
 	std::set<Edge> get_reverse_neighbours(int32_t id);
 
+	void check_how_data_looks();
+
 private:
 	const std::int32_t head_id_{-1};
 	std::vector<kernel *> kernels_;

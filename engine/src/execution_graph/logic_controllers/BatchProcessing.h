@@ -280,16 +280,31 @@ public:
 		if (it != config_options.end()){
 			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
 		}
-
+		bool has_limit = this->has_limit_;
+		size_t limit_ = this->limit_rows_;
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
-			threads.push_back(BlazingThread([this]() {
+			threads.push_back(BlazingThread([this,& has_limit, &limit_]() {
 				this->output_cache()->wait_if_cache_is_saturated();
 				std::unique_ptr<ral::frame::BlazingTable> batch;
-				while(batch = input.next()) {
-					this->add_to_output_cache(std::move(batch));
+				// useful when the Algebra Relacional only contains: LogicalTableScan and LogicalLimit
+				if (has_limit) {
+					cudf::size_type current_rows = 0;
+					while(batch = input.next()) {
+						current_rows += batch->num_rows();
+						this->add_to_output_cache(std::move(batch));
+						this->output_cache()->wait_if_cache_is_saturated();
 
-					this->output_cache()->wait_if_cache_is_saturated();
+						if (current_rows >= limit_) {
+							break;
+						}
+					}
+				} else {
+					// normal process
+					while(batch = input.next()) {
+						this->add_to_output_cache(std::move(batch));
+						this->output_cache()->wait_if_cache_is_saturated();
+					}
 				}
 			}));
 		}

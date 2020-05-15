@@ -125,6 +125,10 @@ public:
 	std::shared_ptr<graph> query_graph;
 	std::shared_ptr<Context> context;
 
+	// useful when the Algebra Relacional only contains: LogicalTableScan and LogicalLimit
+	bool has_limit_ = false;
+	int64_t limit_rows_ = -1;
+
 	std::shared_ptr<spdlog::logger> logger;
 };
 

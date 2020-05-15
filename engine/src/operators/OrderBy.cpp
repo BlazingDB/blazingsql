@@ -131,6 +131,12 @@ bool has_limit_only(const std::string & query_part){
 	return sortColIndices.empty();
 }
 
+int64_t get_limit_rows_when_relational_alg_is_simple(const std::string & query_part){
+	int64_t limitRows;
+	std::tie(std::ignore, std::ignore, limitRows) = get_sort_vars(query_part);
+	return limitRows;
+}
+
 int64_t get_local_limit(int64_t total_batch_rows, const std::string & query_part, Context * context){
 	cudf::size_type limitRows;
 	std::tie(std::ignore, std::ignore, limitRows) = get_sort_vars(query_part);
