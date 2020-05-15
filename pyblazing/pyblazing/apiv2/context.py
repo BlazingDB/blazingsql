@@ -154,6 +154,29 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 
     return ralCommunicationPort, workerIp, cwd
 
+def getNodePartitionFutures(df, client):
+    from dask import delayed
+
+    workers = client.scheduler_info()['workers']
+
+    worker_partitions = {}
+    for worker in workers:
+        worker_partitions[worker] = []
+
+    dask.distributed.wait(df)
+    worker_part = client.who_has(df)
+    futures = dask.distributed.futures_of(df)
+
+    for future_obj in futures:
+        worker_partitions[worker_part[str(future_obj.key)][0]].append(future_obj)
+
+    # for key in worker_partitions:
+    #     # convert list of futures into a single future that containes all the partition futures
+    #     worker_partitions[key] = delayed(list)(future_obj for future_obj in worker_partitions[key])
+    
+    return worker_partitions
+
+    
 
 def getNodePartitions(df, client):
     workers = client.scheduler_info()['workers']
@@ -165,11 +188,22 @@ def getNodePartitions(df, client):
     for worker in workers:
         worker_partitions[worker] = []
 
-    dask.distributed.wait(df)
+    futures = dask.distributed.wait(df)
     worker_part = client.who_has(df)
+
+    # WSM futures should go hand in hand with workers_part
+
+    # i can get futures lke this:
+    # df = df.persist()  # start computation in the background
+    # futures = futures_of(df)
+
+    # look at https://distributed.dask.org/en/latest/manage-computation.html#futures-to-dask-collections
+
+
     logging.info('getNodePartitions workers who have df: ' + str(len(worker_part)))
     logging.info('worker_part object:' + str(worker_part))
-    
+
+
     for key in worker_part:
         if len(worker_part[key]) > 0:
             worker = worker_part[key][0]
@@ -178,8 +212,16 @@ def getNodePartitions(df, client):
         else:
             logging.error("ERROR: In getNodePartitions, woker has no corresponding partition")
             print("ERROR: In getNodePartitions, woker has no corresponding partition")
+
+            # WSM TODO want to have here a dictionary of futures that contains a list of futures to the dask partitions
+            # blah = delayed(list)(delayed_obj for delayed_obj in some_list)
+            # blah --> 'Delayed-list-2wiehgeowihg2wubg' # Pointing to a list of cudf.DataFrame objects
     
     return dict((workers[worker]['name'], partitions) for worker, partitions in worker_partitions.items())
+
+
+
+# myList = [tables[table_name].input.get_partition(partitions[0])]
 
 
 def collectPartitionsRunQuery(
@@ -191,33 +233,33 @@ def collectPartitionsRunQuery(
         algebra,
         accessToken,
         config_options):
-    import dask.distributed
-    worker_id = dask.distributed.get_worker().name
-    logging.info('running collectPartitionsRunQuery for ' + str(worker_id) + ' for algebra ' + algebra)
-    for table_name in tables:
-        if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
-            partitions = tables[table_name].get_partitions(worker_id)
-            logging.info('collectPartitionsRunQuery num partitions ' + str(len(partitions)))
-            if partitions is None:
-                logging.error("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-                print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-            if (len(partitions) == 0):
-                logging.warning("wARNING: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-                tables[table_name].input = [tables[table_name].df_schema]
-            elif (len(partitions) == 1):
-                logging.info('collectPartitionsRunQuery 1 partition about to compute')
-                tables[table_name].input = [tables[table_name].input.get_partition(
-                    partitions[0]).compute()]
-                logging.info('collectPartitionsRunQuery 1 partition computed')
-            else:
-                logging.info('collectPartitionsRunQuery more than 1 partitions')
-                table_partitions = []
-                for i, partition in enumerate(partitions):
-                    logging.info('collectPartitionsRunQuery about to compute partition ' + str(i))
-                    table_partitions.append(
-                        tables[table_name].input.get_partition(partition).compute())
-                    logging.info('collectPartitionsRunQuery computed partition ' + str(i))
-                tables[table_name].input = table_partitions #no concat
+    # import dask.distributed
+    # worker_id = dask.distributed.get_worker().name
+    # logging.info('running collectPartitionsRunQuery for ' + str(worker_id) + ' for algebra ' + algebra)
+    # for table_name in tables:
+    #     if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
+    #         partitions = tables[table_name].get_partitions(worker_id)
+    #         logging.info('collectPartitionsRunQuery num partitions ' + str(len(partitions)))
+    #         if partitions is None:
+    #             logging.error("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
+    #             print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
+    #         if (len(partitions) == 0):
+    #             logging.warning("wARNING: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
+    #             tables[table_name].input = [tables[table_name].df_schema]
+    #         elif (len(partitions) == 1):
+    #             logging.info('collectPartitionsRunQuery 1 partition about to compute')
+    #             tables[table_name].input = [tables[table_name].input.get_partition(
+    #                 partitions[0]).compute()]
+    #             logging.info('collectPartitionsRunQuery 1 partition computed')
+    #         else:
+    #             logging.info('collectPartitionsRunQuery more than 1 partitions')
+    #             table_partitions = []
+    #             for i, partition in enumerate(partitions):
+    #                 logging.info('collectPartitionsRunQuery about to compute partition ' + str(i))
+    #                 table_partitions.append(
+    #                     tables[table_name].input.get_partition(partition).compute())
+    #                 logging.info('collectPartitionsRunQuery computed partition ' + str(i))
+    #             tables[table_name].input = table_partitions #no concat
 
     return cio.runQueryCaller(
         masterIndex,
@@ -242,7 +284,7 @@ def collectPartitionsPerformPartition(
     if(isinstance(input, dask_cudf.core.DataFrame)):
         partitions = dask_mapping[worker_id]
         if (len(partitions) == 0):
-            input = input.get_partition(0).head(0)
+            input = input._meta # empty DataFrame with the right schema
         elif (len(partitions) == 1):
             input = input.get_partition(partitions[0]).compute()
         else:
@@ -266,7 +308,7 @@ def workerUnifyPartitions(
     worker_id = dask.distributed.get_worker().name
     partitions = dask_mapping[worker_id]
     if (len(partitions) == 0):
-        return input.get_partition(0).head(0)
+        return input._meta # empty dataframe with the right schema
     elif (len(partitions) == 1):
         return input.get_partition(partitions[0]).compute()
     else:
@@ -626,9 +668,11 @@ class BlazingTable(object):
                     self.input, npartitions=convert_gdf_to_dask_partitions)
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
                 self.input = self.input.persist()
-                logging.info("BlazingTable getNodePartitions")
-                self.dask_mapping = getNodePartitions(self.input, client)
-                self.df_schema = self.input.get_partition(0).head(0)
+                # logging.info("BlazingTable getNodePartitions")
+                # self.dask_mapping = getNodePartitions(self.input, client)
+                self.futures_mapping = getNodePartitionFutures(self.input, client)
+                self.df_schema = self.input._meta # empty DataFrame with the right schema
+                breakpoint()
         self.uri_values = uri_values
         self.in_file = in_file
 
@@ -686,6 +730,17 @@ class BlazingTable(object):
 
 # until this is implemented we cant do self join with arrow tables
 #    def unionColumns(self,otherTable):
+
+    def getDaskDataFrameSlices(self, nodes):
+        import copy 
+        nodeFilesList = []
+        for node in nodes:
+            table = copy.copy(self)
+            table.input = self.futures_mapping[node['worker']]
+            nodeFilesList.append(table)
+
+        breakpoint()
+        return nodeFilesList
 
     def getSlices(self, numSlices):
         nodeFilesList = []
@@ -1681,9 +1736,11 @@ collectParti
                     new_tables[table].input = dask_cudf.from_cudf(temp_df,npartitions=len(self.nodes))
                     new_tables[table].input = new_tables[table].input.persist()
                     new_tables[table].dask_mapping = getNodePartitions(new_tables[table].input, self.dask_client)
-                currentTableNodes = []
-                for node in self.nodes:
-                    currentTableNodes.append(new_tables[table])
+                
+                currentTableNodes = new_tables[table].getDaskDataFrameSlices(self.nodes)
+                # for node in self.nodes:
+                #     breakpoint()
+                #     currentTableNodes.append(new_tables[table])
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:
@@ -1748,7 +1805,7 @@ collectParti
                 if(return_futures):
                     result  = dask_futures
                 else:
-                    result = dask.dataframe.from_delayed(dask_futures)
+                    result = dask.dataframe.from_delayed(dask_futures) # this is not necessarily materialized
         return result
 
     # END SQL interface

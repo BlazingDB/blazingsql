@@ -31,6 +31,9 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+using namespace fmt::literals;
+
+#include <engine/static.h> // this contains function call for getProductDetails
 
 std::string get_ip(const std::string & iface_name = "eth0") {
 	int fd;
@@ -96,11 +99,6 @@ void initialize(int ralId,
 		ral::communication::network::Server::getInstance().close();
 	}
 
-	// auto output = new Library::Logging::CoutOutput();
-	// Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
-	// Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(ralId);
-	// Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",	initLogMsg));
-
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
 
@@ -121,6 +119,17 @@ void initialize(int ralId,
 
 	spdlog::flush_on(spdlog::level::err);
 	spdlog::flush_every(std::chrono::seconds(1));
+
+	logger->debug("|||{info}|||||","info"_a=initLogMsg);
+
+	std::map<std::string, std::string> product_details = getProductDetails();
+	std::string product_details_str = "Product Details: ";
+	std::map<std::string, std::string>::iterator it = product_details.begin(); 
+	while (it != product_details.end())	{
+		product_details_str += it->first + ": " + it->second + "; ";
+		it++;
+	}
+	logger->debug("|||{info}|||||","info"_a=product_details_str);
 }
 
 void finalize() {
