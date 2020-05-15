@@ -321,7 +321,8 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> co
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
 
-		kernels_logger->info("{id}|{is_kernel}|{type}",
+		kernels_logger->info("{query_id}|{id}|{is_kernel}|{type}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
 								"id"_a=id,
 								"is_kernel"_a=0,
 								"type"_a="concat_cache");
