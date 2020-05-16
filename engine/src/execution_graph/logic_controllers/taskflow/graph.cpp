@@ -255,17 +255,19 @@ namespace cache {
 	// This function will work when the Relational Algebra only contains: LogicalTableScan and LogicalLimit
 	void graph::check_how_data_looks() {
 		size_t num_kernels = container_.size() - 2;  // discard the first element, container_[-1]
-		if ( get_node(num_kernels)->get_type_id() == kernel_type::TableScanKernel  &&
-			 get_node(num_kernels - 1)->kernel_type_id == kernel_type::LimitKernel &&
-			 get_node(num_kernels - 2)->expression == "OutputKernel" ) 
-		{
-			get_node(num_kernels)->has_limit_ = true;
+		size_t expected_n_kernels = 3;  // TableScanKernel LimitKernel and OutputKernel
+		if (num_kernels == expected_n_kernels) {
+			if ( get_node(num_kernels)->get_type_id() == kernel_type::TableScanKernel &&
+			 	 get_node(num_kernels - 1)->get_type_id() == kernel_type::LimitKernel &&
+				 get_node(num_kernels - 2)->expression == "OutputKernel") 
+			{
+				get_node(num_kernels)->has_limit_ = true;
 
-			// get the limit value from LogicalLimit
-			std::string LimitExpression = get_node(num_kernels - 1)->expression;
-			int64_t scan_only_rows = ral::operators::get_limit_rows_when_relational_alg_is_simple(LimitExpression);
-			get_node(num_kernels)->limit_rows_ = scan_only_rows;
-
+				// get the limit value from LogicalLimit
+				std::string LimitExpression = get_node(num_kernels - 1)->expression;
+				int64_t scan_only_rows = ral::operators::get_limit_rows_when_relational_alg_is_simple(LimitExpression);
+				get_node(num_kernels)->limit_rows_ = scan_only_rows;
+			}
 		}
 	}
 	
