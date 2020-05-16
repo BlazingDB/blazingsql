@@ -23,6 +23,7 @@ public:
 		parent_id_ = -1;
 
 		logger = spdlog::get("batch_logger");
+		events_logger = spdlog::get("events_logger");
 
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
@@ -126,6 +127,7 @@ public:
 	std::shared_ptr<Context> context;
 
 	std::shared_ptr<spdlog::logger> logger;
+	std::shared_ptr<spdlog::logger> events_logger;
 };
 
 

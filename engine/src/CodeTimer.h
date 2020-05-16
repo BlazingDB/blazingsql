@@ -30,7 +30,7 @@ public:
 
 	void stop() {
 		if(started_ && !paused_) {
-			Clock::time_point now = Clock::now();
+			Clock::time_point now = end_point_ = Clock::now();
 			accumulated_ += now - start_point_;
 			paused_ = true;
 		}
@@ -46,12 +46,23 @@ public:
 	}
 
 	template <typename Units = std::chrono::milliseconds>
+	typename Units::rep start_time() {
+		return std::chrono::duration_cast<Units>(start_point_.time_since_epoch()).count();
+	}
+
+	template <typename Units = std::chrono::milliseconds>
+	typename Units::rep end_time() {
+		return std::chrono::duration_cast<Units>(end_point_.time_since_epoch()).count();
+	}
+
+	template <typename Units = std::chrono::milliseconds>
 	typename Units::rep elapsed_time() {
 		if(started_) {
 			if(paused_) {
 				return std::chrono::duration_cast<Units>(accumulated_).count();
 			} else {
-				return std::chrono::duration_cast<Units>(accumulated_ + (Clock::now() - start_point_)).count();
+				end_point_ = Clock::now();
+				return std::chrono::duration_cast<Units>(accumulated_ + (end_point_ - start_point_)).count();
 			}
 		} else {
 			return Clock::duration(0).count();
@@ -62,5 +73,6 @@ private:
 	bool started_;
 	bool paused_;
 	Clock::time_point start_point_;
+	Clock::time_point end_point_;
 	Clock::duration accumulated_;
 };

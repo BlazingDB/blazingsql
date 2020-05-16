@@ -404,13 +404,18 @@ public:
 
 	virtual kstatus run() {
 		CodeTimer timer;
+		CodeTimer eventTimer(false);
 
 		BatchSequence input(this->input_cache(), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
 				auto batch = input.next();
+
+				eventTimer.start();
 				auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
+				eventTimer.stop();
+
 				this->add_to_output_cache(std::move(columns));
 				batch_count++;
 			} catch(const std::exception& e) {
@@ -423,6 +428,11 @@ public:
 											"duration"_a="");
 			}
 		}
+
+		events_logger->info("{kernel_id}|{timestamp_begin}|{timestamp_end}",
+								"kernel_id"_a=this->get_id(),
+								"timestamp_begin"_a=eventTimer.start_time(),
+								"timestamp_end"_a=eventTimer.end_time());
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
