@@ -260,16 +260,16 @@ namespace cache {
 		size_t total_kernels = container_.size(); 
 
 		if (total_kernels == 4) { // null, TableScanKernel, LimitKernel, OutputKernel
-			if ( get_node(min_index_valid + 2)->expression == "OutputKernel" &&
+			if ( get_node(min_index_valid )->expression == "OutputKernel" &&
 				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::LimitKernel &&
-			 	 get_node(min_index_valid)->get_type_id() == kernel_type::TableScanKernel )
+			 	 get_node(min_index_valid + 2)->get_type_id() == kernel_type::TableScanKernel )
 			{
-				get_node(min_index_valid)->has_limit_ = true;
+				get_node(min_index_valid + 2)->has_limit_ = true;
 
 				// get the limit value from LogicalLimit
 				std::string LimitExpression = get_node(min_index_valid + 1)->expression;
 				int64_t scan_only_rows = ral::operators::get_limit_rows_when_relational_alg_is_simple(LimitExpression);
-				get_node(min_index_valid)->limit_rows_ = scan_only_rows;
+				get_node(min_index_valid + 2)->limit_rows_ = scan_only_rows;
 			}
 		}
 	}
