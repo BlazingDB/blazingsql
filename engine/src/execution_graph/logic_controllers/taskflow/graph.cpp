@@ -255,7 +255,7 @@ namespace cache {
 	// This function will work when the Relational Algebra only contains: LogicalTableScan and LogicalLimit
 	void graph::check_how_data_looks() {
 		size_t num_kernels = container_.size() - 2;  // discard the first element, container_[-1]
-		size_t expected_n_kernels = 3;  // TableScanKernel LimitKernel and OutputKernel
+		size_t expected_n_kernels = 3;  // TableScanKernel, LimitKernel and OutputKernel
 		if (num_kernels == expected_n_kernels) {
 			if ( get_node(num_kernels)->get_type_id() == kernel_type::TableScanKernel &&
 			 	 get_node(num_kernels - 1)->get_type_id() == kernel_type::LimitKernel &&
