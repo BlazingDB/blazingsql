@@ -254,11 +254,11 @@ namespace cache {
 
 	// This function will work when the Relational Algebra only contains: LogicalTableScan and LogicalLimit
 	void graph::check_how_data_looks() {
-		auto firs_it = container_.begin(); // points to null
-		firs_it++;
-		int32_t min_index_valid = firs_it->first; // container_.end()->second : should be OutputKernel
-		std::cout << "--------------- " << min_index_valid << std::endl;
+		auto first_iterator = container_.begin(); // points to null
+		first_iterator++;
+		int32_t min_index_valid = first_iterator->first;
 		size_t total_kernels = container_.size(); 
+
 		if (total_kernels == 4) { // null, TableScanKernel, LimitKernel, OutputKernel
 			if ( get_node(min_index_valid + 2)->expression == "OutputKernel" &&
 				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::LimitKernel &&
