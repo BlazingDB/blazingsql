@@ -350,18 +350,46 @@ public:
 					}
 				}
 				if (!done) {
+					CodeTimer eventTimer(false);
+					eventTimer.start();
+
 					normalize(left_batch, right_batch);
+
+					auto log_input_num_rows = left_batch->num_rows() + right_batch->num_rows();
+					auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
+
 					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
+
+					auto log_output_num_rows = joined->num_rows();
+					auto log_output_num_bytes = joined->sizeInBytes();
 
 					produced_output = true;
 					if (filter_statement != "") {
 						auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());
+						eventTimer.stop();
+
+						log_output_num_rows = filter_table->num_rows();
+						log_output_num_bytes = filter_table->sizeInBytes();
+
 						this->add_to_output_cache(std::move(filter_table));
 					} else{
 						// printf("joined table\n");
 						// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
+						eventTimer.stop();
 						this->add_to_output_cache(std::move(joined));
 					}
+
+					events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"kernel_id"_a=this->get_id(),
+								"input_num_rows"_a=log_input_num_rows,
+								"input_num_bytes"_a=log_input_num_bytes,
+								"output_num_rows"_a=log_output_num_rows,
+								"output_num_bytes"_a=log_output_num_bytes,
+								"event_type"_a="compute",
+								"timestamp_begin"_a=eventTimer.start_time(),
+								"timestamp_end"_a=eventTimer.end_time());
 
 					mark_set_completed(left_ind, right_ind);
 				}
