@@ -341,16 +341,56 @@ public:
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
 			threads.push_back(BlazingThread([expression = this->expression, this]() {
+
+				CodeTimer eventTimer(false);
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 				while(batch = input.next()) {
 					try {
+						eventTimer.start();
+						auto log_input_num_rows = batch->num_rows();
+						auto log_input_num_bytes = batch->sizeInBytes();
+
 						if(is_filtered_bindable_scan(expression)) {
 							auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, this->context.get());
 							columns->setNames(fix_column_aliases(columns->names(), expression));
+
+							auto log_output_num_rows = columns->num_rows();
+							auto log_output_num_bytes = columns->sizeInBytes();
+							eventTimer.stop();
+
+							events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+											"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+											"query_id"_a=context->getContextToken(),
+											"kernel_id"_a=this->get_id(),
+											"input_num_rows"_a=log_input_num_rows,
+											"input_num_bytes"_a=log_input_num_bytes,
+											"output_num_rows"_a=log_output_num_rows,
+											"output_num_bytes"_a=log_output_num_bytes,
+											"event_type"_a="compute",
+											"timestamp_begin"_a=eventTimer.start_time(),
+											"timestamp_end"_a=eventTimer.end_time());
+
 							this->add_to_output_cache(std::move(columns));
 						}
 						else{
 							batch->setNames(fix_column_aliases(batch->names(), expression));
+
+							auto log_output_num_rows = batch->num_rows();
+							auto log_output_num_bytes = batch->sizeInBytes();
+							eventTimer.stop();
+
+							events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+											"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+											"query_id"_a=context->getContextToken(),
+											"kernel_id"_a=this->get_id(),
+											"input_num_rows"_a=log_input_num_rows,
+											"input_num_bytes"_a=log_input_num_bytes,
+											"output_num_rows"_a=log_output_num_rows,
+											"output_num_bytes"_a=log_output_num_bytes,
+											"event_type"_a="compute",
+											"timestamp_begin"_a=eventTimer.start_time(),
+											"timestamp_end"_a=eventTimer.end_time());
+
 							this->add_to_output_cache(std::move(batch));
 						}
 					} catch(const std::exception& e) {

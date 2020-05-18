@@ -28,17 +28,23 @@ public:
         this->query_graph = query_graph;
 	}
 
-	virtual kstatus run() {
-		CodeTimer timer;
+    virtual kstatus run() {
+        CodeTimer timer;
+        CodeTimer eventTimer(false);
 
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
         std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types, 
             aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
-		BatchSequence input(this->input_cache(), this);
+        BatchSequence input(this->input_cache(), this);
         int batch_count = 0;
         while (input.wait_for_next()) {
-			auto batch = input.next();
+            auto batch = input.next();
+
+            auto log_input_num_rows = batch->num_rows();
+            auto log_input_num_bytes = batch->sizeInBytes();
+
+            eventTimer.start();
 
             try {
                 std::unique_ptr<ral::frame::BlazingTable> output;
@@ -53,7 +59,24 @@ public:
                         batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
                 }
                 
+                auto log_output_num_rows = output->num_rows();
+                auto log_output_num_bytes = output->sizeInBytes();
+
+                eventTimer.stop();
                 this->add_to_output_cache(std::move(output));
+
+                events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                "query_id"_a=context->getContextToken(),
+                                "kernel_id"_a=this->get_id(),
+                                "input_num_rows"_a=log_input_num_rows,
+                                "input_num_bytes"_a=log_input_num_bytes,
+                                "output_num_rows"_a=log_output_num_rows,
+                                "output_num_bytes"_a=log_output_num_bytes,
+                                "event_type"_a="compute",
+                                "timestamp_begin"_a=eventTimer.start_time(),
+                                "timestamp_end"_a=eventTimer.end_time());
+
                 batch_count++;
             } catch(const std::exception& e) {
                 // TODO add retry here
@@ -64,7 +87,7 @@ public:
                             "info"_a="In ComputeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
                             "duration"_a="");
             }
-		}
+        }
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
@@ -74,8 +97,8 @@ public:
                     "duration"_a=timer.elapsed_time(),
                     "kernel_id"_a=this->get_id());
 
-		return kstatus::proceed;
-	}
+        return kstatus::proceed;
+    }
 
     std::pair<bool, uint64_t> get_estimated_output_num_rows(){
         if(this->aggregation_types.size() > 0 && this->group_column_indices.size() == 0) { // aggregation without groupby

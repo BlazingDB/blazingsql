@@ -29,6 +29,7 @@ public:
 
 	virtual kstatus run() {
 		CodeTimer timer;
+		CodeTimer eventTimer(false);
 
 		BatchSequence input(this->input_cache(), this);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
@@ -39,11 +40,33 @@ public:
 		while (input.wait_for_next()) {
 			try {
 				auto batch = input.next();
+
+				eventTimer.start();
+				auto log_input_num_rows = batch->num_rows();
+				auto log_input_num_bytes = batch->sizeInBytes();
+
 				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
 				auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
 				sampledTableViews.push_back(sampledTable->toBlazingTableView());
 				sampledTables.push_back(std::move(sampledTable));
 				tableTotalRows.push_back(batch->view().num_rows());
+
+				auto log_output_num_rows = sortedTable->num_rows();
+				auto log_output_num_bytes = sortedTable->sizeInBytes();
+				eventTimer.stop();
+
+				events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"kernel_id"_a=this->get_id(),
+								"input_num_rows"_a=log_input_num_rows,
+								"input_num_bytes"_a=log_input_num_bytes,
+								"output_num_rows"_a=log_output_num_rows,
+								"output_num_bytes"_a=log_output_num_bytes,
+								"event_type"_a="compute",
+								"timestamp_begin"_a=eventTimer.start_time(),
+								"timestamp_end"_a=eventTimer.end_time());
+
 				this->add_to_output_cache(std::move(sortedTable), "output_a");
 				batch_count++;
 			} catch(const std::exception& e) {
@@ -159,6 +182,7 @@ public:
 
 	virtual kstatus run() {
 		CodeTimer timer;
+		CodeTimer eventTimer(false);
 
 		bool try_num_rows_estimation = true;
 		bool estimate_samples = false;
@@ -181,6 +205,11 @@ public:
 		while (input.wait_for_next()) {
 			try {
 				auto batch = input.next();
+
+				eventTimer.start();
+				auto log_input_num_rows = batch->num_rows();
+				auto log_input_num_bytes = batch->sizeInBytes();
+
 				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
 				auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
 				sampledTableViews.push_back(sampledTable->toBlazingTableView());
@@ -201,6 +230,22 @@ public:
 					estimate_samples = false;
 				}
 				// End estimation
+
+				auto log_output_num_rows = sortedTable->num_rows();
+				auto log_output_num_bytes = sortedTable->sizeInBytes();
+				eventTimer.stop();
+
+				events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"kernel_id"_a=this->get_id(),
+								"input_num_rows"_a=log_input_num_rows,
+								"input_num_bytes"_a=log_input_num_bytes,
+								"output_num_rows"_a=log_output_num_rows,
+								"output_num_bytes"_a=log_output_num_bytes,
+								"event_type"_a="compute",
+								"timestamp_begin"_a=eventTimer.start_time(),
+								"timestamp_end"_a=eventTimer.end_time());
 
 				this->add_to_output_cache(std::move(sortedTable), "output_a");
 				batch_count++;
