@@ -167,6 +167,7 @@ def getNodePartitionFutures(df, client):
     worker_part = client.who_has(df)
     futures = dask.distributed.futures_of(df)
 
+    # here we are putting the futures that constitute a dask.cudf.DataFrame into a map of worker identifyers and that workers corresponding partitions futures
     for future_obj in futures:
         worker_partitions[worker_part[str(future_obj.key)][0]].append(future_obj)
 
@@ -660,7 +661,6 @@ class BlazingTable(object):
         self.datasource = datasource
 
         self.args = args
-        self.df_schema = None
         if self.fileType == DataType.CUDF or self.fileType == DataType.DASK_CUDF:
             logging.info('BlazingTable self.fileType == DataType.CUDF or self.fileType == DataType.DASK_CUDF')
             if(convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame)):
@@ -670,9 +670,7 @@ class BlazingTable(object):
                 self.input = self.input.persist()
                 # logging.info("BlazingTable getNodePartitions")
                 # self.dask_mapping = getNodePartitions(self.input, client)
-                self.futures_mapping = getNodePartitionFutures(self.input, client)
-                self.df_schema = self.input._meta # empty DataFrame with the right schema
-                breakpoint()
+                self.futures_mapping = getNodePartitionFutures(self.input, client)                                
         self.uri_values = uri_values
         self.in_file = in_file
 
@@ -735,11 +733,14 @@ class BlazingTable(object):
         import copy 
         nodeFilesList = []
         for node in nodes:
+            # here we are making a shallow copy of the table and replacing the input dask DataFrame with the futures for the partitions for that worker
             table = copy.copy(self)
-            table.input = self.futures_mapping[node['worker']]
+            if node['worker'] in self.futures_mapping:
+                table.input = self.futures_mapping[node['worker']]
+            else:
+                table.input = [table.input._meta]
             nodeFilesList.append(table)
 
-        breakpoint()
         return nodeFilesList
 
     def getSlices(self, numSlices):
@@ -1738,9 +1739,7 @@ collectParti
                     new_tables[table].dask_mapping = getNodePartitions(new_tables[table].input, self.dask_client)
                 
                 currentTableNodes = new_tables[table].getDaskDataFrameSlices(self.nodes)
-                # for node in self.nodes:
-                #     breakpoint()
-                #     currentTableNodes.append(new_tables[table])
+
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:

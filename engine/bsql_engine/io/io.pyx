@@ -29,6 +29,7 @@ import cudf
 from cudf.utils import cudautils
 from cudf.utils.dtypes import is_categorical_dtype
 from cudf.utils.utils import mask_dtype, mask_bitsize
+from dask.distributed import client
 
 from cudf.core.column.column import build_column
 import rmm
@@ -358,8 +359,8 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         blazingTableViews.resize(0)
         for cython_table in table.input:
           column_views.resize(0)
-          if table.fileType == 5:
-            cython_table = cython_table.result()
+          if type(cython_table) == client.Future:
+            cython_table = cython_table.result()            
           for cython_col in cython_table._data.values():
             column_views.push_back(cython_col.view())
           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
