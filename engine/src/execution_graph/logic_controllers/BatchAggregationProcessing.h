@@ -58,12 +58,11 @@ public:
                     output = ral::operators::compute_aggregations_with_groupby(
                         batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
                 }
-                
-                auto log_output_num_rows = output->num_rows();
-                auto log_output_num_bytes = output->sizeInBytes();
 
                 eventTimer.stop();
-                this->add_to_output_cache(std::move(output));
+
+                auto log_output_num_rows = output->num_rows();
+                auto log_output_num_bytes = output->sizeInBytes();
 
                 events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                                 "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
@@ -77,6 +76,7 @@ public:
                                 "timestamp_begin"_a=eventTimer.start_time(),
                                 "timestamp_end"_a=eventTimer.end_time());
 
+                this->add_to_output_cache(std::move(output));
                 batch_count++;
             } catch(const std::exception& e) {
                 // TODO add retry here
