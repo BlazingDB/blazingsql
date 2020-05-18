@@ -354,7 +354,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       for col_type in table.column_types:
         types.push_back(col_type)
 
-      if table.fileType in (4, 5):
+      if table.fileType in (4, 5): # if cudf DataFrame or dask.cudf DataFrame
         logging.info('runQueryCaller cythonizing table ' + tableName)
         blazingTableViews.resize(0)
         for cython_table in table.input:

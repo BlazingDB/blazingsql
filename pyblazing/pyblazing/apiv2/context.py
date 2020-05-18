@@ -738,6 +738,8 @@ class BlazingTable(object):
             if node['worker'] in self.futures_mapping:
                 table.input = self.futures_mapping[node['worker']]
             else:
+                print("getDaskDataFrameSlices node['worker'] not found in self.futures_mapping ")
+                logging.info("getDaskDataFrameSlices node['worker'] not found in self.futures_mapping ")
                 table.input = [table.input._meta]
             nodeFilesList.append(table)
 
@@ -1738,6 +1740,7 @@ collectParti
                     new_tables[table].input = new_tables[table].input.persist()
                     new_tables[table].dask_mapping = getNodePartitions(new_tables[table].input, self.dask_client)
                 
+                logging.info("calling getDaskDataFrameSlices for " + table)
                 currentTableNodes = new_tables[table].getDaskDataFrameSlices(self.nodes)
 
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
