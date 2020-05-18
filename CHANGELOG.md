@@ -12,3 +12,4 @@
 #602 Implements cache flow control feature
 #625 Implement CAST to TINYINT and SMALLINT
 #635 Handle behavior when the optimized plan contains a LogicalValues
+#661 added hive support to parse_batch
