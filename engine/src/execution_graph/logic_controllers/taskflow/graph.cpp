@@ -262,7 +262,9 @@ namespace cache {
 		if (total_kernels == 4) { // null, TableScanKernel, LimitKernel, OutputKernel
 			if ( get_node(min_index_valid )->expression == "OutputKernel" &&
 				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::LimitKernel &&
-			 	 get_node(min_index_valid + 2)->get_type_id() == kernel_type::TableScanKernel )
+			 	 	(get_node(min_index_valid + 2)->get_type_id() == kernel_type::TableScanKernel || 
+					 get_node(min_index_valid + 2)->get_type_id() == kernel_type::BindableTableScanKernel)
+				)
 			{
 				get_node(min_index_valid + 2)->has_limit_ = true;
 

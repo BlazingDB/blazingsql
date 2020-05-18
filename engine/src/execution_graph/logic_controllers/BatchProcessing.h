@@ -363,13 +363,15 @@ public:
 			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
 		}
 
+		bool has_limit = this->has_limit_;
+		size_t limit_ = this->limit_rows_;
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
 			threads.push_back(BlazingThread([expression = this->expression, this]() {
-
 				this->output_cache()->wait_if_cache_is_saturated();
-
 				std::unique_ptr<ral::frame::BlazingTable> batch;
+
+				cudf::size_type current_rows = 0;
 				while(batch = input.next()) {
 					try {
 						if(is_filtered_bindable_scan(expression)) {
@@ -383,6 +385,12 @@ public:
 						}
 						
 						this->output_cache()->wait_if_cache_is_saturated();
+						
+						// useful when the Algebra Relacional only contains: BindableTableScan and LogicalLimit
+						current_rows += batch->num_rows();
+						if (has_limit && current_rows >= limit_) {
+							break;
+						}
 
 					} catch(const std::exception& e) {
 						// TODO add retry here
