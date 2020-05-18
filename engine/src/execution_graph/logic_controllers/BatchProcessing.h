@@ -367,7 +367,7 @@ public:
 		size_t limit_ = this->limit_rows_;
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
-			threads.push_back(BlazingThread([expression = this->expression, this]() {
+			threads.push_back(BlazingThread([expression = this->expression, &limit_, &has_limit, this]() {
 				this->output_cache()->wait_if_cache_is_saturated();
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 
