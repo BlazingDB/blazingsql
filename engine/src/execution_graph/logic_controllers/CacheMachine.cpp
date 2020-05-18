@@ -3,6 +3,7 @@
 #include <random>
 #include <src/utilities/CommonOperations.h>
 #include <src/utilities/DebuggingUtils.h>
+#include "communication/CommunicationData.h"
 
 namespace ral {
 namespace cache {
@@ -70,11 +71,12 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, const std::size_t i
 	std::shared_ptr<spdlog::logger> kernels_logger;
 	kernels_logger = spdlog::get("kernels_logger");
 
-	kernels_logger->info("{query_id}|{id}|{is_kernel}|{type}",
+	kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 							"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
-							"id"_a=id,
+							"kernel_id"_a=id,
 							"is_kernel"_a=0,
-							"type"_a="cache");
+							"kernel_type"_a="cache");
 }
 
 CacheMachine::~CacheMachine() {}
@@ -330,11 +332,12 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> co
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
 
-		kernels_logger->info("{query_id}|{id}|{is_kernel}|{type}",
+		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 								"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
-								"id"_a=id,
+								"kernel_id"_a=id,
 								"is_kernel"_a=0,
-								"type"_a="concat_cache");
+								"kernel_type"_a="concat_cache");
 }
 
 // This method does not guarantee the relative order of the messages to be preserved

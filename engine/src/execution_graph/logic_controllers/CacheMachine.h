@@ -19,6 +19,7 @@
 #include <limits>
 #include <bmr/BlazingMemoryResource.h>
 #include <spdlog/spdlog.h>
+#include "communication/CommunicationData.h"
 
 namespace ral {
 namespace cache {
@@ -340,11 +341,12 @@ public:
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
 
-		kernels_logger->info("{query_id}|{id}|{is_kernel}|{type}",
+		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 								"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
-								"id"_a=id,
+								"kernel_id"_a=id,
 								"is_kernel"_a=0,
-								"type"_a="host_cache");
+								"kernel_type"_a="host_cache");
 	}
 
 	~HostCacheMachine() {}

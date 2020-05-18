@@ -48,6 +48,7 @@
 #include "blazingdb/concurrency/BlazingThread.h"
 
 #include "taskflow/graph.h"
+#include "communication/CommunicationData.h"
 
 #include "CodeTimer.h"
 
@@ -412,9 +413,27 @@ public:
 			try {
 				auto batch = input.next();
 
+				auto log_input_num_rows = batch->num_rows();
+				auto log_input_num_bytes = batch->sizeInBytes();
+
 				eventTimer.start();
 				auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
 				eventTimer.stop();
+
+				auto log_output_num_rows = columns->num_rows();
+				auto log_output_num_bytes = columns->sizeInBytes();
+
+				events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"kernel_id"_a=this->get_id(),
+								"input_num_rows"_a=log_input_num_rows,
+								"input_num_bytes"_a=log_input_num_bytes,
+								"output_num_rows"_a=log_output_num_rows,
+								"output_num_bytes"_a=log_output_num_bytes,
+								"event_type"_a="compute",
+								"timestamp_begin"_a=eventTimer.start_time(),
+								"timestamp_end"_a=eventTimer.end_time());
 
 				this->add_to_output_cache(std::move(columns));
 				batch_count++;
@@ -428,11 +447,6 @@ public:
 											"duration"_a="");
 			}
 		}
-
-		events_logger->info("{kernel_id}|{timestamp_begin}|{timestamp_end}",
-								"kernel_id"_a=this->get_id(),
-								"timestamp_begin"_a=eventTimer.start_time(),
-								"timestamp_end"_a=eventTimer.end_time());
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),

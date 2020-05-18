@@ -62,7 +62,7 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, boo
 	stdout_sink->set_level(spdlog::level::err);
 	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(fileName);
 	if(simple_log){
-		file_sink->set_pattern(fmt::format("{}|%v", ralId));
+		file_sink->set_pattern(fmt::format("%v"));
 	}else{
 		file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
 	}
@@ -132,17 +132,27 @@ void initialize(int ralId,
 	std::string oldfileName = "RAL." + std::to_string(ralId) + ".log";
 	create_logger(oldfileName, "batch_logger", ralId, false);
 
-	std::string queriesFileName = "queries." + std::to_string(ralId) + ".log";
+	std::string queriesFileName = "bsql_queries." + std::to_string(ralId) + ".log";
 	create_logger(queriesFileName, "queries_logger", ralId);
 
-	std::string kernelsFileName = "kernels." + std::to_string(ralId) + ".log";
+	std::string kernelsFileName = "bsql_kernels." + std::to_string(ralId) + ".log";
 	create_logger(kernelsFileName, "kernels_logger", ralId);
 
-	std::string kernelsEdgesFileName = "kernels_edges." + std::to_string(ralId) + ".log";
+	std::string kernelsEdgesFileName = "bsql_kernels_edges." + std::to_string(ralId) + ".log";
 	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId);
 
-	std::string eventsFileName = "events." + std::to_string(ralId) + ".log";
+	std::string eventsFileName = "bsql_events." + std::to_string(ralId) + ".log";
 	create_logger(eventsFileName, "events_logger", ralId);
+
+	//Logger Headers
+	std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
+	events_logger->info("ral_id|query_id|kernel_id|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
+
+	std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
+	kernels_logger->info("ral_id|query_id|kernel_id|is_kernel|kernel_type");
+
+	std::shared_ptr<spdlog::logger> kernels_edges_logger = spdlog::get("kernels_edges_logger");
+	kernels_edges_logger->info("ral_id|query_id|source|sink");
 }
 
 void finalize() {

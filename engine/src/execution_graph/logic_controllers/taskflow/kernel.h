@@ -4,6 +4,7 @@
 #include "kernel_type.h"
 #include "port.h"
 #include "graph.h"
+#include "communication/CommunicationData.h"
 
 namespace ral {
 namespace cache {
@@ -28,11 +29,12 @@ public:
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
 
-		kernels_logger->info("{query_id}|{kernel_id}|{is_kernel}|{type}",
+		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 								"query_id"_a=(this->context ? std::to_string(this->context->getContextToken()) : "null"),
 								"kernel_id"_a=this->get_id(),
 								"is_kernel"_a=1,
-								"type"_a=get_kernel_type_name(this->get_type_id()));
+								"kernel_type"_a=get_kernel_type_name(this->get_type_id()));
 	}
 	void set_parent(size_t id) { parent_id_ = id; }
 	bool has_parent() const { return parent_id_ != -1; }
