@@ -86,7 +86,7 @@ public:
 	std::set<Edge> get_reverse_neighbours(kernel * from);
 	std::set<Edge> get_reverse_neighbours(int32_t id);
 
-	void check_how_data_looks();
+	void check_for_simple_scan_with_limit_query();
 
 private:
 	const std::int32_t head_id_{-1};

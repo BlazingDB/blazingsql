@@ -252,8 +252,8 @@ namespace cache {
 		}
 	}
 
-	// This function will work when the Relational Algebra only contains: LogicalTableScan and LogicalLimit
-	void graph::check_how_data_looks() {
+	// This function will work when the Relational Algebra only contains: TableScan (or BindableTableScan) and Limit
+	void graph::check_for_simple_scan_with_limit_query() {
 		auto first_iterator = container_.begin(); // points to null
 		first_iterator++;
 		int32_t min_index_valid = first_iterator->first;
