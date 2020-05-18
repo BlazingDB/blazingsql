@@ -57,6 +57,7 @@ enum class operator_type {
 	BLZ_CAST_DATE,
 	BLZ_CAST_TIMESTAMP,
 	BLZ_CAST_VARCHAR,
+	BLZ_CHAR_LENGTH,
 
 	// Binary operators
   BLZ_ADD,            ///< operator +

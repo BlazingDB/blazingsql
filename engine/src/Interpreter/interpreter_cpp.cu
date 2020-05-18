@@ -312,6 +312,7 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CAST_DATE:
 	case operator_type::BLZ_CAST_TIMESTAMP:
 	case operator_type::BLZ_CAST_VARCHAR:
+	case operator_type::BLZ_CHAR_LENGTH:
 		return true;
 	default:
 		return false;
@@ -342,8 +343,12 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_FIRST_NON_MAGIC:
 	case operator_type::BLZ_MAGIC_IF_NOT:
 	case operator_type::BLZ_STR_LIKE:
-	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_CONCAT:
+		return true;
+	case operator_type::BLZ_STR_SUBSTRING:
+		assert(false);
+		// Ternary operator. Should not reach here
+		// Should be evaluated in place (inside function_evaluator_transformer) and removed from the tree
 		return true;
 	default:
 		return false;
@@ -400,6 +405,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
 		return cudf::type_id::BOOL8;
+	case operator_type::BLZ_CHAR_LENGTH:
+		return cudf::type_id::INT32;
 	default:
 	 	assert(false);
 		return cudf::type_id::EMPTY;
@@ -527,7 +534,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 				} else if(is_literal(right_operand)) {
 					cudf::size_type left_index = get_index(left_operand);
 					auto scalar_ptr = get_scalar_from_string(right_operand);
-					
+
 					left_inputs.push_back(left_index);
 					right_inputs.push_back(scalar_ptr ? SCALAR_INDEX : SCALAR_NULL_INDEX);
 					left_scalars.emplace_back(nullptr);
@@ -594,7 +601,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	if (final_output_positions.empty())	{
 		return;
 	}
-	
+
 	assert(!left_inputs.empty());
 	assert(!right_inputs.empty());
 	assert(!outputs.empty());
@@ -615,8 +622,8 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 
 	size_t temp_valids_in_size = min_grid_size * block_size * table.num_columns() * sizeof(cudf::bitmask_type);
 	size_t temp_valids_out_size = min_grid_size * block_size * final_output_positions.size() * sizeof(cudf::bitmask_type);
-	rmm::device_buffer temp_device_valids_in_buffer(temp_valids_in_size, stream); 
-	rmm::device_buffer temp_device_valids_out_buffer(temp_valids_out_size, stream); 
+	rmm::device_buffer temp_device_valids_in_buffer(temp_valids_in_size, stream);
+	rmm::device_buffer temp_device_valids_out_buffer(temp_valids_out_size, stream);
 
 	// device table views
 	auto device_table_view = cudf::table_device_view::create(table, stream);
