@@ -5,6 +5,7 @@
 #include "port.h"
 #include "graph.h"
 #include "communication/CommunicationData.h"
+#include "CodeTimer.h"
 
 namespace ral {
 namespace cache {
@@ -63,24 +64,84 @@ public:
 	}
 
 	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "") {
+		CodeTimer cacheEventTimer(false);
+
+		auto num_rows = table->num_rows();
+		auto num_bytes = table->sizeInBytes();
+
+		cacheEventTimer.start();
+
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
 		this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id);
+
+		cacheEventTimer.stop();
+
+		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->get_type_id(),
+						"num_rows"_a=num_rows,
+						"num_bytes"_a=num_bytes,
+						"event_type"_a="addCache",
+						"timestamp_begin"_a=cacheEventTimer.start_time(),
+						"timestamp_end"_a=cacheEventTimer.end_time());
 	}
 
 	void add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id = "") {
+		CodeTimer cacheEventTimer(false);
+
+		auto num_rows = cache_data->num_rows();
+		auto num_bytes = cache_data->sizeInBytes();
+
+		cacheEventTimer.start();
+
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
 		this->output_.get_cache(cache_id)->addCacheData(std::move(cache_data), message_id);
+
+		cacheEventTimer.stop();
+
+		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->get_type_id(),
+						"num_rows"_a=num_rows,
+						"num_bytes"_a=num_bytes,
+						"event_type"_a="addCache",
+						"timestamp_begin"_a=cacheEventTimer.start_time(),
+						"timestamp_end"_a=cacheEventTimer.end_time());
 	}
 
 	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id = "") {
+		CodeTimer cacheEventTimer(false);
+
+		auto num_rows = host_table->num_rows();
+		auto num_bytes = host_table->sizeInBytes();
+
+		cacheEventTimer.start();
+
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
 		this->output_.get_cache(cache_id)->addHostFrameToCache(std::move(host_table), message_id);
+
+		cacheEventTimer.stop();
+
+		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->get_type_id(),
+						"num_rows"_a=num_rows,
+						"num_bytes"_a=num_bytes,
+						"event_type"_a="addCache",
+						"timestamp_begin"_a=cacheEventTimer.start_time(),
+						"timestamp_end"_a=cacheEventTimer.end_time());
 	}
 
 	Context * get_context() const {
