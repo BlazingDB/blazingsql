@@ -162,7 +162,7 @@ def getNodePartitions(df, client):
             worker_partitions[worker].append(partition)
         else:
             print("ERROR: In getNodePartitions, woker has no corresponding partition")
-    
+
     return dict((workers[worker]['name'], partitions) for worker, partitions in worker_partitions.items())
 
 
@@ -705,7 +705,7 @@ class BlazingTable(object):
     def get_partitions(self, worker):
         if worker not in self.dask_mapping:
             assert False, "Worker [{}] is not in the table dask_mapping".format(worker)
-            
+
         return self.dask_mapping[worker]
 
 
@@ -718,7 +718,7 @@ class BlazingContext(object):
     Docs: https://docs.blazingdb.com/docs/blazingcontext
     """
 
-    def __init__(self, dask_client=None, network_interface=None, allocator="managed",
+    def __init__(self, dask_client=None, network_interface='eth0', allocator="managed",
                  pool=False, initial_pool_size=None, enable_logging=False, config_options={}):
         """
         Create a BlazingSQL API instance.
@@ -754,10 +754,10 @@ class BlazingContext(object):
                                            default: 1
                                     MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
-                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to 
+                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to
                                             stop execution until the output cache contains less.
                                             default: max int (makes it not applicable)
-                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to 
+                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to
                                             stop execution until the output cache contains less.
                                             default: max size_t (makes it not applicable)
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
@@ -796,56 +796,20 @@ class BlazingContext(object):
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
-        self.nodes = []
-        self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = {}
         for option in config_options:
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
-        
-        if(dask_client is not None):
-            if network_interface is None:
-                network_interface = 'eth0'
 
-            worker_list = []
-            dask_futures = []
-            masterIndex = 0
-            i = 0
-            for worker in list(self.dask_client.scheduler_info()["workers"]):
-                dask_futures.append(
-                    self.dask_client.submit(
-                        initializeBlazing,
-                        ralId=i,
-                        networkInterface=network_interface,
-                        singleNode=False,
-                        allocator=allocator,
-                        pool=pool,
-                        initial_pool_size=initial_pool_size,
-                        enable_logging=enable_logging,
-                        config_options=self.config_options,
-                        workers=[worker]))
-                worker_list.append(worker)
-                i = i + 1
-            i = 0
-            for connection in dask_futures:
-                ralPort, ralIp, cwd = connection.result()
-                node = {}
-                node['worker'] = worker_list[i]
-                node['ip'] = ralIp
-                node['communication_port'] = ralPort
-                self.nodes.append(node)
-                self.node_cwds.append(cwd)
-                i = i + 1
-        else:
-            ralPort, ralIp, cwd = initializeBlazing(
-                ralId=0, networkInterface='lo', singleNode=True,
-                allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
-                enable_logging=enable_logging, config_options=self.config_options)
-            node = {}
-            node['ip'] = ralIp
-            node['communication_port'] = ralPort
-            self.nodes.append(node)
-            self.node_cwds.append(cwd)
+        self.network_interface = network_interface
+        self.allocator = allocator
+        self.pool = pool
+        self.initial_pool_size = initial_pool_size
+        self.enable_logging = enable_logging
+
+        nodes, node_cwds = self.initialize_workers()
+        self.nodes = nodes
+        self.node_cwds = node_cwds
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         #internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
@@ -860,6 +824,50 @@ class BlazingContext(object):
 
         # waitForPingSuccess(self.client)
         print("BlazingContext ready")
+
+    def initialize_workers(self):
+        nodes = []
+        node_cwds = []
+        if(self.dask_client is not None):
+            worker_list = []
+            dask_futures = []
+            for i, worker in enumerate(self.dask_client.scheduler_info()["workers"]):
+                dask_futures.append(
+                    self.dask_client.submit(
+                        initializeBlazing,
+                        ralId=i,
+                        networkInterface=self.network_interface,
+                        singleNode=False,
+                        allocator=self.allocator,
+                        pool=self.pool,
+                        initial_pool_size=self.initial_pool_size,
+                        enable_logging=self.enable_logging,
+                        config_options=self.config_options,
+                        workers=[worker]))
+                worker_list.append(worker)
+
+            for i, connection in enumerate(dask_futures):
+                ralPort, ralIp, cwd = connection.result()
+                node = {}
+                node['worker'] = worker_list[i]
+                node['ip'] = ralIp
+                node['communication_port'] = ralPort
+
+                nodes.append(node)
+                node_cwds.append(cwd)
+        else:
+            ralPort, ralIp, cwd = initializeBlazing(
+                ralId=0, networkInterface='lo', singleNode=True,
+                allocator=self.allocator, pool=self.pool, initial_pool_size=self.initial_pool_size,
+                enable_logging=self.enable_logging, config_options=self.config_options)
+            node = {}
+            node['ip'] = ralIp
+            node['communication_port'] = ralPort
+
+            nodes.append(node)
+            node_cwds.append(cwd)
+
+        return (nodes, node_cwds)
 
     def ready(self, wait=False):
         if wait:
@@ -1036,7 +1044,7 @@ class BlazingContext(object):
             print("Error found")
             print(algebra)
             algebra=""
-            
+
         return algebra
 
     def add_remove_table(self, tableName, addTable, table=None):
@@ -1493,7 +1501,7 @@ class BlazingContext(object):
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
-    
+
 
     def sql(self, query, table_list=[], algebra=None, return_futures=False, single_gpu=False, config_options={}):
         """
@@ -1504,7 +1512,7 @@ class BlazingContext(object):
         Parameters
         ----------
         query :                     string of SQL query.
-        algebra (optional) :        string of SQL algebra plan. Use this to run on a relational algebra, instead of the query string 
+        algebra (optional) :        string of SQL algebra plan. Use this to run on a relational algebra, instead of the query string
         return_futures (optional) : defaulted to false. Set to true if you want the `sql` function to return futures instead of data
         single_gpu (optional) :     defaulted to false. Set to true if you want to run the query on a single gpu, even is the BlazingContext
                                     is setup with a dask cluster. This is useful for manually running different queries on different gpus
@@ -1574,8 +1582,8 @@ class BlazingContext(object):
             return
 
         if len(config_options) == 0:
-            query_config_options = self.config_options 
-        else:        
+            query_config_options = self.config_options
+        else:
             query_config_options = {}
             for option in config_options:
                 query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
@@ -1635,6 +1643,7 @@ class BlazingContext(object):
 
         algebra = get_plan(algebra)
 
+        start_query_time = time.time()
         if self.dask_client is None:
             result = cio.runQueryCaller(
                         masterIndex,
@@ -1677,10 +1686,23 @@ class BlazingContext(object):
                             query_config_options,
                             workers=[worker]))
                     i = i + 1
+
                 if(return_futures):
                     result  = dask_futures
                 else:
+                    # Check for crashed workers
+                    while any([not f.done() for f in dask_futures]):
+
+                        workers_info = self.dask_client.scheduler_info()["workers"]
+                        last_seen_times = [workers_info[worker]['last_seen'] for worker in workers_info]
+                        if any(time > start_query_time for time in last_seen_times):
+                            raise RuntimeError("A worker crashed during query execution")
+                            break
+
+                        time.sleep(0.5)
+
                     result = dask.dataframe.from_delayed(dask_futures)
+
         return result
 
     # END SQL interface
@@ -1757,3 +1779,13 @@ class BlazingContext(object):
             self.logs_initialized = True
 
         return self.sql(query)
+
+    def reset(self):
+        if self.dask_client is None:
+            return
+
+        self.dask_client.restart()
+
+        nodes, node_cwds = self.initialize_workers()
+        self.nodes = nodes
+        self.node_cwds = node_cwds
