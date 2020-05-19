@@ -148,6 +148,9 @@ void initialize(int ralId,
 	create_logger(cacheEventsFileName, "cache_events_logger", ralId);
 
 	//Logger Headers
+	std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
+	queries_logger->info("ral_id|query_id|plan");
+
 	std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
 	events_logger->info("ral_id|query_id|kernel_id|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
 

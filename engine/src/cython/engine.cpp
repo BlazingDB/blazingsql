@@ -152,7 +152,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
 		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
-		logger->info("{query_id}|{plan}",
+		logger->info("{ral_id}|{query_id}|{plan}",
+									"ral_id"_a=queryContext.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 									"query_id"_a=queryContext.getContextToken(),
 									"plan"_a=query);
 
