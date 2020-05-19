@@ -149,7 +149,7 @@ void initialize(int ralId,
 
 	//Logger Headers
 	std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
-	queries_logger->info("ral_id|query_id|plan");
+	queries_logger->info("ral_id|query_id|start_time|plan");
 
 	std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
 	events_logger->info("ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end");

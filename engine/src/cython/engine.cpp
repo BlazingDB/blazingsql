@@ -16,6 +16,7 @@
 #include <map>
 #include "communication/CommunicationData.h"
 #include <spdlog/spdlog.h>
+#include "CodeTimer.h"
 
 using namespace fmt::literals;
 
@@ -152,9 +153,11 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
 		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
-		logger->info("{ral_id}|{query_id}|{plan}",
+		CodeTimer eventTimer(true);
+		logger->info("{ral_id}|{query_id}|{start_time}|{plan}",
 									"ral_id"_a=queryContext.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 									"query_id"_a=queryContext.getContextToken(),
+									"start_time"_a=eventTimer.start_time(),
 									"plan"_a=query);
 
 		// Execute query
