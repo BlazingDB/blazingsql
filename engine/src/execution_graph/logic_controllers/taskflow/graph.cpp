@@ -215,17 +215,19 @@ namespace cache {
 		{
 			std::size_t cache_id = target->get_id()*10000 + source->get_id()*100000000;
 
-			kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+			kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}",
 								"ral_id"_a=0,
 								"query_id"_a=0,
 								"source"_a=source->get_id(),
-								"sink"_a=cache_id);
+								"sink"_a=cache_id,
+								"port_name"_a=source_port);
 
-			kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+			kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}",
 								"ral_id"_a=0,
 								"query_id"_a=0,
 								"source"_a=cache_id,
-								"sink"_a=target->get_id());
+								"sink"_a=target->get_id(),
+								"port_name"_a=target_port);
 
 			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config, cache_id);
 			if(config.type == CacheType::FOR_EACH) {
