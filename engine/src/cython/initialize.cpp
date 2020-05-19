@@ -141,8 +141,11 @@ void initialize(int ralId,
 	std::string kernelsEdgesFileName = "bsql_kernels_edges." + std::to_string(ralId) + ".log";
 	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId);
 
-	std::string eventsFileName = "bsql_events." + std::to_string(ralId) + ".log";
-	create_logger(eventsFileName, "events_logger", ralId);
+	std::string kernelEventsFileName = "bsql_kernel_events." + std::to_string(ralId) + ".log";
+	create_logger(kernelEventsFileName, "events_logger", ralId);
+
+	std::string cacheEventsFileName = "bsql_cache_events." + std::to_string(ralId) + ".log";
+	create_logger(cacheEventsFileName, "cache_events_logger", ralId);
 
 	//Logger Headers
 	std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
@@ -153,6 +156,9 @@ void initialize(int ralId,
 
 	std::shared_ptr<spdlog::logger> kernels_edges_logger = spdlog::get("kernels_edges_logger");
 	kernels_edges_logger->info("ral_id|query_id|source|sink");
+
+	std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
+	cache_events_logger->info("ral_id|query_id|source|sink|num_rows|num_bytes|timestamp_begin|timestamp_end");
 }
 
 void finalize() {
