@@ -216,15 +216,15 @@ namespace cache {
 			std::size_t cache_id = target->get_id()*10000 + source->get_id()*100000000;
 
 			kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}",
-								"ral_id"_a=0, //ToDo Rommel
-								"query_id"_a=0, //ToDo Rommel
+								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=config.context->getContextToken(),
 								"source"_a=source->get_id(),
 								"sink"_a=cache_id,
 								"port_name"_a=source_port);
 
 			kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}",
-								"ral_id"_a=0, //ToDo Rommel
-								"query_id"_a=0, //ToDo Rommel
+								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=config.context->getContextToken(),
 								"source"_a=cache_id,
 								"sink"_a=target->get_id(),
 								"port_name"_a=target_port);
