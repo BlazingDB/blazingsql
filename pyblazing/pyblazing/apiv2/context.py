@@ -1782,7 +1782,7 @@ collectParti
                 'bsql_queries': (['ral_id', 'query_id', 'plan'], ['int32', 'int32', 'str']),
                 'bsql_kernels': (['ral_id', 'query_id', 'kernel_id', 'is_kernel', 'kernel_type'], ['int32', 'int32', 'int32', 'int16', 'str']),
                 'bsql_kernels_edges': (['ral_id', 'query_id', 'source', 'sink', 'port_name'], ['int32', 'int32', 'int64', 'int64', 'str']),
-                'bsql_kernel_events': (['ral_id', 'query_id', 'kernel_id', 'num_rows', 'num_bytes', 'event_type', 'timestamp_begin', 'timestamp_end'], ['int32', 'int32', 'int32', 'int32', 'int64', 'str', 'int64', 'int64']),
+                'bsql_kernel_events': (['ral_id', 'query_id', 'kernel_id', 'input_num_rows', 'input_num_bytes', 'output_num_rows', 'output_num_bytes', 'event_type', 'timestamp_begin', 'timestamp_end'], ['int32', 'int32', 'int32', 'int64', 'int64', 'int64', 'int64', 'str', 'int64', 'int64']),
                 'bsql_cache_events': (['ral_id', 'query_id', 'source', 'sink', 'num_rows', 'num_bytes', 'timestamp_begin', 'timestamp_end'], ['int32', 'int32', 'int64', 'int64', 'int32', 'int64', 'int64', 'int64']),
             }
 
