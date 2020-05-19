@@ -545,7 +545,26 @@ public:
 								"timestamp_begin"_a=eventTimer.start_time(),
 								"timestamp_end"_a=eventTimer.end_time());
 
+				CodeTimer cacheEventTimer(false);
+
+				auto num_rows = columns->num_rows();
+				auto num_bytes = columns->sizeInBytes();
+
+				cacheEventTimer.start();
 				this->add_to_output_cache(std::move(columns));
+				cacheEventTimer.stop();
+
+				cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"source"_a=this->get_id(),
+								"sink"_a=this->get_type_id(),
+								"num_rows"_a=num_rows,
+								"num_bytes"_a=num_bytes,
+								"event_type"_a="addCache",
+								"timestamp_begin"_a=cacheEventTimer.start_time(),
+								"timestamp_end"_a=cacheEventTimer.end_time());
+
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
@@ -613,7 +632,26 @@ public:
 								"timestamp_begin"_a=eventTimer.start_time(),
 								"timestamp_end"_a=eventTimer.end_time());
 
+				CodeTimer cacheEventTimer(false);
+
+				auto num_rows = columns->num_rows();
+				auto num_bytes = columns->sizeInBytes();
+
+				cacheEventTimer.start();
 				this->add_to_output_cache(std::move(columns));
+				cacheEventTimer.stop();
+
+				cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"source"_a=this->get_id(),
+								"sink"_a=this->get_type_id(),
+								"num_rows"_a=num_rows,
+								"num_bytes"_a=num_bytes,
+								"event_type"_a="addCache",
+								"timestamp_begin"_a=cacheEventTimer.start_time(),
+								"timestamp_end"_a=cacheEventTimer.end_time());
+
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here

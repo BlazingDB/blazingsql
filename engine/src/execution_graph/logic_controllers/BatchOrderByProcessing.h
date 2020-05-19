@@ -67,7 +67,26 @@ public:
 								"timestamp_begin"_a=eventTimer.start_time(),
 								"timestamp_end"_a=eventTimer.end_time());
 
+				CodeTimer cacheEventTimer(false);
+
+				auto num_rows = sortedTable->num_rows();
+				auto num_bytes = sortedTable->sizeInBytes();
+
+				cacheEventTimer.start();
 				this->add_to_output_cache(std::move(sortedTable), "output_a");
+				cacheEventTimer.stop();
+
+				cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"source"_a=this->get_id(),
+								"sink"_a=this->get_type_id(),
+								"num_rows"_a=num_rows,
+								"num_bytes"_a=num_bytes,
+								"event_type"_a="addCache",
+								"timestamp_begin"_a=cacheEventTimer.start_time(),
+								"timestamp_end"_a=cacheEventTimer.end_time());
+
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
@@ -86,7 +105,25 @@ public:
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN START"<< std::endl;
 // ral::utilities::print_blazing_table_view(partitionPlan->toBlazingTableView());
 // std::cout<<">>>>>>>>>>>>>>> PARTITION PLAN END"<< std::endl;
+		CodeTimer cacheEventTimer(false);
+
+		auto num_rows = partitionPlan->num_rows();
+		auto num_bytes = partitionPlan->sizeInBytes();
+
+		cacheEventTimer.start();
 		this->add_to_output_cache(std::move(partitionPlan), "output_b");
+		cacheEventTimer.stop();
+
+		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->get_type_id(),
+						"num_rows"_a=num_rows,
+						"num_bytes"_a=num_bytes,
+						"event_type"_a="addCache",
+						"timestamp_begin"_a=cacheEventTimer.start_time(),
+						"timestamp_end"_a=cacheEventTimer.end_time());
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -247,7 +284,26 @@ public:
 								"timestamp_begin"_a=eventTimer.start_time(),
 								"timestamp_end"_a=eventTimer.end_time());
 
+				CodeTimer cacheEventTimer(false);
+
+				auto num_rows = sortedTable->num_rows();
+				auto num_bytes = sortedTable->sizeInBytes();
+
+				cacheEventTimer.start();
 				this->add_to_output_cache(std::move(sortedTable), "output_a");
+				cacheEventTimer.stop();
+
+				cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"source"_a=this->get_id(),
+								"sink"_a=this->get_type_id(),
+								"num_rows"_a=num_rows,
+								"num_bytes"_a=num_bytes,
+								"event_type"_a="addCache",
+								"timestamp_begin"_a=cacheEventTimer.start_time(),
+								"timestamp_end"_a=cacheEventTimer.end_time());
+
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
