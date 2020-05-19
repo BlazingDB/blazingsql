@@ -323,6 +323,7 @@ protected:
 	bool something_added;
 	std::shared_ptr<Context> ctx;
 	std::shared_ptr<spdlog::logger> logger;
+	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
 };
 
@@ -345,7 +346,7 @@ public:
 								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 								"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
 								"kernel_id"_a=id,
-								"is_kernel"_a=0,
+								"is_kernel"_a=0, //false
 								"kernel_type"_a="host_cache");
 	}
 

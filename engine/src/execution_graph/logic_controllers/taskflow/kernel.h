@@ -35,7 +35,7 @@ public:
 								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 								"query_id"_a=(this->context ? std::to_string(this->context->getContextToken()) : "null"),
 								"kernel_id"_a=this->get_id(),
-								"is_kernel"_a=1,
+								"is_kernel"_a=1, //true
 								"kernel_type"_a=get_kernel_type_name(this->get_type_id()));
 	}
 	void set_parent(size_t id) { parent_id_ = id; }
