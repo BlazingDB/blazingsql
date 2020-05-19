@@ -161,7 +161,7 @@ void initialize(int ralId,
 	kernels_edges_logger->info("ral_id|query_id|source|sink|port_name");
 
 	std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
-	cache_events_logger->info("ral_id|query_id|source|sink|num_rows|num_bytes|timestamp_begin|timestamp_end");
+	cache_events_logger->info("ral_id|query_id|source|sink|port_name|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
 }
 
 void finalize() {
