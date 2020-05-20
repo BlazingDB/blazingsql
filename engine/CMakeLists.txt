@@ -22,8 +22,11 @@ if ("$ENV{CONDA_BUILD}" STREQUAL "1")
     set(AWS_SDK_CPP_INSTALL_DIR $ENV{BUILD_PREFIX})
     set(GOOGLE_CLOUD_CPP_INSTALL_DIR $ENV{BUILD_PREFIX})
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} $ENV{BUILD_PREFIX}/lib/cmake)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} $ENV{BUILD_PREFIX}/lib64/cmake)
     set(ENV{PKG_CONFIG_PATH} $ENV{BUILD_PREFIX}/lib/pkgconfig/) # used by find libcurl and openssl
     set(ENV{LD_LIBRARY_PATH} $ENV{BUILD_PREFIX}/lib/) # to link the tests correctly against libcurl.so
+    link_directories($ENV{BUILD_PREFIX}/lib/)
+    link_directories($ENV{BUILD_PREFIX}/lib64/)
 
 elseif (DEFINED ENV{CONDA_PREFIX})
     set(CMAKE_SYSTEM_PREFIX_PATH "$ENV{CONDA_PREFIX};${CMAKE_SYSTEM_PREFIX_PATH}")
@@ -33,8 +36,11 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     set(AWS_SDK_CPP_INSTALL_DIR $ENV{CONDA_PREFIX})
     set(GOOGLE_CLOUD_CPP_INSTALL_DIR $ENV{CONDA_PREFIX})
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} $ENV{CONDA_PREFIX}/lib/cmake)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} $ENV{CONDA_PREFIX}/lib64/cmake)
     set(ENV{PKG_CONFIG_PATH} $ENV{CONDA_PREFIX}/lib/pkgconfig/) # used by find libcurl and openssl
     set(ENV{LD_LIBRARY_PATH} $ENV{CONDA_PREFIX}/lib/) # to link the tests correctly against libcurl.so
+    link_directories($ENV{CONDA_PREFIX}/lib/)
+    link_directories($ENV{CONDA_PREFIX}/lib64/)
 
 endif ()
 message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
@@ -46,6 +52,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQURIED ON)
+
+message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 # Include CMake modules
 include(FeatureSummary)
@@ -62,7 +70,8 @@ include(ConfigureGoogleCloudCPP)
 
 find_package(Threads)
 find_package(PythonLibs)
-find_package(spdlog REQUIRED)
+# TODO jp mario c.gonzales we must use find here!
+#find_package(spdlog REQUIRED)
 
 # BEGIN MAIN #
 
@@ -191,7 +200,9 @@ target_link_libraries(blazingsql-engine
     libboost_system.a
     libboost_regex.a
 
-    spdlog::spdlog
+    # TODO jp c.gonzales make use of standard cmake find_package here (see above)
+    #spdlog::spdlog
+    libspdlog.a
 
     # Library needed for blazing communication repository (debug)
     gcov
