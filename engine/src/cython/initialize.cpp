@@ -11,6 +11,7 @@
 #include <cuda_runtime.h>
 #include <memory>
 #include <chrono>
+#include <fstream>
 
 #include <blazingdb/transport/io/reader_writer.h>
 
@@ -148,20 +149,30 @@ void initialize(int ralId,
 	create_logger(cacheEventsFileName, "cache_events_logger", ralId);
 
 	//Logger Headers
-	std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
-	queries_logger->info("ral_id|query_id|start_time|plan");
+	if(!std::ifstream(queriesFileName).good()) {
+		std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
+		queries_logger->info("ral_id|query_id|start_time|plan");
+	}
 
-	std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
-	events_logger->info("ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end");
+	if(!std::ifstream(kernelsFileName).good()) {
+		std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
+		kernels_logger->info("ral_id|query_id|kernel_id|is_kernel|kernel_type");
+	}
 
-	std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
-	kernels_logger->info("ral_id|query_id|kernel_id|is_kernel|kernel_type");
+	if(!std::ifstream(kernelsEdgesFileName).good()) {
+		std::shared_ptr<spdlog::logger> kernels_edges_logger = spdlog::get("kernels_edges_logger");
+		kernels_edges_logger->info("ral_id|query_id|source|sink|port_name");
+	}
 
-	std::shared_ptr<spdlog::logger> kernels_edges_logger = spdlog::get("kernels_edges_logger");
-	kernels_edges_logger->info("ral_id|query_id|source|sink|port_name");
+	if(!std::ifstream(kernelEventsFileName).good()) {
+		std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
+		events_logger->info("ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end");
+	}
 
-	std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
-	cache_events_logger->info("ral_id|query_id|source|sink|port_name|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
+	if(!std::ifstream(cacheEventsFileName).good()) {
+		std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
+		cache_events_logger->info("ral_id|query_id|source|sink|port_name|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
+	}
 }
 
 void finalize() {
