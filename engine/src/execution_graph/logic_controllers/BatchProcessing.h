@@ -72,8 +72,33 @@ public:
 		this->cache = cache;
 	}
 	RecordBatch next() {
-		return cache->pullFromCache();
+		std::shared_ptr<spdlog::logger> cache_events_logger;
+		cache_events_logger = spdlog::get("cache_events_logger");
+
+		CodeTimer cacheEventTimer(false);
+
+		cacheEventTimer.start();
+		auto output = cache->pullFromCache();
+		cacheEventTimer.stop();
+
+		auto num_rows = output->num_rows();
+		auto num_bytes = output->sizeInBytes();
+
+		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+						"ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=cache->get_context()->getContextToken(),
+						"source"_a=cache->get_id(),
+						"sink"_a=kernel->get_id(),
+						"port_name"_a=kernel->get_id(), //todo unique id
+						"num_rows"_a=num_rows,
+						"num_bytes"_a=num_bytes,
+						"event_type"_a="removeCache",
+						"timestamp_begin"_a=cacheEventTimer.start_time(),
+						"timestamp_end"_a=cacheEventTimer.end_time());
+
+		return output;
 	}
+
 	bool wait_for_next() {
 		if (kernel) {
 			std::string message_id = std::to_string((int)kernel->get_type_id()) + "_" + std::to_string(kernel->get_id());
@@ -627,7 +652,27 @@ public:
 	OutputKernel(std::shared_ptr<Context> context) : kernel("OutputKernel", context, kernel_type::OutputKernel) { }
 
 	virtual kstatus run() {
+		CodeTimer cacheEventTimer(false);
+
+		cacheEventTimer.start();
 		output = std::move(this->input_.get_cache()->pullFromCache());
+		cacheEventTimer.stop();
+
+		auto num_rows = output ? output->num_rows() : 0;
+		auto num_bytes = output ? output->sizeInBytes() : 0;
+
+		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->input_.get_cache()->get_id(),
+						"sink"_a=this->get_id(),
+						"port_name"_a=this->get_id(),
+						"num_rows"_a=num_rows,
+						"num_bytes"_a=num_bytes,
+						"event_type"_a="removeCache",
+						"timestamp_begin"_a=cacheEventTimer.start_time(),
+						"timestamp_end"_a=cacheEventTimer.end_time());
+
 		return kstatus::stop;
 	}
 

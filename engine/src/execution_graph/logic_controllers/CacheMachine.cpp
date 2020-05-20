@@ -83,6 +83,9 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, const std::size_t i
 
 CacheMachine::~CacheMachine() {}
 
+Context * CacheMachine::get_context() const {
+	return ctx.get();
+}
 
 std::int32_t CacheMachine::get_id() const { return (cache_id); }
 
@@ -293,9 +296,6 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
-	CodeTimer cacheEventTimer(false);
-	cacheEventTimer.start();
-
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
@@ -310,25 +310,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 								"kernel_id"_a=message_data->get_message_id(),
 								"rows"_a=message_data->get_data().num_rows());
 
-	auto output = message_data->get_data().decache();
-	cacheEventTimer.stop();
-
-	auto num_rows = output->num_rows();
-	auto num_bytes = output->sizeInBytes();
-
-	cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-					"ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-					"query_id"_a=ctx->getContextToken(),
-					"source"_a=this->get_id(),
-					"sink"_a=static_cast<int>(message_data->get_data().get_type()),
-					"port_name"_a=0, //cache_id,
-					"num_rows"_a=num_rows,
-					"num_bytes"_a=num_bytes,
-					"event_type"_a="removeCache",
-					"timestamp_begin"_a=cacheEventTimer.start_time(),
-					"timestamp_end"_a=cacheEventTimer.end_time());
-
-	return output;
+	return message_data->get_data().decache();
 }
 
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
@@ -359,7 +341,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 					"ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 					"query_id"_a=ctx->getContextToken(),
 					"source"_a=this->get_id(),
-					"sink"_a= 0, //ToDo Rommel
+					"sink"_a=0, //ToDo Rommel
 					"port_name"_a=0, //cache_id,
 					"num_rows"_a=num_rows,
 					"num_bytes"_a=num_bytes,
@@ -373,22 +355,19 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size, const std::size_t id)
 	: CacheMachine(context, id), bytes_max_size_(bytes_max_size)
 {
-		std::shared_ptr<spdlog::logger> kernels_logger;
-		kernels_logger = spdlog::get("kernels_logger");
+	/*std::shared_ptr<spdlog::logger> kernels_logger;
+	kernels_logger = spdlog::get("kernels_logger");
 
-		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
-								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
-								"kernel_id"_a=id,
-								"is_kernel"_a=0, //false
-								"kernel_type"_a="concat_cache");
+	kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
+							"kernel_id"_a=id,
+							"is_kernel"_a=0, //false
+							"kernel_type"_a="concat_cache");*/
 }
 
 // This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
-	CodeTimer cacheEventTimer(false);
-	cacheEventTimer.start();
-
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> holder_samples;
 	std::vector<ral::frame::BlazingTableView> samples;
 	std::unique_ptr<ral::frame::BlazingTable> output;
@@ -416,23 +395,6 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	}	else {
 		output = ral::utilities::concatTables(samples);
 	}
-
-	cacheEventTimer.stop();
-
-	auto num_rows = output ? output->num_rows() : 0;
-	auto num_bytes = output ? output->sizeInBytes() : 0;
-
-	cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-					"ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-					"query_id"_a=ctx->getContextToken(),
-					"source"_a=this->get_id(),
-					"sink"_a=0, //ToDo Rommel
-					"port_name"_a=0, //cache_id,
-					"num_rows"_a=num_rows,
-					"num_bytes"_a=num_bytes,
-					"event_type"_a="removeCache",
-					"timestamp_begin"_a=cacheEventTimer.start_time(),
-					"timestamp_end"_a=cacheEventTimer.end_time());
 
 	return output;
 }

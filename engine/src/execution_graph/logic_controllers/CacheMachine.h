@@ -299,6 +299,8 @@ public:
 
 	std::int32_t get_id() const;
 
+	Context * get_context() const;
+
 	bool wait_for_next() {
 		return this->waitingCache->wait_for_next();
 	}
