@@ -33,27 +33,27 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 	// Data type normalization means that only some columns from a table would get normalized,
 	// so we would need to manage the lifecycle of only a new columns that get allocated
 
-	size_t empty_count = 0;	
-	for(size_t i = 0; i < table_views_to_concat.size(); i++) {	
-		ral::frame::BlazingTableView tview(table_views_to_concat[i], names);	
+	size_t empty_count = 0;
+	for(size_t i = 0; i < table_views_to_concat.size(); i++) {
+		ral::frame::BlazingTableView tview(table_views_to_concat[i], names);
 
- 		if (tview.num_rows() == 0) {	
-			++empty_count;	
-		}	
-	}	
+ 		if (tview.num_rows() == 0) {
+			++empty_count;
+		}
+	}
 
- 	// All tables are empty so we just need to return the 1st one	
-	if (empty_count == table_views_to_concat.size()) {	
-		return std::make_unique<ral::frame::BlazingTable>(table_views_to_concat[0], names);	
-	}	
+ 	// All tables are empty so we just need to return the 1st one
+	if (empty_count == table_views_to_concat.size()) {
+		return std::make_unique<ral::frame::BlazingTable>(table_views_to_concat[0], names);
+	}
 
 	std::unique_ptr<CudfTable> concatenated_tables = cudf::concatenate(table_views_to_concat);
 	return std::make_unique<BlazingTable>(std::move(concatenated_tables), names);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names, 
+std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names,
 	const std::vector<cudf::type_id> &dtypes, std::vector<size_t> column_indices) {
-	
+
 	if (column_indices.size() == 0){
 		column_indices.resize(column_names.size());
 		std::iota(column_indices.begin(), column_indices.end(), 0);
@@ -66,7 +66,7 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<s
 	}
 	auto table = std::make_unique<cudf::experimental::table>(std::move(columns));
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), column_names);
-} 
+}
 
 std::unique_ptr<cudf::experimental::table> create_empty_table(const std::vector<cudf::type_id> &dtypes) {
 	std::vector<std::unique_ptr<cudf::column>> columns(dtypes.size());
@@ -74,12 +74,12 @@ std::unique_ptr<cudf::experimental::table> create_empty_table(const std::vector<
 		columns[idx] =  make_empty_column(cudf::data_type(dtypes[idx]));
 	}
 	return std::make_unique<cudf::experimental::table>(std::move(columns));
-} 
+}
 
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableView & table) {
 
 	std::unique_ptr<CudfTable> empty = cudf::experimental::empty_like(table.view());
-	return std::make_unique<ral::frame::BlazingTable>(std::move(empty), table.names());	
+	return std::make_unique<ral::frame::BlazingTable>(std::move(empty), table.names());
 }
 
 std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns) {
@@ -105,24 +105,6 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std
 		}
 	}
 	return columns_out;
-}
-
-std::unique_ptr<cudf::column> make_string_column_from_scalar(const std::string& str, cudf::size_type rows) {
-
-	std::unique_ptr<cudf::column> temp_no_data = std::make_unique<cudf::column>( 
-		cudf::data_type{cudf::type_id::STRING}, rows,
-		rmm::device_buffer{0}, // no data
-		cudf::create_null_mask(rows, cudf::mask_state::ALL_NULL),
-		rows );
-	if (rows == 0){
-		return temp_no_data;
-	} else {
-		auto scalar_value = cudf::make_string_scalar(str);
-		scalar_value->set_valid(true); // https://github.com/rapidsai/cudf/issues/4085
-
-		auto scalar_filled_column = cudf::experimental::fill(temp_no_data->view(), 0, rows, *scalar_value);
-		return scalar_filled_column;
-	}
 }
 
 int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){

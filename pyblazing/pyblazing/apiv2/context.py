@@ -162,7 +162,7 @@ def getNodePartitions(df, client):
             worker_partitions[worker].append(partition)
         else:
             print("ERROR: In getNodePartitions, woker has no corresponding partition")
-    
+
     return dict((workers[worker]['name'], partitions) for worker, partitions in worker_partitions.items())
 
 
@@ -174,30 +174,34 @@ def collectPartitionsRunQuery(
         ctxToken,
         algebra,
         accessToken,
-        config_options):
+        config_options,
+        single_gpu=False):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
-            partitions = tables[table_name].get_partitions(worker_id)
-            if partitions is None:
-                print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-            if (len(partitions) == 0):
-                tables[table_name].input = [tables[table_name].df_schema]
-            elif (len(partitions) == 1):
-                tables[table_name].input = [tables[table_name].input.get_partition(
-                    partitions[0]).compute()]
+            if single_gpu:
+                tables[table_name].input = [tables[table_name].input.compute()]
             else:
-                print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
-This limitation is expected to exist until blazingsql version 0.14.
-In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
-    dask_df = bc.unify_partitions(dask_df)
-    bc.create_table('my_table', dask_df)""")
-                table_partitions = []
-                for partition in partitions:
-                    table_partitions.append(
-                        tables[table_name].input.get_partition(partition).compute())
-                    tables[table_name].input = table_partitions #no concat
+                partitions = tables[table_name].get_partitions(worker_id)
+                if partitions is None:
+                    print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
+                if (len(partitions) == 0):
+                    tables[table_name].input = [tables[table_name].df_schema]
+                elif (len(partitions) == 1):
+                    tables[table_name].input = [tables[table_name].input.get_partition(
+                        partitions[0]).compute()]
+                else:
+                    print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
+    This limitation is expected to exist until blazingsql version 0.14.
+    In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
+        dask_df = bc.unify_partitions(dask_df)
+        bc.create_table('my_table', dask_df)""")
+                    table_partitions = []
+                    for partition in partitions:
+                        table_partitions.append(
+                            tables[table_name].input.get_partition(partition).compute())
+                        tables[table_name].input = table_partitions #no concat
 
     try:
         result = cio.runQueryCaller(
@@ -713,7 +717,7 @@ class BlazingTable(object):
     def get_partitions(self, worker):
         if worker not in self.dask_mapping:
             assert False, "Worker [{}] is not in the table dask_mapping".format(worker)
-            
+
         return self.dask_mapping[worker]
 
 
@@ -762,10 +766,10 @@ class BlazingContext(object):
                                            default: 1
                                     MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
-                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to 
+                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to
                                             stop execution until the output cache contains less.
                                             default: max int (makes it not applicable)
-                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to 
+                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to
                                             stop execution until the output cache contains less.
                                             default: max size_t (makes it not applicable)
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
@@ -810,7 +814,7 @@ class BlazingContext(object):
         self.config_options = {}
         for option in config_options:
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
-        
+
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
@@ -1511,7 +1515,7 @@ class BlazingContext(object):
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
-    
+
 
     def sql(self, query, table_list=[], algebra=None, return_futures=False, single_gpu=False, config_options={}):
         """
@@ -1522,7 +1526,7 @@ class BlazingContext(object):
         Parameters
         ----------
         query :                     string of SQL query.
-        algebra (optional) :        string of SQL algebra plan. Use this to run on a relational algebra, instead of the query string 
+        algebra (optional) :        string of SQL algebra plan. Use this to run on a relational algebra, instead of the query string
         return_futures (optional) : defaulted to false. Set to true if you want the `sql` function to return futures instead of data
         single_gpu (optional) :     defaulted to false. Set to true if you want to run the query on a single gpu, even is the BlazingContext
                                     is setup with a dask cluster. This is useful for manually running different queries on different gpus
@@ -1598,6 +1602,7 @@ class BlazingContext(object):
             for option in config_options:
                 query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
+
         if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
         else:
@@ -1626,7 +1631,9 @@ class BlazingContext(object):
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
                 if single_gpu == True:
                     #TODO: repartition onto the node that does the work
-                    print("Unsupported running single_gpu queries on dask_cudf please use files")
+                    if new_tables[table].input.npartitions != 1:
+                        new_tables[table].input = new_tables[table].input.repartition(npartitions=1)
+                        new_tables[table].input = new_tables[table].input.persist()
                 elif new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
                     print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
                     temp_df = new_tables[table].input.compute()
@@ -1682,7 +1689,8 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
-                        query_config_options)]
+                        query_config_options,
+                        single_gpu=True)]
             else:
                 dask_futures = []
                 i = 0
