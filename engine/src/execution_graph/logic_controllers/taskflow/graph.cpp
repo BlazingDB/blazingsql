@@ -213,7 +213,7 @@ namespace cache {
 
 		target->set_parent(source->get_id());
 		{
-			std::size_t cache_id = target->get_id()*10000 + source->get_id()*100000000;
+			std::size_t cache_id = target->get_id()*10000 + source->get_id()*100000000; //adicionar source_port and target_port
 
 			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config, cache_id);
 			if(config.type == CacheType::FOR_EACH) {
@@ -223,13 +223,13 @@ namespace cache {
 									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 									"query_id"_a=config.context->getContextToken(),
 									"source"_a=source->get_id(),
-									"sink"_a=cache_id,
+									"sink"_a=cache_id + index,
 									"port_name"_a="output_" + std::to_string(index));
 
 					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}",
 									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 									"query_id"_a=config.context->getContextToken(),
-									"source"_a=cache_id,
+									"source"_a=cache_id + index,
 									"sink"_a=target->get_id(),
 									"port_name"_a="input_" + std::to_string(index));
 
