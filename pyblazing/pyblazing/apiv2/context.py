@@ -199,15 +199,23 @@ In the mean time, for better performance we recommend using the unify_partitions
                         tables[table_name].input.get_partition(partition).compute())
                     tables[table_name].input = table_partitions #no concat
 
-    return cio.runQueryCaller(
-        masterIndex,
-        nodes,
-        tables,
-        fileTypes,
-        ctxToken,
-        algebra,
-        accessToken,
-        config_options)
+    try:
+        result = cio.runQueryCaller(
+                            masterIndex,
+                            nodes,
+                            tables,
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            config_options)
+    except cio.RunQueryError as e:
+        print(">>>>>>>> ", e)
+        result = cudf.DataFrame()
+    except Exception as e:
+        raise e
+
+    return result
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -1386,7 +1394,17 @@ class BlazingContext(object):
 
     def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query,single_gpu):
         nodeFilesList = []
-        file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
+        
+        try:
+            file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
+        except cio.RunSkipDataError as e:
+            print(">>>>>>>> ", e)
+            file_indices_and_rowgroup_indices = {}
+            file_indices_and_rowgroup_indices['skipdata_analysis_fail'] = True
+            file_indices_and_rowgroup_indices['metadata'] = cudf.DataFrame()
+        except Exception as e:
+            raise e
+        
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
 
@@ -1636,15 +1654,21 @@ class BlazingContext(object):
         algebra = get_plan(algebra)
 
         if self.dask_client is None:
-            result = cio.runQueryCaller(
-                        masterIndex,
-                        self.nodes,
-                        nodeTableList[0],
-                        fileTypes,
-                        ctxToken,
-                        algebra,
-                        accessToken,
-                        query_config_options)
+            try:
+                result = cio.runQueryCaller(
+                            masterIndex,
+                            self.nodes,
+                            nodeTableList[0],
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            query_config_options)
+            except cio.RunQueryError as e:
+                print(">>>>>>>> ", e)
+                result = cudf.DataFrame()
+            except Exception as e:
+                raise e
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
