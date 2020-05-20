@@ -12,7 +12,6 @@ import json
 import git
 import numpy as np
 import pandas as pd
-from numba.targets.cmathimpl import NAN
 from pydrill.client import PyDrill
 from pyspark.sql.session import SparkSession
 
