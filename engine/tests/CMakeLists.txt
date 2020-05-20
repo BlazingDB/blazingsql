@@ -64,6 +64,10 @@ function(configure_test TEST_NAME Tests_SRCS)
 
         # Library needed for blazing communication repository (debug)
         gcov
+
+        # TODO jp c.gonzales make use of standard cmake find_package here (see above)
+        #spdlog::spdlog
+        libspdlog.a
     )
 
     set_target_properties(${TEST_NAME} PROPERTIES
