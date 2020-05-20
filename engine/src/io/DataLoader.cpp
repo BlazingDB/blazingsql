@@ -221,8 +221,60 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 	}
 
-	std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, column_indices, row_group_ids);
-	return std::move(loaded_table);
+	if (schema.all_in_file()){
+		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, column_indices, row_group_ids);
+		return std::move(loaded_table);	
+	} else {
+		std::vector<size_t> column_indices_in_file;  // column indices that are from files
+		for (int i = 0; i < column_indices.size(); i++){
+			if(schema.get_in_file()[column_indices[i]]) {
+				column_indices_in_file.push_back(column_indices[i]);
+			}
+		}
+		std::vector<std::unique_ptr<cudf::column>> all_columns(column_indices.size());
+		std::vector<std::unique_ptr<cudf::column>> file_columns;
+		std::vector<std::string> names;
+		cudf::size_type num_rows;
+		if (column_indices_in_file.size() > 0){
+			std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse(file_data_handle.fileHandle, fileSchema, column_indices_in_file);
+			names = current_blazing_table->names();
+			std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
+			num_rows = current_table->num_rows();
+			file_columns = current_table->release();
+		} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
+			std::vector<size_t> temp_column_indices = {0};
+			std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse(file_data_handle.fileHandle, fileSchema, temp_column_indices);
+			num_rows = loaded_table->num_rows();
+		}
+
+		int in_file_column_counter = 0;
+		for(int i = 0; i < column_indices.size(); i++) {
+			int col_ind = column_indices[i];
+			if(!schema.get_in_file()[col_ind]) {
+				std::string name = schema.get_name(col_ind);
+				names.push_back(name);
+				cudf::type_id type = schema.get_dtype(col_ind);
+				std::string scalar_string = file_data_handle.column_values[name];
+				if(type == cudf::type_id::STRING){
+					all_columns[i] = ral::utilities::make_string_column_from_scalar(scalar_string, num_rows);
+				} else {
+					std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
+					size_t width_per_value = cudf::size_of(scalar->type());
+					auto buffer_size = width_per_value * num_rows;
+					rmm::device_buffer gpu_buffer(buffer_size);
+					auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
+					auto mutable_scalar_col = scalar_column->mutable_view();
+					cudf::experimental::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
+					all_columns[i] = std::move(scalar_column);
+				}
+			} else {
+				all_columns[i] = std::move(file_columns[in_file_column_counter]);
+				in_file_column_counter++;
+			}
+		}
+		auto unique_table = std::make_unique<cudf::experimental::table>(std::move(all_columns));
+		return std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
+	}	
 }
 
 
