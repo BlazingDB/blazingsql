@@ -16,4 +16,4 @@
 #653 Handle exceptions on python side
 #661 added hive support to parse_batch
 #662 updated from_cudf code and fixed other issue due to new cudf::list_view
-
+#677 added guava to pom.xml
