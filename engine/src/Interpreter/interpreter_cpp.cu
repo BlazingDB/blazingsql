@@ -56,6 +56,12 @@ struct allocate_device_scalar {
 		RAL_FAIL("Dictionary not yet supported");
 		return nullptr;
 	}
+
+	template <typename T, std::enable_if_t<std::is_same<T, cudf::list_view>::value> * = nullptr>
+	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		RAL_FAIL("List not yet supported");
+		return nullptr;
+	}
 };
 
 template <int SIZE, int REGISTER_SIZE>
