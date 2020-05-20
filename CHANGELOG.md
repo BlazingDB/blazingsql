@@ -13,3 +13,4 @@
 #625 Implement CAST to TINYINT and SMALLINT
 #635 Handle behavior when the optimized plan contains a LogicalValues
 #661 added hive support to parse_batch
+#662 updated from_cudf code and fixed other issue due to new cudf::list_view
