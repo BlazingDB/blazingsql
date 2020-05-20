@@ -12,7 +12,10 @@
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include <spdlog/spdlog.h>
+#include "utilities/BlazingSqlInvalidAlgebraException.h"
+
 using namespace fmt::literals;
+
 
 namespace ral {
 namespace batch {
@@ -106,6 +109,8 @@ struct tree_processor {
 			k = std::make_shared<UnionKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
 			k->set_type_id(kernel_type::UnionKernel);
+		} else {
+			throw ral::utilities::BlazingSqlInvalidAlgebraException("expression in the Algebra Relational is currently not supported: " + expr);
 		}
 		return k;
 	}

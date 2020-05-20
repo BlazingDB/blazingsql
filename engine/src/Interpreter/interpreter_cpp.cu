@@ -56,6 +56,12 @@ struct allocate_device_scalar {
 		RAL_FAIL("Dictionary not yet supported");
 		return nullptr;
 	}
+
+	template <typename T, std::enable_if_t<std::is_same<T, cudf::list_view>::value> * = nullptr>
+	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		RAL_FAIL("List not yet supported");
+		return nullptr;
+	}
 };
 
 template <int SIZE, int REGISTER_SIZE>
@@ -303,6 +309,8 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_SECOND:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_CAST_TINYINT:
+	case operator_type::BLZ_CAST_SMALLINT:
 	case operator_type::BLZ_CAST_INTEGER:
 	case operator_type::BLZ_CAST_BIGINT:
 	case operator_type::BLZ_CAST_FLOAT:
@@ -351,6 +359,10 @@ bool is_binary_operator(operator_type op) {
 cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
 	switch (op)
 	{
+	case operator_type::BLZ_CAST_TINYINT:
+		return cudf::type_id::INT8;
+	case operator_type::BLZ_CAST_SMALLINT:
+		return cudf::type_id::INT16;
 	case operator_type::BLZ_CAST_INTEGER:
 		return cudf::type_id::INT32;
 	case operator_type::BLZ_CAST_BIGINT:

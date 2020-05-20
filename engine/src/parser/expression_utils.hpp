@@ -28,6 +28,8 @@ static std::map<std::string, interops::operator_type> operator_map = {
 	{"BL_SECOND", interops::operator_type::BLZ_SECOND},
 	{"IS_NULL", interops::operator_type::BLZ_IS_NULL},
 	{"IS_NOT_NULL", interops::operator_type::BLZ_IS_NOT_NULL},
+	{"CAST_TINYINT", interops::operator_type::BLZ_CAST_TINYINT},
+	{"CAST_SMALLINT", interops::operator_type::BLZ_CAST_SMALLINT},
 	{"CAST_INTEGER", interops::operator_type::BLZ_CAST_INTEGER},
 	{"CAST_BIGINT", interops::operator_type::BLZ_CAST_BIGINT},
 	{"CAST_FLOAT", interops::operator_type::BLZ_CAST_FLOAT},

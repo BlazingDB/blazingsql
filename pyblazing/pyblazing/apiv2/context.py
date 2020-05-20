@@ -799,7 +799,9 @@ class BlazingContext(object):
         self.nodes = []
         self.node_cwds = []
         self.finalizeCaller = lambda: NotImplemented
-        self.config_options = config_options
+        self.config_options = {}
+        for option in config_options:
+            self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
         
         if(dask_client is not None):
             if network_interface is None:
@@ -1034,6 +1036,7 @@ class BlazingContext(object):
             print("Error found")
             print(algebra)
             algebra=""
+            
         return algebra
 
     def add_remove_table(self, tableName, addTable, table=None):
@@ -1492,7 +1495,7 @@ class BlazingContext(object):
 
     
 
-    def sql(self, sql, table_list=[], algebra=None, return_futures=False, single_gpu=False, config_options={}):
+    def sql(self, query, table_list=[], algebra=None, return_futures=False, single_gpu=False, config_options={}):
         """
         Query a BlazingSQL table.
 
@@ -1560,16 +1563,22 @@ class BlazingContext(object):
         if (algebra is None):
             algebra = self.explain(query)
 
+        # when an empty `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
+        if "LogicalValues(tuples=[[]])" in algebra:
+            print("This SQL statement returns empty result. Please double check your query.")
+            result = cudf.DataFrame()  # it will return an empty DataFrame
+            return result
+
         if algebra == '':
             print("Parsing Error")
             return
 
         if len(config_options) == 0:
-            config_options = self.config_options 
-        
-        query_config_options = {}
-        for option in config_options:
-            query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+            query_config_options = self.config_options 
+        else:        
+            query_config_options = {}
+            for option in config_options:
+                query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
         if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
@@ -1635,12 +1644,7 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
-<<<<<<< HEAD
-                        use_execution_graph,
                         query_config_options)
-=======
-                        self.config_options)
->>>>>>> upstream/branch-0.14
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
@@ -1654,12 +1658,7 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
-<<<<<<< HEAD
-                        use_execution_graph,
                         query_config_options)]
-=======
-                        self.config_options)]
->>>>>>> upstream/branch-0.14
             else:
                 dask_futures = []
                 i = 0
@@ -1675,12 +1674,7 @@ class BlazingContext(object):
                             ctxToken,
                             algebra,
                             accessToken,
-<<<<<<< HEAD
-                            use_execution_graph,
                             query_config_options,
-=======
-                            self.config_options,
->>>>>>> upstream/branch-0.14
                             workers=[worker]))
                     i = i + 1
                 if(return_futures):
