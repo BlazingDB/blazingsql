@@ -462,6 +462,7 @@ private:
 
 };
 
+
 class Filter : public kernel {
 public:
 	Filter(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
