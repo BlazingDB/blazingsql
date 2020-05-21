@@ -440,7 +440,7 @@ public:
 
 		int64_t total_batch_rows = 0;
 		std::vector<std::unique_ptr<ral::cache::CacheData>> cache_vector;
-		BatchSequenceBypass input_seq(this->input_cache());
+		BatchSequenceBypass input_seq(this->input_cache(), this);
 		while (input_seq.wait_for_next()) {
 			auto batch = input_seq.next();
 			total_batch_rows += batch->num_rows();

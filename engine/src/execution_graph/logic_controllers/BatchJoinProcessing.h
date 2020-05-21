@@ -771,7 +771,7 @@ public:
 										"duration"_a="",
 										"kernel_id"_a=this->get_id());
 
-			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_b"));
+			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_b"), this);
 			small_table_scatter_distribution( std::move(left_batch), std::move(right_batch),
 						std::move(left_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else if (scatter_left_right.second) {
@@ -783,7 +783,7 @@ public:
 										"duration"_a="",
 										"kernel_id"_a=this->get_id());
 
-			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_a"));
+			BatchSequenceBypass big_table_sequence(this->input_.get_cache("input_a"), this);
 			small_table_scatter_distribution( std::move(right_batch), std::move(left_batch),
 						std::move(right_sequence), std::move(big_table_sequence), scatter_left_right);
 		} else {

@@ -117,14 +117,37 @@ private:
 
 class BatchSequenceBypass {
 public:
-	BatchSequenceBypass(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr)
-	: cache{cache}
+	BatchSequenceBypass(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr)
+	: cache{cache}, kernel{kernel}
 	{}
 	void set_source(std::shared_ptr<ral::cache::CacheMachine> cache) {
 		this->cache = cache;
 	}
 	std::unique_ptr<ral::cache::CacheData> next() {
-		return cache->pullCacheData();
+		std::shared_ptr<spdlog::logger> cache_events_logger;
+		cache_events_logger = spdlog::get("cache_events_logger");
+
+		CodeTimer cacheEventTimer(false);
+
+		cacheEventTimer.start();
+		auto output = cache->pullCacheData();
+		cacheEventTimer.stop();
+
+		auto num_rows = output->num_rows();
+		auto num_bytes = output->sizeInBytes();
+
+		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+						"ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=cache->get_context()->getContextToken(),
+						"source"_a=cache->get_id(),
+						"sink"_a=kernel->get_id(),
+						"num_rows"_a=num_rows,
+						"num_bytes"_a=num_bytes,
+						"event_type"_a="removeCache",
+						"timestamp_begin"_a=cacheEventTimer.start_time(),
+						"timestamp_end"_a=cacheEventTimer.end_time());
+
+		return output;
 	}
 	// cache->addToRawCache(cache->pullFromRawCache())
 	bool wait_for_next() {
@@ -136,6 +159,7 @@ public:
 	}
 private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
+	const ral::cache::kernel * kernel;
 };
 
 using ral::communication::network::Server;

@@ -35,8 +35,8 @@ public:
         bool isUnionAll = (get_named_expression(this->expression, "all") == "true");
         RAL_EXPECTS(isUnionAll, "In UnionKernel: UNION is not supported, use UNION ALL");
 
-        BatchSequenceBypass input_a(this->input_.get_cache("input_a"));
-        BatchSequenceBypass input_b(this->input_.get_cache("input_b"));
+        BatchSequenceBypass input_a(this->input_.get_cache("input_a"), this);
+        BatchSequenceBypass input_b(this->input_.get_cache("input_b"), this);
         auto batch_a = input_a.next();
         auto batch_b = input_b.next();
 

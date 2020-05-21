@@ -318,9 +318,6 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 }
 
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
-	CodeTimer cacheEventTimer(false);
-	cacheEventTimer.start();
-
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
@@ -335,24 +332,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 								"kernel_id"_a=message_data->get_message_id(),
 								"rows"_a=message_data->get_data().num_rows());
 
-	auto output = message_data->release_data();
-	cacheEventTimer.stop();
-
-	auto num_rows = output->num_rows();
-	auto num_bytes = output->sizeInBytes();
-
-	cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-					"ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-					"query_id"_a=ctx->getContextToken(),
-					"source"_a=this->get_id(),
-					"sink"_a=0, //ToDo Rommel
-					"num_rows"_a=num_rows,
-					"num_bytes"_a=num_bytes,
-					"event_type"_a="removeCache",
-					"timestamp_begin"_a=cacheEventTimer.start_time(),
-					"timestamp_end"_a=cacheEventTimer.end_time());
-
-	return output;
+	return message_data->release_data();
 }
 
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size)
