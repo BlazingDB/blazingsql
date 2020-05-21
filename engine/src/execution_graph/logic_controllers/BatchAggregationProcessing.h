@@ -61,20 +61,22 @@ public:
 
                 eventTimer.stop();
 
-                auto log_output_num_rows = output->num_rows();
-                auto log_output_num_bytes = output->sizeInBytes();
+                if(output){
+                    auto log_output_num_rows = output->num_rows();
+                    auto log_output_num_bytes = output->sizeInBytes();
 
-                events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                                "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                "query_id"_a=context->getContextToken(),
-                                "kernel_id"_a=this->get_id(),
-                                "input_num_rows"_a=log_input_num_rows,
-                                "input_num_bytes"_a=log_input_num_bytes,
-                                "output_num_rows"_a=log_output_num_rows,
-                                "output_num_bytes"_a=log_output_num_bytes,
-                                "event_type"_a="compute",
-                                "timestamp_begin"_a=eventTimer.start_time(),
-                                "timestamp_end"_a=eventTimer.end_time());
+                    events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                    "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                    "query_id"_a=context->getContextToken(),
+                                    "kernel_id"_a=this->get_id(),
+                                    "input_num_rows"_a=log_input_num_rows,
+                                    "input_num_bytes"_a=log_input_num_bytes,
+                                    "output_num_rows"_a=log_output_num_rows,
+                                    "output_num_bytes"_a=log_output_num_bytes,
+                                    "event_type"_a="compute",
+                                    "timestamp_begin"_a=eventTimer.start_time(),
+                                    "timestamp_end"_a=eventTimer.end_time());
+                }
 
                 this->add_to_output_cache(std::move(output));
                 batch_count++;
