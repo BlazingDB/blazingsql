@@ -274,7 +274,7 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-		int table_scan_kernel_num_threads = 1;
+		int table_scan_kernel_num_threads = 4;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
 		if (it != config_options.end()){
@@ -341,7 +341,7 @@ public:
 
 		input.set_projections(get_projections(expression));
 
-		int table_scan_kernel_num_threads = 1;
+		int table_scan_kernel_num_threads = 4;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
 		if (it != config_options.end()){

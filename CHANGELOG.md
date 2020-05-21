@@ -11,6 +11,9 @@
 #621 Clean dead code
 #602 Implements cache flow control feature
 #625 Implement CAST to TINYINT and SMALLINT
+#632 Implement CHAR_LENGTH function
 #635 Handle behavior when the optimized plan contains a LogicalValues
+#653 Handle exceptions on python side
 #661 added hive support to parse_batch
 #662 updated from_cudf code and fixed other issue due to new cudf::list_view
+
