@@ -164,7 +164,7 @@ def getNodePartitions(df, client):
             worker_partitions[worker].append(partition)
         else:
             print("ERROR: In getNodePartitions, woker has no corresponding partition")
-    
+
     return dict((workers[worker]['name'], partitions) for worker, partitions in worker_partitions.items())
 
 
@@ -176,22 +176,25 @@ def collectPartitionsRunQuery(
         ctxToken,
         algebra,
         accessToken,
-        use_execution_graph,
-        config_options):
+        config_options,
+        single_gpu=False):
     import dask.distributed
     worker_id = dask.distributed.get_worker().name
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
-            partitions = tables[table_name].get_partitions(worker_id)
-            if partitions is None:
-                print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-            if (len(partitions) == 0):
-                tables[table_name].input = [tables[table_name].df_schema]
-            elif (len(partitions) == 1):
-                tables[table_name].input = [tables[table_name].input.get_partition(
-                    partitions[0]).compute()]
+            if single_gpu:
+                tables[table_name].input = [tables[table_name].input.compute()]
             else:
-                print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
+                partitions = tables[table_name].get_partitions(worker_id)
+                if partitions is None:
+                    print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
+                if (len(partitions) == 0):
+                    tables[table_name].input = [tables[table_name].df_schema]
+                elif (len(partitions) == 1):
+                    tables[table_name].input = [tables[table_name].input.get_partition(
+                        partitions[0]).compute()]
+                else:
+                    print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
 This limitation is expected to exist until blazingsql version 0.14.
 In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
     dask_df = bc.unify_partitions(dask_df)
@@ -204,17 +207,22 @@ In the mean time, for better performance we recommend using the unify_partitions
                     tables[table_name].input = table_partitions #no concat
                 else:
                     tables[table_name].input = [cudf.concat(table_partitions)]
-    dfs = cio.runQueryCaller(
-        masterIndex,
-        nodes,
-        tables,
-        fileTypes,
-        ctxToken,
-        algebra,
-        accessToken,
-        use_execution_graph,
-        config_options,
-        False) # False indicates distributed mode
+    try:
+        dfs = cio.runQueryCaller(
+            masterIndex,
+            nodes,
+            tables,
+            fileTypes,
+            ctxToken,
+            algebra,
+            accessToken,
+            config_options,
+            False) # False indicates distributed mode
+    except cio.RunQueryError as e:
+        print(">>>>>>>> ", e)
+        result = [cudf.DataFrame()]
+    except Exception as e:
+        raise e
 
     return len(dfs), dask.dataframe.utils.make_meta(dfs[0]), dfs
 
@@ -224,6 +232,7 @@ def collectPartitionsPerformPartition(
         ctxToken,
         input,
         dask_mapping,
+        df_schema,
         by,
         i):  # this is a dummy variable to make every submit unique which is necessary
     import dask.distributed
@@ -231,7 +240,7 @@ def collectPartitionsPerformPartition(
     if(isinstance(input, dask_cudf.core.DataFrame)):
         partitions = dask_mapping[worker_id]
         if (len(partitions) == 0):
-            input = input.get_partition(0).head(0)
+            input = df_schema
         elif (len(partitions) == 1):
             input = input.get_partition(partitions[0]).compute()
         else:
@@ -713,7 +722,7 @@ class BlazingTable(object):
     def get_partitions(self, worker):
         if worker not in self.dask_mapping:
             assert False, "Worker [{}] is not in the table dask_mapping".format(worker)
-            
+
         return self.dask_mapping[worker]
 
 
@@ -743,7 +752,8 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
                                        if None, and pool=True, defaults to 1/2 GPU memory.
         enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
-        config_options (optional) : this is a dictionary for setting certain parameters in the engine:
+        config_options (optional) : this is a dictionary for setting certain parameters in the engine. These parameters will be used for all queries except
+                                    if overriden by setting these parameters when running the query itself. The possible parameters are:
                                     JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join
                                            before doing the join. Too small can lead to overpartitioning, too big can lead to OOM errors.
                                            default: 400000000
@@ -758,9 +768,15 @@ class BlazingContext(object):
                                            default: 400000000
                                     TABLE_SCAN_KERNEL_NUM_THREADS: The number of threads used in the TableScan and BindableTableScan kernels for
                                            reading batches
-                                           default: 1
-                                    MAX_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
+                                           default: 4
+                                    MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
+                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to
+                                            stop execution until the output cache contains less.
+                                            default: max int (makes it not applicable)
+                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to
+                                            stop execution until the output cache contains less.
+                                            default: max size_t (makes it not applicable)
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
                                            calculate the number of samples
                                            default: 0.1
@@ -1037,6 +1053,7 @@ class BlazingContext(object):
             print("Error found")
             print(algebra)
             algebra=""
+            
         return algebra
 
     def add_remove_table(self, tableName, addTable, table=None):
@@ -1386,7 +1403,17 @@ class BlazingContext(object):
 
     def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query,single_gpu):
         nodeFilesList = []
-        file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
+        
+        try:
+            file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
+        except cio.RunSkipDataError as e:
+            print(">>>>>>>> ", e)
+            file_indices_and_rowgroup_indices = {}
+            file_indices_and_rowgroup_indices['skipdata_analysis_fail'] = True
+            file_indices_and_rowgroup_indices['metadata'] = cudf.DataFrame()
+        except Exception as e:
+            raise e
+        
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
 
@@ -1474,6 +1501,7 @@ class BlazingContext(object):
                 print("Not supported...")
             else:
                 dask_mapping = getNodePartitions(input, self.dask_client)
+                df_schema = input.get_partition(0).head(0)
                 dask_futures = []
                 for i, node in enumerate(self.nodes):
                     worker = node['worker']
@@ -1485,67 +1513,16 @@ class BlazingContext(object):
                             ctxToken,
                             input,
                             dask_mapping,
+                            df_schema,
                             by,
                             i,  # this is a dummy variable to make every submit unique which is necessary
                             workers=[worker]))
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
-    def unify_partitions(self, input):
-        """
-        Concatenate all partitions that belong to a Dask Worker as one, so that
-        you only have one partition per worker. This improves performance when
-        running multiple queries on a table created from a dask_cudf DataFrame.
-
-        Parameters
-        ----------
-
-        input : a dask_cudf DataFrame.
-
-        Examples
-        --------
-
-        Distribute BlazingSQL then create and query a table from a dask_cudf DataFrame:
-collectParti
-        >>> from blazingsql import BlazingContext
-        >>> from dask.distributed import Client
-        >>> from dask_cuda import LocalCUDACluster
-
-        >>> cluster = LocalCUDACluster()
-        >>> client = Client(cluster)
-        >>> bc = BlazingContext(dask_client=client)
-
-        >>> dask_df = dask_cudf.read_parquet('/Data/my_file.parquet')
-        >>> dask_df = bc.unify_partitions(dask_df)
-        >>> bc.create_table("unified_partitions_table", dask_df)
-        >>> result = bc.sql("SELECT * FROM unified_partitions_table")
 
 
-        Docs: https://docs.blazingdb.com/docs/unify_partitions
-        """
-        if isinstance(input, dask_cudf.core.DataFrame) and self.dask_client is not None:
-            dask_mapping = getNodePartitions(input, self.dask_client)
-            max_num_partitions_per_node = max([len(x) for x in dask_mapping.values()])
-            if max_num_partitions_per_node > 1:
-                dask_futures = []
-                for i, node in enumerate(self.nodes):
-                    worker = node['worker']
-                    dask_futures.append(
-                        self.dask_client.submit(
-                            workerUnifyPartitions,
-                            input,
-                            dask_mapping,
-                            i,  # this is a dummy variable to make every submit unique which is necessary
-                            workers=[worker]))
-                result = dask.dataframe.from_delayed(dask_futures)
-                return result
-            else:
-                return input
-        else:
-            return input
-
-
-    def sql(self, sql, table_list=[], algebra=None, use_execution_graph=True, return_futures=False, single_gpu=False):
+    def sql(self, query, table_list=[], algebra=None, return_futures=False, single_gpu=False, config_options={}):
         """
         Query a BlazingSQL table.
 
@@ -1553,9 +1530,14 @@ collectParti
 
         Parameters
         ----------
-
-        sql : string of SQL query.
-        algebra (optional) : string of SQL algebra plan. if you used, sql string is not used.
+        query :                     string of SQL query.
+        algebra (optional) :        string of SQL algebra plan. Use this to run on a relational algebra, instead of the query string
+        return_futures (optional) : defaulted to false. Set to true if you want the `sql` function to return futures instead of data
+        single_gpu (optional) :     defaulted to false. Set to true if you want to run the query on a single gpu, even is the BlazingContext
+                                    is setup with a dask cluster. This is useful for manually running different queries on different gpus
+                                    simultaneously.
+        config_options (optional) : defaulted to empty. You can use this to set a specific set of config_options for this query instead
+                                    of the ones set in BlazingContext. See BlazingContext for more info on this parameter
 
         Examples
         --------
@@ -1606,11 +1588,25 @@ collectParti
         fileTypes = []
 
         if (algebra is None):
-            algebra = self.explain(sql)
+            algebra = self.explain(query)
+
+        # when an empty `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
+        if "LogicalValues(tuples=[[]])" in algebra:
+            print("This SQL statement returns empty result. Please double check your query.")
+            result = cudf.DataFrame()  # it will return an empty DataFrame
+            return result
 
         if algebra == '':
             print("Parsing Error")
             return
+
+        if len(config_options) == 0:
+            query_config_options = self.config_options 
+        else:        
+            query_config_options = {}
+            for option in config_options:
+                query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+
 
         if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
@@ -1640,7 +1636,9 @@ collectParti
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
                 if single_gpu == True:
                     #TODO: repartition onto the node that does the work
-                    print("Unsupported running single_gpu queries on dask_cudf please use files")
+                    if new_tables[table].input.npartitions != 1:
+                        new_tables[table].input = new_tables[table].input.repartition(npartitions=1)
+                        new_tables[table].input = new_tables[table].input.persist()
                 elif new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
                     print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
                     temp_df = new_tables[table].input.compute()
@@ -1665,21 +1663,25 @@ collectParti
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
 
-        if use_execution_graph:
-            algebra = get_plan(algebra)
+        algebra = get_plan(algebra)
 
         if self.dask_client is None:
-            result = cio.runQueryCaller(
-                        masterIndex,
-                        self.nodes,
-                        nodeTableList[0],
-                        fileTypes,
-                        ctxToken,
-                        algebra,
-                        accessToken,
-                        use_execution_graph,
-                        self.config_options,
-                        True) # True indicates single node
+            try:
+                result = cio.runQueryCaller(
+                            masterIndex,
+                            self.nodes,
+                            nodeTableList[0],
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            query_config_options,
+                            True) # True indicates single node
+            except cio.RunQueryError as e:
+                print(">>>>>>>> ", e)
+                result = cudf.DataFrame() #ToDo Rommel return vector?
+            except Exception as e:
+                raise e
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
@@ -1693,8 +1695,8 @@ collectParti
                         ctxToken,
                         algebra,
                         accessToken,
-                        use_execution_graph,
-                        self.config_options)]
+                        query_config_options,
+                        single_gpu=True)]
             else:
                 dask_futures = []
                 i = 0
@@ -1710,8 +1712,7 @@ collectParti
                             ctxToken,
                             algebra,
                             accessToken,
-                            use_execution_graph,
-                            self.config_options,
+                            query_config_options,
                             workers=[worker]))
                     i = i + 1
                 if(return_futures):
@@ -1801,4 +1802,4 @@ collectParti
                 file_format='csv')
             self.logs_initialized = True
 
-        return self.sql(query, use_execution_graph=False)
+        return self.sql(query)

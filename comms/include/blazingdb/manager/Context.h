@@ -7,9 +7,8 @@
 
 namespace blazingdb {
 namespace manager {
-namespace experimental {
 
-using Node = blazingdb::transport::experimental::Node;
+using Node = blazingdb::transport::Node;
 
 /// \brief This is the main component of the transport library
 ///
@@ -77,6 +76,5 @@ private:
   std::map<std::string, std::string> config_options_;
 };
 
-}  // namespace experimental
 }  // namespace manager
 }  // namespace blazingdb

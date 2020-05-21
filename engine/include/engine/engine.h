@@ -28,7 +28,6 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	bool use_execution_graph,
 	std::map<std::string, std::string> config_options);
 
 
@@ -51,4 +50,3 @@ std::unique_ptr<ResultSet> performPartition(
 	int32_t ctxToken,
 	const ral::frame::BlazingTableView & table,
 	std::vector<std::string> column_names);
-

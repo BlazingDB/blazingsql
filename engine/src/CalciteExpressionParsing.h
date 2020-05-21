@@ -1,12 +1,4 @@
-/*
- * CalciteExpressionParsing.h
- *
- *  Created on: Aug 7, 2018
- *      Author: felipe
- */
-
-#ifndef CALCITEEXPRESSIONPARSING_H_
-#define CALCITEEXPRESSIONPARSING_H_
+#pragma once
 
 #include "cudf/types.h"
 #include "parser/expression_utils.hpp"
@@ -55,11 +47,9 @@ std::string aggregator_to_string(AggregateKind operation);
 // or ]
 int find_closing_char(const std::string & expression, int start);
 
-bool is_type_signed(cudf::type_id type);
 bool is_type_float(cudf::type_id type);
 bool is_type_integer(cudf::type_id type);
 bool is_date_type(cudf::type_id type);
-bool is_numeric_type(cudf::type_id type);
 
 // this function takes two data types and returns the a common data type that the both can be losslessly be converted to
 // the function returns cudf::type_id::EMPTY if there is no common type
@@ -70,5 +60,3 @@ cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2);
 bool contains_evaluation(std::string expression);
 
 int count_string_occurrence(std::string haystack, std::string needle);
-
-#endif /* CALCITEEXPRESSIONPARSING_H_ */

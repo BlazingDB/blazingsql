@@ -2,6 +2,11 @@
 #ifndef CALCITEINTERPRETER_H_
 #define CALCITEINTERPRETER_H_
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "Interpreter/interpreter_cpp.h"
 #include "cudf/legacy/binaryop.hpp"
 #include "io/DataLoader.h"
@@ -10,21 +15,7 @@
 #include <vector>
 
 #include <blazingdb/manager/Context.h>
-using blazingdb::manager::experimental::Context;
-
-std::unique_ptr<ral::frame::BlazingTable> evaluate_split_query(std::vector<ral::io::data_loader> input_loaders,
-	std::vector<ral::io::Schema> schemas,
-	std::vector<std::string> table_names,
-	std::vector<std::string> query,
-	Context * queryContext,
-	int call_depth = 0);
-
-std::unique_ptr<ral::frame::BlazingTable> evaluate_query(std::vector<ral::io::data_loader> input_loaders,
-	std::vector<ral::io::Schema> schemas,
-	std::vector<std::string> table_names,
-	std::string logicalPlan,
-	int64_t connection,
-	Context & queryContext);
+using blazingdb::manager::Context;
 
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,

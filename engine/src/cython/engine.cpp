@@ -15,6 +15,8 @@
 #include <numeric>
 #include <map>
 
+using namespace fmt::literals;
+
 std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_loaders_and_schemas(
 	const std::vector<TableSchema> & tableSchemas,
 	const std::vector<std::vector<std::string>> & tableSchemaCppArgKeys,
@@ -125,7 +127,6 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	bool use_execution_graph,
 	std::map<std::string, std::string> config_options ) {
 
 	std::vector<ral::io::data_loader> input_loaders;
@@ -133,30 +134,28 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
+	
+	using blazingdb::manager::Context;
+	using blazingdb::transport::Node;
+
+	std::vector<Node> contextNodes;
+	for(auto currentMetadata : tcpMetadata) {
+		auto address =
+			blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+		contextNodes.push_back(Node(address));
+	}
+
+	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
+	ral::communication::network::Server::getInstance().registerContext(ctxToken);
+	
 	try {
-		using blazingdb::manager::experimental::Context;
-		using blazingdb::transport::experimental::Node;
-
-		std::vector<Node> contextNodes;
-		for(auto currentMetadata : tcpMetadata) {
-			auto address =
-				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node(address));
-		}
-
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
-		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
-
 		// Execute query
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
-		if (use_execution_graph) {
-			frames = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+		frames = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 
-		} else {
-			frames.emplace_back(std::move(evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext)));
-		}
-		
 		std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
+
+		assert( frames.size()>0 );
 		result->names = frames[0]->names();
 		fix_column_names_duplicated(result->names);
 
@@ -167,6 +166,14 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(const std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="In runQuery. What: {}"_format(e.what()),
+									"duration"_a="");
+		logger->flush();
 		std::cerr << e.what() << std::endl;
 		throw;
 	}
@@ -183,18 +190,18 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 
 		std::vector<int> columnIndices;
 
-		using blazingdb::manager::experimental::Context;
-		using blazingdb::transport::experimental::Node;
+		using blazingdb::manager::Context;
+		using blazingdb::transport::Node;
 
 		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
 			contextNodes.push_back(Node(address));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
-		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
+		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		const std::vector<std::string> & table_col_names = table.names();
 
@@ -214,6 +221,11 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		return result;
 
 	} catch(const std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("|||{info}|||||",
+									"info"_a="In performPartition. What: {}"_format(e.what()));
+		logger->flush();
+
 		std::cerr << "**[performPartition]** error partitioning table.\n";
 		std::cerr << e.what() << std::endl;
 		throw;
@@ -238,6 +250,11 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 		return result;
 
 	} catch(const std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("|||{info}|||||",
+									"info"_a="In runSkipData. What: {}"_format(e.what()));
+		logger->flush();
+		
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
 		std::cerr << e.what() << std::endl;
 		throw;

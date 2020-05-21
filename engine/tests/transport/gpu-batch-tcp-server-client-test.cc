@@ -1,3 +1,8 @@
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "cudf/types.h"
 #include "utils/column_factory.h"
 #include <blazingdb/transport/Node.h>
@@ -13,15 +18,15 @@
 #include <execution_graph/logic_controllers/BatchProcessing.h>
 #include "../BlazingUnitTest.h"
 
-using ral::communication::messages::experimental::SampleToNodeMasterMessage;
-using ral::communication::messages::experimental::ReceivedDeviceMessage;
-using ral::communication::messages::experimental::ReceivedHostMessage;
+using ral::communication::messages::SampleToNodeMasterMessage;
+using ral::communication::messages::ReceivedDeviceMessage;
+using ral::communication::messages::ReceivedHostMessage;
 
-using ral::communication::network::experimental::Client;
-using ral::communication::network::experimental::Node;
-using ral::communication::network::experimental::Server;
-using Address = blazingdb::transport::experimental::Address;
-using GPUMessage = blazingdb::transport::experimental::GPUMessage;
+using ral::communication::network::Client;
+using ral::communication::network::Node;
+using ral::communication::network::Server;
+using Address = blazingdb::transport::Address;
+using GPUMessage = blazingdb::transport::GPUMessage;
 
 constexpr uint32_t context_token = 3465;
 
@@ -44,7 +49,7 @@ void ExecMaster() {
 	Server::start(8000, true);
 
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
-	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
+	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, 1);
 	Server::getInstance().registerContext(context_token);
 	auto cache_machine = ral::cache::create_cache_machine(ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
 	// auto cache_machine = std::make_shared<ral::cache::HostCacheMachine>();
@@ -54,7 +59,7 @@ void ExecMaster() {
 	BlazingThread([cache_machine]() {
 		auto table = cache_machine->pullFromCache();
 		assert(table != nullptr);
-		// auto table = ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
+		// auto table = ral::communication::messages::deserialize_from_cpu(host_table.get());
 		std::cout << "message received\n";
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table->view().column(0));
 		cudf::test::strings_column_wrapper expected({"d", "e", "a", "d", "k", "d", "l", "a", "b", "c"}, {1, 0, 1, 1, 1, 1, 1, 1, 0 , 1});
@@ -68,7 +73,7 @@ void ExecWorker() {
 	// todo get GPU_MEMORY_SIZE
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	auto nthread = 4;
-	blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, nthread);
+	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
 	auto sender_node = Node(Address::TCP("127.0.0.1", 8001, 1234));
 	auto server_node = Node(Address::TCP("127.0.0.1", 8000, 1234));
 

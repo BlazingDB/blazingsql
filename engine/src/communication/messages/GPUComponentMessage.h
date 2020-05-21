@@ -1,5 +1,10 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <blazingdb/transport/Address.h>
 #include <blazingdb/transport/ColumnTransport.h>
 #include <blazingdb/transport/Message.h>
@@ -23,20 +28,18 @@
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <execution_graph/logic_controllers/BlazingHostTable.h>
-#include "Traits/RuntimeTraits.h"
 namespace ral {
 namespace communication {
 namespace messages {
 
-namespace experimental {
 
-using Node = blazingdb::transport::experimental::Node;
-using Address = blazingdb::transport::experimental::Address;
-using ColumnTransport = blazingdb::transport::experimental::ColumnTransport;
-using GPUMessage = blazingdb::transport::experimental::GPUMessage;
-using ReceivedMessage = blazingdb::transport::experimental::ReceivedMessage;
-using MessageMetadata = blazingdb::transport::experimental::Message::MetaData;
-using gpu_raw_buffer_container = blazingdb::transport::experimental::gpu_raw_buffer_container;
+using Node = blazingdb::transport::Node;
+using Address = blazingdb::transport::Address;
+using ColumnTransport = blazingdb::transport::ColumnTransport;
+using GPUMessage = blazingdb::transport::GPUMessage;
+using ReceivedMessage = blazingdb::transport::ReceivedMessage;
+using MessageMetadata = blazingdb::transport::Message::MetaData;
+using gpu_raw_buffer_container = blazingdb::transport::gpu_raw_buffer_container;
 
 gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::BlazingTableView table_view);
 
@@ -139,7 +142,6 @@ protected:
 	ral::frame::BlazingTableView table_view; 
 };
 
-}  // namespace experimental
 }  // namespace messages
 }  // namespace communication
 }  // namespace ral

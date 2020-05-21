@@ -1,4 +1,10 @@
 #pragma once
+
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
@@ -10,6 +16,7 @@
 #include <cudf/io/functions.hpp>
 #include <future>
 #include <memory>
+#include <condition_variable>
 #include <mutex>
 #include <queue>
 #include <src/communication/messages/GPUComponentMessage.h>
@@ -18,12 +25,12 @@
 #include <vector>
 #include <limits>
 #include <bmr/BlazingMemoryResource.h>
-#include <spdlog/spdlog.h>
+
 
 namespace ral {
 namespace cache {
 
-using Context = blazingdb::manager::experimental::Context;
+using Context = blazingdb::manager::Context;
 using namespace fmt::literals;
 
 /// \brief An enum type to represent the cache level ID
@@ -90,7 +97,7 @@ private:
  	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) 
 		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows(), get_string_sizes(gpu_table->toBlazingTableView())) 
 	{
-		this->host_table = ral::communication::messages::experimental::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
+		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
  	}
 
 	CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table)
@@ -98,7 +105,7 @@ private:
 	{
 	}
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {
- 		return ral::communication::messages::experimental::deserialize_from_cpu(host_table.get());
+ 		return ral::communication::messages::deserialize_from_cpu(host_table.get());
  	}
 
 	std::unique_ptr<ral::frame::BlazingHostTable> releaseHostTable() {
@@ -276,6 +283,8 @@ class CacheMachine {
 public:
 	CacheMachine();
 
+	CacheMachine(std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
+
 	~CacheMachine();
 
 	virtual void put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table);
@@ -311,6 +320,10 @@ public:
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(Context * ctx = nullptr);
 
+	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
+	
+	virtual void wait_if_cache_is_saturated();
+
 
 protected:
 	/// This property represents a waiting queue object which stores all CacheData Objects  
@@ -324,6 +337,14 @@ protected:
 	bool something_added;
 
 	std::shared_ptr<spdlog::logger> logger;
+
+	std::uint32_t flow_control_batches_threshold;
+	std::size_t flow_control_bytes_threshold;
+	std::uint32_t flow_control_batches_count;
+	std::size_t flow_control_bytes_count;
+	std::mutex flow_control_mutex;
+	std::condition_variable flow_control_condition_variable;
+
 };
 
 /**
@@ -413,8 +434,8 @@ protected:
 */ 
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine() = default;
-	ConcatenatingCacheMachine(size_t bytes_max_size);
+	ConcatenatingCacheMachine();
+	ConcatenatingCacheMachine(std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
 
 	~ConcatenatingCacheMachine() = default;
 

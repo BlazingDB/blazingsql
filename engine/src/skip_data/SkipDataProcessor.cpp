@@ -1,3 +1,7 @@
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include "SkipDataProcessor.h"
 
@@ -9,6 +13,8 @@
 #include "Utils.cuh"
 
 #include <numeric>
+
+using namespace fmt::literals;
 
 namespace ral {
 namespace skip_data {
@@ -29,7 +35,12 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         if (filter_string.empty()) {
             return std::make_pair(nullptr, true);
         }
-    } catch (...) {
+    } catch(const std::exception & e) {
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+        logger->error("|||{info}|||||",
+                                    "info"_a="In process_skipdata_for_table. What: {}"_format(e.what()));
+        logger->flush();
+
         return std::make_pair(nullptr, true);
     }
     filter_string = replace_calcite_regex(filter_string);

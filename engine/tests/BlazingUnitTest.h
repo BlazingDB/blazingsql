@@ -3,15 +3,16 @@
 #include <string>
 #include <vector>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <gtest/gtest.h>
 
 #include <CalciteExpressionParsing.h>
 #include <CalciteInterpreter.h>
 #include <bmr/initializer.h>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 
 struct BlazingUnitTest : public ::testing::Test {
 	static void SetUpTestSuite() {

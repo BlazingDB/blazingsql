@@ -12,6 +12,8 @@
 
 #include <blazingdb/io/Config/BlazingContext.h>
 
+using namespace fmt::literals;
+
 // #include <blazingdb/io/Library/Logging/TcpOutput.h>
 // #include "blazingdb/io/Library/Network/NormalSyncSocket.h"
 
@@ -52,6 +54,12 @@ TableSchema parseSchema(std::vector<std::string> files,
 	try {
 		loader->get_schema(schema, extra_columns);
 	} catch(std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("|||{info}|||||",
+									"info"_a="In parseSchema. What: {}"_format(e.what()));
+		std::cerr << "**[performPartition]** error partitioning table.\n";
+		logger->flush();
+
 		throw;
 	}
 
@@ -104,7 +112,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		names[2*index + 1] = "row_group_index";
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = names;
-		auto table = ral::utilities::experimental::create_empty_table(dtypes);
+		auto table = ral::utilities::create_empty_table(dtypes);
 		result->cudfTable = std::move(table);
 		result->skipdata_analysis_fail = false;
 		return result;

@@ -9,7 +9,7 @@
 
 #include "CalciteExpressionParsing.h"
 #include "interpreter_ops.cuh"
-#include "Traits/RuntimeTraits.h"
+#include "Utils.cuh"
 
 namespace interops {
 namespace detail {
@@ -54,6 +54,12 @@ struct allocate_device_scalar {
 	template <typename T, std::enable_if_t<std::is_same<T, cudf::dictionary32>::value> * = nullptr>
 	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
 		RAL_FAIL("Dictionary not yet supported");
+		return nullptr;
+	}
+
+	template <typename T, std::enable_if_t<std::is_same<T, cudf::list_view>::value> * = nullptr>
+	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		RAL_FAIL("List not yet supported");
 		return nullptr;
 	}
 };
@@ -303,6 +309,8 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_SECOND:
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_CAST_TINYINT:
+	case operator_type::BLZ_CAST_SMALLINT:
 	case operator_type::BLZ_CAST_INTEGER:
 	case operator_type::BLZ_CAST_BIGINT:
 	case operator_type::BLZ_CAST_FLOAT:
@@ -310,6 +318,7 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CAST_DATE:
 	case operator_type::BLZ_CAST_TIMESTAMP:
 	case operator_type::BLZ_CAST_VARCHAR:
+	case operator_type::BLZ_CHAR_LENGTH:
 		return true;
 	default:
 		return false;
@@ -340,8 +349,12 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_FIRST_NON_MAGIC:
 	case operator_type::BLZ_MAGIC_IF_NOT:
 	case operator_type::BLZ_STR_LIKE:
-	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_CONCAT:
+		return true;
+	case operator_type::BLZ_STR_SUBSTRING:
+		assert(false);
+		// Ternary operator. Should not reach here
+		// Should be evaluated in place (inside function_evaluator_transformer) and removed from the tree
 		return true;
 	default:
 		return false;
@@ -351,6 +364,10 @@ bool is_binary_operator(operator_type op) {
 cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
 	switch (op)
 	{
+	case operator_type::BLZ_CAST_TINYINT:
+		return cudf::type_id::INT8;
+	case operator_type::BLZ_CAST_SMALLINT:
+		return cudf::type_id::INT16;
 	case operator_type::BLZ_CAST_INTEGER:
 		return cudf::type_id::INT32;
 	case operator_type::BLZ_CAST_BIGINT:
@@ -394,6 +411,8 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
 	case operator_type::BLZ_IS_NULL:
 	case operator_type::BLZ_IS_NOT_NULL:
 		return cudf::type_id::BOOL8;
+	case operator_type::BLZ_CHAR_LENGTH:
+		return cudf::type_id::INT32;
 	default:
 	 	assert(false);
 		return cudf::type_id::EMPTY;
@@ -401,6 +420,14 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
 }
 
 cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, operator_type op) {
+	RAL_EXPECTS(input_left_type != cudf::type_id::EMPTY || input_right_type != cudf::type_id::EMPTY, "In get_output_type function: both operands types are empty");
+	
+	if(input_left_type == cudf::type_id::EMPTY) {
+		input_left_type = input_right_type;
+	} else if(input_right_type == cudf::type_id::EMPTY) {
+		input_right_type = input_left_type;
+	}
+
 	switch (op)
 	{
 	case operator_type::BLZ_ADD:
@@ -409,7 +436,7 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 	case operator_type::BLZ_DIV:
 	case operator_type::BLZ_MOD:
 		if(is_type_float(input_left_type) && is_type_float(input_right_type)) {
-			return (ral::traits::get_dtype_size_in_bytes(input_left_type) >= ral::traits::get_dtype_size_in_bytes(input_right_type))
+			return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
 							? input_left_type
 							: input_right_type;
 		}	else if(is_type_float(input_left_type)) {
@@ -417,7 +444,7 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 		} else if(is_type_float(input_right_type)) {
 			return input_right_type;
 		} else {
-			return (ral::traits::get_dtype_size_in_bytes(input_left_type) >= ral::traits::get_dtype_size_in_bytes(input_right_type))
+			return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
 							? input_left_type
 							: input_right_type;
 		}
@@ -432,13 +459,13 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_POW:
 	case operator_type::BLZ_ROUND:
-		return ral::traits::get_dtype_size_in_bytes(input_left_type) <= ral::traits::get_dtype_size_in_bytes(cudf::type_id::FLOAT32)
+		return cudf::size_of(cudf::data_type{input_left_type}) <= cudf::size_of(cudf::data_type{cudf::type_id::FLOAT32})
 					 ? cudf::type_id::FLOAT32
 					 : cudf::type_id::FLOAT64;
 	case operator_type::BLZ_MAGIC_IF_NOT:
 		return input_right_type;
 	case operator_type::BLZ_FIRST_NON_MAGIC:
-		return (ral::traits::get_dtype_size_in_bytes(input_left_type) >= ral::traits::get_dtype_size_in_bytes(input_right_type))
+		return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
 				   ? input_left_type
 				   : input_right_type;
 	case operator_type::BLZ_STR_LIKE:
@@ -513,7 +540,7 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 				} else if(is_literal(right_operand)) {
 					cudf::size_type left_index = get_index(left_operand);
 					auto scalar_ptr = get_scalar_from_string(right_operand);
-					
+
 					left_inputs.push_back(left_index);
 					right_inputs.push_back(scalar_ptr ? SCALAR_INDEX : SCALAR_NULL_INDEX);
 					left_scalars.emplace_back(nullptr);
@@ -580,7 +607,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	if (final_output_positions.empty())	{
 		return;
 	}
-	
+
 	assert(!left_inputs.empty());
 	assert(!right_inputs.empty());
 	assert(!outputs.empty());
@@ -601,8 +628,8 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 
 	size_t temp_valids_in_size = min_grid_size * block_size * table.num_columns() * sizeof(cudf::bitmask_type);
 	size_t temp_valids_out_size = min_grid_size * block_size * final_output_positions.size() * sizeof(cudf::bitmask_type);
-	rmm::device_buffer temp_device_valids_in_buffer(temp_valids_in_size, stream); 
-	rmm::device_buffer temp_device_valids_out_buffer(temp_valids_out_size, stream); 
+	rmm::device_buffer temp_device_valids_in_buffer(temp_valids_in_size, stream);
+	rmm::device_buffer temp_device_valids_out_buffer(temp_valids_out_size, stream);
 
 	// device table views
 	auto device_table_view = cudf::table_device_view::create(table, stream);

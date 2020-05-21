@@ -1,4 +1,10 @@
 #include <algorithm>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <cudf.h>
 #include <cudf/table/table_view.hpp>
 #include <iomanip>
@@ -9,20 +15,10 @@
 #include "Utils.cuh"
 
 #include "CalciteExpressionParsing.h"
-#include "Traits/RuntimeTraits.h"
 #include "cudf/legacy/binaryop.hpp"
 #include <cudf/scalar/scalar_factories.hpp>
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
-
-
-bool is_type_signed(cudf::type_id type) {
-	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type ||
-			cudf::type_id::INT32 == type || cudf::type_id::INT64 == type || cudf::type_id::FLOAT32 == type ||
-			cudf::type_id::FLOAT64 == type || cudf::type_id::TIMESTAMP_DAYS == type ||
-			cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
-			cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type);
-}
 
 bool is_type_float(cudf::type_id type) { return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type); }
 
@@ -35,12 +31,6 @@ bool is_date_type(cudf::type_id type) {
 	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
 			cudf::type_id::TIMESTAMP_MILLISECONDS == type || cudf::type_id::TIMESTAMP_MICROSECONDS == type ||
 			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
-}
-
-// TODO percy noboa see upgrade to uints
-bool is_numeric_type(cudf::type_id type) {
-	// return is_type_signed(type) || is_type_unsigned_numeric(type);
-	return is_type_signed(type);
 }
 
 cudf::type_id get_next_biggest_type(cudf::type_id type) {
@@ -105,29 +95,29 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::s
 }
 
 cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2) {
-	
 	if(type1 == type2) {
-		return type1;		
+		return type1;
 	} else if((is_type_float(type1) && is_type_float(type2)) || (is_type_integer(type1) && is_type_integer(type2))) {
-		return (ral::traits::get_dtype_size_in_bytes(type1) >= ral::traits::get_dtype_size_in_bytes(type2)) ? type1
-																												: type2;
+		return (cudf::size_of(cudf::data_type{type1}) >= cudf::size_of(cudf::data_type{type2}))
+						? type1
+						: type2;
 	} else if(is_date_type(type1) && is_date_type(type2)) { // if they are both datetime, return the highest resolution either has
 		std::vector<cudf::type_id> datetime_types = {cudf::type_id::TIMESTAMP_NANOSECONDS, cudf::type_id::TIMESTAMP_MICROSECONDS,
 						cudf::type_id::TIMESTAMP_MILLISECONDS, cudf::type_id::TIMESTAMP_SECONDS, cudf::type_id::TIMESTAMP_DAYS};
 		for (auto datetime_type : datetime_types){
 			if(type1 == datetime_type || type2 == datetime_type)
-				return datetime_type;	
-		}		
+				return datetime_type;
+		}
 	} else if((type1 == cudf::type_id::STRING) &&
 			  (type2 == cudf::type_id::STRING)) {
 		return cudf::type_id::STRING;
-	} 
-	return cudf::type_id::EMPTY;	
+	}
+
+	RAL_FAIL("No common type between " + std::to_string(type1) + " and " + std::to_string(type2));
 }
 
 cudf::type_id infer_dtype_from_literal(const std::string & token) {
 	if(is_null(token)) {
-		// TODO percy cudf0.12 was invalid here, should we return empty?
 		return cudf::type_id::EMPTY;
 	} else if(is_bool(token)) {
 		return cudf::type_id::BOOL8;
@@ -166,9 +156,7 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 }
 
 std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, const cudf::type_id & type_id) {
-
 	cudf::data_type type{type_id};
-
 	if (type_id == cudf::type_id::EMPTY) {
 		return nullptr;
 	}
@@ -224,14 +212,13 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	if(type_id == cudf::type_id::TIMESTAMP_DAYS) {
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
 	}
-	if(type_id == cudf::type_id::TIMESTAMP_SECONDS || type_id == cudf::type_id::TIMESTAMP_MILLISECONDS 
+	if(type_id == cudf::type_id::TIMESTAMP_SECONDS || type_id == cudf::type_id::TIMESTAMP_MILLISECONDS
 		|| type_id == cudf::type_id::TIMESTAMP_MICROSECONDS || type_id == cudf::type_id::TIMESTAMP_NANOSECONDS) {
 		if (scalar_string.find(":") != std::string::npos){
 			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");
 		} else {
 			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
 		}
-		
 	}
 	if(type_id == cudf::type_id::STRING)	{
 		auto str_scalar = cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
@@ -246,9 +233,6 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 cudf::type_id get_output_type_expression(const cudf::table_view & table, std::string expression) {
 	std::string clean_expression = clean_calcite_expression(expression);
 
-	// TODO percy cudf0.12 was invalid here, should we consider empty?
-	cudf::type_id max_temp_type = cudf::type_id::INT8;
-
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
 	fix_tokens_after_call_get_tokens_in_reverse_order_for_timestamp(table, tokens);
 
@@ -258,42 +242,19 @@ cudf::type_id get_output_type_expression(const cudf::table_view & table, std::st
 			interops::operator_type operation = map_to_operator_type(token);
 			if(is_binary_operator(operation)) {
 				if(operands.size() < 2)
-					throw std::runtime_error(
-						"In function get_output_type_expression, the operator cannot be processed on less than one or "
-						"zero elements");
+					RAL_FAIL("In function get_output_type_expression, the operator cannot be processed on less than one or zero elements");
 
 				cudf::type_id left_operand = operands.top();
 				operands.pop();
 				cudf::type_id right_operand = operands.top();
 				operands.pop();
 
-				// TODO percy cudf0.12 was invalid here, should we consider empty?
-				if(left_operand == cudf::type_id::EMPTY) {
-					if(right_operand == cudf::type_id::EMPTY) {
-						throw std::runtime_error("In get_output_type_expression function: invalid operands");
-					} else {
-						left_operand = right_operand;
-					}
-				} else {
-					if(right_operand == cudf::type_id::EMPTY) {
-						right_operand = left_operand;
-					}
-				}
-
 				operands.push(get_output_type(left_operand, right_operand, operation));
-				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
-					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
-					max_temp_type = operands.top();
-				}
 			} else if(is_unary_operator(operation)) {
 				cudf::type_id left_operand = operands.top();
 				operands.pop();
 
 				operands.push(get_output_type(left_operand, operation));
-				if(ral::traits::get_dtype_size_in_bytes(operands.top()) >
-					ral::traits::get_dtype_size_in_bytes(max_temp_type)) {
-					max_temp_type = operands.top();
-				}
 			}
 		} else {
 			if(is_literal(token)) {
