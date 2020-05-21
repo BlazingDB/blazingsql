@@ -52,7 +52,6 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - openjdk=8.0
         - maven
-        - spdlog >=1.4.2
     run:
         - gtest
         - arrow-cpp=0.15.0
