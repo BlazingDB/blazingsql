@@ -11,7 +11,6 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
-#include <spdlog/spdlog.h>
 #include "utilities/BlazingSqlInvalidAlgebraException.h"
 
 using namespace fmt::literals;

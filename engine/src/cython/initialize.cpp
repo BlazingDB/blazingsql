@@ -7,6 +7,11 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <algorithm>
 #include <cuda_runtime.h>
 #include <memory>
@@ -27,10 +32,6 @@
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 using namespace fmt::literals;
 
 #include <engine/static.h> // this contains function call for getProductDetails
