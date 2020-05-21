@@ -41,8 +41,8 @@ public:
         while (input.wait_for_next()) {
             auto batch = input.next();
 
-            auto log_input_num_rows = batch->num_rows();
-            auto log_input_num_bytes = batch->sizeInBytes();
+            auto log_input_num_rows = batch ? batch->num_rows() : 0;
+            auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
 
             eventTimer.start();
 
@@ -291,8 +291,8 @@ public:
 
             auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
 
-            auto log_input_num_rows = concatenated->num_rows();
-            auto log_input_num_bytes = concatenated->sizeInBytes();
+            auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
+            auto log_input_num_bytes = concatenated ? concatenated->sizeInBytes() : 0;
 
             std::vector<int> group_column_indices;
             std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
