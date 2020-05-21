@@ -8,6 +8,8 @@
 namespace ral {
 namespace cache {
 
+std::size_t CacheMachine::cache_count(900000000);
+
 std::string randomString(std::size_t length) {
 	const std::string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -56,8 +58,10 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine(std::shared_ptr<Context> context, const std::size_t id): ctx(context), cache_id(id)
+CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cache_id(CacheMachine::cache_count)
 {
+	CacheMachine::cache_count++;
+
 	waitingCache = std::make_unique<WaitingQueue>();
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() );
@@ -76,7 +80,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, const std::size_t i
 	kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
 							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 							"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
-							"kernel_id"_a=id,
+							"kernel_id"_a=cache_id,
 							"is_kernel"_a=0, //false
 							"kernel_type"_a="cache");
 }
@@ -337,12 +341,11 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	auto num_rows = output->num_rows();
 	auto num_bytes = output->sizeInBytes();
 
-	cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+	cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
 					"ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 					"query_id"_a=ctx->getContextToken(),
 					"source"_a=this->get_id(),
 					"sink"_a=0, //ToDo Rommel
-					"port_name"_a=0, //cache_id,
 					"num_rows"_a=num_rows,
 					"num_bytes"_a=num_bytes,
 					"event_type"_a="removeCache",
@@ -352,8 +355,8 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	return output;
 }
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size, const std::size_t id)
-	: CacheMachine(context, id), bytes_max_size_(bytes_max_size)
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size)
+	: CacheMachine(context), bytes_max_size_(bytes_max_size)
 {
 	/*std::shared_ptr<spdlog::logger> kernels_logger;
 	kernels_logger = spdlog::get("kernels_logger");

@@ -271,7 +271,7 @@ private:
 */
 class CacheMachine {
 public:
-	CacheMachine(std::shared_ptr<Context> context, const std::size_t id);
+	CacheMachine(std::shared_ptr<Context> context);
 
 	~CacheMachine();
 
@@ -314,6 +314,8 @@ public:
 
 
 protected:
+	static std::size_t cache_count;
+
 	/// This property represents a waiting queue object which stores all CacheData Objects
 	std::unique_ptr<WaitingQueue> waitingCache;
 
@@ -429,11 +431,11 @@ protected:
 */
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, const std::size_t id): CacheMachine(context, id){
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context): CacheMachine(context){
 
 	}
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size, const std::size_t id);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size);
 
 	~ConcatenatingCacheMachine() = default;
 

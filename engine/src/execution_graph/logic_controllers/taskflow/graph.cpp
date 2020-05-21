@@ -213,25 +213,21 @@ namespace cache {
 
 		target->set_parent(source->get_id());
 		{
-			std::size_t cache_id = target->get_id()*10000 + source->get_id()*100000000; //adicionar source_port and target_port
-
-			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config, cache_id);
+			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config);
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
 
-					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}",
+					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
 									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 									"query_id"_a=config.context->getContextToken(),
 									"source"_a=source->get_id(),
-									"sink"_a=cache_id + index,
-									"port_name"_a="output_" + std::to_string(index));
+									"sink"_a=cache_machines[index]->get_id());
 
-					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}",
+					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
 									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 									"query_id"_a=config.context->getContextToken(),
-									"source"_a=cache_id + index,
-									"sink"_a=target->get_id(),
-									"port_name"_a="input_" + std::to_string(index));
+									"source"_a=cache_machines[index]->get_id(),
+									"sink"_a=target->get_id());
 
 					source->output_.register_cache("output_" + std::to_string(index), cache_machines[index]);
 					target->input_.register_cache("input_" + std::to_string(index), cache_machines[index]);
@@ -240,19 +236,17 @@ namespace cache {
 				source->output_.register_cache(source_port, cache_machines[0]);
 				target->input_.register_cache(target_port, cache_machines[0]);
 
-				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}",
+				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
 								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 								"query_id"_a=config.context->getContextToken(),
 								"source"_a=source->get_id(),
-								"sink"_a=cache_id,
-								"port_name"_a=source_port);
+								"sink"_a=cache_machines[0]->get_id());
 
-				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{port_name}",
+				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
 								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 								"query_id"_a=config.context->getContextToken(),
-								"source"_a=cache_id,
-								"sink"_a=target->get_id(),
-								"port_name"_a=target_port);
+								"source"_a=cache_machines[0]->get_id(),
+								"sink"_a=target->get_id());
 			}
 		}
 		if(not source->has_parent()) {

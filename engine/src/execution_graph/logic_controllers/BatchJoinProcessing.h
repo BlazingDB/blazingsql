@@ -60,10 +60,8 @@ public:
 		cache_machine_config.type = ral::cache::CacheType::SIMPLE;
 		cache_machine_config.context = context->clone();
 
-		std::size_t left_cache_id = this->get_id()*10000+1;
-		std::size_t right_cache_id = this->get_id()*10000+2;
-		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config, left_cache_id); //todo assing right id
-		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config, right_cache_id); //todo assing right id
+		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config);
+		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config);
 	}
 
 	std::unique_ptr<TableSchema> left_schema{nullptr};
