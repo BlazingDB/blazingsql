@@ -375,7 +375,26 @@ public:
 				this->input_.get_cache(cache_id)->wait_until_finished();
 
 				while (this->input_.get_cache(cache_id)->wait_for_next()) {
+					CodeTimer cacheEventTimer(false);
+
+					cacheEventTimer.start();
 					auto table = this->input_.get_cache(cache_id)->pullFromCache();
+					cacheEventTimer.stop();
+
+					auto num_rows = table->num_rows();
+					auto num_bytes = table->sizeInBytes();
+
+					cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"source"_a=this->input_.get_cache(cache_id)->get_id(),
+									"sink"_a=this->get_id(),
+									"num_rows"_a=num_rows,
+									"num_bytes"_a=num_bytes,
+									"event_type"_a="removeCache",
+									"timestamp_begin"_a=cacheEventTimer.start_time(),
+									"timestamp_end"_a=cacheEventTimer.end_time());
+
 					if (table) {
 						tableViews.emplace_back(table->toBlazingTableView());
 						tables.emplace_back(std::move(table));
