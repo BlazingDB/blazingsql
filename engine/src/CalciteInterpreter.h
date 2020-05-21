@@ -2,6 +2,11 @@
 #ifndef CALCITEINTERPRETER_H_
 #define CALCITEINTERPRETER_H_
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "Interpreter/interpreter_cpp.h"
 #include "cudf/legacy/binaryop.hpp"
 #include "io/DataLoader.h"

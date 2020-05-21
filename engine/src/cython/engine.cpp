@@ -14,7 +14,7 @@
 #include "communication/network/Server.h"
 #include <numeric>
 #include <map>
-#include <spdlog/spdlog.h>
+
 using namespace fmt::literals;
 
 std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_loaders_and_schemas(

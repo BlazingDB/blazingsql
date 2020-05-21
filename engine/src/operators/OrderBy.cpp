@@ -12,7 +12,6 @@
 
 #include "utilities/CommonOperations.h"
 
-#include <spdlog/spdlog.h>
 using namespace fmt::literals;
 
 namespace ral {

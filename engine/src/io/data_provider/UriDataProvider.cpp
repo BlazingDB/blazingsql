@@ -11,7 +11,7 @@
 #include "Config/BlazingContext.h"
 #include "arrow/status.h"
 #include <blazingdb/io/Util/StringUtil.h>
-#include <spdlog/spdlog.h>
+
 using namespace fmt::literals;
 
 namespace ral {
