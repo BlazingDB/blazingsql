@@ -328,7 +328,7 @@ public:
 		});
 
 		BlazingThread consumer([this](){
-			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id());
+			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id(), this);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 			while (host_table = external_input.next()) {
 				std::string cache_id = "output_" + std::to_string(host_table->get_part_id());

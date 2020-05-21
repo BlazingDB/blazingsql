@@ -169,8 +169,8 @@ using ral::communication::messages::ReceivedHostMessage;
 template<class MessageType>
 class ExternalBatchColumnDataSequence {
 public:
-	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id)
-		: context{context}, last_message_counter{context->getTotalNodes() - 1}
+	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id, const ral::cache::kernel * kernel = nullptr)
+		: context{context}, last_message_counter{context->getTotalNodes() - 1}, kernel{kernel}
 	{
 		host_cache = std::make_shared<ral::cache::HostCacheMachine>(context, 0); //todo assing right id
 		std::string context_comm_token = context->getContextCommunicationToken();
@@ -203,11 +203,35 @@ public:
 	}
 
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {
-		return host_cache->pullFromCache(context.get());
+		std::shared_ptr<spdlog::logger> cache_events_logger;
+		cache_events_logger = spdlog::get("cache_events_logger");
+
+		CodeTimer cacheEventTimer(false);
+
+		cacheEventTimer.start();
+		auto output = host_cache->pullFromCache(context.get());
+		cacheEventTimer.stop();
+
+		auto num_rows = output->num_rows();
+		auto num_bytes = output->sizeInBytes();
+
+		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=host_cache->get_id(),
+						"sink"_a=kernel->get_id(),
+						"num_rows"_a=num_rows,
+						"num_bytes"_a=num_bytes,
+						"event_type"_a="removeCache",
+						"timestamp_begin"_a=cacheEventTimer.start_time(),
+						"timestamp_end"_a=cacheEventTimer.end_time());
+
+		return output;
 	}
 private:
 	std::shared_ptr<Context> context;
 	std::shared_ptr<ral::cache::HostCacheMachine> host_cache;
+	const ral::cache::kernel * kernel;
 	int last_message_counter;
 };
 

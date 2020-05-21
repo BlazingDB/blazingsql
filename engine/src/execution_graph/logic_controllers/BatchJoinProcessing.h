@@ -619,7 +619,7 @@ public:
 			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id());
 
 		BlazingThread left_consumer([context = this->context, this](){
-			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_left(this->context, this->get_message_id());
+			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_left(this->context, this->get_message_id(), this);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 
 			while (host_table = external_input_left.next()) {
@@ -637,7 +637,7 @@ public:
 
 		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
 		BlazingThread right_consumer([cloned_context, this](){
-			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_right(cloned_context, this->get_message_id());
+			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_right(cloned_context, this->get_message_id(), this);
 			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
 
 			while (host_table = external_input_right.next()) {
@@ -696,7 +696,7 @@ public:
 		});
 
 		BlazingThread collect_small_table_thread([this, small_output_cache_name](){
-			ExternalBatchColumnDataSequence<ColumnDataMessage> external_input_left(this->context, this->get_message_id());
+			ExternalBatchColumnDataSequence<ColumnDataMessage> external_input_left(this->context, this->get_message_id(), this);
 
 			while (external_input_left.wait_for_next()) {
 				std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_left.next();
