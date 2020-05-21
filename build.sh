@@ -158,23 +158,24 @@ if buildAll || hasArg libengine; then
     echo "Building libengine"
     mkdir -p ${LIBENGINE_BUILD_DIR}
     cd ${LIBENGINE_BUILD_DIR}
-    echo "cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_EXE_LINKER_FLAGS=\"$CXXFLAGS\" .."
+    echo "cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_EXE_LINKER_FLAGS=$CXXFLAGS .."
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
           -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
 
+    echo "Building libengine: make step"
     if [[ ${TESTS} == "ON" ]]; then
-        echo "make -j${PARALLEL_LEVEL} all"
-        make -j${PARALLEL_LEVEL} all
+        echo "make -j4 all"
+        make -j4 all
     else
-        echo "make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}"
-        make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}
+        echo "make -j4 blazingsql-engine VERBOSE=${VERBOSE}"
+        make -j4 blazingsql-engine VERBOSE=${VERBOSE}
     fi
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
-        echo "make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
-        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
+        echo "make -j4 install VERBOSE=${VERBOSE}"
+        make -j4 install VERBOSE=${VERBOSE}
         cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     fi
 fi
