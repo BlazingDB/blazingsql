@@ -19,7 +19,7 @@
 #include "execution_graph/logic_controllers/BatchProcessing.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
 
-#include <spdlog/spdlog.h>
+
 
 using namespace fmt::literals;
 

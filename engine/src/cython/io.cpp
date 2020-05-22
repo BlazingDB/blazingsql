@@ -11,7 +11,7 @@
 #include "utilities/DebuggingUtils.h"
 
 #include <blazingdb/io/Config/BlazingContext.h>
-#include <spdlog/spdlog.h>
+
 using namespace fmt::literals;
 
 // #include <blazingdb/io/Library/Logging/TcpOutput.h>

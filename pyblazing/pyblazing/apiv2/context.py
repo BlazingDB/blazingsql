@@ -154,6 +154,28 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 
     return ralCommunicationPort, workerIp, cwd
 
+def getNodePartitionKeys(df, client):
+    from dask import delayed
+
+    workers = client.scheduler_info()['workers']
+
+    worker_partitions = {}
+    for worker in workers:
+        worker_partitions[worker] = []
+
+    dask.distributed.wait(df)
+    worker_part = client.who_has(df)
+
+    for key in worker_part:
+        if len(worker_part[key]) > 0:
+            worker = worker_part[key][0]
+            worker_partitions[worker].append(key)
+        else:
+            logging.error("ERROR: In getNodePartitions, woker has no corresponding partition")
+            print("ERROR: In getNodePartitions, woker has no corresponding partition")
+    
+    return worker_partitions
+
 def getNodePartitionFutures(df, client):
     from dask import delayed
 
@@ -214,10 +236,6 @@ def getNodePartitions(df, client):
             logging.error("ERROR: In getNodePartitions, woker has no corresponding partition")
             print("ERROR: In getNodePartitions, woker has no corresponding partition")
 
-            # WSM TODO want to have here a dictionary of futures that contains a list of futures to the dask partitions
-            # blah = delayed(list)(delayed_obj for delayed_obj in some_list)
-            # blah --> 'Delayed-list-2wiehgeowihg2wubg' # Pointing to a list of cudf.DataFrame objects
-    
     return dict((workers[worker]['name'], partitions) for worker, partitions in worker_partitions.items())
 
 
@@ -233,44 +251,55 @@ def collectPartitionsRunQuery(
         ctxToken,
         algebra,
         accessToken,
-        config_options):
+        config_options,
+        single_gpu=False):
+
     # import dask.distributed
-    # worker_id = dask.distributed.get_worker().name
-    # logging.info('running collectPartitionsRunQuery for ' + str(worker_id) + ' for algebra ' + algebra)
+    # worker = dask.distributed.get_worker()
+    # worker_id = worker.name
+    # # breakpoint()
     # for table_name in tables:
     #     if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
-    #         partitions = tables[table_name].get_partitions(worker_id)
-    #         logging.info('collectPartitionsRunQuery num partitions ' + str(len(partitions)))
-    #         if partitions is None:
-    #             logging.error("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-    #             print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-    #         if (len(partitions) == 0):
-    #             logging.warning("wARNING: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-    #             tables[table_name].input = [tables[table_name].df_schema]
-    #         elif (len(partitions) == 1):
-    #             logging.info('collectPartitionsRunQuery 1 partition about to compute')
-    #             tables[table_name].input = [tables[table_name].input.get_partition(
-    #                 partitions[0]).compute()]
-    #             logging.info('collectPartitionsRunQuery 1 partition computed')
+    #         if single_gpu:
+    #             tables[table_name].input = [tables[table_name].input.compute()]
     #         else:
-    #             logging.info('collectPartitionsRunQuery more than 1 partitions')
-    #             table_partitions = []
-    #             for i, partition in enumerate(partitions):
-    #                 logging.info('collectPartitionsRunQuery about to compute partition ' + str(i))
-    #                 table_partitions.append(
-    #                     tables[table_name].input.get_partition(partition).compute())
-    #                 logging.info('collectPartitionsRunQuery computed partition ' + str(i))
-    #             tables[table_name].input = table_partitions #no concat
+    #             partitions = tables[table_name].get_partitions(worker_id)
+    #             if partitions is None:
+    #                 print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
+    #             if (len(partitions) == 0):
+    #                 tables[table_name].input = [tables[table_name].df_schema]
+    #             elif (len(partitions) == 1):
+    #                 tables[table_name].input = [tables[table_name].input.get_partition(
+    #                     partitions[0]).compute()]
+    #             else:
+    #                 print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
+    # This limitation is expected to exist until blazingsql version 0.14.
+    # In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
+    #     dask_df = bc.unify_partitions(dask_df)
+    #     bc.create_table('my_table', dask_df)""")
+    #                 table_partitions = []
+    #                 for partition in partitions:
+    #                     table_partitions.append(
+    #                         tables[table_name].input.get_partition(partition).compute())
+    #                     tables[table_name].input = table_partitions #no concat
 
-    return cio.runQueryCaller(
-        masterIndex,
-        nodes,
-        tables,
-        fileTypes,
-        ctxToken,
-        algebra,
-        accessToken,
-        config_options)
+    try:
+        result = cio.runQueryCaller(
+                            masterIndex,
+                            nodes,
+                            tables,
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            config_options)
+    except cio.RunQueryError as e:
+        print(">>>>>>>> ", e)
+        result = cudf.DataFrame()
+    except Exception as e:
+        raise e
+
+    return result
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -671,7 +700,8 @@ class BlazingTable(object):
                 self.input = self.input.persist()
                 # logging.info("BlazingTable getNodePartitions")
                 # self.dask_mapping = getNodePartitions(self.input, client)
-                self.futures_mapping = getNodePartitionFutures(self.input, client)                                
+                self.futures_mapping = getNodePartitionFutures(self.input, client)
+                # self.partition_keys_mapping = getNodePartitionKeys(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
 
@@ -746,6 +776,22 @@ class BlazingTable(object):
 
         return nodeFilesList
 
+    def getDaskDataFrameKeySlices(self, nodes):
+        import copy 
+        nodeFilesList = []
+        for node in nodes:
+            # here we are making a shallow copy of the table and replacing the input dask DataFrame with the futures for the partitions for that worker
+            table = copy.copy(self)
+            if node['worker'] in self.partition_keys_mapping:
+                table.input = self.partition_keys_mapping[node['worker']]
+            else:
+                print("getDaskDataFrameKeySlices node['worker'] not found in self.partition_keys_mapping ")
+                logging.info("getDaskDataFrameKeySlices node['worker'] not found in self.partition_keys_mapping ")
+                table.input = [table.input._meta]
+            nodeFilesList.append(table)
+
+        return nodeFilesList
+
     def getSlices(self, numSlices):
         nodeFilesList = []
         if self.files is None:
@@ -786,7 +832,7 @@ class BlazingTable(object):
         if worker not in self.dask_mapping:
             logging.error("Worker " + str(worker) + " is not in the table dask_mapping")
             assert False, "Worker [{}] is not in the table dask_mapping".format(worker)
-            
+
         return self.dask_mapping[worker]
 
 
@@ -832,13 +878,13 @@ class BlazingContext(object):
                                            default: 400000000
                                     TABLE_SCAN_KERNEL_NUM_THREADS: The number of threads used in the TableScan and BindableTableScan kernels for
                                            reading batches
-                                           default: 1
+                                           default: 4
                                     MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
                                            default: 400000000
-                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to 
+                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to
                                             stop execution until the output cache contains less.
                                             default: max int (makes it not applicable)
-                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to 
+                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to
                                             stop execution until the output cache contains less.
                                             default: max size_t (makes it not applicable)
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
@@ -883,7 +929,7 @@ class BlazingContext(object):
         self.config_options = {}
         for option in config_options:
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
-        
+
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
@@ -1486,7 +1532,17 @@ class BlazingContext(object):
 
     def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query,single_gpu):
         nodeFilesList = []
-        file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
+        
+        try:
+            file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
+        except cio.RunSkipDataError as e:
+            print(">>>>>>>> ", e)
+            file_indices_and_rowgroup_indices = {}
+            file_indices_and_rowgroup_indices['skipdata_analysis_fail'] = True
+            file_indices_and_rowgroup_indices['metadata'] = cudf.DataFrame()
+        except Exception as e:
+            raise e
+        
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
 
@@ -1593,7 +1649,7 @@ class BlazingContext(object):
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
 
-    
+
 
     def sql(self, query, table_list=[], algebra=None, return_futures=False, single_gpu=False, config_options={}):
         """
@@ -1604,7 +1660,7 @@ class BlazingContext(object):
         Parameters
         ----------
         query :                     string of SQL query.
-        algebra (optional) :        string of SQL algebra plan. Use this to run on a relational algebra, instead of the query string 
+        algebra (optional) :        string of SQL algebra plan. Use this to run on a relational algebra, instead of the query string
         return_futures (optional) : defaulted to false. Set to true if you want the `sql` function to return futures instead of data
         single_gpu (optional) :     defaulted to false. Set to true if you want to run the query on a single gpu, even is the BlazingContext
                                     is setup with a dask cluster. This is useful for manually running different queries on different gpus
@@ -1680,6 +1736,7 @@ class BlazingContext(object):
             for option in config_options:
                 query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
+
         if self.dask_client is None or single_gpu == True :
             new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
         else:
@@ -1708,7 +1765,9 @@ class BlazingContext(object):
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
                 if single_gpu == True:
                     #TODO: repartition onto the node that does the work
-                    print("Unsupported running single_gpu queries on dask_cudf please use files")
+                    if new_tables[table].input.npartitions != 1:
+                        new_tables[table].input = new_tables[table].input.repartition(npartitions=1)
+                        new_tables[table].input = new_tables[table].input.persist()
                 elif new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
                     print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
                     logging.warning("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
@@ -1738,15 +1797,21 @@ class BlazingContext(object):
         algebra = get_plan(algebra)
 
         if self.dask_client is None:
-            result = cio.runQueryCaller(
-                        masterIndex,
-                        self.nodes,
-                        nodeTableList[0],
-                        fileTypes,
-                        ctxToken,
-                        algebra,
-                        accessToken,
-                        query_config_options)
+            try:
+                result = cio.runQueryCaller(
+                            masterIndex,
+                            self.nodes,
+                            nodeTableList[0],
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            query_config_options)
+            except cio.RunQueryError as e:
+                print(">>>>>>>> ", e)
+                result = cudf.DataFrame()
+            except Exception as e:
+                raise e
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
@@ -1760,7 +1825,8 @@ class BlazingContext(object):
                         ctxToken,
                         algebra,
                         accessToken,
-                        query_config_options)]
+                        query_config_options,
+                        single_gpu=True)]
             else:
                 logging.info("about to run collectPartitionsRunQuery. num nodes is: " + str(len(self.nodes)))
                 logging.info("self.nodes Object: " + str(self.nodes))

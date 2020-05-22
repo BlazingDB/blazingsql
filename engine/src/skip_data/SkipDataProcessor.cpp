@@ -1,3 +1,7 @@
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include "SkipDataProcessor.h"
 
@@ -9,7 +13,7 @@
 #include "Utils.cuh"
 
 #include <numeric>
-#include <spdlog/spdlog.h>
+
 using namespace fmt::literals;
 
 namespace ral {

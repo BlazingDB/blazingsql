@@ -1,6 +1,5 @@
 #pragma once
 
-#include <spdlog/spdlog.h>
 #include "kernel_type.h"
 #include "port.h"
 #include "graph.h"

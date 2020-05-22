@@ -1,5 +1,11 @@
 #include <algorithm>
-#include <cudf.h>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
+//#include <cudf.h>
 #include <cudf/table/table_view.hpp>
 #include <iomanip>
 #include <map>
@@ -9,19 +15,10 @@
 #include "Utils.cuh"
 
 #include "CalciteExpressionParsing.h"
-#include "cudf/legacy/binaryop.hpp"
+#include "cudf/binaryop.hpp"
 #include <cudf/scalar/scalar_factories.hpp>
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
-
-
-bool is_type_signed(cudf::type_id type) {
-	return (cudf::type_id::INT8 == type || cudf::type_id::BOOL8 == type || cudf::type_id::INT16 == type ||
-			cudf::type_id::INT32 == type || cudf::type_id::INT64 == type || cudf::type_id::FLOAT32 == type ||
-			cudf::type_id::FLOAT64 == type || cudf::type_id::TIMESTAMP_DAYS == type ||
-			cudf::type_id::TIMESTAMP_SECONDS == type || cudf::type_id::TIMESTAMP_MILLISECONDS == type ||
-			cudf::type_id::TIMESTAMP_MICROSECONDS == type || cudf::type_id::TIMESTAMP_NANOSECONDS == type);
-}
 
 bool is_type_float(cudf::type_id type) { return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type); }
 
@@ -34,12 +31,6 @@ bool is_date_type(cudf::type_id type) {
 	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
 			cudf::type_id::TIMESTAMP_MILLISECONDS == type || cudf::type_id::TIMESTAMP_MICROSECONDS == type ||
 			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
-}
-
-// TODO percy noboa see upgrade to uints
-bool is_numeric_type(cudf::type_id type) {
-	// return is_type_signed(type) || is_type_unsigned_numeric(type);
-	return is_type_signed(type);
 }
 
 cudf::type_id get_next_biggest_type(cudf::type_id type) {
@@ -105,7 +96,7 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, const std::s
 
 cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2) {
 	if(type1 == type2) {
-		return type1;		
+		return type1;
 	} else if((is_type_float(type1) && is_type_float(type2)) || (is_type_integer(type1) && is_type_integer(type2))) {
 		return (cudf::size_of(cudf::data_type{type1}) >= cudf::size_of(cudf::data_type{type2}))
 						? type1
@@ -115,8 +106,8 @@ cudf::type_id get_common_type(cudf::type_id type1, cudf::type_id type2) {
 						cudf::type_id::TIMESTAMP_MILLISECONDS, cudf::type_id::TIMESTAMP_SECONDS, cudf::type_id::TIMESTAMP_DAYS};
 		for (auto datetime_type : datetime_types){
 			if(type1 == datetime_type || type2 == datetime_type)
-				return datetime_type;	
-		}		
+				return datetime_type;
+		}
 	} else if((type1 == cudf::type_id::STRING) &&
 			  (type2 == cudf::type_id::STRING)) {
 		return cudf::type_id::STRING;
@@ -172,56 +163,56 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	if(type_id == cudf::type_id::BOOL8) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = bool;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(scalar_string == "true"));
 		return ret;
 	}
 	if(type_id == cudf::type_id::INT8) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int8_t;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::INT16) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int16_t;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::INT32) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int32_t;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::INT64) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int64_t;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoll(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::FLOAT32) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = float;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stof(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::FLOAT64) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = double;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stod(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::TIMESTAMP_DAYS) {
 		return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d");
 	}
-	if(type_id == cudf::type_id::TIMESTAMP_SECONDS || type_id == cudf::type_id::TIMESTAMP_MILLISECONDS 
+	if(type_id == cudf::type_id::TIMESTAMP_SECONDS || type_id == cudf::type_id::TIMESTAMP_MILLISECONDS
 		|| type_id == cudf::type_id::TIMESTAMP_MICROSECONDS || type_id == cudf::type_id::TIMESTAMP_NANOSECONDS) {
 		if (scalar_string.find(":") != std::string::npos){
 			return strings::str_to_timestamp_scalar(scalar_string, type, "%Y-%m-%d %H:%M:%S");

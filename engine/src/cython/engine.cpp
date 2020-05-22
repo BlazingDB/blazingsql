@@ -14,7 +14,7 @@
 #include "communication/network/Server.h"
 #include <numeric>
 #include <map>
-#include <spdlog/spdlog.h>
+
 using namespace fmt::literals;
 
 #include <spdlog/spdlog.h>
