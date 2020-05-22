@@ -44,7 +44,7 @@ bool is_logical_filter(const std::string & query_part) {
 std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
   const ral::frame::BlazingTableView & table,
   const CudfColumnView & boolValues){
-  auto filteredTable = cudf::experimental::apply_boolean_mask(
+  auto filteredTable = cudf::apply_boolean_mask(
     table.view(),boolValues);
   return std::make_unique<ral::frame::BlazingTable>(std::move(
     filteredTable),table.names());
@@ -56,7 +56,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
   blazingdb::manager::Context * context) {
 
 	if(table_view.num_rows() == 0) {
-		return std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(table_view.view()), table_view.names());
+		return std::make_unique<ral::frame::BlazingTable>(cudf::empty_like(table_view.view()), table_view.names());
 	}
 	
   std::string conditional_expression = get_named_expression(query_part, "condition");
@@ -135,12 +135,12 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       std::transform(columnIndices.begin(), columnIndices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
       
       std::vector<cudf::size_type> hased_data_offsets;
-      std::tie(hashed_data, hased_data_offsets) = cudf::experimental::hash_partition(table.view(),
+      std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(table.view(),
               columns_to_hash, context->getTotalNodes());
 
       // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
       std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-      std::vector<CudfTableView> partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
+      std::vector<CudfTableView> partitioned = cudf::split(hashed_data->view(), split_indexes);
       
       for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
           partitions.emplace_back(

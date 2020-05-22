@@ -47,12 +47,31 @@ logger "Check GPU usage..."
 nvidia-smi
 
 logger "Activate conda env..."
-source activate gdf
+conda create python=$PYTHON -y -n bsql
+source activate bsql
 
-conda install -y "bsql-toolchain=${MINOR_VERSION}.*" "librmm=${MINOR_VERSION}.*" "libcudf=${MINOR_VERSION}.*" \
-              "libnvstrings=${MINOR_VERSION}.*" "dask-cudf=${MINOR_VERSION}.*" "dask-cuda=${MINOR_VERSION}.*" \
-              "openjdk=8.0" "sasl=0.2.1" "maven" "libhdfs3" "cppzmq" "gmock" "jpype1" "netifaces" "pyhive" \
-              "arrow-cpp=0.15.0" "gtest" "cmake" "cppzmq" "cudatoolkit=${CUDA_REL}" "cython>=0.29" "numpy" "curl=7.68.0"
+# conda install -y "bsql-toolchain=${MINOR_VERSION}.*" "librmm=${MINOR_VERSION}.*" "libcudf=${MINOR_VERSION}.*" \
+#               "libnvstrings=${MINOR_VERSION}.*" "dask-cudf=${MINOR_VERSION}.*" "dask-cuda=${MINOR_VERSION}.*" \
+#               "openjdk=8.0" "sasl=0.2.1" "maven" "libhdfs3" "cppzmq" "gmock" "jpype1" "netifaces" "pyhive" \
+#               "arrow-cpp=0.15.0" "gtest" "cmake" "cppzmq" "cudatoolkit=${CUDA_REL}" "cython>=0.29" "numpy" "curl=7.68.0"
+
+echo "Installing BlazingSQL dev environment"
+
+# install deps
+# NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
+echo "conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive"
+conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
+echo "BlazingSQL deps installed"
+
+# install toolchain
+echo "conda install --yes bsql-toolchain=${MINOR_VERSION} bsql-toolchain-aws-cpp=${MINOR_VERSION} bsql-toolchain-gcp-cpp=${MINOR_VERSION} bsql-rapids-thirdparty=${MINOR_VERSION} curl=7.68.0"
+conda install --yes bsql-toolchain=${MINOR_VERSION} bsql-toolchain-aws-cpp=${MINOR_VERSION} bsql-toolchain-gcp-cpp=${MINOR_VERSION} bsql-rapids-thirdparty=${MINOR_VERSION} curl=7.68.0
+echo "BlazingSQL toolchain installed"
+
+# install cudf
+echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL"
+conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL
+echo "BlazingSQL cudf installed"
 
 logger "Check versions..."
 python --version

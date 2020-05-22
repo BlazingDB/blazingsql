@@ -15,7 +15,7 @@
 namespace ral {
 namespace io {
 
-namespace cudf_io = cudf::experimental::io;
+namespace cudf_io = cudf::io;
 
 parquet_parser::parquet_parser() {
 	// TODO Auto-generated constructor stub
@@ -128,7 +128,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 			auto columns = result_table->release();
 			// Assuming columns are in the same order as column_indices and any extra columns (i.e. index column) are put last
 			columns.resize(column_indices.size());
-			result_table = std::make_unique<cudf::experimental::table>(std::move(columns));
+			result_table = std::make_unique<cudf::table>(std::move(columns));
 		}
 
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), result.metadata.column_names);

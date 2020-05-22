@@ -64,21 +64,21 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<s
 	for (auto idx : column_indices) {
 		columns[idx] =  make_empty_column(cudf::data_type(dtypes[idx]));
 	}
-	auto table = std::make_unique<cudf::experimental::table>(std::move(columns));
+	auto table = std::make_unique<cudf::table>(std::move(columns));
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), column_names);
 }
 
-std::unique_ptr<cudf::experimental::table> create_empty_table(const std::vector<cudf::type_id> &dtypes) {
+std::unique_ptr<cudf::table> create_empty_table(const std::vector<cudf::type_id> &dtypes) {
 	std::vector<std::unique_ptr<cudf::column>> columns(dtypes.size());
 	for (size_t idx =0; idx < dtypes.size(); idx++) {
 		columns[idx] =  make_empty_column(cudf::data_type(dtypes[idx]));
 	}
-	return std::make_unique<cudf::experimental::table>(std::move(columns));
+	return std::make_unique<cudf::table>(std::move(columns));
 }
 
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableView & table) {
 
-	std::unique_ptr<CudfTable> empty = cudf::experimental::empty_like(table.view());
+	std::unique_ptr<CudfTable> empty = cudf::empty_like(table.view());
 	return std::make_unique<ral::frame::BlazingTable>(std::move(empty), table.names());
 }
 
@@ -100,7 +100,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std
 			Library::Logging::Logger().logWarn(buildLogString("", "", "",
 					"WARNING: normalizeColumnTypes casting " + std::to_string(columns[j]->view().type().id()) +
 						" to " + std::to_string(common_type)));
-			std::unique_ptr<CudfColumn> casted = cudf::experimental::cast(columns[j]->view(), cudf::data_type(common_type));
+			std::unique_ptr<CudfColumn> casted = cudf::cast(columns[j]->view(), cudf::data_type(common_type));
 			columns_out.emplace_back(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted)));
 		}
 	}

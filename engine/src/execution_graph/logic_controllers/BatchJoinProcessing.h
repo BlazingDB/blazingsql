@@ -219,13 +219,13 @@ public:
 			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
 			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
 			if(has_nulls_left){
-				table_left_dropna = cudf::experimental::drop_nulls(table_left.view(), left_column_indices);
+				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
 			}
 			if(has_nulls_right){
-				table_right_dropna = cudf::experimental::drop_nulls(table_right.view(), right_column_indices);
+				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
 			}
 
-			result_table = cudf::experimental::inner_join(
+			result_table = cudf::inner_join(
 				has_nulls_left ? table_left_dropna->view() : table_left.view(),
 				has_nulls_right ? table_right_dropna->view() : table_right.view(),
 				this->left_column_indices,
@@ -236,17 +236,17 @@ public:
 			std::unique_ptr<CudfTable> table_right_dropna;
 			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
 			if(has_nulls_right){
-				table_right_dropna = cudf::experimental::drop_nulls(table_right.view(), right_column_indices);
+				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
 			}
-
-			result_table = cudf::experimental::left_join(
+			
+			result_table = cudf::left_join(
 				table_left.view(),
 				has_nulls_right ? table_right_dropna->view() : table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
 				columns_in_common);
 		} else if(this->join_type == OUTER_JOIN) {
-			result_table = cudf::experimental::full_join(
+			result_table = cudf::full_join(
 				table_left.view(),
 				table_right.view(),
 				this->left_column_indices,
@@ -483,13 +483,13 @@ public:
 				auto batch_view = batch->view();
 				std::vector<CudfTableView> partitioned;
 				if (batch->num_rows() > 0) {
-					std::tie(hashed_data, hased_data_offsets) = cudf::experimental::hash_partition(batch_view, column_indices, num_partitions);
+					std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
 
 					assert(hased_data_offsets.begin() != hased_data_offsets.end());
 					// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
 					std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-					partitioned = cudf::experimental::split(hashed_data->view(), split_indexes);
-
+					partitioned = cudf::split(hashed_data->view(), split_indexes);
+					
 				} else {
 					for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
 						partitioned.push_back(batch_view);

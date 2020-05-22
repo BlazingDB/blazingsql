@@ -15,52 +15,47 @@ namespace interops {
 namespace detail {
 
 struct allocate_device_scalar {
-	using scalar_device_ptr = typename std::unique_ptr<cudf::detail::scalar_device_view_base, std::function<void(cudf::detail::scalar_device_view_base*)>>;
 
 	template <typename T, std::enable_if_t<cudf::is_simple<T>()> * = nullptr>
-	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
-		using ScalarDeviceType = cudf::experimental::scalar_device_type_t<T>;
+	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		using ScalarType = cudf::scalar_type_t<T>;
+		using ScalarDeviceType = cudf::scalar_device_type_t<T>;
 
-		ScalarDeviceType * ret = nullptr;
-		RMM_TRY(RMM_ALLOC(&ret, sizeof(ScalarDeviceType), stream));
+		rmm::device_buffer ret(sizeof(ScalarDeviceType), stream);
 
 		auto typed_scalar_ptr = static_cast<ScalarType *>(&s);
 		ScalarDeviceType h_scalar{typed_scalar_ptr->type(), typed_scalar_ptr->data(), typed_scalar_ptr->validity_data()};
 
-    CUDA_TRY(cudaMemcpyAsync(ret, &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
+    CUDA_TRY(cudaMemcpyAsync(ret.data(), &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
 
-		auto deleter = [stream](cudf::detail::scalar_device_view_base * p) { RMM_TRY(RMM_FREE(p, stream)); };
-		return {ret, deleter};
+		return std::move(ret);
 	}
 
 	template <typename T, std::enable_if_t<std::is_same<T, cudf::string_view>::value> * = nullptr>
-	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
-		using ScalarDeviceType = cudf::experimental::scalar_device_type_t<T>;
+	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		using ScalarType = cudf::scalar_type_t<T>;
+		using ScalarDeviceType = cudf::scalar_device_type_t<T>;
 
-		ScalarDeviceType * ret = nullptr;
-		RMM_TRY(RMM_ALLOC(&ret, sizeof(ScalarDeviceType), stream));
+		rmm::device_buffer ret(sizeof(ScalarDeviceType), stream);
 
 		auto typed_scalar_ptr = static_cast<ScalarType *>(&s);
 		ScalarDeviceType h_scalar{typed_scalar_ptr->type(), typed_scalar_ptr->data(), typed_scalar_ptr->validity_data(), typed_scalar_ptr->size()};
 
-		CUDA_TRY(cudaMemcpyAsync(ret, &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
+		CUDA_TRY(cudaMemcpyAsync(ret.data(), &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
 
-		auto deleter = [stream](cudf::detail::scalar_device_view_base * p) { RMM_TRY(RMM_FREE(p, stream)); };
-		return {ret, deleter};
+		return std::move(ret);
 	}
 
 	template <typename T, std::enable_if_t<std::is_same<T, cudf::dictionary32>::value> * = nullptr>
-	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
 		RAL_FAIL("Dictionary not yet supported");
-		return nullptr;
+		return rmm::device_buffer{};
 	}
 
 	template <typename T, std::enable_if_t<std::is_same<T, cudf::list_view>::value> * = nullptr>
-	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
 		RAL_FAIL("List not yet supported");
-		return nullptr;
+		return rmm::device_buffer{};
 	}
 };
 
@@ -421,7 +416,7 @@ cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
 
 cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, operator_type op) {
 	RAL_EXPECTS(input_left_type != cudf::type_id::EMPTY || input_right_type != cudf::type_id::EMPTY, "In get_output_type function: both operands types are empty");
-	
+
 	if(input_left_type == cudf::type_id::EMPTY) {
 		input_left_type = input_right_type;
 	} else if(input_right_type == cudf::type_id::EMPTY) {
@@ -636,17 +631,16 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	auto device_out_table_view = cudf::mutable_table_device_view::create(out_table, stream);
 
 	// device scalar views
-	using scalar_device_ptr = typename allocate_device_scalar::scalar_device_ptr;
-	std::vector<scalar_device_ptr> left_device_scalars_ptrs;
+	std::vector<rmm::device_buffer> left_device_scalars_ptrs;
 	std::vector<cudf::detail::scalar_device_view_base *> left_device_scalars_raw;
-	std::vector<scalar_device_ptr> right_device_scalars_ptrs;
+	std::vector<rmm::device_buffer> right_device_scalars_ptrs;
 	std::vector<cudf::detail::scalar_device_view_base *> right_device_scalars_raw;
 	for (size_t i = 0; i < left_scalars.size(); i++) {
-		left_device_scalars_ptrs.push_back(left_scalars[i] ? cudf::experimental::type_dispatcher(left_scalars[i]->type(), allocate_device_scalar{}, *(left_scalars[i])) : nullptr);
-		left_device_scalars_raw.push_back(left_device_scalars_ptrs.back().get());
+		left_device_scalars_ptrs.push_back(left_scalars[i] ? std::move(cudf::type_dispatcher(left_scalars[i]->type(), allocate_device_scalar{}, *(left_scalars[i]))) : rmm::device_buffer{});
+		left_device_scalars_raw.push_back(static_cast<cudf::detail::scalar_device_view_base *>(left_device_scalars_ptrs.back().data()));
 
-		right_device_scalars_ptrs.push_back(right_scalars[i] ? cudf::experimental::type_dispatcher(right_scalars[i]->type(), allocate_device_scalar{}, *(right_scalars[i])) : nullptr);
-		right_device_scalars_raw.push_back(right_device_scalars_ptrs.back().get());
+		right_device_scalars_ptrs.push_back(right_scalars[i] ? std::move(cudf::type_dispatcher(right_scalars[i]->type(), allocate_device_scalar{}, *(right_scalars[i]))) : rmm::device_buffer{});
+		right_device_scalars_raw.push_back(static_cast<cudf::detail::scalar_device_view_base *>(right_device_scalars_ptrs.back().data()));
 	}
 	rmm::device_vector<cudf::detail::scalar_device_view_base *> left_device_scalars(left_device_scalars_raw);
 	rmm::device_vector<cudf::detail::scalar_device_view_base *> right_device_scalars(right_device_scalars_raw);

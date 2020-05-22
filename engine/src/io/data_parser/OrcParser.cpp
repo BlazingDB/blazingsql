@@ -9,7 +9,7 @@
 namespace ral {
 namespace io {
 
-orc_parser::orc_parser(cudf::experimental::io::read_orc_args arg_) : orc_args{arg_} {}
+orc_parser::orc_parser(cudf::io::read_orc_args arg_) : orc_args{arg_} {}
 
 orc_parser::~orc_parser() {
 	// TODO Auto-generated destructor stub
@@ -40,7 +40,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
 		return nullptr;
 	}
 
-	cudf::experimental::io::read_orc_args new_orc_args = this->orc_args;
+	cudf::io::read_orc_args new_orc_args = this->orc_args;
 	if(column_indices.size() > 0) {
 		new_orc_args.columns.resize(column_indices.size());
 
