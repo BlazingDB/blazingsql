@@ -313,6 +313,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
 
     logging.info('runQueryCaller start')
 
+    scope_holder = [] # calling .result() below, makes a copy. We need to keep the scope of that copy to be for the duration of the query
     tableIndex = 0
     for tableName in tables:
       uri_values_cpp.empty()
@@ -361,6 +362,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
           column_views.resize(0)
           if type(cython_table) == client.Future:
             cython_table = cython_table.result()            
+            scope_holder.append(cython_table)
           for cython_col in cython_table._data.values():
             column_views.push_back(cython_col.view())
           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
