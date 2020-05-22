@@ -1,4 +1,10 @@
 #pragma once
+
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
@@ -10,6 +16,7 @@
 #include <cudf/io/functions.hpp>
 #include <future>
 #include <memory>
+#include <condition_variable>
 #include <mutex>
 #include <queue>
 #include <src/communication/messages/GPUComponentMessage.h>
@@ -273,6 +280,8 @@ class CacheMachine {
 public:
 	CacheMachine(std::shared_ptr<Context> context);
 
+	CacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
+
 	~CacheMachine();
 
 	virtual void put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table);
@@ -312,6 +321,10 @@ public:
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
+	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
+	
+	virtual void wait_if_cache_is_saturated();
+
 
 protected:
 	static std::size_t cache_count;
@@ -329,6 +342,14 @@ protected:
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
+
+	std::uint32_t flow_control_batches_threshold;
+	std::size_t flow_control_bytes_threshold;
+	std::uint32_t flow_control_batches_count;
+	std::size_t flow_control_bytes_count;
+	std::mutex flow_control_mutex;
+	std::condition_variable flow_control_condition_variable;
+
 };
 
 /**
@@ -431,19 +452,13 @@ protected:
 */
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context): CacheMachine(context){
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	}
-
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, size_t bytes_max_size);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
 
 	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
-
-private:
-	size_t bytes_max_size_ = std::numeric_limits<size_t>::max();
-
 };
 
 }  // namespace cache

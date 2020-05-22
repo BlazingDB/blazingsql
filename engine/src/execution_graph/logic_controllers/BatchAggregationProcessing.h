@@ -28,8 +28,12 @@ public:
         this->query_graph = query_graph;
 	}
 
-    virtual kstatus run() {
-        CodeTimer timer;
+    bool can_you_throttle_my_input() {
+		return true;
+	}
+
+	virtual kstatus run() {
+		CodeTimer timer;
         CodeTimer eventTimer(false);
 
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
@@ -39,12 +43,14 @@ public:
         BatchSequence input(this->input_cache(), this);
         int batch_count = 0;
         while (input.wait_for_next()) {
+
+            this->output_cache()->wait_if_cache_is_saturated();
             auto batch = input.next();
+
+            eventTimer.start();
 
             auto log_input_num_rows = batch ? batch->num_rows() : 0;
             auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
-
-            eventTimer.start();
 
             try {
                 std::unique_ptr<ral::frame::BlazingTable> output;
@@ -131,6 +137,10 @@ public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context, kernel_type::DistributeAggregateKernel} {
         this->query_graph = query_graph;
+	}
+
+    bool can_you_throttle_my_input() {
+		return true;
 	}
 
 	virtual kstatus run() {
@@ -264,6 +274,10 @@ public:
 	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{queryString, context, kernel_type::MergeAggregateKernel} {
         this->query_graph = query_graph;
+	}
+
+    bool can_you_throttle_my_input() {
+		return false;
 	}
 
 	virtual kstatus run() {

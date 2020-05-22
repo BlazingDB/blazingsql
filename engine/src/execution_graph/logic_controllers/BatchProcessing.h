@@ -346,10 +346,14 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return false;
+	}
+	
 	virtual kstatus run() {
 		CodeTimer timer;
 
-		int table_scan_kernel_num_threads = 1;
+		int table_scan_kernel_num_threads = 4;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
 		if (it != config_options.end()){
@@ -360,6 +364,8 @@ public:
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
 			threads.push_back(BlazingThread([this]() {
 				CodeTimer eventTimer(false);
+				this->output_cache()->wait_if_cache_is_saturated();
+
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 				while(batch = input.next()) {
 					eventTimer.start();
@@ -378,6 +384,8 @@ public:
 									"timestamp_end"_a=eventTimer.end_time());
 
 					this->add_to_output_cache(std::move(batch));
+
+					this->output_cache()->wait_if_cache_is_saturated();
 				}
 			}));
 		}
@@ -420,12 +428,16 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return false;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
 		input.set_projections(get_projections(expression));
 
-		int table_scan_kernel_num_threads = 1;
+		int table_scan_kernel_num_threads = 4;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
 		if (it != config_options.end()){
@@ -437,6 +449,8 @@ public:
 			threads.push_back(BlazingThread([expression = this->expression, this]() {
 
 				CodeTimer eventTimer(false);
+				this->output_cache()->wait_if_cache_is_saturated();
+
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 				while(batch = input.next()) {
 					try {
@@ -489,6 +503,9 @@ public:
 
 							this->add_to_output_cache(std::move(batch));
 						}
+						
+						this->output_cache()->wait_if_cache_is_saturated();
+
 					} catch(const std::exception& e) {
 						// TODO add retry here
 						logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
@@ -539,6 +556,10 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
@@ -547,6 +568,8 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache()->wait_if_cache_is_saturated();
+
 				auto batch = input.next();
 
 				auto log_input_num_rows = batch ? batch->num_rows() : 0;
@@ -609,6 +632,10 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
@@ -617,6 +644,8 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
+				this->output_cache()->wait_if_cache_is_saturated();
+
 				auto batch = input.next();
 
 				auto log_input_num_rows = batch->num_rows();
@@ -688,6 +717,11 @@ class Print : public kernel {
 public:
 	Print() : kernel("Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
 	Print(std::ostream & stream) : kernel("Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
+
+	bool can_you_throttle_my_input() {
+		return false;
+	}
+
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
 		BatchSequence input(this->input_cache(), this);
@@ -732,6 +766,10 @@ public:
 		}
 
 		return kstatus::stop;
+	}
+
+	bool can_you_throttle_my_input() {
+		return false;
 	}
 
 	frame_type	release() {

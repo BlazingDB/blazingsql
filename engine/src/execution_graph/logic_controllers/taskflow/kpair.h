@@ -18,8 +18,9 @@ enum class CacheType {SIMPLE, CONCATENATING, FOR_EACH };
 struct cache_settings {
 	CacheType type = CacheType::SIMPLE;
 	int num_partitions = 1;
-	size_t max_concat_byte_size = std::numeric_limits<size_t>::max();
 	std::shared_ptr<Context> context;
+	std::uint32_t flow_control_batches_threshold = std::numeric_limits<std::uint32_t>::max();
+	std::size_t flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
 };
 
 using kernel_pair = std::pair<kernel *, std::string>;

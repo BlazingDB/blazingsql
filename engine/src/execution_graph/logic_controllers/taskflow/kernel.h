@@ -1,6 +1,5 @@
 #pragma once
 
-#include <spdlog/spdlog.h>
 #include "kernel_type.h"
 #include "port.h"
 #include "graph.h"
@@ -53,14 +52,16 @@ public:
 
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
 
+	virtual bool can_you_throttle_my_input() = 0;
+
 	std::shared_ptr<ral::cache::CacheMachine>  input_cache() {
 		auto kernel_id = std::to_string(this->get_id());
 		return this->input_.get_cache(kernel_id);
 	}
 
-	std::shared_ptr<ral::cache::CacheMachine>  output_cache() {
-		auto kernel_id = std::to_string(this->get_id());
-		return this->output_.get_cache(kernel_id);
+	std::shared_ptr<ral::cache::CacheMachine>  output_cache(std::string cache_id = "") {
+		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+		return this->output_.get_cache(cache_id);
 	}
 
 	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "") {
@@ -175,6 +176,13 @@ public:
 	// this function gets the estimated num_rows for the output
 	// the default is that its the same as the input (i.e. project, sort, ...)
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
+
+	void wait_if_output_is_saturated(std::string cache_id = ""){
+		std::string message_id = get_message_id();
+		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
+		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+		this->output_.get_cache(cache_id)->wait_if_cache_is_saturated();
+	}
 
 protected:
 	static std::size_t kernel_count;

@@ -11,6 +11,10 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
+#include "utilities/BlazingSqlInvalidAlgebraException.h"
+
+using namespace fmt::literals;
+
 
 namespace ral {
 namespace batch {
@@ -92,6 +96,8 @@ struct tree_processor {
 		} else if (is_union(expr)) {
 			k = std::make_shared<UnionKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
+		} else {
+			throw ral::utilities::BlazingSqlInvalidAlgebraException("expression in the Algebra Relational is currently not supported: " + expr);
 		}
 		return k;
 	}
@@ -244,6 +250,11 @@ struct tree_processor {
 
 			expr_tree_from_json(p_tree, &this->root, 0, query_graph);
 		} catch (std::exception & e) {
+			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+			logger->error("|||{info}|||||",
+										"info"_a="In build_batch_graph. What: {}"_format(e.what()));
+			logger->flush();
+
 			std::cerr << "property_tree:" << e.what() <<  std::endl;
 			throw e;
 		}
@@ -261,57 +272,96 @@ struct tree_processor {
 			visit(query_graph, child.get(), child->children);
 			std::string port_name = "input";
 
+			std::uint32_t flow_control_batches_threshold = std::numeric_limits<std::uint32_t>::max();
+			std::size_t flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
+			std::map<std::string, std::string> config_options = context->getConfigOptions();
+			auto it = config_options.find("FLOW_CONTROL_BATCHES_THRESHOLD");
+			if (it != config_options.end()){
+				flow_control_batches_threshold = std::stoi(config_options["FLOW_CONTROL_BATCHES_THRESHOLD"]);
+			}
+			it = config_options.find("FLOW_CONTROL_BYTES_THRESHOLD");
+			if (it != config_options.end()){
+				flow_control_bytes_threshold = std::stoull(config_options["FLOW_CONTROL_BYTES_THRESHOLD"]);
+			}
+			// if only one of these is set, we need to set the other one to 0
+			if (flow_control_batches_threshold != std::numeric_limits<std::uint32_t>::max() || flow_control_bytes_threshold != std::numeric_limits<std::size_t>::max()){
+				if (flow_control_batches_threshold == std::numeric_limits<std::uint32_t>::max()){
+					flow_control_batches_threshold = 0;
+				}
+				if (flow_control_bytes_threshold == std::numeric_limits<std::size_t>::max()){
+					flow_control_bytes_threshold = 0;
+				}
+			}
+			cache_settings default_throttled_cache_machine_config = cache_settings{.type = CacheType::SIMPLE, .num_partitions = 1, .context = context->clone(),
+						.flow_control_batches_threshold = flow_control_batches_threshold, .flow_control_bytes_threshold = flow_control_bytes_threshold};
+			
 			if (children.size() > 1) {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
 				port_name.push_back(index_char);
+				if (parent->kernel_unit->can_you_throttle_my_input()){
+					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], default_throttled_cache_machine_config);
+				} else {
+					cache_settings cache_machine_config;
+					cache_machine_config.context = context->clone();
 
-				cache_settings cache_machine_config;
-				cache_machine_config.context = context->clone();
-
-				query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], cache_machine_config);
+					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], cache_machine_config);
+				}
 			} else {
 				auto child_kernel_type = child->kernel_unit->get_type_id();
 				auto parent_kernel_type = parent->kernel_unit->get_type_id();
 				if ((child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel)
 					    || (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
 						|| (child_kernel_type == kernel_type::SortAndSampleSingleNodeKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
-					
-					cache_settings cache_machine_config;
-					cache_machine_config.context = context->clone();
 
-					query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], cache_machine_config);
-					query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], cache_machine_config);
+					if (parent->kernel_unit->can_you_throttle_my_input()){
+						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], default_throttled_cache_machine_config);
+						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], default_throttled_cache_machine_config);
+					} else {					
+						cache_settings cache_machine_config;
+						cache_machine_config.context = context->clone();
+
+						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], cache_machine_config);
+						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], cache_machine_config);
+					}
+
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
 					
 					int max_num_order_by_partitions_per_node = 8; 
-					std::map<std::string, std::string> config_options = context->getConfigOptions();
 					auto it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
 					if (it != config_options.end()){
 						max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
 					}
-
-					ral::cache::cache_settings cache_machine_config;
-					cache_machine_config.type = ral::cache::CacheType::FOR_EACH;
-					cache_machine_config.num_partitions = max_num_order_by_partitions_per_node;
-					cache_machine_config.context = context->clone();
-					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
-
-				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
-					size_t max_concat_cache_byte_size = 400000000; // 400 MB
-					std::map<std::string, std::string> config_options = context->getConfigOptions();
-					auto it = config_options.find("MAX_CONCAT_CACHE_BYTE_SIZE");
-					if (it != config_options.end()){
-						max_concat_cache_byte_size = std::stoull(config_options["MAX_CONCAT_CACHE_BYTE_SIZE"]);
+					if (parent->kernel_unit->can_you_throttle_my_input()){
+						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = max_num_order_by_partitions_per_node,
+								.context = context->clone(), .flow_control_batches_threshold = flow_control_batches_threshold,
+								.flow_control_bytes_threshold = flow_control_bytes_threshold};
+						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+					} else {
+						ral::cache::cache_settings cache_machine_config;
+						cache_machine_config.type = ral::cache::CacheType::FOR_EACH;
+						cache_machine_config.num_partitions = max_num_order_by_partitions_per_node;
+						cache_machine_config.context = context->clone();
+						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 					}
-					cache_settings cache_machine_config;
-					cache_machine_config.type = CacheType::CONCATENATING;
-					cache_machine_config.max_concat_byte_size = max_concat_cache_byte_size;
-					cache_machine_config.context = context->clone();
+				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
+					std::size_t max_data_load_concat_cache_bytes_size = 400000000; // 400 MB
+					config_options = context->getConfigOptions();
+					it = config_options.find("MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE");
+					if (it != config_options.end()){
+						max_data_load_concat_cache_bytes_size = std::stoull(config_options["MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE"]);
+					}
+					// if flow_control_batches_threshold is set then lets use it. Otherwise lets use 0 so that only MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE applies
+					std::uint32_t loading_flow_control_batches_threshold = 0;
+					if (flow_control_batches_threshold != std::numeric_limits<std::uint32_t>::max()){
+						loading_flow_control_batches_threshold = flow_control_batches_threshold;
+					}
+					cache_settings cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
+						.flow_control_batches_threshold = loading_flow_control_batches_threshold, .flow_control_bytes_threshold = max_data_load_concat_cache_bytes_size};
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 
-				}	else {
+				} else {
 					cache_settings cache_machine_config;
 					cache_machine_config.context = context->clone();
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
@@ -319,7 +369,6 @@ struct tree_processor {
 			}
 		}
 	}
-
 };
  
 

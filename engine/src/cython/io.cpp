@@ -12,6 +12,8 @@
 
 #include <blazingdb/io/Config/BlazingContext.h>
 
+using namespace fmt::literals;
+
 // #include <blazingdb/io/Library/Logging/TcpOutput.h>
 // #include "blazingdb/io/Library/Network/NormalSyncSocket.h"
 
@@ -52,6 +54,12 @@ TableSchema parseSchema(std::vector<std::string> files,
 	try {
 		loader->get_schema(schema, extra_columns);
 	} catch(std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("|||{info}|||||",
+									"info"_a="In parseSchema. What: {}"_format(e.what()));
+		std::cerr << "**[performPartition]** error partitioning table.\n";
+		logger->flush();
+
 		throw;
 	}
 

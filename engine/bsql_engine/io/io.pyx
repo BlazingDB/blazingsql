@@ -70,6 +70,10 @@ class RunQueryError(BlazingError):
     """RunQuery Error."""
 cdef public PyObject *RunQueryError_ = <PyObject *>RunQueryError
 
+class RunSkipDataError(BlazingError):
+    """RunSkipData Error."""
+cdef public PyObject *RunSkipDataError_ = <PyObject *>RunSkipDataError
+
 class ParseSchemaError(BlazingError):
     """ParseSchema Error."""
 cdef public PyObject * ParseSchemaError_ = <PyObject *>ParseSchemaError

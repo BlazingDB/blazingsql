@@ -48,6 +48,8 @@ enum class operator_type {
 	BLZ_SECOND,
 	BLZ_IS_NULL,
 	BLZ_IS_NOT_NULL,
+	BLZ_CAST_TINYINT,
+	BLZ_CAST_SMALLINT,
 	BLZ_CAST_INTEGER,
 	BLZ_CAST_BIGINT,
 	BLZ_CAST_FLOAT,
@@ -55,6 +57,7 @@ enum class operator_type {
 	BLZ_CAST_DATE,
 	BLZ_CAST_TIMESTAMP,
 	BLZ_CAST_VARCHAR,
+	BLZ_CHAR_LENGTH,
 
 	// Binary operators
   BLZ_ADD,            ///< operator +

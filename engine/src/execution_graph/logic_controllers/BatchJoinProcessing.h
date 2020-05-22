@@ -64,6 +64,10 @@ public:
 		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config);
 	}
 
+	bool can_you_throttle_my_input() {
+		return false;  // join has its own sort of limiter, so its not good to try to apply another limiter
+	}
+
 	std::unique_ptr<TableSchema> left_schema{nullptr};
  	std::unique_ptr<TableSchema> right_schema{nullptr};
 
@@ -453,13 +457,17 @@ public:
 		this->output_.add_port("output_a", "output_b");
 	}
 
+	bool can_you_throttle_my_input() {
+		return true;
+	}
 
 	static void partition_table(std::shared_ptr<Context> local_context,
 				std::vector<cudf::size_type> column_indices,
 				std::unique_ptr<ral::frame::BlazingTable> batch,
 				BatchSequence & sequence,
 				std::shared_ptr<ral::cache::CacheMachine> & output,
-				const std::string & message_id)
+				const std::string & message_id,
+				std::shared_ptr<spdlog::logger> logger)
 	{
 		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 
@@ -513,7 +521,16 @@ public:
 				}
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				std::string err = "ERROR: in JoinPartitionKernel batch_count " + std::to_string(batch_count) + " Error message: " + std::string(e.what());
+				std::string err = "ERROR: in partition_table batch_count " + std::to_string(batch_count) + " Error message: " + std::string(e.what());
+
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=local_context->getContextToken(),
+											"step"_a=local_context->getQueryStep(),
+											"substep"_a=local_context->getQuerySubstep(),
+											"info"_a=err,
+											"duration"_a="");
+				logger->flush();
+				
 				std::cout<<err<<std::endl;
 			}
         }
@@ -614,9 +631,10 @@ public:
 			}
 		}
 
-		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context,
-			this->left_column_indices, std::move(left_batch), std::ref(left_sequence),
-			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id());
+		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context, 
+			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
+			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id(),
+			this->logger);
 
 		BlazingThread left_consumer([context = this->context, this](){
 			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_left(this->context, this->get_message_id(), this);
@@ -631,9 +649,10 @@ public:
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
 
-		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context,
-			this->right_column_indices, std::move(right_batch), std::ref(right_sequence),
-			std::ref(this->output_.get_cache("output_b")), "output_b_" + this->get_message_id());
+		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
+			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
+			std::ref(this->output_.get_cache("output_b")), "output_b_" + this->get_message_id(),
+			this->logger);
 
 		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
 		BlazingThread right_consumer([cloned_context, this](){

@@ -7,6 +7,11 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <algorithm>
 #include <cuda_runtime.h>
 #include <memory>
@@ -28,10 +33,9 @@
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+using namespace fmt::literals;
+
+#include <engine/static.h> // this contains function call for getProductDetails
 
 std::string get_ip(const std::string & iface_name = "eth0") {
 	int fd;
@@ -117,11 +121,6 @@ void initialize(int ralId,
 		ral::communication::network::Server::getInstance().close();
 	}
 
-	// auto output = new Library::Logging::CoutOutput();
-	// Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
-	// Library::Logging::ServiceLogging::getInstance().setNodeIdentifier(ralId);
-	// Library::Logging::Logger().logTrace(ral::utilities::buildLogString("0","0","0",	initLogMsg));
-
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
 
@@ -129,6 +128,9 @@ void initialize(int ralId,
 	spdlog::shutdown();
 
 	spdlog::init_thread_pool(8192, 1);
+
+	spdlog::flush_on(spdlog::level::err);
+	spdlog::flush_every(std::chrono::seconds(1));
 
 	std::string oldfileName = "RAL." + std::to_string(ralId) + ".log";
 	create_logger(oldfileName, "batch_logger", ralId, false);
@@ -178,6 +180,19 @@ void initialize(int ralId,
 		std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
 		cache_events_logger->info("ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
 	}
+
+	std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+
+	logger->debug("|||{info}|||||","info"_a=initLogMsg);
+
+	std::map<std::string, std::string> product_details = getProductDetails();
+	std::string product_details_str = "Product Details: ";
+	std::map<std::string, std::string>::iterator it = product_details.begin(); 
+	while (it != product_details.end())	{
+		product_details_str += it->first + ": " + it->second + "; ";
+		it++;
+	}
+	logger->debug("|||{info}|||||","info"_a=product_details_str);
 }
 
 void finalize() {
