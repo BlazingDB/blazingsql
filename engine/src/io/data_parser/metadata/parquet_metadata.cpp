@@ -37,7 +37,7 @@ std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::str
 		minmax_metadata_gdf_table[i] = expected_col2.release();
 	}
 	
-	auto cudf_metadata_table = std::make_unique<cudf::experimental::table>(std::move(minmax_metadata_gdf_table));
+	auto cudf_metadata_table = std::make_unique<cudf::table>(std::move(minmax_metadata_gdf_table));
 	auto metadata_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_metadata_table), metadata_col_names);
 
 	return metadata_table;
@@ -435,7 +435,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		auto content =  get_typed_vector_content(dtype.id(), vector);
 		minmax_metadata_gdf_table[index] = make_cudf_column_from(dtype, content, total_num_row_groups);
 	}
-	auto table = std::make_unique<cudf::experimental::table>(std::move(minmax_metadata_gdf_table));
+	auto table = std::make_unique<cudf::table>(std::move(minmax_metadata_gdf_table));
 	
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), metadata_names);
 }

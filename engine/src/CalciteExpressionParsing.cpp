@@ -5,7 +5,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-#include <cudf.h>
+//#include <cudf.h>
 #include <cudf/table/table_view.hpp>
 #include <iomanip>
 #include <map>
@@ -15,7 +15,7 @@
 #include "Utils.cuh"
 
 #include "CalciteExpressionParsing.h"
-#include "cudf/legacy/binaryop.hpp"
+#include "cudf/binaryop.hpp"
 #include <cudf/scalar/scalar_factories.hpp>
 #include "parser/expression_tree.hpp"
 #include "utilities/scalar_timestamp_parser.hpp"
@@ -163,49 +163,49 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 	if(type_id == cudf::type_id::BOOL8) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = bool;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(scalar_string == "true"));
 		return ret;
 	}
 	if(type_id == cudf::type_id::INT8) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int8_t;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::INT16) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int16_t;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::INT32) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int32_t;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoi(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::INT64) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = int64_t;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stoll(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::FLOAT32) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = float;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stof(scalar_string)));
 		return ret;
 	}
 	if(type_id == cudf::type_id::FLOAT64) {
 		auto ret = cudf::make_numeric_scalar(type);
 		using T = double;
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
+		using ScalarType = cudf::scalar_type_t<T>;
 		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(std::stod(scalar_string)));
 		return ret;
 	}

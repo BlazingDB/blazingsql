@@ -35,7 +35,7 @@ struct length_to_end_functor {
 void transform_length_to_end(cudf::mutable_column_view& length, const cudf::column_view & start) {
   RAL_EXPECTS(length.type() == start.type(), "Mistmatched type between length and start columns");
 
-  cudf::experimental::type_dispatcher(length.type(), length_to_end_functor{}, length, start);
+  cudf::type_dispatcher(length.type(), length_to_end_functor{}, length, start);
 }
 
 struct start_to_zero_based_indexing_functor {
@@ -61,7 +61,7 @@ struct start_to_zero_based_indexing_functor {
 };
 
 void transform_start_to_zero_based_indexing(cudf::mutable_column_view& start) {
-  cudf::experimental::type_dispatcher(start.type(), start_to_zero_based_indexing_functor{}, start);
+  cudf::type_dispatcher(start.type(), start_to_zero_based_indexing_functor{}, start);
 }
 
 }  // namespace utilities
