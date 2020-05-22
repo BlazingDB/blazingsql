@@ -454,14 +454,30 @@ bool checkIfConcatenatingStringsWillOverflowStringLength(std::vector<std::unique
 		}
 	}
 	return true;
+}*/
+bool checkIfConcatenatingStringsWillOverflowStringLength(std::vector<std::unique_ptr<message>> & collected_messages, CacheData & cache_data){
+	if(collected_messages.size()>=1){
+		for(int col_idx=0; col_idx<collected_messages[0]->get_data().get_schema().size(); col_idx++){
+			if(collected_messages[0]->get_data().get_schema()[col_idx].id() == cudf::type_id::STRING){
+				// Column i-th from the holder_samples and the cache_data are expected to have the same string data type
+				assert( cache_data.get_schema()[col_idx].id() == cudf::type_id::STRING );
+
+				std::size_t total_bytes = 0;
+				for(int sample_idx=0; sample_idx<collected_messages.size(); sample_idx++){
+					total_bytes += static_cast<std::size_t>(collected_messages[sample_idx]->get_data().sizeStr(col_idx));
+				}
+
+				assert(collected_messages[collected_messages.size()-1]->get_data().get_schema().size() == cache_data.get_schema().size());
+				
+				if(total_bytes + static_cast<std::size_t>(cache_data.sizeStr(col_idx)) > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max())){
+					throw std::runtime_error(
+						"In pullFromCache function: Concatenating Strings will overflow strings length");
+				}
+			}
+		}
+	}
+	return true;
 }
-
-// This method does not guarantee the relative order of the messages to be preserved
-std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache(Context * ctx) {
-	std::vector<std::unique_ptr<ral::frame::BlazingTable>> holder_samples;
-	std::vector<ral::frame::BlazingTableView> samples;
-
-	std::size_t total_bytes = 0;*/
 
 // This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache(Context * ctx) {
@@ -473,8 +489,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
-		/*if (holder_samples.empty() || (total_bytes + cache_data.sizeInBytes() <= bytes_max_size_ && checkIfConcatenatingStringsWillOverflowStringLength(holder_samples, cache_data))) {*/
-		if (collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes())) {
+		if (collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes()) && checkIfConcatenatingStringsWillOverflowStringLength(collected_messages, cache_data)) {
 			total_bytes += cache_data.sizeInBytes();
 			message_id = message_data->get_message_id();
 			collected_messages.push_back(std::move(message_data));
