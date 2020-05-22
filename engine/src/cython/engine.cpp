@@ -14,6 +14,11 @@
 #include "communication/network/Server.h"
 #include <numeric>
 #include <map>
+#include "communication/CommunicationData.h"
+#include <spdlog/spdlog.h>
+#include "CodeTimer.h"
+
+using namespace fmt::literals;
 
 using namespace fmt::literals;
 
@@ -134,7 +139,8 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
-	
+	auto logger = spdlog::get("queries_logger");
+
 	using blazingdb::manager::Context;
 	using blazingdb::transport::Node;
 
@@ -149,6 +155,13 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	ral::communication::network::Server::getInstance().registerContext(ctxToken);
 	
 	try {
+
+		CodeTimer eventTimer(true);
+		logger->info("{ral_id}|{query_id}|{start_time}|{plan}",
+									"ral_id"_a=queryContext.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=queryContext.getContextToken(),
+									"start_time"_a=eventTimer.start_time(),
+									"plan"_a=query);
 
 		// Execute query
 		std::unique_ptr<ral::frame::BlazingTable> frame;
