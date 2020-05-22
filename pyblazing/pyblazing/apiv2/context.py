@@ -254,34 +254,27 @@ def collectPartitionsRunQuery(
         config_options,
         single_gpu=False):
 
-    # import dask.distributed
-    # worker = dask.distributed.get_worker()
-    # worker_id = worker.name
-    # # breakpoint()
-    # for table_name in tables:
-    #     if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
-    #         if single_gpu:
-    #             tables[table_name].input = [tables[table_name].input.compute()]
-    #         else:
-    #             partitions = tables[table_name].get_partitions(worker_id)
-    #             if partitions is None:
-    #                 print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-    #             if (len(partitions) == 0):
-    #                 tables[table_name].input = [tables[table_name].df_schema]
-    #             elif (len(partitions) == 1):
-    #                 tables[table_name].input = [tables[table_name].input.get_partition(
-    #                     partitions[0]).compute()]
-    #             else:
-    #                 print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
-    # This limitation is expected to exist until blazingsql version 0.14.
-    # In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
-    #     dask_df = bc.unify_partitions(dask_df)
-    #     bc.create_table('my_table', dask_df)""")
-    #                 table_partitions = []
-    #                 for partition in partitions:
-    #                     table_partitions.append(
-    #                         tables[table_name].input.get_partition(partition).compute())
-    #                     tables[table_name].input = table_partitions #no concat
+    import dask.distributed
+    worker = dask.distributed.get_worker()
+    worker_id = worker.name
+    for table_name in tables:
+        if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
+            if single_gpu:
+                tables[table_name].input = [tables[table_name].input.compute()]
+            else:
+                print("ERROR: collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
+                logging.error("collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
+
+        if hasattr(tables[table_name],'partition_keys'): # this is a dask cudf table
+            if len(tables[table_name].partition_keys) > 0:
+                print("using partition keys")
+                logging.info("using partition keys")
+
+                tables[table_name].input = []
+                for key in tables[table_name].partition_keys:
+                    tables[table_name].input.append(worker.data[key])
+
+
 
     try:
         result = cio.runQueryCaller(
@@ -700,8 +693,8 @@ class BlazingTable(object):
                 self.input = self.input.persist()
                 # logging.info("BlazingTable getNodePartitions")
                 # self.dask_mapping = getNodePartitions(self.input, client)
-                self.futures_mapping = getNodePartitionFutures(self.input, client)
-                # self.partition_keys_mapping = getNodePartitionKeys(self.input, client)
+                # self.futures_mapping = getNodePartitionFutures(self.input, client)
+                self.partition_keys_mapping = getNodePartitionKeys(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
 
@@ -783,11 +776,13 @@ class BlazingTable(object):
             # here we are making a shallow copy of the table and replacing the input dask DataFrame with the futures for the partitions for that worker
             table = copy.copy(self)
             if node['worker'] in self.partition_keys_mapping:
-                table.input = self.partition_keys_mapping[node['worker']]
+                table.partition_keys = self.partition_keys_mapping[node['worker']]
+                table.input = []
             else:
                 print("getDaskDataFrameKeySlices node['worker'] not found in self.partition_keys_mapping ")
                 logging.info("getDaskDataFrameKeySlices node['worker'] not found in self.partition_keys_mapping ")
                 table.input = [table.input._meta]
+                table.partition_keys = []
             nodeFilesList.append(table)
 
         return nodeFilesList
@@ -1776,8 +1771,8 @@ class BlazingContext(object):
                     new_tables[table].input = new_tables[table].input.persist()
                     new_tables[table].dask_mapping = getNodePartitions(new_tables[table].input, self.dask_client)
                 
-                logging.info("calling getDaskDataFrameSlices for " + table)
-                currentTableNodes = new_tables[table].getDaskDataFrameSlices(self.nodes)
+                logging.info("calling getDaskDataFrameKeySlices for " + table)
+                currentTableNodes = new_tables[table].getDaskDataFrameKeySlices(self.nodes)
 
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
