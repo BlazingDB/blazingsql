@@ -1,6 +1,5 @@
 #include <cudf/column/column_factories.hpp>
 #include <cudf/copying.hpp>
-#include <cudf/cudf.h>
 #include <cudf/datetime.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
