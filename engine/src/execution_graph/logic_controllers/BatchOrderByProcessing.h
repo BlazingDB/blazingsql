@@ -119,7 +119,7 @@ public:
 				for (auto i = 0; i < partitions.size(); i++) {
 					std::string cache_id = "output_" + std::to_string(i);
 					this->add_to_output_cache(
-						std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::experimental::table>(partitions[i]), batch->names()),
+						std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), batch->names()),
 						cache_id
 						);
 				}

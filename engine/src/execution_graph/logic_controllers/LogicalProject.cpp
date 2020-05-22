@@ -245,7 +245,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             column = computed_column->view();
         }
 
-        computed_col = cudf::experimental::type_dispatcher(column.type(), cast_to_str_functor{}, column);
+        computed_col = cudf::type_dispatcher(column.type(), cast_to_str_functor{}, column);
         break;
     }
     case interops::operator_type::BLZ_CAST_TINYINT:
@@ -404,19 +404,19 @@ std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_v
     if (is_string(expr1) && is_string(expr2)) {
         std::unique_ptr<cudf::scalar> lhs = get_scalar_from_string(expr1);
         std::unique_ptr<cudf::scalar> rhs = get_scalar_from_string(expr2);
-        computed_col = cudf::experimental::copy_if_else(*lhs, *rhs, boolean_mask_view);
+        computed_col = cudf::copy_if_else(*lhs, *rhs, boolean_mask_view);
     } else if (is_string(expr1)) {
         std::unique_ptr<cudf::scalar> lhs = get_scalar_from_string(expr1);
         cudf::column_view rhs = table.column(get_index(expr2));
-        computed_col = cudf::experimental::copy_if_else(*lhs, rhs, boolean_mask_view);
+        computed_col = cudf::copy_if_else(*lhs, rhs, boolean_mask_view);
     } else if (is_string(expr2)) {
         cudf::column_view lhs = table.column(get_index(expr1));
         std::unique_ptr<cudf::scalar> rhs = get_scalar_from_string(expr2);
-        computed_col = cudf::experimental::copy_if_else(lhs, *rhs, boolean_mask_view);
+        computed_col = cudf::copy_if_else(lhs, *rhs, boolean_mask_view);
     } else {
         cudf::column_view lhs = table.column(get_index(expr1));
         cudf::column_view rhs = table.column(get_index(expr2));
-        computed_col = cudf::experimental::copy_if_else(lhs, rhs, boolean_mask_view);
+        computed_col = cudf::copy_if_else(lhs, rhs, boolean_mask_view);
     }
 
     return computed_col;
@@ -557,7 +557,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
 
                 if (fixed_with_col->size() != 0){
                     cudf::mutable_column_view out_column_mutable_view = fixed_with_col->mutable_view();
-                    cudf::experimental::fill_in_place(out_column_mutable_view, 0, out_column_mutable_view.size(), *literal_scalar);
+                    cudf::fill_in_place(out_column_mutable_view, 0, out_column_mutable_view.size(), *literal_scalar);
                 }
                 out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(fixed_with_col));
             }

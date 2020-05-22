@@ -18,11 +18,11 @@
 namespace ral {
 namespace io {
 
-namespace cudf_io = cudf::experimental::io;
+namespace cudf_io = cudf::io;
 
 class csv_parser : public data_parser {
 public:
-	csv_parser(cudf::experimental::io::read_csv_args new_csv_arg);
+	csv_parser(cudf::io::read_csv_args new_csv_arg);
 
 	virtual ~csv_parser();
 

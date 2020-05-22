@@ -14,7 +14,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <arrow/io/interfaces.h>
-#include <cudf/cudf.h>
+//#include <cudf/cudf.h>
 #include <cudf/scalar/scalar.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
 #include <cudf/types.hpp>

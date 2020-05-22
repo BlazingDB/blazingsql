@@ -62,12 +62,12 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 
   std::vector<operator_type> operators = {operator_type::BLZ_ADD, operator_type::BLZ_MUL, operator_type::BLZ_ADD, operator_type::BLZ_ADD};
 
-  auto dtype = cudf::data_type{cudf::experimental::type_to_id<T>()};
+  auto dtype = cudf::data_type{cudf::type_to_id<T>()};
   std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
   std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
   std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
   std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
-  static_cast<cudf::experimental::scalar_type_t<T>*>(right_scalars[3].get())->set_value((T)2);
+  static_cast<cudf::scalar_type_t<T>*>(right_scalars[3].get())->set_value((T)2);
   
   // using OUT_T = typename output_type<T>::type;
   auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
@@ -136,11 +136,11 @@ TYPED_TEST(InteropsTestNumericDivZero, test_numeric_types_divzero)
   std::vector<operator_type> operators = {operator_type::BLZ_DIV};
 
   std::unique_ptr<cudf::scalar> arr_s1[] = {nullptr};
-  auto dtype = cudf::data_type{cudf::experimental::type_to_id<T>()};
+  auto dtype = cudf::data_type{cudf::type_to_id<T>()};
   std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
   std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype)};
   std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
-  static_cast<cudf::experimental::scalar_type_t<T>*>(right_scalars[0].get())->set_value((T)0);
+  static_cast<cudf::scalar_type_t<T>*>(right_scalars[0].get())->set_value((T)0);
 
   auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return T{};
@@ -213,7 +213,7 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types)
 
 	std::vector<operator_type> operators = {operator_type::BLZ_YEAR, operator_type::BLZ_MONTH, operator_type::BLZ_DAY, operator_type::BLZ_HOUR, operator_type::BLZ_MINUTE, operator_type::BLZ_SECOND};
 
-	auto dtype = cudf::data_type{cudf::experimental::type_to_id<T>()};
+	auto dtype = cudf::data_type{cudf::type_to_id<T>()};
   std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype)};
   std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
   std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype)};
@@ -240,7 +240,7 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types)
                               left_scalars,
                               right_scalars);
    
-  if (cudf::experimental::type_to_id<T>() == cudf::TIMESTAMP_DAYS){
+  if (cudf::type_to_id<T>() == cudf::TIMESTAMP_DAYS){
     cudf::test::fixed_width_column_wrapper<int32_t> expected_col1({1890,1906,1922,1938,1954,1970,1985,2001,2017,2033});
     cudf::test::fixed_width_column_wrapper<int32_t> expected_col2({10,8,6,4,2,1,11,9,7,5});
     cudf::test::fixed_width_column_wrapper<int32_t> expected_col3({12,17,21,25,27,1,5,9,14,18});
@@ -296,14 +296,14 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
 
 	std::vector<operator_type> operators = {operator_type::BLZ_EQUAL, operator_type::BLZ_LESS, operator_type::BLZ_GREATER_EQUAL};
 
-	auto dtype = cudf::data_type{cudf::experimental::type_to_id<T>()};
+	auto dtype = cudf::data_type{cudf::type_to_id<T>()};
   std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype)};
   std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
   std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype)};
   std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
-  static_cast<cudf::experimental::scalar_type_t<T>*>(right_scalars[0].get())->set_value(T{cudf::timestamp_ms{1000000000000}});
-  static_cast<cudf::experimental::scalar_type_t<T>*>(right_scalars[1].get())->set_value(T{cudf::timestamp_ms{1000000000000}});
-  static_cast<cudf::experimental::scalar_type_t<T>*>(right_scalars[2].get())->set_value(T{cudf::timestamp_ms{1000000000000}});
+  static_cast<cudf::scalar_type_t<T>*>(right_scalars[0].get())->set_value(T{cudf::timestamp_ms{1000000000000}});
+  static_cast<cudf::scalar_type_t<T>*>(right_scalars[1].get())->set_value(T{cudf::timestamp_ms{1000000000000}});
+  static_cast<cudf::scalar_type_t<T>*>(right_scalars[2].get())->set_value(T{cudf::timestamp_ms{1000000000000}});
   
   auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return 0;
