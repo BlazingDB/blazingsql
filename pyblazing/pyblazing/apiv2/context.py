@@ -1787,6 +1787,7 @@ class BlazingContext(object):
                 names=names,
                 file_format='csv')
 
+            #WARNING: the columns and logging files must be synced with those on initialize.cpp
             log_schemas = {
                 'bsql_queries': (['ral_id', 'query_id', 'start_time', 'plan'],
                                  ['int32', 'int32', 'int64', 'str']),
@@ -1797,7 +1798,11 @@ class BlazingContext(object):
                 'bsql_kernel_events': (['ral_id', 'query_id', 'kernel_id', 'input_num_rows', 'input_num_bytes', 'output_num_rows', 'output_num_bytes', 'event_type', 'timestamp_begin', 'timestamp_end'],
                                        ['int32', 'int32', 'int64', 'int64', 'int64', 'int64', 'int64', 'str', 'int64', 'int64']),
                 'bsql_cache_events': (['ral_id', 'query_id', 'source', 'sink', 'port_name', 'num_rows', 'num_bytes', 'event_type', 'timestamp_begin', 'timestamp_end'],
-                                       ['int32', 'int32', 'int64', 'int64', 'int64', 'int64', 'int64', 'str', 'int64', 'int64']),
+                                      ['int32', 'int32', 'int64', 'int64', 'int64', 'int64', 'int64', 'str', 'int64', 'int64']),
+                'bsql_active_edges': (['ral_id', 'query_id', 'source', 'sink', 'timestamp', 'is_active'],
+                                      ['int32', 'int32', 'int64', 'int64', 'int64', 'int16']),
+                'bsql_active_kernels': (['ral_id', 'query_id', 'kernel_id', 'timestamp', 'is_active'],
+                                        ['int32', 'int32', 'int64', 'int64', 'int16']),
             }
 
             for log_table_name in log_schemas:
@@ -1811,7 +1816,8 @@ class BlazingContext(object):
                     delimiter='|',
                     dtype=dtypes,
                     names=names,
-                    file_format='csv')
+                    file_format='csv',
+                    skiprows=1) #will skip the header
 
             self.logs_initialized = True
 

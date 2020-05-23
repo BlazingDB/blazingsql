@@ -136,6 +136,7 @@ void initialize(int ralId,
 	create_logger(oldfileName, "batch_logger", ralId, false);
 
 	//Vector that holds pairs of <log_name, header>
+	//WARNING: the columns and logging files must be synced with those on context.py
 	std::vector<std::pair<std::string, std::string>> logNamesAndHeaders = {
 		std::make_pair("queries",			"ral_id|query_id|start_time|plan"),
 		std::make_pair("kernels",			"ral_id|query_id|kernel_id|is_kernel|kernel_type"),
