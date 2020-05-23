@@ -131,7 +131,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 									rmm::device_buffer gpu_buffer(buffer_size);
 									auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
 									auto mutable_scalar_col = scalar_column->mutable_view();
-									cudf::experimental::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
+									cudf::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
 									all_columns[i] = std::move(scalar_column);
 								}
 							} else {
@@ -139,7 +139,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 								in_file_column_counter++;
 							}
 						}
-						auto unique_table = std::make_unique<cudf::experimental::table>(std::move(all_columns));
+						auto unique_table = std::make_unique<cudf::table>(std::move(all_columns));
 						if(filterString != ""){
 							auto temp = std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
 							blazingTable_per_file[file_index] = std::move(ral::processor::process_filter(temp->toBlazingTableView(), filterString, context));
@@ -267,7 +267,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 					rmm::device_buffer gpu_buffer(buffer_size);
 					auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
 					auto mutable_scalar_col = scalar_column->mutable_view();
-					cudf::experimental::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
+					cudf::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
 					all_columns[i] = std::move(scalar_column);
 				}
 			} else {
@@ -275,7 +275,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 				in_file_column_counter++;
 			}
 		}
-		auto unique_table = std::make_unique<cudf::experimental::table>(std::move(all_columns));
+		auto unique_table = std::make_unique<cudf::table>(std::move(all_columns));
 		return std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
 	}
 }

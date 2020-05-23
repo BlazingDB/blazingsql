@@ -8,7 +8,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include "Interpreter/interpreter_cpp.h"
-#include "cudf/legacy/binaryop.hpp"
+#include "cudf/binaryop.hpp"
 #include "io/DataLoader.h"
 #include <iostream>
 #include <string>

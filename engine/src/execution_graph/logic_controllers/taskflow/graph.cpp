@@ -14,6 +14,7 @@ namespace cache {
 			target_port_name = p.dst_port_name;
 		}
 		this->add_edge(p.src, p.dst, source_port_name, target_port_name, p.cache_machine_config);
+
 		return p;
 	}
 
@@ -215,12 +216,37 @@ namespace cache {
 			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config);
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
+
+					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=config.context->getContextToken(),
+									"source"_a=source->get_id(),
+									"sink"_a=cache_machines[index]->get_id());
+
+					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=config.context->getContextToken(),
+									"source"_a=cache_machines[index]->get_id(),
+									"sink"_a=target->get_id());
+
 					source->output_.register_cache("output_" + std::to_string(index), cache_machines[index]);
 					target->input_.register_cache("input_" + std::to_string(index), cache_machines[index]);
 				}
 			} else {
 				source->output_.register_cache(source_port, cache_machines[0]);
 				target->input_.register_cache(target_port, cache_machines[0]);
+
+				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=config.context->getContextToken(),
+								"source"_a=source->get_id(),
+								"sink"_a=cache_machines[0]->get_id());
+
+				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=config.context->getContextToken(),
+								"source"_a=cache_machines[0]->get_id(),
+								"sink"_a=target->get_id());
 			}
 		}
 		if(not source->has_parent()) {

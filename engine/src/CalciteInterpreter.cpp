@@ -95,7 +95,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			.table_names = table_names,
 			.transform_operators_bigger_than_gpu = true
 		};
-		ral::batch::OutputKernel output;
+		ral::batch::OutputKernel output(queryContext.clone());
 
 		auto query_graph = tree.build_batch_graph(logicalPlan);
 		
@@ -142,11 +142,12 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 									"duration"_a="");
 		
 		if (query_graph->num_nodes() > 0) {
-			if(queryContext.getTotalNodes() <= 1) {
-				*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
-			} else {
-				*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::SIMPLE});
-			}
+			ral::cache::cache_settings cache_machine_config;
+			
+			cache_machine_config.type = queryContext.getTotalNodes() <= 1 ? ral::cache::CacheType::CONCATENATING : ral::cache::CacheType::SIMPLE;
+			cache_machine_config.context = queryContext.clone();
+
+			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);
 			// query_graph.show();
 			query_graph->execute();
 			output_frame = output.release();

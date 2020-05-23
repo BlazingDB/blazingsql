@@ -12,7 +12,7 @@ namespace io {
 
 class json_parser : public data_parser {
 public:
-	json_parser(cudf::experimental::io::read_json_args args);
+	json_parser(cudf::io::read_json_args args);
 
 	virtual ~json_parser();
 
@@ -24,7 +24,7 @@ public:
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 private:
-	cudf::experimental::io::read_json_args args;
+	cudf::io::read_json_args args;
 };
 
 } /* namespace io */

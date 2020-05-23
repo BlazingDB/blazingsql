@@ -331,7 +331,7 @@ struct dispatch_to_timestamps_fn
     
     parse_datetime<T> pfn{items, units};
 
-    using ScalarType = cudf::experimental::scalar_type_t<T>;
+    using ScalarType = cudf::scalar_type_t<T>;
     static_cast<ScalarType *>(&result)->set_value(pfn.parse(str));
   }
 
@@ -353,10 +353,10 @@ std::unique_ptr<cudf::scalar> str_to_timestamp_scalar( std::string const& str,
                                                       std::string const& format )
 {
   RAL_EXPECTS( !format.empty(), "Format parameter must not be empty.");
-  timestamp_units units = cudf::experimental::type_dispatcher( timestamp_type, dispatch_timestamp_to_units_fn{} );
+  timestamp_units units = cudf::type_dispatcher( timestamp_type, dispatch_timestamp_to_units_fn{} );
 
   auto result = cudf::make_timestamp_scalar(timestamp_type);
-  cudf::experimental::type_dispatcher( timestamp_type, dispatch_to_timestamps_fn{},
+  cudf::type_dispatcher( timestamp_type, dispatch_to_timestamps_fn{},
                                       str, format, units,
                                       *result );
   return result;

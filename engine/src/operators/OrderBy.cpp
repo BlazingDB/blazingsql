@@ -45,18 +45,18 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
 	/*ToDo: Edit this according the Calcite output*/
 	std::vector<cudf::null_order> null_orders(sortColIndices.size(), cudf::null_order::AFTER);
 
-	std::unique_ptr<cudf::column> output = cudf::experimental::sorted_order( sortColumns, sortOrderTypes, null_orders );
+	std::unique_ptr<cudf::column> output = cudf::sorted_order( sortColumns, sortOrderTypes, null_orders );
 
-	std::unique_ptr<cudf::experimental::table> gathered = cudf::experimental::gather( table.view(), output->view() );
+	std::unique_ptr<cudf::table> gathered = cudf::gather( table.view(), output->view() );
 
 	return std::make_unique<ral::frame::BlazingTable>( std::move(gathered), table.names() );
   }
 
-std::unique_ptr<cudf::experimental::table> logicalLimit(const cudf::table_view& table, cudf::size_type limitRows) {
+std::unique_ptr<cudf::table> logicalLimit(const cudf::table_view& table, cudf::size_type limitRows) {
 	assert(limitRows < table.num_rows());
 
 	if (limitRows == 0) {
-		return cudf::experimental::empty_like(table);
+		return cudf::empty_like(table);
 	}
 	
 	std::vector<std::unique_ptr<cudf::column>> output_cols;
@@ -69,7 +69,7 @@ std::unique_ptr<cudf::experimental::table> logicalLimit(const cudf::table_view& 
 		if(cudf::is_fixed_width(columnType)) {
 			out_column = cudf::make_fixed_width_column(columnType, limitRows, column.has_nulls()?cudf::mask_state::UNINITIALIZED: cudf::mask_state::UNALLOCATED);
 			cudf::mutable_column_view out_column_mutable_view = out_column->mutable_view();
-			cudf::experimental::copy_range_in_place(column, out_column_mutable_view, 0, limitRows, 0);			
+			cudf::copy_range_in_place(column, out_column_mutable_view, 0, limitRows, 0);			
 		} else {
 			out_column = cudf::strings::detail::slice(column, 0, limitRows);
 		}
@@ -77,7 +77,7 @@ std::unique_ptr<cudf::experimental::table> logicalLimit(const cudf::table_view& 
 	}
 
 	
-	return std::make_unique<cudf::experimental::table>(std::move(output_cols));
+	return std::make_unique<cudf::table>(std::move(output_cols));
 }
 
 /**---------------------------------------------------------------------------*
@@ -146,7 +146,7 @@ limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_li
 
 	cudf::size_type table_rows = table->num_rows();
 	if (num_rows_limit <= 0) {
-		return std::make_pair(std::make_unique<ral::frame::BlazingTable>(cudf::experimental::empty_like(table->view()), table->names()), 0);
+		return std::make_pair(std::make_unique<ral::frame::BlazingTable>(cudf::empty_like(table->view()), table->names()), 0);
 	} else if (num_rows_limit >= table_rows)	{
 		return std::make_pair(std::move(table), num_rows_limit - table_rows);
 	} else {
@@ -210,14 +210,14 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 
 	cudf::table_view columns_to_search = sortedTable.view().select(sortColIndices);
-	auto pivot_indexes = cudf::experimental::upper_bound(columns_to_search,
+	auto pivot_indexes = cudf::upper_bound(columns_to_search,
 																											partitionPlan.view(),
 																											sortOrderTypes,
 																											null_orders);
 
 	auto host_pivot_indexes = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
 	std::vector<cudf::size_type> split_indexes(host_pivot_indexes.first.begin(), host_pivot_indexes.first.end());
-	return cudf::experimental::split(sortedTable.view(), split_indexes);
+	return cudf::split(sortedTable.view(), split_indexes);
 }
 
 std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, 
