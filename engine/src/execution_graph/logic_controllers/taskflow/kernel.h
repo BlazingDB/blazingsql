@@ -24,7 +24,7 @@ public:
 		parent_id_ = -1;
 
 		logger = spdlog::get("batch_logger");
-		events_logger = spdlog::get("events_logger");
+		events_logger = spdlog::get("kernel_events_logger");
 		cache_events_logger = spdlog::get("cache_events_logger");
 
 		std::shared_ptr<spdlog::logger> kernels_logger;

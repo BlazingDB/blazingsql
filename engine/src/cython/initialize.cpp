@@ -135,59 +135,40 @@ void initialize(int ralId,
 	std::string oldfileName = "RAL." + std::to_string(ralId) + ".log";
 	create_logger(oldfileName, "batch_logger", ralId, false);
 
-	std::string queriesFileName = "bsql_queries." + std::to_string(ralId) + ".log";
-	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
-	create_logger(queriesFileName, "queries_logger", ralId);
+	//Vector that holds pairs of <log_name, header>
+	std::vector<std::pair<std::string, std::string>> logNamesAndHeaders = {
+		std::make_pair("queries",			"ral_id|query_id|start_time|plan"),
+		std::make_pair("kernels",			"ral_id|query_id|kernel_id|is_kernel|kernel_type"),
+		std::make_pair("kernels_edges",		"ral_id|query_id|source|sink"),
+		std::make_pair("kernel_events",		"ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end"),
+		std::make_pair("cache_events",		"ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"),
+		std::make_pair("active_edges",		"ral_id|query_id|source|sink|timestamp|is_active"),
+		std::make_pair("active_kernels",	"ral_id|query_id|kernel_id|timestamp|is_active")
+	};
 
-	std::string kernelsFileName = "bsql_kernels." + std::to_string(ralId) + ".log";
-	bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
-	create_logger(kernelsFileName, "kernels_logger", ralId);
+	for(auto& pair : logNamesAndHeaders){
+		std::string& log_name = pair.first;
+		std::string& log_header = pair.second;
 
-	std::string kernelsEdgesFileName = "bsql_kernels_edges." + std::to_string(ralId) + ".log";
-	bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
-	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId);
+		std::string logger_name = log_name + "_logger";
 
-	std::string kernelEventsFileName = "bsql_kernel_events." + std::to_string(ralId) + ".log";
-	bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
-	create_logger(kernelEventsFileName, "events_logger", ralId);
+		std::string logFileName = "bsql_" + log_name + "." + std::to_string(ralId) + ".log";
+		bool existsLogFileName = std::ifstream(logFileName).good();
+		create_logger(logFileName, logger_name, ralId);
 
-	std::string cacheEventsFileName = "bsql_cache_events." + std::to_string(ralId) + ".log";
-	bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
-	create_logger(cacheEventsFileName, "cache_events_logger", ralId);
-
-	//Logger Headers
-	if(!existsQueriesFileName) {
-		std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
-		queries_logger->info("ral_id|query_id|start_time|plan");
-	}
-
-	if(!existsKernelsFileName) {
-		std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
-		kernels_logger->info("ral_id|query_id|kernel_id|is_kernel|kernel_type");
-	}
-
-	if(!existsKernelsEdgesFileName) {
-		std::shared_ptr<spdlog::logger> kernels_edges_logger = spdlog::get("kernels_edges_logger");
-		kernels_edges_logger->info("ral_id|query_id|source|sink");
-	}
-
-	if(!existsKernelEventsFileName) {
-		std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
-		events_logger->info("ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end");
-	}
-
-	if(!existsCacheEventsFileName) {
-		std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
-		cache_events_logger->info("ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
+		//Logger Headers
+		if(!existsLogFileName) {
+			std::shared_ptr<spdlog::logger> current_logger = spdlog::get(logger_name);
+			current_logger->info(log_header);
+		}
 	}
 
 	std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-
 	logger->debug("|||{info}|||||","info"_a=initLogMsg);
 
 	std::map<std::string, std::string> product_details = getProductDetails();
 	std::string product_details_str = "Product Details: ";
-	std::map<std::string, std::string>::iterator it = product_details.begin(); 
+	std::map<std::string, std::string>::iterator it = product_details.begin();
 	while (it != product_details.end())	{
 		product_details_str += it->first + ": " + it->second + "; ";
 		it++;
