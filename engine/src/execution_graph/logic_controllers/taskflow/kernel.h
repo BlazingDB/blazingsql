@@ -26,6 +26,8 @@ public:
 		logger = spdlog::get("batch_logger");
 		events_logger = spdlog::get("kernel_events_logger");
 		cache_events_logger = spdlog::get("cache_events_logger");
+		active_kernels_logger = spdlog::get("active_kernels_logger");
+		active_edges_logger = spdlog::get("active_edges_logger");
 
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
@@ -89,6 +91,22 @@ public:
 						"event_type"_a="addCache",
 						"timestamp_begin"_a=cacheEventTimer.start_time(),
 						"timestamp_end"_a=cacheEventTimer.end_time());
+
+		active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->output_.get_cache(cache_id)->get_id(),
+						"timestamp"_a=cacheEventTimer.start_time(),
+						"is_active"_a=(int)true);
+
+		active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->output_.get_cache(cache_id)->get_id(),
+						"timestamp"_a=cacheEventTimer.end_time(),
+						"is_active"_a=(int)false);
 	}
 
 	void add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id = "") {
@@ -116,6 +134,22 @@ public:
 						"event_type"_a="addCache",
 						"timestamp_begin"_a=cacheEventTimer.start_time(),
 						"timestamp_end"_a=cacheEventTimer.end_time());
+
+		active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->output_.get_cache(cache_id)->get_id(),
+						"timestamp"_a=cacheEventTimer.start_time(),
+						"is_active"_a=(int)true);
+
+		active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->output_.get_cache(cache_id)->get_id(),
+						"timestamp"_a=cacheEventTimer.end_time(),
+						"is_active"_a=(int)false);
 	}
 
 	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id = "") {
@@ -143,6 +177,22 @@ public:
 						"event_type"_a="addCache",
 						"timestamp_begin"_a=cacheEventTimer.start_time(),
 						"timestamp_end"_a=cacheEventTimer.end_time());
+
+		active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->output_.get_cache(cache_id)->get_id(),
+						"timestamp"_a=cacheEventTimer.start_time(),
+						"is_active"_a=(int)true);
+
+		active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"source"_a=this->get_id(),
+						"sink"_a=this->output_.get_cache(cache_id)->get_id(),
+						"timestamp"_a=cacheEventTimer.end_time(),
+						"is_active"_a=(int)false);
 	}
 
 	Context * get_context() const {
@@ -201,6 +251,8 @@ public:
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> events_logger;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
+	std::shared_ptr<spdlog::logger> active_kernels_logger;
+	std::shared_ptr<spdlog::logger> active_edges_logger;
 };
 
 

@@ -72,8 +72,8 @@ public:
 		this->cache = cache;
 	}
 	RecordBatch next() {
-		std::shared_ptr<spdlog::logger> cache_events_logger;
-		cache_events_logger = spdlog::get("cache_events_logger");
+		std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
+		std::shared_ptr<spdlog::logger> active_edges_logger = spdlog::get("active_edges_logger");
 
 		CodeTimer cacheEventTimer(false);
 
@@ -95,6 +95,22 @@ public:
 							"event_type"_a="removeCache",
 							"timestamp_begin"_a=cacheEventTimer.start_time(),
 							"timestamp_end"_a=cacheEventTimer.end_time());
+
+			active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+							"ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=cache->get_context()->getContextToken(),
+							"source"_a=cache->get_id(),
+							"sink"_a=kernel->get_id(),
+							"timestamp"_a=cacheEventTimer.start_time(),
+							"is_active"_a=(int)true);
+
+			active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+							"ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=cache->get_context()->getContextToken(),
+							"source"_a=cache->get_id(),
+							"sink"_a=kernel->get_id(),
+							"timestamp"_a=cacheEventTimer.end_time(),
+							"is_active"_a=(int)false);
 		}
 
 		return output;
@@ -126,8 +142,8 @@ public:
 		this->cache = cache;
 	}
 	std::unique_ptr<ral::cache::CacheData> next() {
-		std::shared_ptr<spdlog::logger> cache_events_logger;
-		cache_events_logger = spdlog::get("cache_events_logger");
+		std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
+		std::shared_ptr<spdlog::logger> active_edges_logger = spdlog::get("active_edges_logger");
 
 		CodeTimer cacheEventTimer(false);
 
@@ -149,6 +165,22 @@ public:
 							"event_type"_a="removeCache",
 							"timestamp_begin"_a=cacheEventTimer.start_time(),
 							"timestamp_end"_a=cacheEventTimer.end_time());
+
+			active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+							"ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=cache->get_context()->getContextToken(),
+							"source"_a=cache->get_id(),
+							"sink"_a=kernel->get_id(),
+							"timestamp"_a=cacheEventTimer.start_time(),
+							"is_active"_a=(int)true);
+
+			active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+							"ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=cache->get_context()->getContextToken(),
+							"source"_a=cache->get_id(),
+							"sink"_a=kernel->get_id(),
+							"timestamp"_a=cacheEventTimer.end_time(),
+							"is_active"_a=(int)false);
 		}
 
 		return output;
@@ -207,8 +239,8 @@ public:
 	}
 
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {
-		std::shared_ptr<spdlog::logger> cache_events_logger;
-		cache_events_logger = spdlog::get("cache_events_logger");
+		std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
+		std::shared_ptr<spdlog::logger> active_edges_logger = spdlog::get("active_edges_logger");
 
 		CodeTimer cacheEventTimer(false);
 
@@ -230,6 +262,22 @@ public:
 							"event_type"_a="removeCache",
 							"timestamp_begin"_a=cacheEventTimer.start_time(),
 							"timestamp_end"_a=cacheEventTimer.end_time());
+
+			active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=context->getContextToken(),
+							"source"_a=host_cache->get_id(),
+							"sink"_a=kernel->get_id(),
+							"timestamp"_a=cacheEventTimer.start_time(),
+							"is_active"_a=(int)true);
+
+			active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=context->getContextToken(),
+							"source"_a=host_cache->get_id(),
+							"sink"_a=kernel->get_id(),
+							"timestamp"_a=cacheEventTimer.end_time(),
+							"is_active"_a=(int)false);
 		}
 
 		return output;
@@ -383,6 +431,20 @@ public:
 									"timestamp_begin"_a=eventTimer.start_time(),
 									"timestamp_end"_a=eventTimer.end_time());
 
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.start_time(),
+									"is_active"_a=(int)true);
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.end_time(),
+									"is_active"_a=(int)false);
+
 					this->add_to_output_cache(std::move(batch));
 
 					this->output_cache()->wait_if_cache_is_saturated();
@@ -478,6 +540,20 @@ public:
 												"event_type"_a="compute",
 												"timestamp_begin"_a=eventTimer.start_time(),
 												"timestamp_end"_a=eventTimer.end_time());
+
+								active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+												"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+												"query_id"_a=context->getContextToken(),
+												"kernel_id"_a=this->get_id(),
+												"timestamp"_a=eventTimer.start_time(),
+												"is_active"_a=(int)true);
+
+								active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+												"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+												"query_id"_a=context->getContextToken(),
+												"kernel_id"_a=this->get_id(),
+												"timestamp"_a=eventTimer.end_time(),
+												"is_active"_a=(int)false);
 							}
 
 							this->add_to_output_cache(std::move(columns));
@@ -500,6 +576,20 @@ public:
 											"event_type"_a="compute",
 											"timestamp_begin"_a=eventTimer.start_time(),
 											"timestamp_end"_a=eventTimer.end_time());
+
+							active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+											"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+											"query_id"_a=context->getContextToken(),
+											"kernel_id"_a=this->get_id(),
+											"timestamp"_a=eventTimer.start_time(),
+											"is_active"_a=(int)true);
+
+							active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+											"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+											"query_id"_a=context->getContextToken(),
+											"kernel_id"_a=this->get_id(),
+											"timestamp"_a=eventTimer.end_time(),
+											"is_active"_a=(int)false);
 
 							this->add_to_output_cache(std::move(batch));
 						}
@@ -594,6 +684,20 @@ public:
 									"event_type"_a="compute",
 									"timestamp_begin"_a=eventTimer.start_time(),
 									"timestamp_end"_a=eventTimer.end_time());
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.start_time(),
+									"is_active"_a=(int)true);
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.end_time(),
+									"is_active"_a=(int)false);
 				}
 
 				this->add_to_output_cache(std::move(columns));
@@ -669,6 +773,20 @@ public:
 								"event_type"_a="compute",
 								"timestamp_begin"_a=eventTimer.start_time(),
 								"timestamp_end"_a=eventTimer.end_time());
+
+				active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"kernel_id"_a=this->get_id(),
+								"timestamp"_a=eventTimer.start_time(),
+								"is_active"_a=(int)true);
+
+				active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"kernel_id"_a=this->get_id(),
+								"timestamp"_a=eventTimer.end_time(),
+								"is_active"_a=(int)false);
 
 				this->add_to_output_cache(std::move(columns));
 				batch_count++;

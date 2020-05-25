@@ -73,6 +73,21 @@ public:
 									"event_type"_a="compute",
 									"timestamp_begin"_a=eventTimer.start_time(),
 									"timestamp_end"_a=eventTimer.end_time());
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.start_time(),
+									"is_active"_a=(int)true);
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.end_time(),
+									"is_active"_a=(int)false);
+
 				}
 
 				this->add_to_output_cache(std::move(sortedTable), "output_a");
@@ -266,6 +281,20 @@ public:
 									"event_type"_a="compute",
 									"timestamp_begin"_a=eventTimer.start_time(),
 									"timestamp_end"_a=eventTimer.end_time());
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.start_time(),
+									"is_active"_a=(int)true);
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.end_time(),
+									"is_active"_a=(int)false);
 				}
 
 				this->add_to_output_cache(std::move(sortedTable), "output_a");
@@ -424,6 +453,22 @@ public:
 										"timestamp_begin"_a=cacheEventTimer.start_time(),
 										"timestamp_end"_a=cacheEventTimer.end_time());
 
+						active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+										"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+										"query_id"_a=context->getContextToken(),
+										"source"_a=this->input_.get_cache(cache_id)->get_id(),
+										"sink"_a=this->get_id(),
+										"timestamp"_a=cacheEventTimer.start_time(),
+										"is_active"_a=(int)true);
+
+						active_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}|{timestamp}|{is_active}",
+										"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+										"query_id"_a=context->getContextToken(),
+										"source"_a=this->input_.get_cache(cache_id)->get_id(),
+										"sink"_a=this->get_id(),
+										"timestamp"_a=cacheEventTimer.end_time(),
+										"is_active"_a=(int)false);
+
 						tableViews.emplace_back(table->toBlazingTableView());
 						tables.emplace_back(std::move(table));
 					}
@@ -532,6 +577,20 @@ public:
 									"event_type"_a="compute",
 									"timestamp_begin"_a=eventTimer.start_time(),
 									"timestamp_end"_a=eventTimer.end_time());
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.start_time(),
+									"is_active"_a=(int)true);
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.end_time(),
+									"is_active"_a=(int)false);
 
 					this->add_to_output_cache(std::move(batch));
 

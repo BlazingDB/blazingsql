@@ -395,6 +395,20 @@ public:
 								"timestamp_begin"_a=eventTimer.start_time(),
 								"timestamp_end"_a=eventTimer.end_time());
 
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.start_time(),
+									"is_active"_a=(int)true);
+
+					active_kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{timestamp}|{is_active}",
+									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=context->getContextToken(),
+									"kernel_id"_a=this->get_id(),
+									"timestamp"_a=eventTimer.end_time(),
+									"is_active"_a=(int)false);
+
 					mark_set_completed(left_ind, right_ind);
 				}
 
