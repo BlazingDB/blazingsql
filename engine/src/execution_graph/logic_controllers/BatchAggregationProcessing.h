@@ -24,7 +24,7 @@ using namespace fmt::literals;
 class ComputeAggregateKernel : public kernel {
 public:
 	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::ComputeAggregateKernel} {
         this->query_graph = query_graph;
 	}
 
@@ -34,16 +34,23 @@ public:
 
 	virtual kstatus run() {
 		CodeTimer timer;
+        CodeTimer eventTimer(false);
 
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
         std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types, 
             aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
-		BatchSequence input(this->input_cache(), this);
+        BatchSequence input(this->input_cache(), this);
         int batch_count = 0;
         while (input.wait_for_next()) {
+
             this->output_cache()->wait_if_cache_is_saturated();
-			auto batch = input.next();
+            auto batch = input.next();
+
+            eventTimer.start();
+
+            auto log_input_num_rows = batch ? batch->num_rows() : 0;
+            auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
 
             try {
                 std::unique_ptr<ral::frame::BlazingTable> output;
@@ -57,7 +64,26 @@ public:
                     output = ral::operators::compute_aggregations_with_groupby(
                         batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
                 }
-                
+
+                eventTimer.stop();
+
+                if(output){
+                    auto log_output_num_rows = output->num_rows();
+                    auto log_output_num_bytes = output->sizeInBytes();
+
+                    events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                    "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                    "query_id"_a=context->getContextToken(),
+                                    "kernel_id"_a=this->get_id(),
+                                    "input_num_rows"_a=log_input_num_rows,
+                                    "input_num_bytes"_a=log_input_num_bytes,
+                                    "output_num_rows"_a=log_output_num_rows,
+                                    "output_num_bytes"_a=log_output_num_bytes,
+                                    "event_type"_a="compute",
+                                    "timestamp_begin"_a=eventTimer.start_time(),
+                                    "timestamp_end"_a=eventTimer.end_time());
+                }
+
                 this->add_to_output_cache(std::move(output));
                 batch_count++;
             } catch(const std::exception& e) {
@@ -69,7 +95,7 @@ public:
                             "info"_a="In ComputeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
                             "duration"_a="");
             }
-		}
+        }
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
@@ -79,8 +105,8 @@ public:
                     "duration"_a=timer.elapsed_time(),
                     "kernel_id"_a=this->get_id());
 
-		return kstatus::proceed;
-	}
+        return kstatus::proceed;
+    }
 
     std::pair<bool, uint64_t> get_estimated_output_num_rows(){
         if(this->aggregation_types.size() > 0 && this->group_column_indices.size() == 0) { // aggregation without groupby
@@ -109,7 +135,7 @@ private:
 class DistributeAggregateKernel : public kernel {
 public:
 	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::DistributeAggregateKernel} {
         this->query_graph = query_graph;
 	}
 
@@ -217,7 +243,7 @@ public:
             // Lets put the server listener to feed the output, but not if its aggregations without group by and its not the master
             if(group_column_indices.size() > 0 || 
                         this->context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
-                ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id());
+                ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id(), this);
                 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
                 while (host_table = external_input.next()) {
                     this->add_to_output_cache(std::move(host_table));
@@ -246,7 +272,7 @@ private:
 class MergeAggregateKernel : public kernel {
 public:
 	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context} {
+		: kernel{queryString, context, kernel_type::MergeAggregateKernel} {
         this->query_graph = query_graph;
 	}
 
@@ -256,6 +282,7 @@ public:
 
 	virtual kstatus run() {
         CodeTimer timer;
+        CodeTimer eventTimer(false);
 
         std::vector<std::unique_ptr<ral::frame::BlazingTable>> tablesToConcat;
 		std::vector<ral::frame::BlazingTableView> tableViewsToConcat;
@@ -274,8 +301,13 @@ public:
                 tableViewsToConcat.emplace_back(batch->toBlazingTableView());
                 tablesToConcat.emplace_back(std::move(batch));
             }
+            eventTimer.start();
+
             auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
-                    
+
+            auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
+            auto log_input_num_bytes = concatenated ? concatenated->sizeInBytes() : 0;
+
             std::vector<int> group_column_indices;
             std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
             std::vector<AggregateKind> aggregation_types;
@@ -309,8 +341,25 @@ public:
                         mod_aggregation_column_assigned_aliases, mod_group_column_indices);
             }
             // ral::utilities::print_blazing_table_view_schema(output->toBlazingTableView(), "MergeAggregateKernel_output");
+            eventTimer.stop();
+
+            auto log_output_num_rows = output->num_rows();
+            auto log_output_num_bytes = output->sizeInBytes();
+
+            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                            "query_id"_a=context->getContextToken(),
+                            "kernel_id"_a=this->get_id(),
+                            "input_num_rows"_a=log_input_num_rows,
+                            "input_num_bytes"_a=log_input_num_bytes,
+                            "output_num_rows"_a=log_output_num_rows,
+                            "output_num_bytes"_a=log_output_num_bytes,
+                            "event_type"_a="compute",
+                            "timestamp_begin"_a=eventTimer.start_time(),
+                            "timestamp_end"_a=eventTimer.end_time());
+
             this->add_to_output_cache(std::move(output));
-            } catch(const std::exception& e) {
+        } catch(const std::exception& e) {
             // TODO add retry here
             logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
                         "query_id"_a=context->getContextToken(),

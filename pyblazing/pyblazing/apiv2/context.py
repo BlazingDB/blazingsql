@@ -1792,6 +1792,33 @@ class BlazingContext(object):
                 dtype=dtypes,
                 names=names,
                 file_format='csv')
+
+            log_schemas = {
+                'bsql_queries': (['ral_id', 'query_id', 'start_time', 'plan'],
+                                 ['int32', 'int32', 'int64', 'str']),
+                'bsql_kernels': (['ral_id', 'query_id', 'kernel_id', 'is_kernel', 'kernel_type'],
+                                 ['int32', 'int32', 'int64', 'int16', 'str']),
+                'bsql_kernels_edges': (['ral_id', 'query_id', 'source', 'sink', 'port_name'],
+                                       ['int32', 'int32', 'int64', 'int64', 'str']),
+                'bsql_kernel_events': (['ral_id', 'query_id', 'kernel_id', 'input_num_rows', 'input_num_bytes', 'output_num_rows', 'output_num_bytes', 'event_type', 'timestamp_begin', 'timestamp_end'],
+                                       ['int32', 'int32', 'int64', 'int64', 'int64', 'int64', 'int64', 'str', 'int64', 'int64']),
+                'bsql_cache_events': (['ral_id', 'query_id', 'source', 'sink', 'port_name', 'num_rows', 'num_bytes', 'event_type', 'timestamp_begin', 'timestamp_end'],
+                                       ['int32', 'int32', 'int64', 'int64', 'int64', 'int64', 'int64', 'str', 'int64', 'int64']),
+            }
+
+            for log_table_name in log_schemas:
+                log_files = [self.node_cwds[i] + '/'+log_table_name+'.' + \
+                    str(i) + '.log' for i in range(0, len(self.node_cwds))]
+
+                names, dtypes = log_schemas[log_table_name]
+                t = self.create_table(
+                    log_table_name,
+                    log_files,
+                    delimiter='|',
+                    dtype=dtypes,
+                    names=names,
+                    file_format='csv')
+
             self.logs_initialized = True
 
         return self.sql(query)
