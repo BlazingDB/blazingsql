@@ -189,7 +189,6 @@ def collectPartitionsRunQuery(
 
     import dask.distributed
     worker = dask.distributed.get_worker()
-    worker_id = worker.name
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
             if single_gpu:
@@ -230,10 +229,10 @@ def collectPartitionsPerformPartition(
         partition_keys_mapping,
         df_schema,
         by,
-        i):  # this is a dummy variable to make every submit unique which is necessary
+        i):  
     import dask.distributed
     worker = dask.distributed.get_worker()
-    worker_id = worker.name
+    worker_id = nodes[i]['worker']
 
     if worker_id in partition_keys_mapping:
         partition_keys = partition_keys_mapping[worker_id]
@@ -1522,7 +1521,7 @@ class BlazingContext(object):
                             partition_keys_mapping,
                             df_schema,
                             by,
-                            i,  # this is a dummy variable to make every submit unique which is necessary
+                            i,  # node number
                             workers=[worker]))
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
