@@ -7,10 +7,9 @@
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
-#include "parser/expression_utils.hpp"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "distribution/primitives.h"
-#include "Utils.cuh"
+#include "error.hpp"
 #include "blazingdb/concurrency/BlazingThread.h"
 #include "CodeTimer.h"
 #include <cudf/stream_compaction.hpp>
@@ -36,6 +35,10 @@ struct TableSchema {
 		: column_types{column_types}, column_names{column_names}
 	{}
 };
+
+void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices);
+
+void split_inequality_join_into_join_and_filter(const std::string & join_statement, std::string & new_join_statement, std::string & filter_statement);
 
 class PartwiseJoin : public kernel {
 public:
@@ -238,7 +241,7 @@ public:
 			if(has_nulls_right){
 				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
 			}
-			
+
 			result_table = cudf::left_join(
 				table_left.view(),
 				has_nulls_right ? table_right_dropna->view() : table_right.view(),
@@ -289,7 +292,7 @@ public:
 
 					{ // parsing more of the expression here because we need to have the number of columns of the tables
 						std::vector<int> column_indices;
-						ral::processor::parseJoinConditionToColumnIndices(condition, column_indices);
+						parseJoinConditionToColumnIndices(condition, column_indices);
 						for(int i = 0; i < column_indices.size();i++){
 							if(column_indices[i] >= left_batch->num_columns()){
 								this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
@@ -489,7 +492,6 @@ public:
 					// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
 					std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
 					partitioned = cudf::split(hashed_data->view(), split_indexes);
-					
 				} else {
 					for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
 						partitioned.push_back(batch_view);
@@ -530,7 +532,7 @@ public:
 											"info"_a=err,
 											"duration"_a="");
 				logger->flush();
-				
+
 				std::cout<<err<<std::endl;
 			}
         }
@@ -621,7 +623,7 @@ public:
 
 		{ // parsing more of the expression here because we need to have the number of columns of the tables
 			std::vector<int> column_indices;
-			ral::processor::parseJoinConditionToColumnIndices(condition, column_indices);
+			parseJoinConditionToColumnIndices(condition, column_indices);
 			for(int i = 0; i < column_indices.size();i++){
 				if(column_indices[i] >= left_batch->num_columns()){
 					this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
@@ -631,8 +633,8 @@ public:
 			}
 		}
 
-		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context, 
-			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
+		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context,
+			this->left_column_indices, std::move(left_batch), std::ref(left_sequence),
 			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id(),
 			this->logger);
 
@@ -649,8 +651,8 @@ public:
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
 
-		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
-			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
+		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context,
+			this->right_column_indices, std::move(right_batch), std::ref(right_sequence),
 			std::ref(this->output_.get_cache("output_b")), "output_b_" + this->get_message_id(),
 			this->logger);
 

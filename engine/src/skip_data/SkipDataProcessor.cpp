@@ -10,7 +10,7 @@
 #include "CalciteExpressionParsing.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
-#include "Utils.cuh"
+#include "error.hpp"
 
 #include <numeric>
 
@@ -25,7 +25,7 @@ namespace skip_data {
 // minmax_metadata_table => minmax_metadata_table[[0, 1,  6, 7,  10, 11, size - 2, size - 1]]
 std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_table(
     const ral::frame::BlazingTableView & metadata_view, const std::vector<std::string> & names, std::string table_scan) {
-     
+
     std::string filter_string;
     try {
         filter_string = get_named_expression(table_scan, "condition");
@@ -52,22 +52,22 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         column_indeces.resize(names.size());
         std::iota(column_indeces.begin(), column_indeces.end(), 0);
     } else {
-        std::vector<std::string> column_index_strings = get_expressions_from_expression_list(projects, true);    
+        std::vector<std::string> column_index_strings = get_expressions_from_expression_list(projects, true);
         for (int i = 0; i < column_index_strings.size(); i++){
             int index = std::stoi(column_index_strings[i]);
-            column_indeces.push_back(index);        
-        }   
+            column_indeces.push_back(index);
+        }
     }
 
     cudf::size_type rows = metadata_view.num_rows();
     std::unique_ptr<cudf::column> temp_no_data = cudf::make_fixed_width_column(
         cudf::data_type{cudf::type_id::INT8}, rows,
         cudf::mask_state::UNINITIALIZED);
-    
+
     std::vector<std::string> metadata_names = metadata_view.names();
     std::vector<std::unique_ptr<ral::frame::BlazingColumn>> metadata_columns = metadata_view.toBlazingColumns();
     std::vector<std::unique_ptr<ral::frame::BlazingColumn>> projected_metadata_cols;
-    std::vector<bool> valid_metadata_columns;    
+    std::vector<bool> valid_metadata_columns;
     for (int i = 0; i < column_indeces.size(); i++){
         int col_index = column_indeces[i];
         std::string metadata_min_name = "min_" + std::to_string(col_index) + '_' + names[col_index];
@@ -79,26 +79,26 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
             auto it = std::find(metadata_names.begin(), metadata_names.end(), metadata_min_name);
             int min_col_index = std::distance(metadata_names.begin(), it);
             projected_metadata_cols.emplace_back(std::move(metadata_columns[min_col_index]));
-            projected_metadata_cols.emplace_back(std::move(metadata_columns[min_col_index + 1]));            
+            projected_metadata_cols.emplace_back(std::move(metadata_columns[min_col_index + 1]));
         } else {
             valid_metadata_columns.push_back(false);
             projected_metadata_cols.emplace_back(std::move(std::make_unique<ral::frame::BlazingColumnView>(temp_no_data->view()))); // these are dummy columns that we wont actually use
             projected_metadata_cols.emplace_back(std::move(std::make_unique<ral::frame::BlazingColumnView>(temp_no_data->view())));
         }
     }
-    
+
     // process filter_string to convert to skip data version
     ral::parser::parse_tree tree;
     if (tree.build(filter_string)){
         // lets drop all columns that do not have skip data
-        for (size_t i = 0; i < valid_metadata_columns.size(); i++){ 
+        for (size_t i = 0; i < valid_metadata_columns.size(); i++){
             if (!valid_metadata_columns[i]) { // if this column has no metadata lets drop it from the expression tree
                 tree.drop({"$" + std::to_string(i)});
             }
         }
         tree.apply_skip_data_rules();
-        if (tree.is_valid()) {
-            // std::cout << " skiP-data: " << filter_string << " | " << tree.rebuildExpression() << std::endl; 
+        if (!tree.root().value.empty()) {
+            // std::cout << " skiP-data: " << filter_string << " | " << tree.rebuildExpression() << std::endl;
             filter_string =  tree.rebuildExpression();
         } else{
             return std::make_pair(nullptr, true);
@@ -110,7 +110,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     if (filter_string.empty()) {
         return std::make_pair(nullptr, true);
     }
-        
+
     // then we follow a similar pattern to process_filter
     std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = ral::processor::evaluate_expressions(std::move(projected_metadata_cols), {filter_string});
 

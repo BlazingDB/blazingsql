@@ -1,5 +1,6 @@
 #include "utilities/CommonOperations.h"
 #include "utilities/StringUtils.h"
+#include "error.hpp"
 
 #include "CalciteExpressionParsing.h"
 #include <cudf/filling.hpp>
@@ -82,25 +83,46 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableV
 	return std::make_unique<ral::frame::BlazingTable>(std::move(empty), table.names());
 }
 
+cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2) {
+	if(type1 == type2) {
+		return type1;
+	} else if((is_type_float(type1.id()) && is_type_float(type2.id())) || (is_type_integer(type1.id()) && is_type_integer(type2.id()))) {
+		return (cudf::size_of(type1) >= cudf::size_of(type2))	? type1	: type2;
+	} else if(is_date_type(type1.id()) && is_date_type(type2.id())) {
+		// if they are both datetime, return the highest resolution either has
+		static constexpr std::array<cudf::data_type, 5> datetime_types = {
+			cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS},
+			cudf::data_type{cudf::type_id::TIMESTAMP_MICROSECONDS},
+			cudf::data_type{cudf::type_id::TIMESTAMP_MILLISECONDS},
+			cudf::data_type{cudf::type_id::TIMESTAMP_SECONDS},
+			cudf::data_type{cudf::type_id::TIMESTAMP_DAYS}
+		};
+
+		for (auto datetime_type : datetime_types){
+			if(type1 == datetime_type || type2 == datetime_type)
+				return datetime_type;
+		}
+	}
+
+	RAL_FAIL("No common type between " + std::to_string(type1.id()) + " and " + std::to_string(type2.id()));
+}
+
 std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns) {
 	if(columns.size() < 2) {
 		return columns;
 	}
 
-	cudf::type_id common_type = columns[0]->view().type().id();
+	cudf::data_type common_type = columns[0]->view().type();
 	for(size_t j = 1; j < columns.size(); j++) {
-		common_type = get_common_type(common_type, columns[j]->view().type().id());
+		common_type = get_common_type(common_type, columns[j]->view().type());
 	}
 
 	std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_out;
 	for(size_t j = 0; j < columns.size(); j++) {
-		if(columns[j]->view().type().id() == common_type) {
+		if(columns[j]->view().type() == common_type) {
 			columns_out.emplace_back(std::move(columns[j]));
 		} else {
-			Library::Logging::Logger().logWarn(buildLogString("", "", "",
-					"WARNING: normalizeColumnTypes casting " + std::to_string(columns[j]->view().type().id()) +
-						" to " + std::to_string(common_type)));
-			std::unique_ptr<CudfColumn> casted = cudf::cast(columns[j]->view(), cudf::data_type(common_type));
+			std::unique_ptr<CudfColumn> casted = cudf::cast(columns[j]->view(), common_type);
 			columns_out.emplace_back(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted)));
 		}
 	}
