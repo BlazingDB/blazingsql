@@ -171,77 +171,10 @@ def getNodePartitionKeys(df, client):
             worker = worker_part[key][0]
             worker_partitions[worker].append(key)
         else:
-            logging.error("ERROR: In getNodePartitions, woker has no corresponding partition")
-            print("ERROR: In getNodePartitions, woker has no corresponding partition")
+            logging.error("ERROR: In getNodePartitionKeys, woker has no corresponding partition")
+            print("ERROR: In getNodePartitionKeys, woker has no corresponding partition")
     
     return worker_partitions
-
-def getNodePartitionFutures(df, client):
-    from dask import delayed
-
-    workers = client.scheduler_info()['workers']
-
-    worker_partitions = {}
-    for worker in workers:
-        worker_partitions[worker] = []
-
-    dask.distributed.wait(df)
-    worker_part = client.who_has(df)
-    futures = dask.distributed.futures_of(df)
-
-    # here we are putting the futures that constitute a dask.cudf.DataFrame into a map of worker identifyers and that workers corresponding partitions futures
-    for future_obj in futures:
-        worker_partitions[worker_part[str(future_obj.key)][0]].append(future_obj)
-
-    # for key in worker_partitions:
-    #     # convert list of futures into a single future that containes all the partition futures
-    #     worker_partitions[key] = delayed(list)(future_obj for future_obj in worker_partitions[key])
-    
-    return worker_partitions
-
-    
-
-def getNodePartitions(df, client):
-    workers = client.scheduler_info()['workers']
-    
-    logging.info('getNodePartitions num workers: ' + str(len(workers)))
-    logging.info('workers object: ' + str(workers))    
-
-    worker_partitions = {}
-    for worker in workers:
-        worker_partitions[worker] = []
-
-    futures = dask.distributed.wait(df)
-    worker_part = client.who_has(df)
-
-    # WSM futures should go hand in hand with workers_part
-
-    # i can get futures lke this:
-    # df = df.persist()  # start computation in the background
-    # futures = futures_of(df)
-
-    # look at https://distributed.dask.org/en/latest/manage-computation.html#futures-to-dask-collections
-
-
-    logging.info('getNodePartitions workers who have df: ' + str(len(worker_part)))
-    logging.info('worker_part object:' + str(worker_part))
-
-
-    for key in worker_part:
-        if len(worker_part[key]) > 0:
-            worker = worker_part[key][0]
-            partition = int(key[key.find(",") + 2:(len(key) - 1)])
-            worker_partitions[worker].append(partition)
-        else:
-            logging.error("ERROR: In getNodePartitions, woker has no corresponding partition")
-            print("ERROR: In getNodePartitions, woker has no corresponding partition")
-
-    return dict((workers[worker]['name'], partitions) for worker, partitions in worker_partitions.items())
-
-
-
-# myList = [tables[table_name].input.get_partition(partitions[0])]
-
 
 def collectPartitionsRunQuery(
         masterIndex,
@@ -267,14 +200,9 @@ def collectPartitionsRunQuery(
 
         if hasattr(tables[table_name],'partition_keys'): # this is a dask cudf table
             if len(tables[table_name].partition_keys) > 0:
-                print("using partition keys")
-                logging.info("using partition keys")
-
                 tables[table_name].input = []
                 for key in tables[table_name].partition_keys:
                     tables[table_name].input.append(worker.data[key])
-
-
 
     try:
         result = cio.runQueryCaller(
@@ -299,48 +227,35 @@ def collectPartitionsPerformPartition(
         nodes,
         ctxToken,
         input,
-        dask_mapping,
+        partition_keys_mapping,
         df_schema,
         by,
         i):  # this is a dummy variable to make every submit unique which is necessary
     import dask.distributed
-    worker_id = dask.distributed.get_worker().name
-    if(isinstance(input, dask_cudf.core.DataFrame)):
-        partitions = dask_mapping[worker_id]
-        if (len(partitions) == 0):
-            input = input._meta # empty DataFrame with the right schema
-        elif (len(partitions) == 1):
-            input = input.get_partition(partitions[0]).compute()
+    worker = dask.distributed.get_worker()
+    worker_id = worker.name
+
+    if worker_id in partition_keys_mapping:
+        partition_keys = partition_keys_mapping[worker_id]
+        if len(partition_keys) > 1:
+            node_inputs = []
+            for key in partition_keys:
+                node_inputs.append(worker.data[key])
+            # TODO, eventually we want the engine side of the partition function to handle the table in parts
+            node_input = cudf.concat(node_inputs) 
+        elif len(partition_keys) == 1:
+            node_input = worker.data[partition_keys[0]]
         else:
-            table_partitions = []
-            for partition in partitions:
-                table_partitions.append(
-                    input.get_partition(partition).compute())
-            input = cudf.concat(table_partitions)
+            node_input = df_schema
+    else:
+        node_input = df_schema
+
     return cio.performPartitionCaller(
                     masterIndex,
                     nodes,
                     ctxToken,
-                    input,
+                    node_input,
                     by)
-
-def workerUnifyPartitions(
-        input,
-        dask_mapping,
-        i):  # this is a dummy variable to make every submit unique which is necessary
-    import dask.distributed
-    worker_id = dask.distributed.get_worker().name
-    partitions = dask_mapping[worker_id]
-    if (len(partitions) == 0):
-        return input._meta # empty dataframe with the right schema
-    elif (len(partitions) == 1):
-        return input.get_partition(partitions[0]).compute()
-    else:
-        table_partitions = []
-        for partition in partitions:
-            table_partitions.append(
-                input.get_partition(partition).compute())
-        return cudf.concat(table_partitions)
 
 
 # returns a map of table names to the indices of the columns needed. If there are more than one table scan for one table, it merged the needed columns
@@ -685,15 +600,11 @@ class BlazingTable(object):
 
         self.args = args
         if self.fileType == DataType.CUDF or self.fileType == DataType.DASK_CUDF:
-            logging.info('BlazingTable self.fileType == DataType.CUDF or self.fileType == DataType.DASK_CUDF')
             if(convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame)):
                 self.input = dask_cudf.from_cudf(
                     self.input, npartitions=convert_gdf_to_dask_partitions)
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
                 self.input = self.input.persist()
-                # logging.info("BlazingTable getNodePartitions")
-                # self.dask_mapping = getNodePartitions(self.input, client)
-                # self.futures_mapping = getNodePartitionFutures(self.input, client)
                 self.partition_keys_mapping = getNodePartitionKeys(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
@@ -753,34 +664,17 @@ class BlazingTable(object):
 # until this is implemented we cant do self join with arrow tables
 #    def unionColumns(self,otherTable):
 
-    def getDaskDataFrameSlices(self, nodes):
-        import copy 
-        nodeFilesList = []
-        for node in nodes:
-            # here we are making a shallow copy of the table and replacing the input dask DataFrame with the futures for the partitions for that worker
-            table = copy.copy(self)
-            if node['worker'] in self.futures_mapping:
-                table.input = self.futures_mapping[node['worker']]
-            else:
-                print("getDaskDataFrameSlices node['worker'] not found in self.futures_mapping ")
-                logging.info("getDaskDataFrameSlices node['worker'] not found in self.futures_mapping ")
-                table.input = [table.input._meta]
-            nodeFilesList.append(table)
-
-        return nodeFilesList
-
     def getDaskDataFrameKeySlices(self, nodes):
         import copy 
         nodeFilesList = []
         for node in nodes:
-            # here we are making a shallow copy of the table and replacing the input dask DataFrame with the futures for the partitions for that worker
+            # here we are making a shallow copy of the table and getting rid of the reference for the dask.cudf.DataFrame 
+            # since we dont want to send that to dask wokers. You dont want to send a distributed object to individual workers
             table = copy.copy(self)
             if node['worker'] in self.partition_keys_mapping:
                 table.partition_keys = self.partition_keys_mapping[node['worker']]
                 table.input = []
             else:
-                print("getDaskDataFrameKeySlices node['worker'] not found in self.partition_keys_mapping ")
-                logging.info("getDaskDataFrameKeySlices node['worker'] not found in self.partition_keys_mapping ")
                 table.input = [table.input._meta]
                 table.partition_keys = []
             nodeFilesList.append(table)
@@ -822,14 +716,6 @@ class BlazingTable(object):
             remaining = remaining - batchSize
 
         return nodeFilesList
-
-    def get_partitions(self, worker):
-        if worker not in self.dask_mapping:
-            logging.error("Worker " + str(worker) + " is not in the table dask_mapping")
-            assert False, "Worker [{}] is not in the table dask_mapping".format(worker)
-
-        return self.dask_mapping[worker]
-
 
 class BlazingContext(object):
     """
@@ -1624,8 +1510,9 @@ class BlazingContext(object):
             if(not isinstance(input, dask_cudf.core.DataFrame)):
                 print("Not supported...")
             else:
-                dask_mapping = getNodePartitions(input, self.dask_client)
-                df_schema = input.get_partition(0).head(0)
+                partition_keys_mapping = getNodePartitionKeys(input, self.dask_client)
+                df_schema = input._meta
+
                 dask_futures = []
                 for i, node in enumerate(self.nodes):
                     worker = node['worker']
@@ -1636,7 +1523,7 @@ class BlazingContext(object):
                             self.nodes,
                             ctxToken,
                             input,
-                            dask_mapping,
+                            partition_keys_mapping,
                             df_schema,
                             by,
                             i,  # this is a dummy variable to make every submit unique which is necessary
@@ -1763,13 +1650,6 @@ class BlazingContext(object):
                     if new_tables[table].input.npartitions != 1:
                         new_tables[table].input = new_tables[table].input.repartition(npartitions=1)
                         new_tables[table].input = new_tables[table].input.persist()
-                elif new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
-                    print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
-                    logging.warning("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
-                    temp_df = new_tables[table].input.compute()
-                    new_tables[table].input = dask_cudf.from_cudf(temp_df,npartitions=len(self.nodes))
-                    new_tables[table].input = new_tables[table].input.persist()
-                    new_tables[table].dask_mapping = getNodePartitions(new_tables[table].input, self.dask_client)
                 
                 logging.info("calling getDaskDataFrameKeySlices for " + table)
                 currentTableNodes = new_tables[table].getDaskDataFrameKeySlices(self.nodes)
