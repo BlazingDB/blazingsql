@@ -132,22 +132,11 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options ) {
 
-	auto logger = spdlog::get("batch_logger");
-	logger->debug("{query_id}|||{info}|{duration}||||",
-						"query_id"_a=ctxToken,
-						"info"_a="runQuery start",
-						"duration"_a="");
-
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
-	logger->debug("{query_id}|||{info}|{duration}||||",
-						"query_id"_a=ctxToken,
-						"info"_a="runQuery got loaders and schemas",
-						"duration"_a="");
-	
 	using blazingdb::manager::Context;
 	using blazingdb::transport::Node;
 

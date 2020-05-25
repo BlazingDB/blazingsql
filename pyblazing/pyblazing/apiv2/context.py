@@ -1204,7 +1204,6 @@ class BlazingContext(object):
                 DataType.ARROW)
 
         if isinstance(input, cudf.DataFrame):
-            logging.info('creating table from cudf.DataFrame')
             if (self.dask_client is not None):
                 table = BlazingTable(
                     input,
@@ -1216,8 +1215,6 @@ class BlazingContext(object):
             else:
                 table = BlazingTable(input, DataType.CUDF)
         elif isinstance(input, list):
-            logging.info('creating table from list')
-
             input = resolve_relative_path(input)
 
             ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find.
@@ -1301,7 +1298,6 @@ class BlazingContext(object):
 
 
         elif isinstance(input, dask_cudf.core.DataFrame):
-            logging.info('creating table from dask_cudf.core.DataFrame')
             table = BlazingTable(
                 input,
                 DataType.DASK_CUDF,
@@ -1651,7 +1647,6 @@ class BlazingContext(object):
                         new_tables[table].input = new_tables[table].input.repartition(npartitions=1)
                         new_tables[table].input = new_tables[table].input.persist()
                 
-                logging.info("calling getDaskDataFrameKeySlices for " + table)
                 currentTableNodes = new_tables[table].getDaskDataFrameKeySlices(self.nodes)
 
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
@@ -1703,8 +1698,6 @@ class BlazingContext(object):
                         query_config_options,
                         single_gpu=True)]
             else:
-                logging.info("about to run collectPartitionsRunQuery. num nodes is: " + str(len(self.nodes)))
-                logging.info("self.nodes Object: " + str(self.nodes))
                 dask_futures = []
                 i = 0
                 for node in self.nodes:

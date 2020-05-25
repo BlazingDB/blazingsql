@@ -29,7 +29,6 @@ import cudf
 from cudf.utils import cudautils
 from cudf.utils.dtypes import is_categorical_dtype
 from cudf.utils.utils import mask_dtype, mask_bitsize
-from dask.distributed import client
 
 from cudf.core.column.column import build_column
 import rmm
@@ -315,9 +314,6 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef vector[column_view] column_views
     cdef Column cython_col
 
-    logging.info('runQueryCaller start')
-
-    scope_holder = [] # calling .result() below, makes a copy. We need to keep the scope of that copy to be for the duration of the query
     tableIndex = 0
     for tableName in tables:
       uri_values_cpp.empty()
@@ -360,19 +356,14 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         types.push_back(col_type)
 
       if table.fileType in (4, 5): # if cudf DataFrame or dask.cudf DataFrame
-        logging.info('runQueryCaller cythonizing table ' + tableName)
         blazingTableViews.resize(0)
         for cython_table in table.input:
           column_views.resize(0)
-          if type(cython_table) == client.Future:
-            cython_table = cython_table.result()            
-            scope_holder.append(cython_table)
           for cython_col in cython_table._data.values():
             column_views.push_back(cython_col.view())
           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
         currentTableSchemaCpp.blazingTableViews = blazingTableViews
-        logging.info('runQueryCaller cythonized table ' + tableName)
-
+        
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.types = types
 
@@ -401,7 +392,6 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    logging.info('runQueryPython start')
     resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options))
 
     names = dereference(resultSet).names
