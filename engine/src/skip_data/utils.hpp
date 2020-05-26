@@ -5,10 +5,6 @@
 namespace ral {
 namespace skip_data {
 
-bool is_unary_op(const std::string &test);
-
-bool is_binary_op(const std::string &test);
-
 bool is_unsupported_binary_op(const std::string &test);
 
 bool is_exclusion_unary_op(const std::string &test);
