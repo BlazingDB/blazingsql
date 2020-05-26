@@ -7,9 +7,8 @@
 #include <cudf/sorting.hpp>
 #include <cudf/search.hpp>
 #include <cudf/strings/copying.hpp>
-#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
-
+#include "parser/expression_utils.hpp"
 #include "utilities/CommonOperations.h"
 
 using namespace fmt::literals;
@@ -26,7 +25,7 @@ const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
 
 /**---------------------------------------------------------------------------*
- * @brief Sorts the columns of the input table according the sortOrderTypes 
+ * @brief Sorts the columns of the input table according the sortOrderTypes
  * and sortColIndices.
  *
  * @param[in] table             table whose rows need to be compared for ordering
@@ -58,7 +57,7 @@ std::unique_ptr<cudf::table> logicalLimit(const cudf::table_view& table, cudf::s
 	if (limitRows == 0) {
 		return cudf::empty_like(table);
 	}
-	
+
 	std::vector<std::unique_ptr<cudf::column>> output_cols;
 	output_cols.reserve(table.num_columns());
 	for(auto i = 0; i < table.num_columns(); ++i) {
@@ -69,20 +68,19 @@ std::unique_ptr<cudf::table> logicalLimit(const cudf::table_view& table, cudf::s
 		if(cudf::is_fixed_width(columnType)) {
 			out_column = cudf::make_fixed_width_column(columnType, limitRows, column.has_nulls()?cudf::mask_state::UNINITIALIZED: cudf::mask_state::UNALLOCATED);
 			cudf::mutable_column_view out_column_mutable_view = out_column->mutable_view();
-			cudf::copy_range_in_place(column, out_column_mutable_view, 0, limitRows, 0);			
+			cudf::copy_range_in_place(column, out_column_mutable_view, 0, limitRows, 0);
 		} else {
 			out_column = cudf::strings::detail::slice(column, 0, limitRows);
 		}
 		output_cols.push_back(std::move(out_column));
 	}
 
-	
 	return std::make_unique<cudf::table>(std::move(output_cols));
 }
 
 /**---------------------------------------------------------------------------*
  * @brief In a distributed context, this function determines what the limit would be
- * for this local node. It does this be distributing and collecting the total number of 
+ * for this local node. It does this be distributing and collecting the total number of
  * rows in the table. Then knowing which node index this local node is, it can calculate
  * how many rows are ahead of the ones in this partition
  *
@@ -109,7 +107,7 @@ auto get_sort_vars(const std::string & query_part) {
 	std::string combined_expression = query_part.substr(rangeStart + 1, rangeEnd);
 
 	int num_sort_columns = count_string_occurrence(combined_expression, "sort");
-	
+
 	std::vector<int> sortColIndices(num_sort_columns);
 	std::vector<cudf::order> sortOrderTypes(num_sort_columns);
 	for(auto i = 0; i < num_sort_columns; i++) {
@@ -178,7 +176,7 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	auto tableNames = table.names();
 	std::vector<std::string> sortColNames(sortColIndices.size());
   std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
-	
+
 	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), sortColNames);
 
 	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::generateSamplesFromRatio(sortColumns, 0.1);
@@ -226,7 +224,7 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	return cudf::split(sortedTable.view(), split_indexes);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, 
+std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples,
 	std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context){
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
@@ -246,8 +244,8 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(co
 		total_rows_tables.push_back(table_num_rows);
 		std::size_t totalNumRows = std::accumulate(total_rows_tables.begin(), total_rows_tables.end(), std::size_t(0));
 
-		std::size_t num_bytes_per_order_by_partition = 400000000; 
-		int max_num_order_by_partitions_per_node = 8; 
+		std::size_t num_bytes_per_order_by_partition = 400000000;
+		int max_num_order_by_partitions_per_node = 8;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("NUM_BYTES_PER_ORDER_BY_PARTITION");
 		if (it != config_options.end()){
@@ -266,16 +264,16 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(co
 		total_num_partitions = total_num_partitions > max_num_order_by_partitions_per_node * num_nodes ? max_num_order_by_partitions_per_node * num_nodes : total_num_partitions;
 
 		std::string info = "local_table_num_rows: " + std::to_string(table_num_rows) + " avg_bytes_per_row: " + std::to_string(avg_bytes_per_row) +
-								" totalNumRows: " + std::to_string(totalNumRows) + " total_num_partitions: " + std::to_string(total_num_partitions) + 
+								" totalNumRows: " + std::to_string(totalNumRows) + " total_num_partitions: " + std::to_string(total_num_partitions) +
 								" NUM_BYTES_PER_ORDER_BY_PARTITION: " + std::to_string(num_bytes_per_order_by_partition) + " MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE: " + std::to_string(max_num_order_by_partitions_per_node);
-		
+
 		auto logger = spdlog::get("batch_logger");
 		logger->debug("{query_id}|{step}|{substep}|{info}|||||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
 									"substep"_a=context->getQuerySubstep(),
 									"info"_a="Determining Number of Order By Partitions " + info);
-		
+
 		partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
 		context->incrementQuerySubstep();
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
@@ -307,7 +305,7 @@ distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
 	std::generate(part_ids.begin(), part_ids.end(), [count, num_partitions_per_node=num_partitions/num_nodes] () mutable { return (count++)%(num_partitions_per_node); });
 
 	distributeTablePartitions(context, partitions, part_ids);
-	
+
 	std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>> self_partitions;
 	for (size_t i = 0; i < partitions.size(); i++) {
 		auto & partition = partitions[i];

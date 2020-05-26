@@ -19,4 +19,6 @@
 #677 added guava to pom.xml
 #679 Support modern compilers (>= g++-7.x)
 #6449 Adding event logging
+#649 Adding event logging
+#697 Update expression parser
 #659 Improve reading for: SELECT * FROM table LIMIT N

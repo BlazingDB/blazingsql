@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cudf/utilities/error.hpp>
 
 #define STRINGIFY_DETAIL(x) #x
 #define RAL_STRINGIFY(x) STRINGIFY_DETAIL(x)

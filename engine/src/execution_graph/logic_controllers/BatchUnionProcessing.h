@@ -10,7 +10,7 @@
 #include "communication/CommunicationData.h"
 #include "distribution/primitives.h"
 #include "utilities/DebuggingUtils.h"
-#include "Utils.cuh"
+#include "error.hpp"
 #include "CodeTimer.h"
 
 namespace ral {

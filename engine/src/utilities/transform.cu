@@ -4,7 +4,7 @@
 #include <rmm/thrust_rmm_allocator.h>
 #include <thrust/transform.h>
 #include "transform.hpp"
-#include "Utils.cuh"
+#include "error.hpp"
 
 namespace ral {
 namespace utilities {
