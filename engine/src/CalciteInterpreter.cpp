@@ -23,56 +23,6 @@
 
 using namespace fmt::literals;
 
-
-/*
-This function will take a join_statement and if it contains anything that is not an equijoin, it will try to break it up into an equijoin (new_join_statement) and a filter (filter_statement)
-If its just an equijoin, then the new_join_statement will just be join_statement and filter_statement will be empty
-
-Examples:
-Basic case:
-join_statement = LogicalJoin(condition=[=($3, $0)], joinType=[inner])
-new_join_statement = LogicalJoin(condition=[=($3, $0)], joinType=[inner])
-filter_statement = ""
-
-Simple case:
-join_statement = LogicalJoin(condition=[AND(=($3, $0), >($5, $2))], joinType=[inner])
-new_join_statement = LogicalJoin(condition=[=($3, $0)], joinType=[inner])
-filter_statement = LogicalFilter(condition=[>($5, $2)])
-
-Complex case:
-join_statement = LogicalJoin(condition=[AND(=($7, $0), OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5)))], joinType=[inner])
-new_join_statement = LogicalJoin(condition=[=($7, $0)], joinType=[inner])
-filter_statement = LogicalFilter(condition=[OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))])
-
-Error case:
-join_statement = LogicalJoin(condition=[OR(=($7, $0), AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))], joinType=[inner])
-Should throw an error
-
-Error case:
-join_statement = LogicalJoin(condition=[AND(<($7, $0), >($7, $1)], joinType=[inner])
-Should throw an error
-
-*/
-void split_inequality_join_into_join_and_filter(const std::string & join_statement, std::string & new_join_statement, std::string & filter_statement){
-	new_join_statement = join_statement;
-	filter_statement = "";
-
-	std::string condition = get_named_expression(join_statement, "condition");
-	std::string join_type = get_named_expression(join_statement, "joinType");
-
-	ral::parser::parse_tree condition_tree;
-	condition_tree.build(condition);
-	std::string new_join_statement_expression, filter_statement_expression;
-	condition_tree.split_inequality_join_into_join_and_filter(new_join_statement_expression, filter_statement_expression);
-
-	new_join_statement = "LogicalJoin(condition=[" + new_join_statement_expression + "], joinType=[" + join_type + "])";
-	if (filter_statement_expression != ""){
-		filter_statement = "LogicalFilter(condition=[" + filter_statement_expression + "])";
-	} else {
-		filter_statement = "";
-	}
-}
-
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
@@ -86,7 +36,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 	try {
 		assert(input_loaders.size() == table_names.size());
 
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> output_frame; 
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> output_frame;
 		ral::batch::tree_processor tree{
 			.root = {},
 			.context = queryContext.clone(),
@@ -98,7 +48,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 		ral::batch::OutputKernel output(queryContext.clone());
 
 		auto query_graph = tree.build_batch_graph(logicalPlan);
-		
+
 		logger->info("{query_id}|{step}|{substep}|{info}|||||",
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
@@ -112,23 +62,23 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 				tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; ";
 			} else {
 				int num_partitions = input_loaders[i].get_parser()->get_num_partitions();
-				if (num_files > 0){
+				if (num_partitions > 0){
 					tables_info += "Table " + table_names[i] + ": num partitions = " + std::to_string(num_partitions) + "; ";
 				} else {
 					tables_info += "Table " + table_names[i] + ": empty table; ";
 				}
-			}			
+			}
 		}
 		logger->info("{query_id}|{step}|{substep}|{info}|||||",
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
 									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="\"" + tables_info + "\"");		
-		
+									"info"_a="\"" + tables_info + "\"");
+
 		std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
 		// Lets build a string with all the configuration parameters set.
 		std::string config_info = "";
-		std::map<std::string, std::string>::iterator it = config_options.begin(); 
+		std::map<std::string, std::string>::iterator it = config_options.begin();
 		while (it != config_options.end())
 		{
 			config_info += it->first + ": " + it->second + "; ";
@@ -140,7 +90,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 									"substep"_a=queryContext.getQuerySubstep(),
 									"info"_a="\"Config Options: {}\""_format(config_info),
 									"duration"_a="");
-		
+
 		if (query_graph->num_nodes() > 0) {
 			ral::cache::cache_settings cache_machine_config;
 			

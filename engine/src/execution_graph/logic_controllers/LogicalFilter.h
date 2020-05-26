@@ -24,8 +24,6 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 
 bool check_if_has_nulls(CudfTableView const& input, std::vector<cudf::size_type> const& keys);
 
-void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices);
-
 std::unique_ptr<ral::frame::BlazingTable> process_distribution_table(
   	const ral::frame::BlazingTableView & table,
     std::vector<int> & columnIndices,

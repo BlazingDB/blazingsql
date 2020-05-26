@@ -7,10 +7,9 @@
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include "communication/CommunicationData.h"
-#include "parser/expression_utils.hpp"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "distribution/primitives.h"
-#include "Utils.cuh"
+#include "error.hpp"
 #include "blazingdb/concurrency/BlazingThread.h"
 #include "CodeTimer.h"
 #include <cudf/stream_compaction.hpp>
@@ -36,6 +35,10 @@ struct TableSchema {
 		: column_types{column_types}, column_names{column_names}
 	{}
 };
+
+void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices);
+
+void split_inequality_join_into_join_and_filter(const std::string & join_statement, std::string & new_join_statement, std::string & filter_statement);
 
 class PartwiseJoin : public kernel {
 public:
@@ -238,7 +241,7 @@ public:
 			if(has_nulls_right){
 				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
 			}
-			
+
 			result_table = cudf::left_join(
 				table_left.view(),
 				has_nulls_right ? table_right_dropna->view() : table_right.view(),
@@ -289,7 +292,7 @@ public:
 
 					{ // parsing more of the expression here because we need to have the number of columns of the tables
 						std::vector<int> column_indices;
-						ral::processor::parseJoinConditionToColumnIndices(condition, column_indices);
+						parseJoinConditionToColumnIndices(condition, column_indices);
 						for(int i = 0; i < column_indices.size();i++){
 							if(column_indices[i] >= left_batch->num_columns()){
 								this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
@@ -489,7 +492,6 @@ public:
 					// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
 					std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
 					partitioned = cudf::split(hashed_data->view(), split_indexes);
-					
 				} else {
 					for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
 						partitioned.push_back(batch_view);
@@ -530,7 +532,7 @@ public:
 											"info"_a=err,
 											"duration"_a="");
 				logger->flush();
-				
+
 				std::cout<<err<<std::endl;
 			}
         }
@@ -541,8 +543,34 @@ public:
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
 		const ral::frame::BlazingTableView & right_batch_view ){
 
-		std::pair<bool, uint64_t> left_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_a");
-		std::pair<bool, uint64_t> right_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_b");
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="determine_if_we_are_scattering_a_small_table start",
+									"duration"_a="",
+									"kernel_id"_a=this->get_id());
+
+		std::pair<bool, uint64_t> left_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_a");	
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="left_num_rows_estimate was " + left_num_rows_estimate.first ? " valid" : " invalid",
+									"duration"_a="",
+									"kernel_id"_a=this->get_id(),
+									"rows"_a=left_num_rows_estimate.second);
+
+		std::pair<bool, uint64_t> right_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_b");	
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="right_num_rows_estimate was " + right_num_rows_estimate.first ? " valid" : " invalid",
+									"duration"_a="",
+									"kernel_id"_a=this->get_id(),
+									"rows"_a=right_num_rows_estimate.second);
+
 		double left_batch_rows = (double)left_batch_view.num_rows();
 		double left_batch_bytes = (double)ral::utilities::get_table_size_bytes(left_batch_view);
 		double right_batch_rows = (double)right_batch_view.num_rows();
@@ -568,9 +596,35 @@ public:
 		ral::distribution::distributeLeftRightTableSizeBytes(context.get(), left_bytes_estimate, right_bytes_estimate);
 		std::vector<int64_t> nodes_num_bytes_left;
 		std::vector<int64_t> nodes_num_bytes_right;
+
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="determine_if_we_are_scattering_a_small_table about to collectLeftRightTableSizeBytes",
+									"duration"_a="",
+									"kernel_id"_a=this->get_id());
+
 		ral::distribution::collectLeftRightTableSizeBytes(context.get(), nodes_num_bytes_left, nodes_num_bytes_right);
 		nodes_num_bytes_left[self_node_idx] = left_bytes_estimate;
 		nodes_num_bytes_right[self_node_idx] = right_bytes_estimate;
+
+		std::string collectLeftRightTableSizeBytesInfo = "nodes_num_bytes_left: ";
+		for (auto num_bytes : nodes_num_bytes_left){
+			collectLeftRightTableSizeBytesInfo += std::to_string(num_bytes) + ", ";
+		}
+		collectLeftRightTableSizeBytesInfo += "; nodes_num_bytes_right: ";
+		for (auto num_bytes : nodes_num_bytes_right){
+			collectLeftRightTableSizeBytesInfo += std::to_string(num_bytes) + ", ";
+		}
+
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="determine_if_we_are_scattering_a_small_table collected " + collectLeftRightTableSizeBytesInfo,
+									"duration"_a="",
+									"kernel_id"_a=this->get_id());
 
 		bool any_unknowns_left = std::any_of(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), [](int64_t bytes){return bytes == -1;});
 		bool any_unknowns_right = std::any_of(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), [](int64_t bytes){return bytes == -1;});
@@ -621,7 +675,7 @@ public:
 
 		{ // parsing more of the expression here because we need to have the number of columns of the tables
 			std::vector<int> column_indices;
-			ral::processor::parseJoinConditionToColumnIndices(condition, column_indices);
+			parseJoinConditionToColumnIndices(condition, column_indices);
 			for(int i = 0; i < column_indices.size();i++){
 				if(column_indices[i] >= left_batch->num_columns()){
 					this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
@@ -631,8 +685,8 @@ public:
 			}
 		}
 
-		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context, 
-			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), 
+		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context,
+			this->left_column_indices, std::move(left_batch), std::ref(left_sequence),
 			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id(),
 			this->logger);
 
@@ -649,8 +703,8 @@ public:
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
 
-		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context, 
-			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), 
+		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context,
+			this->right_column_indices, std::move(right_batch), std::ref(right_sequence),
 			std::ref(this->output_.get_cache("output_b")), "output_b_" + this->get_message_id(),
 			this->logger);
 
@@ -751,7 +805,25 @@ public:
 		this->join_type = get_named_expression(new_join_statement, "joinType");
 
 		std::unique_ptr<ral::frame::BlazingTable> left_batch = left_sequence.next();
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="JoinPartitionKernel got first left batch",
+										"duration"_a="",
+										"kernel_id"_a=this->get_id(),
+										"rows"_a=left_batch->num_rows());
+
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="JoinPartitionKernel got first right batch",
+										"duration"_a="",
+										"kernel_id"_a=this->get_id(),
+										"rows"_a=right_batch->num_rows());
+
 
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
 			while (left_sequence.wait_for_next()){

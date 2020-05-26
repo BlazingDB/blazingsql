@@ -19,7 +19,6 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
-#include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
 
 #include <src/operators/OrderBy.h>
 #include <src/operators/GroupBy.h>
@@ -349,7 +348,7 @@ public:
 	bool can_you_throttle_my_input() {
 		return false;
 	}
-	
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -503,7 +502,7 @@ public:
 
 							this->add_to_output_cache(std::move(batch));
 						}
-						
+
 						this->output_cache()->wait_if_cache_is_saturated();
 
 					} catch(const std::exception& e) {
@@ -783,33 +782,6 @@ public:
 protected:
 	frame_type output;
 };
-
-
-namespace test {
-class generate : public kernel {
-public:
-	generate(std::int64_t count = 1000) : kernel("", nullptr, kernel_type::GenerateKernel), count(count) {}
-	virtual kstatus run() {
-
-		cudf::test::fixed_width_column_wrapper<int32_t> column1{{0, 1, 2, 3, 4, 5}, {1, 1, 1, 1, 1, 1}};
-
-		CudfTableView cudfTableView{{column1} };
-
-		const std::vector<std::string> columnNames{"column1"};
-		ral::frame::BlazingTableView blazingTableView{cudfTableView, columnNames};
-
-		std::unique_ptr<ral::frame::BlazingTable> table = ral::generator::generate_sample(blazingTableView, 4);
-
-		this->output_.get_cache()->addToCache(std::move(table));
-		return (kstatus::proceed);
-	}
-
-private:
-	std::int64_t count;
-};
-}
-using GeneratorKernel = test::generate;
-
 
 } // namespace batch
 } // namespace ral
