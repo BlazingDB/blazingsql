@@ -19,4 +19,5 @@
 #677 added guava to pom.xml
 #679 Support modern compilers (>= g++-7.x)
 #649 Adding event logging
+#660 Changed how we handle the partitions of a dask.cudf.DataFrame
 #697 Update expression parser
