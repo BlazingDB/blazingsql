@@ -1720,7 +1720,7 @@ class BlazingContext(object):
                     futures = []
                     for length, meta, dfs in meta_results:
                         for i in range(0,length):
-                            futures.append(self.dask_client.submit(get_element, dfs, 0))
+                            futures.append(self.dask_client.submit(get_element, dfs, i))
 
                     result = dask.dataframe.from_delayed(futures, meta=meta)
 
