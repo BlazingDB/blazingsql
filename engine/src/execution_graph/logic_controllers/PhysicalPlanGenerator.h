@@ -62,10 +62,7 @@ struct tree_processor {
 			kernel_context->setKernelId(k->get_id());
 		}  else if (is_single_node_partition(expr)) {
 			k = std::make_shared<PartitionSingleNodeKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
-		} else if (is_single_node_sort_and_sample(expr)) {
-			k = std::make_shared<SortAndSampleSingleNodeKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			kernel_context->setKernelId(k->get_id());			
 		} else if (is_partition(expr)) {
 			k = std::make_shared<PartitionKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
@@ -135,7 +132,7 @@ struct tree_processor {
 					StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
 					StringUtil::findAndReplaceAll(merge_expr, LOGICAL_SORT_TEXT, LOGICAL_MERGE_TEXT);
 					StringUtil::findAndReplaceAll(partition_expr, LOGICAL_SORT_TEXT, LOGICAL_SINGLE_NODE_PARTITION_TEXT);
-					StringUtil::findAndReplaceAll(sort_and_sample_expr, LOGICAL_SORT_TEXT, LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT);
+					StringUtil::findAndReplaceAll(sort_and_sample_expr, LOGICAL_SORT_TEXT, LOGICAL_SORT_AND_SAMPLE_TEXT);
 				}	else {
 					StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
 					StringUtil::findAndReplaceAll(merge_expr, LOGICAL_SORT_TEXT, LOGICAL_MERGE_TEXT);
@@ -312,8 +309,8 @@ struct tree_processor {
 				auto parent_kernel_type = parent->kernel_unit->get_type_id();
 				if ((child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel)
 					    || (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
-						|| (child_kernel_type == kernel_type::SortAndSampleSingleNodeKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
-
+						|| (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
+					
 					if (parent->kernel_unit->can_you_throttle_my_input()){
 						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], default_throttled_cache_machine_config);
 						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], default_throttled_cache_machine_config);

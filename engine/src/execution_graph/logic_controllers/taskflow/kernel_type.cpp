@@ -12,7 +12,6 @@ std::string get_kernel_type_name(kernel_type type){
         case kernel_type::PartitionKernel: return "PartitionKernel";
         case kernel_type::SortAndSampleKernel: return "SortAndSampleKernel";
         case kernel_type::PartitionSingleNodeKernel: return "PartitionSingleNodeKernel";
-        case kernel_type::SortAndSampleSingleNodeKernel: return "SortAndSampleSingleNodeKernel";
         case kernel_type::LimitKernel: return "LimitKernel";
         case kernel_type::ComputeAggregateKernel: return "ComputeAggregateKernel";
         case kernel_type::DistributeAggregateKernel: return "DistributeAggregateKernel";
