@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <string.h> /* for strncpy */
 #include <unistd.h>
 #include <clocale>
 
@@ -97,12 +95,12 @@ void initialize(int ralId,
   // ---------------------------------------------------------------------------
 
 	ralHost = get_ip(network_iface_name);
-	
+
 	std::string initLogMsg = "INITIALIZING RAL. RAL ID: " + std::to_string(ralId)  + ", ";
 	initLogMsg = initLogMsg + "RAL Host: " + ralHost + ":" + std::to_string(ralCommunicationPort) + ", ";
 	initLogMsg = initLogMsg + "Network Interface: " + network_iface_name + ", ";
 	initLogMsg = initLogMsg + (singleNode ? ", Is Single Node, " : ", Is Not Single Node, ");
-	
+
 	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
@@ -187,7 +185,7 @@ void initialize(int ralId,
 
 	std::map<std::string, std::string> product_details = getProductDetails();
 	std::string product_details_str = "Product Details: ";
-	std::map<std::string, std::string>::iterator it = product_details.begin(); 
+	std::map<std::string, std::string>::iterator it = product_details.begin();
 	while (it != product_details.end())	{
 		product_details_str += it->first + ": " + it->second + "; ";
 		it++;
@@ -206,8 +204,8 @@ void finalize() {
 
 
 void blazingSetAllocator(
-	int allocation_mode, 
-	std::size_t initial_pool_size, 
+	int allocation_mode,
+	std::size_t initial_pool_size,
 	std::vector<int> devices,
 	bool enable_logging,
 	std::map<std::string, std::string> config_options) {
