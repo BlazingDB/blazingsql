@@ -22,6 +22,8 @@ public:
 	kernel(std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel::kernel_count), context{context}, kernel_type_id{kernel_type_id} {
 		kernel::kernel_count++;
 		parent_id_ = -1;
+		has_limit_ = false;
+		limit_rows_ = -1;
 
 		logger = spdlog::get("batch_logger");
 		events_logger = spdlog::get("events_logger");
@@ -197,6 +199,10 @@ public:
 	kernel_type kernel_type_id;
 	std::shared_ptr<graph> query_graph;
 	std::shared_ptr<Context> context;
+
+	// useful when the Algebra Relacional only contains: LogicalTableScan (or BindableTableScan) and LogicalLimit
+	bool has_limit_;
+	int64_t limit_rows_;
 
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> events_logger;

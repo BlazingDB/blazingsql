@@ -358,17 +358,21 @@ public:
 		if (it != config_options.end()){
 			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
 		}
-
+		bool has_limit = this->has_limit_;
+		size_t limit_ = this->limit_rows_;
+		cudf::size_type current_rows = 0;
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
-			threads.push_back(BlazingThread([this]() {
+			threads.push_back(BlazingThread([this, &has_limit, &limit_, &current_rows]() {
 				CodeTimer eventTimer(false);
+
 				this->output_cache()->wait_if_cache_is_saturated();
 
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 				while(batch = input.next()) {
 					eventTimer.start();
 					eventTimer.stop();
+					current_rows += batch->num_rows();
 
 					events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
 									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
@@ -383,8 +387,11 @@ public:
 									"timestamp_end"_a=eventTimer.end_time());
 
 					this->add_to_output_cache(std::move(batch));
-
 					this->output_cache()->wait_if_cache_is_saturated();
+
+					if (has_limit && current_rows >= limit_) {
+						break;
+					}
 				}
 			}));
 		}
@@ -443,14 +450,18 @@ public:
 			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
 		}
 
+		bool has_limit = this->has_limit_;
+		size_t limit_ = this->limit_rows_;
+		cudf::size_type current_rows = 0;
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
-			threads.push_back(BlazingThread([expression = this->expression, this]() {
+			threads.push_back(BlazingThread([expression = this->expression, &limit_, &has_limit, &current_rows, this]() {
 
 				CodeTimer eventTimer(false);
-				this->output_cache()->wait_if_cache_is_saturated();
 
+				this->output_cache()->wait_if_cache_is_saturated();
 				std::unique_ptr<ral::frame::BlazingTable> batch;
+
 				while(batch = input.next()) {
 					try {
 						eventTimer.start();
@@ -459,6 +470,7 @@ public:
 
 						if(is_filtered_bindable_scan(expression)) {
 							auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, this->context.get());
+							current_rows += columns->num_rows();
 							columns->setNames(fix_column_aliases(columns->names(), expression));
 							eventTimer.stop();
 
@@ -482,6 +494,7 @@ public:
 							this->add_to_output_cache(std::move(columns));
 						}
 						else{
+							current_rows += batch->num_rows();
 							batch->setNames(fix_column_aliases(batch->names(), expression));
 
 							auto log_output_num_rows = batch->num_rows();
@@ -504,6 +517,11 @@ public:
 						}
 
 						this->output_cache()->wait_if_cache_is_saturated();
+						
+						// useful when the Algebra Relacional only contains: BindableTableScan and LogicalLimit
+						if (has_limit && current_rows >= limit_) {
+							break;
+						}
 
 					} catch(const std::exception& e) {
 						// TODO add retry here
