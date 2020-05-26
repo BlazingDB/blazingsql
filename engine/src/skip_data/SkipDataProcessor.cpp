@@ -6,7 +6,6 @@
 #include "SkipDataProcessor.h"
 
 #include <cudf/column/column_factories.hpp>
-#include "parser/expression_tree.hpp"
 #include "CalciteExpressionParsing.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
@@ -18,6 +17,225 @@ using namespace fmt::literals;
 
 namespace ral {
 namespace skip_data {
+
+namespace {
+using namespace ral::parser;
+
+struct skip_data_drop_transformer : public node_transformer {
+public:
+    explicit skip_data_drop_transformer(const std::string & drop_value) : drop_value_{drop_value} {}
+
+    node * transform(operad_node& node) override {
+        if (node.value == drop_value_) {
+            return new operator_node("NONE");
+        }
+
+        return &node;
+    }
+
+    node * transform(operator_node& node) override {
+        if (node.value == drop_value_) {
+            return new operator_node("NONE");
+        }
+
+        return &node;
+    }
+
+private:
+    std::string drop_value_;
+};
+
+struct skip_data_transformer : public node_transformer {
+public:
+    node * transform(operad_node& node) override { return &node; }
+
+    node * transform(operator_node& node) override {
+        const std::string & op = node.value;
+        if (op == "=") {
+            return transform_equal(node);
+        } else if (op == "<" or op == "<=") {
+            return transform_less_or_lesseq(node);
+        } else if (op == ">" or op == ">=") {
+            return transform_greater_or_greatereq(node);
+        } else if (op == "+" or op == "-") {
+            return transform_sum_or_sub(node);
+        }
+
+        // just skip like AND or OR
+        return &node;
+    }
+
+private:
+    node * transform_operand_inc(operad_node * node, int inc) {
+        if (node->type == node_type::VARIABLE ) {
+            auto id = ral::skip_data::get_id(node->value);
+            std::string new_expr = "$" + std::to_string(2 * id + inc);
+
+            return new variable_node(new_expr);
+        }
+
+        return node->clone();
+    }
+
+    node * transform_operator_inc(operator_node * node, int inc) {
+        assert(node->children.size() == 2);
+
+        if (node->value == "&&&") {
+            if (inc == 0) {
+                assert(node->children[0] != nullptr);
+                return node->children[0].release();
+            } else {
+                assert(node->children[1] != nullptr);
+                return node->children[1].release();
+            }
+        }
+
+        return node->clone();
+    }
+
+    node * transform_inc(node * node, int inc) {
+        if (node->type == node_type::OPERATOR) {
+            return transform_operator_inc(static_cast<operator_node*>(node), inc);
+        } else {
+            return transform_operand_inc(static_cast<operad_node*>(node), inc);
+        }
+    }
+
+    node * transform_equal(operator_node& operator_node_) {
+        assert(operator_node_.children.size() == 2);
+
+        node * n = operator_node_.children[0].get();
+        node * m = operator_node_.children[1].get();
+
+        auto less_eq = std::unique_ptr<node>(new operator_node("<="));
+        less_eq->children.push_back(std::unique_ptr<node>(transform_inc(n, 0)));
+        less_eq->children.push_back(std::unique_ptr<node>(transform_inc(m, 1)));
+
+        auto greater_eq = std::unique_ptr<node>(new operator_node(">="));
+        greater_eq->children.push_back(std::unique_ptr<node>(transform_inc(n, 1)));
+        greater_eq->children.push_back(std::unique_ptr<node>(transform_inc(m, 0)));
+
+        node * and_node = new operator_node("AND");
+        and_node->children.push_back(std::move(less_eq));
+        and_node->children.push_back(std::move(greater_eq));
+
+        return and_node;
+    }
+
+    node * transform_less_or_lesseq(operator_node& operator_node_) {
+        assert(operator_node_.children.size() == 2);
+
+        node * n = operator_node_.children[0].get();
+        node * m = operator_node_.children[1].get();
+
+        node * ptr = new operator_node(operator_node_.value);
+        ptr->children.push_back(std::unique_ptr<node>(transform_inc(n, 0)));
+        ptr->children.push_back(std::unique_ptr<node>(transform_inc(m, 1)));
+
+        return ptr;
+    }
+
+    node * transform_greater_or_greatereq(operator_node& operator_node_) {
+        assert(operator_node_.children.size() == 2);
+
+        node * n = operator_node_.children[0].get();
+        node * m = operator_node_.children[1].get();
+
+        node * ptr = new operator_node(operator_node_.value);
+        ptr->children.push_back(std::unique_ptr<node>(transform_inc(n, 1)));
+        ptr->children.push_back(std::unique_ptr<node>(transform_inc(m, 0)));
+
+        return ptr;
+    }
+
+    node * transform_sum_or_sub(operator_node& operator_node_) {
+        assert(operator_node_.children.size() == 2);
+
+        node * n = operator_node_.children[0].get();
+        node * m = operator_node_.children[1].get();
+
+        auto expr1 = std::unique_ptr<node>(new operator_node(operator_node_.value));
+        expr1->children.push_back(std::unique_ptr<node>(transform_inc(n, 0)));
+        expr1->children.push_back(std::unique_ptr<node>(transform_inc(m, 0)));
+
+        auto expr2 = std::unique_ptr<node>(new operator_node(operator_node_.value));
+        expr2->children.push_back(std::unique_ptr<node>(transform_inc(n, 1)));
+        expr2->children.push_back(std::unique_ptr<node>(transform_inc(m, 1)));
+
+        node * ptr = new operator_node("&&&"); // this is parent node (), for sum, sub after skip_data
+        ptr->children.push_back(std::move(expr1));
+        ptr->children.push_back(std::move(expr2));
+
+        return ptr;
+    }
+};
+
+struct skip_data_reducer : public node_transformer {
+public:
+    node * transform(operad_node& node) override { return &node; }
+
+    node * transform(operator_node& node) override {
+        if (ral::skip_data::is_unsupported_binary_op(node.value)) {
+            return new operator_node("NONE");
+        }
+
+        assert(node.children.size() == 2);
+
+        auto& n = node.children[0];
+        auto& m = node.children[1];
+
+        bool left_is_exclusion_unary_op = false;
+        bool right_is_exclusion_unary_op = false;
+        if (n->type == node_type::OPERATOR) {
+            if (ral::skip_data::is_exclusion_unary_op(n->value)) {
+                left_is_exclusion_unary_op = true;
+            }
+        }
+        if (m->type == node_type::OPERATOR) {
+            if (ral::skip_data::is_exclusion_unary_op(m->value)) {
+                right_is_exclusion_unary_op = true;
+            }
+        }
+        if (left_is_exclusion_unary_op and not right_is_exclusion_unary_op) {
+            if (node.value == "AND") {
+                return m.release();
+            } else {
+                return new operator_node("NONE");
+            }
+        } else if (right_is_exclusion_unary_op and not left_is_exclusion_unary_op) {
+            if (node.value == "AND") {
+                return n.release();
+            } else {
+                return new operator_node("NONE");
+            }
+        } else if (left_is_exclusion_unary_op and right_is_exclusion_unary_op) {
+            return new operator_node("NONE");
+        }
+
+        return &node;
+    }
+};
+
+} // namespace
+
+void drop_value(ral::parser::parse_tree& tree, const std::string & value) {
+    skip_data_drop_transformer t(value);
+    tree.transform(t);
+}
+
+bool apply_skip_data_rules(ral::parser::parse_tree& tree) {
+    skip_data_reducer r;
+    tree.transform(r);
+
+    if (tree.root().value == "NONE") {
+        return false;
+    }
+
+    skip_data_transformer t;
+    tree.transform(t);
+
+    return true;
+}
 
 // "BindableTableScan(table=[[main, customer]], filters=[[OR(AND(<($0, 15000), =($1, 5)), =($0, *($1, $1)), >=($1, 10), <=($2, 500))]], projects=[[0, 3, 5]], aliases=[[c_custkey, c_nationkey, c_acctbal]])"
 //      projects=[[0, 3, 5]]
@@ -93,11 +311,10 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         // lets drop all columns that do not have skip data
         for (size_t i = 0; i < valid_metadata_columns.size(); i++){
             if (!valid_metadata_columns[i]) { // if this column has no metadata lets drop it from the expression tree
-                tree.drop({"$" + std::to_string(i)});
+                drop_value(tree, "$" + std::to_string(i));
             }
         }
-        tree.apply_skip_data_rules();
-        if (!tree.root().value.empty()) {
+        if (apply_skip_data_rules(tree)) {
             // std::cout << " skiP-data: " << filter_string << " | " << tree.rebuildExpression() << std::endl;
             filter_string =  tree.rebuildExpression();
         } else{
