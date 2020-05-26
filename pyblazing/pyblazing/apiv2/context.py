@@ -170,10 +170,7 @@ def getNodePartitionKeys(df, client):
         if len(worker_part[key]) > 0:
             worker = worker_part[key][0]
             worker_partitions[worker].append(key)
-        else:
-            logging.error("ERROR: In getNodePartitionKeys, woker has no corresponding partition")
-            print("ERROR: In getNodePartitionKeys, woker has no corresponding partition")
-    
+            
     return worker_partitions
 
 def collectPartitionsRunQuery(
