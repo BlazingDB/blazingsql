@@ -199,14 +199,11 @@ This limitation is expected to exist until blazingsql version 0.14.
 In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
     dask_df = bc.unify_partitions(dask_df)
     bc.create_table('my_table', dask_df)""")
-                table_partitions = []
-                for partition in partitions:
-                    table_partitions.append(
-                        tables[table_name].input.get_partition(partition).compute())
-                if use_execution_graph:
+                    table_partitions = []
+                    for partition in partitions:
+                        table_partitions.append(
+                            tables[table_name].input.get_partition(partition).compute())
                     tables[table_name].input = table_partitions #no concat
-                else:
-                    tables[table_name].input = [cudf.concat(table_partitions)]
     try:
         dfs = cio.runQueryCaller(
             masterIndex,
