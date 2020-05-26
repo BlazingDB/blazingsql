@@ -1731,7 +1731,7 @@ class BlazingContext(object):
                             raise RuntimeError("A worker crashed during query execution")
                             break
 
-                        time.sleep(0.5)
+                        time.sleep(0.1)
 
                     result = dask.dataframe.from_delayed(dask_futures)
 
