@@ -9,7 +9,7 @@
 #define BLAZING_RAL_SCHEMA_H_
 
 
-#include <cudf/cudf.h>
+//#include <cudf/cudf.h>
 #include <string>
 #include <vector>
 

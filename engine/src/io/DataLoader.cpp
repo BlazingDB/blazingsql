@@ -9,6 +9,7 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/concurrency/BlazingThread.h"
 #include <cudf/filling.hpp>
+#include <cudf/column/column_factories.hpp>
 #include "CalciteExpressionParsing.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 namespace ral {
@@ -119,25 +120,15 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_data(
 								std::string name = schema.get_name(col_ind);
 								names.push_back(name);
 								cudf::type_id type = schema.get_dtype(col_ind);
-								std::string scalar_string = file_sets[file_set_index][file_in_set].column_values[name];
-								if(type == cudf::type_id::STRING){
-									all_columns[i] = ral::utilities::make_string_column_from_scalar(scalar_string, num_rows);
-								} else {
-									std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
-									size_t width_per_value = cudf::size_of(scalar->type());
-									auto buffer_size = width_per_value * num_rows;
-									rmm::device_buffer gpu_buffer(buffer_size);
-									auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
-									auto mutable_scalar_col = scalar_column->mutable_view();
-									cudf::experimental::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
-									all_columns[i] = std::move(scalar_column);
-								}
+								std::string literal_str = file_sets[file_set_index][file_in_set].column_values[name];
+								std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(literal_str, cudf::data_type{type});
+								all_columns[i] = cudf::make_column_from_scalar(*scalar, num_rows);
 							} else {
 								all_columns[i] = std::move(file_columns[in_file_column_counter]);
 								in_file_column_counter++;
 							}
 						}
-						auto unique_table = std::make_unique<cudf::experimental::table>(std::move(all_columns));
+						auto unique_table = std::make_unique<cudf::table>(std::move(all_columns));
 						if(filterString != ""){
 							auto temp = std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
 							blazingTable_per_file[file_index] = std::move(ral::processor::process_filter(temp->toBlazingTableView(), filterString, context));
@@ -223,7 +214,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 
 	if (schema.all_in_file()){
 		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, column_indices, row_group_ids);
-		return std::move(loaded_table);	
+		return std::move(loaded_table);
 	} else {
 		std::vector<size_t> column_indices_in_file;  // column indices that are from files
 		for (int i = 0; i < column_indices.size(); i++){
@@ -254,27 +245,17 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 				std::string name = schema.get_name(col_ind);
 				names.push_back(name);
 				cudf::type_id type = schema.get_dtype(col_ind);
-				std::string scalar_string = file_data_handle.column_values[name];
-				if(type == cudf::type_id::STRING){
-					all_columns[i] = ral::utilities::make_string_column_from_scalar(scalar_string, num_rows);
-				} else {
-					std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(scalar_string, type);
-					size_t width_per_value = cudf::size_of(scalar->type());
-					auto buffer_size = width_per_value * num_rows;
-					rmm::device_buffer gpu_buffer(buffer_size);
-					auto scalar_column = std::make_unique<cudf::column>(scalar->type(), num_rows, std::move(gpu_buffer));
-					auto mutable_scalar_col = scalar_column->mutable_view();
-					cudf::experimental::fill_in_place(mutable_scalar_col, cudf::size_type{0}, cudf::size_type{num_rows}, *scalar);
-					all_columns[i] = std::move(scalar_column);
-				}
+				std::string literal_str = file_data_handle.column_values[name];
+				std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(literal_str, cudf::data_type{type});
+				all_columns[i] = cudf::make_column_from_scalar(*scalar, num_rows);
 			} else {
 				all_columns[i] = std::move(file_columns[in_file_column_counter]);
 				in_file_column_counter++;
 			}
 		}
-		auto unique_table = std::make_unique<cudf::experimental::table>(std::move(all_columns));
+		auto unique_table = std::make_unique<cudf::table>(std::move(all_columns));
 		return std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
-	}	
+	}
 }
 
 

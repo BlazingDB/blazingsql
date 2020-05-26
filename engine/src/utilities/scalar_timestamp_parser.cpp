@@ -3,7 +3,7 @@
 #include <cudf/scalar/scalar_factories.hpp>
 #include <map>
 
-#include "../Utils.cuh"
+#include "../error.hpp"
 
 namespace strings {
 namespace detail {
@@ -47,7 +47,7 @@ enum class format_char_type : int8_t
 
 /**
  * @brief Represents a format specifier or literal from a timestamp format string.
- * 
+ *
  * Created by the format_compiler when parsing a format string.
  */
 struct alignas(4) format_item
@@ -69,7 +69,7 @@ struct alignas(4) format_item
 /**
  * @brief The format_compiler parses a timestamp format string into a vector of
  * format_items.
- * 
+ *
  * The vector of format_items are used when parsing a string into timestamp
  * components and when formatting a string from timestamp components.
  */
@@ -285,10 +285,10 @@ struct parse_datetime
   {
     if( str.empty() )
       return 0;
-    
+
     int32_t timeparts[TP_ARRAYSIZE] = {0,1,1}; // month and day are 1-based
     parse_into_parts(str, timeparts);
-    
+
     return static_cast<T>(timestamp_from_parts(timeparts,units));
   }
 };
@@ -324,14 +324,14 @@ struct dispatch_to_timestamps_fn
                     cudf::scalar& result ) const
   {
     RAL_EXPECTS( cudf::is_timestamp<T>(), "Expecting timestamp type" );
-    
+
     std::string template_string;
     std::vector<format_item> items;
     std::tie(template_string, items) = format_compiler::compile(format, units);
-    
+
     parse_datetime<T> pfn{items, units};
 
-    using ScalarType = cudf::experimental::scalar_type_t<T>;
+    using ScalarType = cudf::scalar_type_t<T>;
     static_cast<ScalarType *>(&result)->set_value(pfn.parse(str));
   }
 
@@ -353,10 +353,10 @@ std::unique_ptr<cudf::scalar> str_to_timestamp_scalar( std::string const& str,
                                                       std::string const& format )
 {
   RAL_EXPECTS( !format.empty(), "Format parameter must not be empty.");
-  timestamp_units units = cudf::experimental::type_dispatcher( timestamp_type, dispatch_timestamp_to_units_fn{} );
+  timestamp_units units = cudf::type_dispatcher( timestamp_type, dispatch_timestamp_to_units_fn{} );
 
   auto result = cudf::make_timestamp_scalar(timestamp_type);
-  cudf::experimental::type_dispatcher( timestamp_type, dispatch_to_timestamps_fn{},
+  cudf::type_dispatcher( timestamp_type, dispatch_to_timestamps_fn{},
                                       str, format, units,
                                       *result );
   return result;

@@ -12,6 +12,15 @@
 #621 Clean dead code
 #602 Implements cache flow control feature
 #625 Implement CAST to TINYINT and SMALLINT
+#632 Implement CHAR_LENGTH function
 #635 Handle behavior when the optimized plan contains a LogicalValues
+#653 Handle exceptions on python side
 #661 added hive support to parse_batch
 #662 updated from_cudf code and fixed other issue due to new cudf::list_view
+#677 added guava to pom.xml
+#679 Support modern compilers (>= g++-7.x)
+#6449 Adding event logging
+#649 Adding event logging
+#660 Changed how we handle the partitions of a dask.cudf.DataFrame
+#697 Update expression parser
+#659 Improve reading for: SELECT * FROM table LIMIT N
