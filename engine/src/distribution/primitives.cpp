@@ -95,9 +95,9 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 	// TODO this is just a default setting. Will want to be able to properly set null_order
-	std::unique_ptr<cudf::column> sort_indices = cudf::experimental::sorted_order( concatSamples->view(), sortOrderTypes, null_orders);
+	std::unique_ptr<cudf::column> sort_indices = cudf::sorted_order( concatSamples->view(), sortOrderTypes, null_orders);
 
-	std::unique_ptr<CudfTable> sortedSamples = cudf::experimental::gather( concatSamples->view(), sort_indices->view() );
+	std::unique_ptr<CudfTable> sortedSamples = cudf::gather( concatSamples->view(), sort_indices->view() );
 
 	// lets get names from a non-empty table
 	std::vector<std::string> names;
@@ -165,7 +165,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 	CudfTableView columns_to_search = table.view().select(searchColIndices);
 
-	std::unique_ptr<cudf::column> pivot_indexes = cudf::experimental::upper_bound(columns_to_search,
+	std::unique_ptr<cudf::column> pivot_indexes = cudf::upper_bound(columns_to_search,
                                     pivots.view(),
                                     sortOrderTypes,
                                     null_orders);
@@ -173,7 +173,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 	std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
 	CUDA_TRY(cudaMemcpy(host_data.data(), pivot_indexes->view().data<cudf::size_type>(), pivot_indexes->view().size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
 	
-	std::vector<CudfTableView> partitioned_data = cudf::experimental::split(table.view(), host_data);
+	std::vector<CudfTableView> partitioned_data = cudf::split(table.view(), host_data);
 
 	std::vector<Node> all_nodes = context->getAllNodes();
 
@@ -321,7 +321,7 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 	for(size_t i = 0; i < tables.size(); i++) {
 		cudf_table_views[i] = tables[i].view();	
 	}
-	std::unique_ptr<CudfTable> merged_table = cudf::experimental::merge(cudf_table_views, sortColIndices, sortOrderTypes, null_orders);
+	std::unique_ptr<CudfTable> merged_table = cudf::merge(cudf_table_views, sortColIndices, sortOrderTypes, null_orders);
 
 	// lets get names from a non-empty table
 	std::vector<std::string> names;
@@ -345,7 +345,7 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
 	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);
 	CudfColumnView gather_map(gather_map_wrapper);
-	std::unique_ptr<CudfTable> pivots = cudf::experimental::gather( sortedSamples.view(), gather_map );
+	std::unique_ptr<CudfTable> pivots = cudf::gather( sortedSamples.view(), gather_map );
 
 	return std::make_unique<BlazingTable>(std::move(pivots), sortedSamples.names());
 }

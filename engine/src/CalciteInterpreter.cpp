@@ -19,7 +19,7 @@
 #include "execution_graph/logic_controllers/BatchProcessing.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
 
-#include <spdlog/spdlog.h>
+
 
 using namespace fmt::literals;
 
@@ -95,7 +95,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 			.table_names = table_names,
 			.transform_operators_bigger_than_gpu = true
 		};
-		ral::batch::OutputKernel output;
+		ral::batch::OutputKernel output(queryContext.clone());
 
 		auto query_graph = tree.build_batch_graph(logicalPlan);
 		
@@ -142,7 +142,11 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"duration"_a="");
 		
 		if (query_graph->num_nodes() > 0) {
-			*query_graph += link(query_graph->get_last_kernel(), output, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+			ral::cache::cache_settings cache_machine_config;
+			cache_machine_config.type = ral::cache::CacheType::CONCATENATING;
+			cache_machine_config.context = queryContext.clone();
+
+			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);
 			// query_graph.show();
 
 			// useful when the Algebra Relacional only contains: Scan and Limit

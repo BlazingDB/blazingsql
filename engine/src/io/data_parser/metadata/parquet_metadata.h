@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <memory>
-#include <cudf/cudf.h>
+//#include <cudf/cudf.h>
 
 #include <parquet/api/reader.h>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>

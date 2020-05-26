@@ -12,7 +12,7 @@ namespace test {
     thrust::sequence( thrust::device, d_integers.begin(), d_integers.end());
     cudf::mask_state state = cudf::mask_state::ALL_VALID;
 
-    auto integers = cudf::make_numeric_column(cudf::data_type{cudf::experimental::type_to_id<TypeParam>()}, size, state);
+    auto integers = cudf::make_numeric_column(cudf::data_type{cudf::type_to_id<TypeParam>()}, size, state);
     auto integers_view = integers->mutable_view();
     cudaMemcpy( integers_view.data<TypeParam>(), d_integers.data().get(), size * sizeof(TypeParam), cudaMemcpyDeviceToDevice );
     return integers;
@@ -42,7 +42,7 @@ ral::frame::BlazingTable build_custom_table() {
 
 	std::vector<std::string> column_names = {"INT64", "INT32", "FLOAT64", "FLOAT32", "STRING"};
 
-    auto table = std::make_unique<cudf::experimental::table>(std::move(columns));
+    auto table = std::make_unique<cudf::table>(std::move(columns));
 	return ral::frame::BlazingTable(std::move(table), column_names);
 }
 

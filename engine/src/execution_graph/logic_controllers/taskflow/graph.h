@@ -8,12 +8,12 @@ namespace cache {
 
 class kernel;
 
-static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine(const cache_settings& config) {
+static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cache_settings& config) {
 	std::shared_ptr<ral::cache::CacheMachine> machine;
 	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
-		machine =  std::make_shared<ral::cache::CacheMachine>(config.flow_control_batches_threshold, config.flow_control_bytes_threshold);
+		machine =  std::make_shared<ral::cache::CacheMachine>(config.context, config.flow_control_batches_threshold, config.flow_control_bytes_threshold);
 	} else if (config.type == CacheType::CONCATENATING) {
-		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.flow_control_batches_threshold, config.flow_control_bytes_threshold);
+		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context, config.flow_control_batches_threshold, config.flow_control_bytes_threshold);
 	}
 	return machine;
 }
@@ -29,7 +29,7 @@ static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machi
 /**
 	@brief A class that represents the execution graph in a taskflow scheme.
 	The taskflow scheme is basically implemeted by the execution graph and the kernels associated to each node in the graph.
-*/ 
+*/
 class graph {
 protected:
 	struct Edge {
@@ -49,6 +49,7 @@ protected:
 public:
 	graph() {
 		container_[head_id_] = nullptr;	 // sentinel node
+		kernels_edges_logger = spdlog::get("kernels_edges_logger");
 	}
 	graph(const graph &) = default;
 	graph & operator=(const graph &) = default;
@@ -65,7 +66,7 @@ public:
 
 	std::pair<bool, uint64_t> get_estimated_input_rows_to_kernel(int32_t id);
 
-	std::pair<bool, uint64_t> get_estimated_input_rows_to_cache(int32_t id, const std::string & port_name);	
+	std::pair<bool, uint64_t> get_estimated_input_rows_to_cache(int32_t id, const std::string & port_name);
 
 	kernel & get_last_kernel();
 
@@ -94,6 +95,8 @@ private:
 	std::map<std::int32_t, kernel *> container_;
 	std::map<std::int32_t, std::set<Edge>> edges_;
 	std::map<std::int32_t, std::set<Edge>> reverse_edges_;
+
+	std::shared_ptr<spdlog::logger> kernels_edges_logger;
 };
 
 

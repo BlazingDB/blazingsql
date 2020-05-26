@@ -8,7 +8,7 @@
 #include <memory>
 #include "arrow/io/interfaces.h"
 
-#include "cudf.h"
+//#include "cudf.h"
 #include "io/io.h"
 #include <arrow/table.h>
 

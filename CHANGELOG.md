@@ -16,4 +16,7 @@
 #653 Handle exceptions on python side
 #661 added hive support to parse_batch
 #662 updated from_cudf code and fixed other issue due to new cudf::list_view
+#677 added guava to pom.xml
+#679 Support modern compilers (>= g++-7.x)
+#6449 Adding event logging
 #659 Improve reading for: SELECT * FROM table LIMIT N
