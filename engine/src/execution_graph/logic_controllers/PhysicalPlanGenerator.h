@@ -11,7 +11,6 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
-#include "utilities/BlazingSqlInvalidAlgebraException.h"
 
 using namespace fmt::literals;
 
@@ -24,7 +23,7 @@ using ral::cache::kernel;
 using ral::cache::kernel_type;
 using ral::cache::cache_settings;
 using ral::cache::CacheType;
- 
+
 struct tree_processor {
 	struct node {
 		std::string expr;               // expr
@@ -97,7 +96,7 @@ struct tree_processor {
 			k = std::make_shared<UnionKernel>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
 		} else {
-			throw ral::utilities::BlazingSqlInvalidAlgebraException("expression in the Algebra Relational is currently not supported: " + expr);
+			RAL_FAIL("Invalid expression in the logical plan");
 		}
 		return k;
 	}
@@ -111,7 +110,7 @@ struct tree_processor {
 			root_ptr->children.push_back(child_node_ptr);
 			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1, query_graph);
 		}
-	} 
+	}
 
 	boost::property_tree::ptree create_array_tree(boost::property_tree::ptree child){
 		boost::property_tree::ptree children;
@@ -150,12 +149,12 @@ struct tree_processor {
 				partition_tree.add_child("children", create_array_tree(sample_tree));
 				boost::property_tree::ptree merge_tree;
 				merge_tree.put("expr", merge_expr);
-				merge_tree.add_child("children", create_array_tree(partition_tree)); 
+				merge_tree.add_child("children", create_array_tree(partition_tree));
 
 				p_tree.put("expr", limit_expr);
 				p_tree.put_child("children", create_array_tree(merge_tree));
 			}
-		} 
+		}
 		else if (is_aggregate(expr)) {
 			auto merge_aggregate_expr = expr;
 			auto distribute_aggregate_expr = expr;
@@ -167,7 +166,7 @@ struct tree_processor {
 
 				boost::property_tree::ptree agg_tree;
 				agg_tree.put("expr", compute_aggregate_expr);
-				agg_tree.add_child("children", p_tree.get_child("children")); 
+				agg_tree.add_child("children", p_tree.get_child("children"));
 
 				p_tree.clear();
 
@@ -181,10 +180,10 @@ struct tree_processor {
 				boost::property_tree::ptree compute_aggregate_tree;
 				compute_aggregate_tree.put("expr", compute_aggregate_expr);
 				compute_aggregate_tree.add_child("children", p_tree.get_child("children"));
-			
+
 				boost::property_tree::ptree distribute_aggregate_tree;
 				distribute_aggregate_tree.put("expr", distribute_aggregate_expr);
-				distribute_aggregate_tree.add_child("children", create_array_tree(compute_aggregate_tree)); 
+				distribute_aggregate_tree.add_child("children", create_array_tree(compute_aggregate_tree));
 
 				p_tree.clear();
 
@@ -206,7 +205,7 @@ struct tree_processor {
 
 				boost::property_tree::ptree join_partition_tree;
 				join_partition_tree.put("expr", join_partition_expr);
-				join_partition_tree.add_child("children", p_tree.get_child("children")); 
+				join_partition_tree.add_child("children", p_tree.get_child("children"));
 
 				p_tree.clear();
 
@@ -225,7 +224,7 @@ struct tree_processor {
 
 	std::string to_string(node* p_tree, int level) {
 		std::string str;
-		
+
 		for(int i = 0; i < level * 2; ++i) {
 			str += " ";
 		}
@@ -238,8 +237,8 @@ struct tree_processor {
 		}
 
 		return str;
-	} 
-	
+	}
+
 	std::shared_ptr<ral::cache::graph> build_batch_graph(std::string json) {
 		auto query_graph = std::make_shared<ral::cache::graph>();
 		try {
@@ -294,7 +293,7 @@ struct tree_processor {
 			}
 			cache_settings default_throttled_cache_machine_config = cache_settings{.type = CacheType::SIMPLE, .num_partitions = 1, .context = context->clone(),
 						.flow_control_batches_threshold = flow_control_batches_threshold, .flow_control_bytes_threshold = flow_control_bytes_threshold};
-			
+
 			if (children.size() > 1) {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
@@ -317,7 +316,7 @@ struct tree_processor {
 					if (parent->kernel_unit->can_you_throttle_my_input()){
 						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], default_throttled_cache_machine_config);
 						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], default_throttled_cache_machine_config);
-					} else {					
+					} else {
 						cache_settings cache_machine_config;
 						cache_machine_config.context = context->clone();
 
@@ -327,8 +326,8 @@ struct tree_processor {
 
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
-					
-					int max_num_order_by_partitions_per_node = 8; 
+
+					int max_num_order_by_partitions_per_node = 8;
 					auto it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
 					if (it != config_options.end()){
 						max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
@@ -370,7 +369,7 @@ struct tree_processor {
 		}
 	}
 };
- 
+
 
 } // namespace batch
 } // namespace ral

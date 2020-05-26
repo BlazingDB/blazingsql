@@ -40,8 +40,8 @@ cudf::size_type get_index(const std::string & operand_string) {
 }
 
 std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, cudf::data_type type) {
-	if (scalar_string == "null") {
-		return nullptr;
+	if (is_null(scalar_string)) {
+		return cudf::make_default_constructed_scalar(type);
 	}
 	if(type.id() == cudf::type_id::BOOL8) {
 		auto ret = cudf::make_numeric_scalar(type);
@@ -104,8 +104,7 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 		}
 	}
 	if(type.id() == cudf::type_id::STRING)	{
-		auto str_scalar = cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
-		return str_scalar;
+		return cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
 	}
 
 	assert(false);

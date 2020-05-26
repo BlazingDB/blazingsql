@@ -322,7 +322,10 @@ public:
 				RAL_FAIL("Operations between literals is not supported");
 			} else if(left_operand->type == ral::parser::node_type::LITERAL) {
 				auto literal_node = static_cast<const ral::parser::literal_node*>(left_operand);
-				auto scalar_ptr = get_scalar_from_string(literal_node->value, literal_node->type());
+				std::unique_ptr<cudf::scalar> scalar_ptr;
+				if (!is_null(literal_node->value)) {
+				 	scalar_ptr = get_scalar_from_string(literal_node->value, literal_node->type());
+				}
 
 				left_inputs.push_back(scalar_ptr ? SCALAR_INDEX : SCALAR_NULL_INDEX);
 				right_inputs.push_back(right_position);
@@ -330,7 +333,10 @@ public:
 				right_scalars.emplace_back(nullptr);
 			} else if(right_operand->type == ral::parser::node_type::LITERAL) {
 				auto literal_node = static_cast<const ral::parser::literal_node*>(right_operand);
-				auto scalar_ptr = get_scalar_from_string(literal_node->value, literal_node->type());
+				std::unique_ptr<cudf::scalar> scalar_ptr;
+				if (!is_null(literal_node->value)) {
+					scalar_ptr = get_scalar_from_string(literal_node->value, literal_node->type());
+				}
 
 				left_inputs.push_back(left_position);
 				right_inputs.push_back(scalar_ptr ? SCALAR_INDEX : SCALAR_NULL_INDEX);
