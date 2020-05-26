@@ -200,7 +200,7 @@ public:
 	std::shared_ptr<graph> query_graph;
 	std::shared_ptr<Context> context;
 
-	// useful when the Algebra Relacional only contains: LogicalTableScan and LogicalLimit
+	// useful when the Algebra Relacional only contains: LogicalTableScan (or BindableTableScan) and LogicalLimit
 	bool has_limit_;
 	int64_t limit_rows_;
 

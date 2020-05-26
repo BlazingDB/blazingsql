@@ -149,7 +149,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);
 			// query_graph.show();
 
-			// useful when the Algebra Relacional only contains: Scan and Limit
+			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
 			query_graph->check_for_simple_scan_with_limit_query();
 
 			query_graph->execute();
