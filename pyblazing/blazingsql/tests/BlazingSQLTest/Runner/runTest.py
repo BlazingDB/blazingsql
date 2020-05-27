@@ -24,6 +24,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from Utils import test_name_delimiter
 from Configuration import ExecutionMode
 
+import blazingsql
 
 class Result:
     def __init__(self, columns, resultSet, resultBlz):
@@ -166,16 +167,12 @@ def compare_results(vdf1, vdf2,  acceptable_difference, use_percentage, engine):
 # lines (the logger logic depends that we log first queryType and then queryId
 # WARNING DO NOT CHANGE THE CALL ORDER IN THIS FUCTION!
 
-def get_Branch(worspace_dir):
-    project_dir = worspace_dir + "/blazingsql/"  
-    repo = git.Repo(project_dir)
-    branch = repo.active_branch.name
+def get_Branch():
+    branch = blazingsql.__branch_name__
     return branch
 
-def get_CommitHash(worspace_dir):
-    project_dir = worspace_dir + "/blazingsql/" 
-    repo = git.Repo(project_dir)
-    commit = repo.head.commit
+def get_CommitHash():
+    commit = blazingsql.__version__
     return commit
 
 def get_QueryId(input_type, test_name, test_id):
@@ -238,8 +235,8 @@ def get_codTest(test_name):
     return switcher.get(test_name)
 
 def print_fixed_log(logger, test_name, input_type, test_id, sql, resultComparisson, error_message, load_time, engine_time, total_time):
-    commitHash=get_CommitHash(Settings.data['TestSettings']['workspaceDirectory'])
-    branchName=get_Branch(Settings.data['TestSettings']['workspaceDirectory'])
+    commitHash=get_CommitHash()
+    branchName=get_Branch()
     # dateNow=datetime.now()
     inputType=cs.get_extension(input_type)
 

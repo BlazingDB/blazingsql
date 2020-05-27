@@ -32,7 +32,8 @@ def create_json():
     #TestSettings
     dataDirectory = os.environ["DATA_DIRECTORY"]
     logDirectory = os.environ["LOG_DIRECTORY"]
-    workspaceDirectory = os.environ["WORKSPACE_DIRECTORY"]
+    # DEPRECATED percy kharo use blazingsql.__version__ instead of WORKSPACE_DIRECTORY 
+    #workspaceDirectory = os.environ["WORKSPACE_DIRECTORY"]
     fileResultsDirectory = os.environ["FILE_RESULT_DIRECTORY"]
     dataSize = os.environ["DATA_SIZE"]
     executionEnv = os.environ["EXECUTION_ENV"]
@@ -55,7 +56,7 @@ def create_json():
     data['TestSettings'] = {
     'dataDirectory': dataDirectory,
     'logDirectory': logDirectory,
-    'workspaceDirectory': workspaceDirectory,
+    #'workspaceDirectory': workspaceDirectory,
     'fileResultsDirectory': fileResultsDirectory,
     'dataSize': dataSize,
     'executionEnv': executionEnv,
