@@ -196,7 +196,7 @@ def collectPartitionsRunQuery(
                 print("ERROR: collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
                 logging.error("collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
 
-        if hasattr(tables[table_name],'partition_keys'): # this is a dask cudf table
+        if not single_gpu and hasattr(tables[table_name],'partition_keys'): # this is a dask cudf table
             if len(tables[table_name].partition_keys) > 0:
                 tables[table_name].input = []
                 for key in tables[table_name].partition_keys:
