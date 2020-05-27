@@ -20,3 +20,4 @@
 #679 Support modern compilers (>= g++-7.x)
 #649 Adding event logging
 #697 Update expression parser
+#700 Support null column in projection
