@@ -438,12 +438,13 @@ def save_log (**kwargs):
     if 'saveLog' in Settings.data['RunSettings']:
         saveLog = Settings.data['RunSettings']['saveLog'] 
 
-    verify_prev_google_sheet_results(df1)
-
-    if saveLog == "true":
+    result, error_msgs = verify_prev_google_sheet_results(df1)
+    
+    if result == True and saveLog == "true":
         saving_google_sheet_results(df1)
     
     loggingClose(name)
+    return result, error_msgs
 
 def create_summary_detail(df):
     pdf = df
@@ -480,6 +481,13 @@ def create_summary_detail(df):
     pd.set_option('display.max_colwidth', -1)
     print(pdf_fail.groupby(['TestGroup','InputType','Result'])['TestId'].apply(','.join).reset_index())
 
+# Returns a tuple with 2 entries:
+# 1st element: False in case gpuci should be fail, True otherwise
+# 2nd element: A list of error messages (in case 1st element is False)
+# Example:
+# result, error_msgs = verify_prev_google_sheet_results(log_pdf)
+# if result == False:
+#     exits the python process and do not move to next steps
 def verify_prev_google_sheet_results(log_pdf):
     log_pdf_copy = log_pdf.copy()
     def get_the_data_from_sheet():
@@ -511,7 +519,6 @@ def verify_prev_google_sheet_results(log_pdf):
         print(a)
     
         a.to_parquet('/home/percy/workspace/logtest/gspread/df.parquet')
-        print("PAAAAAAAAAAAAAAAAAAARQQQQQQQQQQQQQQQQQQQq")
 
     gspread_df = pd.read_parquet('/home/percy/workspace/logtest/gspread/df.parquet')
     print(gspread_df.shape)
@@ -536,8 +543,10 @@ def verify_prev_google_sheet_results(log_pdf):
     has_less_test_groups = len(prev_test_groups) > len(curr_test_groups)
     # Check if someone deleted some tests (there more test groups in the sheet)
     if has_less_test_groups:
-        print("ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
+        error_msg = "ERROR: e2e has less test groups than previous run"
+        return False, [error_msg]
     
+    error_msgs = [] 
     for test_group in prev_test_groups: 
         prev_test_result = prev_summary.loc[test_group]
         prev_total_tests = prev_test_result["QueryID"]
@@ -547,25 +556,29 @@ def verify_prev_google_sheet_results(log_pdf):
             curr_test_result = curr_summary.loc[test_group]
             curr_total_tests = curr_test_result["QueryID"]
             curr_total_succs = curr_test_result["Error"]
-    
+            
             # Check is someone delete a test for this test group
-            error_less_tests = prev_total_tests > curr_total_tests
+            has_less_tests = prev_total_tests > curr_total_tests
             
-            if error_less_tests:
-                print("ERRRORROROR alguien se volo un tests de " + test_group)
-                
+            if has_less_tests:
+                error_msg = "ERROR: The test group %s has less tests than previous run" % test_group
+                error_msgs.add(error_msg)
+            
             # Check is there are more fails
-            error_has_fails = prev_total_succs > curr_total_succs
+            has_fails = prev_total_succs > curr_total_succs
             
-            if error_has_fails:
-                print("ERRRORROROR hay mas fallas en " + test_group)
+            if has_fails:
+                error_msg = "ERROR: The test group %s has fails" % test_group
+                error_msgs.add(error_msg)
                 
-            if not error_less_tests and not error_has_fails:
-                print("TODO OK CONNNNNNN: " + test_group)
+            if not has_less_tests and not has_fails:
+                print("E2E STATUS: Test comparison with previous results are ok for test group %s" % test_group)
         else:
-            print("ERRRROOOO no puede ser que no existe el test group en la corrida actual")
+            error_msg = "FATAL: e2e has less test groups than previous run"
+            error_msgs.add(error_msg)
     
-    print("Finish comparation using results from google spreadsheet ...")
+    succs = len(error_msgs) == 0
+    return succs, error_msgs
 
 def saving_google_sheet_results(log_pdf):
     # Create an empty list

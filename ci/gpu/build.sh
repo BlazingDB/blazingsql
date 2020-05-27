@@ -73,6 +73,14 @@ echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} 
 conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL
 echo "BlazingSQL cudf installed"
 
+# install end to end tests dependencies
+echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL"
+conda install --yes openjdk=8.0 maven pyspark=2.4.3 pytest
+
+echo "pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client"
+pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client
+echo "BlazingSQL end to end tests dependencies installed"
+
 logger "Check versions..."
 python --version
 $CC --version
@@ -97,19 +105,5 @@ else
     INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
 
-    logger "Check GPU usage..."
-    nvidia-smi
-
-    logger "Running IO Unit tests..."
-    cd ${WORKSPACE}/io/build
-    ctest
-
-    logger "Running Comm Unit tests..."
-    cd ${WORKSPACE}/comms/build
-    ctest
-
-    logger "Running Engine Unit tests..."
-    cd ${WORKSPACE}/engine/build
-    ctest
+    ${WORKSPACE}/ci/gpu/test.sh
 fi
-

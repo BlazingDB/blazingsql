@@ -111,7 +111,7 @@ def main():
     unionTest.main(dask_client, drill, dir_data_file, bc, nRals)
     useLimitTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
     whereClauseTest.main(dask_client, drill, dir_data_file, bc, nRals)
-
+ 
     bindableAliasTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
     booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
     caseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -138,7 +138,7 @@ def main():
     
     if Settings.execution_mode != ExecutionMode.GENERATOR:
 
-        runTest.save_log()
+        result, error_msgs = runTest.save_log()
         
         max = 0 
         for i in range(0, len(Settings.memory_list)):
@@ -153,9 +153,14 @@ def main():
                 "   Start Mem: " + str(Settings.memory_list[i].start_mem) +
                 "   End Mem: " + str(Settings.memory_list[i].end_mem) + 
                 "   Diff: " + str(Settings.memory_list[i].delta))
+        
+        # NOTE kahro william percy mario : here we tell to gpuci there was an error 
+        if result == False:
+            for error_msg in error_msgs:
+                print(error_msg)
+            return -1 # return error exit status to the command prompt (shell)
+            
+    return 0 # return normal exit status to the command prompt (shell)
 
 if __name__ == '__main__':
     main()
-    
-    
-
