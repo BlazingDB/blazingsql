@@ -206,6 +206,13 @@ fi
 if buildAll || hasArg pyblazing; then
 
     cd ${PYBLAZING_BUILD_DIR}
+    if [[ ${TESTS} == "ON" ]]; then
+        cd blazingsql/tests/BlazingSQLTest/
+        date
+        python -m EndToEndTests.roundTest
+        date
+        cd ${PYBLAZING_BUILD_DIR}
+    fi
     if [[ ${INSTALL_TARGET} != "" ]]; then
         python setup.py build_ext --inplace
         if [ $? != 0 ]; then
