@@ -389,8 +389,6 @@ bool is_sort_and_sample(std::string query_part) { return (query_part.find(LOGICA
 
 bool is_single_node_partition(std::string query_part) { return (query_part.find(LOGICAL_SINGLE_NODE_PARTITION_TEXT) != std::string::npos); }
 
-bool is_single_node_sort_and_sample(std::string query_part) { return (query_part.find(LOGICAL_SINGLE_NODE_SORT_AND_SAMPLE_TEXT) != std::string::npos); };
-
 bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
 
 bool is_pairwise_join(const std::string & query) { return (query.find(LOGICAL_PARTWISE_JOIN_TEXT) != std::string::npos); }

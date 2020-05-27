@@ -40,6 +40,8 @@ import netifaces as ni
 
 import random
 
+import logging
+
 from enum import IntEnum
 
 jpype.addClassPath(
@@ -68,6 +70,8 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass(
     'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
+def get_element(dfs, i):
+        return dfs[i]
 
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -93,13 +97,20 @@ class blazing_allocation_mode(IntEnum):
     CudaManagedMemory = (2,)
 
 
+
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
 
                       initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
 
+    FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||"%(message)s"||||||'
+    filename = 'pyblazing.' + str(ralId) + '.log'
+    logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
+
+    logging.info('Worker IP: %s   Port: %d', workerIp, ralCommunicationPort)
+    
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
@@ -145,26 +156,24 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 
     return ralCommunicationPort, workerIp, cwd
 
+def getNodePartitionKeys(df, client):
+    from dask import delayed
 
-def getNodePartitions(df, client):
-    df = df.persist()
     workers = client.scheduler_info()['workers']
+
     worker_partitions = {}
     for worker in workers:
         worker_partitions[worker] = []
 
     dask.distributed.wait(df)
     worker_part = client.who_has(df)
+
     for key in worker_part:
         if len(worker_part[key]) > 0:
             worker = worker_part[key][0]
-            partition = int(key[key.find(",") + 2:(len(key) - 1)])
-            worker_partitions[worker].append(partition)
-        else:
-            print("ERROR: In getNodePartitions, woker has no corresponding partition")
-
-    return dict((workers[worker]['name'], partitions) for worker, partitions in worker_partitions.items())
-
+            worker_partitions[worker].append(key)
+            
+    return worker_partitions
 
 def collectPartitionsRunQuery(
         masterIndex,
@@ -176,98 +185,76 @@ def collectPartitionsRunQuery(
         accessToken,
         config_options,
         single_gpu=False):
+
     import dask.distributed
-    worker_id = dask.distributed.get_worker().name
+    worker = dask.distributed.get_worker()
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
             if single_gpu:
                 tables[table_name].input = [tables[table_name].input.compute()]
             else:
-                partitions = tables[table_name].get_partitions(worker_id)
-                if partitions is None:
-                    print("ERROR: In collectPartitionsRunQuery no partitions found for worker " + str(worker_id))
-                if (len(partitions) == 0):
-                    tables[table_name].input = [tables[table_name].df_schema]
-                elif (len(partitions) == 1):
-                    tables[table_name].input = [tables[table_name].input.get_partition(
-                        partitions[0]).compute()]
-                else:
-                    print("""WARNING: Running a query on a table that is from a Dask DataFrame currently requires concatenating its partitions at runtime.
-    This limitation is expected to exist until blazingsql version 0.14.
-    In the mean time, for better performance we recommend using the unify_partitions utility function prior to creating a Dask DataFrame based table:
-        dask_df = bc.unify_partitions(dask_df)
-        bc.create_table('my_table', dask_df)""")
-                    table_partitions = []
-                    for partition in partitions:
-                        table_partitions.append(
-                            tables[table_name].input.get_partition(partition).compute())
-                        tables[table_name].input = table_partitions #no concat
+                print("ERROR: collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
+                logging.error("collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
+
+        if hasattr(tables[table_name],'partition_keys'): # this is a dask cudf table
+            if len(tables[table_name].partition_keys) > 0:
+                tables[table_name].input = []
+                for key in tables[table_name].partition_keys:
+                    tables[table_name].input.append(worker.data[key])
 
     try:
-        result = cio.runQueryCaller(
-                            masterIndex,
-                            nodes,
-                            tables,
-                            fileTypes,
-                            ctxToken,
-                            algebra,
-                            accessToken,
-                            config_options)
+        dfs = cio.runQueryCaller(
+            masterIndex,
+            nodes,
+            tables,
+            fileTypes,
+            ctxToken,
+            algebra,
+            accessToken,
+            config_options,
+            False) # False indicates distributed mode
     except cio.RunQueryError as e:
         print(">>>>>>>> ", e)
-        result = cudf.DataFrame()
+        result = [cudf.DataFrame()]
     except Exception as e:
         raise e
 
-    return result
+    return len(dfs), dask.dataframe.utils.make_meta(dfs[0]), dfs
 
 def collectPartitionsPerformPartition(
         masterIndex,
         nodes,
         ctxToken,
         input,
-        dask_mapping,
+        partition_keys_mapping,
         df_schema,
         by,
-        i):  # this is a dummy variable to make every submit unique which is necessary
+        i):  
     import dask.distributed
-    worker_id = dask.distributed.get_worker().name
-    if(isinstance(input, dask_cudf.core.DataFrame)):
-        partitions = dask_mapping[worker_id]
-        if (len(partitions) == 0):
-            input = df_schema
-        elif (len(partitions) == 1):
-            input = input.get_partition(partitions[0]).compute()
+    worker = dask.distributed.get_worker()
+    worker_id = nodes[i]['worker']
+
+    if worker_id in partition_keys_mapping:
+        partition_keys = partition_keys_mapping[worker_id]
+        if len(partition_keys) > 1:
+            node_inputs = []
+            for key in partition_keys:
+                node_inputs.append(worker.data[key])
+            # TODO, eventually we want the engine side of the partition function to handle the table in parts
+            node_input = cudf.concat(node_inputs) 
+        elif len(partition_keys) == 1:
+            node_input = worker.data[partition_keys[0]]
         else:
-            table_partitions = []
-            for partition in partitions:
-                table_partitions.append(
-                    input.get_partition(partition).compute())
-            input = cudf.concat(table_partitions)
+            node_input = df_schema
+    else:
+        node_input = df_schema
+
     return cio.performPartitionCaller(
                     masterIndex,
                     nodes,
                     ctxToken,
-                    input,
+                    node_input,
                     by)
-
-def workerUnifyPartitions(
-        input,
-        dask_mapping,
-        i):  # this is a dummy variable to make every submit unique which is necessary
-    import dask.distributed
-    worker_id = dask.distributed.get_worker().name
-    partitions = dask_mapping[worker_id]
-    if (len(partitions) == 0):
-        return input.get_partition(0).head(0)
-    elif (len(partitions) == 1):
-        return input.get_partition(partitions[0]).compute()
-    else:
-        table_partitions = []
-        for partition in partitions:
-            table_partitions.append(
-                input.get_partition(partition).compute())
-        return cudf.concat(table_partitions)
 
 
 # returns a map of table names to the indices of the columns needed. If there are more than one table scan for one table, it merged the needed columns
@@ -611,15 +598,13 @@ class BlazingTable(object):
         self.datasource = datasource
 
         self.args = args
-        self.df_schema = None
-        if fileType == DataType.CUDF or DataType.DASK_CUDF:
+        if self.fileType == DataType.CUDF or self.fileType == DataType.DASK_CUDF:
             if(convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame)):
                 self.input = dask_cudf.from_cudf(
                     self.input, npartitions=convert_gdf_to_dask_partitions)
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
                 self.input = self.input.persist()
-                self.dask_mapping = getNodePartitions(self.input, client)
-                self.df_schema = self.input.get_partition(0).head(0)
+                self.partition_keys_mapping = getNodePartitionKeys(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
 
@@ -635,10 +620,10 @@ class BlazingTable(object):
         self.column_names = []
         self.column_types = []
 
-        if fileType == DataType.CUDF:
+        if self.fileType == DataType.CUDF:
             self.column_names = [x for x in self.input._data.keys()]
             self.column_types = [np_to_cudf_types[x.dtype] for x in self.input._data.values()]
-        elif fileType == DataType.DASK_CUDF:
+        elif self.fileType == DataType.DASK_CUDF:
             self.column_names = [x for x in input.columns]
             self.column_types = [np_to_cudf_types[x] for x in input.dtypes]
 
@@ -678,6 +663,23 @@ class BlazingTable(object):
 # until this is implemented we cant do self join with arrow tables
 #    def unionColumns(self,otherTable):
 
+    def getDaskDataFrameKeySlices(self, nodes):
+        import copy 
+        nodeFilesList = []
+        for node in nodes:
+            # here we are making a shallow copy of the table and getting rid of the reference for the dask.cudf.DataFrame 
+            # since we dont want to send that to dask wokers. You dont want to send a distributed object to individual workers
+            table = copy.copy(self)
+            if node['worker'] in self.partition_keys_mapping:
+                table.partition_keys = self.partition_keys_mapping[node['worker']]
+                table.input = []
+            else:
+                table.input = [table.input._meta]
+                table.partition_keys = []
+            nodeFilesList.append(table)
+
+        return nodeFilesList
+
     def getSlices(self, numSlices):
         nodeFilesList = []
         if self.files is None:
@@ -713,13 +715,6 @@ class BlazingTable(object):
             remaining = remaining - batchSize
 
         return nodeFilesList
-
-    def get_partitions(self, worker):
-        if worker not in self.dask_mapping:
-            assert False, "Worker [{}] is not in the table dask_mapping".format(worker)
-
-        return self.dask_mapping[worker]
-
 
 class BlazingContext(object):
     """
@@ -848,6 +843,11 @@ class BlazingContext(object):
                 self.nodes.append(node)
                 self.node_cwds.append(cwd)
                 i = i + 1
+
+            # this one is for the non dask side
+            FORMAT='%(asctime)s||%(levelname)s|||"%(message)s"||||||'
+            filename = 'pyblazing.log'
+            logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
         else:
             ralPort, ralIp, cwd = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
@@ -1118,6 +1118,9 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/create_table
         """
+
+        logging.info('create_table start for ' + table_name)
+
         table = None
         extra_kwargs = {}
         in_file = []
@@ -1129,17 +1132,21 @@ class BlazingContext(object):
         user_partitions = kwargs.get('partitions', None) # these are user defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}
         if user_partitions is not None and type(user_partitions) != type({}):
             print("ERROR: User defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}")
+            logging.error("ERROR: User defined partitions should be a dictionary object of the form partitions={'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}")
             return
         user_partitions_schema = kwargs.get('partitions_schema', None) # for user defined partitions, partitions_schema should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]
         if user_partitions_schema is not None:
             if user_partitions is None:
                 print("ERROR: 'partitions_schema' was defined, but 'partitions' was not. The parameter 'partitions_schema' is only to be used when defining 'partitions'")
+                logging.error("ERROR: 'partitions_schema' was defined, but 'partitions' was not. The parameter 'partitions_schema' is only to be used when defining 'partitions'")
                 return
             elif type(user_partitions_schema) != type([]) and all(len(part_schema) == 2 for part_schema in user_partitions_schema):
                 print("ERROR: 'partitions_schema' should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
+                logging.error("ERROR: 'partitions_schema' should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
                 return
             elif len(user_partitions_schema) != len(user_partitions):
                 print("ERROR: The number of columns in 'partitions' should be the same as 'partitions_schema'")
+                logging.error("ERROR: The number of columns in 'partitions' should be the same as 'partitions_schema'")
                 return
 
         if(isinstance(input, hive.Cursor)):
@@ -1152,6 +1159,7 @@ class BlazingContext(object):
                 file_format_hint = hive_file_format_hint
             elif file_format_hint != hive_file_format_hint:
                 print("WARNING: file_format specified (" + str(file_format_hint) + ") does not match the file_format infered by the Hive cursor (" + str(hive_file_format_hint) + "). Using user specified file_format")
+                logging.warning("WARNING: file_format specified (" + str(file_format_hint) + ") does not match the file_format infered by the Hive cursor (" + str(hive_file_format_hint) + "). Using user specified file_format")
 
             kwargs.update(extra_kwargs)
             input = folder_list
@@ -1159,6 +1167,7 @@ class BlazingContext(object):
         elif user_partitions is not None:
             if user_partitions_schema is None:
                 print("ERROR: When using 'partitions' without a Hive cursor, you also need to set 'partitions_schema' which should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
+                logging.error("ERROR: When using 'partitions' without a Hive cursor, you also need to set 'partitions_schema' which should be a list of tuples of the column name and column type of the form partitions_schema=[('col_nameA','int32','col_nameB','str')]")
                 return
 
             hive_schema = {}
@@ -1168,6 +1177,7 @@ class BlazingContext(object):
                 hive_schema['location'] = input[0]
             else:
                 print("ERROR: When using 'partitions' without a Hive cursor, the input needs to be a path to the base folder of the partitioned data")
+                logging.error("ERROR: When using 'partitions' without a Hive cursor, the input needs to be a path to the base folder of the partitioned data")
                 return
 
             hive_schema['partitions'] = getPartitionsFromUserPartitions(user_partitions)
@@ -1204,7 +1214,6 @@ class BlazingContext(object):
             else:
                 table = BlazingTable(input, DataType.CUDF)
         elif isinstance(input, list):
-
             input = resolve_relative_path(input)
 
             ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find.
@@ -1242,6 +1251,7 @@ class BlazingContext(object):
                             merged_types.append(parsedSchema['types'][i])
                 else:
                     print("ERROR: number of hive_schema columns does not match number of parsedSchema columns")
+                    logging.error("ERROR: number of hive_schema columns does not match number of parsedSchema columns")
 
                 table.column_types = merged_types
             else:
@@ -1495,8 +1505,9 @@ class BlazingContext(object):
             if(not isinstance(input, dask_cudf.core.DataFrame)):
                 print("Not supported...")
             else:
-                dask_mapping = getNodePartitions(input, self.dask_client)
-                df_schema = input.get_partition(0).head(0)
+                partition_keys_mapping = getNodePartitionKeys(input, self.dask_client)
+                df_schema = input._meta
+
                 dask_futures = []
                 for i, node in enumerate(self.nodes):
                     worker = node['worker']
@@ -1507,10 +1518,10 @@ class BlazingContext(object):
                             self.nodes,
                             ctxToken,
                             input,
-                            dask_mapping,
+                            partition_keys_mapping,
                             df_schema,
                             by,
-                            i,  # this is a dummy variable to make every submit unique which is necessary
+                            i,  # node number
                             workers=[worker]))
                 result = dask.dataframe.from_delayed(dask_futures)
             return result
@@ -1634,15 +1645,9 @@ class BlazingContext(object):
                     if new_tables[table].input.npartitions != 1:
                         new_tables[table].input = new_tables[table].input.repartition(npartitions=1)
                         new_tables[table].input = new_tables[table].input.persist()
-                elif new_tables[table].input.npartitions < len(self.nodes): # dask DataFrames are expected to have one partition per node. If we have less, we have to repartition
-                    print("WARNING: Dask DataFrame table has less partitions than there are nodes. Repartitioning ... ")
-                    temp_df = new_tables[table].input.compute()
-                    new_tables[table].input = dask_cudf.from_cudf(temp_df,npartitions=len(self.nodes))
-                    new_tables[table].input = new_tables[table].input.persist()
-                    new_tables[table].dask_mapping = getNodePartitions(new_tables[table].input, self.dask_client)
-                currentTableNodes = []
-                for node in self.nodes:
-                    currentTableNodes.append(new_tables[table])
+                
+                currentTableNodes = new_tables[table].getDaskDataFrameKeySlices(self.nodes)
+
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:
@@ -1670,10 +1675,11 @@ class BlazingContext(object):
                             ctxToken,
                             algebra,
                             accessToken,
-                            query_config_options)
+                            query_config_options,
+                            True) # True indicates single node
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
-                result = cudf.DataFrame()
+                result = cudf.DataFrame() #ToDo Rommel return vector?
             except Exception as e:
                 raise e
         else:
@@ -1712,7 +1718,15 @@ class BlazingContext(object):
                 if(return_futures):
                     result  = dask_futures
                 else:
-                    result = dask.dataframe.from_delayed(dask_futures)
+                    meta_results = self.dask_client.gather(dask_futures)
+
+                    futures = []
+                    for length, meta, dfs in meta_results:
+                        for i in range(0,length):
+                            futures.append(self.dask_client.submit(get_element, dfs, i))
+
+                    result = dask.dataframe.from_delayed(futures, meta=meta)
+
         return result
 
     # END SQL interface

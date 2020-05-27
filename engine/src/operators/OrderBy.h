@@ -22,9 +22,11 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 
 std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part);
 
-std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context);
+std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, 
+    std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context);
 
-std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(cudf::size_type number_partitions, const std::vector<ral::frame::BlazingTableView> & samples, const std::vector<size_t> & total_rows_tables, const std::string & query_part);
+std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vector<ral::frame::BlazingTableView> & samples, 
+	  std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context);
 
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part);
 
@@ -32,6 +34,8 @@ std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>>
 distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,	const ral::frame::BlazingTableView & sortedTable, const std::string & query_part,	Context * context);
 
 bool has_limit_only(const std::string & query_part);
+
+int64_t get_limit_rows_when_relational_alg_is_simple(const std::string & query_part);
 
 int64_t get_local_limit(int64_t total_batch_rows, const std::string & query_part, Context * context);
 

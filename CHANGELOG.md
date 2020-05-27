@@ -7,6 +7,7 @@
 #560 Fixed bug where parsing errors would lead to crash
 #565 made us have same behaviour as cudf for reading csv
 #612 Print product version: print(blazingsql.__version__) # shows the git hash
+#638 Refactores and fixes SortAndSample kernels
 #631 Implemented ability to send config_options to bc.sql function
 #621 Clean dead code
 #602 Implements cache flow control feature
@@ -19,5 +20,8 @@
 #677 added guava to pom.xml
 #679 Support modern compilers (>= g++-7.x)
 #649 Adding event logging
+#660 Changed how we handle the partitions of a dask.cudf.DataFrame
 #697 Update expression parser
+#601 Adding checkings to detect length overflow when concatenating string columns in dask
+#659 Improve reading for: SELECT * FROM table LIMIT N
 #700 Support null column in projection

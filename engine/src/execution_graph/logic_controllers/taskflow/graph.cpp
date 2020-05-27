@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "operators/OrderBy.h"
 
 namespace ral {
 namespace cache {
@@ -274,6 +275,30 @@ namespace cache {
 			return reverse_edges_[id]; 
 		} else {
 			return std::set<graph::Edge>();
+		}
+	}
+
+	// This function will work when the Relational Algebra only contains: TableScan (or BindableTableScan) and Limit
+	void graph::check_for_simple_scan_with_limit_query() {
+		auto first_iterator = container_.begin(); // points to null
+		first_iterator++;
+		int32_t min_index_valid = first_iterator->first;
+		size_t total_kernels = container_.size(); 
+
+		if (total_kernels == 4) { // null, TableScanKernel (or BindableTableScan), LimitKernel, OutputKernel
+			if ( get_node(min_index_valid )->expression == "OutputKernel" &&
+				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::LimitKernel &&
+			 	 	(get_node(min_index_valid + 2)->get_type_id() == kernel_type::TableScanKernel || 
+					 get_node(min_index_valid + 2)->get_type_id() == kernel_type::BindableTableScanKernel)
+				)
+			{
+				get_node(min_index_valid + 2)->has_limit_ = true;
+
+				// get the limit value from LogicalLimit
+				std::string LimitExpression = get_node(min_index_valid + 1)->expression;
+				int64_t scan_only_rows = ral::operators::get_limit_rows_when_relational_alg_is_simple(LimitExpression);
+				get_node(min_index_valid + 2)->limit_rows_ = scan_only_rows;
+			}
 		}
 	}
 	

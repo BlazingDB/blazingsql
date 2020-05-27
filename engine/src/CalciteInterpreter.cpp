@@ -22,7 +22,7 @@
 
 using namespace fmt::literals;
 
-std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data_loader> input_loaders,
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::string logicalPlan,
@@ -35,7 +35,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 	try {
 		assert(input_loaders.size() == table_names.size());
 
-		std::unique_ptr<ral::frame::BlazingTable> output_frame;
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> output_frame;
 		ral::batch::tree_processor tree{
 			.root = {},
 			.context = queryContext.clone(),
@@ -61,7 +61,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 				tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; ";
 			} else {
 				int num_partitions = input_loaders[i].get_parser()->get_num_partitions();
-				if (num_files > 0){
+				if (num_partitions > 0){
 					tables_info += "Table " + table_names[i] + ": num partitions = " + std::to_string(num_partitions) + "; ";
 				} else {
 					tables_info += "Table " + table_names[i] + ": empty table; ";
@@ -92,11 +92,16 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 
 		if (query_graph->num_nodes() > 0) {
 			ral::cache::cache_settings cache_machine_config;
-			cache_machine_config.type = ral::cache::CacheType::CONCATENATING;
+			
+			cache_machine_config.type = queryContext.getTotalNodes() <= 1 ? ral::cache::CacheType::CONCATENATING : ral::cache::CacheType::SIMPLE;
 			cache_machine_config.context = queryContext.clone();
 
 			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);
 			// query_graph.show();
+
+			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
+			query_graph->check_for_simple_scan_with_limit_query();
+
 			query_graph->execute();
 			output_frame = output.release();
 		}
@@ -108,7 +113,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"info"_a="Query Execution Done",
 									"duration"_a=blazing_timer.elapsed_time());
 
-		assert(output_frame != nullptr);
+		assert(!output_frame.empty());
 
 		logger->flush();
 
