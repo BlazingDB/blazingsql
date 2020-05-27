@@ -75,7 +75,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_sample(
 	cudf::column gatherMap{cudf::data_type{cudf::type_id::INT32}, num_samples, std::move(gatherData)};
 
 	std::unique_ptr<CudfTable> sampleTable =
-		cudf::experimental::gather(view, gatherMap.view(), true, rmm::mr::get_default_resource());
+		cudf::gather(view, gatherMap.view(), true, rmm::mr::get_default_resource());
 
 	return std::make_unique<ral::frame::BlazingTable>(std::move(sampleTable), blazingTableView.names());
 }

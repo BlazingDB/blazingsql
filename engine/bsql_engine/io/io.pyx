@@ -45,6 +45,8 @@ from cython.operator cimport dereference, postincrement
 from cudf._lib.table cimport Table as CudfXxTable
 from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 
+import logging
+
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
     """Base class for blazing errors."""
@@ -69,6 +71,10 @@ cdef public PyObject * GetProductDetailsError_ = <PyObject *>GetProductDetailsEr
 class RunQueryError(BlazingError):
     """RunQuery Error."""
 cdef public PyObject *RunQueryError_ = <PyObject *>RunQueryError
+
+class RunSkipDataError(BlazingError):
+    """RunSkipData Error."""
+cdef public PyObject *RunSkipDataError_ = <PyObject *>RunSkipDataError
 
 class ParseSchemaError(BlazingError):
     """ParseSchema Error."""
@@ -97,7 +103,7 @@ cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_
 cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values):
     return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except *:
+cdef unique_ptr[cio.PartitionedResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except *:
     return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options))
 
 cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) except *:
@@ -244,7 +250,8 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    df._rename_columns(decoded_names)    
+    df._rename_columns(decoded_names)
+
     return df
 
 cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, by):
@@ -280,10 +287,9 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    
     return df
 
-cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options):
+cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, bool is_single_node):
     cdef string query
     query = str.encode(queryPy)
     cdef vector[NodeMetaDataTCP] tcpMetadataCpp
@@ -349,7 +355,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       for col_type in table.column_types:
         types.push_back(col_type)
 
-      if table.fileType in (4, 5):
+      if table.fileType in (4, 5): # if cudf DataFrame or dask.cudf DataFrame
         blazingTableViews.resize(0)
         for cython_table in table.input:
           column_views.resize(0)
@@ -357,7 +363,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
             column_views.push_back(cython_col.view())
           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
         currentTableSchemaCpp.blazingTableViews = blazingTableViews
-
+        
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.types = types
 
@@ -393,9 +399,14 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     for i in range(names.size()):
         decoded_names.append(names[i].decode('utf-8'))
 
-    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    
-    return df
+    if is_single_node: # the engine returns a concatenated dataframe
+      df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[0]), decoded_names)._data)
+      return df
+    else: # the engine returns a vector of dataframes
+      dfs = []
+      for i in range(dereference(resultSet).cudfTables.size()):
+        dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
+      return dfs
 
 
 cpdef runSkipDataCaller(table, queryPy):
@@ -434,7 +445,8 @@ cpdef runSkipDataCaller(table, queryPy):
           decoded_names.append(names[i].decode('utf-8'))
 
       df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-      return_object['metadata'] = df 
+      return_object['metadata'] = df
+
       return return_object
 
 cpdef getTableScanInfoCaller(logicalPlan,tables):

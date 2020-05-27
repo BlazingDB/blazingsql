@@ -32,7 +32,7 @@ struct ParseCSVTest : public ::testing::Test {
   void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
 };
 
-namespace cudf_io = cudf::experimental::io;
+namespace cudf_io = cudf::io;
 
 
   // Helper function to compare two floating-point column contents

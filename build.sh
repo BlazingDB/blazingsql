@@ -155,28 +155,33 @@ if buildAll || hasArg comms; then
 fi
 
 if buildAll || hasArg libengine; then
-
+    echo "Building libengine"
     mkdir -p ${LIBENGINE_BUILD_DIR}
     cd ${LIBENGINE_BUILD_DIR}
+    echo "cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DBUILD_TESTING=${TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_EXE_LINKER_FLAGS=$CXXFLAGS .."
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
           -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
 
+    echo "Building libengine: make step"
     if [[ ${TESTS} == "ON" ]]; then
-        make -j${PARALLEL_LEVEL} all
+        echo "make -j4 all"
+        make -j4 all
     else
-        make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}
+        echo "make -j4 blazingsql-engine VERBOSE=${VERBOSE}"
+        make -j4 blazingsql-engine VERBOSE=${VERBOSE}
     fi
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
-        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
+        echo "make -j4 install VERBOSE=${VERBOSE}"
+        make -j4 install VERBOSE=${VERBOSE}
         cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     fi
 fi
 
 if buildAll || hasArg engine; then
-
+    echo "Building engine (cython wrapper)"
     cd ${ENGINE_BUILD_DIR}
     rm -f ./bsql_engine/io/io.h
     rm -f ./bsql_engine/io/io.cpp

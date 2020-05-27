@@ -74,19 +74,3 @@ TEST_F(ExpressionTreeTest, case_8) {
 	tree.transform_to_custom_op();
 	EXPECT_EQ(tree.rebuildExpression(), expected);
 }
-
-TEST_F(ExpressionTreeTest, case_9) {
-	ral::parser::parse_tree tree;
-	tree.build("SUBSTRING($0, 1)");
-	std::string expected = "SUBSTRING($0, '1')";
-	tree.transform_to_custom_op();
-	EXPECT_EQ(tree.rebuildExpression(), expected);
-}
-
-TEST_F(ExpressionTreeTest, case_10) {
-	ral::parser::parse_tree tree;
-	tree.build("SUBSTRING($0, 1, 5)");
-	std::string expected = "SUBSTRING($0, '1:5')";
-	tree.transform_to_custom_op();
-	EXPECT_EQ(tree.rebuildExpression(), expected);
-}

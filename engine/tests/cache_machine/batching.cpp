@@ -137,13 +137,10 @@ TEST_F(Batching, SortSamplePartitionTest) {
 
 	TableScan customer_generator("", loader, schema, queryContext, nullptr);
 
-	SortAndSampleSingleNodeKernel sort_and_sample("Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
+	SortAndSampleKernel sort_and_sample("Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
 	PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
 	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
 
-	// SortAndSampleSingleNodeKernel sort_and_sample("Logical_SortAndSample(sort0=[$0], dir0=[ASC])", queryContext);
-	// PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$0], dir0=[ASC])", queryContext);
-	// MergeStreamKernel merge("LogicalMerge(sort0=[$0], dir0=[ASC])", queryContext);
 	Projection project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext, nullptr);
 	Filter filter("LogicalFilter(condition=[<($0, 100)])", queryContext, nullptr);
 	Print print;

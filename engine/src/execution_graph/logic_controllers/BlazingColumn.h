@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-typedef cudf::experimental::table CudfTable;
+typedef cudf::table CudfTable;
 typedef cudf::table_view CudfTableView;
 typedef cudf::column CudfColumn;
 typedef cudf::column_view CudfColumnView;

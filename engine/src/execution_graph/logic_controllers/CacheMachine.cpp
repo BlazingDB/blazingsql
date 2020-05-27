@@ -3,9 +3,49 @@
 #include <random>
 #include <src/utilities/CommonOperations.h>
 #include <src/utilities/DebuggingUtils.h>
-
+#include "communication/CommunicationData.h"
+#include "CodeTimer.h"
 namespace ral {
 namespace cache {
+
+// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns,
+// for non-string columns the size is set to zero
+cudf::size_type get_string_size(cudf::column_view column){
+	if(column.type().id() == cudf::type_id::STRING){
+		auto num_children = column.num_children();
+		if(num_children == 2) {
+			cudf::size_type total_size = 0;
+
+			auto offsets_column = column.child(0);
+			auto chars_column = column.child(1);
+
+			total_size += chars_column.size();
+			cudf::data_type offset_dtype(cudf::type_id::INT32);
+			total_size += offsets_column.size() * cudf::size_of(offset_dtype);
+			if(column.has_nulls()) {
+				total_size += cudf::bitmask_allocation_size_bytes(column.size());
+			}
+
+			return total_size;
+		}
+	}
+
+	return 0;
+}
+
+// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns
+std::vector<cudf::size_type> get_string_sizes(ral::frame::BlazingTableView table){
+	std::vector<cudf::size_type> str_sizes;
+	size_t num_columns = table.num_columns();
+
+	for(int i=0;i<num_columns;i++){
+		auto column = table.column(i);
+		str_sizes.push_back(get_string_size(column));
+	}
+	return str_sizes;
+}
+
+std::size_t CacheMachine::cache_count(900000000);
 
 std::string randomString(std::size_t length) {
 	const std::string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -39,8 +79,10 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 }
 
 CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table)
-	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows()) 
+	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows(), get_string_sizes(table->toBlazingTableView())) 
 {
+	this->col_string_sizes = get_string_sizes(table->toBlazingTableView());
+
 	// TODO: make this configurable
 	this->filePath_ = "/tmp/.blazing-temp-" + randomString(64) + ".orc";
 	std::cout << "CacheDataLocalFile: " << this->filePath_ << std::endl;
@@ -55,11 +97,13 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine()
+CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cache_id(CacheMachine::cache_count)
 {
+	CacheMachine::cache_count++;
+
 	waitingCache = std::make_unique<WaitingQueue>();
-	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
-	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() ); 
+	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
+	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
@@ -69,10 +113,23 @@ CacheMachine::CacheMachine()
 	this->flow_control_bytes_count = 0;
 
 	logger = spdlog::get("batch_logger");
+	cache_events_logger = spdlog::get("cache_events_logger");
+
+	std::shared_ptr<spdlog::logger> kernels_logger;
+	kernels_logger = spdlog::get("kernels_logger");
+
+	kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
+							"kernel_id"_a=cache_id,
+							"is_kernel"_a=0, //false
+							"kernel_type"_a="cache");
 }
 
-CacheMachine::CacheMachine(std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold)
+CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold) : ctx(context), cache_id(CacheMachine::cache_count)
 {
+	CacheMachine::cache_count++;
+
 	waitingCache = std::make_unique<WaitingQueue>();
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
 	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() ); 
@@ -85,11 +142,28 @@ CacheMachine::CacheMachine(std::uint32_t flow_control_batches_threshold, std::si
 	this->flow_control_bytes_count = 0;
 
 	logger = spdlog::get("batch_logger");
+	cache_events_logger = spdlog::get("cache_events_logger");
+
 	something_added = false;
+
+	std::shared_ptr<spdlog::logger> kernels_logger;
+	kernels_logger = spdlog::get("kernels_logger");
+
+	kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
+							"kernel_id"_a=cache_id,
+							"is_kernel"_a=0, //false
+							"kernel_type"_a="cache");
 }
 
 CacheMachine::~CacheMachine() {}
 
+Context * CacheMachine::get_context() const {
+	return ctx.get();
+}
+
+std::int32_t CacheMachine::get_id() const { return (cache_id); }
 
 void CacheMachine::finish() {
 	this->waitingCache->finish();
@@ -107,8 +181,8 @@ uint64_t CacheMachine::get_num_rows_added(){
 	return num_rows_added.load();
 }
 
-void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id, Context * ctx) {
-	
+void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id) {
+
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || host_table->num_rows() > 0){
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
@@ -146,8 +220,8 @@ void CacheMachine::clear() {
 	this->waitingCache->finish();
 }
 
-void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, Context * ctx){
-	
+void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id){
+
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || cache_data->num_rows() > 0){
 		std::unique_lock<std::mutex> lock(flow_control_mutex);
@@ -170,7 +244,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 						"duration"_a="",
 						"kernel_id"_a=message_id,
 						"rows"_a=cache_data->num_rows());
-			
+
 					auto item = std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
 				} else {
@@ -183,7 +257,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 							"duration"_a="",
 							"kernel_id"_a=message_id,
 							"rows"_a=cache_data->num_rows());
-			
+
 						auto item = std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
 					} else if(cacheIndex == 2) {
@@ -211,7 +285,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 	}
 }
 
-void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, Context * ctx) {
+void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id) {
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || table->num_rows() > 0){
@@ -252,7 +326,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 					// before we put into a cache, we need to make sure we fully own the table
 					auto column_names = table->names();
 					auto cudf_table = table->releaseCudfTable();
-					std::unique_ptr<ral::frame::BlazingTable> fully_owned_table = 
+					std::unique_ptr<ral::frame::BlazingTable> fully_owned_table =
 						std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), column_names);
 
 					auto cache_data = std::make_unique<GPUCacheData>(std::move(fully_owned_table));
@@ -317,7 +391,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 	return std::move(output);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * ctx) {
+std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
@@ -340,7 +414,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache(Context * 
 	return std::move(output);
 }
 
-std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(Context * ctx) {
+std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
@@ -377,24 +451,39 @@ void CacheMachine::wait_if_cache_is_saturated() {
 	});
 }
 
+// Check if concatenating string columns will overflow
+bool checkIfConcatenatingStringsWillOverflowStringLength(std::vector<std::unique_ptr<message>> & collected_messages, CacheData & cache_data){
+	if(collected_messages.size()>=1){
+		for(int col_idx=0; col_idx<collected_messages[0]->get_data().get_schema().size(); col_idx++){
+			if(collected_messages[0]->get_data().get_schema()[col_idx].id() == cudf::type_id::STRING){
+				// Column i-th from the holder_samples and the cache_data are expected to have the same string data type
+				assert( cache_data.get_schema()[col_idx].id() == cudf::type_id::STRING );
 
+				std::size_t total_bytes = 0;
+				for(int sample_idx=0; sample_idx<collected_messages.size(); sample_idx++){
+					total_bytes += static_cast<std::size_t>(collected_messages[sample_idx]->get_data().sizeStr(col_idx));
+				}
 
-
-
-
-
-
-
-ConcatenatingCacheMachine::ConcatenatingCacheMachine() : CacheMachine(){}
-
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold)
-	: CacheMachine( flow_control_batches_threshold, flow_control_bytes_threshold)
-{
+				assert(collected_messages[collected_messages.size()-1]->get_data().get_schema().size() == cache_data.get_schema().size());
+				
+				if(total_bytes + static_cast<std::size_t>(cache_data.sizeStr(col_idx)) > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max())){
+					throw std::runtime_error(
+						"In pullFromCache function: Concatenating Strings will overflow strings length");
+				}
+			}
+		}
+	}
+	return true;
 }
 
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
+	: CacheMachine(context) {}
+
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold)
+	: CacheMachine(context, flow_control_batches_threshold, flow_control_bytes_threshold) {}
 
 // This method does not guarantee the relative order of the messages to be preserved
-std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache(Context * ctx) {
+std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
 	
 	size_t total_bytes = 0;
 	std::vector<std::unique_ptr<message>> collected_messages;
@@ -403,7 +492,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
-		if (collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes())) {
+		if (collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes()) && checkIfConcatenatingStringsWillOverflowStringLength(collected_messages, cache_data)) {
 			total_bytes += cache_data.sizeInBytes();
 			message_id = message_data->get_message_id();
 			collected_messages.push_back(std::move(message_data));
