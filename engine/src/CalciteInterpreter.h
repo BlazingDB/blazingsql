@@ -1,6 +1,4 @@
-
-#ifndef CALCITEINTERPRETER_H_
-#define CALCITEINTERPRETER_H_
+#pragma once
 
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
@@ -28,5 +26,3 @@ void getTableScanInfo(std::string & logicalPlan_in,
 						std::vector<std::string> & relational_algebra_steps_out,
 						std::vector<std::string> & table_names_out,
 						std::vector<std::vector<int>> & table_columns_out);
-
-#endif /* CALCITEINTERPRETER_H_ */
