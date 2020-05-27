@@ -138,6 +138,21 @@ public class BlazingRulesTest {
 				new SimpleEntry<>("ps_availqty", CatalogColumnDataType.INT64),
 				new SimpleEntry<>("ps_supplycost", CatalogColumnDataType.FLOAT32),
 				new SimpleEntry<>("ps_comment", CatalogColumnDataType.STRING)));
+		// From another Benchmark
+		// TODO: cordova Add the full schema for this benchmark
+		map.put("web_sales",
+			Arrays.asList(new SimpleEntry<>("ws_sold_date_sk", CatalogColumnDataType.INT64),
+				new SimpleEntry<>("ws_order_number",CatalogColumnDataType.INT64),
+				new SimpleEntry<>("ws_net_paid", CatalogColumnDataType.FLOAT32),
+				new SimpleEntry<>("ws_bill_customer_sk", CatalogColumnDataType.INT64)));
+		map.put("store_sales",
+			Arrays.asList(new SimpleEntry<>("ss_sold_date_sk", CatalogColumnDataType.INT64),
+				new SimpleEntry<>("ss_customer_sk",CatalogColumnDataType.INT64),
+				new SimpleEntry<>("ss_ticket_number", CatalogColumnDataType.INT64),
+				new SimpleEntry<>("ss_net_paid", CatalogColumnDataType.FLOAT32)));
+		map.put("date_dim",
+			Arrays.asList(new SimpleEntry<>("d_date_sk", CatalogColumnDataType.INT64),
+				new SimpleEntry<>("d_date", CatalogColumnDataType.STRING)));
 
 		for(Map.Entry<String, List<Entry<String, CatalogColumnDataType>>> entry : map.entrySet()) {
 			List<CatalogColumnImpl> columns = new ArrayList<CatalogColumnImpl>();
@@ -223,4 +238,86 @@ public class BlazingRulesTest {
 			}
 		}
 	}
+	
+	@Test()
+	public void
+	generateRulesTest() throws Exception {
+		createTableSchemas();
+
+		db = repo.getDatabase(dbId);
+
+		BlazingSchema schema = new BlazingSchema(db);
+
+		checkTable(schema, "web_sales");
+		checkTable(schema, "store_sales");
+		checkTable(schema, "date_dim");
+
+		RelationalAlgebraGenerator algebraGen = new RelationalAlgebraGenerator(schema);
+
+		List<List<RelOptRule>> rulesSet = new ArrayList<List<RelOptRule>>();
+
+		List<RelOptRule> rules1 = Arrays.asList(ProjectFilterTransposeRule.INSTANCE);
+			//FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN,
+			//FilterJoinRule.JoinConditionPushRule.JOIN,
+			//ProjectMergeRule.INSTANCE,
+			//FilterMergeRule.INSTANCE,
+			//ProjectJoinTransposeRule.INSTANCE,
+			//ProjectTableScanRule.INSTANCE);
+
+		rulesSet.add(rules1);
+
+
+		String sql = " WITH concat_table AS " +
+			"( " +
+				"( " +
+				"	SELECT " +
+				"		ss_customer_sk  AS cid, " +
+				"		count(distinct ss_ticket_number) AS frequency, " +
+				"		max(ss_sold_date_sk) AS most_recent_date, " +
+				"		CAST( SUM(ss_net_paid) AS DOUBLE) AS amount " +
+				"	FROM store_sales ss " + 
+				"	JOIN date_dim d ON ss.ss_sold_date_sk = d.d_date_sk " +
+				"	WHERE CAST(d.d_date AS DATE) > DATE '2002-01-02' " +
+				"	AND ss_customer_sk IS NOT NULL " +
+				"	GROUP BY ss_customer_sk " +
+				") union all " +
+				"( " +
+				"	SELECT " +
+				"		ws_bill_customer_sk    AS cid, " +
+				"		count(distinct ws_order_number) AS frequency, " +
+				"		max(ws_sold_date_sk)   AS most_recent_date, " +
+				"		CAST( SUM(ws_net_paid) AS DOUBLE) AS amount " +
+				"	FROM web_sales ws " +
+				"	JOIN date_dim d ON ws.ws_sold_date_sk = d.d_date_sk " +
+				" 	WHERE CAST(d.d_date AS DATE) > DATE '2002-01-02' " +
+				"	AND ws_bill_customer_sk IS NOT NULL " +
+				"	GROUP BY ws_bill_customer_sk " +
+				") " +
+			") " +
+			"SELECT " +
+				"cid AS cid, " +
+				"CASE WHEN 37621 - max(most_recent_date) < 60 THEN 1 ELSE 0 END AS recency, " +
+				"CAST( SUM(frequency) AS DOUBLE) AS frequency, " +
+				"CAST( SUM(amount) AS DOUBLE) AS amount " +
+			"FROM concat_table " +
+			"GROUP BY cid " +
+			"ORDER BY cid";
+
+		for(List<RelOptRule> rules : rulesSet) {
+			System.out.println("<*****************************************************************************>");
+
+			RelNode nonOptimizedPlan = algebraGen.getNonOptimizedRelationalAlgebra(sql);
+			System.out.println("non optimized\n");
+			System.out.println(RelOptUtil.toString(nonOptimizedPlan) + "\n");
+
+			for(int I = 0; I < rules.size(); I++) {
+				algebraGen.setRules(rules.subList(0, I + 1));
+				RelNode optimizedPlan = algebraGen.getOptimizedRelationalAlgebra(nonOptimizedPlan);
+
+				System.out.println("optimized by rule: " + rules.get(I).getClass().getName() + "\n");
+				System.out.println(RelOptUtil.toString(optimizedPlan) + "\n");
+			}
+		}
+	}
+	
 }
