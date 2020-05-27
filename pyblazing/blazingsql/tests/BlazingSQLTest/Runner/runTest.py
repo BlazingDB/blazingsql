@@ -438,6 +438,8 @@ def save_log (**kwargs):
     if 'saveLog' in Settings.data['RunSettings']:
         saveLog = Settings.data['RunSettings']['saveLog'] 
 
+    verify_prev_google_sheet_results(df1)
+
     if saveLog == "true":
         saving_google_sheet_results(df1)
     
@@ -477,6 +479,136 @@ def create_summary_detail(df):
     pd.set_option('display.float_format', '{:20,.2f}'.format)
     pd.set_option('display.max_colwidth', -1)
     print(pdf_fail.groupby(['TestGroup','InputType','Result'])['TestId'].apply(','.join).reset_index())
+
+def verify_prev_google_sheet_results(log_pdf):
+    log_pdf_copy = log_pdf.copy()
+    def get_the_data_from_sheet():
+        # Use creds to create a client to interact with the Google Drive API
+        scope = ["https://www.googleapis.com/auth/drive", "https://spreadsheets.google.com/feeds"]
+        # Using credentials from BlazingSQL 
+        current_dir = '/home/ubuntu/.conda/envs/e2e' #os.getcwd() #Settings.data['TestSettings']['workspaceDirectory'] # #/home/kharoly/blazingsql/blazingdb-testing/BlazingSQLTest
+        print(current_dir)
+        log_info=Settings.data['RunSettings']['logInfo']
+        log_info=json.loads(log_info)
+        creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info, scope)
+        client_blazing = gspread.authorize(creds_blazing)
+        # Find a Locally workbook by name and open a sheet
+        work_sheet = "BSQL Log Results"
+        if 'worksheet' in Settings.data['RunSettings']:
+            work_sheet = Settings.data['RunSettings']['worksheet']
+        sheet_blazing = client_blazing.open("BSQL End-to-End Tests").worksheet(work_sheet)
+        # Writing log results into Blazing sheet
+    
+    
+        #breakpoint()
+        a = pd.DataFrame(sheet_blazing.get_all_records())
+    
+        # NOTE percy kharo william we need to patch these columns before convert to parquet 
+        a['LoadingTime'] = a['LoadingTime'].astype(str)
+        a['EngineTotalTime'] = a['EngineTotalTime'].astype(str)
+        a['TotalTime'] = a['TotalTime'].astype(str)
+    
+        print(a)
+    
+        a.to_parquet('/home/percy/workspace/logtest/gspread/df.parquet')
+        print("PAAAAAAAAAAAAAAAAAAARQQQQQQQQQQQQQQQQQQQq")
+
+    gspread_df = pd.read_parquet('/home/percy/workspace/logtest/gspread/df.parquet')
+    print(gspread_df.shape)
+    last_e2e_run_id = gspread_df["Timestamp"][0]
+    last_e2e_run_df = gspread_df.loc[gspread_df['Timestamp'] == last_e2e_run_id]
+    print(last_e2e_run_df.shape)
+    print(last_e2e_run_df.columns)
+    
+    # NOTE percy kharo william we need to rename some columns to use our dfs
+    log_pdf_copy = log_pdf_copy.rename(columns={
+        'TestGroup': 'Test Group',
+        'InputType': 'Input Type',
+        'nRals': 'nRALS',
+        'DataDirectory': 'data_dir'})
+    
+    prev_summary = last_e2e_run_df.groupby('Test Group').count()
+    curr_summary = log_pdf_copy.groupby('Test Group').count()
+    
+    prev_test_groups = prev_summary.index.tolist()
+    curr_test_groups = curr_summary.index.tolist()
+    
+    has_less_test_groups = len(prev_test_groups) > len(curr_test_groups)
+    # Check if someone deleted some tests (there more test groups in the sheet)
+    if has_less_test_groups:
+        print("ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
+    
+    for test_group in prev_test_groups: 
+        prev_test_result = prev_summary.loc[test_group]
+        prev_total_tests = prev_test_result["QueryID"]
+        prev_total_succs = prev_test_result["Error"]
+
+        if test_group in curr_test_groups:
+            curr_test_result = curr_summary.loc[test_group]
+            curr_total_tests = curr_test_result["QueryID"]
+            curr_total_succs = curr_test_result["Error"]
+    
+            # Check is someone delete a test for this test group
+            error_less_tests = prev_total_tests > curr_total_tests
+            
+            if error_less_tests:
+                print("ERRRORROROR alguien se volo un tests de " + test_group)
+                
+            # Check is there are more fails
+            error_has_fails = prev_total_succs > curr_total_succs
+            
+            if error_has_fails:
+                print("ERRRORROROR hay mas fallas en " + test_group)
+                
+            if not error_less_tests and not error_has_fails:
+                print("TODO OK CONNNNNNN: " + test_group)
+        else:
+            print("ERRRROOOO no puede ser que no existe el test group en la corrida actual")
+    
+    
+
+    
+    
+    #test_type_df = last_e2e_run_df.loc[last_e2e_run_df['Test Group'] == "Round"]
+    #print(test_type_df)
+
+    #print(log_pdf)
+    print("SDFCSDAFFDSFASDDFSF")
+    return
+    # Create an empty list
+    log_list = [] 
+
+    # Iterate over each row 
+    for index, rows in log_pdf.iterrows():
+        # Create a list for the current row (ADDS)
+        current_list = [rows.QueryID, str(rows.TimeStamp), str(rows.TestGroup), rows.InputType, 
+        rows.Query, rows.Result, rows.Error, rows.Branch, str(rows.CommitHash), rows.nRals, rows.nGPUs, rows.DataDirectory, 
+        rows.LoadingTime, rows.EngineTotalTime, rows.TotalTime]
+
+        # append the list to the final list 
+        log_list.append(current_list) 
+    # Use creds to create a client to interact with the Google Drive API
+    scope = ["https://www.googleapis.com/auth/drive", "https://spreadsheets.google.com/feeds"]
+    # === 1. BlazingSQL =====
+    # Using credentials from BlazingSQL 
+    current_dir = '/home/ubuntu/.conda/envs/e2e' #os.getcwd() #Settings.data['TestSettings']['workspaceDirectory'] # #/home/kharoly/blazingsql/blazingdb-testing/BlazingSQLTest
+    print(current_dir)
+    log_info=Settings.data['RunSettings']['logInfo']
+    log_info=json.loads(log_info)
+    creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info, scope)
+    client_blazing = gspread.authorize(creds_blazing)
+    # Find a Locally workbook by name and open a sheet
+    work_sheet = "BSQL Log Results"
+    if 'worksheet' in Settings.data['RunSettings']:
+        work_sheet = Settings.data['RunSettings']['worksheet']
+    sheet_blazing = client_blazing.open("BSQL End-to-End Tests").worksheet(work_sheet)
+    # Writing log results into Blazing sheet
+    total_queries = len(log_list)
+    for i in range(0, total_queries):
+        sheet_blazing.append_row(log_list[i])
+        time.sleep(1)
+    
+    print("\nTable was uptdated into Blazing Google SpreadSheet")
 
 def saving_google_sheet_results(log_pdf):
     # Create an empty list
