@@ -565,50 +565,7 @@ def verify_prev_google_sheet_results(log_pdf):
         else:
             print("ERRRROOOO no puede ser que no existe el test group en la corrida actual")
     
-    
-
-    
-    
-    #test_type_df = last_e2e_run_df.loc[last_e2e_run_df['Test Group'] == "Round"]
-    #print(test_type_df)
-
-    #print(log_pdf)
-    print("SDFCSDAFFDSFASDDFSF")
-    return
-    # Create an empty list
-    log_list = [] 
-
-    # Iterate over each row 
-    for index, rows in log_pdf.iterrows():
-        # Create a list for the current row (ADDS)
-        current_list = [rows.QueryID, str(rows.TimeStamp), str(rows.TestGroup), rows.InputType, 
-        rows.Query, rows.Result, rows.Error, rows.Branch, str(rows.CommitHash), rows.nRals, rows.nGPUs, rows.DataDirectory, 
-        rows.LoadingTime, rows.EngineTotalTime, rows.TotalTime]
-
-        # append the list to the final list 
-        log_list.append(current_list) 
-    # Use creds to create a client to interact with the Google Drive API
-    scope = ["https://www.googleapis.com/auth/drive", "https://spreadsheets.google.com/feeds"]
-    # === 1. BlazingSQL =====
-    # Using credentials from BlazingSQL 
-    current_dir = '/home/ubuntu/.conda/envs/e2e' #os.getcwd() #Settings.data['TestSettings']['workspaceDirectory'] # #/home/kharoly/blazingsql/blazingdb-testing/BlazingSQLTest
-    print(current_dir)
-    log_info=Settings.data['RunSettings']['logInfo']
-    log_info=json.loads(log_info)
-    creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info, scope)
-    client_blazing = gspread.authorize(creds_blazing)
-    # Find a Locally workbook by name and open a sheet
-    work_sheet = "BSQL Log Results"
-    if 'worksheet' in Settings.data['RunSettings']:
-        work_sheet = Settings.data['RunSettings']['worksheet']
-    sheet_blazing = client_blazing.open("BSQL End-to-End Tests").worksheet(work_sheet)
-    # Writing log results into Blazing sheet
-    total_queries = len(log_list)
-    for i in range(0, total_queries):
-        sheet_blazing.append_row(log_list[i])
-        time.sleep(1)
-    
-    print("\nTable was uptdated into Blazing Google SpreadSheet")
+    print("Finish comparation using results from google spreadsheet ...")
 
 def saving_google_sheet_results(log_pdf):
     # Create an empty list
