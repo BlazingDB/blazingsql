@@ -572,8 +572,6 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
         if (tree.root().type == parser::node_type::LITERAL) {
             cudf::data_type literal_type = static_cast<const ral::parser::literal_node&>(tree.root()).type();
             std::unique_ptr<cudf::scalar> literal_scalar = get_scalar_from_string(tree.root().value, literal_type);
-            RAL_EXPECTS(!!literal_scalar, "NULL literal not supported in projection");
-
             out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(cudf::make_column_from_scalar(*literal_scalar, table.num_rows()));
         } else if (tree.root().type == parser::node_type::VARIABLE) {
             cudf::size_type idx = static_cast<const ral::parser::variable_node&>(tree.root()).index();

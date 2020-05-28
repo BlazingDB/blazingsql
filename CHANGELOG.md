@@ -19,8 +19,9 @@
 #662 updated from_cudf code and fixed other issue due to new cudf::list_view
 #677 added guava to pom.xml
 #679 Support modern compilers (>= g++-7.x)
+#6449 Adding event logging
 #649 Adding event logging
 #660 Changed how we handle the partitions of a dask.cudf.DataFrame
 #697 Update expression parser
-#601 Adding checkings to detect length overflow when concatenating string columns in dask
 #659 Improve reading for: SELECT * FROM table LIMIT N
+#700 Support null column in projection

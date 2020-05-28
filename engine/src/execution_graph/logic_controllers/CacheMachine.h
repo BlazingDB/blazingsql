@@ -37,20 +37,16 @@ using namespace fmt::literals;
 /// \brief An enum type to represent the cache level ID
 enum class CacheDataType { GPU, CPU, LOCAL_FILE };
 
-std::vector<cudf::size_type> get_string_sizes(ral::frame::BlazingTableView table);
-
 /// \brief An interface which represent a CacheData
 class CacheData {
 public:
-	CacheData(CacheDataType cache_type, std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows, std::vector<cudf::size_type> col_string_sizes)
-		: cache_type(cache_type), col_names(col_names), schema(schema), n_rows(n_rows), col_string_sizes(col_string_sizes)
+	CacheData(CacheDataType cache_type, std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows)
+		: cache_type(cache_type), col_names(col_names), schema(schema), n_rows(n_rows)
 	{
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> decache() = 0;
 
 	virtual size_t sizeInBytes() const = 0;
-	
-	cudf::size_type sizeStr(size_t i) const { return i < col_string_sizes.size() ? col_string_sizes[i] : 0; }
 
 	virtual ~CacheData() {}
 
@@ -70,8 +66,6 @@ public:
 protected:
 	CacheDataType cache_type;
 	std::vector<std::string> col_names;
-	// Stores the size in bytes for string columns
-	std::vector<cudf::size_type> col_string_sizes;
 	std::vector<cudf::data_type> schema;
 	size_t n_rows;
 };
@@ -80,7 +74,7 @@ protected:
 class GPUCacheData : public CacheData {
 public:
 	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table)
-		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows(), get_string_sizes(table->toBlazingTableView())),  data{std::move(table)} {}
+		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
 
@@ -95,14 +89,14 @@ private:
 /// \brief A specific class for a CacheData on CPU Memory
  class CPUCacheData : public CacheData {
  public:
- 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) 
-		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows(), get_string_sizes(gpu_table->toBlazingTableView())) 
+ 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table)
+		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows())
 	{
 		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
  	}
 
 	CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table)
-		: CacheData(CacheDataType::CPU, host_table->names(), host_table->get_schema(), host_table->num_rows(), std::vector<cudf::size_type>(host_table->num_columns())), host_table{std::move(host_table)}
+		: CacheData(CacheDataType::CPU, host_table->names(), host_table->get_schema(), host_table->num_rows()), host_table{std::move(host_table)}
 	{
 	}
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {

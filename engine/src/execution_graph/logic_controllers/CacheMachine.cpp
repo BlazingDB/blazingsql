@@ -8,43 +8,6 @@
 namespace ral {
 namespace cache {
 
-// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns,
-// for non-string columns the size is set to zero
-cudf::size_type get_string_size(cudf::column_view column){
-	if(column.type().id() == cudf::type_id::STRING){
-		auto num_children = column.num_children();
-		if(num_children == 2) {
-			cudf::size_type total_size = 0;
-
-			auto offsets_column = column.child(0);
-			auto chars_column = column.child(1);
-
-			total_size += chars_column.size();
-			cudf::data_type offset_dtype(cudf::type_id::INT32);
-			total_size += offsets_column.size() * cudf::size_of(offset_dtype);
-			if(column.has_nulls()) {
-				total_size += cudf::bitmask_allocation_size_bytes(column.size());
-			}
-
-			return total_size;
-		}
-	}
-
-	return 0;
-}
-
-// Given a BlazingTableView, returns a vector containing the size in bytes of the string columns
-std::vector<cudf::size_type> get_string_sizes(ral::frame::BlazingTableView table){
-	std::vector<cudf::size_type> str_sizes;
-	size_t num_columns = table.num_columns();
-
-	for(int i=0;i<num_columns;i++){
-		auto column = table.column(i);
-		str_sizes.push_back(get_string_size(column));
-	}
-	return str_sizes;
-}
-
 std::size_t CacheMachine::cache_count(900000000);
 
 std::string randomString(std::size_t length) {
@@ -79,10 +42,8 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 }
 
 CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table)
-	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows(), get_string_sizes(table->toBlazingTableView())) 
+	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
 {
-	this->col_string_sizes = get_string_sizes(table->toBlazingTableView());
-
 	// TODO: make this configurable
 	this->filePath_ = "/tmp/.blazing-temp-" + randomString(64) + ".orc";
 	std::cout << "CacheDataLocalFile: " << this->filePath_ << std::endl;
@@ -451,31 +412,6 @@ void CacheMachine::wait_if_cache_is_saturated() {
 	});
 }
 
-// Check if concatenating string columns will overflow
-bool checkIfConcatenatingStringsWillOverflowStringLength(std::vector<std::unique_ptr<message>> & collected_messages, CacheData & cache_data){
-	if(collected_messages.size()>=1){
-		for(int col_idx=0; col_idx<collected_messages[0]->get_data().get_schema().size(); col_idx++){
-			if(collected_messages[0]->get_data().get_schema()[col_idx].id() == cudf::type_id::STRING){
-				// Column i-th from the holder_samples and the cache_data are expected to have the same string data type
-				assert( cache_data.get_schema()[col_idx].id() == cudf::type_id::STRING );
-
-				std::size_t total_bytes = 0;
-				for(int sample_idx=0; sample_idx<collected_messages.size(); sample_idx++){
-					total_bytes += static_cast<std::size_t>(collected_messages[sample_idx]->get_data().sizeStr(col_idx));
-				}
-
-				assert(collected_messages[collected_messages.size()-1]->get_data().get_schema().size() == cache_data.get_schema().size());
-				
-				if(total_bytes + static_cast<std::size_t>(cache_data.sizeStr(col_idx)) > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max())){
-					throw std::runtime_error(
-						"In pullFromCache function: Concatenating Strings will overflow strings length");
-				}
-			}
-		}
-	}
-	return true;
-}
-
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
 	: CacheMachine(context) {}
 
@@ -492,7 +428,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
-		if (collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes()) && checkIfConcatenatingStringsWillOverflowStringLength(collected_messages, cache_data)) {
+		if (collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes())) {
 			total_bytes += cache_data.sizeInBytes();
 			message_id = message_data->get_message_id();
 			collected_messages.push_back(std::move(message_data));
