@@ -518,8 +518,8 @@ def verify_prev_google_sheet_results(log_pdf):
         return ret
     
     # NOTE For debugging
-    gspread_df = pd.read_parquet('/home/percy/workspace/_files/gspread/df.parquet')
-    #gspread_df = get_the_data_from_sheet()
+    #gspread_df = pd.read_parquet('/home/user/spreadsheet.parquet')
+    gspread_df = get_the_data_from_sheet()
     
     prev_nrals = gspread_df["nRALS"][0]
     curr_nrals = Settings.data['RunSettings']['nRals']
