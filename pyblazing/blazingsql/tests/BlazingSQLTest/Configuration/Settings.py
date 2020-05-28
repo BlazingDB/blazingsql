@@ -80,21 +80,3 @@ def create_json():
     'acceptableDifference': acceptableDifference
     }
 
-# export DATA_DIRECTORY="/home/kharoly/blazingsql/DataSet100MB_2/"
-# export LOG_DIRECTORY="/home/kharoly/blazingsql/logtest/"
-# export WORKSPACE_DIRECTORY="$CONDA_PREFIX/"
-# export FILE_RESULT_DIRECTORY="/home/kharoly/blazingsql/fileResult/"
-# export DATA_SIZE="100MB"
-# export EXECUTION_ENV="Local env"
-# export DASK_CONNECTION="local"
-
-# export N_RALS=1
-# export N_GPUS=1
-# export NETWORK_INTERFACE="lo"
-# export SAVE_LOG=false
-# export WORKSHEET="BSQL Performance Results"
-# export COMPARE_RESULTS=true
-
-# export COMPARE_BY_PERCENTAJE=false
-# export ACCEPTABLE_DIFERENCE=0.01
-

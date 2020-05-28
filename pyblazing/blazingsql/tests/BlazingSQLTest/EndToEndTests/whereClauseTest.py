@@ -19,7 +19,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
     def executionTest(): 
     
-        tables = ["customer"]
+        tables = ["customer", "orders", "nation"]
         data_types =  [DataType.DASK_CUDF, DataType.CUDF, DataType.CSV, DataType.ORC, DataType.PARQUET] # TODO json
         
         for fileSchemaType in data_types:
@@ -80,6 +80,16 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = "select c_custkey, c_nationkey, c_acctbal from customer where c_custkey < 150 and c_nationkey = 5 or c_custkey = 200 or c_nationkey >= 10 or c_acctbal <= 500"
             runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
+            queryId = 'TEST_10'
+            query = """select c.c_custkey, c.c_nationkey, n.n_regionkey from customer as c 
+                    inner join nation as n on c.c_nationkey = n.n_nationkey 
+                    where n.n_regionkey = 1 and (c.c_custkey > 10 and c.c_custkey < 50)"""
+            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            
+            queryId = 'TEST_11'
+            query = "select * from nation where n_regionkey > 2 and n_regionkey < 5"
+            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+    
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

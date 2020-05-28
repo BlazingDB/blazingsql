@@ -92,8 +92,11 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     l.l_orderkey, o.o_orderdate, o.o_shippriority
                 order by
                     revenue desc, o.o_orderdate"""
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
-    
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        
             queryId = 'TEST_04'
             query = """ select
                     o_orderpriority, count(*) as order_count
@@ -132,8 +135,11 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                         n.n_name
                     order by
                         revenue desc"""
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', 0.01, use_percentage, fileSchemaType)
-    
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        
             queryId = 'TEST_06'
             query = """ select
                     sum(l_extendedprice*l_discount) as revenue
@@ -197,8 +203,11 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     o_year
                 order by
                     o_year"""
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
-    
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        
             queryId = 'TEST_09'
             query = """ select
                     nationl, o_year, sum(amount) as sum_profit
@@ -234,8 +243,11 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 and l.l_returnflag = 'R'
                 group by
                     c.c_custkey, c.c_name, c.c_acctbal, c.c_phone, n.n_name, c.c_address, c.c_comment"""
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
-            
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                        
             #falta cambiar
             queryId = 'TEST_11'
             query = """ select
@@ -307,8 +319,11 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                         where
                             l.l_shipdate >= date '1995-09-01' 
                             and l.l_shipdate < date '1995-10-01'"""
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
-    
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        
             queryId = 'TEST_15'
             query = """with revenue (suplier_no, total_revenue) as
                     (
@@ -374,8 +389,11 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     c.c_name, c.c_custkey, o.o_orderkey, o.o_orderdate, o.o_totalprice
                 order by
                     o.o_totalprice desc, o.o_orderdate"""
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
-            
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                        
             #falta cambiar
             queryId = 'TEST_19'
             query = """ select 

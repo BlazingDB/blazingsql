@@ -135,7 +135,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         queryId = 'TEST_22'
         query = """select l_orderkey, l_extendedprice, l_shipdate from lineitem where l_orderkey < 100 
         group by l_orderkey, l_extendedprice, l_shipdate, l_linestatus"""
-        runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
    
         ###################################################### Aggregations #########################################################
    
@@ -265,7 +268,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         query = """select o_orderpriority as l_returnflag, o_orderdate as l_shipdate, o_orderstatus as l_linestatus from orders where o_orderkey < 100
         union all
         select l_returnflag, l_shipdate, l_linestatus from lineitem where l_orderkey = 3"""
-        runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType) 
+        if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
   
         queryId = 'TEST_44'
         query = """select o_orderdate as d1, o_orderpriority as s1, o_orderstatus as s2, o_orderkey as l1 from orders where o_orderkey < 100
@@ -288,8 +294,11 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         queryId = 'TEST_46'
         query = """select o_orderdate, o_orderkey, o_clerk from orders 
                     order by o_orderdate, o_orderkey, o_custkey limit 1000"""
-        runTest.run_query(bc, drill, query, queryId, queryType, 0, '', acceptable_difference, use_percentage, fileSchemaType)
-   
+        if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        
         queryId = 'TEST_47'
         query = """select o_orderkey from orders where o_custkey < 300 and o_orderdate >= '1990-08-01' 
                 order by o_orderkey, o_orderkey limit 50"""
@@ -305,7 +314,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         query = """(select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1,2, 3 limit 10)
                 union all
                 (select l_shipdate, l_orderkey, l_linestatus from lineitem where l_linenumber = 1 order by 1, 3 desc, 2 limit 10)"""
-        runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+        else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
    
         queryId = 'TEST_50'
         query = "select c_custkey from customer where c_custkey < 0 order by c_custkey limit 40"

@@ -33,15 +33,16 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             print(queryType)
             print('==============================')
         
-            # TODO: Fix (EXTRACT(YEAR .. MONTH .. DAY )  and  < DATE ' ' ) doesn't work well with ORC
             queryId = 'TEST_01'
             query = """select EXTRACT(YEAR FROM l_receiptdate) - EXTRACT(YEAR FROM l_shipdate) as years_late, 
             EXTRACT(MONTH FROM l_receiptdate) - EXTRACT(MONTH FROM l_shipdate) as months_late, 
             EXTRACT(DAY FROM l_receiptdate) - EXTRACT(DAY FROM l_shipdate) as days_late 
             from lineitem where l_shipdate < DATE '1993-01-01'"""
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)  
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            else:
+                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
-            # TODO: Fix (EXTRACT(YEAR ... ) doesn't work well with ORC
             queryId = 'TEST_02'
             query = "select o_orderkey as okey, o_custkey as ckey, (EXTRACT(YEAR FROM o_orderdate) - 5) from orders where o_orderstatus = 'O' order by okey"
             runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)

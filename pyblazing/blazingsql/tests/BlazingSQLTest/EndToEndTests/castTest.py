@@ -66,10 +66,18 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             runTest.run_query(bc, drill, query, queryId, queryType, 0, '', acceptable_difference, True, fileSchemaType)
  
             queryId = 'TEST_08'
+            query = """select cast(o_orderkey AS TINYINT) from orders where o_orderkey < 120"""
+            runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+
+            queryId = 'TEST_09'
+            query = """select cast(o_orderkey AS SMALLINT) from orders where o_orderkey < 32000"""
+            runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+
+            queryId = 'TEST_10'
             query = """select cast(o_totalprice AS INTEGER) * o_orderkey from orders where o_orderkey < 10"""
             runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
  
-            queryId = 'TEST_09'
+            queryId = 'TEST_11'
             query = """select cast(o_orderdate AS TIMESTAMP) from orders where o_orderkey < 10"""
             if fileSchemaType == DataType.ORC:
                 runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
@@ -77,12 +85,12 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
  
             # TODO: FIx cast(o_orderdate AS DATE) when fileSchemaType is ORC
-            queryId = 'TEST_10'
+            queryId = 'TEST_12'
             query =  """select cast(o_orderdate AS TIMESTAMP) from orders where cast(o_orderdate as TIMESTAMP) 
                         between '1995-01-01' and '1995-01-05'"""
             if fileSchemaType != DataType.ORC:
                 runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
-            
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break
