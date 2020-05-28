@@ -335,9 +335,9 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
         query = "select sum(c_custkey)/count(c_custkey), min(c_custkey) from customer limit 5"
         runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, True, fileSchemaType) #TODO: Change sum/count for avg KC  
 
-        if Settings.execution_mode == ExecutionMode.GENERATOR:
-                print("==============================")
-                break
+        # if Settings.execution_mode == ExecutionMode.GENERATOR:
+        #         print("==============================")
+        #         break
     
 if __name__ == '__main__':
 
