@@ -480,9 +480,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         order by cntrycode"""
             #runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
-            if Settings.execution_mode == ExecutionMode.GENERATOR:
-                print("==============================")
-                break
+            # if Settings.execution_mode == ExecutionMode.GENERATOR:
+            #     print("==============================")
+            #     break
           
     executionTest(queryType)
     
@@ -513,7 +513,7 @@ if __name__ == '__main__':
         # Create Table Spark ------------------------------------------------------------------------------------------------------
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
         cs.init_spark_schema(spark, Settings.data['TestSettings']['dataDirectory'])
-        
+
     #Create Context For BlazingSQL
     
     bc, dask_client = init_context()
