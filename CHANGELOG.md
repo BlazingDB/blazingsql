@@ -24,3 +24,4 @@
 #697 Update expression parser
 #601 Adding checkings to detect length overflow when concatenating string columns in dask
 #659 Improve reading for: SELECT * FROM table LIMIT N
+#712 fixed how we handle empty tables for estimate for small table join
