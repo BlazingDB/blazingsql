@@ -122,7 +122,7 @@ def main():
     #fileSystemHdfsTest.main(dask_client, drill, dir_data_file, bc) #HDFS is not working yet
     #mixedFileSystemTest.main(dask_client, drill, dir_data_file, bc) #HDFS is not working yet
     likeTest.main(dask_client, drill, dir_data_file, bc, nRals)
-    simpleDistributionTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    simpleDistributionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
     substringTest.main(dask_client, drill, dir_data_file, bc, nRals)
     wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)  
     tpchQueriesTest.main(dask_client, drill, dir_data_file, bc, nRals)  
