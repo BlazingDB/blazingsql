@@ -8,7 +8,7 @@ from Configuration import ExecutionMode
 
 queryType = 'Simple Distribution From Local'
 
-def main(dask_client, drill, dir_data_lc, bc, nRals):
+def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
     tables = ['nation', 'region', 'supplier', 'customer', 'lineitem', 'orders']
     data_types =  [DataType.DASK_CUDF, DataType.CUDF, DataType.CSV, DataType.ORC, DataType.PARQUET] # TODO json
 
@@ -346,6 +346,7 @@ if __name__ == '__main__':
     nvmlInit()
 
     drill = "drill" #None
+    spark = "spark"
 
     compareResults = True
     if 'compare_results' in Settings.data['RunSettings']:
@@ -353,12 +354,13 @@ if __name__ == '__main__':
 
     if (Settings.execution_mode == ExecutionMode.FULL_MODE and compareResults == "true") or Settings.execution_mode == ExecutionMode.GENERATOR:
         # Create Table Drill ------------------------------------------------------------------------------------------------------
-        print("starting drill")
         from pydrill.client import PyDrill
         drill = PyDrill(host = 'localhost', port = 8047)
         cs.init_drill_schema(drill, Settings.data['TestSettings']['dataDirectory'])
 
-    #Create Context For BlazingSQL
+        # Create Table Spark ------------------------------------------------------------------------------------------------------
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data['TestSettings']['dataDirectory'])
     
     bc, dask_client = init_context()
 
