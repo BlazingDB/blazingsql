@@ -125,7 +125,7 @@ def main():
     simpleDistributionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
     substringTest.main(dask_client, drill, dir_data_file, bc, nRals)
     wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)  
-    tpchQueriesTest.main(dask_client, drill, dir_data_file, bc, nRals)  
+    tpchQueriesTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)  
     roundTest.main(dask_client, drill, dir_data_file, bc, nRals)
     fileSystemLocalTest.main(dask_client, drill, dir_data_file, bc, nRals)
 

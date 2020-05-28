@@ -9,7 +9,7 @@ from pynvml import *
 from blazingsql import DataType
 from Configuration import ExecutionMode
 
-def main(dask_client, drill, dir_data_file, bc, nRals):
+def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     
     start_mem = gpuMemory.capture_gpu_memory_usage()
     
@@ -497,6 +497,7 @@ if __name__ == '__main__':
     nvmlInit()
 
     drill = "drill" #None
+    spark = "spark"
 
     compareResults = True
     if 'compare_results' in Settings.data['RunSettings']:
@@ -509,13 +510,17 @@ if __name__ == '__main__':
         drill = PyDrill(host = 'localhost', port = 8047)
         cs.init_drill_schema(drill, Settings.data['TestSettings']['dataDirectory'])
 
+        # Create Table Spark ------------------------------------------------------------------------------------------------------
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data['TestSettings']['dataDirectory'])
+        
     #Create Context For BlazingSQL
     
     bc, dask_client = init_context()
 
     nRals = Settings.data['RunSettings']['nRals']
 
-    main(dask_client, drill, Settings.data['TestSettings']['dataDirectory'], bc, nRals)
+    main(dask_client, drill, spark, Settings.data['TestSettings']['dataDirectory'], bc, nRals)
     
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()
