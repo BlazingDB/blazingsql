@@ -576,18 +576,18 @@ public:
 		double right_batch_rows = (double)right_batch_view.num_rows();
 		double right_batch_bytes = (double)ral::utilities::get_table_size_bytes(right_batch_view);
 		int64_t left_bytes_estimate;
-		if (!left_num_rows_estimate.first || left_batch_bytes == 0){
+		if (!left_num_rows_estimate.first){
 			// if we cant get a good estimate of current bytes, then we will set to -1 to signify that
 			left_bytes_estimate = -1;
 		} else {
-			left_bytes_estimate = (int64_t)(left_batch_bytes*(((double)left_num_rows_estimate.second)/left_batch_rows));
+			left_bytes_estimate = left_batch_rows == 0 ? 0 : (int64_t)(left_batch_bytes*(((double)left_num_rows_estimate.second)/left_batch_rows));
 		}
 		int64_t right_bytes_estimate;
-		if (!right_num_rows_estimate.first || right_batch_bytes == 0){
+		if (!right_num_rows_estimate.first){
 			// if we cant get a good estimate of current bytes, then we will set to -1 to signify that
 			right_bytes_estimate = -1;
 		} else {
-			right_bytes_estimate = (int64_t)(right_batch_bytes*(((double)right_num_rows_estimate.second)/right_batch_rows));
+			right_bytes_estimate = right_batch_rows == 0 ? 0 : (int64_t)(right_batch_bytes*(((double)right_num_rows_estimate.second)/right_batch_rows));
 		}
 
 		int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
