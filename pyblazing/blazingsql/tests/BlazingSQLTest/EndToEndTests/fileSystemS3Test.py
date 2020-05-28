@@ -18,7 +18,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         authority = "tpch_s3"
         
         # TODO percy kharo e2e-gpuci security
-        bc.s3(authority, bucket_name='blazingsql-bucket', encryption_type=S3EncryptionType.NONE,
+        bc.s3(authority, bucket_name='', encryption_type=S3EncryptionType.NONE,
               access_key_id='', secret_key='')
         
         #dir_df = dir_data_lc[dir_data_lc.find("DataSet"):len(dir_data_lc)]
