@@ -506,11 +506,10 @@ def verify_prev_google_sheet_results(log_pdf):
             work_sheet = Settings.data['RunSettings']['worksheet']
         sheet_blazing = client_blazing.open("BSQL End-to-End Tests").worksheet(work_sheet)
         # Writing log results into Blazing sheet
-    
-    
+        
         #breakpoint()
         a = pd.DataFrame(sheet_blazing.get_all_records())
-    
+        
         # NOTE percy kharo william we need to patch these columns before convert to parquet 
         a['LoadingTime'] = a['LoadingTime'].astype(str)
         a['EngineTotalTime'] = a['EngineTotalTime'].astype(str)
@@ -521,11 +520,8 @@ def verify_prev_google_sheet_results(log_pdf):
         a.to_parquet('/home/percy/workspace/logtest/gspread/df.parquet')
 
     gspread_df = pd.read_parquet('/home/percy/workspace/logtest/gspread/df.parquet')
-    print(gspread_df.shape)
     last_e2e_run_id = gspread_df["Timestamp"][0]
     last_e2e_run_df = gspread_df.loc[gspread_df['Timestamp'] == last_e2e_run_id]
-    print(last_e2e_run_df.shape)
-    print(last_e2e_run_df.columns)
     
     # NOTE percy kharo william we need to rename some columns to use our dfs
     log_pdf_copy = log_pdf_copy.rename(columns={
@@ -534,6 +530,18 @@ def verify_prev_google_sheet_results(log_pdf):
         'nRals': 'nRALS',
         'DataDirectory': 'data_dir'})
     
+    #log_pdf_copy['TimeStamp'] = log_pdf_copy['TimeStamp'].astype(str)
+    #log_pdf_copy.to_parquet('/home/percy/workspace/logtest/gspread/ultimo.parquet')
+    log_pdf_copy = pd.read_parquet('/home/percy/workspace/logtest/gspread/ultimo.parquet')
+    
+    error_msgs = []
+    #SWAPPPPPPPP temporal solo pa pruebas
+    if 0 == 1:
+        the_temp = log_pdf_copy
+        log_pdf_copy = last_e2e_run_df
+        last_e2e_run_df = the_temp
+    ####
+    
     prev_summary = last_e2e_run_df.groupby('Test Group').count()
     curr_summary = log_pdf_copy.groupby('Test Group').count()
     
@@ -541,41 +549,62 @@ def verify_prev_google_sheet_results(log_pdf):
     curr_test_groups = curr_summary.index.tolist()
     
     has_less_test_groups = len(prev_test_groups) > len(curr_test_groups)
+    
     # Check if someone deleted some tests (there more test groups in the sheet)
     if has_less_test_groups:
-        error_msg = "ERROR: e2e has less test groups than previous run"
-        return False, [error_msg]
+        list_difference = [item for item in prev_test_groups if item not in curr_test_groups]
+        error_msg = "ERROR: current e2e has less test groups than previous run, delta is %s" % list_difference 
+        error_msgs.append(error_msg)
     
-    error_msgs = [] 
-    for test_group in prev_test_groups: 
-        prev_test_result = prev_summary.loc[test_group]
-        prev_total_tests = prev_test_result["QueryID"]
-        prev_total_succs = prev_test_result["Error"]
-
-        if test_group in curr_test_groups:
-            curr_test_result = curr_summary.loc[test_group]
-            curr_total_tests = curr_test_result["QueryID"]
-            curr_total_succs = curr_test_result["Error"]
+    # Just check the common test groups
+    test_groups = curr_test_groups if has_less_test_groups else prev_test_groups
+    
+    for test_group in test_groups: 
+        prev_test_group_df = last_e2e_run_df.loc[last_e2e_run_df['Test Group'] == test_group]
+        prev_input_types = prev_test_group_df.groupby('Input Type').count().index.tolist()
+        
+        curr_test_group_df = log_pdf_copy.loc[log_pdf_copy['Test Group'] == test_group]
+        curr_input_types = curr_test_group_df.groupby('Input Type').count().index.tolist()
+        
+        nRals = Settings.data['RunSettings']['nRals']
+        # If we are in distributed mode do not try to check the cases for dask_cudf input types
+        if nRals == 1:
+            if 'dask_cudf' in prev_input_types: 
+                prev_input_types.remove('dask_cudf')
+            if 'dask_cudf' in curr_input_types:
+                curr_input_types.remove('dask_cudf')
+        
+        has_less_input_types = len(prev_input_types) > len(curr_input_types)
+        
+        if has_less_input_types == True:
+            list_difference = [item for item in prev_input_types if item not in curr_input_types]
+            error_msg = "ERROR: current test group %s has less input types cases, delta is %s" % (test_group, list_difference) 
+            error_msgs.append(error_msg)
+        
+        for input_type in prev_input_types:
+            prev_tests_df = prev_test_group_df.loc[prev_test_group_df['Input Type'] == input_type]
+            prev_tests_df.sort_values(by=['QueryID'])
             
-            # Check is someone delete a test for this test group
-            has_less_tests = prev_total_tests > curr_total_tests
+            curr_tests_df = curr_test_group_df.loc[curr_test_group_df['Input Type'] == input_type]
+            curr_tests_df.sort_values(by=['QueryID'])
+            
+            # NOTE for debugging
+            #print("============================================PREV!")
+            #print(prev_tests_df.head())
+            #print(len(prev_tests_df))
+            #print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxCURR!")
+            #print(curr_tests_df.head())
+            #print(len(curr_tests_df))
+            
+            # Check if current run has less tests than previous run
+            has_less_tests = len(prev_tests_df) > len(curr_tests_df)
             
             if has_less_tests:
-                error_msg = "ERROR: The test group %s has less tests than previous run" % test_group
-                error_msgs.add(error_msg)
-            
-            # Check is there are more fails
-            has_fails = prev_total_succs > curr_total_succs
-            
-            if has_fails:
-                error_msg = "ERROR: The test group %s has fails" % test_group
-                error_msgs.add(error_msg)
-                
-            if not has_less_tests and not has_fails:
-                print("E2E STATUS: Test comparison with previous results are ok for test group %s" % test_group)
-        else:
-            error_msg = "FATAL: e2e has less test groups than previous run"
-            error_msgs.add(error_msg)
+                prev_tests = prev_tests_df['QueryID'].tolist()
+                curr_tests = curr_tests_df['QueryID'].tolist()
+                list_difference = [item for item in prev_tests if item not in curr_tests]
+                error_msg = "ERROR: The test group %s has less tests than previous run for input type %s, delta is %s" % (test_group, input_type, list_difference)
+                error_msgs.append(error_msg)
     
     succs = len(error_msgs) == 0
     return succs, error_msgs
