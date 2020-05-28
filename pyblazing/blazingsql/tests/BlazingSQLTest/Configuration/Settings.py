@@ -30,28 +30,28 @@ def initialize():
 
 def create_json():
     #TestSettings
-    dataDirectory = os.environ["DATA_DIRECTORY"]
-    logDirectory = os.environ["LOG_DIRECTORY"]
+    dataDirectory = os.environ["BLAZINGSQL_E2E_DATA_DIRECTORY"]
+    logDirectory = os.environ["BLAZINGSQL_E2E_LOG_DIRECTORY"]
     # DEPRECATED percy kharo use blazingsql.__version__ instead of WORKSPACE_DIRECTORY 
     #workspaceDirectory = os.environ["WORKSPACE_DIRECTORY"]
-    fileResultsDirectory = os.environ["FILE_RESULT_DIRECTORY"]
-    dataSize = os.environ["DATA_SIZE"]
-    executionEnv = os.environ["EXECUTION_ENV"]
-    daskConnection = os.environ["DASK_CONNECTION"]
+    fileResultsDirectory = os.environ["BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY"]
+    dataSize = os.environ["BLAZINGSQL_E2E_DATA_SIZE"]
+    executionEnv = os.environ["BLAZINGSQL_E2E_EXECUTION_ENV"]
+    daskConnection = os.environ["BLAZINGSQL_E2E_DASK_CONNECTION"]
 
     #RunSettings
-    executionMode = os.environ["EXEC_MODE"]
-    nRals = os.environ["N_RALS"]
-    nGPUs = os.environ["N_GPUS"]
-    networkInterface = os.environ["NETWORK_INTERFACE"]
-    saveLog = os.environ["SAVE_LOG"]
-    worksheet = os.environ["WORKSHEET"]
-    logInfo = os.environ["LOG_INFO"]
-    compare_results = os.environ["COMPARE_RESULTS"]
+    executionMode = os.environ["BLAZINGSQL_E2E_EXEC_MODE"]
+    nRals = os.environ["BLAZINGSQL_E2E_N_RALS"]
+    nGPUs = os.environ["BLAZINGSQL_E2E_N_GPUS"]
+    networkInterface = os.environ["BLAZINGSQL_E2E_NETWORK_INTERFACE"]
+    saveLog = os.environ["BLAZINGSQL_E2E_SAVE_LOG"]
+    worksheet = os.environ["BLAZINGSQL_E2E_WORKSHEET"]
+    logInfo = os.environ["BLAZINGSQL_E2E_LOG_INFO"]
+    compare_results = os.environ["BLAZINGSQL_E2E_COMPARE_RESULTS"]
 
     #ComparissonTest
-    compareByPercentaje = os.environ["COMPARE_BY_PERCENTAJE"]
-    acceptableDifference = os.environ["ACCEPTABLE_DIFERENCE"]
+    compareByPercentaje = os.environ["BLAZINGSQL_E2E_COMPARE_BY_PERCENTAJE"]
+    acceptableDifference = os.environ["BLAZINGSQL_E2E_ACCEPTABLE_DIFERENCE"]
     
     data['TestSettings'] = {
     'dataDirectory': dataDirectory,

@@ -1,6 +1,11 @@
 NUMARGS=$#
 ARGS=$*
 
+# Logger function for build status output
+function logger() {
+  echo -e "\n>>>> $@\n"
+}
+
 # NOTE: ensure all dir changes are relative to the location of this
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
@@ -12,7 +17,7 @@ HELP="$0 [-v] [-h] [-t]
    libengine    - test the engine C++ code only
    pyblazing    - test the pyblazing Python package (end to end tests)
    algebra      - test the algebra package
-   -t           - skip end to end tests
+   -t           - skip end to end tests (force not run pyblazing tests)
    -v           - verbose test mode
    -h           - print this text
    default action (no args) is to test all code and packages
@@ -75,25 +80,28 @@ fi
 if testAll || hasArg io; then
     logger "Running IO Unit tests..."
     cd ${WORKSPACE}/io/build
-    date
+    SECONDS=0
     ctest
-    date
+    duration=$SECONDS
+    echo "Total time for IO Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
 
 if testAll || hasArg comms; then
     logger "Running Comm Unit tests..."
     cd ${WORKSPACE}/comms/build
-    date
+    SECONDS=0
     ctest
-    date
+    duration=$SECONDS
+    echo "Total time for Comm Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
 
 if testAll || hasArg libengine; then
     logger "Running Engine Unit tests..."
     cd ${WORKSPACE}/engine/build
-    date
+    SECONDS=0
     ctest
-    date
+    duration=$SECONDS
+    echo "Total time for Engine Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
 
 if testAll || hasArg algebra; then
@@ -101,10 +109,31 @@ if testAll || hasArg algebra; then
     echo "TODO"
 fi
 
-if testAll || hasArg pyblazing; then
-    logger "Running end to end tests..."
-    cd ${WORKSPACE}/pyblazing/blazingsql/tests/BlazingSQLTest/
-    date
-    python -m EndToEndTests.allE2ETest
-    date
+if [ "$TESTS" == "OFF" ]; then
+    logger "Skipping end to end tests..."
+else
+    if [ -z $BLAZINGSQL_E2E_DATA_DIRECTORY ] || [ -z $BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY ]; then
+        if [ -d $CONDA_PREFIX/blazingsql-testing-files/data/ ]; then
+            logger "Using $CONDA_PREFIX/blazingsql-testing-files folder for end to end tests..."
+        else
+            logger "Preparing $CONDA_PREFIX/blazingsql-testing-files folder for end to end tests..."
+            cd $CONDA_PREFIX
+            git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
+            cd blazingsql-testing-files
+            tar xf data.tar.gz
+            tar xf results.tar.gz
+            logger "$CONDA_PREFIX/blazingsql-testing-files folder for end to end tests... ready!"
+        fi
+        export BLAZINGSQL_E2E_DATA_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/data/
+        export BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/results/
+    fi
+
+    if testAll || hasArg pyblazing; then
+        logger "Running end to end tests..."
+        cd ${WORKSPACE}/pyblazing/blazingsql/tests/BlazingSQLTest/
+        SECONDS=0
+        python -m EndToEndTests.allE2ETest
+        duration=$SECONDS
+        echo "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
+    fi
 fi

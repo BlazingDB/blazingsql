@@ -105,5 +105,8 @@ else
     INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
 
+    logger "Check GPU usage..."
+    nvidia-smi
+
     ${WORKSPACE}/ci/gpu/test.sh
 fi
