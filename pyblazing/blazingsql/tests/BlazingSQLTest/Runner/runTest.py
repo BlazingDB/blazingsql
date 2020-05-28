@@ -544,7 +544,7 @@ def verify_prev_google_sheet_results(log_pdf):
     
     # NOTE For debugging
     #log_pdf_copy['TimeStamp'] = log_pdf_copy['TimeStamp'].astype(str)
-    #log_pdf_copy.to_parquet('/home/user/last_run_log_df.parquet')
+    #log_pdf_copy.to_parquet('/home/percy/workspace/logtest/ultimo.parquet', compression='GZIP')
     #log_pdf_copy = pd.read_parquet('/home/user/last_run_log_df.parquet')
     
     error_msgs = []
@@ -841,7 +841,7 @@ def save_results_arrow(filename, pdf2):
         writer.close()
 
 def save_results_parquet(filename, pdf2):
-    pdf2.to_parquet(filename, compression='snappy')
+    pdf2.to_parquet(filename, compression='GZIP')
 
 def run_query(bc, engine, query, queryId, queryType, worder, orderBy,  acceptable_difference, use_percentage, input_type, **kwargs):
 

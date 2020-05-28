@@ -121,7 +121,6 @@ else
             git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
             cd blazingsql-testing-files
             tar xf data.tar.gz
-            tar xf results.tar.gz
             logger "$CONDA_PREFIX/blazingsql-testing-files folder for end to end tests... ready!"
         fi
         export BLAZINGSQL_E2E_DATA_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/data/
