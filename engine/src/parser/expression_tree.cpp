@@ -239,6 +239,10 @@ cudf::data_type expr_parser::infer_type_from_literal_token(const lexer::token & 
 
 cudf::data_type expr_parser::type_from_type_token(const lexer::token & token) {
   const std::string & token_value = token.value;
+  if (token_value == "NULL") {
+    // Default Null type to boolean
+    return cudf::data_type{cudf::type_id::BOOL8};
+  }
   if (token_value == "TINYINT") {
     return cudf::data_type{cudf::type_id::INT8};
   }
