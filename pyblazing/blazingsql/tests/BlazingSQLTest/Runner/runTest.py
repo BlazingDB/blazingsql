@@ -495,31 +495,31 @@ def verify_prev_google_sheet_results(log_pdf):
         scope = ["https://www.googleapis.com/auth/drive", "https://spreadsheets.google.com/feeds"]
         # Using credentials from BlazingSQL 
         current_dir = '/home/ubuntu/.conda/envs/e2e' #os.getcwd() #Settings.data['TestSettings']['workspaceDirectory'] # #/home/kharoly/blazingsql/blazingdb-testing/BlazingSQLTest
-        print(current_dir)
+        
         log_info=Settings.data['RunSettings']['logInfo']
         log_info=json.loads(log_info)
         creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info, scope)
         client_blazing = gspread.authorize(creds_blazing)
         # Find a Locally workbook by name and open a sheet
         work_sheet = "BSQL Log Results"
+        
         if 'worksheet' in Settings.data['RunSettings']:
             work_sheet = Settings.data['RunSettings']['worksheet']
+        
         sheet_blazing = client_blazing.open("BSQL End-to-End Tests").worksheet(work_sheet)
         # Writing log results into Blazing sheet
-        
-        #breakpoint()
-        a = pd.DataFrame(sheet_blazing.get_all_records())
-        
+        ret = pd.DataFrame(sheet_blazing.get_all_records())
         # NOTE percy kharo william we need to patch these columns before convert to parquet 
-        a['LoadingTime'] = a['LoadingTime'].astype(str)
-        a['EngineTotalTime'] = a['EngineTotalTime'].astype(str)
-        a['TotalTime'] = a['TotalTime'].astype(str)
+        ret['LoadingTime'] = ret['LoadingTime'].astype(str)
+        ret['EngineTotalTime'] = ret['EngineTotalTime'].astype(str)
+        ret['TotalTime'] = ret['TotalTime'].astype(str)
+        # NOTE For debugging
+        #ret.to_parquet('/home/user/spreadsheet.parquet')
+        return ret
     
-        print(a)
-    
-        a.to_parquet('/home/percy/workspace/logtest/gspread/df.parquet')
-
-    gspread_df = pd.read_parquet('/home/percy/workspace/logtest/gspread/df.parquet')
+    # NOTE For debugging
+    #gspread_df = pd.read_parquet('/home/user/spreadsheet.parquet')
+    gspread_df = get_the_data_from_sheet()
     last_e2e_run_id = gspread_df["Timestamp"][0]
     last_e2e_run_df = gspread_df.loc[gspread_df['Timestamp'] == last_e2e_run_id]
     
@@ -530,17 +530,12 @@ def verify_prev_google_sheet_results(log_pdf):
         'nRals': 'nRALS',
         'DataDirectory': 'data_dir'})
     
+    # NOTE For debugging
     #log_pdf_copy['TimeStamp'] = log_pdf_copy['TimeStamp'].astype(str)
-    #log_pdf_copy.to_parquet('/home/percy/workspace/logtest/gspread/ultimo.parquet')
-    log_pdf_copy = pd.read_parquet('/home/percy/workspace/logtest/gspread/ultimo.parquet')
+    #log_pdf_copy.to_parquet('/home/user/last_run_log_df.parquet')
+    #log_pdf_copy = pd.read_parquet('/home/user/last_run_log_df.parquet')
     
     error_msgs = []
-    #SWAPPPPPPPP temporal solo pa pruebas
-    if 0 == 1:
-        the_temp = log_pdf_copy
-        log_pdf_copy = last_e2e_run_df
-        last_e2e_run_df = the_temp
-    ####
     
     prev_summary = last_e2e_run_df.groupby('Test Group').count()
     curr_summary = log_pdf_copy.groupby('Test Group').count()
