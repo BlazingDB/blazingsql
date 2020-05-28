@@ -60,7 +60,7 @@ using ral::cache::kernel_type;
 using namespace fmt::literals;
 
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
-using frame_type = std::vector<std::unique_ptr<ral::frame::BlazingTable>>;
+using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 using Context = blazingdb::manager::Context;
 class BatchSequence {
 public:
@@ -760,30 +760,26 @@ public:
 	OutputKernel(std::shared_ptr<Context> context) : kernel("OutputKernel", context, kernel_type::OutputKernel) { }
 
 	virtual kstatus run() {
-		while (this->input_.get_cache()->wait_for_next()) {
-			CodeTimer cacheEventTimer(false);
+		CodeTimer cacheEventTimer(false);
 
-			cacheEventTimer.start();
-			auto temp_output = this->input_.get_cache()->pullFromCache();
-			cacheEventTimer.stop();
+		cacheEventTimer.start();
+		output = std::move(this->input_.get_cache()->pullFromCache());
+		cacheEventTimer.stop();
 
-			if(temp_output){
-				auto num_rows = temp_output->num_rows();
-				auto num_bytes = temp_output->sizeInBytes();
+		if(output){
+			auto num_rows = output->num_rows();
+			auto num_bytes = output->sizeInBytes();
 
-				cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=context->getContextToken(),
-								"source"_a=this->input_.get_cache()->get_id(),
-								"sink"_a=this->get_id(),
-								"num_rows"_a=num_rows,
-								"num_bytes"_a=num_bytes,
-								"event_type"_a="removeCache",
-								"timestamp_begin"_a=cacheEventTimer.start_time(),
-								"timestamp_end"_a=cacheEventTimer.end_time());
-			}
-
-			output.emplace_back(std::move(temp_output));
+			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=context->getContextToken(),
+							"source"_a=this->input_.get_cache()->get_id(),
+							"sink"_a=this->get_id(),
+							"num_rows"_a=num_rows,
+							"num_bytes"_a=num_bytes,
+							"event_type"_a="removeCache",
+							"timestamp_begin"_a=cacheEventTimer.start_time(),
+							"timestamp_end"_a=cacheEventTimer.end_time());
 		}
 
 		return kstatus::stop;

@@ -70,8 +70,6 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass(
     'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
-def get_element(dfs, i):
-        return dfs[i]
 
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -203,23 +201,22 @@ def collectPartitionsRunQuery(
                     tables[table_name].input.append(worker.data[key])
 
     try:
-        dfs = cio.runQueryCaller(
-            masterIndex,
-            nodes,
-            tables,
-            fileTypes,
-            ctxToken,
-            algebra,
-            accessToken,
-            config_options,
-            False) # False indicates distributed mode
+        result = cio.runQueryCaller(
+                            masterIndex,
+                            nodes,
+                            tables,
+                            fileTypes,
+                            ctxToken,
+                            algebra,
+                            accessToken,
+                            config_options)
     except cio.RunQueryError as e:
         print(">>>>>>>> ", e)
-        result = [cudf.DataFrame()]
+        result = cudf.DataFrame()
     except Exception as e:
         raise e
 
-    return len(dfs), dask.dataframe.utils.make_meta(dfs[0]), dfs
+    return result
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -1675,11 +1672,10 @@ class BlazingContext(object):
                             ctxToken,
                             algebra,
                             accessToken,
-                            query_config_options,
-                            True) # True indicates single node
+                            query_config_options)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
-                result = cudf.DataFrame() #ToDo Rommel return vector?
+                result = cudf.DataFrame()
             except Exception as e:
                 raise e
         else:
@@ -1718,15 +1714,7 @@ class BlazingContext(object):
                 if(return_futures):
                     result  = dask_futures
                 else:
-                    meta_results = self.dask_client.gather(dask_futures)
-
-                    futures = []
-                    for length, meta, dfs in meta_results:
-                        for i in range(0,length):
-                            futures.append(self.dask_client.submit(get_element, dfs, i))
-
-                    result = dask.dataframe.from_delayed(futures, meta=meta)
-
+                    result = dask.dataframe.from_delayed(dask_futures) # this is not necessarily materialized
         return result
 
     # END SQL interface
