@@ -158,7 +158,9 @@ def main():
         if result == False:
             for error_msg in error_msgs:
                 print(error_msg)
-            return -1 # return error exit status to the command prompt (shell)
+            import sys
+            sys.exit(1)
+            return 1 # return error exit status to the command prompt (shell)
             
     return 0 # return normal exit status to the command prompt (shell)
 

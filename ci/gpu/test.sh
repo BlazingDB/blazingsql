@@ -129,6 +129,9 @@ else
     fi
 
     if testAll || hasArg pyblazing; then
+        # Abort script on first error
+        set -e
+
         logger "Running end to end tests..."
         cd ${WORKSPACE}/pyblazing/blazingsql/tests/BlazingSQLTest/
         SECONDS=0
