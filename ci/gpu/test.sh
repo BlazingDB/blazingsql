@@ -115,6 +115,9 @@ else
     if [ -z $BLAZINGSQL_E2E_DATA_DIRECTORY ] || [ -z $BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY ]; then
         if [ -d $CONDA_PREFIX/blazingsql-testing-files/data/ ]; then
             logger "Using $CONDA_PREFIX/blazingsql-testing-files folder for end to end tests..."
+            cd $CONDA_PREFIX
+            cd blazingsql-testing-files
+            git pull
         else
             logger "Preparing $CONDA_PREFIX/blazingsql-testing-files folder for end to end tests..."
             cd $CONDA_PREFIX
@@ -125,6 +128,11 @@ else
         fi
         export BLAZINGSQL_E2E_DATA_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/data/
         export BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/results/
+    else
+        blazingsql_testing_files_dir=$(realpath $BLAZINGSQL_E2E_DATA_DIRECTORY/../)
+        logger "Using $blazingsql_testing_files_dir folder for end to end tests..."
+        cd $blazingsql_testing_files_dir
+        git pull
     fi
 
     if testAll || hasArg pyblazing; then
