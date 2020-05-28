@@ -30,28 +30,29 @@ def initialize():
 
 def create_json():
     #TestSettings
-    dataDirectory = os.environ["BLAZINGSQL_E2E_DATA_DIRECTORY"]
-    logDirectory = os.environ["BLAZINGSQL_E2E_LOG_DIRECTORY"]
+    conda_prefix = os.getenv("CONDA_PREFIX", "/tmp/")
+    dataDirectory = os.getenv("BLAZINGSQL_E2E_DATA_DIRECTORY", conda_prefix+"/blazingsql-testing-files/data/")
+    logDirectory = os.getenv("BLAZINGSQL_E2E_LOG_DIRECTORY", conda_prefix)
     # DEPRECATED percy kharo use blazingsql.__version__ instead of WORKSPACE_DIRECTORY 
-    #workspaceDirectory = os.environ["WORKSPACE_DIRECTORY"]
-    fileResultsDirectory = os.environ["BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY"]
-    dataSize = os.environ["BLAZINGSQL_E2E_DATA_SIZE"]
-    executionEnv = os.environ["BLAZINGSQL_E2E_EXECUTION_ENV"]
-    daskConnection = os.environ["BLAZINGSQL_E2E_DASK_CONNECTION"]
+    #workspaceDirectory = os.getenv("WORKSPACE_DIRECTORY"]
+    fileResultsDirectory = os.getenv("BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY", conda_prefix+"/blazingsql-testing-files/results/")
+    dataSize = os.getenv("BLAZINGSQL_E2E_DATA_SIZE", "100MB2Part")
+    executionEnv = os.getenv("BLAZINGSQL_E2E_EXECUTION_ENV", "local")
+    daskConnection = os.getenv("BLAZINGSQL_E2E_DASK_CONNECTION", "local") # use 127.0.0.1:8786 for manual dask
 
     #RunSettings
-    executionMode = os.environ["BLAZINGSQL_E2E_EXEC_MODE"]
-    nRals = os.environ["BLAZINGSQL_E2E_N_RALS"]
-    nGPUs = os.environ["BLAZINGSQL_E2E_N_GPUS"]
-    networkInterface = os.environ["BLAZINGSQL_E2E_NETWORK_INTERFACE"]
-    saveLog = os.environ["BLAZINGSQL_E2E_SAVE_LOG"]
-    worksheet = os.environ["BLAZINGSQL_E2E_WORKSHEET"]
-    logInfo = os.environ["BLAZINGSQL_E2E_LOG_INFO"]
-    compare_results = os.environ["BLAZINGSQL_E2E_COMPARE_RESULTS"]
+    executionMode = os.getenv("BLAZINGSQL_E2E_EXEC_MODE", "GPU_CI")
+    nRals = os.getenv("BLAZINGSQL_E2E_N_RALS", 1)
+    nGPUs = os.getenv("BLAZINGSQL_E2E_N_GPUS", 1)
+    networkInterface = os.getenv("BLAZINGSQL_E2E_NETWORK_INTERFACE", "lo")
+    saveLog = os.getenv("BLAZINGSQL_E2E_SAVE_LOG", "false")
+    worksheet = os.getenv("BLAZINGSQL_E2E_WORKSHEET", "BSQL Log Results")
+    logInfo = os.getenv("BLAZINGSQL_E2E_LOG_INFO", "")
+    compare_results = os.getenv("BLAZINGSQL_E2E_COMPARE_RESULTS", "true")
 
     #ComparissonTest
-    compareByPercentaje = os.environ["BLAZINGSQL_E2E_COMPARE_BY_PERCENTAJE"]
-    acceptableDifference = os.environ["BLAZINGSQL_E2E_ACCEPTABLE_DIFERENCE"]
+    compareByPercentaje = os.getenv("BLAZINGSQL_E2E_COMPARE_BY_PERCENTAJE", "false")
+    acceptableDifference = os.getenv("BLAZINGSQL_E2E_ACCEPTABLE_DIFERENCE", 0.01)
     
     data['TestSettings'] = {
     'dataDirectory': dataDirectory,
