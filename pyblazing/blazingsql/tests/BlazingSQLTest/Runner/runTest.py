@@ -518,9 +518,21 @@ def verify_prev_google_sheet_results(log_pdf):
         return ret
     
     # NOTE For debugging
-    #gspread_df = pd.read_parquet('/home/user/spreadsheet.parquet')
-    gspread_df = get_the_data_from_sheet()
-    last_e2e_run_id = gspread_df["Timestamp"][0]
+    gspread_df = pd.read_parquet('/home/percy/workspace/_files/gspread/df.parquet')
+    #gspread_df = get_the_data_from_sheet()
+    
+    prev_nrals = gspread_df["nRALS"][0]
+    curr_nrals = Settings.data['RunSettings']['nRals']
+    
+    last_e2e_run_id = gspread_df["Timestamp"][0] # Assume prev_nrals == curr_nrals
+    # NOTE If prev_nrals != curr_nrals we need to search the first Timestamp (a.k.a ID) for the current nRals target
+    if prev_nrals != curr_nrals:
+         gspread_df_uniques = gspread_df.drop_duplicates()
+         gspread_df_uniques_target_nrals = gspread_df_uniques.loc[gspread_df_uniques['nRALS'] == curr_nrals]
+         last_e2e_run_id = gspread_df_uniques_target_nrals.iloc[0, 1] # select the first Timestamp from the unique values
+    
+    print("####### ======= >>>>>>> E2E INFO: We will compare the current run against the ID (Timestamp): " + last_e2e_run_id)
+    
     last_e2e_run_df = gspread_df.loc[gspread_df['Timestamp'] == last_e2e_run_id]
     
     # NOTE percy kharo william we need to rename some columns to use our dfs
@@ -560,14 +572,6 @@ def verify_prev_google_sheet_results(log_pdf):
         
         curr_test_group_df = log_pdf_copy.loc[log_pdf_copy['Test Group'] == test_group]
         curr_input_types = curr_test_group_df.groupby('Input Type').count().index.tolist()
-        
-        nRals = Settings.data['RunSettings']['nRals']
-        # If we are in distributed mode do not try to check the cases for dask_cudf input types
-        if nRals == 1:
-            if 'dask_cudf' in prev_input_types: 
-                prev_input_types.remove('dask_cudf')
-            if 'dask_cudf' in curr_input_types:
-                curr_input_types.remove('dask_cudf')
         
         has_less_input_types = len(prev_input_types) > len(curr_input_types)
         

@@ -93,15 +93,11 @@ def try_to_get_dask_client(n_workers, n_gpus):
             raise ValueError("n gpus must be at least 1")
         try:
             if daskConnection == 'local':
-                print("11111111111111")
                 cluster = LocalBlazingSQLCluster(n_gpus, n_workers=n_workers)
-                print("22222222222222")
                 return Client(cluster)
             else:
-                print("33333333333333333")
                 return Client(daskConnection)
         except Exception as e:
-            print("444444444444444444")
             # TODO: exceptions from cluster creation or dask connection
             raise EnvironmentError("WARNING: Could not connect to dask: " + daskConnection + " ... error was " + str(e))
     raise ValueError('ERROR: Bad dask connection \'%s\'' % daskConnection)
