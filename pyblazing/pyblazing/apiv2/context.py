@@ -70,7 +70,6 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass(
     'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
-
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -173,6 +172,12 @@ def getNodePartitionKeys(df, client):
             
     return worker_partitions
 
+def get_element(query_partid):
+    worker = dask.distributed.get_worker()
+    df = worker.query_parts[query_partid]
+    del  worker.query_parts[query_partid]
+    return df
+
 def collectPartitionsRunQuery(
         masterIndex,
         nodes,
@@ -201,7 +206,7 @@ def collectPartitionsRunQuery(
                     tables[table_name].input.append(worker.data[key])
 
     try:
-        result = cio.runQueryCaller(
+        dfs = cio.runQueryCaller(
                             masterIndex,
                             nodes,
                             tables,
@@ -209,14 +214,23 @@ def collectPartitionsRunQuery(
                             ctxToken,
                             algebra,
                             accessToken,
-                            config_options)
+                            config_options,
+                            is_single_node=False)
     except cio.RunQueryError as e:
         print(">>>>>>>> ", e)
-        result = cudf.DataFrame()
+        result = [cudf.DataFrame()]
     except Exception as e:
         raise e
 
-    return result
+    meta = dask.dataframe.utils.make_meta(dfs[0])
+    query_partids = []
+    worker.query_parts = {}
+    for df in dfs:
+        query_partid = random.randint(0, 64000) # query_partid should be a unique identifier
+        worker.query_parts[query_partid] = df
+        query_partids.append(query_partid)
+
+    return query_partids, meta, worker.name
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -1672,7 +1686,8 @@ class BlazingContext(object):
                             ctxToken,
                             algebra,
                             accessToken,
-                            query_config_options)
+                            query_config_options,
+                            is_single_node=True)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
                 result = cudf.DataFrame()
@@ -1714,7 +1729,15 @@ class BlazingContext(object):
                 if(return_futures):
                     result  = dask_futures
                 else:
-                    result = dask.dataframe.from_delayed(dask_futures) # this is not necessarily materialized
+                    #result = dask.dataframe.from_delayed(dask_futures) # this is not necessarily materialized
+                    meta_results = self.dask_client.gather(dask_futures)
+
+                    futures = []
+                    for query_partids, meta, worker_id in meta_results:
+                        for query_partid in query_partids:
+                            futures.append(self.dask_client.submit(get_element, query_partid, workers=[worker_id]))
+
+                    result = dask.dataframe.from_delayed(futures, meta=meta)
         return result
 
     # END SQL interface

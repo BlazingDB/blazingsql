@@ -22,7 +22,7 @@
 
 using namespace fmt::literals;
 
-std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data_loader> input_loaders,
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::string logicalPlan,
@@ -35,7 +35,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 	try {
 		assert(input_loaders.size() == table_names.size());
 
-		std::unique_ptr<ral::frame::BlazingTable> output_frame;
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> output_frame;
 		ral::batch::tree_processor tree{
 			.root = {},
 			.context = queryContext.clone(),
@@ -92,7 +92,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 
 		if (query_graph->num_nodes() > 0) {
 			ral::cache::cache_settings cache_machine_config;
-			cache_machine_config.type = ral::cache::CacheType::CONCATENATING;
+			cache_machine_config.type = queryContext.getTotalNodes() == 1 ? ral::cache::CacheType::CONCATENATING : ral::cache::CacheType::SIMPLE;
 			cache_machine_config.context = queryContext.clone();
 
 			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);
@@ -112,7 +112,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"info"_a="Query Execution Done",
 									"duration"_a=blazing_timer.elapsed_time());
 
-		assert(output_frame != nullptr);
+		assert(!output_frame.empty());
 
 		logger->flush();
 

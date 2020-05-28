@@ -118,7 +118,7 @@ void fix_column_names_duplicated(std::vector<std::string> & col_names){
 	}
 }
 
-std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
+std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<TableSchema> tableSchemas,
@@ -162,13 +162,18 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 									"plan"_a=query);
 
 		// Execute query
-		std::unique_ptr<ral::frame::BlazingTable> frame;
-		frame = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
-		
-		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
-		result->names = frame->names();
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
+		frames = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+
+		std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
+		assert( frames.size()>0 );
+		result->names = frames[0]->names();
 		fix_column_names_duplicated(result->names);
-		result->cudfTable = frame->releaseCudfTable();
+
+		for(auto& cudfTable : frames){
+			result->cudfTables.emplace_back(std::move(cudfTable->releaseCudfTable()));
+		}
+
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(const std::exception & e) {
