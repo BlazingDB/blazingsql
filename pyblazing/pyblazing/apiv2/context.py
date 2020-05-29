@@ -230,7 +230,7 @@ def collectPartitionsRunQuery(
             worker.query_parts = {}
 
     for df in dfs:
-        query_partid = random.randint(0, 64000) # query_partid should be a unique identifier
+        query_partid = random.randint(0, np.iinfo(np.int32).max) # query_partid should be a unique identifier
         worker.query_parts[query_partid] = df
         query_partids.append(query_partid)
 
@@ -1512,7 +1512,7 @@ class BlazingContext(object):
 
     def partition(self, input, by=[]):
         masterIndex = 0
-        ctxToken = random.randint(0, 64000)
+        ctxToken = random.randint(0, np.iinfo(np.int32).max)
 
         if self.dask_client is None:
             print("Not supported...")
@@ -1673,7 +1673,7 @@ class BlazingContext(object):
             for j, nodeList in enumerate(nodeTableList):
                 nodeList[table] = currentTableNodes[j]
 
-        ctxToken = random.randint(0, 64000)
+        ctxToken = random.randint(0, np.iinfo(np.int32).max)
         accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
