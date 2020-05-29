@@ -27,3 +27,4 @@
 #700 Support null column in projection
 #718 Changed all condition variable waits to wait_for
 #712 fixed how we handle empty tables for estimate for small table join
+#724 Removed unused BlazingThread creations
