@@ -224,7 +224,11 @@ def collectPartitionsRunQuery(
 
     meta = dask.dataframe.utils.make_meta(dfs[0])
     query_partids = []
-    worker.query_parts = {}
+
+    with worker._lock:
+        if not hasattr(worker, "query_parts"):
+            worker.query_parts = {}
+
     for df in dfs:
         query_partid = random.randint(0, 64000) # query_partid should be a unique identifier
         worker.query_parts[query_partid] = df
