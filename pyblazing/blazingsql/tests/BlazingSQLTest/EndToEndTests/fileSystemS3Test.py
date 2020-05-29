@@ -17,9 +17,12 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         #Read Data TPCH------------------------------------------------------------------------------------------------------------
         authority = "tpch_s3"
         
-        # TODO percy kharo e2e-gpuci security
-        bc.s3(authority, bucket_name='', encryption_type=S3EncryptionType.NONE,
-              access_key_id='', secret_key='')
+        awsS3BucketName = Settings.data['TestSettings']['awsS3BucketName']
+        awsS3AccessKeyId = Settings.data['TestSettings']['awsS3AccessKeyId']
+        awsS3SecretKey = Settings.data['TestSettings']['awsS3SecretKey']
+        
+        bc.s3(authority, bucket_name=awsS3BucketName, encryption_type=S3EncryptionType.NONE,
+              access_key_id=awsS3AccessKeyId, secret_key=awsS3SecretKey)
         
         #dir_df = dir_data_lc[dir_data_lc.find("DataSet"):len(dir_data_lc)]
         

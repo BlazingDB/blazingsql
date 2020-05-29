@@ -39,6 +39,10 @@ def create_json():
     dataSize = os.getenv("BLAZINGSQL_E2E_DATA_SIZE", "100MB2Part")
     executionEnv = os.getenv("BLAZINGSQL_E2E_EXECUTION_ENV", "local")
     daskConnection = os.getenv("BLAZINGSQL_E2E_DASK_CONNECTION", "local") # use 127.0.0.1:8786 for manual dask
+    awsS3BucketName = os.getenv("BLAZINGSQL_E2E_AWS_S3_BUCKET_NAME", "")
+    awsS3AccessKeyId = os.getenv("BLAZINGSQL_E2E_AWS_S3_ACCESS_KEY_ID", "")
+    awsS3SecretKey = os.getenv("BLAZINGSQL_E2E_AWS_S3_SECRET_KEY", "")
+    googleStorageAdcJsonFile = os.getenv("BLAZINGSQL_E2E_GOOGLE_STORAGE_ADC_JSON_FILE", "")
 
     #RunSettings
     executionMode = os.getenv("BLAZINGSQL_E2E_EXEC_MODE", "GPU_CI")
@@ -70,7 +74,11 @@ def create_json():
     'fileResultsDirectory': fileResultsDirectory,
     'dataSize': dataSize,
     'executionEnv': executionEnv,
-    'daskConnection': daskConnection
+    'daskConnection': daskConnection,
+    'awsS3BucketName': awsS3BucketName,
+    'awsS3AccessKeyId': awsS3AccessKeyId,
+    'awsS3SecretKey': awsS3SecretKey,
+    'googleStorageAdcJsonFile': googleStorageAdcJsonFile
     }
 
     data['RunSettings'] = {
