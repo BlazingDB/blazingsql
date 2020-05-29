@@ -239,6 +239,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 }
 
 
+
 std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata, 
 	std::vector<std::string> all_column_names, std::string query) {
 
