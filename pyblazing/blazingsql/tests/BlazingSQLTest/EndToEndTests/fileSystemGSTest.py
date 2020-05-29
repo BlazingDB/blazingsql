@@ -24,12 +24,19 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     
         authority = "tpch_gs"
         
+        googleStorageAdcJsonFile = Settings.data['TestSettings']['googleStorageAdcJsonFile']
+
+        use_default_adc_json_file = True
+        
+        if googleStorageAdcJsonFile != "":
+            use_default_adc_json_file = False
+        
         bc.gs(authority,
         # TODO percy kharo e2e-gpuci security
         project_id='',
         bucket_name='',
-        use_default_adc_json_file=True,
-        adc_json_file='')
+        use_default_adc_json_file=use_default_adc_json_file,
+        adc_json_file=googleStorageAdcJsonFile)
         
         #dir_df = dir_data_lc[dir_data_lc.find("DataSet"):len(dir_data_lc)]
         
