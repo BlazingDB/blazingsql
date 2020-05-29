@@ -50,7 +50,15 @@ def create_json():
     logInfo = os.getenv("BLAZINGSQL_E2E_LOG_INFO", "")
     gspreadCacheHint = os.getenv("BLAZINGSQL_E2E_GSPREAD_CACHE", "false")
     compare_results = os.getenv("BLAZINGSQL_E2E_COMPARE_RESULTS", "true")
+    targetTestGroups = os.getenv("BLAZINGSQL_E2E_TARGET_TEST_GROUPS", "") # comma separated values, if empty will run all the e2e tests
 
+    targetTestGroups = "".join(targetTestGroups.split()) # trim all white spaces
+    targetTestGroups = targetTestGroups.split(",")
+    
+    # when "a,b," -> ["a", "b", ""] we need to remove all those empty string entries
+    while("" in targetTestGroups): 
+        targetTestGroups.remove("") 
+    
     #ComparissonTest
     compareByPercentaje = os.getenv("BLAZINGSQL_E2E_COMPARE_BY_PERCENTAJE", "false")
     acceptableDifference = os.getenv("BLAZINGSQL_E2E_ACCEPTABLE_DIFERENCE", 0.01)
@@ -74,7 +82,8 @@ def create_json():
     'worksheet': worksheet,
     'logInfo': logInfo,
     'gspreadCacheHint': gspreadCacheHint,
-    'compare_results': compare_results
+    'compare_results': compare_results,
+    'targetTestGroups': targetTestGroups
     }
 
     data['ComparissonTest'] = {

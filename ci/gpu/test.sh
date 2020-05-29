@@ -10,8 +10,8 @@ function logger() {
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="io comms libengine pyblazing algebra -t -v -h -c e2e_test"
-HELP="$0 [-v] [-h] [-t] [-c] [e2e_test]
+VALIDARGS="io comms libengine pyblazing algebra -t -v -h -c e2e-tests"
+HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=]
    io           - test the IO C++ code only
    comms        - test the communications C++ code only
    libengine    - test the engine C++ code only
@@ -24,8 +24,13 @@ HELP="$0 [-v] [-h] [-t] [-c] [e2e_test]
                   Google Docs. The cache (e2e-gspread-cache.parquet) will be
                   located inside the env BLAZINGSQL_E2E_LOG_DIRECTORY (which
                   is usually pointing to the CONDA_PREFIX dir)
-   e2e_test     - when use after 'pyblazing' run a specific e2e test
-                  group (empty means will run all the e2e tests)
+   e2e-tests    - when use after 'pyblazing' run a specific e2e test
+                  groups.
+                  Comma separated of e2e tests, where each value is
+                  the python filename of the test located in
+                  blazingsql/pyblazing/blazingsql/tests/BlazingSQLTest/EndToEndTests/
+                  (e.g. 'castTest, groupByTest' or 'literalTest' for single test).
+                  Empty means will run all the e2e tests)
    default action (no args) is to test all code and packages
 "
 
@@ -34,7 +39,7 @@ VERBOSE=""
 QUIET="--quiet"
 TESTS="ON"
 GSPREAD_CACHE="false"
-E2E_TEST_GROUP=""
+TARGET_E2E_TEST_GROUPS=""
 
 function hasArg {
     (( ${NUMARGS} != 0 )) && (echo " ${ARGS} " | grep -q " $1 ")
@@ -52,6 +57,10 @@ fi
 # Check for valid usage
 if (( ${NUMARGS} != 0 )); then
     for a in ${ARGS}; do
+    if [[ $a == *"="* ]]; then
+        TARGET_E2E_TEST_GROUPS=${a#"e2e-tests="}
+        continue
+    fi
     if ! (echo " ${VALIDARGS} " | grep -q " ${a} "); then
         echo "Invalid option: ${a}"
         exit 1
@@ -151,6 +160,7 @@ else
         set -e
 
         export BLAZINGSQL_E2E_GSPREAD_CACHE=$GSPREAD_CACHE
+        export BLAZINGSQL_E2E_TARGET_TEST_GROUPS=$TARGET_E2E_TEST_GROUPS
 
         logger "Running end to end tests..."
         cd ${WORKSPACE}/pyblazing/blazingsql/tests/BlazingSQLTest/
