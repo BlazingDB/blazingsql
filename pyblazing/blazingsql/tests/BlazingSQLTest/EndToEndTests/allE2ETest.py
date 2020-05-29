@@ -256,7 +256,7 @@ if __name__ == '__main__':
             end = time.time() # in seconds
             elapsed = end - start # in seconds
             
-            time_delta_desc = str(int(elapsed)/60) + " minutes and " + str(int(elapsed) % 60) + " seconds"
+            time_delta_desc = str(elapsed/60) + " minutes and " + str(int(elapsed) % 60) + " seconds"
             print("==>> E2E FAILED against previous run, total time was: " + time_delta_desc)
             
             sys.exit(1) # return error exit status to the command prompt (shell)
