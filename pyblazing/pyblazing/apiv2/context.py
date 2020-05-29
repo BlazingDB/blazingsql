@@ -1733,7 +1733,6 @@ class BlazingContext(object):
                 if(return_futures):
                     result  = dask_futures
                 else:
-                    #result = dask.dataframe.from_delayed(dask_futures) # this is not necessarily materialized
                     meta_results = self.dask_client.gather(dask_futures)
 
                     futures = []
