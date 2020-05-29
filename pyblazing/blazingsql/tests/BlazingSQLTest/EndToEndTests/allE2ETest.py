@@ -153,16 +153,29 @@ def main():
                 "   Start Mem: " + str(Settings.memory_list[i].start_mem) +
                 "   End Mem: " + str(Settings.memory_list[i].end_mem) + 
                 "   Diff: " + str(Settings.memory_list[i].delta))
-        
+
+        return result, error_msgs
+
+    return True, []
+
+if __name__ == '__main__':
+    import time
+
+    start = time.time() # in seconds
+
+    result, error_msgs = main()
+    
+    if Settings.execution_mode != ExecutionMode.GENERATOR:
         # NOTE kahro william percy mario : here we tell to gpuci there was an error 
         if result == False:
             for error_msg in error_msgs:
                 print(error_msg)
             import sys
-            sys.exit(1)
-            return 1 # return error exit status to the command prompt (shell)
             
-    return 0 # return normal exit status to the command prompt (shell)
-
-if __name__ == '__main__':
-    main()
+            end = time.time() # in seconds
+            elapsed = end - start # in seconds
+            
+            time_delta_desc = (elapsed/60) + " minutes and " + (elapsed % 60) + " seconds"
+            print("==>> E2E FAILED against previous run, total time was: " + time_delta_desc)
+            
+            sys.exit(1) # return error exit status to the command prompt (shell)
