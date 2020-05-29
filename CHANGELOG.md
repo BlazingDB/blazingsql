@@ -26,3 +26,4 @@
 #659 Improve reading for: SELECT * FROM table LIMIT N
 #700 Support null column in projection
 #712 fixed how we handle empty tables for estimate for small table join
+#721 Support for handling multi-partition output
