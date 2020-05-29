@@ -48,6 +48,7 @@ def create_json():
     saveLog = os.getenv("BLAZINGSQL_E2E_SAVE_LOG", "false")
     worksheet = os.getenv("BLAZINGSQL_E2E_WORKSHEET", "BSQL Log Results")
     logInfo = os.getenv("BLAZINGSQL_E2E_LOG_INFO", "")
+    gspreadCacheHint = os.getenv("BLAZINGSQL_E2E_GSPREAD_CACHE", "false")
     compare_results = os.getenv("BLAZINGSQL_E2E_COMPARE_RESULTS", "true")
 
     #ComparissonTest
@@ -72,6 +73,7 @@ def create_json():
     'saveLog': saveLog,
     'worksheet': worksheet,
     'logInfo': logInfo,
+    'gspreadCacheHint': gspreadCacheHint,
     'compare_results': compare_results
     }
 

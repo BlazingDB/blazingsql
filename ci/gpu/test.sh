@@ -10,8 +10,8 @@ function logger() {
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="io comms libengine pyblazing algebra -t -v -h"
-HELP="$0 [-v] [-h] [-t]
+VALIDARGS="io comms libengine pyblazing algebra -t -v -h -c e2e_test"
+HELP="$0 [-v] [-h] [-t] [-c] [e2e_test]
    io           - test the IO C++ code only
    comms        - test the communications C++ code only
    libengine    - test the engine C++ code only
@@ -20,6 +20,12 @@ HELP="$0 [-v] [-h] [-t]
    -t           - skip end to end tests (force not run pyblazing tests)
    -v           - verbose test mode
    -h           - print this text
+   -c           - save and use a cache of the previous e2e test runs from
+                  Google Docs. The cache (e2e-gspread-cache.parquet) will be
+                  located inside the env BLAZINGSQL_E2E_LOG_DIRECTORY (which
+                  is usually pointing to the CONDA_PREFIX dir)
+   e2e_test     - when use after 'pyblazing' run a specific e2e test
+                  group (empty means will run all the e2e tests)
    default action (no args) is to test all code and packages
 "
 
@@ -27,6 +33,8 @@ HELP="$0 [-v] [-h] [-t]
 VERBOSE=""
 QUIET="--quiet"
 TESTS="ON"
+GSPREAD_CACHE="false"
+E2E_TEST_GROUP=""
 
 function hasArg {
     (( ${NUMARGS} != 0 )) && (echo " ${ARGS} " | grep -q " $1 ")
@@ -58,6 +66,9 @@ if hasArg -v; then
 fi
 if hasArg -t; then
     TESTS="OFF"
+fi
+if hasArg -c; then
+    GSPREAD_CACHE="true"
 fi
 
 # If clean given, run it prior to any other steps
@@ -139,10 +150,16 @@ else
         # Abort script on first error
         set -e
 
+        export BLAZINGSQL_E2E_GSPREAD_CACHE=$GSPREAD_CACHE
+
         logger "Running end to end tests..."
         cd ${WORKSPACE}/pyblazing/blazingsql/tests/BlazingSQLTest/
         SECONDS=0
-        python -m EndToEndTests.allE2ETest
+        if [ "$E2E_TEST_GROUP" == "" ]; then
+            python -m EndToEndTests.allE2ETest
+        else
+            python -m EndToEndTests.$E2E_TEST_GROUP
+        fi
         duration=$SECONDS
         echo "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
     fi

@@ -513,13 +513,22 @@ def verify_prev_google_sheet_results(log_pdf):
         ret['LoadingTime'] = ret['LoadingTime'].astype(str)
         ret['EngineTotalTime'] = ret['EngineTotalTime'].astype(str)
         ret['TotalTime'] = ret['TotalTime'].astype(str)
-        # NOTE For debugging
-        #ret.to_parquet('/home/user/spreadsheet.parquet')
         return ret
     
-    # NOTE For debugging
-    #gspread_df = pd.read_parquet('/home/user/spreadsheet.parquet')
-    gspread_df = get_the_data_from_sheet()
+    dir_log = Settings.data['TestSettings']['logDirectory']
+    gspreadCacheHint = Settings.data['RunSettings']['gspreadCacheHint']
+    gspread_e2e_cache_path = dir_log+'/e2e-gspread-cache.parquet'
+    
+    if gspreadCacheHint == "false":
+        gspread_df = get_the_data_from_sheet()
+        # Always save a cache (so when gspreadCacheHint is false will refresh the cache)
+        gspread_df.to_parquet(gspread_e2e_cache_path)
+    elif gspreadCacheHint == "true":
+        if os.path.isfile(gspread_e2e_cache_path):
+            gspread_df = pd.read_parquet(gspread_e2e_cache_path)
+        else:
+            gspread_df = get_the_data_from_sheet()
+            gspread_df.to_parquet(gspread_e2e_cache_path)
     
     prev_nrals = gspread_df["nRALS"][0]
     curr_nrals = Settings.data['RunSettings']['nRals']
