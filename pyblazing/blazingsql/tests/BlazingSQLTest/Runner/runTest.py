@@ -527,6 +527,8 @@ def verify_prev_google_sheet_results(log_pdf):
     gspreadCacheHint = Settings.data['RunSettings']['gspreadCacheHint']
     gspread_e2e_cache_path = dir_log+'/e2e-gspread-cache.parquet'
     
+    gspread_df = None
+    
     if gspreadCacheHint == "false":
         gspread_df = get_the_data_from_sheet()
         if gspread_df != None:
@@ -540,7 +542,7 @@ def verify_prev_google_sheet_results(log_pdf):
             if gspread_df != None:
                 gspread_df.to_parquet(gspread_e2e_cache_path)
     
-    if gspread_df == None:
+    if gspread_df is None:
         error_msg = "ERROR: This test run could not be compared against old results from Google Docs"
         return False, [error_msg] 
     
@@ -611,6 +613,10 @@ def verify_prev_google_sheet_results(log_pdf):
             curr_tests_df = curr_test_group_df.loc[curr_test_group_df['Input Type'] == input_type]
             curr_tests_df.sort_values(by=['QueryID'])
             
+            # We need to make a copy since we are going to drop some row
+            prev_tests_df = prev_tests_df.copy()
+            curr_tests_df = curr_tests_df.copy()
+            
             # NOTE for debugging
             #print("============================================PREV!")
             #print(prev_tests_df.head())
@@ -620,7 +626,15 @@ def verify_prev_google_sheet_results(log_pdf):
             #print(len(curr_tests_df))
             
             # Check if current run has less tests than previous run
-            has_less_tests = len(prev_tests_df) > len(curr_tests_df)
+            len_prev_tests_df = len(prev_tests_df)
+            len_curr_tests_df = len(curr_tests_df)
+            has_less_tests = len_prev_tests_df > len_curr_tests_df
+            
+            # NOTE for debugging
+            #print("====== PREV TESTS ======")
+            #print(prev_tests_df)
+            #print("====== CURR TESTS ======")
+            #print(curr_tests_df)
             
             if has_less_tests:
                 prev_tests = prev_tests_df['QueryID'].tolist()
@@ -628,6 +642,23 @@ def verify_prev_google_sheet_results(log_pdf):
                 list_difference = [item for item in prev_tests if item not in curr_tests]
                 error_msg = "ERROR: The test group %s has less tests than previous run for input type %s, delta is %s" % (test_group, input_type, list_difference)
                 error_msgs.append(error_msg)
+                
+                n = len_prev_tests_df - len_curr_tests_df
+                prev_tests_df.drop(prev_tests_df.tail(n).index,inplace=True)
+            elif len_prev_tests_df < len_curr_tests_df:
+                n = len_curr_tests_df - len_prev_tests_df
+                curr_tests_df.drop(curr_tests_df.tail(n).index,inplace=True)
+            
+            prev_tests_results = prev_tests_df["Result"].to_list()
+            curr_tests_results = curr_tests_df["Result"].to_list()
+            
+            for i in range(0, len(prev_tests_results)):
+                prev_test_result = prev_tests_results[i]
+                curr_test_result = curr_tests_results[i]
+                
+                if prev_test_result == 1 and curr_test_result == 0:
+                    error_msg = "ERROR: Test %d for %s (%s) is now failing but before was ok!" % (i+1, test_group, input_type)
+                    error_msgs.append(error_msg)
     
     succs = len(error_msgs) == 0
     return succs, error_msgs
