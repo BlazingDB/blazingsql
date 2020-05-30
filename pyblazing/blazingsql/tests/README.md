@@ -53,11 +53,73 @@ cd blazingsql
 
 # Run the round and orderby end to end test groups using the spreadsheet cache file.
 ./test.sh -c pyblazing e2e-tests=roundTest,orderbyTest
-
 ```
 
 #### Custom settings
-All the behaviour of the end to end test are base on environment variables. So when you wan to have more control you need to change some of the default values exporting or defining the target environment variable.
+All the behaviour of the end to end test are base on environment variables. So when you want to have more control you need to change some of the default values exporting or defining the target environment variable before run the tests.
+Here are all the environment variables with its default values:
+
+```shell-script
+#TestSettings
+export BLAZINGSQL_E2E_DATA_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/data/
+export BLAZINGSQL_E2E_LOG_DIRECTORY=$CONDA_PREFIX/
+export BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/results/
+export BLAZINGSQL_E2E_DATA_SIZE="100MB2Part"
+export BLAZINGSQL_E2E_EXECUTION_ENV="local"
+export BLAZINGSQL_E2E_DASK_CONNECTION="local" # values: "dask-scheduler-ip:port", "local"
+
+# AWS S3 env vars
+export BLAZINGSQL_E2E_AWS_S3_BUCKET_NAME=''
+export BLAZINGSQL_E2E_AWS_S3_ACCESS_KEY_ID=''
+export BLAZINGSQL_E2E_AWS_S3_SECRET_KEY=''
+
+# Google Storage env vars
+export BLAZINGSQL_E2E_GOOGLE_STORAGE_PROJECT_ID=''
+export BLAZINGSQL_E2E_GOOGLE_STORAGE_BUCKET_NAME=''
+export BLAZINGSQL_E2E_GOOGLE_STORAGE_ADC_JSON_FILE=""
+
+#RunSettings
+export BLAZINGSQL_E2E_EXEC_MODE="gpuci" # values: gpuci, full, generator
+export BLAZINGSQL_E2E_N_RALS=1
+export BLAZINGSQL_E2E_N_GPUS=1
+export BLAZINGSQL_E2E_NETWORK_INTERFACE="lo"
+export BLAZINGSQL_E2E_SAVE_LOG=false
+export BLAZINGSQL_E2E_WORKSHEET="BSQL Log Results" # or "BSQL Performance Results"
+export BLAZINGSQL_E2E_LOG_INFO=''
+export BLAZINGSQL_E2E_GSPREAD_CACHE=false
+export BLAZINGSQL_E2E_COMPARE_RESULTS=true
+export BLAZINGSQL_E2E_TARGET_TEST_GROUPS=""
+
+#ComparissonTest
+export BLAZINGSQL_E2E_COMPARE_BY_PERCENTAJE=false
+export BLAZINGSQL_E2E_ACCEPTABLE_DIFERENCE=0.01
+```
+
+If you don't want to use the stored parquet results (BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY) and you want to compare directly against Drill and Spark then you can change the execution mode variable BLAZINGSQL_E2E_EXEC_MODE from "gpuci" to "full"
+Please, note that if you want to run on full mode you must have a Drill instance running.
+
+If you want to run a test with n rals/workers where n>1 you need to change the environment variable BLAZINGSQL_E2E_N_RALS.
+Also, remember that when running a distributed tests the variable BLAZINGSQL_E2E_DASK_CONNECTION must be set to either "local" or "dask-scheduler-ip:port".
+- "local" it will use dask LocalCUDACluster to simulate the n rals/workers on a single GPU.
+- "dask-scheduler-ip:port" is the connection information of you dask-scheduler (in case you run manually your local dask cluster)
+
+Finally, there are sensible data that never must be public so to get the values for these variables please ask to QA & DevOps teams:
+- AWS S3 connection settings: BLAZINGSQL_E2E_AWS_S3_BUCKET_NAME, BLAZINGSQL_E2E_AWS_S3_ACCESS_KEY_ID, BLAZINGSQL_E2E_AWS_S3_SECRET_KEY
+- Google Storage connection settings: BLAZINGSQL_E2E_GOOGLE_STORAGE_PROJECT_ID, BLAZINGSQL_E2E_GOOGLE_STORAGE_BUCKET_NAME, BLAZINGSQL_E2E_GOOGLE_STORAGE_ADC_JSON_FILE
+- Google Docs spreadsheet access: BLAZINGSQL_E2E_LOG_INFO
+
+Examples:
+```shell-script
+# Run all e2e tests in full mode
+BLAZINGSQL_E2E_EXEC_MODE=full ./test.sh pyblazing
+
+# Run all e2e tests with 2 rals/workers using LocalCUDACluster
+BLAZINGSQL_E2E_N_RALS=2 ./test.sh pyblazing
+
+# Run all e2e tests with 2 rals/workers using an online dask-scheduler IP:PORT
+export BLAZINGSQL_E2E_N_RALS=2
+BLAZINGSQL_E2E_DASK_CONNECTION="127.0.0.1:8786" ./test.sh pyblazing
+```
 
 #### Testing workflow remarks
 - Is highly suggested to use always -c argument so we avoid making request to Google Docs API.

@@ -33,8 +33,6 @@ def create_json():
     conda_prefix = os.getenv("CONDA_PREFIX", "/tmp/")
     dataDirectory = os.getenv("BLAZINGSQL_E2E_DATA_DIRECTORY", conda_prefix+"/blazingsql-testing-files/data/")
     logDirectory = os.getenv("BLAZINGSQL_E2E_LOG_DIRECTORY", conda_prefix)
-    # DEPRECATED percy kharo use blazingsql.__version__ instead of WORKSPACE_DIRECTORY 
-    #workspaceDirectory = os.getenv("WORKSPACE_DIRECTORY"]
     fileResultsDirectory = os.getenv("BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY", conda_prefix+"/blazingsql-testing-files/results/")
     dataSize = os.getenv("BLAZINGSQL_E2E_DATA_SIZE", "100MB2Part")
     executionEnv = os.getenv("BLAZINGSQL_E2E_EXECUTION_ENV", "local")
