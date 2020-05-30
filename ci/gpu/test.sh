@@ -95,21 +95,6 @@ if hasArg -c; then
     GSPREAD_CACHE="true"
 fi
 
-# If clean given, run it prior to any other steps
-if hasArg clean; then
-    # If the dirs to clean are mounted dirs in a container, the
-    # contents should be removed but the mounted dirs will remain.
-    # The find removes all contents but leaves the dirs, the rmdir
-    # attempts to remove the dirs but can fail safely.
-    for bd in ${BUILD_DIRS}; do
-    if [ -d ${bd} ]; then
-        find ${bd} -mindepth 1 -delete
-        rmdir ${bd} || true
-    fi
-    done
-fi
-
-
 ################################################################################
 
 if testAll || hasArg io; then
