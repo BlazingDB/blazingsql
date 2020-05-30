@@ -72,7 +72,7 @@ def main():
     if 'compare_results' in Settings.data['RunSettings']:
         compareResults = Settings.data['RunSettings']['compare_results'] 
 
-    if (Settings.execution_mode == ExecutionMode.FULL_MODE and compareResults == "true") or Settings.execution_mode == ExecutionMode.GENERATOR:
+    if (Settings.execution_mode == ExecutionMode.FULL and compareResults == "true") or Settings.execution_mode == ExecutionMode.GENERATOR:
 
         # Create Table Drill ------------------------------------------------------------------------------------------------------
         from pydrill.client import PyDrill
@@ -208,7 +208,7 @@ def main():
     if runAllTests or ("fileSystemLocalTest" in targetTestGroups):
         fileSystemLocalTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    if Settings.execution_mode != ExecutionMode.GPU_CI:
+    if Settings.execution_mode != ExecutionMode.GPUCI:
         if runAllTests or ("fileSystemS3Test" in targetTestGroups):
             fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
         

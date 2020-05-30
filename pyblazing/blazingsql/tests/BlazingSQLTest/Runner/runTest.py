@@ -419,7 +419,11 @@ def save_log (**kwargs):
             c = c + 1
     print()    
     cadena.append(subcadena)
-        
+    
+    # If it didn't run any test (probably some were skipped) then return success 
+    if cadena == [[]]:
+        return True, []
+    
     df = pd.DataFrame (cadena, columns = ['QueryID', 'TimeStamp', 'TestGroup', 'InputType', 'Query', 'Result', 'Error', 'Branch', 'CommitHash', 'nRals', 'nGPUs', 'DataDirectory', 'TestId', 'LoadingTime', 'EngineTotalTime', 'TotalTime'])
      
     total = df.shape[0]
@@ -988,7 +992,7 @@ def run_query(bc, engine, query, queryId, queryType, worder, orderBy,  acceptabl
                         print_query_results(query_spark, queryId, queryType, pdf1, pdf2, result_gdf, acceptable_difference, use_percentage, print_result, engine, input_type, load_time, engine_time, total_time)
             else:
                 print_query_results2(query_spark, queryId, queryType, result_gdf.error_message)
-    else: #GPU_CI
+    else: #GPUCI
         
         compareResults = True
         if 'compare_results' in Settings.data['RunSettings']:

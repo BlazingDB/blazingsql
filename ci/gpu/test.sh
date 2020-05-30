@@ -149,7 +149,7 @@ else
         export BLAZINGSQL_E2E_DATA_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/data/
         export BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/results/
     else
-        blazingsql_testing_files_dir=$(realpath $BLAZINGSQL_E2E_DATA_DIRECTORY/../)
+        blazingsql_testing_files_dir=$(realpath $BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY/../)
         logger "Using $blazingsql_testing_files_dir folder for end to end tests..."
         cd $blazingsql_testing_files_dir
         git pull

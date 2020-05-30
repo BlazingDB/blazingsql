@@ -24,8 +24,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
     
         authority = "tpch_gs"
         
+        googleStorageProjectId = Settings.data['TestSettings']['googleStorageProjectId']
+        googleStorageBucketName = Settings.data['TestSettings']['googleStorageBucketName']
         googleStorageAdcJsonFile = Settings.data['TestSettings']['googleStorageAdcJsonFile']
-
+        
         use_default_adc_json_file = True
         
         if googleStorageAdcJsonFile != "":
@@ -33,8 +35,8 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         
         bc.gs(authority,
         # TODO percy kharo e2e-gpuci security
-        project_id='',
-        bucket_name='',
+        project_id=googleStorageProjectId,
+        bucket_name=googleStorageBucketName,
         use_default_adc_json_file=use_default_adc_json_file,
         adc_json_file=googleStorageAdcJsonFile)
         
@@ -49,6 +51,8 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
         for fileSchemaType in data_types:
             if skip_test(dask_client, nRals, fileSchemaType, queryType): continue
             cs.create_tables(bc, dir_data_lc, fileSchemaType, tables=tables)
+            
+            return
             
         #   Run Query -----------------------------------------------------------------------------
             worder = 1 # Parameter to indicate if its necessary to order the resulsets before compare them
@@ -176,7 +180,7 @@ if __name__ == '__main__':
     if 'compare_results' in Settings.data['RunSettings']:
         compareResults = Settings.data['RunSettings']['compare_results'] 
 
-    if (Settings.execution_mode == ExecutionMode.FULL_MODE and compareResults == "true") or Settings.execution_mode == ExecutionMode.GENERATOR:
+    if (Settings.execution_mode == ExecutionMode.FULL and compareResults == "true") or Settings.execution_mode == ExecutionMode.GENERATOR:
         # Create Table Drill ------------------------------------------------------------------------------------------------------
         print("starting drill")
         from pydrill.client import PyDrill

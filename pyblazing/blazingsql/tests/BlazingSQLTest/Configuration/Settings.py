@@ -8,7 +8,7 @@ memory_list = None
 
 dateNow = None
 
-execution_mode = "full_mode"
+execution_mode = "full"
 
 def initialize():
     global data
@@ -39,13 +39,19 @@ def create_json():
     dataSize = os.getenv("BLAZINGSQL_E2E_DATA_SIZE", "100MB2Part")
     executionEnv = os.getenv("BLAZINGSQL_E2E_EXECUTION_ENV", "local")
     daskConnection = os.getenv("BLAZINGSQL_E2E_DASK_CONNECTION", "local") # use 127.0.0.1:8786 for manual dask
+    
+    # AWS S3 env vars
     awsS3BucketName = os.getenv("BLAZINGSQL_E2E_AWS_S3_BUCKET_NAME", "")
     awsS3AccessKeyId = os.getenv("BLAZINGSQL_E2E_AWS_S3_ACCESS_KEY_ID", "")
     awsS3SecretKey = os.getenv("BLAZINGSQL_E2E_AWS_S3_SECRET_KEY", "")
+
+    # Google Storage env vars
+    googleStorageProjectId = os.getenv("BLAZINGSQL_E2E_GOOGLE_STORAGE_PROJECT_ID", "")
+    googleStorageBucketName = os.getenv("BLAZINGSQL_E2E_GOOGLE_STORAGE_BUCKET_NAME", "")
     googleStorageAdcJsonFile = os.getenv("BLAZINGSQL_E2E_GOOGLE_STORAGE_ADC_JSON_FILE", "")
 
     #RunSettings
-    executionMode = os.getenv("BLAZINGSQL_E2E_EXEC_MODE", "GPU_CI")
+    executionMode = os.getenv("BLAZINGSQL_E2E_EXEC_MODE", "gpuci")
     nRals = os.getenv("BLAZINGSQL_E2E_N_RALS", 1)
     nGPUs = os.getenv("BLAZINGSQL_E2E_N_GPUS", 1)
     networkInterface = os.getenv("BLAZINGSQL_E2E_NETWORK_INTERFACE", "lo")
@@ -78,6 +84,8 @@ def create_json():
     'awsS3BucketName': awsS3BucketName,
     'awsS3AccessKeyId': awsS3AccessKeyId,
     'awsS3SecretKey': awsS3SecretKey,
+    'googleStorageProjectId': googleStorageProjectId,
+    'googleStorageBucketName': googleStorageBucketName,
     'googleStorageAdcJsonFile': googleStorageAdcJsonFile
     }
 
