@@ -1,6 +1,10 @@
 NUMARGS=$#
 ARGS=$*
 
+if [ -n $CONDA_PREFIX ]; then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib
+fi
+
 # Logger function for build status output
 function logger() {
   echo -e "\n>>>> $@\n"
@@ -173,7 +177,12 @@ else
         export BLAZINGSQL_E2E_GSPREAD_CACHE=$GSPREAD_CACHE
         export BLAZINGSQL_E2E_TARGET_TEST_GROUPS=$TARGET_E2E_TEST_GROUPS
 
-        logger "Running end to end tests..."
+        # If we are running on a GPUCI environment then force to set nrals to 1
+        if [ "$BLAZINGSQL_E2E_IN_GPUCI_ENV" == "true" ] ; then
+            logger "Running end to end tests SINGLE NODE (nrals=1) ..."
+            export BLAZINGSQL_E2E_N_RALS=1
+        fi
+
         cd ${WORKSPACE}/pyblazing/blazingsql/tests/BlazingSQLTest/
         SECONDS=0
         if [ "$E2E_TEST_GROUP" == "" ]; then
@@ -182,6 +191,27 @@ else
             python -m EndToEndTests.$E2E_TEST_GROUP
         fi
         duration=$SECONDS
-        echo "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
+        logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
+
+        # If we are running on a GPUCI environment then print final status for nrals=1
+        if [ "$BLAZINGSQL_E2E_IN_GPUCI_ENV" == "true" ] ; then
+            logger "End to end tests SINGLE NODE (nrals=1) ... DONE!"
+        fi
+
+        # If we are running on a GPUCI environment then run again the e2e but with nrals=2
+        if [ "$BLAZINGSQL_E2E_IN_GPUCI_ENV" == "true" ] ; then
+            logger "Running end to end tests DISTRIBUTED (nrals=2) ..."
+            export BLAZINGSQL_E2E_N_RALS=2
+            cd ${WORKSPACE}/pyblazing/blazingsql/tests/BlazingSQLTest/
+            SECONDS=0
+            if [ "$E2E_TEST_GROUP" == "" ]; then
+                python -m EndToEndTests.allE2ETest
+            else
+                python -m EndToEndTests.$E2E_TEST_GROUP
+            fi
+            duration=$SECONDS
+            logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
+            logger "End to end tests DISTRIBUTED (nrals=2) ... DONE!"
+        fi
     fi
 fi

@@ -146,7 +146,7 @@ cd blazingsql
 
 ## Advanced usage
 
-###HDFS testing
+### HDFS testing
 
 To support the testing of queries to a HDFS filesystem whose authentication is given by Kerberos, we provide a containerized environment that starts a fully kerborized HDFS server.
 

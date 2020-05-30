@@ -108,5 +108,6 @@ else
     logger "Check GPU usage..."
     nvidia-smi
 
+    export BLAZINGSQL_E2E_IN_GPUCI_ENV="true"
     ${WORKSPACE}/ci/gpu/test.sh
 fi
