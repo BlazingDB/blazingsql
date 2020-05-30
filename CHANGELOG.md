@@ -29,3 +29,4 @@
 #718 Changed all condition variable waits to wait_for
 #712 fixed how we handle empty tables for estimate for small table join
 #724 Removed unused BlazingThread creations
+#725 Added nullptr check to num_rows()
