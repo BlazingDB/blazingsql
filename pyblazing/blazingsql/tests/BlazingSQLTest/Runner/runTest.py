@@ -493,7 +493,6 @@ def create_summary_detail(df):
 # if result == False:
 #     exits the python process and do not move to next steps
 def verify_prev_google_sheet_results(log_pdf):
-    log_pdf_copy = log_pdf.copy()
     def get_the_data_from_sheet():
         # Use creds to create a client to interact with the Google Drive API
         scope = ["https://www.googleapis.com/auth/drive", "https://spreadsheets.google.com/feeds"]
@@ -501,6 +500,11 @@ def verify_prev_google_sheet_results(log_pdf):
         current_dir = '/home/ubuntu/.conda/envs/e2e' #os.getcwd() #Settings.data['TestSettings']['workspaceDirectory'] # #/home/kharoly/blazingsql/blazingdb-testing/BlazingSQLTest
         
         log_info=Settings.data['RunSettings']['logInfo']
+        
+        if log_info == "":
+            print("####### ======= >>>>>>> WARNING this test run will not be compared against old results from Google Docs. Define the env var BLAZINGSQL_E2E_LOG_INFO")
+            return None
+        
         log_info=json.loads(log_info)
         creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info, scope)
         client_blazing = gspread.authorize(creds_blazing)
@@ -525,15 +529,22 @@ def verify_prev_google_sheet_results(log_pdf):
     
     if gspreadCacheHint == "false":
         gspread_df = get_the_data_from_sheet()
-        # Always save a cache (so when gspreadCacheHint is false will refresh the cache)
-        gspread_df.to_parquet(gspread_e2e_cache_path)
+        if gspread_df != None:
+            # Always save a cache (so when gspreadCacheHint is false will refresh the cache)
+            gspread_df.to_parquet(gspread_e2e_cache_path)
     elif gspreadCacheHint == "true":
         if os.path.isfile(gspread_e2e_cache_path):
             gspread_df = pd.read_parquet(gspread_e2e_cache_path)
         else:
             gspread_df = get_the_data_from_sheet()
-            gspread_df.to_parquet(gspread_e2e_cache_path)
+            if gspread_df != None:
+                gspread_df.to_parquet(gspread_e2e_cache_path)
     
+    if gspread_df == None:
+        error_msg = "ERROR: This test run could not be compared against old results from Google Docs"
+        return False, [error_msg] 
+    
+    log_pdf_copy = log_pdf.copy()
     prev_nrals = gspread_df["nRALS"][0]
     curr_nrals = Settings.data['RunSettings']['nRals']
     

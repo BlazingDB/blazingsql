@@ -11,7 +11,7 @@ function logger() {
 REPODIR=$(cd $(dirname $0); pwd)
 
 VALIDARGS="io comms libengine pyblazing algebra -t -v -h -c e2e-tests"
-HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=]
+HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=\"test1,test2,...,testn\"]
    io           - test the IO C++ code only
    comms        - test the communications C++ code only
    libengine    - test the engine C++ code only
@@ -24,10 +24,10 @@ HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=]
                   Google Docs. The cache (e2e-gspread-cache.parquet) will be
                   located inside the env BLAZINGSQL_E2E_LOG_DIRECTORY (which
                   is usually pointing to the CONDA_PREFIX dir)
-   e2e-tests    - when use after 'pyblazing' run a specific e2e test
-                  groups.
-                  Comma separated of e2e tests, where each value is
-                  the python filename of the test located in
+   e2e-tests=   - Optional argument to use after 'pyblazing' run specific e2e
+                  test groups.
+                  The comma separated values are the e2e tests to run, where
+                  each value is the python filename of the test located in
                   blazingsql/pyblazing/blazingsql/tests/BlazingSQLTest/EndToEndTests/
                   (e.g. 'castTest, groupByTest' or 'literalTest' for single test).
                   Empty means will run all the e2e tests)
@@ -59,6 +59,10 @@ if (( ${NUMARGS} != 0 )); then
     for a in ${ARGS}; do
     if [[ $a == *"="* ]]; then
         TARGET_E2E_TEST_GROUPS=${a#"e2e-tests="}
+        if [ $TARGET_E2E_TEST_GROUPS == $a ] ; then
+            echo "Invalid option: ${a}"
+            exit 1
+        fi
         continue
     fi
     if ! (echo " ${VALIDARGS} " | grep -q " ${a} "); then
@@ -66,6 +70,13 @@ if (( ${NUMARGS} != 0 )); then
         exit 1
     fi
     done
+fi
+
+# NOTE if WORKSPACE is not defined we assume the user is in the blazingsql project root folder
+if [ -z $WORKSPACE ] ; then
+    logger "WORKSPACE is not defined, it should point to the blazingsql project root folder"
+    logger "Using $PWD as WORKSPACE"
+    WORKSPACE=$PWD
 fi
 
 # Process flags

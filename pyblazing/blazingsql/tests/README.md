@@ -1,4 +1,4 @@
-# blazingdb-testing
+# BlazingSQL tests
 Testing Automation Framework for BlazingSQL
 
 # Dependencies
@@ -13,12 +13,38 @@ conda install --yes -c conda-forge openjdk=8.0 maven pyspark=2.4.3 pytest
 pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client
 ```
 
-# HDFS testing
+# Basic usage
+
+## End to End tests
+
+## Engine tests
+
+```shell-script
+cd blazingsql
+./test.sh libengine
+```
+
+## I/O tests
+
+```shell-script
+cd blazingsql
+./test.sh io
+```
+
+## Communication test
+
+```shell-script
+cd blazingsql
+./test.sh comms
+```
+
+# Advanced usage
+##HDFS testing
 
 To support the testing of queries to a HDFS filesystem whose authentication is given by Kerberos, we provide a containerized environment that starts a fully kerborized HDFS server.
 
 
-## Requirements
+### Requirements
 - We use Docker as our container engine, that can be installed following the steps contained on the URL below:
 
   https://docs.docker.com/v17.09/engine/installation/linux/docker-ce/ubuntu/#os-requirements
@@ -32,7 +58,7 @@ To support the testing of queries to a HDFS filesystem whose authentication is g
 	
 	https://archive.apache.org/dist/hadoop/common/
 
-## Running the E2E tests with the support of HDFS and Kerberos
+### Running the E2E tests with the support of HDFS and Kerberos
 
 1. Some environment variables are needed to find the right paths to the Java dependencies; you can set them loading the script below passing the root of your Hadoop distribution:
 	```shell-script
@@ -46,7 +72,7 @@ To support the testing of queries to a HDFS filesystem whose authentication is g
 	$ python -m EndToEndTests.fileSystemHdfsTest configE2ETest.json
 	```
 
-## HDFS testing without running the E2E
+### HDFS testing without running the E2E
 
 To run other tests beyond the E2E tests (ad hoc scripts, local Hadoop tests), you can also start the Docker + Kerberos containers following the next steps:
 
@@ -68,14 +94,14 @@ To run other tests beyond the E2E tests (ad hoc scripts, local Hadoop tests), yo
 	$ ./stop_hdfs.sh
 	```
 
-### Notes:
+#### Notes:
  - For now, the starting script will require your superuser credentials.
  - You must pass a valid Kerberos ticket to the filesystem register command of BlazingSQL. For your convenience, when you start the Docker instances, the script will copy a valid ticket into the path below:
 	```
 	./KrbHDFS/myconf/krb5cc_0
 	```
 
-## Hive testing
+### Hive testing
 
 We provide as well a copy of the Apache Hive software (tested with version 1.2.2) inside the HDFS container. Therefore, the steps to run the E2E tests using Hive are similar than the instructions for HDFS.
 
@@ -91,7 +117,7 @@ We provide as well a copy of the Apache Hive software (tested with version 1.2.2
 	$ python -m EndToEndTests.fileSystemHiveTest configE2ETest.json
 	```
 
-## Troubleshooting
+### Troubleshooting
 
 Sometimes, for many reasons the E2E script test could raise an error. In that case, containers may be in an invalid state. Before try again, please check that there aren't any HDFS or Kerberos containers running by calling the stopping of the containers explicitly:
 
