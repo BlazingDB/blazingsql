@@ -109,5 +109,6 @@ else
     nvidia-smi
 
     export BLAZINGSQL_E2E_IN_GPUCI_ENV="true"
+    export BLAZINGSQL_E2E_SAVE_LOG=true
     ${WORKSPACE}/ci/gpu/test.sh
 fi
