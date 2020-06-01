@@ -42,8 +42,8 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 
 class PartwiseJoin : public kernel {
 public:
-	PartwiseJoin(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::PartwiseJoinKernel}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
+	PartwiseJoin(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id, queryString, context, kernel_type::PartwiseJoinKernel}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
@@ -453,8 +453,8 @@ private:
 
 class JoinPartitionKernel : public kernel {
 public:
-	JoinPartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::JoinPartitionKernel} {
+	JoinPartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id, queryString, context, kernel_type::JoinPartitionKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
@@ -551,7 +551,7 @@ public:
 									"duration"_a="",
 									"kernel_id"_a=this->get_id());
 
-		std::pair<bool, uint64_t> left_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_a");	
+		std::pair<bool, uint64_t> left_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_a");
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -561,7 +561,7 @@ public:
 									"kernel_id"_a=this->get_id(),
 									"rows"_a=left_num_rows_estimate.second);
 
-		std::pair<bool, uint64_t> right_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_b");	
+		std::pair<bool, uint64_t> right_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_b");
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),

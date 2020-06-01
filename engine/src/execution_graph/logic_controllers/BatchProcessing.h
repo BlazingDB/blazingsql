@@ -339,8 +339,8 @@ private:
 
 class TableScan : public kernel {
 public:
-	TableScan(const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context, kernel_type::TableScanKernel), input(loader, schema, context)
+	TableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
@@ -427,9 +427,9 @@ private:
 
 class BindableTableScan : public kernel {
 public:
-	BindableTableScan(const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
+	BindableTableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
 		std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context, kernel_type::BindableTableScanKernel), input(loader, schema, context)
+	: kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
@@ -517,7 +517,7 @@ public:
 						}
 
 						this->output_cache()->wait_if_cache_is_saturated();
-						
+
 						// useful when the Algebra Relacional only contains: BindableTableScan and LogicalLimit
 						if (has_limit && current_rows >= limit_) {
 							break;
@@ -567,8 +567,8 @@ private:
 
 class Projection : public kernel {
 public:
-	Projection(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context, kernel_type::ProjectKernel)
+	Projection(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(kernel_id, queryString, context, kernel_type::ProjectKernel)
 	{
 		this->query_graph = query_graph;
 	}
@@ -643,8 +643,8 @@ private:
 
 class Filter : public kernel {
 public:
-	Filter(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context, kernel_type::FilterKernel)
+	Filter(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(kernel_id, queryString, context, kernel_type::FilterKernel)
 	{
 		this->query_graph = query_graph;
 	}
@@ -732,8 +732,8 @@ private:
 
 class Print : public kernel {
 public:
-	Print() : kernel("Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
-	Print(std::ostream & stream) : kernel("Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
+	Print() : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
+	Print(std::ostream & stream) : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
 
 	bool can_you_throttle_my_input() {
 		return false;
@@ -757,7 +757,7 @@ protected:
 
 class OutputKernel : public kernel {
 public:
-	OutputKernel(std::shared_ptr<Context> context) : kernel("OutputKernel", context, kernel_type::OutputKernel) { }
+	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
 
 	virtual kstatus run() {
 		CodeTimer cacheEventTimer(false);
