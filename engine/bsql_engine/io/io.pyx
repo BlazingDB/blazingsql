@@ -153,6 +153,7 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         s3.secretKey = str.encode(fs['secret_key'])
         s3.sessionToken = str.encode(fs['session_token'])
         s3.endpointOverride = str.encode(fs['endpoint_override'])
+        s3.region = str.encode(fs['region'])
         return cio.registerFileSystemS3( s3,  str.encode(root), str.encode(authority))
     if fs['type'] == 'gs':
         gcs.projectId = str.encode(fs['project_id'])

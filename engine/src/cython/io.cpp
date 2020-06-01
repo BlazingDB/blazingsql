@@ -193,7 +193,8 @@ std::pair<bool, std::string> registerFileSystemS3(S3 s3, std::string root, std::
 		s3.accessKeyId,
 		s3.secretKey,
 		s3.sessionToken,
-		s3.endpointOverride);
+		s3.endpointOverride,
+		s3.region);
 	return registerFileSystem(fileSystemConnection, root, authority);
 }
 std::pair<bool, std::string> registerFileSystemLocal(std::string root, std::string authority) {
