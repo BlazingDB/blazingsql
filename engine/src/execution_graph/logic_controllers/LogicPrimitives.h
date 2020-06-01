@@ -44,7 +44,7 @@ public:
 
 	CudfTableView view() const;
 	cudf::size_type num_columns() const { return columns.size(); }
-	cudf::size_type num_rows() const { return columns.size() == 0 ? 0 : columns[0]->view().size(); }
+	cudf::size_type num_rows() const { return columns.size() == 0 ? 0 : (columns[0] == nullptr ? 0 : columns[0]->view().size()); }
 	std::vector<std::string> names() const;
 	std::vector<cudf::data_type> get_schema() const;
 	// set columnNames
