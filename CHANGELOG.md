@@ -29,3 +29,4 @@
 #712 fixed how we handle empty tables for estimate for small table join
 #724 Removed unused BlazingThread creations
 #725 Added nullptr check to num_rows()
+#728 Add replace_calcite_regex function to the join condition
