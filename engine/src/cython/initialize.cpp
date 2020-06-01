@@ -127,7 +127,7 @@ void initialize(int ralId,
 
 	spdlog::init_thread_pool(8192, 1);
 
-	spdlog::flush_on(spdlog::level::err);
+	spdlog::flush_on(spdlog::level::warn);
 	spdlog::flush_every(std::chrono::seconds(1));
 
 	std::string oldfileName = "RAL." + std::to_string(ralId) + ".log";

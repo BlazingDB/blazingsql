@@ -20,8 +20,7 @@ std::shared_ptr<ReceivedMessage> MessageQueue::getMessage(
   std::unique_lock<std::mutex> lock(mutex_);
 
   CodeTimer blazing_timer;
-  do {
-    condition_variable_.wait_for(lock, 30000ms, [&, this] {
+  while(condition_variable_.wait_for(lock, 30000ms, [&, this] {
       bool got_the_message = std::any_of(this->message_queue_.cbegin(),
                         this->message_queue_.cend(), [&](const auto &e) {
                           return e->getMessageTokenValue() == messageToken;
@@ -34,11 +33,7 @@ std::shared_ptr<ReceivedMessage> MessageQueue::getMessage(
                     "messageToken"_a=messageToken);
       }
       return got_the_message;
-    });
-  } while(!(std::any_of(this->message_queue_.cbegin(),
-                        this->message_queue_.cend(), [&](const auto &e) {
-                          return e->getMessageTokenValue() == messageToken;
-                        })));
+    })){}
   return getMessageQueue(messageToken);
 }
 
