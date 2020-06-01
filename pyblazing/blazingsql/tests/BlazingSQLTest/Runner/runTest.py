@@ -531,7 +531,7 @@ def verify_prev_google_sheet_results(log_pdf):
     
     if gspreadCacheHint == "false":
         gspread_df = get_the_data_from_sheet()
-        if gspread_df != None:
+        if gspread_df is not None:
             # Always save a cache (so when gspreadCacheHint is false will refresh the cache)
             gspread_df.to_parquet(gspread_e2e_cache_path)
     elif gspreadCacheHint == "true":
@@ -539,7 +539,7 @@ def verify_prev_google_sheet_results(log_pdf):
             gspread_df = pd.read_parquet(gspread_e2e_cache_path)
         else:
             gspread_df = get_the_data_from_sheet()
-            if gspread_df != None:
+            if gspread_df is not None:
                 gspread_df.to_parquet(gspread_e2e_cache_path)
     
     if gspread_df is None:
