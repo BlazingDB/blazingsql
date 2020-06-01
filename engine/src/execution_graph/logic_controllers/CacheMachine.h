@@ -220,16 +220,18 @@ public:
 	bool wait_for_next() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait_for(lock, 30000ms, [&, this] { 
-			bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
-			if (!done_waiting && blazing_timer.elapsed_time() > 29000){
-				auto logger = spdlog::get("batch_logger");
-				logger->warn("|||{info}|{duration}||||",
-									"info"_a="WaitingQueue wait_for_next timed out",
-									"duration"_a=blazing_timer.elapsed_time());
-			}
-			return done_waiting;
-		});
+		do {
+			condition_variable_.wait_for(lock, 30000ms, [&, this] { 
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+				if (!done_waiting && blazing_timer.elapsed_time() > 29000){
+					auto logger = spdlog::get("batch_logger");
+					logger->warn("|||{info}|{duration}||||",
+										"info"_a="WaitingQueue wait_for_next timed out",
+										"duration"_a=blazing_timer.elapsed_time());
+				}
+				return done_waiting;
+			});
+		} while (!(this->finished.load(std::memory_order_seq_cst) or !this->empty()));
 		if(this->empty()) {
 			return false;
 		}
