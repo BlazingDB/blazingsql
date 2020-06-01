@@ -52,8 +52,6 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             if skip_test(dask_client, nRals, fileSchemaType, queryType): continue
             cs.create_tables(bc, dir_data_lc, fileSchemaType, tables=tables)
             
-            return
-            
         #   Run Query -----------------------------------------------------------------------------
             worder = 1 # Parameter to indicate if its necessary to order the resulsets before compare them
             use_percentage = False
