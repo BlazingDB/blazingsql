@@ -57,7 +57,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 runTest.run_query(bc, drill, query, queryId, queryType, worder, "", acceptable_difference, use_percentage, fileSchemaType)
 
 
-            queryId = 'TEST_05'
+            queryId = 'TEST_06'
             query = "select l.l_suppkey, l.l_linestatus, max(l.l_shipmode), max(l.l_orderkey), count(l.l_orderkey)  FROM lineitem AS l LEFT OUTER JOIN orders AS o ON l.l_orderkey + 100 = o.o_orderkey GROUP BY l.l_suppkey, l.l_linestatus"
             runTest.run_query(bc, drill, query, queryId, queryType, worder, "", acceptable_difference, use_percentage, fileSchemaType)
 
