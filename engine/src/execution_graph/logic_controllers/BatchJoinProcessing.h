@@ -531,8 +531,6 @@ public:
 											"substep"_a=local_context->getQuerySubstep(),
 											"info"_a=err,
 											"duration"_a="");
-				logger->flush();
-
 				throw;
 			}
         }
@@ -757,12 +755,13 @@ public:
 					}
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+					logger->error("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 												"query_id"_a=this->context->getContextToken(),
 												"step"_a=this->context->getQueryStep(),
 												"substep"_a=this->context->getQuerySubstep(),
 												"info"_a="In JoinPartitionKernel scatter_small_table batch_count [{}]. What: {}"_format(batch_count, expression, e.what()),
-												"duration"_a="");
+												"duration"_a="",
+												"kernel_id"_a=this->get_id());
 					throw;
 				}
 			}
@@ -818,12 +817,13 @@ public:
 		}
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
 			std::string err = "In JoinPartitionKernel left side is empty and cannot determine join column indices";
-			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 										"query_id"_a=context->getContextToken(),
 										"step"_a=context->getQueryStep(),
 										"substep"_a=context->getQuerySubstep(),
 										"info"_a=err,
-										"duration"_a="");
+										"duration"_a="",
+										"kernel_id"_a=this->get_id());
 			throw err;
 		} 
 

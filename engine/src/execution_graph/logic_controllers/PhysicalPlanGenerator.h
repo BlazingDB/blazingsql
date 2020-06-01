@@ -41,6 +41,7 @@ struct tree_processor {
 	std::shared_ptr<kernel> make_kernel(std::string expr, std::shared_ptr<ral::cache::graph> query_graph) {
 		std::shared_ptr<kernel> k;
 		auto kernel_context = this->context->clone();
+		this->context->incrementQueryStep();
 		if ( is_project(expr) ) {
 			k = std::make_shared<Projection>(expr, kernel_context, query_graph);
 			kernel_context->setKernelId(k->get_id());
