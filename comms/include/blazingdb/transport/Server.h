@@ -96,8 +96,6 @@ public:
 
   virtual void Close() = 0;
 
-  virtual void SetDevice(int) = 0;
-
 public:
 
   /**

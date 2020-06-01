@@ -94,15 +94,13 @@ namespace {
 	@brief  A clas that implements the Server interface. Here each data frames are processed as GPU Messages.
 	this class has special event names to specify the type of message.
 	"GPUS" this represent a dataframe Message
-	"LAST" this represent a last event used to indicate that there is 
+	"LAST" this represent a last event used to indicate that there is
 	not going to be more message with the same message_token
-	"" 
-*/ 
+	""
+*/
 class ServerTCP : public Server {
 public:
 	ServerTCP(unsigned short port) : server_socket{port} {}
-
-	void SetDevice(int gpuId) override { this->gpuId = gpuId; }
 
 	virtual void Run() override;
 
@@ -123,8 +121,6 @@ protected:
 	blazingdb::network::TCPServerSocket server_socket;
 
 	BlazingThread thread;
-
-	int gpuId{0};
 };
 Message::MetaData collect_last_event(void * socket, Server * server) {
 	zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
@@ -146,7 +142,7 @@ Message::MetaData collect_last_event(void * socket, Server * server) {
 template <typename buffer_container_type = std::vector<rmm::device_buffer>>
 std::tuple<Message::MetaData, Address::MetaData, std::vector<ColumnTransport>, buffer_container_type>
 collect_gpu_message(
-	void * socket, int gpuId, void (*read_tpc_message)(std::vector<std::size_t>, void *, int, buffer_container_type &)) {
+	void * socket, void (*read_tpc_message)(std::vector<std::size_t>, void *, buffer_container_type &)) {
 	zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
 	// begin of message
 	Message::MetaData message_metadata = read_metadata<Message::MetaData>(socket);
@@ -163,7 +159,7 @@ collect_gpu_message(
 	blazingdb::transport::io::readFromSocket(socket, (char *) buffer_sizes.data(), buffer_sizes_size * sizeof(std::size_t));
 
 	buffer_container_type raw_columns;
-	read_tpc_message(buffer_sizes, socket, gpuId, raw_columns);
+	read_tpc_message(buffer_sizes, socket, raw_columns);
 
 	int data_past_topic{0};
 	auto data_past_topic_size{sizeof(data_past_topic)};
@@ -188,7 +184,55 @@ collect_gpu_message(
 void ServerTCP::Run() {
 	thread = BlazingThread([this]() {
 		server_socket.run([this](void * socket) {
-			try {
+			zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
+			zmq::message_t message_topic;
+			auto success = socket_ptr->recv(message_topic);
+			if(success.value() == false || message_topic.size() == 0) {
+				throw zmq::error_t();
+			}
+			std::string message_topic_str(static_cast<char *>(message_topic.data()), message_topic.size());
+			if(message_topic_str == "LAST") {
+				collect_last_event(socket, this);
+			} else if(message_topic_str == "GPUS") {
+				Message::MetaData message_metadata;
+				Address::MetaData address_metadata;
+				std::vector<ColumnTransport> column_offsets;
+				std::vector<rmm::device_buffer> raw_columns;
+
+				std::tie(message_metadata, address_metadata, column_offsets, raw_columns) = collect_gpu_message(
+					socket, &blazingdb::transport::io::readBuffersIntoGPUTCP);
+
+				std::string messageToken = message_metadata.messageToken;
+				auto deserialize_function =
+					this->getDeviceDeserializationFunction(messageToken.substr(0, messageToken.find('_')));
+				std::shared_ptr<ReceivedMessage> message =
+					deserialize_function(message_metadata, address_metadata, column_offsets, raw_columns);
+				assert(message != nullptr);
+				this->putMessage(message->metadata().contextToken, message);
+			}
+		});
+	});
+	std::this_thread::yield();
+}
+
+/**
+	@brief  A clas that extends a ServerTPC class. The difference is that this class enable the API client to decide when
+	the BlazingTable is going to be materialized by maintaning its host representation as a HostMessage.
+	This class uses getHostDeserializationFunction method to decode the dataframe message as a BlazingHostTable.
+
+	This class has special event names to specify the type of message.
+	"GPUS" this represent a dataframe Message
+	"LAST" this represent a last event used to indicate that there is
+	not going to be more message with the same message_token
+	""
+*/
+class ServerForBatchProcessing : public ServerTCP {
+public:
+	ServerForBatchProcessing(unsigned short port) : ServerTCP(port) {}
+
+	void Run() override {
+		thread = BlazingThread([this]() {
+			server_socket.run([this](void * socket) {
 				zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
 				zmq::message_t message_topic;
 				auto success = socket_ptr->recv(message_topic);
@@ -197,98 +241,38 @@ void ServerTCP::Run() {
 				}
 				std::string message_topic_str(static_cast<char *>(message_topic.data()), message_topic.size());
 				if(message_topic_str == "LAST") {
-					collect_last_event(socket, this);
+					auto message_metadata = collect_last_event(socket, this);
+
+					std::string messageToken = message_metadata.messageToken;
+					uint32_t contextToken = message_metadata.contextToken;
+					blazingdb::transport::Node tmp_node;
+
+					auto sentinel_message = std::make_shared<ReceivedMessage>(messageToken, contextToken, tmp_node, true);
+					this->putMessage(contextToken, sentinel_message);
+
 				} else if(message_topic_str == "GPUS") {
 					Message::MetaData message_metadata;
 					Address::MetaData address_metadata;
 					std::vector<ColumnTransport> column_offsets;
-					std::vector<rmm::device_buffer> raw_columns;
+					std::vector<Buffer> raw_columns;
 
-					std::tie(message_metadata, address_metadata, column_offsets, raw_columns) = collect_gpu_message(
-						socket, gpuId, &blazingdb::transport::io::readBuffersIntoGPUTCP);
-
+					std::tie(message_metadata, address_metadata, column_offsets, raw_columns) =
+						collect_gpu_message<std::vector<Buffer>>(
+							socket, blazingdb::transport::io::readBuffersIntoCPUTCP);
 					std::string messageToken = message_metadata.messageToken;
 					auto deserialize_function =
-						this->getDeviceDeserializationFunction(messageToken.substr(0, messageToken.find('_')));
+					this->getHostDeserializationFunction(messageToken.substr(0, messageToken.find('_')));
 					std::shared_ptr<ReceivedMessage> message =
-						deserialize_function(message_metadata, address_metadata, column_offsets, raw_columns);
+						deserialize_function(message_metadata, address_metadata, column_offsets, std::move(raw_columns));
 					assert(message != nullptr);
-					this->putMessage(message->metadata().contextToken, message);
-				}
-			} catch(const std::runtime_error & exception) {
-				std::cerr << "[ERROR] " << exception.what() << std::endl;
-				// TODO: write failure
-				throw exception;
-			}
-		});
-	});
-	std::this_thread::yield();
-}
+					uint32_t contextToken = message->metadata().contextToken;
+					this->putMessage(contextToken, message);
 
-/**
-	@brief  A clas that extends a ServerTPC class. The difference is that this class enable the API client to decide when 
-	the BlazingTable is going to be materialized by maintaning its host representation as a HostMessage.
-	This class uses getHostDeserializationFunction method to decode the dataframe message as a BlazingHostTable.
-
-	This class has special event names to specify the type of message.
-	"GPUS" this represent a dataframe Message
-	"LAST" this represent a last event used to indicate that there is 
-	not going to be more message with the same message_token
-	"" 
-*/ 
-class ServerForBatchProcessing : public ServerTCP {
-public:
-	ServerForBatchProcessing(unsigned short port) : ServerTCP(port) {}
-
-	void Run() override {
-		thread = BlazingThread([this]() {
-			server_socket.run([this](void * socket) {
-				try {
-					zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
-					zmq::message_t message_topic;
-					auto success = socket_ptr->recv(message_topic);
-					if(success.value() == false || message_topic.size() == 0) {
-						throw zmq::error_t();
-					}
-					std::string message_topic_str(static_cast<char *>(message_topic.data()), message_topic.size());
-					if(message_topic_str == "LAST") {
-						auto message_metadata = collect_last_event(socket, this);
-
-						std::string messageToken = message_metadata.messageToken;
-						uint32_t contextToken = message_metadata.contextToken;
-						blazingdb::transport::Node tmp_node;
-
-						auto sentinel_message = std::make_shared<ReceivedMessage>(messageToken, contextToken, tmp_node, true);
-						this->putMessage(contextToken, sentinel_message);
-					
-					} else if(message_topic_str == "GPUS") {
-						Message::MetaData message_metadata;
-						Address::MetaData address_metadata;
-						std::vector<ColumnTransport> column_offsets;
-						std::vector<Buffer> raw_columns;
-
-						std::tie(message_metadata, address_metadata, column_offsets, raw_columns) =
-							collect_gpu_message<std::vector<Buffer>>(
-								socket, gpuId, blazingdb::transport::io::readBuffersIntoCPUTCP);
-						std::string messageToken = message_metadata.messageToken;
-						auto deserialize_function =
-						this->getHostDeserializationFunction(messageToken.substr(0, messageToken.find('_')));
-						std::shared_ptr<ReceivedMessage> message =
-							deserialize_function(message_metadata, address_metadata, column_offsets, std::move(raw_columns));
-						assert(message != nullptr);
-						uint32_t contextToken = message->metadata().contextToken; 
-						this->putMessage(contextToken, message);
-						
-					}
-				} catch(const std::runtime_error & exception) {
-					std::cerr << "[ERROR] " << exception.what() << std::endl;
-					// TODO: write failure
-					throw exception;
 				}
 			});
 		});
 		std::this_thread::yield();
-	} 
+	}
 };
 
 }  // namespace
