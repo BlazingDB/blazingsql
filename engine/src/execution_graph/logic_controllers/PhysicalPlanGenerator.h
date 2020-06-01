@@ -249,10 +249,7 @@ struct tree_processor {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 			logger->error("|||{info}|||||",
 										"info"_a="In build_batch_graph. What: {}"_format(e.what()));
-			logger->flush();
-
-			std::cerr << "property_tree:" << e.what() <<  std::endl;
-			throw e;
+			throw;
 		}
 
 		if (this->root.kernel_unit != nullptr) {
