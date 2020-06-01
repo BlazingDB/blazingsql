@@ -743,7 +743,7 @@ public:
 			int batch_count = 0;
 			while (!done) {
 				try {
-					if(small_table_batch->num_rows() > 0) {
+					if(small_table_batch != nullptr && small_table_batch->num_rows() > 0) {
 						ral::distribution::scatterData(this->context.get(), small_table_batch->toBlazingTableView());
 					}
 					this->add_to_output_cache(std::move(small_table_batch), small_output_cache_name);

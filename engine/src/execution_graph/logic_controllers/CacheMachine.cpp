@@ -211,7 +211,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 					this->waitingCache->put(std::move(item));
 				} else {
 					if(cacheIndex == 1) {
-			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
@@ -461,11 +461,13 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		}
 	}
 	std::unique_ptr<ral::frame::BlazingTable> output;
+	size_t num_rows = 0;
 	if(collected_messages.empty()){
 		output = nullptr;
 	} else if (collected_messages.size() == 1) {
 		auto data = collected_messages[0]->release_data();
-		output = std::move(data->decache());		
+		output = std::move(data->decache());
+		num_rows = output->num_rows();
 	}	else {
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder(collected_messages.size());
 		std::vector<ral::frame::BlazingTableView> table_views(collected_messages.size());
@@ -475,6 +477,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 			table_views[i] = tables_holder[i]->toBlazingTableView();
 		}
 		output = ral::utilities::concatTables(table_views);
+		num_rows = output->num_rows();
 	}	
 
 	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
@@ -484,7 +487,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 								"info"_a="Pull from ConcatenatingCacheMachine",
 								"duration"_a="",
 								"kernel_id"_a=message_id,
-								"rows"_a=output->num_rows());
+								"rows"_a=num_rows);
 
 	return std::move(output);
 }
