@@ -7,18 +7,18 @@
 namespace ral {
 namespace io {
 
-json_parser::json_parser(cudf::experimental::io::read_json_args args) : args(args) {}
+json_parser::json_parser(cudf::io::read_json_args args) : args(args) {}
 
 json_parser::~json_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-cudf::experimental::io::table_with_metadata read_json_file(
-	cudf::experimental::io::read_json_args args,
+cudf::io::table_with_metadata read_json_file(
+	cudf::io::read_json_args args,
 	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
 	bool first_row_only = false)
 {
-	args.source = cudf::experimental::io::source_info(arrow_file_handle);
+	args.source = cudf::io::source_info(arrow_file_handle);
 
 	if(first_row_only) {
 		int64_t num_bytes;
@@ -33,7 +33,7 @@ cudf::experimental::io::table_with_metadata read_json_file(
 		args.byte_range_size = num_bytes;
 	}
 
-	auto table_and_metadata = cudf::experimental::io::read_json(args);
+	auto table_and_metadata = cudf::io::read_json(args);
 
 	arrow_file_handle->Close();
 
@@ -49,7 +49,7 @@ std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
 		return nullptr;
 	}
 
-	cudf::experimental::io::read_json_args new_json_args = args;
+	cudf::io::read_json_args new_json_args = args;
 
 	// All json columns are be read
 	auto table_and_metadata = read_json_file(args, file);
@@ -70,7 +70,7 @@ std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
 		selected_column_names.push_back(std::move(column_names[i]));
 	}
 
-	return std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::experimental::table>(std::move(selected_columns)), selected_column_names);	
+	return std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(std::move(selected_columns)), selected_column_names);	
 }
 
 void json_parser::parse_schema(

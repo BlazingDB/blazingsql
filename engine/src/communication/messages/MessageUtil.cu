@@ -22,10 +22,10 @@ namespace messages {
 		cudf::column_view offsets_column = column.offsets();
 
 		// NOTE that the offsets column size is usually one more than the number of strings. It starts at 0 and ends at chars_column.size()
-		auto new_offsets = cudf::experimental::allocate_like(offsets_column, column.size() + 1, cudf::experimental::mask_allocation_policy::NEVER);
+		auto new_offsets = cudf::allocate_like(offsets_column, column.size() + 1, cudf::mask_allocation_policy::NEVER);
 		auto mutable_col = new_offsets->mutable_view();
 
-		cudf::experimental::copy_range_in_place(offsets_column, mutable_col, offset, offset + column.size() + 1, 0);
+		cudf::copy_range_in_place(offsets_column, mutable_col, offset, offset + column.size() + 1, 0);
 
 		thrust::transform(rmm::exec_policy(0)->on(0),
 											mutable_col.begin<int32_t>(),

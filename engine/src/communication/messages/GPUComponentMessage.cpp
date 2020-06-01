@@ -177,7 +177,7 @@ auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & colum
 		}
 		column_names[i] = std::string{columns_offsets[i].metadata.col_name};
 	}
-	auto unique_table = std::make_unique<cudf::experimental::table>(std::move(received_samples));
+	auto unique_table = std::make_unique<cudf::table>(std::move(received_samples));
 	return std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), column_names);
 }
 

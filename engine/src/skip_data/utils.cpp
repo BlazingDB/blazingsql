@@ -9,19 +9,13 @@
 namespace ral {
 namespace skip_data {
 
-bool is_binary_op(const std::string &test) {
-  return interops::is_binary_operator(map_to_operator_type(test));
-}
-
 bool is_unsupported_binary_op(const std::string &test) {
   const static std::vector<std::string> supported_operators = {
       "=", ">", ">=", "<", "<=", "+", "-", "AND", "OR"};
   return std::none_of(supported_operators.begin(), supported_operators.end(),
                       [&test](std::string op) { return op == test; });
 }
-bool is_unary_op(const std::string &test) {
-  return interops::is_unary_operator(map_to_operator_type(test));
-}
+
 
 // Non skip data support exclusion rules:
 bool is_exclusion_unary_op(const std::string &test) {
@@ -35,8 +29,8 @@ bool is_exclusion_unary_op(const std::string &test) {
     // special type
     return true;
   }
-  
-  return interops::is_unary_operator(map_to_operator_type(test));
+
+  return is_unary_operator(map_to_operator_type(test));
 }
 
 int get_id(const std::string &s) {

@@ -1,6 +1,5 @@
 #include <cudf/column/column_factories.hpp>
 #include <cudf/copying.hpp>
-#include <cudf/cudf.h>
 #include <cudf/datetime.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
@@ -103,14 +102,14 @@ TYPED_TEST(LogicalFilterTest, filter_table)
                                                   nullptr);
 
   cudf::size_type outputRows = (inputRows / 2);
-  if (cudf::experimental::type_to_id<T>() == cudf::BOOL8) {
+  if (cudf::type_to_id<T>() == cudf::BOOL8) {
     outputRows = inputRows;
   }  
 
-  auto sequenceOut1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto  = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(2 * row);;
     });
-  cudf::test::fixed_width_column_wrapper<T> expected_col1(sequenceOut1, sequenceOut1 + outputRows);
+  cudf::test::fixed_width_column_wrapper<T> expected_col1(,  + outputRows);
 
   auto sequenceOut2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(4 * row);;
@@ -156,13 +155,13 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
   //   std::cout << std::endl;
   // }
   
-  auto sequenceOut1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto  = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(2 * row);;
     });
   auto sequenceOutValidity1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return true;
     });
-  cudf::test::fixed_width_column_wrapper<T> expected_col1(sequenceOut1, sequenceOut1 + (inputRows / 2), sequenceOutValidity1);
+  cudf::test::fixed_width_column_wrapper<T> expected_col1(,  + (inputRows / 2), sequenceOutValidity1);
 
   auto sequenceOut2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(4 * row);;

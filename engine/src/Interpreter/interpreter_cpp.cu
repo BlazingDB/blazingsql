@@ -7,60 +7,55 @@
 #include <map>
 #include <regex>
 
-#include "CalciteExpressionParsing.h"
 #include "interpreter_ops.cuh"
-#include "Utils.cuh"
+#include "CalciteExpressionParsing.h"
+#include "error.hpp"
 
 namespace interops {
 namespace detail {
 
 struct allocate_device_scalar {
-	using scalar_device_ptr = typename std::unique_ptr<cudf::detail::scalar_device_view_base, std::function<void(cudf::detail::scalar_device_view_base*)>>;
 
 	template <typename T, std::enable_if_t<cudf::is_simple<T>()> * = nullptr>
-	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
-		using ScalarDeviceType = cudf::experimental::scalar_device_type_t<T>;
+	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		using ScalarType = cudf::scalar_type_t<T>;
+		using ScalarDeviceType = cudf::scalar_device_type_t<T>;
 
-		ScalarDeviceType * ret = nullptr;
-		RMM_TRY(RMM_ALLOC(&ret, sizeof(ScalarDeviceType), stream));
+		rmm::device_buffer ret(sizeof(ScalarDeviceType), stream);
 
 		auto typed_scalar_ptr = static_cast<ScalarType *>(&s);
 		ScalarDeviceType h_scalar{typed_scalar_ptr->type(), typed_scalar_ptr->data(), typed_scalar_ptr->validity_data()};
 
-    CUDA_TRY(cudaMemcpyAsync(ret, &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
+    CUDA_TRY(cudaMemcpyAsync(ret.data(), &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
 
-		auto deleter = [stream](cudf::detail::scalar_device_view_base * p) { RMM_TRY(RMM_FREE(p, stream)); };
-		return {ret, deleter};
+		return std::move(ret);
 	}
 
 	template <typename T, std::enable_if_t<std::is_same<T, cudf::string_view>::value> * = nullptr>
-	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
-		using ScalarType = cudf::experimental::scalar_type_t<T>;
-		using ScalarDeviceType = cudf::experimental::scalar_device_type_t<T>;
+	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		using ScalarType = cudf::scalar_type_t<T>;
+		using ScalarDeviceType = cudf::scalar_device_type_t<T>;
 
-		ScalarDeviceType * ret = nullptr;
-		RMM_TRY(RMM_ALLOC(&ret, sizeof(ScalarDeviceType), stream));
+		rmm::device_buffer ret(sizeof(ScalarDeviceType), stream);
 
 		auto typed_scalar_ptr = static_cast<ScalarType *>(&s);
 		ScalarDeviceType h_scalar{typed_scalar_ptr->type(), typed_scalar_ptr->data(), typed_scalar_ptr->validity_data(), typed_scalar_ptr->size()};
 
-		CUDA_TRY(cudaMemcpyAsync(ret, &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
+		CUDA_TRY(cudaMemcpyAsync(ret.data(), &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
 
-		auto deleter = [stream](cudf::detail::scalar_device_view_base * p) { RMM_TRY(RMM_FREE(p, stream)); };
-		return {ret, deleter};
+		return std::move(ret);
 	}
 
 	template <typename T, std::enable_if_t<std::is_same<T, cudf::dictionary32>::value> * = nullptr>
-	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
 		RAL_FAIL("Dictionary not yet supported");
-		return nullptr;
+		return rmm::device_buffer{};
 	}
 
 	template <typename T, std::enable_if_t<std::is_same<T, cudf::list_view>::value> * = nullptr>
-	scalar_device_ptr operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
 		RAL_FAIL("List not yet supported");
-		return nullptr;
+		return rmm::device_buffer{};
 	}
 };
 
@@ -266,220 +261,147 @@ void calculate_grid(int * min_grid_size, int * block_size, column_index_type max
 	}
 }
 
-struct operand_position {
-	column_index_type position;
-	std::string token;
-};
-
-column_index_type get_first_open_position(std::vector<bool> & open_positions, cudf::size_type start_position) {
-	assert(open_positions.size() <= std::numeric_limits<column_index_type>().max());
-
-	for(size_t i = start_position; i < open_positions.size(); i++) {
-		if(open_positions[i]) {
-			open_positions[i] = false;
-			return static_cast<column_index_type>(i);
-		}
-	}
-	return -1;
-}
-
 }  // namespace detail
 
-bool is_unary_operator(operator_type op) {
-	switch (op)
+struct expr_to_plan_visitor : public ral::parser::node_visitor
+{
+public:
+	expr_to_plan_visitor(const std::map<column_index_type, column_index_type> & expr_idx_to_col_idx_map,
+											cudf::size_type start_processing_position,
+											std::vector<column_index_type> & left_inputs,
+											std::vector<column_index_type> & right_inputs,
+											std::vector<column_index_type> & outputs,
+											std::vector<operator_type> & operators,
+											std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
+											std::vector<std::unique_ptr<cudf::scalar>> & right_scalars)
+		: expr_idx_to_col_idx_map{expr_idx_to_col_idx_map},
+			start_processing_position{start_processing_position},
+			left_inputs{left_inputs},
+			right_inputs{right_inputs},
+			outputs{outputs},
+			operators{operators},
+			left_scalars{left_scalars},
+			right_scalars{right_scalars},
+			processing_space_free_(512, true)
 	{
-	case operator_type::BLZ_NOT:
-	case operator_type::BLZ_ABS:
-	case operator_type::BLZ_FLOOR:
-	case operator_type::BLZ_CEIL:
-	case operator_type::BLZ_SIN:
-	case operator_type::BLZ_COS:
-	case operator_type::BLZ_ASIN:
-	case operator_type::BLZ_ACOS:
-	case operator_type::BLZ_TAN:
-	case operator_type::BLZ_COTAN:
-	case operator_type::BLZ_ATAN:
-	case operator_type::BLZ_LN:
-	case operator_type::BLZ_LOG:
-	case operator_type::BLZ_YEAR:
-	case operator_type::BLZ_MONTH:
-	case operator_type::BLZ_DAY:
-	case operator_type::BLZ_HOUR:
-	case operator_type::BLZ_MINUTE:
-	case operator_type::BLZ_SECOND:
-	case operator_type::BLZ_IS_NULL:
-	case operator_type::BLZ_IS_NOT_NULL:
-	case operator_type::BLZ_CAST_TINYINT:
-	case operator_type::BLZ_CAST_SMALLINT:
-	case operator_type::BLZ_CAST_INTEGER:
-	case operator_type::BLZ_CAST_BIGINT:
-	case operator_type::BLZ_CAST_FLOAT:
-	case operator_type::BLZ_CAST_DOUBLE:
-	case operator_type::BLZ_CAST_DATE:
-	case operator_type::BLZ_CAST_TIMESTAMP:
-	case operator_type::BLZ_CAST_VARCHAR:
-		return true;
-	default:
-		return false;
+		std::fill_n(processing_space_free_.begin(), start_processing_position, false);
 	}
-}
 
-bool is_binary_operator(operator_type op) {
-	switch (op)
-	{
-  case operator_type::BLZ_ADD:
-  case operator_type::BLZ_SUB:
-  case operator_type::BLZ_MUL:
-  case operator_type::BLZ_DIV:
-  case operator_type::BLZ_MOD:
-  case operator_type::BLZ_POW:
-  case operator_type::BLZ_ROUND:
-  case operator_type::BLZ_EQUAL:
-  case operator_type::BLZ_NOT_EQUAL:
-  case operator_type::BLZ_LESS:
-  case operator_type::BLZ_GREATER:
-  case operator_type::BLZ_LESS_EQUAL:
-  case operator_type::BLZ_GREATER_EQUAL:
-  case operator_type::BLZ_BITWISE_AND:
-  case operator_type::BLZ_BITWISE_OR:
-  case operator_type::BLZ_BITWISE_XOR:
-  case operator_type::BLZ_LOGICAL_AND:
-  case operator_type::BLZ_LOGICAL_OR:
-	case operator_type::BLZ_FIRST_NON_MAGIC:
-	case operator_type::BLZ_MAGIC_IF_NOT:
-	case operator_type::BLZ_STR_LIKE:
-	case operator_type::BLZ_STR_SUBSTRING:
-	case operator_type::BLZ_STR_CONCAT:
-		return true;
-	default:
-		return false;
-	}
-}
-
-cudf::type_id get_output_type(cudf::type_id input_left_type, operator_type op) {
-	switch (op)
-	{
-	case operator_type::BLZ_CAST_TINYINT:
-		return cudf::type_id::INT8;
-	case operator_type::BLZ_CAST_SMALLINT:
-		return cudf::type_id::INT16;
-	case operator_type::BLZ_CAST_INTEGER:
-		return cudf::type_id::INT32;
-	case operator_type::BLZ_CAST_BIGINT:
-		return cudf::type_id::INT64;
-	case operator_type::BLZ_CAST_FLOAT:
-		return cudf::type_id::FLOAT32;
-	case operator_type::BLZ_CAST_DOUBLE:
-		return cudf::type_id::FLOAT64;
-	case operator_type::BLZ_CAST_DATE:
-		return cudf::type_id::TIMESTAMP_DAYS;
-	case operator_type::BLZ_CAST_TIMESTAMP:
-		return cudf::type_id::TIMESTAMP_NANOSECONDS;
-	case operator_type::BLZ_CAST_VARCHAR:
-		return cudf::type_id::STRING;
-	case operator_type::BLZ_YEAR:
-	case operator_type::BLZ_MONTH:
-	case operator_type::BLZ_DAY:
-	case operator_type::BLZ_HOUR:
-	case operator_type::BLZ_MINUTE:
-	case operator_type::BLZ_SECOND:
-		return cudf::type_id::INT16;
-	case operator_type::BLZ_SIN:
-	case operator_type::BLZ_COS:
-	case operator_type::BLZ_ASIN:
-	case operator_type::BLZ_ACOS:
-	case operator_type::BLZ_TAN:
-	case operator_type::BLZ_COTAN:
-	case operator_type::BLZ_ATAN:
-	case operator_type::BLZ_LN:
-	case operator_type::BLZ_LOG:
-	case operator_type::BLZ_FLOOR:
-	case operator_type::BLZ_CEIL:
-		if(is_type_float(input_left_type)) {
-			return input_left_type;
+	void visit(const ral::parser::operad_node& node) override {
+		column_index_type position;
+		if (is_literal(node.value)) {
+			position = SCALAR_INDEX;
 		} else {
-			return cudf::type_id::FLOAT64;
+			position = expr_idx_to_col_idx_map.at(static_cast<const ral::parser::variable_node&>(node).index());
 		}
-	case operator_type::BLZ_ABS:
-		return input_left_type;
-	case operator_type::BLZ_NOT:
-	case operator_type::BLZ_IS_NULL:
-	case operator_type::BLZ_IS_NOT_NULL:
-		return cudf::type_id::BOOL8;
-	default:
-	 	assert(false);
-		return cudf::type_id::EMPTY;
-	}
-}
 
-cudf::type_id get_output_type(cudf::type_id input_left_type, cudf::type_id input_right_type, operator_type op) {
-	RAL_EXPECTS(input_left_type != cudf::type_id::EMPTY || input_right_type != cudf::type_id::EMPTY, "In get_output_type function: both operands types are empty");
-	
-	if(input_left_type == cudf::type_id::EMPTY) {
-		input_left_type = input_right_type;
-	} else if(input_right_type == cudf::type_id::EMPTY) {
-		input_right_type = input_left_type;
+		node_to_processing_position_.insert({&node, position});
 	}
 
-	switch (op)
-	{
-	case operator_type::BLZ_ADD:
-	case operator_type::BLZ_SUB:
-	case operator_type::BLZ_MUL:
-	case operator_type::BLZ_DIV:
-	case operator_type::BLZ_MOD:
-		if(is_type_float(input_left_type) && is_type_float(input_right_type)) {
-			return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
-							? input_left_type
-							: input_right_type;
-		}	else if(is_type_float(input_left_type)) {
-			return input_left_type;
-		} else if(is_type_float(input_right_type)) {
-			return input_right_type;
-		} else {
-			return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
-							? input_left_type
-							: input_right_type;
+	void visit(const ral::parser::operator_node& node) override {
+		operator_type operation = map_to_operator_type(node.value);
+		operators.push_back(operation);
+		if(is_binary_operator(operation)) {
+			const ral::parser::node * left_operand = node.children[0].get();
+			column_index_type left_position = node_to_processing_position_.at(left_operand);
+			if(left_operand->type != ral::parser::node_type::LITERAL) {
+				if(left_position >= start_processing_position) {
+					processing_space_free_[left_position] = true;
+				}
+			}
+
+			const ral::parser::node * right_operand = node.children[1].get();
+			column_index_type right_position = node_to_processing_position_.at(right_operand);
+			if(right_operand->type != ral::parser::node_type::LITERAL) {
+				if(right_position >= start_processing_position) {
+					processing_space_free_[right_position] = true;
+				}
+			}
+
+			if(left_operand->type == ral::parser::node_type::LITERAL && right_operand->type == ral::parser::node_type::LITERAL) {
+				RAL_FAIL("Operations between literals is not supported");
+			} else if(left_operand->type == ral::parser::node_type::LITERAL) {
+				auto literal_node = static_cast<const ral::parser::literal_node*>(left_operand);
+				std::unique_ptr<cudf::scalar> scalar_ptr;
+				if (!is_null(literal_node->value)) {
+				 	scalar_ptr = get_scalar_from_string(literal_node->value, literal_node->type());
+				}
+
+				left_inputs.push_back(scalar_ptr ? SCALAR_INDEX : SCALAR_NULL_INDEX);
+				right_inputs.push_back(right_position);
+				left_scalars.push_back(std::move(scalar_ptr));
+				right_scalars.emplace_back(nullptr);
+			} else if(right_operand->type == ral::parser::node_type::LITERAL) {
+				auto literal_node = static_cast<const ral::parser::literal_node*>(right_operand);
+				std::unique_ptr<cudf::scalar> scalar_ptr;
+				if (!is_null(literal_node->value)) {
+					scalar_ptr = get_scalar_from_string(literal_node->value, literal_node->type());
+				}
+
+				left_inputs.push_back(left_position);
+				right_inputs.push_back(scalar_ptr ? SCALAR_INDEX : SCALAR_NULL_INDEX);
+				left_scalars.emplace_back(nullptr);
+				right_scalars.push_back(std::move(scalar_ptr));
+			} else {
+				left_inputs.push_back(left_position);
+				right_inputs.push_back(right_position);
+				left_scalars.emplace_back(nullptr);
+				right_scalars.emplace_back(nullptr);
+			}
+		} else { // if(is_unary_operator(operation))
+			const ral::parser::node * left_operand = node.children[0].get();
+			RAL_EXPECTS(left_operand->type != ral::parser::node_type::LITERAL, "Unary operations on literals is not supported");
+
+			column_index_type left_position = node_to_processing_position_.at(left_operand);
+			if(left_position >= start_processing_position) {
+				processing_space_free_[left_position] = true;
+			}
+
+			left_inputs.push_back(left_position);
+			right_inputs.push_back(UNARY_INDEX);
+			left_scalars.emplace_back(nullptr);
+			right_scalars.emplace_back(nullptr);
 		}
-  case operator_type::BLZ_EQUAL:
-  case operator_type::BLZ_NOT_EQUAL:
-  case operator_type::BLZ_LESS:
-  case operator_type::BLZ_GREATER:
-  case operator_type::BLZ_LESS_EQUAL:
-  case operator_type::BLZ_GREATER_EQUAL:
-	case operator_type::BLZ_LOGICAL_AND:
-	case operator_type::BLZ_LOGICAL_OR:
-		return cudf::type_id::BOOL8;
-	case operator_type::BLZ_POW:
-	case operator_type::BLZ_ROUND:
-		return cudf::size_of(cudf::data_type{input_left_type}) <= cudf::size_of(cudf::data_type{cudf::type_id::FLOAT32})
-					 ? cudf::type_id::FLOAT32
-					 : cudf::type_id::FLOAT64;
-	case operator_type::BLZ_MAGIC_IF_NOT:
-		return input_right_type;
-	case operator_type::BLZ_FIRST_NON_MAGIC:
-		return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
-				   ? input_left_type
-				   : input_right_type;
-	case operator_type::BLZ_STR_LIKE:
-		return cudf::type_id::BOOL8;
-	case operator_type::BLZ_STR_SUBSTRING:
-	case operator_type::BLZ_STR_CONCAT:
-		return cudf::type_id::STRING;
-	default:
-		assert(false);
-		return cudf::type_id::EMPTY;
+
+		column_index_type position = get_first_open_position(start_processing_position);
+		node_to_processing_position_.insert({&node, position});
+		outputs.push_back(position);
 	}
-}
+
+private:
+	column_index_type get_first_open_position(cudf::size_type start_position) {
+		assert(processing_space_free_.size() <= std::numeric_limits<column_index_type>().max());
+
+		for(size_t i = start_position; i < processing_space_free_.size(); i++) {
+			if(processing_space_free_[i]) {
+				processing_space_free_[i] = false;
+				return static_cast<column_index_type>(i);
+			}
+		}
+		return -1;
+	}
+
+	std::vector<bool> processing_space_free_;  // A place to store whether or not a processing space is occupied at any point in time
+	std::map<const ral::parser::node*, column_index_type> node_to_processing_position_;
+
+	const std::map<column_index_type, column_index_type> & expr_idx_to_col_idx_map;
+	cudf::size_type start_processing_position;
+
+	std::vector<column_index_type> & left_inputs;
+	std::vector<column_index_type> & right_inputs;
+	std::vector<column_index_type> & outputs;
+	std::vector<operator_type> & operators;
+	std::vector<std::unique_ptr<cudf::scalar>> & left_scalars;
+	std::vector<std::unique_ptr<cudf::scalar>> & right_scalars;
+};
 
 /**
  * Creates a physical plan for the expression that can be added to the total plan
  */
-void add_expression_to_interpreter_plan(const std::vector<std::string> & tokenized_expression,
-	const cudf::table_view & table,
+void add_expression_to_interpreter_plan(const ral::parser::parse_tree & expr_tree,
 	const std::map<column_index_type, column_index_type> & expr_idx_to_col_idx_map,
-	cudf::size_type expression_position,
-	cudf::size_type num_total_outputs,
+	cudf::size_type start_processing_position,
+	cudf::size_type final_output_position,
 	std::vector<column_index_type> & left_inputs,
 	std::vector<column_index_type> & right_inputs,
 	std::vector<column_index_type> & outputs,
@@ -487,102 +409,18 @@ void add_expression_to_interpreter_plan(const std::vector<std::string> & tokeniz
 	std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
 	std::vector<std::unique_ptr<cudf::scalar>> & right_scalars) {
 
-	using namespace detail;
+	expr_to_plan_visitor visitor{expr_idx_to_col_idx_map,
+															start_processing_position,
+															left_inputs,
+															right_inputs,
+															outputs,
+															operators,
+															left_scalars,
+															right_scalars};
+	expr_tree.visit(visitor);
 
-	cudf::size_type num_inputs = table.num_columns();
-	std::vector<bool> processing_space_free(512, true);  // A place to store whether or not a processing space is occupied at any point in time
-	cudf::size_type start_processing_position = num_inputs + num_total_outputs;
-	std::fill_n(processing_space_free.begin(), start_processing_position, false);
-
-	std::stack<operand_position> operand_stack;
-	std::map<column_index_type, column_index_type> src_str_col_map;
-	for(size_t i = 0; i < tokenized_expression.size(); i++) {
-		const std::string & token = tokenized_expression[i];
-
-		if(is_operator_token(token)) {
-			operator_type operation = map_to_operator_type(token);
-			if(is_binary_operator(operation)) {
-				const std::string left_operand = operand_stack.top().token;
-				if(!is_literal(left_operand)) {
-					if(operand_stack.top().position >= start_processing_position) {
-						processing_space_free[operand_stack.top().position] = true;
-					}
-				}
-				operand_stack.pop();
-
-				const std::string right_operand = operand_stack.top().token;
-				if(!is_literal(right_operand)) {
-					if(operand_stack.top().position >= start_processing_position) {
-						processing_space_free[operand_stack.top().position] = true;
-					}
-				}
-				operand_stack.pop();
-
-				operators.push_back(operation);
-
-				if(is_literal(left_operand) && is_literal(right_operand)) {
-					RAL_FAIL("Operations between literals is not supported");
-				} else if(is_literal(left_operand) ) {
-					cudf::size_type right_index = get_index(right_operand);
-					auto scalar_ptr = get_scalar_from_string(left_operand);
-
-					left_inputs.push_back(scalar_ptr ? SCALAR_INDEX : SCALAR_NULL_INDEX);
-					right_inputs.push_back(right_index);
-					left_scalars.push_back(std::move(scalar_ptr));
-					right_scalars.emplace_back(nullptr);
-				} else if(is_literal(right_operand)) {
-					cudf::size_type left_index = get_index(left_operand);
-					auto scalar_ptr = get_scalar_from_string(right_operand);
-					
-					left_inputs.push_back(left_index);
-					right_inputs.push_back(scalar_ptr ? SCALAR_INDEX : SCALAR_NULL_INDEX);
-					left_scalars.emplace_back(nullptr);
-					right_scalars.push_back(std::move(scalar_ptr));
-				} else {
-					cudf::size_type left_index = get_index(left_operand);
-					cudf::size_type right_index = get_index(right_operand);
-
-					left_inputs.push_back(left_index);
-					right_inputs.push_back(right_index);
-					left_scalars.emplace_back(nullptr);
-					right_scalars.emplace_back(nullptr);
-				}
-			} else { // if(is_unary_operator_token(token))
-				std::string left_operand = operand_stack.top().token;
-				RAL_EXPECTS(!is_literal(left_operand), "Unary operations on literals is not supported");
-
-				if(operand_stack.top().position >= start_processing_position) {
-					processing_space_free[operand_stack.top().position] = true;
-				}
-				operand_stack.pop();
-
-				operators.push_back(operation);
-
-				size_t left_index = get_index(left_operand);
-				left_inputs.push_back(left_index);
-				right_inputs.push_back(UNARY_INDEX);
-				left_scalars.emplace_back(nullptr);
-				right_scalars.emplace_back(nullptr);
-			}
-
-			if(i == tokenized_expression.size() - 1) {
-				// write to final output
-				outputs.push_back(expression_position + num_inputs);
-			} else {
-				// write to temp output
-				column_index_type output_position =	get_first_open_position(processing_space_free, start_processing_position);
-				outputs.push_back(output_position);
-				operand_stack.push({output_position, "$" + std::to_string(output_position)});
-			}
-		} else {
-			if(is_literal(token)) {
-				operand_stack.push({SCALAR_INDEX, token});
-			} else {
-				column_index_type mapped_idx = expr_idx_to_col_idx_map.at(get_index(token));
-				operand_stack.push({mapped_idx, "$" + std::to_string(mapped_idx)});
-			}
-		}
-	}
+	// Update final output position
+	outputs.back() = final_output_position;
 }
 
 void perform_interpreter_operation(cudf::mutable_table_view & out_table,
@@ -600,7 +438,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	if (final_output_positions.empty())	{
 		return;
 	}
-	
+
 	assert(!left_inputs.empty());
 	assert(!right_inputs.empty());
 	assert(!outputs.empty());
@@ -621,25 +459,24 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 
 	size_t temp_valids_in_size = min_grid_size * block_size * table.num_columns() * sizeof(cudf::bitmask_type);
 	size_t temp_valids_out_size = min_grid_size * block_size * final_output_positions.size() * sizeof(cudf::bitmask_type);
-	rmm::device_buffer temp_device_valids_in_buffer(temp_valids_in_size, stream); 
-	rmm::device_buffer temp_device_valids_out_buffer(temp_valids_out_size, stream); 
+	rmm::device_buffer temp_device_valids_in_buffer(temp_valids_in_size, stream);
+	rmm::device_buffer temp_device_valids_out_buffer(temp_valids_out_size, stream);
 
 	// device table views
 	auto device_table_view = cudf::table_device_view::create(table, stream);
 	auto device_out_table_view = cudf::mutable_table_device_view::create(out_table, stream);
 
 	// device scalar views
-	using scalar_device_ptr = typename allocate_device_scalar::scalar_device_ptr;
-	std::vector<scalar_device_ptr> left_device_scalars_ptrs;
+	std::vector<rmm::device_buffer> left_device_scalars_ptrs;
 	std::vector<cudf::detail::scalar_device_view_base *> left_device_scalars_raw;
-	std::vector<scalar_device_ptr> right_device_scalars_ptrs;
+	std::vector<rmm::device_buffer> right_device_scalars_ptrs;
 	std::vector<cudf::detail::scalar_device_view_base *> right_device_scalars_raw;
 	for (size_t i = 0; i < left_scalars.size(); i++) {
-		left_device_scalars_ptrs.push_back(left_scalars[i] ? cudf::experimental::type_dispatcher(left_scalars[i]->type(), allocate_device_scalar{}, *(left_scalars[i])) : nullptr);
-		left_device_scalars_raw.push_back(left_device_scalars_ptrs.back().get());
+		left_device_scalars_ptrs.push_back(left_scalars[i] ? std::move(cudf::type_dispatcher(left_scalars[i]->type(), allocate_device_scalar{}, *(left_scalars[i]))) : rmm::device_buffer{});
+		left_device_scalars_raw.push_back(static_cast<cudf::detail::scalar_device_view_base *>(left_device_scalars_ptrs.back().data()));
 
-		right_device_scalars_ptrs.push_back(right_scalars[i] ? cudf::experimental::type_dispatcher(right_scalars[i]->type(), allocate_device_scalar{}, *(right_scalars[i])) : nullptr);
-		right_device_scalars_raw.push_back(right_device_scalars_ptrs.back().get());
+		right_device_scalars_ptrs.push_back(right_scalars[i] ? std::move(cudf::type_dispatcher(right_scalars[i]->type(), allocate_device_scalar{}, *(right_scalars[i]))) : rmm::device_buffer{});
+		right_device_scalars_raw.push_back(static_cast<cudf::detail::scalar_device_view_base *>(right_device_scalars_ptrs.back().data()));
 	}
 	rmm::device_vector<cudf::detail::scalar_device_view_base *> left_device_scalars(left_device_scalars_raw);
 	rmm::device_vector<cudf::detail::scalar_device_view_base *> right_device_scalars(right_device_scalars_raw);
@@ -684,8 +521,8 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 		}
 
 		cudf::type_id type_from_op = (right_index == UNARY_INDEX
-																	? get_output_type(left_input_types_vec[i], operators[i])
-																	: get_output_type(left_input_types_vec[i], right_input_types_vec[i], operators[i]));
+																	? get_output_type(operators[i], left_input_types_vec[i])
+																	: get_output_type(operators[i], left_input_types_vec[i], right_input_types_vec[i]));
 
 		output_types_vec[i] = (is_type_float(type_from_op) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64);
 		output_map_type[output_index] = output_types_vec[i];
