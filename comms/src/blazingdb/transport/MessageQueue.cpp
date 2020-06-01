@@ -20,21 +20,25 @@ std::shared_ptr<ReceivedMessage> MessageQueue::getMessage(
   std::unique_lock<std::mutex> lock(mutex_);
 
   CodeTimer blazing_timer;
-
-  condition_variable_.wait_for(lock, 30000ms, [&, this] {
-    bool got_the_message = std::any_of(this->message_queue_.cbegin(),
-                       this->message_queue_.cend(), [&](const auto &e) {
-                         return e->getMessageTokenValue() == messageToken;
-                       });
-    if (!got_the_message && blazing_timer.elapsed_time() > 29000){
-      auto logger = spdlog::get("batch_logger");
-      logger->warn("|||{info}|{duration}|messageToken|{messageToken}||",
-									"info"_a="getMessage timed out",
-									"duration"_a=blazing_timer.elapsed_time(),
-                  "messageToken"_a=messageToken);
-    }
-    return got_the_message;
-  });
+  do {
+    condition_variable_.wait_for(lock, 30000ms, [&, this] {
+      bool got_the_message = std::any_of(this->message_queue_.cbegin(),
+                        this->message_queue_.cend(), [&](const auto &e) {
+                          return e->getMessageTokenValue() == messageToken;
+                        });
+      if (!got_the_message && blazing_timer.elapsed_time() > 29000){
+        auto logger = spdlog::get("batch_logger");
+        logger->warn("|||{info}|{duration}|messageToken|{messageToken}||",
+                    "info"_a="getMessage timed out",
+                    "duration"_a=blazing_timer.elapsed_time(),
+                    "messageToken"_a=messageToken);
+      }
+      return got_the_message;
+    });
+  } while(!(std::any_of(this->message_queue_.cbegin(),
+                        this->message_queue_.cend(), [&](const auto &e) {
+                          return e->getMessageTokenValue() == messageToken;
+                        })));
   return getMessageQueue(messageToken);
 }
 
