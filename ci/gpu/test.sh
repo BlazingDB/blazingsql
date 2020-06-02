@@ -168,7 +168,7 @@ else
             export BLAZINGSQL_E2E_N_RALS=1
         fi
 
-        cd ${WORKSPACE}/pyblazing/blazingsql/tests/BlazingSQLTest/
+        cd ${WORKSPACE}/tests/BlazingSQLTest/
         SECONDS=0
         if [ "$E2E_TEST_GROUP" == "" ]; then
             python -m EndToEndTests.allE2ETest
@@ -187,7 +187,7 @@ else
         if [ "$BLAZINGSQL_E2E_IN_GPUCI_ENV" == "true" ] ; then
             logger "Running end to end tests DISTRIBUTED (nrals=2) ..."
             export BLAZINGSQL_E2E_N_RALS=2
-            cd ${WORKSPACE}/pyblazing/blazingsql/tests/BlazingSQLTest/
+            cd ${WORKSPACE}/tests/BlazingSQLTest/
             SECONDS=0
             if [ "$E2E_TEST_GROUP" == "" ]; then
                 python -m EndToEndTests.allE2ETest
