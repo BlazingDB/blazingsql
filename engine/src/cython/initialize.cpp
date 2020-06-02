@@ -90,8 +90,8 @@ void initialize(int ralId,
   // ---------------------------------------------------------------------------
   // DISCLAIMER
   // TODO: Support proper locale support for non-US cases (percy)
-  std::setlocale(LC_ALL, "en_US.UTF-8");
-  std::setlocale(LC_NUMERIC, "en_US.UTF-8");
+    std::setlocale(LC_ALL, "en_US.UTF-8");
+    std::setlocale(LC_NUMERIC, "en_US.UTF-8");
   // ---------------------------------------------------------------------------
 
 	ralHost = get_ip(network_iface_name);
@@ -127,7 +127,7 @@ void initialize(int ralId,
 
 	spdlog::init_thread_pool(8192, 1);
 
-	spdlog::flush_on(spdlog::level::err);
+	spdlog::flush_on(spdlog::level::warn);
 	spdlog::flush_every(std::chrono::seconds(1));
 
 	std::string oldfileName = "RAL." + std::to_string(ralId) + ".log";
