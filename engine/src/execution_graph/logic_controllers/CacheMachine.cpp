@@ -412,8 +412,7 @@ void CacheMachine::wait_if_cache_is_saturated() {
 	CodeTimer blazing_timer;
 
 	std::unique_lock<std::mutex> lock(flow_control_mutex);
-	do {
-		flow_control_condition_variable.wait_for(lock, 30000ms, [&, this] { 
+	while(!flow_control_condition_variable.wait_for(lock, 30000ms, [&, this] { 
 			bool cache_not_saturated = !thresholds_are_met(flow_control_batches_count, flow_control_bytes_count);
 
 			if (!cache_not_saturated && blazing_timer.elapsed_time() > 29000){
@@ -425,8 +424,7 @@ void CacheMachine::wait_if_cache_is_saturated() {
 									"duration"_a=blazing_timer.elapsed_time());
 			}
 			return cache_not_saturated;
-		});
-	} while (thresholds_are_met(flow_control_batches_count, flow_control_bytes_count));
+		})){}
 }
 
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)

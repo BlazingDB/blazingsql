@@ -192,8 +192,7 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
           {
             CodeTimer blazing_timer;
             std::unique_lock<std::mutex> lock(writeMutex);
-            do {
-              cv.wait_for(lock, 30000ms, [&writePairs, &writeOrder, writeIndex, &blazing_timer] {
+            while(!cv.wait_for(lock, 30000ms, [&writePairs, &writeOrder, writeIndex, &blazing_timer] {
                 bool wrote = !writePairs.empty() &&
                       writeOrder[writeIndex] == writePairs.top();
                 
@@ -204,9 +203,8 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
                               "duration"_a=blazing_timer.elapsed_time());
                 }
                 return wrote;
-              });
-            } while (!(!writePairs.empty() && writeOrder[writeIndex] == writePairs.top()));
-            
+              })){}
+
             item = writePairs.top();
             amountToWrite = item.chunk_size;
             buffer = item.chunk;
