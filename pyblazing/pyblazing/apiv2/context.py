@@ -1683,7 +1683,7 @@ class BlazingContext(object):
 
         if self.dask_client is None:
             try:
-                dask_futures = cio.runQueryCaller(
+                result = cio.runQueryCaller(
                             masterIndex,
                             self.nodes,
                             nodeTableList[0],
@@ -1732,17 +1732,17 @@ class BlazingContext(object):
                             workers=[worker]))
                     i = i + 1
 
-        if(return_futures):
-            result  = dask_futures
-        else:
-            meta_results = self.dask_client.gather(dask_futures)
+            if(return_futures):
+                result  = dask_futures
+            else:
+                meta_results = self.dask_client.gather(dask_futures)
 
-            futures = []
-            for query_partids, meta, worker_id in meta_results:
-                for query_partid in query_partids:
-                    futures.append(self.dask_client.submit(get_element, query_partid, workers=[worker_id]))
+                futures = []
+                for query_partids, meta, worker_id in meta_results:
+                    for query_partid in query_partids:
+                        futures.append(self.dask_client.submit(get_element, query_partid, workers=[worker_id]))
 
-            result = dask.dataframe.from_delayed(futures, meta=meta)
+                result = dask.dataframe.from_delayed(futures, meta=meta)
         return result
 
     # END SQL interface
