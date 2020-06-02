@@ -11,7 +11,7 @@
 #include "Config/BlazingContext.h"
 #include "arrow/status.h"
 #include <blazingdb/io/Util/StringUtil.h>
-#include <spdlog/spdlog.h>
+
 using namespace fmt::literals;
 
 namespace ral {
@@ -134,9 +134,6 @@ data_handle uri_data_provider::get_next(bool open_file) {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 			logger->error("|||{info}|||||",
 										"info"_a="In uri_data_provider::get_next. What: {}"_format(e.what()));
-			logger->flush();
-
-			std::cerr << e.what() << std::endl;
 			throw;
 		} catch(...) {
 			throw;

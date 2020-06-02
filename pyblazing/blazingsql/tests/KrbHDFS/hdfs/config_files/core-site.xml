@@ -1,0 +1,55 @@
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://HOSTNAME:9000</value>
+    </property>
+    <property>
+         <name>hadoop.security.authentication</name>
+         <value>kerberos</value>
+         <description> Set the authentication for the cluster.
+         Valid values are: simple or kerberos.</description>
+    </property>
+    <property>
+         <name>hadoop.security.authorization</name>
+         <value>true</value>
+         <description>Enable authorization for different protocols.</description>
+    </property>
+    <property>
+        <name>hadoop.security.auth_to_local</name>
+        <value>
+        RULE:[2:$1@$0]([jt]t@.*EXAMPLE.COM)s/.*/root/
+        RULE:[2:$1@$0]([nd]n@.*EXAMPLE.COM)s/.*/root/
+        RULE:[2:$1@$0](hm@.*EXAMPLE.COM)s/.*/root/
+        RULE:[2:$1@$0](rs@.*EXAMPLE.COM)s/.*/root/
+        RULE:[2:$1@$0](rm@.*EXAMPLE.COM)s/.*/root/
+        RULE:[2:$1@$0](jhs@.*EXAMPLE.COM)s/.*/root/
+        DEFAULT
+        </value>
+        <description>The mapping from kerberos principal names
+        to local OS user names.</description>
+    </property>
+    <property>
+        <name>hadoop.ssl.require.client.cert</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>hadoop.ssl.hostname.verifier</name>
+        <value>DEFAULT</value>
+    </property>
+    <property>
+        <name>hadoop.ssl.keystores.factory.class</name>
+        <value>org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory</value>
+    </property>
+    <property>
+        <name>hadoop.ssl.server.conf</name>
+        <value>ssl-server.xml</value>
+    </property>
+    <property>
+        <name>hadoop.ssl.client.conf</name>
+        <value>ssl-client.xml</value>
+    </property>
+    <property>
+        <name>hadoop.rpc.protection</name>
+        <value>privacy</value>
+    </property>
+</configuration>

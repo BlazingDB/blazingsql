@@ -1,5 +1,10 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <blazingdb/transport/Address.h>
 #include <blazingdb/transport/ColumnTransport.h>
 #include <blazingdb/transport/Message.h>

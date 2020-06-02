@@ -36,7 +36,7 @@ struct ParquetReaderAPITest : public ::testing::Test {
 	void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
 };
 
-namespace cudf_io = cudf::experimental::io;
+namespace cudf_io = cudf::io;
 
 TEST_F(ParquetReaderAPITest, ByIdsInFromInterface) {
 	std::string filename = PARQUET_FILE_PATH;

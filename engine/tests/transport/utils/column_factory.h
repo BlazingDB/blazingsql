@@ -55,7 +55,7 @@ const std::string content =
 //	}
 //	return columns;
 //}
-namespace cudf_io = cudf::experimental::io;
+namespace cudf_io = cudf::io;
 
 static ral::frame::BlazingTable build_table() {
 	std::string filename = "/tmp/nation.psv";

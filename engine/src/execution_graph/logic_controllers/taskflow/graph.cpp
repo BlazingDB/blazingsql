@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "operators/OrderBy.h"
 
 namespace ral {
 namespace cache {
@@ -14,6 +15,7 @@ namespace cache {
 			target_port_name = p.dst_port_name;
 		}
 		this->add_edge(p.src, p.dst, source_port_name, target_port_name, p.cache_machine_config);
+
 		return p;
 	}
 
@@ -215,12 +217,37 @@ namespace cache {
 			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config);
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
+
+					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=config.context->getContextToken(),
+									"source"_a=source->get_id(),
+									"sink"_a=cache_machines[index]->get_id());
+
+					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=config.context->getContextToken(),
+									"source"_a=cache_machines[index]->get_id(),
+									"sink"_a=target->get_id());
+
 					source->output_.register_cache("output_" + std::to_string(index), cache_machines[index]);
 					target->input_.register_cache("input_" + std::to_string(index), cache_machines[index]);
 				}
 			} else {
 				source->output_.register_cache(source_port, cache_machines[0]);
 				target->input_.register_cache(target_port, cache_machines[0]);
+
+				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=config.context->getContextToken(),
+								"source"_a=source->get_id(),
+								"sink"_a=cache_machines[0]->get_id());
+
+				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=config.context->getContextToken(),
+								"source"_a=cache_machines[0]->get_id(),
+								"sink"_a=target->get_id());
 			}
 		}
 		if(not source->has_parent()) {
@@ -248,6 +275,30 @@ namespace cache {
 			return reverse_edges_[id]; 
 		} else {
 			return std::set<graph::Edge>();
+		}
+	}
+
+	// This function will work when the Relational Algebra only contains: TableScan (or BindableTableScan) and Limit
+	void graph::check_for_simple_scan_with_limit_query() {
+		auto first_iterator = container_.begin(); // points to null
+		first_iterator++;
+		int32_t min_index_valid = first_iterator->first;
+		size_t total_kernels = container_.size(); 
+
+		if (total_kernels == 4) { // null, TableScanKernel (or BindableTableScan), LimitKernel, OutputKernel
+			if ( get_node(min_index_valid )->expression == "OutputKernel" &&
+				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::LimitKernel &&
+			 	 	(get_node(min_index_valid + 2)->get_type_id() == kernel_type::TableScanKernel || 
+					 get_node(min_index_valid + 2)->get_type_id() == kernel_type::BindableTableScanKernel)
+				)
+			{
+				get_node(min_index_valid + 2)->has_limit_ = true;
+
+				// get the limit value from LogicalLimit
+				std::string LimitExpression = get_node(min_index_valid + 1)->expression;
+				int64_t scan_only_rows = ral::operators::get_limit_rows_when_relational_alg_is_simple(LimitExpression);
+				get_node(min_index_valid + 2)->limit_rows_ = scan_only_rows;
+			}
 		}
 	}
 	
