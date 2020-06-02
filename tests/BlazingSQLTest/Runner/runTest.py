@@ -668,6 +668,12 @@ def _verify_prev_google_sheet_results(log_pdf):
     return succs, error_msgs
 
 def saving_google_sheet_results(log_pdf):
+    log_info=Settings.data['RunSettings']['logInfo']
+    
+    if log_info == "":
+        print("####### ======= >>>>>>> WARNING this test run will not save its results into the Google spreadsheet.")
+        return
+
     # Create an empty list
     log_list = [] 
 
@@ -686,7 +692,7 @@ def saving_google_sheet_results(log_pdf):
     # Using credentials from BlazingSQL 
     current_dir = '/home/ubuntu/.conda/envs/e2e' #os.getcwd() #Settings.data['TestSettings']['workspaceDirectory'] # #/home/kharoly/blazingsql/blazingdb-testing/BlazingSQLTest
     print(current_dir)
-    log_info=Settings.data['RunSettings']['logInfo']
+
     log_info=json.loads(log_info)
     creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info, scope)
     client_blazing = gspread.authorize(creds_blazing)
