@@ -99,6 +99,7 @@ cdef extern from "../include/io/io.h":
         string secretKey
         string sessionToken
         string endpointOverride
+        string region
 
 
     cdef struct GCS:
