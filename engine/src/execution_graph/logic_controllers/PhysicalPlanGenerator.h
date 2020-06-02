@@ -41,6 +41,7 @@ struct tree_processor {
 	std::shared_ptr<kernel> make_kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<ral::cache::graph> query_graph) {
 		std::shared_ptr<kernel> k;
 		auto kernel_context = this->context->clone();
+		this->context->incrementQueryStep();
 		if ( is_project(expr) ) {
 			k = std::make_shared<Projection>(kernel_id,expr, kernel_context, query_graph);
 		} else if ( is_filter(expr) ) {
@@ -251,10 +252,7 @@ struct tree_processor {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 			logger->error("|||{info}|||||",
 										"info"_a="In build_batch_graph. What: {}"_format(e.what()));
-			logger->flush();
-
-			std::cerr << "property_tree:" << e.what() <<  std::endl;
-			throw e;
+			throw;
 		}
 
 		if (this->root.kernel_unit != nullptr) {

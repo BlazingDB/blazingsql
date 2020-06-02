@@ -29,5 +29,6 @@
 #712 fixed how we handle empty tables for estimate for small table join
 #724 Removed unused BlazingThread creations
 #725 Added nullptr check to num_rows()
+#729 Fixed issue with num_rows() and wait_for
 #728 Add replace_calcite_regex function to the join condition
 #721 Handling multi-partition output

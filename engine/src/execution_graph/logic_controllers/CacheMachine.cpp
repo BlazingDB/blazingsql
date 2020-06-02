@@ -211,7 +211,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 					this->waitingCache->put(std::move(item));
 				} else {
 					if(cacheIndex == 1) {
-			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
@@ -253,14 +253,16 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 	if (!this->something_added || table->num_rows() > 0){
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
 			if (table->view().column(col_ind).offset() > 0){
+				std::string err = "ERROR: Add to CacheMachine into cache table column " + table->names()[col_ind] + " has offset";
 				logger->error("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|offset|{offset}",
 								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Add to CacheMachine into cache table column " + table->names()[col_ind] + " has offset",
+								"info"_a=err,
 								"duration"_a="",
 								"kernel_id"_a=message_id,
 								"offset"_a=table->view().column(col_ind).offset());
+				throw err;
 			}
 		}
 
@@ -410,19 +412,19 @@ void CacheMachine::wait_if_cache_is_saturated() {
 	CodeTimer blazing_timer;
 
 	std::unique_lock<std::mutex> lock(flow_control_mutex);
-	flow_control_condition_variable.wait_for(lock, 30000ms, [&, this] { 
-		bool cache_not_saturated = !thresholds_are_met(flow_control_batches_count, flow_control_bytes_count);
+	while(!flow_control_condition_variable.wait_for(lock, 60000ms, [&, this] { 
+			bool cache_not_saturated = !thresholds_are_met(flow_control_batches_count, flow_control_bytes_count);
 
-		if (!cache_not_saturated && blazing_timer.elapsed_time() > 29000){
-			logger->warn("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="wait_if_cache_is_saturated timed out",
-								"duration"_a=blazing_timer.elapsed_time());
-		}
-		return cache_not_saturated;
-	});
+			if (!cache_not_saturated && blazing_timer.elapsed_time() > 59000){
+				logger->warn("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+									"info"_a="wait_if_cache_is_saturated timed out",
+									"duration"_a=blazing_timer.elapsed_time());
+			}
+			return cache_not_saturated;
+		})){}
 }
 
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
@@ -457,11 +459,13 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		}
 	}
 	std::unique_ptr<ral::frame::BlazingTable> output;
+	size_t num_rows = 0;
 	if(collected_messages.empty()){
 		output = nullptr;
 	} else if (collected_messages.size() == 1) {
 		auto data = collected_messages[0]->release_data();
-		output = std::move(data->decache());		
+		output = std::move(data->decache());
+		num_rows = output->num_rows();
 	}	else {
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder(collected_messages.size());
 		std::vector<ral::frame::BlazingTableView> table_views(collected_messages.size());
@@ -471,6 +475,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 			table_views[i] = tables_holder[i]->toBlazingTableView();
 		}
 		output = ral::utilities::concatTables(table_views);
+		num_rows = output->num_rows();
 	}	
 
 	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
@@ -480,7 +485,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 								"info"_a="Pull from ConcatenatingCacheMachine",
 								"duration"_a="",
 								"kernel_id"_a=message_id,
-								"rows"_a=output->num_rows());
+								"rows"_a=num_rows);
 
 	return std::move(output);
 }

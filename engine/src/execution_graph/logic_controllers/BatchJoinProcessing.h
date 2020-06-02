@@ -409,7 +409,7 @@ public:
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In PartwiseJoin kernel left_idx[{}] right_ind[{}] for {}. What: {}"_format(left_ind, right_ind, expression, e.what()),
 											"duration"_a="");
-				throw e;
+				throw;
 			}
 		}
 
@@ -531,9 +531,7 @@ public:
 											"substep"_a=local_context->getQuerySubstep(),
 											"info"_a=err,
 											"duration"_a="");
-				logger->flush();
-
-				std::cout<<err<<std::endl;
+				throw;
 			}
         }
 		//printf("... notifyLastTablePartitions\n");
@@ -745,7 +743,7 @@ public:
 			int batch_count = 0;
 			while (!done) {
 				try {
-					if(small_table_batch->num_rows() > 0) {
+					if(small_table_batch != nullptr && small_table_batch->num_rows() > 0) {
 						ral::distribution::scatterData(this->context.get(), small_table_batch->toBlazingTableView());
 					}
 					this->add_to_output_cache(std::move(small_table_batch), small_output_cache_name);
@@ -757,12 +755,14 @@ public:
 					}
 				} catch(const std::exception& e) {
 					// TODO add retry here
-					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+					logger->error("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 												"query_id"_a=this->context->getContextToken(),
 												"step"_a=this->context->getQueryStep(),
 												"substep"_a=this->context->getQuerySubstep(),
 												"info"_a="In JoinPartitionKernel scatter_small_table batch_count [{}]. What: {}"_format(batch_count, expression, e.what()),
-												"duration"_a="");
+												"duration"_a="",
+												"kernel_id"_a=this->get_id());
+					throw;
 				}
 			}
 			ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
@@ -805,26 +805,8 @@ public:
 		this->join_type = get_named_expression(new_join_statement, "joinType");
 
 		std::unique_ptr<ral::frame::BlazingTable> left_batch = left_sequence.next();
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-										"query_id"_a=context->getContextToken(),
-										"step"_a=context->getQueryStep(),
-										"substep"_a=context->getQuerySubstep(),
-										"info"_a="JoinPartitionKernel got first left batch",
-										"duration"_a="",
-										"kernel_id"_a=this->get_id(),
-										"rows"_a=left_batch->num_rows());
-
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-										"query_id"_a=context->getContextToken(),
-										"step"_a=context->getQueryStep(),
-										"substep"_a=context->getQuerySubstep(),
-										"info"_a="JoinPartitionKernel got first right batch",
-										"duration"_a="",
-										"kernel_id"_a=this->get_id(),
-										"rows"_a=right_batch->num_rows());
-
-
+		
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
 			while (left_sequence.wait_for_next()){
 				left_batch = left_sequence.next();
@@ -834,13 +816,16 @@ public:
 			}
 		}
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
-			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+			std::string err = "In JoinPartitionKernel left side is empty and cannot determine join column indices";
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 										"query_id"_a=context->getContextToken(),
 										"step"_a=context->getQueryStep(),
 										"substep"_a=context->getQuerySubstep(),
-										"info"_a="In JoinPartitionKernel left side is empty and cannot determine join column indices",
-										"duration"_a="");
-		}
+										"info"_a=err,
+										"duration"_a="",
+										"kernel_id"_a=this->get_id());
+			throw err;
+		} 
 
 		std::pair<bool, bool> scatter_left_right;
 		if (this->join_type == OUTER_JOIN){ // cant scatter a full outer join
