@@ -38,13 +38,13 @@ By default the end to end tests:
 cd blazingsql
 
 # Run all e2e tests based on your current env settings.
-./test.sh pyblazing
+./test.sh e2e
 
 # Run only the round end to end test group.
-./test.sh pyblazing e2e-tests=roundTest
+./test.sh e2e tests=roundTest
 
 # Run the round and orderby end to end test groups.
-./test.sh pyblazing e2e-tests=roundTest,orderbyTest
+./test.sh e2e tests=roundTest,orderbyTest
 ```
 
 #### Custom settings
@@ -53,14 +53,14 @@ All the behaviour of the end to end test are base on environment variables. So w
 Examples:
 ```shell-script
 # Run all e2e tests in full mode
-BLAZINGSQL_E2E_EXEC_MODE=full ./test.sh pyblazing
+BLAZINGSQL_E2E_EXEC_MODE=full ./test.sh e2e
 
 # Run all e2e tests with 2 rals/workers using LocalCUDACluster
-BLAZINGSQL_E2E_N_RALS=2 ./test.sh pyblazing
+BLAZINGSQL_E2E_N_RALS=2 ./test.sh e2e
 
 # Run all e2e tests with 2 rals/workers using an online dask-scheduler IP:PORT
 export BLAZINGSQL_E2E_N_RALS=2
-BLAZINGSQL_E2E_DASK_CONNECTION="127.0.0.1:8786" ./test.sh pyblazing
+BLAZINGSQL_E2E_DASK_CONNECTION="127.0.0.1:8786" ./test.sh e2e
 ```
 
 Here are all the environment variables with its default values:
