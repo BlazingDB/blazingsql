@@ -14,7 +14,8 @@ function logger() {
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="io comms libengine pyblazing algebra -t -v -h -c e2e-tests"
+# TODO william kharoly felipe we should try to enable and use this param in the future (compare result from spreadsheet): add -c
+VALIDARGS="io comms libengine pyblazing algebra -t -v -h e2e-tests"
 HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=\"test1,test2,...,testn\"]
    io           - test the IO C++ code only
    comms        - test the communications C++ code only
@@ -24,10 +25,6 @@ HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=\"test1,test2,...,testn\"]
    -t           - skip end to end tests (force not run pyblazing tests)
    -v           - verbose test mode
    -h           - print this text
-   -c           - save and use a cache of the previous e2e test runs from
-                  Google Docs. The cache (e2e-gspread-cache.parquet) will be
-                  located inside the env BLAZINGSQL_E2E_LOG_DIRECTORY (which
-                  is usually pointing to the CONDA_PREFIX dir)
    e2e-tests=   - Optional argument to use after 'pyblazing' run specific e2e
                   test groups.
                   The comma separated values are the e2e tests to run, where
@@ -37,6 +34,12 @@ HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=\"test1,test2,...,testn\"]
                   Empty means will run all the e2e tests)
    default action (no args) is to test all code and packages
 "
+
+# TODO william kharoly felipe we should try to enable and use this param in the future (compare result from spreadsheet)
+#    -c           - save and use a cache of the previous e2e test runs from
+#                   Google Docs. The cache (e2e-gspread-cache.parquet) will be
+#                   located inside the env BLAZINGSQL_E2E_LOG_DIRECTORY (which
+#                   is usually pointing to the CONDA_PREFIX dir)
 
 # Set defaults for vars modified by flags to this script
 VERBOSE=""
@@ -91,9 +94,11 @@ fi
 if hasArg -t; then
     TESTS="OFF"
 fi
-if hasArg -c; then
-    GSPREAD_CACHE="true"
-fi
+
+# TODO william kharoly felipe we should try to enable and use this param in the future (compare result from spreadsheet)
+#if hasArg -c; then
+#    GSPREAD_CACHE="true"
+#fi
 
 ################################################################################
 
@@ -159,7 +164,9 @@ else
         # Abort script on first error
         set -e
 
-        export BLAZINGSQL_E2E_GSPREAD_CACHE=$GSPREAD_CACHE
+        # TODO william kharoly felipe we should try to enable and use this param in the future (compare result from spreadsheet)
+        #export BLAZINGSQL_E2E_GSPREAD_CACHE=$GSPREAD_CACHE
+
         export BLAZINGSQL_E2E_TARGET_TEST_GROUPS=$TARGET_E2E_TEST_GROUPS
 
         # If we are running on a GPUCI environment then force to set nrals to 1

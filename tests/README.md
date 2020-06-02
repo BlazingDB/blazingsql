@@ -37,26 +37,32 @@ By default the end to end tests:
 ```shell-script
 cd blazingsql
 
-# Run all e2e tests and use Google Docs spreadsheet to verify if current run
-# pass (based on historic data). It also save a snapshot of the spreadsheet
-# in the log directory (file name e2e-gspread-cache.parquet).
+# Run all e2e tests based on your current env settings.
 ./test.sh pyblazing
 
-# Run all e2e tests and use a snapshot of the Google Docs spreadsheet in
-# the log directory. In case the Google Docs spreadsheet cache file
-# e2e-gspread-cache.parquet is not there then it will download and save the
-# snapshot.
-./test.sh -c pyblazing
+# Run only the round end to end test group.
+./test.sh pyblazing e2e-tests=roundTest
 
-# Run only the round end to end test group using the spreadsheet cache file.
-./test.sh -c pyblazing e2e-tests=roundTest
-
-# Run the round and orderby end to end test groups using the spreadsheet cache file.
-./test.sh -c pyblazing e2e-tests=roundTest,orderbyTest
+# Run the round and orderby end to end test groups.
+./test.sh pyblazing e2e-tests=roundTest,orderbyTest
 ```
 
 #### Custom settings
 All the behaviour of the end to end test are base on environment variables. So when you want to have more control you need to change some of the default values exporting or defining the target environment variable before run the tests.
+
+Examples:
+```shell-script
+# Run all e2e tests in full mode
+BLAZINGSQL_E2E_EXEC_MODE=full ./test.sh pyblazing
+
+# Run all e2e tests with 2 rals/workers using LocalCUDACluster
+BLAZINGSQL_E2E_N_RALS=2 ./test.sh pyblazing
+
+# Run all e2e tests with 2 rals/workers using an online dask-scheduler IP:PORT
+export BLAZINGSQL_E2E_N_RALS=2
+BLAZINGSQL_E2E_DASK_CONNECTION="127.0.0.1:8786" ./test.sh pyblazing
+```
+
 Here are all the environment variables with its default values:
 
 ```shell-script
@@ -86,7 +92,6 @@ export BLAZINGSQL_E2E_NETWORK_INTERFACE="lo"
 export BLAZINGSQL_E2E_SAVE_LOG=false
 export BLAZINGSQL_E2E_WORKSHEET="BSQL Log Results" # or "BSQL Performance Results"
 export BLAZINGSQL_E2E_LOG_INFO=''
-export BLAZINGSQL_E2E_GSPREAD_CACHE=false
 export BLAZINGSQL_E2E_COMPARE_RESULTS=true
 export BLAZINGSQL_E2E_TARGET_TEST_GROUPS=""
 
@@ -108,22 +113,7 @@ Finally, there are sensible data that never must be public so to get the values 
 - Google Storage connection settings: BLAZINGSQL_E2E_GOOGLE_STORAGE_PROJECT_ID, BLAZINGSQL_E2E_GOOGLE_STORAGE_BUCKET_NAME, BLAZINGSQL_E2E_GOOGLE_STORAGE_ADC_JSON_FILE
 - Google Docs spreadsheet access: BLAZINGSQL_E2E_LOG_INFO
 
-Examples:
-```shell-script
-# Run all e2e tests in full mode
-BLAZINGSQL_E2E_EXEC_MODE=full ./test.sh pyblazing
-
-# Run all e2e tests with 2 rals/workers using LocalCUDACluster
-BLAZINGSQL_E2E_N_RALS=2 ./test.sh pyblazing
-
-# Run all e2e tests with 2 rals/workers using an online dask-scheduler IP:PORT
-export BLAZINGSQL_E2E_N_RALS=2
-BLAZINGSQL_E2E_DASK_CONNECTION="127.0.0.1:8786" ./test.sh pyblazing
-```
-
 #### Testing workflow remarks
-- Is highly suggested to use always -c argument so we avoid making request to Google Docs API.
-- Only run without the -c option when you are about to finish your PR.
 - For development/debugging is recommended to set you env var BLAZINGSQL_E2E_DASK_CONNECTION to your dask-scheduler IP:PORT
 - Do not touch bash files, if you need a feature please talk with QA & DevOps teams.
 - Only add/modify end to end tests once you have coordinated with QA team.
