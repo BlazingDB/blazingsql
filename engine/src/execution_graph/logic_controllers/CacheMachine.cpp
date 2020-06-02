@@ -412,11 +412,11 @@ void CacheMachine::wait_if_cache_is_saturated() {
 	CodeTimer blazing_timer;
 
 	std::unique_lock<std::mutex> lock(flow_control_mutex);
-	while(!flow_control_condition_variable.wait_for(lock, 30000ms, [&, this] { 
+	while(!flow_control_condition_variable.wait_for(lock, 60000ms, [&, this] { 
 			bool cache_not_saturated = !thresholds_are_met(flow_control_batches_count, flow_control_bytes_count);
 
-			if (!cache_not_saturated && blazing_timer.elapsed_time() > 29000){
-				logger->warn("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+			if (!cache_not_saturated && blazing_timer.elapsed_time() > 59000){
+				logger->warn("{query_id}|{step}|{substep}|{info}|{duration}||||",
 									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),

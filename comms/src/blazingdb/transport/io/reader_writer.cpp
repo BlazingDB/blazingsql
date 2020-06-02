@@ -192,11 +192,11 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
           {
             CodeTimer blazing_timer;
             std::unique_lock<std::mutex> lock(writeMutex);
-            while(!cv.wait_for(lock, 30000ms, [&writePairs, &writeOrder, writeIndex, &blazing_timer] {
+            while(!cv.wait_for(lock, 60000ms, [&writePairs, &writeOrder, writeIndex, &blazing_timer] {
                 bool wrote = !writePairs.empty() &&
                       writeOrder[writeIndex] == writePairs.top();
                 
-                if (!wrote && blazing_timer.elapsed_time() > 29000){
+                if (!wrote && blazing_timer.elapsed_time() > 59000){
                   auto logger = spdlog::get("batch_logger");
                   logger->warn("|||{info}|{duration}||||",
                               "info"_a="writeBuffersFromGPUTCP timed out",
