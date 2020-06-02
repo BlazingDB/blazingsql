@@ -128,9 +128,7 @@ Message::MetaData collect_last_event(void * socket, Server * server) {
 
 	zmq::message_t local_message;
 	auto success = socket_ptr->recv(local_message);
-	if(success.value() == false || local_message.size() == 0) {
-		throw zmq::error_t();
-	}
+
 	std::string ok_message(static_cast<char *>(local_message.data()), local_message.size());
 
 	assert(ok_message == "OK");
@@ -170,9 +168,6 @@ collect_gpu_message(
 	// receive the ok
 	zmq::message_t local_message;
 	auto success = socket_ptr->recv(local_message);
-	if(success.value() == false || local_message.size() == 0) {
-		throw std::runtime_error("ZQMServer: success.value() == false");
-	}
 
 	std::string ok_message(static_cast<char *>(local_message.data()), local_message.size());
 	assert(ok_message == "OK");
@@ -187,9 +182,7 @@ void ServerTCP::Run() {
 			zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
 			zmq::message_t message_topic;
 			auto success = socket_ptr->recv(message_topic);
-			if(success.value() == false || message_topic.size() == 0) {
-				throw zmq::error_t();
-			}
+
 			std::string message_topic_str(static_cast<char *>(message_topic.data()), message_topic.size());
 			if(message_topic_str == "LAST") {
 				collect_last_event(socket, this);
@@ -236,9 +229,7 @@ public:
 				zmq::socket_t * socket_ptr = (zmq::socket_t *) socket;
 				zmq::message_t message_topic;
 				auto success = socket_ptr->recv(message_topic);
-				if(success.value() == false || message_topic.size() == 0) {
-					throw zmq::error_t();
-				}
+
 				std::string message_topic_str(static_cast<char *>(message_topic.data()), message_topic.size());
 				if(message_topic_str == "LAST") {
 					auto message_metadata = collect_last_event(socket, this);

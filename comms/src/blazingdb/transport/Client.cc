@@ -58,10 +58,6 @@ public:
     // receive the ok
     zmq::message_t local_message;
     auto success = socket_ptr->recv(local_message);
-    if (success.value() == false || local_message.size() == 0) {
-      std::cerr << "Client:   throw zmq::error_t()" << std::endl;
-      throw zmq::error_t();
-    }
 
     std::string end_message(static_cast<char*>(local_message.data()),
                             local_message.size());
@@ -110,10 +106,6 @@ public:
     // receive the ok
     zmq::message_t local_message;
     auto success = socket_ptr->recv(local_message);
-    if (success.value() == false || local_message.size() == 0) {
-      std::cerr << "Client:   throw zmq::error_t()" << std::endl;
-      throw zmq::error_t();
-    }
 
     std::string end_message(static_cast<char*>(local_message.data()),
                             local_message.size());
