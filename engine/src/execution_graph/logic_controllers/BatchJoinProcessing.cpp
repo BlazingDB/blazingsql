@@ -82,6 +82,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 	filter_statement = "";
 
 	std::string condition = get_named_expression(join_statement, "condition");
+	condition = replace_calcite_regex(condition);
 	std::string join_type = get_named_expression(join_statement, "joinType");
 
 	ral::parser::parse_tree tree;
