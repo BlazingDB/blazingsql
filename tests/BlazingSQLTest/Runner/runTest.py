@@ -442,7 +442,9 @@ def save_log (**kwargs):
     if 'saveLog' in Settings.data['RunSettings']:
         saveLog = Settings.data['RunSettings']['saveLog'] 
 
-    result, error_msgs = verify_prev_google_sheet_results(df1)
+    # TODO william kharoly felipe we should try to enable and use this function in the future
+    #result, error_msgs = verify_prev_google_sheet_results(df1)
+    result, error_msgs = True, []
     
     if result == True and saveLog == "true":
         saving_google_sheet_results(df1)
@@ -485,6 +487,7 @@ def create_summary_detail(df):
     pd.set_option('display.max_colwidth', -1)
     print(pdf_fail.groupby(['TestGroup','InputType','Result'])['TestId'].apply(','.join).reset_index())
 
+# This function use the google spreadsheet to compare the current results against historic ones
 # Returns a tuple with 2 entries:
 # 1st element: False in case gpuci should be fail, True otherwise
 # 2nd element: A list of error messages (in case 1st element is False)
@@ -492,7 +495,8 @@ def create_summary_detail(df):
 # result, error_msgs = verify_prev_google_sheet_results(log_pdf)
 # if result == False:
 #     exits the python process and do not move to next steps
-def verify_prev_google_sheet_results(log_pdf):
+# TODO william kharoly felipe we should try to enable and use this function in the future
+def _verify_prev_google_sheet_results(log_pdf):
     def get_the_data_from_sheet():
         # Use creds to create a client to interact with the Google Drive API
         scope = ["https://www.googleapis.com/auth/drive", "https://spreadsheets.google.com/feeds"]
@@ -664,6 +668,12 @@ def verify_prev_google_sheet_results(log_pdf):
     return succs, error_msgs
 
 def saving_google_sheet_results(log_pdf):
+    log_info=Settings.data['RunSettings']['logInfo']
+    
+    if log_info == "":
+        print("####### ======= >>>>>>> WARNING this test run will not save its results into the Google spreadsheet.")
+        return
+
     # Create an empty list
     log_list = [] 
 
@@ -682,7 +692,7 @@ def saving_google_sheet_results(log_pdf):
     # Using credentials from BlazingSQL 
     current_dir = '/home/ubuntu/.conda/envs/e2e' #os.getcwd() #Settings.data['TestSettings']['workspaceDirectory'] # #/home/kharoly/blazingsql/blazingdb-testing/BlazingSQLTest
     print(current_dir)
-    log_info=Settings.data['RunSettings']['logInfo']
+
     log_info=json.loads(log_info)
     creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info, scope)
     client_blazing = gspread.authorize(creds_blazing)

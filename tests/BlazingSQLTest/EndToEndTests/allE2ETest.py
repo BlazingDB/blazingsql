@@ -248,7 +248,9 @@ if __name__ == '__main__':
     result, error_msgs = main()
     
     if Settings.execution_mode != ExecutionMode.GENERATOR:
-        # NOTE kahro william percy mario : here we tell to gpuci there was an error 
+        # NOTE kahro william percy mario : here we tell to gpuci there was an error comparing with historic results
+        # TODO william kharoly felipe we should try to enable and use this function in the future
+        result = True
         if result == False:
             for error_msg in error_msgs:
                 print(error_msg)
