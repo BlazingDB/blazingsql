@@ -21,8 +21,8 @@ using namespace fmt::literals;
 
 class PartitionSingleNodeKernel : public kernel {
 public:
-	PartitionSingleNodeKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::PartitionSingleNodeKernel} {
+	PartitionSingleNodeKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id, queryString, context, kernel_type::PartitionSingleNodeKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
@@ -86,8 +86,8 @@ private:
 
 class SortAndSampleKernel : public kernel {
 public:
-	SortAndSampleKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::SortAndSampleKernel}
+	SortAndSampleKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id,queryString, context, kernel_type::SortAndSampleKernel}
 	{
 		this->query_graph = query_graph;
 		this->output_.add_port("output_a", "output_b");
@@ -95,21 +95,21 @@ public:
 
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, std::size_t avg_bytes_per_row, std::size_t local_total_num_rows) {
 		if (this->context->getAllNodes().size() == 1){ // single node mode
-			auto partitionPlan = ral::operators::generate_partition_plan(sampledTableViews, 
+			auto partitionPlan = ral::operators::generate_partition_plan(sampledTableViews,
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
 			this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		} else { // distributed mode
 			auto concatSamples = ral::utilities::concatTables(sampledTableViews);
-			auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(), 
+			auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(),
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
 			this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		}
 	}
-	
+
 	bool can_you_throttle_my_input() {
 		return true;
-	}	
-	
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
@@ -202,8 +202,8 @@ public:
 		} else {
 			size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 			compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
-		}		
-		
+		}
+
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -221,8 +221,8 @@ private:
 
 class PartitionKernel : public kernel {
 public:
-	PartitionKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::PartitionKernel} {
+	PartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id, queryString, context, kernel_type::PartitionKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 	}
@@ -296,15 +296,15 @@ private:
 
 class MergeStreamKernel : public kernel {
 public:
-	MergeStreamKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::MergeStreamKernel}  {
+	MergeStreamKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id, queryString, context, kernel_type::MergeStreamKernel}  {
 		this->query_graph = query_graph;
 	}
 
 	bool can_you_throttle_my_input() {
 		return false;
 	}
-	
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -394,15 +394,15 @@ private:
 
 class LimitKernel : public kernel {
 public:
-	LimitKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::LimitKernel}  {
+	LimitKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id,queryString, context, kernel_type::LimitKernel}  {
 		this->query_graph = query_graph;
 	}
 
 	bool can_you_throttle_my_input() {
 		return false;
 	}
-	
+
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);

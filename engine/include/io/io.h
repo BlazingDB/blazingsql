@@ -15,6 +15,12 @@
 typedef ral::io::DataType DataType;
 namespace cudf_io = cudf::io;
 
+struct PartitionedResultSet {
+	std::vector<std::unique_ptr<cudf::table>> cudfTables;
+	std::vector<std::string> names;
+	bool skipdata_analysis_fail;
+};
+
 struct ResultSet {
 	std::unique_ptr<cudf::table> cudfTable;
 	std::vector<std::string> names;
@@ -53,6 +59,7 @@ struct S3 {
 	std::string secretKey;
 	std::string sessionToken;
 	std::string endpointOverride;
+	std::string region;
 };
 
 struct GCS {

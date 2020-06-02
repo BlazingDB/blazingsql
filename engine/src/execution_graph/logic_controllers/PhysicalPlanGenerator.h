@@ -38,76 +38,77 @@ struct tree_processor {
 	std::vector<std::string> table_names;
 	const bool transform_operators_bigger_than_gpu = false;
 
-	std::shared_ptr<kernel> make_kernel(std::string expr, std::shared_ptr<ral::cache::graph> query_graph) {
+	std::shared_ptr<kernel> make_kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<ral::cache::graph> query_graph) {
 		std::shared_ptr<kernel> k;
 		auto kernel_context = this->context->clone();
 		this->context->incrementQueryStep();
 		if ( is_project(expr) ) {
-			k = std::make_shared<Projection>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<Projection>(kernel_id,expr, kernel_context, query_graph);
 		} else if ( is_filter(expr) ) {
-			k = std::make_shared<Filter>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<Filter>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
 			auto schema = this->schemas[table_index];
-			k = std::make_shared<TableScan>(expr, *loader, schema, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<TableScan>(kernel_id, expr, *loader, schema, kernel_context, query_graph);
+
 		} else if (is_bindable_scan(expr)) {
 			size_t table_index = get_table_index(table_names, extract_table_name(expr));
 			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
 			auto schema = this->schemas[table_index];
-			k = std::make_shared<BindableTableScan>(expr, *loader, schema, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<BindableTableScan>(kernel_id, expr, *loader, schema, kernel_context, query_graph);
+
 		}  else if (is_single_node_partition(expr)) {
-			k = std::make_shared<PartitionSingleNodeKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());			
+			k = std::make_shared<PartitionSingleNodeKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_partition(expr)) {
-			k = std::make_shared<PartitionKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<PartitionKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_sort_and_sample(expr)) {
-			k = std::make_shared<SortAndSampleKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<SortAndSampleKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_merge(expr)) {
-			k = std::make_shared<MergeStreamKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<MergeStreamKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_limit(expr)) {
-			k = std::make_shared<LimitKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<LimitKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		}  else if (is_compute_aggregate(expr)) {
-			k = std::make_shared<ComputeAggregateKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<ComputeAggregateKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		}  else if (is_distribute_aggregate(expr)) {
-			k = std::make_shared<DistributeAggregateKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<DistributeAggregateKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		}  else if (is_merge_aggregate(expr)) {
-			k = std::make_shared<MergeAggregateKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<MergeAggregateKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		}  else if (is_pairwise_join(expr)) {
-			k = std::make_shared<PartwiseJoin>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<PartwiseJoin>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_join_partition(expr)) {
-			k = std::make_shared<JoinPartitionKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<JoinPartitionKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_union(expr)) {
-			k = std::make_shared<UnionKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<UnionKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else {
 			RAL_FAIL("Invalid expression in the logical plan");
 		}
 		return k;
 	}
-	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, node * root_ptr, int level, std::shared_ptr<ral::cache::graph> query_graph) {
+	std::size_t expr_tree_from_json(std::size_t kernel_id, boost::property_tree::ptree const& p_tree, node * root_ptr, int level, std::shared_ptr<ral::cache::graph> query_graph) {
 		auto expr = p_tree.get<std::string>("expr", "");
 		root_ptr->expr = expr;
 		root_ptr->level = level;
-		root_ptr->kernel_unit = make_kernel(expr, query_graph);
+		root_ptr->kernel_unit = make_kernel(kernel_id,expr, query_graph);
+		kernel_id++;
 		for (auto &child : p_tree.get_child("children")) {
 			auto child_node_ptr = std::make_shared<node>();
 			root_ptr->children.push_back(child_node_ptr);
-			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1, query_graph);
+			kernel_id = expr_tree_from_json(kernel_id,child.second, child_node_ptr.get(), level + 1, query_graph);
 		}
+		return kernel_id;
 	}
 
 	boost::property_tree::ptree create_array_tree(boost::property_tree::ptree child){
@@ -237,15 +238,16 @@ struct tree_processor {
 		return str;
 	}
 
-	std::shared_ptr<ral::cache::graph> build_batch_graph(std::string json) {
+	std::tuple<std::shared_ptr<ral::cache::graph>,std::size_t> build_batch_graph(std::string json) {
 		auto query_graph = std::make_shared<ral::cache::graph>();
+		std::size_t max_kernel_id = 0;
 		try {
 			std::istringstream input(json);
 			boost::property_tree::ptree p_tree;
 			boost::property_tree::read_json(input, p_tree);
 			transform_json_tree(p_tree);
 
-			expr_tree_from_json(p_tree, &this->root, 0, query_graph);
+			max_kernel_id = expr_tree_from_json(0,p_tree, &this->root, 0, query_graph);
 		} catch (std::exception & e) {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 			logger->error("|||{info}|||||",
@@ -257,7 +259,7 @@ struct tree_processor {
 			query_graph->add_node(this->root.kernel_unit.get()); // register first node
 			visit(*query_graph, &this->root, this->root.children);
 		}
-		return query_graph;
+		return std::make_tuple(query_graph,max_kernel_id);
 	}
 
 	void visit(ral::cache::graph& query_graph, node * parent, std::vector<std::shared_ptr<node>>& children) {
@@ -307,7 +309,7 @@ struct tree_processor {
 				if ((child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel)
 					    || (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
 						|| (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
-					
+
 					if (parent->kernel_unit->can_you_throttle_my_input()){
 						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], default_throttled_cache_machine_config);
 						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], default_throttled_cache_machine_config);

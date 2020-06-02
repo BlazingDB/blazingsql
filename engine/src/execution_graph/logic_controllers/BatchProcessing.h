@@ -60,7 +60,7 @@ using ral::cache::kernel_type;
 using namespace fmt::literals;
 
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
-using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
+using frame_type = std::vector<std::unique_ptr<ral::frame::BlazingTable>>;
 using Context = blazingdb::manager::Context;
 class BatchSequence {
 public:
@@ -339,8 +339,8 @@ private:
 
 class TableScan : public kernel {
 public:
-	TableScan(const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context, kernel_type::TableScanKernel), input(loader, schema, context)
+	TableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
@@ -427,9 +427,9 @@ private:
 
 class BindableTableScan : public kernel {
 public:
-	BindableTableScan(const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
+	BindableTableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
 		std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context, kernel_type::BindableTableScanKernel), input(loader, schema, context)
+	: kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
@@ -517,7 +517,7 @@ public:
 						}
 
 						this->output_cache()->wait_if_cache_is_saturated();
-						
+
 						// useful when the Algebra Relacional only contains: BindableTableScan and LogicalLimit
 						if (has_limit && current_rows >= limit_) {
 							break;
@@ -568,8 +568,8 @@ private:
 
 class Projection : public kernel {
 public:
-	Projection(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context, kernel_type::ProjectKernel)
+	Projection(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(kernel_id, queryString, context, kernel_type::ProjectKernel)
 	{
 		this->query_graph = query_graph;
 	}
@@ -645,8 +645,8 @@ private:
 
 class Filter : public kernel {
 public:
-	Filter(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(queryString, context, kernel_type::FilterKernel)
+	Filter(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(kernel_id, queryString, context, kernel_type::FilterKernel)
 	{
 		this->query_graph = query_graph;
 	}
@@ -735,8 +735,8 @@ private:
 
 class Print : public kernel {
 public:
-	Print() : kernel("Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
-	Print(std::ostream & stream) : kernel("Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
+	Print() : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
+	Print(std::ostream & stream) : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
 
 	bool can_you_throttle_my_input() {
 		return false;
@@ -760,29 +760,33 @@ protected:
 
 class OutputKernel : public kernel {
 public:
-	OutputKernel(std::shared_ptr<Context> context) : kernel("OutputKernel", context, kernel_type::OutputKernel) { }
+	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
 
 	virtual kstatus run() {
-		CodeTimer cacheEventTimer(false);
+		while (this->input_.get_cache()->wait_for_next()) {
+			CodeTimer cacheEventTimer(false);
 
-		cacheEventTimer.start();
-		output = std::move(this->input_.get_cache()->pullFromCache());
-		cacheEventTimer.stop();
+			cacheEventTimer.start();
+			auto temp_output = std::move(this->input_.get_cache()->pullFromCache());
+			cacheEventTimer.stop();
 
-		if(output){
-			auto num_rows = output->num_rows();
-			auto num_bytes = output->sizeInBytes();
+			if(temp_output){
+				auto num_rows = temp_output->num_rows();
+				auto num_bytes = temp_output->sizeInBytes();
 
-			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-							"query_id"_a=context->getContextToken(),
-							"source"_a=this->input_.get_cache()->get_id(),
-							"sink"_a=this->get_id(),
-							"num_rows"_a=num_rows,
-							"num_bytes"_a=num_bytes,
-							"event_type"_a="removeCache",
-							"timestamp_begin"_a=cacheEventTimer.start_time(),
-							"timestamp_end"_a=cacheEventTimer.end_time());
+				cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+								"query_id"_a=context->getContextToken(),
+								"source"_a=this->input_.get_cache()->get_id(),
+								"sink"_a=this->get_id(),
+								"num_rows"_a=num_rows,
+								"num_bytes"_a=num_bytes,
+								"event_type"_a="removeCache",
+								"timestamp_begin"_a=cacheEventTimer.start_time(),
+								"timestamp_end"_a=cacheEventTimer.end_time());
+
+				output.emplace_back(std::move(temp_output));
+			}
 		}
 
 		return kstatus::stop;

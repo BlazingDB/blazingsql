@@ -70,7 +70,6 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass(
     'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
-
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -108,7 +107,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
     ralCommunicationPort = random.randint(10000, 32000) + ralId
 
     logging.info('Worker IP: %s   Port: %d', workerIp, ralCommunicationPort)
-    
+
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
@@ -170,8 +169,14 @@ def getNodePartitionKeys(df, client):
         if len(worker_part[key]) > 0:
             worker = worker_part[key][0]
             worker_partitions[worker].append(key)
-            
+
     return worker_partitions
+
+def get_element(query_partid):
+    worker = dask.distributed.get_worker()
+    df = worker.query_parts[query_partid]
+    del  worker.query_parts[query_partid]
+    return df
 
 def collectPartitionsRunQuery(
         masterIndex,
@@ -201,7 +206,7 @@ def collectPartitionsRunQuery(
                     tables[table_name].input.append(worker.data[key])
 
     try:
-        result = cio.runQueryCaller(
+        dfs = cio.runQueryCaller(
                             masterIndex,
                             nodes,
                             tables,
@@ -209,14 +214,27 @@ def collectPartitionsRunQuery(
                             ctxToken,
                             algebra,
                             accessToken,
-                            config_options)
+                            config_options,
+                            is_single_node=False)
     except cio.RunQueryError as e:
         print(">>>>>>>> ", e)
-        result = cudf.DataFrame()
+        result = [cudf.DataFrame()]
     except Exception as e:
         raise e
 
-    return result
+    meta = dask.dataframe.utils.make_meta(dfs[0])
+    query_partids = []
+
+    with worker._lock:
+        if not hasattr(worker, "query_parts"):
+            worker.query_parts = {}
+
+    for df in dfs:
+        query_partid = random.randint(0, np.iinfo(np.int32).max) # query_partid should be a unique identifier
+        worker.query_parts[query_partid] = df
+        query_partids.append(query_partid)
+
+    return query_partids, meta, worker.name
 
 def collectPartitionsPerformPartition(
         masterIndex,
@@ -226,7 +244,7 @@ def collectPartitionsPerformPartition(
         partition_keys_mapping,
         df_schema,
         by,
-        i):  
+        i):
     import dask.distributed
     worker = dask.distributed.get_worker()
     worker_id = nodes[i]['worker']
@@ -238,7 +256,7 @@ def collectPartitionsPerformPartition(
             for key in partition_keys:
                 node_inputs.append(worker.data[key])
             # TODO, eventually we want the engine side of the partition function to handle the table in parts
-            node_input = cudf.concat(node_inputs) 
+            node_input = cudf.concat(node_inputs)
         elif len(partition_keys) == 1:
             node_input = worker.data[partition_keys[0]]
         else:
@@ -601,7 +619,6 @@ class BlazingTable(object):
                     self.input, npartitions=convert_gdf_to_dask_partitions)
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
                 self.input = self.input.persist()
-                self.partition_keys_mapping = getNodePartitionKeys(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
 
@@ -660,15 +677,16 @@ class BlazingTable(object):
 # until this is implemented we cant do self join with arrow tables
 #    def unionColumns(self,otherTable):
 
-    def getDaskDataFrameKeySlices(self, nodes):
-        import copy 
+    def getDaskDataFrameKeySlices(self, nodes, client):
+        import copy
         nodeFilesList = []
+        partition_keys_mapping = getNodePartitionKeys(self.input, client)
         for node in nodes:
-            # here we are making a shallow copy of the table and getting rid of the reference for the dask.cudf.DataFrame 
+            # here we are making a shallow copy of the table and getting rid of the reference for the dask.cudf.DataFrame
             # since we dont want to send that to dask wokers. You dont want to send a distributed object to individual workers
             table = copy.copy(self)
-            if node['worker'] in self.partition_keys_mapping:
-                table.partition_keys = self.partition_keys_mapping[node['worker']]
+            if node['worker'] in partition_keys_mapping :
+                table.partition_keys = partition_keys_mapping [node['worker']]
                 table.input = []
             else:
                 table.input = [table.input._meta]
@@ -1045,7 +1063,7 @@ class BlazingContext(object):
             print("Error found")
             print(algebra)
             algebra=""
-            
+
         return algebra
 
     def add_remove_table(self, tableName, addTable, table=None):
@@ -1405,7 +1423,7 @@ class BlazingContext(object):
 
     def _optimize_with_skip_data_getSlices(self, current_table, scan_table_query,single_gpu):
         nodeFilesList = []
-        
+
         try:
             file_indices_and_rowgroup_indices = cio.runSkipDataCaller(current_table, scan_table_query)
         except cio.RunSkipDataError as e:
@@ -1415,7 +1433,7 @@ class BlazingContext(object):
             file_indices_and_rowgroup_indices['metadata'] = cudf.DataFrame()
         except Exception as e:
             raise e
-        
+
         skipdata_analysis_fail = file_indices_and_rowgroup_indices['skipdata_analysis_fail']
         file_indices_and_rowgroup_indices = file_indices_and_rowgroup_indices['metadata']
 
@@ -1494,7 +1512,7 @@ class BlazingContext(object):
 
     def partition(self, input, by=[]):
         masterIndex = 0
-        ctxToken = random.randint(0, 64000)
+        ctxToken = random.randint(0, np.iinfo(np.int32).max)
 
         if self.dask_client is None:
             print("Not supported...")
@@ -1604,8 +1622,8 @@ class BlazingContext(object):
             return
 
         if len(config_options) == 0:
-            query_config_options = self.config_options 
-        else:        
+            query_config_options = self.config_options
+        else:
             query_config_options = {}
             for option in config_options:
                 query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
@@ -1639,11 +1657,12 @@ class BlazingContext(object):
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
                 if single_gpu == True:
                     #TODO: repartition onto the node that does the work
-                    if new_tables[table].input.npartitions != 1:
-                        new_tables[table].input = new_tables[table].input.repartition(npartitions=1)
-                        new_tables[table].input = new_tables[table].input.persist()
-                
-                currentTableNodes = new_tables[table].getDaskDataFrameKeySlices(self.nodes)
+
+                    currentTableNodes = []
+                    for node in self.nodes:
+                        currentTableNodes.append(new_tables[table])
+                else:
+                    currentTableNodes = new_tables[table].getDaskDataFrameKeySlices(self.nodes,self.dask_client)
 
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
@@ -1655,7 +1674,7 @@ class BlazingContext(object):
             for j, nodeList in enumerate(nodeTableList):
                 nodeList[table] = currentTableNodes[j]
 
-        ctxToken = random.randint(0, 64000)
+        ctxToken = random.randint(0, np.iinfo(np.int32).max)
         accessToken = 0
         if (len(table_list) > 0):
             print("NOTE: You no longer need to send a table list to the .sql() funtion")
@@ -1672,7 +1691,8 @@ class BlazingContext(object):
                             ctxToken,
                             algebra,
                             accessToken,
-                            query_config_options)
+                            query_config_options,
+                            is_single_node=True)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
                 result = cudf.DataFrame()
@@ -1682,7 +1702,7 @@ class BlazingContext(object):
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
                 #an array of dask_futures or a df, this makes it consistent
-                result = [self.dask_client.submit(
+                dask_futures = [self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
                         [self.nodes[0],],
@@ -1711,10 +1731,18 @@ class BlazingContext(object):
                             query_config_options,
                             workers=[worker]))
                     i = i + 1
-                if(return_futures):
-                    result  = dask_futures
-                else:
-                    result = dask.dataframe.from_delayed(dask_futures) # this is not necessarily materialized
+
+            if(return_futures):
+                result  = dask_futures
+            else:
+                meta_results = self.dask_client.gather(dask_futures)
+
+                futures = []
+                for query_partids, meta, worker_id in meta_results:
+                    for query_partid in query_partids:
+                        futures.append(self.dask_client.submit(get_element, query_partid, workers=[worker_id]))
+
+                result = dask.dataframe.from_delayed(futures, meta=meta)
         return result
 
     # END SQL interface
