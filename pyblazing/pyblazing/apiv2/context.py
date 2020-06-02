@@ -194,9 +194,7 @@ def collectPartitionsRunQuery(
     for table_name in tables:
         if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
             if single_gpu:
-                #print("about to get parts")
                 tables[table_name].input = [tables[table_name].input.compute()]
-                #print("got parts")
             else:
                 print("ERROR: collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
                 logging.error("collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
@@ -621,7 +619,6 @@ class BlazingTable(object):
                     self.input, npartitions=convert_gdf_to_dask_partitions)
             if(isinstance(self.input, dask_cudf.core.DataFrame)):
                 self.input = self.input.persist()
-                self.partition_keys_mapping = getNodePartitionKeys(self.input, client)
         self.uri_values = uri_values
         self.in_file = in_file
 
@@ -680,15 +677,16 @@ class BlazingTable(object):
 # until this is implemented we cant do self join with arrow tables
 #    def unionColumns(self,otherTable):
 
-    def getDaskDataFrameKeySlices(self, nodes):
+    def getDaskDataFrameKeySlices(self, nodes, client):
         import copy
         nodeFilesList = []
+        partition_keys_mapping = getNodePartitionKeys(self.input, client)
         for node in nodes:
             # here we are making a shallow copy of the table and getting rid of the reference for the dask.cudf.DataFrame
             # since we dont want to send that to dask wokers. You dont want to send a distributed object to individual workers
             table = copy.copy(self)
-            if node['worker'] in self.partition_keys_mapping:
-                table.partition_keys = self.partition_keys_mapping[node['worker']]
+            if node['worker'] in partition_keys_mapping :
+                table.partition_keys = partition_keys_mapping [node['worker']]
                 table.input = []
             else:
                 table.input = [table.input._meta]
@@ -1659,11 +1657,12 @@ class BlazingContext(object):
             elif(new_tables[table].fileType == DataType.DASK_CUDF):
                 if single_gpu == True:
                     #TODO: repartition onto the node that does the work
-                    if new_tables[table].input.npartitions != 1:
-                        new_tables[table].input = new_tables[table].input.repartition(npartitions=1)
-                        new_tables[table].input = new_tables[table].input.persist()
 
-                currentTableNodes = new_tables[table].getDaskDataFrameKeySlices(self.nodes)
+                    currentTableNodes = []
+                    for node in self.nodes:
+                        currentTableNodes.append(new_tables[table])
+                else:
+                    currentTableNodes = new_tables[table].getDaskDataFrameKeySlices(self.nodes,self.dask_client)
 
             elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
                 currentTableNodes = []
@@ -1684,7 +1683,7 @@ class BlazingContext(object):
 
         if self.dask_client is None:
             try:
-                result = cio.runQueryCaller(
+                dask_futures = cio.runQueryCaller(
                             masterIndex,
                             self.nodes,
                             nodeTableList[0],
@@ -1733,17 +1732,17 @@ class BlazingContext(object):
                             workers=[worker]))
                     i = i + 1
 
-            if(return_futures):
-                result  = dask_futures
-            else:
-                meta_results = self.dask_client.gather(dask_futures)
+        if(return_futures):
+            result  = dask_futures
+        else:
+            meta_results = self.dask_client.gather(dask_futures)
 
-                futures = []
-                for query_partids, meta, worker_id in meta_results:
-                    for query_partid in query_partids:
-                        futures.append(self.dask_client.submit(get_element, query_partid, workers=[worker_id]))
+            futures = []
+            for query_partids, meta, worker_id in meta_results:
+                for query_partid in query_partids:
+                    futures.append(self.dask_client.submit(get_element, query_partid, workers=[worker_id]))
 
-                result = dask.dataframe.from_delayed(futures, meta=meta)
+            result = dask.dataframe.from_delayed(futures, meta=meta)
         return result
 
     # END SQL interface
