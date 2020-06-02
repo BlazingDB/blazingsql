@@ -20,7 +20,6 @@
 #674 Allow to define and use a specific AWS S3 region
 #677 added guava to pom.xml
 #679 Support modern compilers (>= g++-7.x)
-#6449 Adding event logging
 #649 Adding event logging
 #660 Changed how we handle the partitions of a dask.cudf.DataFrame
 #697 Update expression parser
@@ -33,3 +32,4 @@
 #725 Added nullptr check to num_rows()
 #729 Fixed issue with num_rows() and wait_for
 #728 Add replace_calcite_regex function to the join condition
+#721 Handling multi-partition output

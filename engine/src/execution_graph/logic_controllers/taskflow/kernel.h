@@ -19,8 +19,8 @@ using kernel_pair = std::pair<kernel *, std::string>;
 */
 class kernel {
 public:
-	kernel(std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel::kernel_count), context{context}, kernel_type_id{kernel_type_id} {
-		kernel::kernel_count++;
+	kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id} {
+
 		parent_id_ = -1;
 		has_limit_ = false;
 		limit_rows_ = -1;
@@ -187,7 +187,7 @@ public:
 	}
 
 protected:
-	static std::size_t kernel_count;
+
 
 public:
 	std::string expression;
