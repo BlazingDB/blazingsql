@@ -104,12 +104,33 @@ bool GoogleCloudStorage::Private::exists(const Uri & uri) const {
 	const std::string bucketName = this->getBucketName();
 	// TODO here we are removing the first "/" char so we create a Google Cloud Storage object key using the path ...
 	// improve this code
-	const std::string objectName = path.toString(true).substr(1, path.toString(true).size());
+	std::string objectName = path.toString(true).substr(1, path.toString(true).size());
 
 	StatusOr<gcs::ObjectMetadata> objectMetadata = this->gcsClient->GetObjectMetadata(bucketName, objectName);
 
-	if(!objectMetadata) {
-		return false;
+	if(objectMetadata) {
+		return true;
+	} else {
+		if(objectName[objectName.size() - 1] == '/') {  // if contains / at the end
+			const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
+			const Path pathWithRoot = uriWithRoot.getPath();
+			const Path folderPath = pathWithRoot.getPathWithNormalizedFolderConvention();
+		
+			// NOTE only files is always true basically so we dont check it this is until we implement bucket listing
+			// NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
+		
+			// TODO here we are removing the first "/" char so we create a S3 object key using the path ... improve this code
+			const std::string objectKey = folderPath.toString(true).substr(1, folderPath.toString(true).size());
+			const std::string bucket = this->getBucketName();
+		
+			auto objectsOutcome = this->gcsClient->ListObjects(bucket, gcs::Prefix(objectKey));
+		
+			if(objectsOutcome.begin() != objectsOutcome.end()) {
+				return true;
+			} else {
+				return false;
+			}
+		}
 	}
 
 	return true;
@@ -163,8 +184,29 @@ FileStatus GoogleCloudStorage::Private::getFileStatus(const Uri & uri) const {
 			return fileStatus;
 		}
 	} else {
-		throw BlazingFileNotFoundException(uriWithRoot);
+		if(objectKey[objectKey.size() - 1] == '/') {  // if contains / at the end
+			const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
+			const Path pathWithRoot = uriWithRoot.getPath();
+			const Path folderPath = pathWithRoot.getPathWithNormalizedFolderConvention();
+		
+			// NOTE only files is always true basically so we dont check it this is until we implement bucket listing
+			// NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
+		
+			// TODO here we are removing the first "/" char so we create a S3 object key using the path ... improve this code
+			const std::string objectKey = folderPath.toString(true).substr(1, folderPath.toString(true).size());
+			const std::string bucket = this->getBucketName();
+		
+			auto objectsOutcome = this->gcsClient->ListObjects(bucket, gcs::Prefix(objectKey));
+		
+			if(objectsOutcome.begin() != objectsOutcome.end()) {
+				const FileStatus fileStatus(uri, FileType::DIRECTORY, 0);
+				return fileStatus;
+			}
+		}
 	}
+	
+	const FileStatus fileStatus(uri, FileType::UNDEFINED, 0);
+	return fileStatus;
 }
 
 std::vector<FileStatus> GoogleCloudStorage::Private::list(const Uri & uri, const FileFilter & filter) const {
@@ -324,6 +366,26 @@ std::vector<Uri> GoogleCloudStorage::Private::list(const Uri & uri, const std::s
 				if(pass) {
 					const Uri entry(uri.getScheme(), uri.getAuthority(), path);
 					response.push_back(entry);
+				}
+			}
+		}
+		
+		if (response.empty()) { // try again it might need to use a non prefix call
+			objectsOutcome = this->gcsClient->ListObjects(bucket); // NOTE HERE -> non prefix call
+			
+			for(auto && object_metadata : objectsOutcome) {
+				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
+				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
+				const Path path = Path("/" + object_metadata->name(), true)
+									  .getPathWithNormalizedFolderConvention();  // TODO percy avoid hardcoded string
+	
+				if(path != folderPath) {
+					const bool pass = WildcardFilter::match(path.toString(true), finalWildcard);
+	
+					if(pass) {
+						const Uri entry(uri.getScheme(), uri.getAuthority(), path);
+						response.push_back(entry);
+					}
 				}
 			}
 		}

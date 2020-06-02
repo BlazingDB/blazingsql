@@ -1,0 +1,1 @@
+ci/gpu/test.sh "$@"
