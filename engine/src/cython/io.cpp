@@ -25,6 +25,12 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::vector<std::string> arg_values,
 	std::vector<std::pair<std::string, cudf::type_id>> extra_columns,
 	bool ignore_missing_paths) {
+	
+	// sanitize and normalize paths
+	for (int i = 0; i < files.size(); ++i) {
+		files[i] = Uri(files[i]).toString(true);
+	}
+	
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
 	ral::io::ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
