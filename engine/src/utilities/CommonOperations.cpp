@@ -84,22 +84,22 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableV
 }
 
 
-std::vector<cudf::data_type> get_common_types(const std::vector<cudf::data_type> & types1, const std::vector<cudf::data_type> & types2){
+std::vector<cudf::data_type> get_common_types(const std::vector<cudf::data_type> & types1, const std::vector<cudf::data_type> & types2, bool strict){
 	RAL_EXPECTS(types1.size() == types2.size(), "In get_common_types: Mismatched number of columns");
 	std::vector<cudf::data_type> common_types(types1.size());
 	for(size_t j = 0; j < common_types.size(); j++) {
-		common_types[j] = get_common_type(types1[j], types2[j]);
+		common_types[j] = get_common_type(types1[j], types2[j], strict);
 	}
 	return common_types;
 }
 
 
-cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2) {
+cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bool strict) {
 	if(type1 == type2) {
 		return type1;
 	} else if((is_type_float(type1.id()) && is_type_float(type2.id())) || (is_type_integer(type1.id()) && is_type_integer(type2.id()))) {
 		return (cudf::size_of(type1) >= cudf::size_of(type2))	? type1	: type2;
-	} else if(is_date_type(type1.id()) && is_date_type(type2.id())) {
+	} else if(is_type_timestamp(type1.id()) && is_type_timestamp(type2.id())) {
 		// if they are both datetime, return the highest resolution either has
 		static constexpr std::array<cudf::data_type, 5> datetime_types = {
 			cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS},
@@ -114,8 +114,19 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2) {
 				return datetime_type;
 		}
 	}
-
-	RAL_FAIL("No common type between " + std::to_string(type1.id()) + " and " + std::to_string(type2.id()));
+	if (strict) {
+		RAL_FAIL("No common type between " + std::to_string(type1.id()) + " and " + std::to_string(type2.id()));
+	} else {
+		if(is_type_float(type1.id()) && is_type_integer(type2.id())) {
+			return type1;
+		} else if (is_type_float(type2.id()) && is_type_integer(type1.id())) {
+			return type2;
+		} else if (is_type_bool(type1.id()) && (is_type_integer(type2.id()) || is_type_float(type2.id()) || is_type_string(type2.id()) )){
+			return type2;
+		} else if (is_type_bool(type2.id()) && (is_type_integer(type1.id()) || is_type_float(type1.id()) || is_type_string(type1.id()) )){
+			return type1;
+		}
+	}
 }
 
 void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types) {
@@ -129,14 +140,14 @@ void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const s
 	table = std::make_unique<ral::frame::BlazingTable>(std::move(columns), table->names());	
 }
 
-std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns) {
+std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns, bool strict) {
 	if(columns.size() < 2) {
 		return columns;
 	}
 
 	cudf::data_type common_type = columns[0]->view().type();
 	for(size_t j = 1; j < columns.size(); j++) {
-		common_type = get_common_type(common_type, columns[j]->view().type());
+		common_type = get_common_type(common_type, columns[j]->view().type(), strict);
 	}
 
 	std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_out;

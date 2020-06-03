@@ -202,7 +202,7 @@ public:
 				std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_to_normalize;
 				columns_to_normalize.emplace_back(std::move(left_columns[this->left_column_indices[i]]));
 				columns_to_normalize.emplace_back(std::move(right_columns[this->right_column_indices[i]]));
-				std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalized_columns = ral::utilities::normalizeColumnTypes(std::move(columns_to_normalize));
+				std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalized_columns = ral::utilities::normalizeColumnTypes(std::move(columns_to_normalize), true);
 				left_columns[this->left_column_indices[i]] = std::move(normalized_columns[0]);
 				right_columns[this->right_column_indices[i]] = std::move(normalized_columns[1]);
 			}

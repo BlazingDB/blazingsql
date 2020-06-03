@@ -47,7 +47,8 @@ public:
         std::vector<cudf::data_type> data_types_a = batch_a->get_schema();
         std::vector<cudf::data_type> data_types_b = batch_b->get_schema();
 
-        std::vector<cudf::data_type> common_types = ral::utilities::get_common_types(data_types_a, data_types_b);
+        bool strict = false;
+        std::vector<cudf::data_type> common_types = ral::utilities::get_common_types(data_types_a, data_types_b, strict);
 
         if (!std::equal(common_types.cbegin(), common_types.cend(), data_types_a.cbegin(), data_types_a.cend())){
             auto decached = batch_a->decache();
