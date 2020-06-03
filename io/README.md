@@ -4,7 +4,7 @@
 
 The BlazingSQL IO Library is a C++ library that offer file system infertaces, access for cloud storages and other utilities.
 
-For more information about the BlazingSQL engine please see our [main repo](https://github.com/BlazingDB/pyBlazing). There you will find the following information:
+For more information about the BlazingSQL engine please see our [main repo](https://github.com/BlazingDB/blazingsql). There you will find the following information:
 - Getting started info
 - How to use BlazingSQL
 - Build instructions

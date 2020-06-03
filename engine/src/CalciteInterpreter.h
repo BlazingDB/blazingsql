@@ -15,7 +15,7 @@
 #include <blazingdb/manager/Context.h>
 using blazingdb::manager::Context;
 
-std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data_loader> input_loaders,
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::string logicalPlan,

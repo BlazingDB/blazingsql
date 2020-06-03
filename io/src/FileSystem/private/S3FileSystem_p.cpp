@@ -182,6 +182,7 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 	const std::string secretKey = fileSystemConnection.getConnectionProperty(ConnectionProperty::SECRET_KEY);
 	const std::string sessionToken = fileSystemConnection.getConnectionProperty(ConnectionProperty::SESSION_TOKEN);
 	const std::string endpointOverride = fileSystemConnection.getConnectionProperty(ConnectionProperty::ENDPOINT_OVERRIDE);
+	const std::string region = fileSystemConnection.getConnectionProperty(ConnectionProperty::REGION);
 
 	// TODO percy check valid conn properties: do this in the fs::isValidConn or inside fsConnection (get rid of strings
 	// map: that is a bad pattern)
@@ -191,19 +192,23 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 	}
 
 	RegionResult regionResult;
+	regionResult.valid = true;
+	regionResult.regionName = region;
 
-	if(credentials != nullptr){
-		regionResult = getRegion(bucketName, credentials, endpointOverride);
-	}else{
-		regionResult.regionName = "us-east-1";
-		regionResult.valid = true;
-	}
-
-	// TODO percy error handling
-	if(regionResult.valid == false) {
-		this->disconnect();
-		throw std::runtime_error(
-			"Error getting region from bucket " + bucketName + ". Filesystem " + fileSystemConnection.toString());
+	if (region.empty()) {
+		if(credentials != nullptr){
+			regionResult = getRegion(bucketName, credentials, endpointOverride);
+		}else{
+			regionResult.regionName = "us-east-1";
+			regionResult.valid = true;
+		}
+	
+		// TODO percy error handling
+		if(regionResult.valid == false) {
+			this->disconnect();
+			throw std::runtime_error(
+				"Error getting region from bucket " + bucketName + ". Filesystem " + fileSystemConnection.toString());
+		}
 	}
 
 	this->s3Client = make_s3_client(regionResult.regionName, credentials, endpointOverride, 60000, 30000);

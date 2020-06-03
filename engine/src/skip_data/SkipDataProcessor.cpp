@@ -257,8 +257,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         logger->error("|||{info}|||||",
                                     "info"_a="In process_skipdata_for_table. What: {}"_format(e.what()));
-        logger->flush();
-
+        
         return std::make_pair(nullptr, true);
     }
     filter_string = replace_calcite_regex(filter_string);
