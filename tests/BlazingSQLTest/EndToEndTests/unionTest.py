@@ -41,9 +41,25 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = "(select o_orderkey, o_custkey from orders where o_orderkey < 100) union all (select o_orderkey, o_custkey from orders where o_orderkey < 300 and o_orderkey >= 200) order by 2"
             runTest.run_query(bc, drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
         
-        #     print('TEST_03')
-        #     query = "(select o_orderkey, o_totalprice as key from orders where o_orderkey < 100) union all (select o_orderkey, o_custkey as keyy from orders where o_orderkey < 300 and o_orderkey >= 200) "
-        #     runTest2.run_query(drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
+            queryId = 'TEST_03'
+            query = "(select o_orderkey, o_totalprice as key from orders where o_orderkey < 100) union all (select o_orderkey, o_custkey as keyy from orders where o_orderkey < 300 and o_orderkey >= 200) "
+            runTest.run_query(bc, drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
+            
+            # this query is supported by BlazingSQL but not by drill
+            # queryId = 'TEST_04'
+            # query = """(select           o_orderkey,             null,  o_totalprice, cast(null as int), null,               null   from orders where o_orderkey < 100) 
+            # union all  (select  o_orderkey + 100.1 as o_orderkey, o_custkey as keyy,          null,     o_totalprice, null, cast(null as double) from orders where o_orderkey < 300 and o_orderkey >= 200) """
+            # runTest.run_query(bc, drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
+
+            queryId = 'TEST_05'
+            query = """(select                         o_orderkey,             100.1,  o_totalprice, cast(100 as float), 100,   1.1 from orders where o_orderkey < 100) 
+            union all  (select  o_orderkey + 100.1 as o_orderkey,   o_custkey as keyy,          10000,      o_totalprice,  101.1, 100 from orders where o_orderkey < 300 and o_orderkey >= 200) """
+            runTest.run_query(bc, drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
+
+            queryId = 'TEST_06'
+            query = """(select                       o_orderkey,                o_orderstatus,    o_orderstatus from orders where o_orderkey < 100) 
+            union all  (select o_orderkey + 100.1 as o_orderkey, SUBSTRING(o_orderstatus, 2, 4),  'hello work'   from orders where o_orderkey < 300 and o_orderkey >= 200) """
+            runTest.run_query(bc, drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
