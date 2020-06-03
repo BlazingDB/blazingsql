@@ -12,18 +12,40 @@ namespace io {
 
 using Buffer = std::basic_string<char>;
 
-struct PinnedBuffer {
+struct PinnedBufferData{
   std::size_t size;
   char *data;
+};
+struct PinnedBuffer {
+  PinnedBufferData * buffer;
+  PinnedBufferProvider * provider;
+
+  PinnedBuffer(PinnedBufferProvider * provider, PinnedBufferData * buffer){
+    this->provider = provider;
+    this->buffer = buffer;
+  }
+
+  virtual ~PinnedBuffer(){
+    this->provider.freeBuffer(this->buffer);
+  }
+
+  char * data(){
+    return this->buffer.data;
+  }
+
+  std::size_t size(){
+    return this->buffer
+  }
+
 };
 
 class PinnedBufferProvider {
 public:
   PinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
-  PinnedBuffer *getBuffer();
+  std::shared_ptr<PinnedBuffer> getBuffer();
 
-  void freeBuffer(PinnedBuffer *buffer);
+  void freeBuffer(PinnedBufferData *buffer);
 
   std::size_t sizeBuffers();
 

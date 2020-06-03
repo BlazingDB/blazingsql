@@ -12,28 +12,36 @@ namespace blazingdb {
 namespace transport {
 namespace io {
 
-size_t readFromSocket(void* fileDescriptor, char* buf, size_t nbyte) {
+void readFromSocket(void* fileDescriptor, char* buf, size_t nbyte) {
   zmq::socket_t* socket = (zmq::socket_t*)fileDescriptor;
   zmq::message_t msg;
   try {
     socket->recv(&msg);
+    if (buff == nullptr){
+      throw std::runtime_error("Attempted to write into a non initialized Pinned memory buffer when reading from Socket");
+    }
     memcpy(buf, msg.data(), nbyte);
-  } catch (std::exception& e) {
-    // std::cerr << e.what() << std::endl;
+  }catch (zmq::error_t & err) {
+    throw err;
+  }catch ( std::runtime_error& re){
+    throw re;
   }
-  return nbyte;
 }
 
-size_t writeToSocket(void* fileDescriptor, const char* buf, size_t nbyte, bool more) {
+void writeToSocket(void* fileDescriptor, const char* buf, size_t nbyte, bool more) {
   zmq::socket_t* socket = (zmq::socket_t*)fileDescriptor;
   zmq::message_t message(nbyte);
   try {
+    if (buff == nullptr){
+      throw std::runtime_error("Attempted to read from a non initialized Pinned memory buffer when writing to Socket");
+    }
     memcpy(message.data(), buf, nbyte);
     socket->send(message, more ? ZMQ_SNDMORE : 0);
-  } catch (std::exception& e) {
-    // std::cerr << e.what() << std::endl;
+  }catch (zmq::error_t & err) {
+    throw err;
+  }catch ( std::runtime_error& re){
+    throw re;
   }
-  return nbyte;
 }
 
 }  // namespace io

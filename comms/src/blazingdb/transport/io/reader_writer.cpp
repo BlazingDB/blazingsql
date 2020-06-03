@@ -199,7 +199,7 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
 
           if (buffer != nullptr) {
             std::lock_guard<std::mutex> lock(writeMutex);
-            std::size_t amountWritten = blazingdb::transport::io::writeToSocket(
+            blazingdb::transport::io::writeToSocket(
                 fileDescriptor, (char *)buffer->data, amountToWrite);
             writeIndex++;
             if (amountWritten != amountToWrite) {
@@ -230,7 +230,7 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
 }
 
 void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,
-                                          void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &tempReadAllocations) 
+                                          void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &tempReadAllocations)
 {
   std::vector<std::thread> allocationThreads(bufferSizes.size());
   std::vector<std::thread> readThreads(bufferSizes.size());
@@ -249,25 +249,19 @@ void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,
               ? buffer->size
               : bufferSizes[bufferIndex] - amountReadTotal;
 
-      std::size_t amountRead =
-          blazingdb::transport::io::readFromSocket(fileDescriptor, (char *)buffer->data, amountToRead);
+    blazingdb::transport::io::readFromSocket(fileDescriptor, (char *)buffer->data, amountToRead);
 
-      assert(amountRead == amountToRead);
-      if (amountRead != amountToRead) {
-        getPinnedBufferProvider().freeBuffer(buffer);
-        throw std::exception();
-      }
-      copyThreads.push_back(std::thread(
-          [&tempReadAllocations, &bufferSizes, &allocationThreads, bufferIndex,
-           buffer, amountRead, amountReadTotal, gpuNum]() {
-            cudaSetDevice(gpuNum);
-            cudaMemcpyAsync(tempReadAllocations[bufferIndex].data() + amountReadTotal,
-                            buffer->data, amountRead, cudaMemcpyHostToDevice,
-                            nullptr);
-            getPinnedBufferProvider().freeBuffer(buffer);
-            cudaStreamSynchronize(nullptr);
-          }));
-      amountReadTotal += amountRead;
+    copyThreads.push_back(blazingdbb::BlazingThread(
+        [&tempReadAllocations, &bufferSizes, &allocationThreads, bufferIndex,
+         buffer, amountToRead, amountReadTotal, gpuNum]() {
+          cudaSetDevice(gpuNum);
+          cudaMemcpyAsync(tempReadAllocations[bufferIndex].data() + amountReadTotal,
+                          buffer->data, amountToRead, cudaMemcpyHostToDevice,
+                          nullptr);
+          getPinnedBufferProvider().freeBuffer(buffer);
+          cudaStreamSynchronize(nullptr);
+      }));
+      amountReadTotal += amountToRead;
 
     } while (amountReadTotal < bufferSizes[bufferIndex]);
     for (std::size_t threadIndex = 0; threadIndex < copyThreads.size(); threadIndex++) {
@@ -295,26 +289,19 @@ void readBuffersIntoCPUTCP(std::vector<std::size_t> bufferSizes,
           (bufferSizes[bufferIndex] - amountReadTotal) > buffer->size
               ? buffer->size
               : bufferSizes[bufferIndex] - amountReadTotal;
+      blazingdb::transport::io::readFromSocket(fileDescriptor, (char *)buffer->data, amountToRead);
 
-      std::size_t amountRead =
-          blazingdb::transport::io::readFromSocket(fileDescriptor, (char *)buffer->data, amountToRead);
-
-      assert(amountRead == amountToRead);
-      if (amountRead != amountToRead) {
-        getPinnedBufferProvider().freeBuffer(buffer);
-        throw std::exception();
-      }
       copyThreads.push_back(std::thread(
           [&tempReadAllocations, &bufferSizes, &allocationThreads, bufferIndex,
-           buffer, amountRead, amountReadTotal, gpuNum]() {
+           buffer, amountToRead, amountReadTotal, gpuNum]() {
             cudaSetDevice(gpuNum);
             cudaMemcpyAsync((void *)tempReadAllocations[bufferIndex].data() + amountReadTotal,
-                            buffer->data, amountRead, cudaMemcpyHostToHost, // use cudaMemcpyHostToHost for lazy loading into gpu memory
+                            buffer->data, amountToRead, cudaMemcpyHostToHost, // use cudaMemcpyHostToHost for lazy loading into gpu memory
                             nullptr);
             getPinnedBufferProvider().freeBuffer(buffer);
             cudaStreamSynchronize(nullptr);
           }));
-      amountReadTotal += amountRead;
+      amountReadTotal += amountToRead;
 
     } while (amountReadTotal < bufferSizes[bufferIndex]);
     for (std::size_t threadIndex = 0; threadIndex < copyThreads.size(); threadIndex++) {
