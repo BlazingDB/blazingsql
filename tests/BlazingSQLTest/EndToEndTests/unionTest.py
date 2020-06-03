@@ -10,10 +10,9 @@ from Configuration import ExecutionMode
 
 queryType = 'Union' 
 
-def main(dask_client, drill, dir_data_file, bc, nRals):
+def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     
     start_mem = gpuMemory.capture_gpu_memory_usage()
-    
     
     def executionTest(): 
         tables = ["orders"]
@@ -45,11 +44,10 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = "(select o_orderkey, o_totalprice as key from orders where o_orderkey < 100) union all (select o_orderkey, o_custkey as keyy from orders where o_orderkey < 300 and o_orderkey >= 200) "
             runTest.run_query(bc, drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
             
-            # this query is supported by BlazingSQL but not by drill
-            # queryId = 'TEST_04'
-            # query = """(select           o_orderkey,             null,  o_totalprice, cast(null as int), null,               null   from orders where o_orderkey < 100) 
-            # union all  (select  o_orderkey + 100.1 as o_orderkey, o_custkey as keyy,          null,     o_totalprice, null, cast(null as double) from orders where o_orderkey < 300 and o_orderkey >= 200) """
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
+            queryId = 'TEST_04'
+            query = """(select           o_orderkey,             null,  o_totalprice, cast(null as int), null,               null   from orders where o_orderkey < 100) 
+            union all  (select  o_orderkey + 100.1 as o_orderkey, o_custkey as keyy,          null,     o_totalprice, null, cast(null as double) from orders where o_orderkey < 300 and o_orderkey >= 200) """
+            runTest.run_query(bc, spark, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
 
             queryId = 'TEST_05'
             query = """(select                         o_orderkey,             100.1,  o_totalprice, cast(100 as float), 100,   1.1 from orders where o_orderkey < 100) 
@@ -78,6 +76,7 @@ if __name__ == '__main__':
     nvmlInit()
 
     drill = "drill" #None
+    spark = "spark"
 
     compareResults = True
     if 'compare_results' in Settings.data['RunSettings']:
@@ -85,10 +84,13 @@ if __name__ == '__main__':
 
     if (Settings.execution_mode == ExecutionMode.FULL and compareResults == "true") or Settings.execution_mode == ExecutionMode.GENERATOR:
         # Create Table Drill ------------------------------------------------------------------------------------------------------
-        print("starting drill")
         from pydrill.client import PyDrill
         drill = PyDrill(host = 'localhost', port = 8047)
         cs.init_drill_schema(drill, Settings.data['TestSettings']['dataDirectory'])
+
+        # Create Table Spark ------------------------------------------------------------------------------------------------------
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data['TestSettings']['dataDirectory'])
 
     #Create Context For BlazingSQL
     
