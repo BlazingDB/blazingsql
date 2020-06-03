@@ -83,6 +83,17 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableV
 	return std::make_unique<ral::frame::BlazingTable>(std::move(empty), table.names());
 }
 
+
+std::vector<cudf::data_type> get_common_types(const std::vector<cudf::data_type> & types1, const std::vector<cudf::data_type> & types2){
+	RAL_EXPECTS(types1.size() == types2.size(), "In get_common_types: Mismatched number of columns");
+	std::vector<cudf::data_type> common_types(types1.size());
+	for(size_t j = 0; j < common_types.size(); j++) {
+		common_types[j] = get_common_type(types1[j], types2[j]);
+	}
+	return common_types;
+}
+
+
 cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2) {
 	if(type1 == type2) {
 		return type1;
@@ -105,6 +116,17 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2) {
 	}
 
 	RAL_FAIL("No common type between " + std::to_string(type1.id()) + " and " + std::to_string(type2.id()));
+}
+
+void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types) {
+	std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns = table->releaseBlazingColumns();
+	for (size_t i = 0; i < types.size(); i++){
+		if (!(columns[i]->view().type() == types[i])){
+			std::unique_ptr<CudfColumn> casted = cudf::cast(columns[i]->view(), types[i]);
+			columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted));			
+		}
+	}
+	table = std::make_unique<ral::frame::BlazingTable>(std::move(columns), table->names());	
 }
 
 std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns) {

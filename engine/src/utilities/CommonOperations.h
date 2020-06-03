@@ -18,6 +18,12 @@ std::unique_ptr<cudf::table> create_empty_table(const std::vector<cudf::type_id>
 
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const BlazingTableView & table);
 
+cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2);
+
+std::vector<cudf::data_type> get_common_types(const std::vector<cudf::data_type> & types1, const std::vector<cudf::data_type> & types2);
+
+void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types);
+
 std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns);
 
 int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table);
