@@ -1,0 +1,50 @@
+version: '2'
+
+networks:
+  custom:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.22.0.0/16
+        gateway: 172.22.0.1
+
+services:
+  kdc:
+    networks:
+      custom:
+        ipv4_address: 172.22.0.2
+    image: rommelbz/krb-testing
+    #build:
+    #    context: krb
+    #    dockerfile: Dockerfile
+    hostname: kdc.kerberos.com
+    environment:
+      REALM: ${HOSTNAME}
+      DOMAIN_REALM: kdc.kerberos.com
+    volumes:
+      - "/dev/urandom:/dev/random:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+
+  hadoop-secure:
+    networks:
+      custom:
+        ipv4_address: 172.22.0.3
+    image: rommelbz/hdfs-testing
+    #build:
+    #    context: hdfs
+    #    dockerfile: Dockerfile
+    depends_on:
+      - kdc
+    hostname: hadoop
+    domainname: docker.com
+    tty: true
+    extra_hosts:
+      - "kdc.kerberos.com kdc:172.22.0.2"
+    environment:
+      KRB_REALM: ${HOSTNAME}
+      DOMAIN_REALM: kdc.kerberos.com
+      FQDN: hadoop.docker.com
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./myconf:/conf_dir"

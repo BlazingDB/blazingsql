@@ -153,6 +153,7 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	ral::communication::network::Server::getInstance().registerContext(ctxToken);
 	
 	try {
+
 		CodeTimer eventTimer(true);
 		logger->info("{ral_id}|{query_id}|{start_time}|{plan}",
 									"ral_id"_a=queryContext.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
@@ -165,7 +166,6 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 		frames = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
 
 		std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
-
 		assert( frames.size()>0 );
 		result->names = frames[0]->names();
 		fix_column_names_duplicated(result->names);
@@ -242,6 +242,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		throw;
 	}
 }
+
 
 
 std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata, 

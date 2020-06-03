@@ -44,10 +44,12 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			.table_names = table_names,
 			.transform_operators_bigger_than_gpu = true
 		};
-		ral::batch::OutputKernel output(queryContext.clone());
 
-		auto query_graph = tree.build_batch_graph(logicalPlan);
-
+		auto query_graph_and_max_kernel_id = tree.build_batch_graph(logicalPlan);
+		auto query_graph = std::get<0>(query_graph_and_max_kernel_id);
+		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
+		ral::batch::OutputKernel output(max_kernel_id, queryContext.clone());
+		
 		logger->info("{query_id}|{step}|{substep}|{info}|||||",
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
@@ -92,8 +94,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 
 		if (query_graph->num_nodes() > 0) {
 			ral::cache::cache_settings cache_machine_config;
-			
-			cache_machine_config.type = queryContext.getTotalNodes() <= 1 ? ral::cache::CacheType::CONCATENATING : ral::cache::CacheType::SIMPLE;
+			cache_machine_config.type = queryContext.getTotalNodes() == 1 ? ral::cache::CacheType::CONCATENATING : ral::cache::CacheType::SIMPLE;
 			cache_machine_config.context = queryContext.clone();
 
 			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);

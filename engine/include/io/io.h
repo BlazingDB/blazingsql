@@ -59,6 +59,7 @@ struct S3 {
 	std::string secretKey;
 	std::string sessionToken;
 	std::string endpointOverride;
+	std::string region;
 };
 
 struct GCS {

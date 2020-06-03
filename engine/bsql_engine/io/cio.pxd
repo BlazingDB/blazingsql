@@ -57,10 +57,12 @@ cdef extern from "../include/io/io.h":
         vector[string]  names
         bool skipdata_analysis_fail
 
+
     cdef struct PartitionedResultSet:
         vector[unique_ptr[table]] cudfTables
         vector[string]  names
         bool skipdata_analysis_fail
+
 
     ctypedef enum DataType:
         UNDEFINED = 999,
@@ -103,6 +105,7 @@ cdef extern from "../include/io/io.h":
         string secretKey
         string sessionToken
         string endpointOverride
+        string region
 
 
     cdef struct GCS:

@@ -153,6 +153,7 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         s3.secretKey = str.encode(fs['secret_key'])
         s3.sessionToken = str.encode(fs['session_token'])
         s3.endpointOverride = str.encode(fs['endpoint_override'])
+        s3.region = str.encode(fs['region'])
         return cio.registerFileSystemS3( s3,  str.encode(root), str.encode(authority))
     if fs['type'] == 'gs':
         gcs.projectId = str.encode(fs['project_id'])
@@ -250,8 +251,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    df._rename_columns(decoded_names)
-
+    df._rename_columns(decoded_names)    
     return df
 
 cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, by):
@@ -287,6 +287,7 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
+    
     return df
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, bool is_single_node):
@@ -400,14 +401,13 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         decoded_names.append(names[i].decode('utf-8'))
 
     if is_single_node: # the engine returns a concatenated dataframe
-      df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[0]), decoded_names)._data)
-      return df
+        df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[0]), decoded_names)._data)
+        return df
     else: # the engine returns a vector of dataframes
-      dfs = []
-      for i in range(dereference(resultSet).cudfTables.size()):
-        dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
-      return dfs
-
+        dfs = []
+        for i in range(dereference(resultSet).cudfTables.size()):
+            dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
+        return dfs
 
 cpdef runSkipDataCaller(table, queryPy):
     cdef string query
@@ -445,8 +445,7 @@ cpdef runSkipDataCaller(table, queryPy):
           decoded_names.append(names[i].decode('utf-8'))
 
       df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-      return_object['metadata'] = df
-
+      return_object['metadata'] = df 
       return return_object
 
 cpdef getTableScanInfoCaller(logicalPlan,tables):

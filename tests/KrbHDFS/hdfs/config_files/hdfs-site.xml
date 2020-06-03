@@ -1,0 +1,206 @@
+<configuration>
+    <property>
+        <name>dfs.replication</name>
+        <value>1</value>
+    </property>
+    <property>
+         <name>dfs.permissions</name>
+         <value>true</value>
+         <description> If "true", enable permission checking in
+         HDFS. If "false", permission checking is turned
+         off, but all other behavior is
+         unchanged. Switching from one parameter value to the other does
+         not change the mode, owner or group of files or
+         directories. </description>
+    </property>
+
+    <property>
+         <name>dfs.permissions.supergroup</name>
+         <value>root</value>
+         <description>The name of the group of super-users.</description>
+    </property>
+
+    <property>
+         <name>dfs.namenode.handler.count</name>
+         <value>100</value>
+         <description>Added to grow Queue size so that more client connections are allowed</description>
+    </property>
+
+    <property>
+         <name>ipc.server.max.response.size</name>
+         <value>5242880</value>
+    </property>
+
+    <property>
+         <name>dfs.block.access.token.enable</name>
+         <value>true</value>
+         <description> If "true", access tokens are used as capabilities
+         for accessing datanodes. If "false", no access tokens are checked on
+         accessing datanodes. </description>
+    </property>
+
+    <property>
+         <name>dfs.namenode.kerberos.principal</name>
+         <value>nn/_HOST@EXAMPLE.COM</value>
+         <description> Kerberos principal name for the NameNode </description>
+    </property>
+
+    <property>
+         <name>dfs.secondary.namenode.kerberos.principal</name>
+         <value>nn/_HOST@EXAMPLE.COM</value>
+         <description>Kerberos principal name for the secondary NameNode.
+         </description>
+    </property>
+
+    <property>
+         <!--cluster variant -->
+         <name>dfs.secondary.http.address</name>
+         <value>HOSTNAME:50090</value>
+         <description>Address of secondary namenode web server</description>
+    </property>
+
+    <property>
+         <name>dfs.secondary.https.port</name>
+         <value>50490</value>
+         <description>The https port where secondary-namenode binds</description>
+    </property>
+
+    <property>
+         <name>dfs.web.authentication.kerberos.principal</name>
+         <value>HTTP/_HOST@EXAMPLE.COM</value>
+         <description> The HTTP Kerberos principal used by Hadoop-Auth in the HTTP endpoint.
+         The HTTP Kerberos principal MUST start with 'HTTP/' per Kerberos HTTP
+         SPNEGO specification.
+         </description>
+    </property>
+
+    <property>
+         <name>dfs.web.authentication.kerberos.keytab</name>
+         <value>/etc/security/keytabs/spnego.service.keytab</value>
+         <description>The Kerberos keytab file with the credentials for the HTTP
+         Kerberos principal used by Hadoop-Auth in the HTTP endpoint.
+         </description>
+    </property>
+
+    <property>
+         <name>dfs.datanode.kerberos.principal</name>
+         <value>dn/_HOST@EXAMPLE.COM</value>
+         <description>
+         The Kerberos principal that the DataNode runs as. "_HOST" is replaced by the real
+         host name.
+         </description>
+    </property>
+
+    <property>
+         <name>dfs.namenode.keytab.file</name>
+         <value>/etc/security/keytabs/nn.service.keytab</value>
+         <description>
+         Combined keytab file containing the namenode service and host
+         principals.
+         </description>
+    </property>
+
+    <property>
+         <name>dfs.secondary.namenode.keytab.file</name>
+         <value>/etc/security/keytabs/nn.service.keytab</value>
+         <description>
+         Combined keytab file containing the namenode service and host
+         principals.
+         </description>
+    </property>
+
+    <property>
+         <name>dfs.datanode.keytab.file</name>
+         <value>/etc/security/keytabs/dn.service.keytab</value>
+         <description>
+         The filename of the keytab file for the DataNode.
+         </description>
+    </property>
+
+    <property>
+         <name>dfs.https.port</name>
+         <value>50470</value>
+         <description>The https port where namenode binds</description>
+    </property>
+
+    <property>
+         <name>dfs.https.address</name>
+         <value>HOSTNAME:50470</value>
+         <description>The https address where namenode binds</description>
+    </property>
+
+    <property>
+         <name>dfs.datanode.data.dir.perm</name>
+         <value>750</value>
+         <description>The permissions that should be there on
+         dfs.data.dir directories. The datanode will not come up if the
+         permissions are different on existing dfs.data.dir directories. If
+         the directories don't exist, they will be created with this
+         permission.</description>
+    </property>
+
+    <property>
+         <name>dfs.access.time.precision</name>
+         <value>0</value>
+         <description>The access time for HDFS file is precise upto this
+         value.The default value is 1 hour. Setting a value of 0
+         disables access times for HDFS.
+         </description>
+    </property>
+
+    <property>
+         <name>dfs.cluster.administrators</name>
+         <value>root</value>
+         <description>ACL for who all can view the default servlets in the HDFS</description>
+    </property>
+
+    <property>
+         <name>ipc.server.read.threadpool.size</name>
+         <value>5</value>
+         <description></description>
+    </property>
+
+    <property>
+         <name>dfs.namenode.kerberos.internal.spnego.principal</name>
+         <value>${dfs.web.authentication.kerberos.principal}</value>
+    </property>
+
+    <property>
+         <name>dfs.secondary.namenode.kerberos.internal.spnego.principal</name>
+         <value>${dfs.web.authentication.kerberos.principal}</value>
+     </property>
+
+     <property>
+         <name>dfs.data.transfer.protection</name>
+         <value>authentication</value>
+     </property>
+     <property>
+         <name>dfs.encrypt.data.transfer</name>
+         <value>true</value>
+     </property>
+
+     <property>
+         <name>dfs.datanode.data.dir.perm</name>
+         <value>700</value>
+     </property>
+     <property>
+         <name>dfs.datanode.address</name>
+         <value>0.0.0.0:50010</value>
+     </property>
+     <property>
+         <name>dfs.datanode.https.address</name>
+         <value>0.0.0.0:50075</value>
+     </property>
+     <property>
+         <name>dfs.namenode.https-address</name>
+         <value>HOSTNAME:50470</value>
+     </property>
+     <property>
+         <name>dfs.http.policy</name>
+         <value>HTTPS_ONLY</value>
+     </property>
+     <property>
+         <name>dfs.client.https.need-auth</name>
+         <value>false</value>
+     </property>
+</configuration>

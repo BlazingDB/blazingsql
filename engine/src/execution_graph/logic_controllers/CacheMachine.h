@@ -27,6 +27,8 @@
 #include <bmr/BlazingMemoryResource.h>
 #include <spdlog/spdlog.h>
 #include "communication/CommunicationData.h"
+#include "CodeTimer.h"
+using namespace std::chrono_literals;
 
 namespace ral {
 namespace cache {
@@ -37,20 +39,16 @@ using namespace fmt::literals;
 /// \brief An enum type to represent the cache level ID
 enum class CacheDataType { GPU, CPU, LOCAL_FILE };
 
-std::vector<cudf::size_type> get_string_sizes(ral::frame::BlazingTableView table);
-
 /// \brief An interface which represent a CacheData
 class CacheData {
 public:
-	CacheData(CacheDataType cache_type, std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows, std::vector<cudf::size_type> col_string_sizes)
-		: cache_type(cache_type), col_names(col_names), schema(schema), n_rows(n_rows), col_string_sizes(col_string_sizes)
+	CacheData(CacheDataType cache_type, std::vector<std::string> col_names, std::vector<cudf::data_type> schema, size_t n_rows)
+		: cache_type(cache_type), col_names(col_names), schema(schema), n_rows(n_rows)
 	{
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> decache() = 0;
 
 	virtual size_t sizeInBytes() const = 0;
-	
-	cudf::size_type sizeStr(size_t i) const { return i < col_string_sizes.size() ? col_string_sizes[i] : 0; }
 
 	virtual ~CacheData() {}
 
@@ -70,8 +68,6 @@ public:
 protected:
 	CacheDataType cache_type;
 	std::vector<std::string> col_names;
-	// Stores the size in bytes for string columns
-	std::vector<cudf::size_type> col_string_sizes;
 	std::vector<cudf::data_type> schema;
 	size_t n_rows;
 };
@@ -80,7 +76,7 @@ protected:
 class GPUCacheData : public CacheData {
 public:
 	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table)
-		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows(), get_string_sizes(table->toBlazingTableView())),  data{std::move(table)} {}
+		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
 
@@ -95,14 +91,14 @@ private:
 /// \brief A specific class for a CacheData on CPU Memory
  class CPUCacheData : public CacheData {
  public:
- 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table) 
-		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows(), get_string_sizes(gpu_table->toBlazingTableView())) 
+ 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table)
+		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows())
 	{
 		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
  	}
 
 	CPUCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table)
-		: CacheData(CacheDataType::CPU, host_table->names(), host_table->get_schema(), host_table->num_rows(), std::vector<cudf::size_type>(host_table->num_columns())), host_table{std::move(host_table)}
+		: CacheData(CacheDataType::CPU, host_table->names(), host_table->get_schema(), host_table->num_rows()), host_table{std::move(host_table)}
 	{
 	}
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {
@@ -200,9 +196,20 @@ public:
 
 	bool empty() const { return this->message_queue_.size() == 0; }
 
-	message_ptr pop_or_wait() {
+	message_ptr pop_or_wait() {		
+		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
+		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+					auto logger = spdlog::get("batch_logger");
+					logger->warn("|||{info}|{duration}||||",
+										"info"_a="WaitingQueue pop_or_wait timed out",
+										"duration"_a=blazing_timer.elapsed_time());
+				}
+				return done_waiting;
+			})){}
+		
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -212,8 +219,19 @@ public:
 	}
 
 	bool wait_for_next() {
+		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst) or !this->empty(); });
+		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+					auto logger = spdlog::get("batch_logger");
+					logger->warn("|||{info}|{duration}||||",
+										"info"_a="WaitingQueue wait_for_next timed out",
+										"duration"_a=blazing_timer.elapsed_time());
+				}
+				return done_waiting;
+			})){}
+
 		if(this->empty()) {
 			return false;
 		}
@@ -226,19 +244,38 @@ public:
 	}
 
 	void wait_until_finished() {
+		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });
+		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, this] { 
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst); 
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+					auto logger = spdlog::get("batch_logger");
+					logger->warn("|||{info}|{duration}||||",
+										"info"_a="WaitingQueue wait_until_finished timed out",
+										"duration"_a=blazing_timer.elapsed_time());
+				}
+				return done_waiting;
+			})){}
 	}
 
 	message_ptr get_or_wait(std::string message_id) {
+		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [message_id, this] {
+		while(!condition_variable_.wait_for(lock, 60000ms, [message_id, &blazing_timer, this] {
 				auto result = std::any_of(this->message_queue_.cbegin(),
 							this->message_queue_.cend(), [&](auto &e) {
 								return e->get_message_id() == message_id;
 							});
-				return this->finished.load(std::memory_order_seq_cst) or result;
-		 });
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or result;
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+					auto logger = spdlog::get("batch_logger");
+					logger->warn("|||{info}|{duration}|message_id|{message_id}||",
+										"info"_a="WaitingQueue get_or_wait timed out",
+										"duration"_a=blazing_timer.elapsed_time(),
+										"message_id"_a=message_id);
+				}
+				return done_waiting;
+			})){}
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -259,8 +296,18 @@ public:
 	}
 
 	std::vector<message_ptr> get_all_or_wait() {
+		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] { return this->finished.load(std::memory_order_seq_cst); });
+		while(!condition_variable_.wait_for(lock, 60000ms,  [&blazing_timer, this] { 
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst); 
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+					auto logger = spdlog::get("batch_logger");
+					logger->warn("|||{info}|{duration}||||",
+										"info"_a="WaitingQueue get_all_or_wait timed out",
+										"duration"_a=blazing_timer.elapsed_time());
+				}
+				return done_waiting;
+			})){}
 		std::vector<message_ptr> response;
 		for(message_ptr & it : message_queue_) {
 			response.emplace_back(std::move(it));
