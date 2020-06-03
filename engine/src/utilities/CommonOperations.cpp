@@ -129,38 +129,26 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bo
 	}
 }
 
-void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types) {
+void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types, 
+		std::vector<cudf::size_type> column_indices) {
+	
+	if (column_indices.size() == 0){
+		RAL_EXPECTS(table->num_columns() == types.size(), "In normalize_types: table->num_columns() != types.size()");
+		column_indices.resize(table->num_columns());
+		std::iota(column_indices.begin(), column_indices.end(), 0);
+	} else {
+		RAL_EXPECTS(column_indices.size() == types.size(), "In normalize_types: column_indices.size() != types.size()");
+	}
 	std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns = table->releaseBlazingColumns();
-	for (size_t i = 0; i < types.size(); i++){
-		if (!(columns[i]->view().type() == types[i])){
-			std::unique_ptr<CudfColumn> casted = cudf::cast(columns[i]->view(), types[i]);
-			columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted));			
+	for (size_t i = 0; i < column_indices.size(); i++){
+		if (!(columns[column_indices[i]]->view().type() == types[i])){
+			std::unique_ptr<CudfColumn> casted = cudf::cast(columns[column_indices[i]]->view(), types[i]);
+			columns[column_indices[i]] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted));			
 		}
 	}
 	table = std::make_unique<ral::frame::BlazingTable>(std::move(columns), table->names());	
 }
 
-std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalizeColumnTypes(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns, bool strict) {
-	if(columns.size() < 2) {
-		return columns;
-	}
-
-	cudf::data_type common_type = columns[0]->view().type();
-	for(size_t j = 1; j < columns.size(); j++) {
-		common_type = get_common_type(common_type, columns[j]->view().type(), strict);
-	}
-
-	std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_out;
-	for(size_t j = 0; j < columns.size(); j++) {
-		if(columns[j]->view().type() == common_type) {
-			columns_out.emplace_back(std::move(columns[j]));
-		} else {
-			std::unique_ptr<CudfColumn> casted = cudf::cast(columns[j]->view(), common_type);
-			columns_out.emplace_back(std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted)));
-		}
-	}
-	return columns_out;
-}
 
 int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
 	if (table.num_rows() == 0){

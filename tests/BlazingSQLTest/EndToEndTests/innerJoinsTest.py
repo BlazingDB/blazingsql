@@ -75,6 +75,10 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = "select n1.n_nationkey, n2.n_nationkey from nation n1 inner join nation n2 on n1.n_nationkey = n2.n_nationkey"
             runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
+            queryId = 'TEST_10'
+            query = "select l.l_orderkey, l.l_linenumber, n.n_nationkey from lineitem as l inner join nation as n on l.l_orderkey = n.n_nationkey"
+            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
