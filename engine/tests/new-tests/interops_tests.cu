@@ -1,6 +1,5 @@
 #include <cudf/column/column_factories.hpp>
 #include <cudf/copying.hpp>
-#include <cudf/cudf.h>
 #include <cudf/datetime.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
@@ -11,6 +10,7 @@
 #include "from_cudf/cpp_tests/utilities/table_utilities.hpp"
 #include "from_cudf/cpp_tests/utilities/type_lists.hpp"
 #include "Interpreter/interpreter_cpp.h"
+#include <bmr/initializer.h>
 
 template <typename T>
 struct InteropsTestNumeric : public cudf::test::BaseFixture {
@@ -98,7 +98,7 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 
   cudf::test::expect_tables_equal(expected_table_view, out_table_view);
 }
-
+/*
 template <typename T>
 struct InteropsTestNumericDivZero : public cudf::test::BaseFixture {
   void SetUp() {
@@ -387,3 +387,4 @@ TEST_F(InteropsTestString, test_string)
 
   cudf::test::expect_tables_equal(expected_table_view, out_table_view);
 }
+*/
