@@ -26,7 +26,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
 			.strings_offsets_size = 0,
 			.size_in_bytes = 0};
         strcpy(col_transport.metadata.col_name, table_view.names().at(i).c_str());
-        
+
         if (column.size() == 0) {
             // do nothing
         } else if(column.type().id() == cudf::type_id::STRING) {
@@ -37,7 +37,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
 
                 if (str_col_view.size() + 1 == offsets_column.size()){
                     // this column does not come from a buffer than had been zero-copy partitioned
-                    
+
                     col_transport.strings_data = raw_buffers.size();
                     buffer_sizes.push_back(chars_column.size());
 					col_transport.size_in_bytes += chars_column.size();
@@ -69,7 +69,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
 					col_transport.size_in_bytes += col_transport.strings_data_size;
 
 					raw_buffers.push_back(chars_column.head<char>() + char_col_start_end.first);
-                    
+
                     col_transport.strings_offsets = raw_buffers.size();
                     col_transport.strings_offsets_size = new_offsets->size() * sizeof(int32_t);
                     buffer_sizes.push_back(col_transport.strings_offsets_size);
@@ -123,8 +123,6 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 	for(int index = 0; index < buffer_sizes.size(); ++index) {
 		std::basic_string<char> buffer;
 		buffer.resize(buffer_sizes[index]);
-		int currentDeviceId = 0; // TODO: CHECK device_id
-		cudaSetDevice(currentDeviceId);
 		cudaMemcpy((void *)buffer.data(), raw_buffers[index], buffer_sizes[index], cudaMemcpyHostToHost);
 		cpu_raw_buffers.emplace_back(buffer);
 	}
@@ -204,8 +202,6 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame:
 	for(int index = 0; index < raw_buffers.size(); ++index) {
 		auto buffer_sz = raw_buffers[index].size();
 		rmm::device_buffer dev_buffer(buffer_sz);
-		int currentDeviceId = 0; // TODO: CHECK device_id
-		cudaSetDevice(currentDeviceId);
 		cudaMemcpy((void *)dev_buffer.data(),
 			(const void *) raw_buffers[index].data(),
 			buffer_sz,
