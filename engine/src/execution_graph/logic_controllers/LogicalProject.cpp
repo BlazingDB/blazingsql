@@ -650,8 +650,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
 	auto max_left_it = std::max_element(left_inputs.begin(), left_inputs.end());
 	auto max_right_it = std::max_element(right_inputs.begin(), right_inputs.end());
 	auto max_out_it = std::max_element(outputs.begin(), outputs.end());
-    bool empty_plan = (left_inputs.size() + right_inputs.size() + outputs.size() == 0);
-    if (!empty_plan && std::max(std::max(*max_left_it, *max_right_it), *max_out_it) >= 64) {
+    if (!expr_tree_vector.empty() && std::max(std::max(*max_left_it, *max_right_it), *max_out_it) >= 64) {
         out_columns.clear();
         computed_columns.clear();
 
