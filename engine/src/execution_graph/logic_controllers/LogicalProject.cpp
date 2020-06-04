@@ -651,6 +651,9 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
 	auto max_right_it = std::max_element(right_inputs.begin(), right_inputs.end());
 	auto max_out_it = std::max_element(outputs.begin(), outputs.end());
     if (std::max(std::max(*max_left_it, *max_right_it), *max_out_it) >= 64) {
+        out_columns.clear();
+        computed_columns.clear();
+
         size_t const half_size = expressions.size() / 2;
         std::vector<std::string> split_lo(expressions.begin(), expressions.begin() + half_size);
         std::vector<std::string> split_hi(expressions.begin() + half_size, expressions.end());
