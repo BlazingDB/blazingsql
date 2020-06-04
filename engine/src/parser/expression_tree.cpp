@@ -21,12 +21,12 @@ lexer::lexer(const std::string & str)
 void lexer::advance(size_t offset) { pos_ += offset; }
 
 lexer::token lexer::next_token() {
-  // Discard whitespaces
-  while (pos_ < text_.size() && text_[pos_] == ' ') advance();
-
   if (pos_ >= text_.size()) {
     return {lexer::token_type::EOF_, ""};
   }
+
+  // Discard whitespaces
+  while (text_[pos_] == ' ') advance();
 
   if (text_[pos_] == '(') {
     advance();
@@ -83,7 +83,6 @@ lexer::token lexer::next_token() {
   char ch;
   do {
     ++len;
-    if (pos_ + len >= text_.size()) break;
     ch = text_[pos_ + len];
   } while (ch != '('
           && ch != ')'

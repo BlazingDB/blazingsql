@@ -15,20 +15,24 @@ namespace io {
 size_t readFromSocket(void* fileDescriptor, char* buf, size_t nbyte) {
   zmq::socket_t* socket = (zmq::socket_t*)fileDescriptor;
   zmq::message_t msg;
-
-  socket->recv(msg);
-  memcpy(buf, msg.data(), nbyte);
-
+  try {
+    socket->recv(&msg);
+    memcpy(buf, msg.data(), nbyte);
+  } catch (std::exception& e) {
+    // std::cerr << e.what() << std::endl;
+  }
   return nbyte;
 }
 
 size_t writeToSocket(void* fileDescriptor, const char* buf, size_t nbyte, bool more) {
   zmq::socket_t* socket = (zmq::socket_t*)fileDescriptor;
   zmq::message_t message(nbyte);
-
-  memcpy(message.data(), buf, nbyte);
-  socket->send(message, more ? zmq::send_flags::sndmore : zmq::send_flags::none);
-
+  try {
+    memcpy(message.data(), buf, nbyte);
+    socket->send(message, more ? ZMQ_SNDMORE : 0);
+  } catch (std::exception& e) {
+    // std::cerr << e.what() << std::endl;
+  }
   return nbyte;
 }
 
