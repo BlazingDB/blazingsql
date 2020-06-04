@@ -1055,6 +1055,7 @@ class BlazingContext(object):
         """
         try:
             algebra = str(self.generator.getRelationalAlgebraString(sql))
+            print(algebra)
         except jpype.JException as exception:
             algebra = ""
             print("SQL Parsing Error")

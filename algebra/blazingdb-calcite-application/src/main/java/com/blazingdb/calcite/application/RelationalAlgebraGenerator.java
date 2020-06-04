@@ -43,6 +43,21 @@ import org.apache.calcite.tools.Planner;
 import org.apache.calcite.tools.RelConversionException;
 import org.apache.calcite.tools.ValidationException;
 
+
+import org.apache.calcite.rel.metadata.RelMetadataQuery;
+import org.apache.calcite.plan.hep.HepRelVertex;
+import org.apache.calcite.util.graph.BreadthFirstIterator;
+import org.apache.calcite.util.graph.DefaultEdge;
+import org.apache.calcite.util.graph.DirectedGraph;
+import org.apache.calcite.util.graph.DefaultDirectedGraph;
+import org.apache.calcite.rel.RelWriter;
+import java.io.StringWriter;
+import java.io.PrintWriter;
+import org.apache.calcite.rel.externalize.RelWriterImpl;
+import org.apache.calcite.sql.SqlExplainLevel;
+import org.apache.calcite.sql.SqlExplainFormat;
+
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,7 +251,8 @@ public class RelationalAlgebraGenerator {
 		String response = "";
 
 		try {
-			response = RelOptUtil.toString(getRelationalAlgebra(sql));
+			RelNode optimizedPlan = getRelationalAlgebra(sql);
+			response = RelOptUtil.dumpPlan("", optimizedPlan, SqlExplainFormat.JSON, SqlExplainLevel.ALL_ATTRIBUTES);
 		}catch(SqlValidationException ex){
 			//System.out.println(ex.getMessage());
 			//System.out.println("Found validation err!");

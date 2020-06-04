@@ -256,7 +256,7 @@ public class BlazingRulesTest {
 
 		List<List<RelOptRule>> rulesSet = new ArrayList<List<RelOptRule>>();
 
-		List<RelOptRule> rules1 = Arrays.asList(ProjectFilterTransposeRule.INSTANCE);
+		List<RelOptRule> rules1 = Arrays.asList();
 			//FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN,
 			//FilterJoinRule.JoinConditionPushRule.JOIN,
 			//ProjectMergeRule.INSTANCE,
@@ -265,7 +265,6 @@ public class BlazingRulesTest {
 			//ProjectTableScanRule.INSTANCE);
 
 		rulesSet.add(rules1);
-
 
 		String sql = " WITH concat_table AS " +
 			"( " +
@@ -310,13 +309,17 @@ public class BlazingRulesTest {
 			System.out.println("non optimized\n");
 			System.out.println(RelOptUtil.toString(nonOptimizedPlan) + "\n");
 
-			for(int I = 0; I < rules.size(); I++) {
-				algebraGen.setRules(rules.subList(0, I + 1));
+			//for(int I = 0; I < rules.size(); I++) {
+				algebraGen.setRules(rules.subList(0, 0));
 				RelNode optimizedPlan = algebraGen.getOptimizedRelationalAlgebra(nonOptimizedPlan);
 
-				System.out.println("optimized by rule: " + rules.get(I).getClass().getName() + "\n");
+				//System.out.println(optimizedPlan.recomputeDigest());		// HepRelVertex(rel#94:LogicalSort.NONE.[0](input=HepRelVertex#93,sort0=$0,dir0=ASC))
+				//System.out.println(optimizedPlan.toString());				// rel#95:HepRelVertex(rel#94:LogicalSort.NONE.[0](input=HepRelVertex#93,sort0=$0,dir0=ASC))
+				//System.out.println(optimizedPlan.getId());
+				
+				System.out.println("optimized by rule: " + rules.get(0).getClass().getName() + "\n");
 				System.out.println(RelOptUtil.toString(optimizedPlan) + "\n");
-			}
+			//}
 		}
 	}
 	
