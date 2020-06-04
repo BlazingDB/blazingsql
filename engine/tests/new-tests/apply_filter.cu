@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <cudf/cudf.h>
 #include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
 #include <cudf/table/table_view.hpp>
 #include <cudf/sorting.hpp>
