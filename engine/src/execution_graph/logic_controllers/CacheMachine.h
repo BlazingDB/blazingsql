@@ -337,7 +337,7 @@ public:
 
 	~CacheMachine();
 
-	virtual void put(size_t index, std::unique_ptr<ral::frame::BlazingTable> table);
+	virtual void put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table);
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_or_wait(size_t index);
 

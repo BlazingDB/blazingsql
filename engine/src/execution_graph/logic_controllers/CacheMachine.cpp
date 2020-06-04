@@ -77,8 +77,6 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cach
 	logger = spdlog::get("batch_logger");
 	cache_events_logger = spdlog::get("cache_events_logger");
 
-	something_added = false;
-
 	std::shared_ptr<spdlog::logger> kernels_logger;
 	kernels_logger = spdlog::get("kernels_logger");
 
@@ -172,8 +170,8 @@ void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 	}
 }
 
-void CacheMachine::put(size_t index, std::unique_ptr<ral::frame::BlazingTable> table) {
-	this->addToCache(std::move(table), "A_" + std::to_string(this->get_id()) + "_" + std::to_string(index));
+void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table) {
+	this->addToCache(std::move(table), std::to_string(message_id));
 }
 
 void CacheMachine::clear() {
@@ -344,20 +342,10 @@ void CacheMachine::wait_until_finished() {
 
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index) {
-	std::string message_id = "A_" + std::to_string(this->get_id()) + "_" + std::to_string(index);
-	std::unique_ptr<message> message_data = waitingCache->get_or_wait(message_id);
+	std::unique_ptr<message> message_data = waitingCache->get_or_wait(std::to_string(index));
 	if (message_data == nullptr) {
 		return nullptr;
 	}
-
-	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
-								"duration"_a="",
-								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=message_data->get_data().num_rows());
 	
 	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
 	std::unique_lock<std::mutex> lock(flow_control_mutex);

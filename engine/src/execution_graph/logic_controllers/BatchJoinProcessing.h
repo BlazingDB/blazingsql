@@ -210,32 +210,6 @@ public:
 														left_join_types.cbegin(), left_join_types.cend());
 			this->normalize_right = !std::equal(this->join_column_common_types.cbegin(), this->join_column_common_types.cend(), 
 														right_join_types.cbegin(), right_join_types.cend());
-
-			if (this->normalize_left || this->normalize_right){
-				std::string info;
-				if (this->normalize_left) {
-					info += "Left table was normalized. ";
-				}
-				if (this->normalize_right) {
-					info += "Right table was normalized. ";
-				}
-				info += "Left types: ";
-				for (auto type : left_join_types)
-					info += std::to_string(type.id()) + ", ";
-				info += ". Right types: ";
-				for (auto type : right_join_types)
-					info += std::to_string(type.id()) + ", ";
-				info += ". Common types: ";
-				for (auto type : this->join_column_common_types)
-					info += std::to_string(type.id()) + ", ";
-				
-				logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
-									"query_id"_a=context->getContextToken(),
-									"step"_a=context->getQueryStep(),
-									"substep"_a=context->getQuerySubstep(),
-									"info"_a=info,
-									"kernel_id"_a=this->get_id());
-			}
 		}
 		if (this->normalize_left){
 			ral::utilities::normalize_types(left, this->join_column_common_types, this->left_column_indices);
