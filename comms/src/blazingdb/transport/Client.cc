@@ -42,8 +42,6 @@ public:
       : client_socket{ip, port} {}
   void Close() override { client_socket.close(); }
 
-  void SetDevice(int gpuId) override { this->gpuId = gpuId; }
-  
   bool notifyLastMessageEvent(const Message::MetaData &message_metadata) override {
     void* fd = client_socket.fd();
     zmq::socket_t* socket_ptr = (zmq::socket_t*)fd;
@@ -60,10 +58,6 @@ public:
     // receive the ok
     zmq::message_t local_message;
     auto success = socket_ptr->recv(local_message);
-    if (success.value() == false || local_message.size() == 0) {
-      std::cerr << "Client:   throw zmq::error_t()" << std::endl;
-      throw zmq::error_t();
-    }
 
     std::string end_message(static_cast<char*>(local_message.data()),
                             local_message.size());
@@ -100,7 +94,7 @@ public:
     blazingdb::transport::io::writeToSocket(fd, (char*)buffer_sizes.data(),
                                             sizeof(std::size_t) * buffer_sizes.size());
 
-    blazingdb::transport::io::writeBuffersFromGPUTCP(column_offsets, buffer_sizes, buffers, fd, gpuId);
+    blazingdb::transport::io::writeBuffersFromGPUTCP(column_offsets, buffer_sizes, buffers, fd);
     blazingdb::transport::io::writeToSocket(fd, "OK", 2, false);
 
     zmq::socket_t* socket_ptr = (zmq::socket_t*)fd;
@@ -112,10 +106,6 @@ public:
     // receive the ok
     zmq::message_t local_message;
     auto success = socket_ptr->recv(local_message);
-    if (success.value() == false || local_message.size() == 0) {
-      std::cerr << "Client:   throw zmq::error_t()" << std::endl;
-      throw zmq::error_t();
-    }
 
     std::string end_message(static_cast<char*>(local_message.data()),
                             local_message.size());
@@ -125,7 +115,6 @@ public:
 
 protected:
   blazingdb::network::TCPClientSocket client_socket;
-  int gpuId{0};
 };
 
 std::shared_ptr<Client> ClientTCP::Make(const std::string& ip, int16_t port) {

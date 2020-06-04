@@ -17,29 +17,18 @@ namespace network {
 class TCPServerSocket {
 public:
   TCPServerSocket(int tcp_port) : context(1) {
-    try {
-      socket = zmq::socket_t(context, ZMQ_REP);
-      auto connection = "tcp://*:" + std::to_string(tcp_port);
-      std::cout << "listening: " << connection << std::endl;
-      int linger = -1;
-      socket.setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
-      socket.bind(connection);
-
-    } catch (std::exception &e) {
-      std::cerr << e.what() << std::endl;
-    }
+    socket = zmq::socket_t(context, zmq::socket_type::rep);
+    auto connection = "tcp://*:" + std::to_string(tcp_port);
+    std::cout << "listening: " << connection << std::endl;
+    int linger = -1;
+    socket.setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
+    socket.bind(connection);
   }
 
   void run(std::function<void(void *)> handler) {
     while (context) {
       if (socket.connected()) {
         handler((void *)&socket);
-
-        //        uint64_t more_part;
-        //        size_t more_size = sizeof(more_part);
-        //
-        //        socket.getsockopt(ZMQ_RCVMORE, &more_part, &more_size);
-
       } else {
         break;
       }
@@ -59,15 +48,11 @@ private:
 class TCPClientSocket {
 public:
   TCPClientSocket(const std::string &tcp_host, int tcp_port) : context(1) {
-    try {
-      socket = zmq::socket_t(context, ZMQ_REQ);
-      auto connection = "tcp://" + tcp_host + ":" + std::to_string(tcp_port);
-      int linger = -1;
-      socket.setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
-      socket.connect(connection);
-    } catch (std::exception &e) {
-      std::cerr << e.what() << std::endl;
-    }
+    socket = zmq::socket_t(context, zmq::socket_type::req);
+    auto connection = "tcp://" + tcp_host + ":" + std::to_string(tcp_port);
+    int linger = -1;
+    socket.setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
+    socket.connect(connection);
   }
 
   void close() {
