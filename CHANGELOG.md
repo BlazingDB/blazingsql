@@ -35,3 +35,4 @@
 #721 Handling multi-partition output
 #740 Normalizing types for UNION ALL
 #744 Fix unit tests
+#743 Workaround for interops 64 index plan limitation
