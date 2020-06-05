@@ -1,6 +1,7 @@
 #pragma once
 #include <condition_variable>
 #include <mutex>
+#include <stack>
 #include <vector>
 #include "blazingdb/transport/ColumnTransport.h"
 #include <rmm/device_buffer.hpp>
@@ -12,23 +13,17 @@ namespace io {
 using Buffer = std::basic_string<char>;
 
 struct PinnedBuffer {
-  struct deleter {
-    void operator()(PinnedBuffer*);
-  };
-
   std::size_t size;
   char *data;
 };
 
 class PinnedBufferProvider {
 public:
-using pinned_buff_ptr = std::unique_ptr<PinnedBuffer, PinnedBuffer::deleter>;
-public:
   PinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
-  pinned_buff_ptr getBuffer();
+  PinnedBuffer *getBuffer();
 
-  void freeBuffer(pinned_buff_ptr buffer);
+  void freeBuffer(PinnedBuffer *buffer);
 
   std::size_t sizeBuffers();
 
@@ -37,9 +32,11 @@ public:
 private:
   void grow();
 
+  std::condition_variable cv;
+
   std::mutex inUseMutex;
 
-  std::vector<pinned_buff_ptr> buffers;
+  std::stack<PinnedBuffer *> buffers;
 
   std::size_t bufferSize;
 };
@@ -50,13 +47,14 @@ void setPinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
 void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
                             std::vector<std::size_t> bufferSizes,
-                            std::vector<const char *> buffers, void *fileDescriptor);
+                            std::vector<const char *> buffers, void *fileDescriptor,
+                            int gpuNum);
 
 void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,
-                                          void *fileDescriptor, std::vector<rmm::device_buffer> &);
+                                          void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &);
 
 void readBuffersIntoCPUTCP(std::vector<std::size_t> bufferSizes,
-                                          void *fileDescriptor, std::vector<Buffer> &);
+                                          void *fileDescriptor, int gpuNum, std::vector<Buffer> &);
 
 }  // namespace io
 }  // namespace transport

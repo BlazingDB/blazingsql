@@ -34,5 +34,4 @@
 #728 Add replace_calcite_regex function to the join condition
 #721 Handling multi-partition output
 #740 Normalizing types for UNION ALL
-#727 Use cudaMallocHost in PinnedBuffer
 #744 Fix unit tests
