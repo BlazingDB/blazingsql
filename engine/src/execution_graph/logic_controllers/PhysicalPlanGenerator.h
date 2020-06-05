@@ -55,6 +55,7 @@ struct tree_processor {
 			input_loaders.erase(input_loaders.begin() + table_index);
 			table_names.erase(table_names.begin() + table_index);
 			table_scans.erase(table_scans.begin() + table_index);
+			schemas.erase(schemas.begin() + table_index);
 
 		} else if (is_bindable_scan(expr)) {
 			size_t table_index = get_table_index(table_scans, expr);
@@ -63,6 +64,7 @@ struct tree_processor {
 			input_loaders.erase(input_loaders.begin() + table_index);
 			table_names.erase(table_names.begin() + table_index);
 			table_scans.erase(table_scans.begin() + table_index);
+			schemas.erase(schemas.begin() + table_index);
 
 		}  else if (is_single_node_partition(expr)) {
 			k = std::make_shared<PartitionSingleNodeKernel>(kernel_id,expr, kernel_context, query_graph);
