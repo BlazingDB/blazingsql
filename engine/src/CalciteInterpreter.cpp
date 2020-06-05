@@ -25,6 +25,7 @@ using namespace fmt::literals;
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
+	std::vector<std::string> table_scans,
 	std::string logicalPlan,
 	int64_t connection,
 	Context & queryContext)  {
@@ -42,6 +43,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			.input_loaders = input_loaders,
 			.schemas = schemas,
 			.table_names = table_names,
+			.table_scans = table_scans,
 			.transform_operators_bigger_than_gpu = true
 		};
 
