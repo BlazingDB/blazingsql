@@ -19,6 +19,7 @@ struct NodeMetaDataTCP {
 std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
+	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,
 	std::vector<std::vector<std::string>> tableSchemaCppArgKeys,
 	std::vector<std::vector<std::string>> tableSchemaCppArgValues,

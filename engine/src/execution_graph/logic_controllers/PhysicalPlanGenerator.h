@@ -36,6 +36,7 @@ struct tree_processor {
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 	std::vector<std::string> table_names;
+	std::vector<std::string> table_scans;
 	const bool transform_operators_bigger_than_gpu = false;
 
 	std::shared_ptr<kernel> make_kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<ral::cache::graph> query_graph) {
@@ -48,16 +49,20 @@ struct tree_processor {
 			k = std::make_shared<Filter>(kernel_id,expr, kernel_context, query_graph);
 
 		} else if ( is_logical_scan(expr) ) {
-			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
-			auto schema = this->schemas[table_index];
-			k = std::make_shared<TableScan>(kernel_id, expr, *loader, schema, kernel_context, query_graph);
+			size_t table_index = get_table_index(table_scans, expr);
+			k = std::make_shared<TableScan>(kernel_id, expr, this->input_loaders[table_index], this->schemas[table_index], kernel_context, query_graph);
+			// lets erase the input_loaders and corresponding table_name and table_scan so that if we have a repeated table_scan, we dont reuse it
+			input_loaders.erase(input_loaders.begin() + table_index);
+			table_names.erase(table_names.begin() + table_index);
+			table_scans.erase(table_scans.begin() + table_index);
 
 		} else if (is_bindable_scan(expr)) {
-			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
-			auto schema = this->schemas[table_index];
-			k = std::make_shared<BindableTableScan>(kernel_id, expr, *loader, schema, kernel_context, query_graph);
+			size_t table_index = get_table_index(table_scans, expr);
+			k = std::make_shared<BindableTableScan>(kernel_id, expr, this->input_loaders[table_index], this->schemas[table_index], kernel_context, query_graph);
+			// lets erase the input_loaders and corresponding table_name and table_scan so that if we have a repeated table_scan, we dont reuse it
+			input_loaders.erase(input_loaders.begin() + table_index);
+			table_names.erase(table_names.begin() + table_index);
+			table_scans.erase(table_scans.begin() + table_index);
 
 		}  else if (is_single_node_partition(expr)) {
 			k = std::make_shared<PartitionSingleNodeKernel>(kernel_id,expr, kernel_context, query_graph);

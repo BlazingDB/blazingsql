@@ -403,18 +403,15 @@ bool is_distribute_aggregate(std::string query_part) { return (query_part.find(L
 
 bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
-// Returns the index from table if exists
-size_t get_table_index(std::vector<std::string> table_names, std::string table_name) {
-	if(StringUtil::beginsWith(table_name, "main.")) {
-		table_name = table_name.substr(5);
+// Returns the index from table_scan if exists
+size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {
+	
+	for (size_t i = 0; i < table_scans.size(); i++){
+		if (StringUtil::contains(table_scans[i], table_scan)){
+			return i;
+		}
 	}
-
-	auto it = std::find(table_names.begin(), table_names.end(), table_name);
-	if(it != table_names.end()) {
-		return std::distance(table_names.begin(), it);
-	} else {
-		throw std::invalid_argument("table name does not exists ==>" + table_name);
-	}
+	throw std::invalid_argument("ERROR: get_table_index table_scan was not found ==>" + table_scan);	
 }
 
 // Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
