@@ -95,7 +95,7 @@ class blazing_allocation_mode(IntEnum):
 
 
 
-def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
+def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False, host_memory_quota=0.95
                       allocator="managed", pool=False,
 
                       initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
@@ -148,7 +148,8 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         workerIp.encode(),
         ralCommunicationPort,
         singleNode,
-        config_options)
+        config_options,
+        host_memory_quota)
     cwd = os.getcwd()
 
     return ralCommunicationPort, workerIp, cwd
@@ -825,6 +826,8 @@ class BlazingContext(object):
         for option in config_options:
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
+        host_memory_quota = 0.95
+
         if(dask_client is not None):
             if network_interface is None:
                 network_interface = 'eth0'
@@ -833,6 +836,12 @@ class BlazingContext(object):
             dask_futures = []
             masterIndex = 0
             i = 0
+
+            #Check if all workers are on the same machine
+            single_machine = len(set([value['host'] for key,value in self.dask_client.scheduler_info()["workers"].items()])) == 1
+            if not single_machine:
+                host_memory_quota = host_memory_quota / len(self.dask_client.scheduler_info()["workers"])
+
             for worker in list(self.dask_client.scheduler_info()["workers"]):
                 dask_futures.append(
                     self.dask_client.submit(
@@ -840,6 +849,7 @@ class BlazingContext(object):
                         ralId=i,
                         networkInterface=network_interface,
                         singleNode=False,
+                        host_memory_quota=host_memory_quota,
                         allocator=allocator,
                         pool=pool,
                         initial_pool_size=initial_pool_size,
@@ -865,7 +875,7 @@ class BlazingContext(object):
             logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
         else:
             ralPort, ralIp, cwd = initializeBlazing(
-                ralId=0, networkInterface='lo', singleNode=True,
+                ralId=0, networkInterface='lo', singleNode=True, host_memory_quota=host_memory_quota,
                 allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
                 enable_logging=enable_logging, config_options=self.config_options)
             node = {}

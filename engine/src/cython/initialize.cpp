@@ -86,7 +86,8 @@ void initialize(int ralId,
 	std::string ralHost,
 	int ralCommunicationPort,
 	bool singleNode,
-	std::map<std::string, std::string> config_options) {
+	std::map<std::string, std::string> config_options,
+	float host_memory_quota) {
   // ---------------------------------------------------------------------------
   // DISCLAIMER
   // TODO: Support proper locale support for non-US cases (percy)
@@ -109,6 +110,8 @@ void initialize(int ralId,
 	assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
+
+	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);

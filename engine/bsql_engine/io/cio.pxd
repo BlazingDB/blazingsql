@@ -163,7 +163,7 @@ cdef extern from "../include/engine/engine.h":
         TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h":
-    cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +raiseInitializeError
+    cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options, float host_memory_quota) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
     cdef void blazingSetAllocator(int allocation_mode, size_t initial_pool_size, vector[int] devices , bool enable_logging, map[string,string] config_options) except +raiseBlazingSetAllocatorError
 

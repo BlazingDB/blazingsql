@@ -116,8 +116,8 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
-    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options, float host_memory_quota) except *:
+    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options, host_memory_quota)
 
 cdef void finalizePython() except *:
     cio.finalize()
@@ -164,8 +164,8 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
 
-cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
-    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options, float host_memory_quota):
+    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options, host_memory_quota)
 
 cpdef finalizeCaller():
     finalizePython()
