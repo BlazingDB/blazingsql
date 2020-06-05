@@ -154,7 +154,7 @@ def main():
         unifyTablesTest.main(dask_client, drill, dir_data_file, bc, nRals)
     
     if runAllTests or ("unionTest" in targetTestGroups):
-        unionTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        unionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
     
     if runAllTests or ("useLimitTest" in targetTestGroups):
         useLimitTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
