@@ -195,20 +195,28 @@ public:
 
     // this function makes sure that the columns being joined are of the same type so that we can join them properly
 	void normalize(std::unique_ptr<ral::frame::BlazingTable> & left, std::unique_ptr<ral::frame::BlazingTable> & right){
-		std::vector<std::unique_ptr<ral::frame::BlazingColumn>> left_columns = left->releaseBlazingColumns();
-		std::vector<std::unique_ptr<ral::frame::BlazingColumn>> right_columns = right->releaseBlazingColumns();
-		for (size_t i = 0; i < this->left_column_indices.size(); i++){
-			if (left_columns[this->left_column_indices[i]]->view().type().id() != right_columns[this->right_column_indices[i]]->view().type().id()){
-			std::vector<std::unique_ptr<ral::frame::BlazingColumn>> columns_to_normalize;
-			columns_to_normalize.emplace_back(std::move(left_columns[this->left_column_indices[i]]));
-			columns_to_normalize.emplace_back(std::move(right_columns[this->right_column_indices[i]]));
-			std::vector<std::unique_ptr<ral::frame::BlazingColumn>> normalized_columns = ral::utilities::normalizeColumnTypes(std::move(columns_to_normalize));
-			left_columns[this->left_column_indices[i]] = std::move(normalized_columns[0]);
-			right_columns[this->right_column_indices[i]] = std::move(normalized_columns[1]);
+
+		if (this->join_column_common_types.size() == 0){
+			std::vector<cudf::data_type> left_types = left->get_schema();
+			std::vector<cudf::data_type> right_types = right->get_schema();
+			std::vector<cudf::data_type> left_join_types, right_join_types;
+			for (size_t i = 0; i < this->left_column_indices.size(); i++){
+				left_join_types.push_back(left_types[this->left_column_indices[i]]);
+				right_join_types.push_back(right_types[this->right_column_indices[i]]);
 			}
+			bool strict = true;
+			this->join_column_common_types = ral::utilities::get_common_types(left_join_types, right_join_types, strict);
+			this->normalize_left = !std::equal(this->join_column_common_types.cbegin(), this->join_column_common_types.cend(), 
+														left_join_types.cbegin(), left_join_types.cend());
+			this->normalize_right = !std::equal(this->join_column_common_types.cbegin(), this->join_column_common_types.cend(), 
+														right_join_types.cbegin(), right_join_types.cend());
 		}
-		left = std::make_unique<ral::frame::BlazingTable>(std::move(left_columns), left->names());
-		right = std::make_unique<ral::frame::BlazingTable>(std::move(right_columns), right->names());
+		if (this->normalize_left){
+			ral::utilities::normalize_types(left, this->join_column_common_types, this->left_column_indices);
+		}
+		if (this->normalize_right){
+			ral::utilities::normalize_types(right, this->join_column_common_types, this->right_column_indices);
+		}
 	}
 
 
@@ -447,6 +455,8 @@ private:
 	// parsed expression related parameters
 	std::string join_type;
 	std::vector<cudf::size_type> left_column_indices, right_column_indices;
+	std::vector<cudf::data_type> join_column_common_types;
+	bool normalize_left, normalize_right;
 	std::vector<std::string> result_names;
 };
 
