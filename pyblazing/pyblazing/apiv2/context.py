@@ -95,7 +95,7 @@ class blazing_allocation_mode(IntEnum):
 
 
 
-def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False, host_memory_quota=0.95
+def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False, host_memory_quota=0.95,
                       allocator="managed", pool=False,
 
                       initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
@@ -839,7 +839,7 @@ class BlazingContext(object):
 
             #Check if all workers are on the same machine
             single_machine = len(set([value['host'] for key,value in self.dask_client.scheduler_info()["workers"].items()])) == 1
-            if not single_machine:
+            if single_machine:
                 host_memory_quota = host_memory_quota / len(self.dask_client.scheduler_info()["workers"])
 
             for worker in list(self.dask_client.scheduler_info()["workers"]):
