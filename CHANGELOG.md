@@ -33,3 +33,4 @@
 #729 Fixed issue with num_rows() and wait_for
 #728 Add replace_calcite_regex function to the join condition
 #721 Handling multi-partition output
+#750 Each table scan now has its own data loader
