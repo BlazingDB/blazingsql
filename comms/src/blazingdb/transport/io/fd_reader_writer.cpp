@@ -17,7 +17,7 @@ void readFromSocket(void* fileDescriptor, char* buf, size_t nbyte) {
   zmq::message_t msg;
   try {
     socket->recv(&msg);
-    if (buff == nullptr){
+    if (buf == nullptr){
       throw std::runtime_error("Attempted to write into a non initialized Pinned memory buffer when reading from Socket");
     }
     memcpy(buf, msg.data(), nbyte);
@@ -32,7 +32,7 @@ void writeToSocket(void* fileDescriptor, const char* buf, size_t nbyte, bool mor
   zmq::socket_t* socket = (zmq::socket_t*)fileDescriptor;
   zmq::message_t message(nbyte);
   try {
-    if (buff == nullptr){
+    if (buf == nullptr){
       throw std::runtime_error("Attempted to read from a non initialized Pinned memory buffer when writing to Socket");
     }
     memcpy(message.data(), buf, nbyte);

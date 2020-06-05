@@ -16,6 +16,7 @@ struct PinnedBufferData{
   std::size_t size;
   char *data;
 };
+class PinnedBufferProvider;
 struct PinnedBuffer {
   PinnedBufferData * buffer;
   PinnedBufferProvider * provider;
@@ -25,16 +26,14 @@ struct PinnedBuffer {
     this->buffer = buffer;
   }
 
-  virtual ~PinnedBuffer(){
-    this->provider.freeBuffer(this->buffer);
-  }
+  virtual ~PinnedBuffer();
 
   char * data(){
-    return this->buffer.data;
+    return this->buffer->data;
   }
 
   std::size_t size(){
-    return this->buffer
+    return this->buffer->size;
   }
 
 };
@@ -58,7 +57,7 @@ private:
 
   std::mutex inUseMutex;
 
-  std::stack<PinnedBuffer *> buffers;
+  std::stack<PinnedBufferData *> buffers;
 
   std::size_t bufferSize;
 };
