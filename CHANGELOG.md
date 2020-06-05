@@ -34,3 +34,4 @@
 #728 Add replace_calcite_regex function to the join condition
 #721 Handling multi-partition output
 #744 Fix unit tests
+#743 Workaround for interops 64 index plan limitation
