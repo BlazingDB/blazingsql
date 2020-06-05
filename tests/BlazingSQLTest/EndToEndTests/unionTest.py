@@ -45,6 +45,10 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
         #     query = "(select o_orderkey, o_totalprice as key from orders where o_orderkey < 100) union all (select o_orderkey, o_custkey as keyy from orders where o_orderkey < 300 and o_orderkey >= 200) "
         #     runTest2.run_query(drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
 
+            queryId = 'TEST_07'
+            query = "(select o_orderkey, o_custkey from orders where o_orderkey < 100) union all (select o_orderkey, o_custkey from orders where o_orderkey < 300 and o_orderkey >= 200) order by 2"
+            runTest.run_query(bc, drill, query, queryId, queryType, worder, "o_orderkey", acceptable_difference, use_percentage, fileSchemaType)
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
