@@ -183,6 +183,7 @@ def collectPartitionsRunQuery(
         masterIndex,
         nodes,
         tables,
+        table_scans,
         fileTypes,
         ctxToken,
         algebra,
@@ -192,25 +193,26 @@ def collectPartitionsRunQuery(
 
     import dask.distributed
     worker = dask.distributed.get_worker()
-    for table_name in tables:
-        if(isinstance(tables[table_name].input, dask_cudf.core.DataFrame)):
+    for table_index in range(len(tables)):
+        if(isinstance(tables[table_index].input, dask_cudf.core.DataFrame)):
             if single_gpu:
-                tables[table_name].input = [tables[table_name].input.compute()]
+                tables[table_index].input = [tables[table_index].input.compute()]
             else:
                 print("ERROR: collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
                 logging.error("collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
 
-        if not single_gpu and hasattr(tables[table_name],'partition_keys'): # this is a dask cudf table
-            if len(tables[table_name].partition_keys) > 0:
-                tables[table_name].input = []
-                for key in tables[table_name].partition_keys:
-                    tables[table_name].input.append(worker.data[key])
+        if not single_gpu and hasattr(tables[table_index],'partition_keys'): # this is a dask cudf table
+            if len(tables[table_index].partition_keys) > 0:
+                tables[table_index].input = []
+                for key in tables[table_index].partition_keys:
+                    tables[table_index].input.append(worker.data[key])
 
     try:
         dfs = cio.runQueryCaller(
                             masterIndex,
                             nodes,
                             tables,
+                            table_scans,
                             fileTypes,
                             ctxToken,
                             algebra,
@@ -582,6 +584,7 @@ def adjust_due_to_missing_rowgroups(metadata, files):
 class BlazingTable(object):
     def __init__(
             self,
+            name,
             input,
             fileType,
             files=None,
@@ -596,6 +599,7 @@ class BlazingTable(object):
             force_conversion=False,
             metadata=None,
             row_groups_ids = []): # row_groups_ids, vector<vector<int>> one vector of row_groups per file
+        self.name = name
         self.fileType = fileType
         if fileType == DataType.ARROW:
             if force_conversion:
@@ -668,12 +672,12 @@ class BlazingTable(object):
                     columns.append(column)
             i = i + 1
         new_table = pyarrow.Table.from_arrays(columns,names=names)
-        new_table = BlazingTable(new_table,DataType.ARROW,force_conversion=True)
+        new_table = BlazingTable(self.name, new_table,DataType.ARROW,force_conversion=True)
 
         return new_table
 
     def convertForQuery(self):
-        return BlazingTable(self.arrow_table,DataType.ARROW,force_conversion=True)
+        return BlazingTable(self.name, self.arrow_table,DataType.ARROW,force_conversion=True)
 
 # until this is implemented we cant do self join with arrow tables
 #    def unionColumns(self,otherTable):
@@ -700,7 +704,7 @@ class BlazingTable(object):
         nodeFilesList = []
         if self.files is None:
             for i in range(0, numSlices):
-                nodeFilesList.append(BlazingTable(self.input, self.fileType))
+                nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
             return nodeFilesList
         remaining = len(self.files)
         startIndex = 0
@@ -713,7 +717,8 @@ class BlazingTable(object):
             if self.row_groups_ids is not None:
                 slice_row_groups_ids=self.row_groups_ids[startIndex: startIndex + batchSize]
 
-            bt = BlazingTable(self.input,
+            bt = BlazingTable(self.name, 
+                                self.input,
                                 self.fileType,
                                 files=tempFiles,
                                 calcite_to_file_indices=self.calcite_to_file_indices,
@@ -1223,13 +1228,13 @@ class BlazingContext(object):
             if (self.dask_client is not None):
                 input = cudf.DataFrame.from_arrow(input)
             else:
-                table = BlazingTable(
+                table = BlazingTable(table_name,
                 input,
                 DataType.ARROW)
 
         if isinstance(input, cudf.DataFrame):
             if (self.dask_client is not None):
-                table = BlazingTable(
+                table = BlazingTable(table_name,
                     input,
                     DataType.DASK_CUDF,
                     convert_gdf_to_dask=True,
@@ -1237,7 +1242,7 @@ class BlazingContext(object):
                         self.nodes),
                     client=self.dask_client)
             else:
-                table = BlazingTable(input, DataType.CUDF)
+                table = BlazingTable(table_name, input, DataType.CUDF)
         elif isinstance(input, list):
             input = resolve_relative_path(input)
 
@@ -1254,7 +1259,7 @@ class BlazingContext(object):
                 uri_values = []
 
             file_type = parsedSchema['file_type']
-            table = BlazingTable(
+            table = BlazingTable(table_name,
                 parsedSchema['files'],
                 file_type,
                 files=parsedSchema['files'],
@@ -1322,7 +1327,7 @@ class BlazingContext(object):
 
 
         elif isinstance(input, dask_cudf.core.DataFrame):
-            table = BlazingTable(
+            table = BlazingTable(table_name,
                 input,
                 DataType.DASK_CUDF,
                 client=self.dask_client)
@@ -1466,7 +1471,8 @@ class BlazingContext(object):
                     row_groups_ids.append(row_group_ids)
 
             if self.dask_client is None:
-                bt = BlazingTable(current_table.input,
+                bt = BlazingTable(current_table.name, 
+                                current_table.input,
                                 current_table.fileType,
                                 files=actual_files,
                                 calcite_to_file_indices=current_table.calcite_to_file_indices,
@@ -1483,7 +1489,8 @@ class BlazingContext(object):
                 if single_gpu:
                     all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(1, actual_files, uri_values, row_groups_ids)
                     i = 0
-                    bt = BlazingTable(current_table.input,
+                    bt = BlazingTable(current_table.name, 
+                                current_table.input,
                                 current_table.fileType,
                                 files=all_sliced_files[i],
                                 calcite_to_file_indices=current_table.calcite_to_file_indices,
@@ -1500,7 +1507,8 @@ class BlazingContext(object):
                     all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids = self._sliceRowGroups(len(self.nodes), actual_files, uri_values, row_groups_ids)
 
                     for i, node in enumerate(self.nodes):
-                        bt = BlazingTable(current_table.input,
+                        bt = BlazingTable(current_table.name, 
+                                    current_table.input,
                                     current_table.fileType,
                                     files=all_sliced_files[i],
                                     calcite_to_file_indices=current_table.calcite_to_file_indices,
@@ -1613,9 +1621,9 @@ class BlazingContext(object):
         """
         # TODO: remove hardcoding
         masterIndex = 0
-        nodeTableList = [{} for _ in range(len(self.nodes))]
+        nodeTableList = [[] for _ in range(len(self.nodes))]
         if single_gpu:
-            nodeTableList = [{},]
+            nodeTableList = [[],]
         fileTypes = []
 
         if (algebra is None):
@@ -1638,9 +1646,8 @@ class BlazingContext(object):
             for option in config_options:
                 query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
-
         if self.dask_client is None or single_gpu == True :
-            new_tables, relational_algebra_steps = cio.getTableScanInfoCaller(algebra,self.tables)
+            query_tables, table_scans = cio.getTableScanInfoCaller(algebra,self.tables)
         else:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
             connection = self.dask_client.submit(
@@ -1648,41 +1655,41 @@ class BlazingContext(object):
                 algebra,
                 self.tables,
                 workers=[worker])
-            new_tables, relational_algebra_steps = connection.result()
+            query_tables, table_scans = connection.result()
 
-        algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
-
-        for table in new_tables:
-            fileTypes.append(new_tables[table].fileType)
-            ftype = new_tables[table].fileType
+        # this was for ARROW tables which are currently deprecated
+        # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
+        
+        for table_idx, query_table in enumerate(query_tables):
+            fileTypes.append(query_table.fileType)
+            ftype = query_table.fileType
             if(ftype == DataType.PARQUET or ftype == DataType.ORC or ftype == DataType.JSON or ftype == DataType.CSV):
-                if new_tables[table].has_metadata():
-                    scan_table_query = relational_algebra_steps[table]['table_scans'][0]
-                    currentTableNodes = self._optimize_with_skip_data_getSlices(new_tables[table], scan_table_query,single_gpu)
+                if query_table.has_metadata():
+                    currentTableNodes = self._optimize_with_skip_data_getSlices(query_table, table_scans[table_idx], single_gpu)                    
                 else:
                     if single_gpu == True:
-                        currentTableNodes = new_tables[table].getSlices(1)
+                        currentTableNodes = query_table.getSlices(1)
                     else:
-                        currentTableNodes = new_tables[table].getSlices(len(self.nodes))
-            elif(new_tables[table].fileType == DataType.DASK_CUDF):
+                        currentTableNodes = query_table.getSlices(len(self.nodes))
+            elif(query_table.fileType == DataType.DASK_CUDF):
                 if single_gpu == True:
                     #TODO: repartition onto the node that does the work
 
                     currentTableNodes = []
                     for node in self.nodes:
-                        currentTableNodes.append(new_tables[table])
+                        currentTableNodes.append(query_table)
                 else:
-                    currentTableNodes = new_tables[table].getDaskDataFrameKeySlices(self.nodes,self.dask_client)
+                    currentTableNodes = query_table.getDaskDataFrameKeySlices(self.nodes,self.dask_client)
 
-            elif(new_tables[table].fileType == DataType.CUDF or new_tables[table].fileType == DataType.ARROW):
+            elif(query_table.fileType == DataType.CUDF or query_table.fileType == DataType.ARROW):
                 currentTableNodes = []
                 for node in self.nodes:
-                    if not isinstance(new_tables[table].input, list):
-                        new_tables[table].input = [new_tables[table].input]
-                    currentTableNodes.append(new_tables[table])
+                    if not isinstance(query_table.input, list):
+                        query_table.input = [query_table.input]
+                    currentTableNodes.append(query_table)
 
             for j, nodeList in enumerate(nodeTableList):
-                nodeList[table] = currentTableNodes[j]
+                nodeList.append(currentTableNodes[j])
 
         ctxToken = random.randint(0, np.iinfo(np.int32).max)
         accessToken = 0
@@ -1697,6 +1704,7 @@ class BlazingContext(object):
                             masterIndex,
                             self.nodes,
                             nodeTableList[0],
+                            table_scans,
                             fileTypes,
                             ctxToken,
                             algebra,
@@ -1717,6 +1725,7 @@ class BlazingContext(object):
                         masterIndex,
                         [self.nodes[0],],
                         nodeTableList[0],
+                        table_scans,
                         fileTypes,
                         ctxToken,
                         algebra,
@@ -1734,6 +1743,7 @@ class BlazingContext(object):
                             masterIndex,
                             self.nodes,
                             nodeTableList[i],
+                            table_scans,
                             fileTypes,
                             ctxToken,
                             algebra,

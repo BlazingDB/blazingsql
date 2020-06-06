@@ -121,6 +121,7 @@ void fix_column_names_duplicated(std::vector<std::string> & col_names){
 std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
+	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,
 	std::vector<std::vector<std::string>> tableSchemaCppArgKeys,
 	std::vector<std::vector<std::string>> tableSchemaCppArgValues,
@@ -163,7 +164,7 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 
 		// Execute query
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
-		frames = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+		frames = execute_plan(input_loaders, schemas, tableNames, tableScans, query, accessToken, queryContext);
 
 		std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
 		assert( frames.size()>0 );

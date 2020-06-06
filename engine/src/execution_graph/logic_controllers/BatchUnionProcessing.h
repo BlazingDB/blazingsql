@@ -47,20 +47,52 @@ public:
         std::vector<cudf::data_type> data_types_a = batch_a->get_schema();
         std::vector<cudf::data_type> data_types_b = batch_b->get_schema();
 
-        RAL_EXPECTS(std::equal(data_types_a.cbegin(), data_types_a.cend(), data_types_b.cbegin(), data_types_b.cend()), "In UnionKernel: Mismatched column types");
+        bool strict = false;
+        std::vector<cudf::data_type> common_types = ral::utilities::get_common_types(data_types_a, data_types_b, strict);
 
-        this->add_to_output_cache(std::move(batch_a));
-        this->add_to_output_cache(std::move(batch_b));
-
-        while (input_a.wait_for_next()) {
-            auto batch = input_a.next();
-            this->add_to_output_cache(std::move(batch));
+        if (!std::equal(common_types.cbegin(), common_types.cend(), data_types_a.cbegin(), data_types_a.cend())){
+            auto decached = batch_a->decache();
+            ral::utilities::normalize_types(decached, common_types);
+            this->add_to_output_cache(std::move(decached));
+        } else {
+            this->add_to_output_cache(std::move(batch_a));
+        }
+        if (!std::equal(common_types.cbegin(), common_types.cend(), data_types_b.cbegin(), data_types_b.cend())){
+            auto decached = batch_b->decache();
+            ral::utilities::normalize_types(decached, common_types);
+            this->add_to_output_cache(std::move(decached));
+        } else {
+            this->add_to_output_cache(std::move(batch_b));
         }
 
-        while (input_b.wait_for_next()) {
-            auto batch = input_b.next();
-            this->add_to_output_cache(std::move(batch));
-        }
+        BlazingThread left_thread([this, &input_a, common_types](){
+            std::unique_ptr<ral::cache::CacheData> batch;
+            while (batch = input_a.next()) {
+                std::vector<cudf::data_type> data_types = batch->get_schema();
+                if (!std::equal(common_types.cbegin(), common_types.cend(), data_types.cbegin(), data_types.cend())){
+                    auto decached = batch->decache();
+                    ral::utilities::normalize_types(decached, common_types);
+                    this->add_to_output_cache(std::move(decached));
+                } else {
+                    this->add_to_output_cache(std::move(batch));
+                }
+            }
+        });
+        BlazingThread right_thread([this, &input_b, common_types](){
+            std::unique_ptr<ral::cache::CacheData> batch;
+            while (batch = input_b.next()) {
+                std::vector<cudf::data_type> data_types = batch->get_schema();
+                if (!std::equal(common_types.cbegin(), common_types.cend(), data_types.cbegin(), data_types.cend())){
+                    auto decached = batch->decache();
+                    ral::utilities::normalize_types(decached, common_types);
+                    this->add_to_output_cache(std::move(decached));
+                } else {
+                    this->add_to_output_cache(std::move(batch));
+                }
+            }
+        });
+        left_thread.join();
+        right_thread.join();
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),

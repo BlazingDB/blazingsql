@@ -18,6 +18,7 @@ using blazingdb::manager::Context;
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
+	std::vector<std::string> table_scans,
 	std::string logicalPlan,
 	int64_t connection,
 	Context & queryContext);
