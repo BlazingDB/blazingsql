@@ -1519,29 +1519,29 @@ class BlazingContext(object):
                 return current_table.getSlices(len(self.nodes))
 
 
-     """
-        Partition a dask_cudf DataFrame based on one or more columns.
+    """
+    Partition a dask_cudf DataFrame based on one or more columns.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        input : the dask_cudf.DataFrame you want to partition
-        by : a list of strings of the column names by which you want to partition.
+    input : the dask_cudf.DataFrame you want to partition
+    by : a list of strings of the column names by which you want to partition.
 
-        Examples
-        --------
+    Examples
+    --------
 
-        >>> bc = BlazingContext(dask_client=client)
-        >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
-        >>> query_1= "SELECT pr_item_sk, pr_review_content, pr_review_sk FROM product_reviews where pr_review_content IS NOT NULL"
-        >>> product_reviews_df = bc.sql(query_1)
-        >>> product_reviews_df = bc.partition(product_reviews_df, 
-                                  by=["pr_item_sk", 
-                                      "pr_review_content", 
-                                      "pr_review_sk"])
-        >>> sentences = product_reviews_df.map_partitions(create_sentences_from_reviews)
+    >>> bc = BlazingContext(dask_client=client)
+    >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
+    >>> query_1= "SELECT pr_item_sk, pr_review_content, pr_review_sk FROM product_reviews where pr_review_content IS NOT NULL"
+    >>> product_reviews_df = bc.sql(query_1)
+    >>> product_reviews_df = bc.partition(product_reviews_df, 
+                                by=["pr_item_sk", 
+                                    "pr_review_content", 
+                                    "pr_review_sk"])
+    >>> sentences = product_reviews_df.map_partitions(create_sentences_from_reviews)
 
-        """
+    """
     def partition(self, input, by=[]):
         masterIndex = 0
         ctxToken = random.randint(0, np.iinfo(np.int32).max)
