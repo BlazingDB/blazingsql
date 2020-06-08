@@ -145,7 +145,6 @@ public:
     }
 
 	size_t get_memory_used() {
-		// std::cout << "blazing_device_memory_resource: " << initialized_resource->get_memory_used() << std::endl; 
 		return initialized_resource->get_memory_used();
 	}
 
@@ -157,8 +156,6 @@ public:
         return initialized_resource->get_from_driver_available_memory();
     }
 	size_t get_memory_limit() {
-		// JUST FOR DEBUGGING: 
-        // return 5*6511224;
 		return initialized_resource->get_memory_limit() ;
     }
 
@@ -288,7 +285,6 @@ public:
         total_memory_size = (size_t)si.freeram;
         used_memory_size = 0;
         memory_limit = custom_threshold * total_memory_size;
-        // std::cout << "@@ memory_limit: " << memory_limit << "| used_memory" << used_memory_size << std::endl;
 	}
 
 	virtual ~internal_blazing_host_memory_resource() = default;

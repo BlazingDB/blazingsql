@@ -794,6 +794,9 @@ class BlazingContext(object):
                                     BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource
                                             will consider to be full
                                             default: 0.95
+                                    BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total host memory that the memory resource
+                                            will consider to be full
+                                            default: 0.95
 
         Examples
         --------
@@ -832,6 +835,8 @@ class BlazingContext(object):
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
         host_memory_quota = 0.95
+        if "BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD" in config_options:
+            host_memory_quota = config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]
 
         if(dask_client is not None):
             if network_interface is None:
