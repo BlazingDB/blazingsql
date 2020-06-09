@@ -145,7 +145,6 @@ public:
     }
 
 	size_t get_memory_used() {
-		// std::cout << "blazing_device_memory_resource: " << initialized_resource->get_memory_used() << std::endl; 
 		return initialized_resource->get_memory_used();
 	}
 
@@ -157,8 +156,6 @@ public:
         return initialized_resource->get_from_driver_available_memory();
     }
 	size_t get_memory_limit() {
-		// JUST FOR DEBUGGING: 
-        // return 5*6511224;
 		return initialized_resource->get_memory_limit() ;
     }
 
@@ -276,15 +273,10 @@ private:
 /**
 	@brief This class represents a custom host memory resource used in the cache system.
 */
-class blazing_host_memory_mesource : public BlazingMemoryResource{
+class internal_blazing_host_memory_resource{
 public:
-    static blazing_host_memory_mesource& getInstance(){
-        // Myers' singleton. Thread safe and unique. Note: C++11 required.
-        static blazing_host_memory_mesource instance;
-        return instance;
-    }
 	// TODO: percy,cordova. Improve the design of get memory in real time 
-	blazing_host_memory_mesource(float custom_threshold = 0.95) 
+	internal_blazing_host_memory_resource(float custom_threshold) 
     {
 		struct sysinfo si;
 		if (sysinfo(&si) < 0) {
@@ -293,10 +285,9 @@ public:
         total_memory_size = (size_t)si.freeram;
         used_memory_size = 0;
         memory_limit = custom_threshold * total_memory_size;
-        // std::cout << "@@ memory_limit: " << memory_limit << "| used_memory" << used_memory_size << std::endl;
 	}
 
-	virtual ~blazing_host_memory_mesource() = default;
+	virtual ~internal_blazing_host_memory_resource() = default;
 
     // TODO
     void allocate(std::size_t bytes)  {
@@ -316,17 +307,15 @@ public:
         return used_memory_size;
     }
 
-	size_t get_memory_used() override {
+	size_t get_memory_used() {
 		return used_memory_size;
 	}
 
-	size_t get_total_memory() override {
+	size_t get_total_memory() {
 		return total_memory_size;
 	}
 
     size_t get_memory_limit() {
-        // JUST FOR DEBUGGING: return 6586224;
-        // return 6511224;
         return memory_limit;
     }
 
@@ -336,6 +325,104 @@ private:
 	std::atomic<std::size_t> used_memory_size;
 };
 
+/** -------------------------------------------------------------------------*
+ * @brief blazing_host_memory_resource class maintains the host memory manager context.
+ * 
+ * blazing_host_memory_resource is a singleton class, and should be accessed via getInstance(). 
+ * A number of static convenience methods are provided that wrap getInstance()..
+ * ------------------------------------------------------------------------**/
+class blazing_host_memory_resource : public BlazingMemoryResource {
+public:
+    /** -----------------------------------------------------------------------*
+     * @brief Get the blazing_host_memory_resource instance singleton object
+     * 
+     * @return blazing_host_memory_resource& the blazing_host_memory_resource singleton
+     * ----------------------------------------------------------------------**/
+    static blazing_host_memory_resource& getInstance(){
+        // Myers' singleton. Thread safe and unique. Note: C++11 required.
+        static blazing_host_memory_resource instance;
+        return instance;
+    }
+
+	size_t get_memory_used() override {
+		// std::cout << "blazing_host_memory_resource: " << initialized_resource->get_memory_used() << std::endl; 
+		return initialized_resource->get_memory_used();
+	}
+
+	size_t get_total_memory() override {
+		return initialized_resource->get_total_memory() ;
+	}
+
+    size_t get_from_driver_available_memory()  {
+        return initialized_resource->get_from_driver_available_memory();
+    }
+	size_t get_memory_limit() {
+		return initialized_resource->get_memory_limit() ;
+    }
+
+    void allocate(std::size_t bytes)  {
+		initialized_resource->allocate(bytes);
+	}
+
+	void deallocate(std::size_t bytes)  {
+		initialized_resource->deallocate(bytes);
+	}
+
+  /** -----------------------------------------------------------------------*
+   * @brief Initialize
+   * 
+   * Accepts an optional rmmOptions_t struct that describes the settings used
+   * to initialize the memory manager. If no `options` is passed, default
+   * options are used.
+   * 
+   * @param[in] options Optional options to set
+   * ----------------------------------------------------------------------**/
+    void initialize(float host_mem_resouce_consumption_thresh) {
+        
+        std::lock_guard<std::mutex> guard(manager_mutex);
+
+        // repeat initialization is a no-op
+        if (isInitialized()) return;
+
+        initialized_resource.reset(new internal_blazing_host_memory_resource(host_mem_resouce_consumption_thresh));
+
+        is_initialized = true;
+    }
+
+    /** -----------------------------------------------------------------------*
+     * @brief Shut down the blazing_device_memory_resource (clears the context)
+     * ----------------------------------------------------------------------**/
+    void finalize(){
+        std::lock_guard<std::mutex> guard(manager_mutex);
+
+        // finalization before initialization is a no-op
+        if (isInitialized()) {
+            initialized_resource.reset();
+            is_initialized = false;
+        }
+    }
+
+    /** -----------------------------------------------------------------------*
+     * @brief Check whether the blazing_device_memory_resource has been initialized.
+     * 
+     * @return true if blazing_device_memory_resource has been initialized.
+     * @return false if blazing_device_memory_resource has not been initialized.
+     * ----------------------------------------------------------------------**/
+    bool isInitialized() {
+        return getInstance().is_initialized;
+    }
+
+private:
+    blazing_host_memory_resource() = default;
+    ~blazing_host_memory_resource() = default;
+    blazing_host_memory_resource(const blazing_host_memory_resource&) = delete;
+    blazing_host_memory_resource& operator=(const blazing_host_memory_resource&) = delete;
+    std::mutex manager_mutex;
+
+    bool is_initialized{false};
+
+    std::unique_ptr<internal_blazing_host_memory_resource> initialized_resource{};
+};
 
 /**
 	@brief This class represents a custom disk memory resource used in the cache system.

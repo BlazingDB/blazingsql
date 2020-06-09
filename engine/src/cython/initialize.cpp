@@ -111,6 +111,12 @@ void initialize(int ralId,
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
+ 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
+	assert( config_options.find("BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD") != config_options.end() );
+	float host_memory_quota = std::stof(config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
+
+	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
+
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);
 

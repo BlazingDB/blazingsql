@@ -97,8 +97,12 @@ class blazing_allocation_mode(IntEnum):
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
+<<<<<<< HEAD
                       initial_pool_size=None, enable_logging=False, 
                       devices=0, config_options={}, logging_dir_path='blazing_log'):
+=======
+                      initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
+>>>>>>> upstream/branch-0.14
 
     FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||"%(message)s"||||||'
     filename = os.path.join(logging_dir_path, 'pyblazing.' + str(ralId) + '.log')
@@ -827,11 +831,16 @@ class BlazingContext(object):
                                            default: 0.1
                                     BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource
                                             will consider to be full
-                                            Note: This parameter only works when used in the BlazingContext
+                                            NOTE: This parameter only works when used in the BlazingContext
                                             default: 0.95
+                                    BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total host memory that the memory resource
+                                            will consider to be full. In the presence of several GPUs per server, this resource will be shared among all of
+                                            them in equal parts.
+                                            NOTE: This parameter only works when used in the BlazingContext
+                                            default: 0.75 
                                     BLAZING_LOGGING_DIRECTORY : A folder path to place all logging files. The path can be relative or absolute.
-                                            Note: This parameter only works when used in the BlazingContext
-                                            default: 'blazing_log'
+                                            NOTE: This parameter only works when used in the BlazingContext
+                                            default: 'blazing_log'                               
 
         Examples
         --------
@@ -873,6 +882,10 @@ class BlazingContext(object):
         if ('BLAZING_LOGGING_DIRECTORY' in config_options): # want to use config_options and not self.config_options since its not encoded
             logging_dir_path = config_options['BLAZING_LOGGING_DIRECTORY']
 
+        host_memory_quota = 0.75
+        if not "BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode() in self.config_options:
+            self.config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode()] = str(host_memory_quota).encode()
+
         if(dask_client is not None):
             distributed_initialize_logging_directory(self.dask_client, logging_dir_path) 
 
@@ -883,6 +896,13 @@ class BlazingContext(object):
             dask_futures = []
             masterIndex = 0
             i = 0
+
+            if "BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD" in config_options:
+                host_memory_quota = float(self.config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode()])
+
+            #If all workers are on the same machine, the memory threshold is split between the workers, here we are assuming that there are the same number of GPUs/workers per server.
+            self.config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode()] = str(host_memory_quota * len(set([value['host'] for key,value in self.dask_client.scheduler_info()["workers"].items()])) / len(self.dask_client.scheduler_info()["workers"])).encode()
+
             for worker in list(self.dask_client.scheduler_info()["workers"]):
                 dask_futures.append(
                     self.dask_client.submit(
