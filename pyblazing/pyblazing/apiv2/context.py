@@ -149,9 +149,13 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort,
         singleNode,
         config_options)
-    cwd = os.getcwd()
+    
+    if (os.path.isabs(logging_dir_path)):
+        log_path = logging_dir_path
+    else:
+        log_path = os.path.join(os.getcwd(), logging_dir_path)
 
-    return ralCommunicationPort, workerIp, cwd
+    return ralCommunicationPort, workerIp, log_path
 
 def getNodePartitionKeys(df, client):
     from dask import delayed
@@ -859,7 +863,7 @@ class BlazingContext(object):
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
-        self.node_cwds = []
+        self.node_log_paths = []
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = {}
         for option in config_options:
@@ -897,13 +901,13 @@ class BlazingContext(object):
                 i = i + 1
             i = 0
             for connection in dask_futures:
-                ralPort, ralIp, cwd = connection.result()
+                ralPort, ralIp, log_path = connection.result()
                 node = {}
                 node['worker'] = worker_list[i]
                 node['ip'] = ralIp
                 node['communication_port'] = ralPort
                 self.nodes.append(node)
-                self.node_cwds.append(cwd)
+                self.node_log_paths.append(log_path)
                 i = i + 1
 
             
@@ -917,7 +921,7 @@ class BlazingContext(object):
         else:
             initialize_logging_directory(logging_dir_path)
 
-            ralPort, ralIp, cwd = initializeBlazing(
+            ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
                 allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
                 enable_logging=enable_logging, config_options=self.config_options,
@@ -926,7 +930,7 @@ class BlazingContext(object):
             node['ip'] = ralIp
             node['communication_port'] = ralPort
             self.nodes.append(node)
-            self.node_cwds.append(cwd)
+            self.node_log_paths.append(log_path)
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         #internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
@@ -1862,8 +1866,7 @@ class BlazingContext(object):
         """
         if not self.logs_initialized:
             self.logs_table_name = logs_table_name
-            log_files = [self.node_cwds[i] + '/RAL.' + \
-                str(i) + '.log' for i in range(0, len(self.node_cwds))]
+            log_files = [os.path.join(self.node_log_paths[i], 'RAL.' + str(i) + '.log') for i in range(0, len(self.node_log_paths))]
             dtypes = [
                 'date64',
                 'int32',
@@ -1912,9 +1915,8 @@ class BlazingContext(object):
             }
 
             for log_table_name in log_schemas:
-                log_files = [self.node_cwds[i] + '/'+log_table_name+'.' + \
-                    str(i) + '.log' for i in range(0, len(self.node_cwds))]
-
+                log_files = [os.path.join(self.node_log_paths[i], log_table_name + '.' + str(i) + '.log') for i in range(0, len(self.node_log_paths))]
+                
                 names, dtypes = log_schemas[log_table_name]
                 t = self.create_table(
                     log_table_name,
