@@ -821,11 +821,9 @@ class BlazingContext(object):
         interfaces and what IP addresses they serve with the bash command ifconfig. The default is set to 'eth0'.
         """
         self.lock = Lock()
-        self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
         self.node_cwds = []
-        self.finalizeCaller = lambda: NotImplemented
         self.config_options = {}
         for option in config_options:
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
@@ -901,7 +899,7 @@ class BlazingContext(object):
             return self.client.ping()
 
     def __del__(self):
-        self.finalizeCaller()
+        cio.finalizeCaller()
 
     def __repr__(self):
         return "BlazingContext('%s')" % (self.dask_client)
