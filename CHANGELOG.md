@@ -37,4 +37,5 @@
 #740 Normalizing types for UNION ALL
 #744 Fix unit tests
 #743 Workaround for interops 64 index plan limitation
+#763 Implemented ability to set the folder for all log files 
 
