@@ -791,14 +791,13 @@ class BlazingContext(object):
                                            default: 0.1
                                     BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource
                                             will consider to be full
+                                            NOTE: This parameter only works when used in the BlazingContext
                                             default: 0.95
                                     BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total host memory that the memory resource
                                             will consider to be full. In the presence of several GPUs per server, this resource will be shared among all of
                                             them in equal parts.
-                                            default: 0.75
-
-                                    NOTE: The parameters BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD and BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD can
-                                          only be set in BlazingContext creation because they are considered at the time of initializing the memory resources.
+                                            NOTE: This parameter only works when used in the BlazingContext
+                                            default: 0.75                                    
 
         Examples
         --------
