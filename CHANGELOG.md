@@ -1,7 +1,20 @@
-#####################################################################
-# Use this file to document any changes made during a PR. Every PR  #
-# should have an entry.                                             #
-#####################################################################
+# BlazingSQL 0.15.0 (Date TBS)
+
+## New Features
+
+
+## Improvements
+
+
+
+## Bug Fixes
+#754 Normalize columns before distribution in JoinPartitionKernel
+
+
+
+
+# BlazingSQL 0.14.0 (June 9, 2020)
+
 #391 Added the ability to run count distinct queries in a distruted fashion
 #392 Remove the unnecessary messages on distributed mode
 #560 Fixed bug where parsing errors would lead to crash
@@ -37,4 +50,6 @@
 #740 Normalizing types for UNION ALL
 #744 Fix unit tests
 #743 Workaround for interops 64 index plan limitation
-#754 Normalize columns before distribution in JoinPartitionKernel
+#763 Implemented ability to set the folder for all log files 
+#757 Ensure GPU portability (so we can run on any cloud instance with GPU)
+#753 Fix for host memory threshold parameter with Dask envs
