@@ -135,7 +135,6 @@ public:
 		const column_index_type * final_output_positions,
 		const cudf::type_id * input_types_left,
 		const cudf::type_id * input_types_right,
-		const cudf::type_id * output_types,
 		const operator_type * operations,
 		cudf::detail::scalar_device_view_base ** scalars_left,
 		cudf::detail::scalar_device_view_base ** scalars_right,
@@ -150,7 +149,6 @@ public:
 			final_output_positions{final_output_positions},
 			input_types_left{input_types_left},
 			input_types_right{input_types_right},
-			output_types{output_types},
 			operations{operations},
 			scalars_left{scalars_left},
 			scalars_right{scalars_right},
@@ -772,7 +770,6 @@ private:
 
 	const cudf::type_id * input_types_left;
 	const cudf::type_id * input_types_right;
-	const cudf::type_id * output_types;
 
 	const operator_type * operations;
 

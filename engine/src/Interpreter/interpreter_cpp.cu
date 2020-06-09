@@ -520,16 +520,14 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 			right_input_types_vec[i] = output_map_type[right_index];
 		}
 
-		cudf::type_id type_from_op = (right_index == UNARY_INDEX
-																	? get_output_type(operators[i], left_input_types_vec[i])
-																	: get_output_type(operators[i], left_input_types_vec[i], right_input_types_vec[i]));
+		output_types_vec[i] = (right_index == UNARY_INDEX
+													? get_output_type(operators[i], left_input_types_vec[i])
+													: get_output_type(operators[i], left_input_types_vec[i], right_input_types_vec[i]));
 
-		output_types_vec[i] = (is_type_float(type_from_op) ? cudf::type_id::FLOAT64 : cudf::type_id::INT64);
 		output_map_type[output_index] = output_types_vec[i];
 	}
 	rmm::device_vector<cudf::type_id> left_device_input_types(left_input_types_vec);
 	rmm::device_vector<cudf::type_id> right_device_input_types(right_input_types_vec);
-	rmm::device_vector<cudf::type_id> output_device_types(output_types_vec);
 
 	rmm::device_vector<column_index_type> left_device_inputs(left_inputs);
 	rmm::device_vector<column_index_type> right_device_inputs(right_inputs);
@@ -547,7 +545,6 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 												final_device_output_positions.data().get(),
 												left_device_input_types.data().get(),
 												right_device_input_types.data().get(),
-												output_device_types.data().get(),
 												device_operators.data().get(),
 												left_device_scalars.data().get(),
 												right_device_scalars.data().get(),
