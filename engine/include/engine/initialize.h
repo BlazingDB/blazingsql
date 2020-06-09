@@ -8,8 +8,7 @@ void initialize(int ralId,
 	std::string ralHost,
 	int ralCommunicationPort,
 	bool singleNode,
-	std::map<std::string, std::string> config_options,
-	float host_memory_quota);
+	std::map<std::string, std::string> config_options);
 
 void finalize();
 
