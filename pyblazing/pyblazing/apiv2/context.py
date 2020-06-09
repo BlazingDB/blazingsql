@@ -97,10 +97,11 @@ class blazing_allocation_mode(IntEnum):
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
-                      initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
+                      initial_pool_size=None, enable_logging=False, 
+                      devices=0, config_options={}, logging_dir_path='blazing_log'):
 
     FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||"%(message)s"||||||'
-    filename = 'pyblazing.' + str(ralId) + '.log'
+    filename = os.path.join(logging_dir_path, 'pyblazing.' + str(ralId) + '.log')
     logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
@@ -148,9 +149,13 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort,
         singleNode,
         config_options)
-    cwd = os.getcwd()
+    
+    if (os.path.isabs(logging_dir_path)):
+        log_path = logging_dir_path
+    else:
+        log_path = os.path.join(os.getcwd(), logging_dir_path)
 
-    return ralCommunicationPort, workerIp, cwd
+    return ralCommunicationPort, workerIp, log_path
 
 def getNodePartitionKeys(df, client):
     from dask import delayed
@@ -579,6 +584,37 @@ def adjust_due_to_missing_rowgroups(metadata, files):
     return metadata, new_files
 
 
+def distributed_initialize_logging_directory(client, logging_dir_path):
+
+    # lets make host_list which is a list of all the unique hosts. 
+    # This way we do the logging folder creation only once per host (server)
+    host_list = list(set([value['host'] for key,value in client.scheduler_info()["workers"].items()]))
+    initialized = {}
+    for host in host_list:
+        initialized[host]=False
+
+    dask_futures = []
+    for worker, worker_info in client.scheduler_info()["workers"].items():
+        if not initialized[worker_info['host']]:
+            dask_futures.append(
+                client.submit(
+                    initialize_logging_directory,
+                    logging_dir_path,
+                    workers=[worker]))
+            initialized[worker_info['host']] = True
+    
+    for connection in dask_futures:
+        made_dir = connection.result()
+    
+
+def initialize_logging_directory(logging_dir_path):
+    if (not os.path.exists(logging_dir_path)):
+        os.mkdir(logging_dir_path)
+        return True
+    else:
+        return False
+        
+
 class BlazingTable(object):
     def __init__(
             self,
@@ -797,7 +833,10 @@ class BlazingContext(object):
                                             will consider to be full. In the presence of several GPUs per server, this resource will be shared among all of
                                             them in equal parts.
                                             NOTE: This parameter only works when used in the BlazingContext
-                                            default: 0.75                                    
+                                            default: 0.75 
+                                    BLAZING_LOGGING_DIRECTORY : A folder path to place all logging files. The path can be relative or absolute.
+                                            NOTE: This parameter only works when used in the BlazingContext
+                                            default: 'blazing_log'                               
 
         Examples
         --------
@@ -829,17 +868,23 @@ class BlazingContext(object):
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
-        self.node_cwds = []
+        self.node_log_paths = []
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = {}
         for option in config_options:
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+        
+        logging_dir_path = 'blazing_log'
+        if ('BLAZING_LOGGING_DIRECTORY' in config_options): # want to use config_options and not self.config_options since its not encoded
+            logging_dir_path = config_options['BLAZING_LOGGING_DIRECTORY']
 
         host_memory_quota = 0.75
         if not "BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode() in self.config_options:
             self.config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode()] = str(host_memory_quota).encode()
 
         if(dask_client is not None):
+            distributed_initialize_logging_directory(self.dask_client, logging_dir_path) 
+
             if network_interface is None:
                 network_interface = 'eth0'
 
@@ -866,34 +911,42 @@ class BlazingContext(object):
                         initial_pool_size=initial_pool_size,
                         enable_logging=enable_logging,
                         config_options=self.config_options,
+                        logging_dir_path=logging_dir_path,
                         workers=[worker]))
                 worker_list.append(worker)
                 i = i + 1
             i = 0
             for connection in dask_futures:
-                ralPort, ralIp, cwd = connection.result()
+                ralPort, ralIp, log_path = connection.result()
                 node = {}
                 node['worker'] = worker_list[i]
                 node['ip'] = ralIp
                 node['communication_port'] = ralPort
                 self.nodes.append(node)
-                self.node_cwds.append(cwd)
+                self.node_log_paths.append(log_path)
                 i = i + 1
 
+            
+            # need to initialize this logging independently, in case its set as a relative path 
+            # and the location from where the python script is running is different than the local dask workers
+            initialize_logging_directory(logging_dir_path) 
             # this one is for the non dask side
             FORMAT='%(asctime)s||%(levelname)s|||"%(message)s"||||||'
-            filename = 'pyblazing.log'
+            filename = os.path.join(logging_dir_path, 'pyblazing.log')
             logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
         else:
-            ralPort, ralIp, cwd = initializeBlazing(
+            initialize_logging_directory(logging_dir_path)
+
+            ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
                 allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
-                enable_logging=enable_logging, config_options=self.config_options)
+                enable_logging=enable_logging, config_options=self.config_options,
+                logging_dir_path=logging_dir_path)
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
             self.nodes.append(node)
-            self.node_cwds.append(cwd)
+            self.node_log_paths.append(log_path)
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         #internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
@@ -1829,8 +1882,7 @@ class BlazingContext(object):
         """
         if not self.logs_initialized:
             self.logs_table_name = logs_table_name
-            log_files = [self.node_cwds[i] + '/RAL.' + \
-                str(i) + '.log' for i in range(0, len(self.node_cwds))]
+            log_files = [os.path.join(self.node_log_paths[i], 'RAL.' + str(i) + '.log') for i in range(0, len(self.node_log_paths))]
             dtypes = [
                 'date64',
                 'int32',
@@ -1879,9 +1931,8 @@ class BlazingContext(object):
             }
 
             for log_table_name in log_schemas:
-                log_files = [self.node_cwds[i] + '/'+log_table_name+'.' + \
-                    str(i) + '.log' for i in range(0, len(self.node_cwds))]
-
+                log_files = [os.path.join(self.node_log_paths[i], log_table_name + '.' + str(i) + '.log') for i in range(0, len(self.node_log_paths))]
+                
                 names, dtypes = log_schemas[log_table_name]
                 t = self.create_table(
                     log_table_name,
