@@ -97,12 +97,8 @@ class blazing_allocation_mode(IntEnum):
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
-<<<<<<< HEAD
                       initial_pool_size=None, enable_logging=False, 
                       devices=0, config_options={}, logging_dir_path='blazing_log'):
-=======
-                      initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
->>>>>>> upstream/branch-0.14
 
     FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||"%(message)s"||||||'
     filename = os.path.join(logging_dir_path, 'pyblazing.' + str(ralId) + '.log')
