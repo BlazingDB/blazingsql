@@ -1,7 +1,19 @@
-#####################################################################
-# Use this file to document any changes made during a PR. Every PR  #
-# should have an entry.                                             #
-#####################################################################
+# BlazingSQL 0.15.0 (Date TBS)
+
+## New Features
+
+
+## Improvements
+
+
+
+## Bug Fixes
+
+
+
+
+# BlazingSQL 0.14.0 (June 9, 2020)
+
 #391 Added the ability to run count distinct queries in a distruted fashion
 #392 Remove the unnecessary messages on distributed mode
 #560 Fixed bug where parsing errors would lead to crash
