@@ -24,13 +24,12 @@
 #include <cudf/table/table_device_view.cuh>
 #include <cudf/utilities/bit.hpp>
 
-#include <src/from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-#include <src/from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
+#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
+#include <from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
 
 #include <thrust/equal.h>
 #include <thrust/logical.h>
 
-#include <gmock/gmock.h>
 #include <numeric>
 
 namespace cudf {
@@ -158,8 +157,7 @@ void column_comparison(cudf::column_view const& lhs,
 
       fixed_width_column_wrapper<int32_t> diff_column(differences.begin(), differences.end());
 
-      std::unique_ptr<cudf::table> diff_table =
-        cudf::gather(source_table, diff_column);
+      std::unique_ptr<cudf::table> diff_table = cudf::gather(source_table, diff_column);
 
       //
       //  Need to pull back the differences
@@ -336,6 +334,12 @@ struct column_view_printer {
       out.push_back(first);                             // between keys and indices
       out.insert(out.end(), indices.begin() + 1, indices.end());
     }
+  }
+
+  template <typename Element, typename std::enable_if_t<is_duration<Element>()>* = nullptr>
+  void operator()(cudf::column_view const& col, std::vector<std::string>& out)
+  {
+    CUDF_FAIL("duration printing not supported yet");
   }
 
   template <typename Element,

@@ -24,7 +24,7 @@
 #include <cudf/utilities/traits.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <rmm/device_buffer.hpp>
-#include <src/from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
+#include <from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
 
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/transform_iterator.h>

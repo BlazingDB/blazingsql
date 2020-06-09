@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include <src/from_cudf/cpp_tests/utilities/scalar_utilities.hpp>
+#include <from_cudf/cpp_tests/utilities/scalar_utilities.hpp>
 
 #include <jit/type.h>
 #include <cudf/scalar/scalar.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <sstream>
-#include <src/from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
+#include <from_cudf/cpp_tests/utilities/cudf_gtest.hpp>
 #include <type_traits>
 #include "gtest/gtest.h"
 
@@ -78,7 +78,7 @@ void expect_scalars_equal(cudf::scalar const& lhs, cudf::scalar const& rhs)
   EXPECT_EQ(lhs.is_valid(), rhs.is_valid());
 
   if (lhs.is_valid() && rhs.is_valid() && lhs.type() == rhs.type()) {
-    experimental::type_dispatcher(lhs.type(), compare_scalar_functor{}, lhs, rhs);
+    type_dispatcher(lhs.type(), compare_scalar_functor{}, lhs, rhs);
   }
 }
 
