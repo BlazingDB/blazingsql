@@ -15,9 +15,9 @@
 
 #include "gdf/library/api.h"
 using namespace gdf::library;
-#include "../query_test.h"
+#include "../BlazingUnitTest.h"
 
-struct EvaluateQueryTest : public query_test {
+struct EvaluateQueryTest : public BlazingUnitTest {
   struct InputTestItem {
     std::string query;
     std::string logicalPlan;

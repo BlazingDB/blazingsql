@@ -10,7 +10,6 @@
 
 #include "DataParser.h"
 #include "arrow/io/interfaces.h"
-#include <cudf/legacy/io_types.hpp>
 #include <memory>
 #include <vector>
 
@@ -19,21 +18,26 @@
 namespace ral {
 namespace io {
 
-namespace cudf_io = cudf::experimental::io;
+namespace cudf_io = cudf::io;
 
 class csv_parser : public data_parser {
 public:
-	csv_parser(cudf::experimental::io::read_csv_args new_csv_arg);
+	csv_parser(cudf::io::read_csv_args new_csv_arg);
 
 	virtual ~csv_parser();
 
 	std::unique_ptr<ral::frame::BlazingTable> parse(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const std::string & user_readable_file_handle,
 		const Schema & schema,
 		std::vector<size_t> column_indices);
 
-	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, ral::io::Schema & schema);
+	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
+		std::shared_ptr<arrow::io::RandomAccessFile> file,
+		const Schema & schema,
+		std::vector<size_t> column_indices,
+		std::vector<cudf::size_type> row_groups);
+
+	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema);
 
 private:
 	cudf_io::read_csv_args csv_args{cudf_io::source_info("")};

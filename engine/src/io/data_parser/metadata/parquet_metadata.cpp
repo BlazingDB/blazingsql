@@ -6,14 +6,8 @@
 #define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
 
 #include "parquet_metadata.h"
-#include "parquet/api/reader.h"
-#include "parquet/statistics.h"
-#include <iostream>
-#include <mutex>
 #include <rmm/rmm.h>
-#include <src/Traits/RuntimeTraits.h>
-#include <from_cudf/cpp_src/utilities/legacy/error_utils.hpp>
-#include <thread>
+#include "blazingdb/concurrency/BlazingThread.h"
 #include <cudf/column/column_factories.hpp>
 #include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
 
@@ -21,20 +15,20 @@ std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::str
 	const int ncols = col_names.size();
 	std::vector<std::string> metadata_col_names;
 	metadata_col_names.resize(ncols*2 + 2);
-	
+
 	int metadata_col_index = -1;
 	for (int colIndex = 0; colIndex < ncols; ++colIndex){
 		std::string col_name = col_names[colIndex];
 		auto col_name_min = "min_" + std::to_string(colIndex) + "_" + col_name;
 		auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + col_name;
-		
+
 		metadata_col_names[++metadata_col_index] = col_name_min;
 		metadata_col_names[++metadata_col_index] = col_name_max;
 	}
 
 	metadata_col_names[++metadata_col_index] = "file_handle_index";
 	metadata_col_names[++metadata_col_index] = "row_group_index";
-	
+
 	std::vector<std::unique_ptr<cudf::column>> minmax_metadata_gdf_table;
 	minmax_metadata_gdf_table.resize(metadata_col_names.size());
 	for (int i = 0; i < metadata_col_names.size(); ++i) {
@@ -42,8 +36,8 @@ std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::str
 		cudf::test::fixed_width_column_wrapper<int32_t> expected_col2{{(int32_t)-1}};
 		minmax_metadata_gdf_table[i] = expected_col2.release();
 	}
-	
-	auto cudf_metadata_table = std::make_unique<cudf::experimental::table>(std::move(minmax_metadata_gdf_table));
+
+	auto cudf_metadata_table = std::make_unique<cudf::table>(std::move(minmax_metadata_gdf_table));
 	auto metadata_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_metadata_table), metadata_col_names);
 
 	return metadata_table;
@@ -309,23 +303,23 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	if (parquet_readers.size() == 0){
 		return nullptr;
 	}
-	
+
 	std::vector<std::string> metadata_names;
 	std::vector<cudf::data_type> metadata_dtypes;
 	std::vector<size_t> columns_with_metadata;
 
 	// NOTE: we must try to use and load always a parquet reader that row groups > 0
 	int valid_parquet_reader = -1;
-		
+
 	for (int i = 0; i < parquet_readers.size(); ++i) {
 		if (parquet_readers[i]->metadata()->num_row_groups() == 0) {
 			continue;
 		}
-		
+
 		valid_parquet_reader = i;
 		break;
 	}
-	
+
 	if (valid_parquet_reader == -1){
 		const int ncols = parquet_readers[0]->metadata()->schema()->num_columns();
 		std::vector<std::string> col_names;
@@ -335,9 +329,9 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		}
 		return makeMetadataTable(col_names);
 	}
-	
+
 	std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[valid_parquet_reader]->metadata();
-		
+
 	int num_row_groups = file_metadata->num_row_groups();
 	const parquet::SchemaDescriptor *schema = file_metadata->schema();
 
@@ -358,7 +352,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 					auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
 					metadata_dtypes.push_back(dtype);
 					metadata_names.push_back(col_name_min);
-					
+
 					auto col_name_max = "max_" + std::to_string(colIndex)  + "_" + column->name();
 					metadata_dtypes.push_back(dtype);
 					metadata_names.push_back(col_name_max);
@@ -379,13 +373,13 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	std::vector<std::vector<std::vector<int64_t>>> minmax_metadata_table_per_file(parquet_readers.size());
 
 	size_t file_index = 0;
-	std::vector<std::thread> threads(parquet_readers.size());
+	std::vector<BlazingThread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
 		// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
-		threads[file_index] = std::thread([&guard, metadata_offset,  &parquet_readers, file_index, 
+		threads[file_index] = BlazingThread([&guard, metadata_offset,  &parquet_readers, file_index,
 									&minmax_metadata_table_per_file, num_metadata_cols, columns_with_metadata](){
-		  
+
 		std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 
 		if (file_metadata->num_row_groups() > 0){
@@ -409,14 +403,14 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 										column->physical_type(),
 										column->converted_type(),
 										statistics);
-							
+
 						}
 					}
 				}
 				this_minmax_metadata_table[this_minmax_metadata_table.size() - 2].push_back(metadata_offset + file_index);
-				this_minmax_metadata_table[this_minmax_metadata_table.size() - 1].push_back(row_group_index);			  
+				this_minmax_metadata_table[this_minmax_metadata_table.size() - 1].push_back(row_group_index);
 			}
-			
+
 			guard.lock();
 			minmax_metadata_table_per_file[file_index] = std::move(this_minmax_metadata_table);
 			guard.unlock();
@@ -441,8 +435,8 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		auto content =  get_typed_vector_content(dtype.id(), vector);
 		minmax_metadata_gdf_table[index] = make_cudf_column_from(dtype, content, total_num_row_groups);
 	}
-	auto table = std::make_unique<cudf::experimental::table>(std::move(minmax_metadata_gdf_table));
-	
+
+	auto table = std::make_unique<cudf::table>(std::move(minmax_metadata_gdf_table));
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), metadata_names);
 }
 #endif	// BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_

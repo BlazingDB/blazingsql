@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "Traits/RuntimeTraits.h"
-
 #include "io/DataLoader.h"
 #include "io/data_parser/CSVParser.h"
 #include "io/data_parser/DataParser.h"
@@ -23,8 +21,8 @@
 #include <arrow/io/file.h>
 #include <arrow/util/logging.h>
 
-using blazingdb::manager::experimental::Context;
-using Node = blazingdb::transport::experimental::Node;
+using blazingdb::manager::Context;
+using Node = blazingdb::transport::Node;
 
 #ifndef PARQUET_FILE_PATH
 #error PARQUET_FILE_PATH must be defined for precompiling
@@ -38,7 +36,7 @@ struct ParquetReaderAPITest : public ::testing::Test {
 	void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
 };
 
-namespace cudf_io = cudf::experimental::io;
+namespace cudf_io = cudf::io;
 
 TEST_F(ParquetReaderAPITest, ByIdsInFromInterface) {
 	std::string filename = PARQUET_FILE_PATH;

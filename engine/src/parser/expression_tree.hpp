@@ -1,409 +1,366 @@
 #pragma once
 
+#include <cassert>
 #include <algorithm>
 #include <blazingdb/io/Util/StringUtil.h>
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
+#include <regex>
+#include <cudf/types.hpp>
 
-#include "parser/expression_utils.hpp"
+#include "CalciteExpressionParsing.h"
+#include "skip_data/utils.hpp"
+#include "expression_utils.hpp"
+#include "error.hpp"
 
 namespace ral {
 namespace parser {
 
-enum class parse_node_type { OPERATOR, OPERAND };
+enum class node_type { OPERATOR, OPERAND, LITERAL, VARIABLE };
 
-struct parse_node;
+struct node;
 struct operad_node;
 struct operator_node;
 
-struct parse_node_visitor {
-	virtual void visit(const operad_node& node) = 0;
-	virtual void visit(const operator_node& node) = 0;
+struct node_visitor {
+    virtual void visit(const operad_node& node) = 0;
+    virtual void visit(const operator_node& node) = 0;
 };
 
-struct parse_node_transformer {
-	virtual parse_node * transform(const operad_node& node) = 0;
-	virtual parse_node * transform(const operator_node& node) = 0;
+struct node_transformer {
+    virtual node * transform(operad_node& node) = 0;
+    virtual node * transform(operator_node& node) = 0;
 };
 
-struct parse_node {
-	parse_node_type type;
-	std::vector<std::unique_ptr<parse_node>> children;
-	std::string value;
+struct node {
+    node(node_type type, const std::string& value) : type{ type }, value{ value } {};
 
-	parse_node(parse_node_type type, const std::string & value) : type{type}, value{value} {};
+    virtual node * clone() const = 0;
 
-	virtual void accept(parse_node_visitor&) = 0;
-	virtual parse_node * accept(parse_node_transformer&) = 0;
+    virtual void accept(node_visitor&) const = 0;
+    virtual node * accept(node_transformer&) = 0;
 
-	virtual parse_node * transform_to_custom_op() = 0;
+    node_type type;
+    std::string value;
+    std::vector<std::unique_ptr<node>> children;
 };
 
-struct operad_node : parse_node {
-	operad_node(const std::string & value) : parse_node{parse_node_type::OPERAND, value} {};
+struct operad_node : public node {
+    using node::node;
 
-	void accept(parse_node_visitor& visitor) override {	visitor.visit(*this); }
-	parse_node * accept(parse_node_transformer& transformer) override { return transformer.transform(*this); }
-	
-	parse_node * transform_to_custom_op() override { return this; }
+    void accept(node_visitor& visitor) const override { visitor.visit(*this); }
+    node * accept(node_transformer& transformer) override { return transformer.transform(*this); }
 };
 
-struct operator_node : parse_node {
-	operator_node(const std::string & value) : parse_node{parse_node_type::OPERATOR, value} {};
+struct literal_node : public operad_node {
+    literal_node(const std::string& value, cudf::data_type type) : operad_node{node_type::LITERAL, value}, _type{type} {};
 
-	void accept(parse_node_visitor& visitor) override {
-		for(auto && c : this->children) {
-			c->accept(visitor);
-		}
-		visitor.visit(*this);
-	}
+    node * clone() const override { return new literal_node(this->value, this->_type); };
 
-	parse_node * accept(parse_node_transformer& transformer) override {
-		for(auto && c : this->children) {
-			parse_node * transformed_node = c->accept(transformer);
-			if(transformed_node != c.get()) {
-				c.reset(transformed_node);
-			}			
-		}
-		return transformer.transform(*this);
-	}
-
-	parse_node * transform_to_custom_op() override {
-		for(auto && c : this->children) {
-			parse_node * transformed_node = c->transform_to_custom_op();
-			if(transformed_node != c.get()) {
-				c.reset(transformed_node);
-			}
-		}
-
-		if(this->value == "CASE") {
-			return transform_case(0);
-		} else if(this->value == "CAST") {
-			return transform_cast();
-		} else if(this->value == "SUBSTRING") {
-			return transform_substring();
-		} else if(this->value == "Reinterpret") {
-			return remove_reinterpret();
-		} else if(this->value == "ROUND") {
-			return transform_round();
-		}
-
-		return this;
-	}
+    cudf::data_type type() const { return _type; }
 
 private:
-	parse_node * transform_case(size_t child_idx) {
-		assert(this->children.size() >= 3 && this->children.size() % 2 != 0);
-		assert(child_idx < this->children.size());
+    cudf::data_type _type;
+};
 
-		if(child_idx == this->children.size() - 1) {
-			return this->children[child_idx].release();
-		}
+struct variable_node : public operad_node {
+    variable_node(const std::string& value) : operad_node{node_type::VARIABLE, value} {
+        index_ = std::stoi(value.substr(1, value.size() - 1));
+    };
 
-		parse_node * condition = this->children[child_idx].release();
-		parse_node * then = this->children[child_idx + 1].release();
+    node * clone() const override { return new variable_node(this->value); };
 
-		parse_node * magic_if_not = new operator_node{"MAGIC_IF_NOT"};
-		magic_if_not->children.push_back(std::unique_ptr<parse_node>(condition));
-		magic_if_not->children.push_back(std::unique_ptr<parse_node>(then));
+    cudf::size_type index() const { return index_; }
 
-		parse_node * first_non_magic = new operator_node{"FIRST_NON_MAGIC"};
-		first_non_magic->children.push_back(std::unique_ptr<parse_node>(magic_if_not));
-		first_non_magic->children.push_back(std::unique_ptr<parse_node>(transform_case(child_idx + 2)));
+private:
+    cudf::size_type index_;
+};
 
-		return first_non_magic;
-	}
+struct operator_node : public node {
+    operator_node(const std::string& value) : node{ node_type::OPERATOR, value } {};
 
-	parse_node * transform_cast() {
-		assert(this->children.size() == 2);
+    node * clone() const override {
+        node * ret = new operator_node(this->value);
 
-		parse_node * exp = this->children[0].release();
-		std::string target_type = this->children[1]->value;
+        ret->children.reserve(this->children.size());
+        for (auto&& c : this->children) {
+            ret->children.push_back(std::unique_ptr<node>(c->clone()));
+        }
 
-		parse_node * cast_op = new operator_node{"CAST_" + target_type};
-		cast_op->children.push_back(std::unique_ptr<parse_node>(exp));
+        return ret;
+    };
 
-		return cast_op;
-	}
+    void accept(node_visitor& visitor) const override {
+        for (auto&& c : this->children) {
+            c->accept(visitor);
+        }
+        visitor.visit(*this);
+    }
 
-	parse_node * transform_substring() {
-		assert(this->children.size() == 2 || this->children.size() == 3);
-
-		parse_node * target = this->children[0].release();
-		std::string start_end_str = "'" + this->children[1]->value;
-		if(this->children.size() == 3) {
-			start_end_str += ":" + this->children[2]->value;
-		}
-		start_end_str += "'";
-		parse_node * start_end_params = new operad_node{start_end_str};
-
-		parse_node * substring_op = new operator_node{this->value};
-		substring_op->children.push_back(std::unique_ptr<parse_node>(target));
-		substring_op->children.push_back(std::unique_ptr<parse_node>(start_end_params));
-
-		return substring_op;
-	}
-
-	parse_node * remove_reinterpret() {
-		assert(this->children.size() == 1);
-
-		return this->children[0].release();
-	}
-
-	parse_node * transform_round() {
-		assert(this->children.size() == 1 || this->children.size() == 2);
-
-		if (this->children.size() == 1) {
-			parse_node * second_arg = new operad_node{"0"};
-			this->children.push_back(std::unique_ptr<parse_node>(second_arg));
-		}
-
-		return this;
-	}
+    node * accept(node_transformer& transformer) override {
+        for (auto&& c : this->children) {
+            node * transformed_node = c->accept(transformer);
+            if(transformed_node != c.get()) {
+                c.reset(transformed_node);
+            }
+        }
+        return transformer.transform(*this);
+    }
 };
 
 namespace detail {
-	inline void print_helper(const parse_node * node, size_t depth) {
-		if(!node)
-			return;
 
-		for(size_t i = 0; i < depth; ++i) {
-			std::cout << "    ";
-		}
+inline void print_helper(const node* node, size_t depth) {
+    if (!node)
+        return;
 
-		std::cout << node->value << "\n";
+    if (node->children.size() > 1)
+        print_helper(node->children[1].get(), depth + 1);
 
-		for(auto && c : node->children) {
-			print_helper(c.get(), depth + 1);
-		}
-	}
+    for(size_t i = 0; i < depth; ++i) {
+        std::cout << "    ";
+    }
 
-	inline std::string rebuild_helper(const parse_node * node) {
-		if(!node)
-			return "";
+    std::cout << node->value << "\n";
 
-		if(node->type == parse_node_type::OPERATOR) {
-			std::string operands = "";
-			for(auto && c : node->children) {
-				std::string sep = operands.empty() ? "" : ", ";
-				operands += sep + rebuild_helper(c.get());
-			}
+    if (node->children.size() > 0)
+        print_helper(node->children[0].get(), depth + 1);
 
-			return node->value + "(" + operands + ")";
-		}
-
-		return node->value;
-	}
-
-	inline std::string tokenizer_helper(const parse_node * node) {
-		if(!node)
-			return "";
-
-		if(node->type == parse_node_type::OPERATOR) {
-			std::string operands = "";
-			for(auto && c : node->children) {
-				std::string sep = operands.empty() ? "" : "@#@";
-				operands += sep + tokenizer_helper(c.get());
-			}
-
-			return node->value + "@#@" + operands;
-		}
-
-		return node->value;
-	}
+    // for(auto && c : node->children) {
+    // 	print_helper(c.get(), depth + 1);
+    // }
 }
 
-struct parse_tree {
-	std::unique_ptr<parse_node> root;
+inline std::string rebuild_helper(const node* node) {
+    if (!node)
+        return "";
+
+    if (node->type == node_type::OPERATOR) {
+        std::string operands = "";
+        for (auto&& c : node->children) {
+            std::string sep = operands.empty() ? "" : ", ";
+            operands += sep + rebuild_helper(c.get());
+        }
+
+        return node->value + "(" + operands + ")";
+    }
+
+    return node->value;
+}
+
+inline std::string tokenizer_helper(const node* node) {
+    if (!node)
+        return "";
+
+    if (node->value.length() > 0 and node->type == node_type::OPERATOR) {
+        std::string operands = "";
+        for (auto&& c : node->children) {
+            std::string sep = operands.empty() ? "" : " ";
+            operands += sep + tokenizer_helper(c.get());
+        }
+
+        return node->value + (!operands.empty() ? (" " + operands) : "");
+    }
+
+    return node->value;
+}
+
+struct custom_op_transformer : public node_transformer {
+public:
+    node * transform(operad_node& node) override { return &node; }
+
+    node * transform(operator_node& node) override {
+        if(node.value == "CASE") {
+            return transform_case(node, 0);
+        } else if(node.value == "Reinterpret") {
+            return remove_reinterpret(node);
+        } else if(node.value == "ROUND") {
+            return transform_round(node);
+        }
+
+        return &node;
+    }
 
 private:
-	size_t build_helper(parse_node * parent_node, const std::string & expression, size_t pos) {
-		bool return_type = false;
-		while(pos != std::string::npos) {
-			size_t nextPos = expression.find_first_of("(),", pos);
-			std::string token = expression.substr(pos, nextPos - pos);
-			token = StringUtil::ltrim(token);
+    node * transform_case(operator_node& case_node, size_t child_idx) {
+        assert(case_node.children.size() >= 3 && case_node.children.size() % 2 != 0);
+        assert(child_idx < case_node.children.size());
 
-			parse_node * new_node = nullptr;
-			if(!token.empty()) {
-				if(is_operator_token(token)) {
-					new_node = new operator_node(token);
-				} else {
-					assert(is_var_column(token) || is_literal(token));
-					new_node = new operad_node(token);
-				}
+        if (child_idx == case_node.children.size() - 1) {
+            return case_node.children[child_idx].release();
+        }
 
-				if(!parent_node) {
-					this->root.reset(new_node);
-				} else {
-					parent_node->children.push_back(std::unique_ptr<parse_node>(new_node));
-				}
-			}
+        auto condition = std::move(case_node.children[child_idx]);
+        auto then = std::move(case_node.children[child_idx + 1]);
 
-			if(nextPos == std::string::npos) {
-				return nextPos;
-			} else if(expression[nextPos] == ')') {
-				if(nextPos + 1 < expression.size() && expression[nextPos + 1] == ':') {
-					return_type = true;
-					pos = nextPos + 2;
-					break;
-				} else {
-					return nextPos + 1;
-				}
-			} else if(expression[nextPos] == '(') {
-				assert(new_node != nullptr);
-				pos = build_helper(new_node, expression, nextPos + 1);
-			} else {  // expression[pos] == ','
-				pos = nextPos + 1;
-			}
-		}
+        auto magic_if_not = std::unique_ptr<node>(new operator_node("MAGIC_IF_NOT"));
+        magic_if_not->children.push_back(std::move(condition));
+        magic_if_not->children.push_back(std::move(then));
 
-		if(return_type) {
-			// Special case for '):' as in CAST($0):DOUBLE
-			// Parse as a child of current parent
-			assert(pos < expression.size());
-			assert(parent_node != nullptr);
+        node * first_non_magic = new operator_node{"FIRST_NON_MAGIC"};
+        first_non_magic->children.push_back(std::move(magic_if_not));
+        first_non_magic->children.push_back(std::unique_ptr<node>(transform_case(case_node, child_idx + 2)));
 
-			size_t nextPos = expression.find_first_of("(),", pos);
-			std::string token = expression.substr(pos, nextPos - pos);
-			token = StringUtil::ltrim(token);
+        return first_non_magic;
+    }
 
-			parse_node * new_node = new operad_node(token);
-			parent_node->children.push_back(std::unique_ptr<parse_node>(new_node));
+    node * remove_reinterpret(operator_node& reinterpret_node) {
+        assert(reinterpret_node.children.size() == 1);
 
-			// Don't advance position so that the parent can process it
-			return nextPos;
-		} else {
-			assert(pos == std::string::npos);
-		}
+        return reinterpret_node.children[0].release();
+    }
 
-		return pos;
-	}
+    node * transform_round(operator_node& round_node) {
+        assert(round_node.children.size() == 1 || round_node.children.size() == 2);
+
+        if (round_node.children.size() == 1) {
+            round_node.children.push_back(std::unique_ptr<node>(new literal_node("0", cudf::data_type{cudf::type_id::INT8})));
+        }
+
+        return &round_node;
+    }
+};
+
+class lexer
+{
+public:
+    constexpr static char VARIABLE_REGEX_STR[] = R"(\$\d+)";
+    constexpr static char NULL_REGEX_STR[] = R"(null)";
+    constexpr static char BOOLEAN_REGEX_STR[] = R"(true|false)";
+    constexpr static char NUMBER_REGEX_STR[] = R"([-+]?\d*\.?\d+([eE][-+]?\d+)?)";
+    constexpr static char TIMESTAMP_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}:\d{2})?)";
+    constexpr static char STRING_REGEX_STR[] = R"((["'])(?:(?!\1|\\).|\\.)*?\1)";
+
+    enum class token_type
+    {
+        ParenthesisOpen,
+        ParenthesisClose,
+        Comma,
+        Colon,
+        Variable,
+        Null,
+        Boolean,
+        Number,
+        Timestamp,
+        String,
+        Identifier,
+        EOF_
+    };
+
+    struct token
+    {
+        token_type type;
+        std::string value;
+    };
 
 public:
-	parse_tree() = default;
+    explicit lexer(const std::string & str);
 
-	void build(const std::string & expression) {
-		build_helper(nullptr, expression, 0);
-		assert(!!this->root);
-	}
+    token next_token() ;
 
-	void print() {
-		assert(!!this->root);
-		detail::print_helper(this->root.get(), 0);
-	}
+private:
+    void advance(size_t offset = 1);
 
-	void visit(parse_node_visitor& visitor) {
-		assert(!!this->root);
-		this->root->accept(visitor);
-	}
+    std::string text_;
+    size_t pos_;
 
-	void transform(parse_node_transformer& transformer) {
-		assert(!!this->root);
-		parse_node * transformed_root = this->root->accept(transformer);
-		if(transformed_root != this->root.get()) {
-			this->root.reset(transformed_root);
-		}
-	}
+    std::regex variable_regex{"^" + std::string(lexer::VARIABLE_REGEX_STR)};
+    std::regex null_regex{"^" + std::string(lexer::NULL_REGEX_STR)};
+    std::regex boolean_regex{"^" + std::string(lexer::BOOLEAN_REGEX_STR)};
+    std::regex number_regex{"^" + std::string(lexer::NUMBER_REGEX_STR)};
+    std::regex timestamp_regex{"^" + std::string(lexer::TIMESTAMP_REGEX_STR)};
+    std::regex string_regex{"^" + std::string(lexer::STRING_REGEX_STR)};
+};
 
-	void transform_to_custom_op() {
-		assert(!!this->root);
-		parse_node * transformed_root = this->root->transform_to_custom_op();
-		if(transformed_root != this->root.get()) {
-			this->root.reset(transformed_root);
-		}
-	}
+class expr_parser {
+public:
+    explicit expr_parser(const std::string & expr_str);
 
-	void split_inequality_join_into_join_and_filter(std::string & join_out, std::string & filter_out) {
-		assert(!!this->root);
-		assert(this->root.get()->type == parse_node_type::OPERATOR);
+    std::unique_ptr<node> parse();
 
-		if(this->root.get()->value == "=") {
-			// this would be a regular single equality join
-			join_out = this->rebuildExpression();  // the join_out is the same as the original input
-			filter_out = "";					   // no filter out
-		} else if(this->root.get()->value == "AND") {
-			int num_equalities = 0;
-			for(auto && c : this->root.get()->children) {
-				if(c.get()->value == "=") {
-					num_equalities++;
-				}
-			}
-			if(num_equalities ==
-				this->root.get()
-					->children.size()) {  // all are equalities. this would be a regular multiple equality join
-				join_out = this->rebuildExpression();  // the join_out is the same as the original input
-				filter_out = "";					   // no filter out
-			} else if(num_equalities > 0) {			   // i can split this into an equality join and a filter
-				if(num_equalities == 1) {  // if there is only one equality, then the root for join_out wont be an AND,
-										   // and we will just have this equality as the root
-					if(this->root.get()->children.size() == 2) {
-						for(auto && c : this->root.get()->children) {
-							if(c.get()->value == "=") {
-								join_out = detail::rebuild_helper(c.get());
-							} else {
-								filter_out = detail::rebuild_helper(c.get());
-							}
-						}
-					} else {
-						parse_node * filter_root = new operator_node{"AND"};
-						for(auto && c : this->root.get()->children) {
-							if(c.get()->value == "=") {
-								join_out = detail::rebuild_helper(c.get());
-							} else {
-								filter_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
-							}
-						}
-						filter_out = detail::rebuild_helper(filter_root);
-					}
-				} else if(num_equalities == this->root.get()->children.size() -
-												1) {  // only one that does not have an inequality and therefore will be
-													  // in the filter (without an and at the root)
-					parse_node * join_out_root = new operator_node{"AND"};
-					for(auto && c : this->root.get()->children) {
-						if(c.get()->value == "=") {
-							join_out_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
-						} else {
-							filter_out = detail::rebuild_helper(c.get());
-						}
-					}
-					join_out = detail::rebuild_helper(join_out_root);
-				} else {
-					parse_node * join_out_root = new operator_node{"AND"};
-					parse_node * filter_root = new operator_node{"AND"};
-					for(auto && c : this->root.get()->children) {
-						if(c.get()->value == "=") {
-							join_out_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
-						} else {
-							filter_root->children.push_back(std::unique_ptr<parse_node>(c.release()));
-						}
-					}
-					join_out = detail::rebuild_helper(join_out_root);
-					filter_out = detail::rebuild_helper(filter_root);
-				}
-			} else {  // this is not supported. Throw error
-				std::string original_join_condition = this->rebuildExpression();
-				throw std::runtime_error(
-					"Join condition is currently not supported. Join received: " + original_join_condition);
-			}
-		} else {  // this is not supported. Throw error
-			std::string original_join_condition = this->rebuildExpression();
-			throw std::runtime_error(
-				"Join condition is currently not supported. Join received: " + original_join_condition);
-		}
-	}
+private:
+    bool accept(lexer::token_type type);
 
-	std::string rebuildExpression() {
-		assert(!!this->root);
-		return detail::rebuild_helper(this->root.get());
-	}
+    std::unique_ptr<node> expr();
 
-	std::string buildTokenizableString() {
-		assert(!!this->root);
-		return detail::tokenizer_helper(this->root.get());		
-	}
+    std::unique_ptr<node> term();
+
+    std::unique_ptr<node> func();
+
+    std::vector<std::unique_ptr<node>> func_args();
+
+    std::unique_ptr<node> literal();
+
+    cudf::data_type infer_type_from_literal_token(const lexer::token & token);
+
+    cudf::data_type type_from_type_token(const lexer::token & token);
+
+    lexer lexer_;
+    lexer::token token_;
+};
+
+} // namespace detail
+
+class parse_tree {
+private:
+    std::unique_ptr<node> root_;
+
+public:
+    parse_tree() = default;
+    ~parse_tree() = default;
+
+    parse_tree(const parse_tree & other) = delete;
+    parse_tree& operator=(const parse_tree & other) = delete;
+
+    parse_tree(parse_tree&& other) : root_{std::move(other.root_)} { }
+    parse_tree& operator=(parse_tree&& other) = delete;
+
+    const node & root() {
+        assert(!!this->root_);
+        return *(this->root_);
+    }
+
+    bool build(const std::string& expression) {
+        detail::expr_parser parser(expression);
+        this->root_ = parser.parse();
+        assert(!!this->root_);
+        return true;
+    }
+
+    void print() const {
+        assert(!!this->root_);
+        detail::print_helper(this->root_.get(), 0);
+    }
+
+    void visit(node_visitor& visitor) const {
+        assert(!!this->root_);
+        this->root_->accept(visitor);
+    }
+
+    void transform(node_transformer& transformer) {
+        assert(!!this->root_);
+        node * transformed_root = this->root_->accept(transformer);
+        if(transformed_root != this->root_.get()) {
+            this->root_.reset(transformed_root);
+        }
+    }
+
+    void transform_to_custom_op() {
+        assert(!!this->root_);
+        detail::custom_op_transformer t;
+        transform(t);
+    }
+
+    std::string rebuildExpression() {
+        assert(!!this->root_);
+        return detail::rebuild_helper(this->root_.get());
+    }
+
+    std::string prefix() {
+        assert(!!this->root_);
+        return detail::tokenizer_helper(this->root_.get());
+    }
 };
 
 }  // namespace parser

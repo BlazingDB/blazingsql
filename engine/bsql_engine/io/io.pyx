@@ -1,15 +1,14 @@
 # io.pyx
 
-
-# Copyright (c) 2018, NVIDIA CORPORATION.
+# Copyright (c) 2018, BlazingDB.
 
 # cython: profile=False
 # distutils: language = c++
 # cython: embedsignature = True
 # cython: language_level = 3
 
-from cudf._lib.cudf cimport *
-from cudf._lib.GDFError import GDFError
+from collections import OrderedDict
+
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
@@ -36,18 +35,17 @@ import rmm
 import nvstrings
 import nvcategory
 
-from cudf._libxx.cpp cimport *
-from cudf._libxx.table cimport *
-from cudf._lib.cudf import *
-
-from cudf._libxx.column import cudf_to_np_types
+from cudf._lib cimport *
 
 from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
 from cpython.ref cimport PyObject
-from cython.operator cimport dereference
+from cython.operator cimport dereference, postincrement
 
-from cudf._libxx.table cimport Table as CudfXxTable
+from cudf._lib.table cimport Table as CudfXxTable
+from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
+
+import logging
 
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
@@ -62,9 +60,21 @@ class FinalizeError(BlazingError):
     """Finalize Error."""
 cdef public PyObject * FinalizeError_ = <PyObject *>FinalizeError
 
+class BlazingSetAllocatorError(BlazingError):
+    """BlazingSetAllocator Error."""
+cdef public PyObject * BlazingSetAllocatorError_ = <PyObject *>BlazingSetAllocatorError
+
+class GetProductDetailsError(BlazingError):
+    """GetProductDetails Error."""
+cdef public PyObject * GetProductDetailsError_ = <PyObject *>GetProductDetailsError
+
 class RunQueryError(BlazingError):
     """RunQuery Error."""
 cdef public PyObject *RunQueryError_ = <PyObject *>RunQueryError
+
+class RunSkipDataError(BlazingError):
+    """RunSkipData Error."""
+cdef public PyObject *RunSkipDataError_ = <PyObject *>RunSkipDataError
 
 class ParseSchemaError(BlazingError):
     """ParseSchema Error."""
@@ -86,15 +96,15 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
-cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns):
-    temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns)
+cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns, bool ignore_missing_paths):
+    temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns, ignore_missing_paths)
     return temp
 
 cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values):
     return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef unique_ptr[cio.ResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, bool use_execution_graph) except *:
-    return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken,uri_values_cpp, use_execution_graph))
+cdef unique_ptr[cio.PartitionedResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except *:
+    return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options))
 
 cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) except *:
     return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
@@ -106,11 +116,17 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode) except *:
-    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode)
+cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
+    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cdef void finalizePython() except *:
     cio.finalize()
+
+cdef void blazingSetAllocatorPython(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options) except *:
+    cio.blazingSetAllocator(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
+
+cdef map[string, string] getProductDetailsPython() except *:
+    return cio.getProductDetails()
 
 cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     cdef HDFS hdfs
@@ -136,6 +152,8 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         s3.accessKeyId = str.encode(fs['access_key_id'])
         s3.secretKey = str.encode(fs['secret_key'])
         s3.sessionToken = str.encode(fs['session_token'])
+        s3.endpointOverride = str.encode(fs['endpoint_override'])
+        s3.region = str.encode(fs['region'])
         return cio.registerFileSystemS3( s3,  str.encode(root), str.encode(authority))
     if fs['type'] == 'gs':
         gcs.projectId = str.encode(fs['project_id'])
@@ -146,13 +164,35 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
 
-cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode):
-    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode)
+cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
+    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cpdef finalizeCaller():
     finalizePython()
 
-cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
+cpdef blazingSetAllocatorCaller(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options):
+    blazingSetAllocatorPython(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
+
+
+cpdef getProductDetailsCaller():
+    my_map = getProductDetailsPython()
+    cdef map[string,string].iterator it = my_map.begin()
+    new_map = OrderedDict()
+    while(it != my_map.end()):
+        key = dereference(it).first
+        key = key.decode('utf-8')
+        
+        value = dereference(it).second
+        value = value.decode('utf-8')
+        
+        new_map[key] = value
+        
+        postincrement(it)
+
+    return new_map
+
+
+cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_missing_paths):
     cdef vector[string] files
     for file in fileList:
       files.push_back(str.encode(file))
@@ -171,7 +211,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns):
         extra_column_cpp = (extra_column[0].encode(),extra_column[1])
         extra_columns_cpp.push_back(extra_column_cpp)
                 
-    tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp)
+    tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp, ignore_missing_paths)
     return_object = {}
     return_object['datasource'] = files
     return_object['files'] = tableSchema.files
@@ -250,7 +290,7 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
     
     return df
 
-cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, bool use_execution_graph):
+cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, bool is_single_node):
     cdef string query
     query = str.encode(queryPy)
     cdef vector[NodeMetaDataTCP] tcpMetadataCpp
@@ -260,12 +300,14 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef vector[string] currentTableSchemaCppArgKeys
     cdef vector[string] currentTableSchemaCppArgValues
     cdef vector[string] tableNames
+    cdef vector[string] tableScans
     cdef vector[type_id] types
     cdef vector[string] names
     cdef TableSchema currentTableSchemaCpp
     cdef NodeMetaDataTCP currentMetadataCpp
     cdef vector[vector[string]] filesAll
     cdef vector[string] currentFilesAll
+    cdef vector[BlazingTableView] blazingTableViews
 
     cdef vector[vector[map[string,string]]] uri_values_cpp_all
     cdef vector[map[string,string]] uri_values_cpp
@@ -274,10 +316,9 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
     cdef vector[column_view] column_views
     cdef Column cython_col
 
-    tableIndex = 0
-    for tableName in tables:
+    for tableIndex in range(len(tables)):
       uri_values_cpp.empty()
-      for uri_value in tables[tableName].uri_values:
+      for uri_value in tables[tableIndex].uri_values:
         cur_uri_values.clear()
         for column_tuple in uri_value:
           key = column_tuple[0]
@@ -288,8 +329,9 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
         
       uri_values_cpp_all.push_back(uri_values_cpp)
       
-      tableNames.push_back(str.encode(tableName))
-      table = tables[tableName]
+      tableNames.push_back(str.encode(tables[tableIndex].name))
+      tableScans.push_back(str.encode(table_scans[tableIndex]))
+      table = tables[tableIndex]
       currentFilesAll.resize(0)
       if table.files is not None:
         for file in table.files:
@@ -315,12 +357,15 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       for col_type in table.column_types:
         types.push_back(col_type)
 
-      if table.fileType in (4, 5):
+      if table.fileType in (4, 5): # if cudf DataFrame or dask.cudf DataFrame
+        blazingTableViews.resize(0)
+        for cython_table in table.input:
           column_views.resize(0)
-          for cython_col in table.input._data.values():
-              column_views.push_back(cython_col.view())
-          currentTableSchemaCpp.blazingTableView = BlazingTableView(table_view(column_views), names)
-
+          for cython_col in cython_table._data.values():
+            column_views.push_back(cython_col.view())
+          blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
+        currentTableSchemaCpp.blazingTableViews = blazingTableViews
+        
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.types = types
 
@@ -341,25 +386,28 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  vector[int] fileTy
       else:
         currentTableSchemaCpp.row_groups_ids = []
 
-      tableSchemaCpp.push_back(currentTableSchemaCpp)
-      tableIndex = tableIndex + 1
+      tableSchemaCpp.push_back(currentTableSchemaCpp)      
 
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, use_execution_graph))
+    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options))
 
     names = dereference(resultSet).names
     decoded_names = []
     for i in range(names.size()):
         decoded_names.append(names[i].decode('utf-8'))
 
-    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    
-    return df
-
+    if is_single_node: # the engine returns a concatenated dataframe
+        df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[0]), decoded_names)._data)
+        return df
+    else: # the engine returns a vector of dataframes
+        dfs = []
+        for i in range(dereference(resultSet).cudfTables.size()):
+            dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
+        return dfs
 
 cpdef runSkipDataCaller(table, queryPy):
     cdef string query
@@ -402,37 +450,51 @@ cpdef runSkipDataCaller(table, queryPy):
 
 cpdef getTableScanInfoCaller(logicalPlan,tables):
     temp = getTableScanInfoPython(str.encode(logicalPlan))
-    #print(temp)
-    new_tables = {}
+    
     table_names = [name.decode('utf-8') for name in temp.table_names]
-
     relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
-    relational_algebra_steps = {}
+    
+    new_tables = []
+    table_scans = []
     for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
+      new_tables.append(tables[table_name])
+      table_scans.append(scan_string)
+      
+    return new_tables, table_scans
 
-        new_table = tables[table_name]
+# cpdef getTableScanInfoCaller(logicalPlan,tables):
+#     temp = getTableScanInfoPython(str.encode(logicalPlan))
+#     #print(temp)
+#     new_tables = {}
+#     table_names = [name.decode('utf-8') for name in temp.table_names]
 
-        # TODO percy c.gonzales felipe
-        if new_table.fileType == 6:
-          if table_name in new_tables:
-            #TODO: this is not yet implemented the function unionColumns needs to be NotImplemented
-            #for this to work
-            temp_table = new_tables[table_name].filterAndRemapColumns(table_columns)
-            new_tables[table_name] = temp_table.unionColumns(new_tables[table_name])
-          else:
-            if len(table_columns) != 0:
-              new_table = new_table.filterAndRemapColumns(table_columns)
-            else:
-              new_table = new_table.convertForQuery()
-        if table_name in relational_algebra_steps:
-          relational_algebra_steps[table_name]['table_scans'].append(scan_string)
-          relational_algebra_steps[table_name]['table_columns'].append(table_columns)
-        else:
-          relational_algebra_steps[table_name] = {}
-          relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
-          relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
+#     relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
+#     relational_algebra_steps = {}
+#     for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
 
-        new_table.column_names = tables[table_name].column_names
-        new_tables[table_name] = new_table
+#         new_table = tables[table_name]
 
-    return new_tables, relational_algebra_steps
+#         # TODO percy c.gonzales felipe
+#         if new_table.fileType == 6:
+#           if table_name in new_tables:
+#             #TODO: this is not yet implemented the function unionColumns needs to be NotImplemented
+#             #for this to work
+#             temp_table = new_tables[table_name].filterAndRemapColumns(table_columns)
+#             new_tables[table_name] = temp_table.unionColumns(new_tables[table_name])
+#           else:
+#             if len(table_columns) != 0:
+#               new_table = new_table.filterAndRemapColumns(table_columns)
+#             else:
+#               new_table = new_table.convertForQuery()
+#         if table_name in relational_algebra_steps:
+#           relational_algebra_steps[table_name]['table_scans'].append(scan_string)
+#           relational_algebra_steps[table_name]['table_columns'].append(table_columns)
+#         else:
+#           relational_algebra_steps[table_name] = {}
+#           relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
+#           relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
+
+#         new_table.column_names = tables[table_name].column_names
+#         new_tables[table_name] = new_table
+
+#     return new_tables, relational_algebra_steps

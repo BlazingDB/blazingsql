@@ -1,7 +1,7 @@
 /*
- * Copyright 2017 BlazingDB, Inc.
+ * Copyright 2017-2020 BlazingDB, Inc.
  *     Copyright 2018 Felipe Aramburu <felipe@blazingdb.com>
- *     Copyright 2018 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
+ *     Copyright 2018-2020 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
  *     Copyright 2018 William Malpica <william@blazingdb.com>
  */
 
@@ -59,23 +59,53 @@ struct RegionResult {
 	std::string errorMessage;
 };
 
-RegionResult getRegion(std::string bucketName,std::shared_ptr< Aws::Auth::AWSCredentials> credentials) {
+std::shared_ptr<Aws::S3::S3Client> make_s3_client(
+		const std::string & region,
+		std::shared_ptr< Aws::Auth::AWSCredentials> credentials,
+		const std::string & endpointOverride,
+		long connectTimeoutMs = -1,
+		long requestTimeoutMs = -1) {
+	
+	// TODO Percy Rommel use configuration files instead of magic numbers/strings
+	// here we can make changes to the client configuration
+	
+	auto clientConfig = Aws::Client::ClientConfiguration();
+	clientConfig.region = region;
+	
+	if (connectTimeoutMs > 0) {
+		clientConfig.connectTimeoutMs = connectTimeoutMs;
+	}
+	
+	if (requestTimeoutMs > 0) {
+		clientConfig.requestTimeoutMs = requestTimeoutMs;
+	}
+	
+	bool useVirtualAddressing = true;
+	
+	if (endpointOverride.empty() == false) {
+		clientConfig.endpointOverride = endpointOverride;
+		
+		// NOTE When use endpointOverride we need to set useVirtualAddressing to true for the client ctor
+		useVirtualAddressing = false;
+	}
+	
+	std::shared_ptr<Aws::S3::S3Client> s3Client;
+	Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy signPayloads = Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never;
+	
+	if(credentials == nullptr){
+		s3Client = std::make_shared<Aws::S3::S3Client>(clientConfig, signPayloads, useVirtualAddressing);
+	}else{
+		s3Client = std::make_shared<Aws::S3::S3Client>(*credentials, clientConfig, signPayloads, useVirtualAddressing);
+	}
+	
+	return s3Client;
+}
+
+RegionResult getRegion(std::string bucketName,std::shared_ptr< Aws::Auth::AWSCredentials> credentials, const std::string & endpointOverride) {
 	RegionResult regionResult;
 
-	auto clientConfig = Aws::Client::ClientConfiguration();
-	// TODO Percy Rommel use configuration files instead of magic numbers/strings
-	clientConfig.region =
-		"us-east-1";  // NEVER change this value | use US-Standard region (us-east-1) to get any bucket region
-	clientConfig.connectTimeoutMs = 60000;
-	clientConfig.requestTimeoutMs = 30000;
-
-	std::shared_ptr<Aws::S3::S3Client> s3Client;
-	if(credentials == nullptr){
-		s3Client = std::make_shared<Aws::S3::S3Client>( clientConfig);
-	}else{
-		s3Client = std::make_shared<Aws::S3::S3Client>(*credentials, clientConfig);
-	}
-
+	// NEVER change the region value for this getRegion method | use US-Standard region (us-east-1) to get any bucket region
+	std::shared_ptr<Aws::S3::S3Client> s3Client = make_s3_client("us-east-1", credentials, endpointOverride, 60000, 30000);
 
 	Aws::S3::Model::GetBucketLocationRequest location_request;
 	location_request.WithBucket(bucketName);
@@ -151,6 +181,8 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 	const std::string accessKeyId = fileSystemConnection.getConnectionProperty(ConnectionProperty::ACCESS_KEY_ID);
 	const std::string secretKey = fileSystemConnection.getConnectionProperty(ConnectionProperty::SECRET_KEY);
 	const std::string sessionToken = fileSystemConnection.getConnectionProperty(ConnectionProperty::SESSION_TOKEN);
+	const std::string endpointOverride = fileSystemConnection.getConnectionProperty(ConnectionProperty::ENDPOINT_OVERRIDE);
+	const std::string region = fileSystemConnection.getConnectionProperty(ConnectionProperty::REGION);
 
 	// TODO percy check valid conn properties: do this in the fs::isValidConn or inside fsConnection (get rid of strings
 	// map: that is a bad pattern)
@@ -160,34 +192,26 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 	}
 
 	RegionResult regionResult;
+	regionResult.valid = true;
+	regionResult.regionName = region;
 
-	if(credentials != nullptr){
-		regionResult = getRegion(bucketName, credentials);
-	}else{
-		regionResult.regionName = "us-east-1";
-		regionResult.valid = true;
+	if (region.empty()) {
+		if(credentials != nullptr){
+			regionResult = getRegion(bucketName, credentials, endpointOverride);
+		}else{
+			regionResult.regionName = "us-east-1";
+			regionResult.valid = true;
+		}
+	
+		// TODO percy error handling
+		if(regionResult.valid == false) {
+			this->disconnect();
+			throw std::runtime_error(
+				"Error getting region from bucket " + bucketName + ". Filesystem " + fileSystemConnection.toString());
+		}
 	}
 
-	// TODO percy error handling
-	if(regionResult.valid == false) {
-		this->disconnect();
-		throw std::runtime_error(
-			"Error getting region from bucket " + bucketName + ". Filesystem " + fileSystemConnection.toString());
-	}
-
-	// here we can make changes to the client configuration
-	auto clientConfig = Aws::Client::ClientConfiguration();
-	clientConfig.region = regionResult.regionName;
-	// TODO Percy Rommel use configuration files instead of magic numbers
-	clientConfig.connectTimeoutMs = 60000;
-	clientConfig.requestTimeoutMs = 30000;
-
-	if(credentials == nullptr){
-		this->s3Client = std::make_shared<Aws::S3::S3Client>(clientConfig);
-	}else{
-		this->s3Client = std::make_shared<Aws::S3::S3Client>(*credentials, clientConfig);
-	}
-
+	this->s3Client = make_s3_client(regionResult.regionName, credentials, endpointOverride, 60000, 30000);
 
 	// TODO NOTE This code is when we need to support client side encryption (currently only support server side
 	// encryption) 	switch (encryptionType) { 		case EncryptionType::NONE: { 			this->s3Client =
@@ -235,7 +259,7 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 	//		break;
 	//	}
 
-	this->regionName = clientConfig.region;
+	this->regionName = regionResult.regionName;
 	this->fileSystemConnection = fileSystemConnection;
 
 	return true;
@@ -357,16 +381,28 @@ FileStatus S3FileSystem::Private::getFileStatus(const Uri & uri) const {
 				//				}
 				throw BlazingFileNotFoundException(uriWithRoot);
 			}
-		} else {
-			//			bool shouldRetry = outcome.GetError().ShouldRetry();
-			//			if (shouldRetry){
-			//				std::cout<<"ERROR: "<<outcome.GetError().GetExceptionName()<<" :
-			//"<<outcome.GetError().GetMessage()<<"  SHOULD RETRY"<<std::endl; 			} else { 				std::cout<<"ERROR:
-			//"<<outcome.GetError().GetExceptionName()<<" : "<<outcome.GetError().GetMessage()<<"  SHOULD NOT
-			//RETRY"<<std::endl;
-			//			}
-			throw BlazingFileNotFoundException(uriWithRoot);
+		} else {  // if contains / at the end
+			Aws::S3::Model::ListObjectsV2Request request;
+			request.WithBucket(bucket);
+			request.WithDelimiter(
+				"/");  // NOTE percy since we control how to create files in S3 we should use this convention
+			request.WithPrefix(objectKey);
+
+			auto objectsOutcome = this->s3Client->ListObjectsV2(request);
+
+			if(objectsOutcome.IsSuccess()) {
+				const FileStatus fileStatus(uri, FileType::DIRECTORY, 0);
+				return fileStatus;
+			}
 		}
+		//			bool shouldRetry = outcome.GetError().ShouldRetry();
+		//			if (shouldRetry){
+		//				std::cout<<"ERROR: "<<outcome.GetError().GetExceptionName()<<" :
+		//"<<outcome.GetError().GetMessage()<<"  SHOULD RETRY"<<std::endl; 			} else { 				std::cout<<"ERROR:
+		//"<<outcome.GetError().GetExceptionName()<<" : "<<outcome.GetError().GetMessage()<<"  SHOULD NOT
+		//RETRY"<<std::endl;
+		//			}
+		throw BlazingFileNotFoundException(uriWithRoot);
 	}
 }
 

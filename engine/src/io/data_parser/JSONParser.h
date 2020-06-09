@@ -12,20 +12,19 @@ namespace io {
 
 class json_parser : public data_parser {
 public:
-	json_parser(cudf::experimental::io::read_json_args args);
+	json_parser(cudf::io::read_json_args args);
 
 	virtual ~json_parser();
 
 	std::unique_ptr<ral::frame::BlazingTable> parse(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const std::string & user_readable_file_handle,
 		const Schema & schema,
 		std::vector<size_t> column_indices);
 
-	void parse_schema(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, Schema & schema);
+	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 private:
-	cudf::experimental::io::read_json_args args;
+	cudf::io::read_json_args args;
 };
 
 } /* namespace io */

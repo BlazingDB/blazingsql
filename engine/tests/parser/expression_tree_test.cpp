@@ -1,4 +1,3 @@
-#include "GDFColumn.cuh"
 #include "parser/expression_tree.hpp"
 #include <gtest/gtest.h>
 #include <iostream>
@@ -8,8 +7,6 @@ struct ExpressionTreeTest : public ::testing::Test {
 	ExpressionTreeTest() {}
 
 	~ExpressionTreeTest() {}
-
-	void SetUp() override { rmmInitialize(nullptr); }
 };
 
 TEST_F(ExpressionTreeTest, case_1) {
@@ -74,22 +71,6 @@ TEST_F(ExpressionTreeTest, case_8) {
 	ral::parser::parse_tree tree;
 	tree.build("CAST(CAST($0):BIGINT):VARCHAR");
 	std::string expected = "CAST_VARCHAR(CAST_BIGINT($0))";
-	tree.transform_to_custom_op();
-	EXPECT_EQ(tree.rebuildExpression(), expected);
-}
-
-TEST_F(ExpressionTreeTest, case_9) {
-	ral::parser::parse_tree tree;
-	tree.build("SUBSTRING($0, 1)");
-	std::string expected = "SUBSTRING($0, '1')";
-	tree.transform_to_custom_op();
-	EXPECT_EQ(tree.rebuildExpression(), expected);
-}
-
-TEST_F(ExpressionTreeTest, case_10) {
-	ral::parser::parse_tree tree;
-	tree.build("SUBSTRING($0, 1, 5)");
-	std::string expected = "SUBSTRING($0, '1:5')";
 	tree.transform_to_custom_op();
 	EXPECT_EQ(tree.rebuildExpression(), expected);
 }

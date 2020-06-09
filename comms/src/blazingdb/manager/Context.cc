@@ -2,26 +2,29 @@
 #include <algorithm>
 #include <climits>
 #include <mutex>
+
 namespace blazingdb {
 namespace manager {
-namespace experimental { 
 
 Context::Context(const uint32_t token,
                  const std::vector<Node> &taskNodes,
                  const Node &masterNode,
-                 const std::string &logicalPlan)
+                 const std::string &logicalPlan,
+                 const std::map<std::string, std::string>& config_options)
     : token_{token},
       taskNodes_{taskNodes},
       masterNode_{masterNode},
       logicalPlan_{logicalPlan},
       query_step{0},
       query_substep{0},
-      kernel_id_{0} {}
+      kernel_id_{0},
+      config_options_{config_options} {}
 
 std::shared_ptr<Context> Context::clone() {
-  auto ptr = std::make_shared<Context>(this->token_, this->taskNodes_, this->masterNode_, this->logicalPlan_);
+  auto ptr = std::make_shared<Context>(this->token_, this->taskNodes_, this->masterNode_, this->logicalPlan_, this->config_options_);
   ptr->query_step = this->query_step;
   ptr->query_substep = this->query_substep;
+  ptr->kernel_id_ = this->kernel_id_;
   return ptr;
 }
 
@@ -96,6 +99,5 @@ bool Context::isMasterNode(const Node &node) const {
   return masterNode_ == node;
 }
 
-}  // namespace experimental
 }  // namespace manager
 }  // namespace blazingdb

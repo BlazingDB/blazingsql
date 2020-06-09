@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "Traits/RuntimeTraits.h"
 
 #include "io/DataLoader.h"
 #include "io/data_parser/CSVParser.h"
@@ -23,8 +22,8 @@
 #include <arrow/io/file.h>
 #include <arrow/util/logging.h>
 
-using blazingdb::manager::experimental::Context;
-using Node = blazingdb::transport::experimental::Node;
+using blazingdb::manager::Context;
+using Node = blazingdb::transport::Node;
 
 struct ParseCSVTest : public ::testing::Test {
 
@@ -33,7 +32,7 @@ struct ParseCSVTest : public ::testing::Test {
   void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
 };
 
-namespace cudf_io = cudf::experimental::io;
+namespace cudf_io = cudf::io;
 
 
   // Helper function to compare two floating-point column contents

@@ -21,10 +21,9 @@
 namespace blazingdb {
 namespace transport {
 
-namespace experimental {
 // Alias
-using SimpleServer = blazingdb::transport::experimental::Server;
-using GPUMessage = blazingdb::transport::experimental::GPUMessage;
+using SimpleServer = blazingdb::transport::Server;
+using GPUMessage = blazingdb::transport::GPUMessage;
 
 constexpr uint32_t context_token = 3465;
 
@@ -33,11 +32,11 @@ using StringsInfo = blazingdb::test::StringsInfo;
 
 typedef int nv_category_index_type;
 
-struct GPUComponentReceivedMessage : public GPUReceivedMessage {
-	GPUComponentReceivedMessage(uint32_t contextToken, const Node &sender_node,
+struct ReceivedDeviceMessage : public ReceivedMessage {
+	ReceivedDeviceMessage(uint32_t contextToken, const Node &sender_node,
 		std::uint64_t total_row_size,
 	const std::vector<gdf_column *> &samples)
-	: GPUReceivedMessage(GPUComponentReceivedMessage::MessageID(), contextToken, sender_node),
+	: ReceivedMessage(ReceivedDeviceMessage::MessageID(), contextToken, sender_node),
 	samples{samples} {
 		this->metadata().total_row_size = total_row_size;
 	}
@@ -182,7 +181,7 @@ public:
     return std::make_tuple(buffer_sizes, raw_buffers, column_offset, std::move(temp_scope_holder));
   }
 
-  static std::shared_ptr<GPUReceivedMessage> MakeFrom(
+  static std::shared_ptr<ReceivedMessage> MakeFrom(
       const Message::MetaData &message_metadata,
       const Address::MetaData &address_metadata,
       const std::vector<ColumnTransport> &columns_offsets,
@@ -248,7 +247,7 @@ public:
     for (gdf_column *column : received_samples) {
         blazingdb::test::print_gdf_column(column);
     }
-    return std::make_shared<GPUComponentReceivedMessage>(
+    return std::make_shared<ReceivedDeviceMessage>(
         message_metadata.contextToken, node, message_metadata.total_row_size,
         received_samples);
   }
@@ -352,7 +351,7 @@ private:
     {
       const std::string endpoint = GPUComponentMessage::MessageID();
       comm_server->registerEndPoint(endpoint);
-      comm_server->registerMessageForEndPoint(GPUComponentMessage::MakeFrom, endpoint);
+      comm_server->registerDeviceDeserializerForEndPoint(GPUComponentMessage::MakeFrom, endpoint);
     }
   }
 
@@ -368,7 +367,7 @@ class RalClient {
 public:
 public:
   static Status send(const Node &node, GPUMessage &message) {
-    auto client = blazingdb::transport::experimental::ClientTCP::Make(
+    auto client = blazingdb::transport::ClientTCP::Make(
         node.address().metadata().ip,
         node.address().metadata().comunication_port);
     std::cout << "send message\n";
@@ -377,7 +376,7 @@ public:
   static Status sendNodeData(const std::string &orchestratorIp,
                              int16_t orchestratorPort, GPUMessage &message) {
     auto client =
-        blazingdb::transport::experimental::ClientTCP::Make(orchestratorIp, orchestratorPort);
+        blazingdb::transport::ClientTCP::Make(orchestratorIp, orchestratorPort);
     return client->Send(message);
   }
 };
@@ -391,7 +390,7 @@ static void ExecMaster() {
   RalServer::start(8000);
 
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
-  blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, 1);
+  blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, 1);
   RalServer::getInstance().registerContext(context_token);
   std::thread([]() {
     // while(true){
@@ -413,7 +412,7 @@ static void ExecWorker() {
   // todo get GPU_MEMORY_SIZE
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
   auto nthread = 4;
-  blazingdb::transport::experimental::io::setPinnedBufferProvider(sizeBuffer, nthread);
+  blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
   // This lines are not necessary!!
   //  RalServer::start(8001);
   //  RalServer::getInstance().registerContext(context_token);
@@ -425,6 +424,7 @@ static void ExecWorker() {
 
   auto message = CreateSampleToNodeMaster(context_token, *sender_node);
   RalClient::send(*server_node, *message);
+  
 }
 
 // TODO: move common code of TCP client and server to blazingdb::network in
@@ -444,6 +444,5 @@ TEST(SendSamplesTest, MasterAndWorker) {
 
 // TEST(SendSamplesTest, Worker) { ExecWorker(); }
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

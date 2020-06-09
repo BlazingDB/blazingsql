@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include <string>
 
 #include <Python.h>
 
@@ -24,7 +23,10 @@
 
 RAISE_ERROR(Initialize)
 RAISE_ERROR(Finalize)
+RAISE_ERROR(BlazingSetAllocator)
+RAISE_ERROR(GetProductDetails)
 RAISE_ERROR(RunQuery)
+RAISE_ERROR(RunSkipData)
 RAISE_ERROR(ParseSchema)
 RAISE_ERROR(RegisterFileSystemHDFS)
 RAISE_ERROR(RegisterFileSystemGCS)

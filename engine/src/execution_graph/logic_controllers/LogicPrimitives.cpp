@@ -1,11 +1,9 @@
 
 
 #include "LogicPrimitives.h"
-#include <sys/stat.h>
 
 
 #include <random>
-#include <src/utilities/CommonOperations.h>
 
 #include "cudf/column/column_factories.hpp"
 
@@ -43,6 +41,13 @@ CudfTableView BlazingTable::view() const{
 
 std::vector<std::string> BlazingTable::names() const{
 	return this->columnNames;
+}
+
+std::vector<cudf::data_type> BlazingTable::get_schema() const {
+	std::vector<cudf::data_type> data_types(this->num_columns());
+	auto view = this->view();
+	std::transform(view.begin(), view.end(), data_types.begin(), [](auto & col){ return col.type(); });
+	return data_types;
 }
 
 BlazingTableView BlazingTable::toBlazingTableView() const{
@@ -116,6 +121,13 @@ std::vector<std::string> BlazingTableView::names() const{
 	return this->columnNames;
 }
 
+std::vector<cudf::data_type> BlazingTableView::get_schema() {
+	std::vector<cudf::data_type> data_types(this->num_columns());
+	auto view = this->view();
+	std::transform(view.begin(), view.end(), data_types.begin(), [](auto & col){ return col.type(); });
+	return data_types;
+}
+
 std::unique_ptr<BlazingTable> BlazingTableView::clone() const {
 	std::unique_ptr<CudfTable> cudfTable = std::make_unique<CudfTable>(this->table);
 	return std::make_unique<BlazingTable>(std::move(cudfTable), this->columnNames);
@@ -128,6 +140,20 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 	for(int i = 0; i < column_types.size(); ++i) {
 		cudf::type_id col_type = column_types[i];
 		cudf::data_type dtype(col_type);
+		std::unique_ptr<cudf::column> empty_column = cudf::make_empty_column(dtype);
+		empty_columns[i] = std::move(empty_column);
+	}
+
+	std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(std::move(empty_columns));
+	return std::make_unique<BlazingTable>(std::move(cudf_table), column_names);
+}
+
+std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::data_type> column_types,
+									   std::vector<std::string> column_names) {
+	std::vector< std::unique_ptr<cudf::column> > empty_columns;
+	empty_columns.resize(column_types.size());
+	for(int i = 0; i < column_types.size(); ++i) {
+		auto dtype = column_types[i];
 		std::unique_ptr<cudf::column> empty_column = cudf::make_empty_column(dtype);
 		empty_columns[i] = std::move(empty_column);
 	}

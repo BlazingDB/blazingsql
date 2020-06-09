@@ -8,8 +8,9 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 namespace io {
+
+using Buffer = std::basic_string<char>;
 
 struct PinnedBuffer {
   std::size_t size;
@@ -45,14 +46,16 @@ PinnedBufferProvider &getPinnedBufferProvider();
 void setPinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
 void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
-                            std::vector<int> bufferSizes,
+                            std::vector<std::size_t> bufferSizes,
                             std::vector<const char *> buffers, void *fileDescriptor,
                             int gpuNum);
 
-void readBuffersIntoGPUTCP(std::vector<int> bufferSizes,
+void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,
                                           void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &);
 
+void readBuffersIntoCPUTCP(std::vector<std::size_t> bufferSizes,
+                                          void *fileDescriptor, int gpuNum, std::vector<Buffer> &);
+
 }  // namespace io
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

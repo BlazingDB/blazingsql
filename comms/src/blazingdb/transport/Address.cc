@@ -1,17 +1,15 @@
-#ifndef BLAZINGDB_COMMUNICATION_ADDRESS_INTERNAL_H_
-#define BLAZINGDB_COMMUNICATION_ADDRESS_INTERNAL_H_
-
 #include "blazingdb/transport/Address.h"
 #include <cassert>
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 Address::Address(){}
  
 Address::Address(const Address& address){
-  this->metadata_ = address.metadata_;
+  this->metadata_.type = address.metadata_.type;
+  this->metadata_.comunication_port = address.metadata_.comunication_port;
+  this->metadata_.protocol_port = address.metadata_.protocol_port;
   memcpy(this->metadata_.ip, address.metadata_.ip, ADDRSTRLEN);
 }
 
@@ -40,8 +38,5 @@ Address Address::TCP(const std::string &ip,
   return TCPAddress(ip, communication_port, protocol_port);
 }
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb
-
-#endif

@@ -10,13 +10,14 @@
 
 namespace blazingdb {
 namespace transport {
-namespace experimental {
 
 class Client {
 public:
   class SendError;
 
   virtual Status Send(GPUMessage& message) = 0;
+
+  virtual bool notifyLastMessageEvent(const Message::MetaData &message_metadata) = 0;
 
   virtual void Close() = 0;
 
@@ -34,6 +35,5 @@ public:
   static std::shared_ptr<Client> Make(const std::string& ip, int16_t port);
 };
 
-}  // namespace experimental
 }  // namespace transport
 }  // namespace blazingdb

@@ -1,6 +1,5 @@
 #include "../../include/io/io.h"
 #include "../io/DataLoader.h"
-#include "../io/Schema.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/JSONParser.h"
@@ -12,10 +11,8 @@
 #include "utilities/DebuggingUtils.h"
 
 #include <blazingdb/io/Config/BlazingContext.h>
-#include <blazingdb/io/FileSystem/FileSystemConnection.h>
-#include <blazingdb/io/FileSystem/FileSystemManager.h>
-#include <blazingdb/io/FileSystem/HadoopFileSystem.h>
-#include <blazingdb/io/FileSystem/S3FileSystem.h>
+
+using namespace fmt::literals;
 
 // #include <blazingdb/io/Library/Logging/TcpOutput.h>
 // #include "blazingdb/io/Library/Network/NormalSyncSocket.h"
@@ -26,15 +23,19 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
 	std::vector<std::string> arg_values,
-	std::vector<std::pair<std::string, cudf::type_id>> extra_columns) {
+	std::vector<std::pair<std::string, cudf::type_id>> extra_columns,
+	bool ignore_missing_paths) {
+	
+	// sanitize and normalize paths
+	for (int i = 0; i < files.size(); ++i) {
+		files[i] = Uri(files[i]).toString(true);
+	}
+	
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
-	ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
+	ral::io::ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
 	TableSchema tableSchema;
 	tableSchema.data_type = fileType;
-	tableSchema.args.orcReaderArg = args.orcReaderArg;
-	tableSchema.args.jsonReaderArg = args.jsonReaderArg;
-	tableSchema.args.csvReaderArg = args.csvReaderArg;
 
 	std::shared_ptr<ral::io::data_parser> parser;
 	if(fileType == ral::io::DataType::PARQUET) {
@@ -51,7 +52,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	for(auto file_path : files) {
 		uris.push_back(Uri{file_path});
 	}
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, ignore_missing_paths);
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 
 	ral::io::Schema schema;
@@ -59,6 +60,12 @@ TableSchema parseSchema(std::vector<std::string> files,
 	try {
 		loader->get_schema(schema, extra_columns);
 	} catch(std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("|||{info}|||||",
+									"info"_a="In parseSchema. What: {}"_format(e.what()));
+		std::cerr << "**[performPartition]** error partitioning table.\n";
+		logger->flush();
+
 		throw;
 	}
 
@@ -111,14 +118,14 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		names[2*index + 1] = "row_group_index";
 		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
 		result->names = names;
-		auto table = ral::utilities::experimental::create_empty_table(dtypes);
+		auto table = ral::utilities::create_empty_table(dtypes);
 		result->cudfTable = std::move(table);
 		result->skipdata_analysis_fail = false;
 		return result;
 	}
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
-	ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
+	ral::io::ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
 
 	std::shared_ptr<ral::io::data_parser> parser;
 	if(fileType == ral::io::DataType::PARQUET) {
@@ -191,7 +198,9 @@ std::pair<bool, std::string> registerFileSystemS3(S3 s3, std::string root, std::
 		s3.kmsKeyAmazonResourceName,
 		s3.accessKeyId,
 		s3.secretKey,
-		s3.sessionToken);
+		s3.sessionToken,
+		s3.endpointOverride,
+		s3.region);
 	return registerFileSystem(fileSystemConnection, root, authority);
 }
 std::pair<bool, std::string> registerFileSystemLocal(std::string root, std::string authority) {

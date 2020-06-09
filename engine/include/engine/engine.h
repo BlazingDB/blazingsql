@@ -16,9 +16,10 @@ struct NodeMetaDataTCP {
 	std::int32_t communication_port;
 };
 
-std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
+std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
+	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,
 	std::vector<std::vector<std::string>> tableSchemaCppArgKeys,
 	std::vector<std::vector<std::string>> tableSchemaCppArgValues,
@@ -28,7 +29,7 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	bool use_execution_graph);
+	std::map<std::string, std::string> config_options);
 
 
 struct TableScanInfo {
@@ -50,4 +51,3 @@ std::unique_ptr<ResultSet> performPartition(
 	int32_t ctxToken,
 	const ral::frame::BlazingTableView & table,
 	std::vector<std::string> column_names);
-

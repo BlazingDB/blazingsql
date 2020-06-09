@@ -1,5 +1,4 @@
 add_subdirectory(FileFilterTest)
-add_subdirectory(FileSystemCommandParserTest)
 #add_subdirectory(FileSystemManagerTest)
 #add_subdirectory(FileSystemRepositoryTest)
 #add_subdirectory(GoogleCloudStorageTest)

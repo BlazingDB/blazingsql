@@ -10,24 +10,28 @@
 #include <mutex>
 #include <queue>
 #include <string>
-#include <thread>
 #include <typeindex>
 #include <vector>
+#include <string>
+#include <bmr/BlazingMemoryResource.h>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
 
-typedef cudf::experimental::table CudfTable;
+#include "BlazingHostTable.h"
+
+typedef cudf::table CudfTable;
 typedef cudf::table_view CudfTableView;
 typedef cudf::column CudfColumn;
 typedef cudf::column_view CudfColumnView;
-namespace cudf_io = cudf::experimental::io;
+namespace cudf_io = cudf::io;
 
 namespace ral {
 namespace frame {
 
 class BlazingTable;
 class BlazingTableView;
+class BlazingHostTable;
 
 class BlazingTable {
 public:
@@ -40,8 +44,9 @@ public:
 
 	CudfTableView view() const;
 	cudf::size_type num_columns() const { return columns.size(); }
-	cudf::size_type num_rows() const { return columns.size() == 0 ? 0 : columns[0]->view().size(); }
+	cudf::size_type num_rows() const { return columns.size() == 0 ? 0 : (columns[0] == nullptr ? 0 : columns[0]->view().size()); }
 	std::vector<std::string> names() const;
+	std::vector<cudf::data_type> get_schema() const;
 	// set columnNames
 	void setNames(const std::vector<std::string> & names) { this->columnNames = names; }
 
@@ -59,7 +64,6 @@ private:
 	std::vector<std::unique_ptr<BlazingColumn>> columns;
 };
 
-
 class BlazingTableView {
 public:
 	BlazingTableView();
@@ -75,8 +79,9 @@ public:
 	cudf::column_view const & column(cudf::size_type column_index) const { return table.column(column_index); }
 	std::vector<std::unique_ptr<BlazingColumn>> toBlazingColumns() const;
 
+	std::vector<cudf::data_type> get_schema();
+
 	std::vector<std::string> names() const;
-	// set columnNames
 	void setNames(const std::vector<std::string> & names) { this->columnNames = names; }
 
 	cudf::size_type num_columns() const { return table.num_columns(); }
@@ -89,6 +94,9 @@ private:
 	std::vector<std::string> columnNames;
 	CudfTableView table;
 };
+
+std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::data_type> column_types,
+									   std::vector<std::string> column_names);
 
 std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cudf::type_id> column_types,
 									   std::vector<std::string> column_names);

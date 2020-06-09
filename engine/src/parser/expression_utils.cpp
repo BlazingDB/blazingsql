@@ -1,9 +1,269 @@
 #include <map>
 #include <regex>
+#include <cassert>
+#include <blazingdb/io/Util/StringUtil.h>
 
 #include "expression_utils.hpp"
-#include "Utils.cuh"
-#include <blazingdb/io/Util/StringUtil.h>
+#include "CalciteExpressionParsing.h"
+#include "error.hpp"
+
+bool is_unary_operator(operator_type op) {
+	switch (op)
+	{
+	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_ABS:
+	case operator_type::BLZ_FLOOR:
+	case operator_type::BLZ_CEIL:
+	case operator_type::BLZ_SIN:
+	case operator_type::BLZ_COS:
+	case operator_type::BLZ_ASIN:
+	case operator_type::BLZ_ACOS:
+	case operator_type::BLZ_TAN:
+	case operator_type::BLZ_COTAN:
+	case operator_type::BLZ_ATAN:
+	case operator_type::BLZ_LN:
+	case operator_type::BLZ_LOG:
+	case operator_type::BLZ_YEAR:
+	case operator_type::BLZ_MONTH:
+	case operator_type::BLZ_DAY:
+	case operator_type::BLZ_HOUR:
+	case operator_type::BLZ_MINUTE:
+	case operator_type::BLZ_SECOND:
+	case operator_type::BLZ_IS_NULL:
+	case operator_type::BLZ_IS_NOT_NULL:
+	case operator_type::BLZ_CAST_TINYINT:
+	case operator_type::BLZ_CAST_SMALLINT:
+	case operator_type::BLZ_CAST_INTEGER:
+	case operator_type::BLZ_CAST_BIGINT:
+	case operator_type::BLZ_CAST_FLOAT:
+	case operator_type::BLZ_CAST_DOUBLE:
+	case operator_type::BLZ_CAST_DATE:
+	case operator_type::BLZ_CAST_TIMESTAMP:
+	case operator_type::BLZ_CAST_VARCHAR:
+	case operator_type::BLZ_CHAR_LENGTH:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool is_binary_operator(operator_type op) {
+	switch (op)
+	{
+  case operator_type::BLZ_ADD:
+  case operator_type::BLZ_SUB:
+  case operator_type::BLZ_MUL:
+  case operator_type::BLZ_DIV:
+  case operator_type::BLZ_MOD:
+  case operator_type::BLZ_POW:
+  case operator_type::BLZ_ROUND:
+  case operator_type::BLZ_EQUAL:
+  case operator_type::BLZ_NOT_EQUAL:
+  case operator_type::BLZ_LESS:
+  case operator_type::BLZ_GREATER:
+  case operator_type::BLZ_LESS_EQUAL:
+  case operator_type::BLZ_GREATER_EQUAL:
+  case operator_type::BLZ_BITWISE_AND:
+  case operator_type::BLZ_BITWISE_OR:
+  case operator_type::BLZ_BITWISE_XOR:
+  case operator_type::BLZ_LOGICAL_AND:
+  case operator_type::BLZ_LOGICAL_OR:
+	case operator_type::BLZ_FIRST_NON_MAGIC:
+	case operator_type::BLZ_MAGIC_IF_NOT:
+	case operator_type::BLZ_STR_LIKE:
+	case operator_type::BLZ_STR_CONCAT:
+		return true;
+	case operator_type::BLZ_STR_SUBSTRING:
+		assert(false);
+		// Ternary operator. Should not reach here
+		// Should be evaluated in place (inside function_evaluator_transformer) and removed from the tree
+		return true;
+	default:
+		return false;
+	}
+}
+
+cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
+	switch (op)
+	{
+	case operator_type::BLZ_CAST_TINYINT:
+		return cudf::type_id::INT8;
+	case operator_type::BLZ_CAST_SMALLINT:
+		return cudf::type_id::INT16;
+	case operator_type::BLZ_CAST_INTEGER:
+		return cudf::type_id::INT32;
+	case operator_type::BLZ_CAST_BIGINT:
+		return cudf::type_id::INT64;
+	case operator_type::BLZ_CAST_FLOAT:
+		return cudf::type_id::FLOAT32;
+	case operator_type::BLZ_CAST_DOUBLE:
+		return cudf::type_id::FLOAT64;
+	case operator_type::BLZ_CAST_DATE:
+		return cudf::type_id::TIMESTAMP_DAYS;
+	case operator_type::BLZ_CAST_TIMESTAMP:
+		return cudf::type_id::TIMESTAMP_NANOSECONDS;
+	case operator_type::BLZ_CAST_VARCHAR:
+		return cudf::type_id::STRING;
+	case operator_type::BLZ_YEAR:
+	case operator_type::BLZ_MONTH:
+	case operator_type::BLZ_DAY:
+	case operator_type::BLZ_HOUR:
+	case operator_type::BLZ_MINUTE:
+	case operator_type::BLZ_SECOND:
+		return cudf::type_id::INT16;
+	case operator_type::BLZ_SIN:
+	case operator_type::BLZ_COS:
+	case operator_type::BLZ_ASIN:
+	case operator_type::BLZ_ACOS:
+	case operator_type::BLZ_TAN:
+	case operator_type::BLZ_COTAN:
+	case operator_type::BLZ_ATAN:
+	case operator_type::BLZ_LN:
+	case operator_type::BLZ_LOG:
+	case operator_type::BLZ_FLOOR:
+	case operator_type::BLZ_CEIL:
+		if(is_type_float(input_left_type)) {
+			return input_left_type;
+		} else {
+			return cudf::type_id::FLOAT64;
+		}
+	case operator_type::BLZ_ABS:
+		return input_left_type;
+	case operator_type::BLZ_NOT:
+	case operator_type::BLZ_IS_NULL:
+	case operator_type::BLZ_IS_NOT_NULL:
+		return cudf::type_id::BOOL8;
+	case operator_type::BLZ_CHAR_LENGTH:
+		return cudf::type_id::INT32;
+	default:
+	 	assert(false);
+		return cudf::type_id::EMPTY;
+	}
+}
+
+cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, cudf::type_id input_right_type) {
+	RAL_EXPECTS(input_left_type != cudf::type_id::EMPTY || input_right_type != cudf::type_id::EMPTY, "In get_output_type function: both operands types are empty");
+
+	if(input_left_type == cudf::type_id::EMPTY) {
+		input_left_type = input_right_type;
+	} else if(input_right_type == cudf::type_id::EMPTY) {
+		input_right_type = input_left_type;
+	}
+
+	switch (op)
+	{
+	case operator_type::BLZ_ADD:
+	case operator_type::BLZ_SUB:
+	case operator_type::BLZ_MUL:
+	case operator_type::BLZ_DIV:
+	case operator_type::BLZ_MOD:
+		if(is_type_float(input_left_type) && is_type_float(input_right_type)) {
+			return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
+							? input_left_type
+							: input_right_type;
+		}	else if(is_type_float(input_left_type)) {
+			return input_left_type;
+		} else if(is_type_float(input_right_type)) {
+			return input_right_type;
+		} else {
+			return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
+							? input_left_type
+							: input_right_type;
+		}
+  case operator_type::BLZ_EQUAL:
+  case operator_type::BLZ_NOT_EQUAL:
+  case operator_type::BLZ_LESS:
+  case operator_type::BLZ_GREATER:
+  case operator_type::BLZ_LESS_EQUAL:
+  case operator_type::BLZ_GREATER_EQUAL:
+	case operator_type::BLZ_LOGICAL_AND:
+	case operator_type::BLZ_LOGICAL_OR:
+		return cudf::type_id::BOOL8;
+	case operator_type::BLZ_POW:
+	case operator_type::BLZ_ROUND:
+		return cudf::size_of(cudf::data_type{input_left_type}) <= cudf::size_of(cudf::data_type{cudf::type_id::FLOAT32})
+					 ? cudf::type_id::FLOAT32
+					 : cudf::type_id::FLOAT64;
+	case operator_type::BLZ_MAGIC_IF_NOT:
+		return input_right_type;
+	case operator_type::BLZ_FIRST_NON_MAGIC:
+		return (cudf::size_of(cudf::data_type{input_left_type}) >= cudf::size_of(cudf::data_type{input_right_type}))
+				   ? input_left_type
+				   : input_right_type;
+	case operator_type::BLZ_STR_LIKE:
+		return cudf::type_id::BOOL8;
+	case operator_type::BLZ_STR_SUBSTRING:
+	case operator_type::BLZ_STR_CONCAT:
+		return cudf::type_id::STRING;
+	default:
+		assert(false);
+		return cudf::type_id::EMPTY;
+	}
+}
+
+operator_type map_to_operator_type(const std::string & operator_token) {
+	static std::map<std::string, operator_type> OPERATOR_MAP = {
+		// Unary operators
+		{"NOT", operator_type::BLZ_NOT},
+		{"SIN", operator_type::BLZ_SIN},
+		{"ASIN", operator_type::BLZ_ASIN},
+		{"COS", operator_type::BLZ_COS},
+		{"ACOS", operator_type::BLZ_ACOS},
+		{"TAN", operator_type::BLZ_TAN},
+		{"ATAN", operator_type::BLZ_ATAN},
+		{"FLOOR", operator_type::BLZ_FLOOR},
+		{"CEIL", operator_type::BLZ_CEIL},
+		{"ABS", operator_type::BLZ_ABS},
+		{"LOG10", operator_type::BLZ_LOG},
+		{"LN", operator_type::BLZ_LN},
+		{"BL_YEAR", operator_type::BLZ_YEAR},
+		{"BL_MONTH", operator_type::BLZ_MONTH},
+		{"BL_DAY", operator_type::BLZ_DAY},
+		{"BL_HOUR", operator_type::BLZ_HOUR},
+		{"BL_MINUTE", operator_type::BLZ_MINUTE},
+		{"BL_SECOND", operator_type::BLZ_SECOND},
+		{"IS_NULL", operator_type::BLZ_IS_NULL},
+		{"IS_NOT_NULL", operator_type::BLZ_IS_NOT_NULL},
+		{"CAST_TINYINT", operator_type::BLZ_CAST_TINYINT},
+		{"CAST_SMALLINT", operator_type::BLZ_CAST_SMALLINT},
+		{"CAST_INTEGER", operator_type::BLZ_CAST_INTEGER},
+		{"CAST_BIGINT", operator_type::BLZ_CAST_BIGINT},
+		{"CAST_FLOAT", operator_type::BLZ_CAST_FLOAT},
+		{"CAST_DOUBLE", operator_type::BLZ_CAST_DOUBLE},
+		{"CAST_DATE", operator_type::BLZ_CAST_DATE},
+		{"CAST_TIMESTAMP", operator_type::BLZ_CAST_TIMESTAMP},
+		{"CAST_VARCHAR", operator_type::BLZ_CAST_VARCHAR},
+		{"CHAR_LENGTH", operator_type::BLZ_CHAR_LENGTH},
+
+		// Binary operators
+		{"=", operator_type::BLZ_EQUAL},
+		{"<>", operator_type::BLZ_NOT_EQUAL},
+		{">", operator_type::BLZ_GREATER},
+		{">=", operator_type::BLZ_GREATER_EQUAL},
+		{"<", operator_type::BLZ_LESS},
+		{"<=", operator_type::BLZ_LESS_EQUAL},
+		{"+", operator_type::BLZ_ADD},
+		{"-", operator_type::BLZ_SUB},
+		{"*", operator_type::BLZ_MUL},
+		{"/", operator_type::BLZ_DIV},
+		{"POWER", operator_type::BLZ_POW},
+		{"ROUND", operator_type::BLZ_ROUND},
+		{"MOD", operator_type::BLZ_MOD},
+		{"AND", operator_type::BLZ_LOGICAL_AND},
+		{"OR", operator_type::BLZ_LOGICAL_OR},
+		{"FIRST_NON_MAGIC", operator_type::BLZ_FIRST_NON_MAGIC},
+		{"MAGIC_IF_NOT", operator_type::BLZ_MAGIC_IF_NOT},
+		{"LIKE", operator_type::BLZ_STR_LIKE},
+		{"SUBSTRING", operator_type::BLZ_STR_SUBSTRING},
+		{"||", operator_type::BLZ_STR_CONCAT}
+	};
+
+	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator");
+
+	return OPERATOR_MAP[operator_token];
+}
+
+bool is_null(const std::string & token) { return token == "null"; }
 
 bool is_string(const std::string & token) { return token[0] == '\'' && token[token.size() - 1] == '\''; }
 
@@ -11,8 +271,6 @@ bool is_number(const std::string & token) {
 	static const std::regex re{R""(^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$)""};
 	return std::regex_match(token, re);
 }
-
-bool is_null(const std::string & token) { return token == "null"; }
 
 bool is_date(const std::string & token) {
 	static const std::regex re{R"([0-9]{4}-[0-9]{2}-[0-9]{2})"};
@@ -33,6 +291,10 @@ bool is_timestamp(const std::string & token) {
 bool is_bool(const std::string & token) { return (token == "true" || token == "false"); }
 
 bool is_SQL_data_type(const std::string & token) {
+	static std::vector<std::string> CALCITE_DATA_TYPES = {
+		"TINYINT", "SMALLINT", "INTEGER", "BIGINT", "FLOAT", "DOUBLE", "DATE", "TIMESTAMP", "VARCHAR"
+	};
+
 	return std::find(std::begin(CALCITE_DATA_TYPES), std::end(CALCITE_DATA_TYPES), token) != std::end(CALCITE_DATA_TYPES);
 }
 
@@ -55,6 +317,25 @@ bool is_inequality(const std::string& token){
 	return token == "<" || token == "<=" || token == ">" || token == ">=" || token == "<>";
 }
 
+std::vector<std::string> fix_column_aliases(const std::vector<std::string> & column_names, std::string expression){
+	std::string aliases_string = get_named_expression(expression, "aliases");
+	std::vector<std::string> aliases_string_split =
+		get_expressions_from_expression_list(aliases_string, true);
+
+	std::vector<std::string> col_names = column_names;
+
+	// Setting the aliases only when is not an empty set
+	for(size_t col_idx = 0; col_idx < aliases_string_split.size(); col_idx++) {
+		// TODO: Rommel, this check is needed when for example the scan has not projects but there are extra
+		// aliases
+		if(col_idx < column_names.size()) {
+			col_names[col_idx] = aliases_string_split[col_idx];
+		}
+	}
+
+	return col_names;
+}
+
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
 	if(query_part.find(expression_name + "=[") == query_part.npos) {
 		return "";  // expression not found
@@ -67,13 +348,18 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	return query_part.substr(start_position, end_position - start_position);
 }
 
-interops::operator_type map_to_operator_type(const std::string & operator_token) {
-	// std::cout << "operator_token: " << operator_token << std::endl;
-	RAL_EXPECTS(operator_map.find(operator_token) != operator_map.end(), "Unsupported operator: " + operator_token);
+std::vector<size_t> get_projections(const std::string & query_part) {
+	std::string project_string = get_named_expression(query_part, "projects");
+	std::vector<std::string> project_string_split =
+		get_expressions_from_expression_list(project_string, true);
 
-	return operator_map[operator_token];
+	std::vector<size_t> projections;
+	for(int i = 0; i < project_string_split.size(); i++) {
+		projections.push_back(std::stoull(project_string_split[i]));
+	}
+
+	return projections;
 }
-
 
 bool is_union(std::string query_part) { return (query_part.find(LOGICAL_UNION_TEXT) != std::string::npos); }
 
@@ -91,6 +377,8 @@ bool is_scan(std::string query_part) { return is_logical_scan(query_part) || is_
 
 bool is_filter(std::string query_part) { return (query_part.find(LOGICAL_FILTER_TEXT) != std::string::npos); }
 
+bool is_limit(std::string query_part) { return (query_part.find(LOGICAL_LIMIT_TEXT) != std::string::npos); }
+
 bool is_sort(std::string query_part) { return (query_part.find(LOGICAL_SORT_TEXT) != std::string::npos); }
 
 bool is_merge(std::string query_part) { return (query_part.find(LOGICAL_MERGE_TEXT) != std::string::npos); }
@@ -99,40 +387,31 @@ bool is_partition(std::string query_part) { return (query_part.find(LOGICAL_PART
 
 bool is_sort_and_sample(std::string query_part) { return (query_part.find(LOGICAL_SORT_AND_SAMPLE_TEXT) != std::string::npos); }
 
+bool is_single_node_partition(std::string query_part) { return (query_part.find(LOGICAL_SINGLE_NODE_PARTITION_TEXT) != std::string::npos); }
+
 bool is_join(const std::string & query) { return (query.find(LOGICAL_JOIN_TEXT) != std::string::npos); }
+
+bool is_pairwise_join(const std::string & query) { return (query.find(LOGICAL_PARTWISE_JOIN_TEXT) != std::string::npos); }
+
+bool is_join_partition(const std::string & query) { return (query.find(LOGICAL_JOIN_PARTITION_TEXT) != std::string::npos); }
 
 bool is_aggregate(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_aggregate_merge(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_MERGE_TEXT) != std::string::npos); }
+bool is_compute_aggregate(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_aggregate_partition(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_PARTITION_TEXT) != std::string::npos); }
+bool is_distribute_aggregate(std::string query_part) { return (query_part.find(LOGICAL_DISTRIBUTE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_aggregate_and_sample(std::string query_part) { return (query_part.find(LOGICAL_AGGREGATE_AND_SAMPLE_TEXT) != std::string::npos); }
+bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_double_input(std::string query_part) {
-	if(is_join(query_part)) {
-		return true;
-	} else if(is_union(query_part)) {
-		return true;
-	} else {
-		return false;
+// Returns the index from table_scan if exists
+size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {
+	
+	for (size_t i = 0; i < table_scans.size(); i++){
+		if (StringUtil::contains(table_scans[i], table_scan)){
+			return i;
+		}
 	}
-}
-
-
-
-// Returns the index from table if exists
-size_t get_table_index(std::vector<std::string> table_names, std::string table_name) {
-	if(StringUtil::beginsWith(table_name, "main.")) {
-		table_name = table_name.substr(5);
-	}
-
-	auto it = std::find(table_names.begin(), table_names.end(), table_name);
-	if(it != table_names.end()) {
-		return std::distance(table_names.begin(), it);
-	} else {
-		throw std::invalid_argument("table name does not exists ==>" + table_name);
-	}
+	throw std::invalid_argument("ERROR: get_table_index table_scan was not found ==>" + table_scan);	
 }
 
 // Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
@@ -227,16 +506,9 @@ std::string replace_calcite_regex(const std::string & expression) {
 	static const std::regex timestamp_re{R""(TIMESTAMP\(\d+\))"", std::regex_constants::icase};
 	ret = std::regex_replace(ret, timestamp_re, "TIMESTAMP");
 
-	static const std::regex number_implicit_cast_re{
-		R""((\d):(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, number_implicit_cast_re, "$1");
-
-	static const std::regex null_implicit_cast_re{
-		R""(null:(?:DECIMAL\(\d+, \d+\)|INTEGER|BIGINT|FLOAT|DOUBLE))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, null_implicit_cast_re, "null");
-
-	static const std::regex varchar_implicit_cast_re{R""(':VARCHAR)"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, varchar_implicit_cast_re, "'");
+	static const std::regex decimal_re{
+		R""(DECIMAL\(\d+, \d+\))"", std::regex_constants::icase};
+	ret = std::regex_replace(ret, decimal_re, "DOUBLE");
 
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
@@ -248,8 +520,6 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
-	StringUtil::findAndReplaceAll(ret, ":DECIMAL(19, 0)", ":DOUBLE");
-
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 	return ret;

@@ -1,5 +1,9 @@
-#ifndef BLAZINGDB_RAL_ORDERBY_OPERATOR_H
-#define BLAZINGDB_RAL_ORDERBY_OPERATOR_H
+#pragma once
+
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <blazingdb/manager/Context.h>
 #include <string>
@@ -9,58 +13,36 @@
 
 namespace ral {
 namespace operators {
-namespace experimental {
 
 namespace {
-  using blazingdb::manager::experimental::Context;
-}  
+  using blazingdb::manager::Context;
+}
 
-std::unique_ptr<ral::frame::BlazingTable> process_sort(const ral::frame::BlazingTableView & table,
-const std::string & query_part, Context * context);
+std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part);
 
-/**---------------------------------------------------------------------------*
- * @brief Sorts the columns of the input table according the sortOrderTypes 
- * and sortColIndices.
- *
- * @param[in] table             table whose rows need to be compared for ordering
- * @param[in] sortColIndices    The vector of selected column indices to perform
- *                              the sort.
- * @param[in] sortOrderTypes    The expected sort order for each column. Size
- *                              must be equal to `sortColIndices.size()` or empty.
- *
- * @returns A BlazingTable with rows sorted.
- *---------------------------------------------------------------------------**/
-std::unique_ptr<ral::frame::BlazingTable> logicalSort(
-  const ral::frame::BlazingTableView & table, const std::vector<int> & sortColIndices, 
-  const std::vector<int8_t> & sortOrderTypes);
+std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part);
 
-/**---------------------------------------------------------------------------*
- * @brief In a distributed context, this function determines what the limit would be
- * for this local node. It does this be distributing and collecting the total number of 
- * rows in the table. Then knowing which node index this local node is, it can calculate
- * how many rows are ahead of the ones in this partition
- *
- * @param[in] contex
- * @param[in] local_num_rows    Number of rows of this partition
- * @param[in] limit_rows        Limit being applied to the whole query
- *
- * @returns The limit that would be applied to this partition
- *---------------------------------------------------------------------------**/
-cudf::size_type determine_local_limit(Context * context,
-	cudf::size_type local_num_rows, cudf::size_type limit_rows);
+std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(const ral::frame::BlazingTableView & selfSamples, 
+    std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context);
 
-std::pair<std::unique_ptr<ral::frame::BlazingTable>, std::unique_ptr<ral::frame::BlazingTable>>
-	sort_and_sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context);
+std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vector<ral::frame::BlazingTableView> & samples, 
+	  std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context);
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> partition_sort(const ral::frame::BlazingTableView & partitionPlan,
-												const ral::frame::BlazingTableView & sortedTable,
-												const std::string & query_part,
-												Context * context);
+std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part);
 
-std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part, Context * context);
+std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>>
+distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,	const ral::frame::BlazingTableView & sortedTable, const std::string & query_part,	Context * context);
 
-}  // namespace experimental
+bool has_limit_only(const std::string & query_part);
+
+int64_t get_limit_rows_when_relational_alg_is_simple(const std::string & query_part);
+
+int64_t get_local_limit(int64_t total_batch_rows, const std::string & query_part, Context * context);
+
+std::pair<std::unique_ptr<ral::frame::BlazingTable>, int64_t>
+limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_limit);
+
+std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part);
+
 }  // namespace operators
 }  // namespace ral
-
-#endif  // BLAZINGDB_RAL_ORDERBY_OPERATOR_H

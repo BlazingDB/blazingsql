@@ -1,7 +1,5 @@
 #include "../../include/engine/engine.h"
 #include "../CalciteInterpreter.h"
-#include "../io/DataLoader.h"
-#include "../io/Schema.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
 #include "../io/data_parser/GDFParser.h"
@@ -15,6 +13,12 @@
 #include "../execution_graph/logic_controllers/LogicalFilter.h"
 #include "communication/network/Server.h"
 #include <numeric>
+#include <map>
+#include "communication/CommunicationData.h"
+#include <spdlog/spdlog.h>
+#include "CodeTimer.h"
+
+using namespace fmt::literals;
 
 std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_loaders_and_schemas(
 	const std::vector<TableSchema> & tableSchemas,
@@ -33,7 +37,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto fileType = fileTypes[i];
 		
 		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
-		tableSchema.args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
+		ral::io::ReaderArgs args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
 
 		std::vector<cudf::type_id> types;
 		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
@@ -50,13 +54,13 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableView);
+			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableViews);
 		} else if(fileType == ral::io::DataType::ORC) {
-			parser = std::make_shared<ral::io::orc_parser>(tableSchema.args.orcReaderArg);
+			parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
 		} else if(fileType == ral::io::DataType::JSON) {
-			parser = std::make_shared<ral::io::json_parser>(tableSchema.args.jsonReaderArg);
+			parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
 		} else if(fileType == ral::io::DataType::CSV) {
-			parser = std::make_shared<ral::io::csv_parser>(tableSchema.args.csvReaderArg);
+			parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
 		} else if(fileType == ral::io::DataType::ARROW){
 	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		}
@@ -65,6 +69,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		std::vector<Uri> uris;
 		for(int fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
 			uris.push_back(Uri{filesAll[i][fileIndex]});
+			schema.add_file(filesAll[i][fileIndex]);
 		}
 
 		if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
@@ -81,9 +86,42 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 	return std::make_pair(std::move(input_loaders), std::move(schemas));
 }
 
-std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
+// In case there are columns with the same name, we add a numerical suffix, example:
+//
+// q1: select n1.n_nationkey, n2.n_nationkey
+//         from nation n1 inner join nation n2 on n1.n_nationkey = n2.n_nationkey
+//
+// original column names:
+//     [n_nationkey, n_nationkey]
+// final column names:
+//     [n_nationkey, n_nationkey0]
+//
+// q2: select n_nationkey as n_nationkey0,
+//         n_regionkey as n_nationkey,
+//         n_regionkey + n_regionkey as n_nationkey
+//         from nation
+//
+// original column names:
+//     [n_nationkey0, n_nationkey, n_nationkey]
+// final column names:
+//     [n_nationkey0, n_nationkey, n_nationkey1]
+
+void fix_column_names_duplicated(std::vector<std::string> & col_names){
+	std::map<std::string,int> unique_names;
+
+	for(auto & col_name : col_names){
+		if(unique_names.find(col_name) == unique_names.end()){
+			unique_names[col_name]=-1;
+		} else {
+			col_name = col_name + std::to_string(++unique_names[col_name]);
+		}
+	}
+}
+
+std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
+	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,
 	std::vector<std::vector<std::string>> tableSchemaCppArgKeys,
 	std::vector<std::vector<std::string>> tableSchemaCppArgValues,
@@ -93,42 +131,61 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	bool use_execution_graph) {
+	std::map<std::string, std::string> config_options ) {
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
+	auto logger = spdlog::get("queries_logger");
+
+	using blazingdb::manager::Context;
+	using blazingdb::transport::Node;
+
+	std::vector<Node> contextNodes;
+	for(auto currentMetadata : tcpMetadata) {
+		auto address =
+			blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+		contextNodes.push_back(Node(address));
+	}
+
+	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
+	ral::communication::network::Server::getInstance().registerContext(ctxToken);
+	
 	try {
-		using blazingdb::manager::experimental::Context;
-		using blazingdb::transport::experimental::Node;
 
-		std::vector<Node> contextNodes;
-		for(auto currentMetadata : tcpMetadata) {
-			auto address =
-				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node(address));
-		}
-
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
-		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
+		CodeTimer eventTimer(true);
+		logger->info("{ral_id}|{query_id}|{start_time}|{plan}",
+									"ral_id"_a=queryContext.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"query_id"_a=queryContext.getContextToken(),
+									"start_time"_a=eventTimer.start_time(),
+									"plan"_a=query);
 
 		// Execute query
-		std::unique_ptr<ral::frame::BlazingTable> frame;
-		if (use_execution_graph) {
-			frame = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
+		frames = execute_plan(input_loaders, schemas, tableNames, tableScans, query, accessToken, queryContext);
 
-		} else {
-			frame = evaluate_query(input_loaders, schemas, tableNames, query, accessToken, queryContext);
+		std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
+		assert( frames.size()>0 );
+		result->names = frames[0]->names();
+		fix_column_names_duplicated(result->names);
+
+		for(auto& cudfTable : frames){
+			result->cudfTables.emplace_back(std::move(cudfTable->releaseCudfTable()));
 		}
-		
-		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
-		result->names = frame->names();
-		result->cudfTable = frame->releaseCudfTable();
+
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(const std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=queryContext.getContextToken(),
+									"step"_a=queryContext.getQueryStep(),
+									"substep"_a=queryContext.getQuerySubstep(),
+									"info"_a="In runQuery. What: {}"_format(e.what()),
+									"duration"_a="");
+		logger->flush();
 		std::cerr << e.what() << std::endl;
 		throw;
 	}
@@ -145,18 +202,18 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 
 		std::vector<int> columnIndices;
 
-		using blazingdb::manager::experimental::Context;
-		using blazingdb::transport::experimental::Node;
+		using blazingdb::manager::Context;
+		using blazingdb::transport::Node;
 
 		std::vector<Node> contextNodes;
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
-				blazingdb::transport::experimental::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
+				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
 			contextNodes.push_back(Node(address));
 		}
 
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], ""};
-		ral::communication::network::experimental::Server::getInstance().registerContext(ctxToken);
+		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
+		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		const std::vector<std::string> & table_col_names = table.names();
 
@@ -176,11 +233,17 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		return result;
 
 	} catch(const std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("|||{info}|||||",
+									"info"_a="In performPartition. What: {}"_format(e.what()));
+		logger->flush();
+
 		std::cerr << "**[performPartition]** error partitioning table.\n";
 		std::cerr << e.what() << std::endl;
 		throw;
 	}
 }
+
 
 
 std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata, 
@@ -200,6 +263,11 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 		return result;
 
 	} catch(const std::exception & e) {
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+		logger->error("|||{info}|||||",
+									"info"_a="In runSkipData. What: {}"_format(e.what()));
+		logger->flush();
+		
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
 		std::cerr << e.what() << std::endl;
 		throw;

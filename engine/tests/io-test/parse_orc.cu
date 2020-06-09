@@ -21,8 +21,8 @@
 
 #include <cudf/io/functions.hpp>
 
-using blazingdb::manager::experimental::Context;
-using Node = blazingdb::transport::experimental::Node;
+using blazingdb::manager::Context;
+using Node = blazingdb::transport::Node;
 
 using namespace ral::frame;
 using namespace ral::processor;
@@ -55,7 +55,7 @@ TYPED_TEST(OrcTest, multipleColumns)
     // Loading a simple .orc file
     std::string filepath = GetCurrentWorkingDir() + "/tests/io-test/region_0_0.orc";
 
-    cudf::experimental::io::read_orc_args orc_args{cudf::experimental::io::source_info{filepath}};
+    cudf::io::read_orc_args orc_args{cudf::io::source_info{filepath}};
     orc_args.columns = {"r_regionkey", "r_name", "r_comment"};
 
     // this is basically the test process
