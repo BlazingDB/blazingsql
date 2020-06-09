@@ -37,4 +37,5 @@
 #740 Normalizing types for UNION ALL
 #744 Fix unit tests
 #743 Workaround for interops 64 index plan limitation
+#757 Ensure GPU portability (so we can run on any cloud instance with GPU)
 #753 Fix for host memory threshold parameter with Dask envs
