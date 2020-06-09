@@ -97,11 +97,11 @@ class blazing_allocation_mode(IntEnum):
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
-
-                      initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
+                      initial_pool_size=None, enable_logging=False, 
+                      devices=0, config_options={}, logging_dir_path='blazing_log'):
 
     FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||"%(message)s"||||||'
-    filename = 'pyblazing.' + str(ralId) + '.log'
+    filename = os.path.join(logging_dir_path, 'pyblazing.' + str(ralId) + '.log')
     logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
@@ -580,6 +580,37 @@ def adjust_due_to_missing_rowgroups(metadata, files):
     return metadata, new_files
 
 
+def distributed_initialize_logging_directory(client, logging_dir_path):
+
+    # lets make host_list which is a list of all the unique hosts. 
+    # This way we do the logging folder creation only once per host (server)
+    host_list = list(set([value['host'] for key,value in client.scheduler_info()["workers"].items()]))
+    initialized = {}
+    for host in host_list:
+        initialized[host]=False
+
+    dask_futures = []
+    for worker, worker_info in client.scheduler_info()["workers"].items():
+        if not initialized[worker_info['host']]:
+            dask_futures.append(
+                client.submit(
+                    initialize_logging_directory,
+                    logging_dir_path,
+                    workers=[worker]))
+            initialized[worker_info['host']] = True
+    
+    for connection in dask_futures:
+        made_dir = connection.result()
+    
+
+def initialize_logging_directory(logging_dir_path):
+    if (not os.path.exists(logging_dir_path)):
+        os.mkdir(logging_dir_path)
+        return True
+    else:
+        return False
+        
+
 class BlazingTable(object):
     def __init__(
             self,
@@ -792,7 +823,11 @@ class BlazingContext(object):
                                            default: 0.1
                                     BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource
                                             will consider to be full
+                                            Note: This parameter only works when used in the BlazingContext
                                             default: 0.95
+                                    BLAZING_LOGGING_DIRECTORY : A folder path to place all logging files. The path can be relative or absolute.
+                                            Note: This parameter only works when used in the BlazingContext
+                                            default: 'blazing_log'
 
         Examples
         --------
@@ -829,8 +864,14 @@ class BlazingContext(object):
         self.config_options = {}
         for option in config_options:
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+        
+        logging_dir_path = 'blazing_log'
+        if ('BLAZING_LOGGING_DIRECTORY' in config_options): # want to use config_options and not self.config_options since its not encoded
+            logging_dir_path = config_options['BLAZING_LOGGING_DIRECTORY']
 
         if(dask_client is not None):
+            distributed_initialize_logging_directory(self.dask_client, logging_dir_path) 
+
             if network_interface is None:
                 network_interface = 'eth0'
 
@@ -850,6 +891,7 @@ class BlazingContext(object):
                         initial_pool_size=initial_pool_size,
                         enable_logging=enable_logging,
                         config_options=self.config_options,
+                        logging_dir_path=logging_dir_path,
                         workers=[worker]))
                 worker_list.append(worker)
                 i = i + 1
@@ -864,15 +906,22 @@ class BlazingContext(object):
                 self.node_cwds.append(cwd)
                 i = i + 1
 
+            
+            # need to initialize this logging independently, in case its set as a relative path 
+            # and the location from where the python script is running is different than the local dask workers
+            initialize_logging_directory(logging_dir_path) 
             # this one is for the non dask side
             FORMAT='%(asctime)s||%(levelname)s|||"%(message)s"||||||'
-            filename = 'pyblazing.log'
+            filename = os.path.join(logging_dir_path, 'pyblazing.log')
             logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
         else:
+            initialize_logging_directory(logging_dir_path)
+
             ralPort, ralIp, cwd = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
                 allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
-                enable_logging=enable_logging, config_options=self.config_options)
+                enable_logging=enable_logging, config_options=self.config_options,
+                logging_dir_path=logging_dir_path)
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
@@ -1519,29 +1568,29 @@ class BlazingContext(object):
                 return current_table.getSlices(len(self.nodes))
 
 
-     """
-        Partition a dask_cudf DataFrame based on one or more columns.
+    """
+    Partition a dask_cudf DataFrame based on one or more columns.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        input : the dask_cudf.DataFrame you want to partition
-        by : a list of strings of the column names by which you want to partition.
+    input : the dask_cudf.DataFrame you want to partition
+    by : a list of strings of the column names by which you want to partition.
 
-        Examples
-        --------
+    Examples
+    --------
 
-        >>> bc = BlazingContext(dask_client=client)
-        >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
-        >>> query_1= "SELECT pr_item_sk, pr_review_content, pr_review_sk FROM product_reviews where pr_review_content IS NOT NULL"
-        >>> product_reviews_df = bc.sql(query_1)
-        >>> product_reviews_df = bc.partition(product_reviews_df, 
-                                  by=["pr_item_sk", 
-                                      "pr_review_content", 
-                                      "pr_review_sk"])
-        >>> sentences = product_reviews_df.map_partitions(create_sentences_from_reviews)
+    >>> bc = BlazingContext(dask_client=client)
+    >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
+    >>> query_1= "SELECT pr_item_sk, pr_review_content, pr_review_sk FROM product_reviews where pr_review_content IS NOT NULL"
+    >>> product_reviews_df = bc.sql(query_1)
+    >>> product_reviews_df = bc.partition(product_reviews_df, 
+                                by=["pr_item_sk", 
+                                    "pr_review_content", 
+                                    "pr_review_sk"])
+    >>> sentences = product_reviews_df.map_partitions(create_sentences_from_reviews)
 
-        """
+    """
     def partition(self, input, by=[]):
         masterIndex = 0
         ctxToken = random.randint(0, np.iinfo(np.int32).max)
