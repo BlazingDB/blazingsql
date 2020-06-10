@@ -8,6 +8,7 @@
 
 
 ## Bug Fixes
+#774 fixed build issues with latest cudf 0.15 including updating from_cudf
 #775 Calling `finalizeCaller` in the `BlazingContext` destructor
 
 
