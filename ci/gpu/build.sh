@@ -69,12 +69,12 @@ conda install --yes bsql-toolchain=${MINOR_VERSION} bsql-toolchain-aws-cpp=${MIN
 echo "BlazingSQL toolchain installed"
 
 # install cudf
-echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL"
-conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL
-echo "BlazingSQL cudf installed"
+echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} nvstrings=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL"
+conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} nvstrings=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL
+echo "cudf and other rapids dependencies installed"
 
 # install end to end tests dependencies
-echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL"
+echo "conda install --yes openjdk=8.0 maven pyspark=2.4.3 pytest"
 conda install --yes openjdk=8.0 maven pyspark=2.4.3 pytest
 
 echo "pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client"
