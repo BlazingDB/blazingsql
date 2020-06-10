@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
@@ -76,7 +77,7 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, boo
 	logger->set_level(spdlog::level::trace);
 	spdlog::register_logger(logger);
 
-	spdlog::flush_on(spdlog::level::err);
+	spdlog::flush_on(spdlog::level::warn);
 	spdlog::flush_every(std::chrono::seconds(1));
 }
 
@@ -110,6 +111,12 @@ void initialize(int ralId,
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
+ 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
+	assert( config_options.find("BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD") != config_options.end() );
+	float host_memory_quota = std::stof(config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
+
+	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
+
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);
 
@@ -130,26 +137,41 @@ void initialize(int ralId,
 	spdlog::flush_on(spdlog::level::warn);
 	spdlog::flush_every(std::chrono::seconds(1));
 
-	std::string oldfileName = "RAL." + std::to_string(ralId) + ".log";
-	create_logger(oldfileName, "batch_logger", ralId, false);
+	std::string logging_dir = "blazing_log";
+	auto config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
+	if (config_it != config_options.end()){
+		logging_dir = config_options["BLAZING_LOGGING_DIRECTORY"];
+	}
+	bool logging_directory_missing = false;
+	struct stat sb;
+	if (!(stat(logging_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))){ // logging_dir does not exist
+	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
+	// having all RALs independently trying to create a directory simulatenously can cause problems
+		logging_directory_missing = true;
+		logging_dir = "";		
+	}
 
-	std::string queriesFileName = "bsql_queries." + std::to_string(ralId) + ".log";
+
+	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
+	create_logger(batchLoggerFileName, "batch_logger", ralId, false);
+
+	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
 	create_logger(queriesFileName, "queries_logger", ralId);
 
-	std::string kernelsFileName = "bsql_kernels." + std::to_string(ralId) + ".log";
+	std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
 	bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
 	create_logger(kernelsFileName, "kernels_logger", ralId);
 
-	std::string kernelsEdgesFileName = "bsql_kernels_edges." + std::to_string(ralId) + ".log";
+	std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
 	bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
 	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId);
 
-	std::string kernelEventsFileName = "bsql_kernel_events." + std::to_string(ralId) + ".log";
+	std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
 	bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
 	create_logger(kernelEventsFileName, "events_logger", ralId);
 
-	std::string cacheEventsFileName = "bsql_cache_events." + std::to_string(ralId) + ".log";
+	std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
 	bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
 	create_logger(cacheEventsFileName, "cache_events_logger", ralId);
 
@@ -180,6 +202,10 @@ void initialize(int ralId,
 	}
 
 	std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+
+	if (logging_directory_missing){
+		logger->error("|||{info}|||||","info"_a="BLAZING_LOGGING_DIRECTORY not found. It was not created.");
+	}
 
 	logger->debug("|||{info}|||||","info"_a=initLogMsg);
 
