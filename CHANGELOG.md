@@ -8,7 +8,7 @@
 
 
 ## Bug Fixes
-
+#775 Calling `finalizeCaller` in the `BlazingContext` destructor
 
 
 
