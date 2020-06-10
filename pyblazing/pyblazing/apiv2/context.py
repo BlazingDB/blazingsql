@@ -968,7 +968,10 @@ class BlazingContext(object):
             return self.client.ping()
 
     def __del__(self):
-        cio.finalizeCaller()
+        try:
+            cio.finalizeCaller() 
+        except AttributeError:
+            pass
 
     def __repr__(self):
         return "BlazingContext('%s')" % (self.dask_client)
