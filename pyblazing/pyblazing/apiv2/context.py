@@ -867,7 +867,6 @@ class BlazingContext(object):
         self.lock = Lock()
         self.dask_client = dask_client
         self.nodes = []
-        self.node_cwds = []
         self.node_log_paths = []
         self.config_options = {}
         for option in config_options:
