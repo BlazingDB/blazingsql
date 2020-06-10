@@ -11,7 +11,7 @@ def convertTypeNameStrToCudfType(hiveType):
     if(hiveType == 'int' or hiveType == 'integer' or hiveType == 'int32'):
         return 3 # INT32
     elif(hiveType == 'str' or hiveType == 'string' or hiveType.startswith('varchar') or hiveType.startswith('char') or hiveType == "binary"):
-        return 14  # STRING
+        return 23  # STRING
     elif(hiveType == 'tinyint' or hiveType == 'int8'):
         return 1  # INT8
     elif(hiveType == 'smallint' or hiveType == 'int16'):
@@ -19,22 +19,22 @@ def convertTypeNameStrToCudfType(hiveType):
     elif(hiveType == 'bigint' or hiveType == 'int64'):
         return 4  # INT64
     elif(hiveType == 'float' or hiveType == 'float32'):
-        return 5  # FLOAT32
+        return 9  # FLOAT32
     elif(hiveType == 'double' or hiveType == 'double precision' or hiveType.startswith('decimal') or hiveType == 'float64'):
-        return 6  # FLOAT64
+        return 10  # FLOAT64
     elif(hiveType == 'boolean'):
-        return 7  # BOOL8
+        return 11  # BOOL8
     elif(hiveType == 'date'):
         # return 8  # TIMESTAMP_DAYS
-        return 10  # TIMESTAMP_MILLISECONDS will use ms here until there is better support for days 
+        return 14  # TIMESTAMP_MILLISECONDS will use ms here until there is better support for days 
     elif(hiveType == 'timestamp[s]'):
-        return 9  # TIMESTAMP_SECONDS
+        return 13  # TIMESTAMP_SECONDS
     elif(hiveType == 'timestamp' or hiveType == 'timestamp[ms]'):
-        return 10  # TIMESTAMP_MILLISECONDS
+        return 14  # TIMESTAMP_MILLISECONDS
     elif(hiveType == 'timestamp[us]'):
-        return 11  # TIMESTAMP_MICROSECONDS
+        return 15  # TIMESTAMP_MICROSECONDS
     elif(hiveType == 'timestamp[ns]'):
-        return 12  # TIMESTAMP_NANOSECONDS
+        return 16  # TIMESTAMP_NANOSECONDS
     elif(hiveType == 'decimal' or hiveType == 'numeric'):
         return None
     else:
@@ -48,15 +48,19 @@ cudfTypeToCsvType = {
     2: "int16",
     3: "int32",
     4: "int64",
-    5: "float32",
-    6: "float64",
-    7: "boolean",
-    8: "date32",
-    9: "timestamp[s]",
-    10: "timestamp[ms]",
-    11: "timestamp[us]",
-    12: "timestamp[ns]",
-    14: "str",
+    5: "uint8",
+    6: "uint16",
+    7: "uint32",
+    8: "uint64",
+    9: "float32",
+    10: "float64",
+    11: "boolean",
+    12: "date32",
+    13: "timestamp[s]",
+    14: "timestamp[ms]",
+    15: "timestamp[us]",
+    16: "timestamp[ns]",    
+    23: "str",
 }  
 
 
