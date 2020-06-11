@@ -52,14 +52,14 @@ cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_a
 }
 
 
-std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
+std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
-	std::vector<size_t> column_indices) {
+	std::vector<size_t> column_indices,
+	std::vector<cudf::size_type> row_groups) {
 
 	if(file == nullptr) {
-		// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);  // do we need to create an empty table that has metadata?
-		return nullptr;
+		return schema.makeEmptyBlazingTable(column_indices);
 	}
 
 	cudf_io::read_csv_args new_csv_arg = this->csv_args;
@@ -99,16 +99,6 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 		return std::make_unique<ral::frame::BlazingTable>(std::move(cudf_tb), column_names_out);
 	}
 	return nullptr;
-}
-
-
-std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
-	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const Schema & schema,
-	std::vector<size_t> column_indices,
-	std::vector<cudf::size_type> row_groups) {
-
-	return parse(file, schema, column_indices);
 }
 
 
