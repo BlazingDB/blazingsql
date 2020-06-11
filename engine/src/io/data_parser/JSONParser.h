@@ -16,11 +16,6 @@ public:
 
 	virtual ~json_parser();
 
-	std::unique_ptr<ral::frame::BlazingTable> parse(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const Schema & schema,
-		std::vector<size_t> column_indices);
-
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 private:
