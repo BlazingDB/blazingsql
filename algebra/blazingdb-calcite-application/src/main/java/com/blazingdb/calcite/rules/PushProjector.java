@@ -1,7 +1,7 @@
 /*
  * This file is a copy with some modifications of the PushProjector class from
  * the Apache Calcite project. The original code can be found at:
- * https://github.com/apache/calcite/blob/branch-1.21/core/src/main/java/org/apache/calcite/rel/rules/PushProjector.java
+ * https://github.com/apache/calcite/blob/branch-1.23/core/src/main/java/org/apache/calcite/rel/rules/PushProjector.java
  * The changes are about creating a map to maintain the column aliases that will be used on the
  * ProjectFilterTransposeRule.
  */
@@ -801,5 +801,3 @@ public class PushProjector {
 		}
 	}
 }
-
-// End PushProjector.java
