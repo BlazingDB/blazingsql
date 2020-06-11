@@ -72,7 +72,7 @@ struct cast_to_str_functor {
         return cudf::strings::from_timestamps(col, std::is_same<cudf::timestamp_D, T>::value ? "%Y-%m-%d" : "%Y-%m-%d %H:%M:%S");
     }
 
-    template<typename T, std::enable_if_t<cudf::is_compound<T>()> * = nullptr>
+    template<typename T, std::enable_if_t<cudf::is_compound<T>() or cudf::is_duration<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
         return nullptr;
     }
