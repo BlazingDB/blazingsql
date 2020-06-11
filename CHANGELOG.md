@@ -8,8 +8,9 @@
 
 
 ## Bug Fixes
+- #774 fixed build issues with latest cudf 0.15 including updating from_cudf
+- #781 Fixed issue with Hive partitions when doing SELECT *
 - #770 Fix interops operators output types
-
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)

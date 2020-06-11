@@ -9,6 +9,7 @@
 #include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
 #include "from_cudf/cpp_tests/utilities/table_utilities.hpp"
 #include "from_cudf/cpp_tests/utilities/type_lists.hpp"
+#include "from_cudf/cpp_tests/utilities/type_list_utilities.hpp"
 #include "Interpreter/interpreter_cpp.h"
 #include <bmr/initializer.h>
 
@@ -22,7 +23,13 @@ struct InteropsTestNumeric : public cudf::test::BaseFixture {
   }
 };
 
-TYPED_TEST_CASE(InteropsTestNumeric, cudf::test::NumericTypes);
+using SignedIntegralTypesNotBool =
+  cudf::test::Types<int8_t, int16_t, int32_t, int64_t>;
+using SignedIntegralTypes = cudf::test::Concat<SignedIntegralTypesNotBool, cudf::test::Types<bool>>;
+using SignedNumericTypes = cudf::test::Concat<SignedIntegralTypes, cudf::test::FloatingPointTypes>;
+
+TYPED_TEST_CASE(InteropsTestNumeric, SignedNumericTypes);
+// TYPED_TEST_CASE(InteropsTestNumeric, cudf::test::NumericTypes); // need to have unsigned support to use cudf::test::NumericTypes
 
 TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 {
