@@ -29,6 +29,7 @@ requirements:
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ minor_version }}.*
         - libnvstrings {{ minor_version }}.*
+        - nvstrings {{ minor_version }}.*
         - libcudf {{ minor_version }}.*
         - libhdfs3
         - python
@@ -59,6 +60,7 @@ requirements:
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ minor_version }}.*
         - libnvstrings {{ minor_version }}.*
+        - nvstrings {{ minor_version }}.*
         - libcudf {{ minor_version }}.*
         - libhdfs3
         - python
