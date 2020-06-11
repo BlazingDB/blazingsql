@@ -10,6 +10,7 @@
 ## Bug Fixes
 #774 fixed build issues with latest cudf 0.15 including updating from_cudf
 #781 Fixed issue with Hive partitions when doing SELECT *
+#782 fixed issue with hive partitions base folder
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
