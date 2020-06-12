@@ -16,10 +16,10 @@
 template <typename T>
 struct InteropsTestNumeric : public cudf::test::BaseFixture {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 
@@ -109,10 +109,10 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 template <typename T>
 struct InteropsTestNumericDivZero : public cudf::test::BaseFixture {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 
@@ -178,10 +178,10 @@ TYPED_TEST(InteropsTestNumericDivZero, test_numeric_types_divzero)
 template <typename T>
 struct InteropsTestTimestamp : public cudf::test::BaseFixture {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 
@@ -340,10 +340,10 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
 
 struct InteropsTestString : public cudf::test::BaseFixture {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 

@@ -26,7 +26,7 @@ struct EvaluateQueryTest : public BlazingUnitTest {
     gdf::library::Table resultTable;
   };
   void SetUp() {
-    rmmInitialize(nullptr);
+    
   }
   
   void CHECK_RESULT(gdf::library::Table& computed_solution,

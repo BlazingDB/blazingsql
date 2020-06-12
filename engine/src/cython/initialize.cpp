@@ -230,19 +230,9 @@ void finalize() {
 
 
 void blazingSetAllocator(
-	int allocation_mode,
+	std::string allocation_mode,
 	std::size_t initial_pool_size,
-	std::vector<int> devices,
-	bool enable_logging,
 	std::map<std::string, std::string> config_options) {
-
-	rmmOptions_t rmmValues;
-	rmmValues.allocation_mode = static_cast<rmmAllocationMode_t>(allocation_mode);
-	rmmValues.initial_pool_size = initial_pool_size;
-	rmmValues.enable_logging = enable_logging;
-
-	for (size_t i = 0; i < devices.size(); ++i)
-		rmmValues.devices.push_back(devices[i]);
 
 	float device_mem_resouce_consumption_thresh = 0.95;
 	auto it = config_options.find("BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD");
@@ -250,5 +240,5 @@ void blazingSetAllocator(
 		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
 	}
 
-	BlazingRMMInitialize(&rmmValues, device_mem_resouce_consumption_thresh);
+	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
 }

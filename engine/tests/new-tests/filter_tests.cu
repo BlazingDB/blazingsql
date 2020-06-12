@@ -16,10 +16,10 @@
 template <typename T>
 struct LogicalFilterTest : public cudf::test::BaseFixture {
   void SetUp() {
-	  rmmInitialize(nullptr);
+
   }
   void TearDown() {
-    rmmFinalize();
+
   }
 };
 
@@ -178,10 +178,10 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
 
 struct LogicalFilterWithStringsTest : public cudf::test::BaseFixture {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 

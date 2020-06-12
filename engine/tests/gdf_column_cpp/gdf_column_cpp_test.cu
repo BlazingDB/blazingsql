@@ -10,7 +10,7 @@ struct GdfColumnCppTest : public testing::Test {
 
   ~GdfColumnCppTest() {}
 
-  void SetUp() { rmmInitialize(nullptr); }
+  void SetUp() {  }
 
   void TearDown() override {}
 
