@@ -224,11 +224,10 @@ def collectPartitionsRunQuery(
                             is_single_node=False)
     except cio.RunQueryError as e:
         print(">>>>>>>> ", e)
+        remove_orc_files_from_disk()
         result = [cudf.DataFrame()]
     except Exception as e:
-        raise e
-    finally:
-        remove_orc_files_from_disk()
+        raise e   
 
     meta = dask.dataframe.utils.make_meta(dfs[0])
     query_partids = []
@@ -1807,11 +1806,10 @@ class BlazingContext(object):
                             is_single_node=True)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
+                remove_orc_files_from_disk()
                 result = cudf.DataFrame()
             except Exception as e:
                 raise e
-            finally:
-                remove_orc_files_from_disk()
 
         else:
             if single_gpu == True:
