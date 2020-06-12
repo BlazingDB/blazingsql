@@ -875,7 +875,6 @@ class BlazingContext(object):
         interfaces and what IP addresses they serve with the bash command ifconfig. The default is set to 'eth0'.
         """
         self.lock = Lock()
-        remove_orc_files_from_disk()
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
@@ -1722,6 +1721,9 @@ class BlazingContext(object):
 
         if (algebra is None):
             algebra = self.explain(query)
+
+        # if still exists orc tmp files
+        remove_orc_files_from_disk()
 
         # when an empty `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
         if "LogicalValues(tuples=[[]])" in algebra:
