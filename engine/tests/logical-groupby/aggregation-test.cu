@@ -8,10 +8,10 @@
 #include <from_cudf/cpp_tests/utilities/type_lists.hpp>
 #include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
 #include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
-
+#include "tests/BlazingUnitTest.h"
 
  template <typename T>
-struct AggregationTest : public cudf::test::BaseFixture {};
+struct AggregationTest : public BlazingUnitTest {};
 
 
 using DecimalTypes = cudf::test::Types<int8_t, int16_t, int32_t, int64_t>;

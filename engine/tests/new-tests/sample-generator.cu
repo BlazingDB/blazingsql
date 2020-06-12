@@ -6,9 +6,10 @@
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 #include "utilities/random_generator.cuh"
+#include "tests/BlazingUnitTest.h"
 
 template <class T>
-class SampleGeneratorTest : public cudf::test::BaseFixture {};
+class SampleGeneratorTest : public BlazingUnitTest {};
 
 using NumericTypesForSampling = cudf::test::Types<int8_t, int16_t, int32_t, int64_t, float, double>;
 
@@ -50,7 +51,7 @@ TYPED_TEST(SampleGeneratorTest, BaseCase) {
 	}
 }
 
-class SampleGeneratorExceptionsTest : public cudf::test::BaseFixture {};
+class SampleGeneratorExceptionsTest : public BlazingUnitTest {};
 
 TEST_F(SampleGeneratorExceptionsTest, WithoutColumns) {
 	std::vector<CudfColumnView> columns;
