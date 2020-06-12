@@ -16,7 +16,7 @@ namespace detail {
 
 struct allocate_device_scalar {
 
-	template <typename T, std::enable_if_t<cudf::is_simple<T>()> * = nullptr>
+	template <typename T, std::enable_if_t<not cudf::is_compound<T>()> * = nullptr>
 	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
 		using ScalarType = cudf::scalar_type_t<T>;
 		using ScalarDeviceType = cudf::scalar_device_type_t<T>;

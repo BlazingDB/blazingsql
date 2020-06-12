@@ -57,7 +57,10 @@ TYPED_TEST(GDFTest, multipleColumns)
     ral::io::Schema schema(names, {} );
     
     Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""}; 
-    std::unique_ptr<BlazingTable> table_out = loader.load_data(&queryContext, {}, schema); 
+    auto handle = provider->get_next();
+    std::vector<cudf::size_type> row_group_ids;
+
+    std::unique_ptr<BlazingTable> table_out = loader.load_batch(&queryContext, {}, schema, handle, 0, row_group_ids);
 
     // Here we are creating the expected output (same as the begin)
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 3, 5, 8, 5, 6}, {1, 1, 1, 1, 1, 1, 1}};

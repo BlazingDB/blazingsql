@@ -320,7 +320,9 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
 
 
 def get_uri_values(files, partitions, base_folder):
-    base_folder = base_folder + '/'
+    if (base_folder[-1] != '/'):
+        base_folder = base_folder + '/'
+
     uri_values = []
     for file in files:
         file_dir = os.path.dirname(file.decode())
