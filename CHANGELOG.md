@@ -5,6 +5,7 @@
 
 ## Improvements
 #777 Update Calcite to the most recent version 1.23
+#786 Added check for concat String overflow
 
 
 
