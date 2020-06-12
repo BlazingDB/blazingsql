@@ -4,6 +4,7 @@
 #include <src/utilities/CommonOperations.h>
 #include <src/utilities/DebuggingUtils.h>
 #include "communication/CommunicationData.h"
+#include <stdio.h>
 
 using namespace std::chrono_literals;
 namespace ral {
@@ -39,6 +40,10 @@ size_t CacheDataLocalFile::sizeInBytes() const {
 std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath_}};
 	auto result = cudf_io::read_orc(in_args);
+
+	// Remove temp orc files
+	const char *orc_path_file = this->filePath_.c_str();
+	remove(orc_path_file);
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
 }
 
