@@ -16,6 +16,9 @@ bucket_name = os.getenv("BLAZINGSQL_E2E_AWS_S3_BUCKET_NAME")
 access_key_id = os.getenv("BLAZINGSQL_E2E_AWS_S3_ACCESS_KEY_ID")
 secret_key = os.getenv("BLAZINGSQL_E2E_AWS_S3_SECRET_KEY")
 
+gs_project_id=os.getenv("BLAZINGSQL_E2E_GS_PROJECT_ID")
+gs_bucket_name=os.getenv("BLAZINGSQL_E2E_GS_BUCKET_NAME")
+
 file_results_dir = conda_prefix + "/blazingsql-testing-files/results/" 
 data_dir = conda_prefix + "/blazingsql-testing-files/data/"
 
@@ -396,7 +399,7 @@ def main():
         
         dir_data_lc = "s3://" + authority + "/" + "DataSet100Mb2part/" 
         
-        tables = ['nation', 'region', 'supplier','customer','lineitem','orders']
+        tables = ['nation', 'region', 'supplier','customer','lineitem','orders', 'part', 'partsupp']
         data_types =  [DataType.PARQUET] # TODO json
     
         for fileSchemaType in data_types:
@@ -569,14 +572,14 @@ def main():
         authority = "tpch_gs"
         
         bc.gs(authority,
-        project_id='blazingdb-jenkins',
-        bucket_name='blazingsql-test',
+        project_id=gs_project_id,
+        bucket_name=gs_bucket_name,
         use_default_adc_json_file=True,
         adc_json_file='')
         
         dir_data_lc = 'gcs://'+ authority +'/100MB2Part/'
         
-        tables = ['nation', 'region', 'supplier','customer','lineitem','orders']
+        tables = ['nation', 'region', 'supplier','customer','lineitem','orders', 'part', 'partsupp']
         data_types =  [DataType.PARQUET] 
     
         for fileSchemaType in data_types:
