@@ -227,6 +227,8 @@ def collectPartitionsRunQuery(
         result = [cudf.DataFrame()]
     except Exception as e:
         raise e
+    finally:
+        remove_orc_files_from_disk()
 
     meta = dask.dataframe.utils.make_meta(dfs[0])
     query_partids = []
@@ -616,6 +618,12 @@ def initialize_logging_directory(logging_dir_path):
     else:
         return False
         
+# Delete all generated orc files
+def remove_orc_files_from_disk():
+    total_tmp_files = os.listdir('/tmp/')
+    for file in total_tmp_files:
+        if ".blazing-temp" in file:
+            os.remove('/tmp/' + file)
 
 class BlazingTable(object):
     def __init__(
@@ -867,6 +875,7 @@ class BlazingContext(object):
         interfaces and what IP addresses they serve with the bash command ifconfig. The default is set to 'eth0'.
         """
         self.lock = Lock()
+        remove_orc_files_from_disk()
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
@@ -1799,6 +1808,9 @@ class BlazingContext(object):
                 result = cudf.DataFrame()
             except Exception as e:
                 raise e
+            finally:
+                remove_orc_files_from_disk()
+
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
