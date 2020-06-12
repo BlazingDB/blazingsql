@@ -23,19 +23,27 @@ bool checkIfConcatenatingStringsWillOverflow(const std::vector<BlazingTableView>
 
 	for(size_t col_idx = 0; col_idx < tables[0].get_schema().size(); col_idx++) {
 		if(tables[0].get_schema()[col_idx].id() == cudf::type_id::STRING) {
-			std::size_t total_size = 0;
+			std::size_t total_bytes_size = 0;
+			std::size_t total_offset_count = 0;
 
 			for(size_t table_idx = 0; table_idx < tables.size(); table_idx++) {
+
 				// Column i-th from the next tables are expected to have the same string data type
 				assert( tables[table_idx].get_schema()[col_idx].id() == cudf::type_id::STRING );
 
 				auto & column = tables[table_idx].column(col_idx);
 				auto num_children = column.num_children();
 				if(num_children == 2) {
-					auto chars_column = column.child(1);
-					total_size += chars_column.size(); // Similarly to cudf, lets focus only on the number of chars
 
-					if( total_size > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max())) {
+					auto offsets_column = column.child(0);
+					auto chars_column = column.child(1);
+
+					// Similarly to cudf, we focus only on the byte number of chars and the offsets count
+					total_bytes_size += chars_column.size();
+					total_offset_count += offsets_column.size() + 1;
+
+					if( total_bytes_size > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max()) ||
+						total_offset_count > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max())) {
 						return true;
 					}
 				}
