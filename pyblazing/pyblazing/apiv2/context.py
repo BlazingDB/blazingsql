@@ -125,13 +125,13 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                 print('ERROR: parameter "allocator" was not set to a proper value. It was set to: ' + str(allocator) + '. It needs to be either "managed", "default" or "existing"')
                 allocator = "managed"
 
-    if not pool and allocator="default":
+    if not pool and allocator == "default":
         allocator = "cuda_memory_resource"
-    elif not pool and allocator="managed":
+    elif not pool and allocator == "managed":
         allocator = "managed_memory_resource"
-    elif pool and allocator="default":
+    elif pool and allocator == "default":
         allocator = "cnmem_memory_resource"
-    elif pool and allocator="managed":
+    elif pool and allocator == "managed":
         allocator = "cnmem_managed_memory_resource"    
 
     cio.blazingSetAllocatorCaller(
