@@ -32,9 +32,6 @@ from cudf.utils.utils import mask_dtype, mask_bitsize
 
 from cudf.core.column.column import build_column
 import rmm
-import nvstrings
-import nvcategory
-
 from cudf._lib cimport *
 
 from bsql_engine.io cimport cio
