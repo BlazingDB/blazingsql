@@ -16,10 +16,39 @@
 namespace ral {
 namespace utilities {
 
+bool checkIfConcatenatingStringsWillOverflow(const std::vector<BlazingTableView> & tables) {
+	if( tables.size() == 0 ) {
+		return false;
+	}
+
+	for(size_t col_idx = 0; col_idx < tables[0].get_schema().size(); col_idx++) {
+		if(tables[0].get_schema()[col_idx].id() == cudf::type_id::STRING) {
+			std::size_t total_size = 0;
+
+			for(size_t table_idx = 0; table_idx < tables.size(); table_idx++) {
+				// Column i-th from the next tables are expected to have the same string data type
+				assert( tables[table_idx].get_schema()[col_idx].id() == cudf::type_id::STRING );
+
+				auto & column = tables[table_idx].column(col_idx);
+				auto num_children = column.num_children();
+				if(num_children == 2) {
+					auto chars_column = column.child(1);
+					total_size += chars_column.size(); // Similarly to cudf, lets focus only on the number of chars
+
+					if( total_size > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max())) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables) {
 	assert(tables.size() >= 0);
 
-	std::vector<std::unique_ptr<CudfTable>> temp_holder;
 	std::vector<std::string> names;
 	std::vector<CudfTableView> table_views_to_concat;
 	for(size_t i = 0; i < tables.size(); i++) {

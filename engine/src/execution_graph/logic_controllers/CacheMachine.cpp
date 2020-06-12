@@ -474,6 +474,16 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 			tables_holder[i] = std::move(data->decache());
 			table_views[i] = tables_holder[i]->toBlazingTableView();
 		}
+		if( ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views)) {
+			logger->warn("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating Strings will overflow strings length",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=num_rows);
+		}
 		output = ral::utilities::concatTables(table_views);
 		num_rows = output->num_rows();
 	}	

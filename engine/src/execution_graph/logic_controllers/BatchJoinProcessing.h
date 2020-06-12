@@ -104,6 +104,14 @@ public:
 			for (std::size_t i = 0; i < tables_loaded.size(); i++){
 				tables_to_concat[i] = tables_loaded[i]->toBlazingTableView();
 			}
+
+			if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_to_concat)) {
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In PartwiseJoin::load_set Concatenating Strings will overflow strings length");
+			}
 			return ral::utilities::concatTables(tables_to_concat);
 		}
 	}

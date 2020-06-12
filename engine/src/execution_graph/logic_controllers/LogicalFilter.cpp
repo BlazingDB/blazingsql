@@ -125,6 +125,11 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       }
     }
     assert(found_self_partition);
+
+		if( ral::utilities::checkIfConcatenatingStringsWillOverflow(partitions_to_concat)) {
+			std::cout<<"WARNING: In process_distribution_table Concatenating Strings will overflow strings length"<<std::endl;
+		}
+
     return ral::utilities::concatTables(partitions_to_concat);
   }
 

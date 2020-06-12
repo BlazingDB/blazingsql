@@ -9,6 +9,7 @@ namespace utilities {
 
 using namespace ral::frame;
 
+bool checkIfConcatenatingStringsWillOverflow(const std::vector<BlazingTableView> & tables);
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables);
 
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names,

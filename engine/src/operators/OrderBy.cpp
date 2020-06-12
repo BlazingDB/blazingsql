@@ -248,6 +248,13 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 								"substep"_a=context->getQuerySubstep(),
 								"info"_a="Determining Number of Order By Partitions " + info);
 	
+	if( ral::utilities::checkIfConcatenatingStringsWillOverflow(samples)) {
+		logger->warn("{query_id}|{step}|{substep}|{info}",
+						"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+						"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+						"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+						"info"_a="In generatePartitionPlans Concatenating Strings will overflow strings length");
+	}
 	partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
 	context->incrementQuerySubstep();
 		
