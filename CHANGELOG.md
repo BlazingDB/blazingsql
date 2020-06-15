@@ -14,6 +14,7 @@
 #754 Normalize columns before distribution in JoinPartitionKernel
 #782 fixed issue with hive partitions base folder
 #791 Fixes issues due to changes in rmm and fixes allocator issues
+#797 Make get last_query_log() function
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
