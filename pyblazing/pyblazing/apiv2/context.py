@@ -97,8 +97,8 @@ class blazing_allocation_mode(IntEnum):
 
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
-                      initial_pool_size=None, enable_logging=False, 
-                      devices=0, config_options={}, logging_dir_path='blazing_log'):
+                      initial_pool_size=None, 
+                      config_options={}, logging_dir_path='blazing_log'):
 
     FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||"%(message)s"||||||'
     filename = os.path.join(logging_dir_path, 'pyblazing.' + str(ralId) + '.log')
@@ -111,35 +111,34 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    if (allocator != 'existing'):
+    if not pool:
+        initial_pool_size = 0
+    elif pool and initial_pool_size is None:
+        initial_pool_size = 0
+    elif pool and initial_pool_size == 0:
+        initial_pool_size = 1
+    
+    possible_allocators = ["default", "managed", "existing", 
+        "cuda_memory_resource", "managed_memory_resource", "cnmem_memory_resource", 
+        "cnmem_managed_memory_resource" ]
+    if allocator not in possible_allocators:
+                print('ERROR: parameter "allocator" was not set to a proper value. It was set to: ' + str(allocator) + '. It needs to be either "managed", "default" or "existing"')
+                allocator = "managed"
 
-        managed_memory = True if allocator == "managed" else False
-        allocation_mode = 0
+    if not pool and allocator == "default":
+        allocator = "cuda_memory_resource"
+    elif not pool and allocator == "managed":
+        allocator = "managed_memory_resource"
+    elif pool and allocator == "default":
+        allocator = "cnmem_memory_resource"
+    elif pool and allocator == "managed":
+        allocator = "cnmem_managed_memory_resource"    
 
-        if pool:
-            allocation_mode |= blazing_allocation_mode.PoolAllocation
-        if managed_memory:
-            allocation_mode |= blazing_allocation_mode.CudaManagedMemory
-
-        if not pool:
-            initial_pool_size = 0
-        elif pool and initial_pool_size is None:
-            initial_pool_size = 0
-        elif pool and initial_pool_size == 0:
-            initial_pool_size = 1
-
-        if devices is None:
-            devices = [0]
-        elif isinstance(devices, int):
-            devices = [devices]
-
-        cio.blazingSetAllocatorCaller(
-            allocation_mode,
-            initial_pool_size,
-            devices,
-            enable_logging,
-            config_options
-        )
+    cio.blazingSetAllocatorCaller(
+        allocator.encode(),
+        initial_pool_size,
+        config_options
+    )
 
     cio.initializeCaller(
         ralId,
@@ -790,7 +789,7 @@ class BlazingContext(object):
     """
 
     def __init__(self, dask_client=None, network_interface=None, allocator="managed",
-                 pool=False, initial_pool_size=None, enable_logging=False, config_options={}):
+                 pool=False, initial_pool_size=None, config_options={}):
         """
         Create a BlazingSQL API instance.
 
@@ -799,13 +798,13 @@ class BlazingContext(object):
 
         dask_client (optional) : dask.distributed.Client instance. only necessary for distributed query execution.
         network_interface (optional) : for communicating with the dask-scheduler. see note below.
-        allocator (optional) :  "managed" or "default", where "managed" uses Unified Virtual Memory (UVM)
-                                and may use system memory if GPU memory runs out, "default" assumes rmm
-                                allocator is already set and does not initialize it.
+        allocator (optional) :  "managed" or "default" or "existing", where "managed" uses Unified Virtual Memory (UVM)
+                                and may use system memory if GPU memory runs out, "default" uses the default Cuda allocation
+                                and "existing" assumes rmm allocator is already set and does not initialize it.
+                                "managed" is the BlazingSQL default, since it provides the most robustness against OOM errors.
         pool (optional) : if True, BlazingContext will self-allocate a GPU memory pool. can greatly improve performance.
         initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
                                        if None, and pool=True, defaults to 1/2 GPU memory.
-        enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
         config_options (optional) : this is a dictionary for setting certain parameters in the engine. These parameters will be used for all queries except
                                     if overriden by setting these parameters when running the query itself. The possible parameters are:
                                     JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join
@@ -918,7 +917,6 @@ class BlazingContext(object):
                         allocator=allocator,
                         pool=pool,
                         initial_pool_size=initial_pool_size,
-                        enable_logging=enable_logging,
                         config_options=self.config_options,
                         logging_dir_path=logging_dir_path,
                         workers=[worker]))
@@ -949,8 +947,7 @@ class BlazingContext(object):
             ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
                 allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
-                enable_logging=enable_logging, config_options=self.config_options,
-                logging_dir_path=logging_dir_path)
+                config_options=self.config_options, logging_dir_path=logging_dir_path)
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort

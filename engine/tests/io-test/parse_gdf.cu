@@ -17,6 +17,7 @@
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 #include <cudf/io/functions.hpp>
+#include "tests/BlazingUnitTest.h"
 
 
 using namespace ral::frame;
@@ -27,7 +28,7 @@ using Node = blazingdb::transport::Node;
 
 
 template <typename T>
-struct GDFTest : public cudf::test::BaseFixture {};
+struct GDFTest : public BlazingUnitTest {};
 
 // TYPED_TEST_CASE will run only a type: int16_t
 TYPED_TEST_CASE(GDFTest, cudf::test::NumericTypes);

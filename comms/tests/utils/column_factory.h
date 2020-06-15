@@ -16,7 +16,6 @@
 #include <nvstrings/NVStrings.h>
 #include <algorithm>
 #include "gpu_functions.h"
-#include "rmm/rmm.h"
 
 namespace blazingdb {
 namespace test {

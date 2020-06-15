@@ -27,9 +27,9 @@ using Node = blazingdb::transport::Node;
 
 struct ParseCSVTest : public ::testing::Test {
 
-  void SetUp() { ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS); }
+  void SetUp() {  }
 
-  void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
+  void TearDown() {  }
 };
 
 namespace cudf_io = cudf::io;
