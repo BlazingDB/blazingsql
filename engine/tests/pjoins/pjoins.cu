@@ -41,7 +41,7 @@ struct TestParameters
 template <class TypeParam>
 struct JoinTest : public ::testing::Test {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
 };
 

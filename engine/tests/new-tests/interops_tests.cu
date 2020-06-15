@@ -11,15 +11,15 @@
 #include "from_cudf/cpp_tests/utilities/type_lists.hpp"
 #include "from_cudf/cpp_tests/utilities/type_list_utilities.hpp"
 #include "Interpreter/interpreter_cpp.h"
-#include <bmr/initializer.h>
+#include "tests/BlazingUnitTest.h"
 
 template <typename T>
-struct InteropsTestNumeric : public cudf::test::BaseFixture {
+struct InteropsTestNumeric : public BlazingUnitTest {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 
@@ -107,12 +107,12 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 }
 /*
 template <typename T>
-struct InteropsTestNumericDivZero : public cudf::test::BaseFixture {
+struct InteropsTestNumericDivZero : public BlazingUnitTest {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 
@@ -176,12 +176,12 @@ TYPED_TEST(InteropsTestNumericDivZero, test_numeric_types_divzero)
 }
 
 template <typename T>
-struct InteropsTestTimestamp : public cudf::test::BaseFixture {
+struct InteropsTestTimestamp : public BlazingUnitTest {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 
@@ -338,12 +338,12 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
   cudf::test::expect_tables_equal(expected_table_view, out_table_view);
 }
 
-struct InteropsTestString : public cudf::test::BaseFixture {
+struct InteropsTestString : public BlazingUnitTest {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 

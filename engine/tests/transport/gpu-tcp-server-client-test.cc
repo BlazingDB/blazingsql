@@ -92,9 +92,9 @@ static void ExecWorker() {
 
 struct SendSamplesTest : public ::testing::Test {
 
-  void SetUp() { ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS); }
+  void SetUp() { }
 
-  void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
+  void TearDown() {}
 };
 
 

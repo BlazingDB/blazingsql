@@ -57,7 +57,7 @@ struct EvaluateQueryTest : public ::testing::Test
     }
  
    void SetUp() {
-    rmmInitialize(nullptr);
+    
   }
 
 

@@ -119,7 +119,7 @@ def init_context():
             print("Using dask: " + dask_conn)
             if 'local' != dask_conn:
                 dask_client.restart()
-            bc = BlazingContext( dask_client = dask_client, network_interface=iface, pool=False, initial_pool_size=None, enable_logging=False, allocator="managed") 
+            bc = BlazingContext( dask_client = dask_client, network_interface=iface, pool=False, initial_pool_size=None, allocator="managed") 
         else:
             # Fallback: could not found a valid dask server
             bc = BlazingContext()
