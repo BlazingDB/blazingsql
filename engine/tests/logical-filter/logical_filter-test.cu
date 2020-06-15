@@ -12,7 +12,7 @@
 class TestEnvironment : public testing::Environment {
 public:
   virtual ~TestEnvironment() {}
-  virtual void SetUp() { rmmInitialize(nullptr); }
+  virtual void SetUp() {  }
 
   void TearDown() { cudaDeviceReset(); }
 };

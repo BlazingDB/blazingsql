@@ -13,7 +13,7 @@ struct RandomGeneratorTest : public testing::Test {
 
   ~RandomGeneratorTest() {}
 
-  void SetUp() override { rmmInitialize(nullptr); }
+  void SetUp() override { }
 
   void TearDown() override {}
 
