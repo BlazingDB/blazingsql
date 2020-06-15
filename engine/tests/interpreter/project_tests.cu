@@ -29,7 +29,7 @@ struct EvaluateQueryTest : public ::testing::Test
         gdf::library::Table resultTable;
     };
    void SetUp() {
-    rmmInitialize(nullptr);
+    
   }
 
 

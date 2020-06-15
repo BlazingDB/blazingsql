@@ -12,15 +12,11 @@
 #include "from_cudf/cpp_tests/utilities/type_lists.hpp"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "utilities/DebuggingUtils.h"
+#include "tests/BlazingUnitTest.h"
 
 template <typename T>
-struct LogicalFilterTest : public cudf::test::BaseFixture {
-  void SetUp() {
-	  rmmInitialize(nullptr);
-  }
-  void TearDown() {
-    rmmFinalize();
-  }
+struct LogicalFilterTest : public BlazingUnitTest {
+  
 };
 
 TYPED_TEST_CASE(LogicalFilterTest, cudf::test::NumericTypes);
@@ -176,13 +172,8 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
 }
 
 
-struct LogicalFilterWithStringsTest : public cudf::test::BaseFixture {
-  void SetUp() {
-	  rmmInitialize(nullptr);
-  }
-  void TearDown() {
-    rmmFinalize();
-  }
+struct LogicalFilterWithStringsTest : public BlazingUnitTest {
+  
 };
 
 TEST_F(LogicalFilterWithStringsTest, NoNulls)

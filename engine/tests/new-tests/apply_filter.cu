@@ -26,13 +26,14 @@
 #include <execution_graph/logic_controllers/LogicalFilter.h>
 #include "cudf/stream_compaction.hpp"
 #include <cudf/datetime.hpp>
+#include "tests/BlazingUnitTest.h"
 
 using namespace ral::frame;
 using namespace ral::processor;
 
 
 template <typename T>
-struct ApplyFilter : public cudf::test::BaseFixture {};
+struct ApplyFilter : public BlazingUnitTest {};
 
 // TYPED_TEST_CASE will run all TYPED_TEST with the same name (i.e. ApplyFilter) for all the types specified
 // Here the types specified are defined by cudf::test::NumericTypes
@@ -151,7 +152,7 @@ using namespace cudf::datetime;
 using namespace simt::std::chrono;
   
 template <typename T>
-struct ApplyFilterDates : public cudf::test::BaseFixture {};
+struct ApplyFilterDates : public BlazingUnitTest {};
 
 // This TYPED_TEST_CASE will run for all cudf::test::TimestampTypes
 // using TimestampTypes = cudf::test::Types<timestamp_D, timestamp_s, timestamp_ms, timestamp_us, timestamp_ns>;

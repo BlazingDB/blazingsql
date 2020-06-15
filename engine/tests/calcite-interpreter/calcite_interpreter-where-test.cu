@@ -18,7 +18,7 @@
 class TestEnvironment : public testing::Environment {
 public:
   virtual ~TestEnvironment() {}
-  virtual void SetUp() { rmmInitialize(nullptr); }
+  virtual void SetUp() {  }
 
   void TearDown() {
     cudaDeviceReset(); // for cuda-memchecking
@@ -47,8 +47,7 @@ struct calcite_interpreter_TEST : public  BlazingUnitTest {
                   .Build(num_values)} {}
 
   void SetUp() {
-	rmmInitialize(nullptr);
-    input_tables = group.ToBlazingFrame();
+	  input_tables = group.ToBlazingFrame();
 
     input1 = reinterpret_cast<const std::int32_t *>(group[0][0].get(0));
     input2 = reinterpret_cast<const std::int32_t *>(group[0][1].get(0));
