@@ -13,7 +13,7 @@
 #781 Fixed issue with Hive partitions when doing SELECT *
 #754 Normalize columns before distribution in JoinPartitionKernel
 #782 fixed issue with hive partitions base folder
-
+#792 Remove orc temp files when cached on Disk
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
