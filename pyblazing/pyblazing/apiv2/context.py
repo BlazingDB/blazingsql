@@ -120,7 +120,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
     
     possible_allocators = ["default", "managed", "existing", 
         "cuda_memory_resource", "managed_memory_resource", "cnmem_memory_resource", 
-        "cnmem_managed_memory_resource", "pool_memory_resource" ]
+        "cnmem_managed_memory_resource" ]
     if allocator not in possible_allocators:
                 print('ERROR: parameter "allocator" was not set to a proper value. It was set to: ' + str(allocator) + '. It needs to be either "managed", "default" or "existing"')
                 allocator = "managed"
