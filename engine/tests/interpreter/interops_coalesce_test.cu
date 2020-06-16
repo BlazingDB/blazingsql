@@ -46,7 +46,7 @@ struct EvaluateQueryTest : public ::testing::Test
     {
     }
    void SetUp() {
-    rmmInitialize(nullptr);
+    
   }
 
     void CHECK_RESULT(gdf::library::Table &computed_solution,

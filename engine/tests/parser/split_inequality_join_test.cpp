@@ -13,7 +13,7 @@ struct SplitIneQualityJoinTest : public ::testing::Test {
   }
 
   void SetUp() override {
-      rmmInitialize(nullptr);
+      
   }
 };
 

@@ -32,9 +32,6 @@ from cudf.utils.utils import mask_dtype, mask_bitsize
 
 from cudf.core.column.column import build_column
 import rmm
-import nvstrings
-import nvcategory
-
 from cudf._lib cimport *
 
 from bsql_engine.io cimport cio
@@ -122,8 +119,8 @@ cdef void initializePython(int ralId, int gpuId, string network_iface_name, stri
 cdef void finalizePython() except *:
     cio.finalize()
 
-cdef void blazingSetAllocatorPython(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options) except *:
-    cio.blazingSetAllocator(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
+cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) except *:
+    cio.blazingSetAllocator(allocation_mode, initial_pool_size, config_options)
 
 cdef map[string, string] getProductDetailsPython() except *:
     return cio.getProductDetails()
@@ -170,8 +167,8 @@ cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string r
 cpdef finalizeCaller():
     finalizePython()
 
-cpdef blazingSetAllocatorCaller(int allocation_mode, size_t initial_pool_size, vector[int] devices, bool enable_logging, map[string,string] config_options):
-    blazingSetAllocatorPython(allocation_mode, initial_pool_size, devices, enable_logging, config_options)
+cpdef blazingSetAllocatorCaller(string allocation_mode, size_t initial_pool_size, map[string,string] config_options):
+    blazingSetAllocatorPython(allocation_mode, initial_pool_size, config_options)
 
 
 cpdef getProductDetailsCaller():

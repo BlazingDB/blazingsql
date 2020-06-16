@@ -2,7 +2,6 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include "blazingdb/transport/io/fd_reader_writer.h"
-#include "rmm/rmm.h"
 
 #include <condition_variable>
 #include <iostream>
