@@ -538,6 +538,10 @@ def visit (lines):
 def get_plan(algebra):
     algebra = algebra.replace("  ", "\t")
     lines = algebra.split("\n")
+    # when algebra plan was provided and only contains one-line as logical plan
+    if len(lines) == 1:
+        algebra += "\n"
+        lines = algebra.split("\n")
     new_lines = []
     for i in range(len(lines) - 1):
         line = lines[i]
