@@ -21,7 +21,6 @@ class TestEnvironment : public testing::Environment {
 public:
   virtual ~TestEnvironment() {}
   virtual void SetUp() {
-    rmmInitialize(nullptr);
     auto output = new Library::Logging::CoutOutput();
     Library::Logging::ServiceLogging::getInstance().setLogOutput(output);
   }
@@ -34,8 +33,7 @@ public:
 struct calcite_interpreter_TEST : public BlazingUnitTest {
 
   void SetUp() {
-	rmmInitialize(nullptr);
-    
+	  
 	input1 = new char[num_values];
     input2 = new char[num_values];
     input3 = new char[num_values];

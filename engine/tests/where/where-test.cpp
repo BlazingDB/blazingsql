@@ -13,7 +13,7 @@ public:
 };
 
 class WhereFrom2e2Test : public testing::TestWithParam<Item> {
-	void SetUp() { rmmInitialize(nullptr); }
+	void SetUp() {  }
 };
 
 using gdf::library::Literals;

@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include <cudf/io/functions.hpp>
+#include "tests/BlazingUnitTest.h"
 
 using blazingdb::manager::Context;
 using Node = blazingdb::transport::Node;
@@ -28,7 +29,7 @@ using namespace ral::frame;
 using namespace ral::processor;
 
 template <typename T>
-struct OrcTest : public cudf::test::BaseFixture {};
+struct OrcTest : public BlazingUnitTest {};
 
 // To get the current directory
 std::string GetCurrentWorkingDir( void ) {
