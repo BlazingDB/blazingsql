@@ -150,8 +150,10 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 	if (metadata_batches.size() == 1){
 		return std::move(metadata_batches[0]);
 	} else {
-		if( ral::utilities::checkIfConcatenatingStringsWillOverflow(metadata_batche_views)) {
-			std::cout<<"WARNING: In data_loader::get_metadata Concatenating Strings will overflow strings length"<<std::endl;
+		if( ral::utilities::checkIfConcatenatingStringsWillOverflow(metadata_batche_views) ) {
+			auto logger = spdlog::get("batch_logger");
+			logger->warn("|||{info}|||||",
+						"info"_a="In data_loader::get_metadata Concatenating will overflow strings length");
 		}
 
 		return ral::utilities::concatTables(metadata_batche_views);
