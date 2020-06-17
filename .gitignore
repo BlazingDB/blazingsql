@@ -69,3 +69,5 @@ configurationFile.json
 *logs*
 
 # END gitignore from e2e repo
+
+thirdparty/aws-cpp/build/

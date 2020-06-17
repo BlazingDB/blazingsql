@@ -124,7 +124,7 @@ if buildAll || hasArg thirdparty; then
     cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
           -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           ..
-    make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
+    make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE} install
 fi
 
 ################################################################################
