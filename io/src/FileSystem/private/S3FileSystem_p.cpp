@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include <arrow/io/api.h>
 #include "arrow/buffer.h"
 
 #include "aws/s3/model/HeadObjectRequest.h"
@@ -70,7 +71,7 @@ std::shared_ptr<Aws::S3::S3Client> make_s3_client(
 	// here we can make changes to the client configuration
 	
 	auto clientConfig = Aws::Client::ClientConfiguration();
-	clientConfig.region = region;
+	clientConfig.region = Aws::String(region.data());
 	
 	if (connectTimeoutMs > 0) {
 		clientConfig.connectTimeoutMs = connectTimeoutMs;
@@ -83,7 +84,7 @@ std::shared_ptr<Aws::S3::S3Client> make_s3_client(
 	bool useVirtualAddressing = true;
 	
 	if (endpointOverride.empty() == false) {
-		clientConfig.endpointOverride = endpointOverride;
+		clientConfig.endpointOverride = Aws::String(endpointOverride.data());
 		
 		// NOTE When use endpointOverride we need to set useVirtualAddressing to true for the client ctor
 		useVirtualAddressing = false;
@@ -108,15 +109,14 @@ RegionResult getRegion(std::string bucketName,std::shared_ptr< Aws::Auth::AWSCre
 	std::shared_ptr<Aws::S3::S3Client> s3Client = make_s3_client("us-east-1", credentials, endpointOverride, 60000, 30000);
 
 	Aws::S3::Model::GetBucketLocationRequest location_request;
-	location_request.WithBucket(bucketName);
+	location_request.WithBucket(bucketName.data());
 
 	const auto locationRequestOutcome = s3Client->GetBucketLocation(location_request);
 
 	if(locationRequestOutcome.IsSuccess()) {
 		const Aws::S3::Model::BucketLocationConstraint regionEnum =
 			locationRequestOutcome.GetResult().GetLocationConstraint();
-		regionResult.regionName =
-			Aws::S3::Model::BucketLocationConstraintMapper::GetNameForBucketLocationConstraint(regionEnum);
+		regionResult.regionName = std::string(Aws::S3::Model::BucketLocationConstraintMapper::GetNameForBucketLocationConstraint(regionEnum).data());
 		regionResult.valid = true;
 
 		// NOTE empty string (for the US East (N. Virginia) region)
@@ -128,7 +128,7 @@ RegionResult getRegion(std::string bucketName,std::shared_ptr< Aws::Auth::AWSCre
 			//			std::cout << "Bucket region: " << regionResult.regionName << std::endl;
 		}
 	} else {
-		const std::string error = locationRequestOutcome.GetError().GetMessage();
+		const std::string error = locationRequestOutcome.GetError().GetMessage().data();
 		const std::string errorPattern =
 			"Unable to parse ExceptionName: AuthorizationHeaderMalformed Message: The authorization header is "
 			"malformed; the region 'us-east-1' is wrong; expecting '";
@@ -188,7 +188,7 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 	// map: that is a bad pattern)
 	std::shared_ptr<Aws::Auth::AWSCredentials> credentials = nullptr;
 	if(accessKeyId != ""){
-		credentials = std::make_shared<Aws::Auth::AWSCredentials>(accessKeyId, secretKey, sessionToken);
+		credentials = std::make_shared<Aws::Auth::AWSCredentials>(accessKeyId.data(), secretKey.data(), sessionToken.data());
 	}
 
 	RegionResult regionResult;
@@ -289,8 +289,8 @@ bool S3FileSystem::Private::exists(const Uri & uri) const {
 	std::string objectKey = path.toString(true).substr(1, path.toString(true).size());
 
 	Aws::S3::Model::HeadObjectRequest request;
-	request.WithBucket(bucket);
-	request.WithKey(objectKey);
+	request.WithBucket(bucket.data());
+	request.WithKey(objectKey.data());
 
 	Aws::S3::Model::HeadObjectOutcome result = this->s3Client->HeadObject(request);
 
@@ -301,7 +301,7 @@ bool S3FileSystem::Private::exists(const Uri & uri) const {
 			'/') {  // lets see if it was actually a directory and we simply did not have the slash at the end
 			objectKey += '/';
 
-			request.WithKey(objectKey);
+			request.WithKey(objectKey.data());
 
 			Aws::S3::Model::HeadObjectOutcome result2 = this->s3Client->HeadObject(request);
 
@@ -312,10 +312,10 @@ bool S3FileSystem::Private::exists(const Uri & uri) const {
 			}
 		} else {  // if contains / at the end
 			Aws::S3::Model::ListObjectsV2Request request;
-			request.WithBucket(bucket);
+			request.WithBucket(bucket.data());
 			request.WithDelimiter(
 				"/");  // NOTE percy since we control how to create files in S3 we should use this convention
-			request.WithPrefix(objectKey);
+			request.WithPrefix(objectKey.data());
 
 			auto objectsOutcome = this->s3Client->ListObjectsV2(request);
 
@@ -339,8 +339,8 @@ FileStatus S3FileSystem::Private::getFileStatus(const Uri & uri) const {
 	std::string objectKey = path.toString(true).substr(1, path.toString(true).size());
 
 	Aws::S3::Model::HeadObjectRequest request;
-	request.WithBucket(bucket);
-	request.WithKey(objectKey);
+	request.WithBucket(bucket.data());
+	request.WithKey(objectKey.data());
 
 	Aws::S3::Model::HeadObjectOutcome outcome = this->s3Client->HeadObject(request);
 
@@ -349,7 +349,7 @@ FileStatus S3FileSystem::Private::getFileStatus(const Uri & uri) const {
 
 		Aws::S3::Model::HeadObjectResult result = outcome.GetResult();
 
-		std::string contentType = result.GetContentType();
+		std::string contentType = result.GetContentType().data();
 		long long contentLength = result.GetContentLength();
 
 		if(objectKey[objectKey.size() - 1] == '/' || contentType == "application/x-directory") {
@@ -364,7 +364,7 @@ FileStatus S3FileSystem::Private::getFileStatus(const Uri & uri) const {
 			'/') {  // lets see if it was actually a directory and we simply did not have the slash at the end
 			objectKey += '/';
 
-			request.WithKey(objectKey);
+			request.WithKey(objectKey.data());
 
 			Aws::S3::Model::HeadObjectOutcome outcome = this->s3Client->HeadObject(request);
 
@@ -383,10 +383,10 @@ FileStatus S3FileSystem::Private::getFileStatus(const Uri & uri) const {
 			}
 		} else {  // if contains / at the end
 			Aws::S3::Model::ListObjectsV2Request request;
-			request.WithBucket(bucket);
+			request.WithBucket(bucket.data());
 			request.WithDelimiter(
 				"/");  // NOTE percy since we control how to create files in S3 we should use this convention
-			request.WithPrefix(objectKey);
+			request.WithPrefix(objectKey.data());
 
 			auto objectsOutcome = this->s3Client->ListObjectsV2(request);
 
@@ -425,9 +425,9 @@ std::vector<FileStatus> S3FileSystem::Private::list(const Uri & uri, const FileF
 	const std::string bucket = this->getBucketName();
 
 	Aws::S3::Model::ListObjectsV2Request request;
-	request.WithBucket(bucket);
+	request.WithBucket(bucket.data());
 	request.WithDelimiter("/");  // NOTE percy since we control how to create files in S3 we should use this convention
-	request.WithPrefix(objectKey);
+	request.WithPrefix(objectKey.data());
 
 	auto objectsOutcome = this->s3Client->ListObjectsV2(request);
 
@@ -438,7 +438,8 @@ std::vector<FileStatus> S3FileSystem::Private::list(const Uri & uri, const FileF
 			for(auto const & s3Object : objects) {
 				// WARNING TODO percy there is no folders concept in S3 ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path path("/" + s3Object.GetKey(), true);  // TODO percy avoid hardcoded string
+                auto a = s3Object.GetKey().data();
+				const Path path("/" + std::string(a), true);  // TODO percy avoid hardcoded string
 
 				if(path != folderPath) {
 					const Uri entry(uri.getScheme(), uri.getAuthority(), path);
@@ -456,7 +457,7 @@ std::vector<FileStatus> S3FileSystem::Private::list(const Uri & uri, const FileF
 			for(auto const & s3Folder : folders) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path path("/" + s3Folder.GetPrefix(), true);  // TODO percy avoid hardcoded string
+				const Path path("/" + std::string(s3Folder.GetPrefix().data()), true);  // TODO percy avoid hardcoded string
 				const Uri entry(uri.getScheme(), uri.getAuthority(), path);
 				const FileStatus fileStatus(
 					entry, FileType::DIRECTORY, 0);  // TODO percy get info about the size of this kind of object
@@ -472,7 +473,7 @@ std::vector<FileStatus> S3FileSystem::Private::list(const Uri & uri, const FileF
 			for(auto const & s3Object : objects) {
 				// WARNING TODO percy there is no folders concept in S3 ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path fullPath("/" + s3Object.GetKey(), true);  // TODO percy avoid hardcoded string
+				const Path fullPath("/" + std::string(s3Object.GetKey().data()), true);  // TODO percy avoid hardcoded string
 
 				if(fullPath != folderPath) {
 					const Uri fullUri(uri.getScheme(), uri.getAuthority(), fullPath);
@@ -496,7 +497,7 @@ std::vector<FileStatus> S3FileSystem::Private::list(const Uri & uri, const FileF
 			for(auto const & s3Folder : folders) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path fullPath("/" + s3Folder.GetPrefix(), true);  // TODO percy avoid hardcoded string
+				const Path fullPath("/" + std::string(s3Folder.GetPrefix().data()), true);  // TODO percy avoid hardcoded string
 				const Uri fullUri(uri.getScheme(), uri.getAuthority(), fullPath);
 				const FileStatus fullFileStatus(fullUri, FileType::DIRECTORY, 0);
 
@@ -516,15 +517,15 @@ std::vector<FileStatus> S3FileSystem::Private::list(const Uri & uri, const FileF
 		Logging::Logger().logError("S3FileSystem::Private::list failed for URI: " + uri.toString());
 		bool shouldRetry = objectsOutcome.GetError().ShouldRetry();
 		if(shouldRetry) {
-			Logging::Logger().logError(objectsOutcome.GetError().GetExceptionName() + " : " +
-									   objectsOutcome.GetError().GetMessage() + "  SHOULD RETRY");
+			Logging::Logger().logError(std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+									   objectsOutcome.GetError().GetMessage().data() + "  SHOULD RETRY");
 		} else {
-			Logging::Logger().logError(objectsOutcome.GetError().GetExceptionName() + " : " +
-									   objectsOutcome.GetError().GetMessage() + "  SHOULD NOT RETRY");
+			Logging::Logger().logError(std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+									   objectsOutcome.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 		throw BlazingFileSystemException("Could not list files found at " + uriWithRoot.toString() + ". Problem was " +
-										 objectsOutcome.GetError().GetExceptionName() + " : " +
-										 objectsOutcome.GetError().GetMessage());
+										 std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+										 objectsOutcome.GetError().GetMessage().data());
 	}
 
 	return response;
@@ -549,9 +550,9 @@ std::vector<Uri> S3FileSystem::Private::list(const Uri & uri, const std::string 
 	const std::string bucket = this->getBucketName();
 
 	Aws::S3::Model::ListObjectsV2Request request;
-	request.WithBucket(bucket);
+	request.WithBucket(bucket.data());
 	request.WithDelimiter("/");  // NOTE percy since we control how to create files in S3 we should use this convention
-	request.WithPrefix(objectKey);
+	request.WithPrefix(objectKey.data());
 
 	auto objectsOutcome = this->s3Client->ListObjectsV2(request);
 
@@ -565,7 +566,7 @@ std::vector<Uri> S3FileSystem::Private::list(const Uri & uri, const std::string 
 			for(auto const & s3Object : objects) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path path("/" + s3Object.GetKey(), true);  // TODO percy avoid hardcoded string
+				const Path path("/" + std::string(s3Object.GetKey().data()), true);  // TODO percy avoid hardcoded string
 
 				if(path != folderPath) {
 					const bool pass = WildcardFilter::match(path.toString(true), finalWildcard);
@@ -581,7 +582,7 @@ std::vector<Uri> S3FileSystem::Private::list(const Uri & uri, const std::string 
 			for(auto const & s3Folder : folders) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path path("/" + s3Folder.GetPrefix(), true);  // TODO percy avoid hardcoded string
+				const Path path("/" + std::string(s3Folder.GetPrefix().data()), true);  // TODO percy avoid hardcoded string
 				const bool pass = WildcardFilter::match(path.toString(true), finalWildcard);
 
 				if(pass) {
@@ -595,7 +596,7 @@ std::vector<Uri> S3FileSystem::Private::list(const Uri & uri, const std::string 
 			for(auto const & s3Object : objects) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path fullPath("/" + s3Object.GetKey(), true);  // TODO percy avoid hardcoded string
+				const Path fullPath("/" + std::string(s3Object.GetKey().data()), true);  // TODO percy avoid hardcoded string
 
 				if(fullPath != folderPath) {
 					const bool pass =
@@ -615,7 +616,7 @@ std::vector<Uri> S3FileSystem::Private::list(const Uri & uri, const std::string 
 			for(auto const & s3Folder : folders) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path fullPath("/" + s3Folder.GetPrefix(), true);  // TODO percy avoid hardcoded string
+				const Path fullPath("/" + std::string(s3Folder.GetPrefix().data()), true);  // TODO percy avoid hardcoded string
 				const bool pass =
 					WildcardFilter::match(fullPath.toString(true), finalWildcard);  // filter must use the full path
 
@@ -631,15 +632,15 @@ std::vector<Uri> S3FileSystem::Private::list(const Uri & uri, const std::string 
 		Logging::Logger().logError("S3FileSystem::Private::list failed for URI: " + uri.toString());
 		bool shouldRetry = objectsOutcome.GetError().ShouldRetry();
 		if(shouldRetry) {
-			Logging::Logger().logError(objectsOutcome.GetError().GetExceptionName() + " : " +
-									   objectsOutcome.GetError().GetMessage() + "  SHOULD RETRY");
+			Logging::Logger().logError(std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+									   objectsOutcome.GetError().GetMessage().data() + "  SHOULD RETRY");
 		} else {
-			Logging::Logger().logError(objectsOutcome.GetError().GetExceptionName() + " : " +
-									   objectsOutcome.GetError().GetMessage() + "  SHOULD NOT RETRY");
+			Logging::Logger().logError(std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+									   objectsOutcome.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 		throw BlazingFileSystemException("Could not list files found at " + uriWithRoot.toString() + ". Problem was " +
-										 objectsOutcome.GetError().GetExceptionName() + " : " +
-										 objectsOutcome.GetError().GetMessage());
+										 std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+										 objectsOutcome.GetError().GetMessage().data());
 	}
 
 	return response;
@@ -664,9 +665,9 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(
 	const std::string bucket = this->getBucketName();
 
 	Aws::S3::Model::ListObjectsV2Request request;
-	request.WithBucket(bucket);
+	request.WithBucket(bucket.data());
 	request.WithDelimiter("/");  // NOTE percy since we control how to create files in S3 we should use this convention
-	request.WithPrefix(objectKey);
+	request.WithPrefix(objectKey.data());
 
 	auto objectsOutcome = this->s3Client->ListObjectsV2(request);
 
@@ -681,7 +682,7 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(
 			for(auto const & s3Object : objects) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path path("/" + s3Object.GetKey(), true);  // TODO percy avoid hardcoded string
+				const Path path("/" + std::string(s3Object.GetKey().data()), true);  // TODO percy avoid hardcoded string
 
 				if(path != folderPath) {
 					const Uri entry(uri.getScheme(), uri.getAuthority(), path);
@@ -699,7 +700,7 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(
 			for(auto const & s3Folder : folders) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path path("/" + s3Folder.GetPrefix(), true);  // TODO percy avoid hardcoded string
+				const Path path("/" + std::string(s3Folder.GetPrefix().data()), true);  // TODO percy avoid hardcoded string
 
 				if(path != folderPath) {
 					const Uri entry(uri.getScheme(), uri.getAuthority(), path);
@@ -718,7 +719,7 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(
 			for(auto const & s3Object : objects) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path fullPath("/" + s3Object.GetKey(), true);  // TODO percy avoid hardcoded string
+				const Path fullPath("/" + std::string(s3Object.GetKey().data()), true);  // TODO percy avoid hardcoded string
 
 				if(fullPath != folderPath) {
 					const Uri fullUri(uri.getScheme(), uri.getAuthority(), fullPath);
@@ -740,7 +741,7 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(
 			for(auto const & s3Folder : folders) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path fullPath("/" + s3Folder.GetPrefix(), true);  // TODO percy avoid hardcoded string
+				const Path fullPath("/" + std::string(s3Folder.GetPrefix().data()), true);  // TODO percy avoid hardcoded string
 
 				if(fullPath != folderPath) {
 					const Uri fullUri(uri.getScheme(), uri.getAuthority(), fullPath);
@@ -761,15 +762,15 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(
 		Logging::Logger().logError("S3FileSystem::Private::listResourceNames failed for URI: " + uri.toString());
 		bool shouldRetry = objectsOutcome.GetError().ShouldRetry();
 		if(shouldRetry) {
-			Logging::Logger().logError(objectsOutcome.GetError().GetExceptionName() + " : " +
-									   objectsOutcome.GetError().GetMessage() + "  SHOULD RETRY");
+			Logging::Logger().logError(std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+									   objectsOutcome.GetError().GetMessage().data() + "  SHOULD RETRY");
 		} else {
-			Logging::Logger().logError(objectsOutcome.GetError().GetExceptionName() + " : " +
-									   objectsOutcome.GetError().GetMessage() + "  SHOULD NOT RETRY");
+			Logging::Logger().logError(std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+									   objectsOutcome.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 		throw BlazingFileSystemException("Could not list resources found at " + uriWithRoot.toString() +
-										 ". Problem was " + objectsOutcome.GetError().GetExceptionName() + " : " +
-										 objectsOutcome.GetError().GetMessage());
+										 ". Problem was " + std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+										 objectsOutcome.GetError().GetMessage().data());
 	}
 
 	return response;
@@ -793,9 +794,9 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(const Uri & ur
 	const std::string bucket = this->getBucketName();
 
 	Aws::S3::Model::ListObjectsV2Request request;
-	request.WithBucket(bucket);
+	request.WithBucket(bucket.data());
 	request.WithDelimiter("/");  // NOTE percy since we control how to create files in S3 we should use this convention
-	request.WithPrefix(objectKey);
+	request.WithPrefix(objectKey.data());
 
 	auto objectsOutcome = this->s3Client->ListObjectsV2(request);
 
@@ -809,7 +810,7 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(const Uri & ur
 			for(auto const & s3Object : objects) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path path("/" + s3Object.GetKey(), true);  // TODO percy avoid hardcoded string
+				const Path path("/" + std::string(s3Object.GetKey().data()), true);  // TODO percy avoid hardcoded string
 
 				if(path != folderPath) {
 					const Uri entry(uri.getScheme(), uri.getAuthority(), path);
@@ -826,7 +827,7 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(const Uri & ur
 			for(auto const & s3Folder : folders) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path path("/" + s3Folder.GetPrefix(), true);  // TODO percy avoid hardcoded string
+				const Path path("/" + std::string(s3Folder.GetPrefix().data()), true);  // TODO percy avoid hardcoded string
 
 				if(path != folderPath) {
 					const Uri entry(uri.getScheme(), uri.getAuthority(), path);
@@ -843,7 +844,7 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(const Uri & ur
 			for(auto const & s3Object : objects) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path fullPath("/" + s3Object.GetKey(), true);  // TODO percy avoid hardcoded string
+				const Path fullPath("/" + std::string(s3Object.GetKey().data()), true);  // TODO percy avoid hardcoded string
 
 				if(fullPath != folderPath) {
 					const Uri fullUri(uri.getScheme(), uri.getAuthority(), fullPath);
@@ -863,7 +864,7 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(const Uri & ur
 			for(auto const & s3Folder : folders) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path fullPath("/" + s3Folder.GetPrefix(), true);  // TODO percy avoid hardcoded string
+				const Path fullPath("/" + std::string(s3Folder.GetPrefix().data()), true);  // TODO percy avoid hardcoded string
 
 				if(fullPath != folderPath) {
 					const Uri fullUri(uri.getScheme(), uri.getAuthority(), fullPath);
@@ -882,15 +883,15 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(const Uri & ur
 		Logging::Logger().logError("S3FileSystem::Private::listResourceNames failed for URI: " + uri.toString());
 		bool shouldRetry = objectsOutcome.GetError().ShouldRetry();
 		if(shouldRetry) {
-			Logging::Logger().logError(objectsOutcome.GetError().GetExceptionName() + " : " +
-									   objectsOutcome.GetError().GetMessage() + "  SHOULD RETRY");
+			Logging::Logger().logError(std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+									   objectsOutcome.GetError().GetMessage().data() + "  SHOULD RETRY");
 		} else {
-			Logging::Logger().logError(objectsOutcome.GetError().GetExceptionName() + " : " +
-									   objectsOutcome.GetError().GetMessage() + "  SHOULD NOT RETRY");
+			Logging::Logger().logError(std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+									   objectsOutcome.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 		throw BlazingFileSystemException("Could not list resources found at " + uriWithRoot.toString() +
-										 ". Problem was " + objectsOutcome.GetError().GetExceptionName() + " : " +
-										 objectsOutcome.GetError().GetMessage());
+										 ". Problem was " + std::string(objectsOutcome.GetError().GetExceptionName().data()) + " : " +
+										 objectsOutcome.GetError().GetMessage().data());
 	}
 
 	return response;
@@ -916,14 +917,14 @@ bool S3FileSystem::Private::makeDirectory(const Uri & uri) const {
 	mutablePath = mutablePath.substr(1, mutablePath.size());
 
 	Aws::S3::Model::PutObjectRequest request;
-	request.WithBucket(bucket);
-	request.WithKey(mutablePath);
+	request.WithBucket(bucket.data());
+	request.WithKey(mutablePath.data());
 
 	if(this->isEncrypted()) {
 		request.WithServerSideEncryption(this->serverSideEncryption());
 
 		if(this->isAWSKMSEncrypted()) {
-			request.WithSSEKMSKeyId(this->getSSEKMSKeyId());
+			request.WithSSEKMSKeyId(this->getSSEKMSKeyId().data());
 		}
 	}
 
@@ -936,13 +937,13 @@ bool S3FileSystem::Private::makeDirectory(const Uri & uri) const {
 		bool shouldRetry = result.GetError().ShouldRetry();
 		if(shouldRetry) {
 			Logging::Logger().logError(
-				result.GetError().GetExceptionName() + " : " + result.GetError().GetMessage() + "  SHOULD RETRY");
+				std::string(result.GetError().GetExceptionName().data()) + " : " + result.GetError().GetMessage().data() + "  SHOULD RETRY");
 		} else {
 			Logging::Logger().logError(
-				result.GetError().GetExceptionName() + " : " + result.GetError().GetMessage() + "  SHOULD NOT RETRY");
+				std::string(result.GetError().GetExceptionName().data()) + " : " + result.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 		throw BlazingS3Exception("Could not make directory " + uriWithRoot.toString() + ". Problem was " +
-								 result.GetError().GetExceptionName() + " : " + result.GetError().GetMessage());
+								 std::string(result.GetError().GetExceptionName().data()) + " : " + result.GetError().GetMessage().data());
 	}
 }
 
@@ -966,8 +967,8 @@ bool S3FileSystem::Private::remove(const Uri & uri) const {
 	}
 
 	Aws::S3::Model::DeleteObjectRequest request;
-	request.WithBucket(bucket);
-	request.WithKey(objectKey);
+	request.WithBucket(bucket.data());
+	request.WithKey(objectKey.data());
 
 	auto result = this->s3Client->DeleteObject(request);
 
@@ -978,13 +979,13 @@ bool S3FileSystem::Private::remove(const Uri & uri) const {
 		bool shouldRetry = result.GetError().ShouldRetry();
 		if(shouldRetry) {
 			Logging::Logger().logError(
-				result.GetError().GetExceptionName() + " : " + result.GetError().GetMessage() + "  SHOULD RETRY");
+				std::string(result.GetError().GetExceptionName().data()) + " : " + result.GetError().GetMessage().data() + "  SHOULD RETRY");
 		} else {
 			Logging::Logger().logError(
-				result.GetError().GetExceptionName() + " : " + result.GetError().GetMessage() + "  SHOULD NOT RETRY");
+				std::string(result.GetError().GetExceptionName().data()) + " : " + result.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 		throw BlazingS3Exception("Could not remove " + uriWithRoot.toString() + ". Problem was " +
-								 result.GetError().GetExceptionName() + " : " + result.GetError().GetMessage());
+								 std::string(result.GetError().GetExceptionName().data()) + " : " + std::string(result.GetError().GetMessage().data()));
 
 		return false;
 	}
@@ -1013,15 +1014,15 @@ bool S3FileSystem::Private::move(const Uri & src, const Uri & dst) const {
 
 	Aws::S3::Model::CopyObjectRequest request;
 
-	request.WithBucket(bucket);
-	request.WithKey(toKey);
-	request.WithCopySource(source);
+	request.WithBucket(bucket.data());
+	request.WithKey(toKey.data());
+	request.WithCopySource(source.data());
 
 	if(this->isEncrypted()) {
 		request.WithServerSideEncryption(this->serverSideEncryption());
 
 		if(this->isAWSKMSEncrypted()) {
-			request.WithSSEKMSKeyId(this->getSSEKMSKeyId());
+			request.WithSSEKMSKeyId(this->getSSEKMSKeyId().data());
 		}
 	}
 
@@ -1041,13 +1042,13 @@ bool S3FileSystem::Private::move(const Uri & src, const Uri & dst) const {
 		bool shouldRetry = result.GetError().ShouldRetry();
 		if(shouldRetry) {
 			Logging::Logger().logError(
-				result.GetError().GetExceptionName() + " : " + result.GetError().GetMessage() + "  SHOULD RETRY");
+				std::string(result.GetError().GetExceptionName().data()) + " : " + result.GetError().GetMessage().data() + "  SHOULD RETRY");
 		} else {
 			Logging::Logger().logError(
-				result.GetError().GetExceptionName() + " : " + result.GetError().GetMessage() + "  SHOULD NOT RETRY");
+				std::string(result.GetError().GetExceptionName().data()) + " : " + result.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 		throw BlazingS3Exception("Could not move " + src.toString() + " to " + dst.toString() + ". Problem was " +
-								 result.GetError().GetExceptionName() + " : " + result.GetError().GetMessage());
+								 std::string(result.GetError().GetExceptionName().data()) + " : " + result.GetError().GetMessage().data());
 
 		return false;
 	}
@@ -1077,11 +1078,14 @@ bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) cons
 		// from object [         ] get [******|  ]
 		const long long nbytes = length;
 
-		std::shared_ptr<arrow::Buffer> buffer;
-		file->Read(nbytes, &buffer);
+		auto bufferResult = file->Read(nbytes);
 
 		const auto closeFileOk = file->Close();
 
+        if (!bufferResult.status().ok()) {
+            return false;
+        }
+        
 		if(closeFileOk.ok() == false) {
 			throw BlazingS3Exception("Could not close " + uri.toString() + " for truncating.");
 			return false;
@@ -1104,6 +1108,8 @@ bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) cons
 		if(outOk == false) {
 			throw BlazingS3Exception("Could not open " + uri.toString() + " for writing truncated data");
 		}
+        
+        auto buffer = bufferResult.ValueOrDie();
 
 		const auto writeOk = outFile->Write(buffer->data(), buffer->size());
 

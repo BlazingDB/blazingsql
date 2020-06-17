@@ -22,14 +22,12 @@ requirements:
     build:
         - gtest
         - gmock
-        - arrow-cpp=0.17.1
+        - arrow-cpp 0.17.1.*
+        - google-cloud-cpp
         - cmake
-        - bsql-toolchain {{ minor_version }}.*
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ minor_version }}.*
-        - libnvstrings {{ minor_version }}.*
-        - nvstrings {{ minor_version }}.*
         - libcudf {{ minor_version }}.*
         - libhdfs3
         - python
@@ -40,6 +38,7 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - openjdk=8.0
         - maven
+        - ninja
     host:
         - gtest
         - cmake
@@ -52,15 +51,14 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - openjdk=8.0
         - maven
+        - ninja
     run:
         - gtest
-        - arrow-cpp=0.17.1
-        - bsql-toolchain {{ minor_version }}.*
+        - arrow-cpp 0.17.1.*
+        - google-cloud-cpp
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ minor_version }}.*
-        - libnvstrings {{ minor_version }}.*
-        - nvstrings {{ minor_version }}.*
         - libcudf {{ minor_version }}.*
         - libhdfs3
         - python
@@ -73,6 +71,7 @@ requirements:
         - netifaces
         - pyhive
         - sasl=0.2.1
+        - thrift=0.13.0
 
 test:
     commands:

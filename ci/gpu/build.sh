@@ -53,19 +53,18 @@ source activate bsql
 echo "Installing BlazingSQL dev environment"
 
 # install deps
+echo "conda install --yes -c conda-forge google-cloud-cpp ninja"
+conda install --yes -c conda-forge google-cloud-cpp ninja
+echo "BlazingSQL dev basic deps installed"
+
 # NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
 echo "conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive"
 conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
 echo "BlazingSQL deps installed"
 
-# install toolchain
-echo "conda install --yes bsql-toolchain=${MINOR_VERSION} bsql-toolchain-aws-cpp=${MINOR_VERSION} bsql-toolchain-gcp-cpp=${MINOR_VERSION} bsql-rapids-thirdparty=${MINOR_VERSION} curl=7.68.0"
-conda install --yes bsql-toolchain=${MINOR_VERSION} bsql-toolchain-aws-cpp=${MINOR_VERSION} bsql-toolchain-gcp-cpp=${MINOR_VERSION} bsql-rapids-thirdparty=${MINOR_VERSION} curl=7.68.0
-echo "BlazingSQL toolchain installed"
-
 # install cudf
-echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} nvstrings=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL"
-conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} nvstrings=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL
+echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL"
+conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL
 echo "cudf and other rapids dependencies installed"
 
 # install end to end tests dependencies
