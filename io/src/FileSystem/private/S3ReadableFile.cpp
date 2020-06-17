@@ -52,8 +52,8 @@ arrow::Result<int64_t> S3ReadableFile::GetSize() {
     int64_t size = -1;
 	Aws::S3::Model::HeadObjectRequest request;
 
-	request.SetBucket(bucketName);
-	request.SetKey(key);
+	request.SetBucket(bucketName.data());
+	request.SetKey(key.data());
 
 	Aws::S3::Model::HeadObjectOutcome results = this->s3Client->HeadObject(request);
 
@@ -66,10 +66,10 @@ arrow::Result<int64_t> S3ReadableFile::GetSize() {
 		bool shouldRetry = results.GetError().ShouldRetry();
 		if(shouldRetry) {
 			Logging::Logger().logError(
-				results.GetError().GetExceptionName() + " : " + results.GetError().GetMessage() + "  SHOULD RETRY");
+				std::string(results.GetError().GetExceptionName().data()) + " : " + results.GetError().GetMessage().data() + "  SHOULD RETRY");
 		} else {
 			Logging::Logger().logError(
-				results.GetError().GetExceptionName() + " : " + results.GetError().GetMessage() + "  SHOULD NOT RETRY");
+				std::string(results.GetError().GetExceptionName().data()) + " : " + results.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 
         // TODO william jp errors for new arrow-0.17 API
@@ -85,9 +85,10 @@ arrow::Result<int64_t> S3ReadableFile::Read(int64_t nbytes, void* buffer) {
 	//	std::cout<<"S3ReadableFile::Read " + std::to_string(nbytes)<<std::endl;
 	Aws::S3::Model::GetObjectRequest object_request;
 
-	object_request.SetBucket(bucketName);
-	object_request.SetKey(key);
-	object_request.SetRange("bytes=" + std::to_string(position) + "-" + std::to_string(position + nbytes));
+	object_request.SetBucket(bucketName.data());
+	object_request.SetKey(key.data());
+    auto a = "bytes=" + std::to_string(position) + "-" + std::to_string(position + nbytes);
+	object_request.SetRange(a.data());
 
 	auto results = this->s3Client->GetObject(object_request);
 
@@ -103,7 +104,7 @@ arrow::Result<int64_t> S3ReadableFile::Read(int64_t nbytes, void* buffer) {
 		} else {
 			bytesRead = 0;
 			Logging::Logger().logError(
-				results.GetError().GetExceptionName() + " : " + results.GetError().GetMessage() + "  SHOULD NOT RETRY");
+				std::string(results.GetError().GetExceptionName().data()) + " : " + results.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 
         // TODO william jp errors for new arrow-0.17 API
@@ -127,9 +128,10 @@ arrow::Result<std::shared_ptr<arrow::Buffer>> S3ReadableFile::Read(int64_t nbyte
 	//	std::cout<<"S3ReadableFile::Read " + std::to_string(nbytes)<<std::endl;
 	Aws::S3::Model::GetObjectRequest object_request;
 
-	object_request.SetBucket(bucketName);
-	object_request.SetKey(key);
-	object_request.SetRange("bytes=" + std::to_string(position) + "-" + std::to_string(position + nbytes));
+	object_request.SetBucket(bucketName.data());
+	object_request.SetKey(key.data());
+    auto a = "bytes=" + std::to_string(position) + "-" + std::to_string(position + nbytes);
+	object_request.SetRange(a.data());
 
 	auto results = this->s3Client->GetObject(object_request);
 
@@ -144,7 +146,7 @@ arrow::Result<std::shared_ptr<arrow::Buffer>> S3ReadableFile::Read(int64_t nbyte
 			return this->Read(nbytes);
 		} else {
 			Logging::Logger().logError(
-				results.GetError().GetExceptionName() + " : " + results.GetError().GetMessage() + "  SHOULD NOT RETRY");
+				std::string(results.GetError().GetExceptionName().data()) + " : " + results.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 
         // TODO william jp errors for new arrow-0.17 API
@@ -194,9 +196,10 @@ arrow::Result<int64_t> S3ReadableFile::ReadAt(int64_t position, int64_t nbytes, 
 
 	Aws::S3::Model::GetObjectRequest object_request;
 
-	object_request.SetBucket(bucketName);
-	object_request.SetKey(key);
-	object_request.SetRange("bytes=" + std::to_string(position) + "-" + std::to_string(position + nbytes));
+	object_request.SetBucket(bucketName.data());
+	object_request.SetKey(key.data());
+    auto a = "bytes=" + std::to_string(position) + "-" + std::to_string(position + nbytes);
+	object_request.SetRange(a.data());
 
 	auto results = this->s3Client->GetObject(object_request);
 
@@ -212,7 +215,7 @@ arrow::Result<int64_t> S3ReadableFile::ReadAt(int64_t position, int64_t nbytes, 
 		} else {
 			bytesRead = 0;
 			Logging::Logger().logError(
-				results.GetError().GetExceptionName() + " : " + results.GetError().GetMessage() + "  SHOULD NOT RETRY");
+				std::string(results.GetError().GetExceptionName().data()) + " : " + results.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 
         // TODO william jp errors for new arrow-0.17 API
@@ -239,9 +242,10 @@ arrow::Result<std::shared_ptr<arrow::Buffer>> S3ReadableFile::ReadAt(int64_t pos
 
 	Aws::S3::Model::GetObjectRequest object_request;
 
-	object_request.SetBucket(bucketName);
-	object_request.SetKey(key);
-	object_request.SetRange("bytes=" + std::to_string(position) + "-" + std::to_string(position + nbytes));
+	object_request.SetBucket(bucketName.data());
+	object_request.SetKey(key.data());
+    auto a = "bytes=" + std::to_string(position) + "-" + std::to_string(position + nbytes);
+	object_request.SetRange(a.data());
 
 	auto results = this->s3Client->GetObject(object_request);
 
@@ -256,7 +260,7 @@ arrow::Result<std::shared_ptr<arrow::Buffer>> S3ReadableFile::ReadAt(int64_t pos
 			return this->ReadAt(position, nbytes);
 		} else {
 			Logging::Logger().logError(
-				results.GetError().GetExceptionName() + " : " + results.GetError().GetMessage() + "  SHOULD NOT RETRY");
+				std::string(results.GetError().GetExceptionName().data()) + " : " + results.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 
         // TODO william jp errors for new arrow-0.17 API

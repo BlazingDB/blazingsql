@@ -175,9 +175,6 @@ include(CheckIncludeFiles)
 include(CheckLibraryExists)
 include(CTest)
 
-# NOTE Do not change the inclusion order
-include(ConfigureAWSSDK)
-
 find_package(CURL REQUIRED)
 find_package(storage_client REQUIRED)
 

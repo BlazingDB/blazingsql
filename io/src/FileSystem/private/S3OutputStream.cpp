@@ -60,7 +60,7 @@ private:
 
 	Aws::String uploadId;
 
-	std::vector<Aws::S3::Model::CompletedPart> completedParts;  // just an etag (for response) and a part number
+	Aws::Vector<Aws::S3::Model::CompletedPart> completedParts;  // just an etag (for response) and a part number
 	size_t currentPart;
 	int64_t written;
 };
@@ -87,8 +87,8 @@ S3OutputStream::S3OutputStreamImpl::S3OutputStreamImpl(
 	written = 0;
 
 	Aws::S3::Model::CreateMultipartUploadRequest request;
-	request.SetBucket(bucket);
-	request.SetKey(key);
+	request.SetBucket(bucket.data());
+	request.SetKey(key.data());
 	Aws::S3::Model::CreateMultipartUploadOutcome createMultipartUploadOutcome =
 		s3Client->CreateMultipartUpload(request);
 	if(createMultipartUploadOutcome.IsSuccess()) {
@@ -98,15 +98,15 @@ S3OutputStream::S3OutputStreamImpl::S3OutputStreamImpl(
 								   bucketName + " and key: " + objectKey);
 		bool shouldRetry = createMultipartUploadOutcome.GetError().ShouldRetry();
 		if(shouldRetry) {
-			Logging::Logger().logError(createMultipartUploadOutcome.GetError().GetExceptionName() + " : " +
-									   createMultipartUploadOutcome.GetError().GetMessage() + "  SHOULD RETRY");
+			Logging::Logger().logError(std::string(createMultipartUploadOutcome.GetError().GetExceptionName().data()) + " : " +
+									   createMultipartUploadOutcome.GetError().GetMessage().data() + "  SHOULD RETRY");
 		} else {
-			Logging::Logger().logError(createMultipartUploadOutcome.GetError().GetExceptionName() + " : " +
-									   createMultipartUploadOutcome.GetError().GetMessage() + "  SHOULD NOT RETRY");
+			Logging::Logger().logError(std::string(createMultipartUploadOutcome.GetError().GetExceptionName().data()) + " : " +
+									   createMultipartUploadOutcome.GetError().GetMessage().data() + "  SHOULD NOT RETRY");
 		}
 		throw BlazingS3Exception("Failed to create Aws::S3::Model::CreateMultipartUploadOutcome. Problem was " +
-								 createMultipartUploadOutcome.GetError().GetExceptionName() + " : " +
-								 createMultipartUploadOutcome.GetError().GetMessage());
+								 std::string(createMultipartUploadOutcome.GetError().GetExceptionName().data()) + " : " +
+								 createMultipartUploadOutcome.GetError().GetMessage().data());
 		this->uploadId = FAILED_UPLOAD;
 	}
 
@@ -115,8 +115,8 @@ S3OutputStream::S3OutputStreamImpl::S3OutputStreamImpl(
 
 arrow::Status S3OutputStream::S3OutputStreamImpl::write(const void * buffer, int64_t nbytes) {
 	Aws::S3::Model::UploadPartRequest uploadPartRequest;
-	uploadPartRequest.SetBucket(bucket);
-	uploadPartRequest.SetKey(key);
+	uploadPartRequest.SetBucket(bucket.data());
+	uploadPartRequest.SetKey(key.data());
 	uploadPartRequest.SetPartNumber(currentPart);
 	uploadPartRequest.SetUploadId(uploadId);
 	// char * tempBuffer = (char *) buffer;
@@ -143,12 +143,12 @@ arrow::Status S3OutputStream::S3OutputStreamImpl::write(const void * buffer, int
 	} else {
 		Logging::Logger().logError("In Write: Uploading part " + std::to_string(currentPart) + " on file " +
 								   this->bucket + "/" + key + ". Problem was " +
-								   uploadOutcome.GetError().GetExceptionName() + " : " +
-								   uploadOutcome.GetError().GetMessage());
+								   std::string(uploadOutcome.GetError().GetExceptionName().data()) + " : " +
+								   uploadOutcome.GetError().GetMessage().data());
 		return arrow::Status::IOError("Had a trouble uploading part " + std::to_string(currentPart) + " on file " +
 									  this->bucket + "/" + key + ". Problem was " +
-									  uploadOutcome.GetError().GetExceptionName() + " : " +
-									  uploadOutcome.GetError().GetMessage());
+									  std::string(uploadOutcome.GetError().GetExceptionName().data()) + " : " +
+									  uploadOutcome.GetError().GetMessage().data());
 	}
 }
 
@@ -163,8 +163,8 @@ arrow::Status S3OutputStream::S3OutputStreamImpl::close() {
 	flush();
 	Aws::S3::Model::CompleteMultipartUploadRequest completeMultipartUploadRequest;
 
-	completeMultipartUploadRequest.SetBucket(bucket);
-	completeMultipartUploadRequest.SetKey(key);
+	completeMultipartUploadRequest.SetBucket(bucket.data());
+	completeMultipartUploadRequest.SetKey(key.data());
 	completeMultipartUploadRequest.SetUploadId(uploadId);
 
 	Aws::S3::Model::CompletedMultipartUpload completedMultipartUpload;
@@ -177,11 +177,11 @@ arrow::Status S3OutputStream::S3OutputStreamImpl::close() {
 		return arrow::Status::OK();
 	} else {
 		Logging::Logger().logError("In closing outputstream. Problem was " +
-								   completeMultipartUploadOutcome.GetError().GetExceptionName() + " : " +
-								   completeMultipartUploadOutcome.GetError().GetMessage());
+								   std::string(completeMultipartUploadOutcome.GetError().GetExceptionName().data()) + " : " +
+								   std::string(completeMultipartUploadOutcome.GetError().GetMessage().data()));
 		return arrow::Status::IOError("Error closing outputstream. Problem was " +
-									  completeMultipartUploadOutcome.GetError().GetExceptionName() + " : " +
-									  completeMultipartUploadOutcome.GetError().GetMessage());
+									  std::string(completeMultipartUploadOutcome.GetError().GetExceptionName().data()) + " : " +
+									  completeMultipartUploadOutcome.GetError().GetMessage().data());
 	}
 	//	s3Client->CompleteMultipartUpload(uploadCompleteRequest);
 }

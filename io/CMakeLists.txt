@@ -67,12 +67,8 @@ include(CTest)
 
 add_definitions( -DCURL_STATICLIB )
 
-# NOTE Do not change the inclusion order
-# Configure dependencies
 find_package(CURL REQUIRED)
 find_package(storage_client REQUIRED)
-
-include(ConfigureAWSSDK)
 
 set(FILESYSTEM_SRC_FILES
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemType.cpp
