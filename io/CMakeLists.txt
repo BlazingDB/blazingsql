@@ -131,7 +131,7 @@ add_library(blazingdb-io SHARED
     ${EXCEPTION_SRC_FILES}
 )
 
-target_link_libraries(blazingdb-io ${CURL_LIBRARIES} arrow aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption storage_client)
+target_link_libraries(blazingdb-io ${CURL_LIBRARIES} aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption storage_client arrow)
 
 # Install target and headers
 install(TARGETS blazingdb-io DESTINATION lib)
