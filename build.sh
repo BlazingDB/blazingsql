@@ -21,7 +21,7 @@ REPODIR=$(cd $(dirname $0); pwd)
 VALIDARGS="clean thirdparty io comms libengine engine pyblazing algebra -t -v -g -n -h"
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean        - remove all existing build artifacts and configuration (start
-                  over)
+                  over) Use 'clean thirdparty' to delete thirdparty folder
    thirdparty   - build the Thirdparty C++ code only
    io           - build the IO C++ code only
    comms        - build the communications C++ code only
@@ -112,11 +112,14 @@ if hasArg clean; then
         find ${bd} -mindepth 1 -delete
         rmdir ${bd} || true
     fi
-
-    rm -rf ${REPODIR}/thirdparty/rapids/
-    rm -rf ${REPODIR}/thirdparty/aws-cpp/
-
     done
+
+    if hasArg thirdparty; then
+        rm -rf ${REPODIR}/thirdparty/rapids/
+        rm -rf ${REPODIR}/thirdparty/aws-cpp/
+    fi
+
+    exit 0
 fi
 
 ################################################################################
@@ -124,22 +127,32 @@ fi
 if buildAll || hasArg thirdparty; then
     if [ ! -d "${REPODIR}/thirdparty/rapids/" ]; then
         DIR_BSQL="bsql-rapids-thirdparty"
-        mkdir -p $INSTALL_PREFIX/include/bsql-rapids-thirdparty/
+        mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
+        mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
         mkdir -p ${REPODIR}/thirdparty/rapids/
         cd ${REPODIR}/thirdparty/rapids/
-        cudf_version=$(conda search --quiet -c conda-forge libcudf|tail -n 1|awk '{print $2}')
+
+        cudf_version=$(conda list | grep libcudf|tail -n 1|awk '{print $2}')
+        cudf_version="$(cut -d '.' -f 1 <<< "$cudf_version")"."$(cut -d '.' -f 2 <<< "$cudf_version")"
         echo "cudf_version for rapids 3rdparty is: $cudf_version"
+
         git clone -b branch-$cudf_version --recurse-submodules https://github.com/rapidsai/cudf.git
-
-        cp -rf cudf/thirdparty/cub ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
-
-        rm -rf cudf/thirdparty/libcudacxx/libcxx/test/
-        cp -rf cudf/thirdparty/libcudacxx ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+        cd cudf/cpp
+        mkdir build
+        cd build
+        cmake -DBUILD_TESTS=OFF ..
+        cp -rf _deps/cub-src/cub/* ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
+        cp -rf _deps/libcudacxx-src/include/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+        cp -rf _deps/libcudacxx-src/libcxx/include/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+        echo "thirdparty/rapids headers has been installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
+    else
+        echo "thirdparty/rapids is already installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
     fi
 
     if [ ! -d "${REPODIR}/thirdparty/aws-cpp/" ]; then
-        aws_cpp_version=$(conda search --quiet -c conda-forge aws-sdk-cpp|tail -n 1|awk '{print $2}')
+        aws_cpp_version=$(conda list | grep aws-sdk-cpp|tail -n 1|awk '{print $2}')
         echo "aws_cpp_version for aws cpp sdk 3rdparty is: $aws_cpp_version"
+
         git clone -b $aws_cpp_version --depth=1 https://github.com/aws/aws-sdk-cpp.git ${REPODIR}/thirdparty/aws-cpp/
         mkdir -p ${THIRDPARTY_BUILD_DIR}
         cd ${THIRDPARTY_BUILD_DIR}
@@ -151,7 +164,9 @@ if buildAll || hasArg thirdparty; then
             -DENABLE_TESTING=off \
             -DCMAKE_BUILD_TYPE=Release \
             ..
-        ninja -j${PARALLEL_LEVEL} install
+        ninja install
+    else
+        echo "thirdparty/aws-cpp/ is already installed in ${INSTALL_PREFIX}"
     fi
 fi
 
