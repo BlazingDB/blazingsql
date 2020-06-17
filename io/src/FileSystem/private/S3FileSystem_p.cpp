@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include <arrow/io/api.h>
 #include "arrow/buffer.h"
 
 #include "aws/s3/model/HeadObjectRequest.h"
@@ -1077,11 +1078,14 @@ bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) cons
 		// from object [         ] get [******|  ]
 		const long long nbytes = length;
 
-		std::shared_ptr<arrow::Buffer> buffer;
-		file->Read(nbytes, &buffer);
+		auto bufferResult = file->Read(nbytes);
 
 		const auto closeFileOk = file->Close();
 
+        if (!bufferResult.status().ok()) {
+            return false;
+        }
+        
 		if(closeFileOk.ok() == false) {
 			throw BlazingS3Exception("Could not close " + uri.toString() + " for truncating.");
 			return false;
@@ -1104,6 +1108,8 @@ bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) cons
 		if(outOk == false) {
 			throw BlazingS3Exception("Could not open " + uri.toString() + " for writing truncated data");
 		}
+        
+        auto buffer = bufferResult.ValueOrDie();
 
 		const auto writeOk = outFile->Write(buffer->data(), buffer->size());
 

@@ -745,7 +745,10 @@ std::shared_ptr<arrow::io::RandomAccessFile> LocalFileSystem::Private::openReada
 	const Path path = uriWithRoot.getPath();
 
 	std::shared_ptr<arrow::io::ReadableFile> readableFile;
-	if(!arrow::io::ReadableFile::Open(path.toString(), &readableFile).ok()) {
+    
+    auto readableFileResult = arrow::io::ReadableFile::Open(path.toString());
+            
+	if(!readableFileResult.ok()) {
 		throw BlazingFileSystemException("Unable to open " + uriWithRoot.toString() + " for reading");
 	}
 	return readableFile;

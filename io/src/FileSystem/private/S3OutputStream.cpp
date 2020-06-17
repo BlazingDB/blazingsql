@@ -7,6 +7,8 @@
 #include "S3OutputStream.h"
 
 #include <arrow/memory_pool.h>
+#include <arrow/io/api.h>
+
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/HeadObjectRequest.h>
 #include <memory.h>
@@ -49,7 +51,7 @@ public:
 	arrow::Status write(const void * buffer, int64_t nbytes);
 	arrow::Status write(const void * buffer, int64_t nbytes, int64_t * bytes_written);
 	arrow::Status flush();
-	arrow::Status tell(int64_t * position) const;
+    arrow::Result<int64_t> tell() const;
 
 private:
 	std::shared_ptr<Aws::S3::S3Client> s3Client;
@@ -184,7 +186,9 @@ arrow::Status S3OutputStream::S3OutputStreamImpl::close() {
 	//	s3Client->CompleteMultipartUpload(uploadCompleteRequest);
 }
 
-arrow::Status S3OutputStream::S3OutputStreamImpl::tell(int64_t * position) const { *position = written; }
+arrow::Result<int64_t> S3OutputStream::S3OutputStreamImpl::tell() const { 
+    return written;
+}
 
 // BEGIN S3OutputStream
 
@@ -200,7 +204,9 @@ arrow::Status S3OutputStream::Write(const void * buffer, int64_t nbytes) { retur
 
 arrow::Status S3OutputStream::Flush() { return this->impl_->flush(); }
 
-arrow::Status S3OutputStream::Tell(int64_t * position) const { return this->impl_->tell(position); }
+arrow::Result<int64_t> S3OutputStream::Tell() const { 
+    return this->impl_->tell();
+}
 
 bool S3OutputStream::closed() const {
 	// Since every file interaction is a request, then the file is never really open. This function is necesary due to

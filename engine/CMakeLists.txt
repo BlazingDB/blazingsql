@@ -177,7 +177,9 @@ include(CTest)
 
 # NOTE Do not change the inclusion order
 include(ConfigureAWSSDK)
-include(ConfigureGoogleCloudCPP)
+
+find_package(CURL REQUIRED)
+find_package(storage_client REQUIRED)
 
 find_package(Threads)
 find_package(PythonLibs)
@@ -286,8 +288,6 @@ target_link_libraries(blazingsql-engine
     blazingdb-transport
 
     cudf
-    NVCategory
-    NVStrings
     rmm
     zmq
     cudart
