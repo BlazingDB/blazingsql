@@ -112,27 +112,47 @@ if hasArg clean; then
         find ${bd} -mindepth 1 -delete
         rmdir ${bd} || true
     fi
+
+    rm -rf ${REPODIR}/thirdparty/rapids/
+    rm -rf ${REPODIR}/thirdparty/aws-cpp/
+
     done
 fi
 
 ################################################################################
 
 if buildAll || hasArg thirdparty; then
+    if [ ! -d "${REPODIR}/thirdparty/rapids/" ]; then
+        DIR_BSQL="bsql-rapids-thirdparty"
+        mkdir -p $INSTALL_PREFIX/include/bsql-rapids-thirdparty/
+        mkdir -p ${REPODIR}/thirdparty/rapids/
+        cd ${REPODIR}/thirdparty/rapids/
+        cudf_version=$(conda search --quiet -c conda-forge libcudf|tail -n 1|awk '{print $2}')
+        echo "cudf_version for rapids 3rdparty is: $cudf_version"
+        git clone -b branch-$cudf_version --recurse-submodules https://github.com/rapidsai/cudf.git
 
-    rm -rf ${REPODIR}/thirdparty/aws-cpp/
-    aws_cpp_version=$(conda search --quiet -c conda-forge aws-sdk-cpp|tail -n 1|awk '{print $2}')
-    git clone -b $aws_cpp_version --depth=1 https://github.com/aws/aws-sdk-cpp.git ${REPODIR}/thirdparty/aws-cpp/
-    mkdir -p ${THIRDPARTY_BUILD_DIR}
-    cd ${THIRDPARTY_BUILD_DIR}
-    cmake -GNinja \
-        -DCMAKE_INSTALL_PREFIX="${CONDA_PREFIX}" \
-        -DCMAKE_INSTALL_LIBDIR=lib \
-        -DBUILD_ONLY='s3-encryption' \
-        -DENABLE_UNITY_BUILD=on \
-        -DENABLE_TESTING=off \
-        -DCMAKE_BUILD_TYPE=Release \
-        ..
-    ninja -j8 install
+        cp -rf cudf/thirdparty/cub ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
+
+        rm -rf cudf/thirdparty/libcudacxx/libcxx/test/
+        cp -rf cudf/thirdparty/libcudacxx ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+    fi
+
+    if [ ! -d "${REPODIR}/thirdparty/aws-cpp/" ]; then
+        aws_cpp_version=$(conda search --quiet -c conda-forge aws-sdk-cpp|tail -n 1|awk '{print $2}')
+        echo "aws_cpp_version for aws cpp sdk 3rdparty is: $aws_cpp_version"
+        git clone -b $aws_cpp_version --depth=1 https://github.com/aws/aws-sdk-cpp.git ${REPODIR}/thirdparty/aws-cpp/
+        mkdir -p ${THIRDPARTY_BUILD_DIR}
+        cd ${THIRDPARTY_BUILD_DIR}
+        cmake -GNinja \
+            -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+            -DCMAKE_INSTALL_LIBDIR=lib \
+            -DBUILD_ONLY='s3-encryption' \
+            -DENABLE_UNITY_BUILD=on \
+            -DENABLE_TESTING=off \
+            -DCMAKE_BUILD_TYPE=Release \
+            ..
+        ninja -j${PARALLEL_LEVEL} install
+    fi
 fi
 
 ################################################################################
