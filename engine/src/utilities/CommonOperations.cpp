@@ -16,6 +16,15 @@
 namespace ral {
 namespace utilities {
 
+bool checkIfConcatenatingStringsWillOverflow(const std::vector<std::unique_ptr<BlazingTable>> & tables) {
+	std::vector<ral::frame::BlazingTableView> tables_to_concat(tables.size());
+	for (std::size_t i = 0; i < tables.size(); i++){
+		tables_to_concat[i] = tables[i]->toBlazingTableView();
+	}
+
+	return checkIfConcatenatingStringsWillOverflow(tables_to_concat);
+}
+
 bool checkIfConcatenatingStringsWillOverflow(const std::vector<BlazingTableView> & tables) {
 	if( tables.size() == 0 ) {
 		return false;
