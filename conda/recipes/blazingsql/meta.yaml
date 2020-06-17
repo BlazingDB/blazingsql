@@ -22,14 +22,11 @@ requirements:
     build:
         - gtest
         - gmock
-        - arrow-cpp=0.17.1
+        - arrow-cpp 0.17.1.*
         - cmake
-        - bsql-toolchain {{ minor_version }}.*
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ minor_version }}.*
-        - libnvstrings {{ minor_version }}.*
-        - nvstrings {{ minor_version }}.*
         - libcudf {{ minor_version }}.*
         - libhdfs3
         - python
@@ -54,13 +51,10 @@ requirements:
         - maven
     run:
         - gtest
-        - arrow-cpp=0.17.1
-        - bsql-toolchain {{ minor_version }}.*
+        - arrow-cpp 0.17.1.*
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ minor_version }}.*
-        - libnvstrings {{ minor_version }}.*
-        - nvstrings {{ minor_version }}.*
         - libcudf {{ minor_version }}.*
         - libhdfs3
         - python
