@@ -134,16 +134,31 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
 
         cudf_version=$(conda list | grep libcudf|tail -n 1|awk '{print $2}')
         cudf_version="$(cut -d '.' -f 1 <<< "$cudf_version")"."$(cut -d '.' -f 2 <<< "$cudf_version")"
+        cudf_version="0.14" # TODO william jp mario we need to use 0.15 here
         echo "cudf_version for rapids 3rdparty is: $cudf_version"
 
-        git clone -b branch-$cudf_version --recurse-submodules https://github.com/rapidsai/cudf.git
-        cd cudf/cpp
-        mkdir build
-        cd build
-        cmake -DBUILD_TESTS=OFF ..
-        cp -rf _deps/cub-src/cub/* ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
-        cp -rf _deps/libcudacxx-src/include/ ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
-        cp -rf _deps/libcudacxx-src/libcxx/include/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx/libcxx/include
+# CODE FOR 0.15
+#         git clone -b branch-$cudf_version --recurse-submodules https://github.com/rapidsai/cudf.git
+#         cd cudf/cpp
+#         mkdir build
+#         cd build
+#         cmake -DBUILD_TESTS=OFF ..
+#         cp -rf _deps/cub-src/cub/* ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
+#         cp -rf _deps/libcudacxx-src/include/ ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+#         cp -rf _deps/libcudacxx-src/libcxx/include/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx/libcxx/include
+
+
+        DIR_BSQL="bsql-rapids-thirdparty"
+        mkdir -p $INSTALL_PREFIX/include/bsql-rapids-thirdparty/
+        cd ${REPODIR}/thirdparty/rapids/
+        git clone -b branch-0.14 --recurse-submodules https://github.com/rapidsai/cudf.git
+
+        cp -rf cudf/thirdparty/cub/* ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
+
+        rm -rf cudf/thirdparty/libcudacxx/libcxx/test/
+        cp -rf cudf/thirdparty/libcudacxx/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+
+
         echo "thirdparty/rapids headers has been installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
     else
         echo "thirdparty/rapids is already installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
