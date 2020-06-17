@@ -25,8 +25,6 @@ function(configure_test TEST_NAME Tests_SRCS)
         blazingdb-transport
 
         Threads::Threads
-        NVCategory
-        NVStrings
         rmm
         cudart
         cuda
