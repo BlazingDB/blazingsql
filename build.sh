@@ -124,11 +124,11 @@ fi
 
 ################################################################################
 
-if buildAll || hasArg thirdparty; then
+if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
     if [ ! -d "${REPODIR}/thirdparty/rapids/" ]; then
         DIR_BSQL="bsql-rapids-thirdparty"
         mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
-        mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+        mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx/libcxx/include
         mkdir -p ${REPODIR}/thirdparty/rapids/
         cd ${REPODIR}/thirdparty/rapids/
 
@@ -142,8 +142,8 @@ if buildAll || hasArg thirdparty; then
         cd build
         cmake -DBUILD_TESTS=OFF ..
         cp -rf _deps/cub-src/cub/* ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
-        cp -rf _deps/libcudacxx-src/include/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
-        cp -rf _deps/libcudacxx-src/libcxx/include/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+        cp -rf _deps/libcudacxx-src/include/ ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+        cp -rf _deps/libcudacxx-src/libcxx/include/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx/libcxx/include
         echo "thirdparty/rapids headers has been installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
     else
         echo "thirdparty/rapids is already installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
