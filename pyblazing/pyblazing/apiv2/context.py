@@ -628,7 +628,7 @@ def remove_orc_files_from_disk(data_dir):
             full_path_file = data_dir + "/" + file
             creation_time = os.path.getctime(full_path_file)
             if (current_time - creation_time) // (1 * 60 * 60) >= 1:
-                os.unlink(full_path_file)
+                os.remove(full_path_file)
 
 
 class BlazingTable(object):
@@ -1753,8 +1753,8 @@ class BlazingContext(object):
             query_config_options = self.config_options
         else:
             query_config_options = {}
-        for option in config_options:
-            query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+            for option in config_options:
+                query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
         if self.dask_client is None or single_gpu == True :
             query_tables, table_scans = cio.getTableScanInfoCaller(algebra,self.tables)
