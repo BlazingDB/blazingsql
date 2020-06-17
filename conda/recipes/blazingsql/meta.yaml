@@ -22,56 +22,61 @@ requirements:
     build:
         - gtest
         - gmock
-        - arrow-cpp 0.17.1.*
+        #- arrow-cpp 0.17.1
         - google-cloud-cpp
         - cmake
         - cppzmq
-        - cudatoolkit {{ cuda_version }}.*
-        - librmm {{ minor_version }}.*
-        - libcudf {{ minor_version }}.*
-        - libhdfs3
+        #- librmm {{ minor_version }}.*
+        #- libcudf {{ minor_version }}.*
+        #- numpy 1.17.5
+        #- libhdfs3
         - python
         - pip
         - setuptools
-        - cython >=0.29,<0.30
-        - dask-cudf {{ minor_version }}.*
-        - dask-cuda {{ minor_version }}.*
-        - openjdk=8.0
+        - cython =0.29
+        - openjdk 8.0
         - maven
         - ninja
+        - cudf {{ minor_version }}.*
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
+        - cudatoolkit {{ cuda_version }}.*
     host:
         - gtest
         - cmake
-        - cudatoolkit {{ cuda_version }}.*
         - python
         - pip
         - setuptools
-        - cython >=0.29,<0.30
-        - dask-cudf {{ minor_version }}.*
-        - dask-cuda {{ minor_version }}.*
-        - openjdk=8.0
+        - cython 0.29
+        #- numpy 1.17.5
+        - openjdk 8.0
         - maven
         - ninja
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
+        - cudatoolkit {{ cuda_version }}.*
     run:
         - gtest
-        - arrow-cpp 0.17.1.*
+        - arrow-cpp 0.17.1
         - google-cloud-cpp
         - cppzmq
-        - cudatoolkit {{ cuda_version }}.*
-        - librmm {{ minor_version }}.*
-        - libcudf {{ minor_version }}.*
-        - libhdfs3
+        #- librmm {{ minor_version }}
+        #- libcudf {{ minor_version }}
+        - numpy 1.17.5
+        #- libhdfs3
         - python
         - pip
         - setuptools
-        - dask-cudf {{ minor_version }}.*
-        - dask-cuda {{ minor_version }}.*
-        - openjdk=8.0
+        - openjdk 8.0
         - jpype1
         - netifaces
         - pyhive
-        - sasl=0.2.1
-        - thrift=0.13.0
+        - sasl 0.2.1
+        - thrift 0.13.0
+        - cudf {{ minor_version }}.*
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
+        - cudatoolkit {{ cuda_version }}.*
 
 test:
     commands:
