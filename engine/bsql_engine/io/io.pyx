@@ -178,12 +178,12 @@ cpdef getProductDetailsCaller():
     while(it != my_map.end()):
         key = dereference(it).first
         key = key.decode('utf-8')
-        
+
         value = dereference(it).second
         value = value.decode('utf-8')
-        
+
         new_map[key] = value
-        
+
         postincrement(it)
 
     return new_map
@@ -203,11 +203,11 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_
 
     cdef vector[pair[string,type_id]] extra_columns_cpp
     cdef pair[string,type_id] extra_column_cpp
-    
+
     for extra_column in extra_columns:
         extra_column_cpp = (extra_column[0].encode(),extra_column[1])
         extra_columns_cpp.push_back(extra_column_cpp)
-                
+
     tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp, ignore_missing_paths)
     return_object = {}
     return_object['datasource'] = files
@@ -217,7 +217,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_
     return_object['types'] = tableSchema.types
     return_object['names'] = tableSchema.names
     return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
-    
+
     return return_object
 
 
@@ -248,7 +248,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    df._rename_columns(decoded_names)    
+    df._rename_columns(decoded_names)
     return df
 
 cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, by):
@@ -284,7 +284,7 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-    
+
     return df
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, bool is_single_node):
@@ -314,18 +314,18 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vecto
     cdef Column cython_col
 
     for tableIndex in range(len(tables)):
-      uri_values_cpp.empty()
+      uri_values_cpp.clear()
       for uri_value in tables[tableIndex].uri_values:
         cur_uri_values.clear()
         for column_tuple in uri_value:
           key = column_tuple[0]
           value = column_tuple[1]
           cur_uri_values[key.encode()] = value.encode()
-          
+
         uri_values_cpp.push_back(cur_uri_values)
-        
+
       uri_values_cpp_all.push_back(uri_values_cpp)
-      
+
       tableNames.push_back(str.encode(tables[tableIndex].name))
       tableScans.push_back(str.encode(table_scans[tableIndex]))
       table = tables[tableIndex]
@@ -337,8 +337,8 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vecto
       types.resize(0)
       names.resize(0)
       fileType = fileTypes[tableIndex]
-      
-      if len(table.file_column_names) == 0:      
+
+      if len(table.file_column_names) == 0:
         for col_name in table.column_names:
           if type(col_name) == np.str:
               names.push_back(col_name.encode())
@@ -362,7 +362,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vecto
             column_views.push_back(cython_col.view())
           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
         currentTableSchemaCpp.blazingTableViews = blazingTableViews
-        
+
       currentTableSchemaCpp.names = names
       currentTableSchemaCpp.types = types
 
@@ -383,7 +383,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vecto
       else:
         currentTableSchemaCpp.row_groups_ids = []
 
-      tableSchemaCpp.push_back(currentTableSchemaCpp)      
+      tableSchemaCpp.push_back(currentTableSchemaCpp)
 
     for currentMetadata in tcpMetadata:
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
@@ -415,13 +415,13 @@ cpdef runSkipDataCaller(table, queryPy):
 
     query = str.encode(queryPy)
     all_column_names.resize(0)
-    
+
     for col_name in table.column_names:
       if type(col_name) == np.str:
         all_column_names.push_back(col_name.encode())
       else: # from file
         all_column_names.push_back(col_name)
-    
+
     column_views.resize(0)
     metadata_col_names = [name.encode() for name in table.metadata._data.keys()]
     for cython_col in table.metadata._data.values():
@@ -442,21 +442,21 @@ cpdef runSkipDataCaller(table, queryPy):
           decoded_names.append(names[i].decode('utf-8'))
 
       df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-      return_object['metadata'] = df 
+      return_object['metadata'] = df
       return return_object
 
 cpdef getTableScanInfoCaller(logicalPlan,tables):
     temp = getTableScanInfoPython(str.encode(logicalPlan))
-    
+
     table_names = [name.decode('utf-8') for name in temp.table_names]
     relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
-    
+
     new_tables = []
     table_scans = []
     for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
       new_tables.append(tables[table_name])
       table_scans.append(scan_string)
-      
+
     return new_tables, table_scans
 
 # cpdef getTableScanInfoCaller(logicalPlan,tables):
