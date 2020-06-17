@@ -70,4 +70,4 @@ configurationFile.json
 
 # END gitignore from e2e repo
 
-thirdparty/aws-cpp/build/
+thirdparty/aws-cpp

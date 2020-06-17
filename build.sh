@@ -119,12 +119,20 @@ fi
 
 if buildAll || hasArg thirdparty; then
 
+    rm -rf ${REPODIR}/thirdparty/aws-cpp/
+    aws_cpp_version=$(conda search --quiet -c conda-forge aws-sdk-cpp|tail -n 1|awk '{print $2}')
+    git clone -b $aws_cpp_version --depth=1 https://github.com/aws/aws-sdk-cpp.git ${REPODIR}/thirdparty/aws-cpp/
     mkdir -p ${THIRDPARTY_BUILD_DIR}
     cd ${THIRDPARTY_BUILD_DIR}
-    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-          -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-          ..
-    make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE} install
+    cmake -GNinja \
+        -DCMAKE_INSTALL_PREFIX="${CONDA_PREFIX}" \
+        -DCMAKE_INSTALL_LIBDIR=lib \
+        -DBUILD_ONLY='s3-encryption' \
+        -DENABLE_UNITY_BUILD=on \
+        -DENABLE_TESTING=off \
+        -DCMAKE_BUILD_TYPE=Release \
+        ..
+    ninja -j8 install
 fi
 
 ################################################################################
