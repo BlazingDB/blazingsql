@@ -23,6 +23,7 @@ requirements:
         - gtest
         - gmock
         - arrow-cpp 0.17.1.*
+        - google-cloud-cpp
         - cmake
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
@@ -54,6 +55,7 @@ requirements:
     run:
         - gtest
         - arrow-cpp 0.17.1.*
+        - google-cloud-cpp
         - cppzmq
         - cudatoolkit {{ cuda_version }}.*
         - librmm {{ minor_version }}.*
