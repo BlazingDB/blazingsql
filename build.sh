@@ -18,10 +18,11 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="clean io comms libengine engine pyblazing algebra -t -v -g -n -h"
+VALIDARGS="clean thirdparty io comms libengine engine pyblazing algebra -t -v -g -n -h"
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean        - remove all existing build artifacts and configuration (start
                   over)
+   thirdparty   - build the Thirdparty C++ code only
    io           - build the IO C++ code only
    comms        - build the communications C++ code only
    libengine    - build the engine C++ code only
@@ -36,13 +37,14 @@ HELP="$0 [-v] [-g] [-n] [-h] [-t]
    default action (no args) is to build and install all code and packages
 "
 
+THIRDPARTY_BUILD_DIR=${REPODIR}/thirdparty/aws-cpp/build
 IO_BUILD_DIR=${REPODIR}/io/build
 COMMS_BUILD_DIR=${REPODIR}/comms/build
 LIBENGINE_BUILD_DIR=${REPODIR}/engine/build
 ENGINE_BUILD_DIR=${REPODIR}/engine
 PYBLAZING_BUILD_DIR=${REPODIR}/pyblazing
 ALGEBRA_BUILD_DIR=${REPODIR}/algebra
-BUILD_DIRS="${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
+BUILD_DIRS="${THIRDPARTY_BUILD_DIR} ${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
 
 # Set defaults for vars modified by flags to this script
 VERBOSE=""
@@ -113,6 +115,17 @@ if hasArg clean; then
     done
 fi
 
+################################################################################
+
+if buildAll || hasArg thirdparty; then
+
+    mkdir -p ${THIRDPARTY_BUILD_DIR}
+    cd ${THIRDPARTY_BUILD_DIR}
+    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+          -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+          ..
+    make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
+fi
 
 ################################################################################
 
