@@ -744,14 +744,12 @@ std::shared_ptr<arrow::io::RandomAccessFile> LocalFileSystem::Private::openReada
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
 	const Path path = uriWithRoot.getPath();
 
-	std::shared_ptr<arrow::io::ReadableFile> readableFile;
-    
-    auto readableFileResult = arrow::io::ReadableFile::Open(path.toString());
+	auto readableFile = arrow::io::ReadableFile::Open(path.toString());
             
-	if(!readableFileResult.ok()) {
+	if(!readableFile.status().ok()) {
 		throw BlazingFileSystemException("Unable to open " + uriWithRoot.toString() + " for reading");
 	}
-	return readableFile;
+	return readableFile.ValueOrDie();
 }
 
 std::shared_ptr<arrow::io::OutputStream> LocalFileSystem::Private::openWriteable(const Uri & uri) const {
@@ -762,11 +760,11 @@ std::shared_ptr<arrow::io::OutputStream> LocalFileSystem::Private::openWriteable
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
 	const Path path = uriWithRoot.getPath();
 
-	std::shared_ptr<arrow::io::FileOutputStream> outputStream;
+	auto outputStream = arrow::io::FileOutputStream::Open(path.toString());
 
-	if(!arrow::io::FileOutputStream::Open(path.toString(), &outputStream).ok()) {
+	if(!outputStream.status().ok()) {
 		throw BlazingFileSystemException("Unable to open " + uriWithRoot.toString() + " for writing");
 	}
 
-	return outputStream;
+	return outputStream.ValueOrDie();
 }

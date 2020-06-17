@@ -38,8 +38,7 @@ DataType inferFileType(std::vector<std::string> files, DataType data_type_hint) 
 	std::transform(
 		files.begin(), files.end(), std::back_inserter(uris), [](std::string uri) -> Uri { return Uri(uri); });
 	ral::io::uri_data_provider udp(uris);
-	bool open_file = false;
-	const ral::io::data_handle dh = udp.get_next(open_file);
+	const ral::io::data_handle dh = udp.get_next(true);
 	std::string ext = dh.uri.getPath().getFileExtension();
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
