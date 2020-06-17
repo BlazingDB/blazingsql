@@ -621,14 +621,15 @@ def initialize_server_directory(dir_path):
 
 # Delete all generated (older than 1 hour) orc files
 def remove_orc_files_from_disk(data_dir):
-    all_files = os.listdir(data_dir)
-    current_time = time.time()
-    for file in all_files:
-        if ".blazing-temp" in file:
-            full_path_file = data_dir + "/" + file
-            creation_time = os.path.getctime(full_path_file)
-            if (current_time - creation_time) // (1 * 60 * 60) >= 1:
-                os.remove(full_path_file)
+    if os.path.isfile(data_dir): # only if data_dir exists
+        all_files = os.listdir(data_dir)
+        current_time = time.time()
+        for file in all_files:
+            if ".blazing-temp" in file:
+                full_path_file = data_dir + "/" + file
+                creation_time = os.path.getctime(full_path_file)
+                if (current_time - creation_time) // (1 * 60 * 60) >= 1:
+                    os.remove(full_path_file)
 
 
 class BlazingTable(object):
@@ -897,9 +898,11 @@ class BlazingContext(object):
         if ('BLAZING_LOGGING_DIRECTORY' in config_options): # want to use config_options and not self.config_options since its not encoded
             logging_dir_path = config_options['BLAZING_LOGGING_DIRECTORY']
 
-        cache_dir_path = '/tmp'
-        if ('BLAZING_CACHE_DIRECTORY' in config_options): # want to use config_options and not self.config_options since its not encoded
+        cache_dir_path = '/tmp' # default directory to store orc files
+        if ('BLAZING_CACHE_DIRECTORY' in config_options):
             cache_dir_path = config_options['BLAZING_CACHE_DIRECTORY'] + "tmp"
+
+        self.config_options['BLAZING_CACHE_DIRECTORY'.encode()] = cache_dir_path.encode()
 
         # remove if exists older orc tmp files
         remove_orc_files_from_disk(cache_dir_path)
