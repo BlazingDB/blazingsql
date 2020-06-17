@@ -58,3 +58,4 @@
 - #763 Implemented ability to set the folder for all log files
 - #757 Ensure GPU portability (so we can run on any cloud instance with GPU)
 - #753 Fix for host memory threshold parameter with Dask envs
+- #801 Fix build with new cudf 0.15 and arrow 0.17.1
