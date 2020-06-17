@@ -430,8 +430,8 @@ void CacheMachine::wait_if_cache_is_saturated() {
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
 	: CacheMachine(context) {}
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold)
-	: CacheMachine(context, flow_control_batches_threshold, flow_control_bytes_threshold) {}
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold, bool concat_all)
+	: CacheMachine(context, flow_control_batches_threshold, flow_control_bytes_threshold), concat_all(concat_all) {}
 
 // This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
@@ -474,12 +474,13 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 			tables_holder[i] = std::move(data->decache());
 			table_views[i] = tables_holder[i]->toBlazingTableView();
 		}
-		if( ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views)) {
+
+		if( concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views) ) {
 			logger->warn("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating Strings will overflow strings length",
+								"info"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating will overflow strings length",
 								"duration"_a="",
 								"kernel_id"_a=message_id,
 								"rows"_a=num_rows);

@@ -507,11 +507,14 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+
+private:
+	bool concat_all;
 };
 
 }  // namespace cache
