@@ -252,7 +252,7 @@ cudf::data_type expr_parser::type_from_type_token(const lexer::token & token) {
   if (token_value == "INTEGER") {
     return cudf::data_type{cudf::type_id::INT32};
   }
-  if (token_value == "BIGINT") {
+  if (token_value == "BIGINT" || token_value == "INTERVAL DAY") {
     return cudf::data_type{cudf::type_id::INT64};
   }
   if (token_value == "FLOAT") {
