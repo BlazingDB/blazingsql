@@ -119,7 +119,7 @@ protected:
 /// \brief A specific class for a CacheData on Disk Memory
 class CacheDataLocalFile : public CacheData {
 public:
-	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table);
+	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path);
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override;
 
@@ -129,7 +129,6 @@ public:
 
 private:
 	std::string filePath_;
-	// ideally would be a writeable file
 };
 
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
