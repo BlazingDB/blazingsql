@@ -37,6 +37,7 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - openjdk=8.0
         - maven
+        - ninja
     host:
         - gtest
         - cmake
@@ -49,6 +50,7 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - openjdk=8.0
         - maven
+        - ninja
     run:
         - gtest
         - arrow-cpp 0.17.1.*
