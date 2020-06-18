@@ -18,7 +18,7 @@
 - #798 Fix when the algebra plan was provided using one-line as logical plan
 - #799 Fix uri values computacion in runQueryCaller
 - #792 Remove orc temp files when cached on Disk
-
+- #812 Optimizing when only we want read few rows (ScanKernel and LimitKernel)
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
