@@ -40,8 +40,10 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 	const Schema & schema,
 	data_handle file_data_handle,
 	size_t file_index,
-	std::vector<cudf::size_type> row_group_ids) {
-
+	std::vector<cudf::size_type> row_group_ids,
+	bool is_scan_and_limit_only, 
+	size_t limit_rows) 
+{
 	std::vector<size_t> column_indices = column_indices_in;
 	if (column_indices.size() == 0) {  // including all columns by default
 		column_indices.resize(schema.get_num_columns());
@@ -52,7 +54,8 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 	auto fileSchema = schema.fileSchema(file_index); 
 
 	if (schema.all_in_file()){
-		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, column_indices, row_group_ids);
+		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, 
+																column_indices, row_group_ids, is_scan_and_limit_only, limit_rows);
 		return std::move(loaded_table);
 	} else {
 		std::vector<size_t> column_indices_in_file;  // column indices that are from files
@@ -67,7 +70,8 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 		std::vector<std::string> names;
 		cudf::size_type num_rows;
 		if (column_indices_in_file.size() > 0){
-			std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, column_indices_in_file, row_group_ids);
+			std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, 
+																column_indices_in_file, row_group_ids, is_scan_and_limit_only, limit_rows);
 			names = current_blazing_table->names();
 			std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
 			num_rows = current_table->num_rows();
@@ -75,7 +79,8 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 		
 		} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
 			std::vector<size_t> temp_column_indices = {0};
-			std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, temp_column_indices, row_group_ids);
+			std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, 
+																temp_column_indices, row_group_ids, is_scan_and_limit_only, limit_rows);
 			num_rows = loaded_table->num_rows();
 		}
 

@@ -244,7 +244,7 @@ private:
 class DataSourceSequence {
 public:
 	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-		: context(context), loader(loader), schema(schema), batch_index{0}, cur_file_index{0}, cur_row_group_index{0}, n_batches{0}
+		: context(context), loader(loader), schema(schema), batch_index{0}, cur_file_index{0}, cur_row_group_index{0}, n_batches{0}, is_scan_and_limit_only{false}, limit_rows{-1}
 	{
 		// n_partitions{n_partitions}: TODO Update n_batches using data_loader
 		this->provider = loader.get_provider();
@@ -296,7 +296,8 @@ public:
 
 		lock.unlock();
 
-		auto ret = loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
+		auto ret = loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, 
+												local_all_row_groups, is_scan_and_limit_only, limit_rows);
 		return std::move(ret);
 	}
 
@@ -306,6 +307,14 @@ public:
 
 	void set_projections(std::vector<size_t> projections) {
 		this->projections = projections;
+	}
+
+	void set_limit_rows(int64_t limit_rows) {
+		this->limit_rows = limit_rows;
+	}
+
+	void set_is_scan_and_limit_only(bool is_scan_and_limit_only) {
+		this->is_scan_and_limit_only = is_scan_and_limit_only;
 	}
 
 	// this function can be called from a parallel thread, so we want it to be thread safe
@@ -333,7 +342,8 @@ private:
 	size_t n_files;
 	bool is_empty_data_source;
 	bool is_gdf_parser;
-
+	bool is_scan_and_limit_only;
+	int64_t limit_rows;
 	std::mutex mutex_;
 };
 
@@ -358,12 +368,17 @@ public:
 		if (it != config_options.end()){
 			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
 		}
-		bool has_limit = this->has_limit_;
+		bool has_limit_only = this->has_limit_;
 		size_t limit_ = this->limit_rows_;
 		cudf::size_type current_rows = 0;
 		std::vector<BlazingThread> threads;
+		// in case the physical plan only contains LimitKernel and TableScanKernel
+		if (has_limit_only) {
+			input.set_is_scan_and_limit_only(true);
+			input.set_limit_rows(limit_);
+		}
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
-			threads.push_back(BlazingThread([this, &has_limit, &limit_, &current_rows]() {
+			threads.push_back(BlazingThread([this, &has_limit_only, &limit_, &current_rows]() {
 				CodeTimer eventTimer(false);
 
 				this->output_cache()->wait_if_cache_is_saturated();
@@ -389,7 +404,8 @@ public:
 					this->add_to_output_cache(std::move(batch));
 					this->output_cache()->wait_if_cache_is_saturated();
 
-					if (has_limit && current_rows >= limit_) {
+					if (has_limit_only && current_rows >= limit_) {
+						std::cout << "PASO X AQUIIIIIIIIIIIIIIII"<<std::endl;
 						break;
 					}
 				}

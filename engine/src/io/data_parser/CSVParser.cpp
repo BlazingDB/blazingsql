@@ -55,8 +55,10 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
 	std::vector<size_t> column_indices,
-	std::vector<cudf::size_type> row_groups) {
-
+	std::vector<cudf::size_type> row_groups,
+	bool is_scan_and_limit_only,
+	int64_t limit_rows) 
+{
 	if(file == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
 	}
@@ -66,6 +68,11 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 		// copy column_indices into use_col_indexes (at the moment is ordered only)
 		new_csv_arg.use_cols_indexes.resize(column_indices.size());
 		new_csv_arg.use_cols_indexes.assign(column_indices.begin(), column_indices.end());
+
+		// just reads `limit_rows` when physical plan only contains LimitKernel and ScanKernel
+		if (is_scan_and_limit_only) {
+			new_csv_arg.nrows = limit_rows;
+		}
 
 		cudf_io::table_with_metadata csv_table = read_csv_arg_arrow(new_csv_arg, file);
 

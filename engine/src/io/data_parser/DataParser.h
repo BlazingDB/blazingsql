@@ -24,7 +24,9 @@ public:
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
 		std::vector<size_t> column_indices,
-		std::vector<cudf::size_type> row_groups) {
+		std::vector<cudf::size_type> row_groups,
+		bool is_scan_and_limit_only=false,
+		int64_t limit_rows=-1) {
 		return nullptr; // TODO cordova ask ALexander why is not a pure virtual function as before
 	}
 

@@ -35,7 +35,9 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
 	std::vector<size_t> column_indices,
-	std::vector<cudf::size_type> row_groups)
+	std::vector<cudf::size_type> row_groups,
+	bool is_scan_and_limit_only,
+	int64_t limit_rows)
 {
 	if(file == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
@@ -50,7 +52,12 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 			orc_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		orc_args.stripe_list = row_groups;
+		// just reads `limit_rows` when physical plan only contains LimitKernel and ScanKernel
+		if (is_scan_and_limit_only) {
+			orc_args.num_rows = limit_rows;
+		} else {
+			orc_args.stripe_list = row_groups;
+		}
 
 		auto result = cudf_io::read_orc(orc_args);
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);

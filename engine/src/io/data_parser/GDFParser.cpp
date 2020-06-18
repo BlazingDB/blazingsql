@@ -26,8 +26,10 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
 		std::vector<size_t> column_indices,
-		std::vector<cudf::size_type> row_groups){
-
+		std::vector<cudf::size_type> row_groups,
+		bool is_scan_and_limit_only,
+		int64_t limit_rows)
+{
 	if(schema.get_num_columns() == 0) {
 		return nullptr;
 	}
