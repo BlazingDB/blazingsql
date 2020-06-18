@@ -53,7 +53,13 @@ jpype.addClassPath(
         os.getenv("CONDA_PREFIX"),
         'lib/blazingsql-algebra-core.jar'))
 
+# NOTE felipe try first with CONDA_PREFIX/jre/lib/amd64/server/libjvm.so (for older Java versions e.g. 8.x)
 jvm_path=os.environ["CONDA_PREFIX"]+"/jre/lib/amd64/server/libjvm.so"
+
+if not os.path.isfile(jvm_path):
+    # NOTE felipe try a second time using CONDA_PREFIX/lib/server/ (for newer java versions e.g. 11.x)
+    jvm_path=os.environ["CONDA_PREFIX"]+"/lib/server/libjvm.so"
+
 jpype.startJVM('-ea', convertStrings=False, jvmpath=jvm_path)
 
 ArrayClass = jpype.JClass('java.util.ArrayList')
