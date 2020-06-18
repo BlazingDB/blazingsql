@@ -22,56 +22,45 @@ requirements:
     build:
         - gtest
         - gmock
-        - arrow-cpp 0.17.1.*
         - google-cloud-cpp
         - cmake
         - cppzmq
-        - cudatoolkit {{ cuda_version }}.*
-        - librmm {{ minor_version }}.*
-        - libcudf {{ minor_version }}.*
-        - libhdfs3
         - python
         - pip
         - setuptools
         - cython >=0.29,<0.30
-        - dask-cudf {{ minor_version }}.*
-        - dask-cuda {{ minor_version }}.*
-        - openjdk=8.0
+        - openjdk >=8.0
         - maven
         - ninja
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
+        - cudatoolkit {{ cuda_version }}.*
     host:
         - gtest
+        - google-cloud-cpp
         - cmake
-        - cudatoolkit {{ cuda_version }}.*
         - python
         - pip
         - setuptools
         - cython >=0.29,<0.30
-        - dask-cudf {{ minor_version }}.*
-        - dask-cuda {{ minor_version }}.*
-        - openjdk=8.0
+        - openjdk >=8.0
         - maven
         - ninja
-    run:
-        - gtest
-        - arrow-cpp 0.17.1.*
-        - google-cloud-cpp
-        - cppzmq
-        - cudatoolkit {{ cuda_version }}.*
-        - librmm {{ minor_version }}.*
-        - libcudf {{ minor_version }}.*
-        - libhdfs3
-        - python
-        - pip
-        - setuptools
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
-        - openjdk=8.0
+        - cudatoolkit {{ cuda_version }}.*
+    run:
+        - gtest
+        - google-cloud-cpp
+        - cppzmq
+        - openjdk >=8.0
         - jpype1
         - netifaces
         - pyhive
-        - sasl=0.2.1
-        - thrift=0.13.0
+        - thrift 0.13.0
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
+        - cudatoolkit {{ cuda_version }}.*
 
 test:
     commands:
