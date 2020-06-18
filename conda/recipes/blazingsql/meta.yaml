@@ -50,6 +50,7 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - cudatoolkit {{ cuda_version }}.*
     run:
+        - gtest
         - google-cloud-cpp
         - cppzmq
         - openjdk >=8.0
