@@ -21,8 +21,7 @@ cudf::io::table_with_metadata read_json_file(
 	args.source = cudf::io::source_info(arrow_file_handle);
 
 	if(first_row_only) {
-		int64_t num_bytes;
-		arrow_file_handle->GetSize(&num_bytes);
+		int64_t num_bytes = arrow_file_handle->GetSize().ValueOrDie();
 		
 		if(num_bytes > 48192) {
 			// lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
