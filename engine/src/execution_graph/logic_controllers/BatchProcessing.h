@@ -405,7 +405,6 @@ public:
 					this->output_cache()->wait_if_cache_is_saturated();
 
 					if (has_limit_only && current_rows >= limit_) {
-						std::cout << "PASO X AQUIIIIIIIIIIIIIIII"<<std::endl;
 						break;
 					}
 				}
