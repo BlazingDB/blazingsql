@@ -4,6 +4,7 @@
 #include <src/utilities/CommonOperations.h>
 #include <src/utilities/DebuggingUtils.h>
 #include "communication/CommunicationData.h"
+#include <stdio.h>
 
 using namespace std::chrono_literals;
 namespace ral {
@@ -39,14 +40,18 @@ size_t CacheDataLocalFile::sizeInBytes() const {
 std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath_}};
 	auto result = cudf_io::read_orc(in_args);
+
+	// Remove temp orc files
+	const char *orc_path_file = this->filePath_.c_str();
+	remove(orc_path_file);
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
 }
 
-CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table)
+CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path)
 	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
 {
-	// TODO: make this configurable
-	this->filePath_ = "/tmp/.blazing-temp-" + randomString(64) + ".orc";
+	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
+
 	std::cout << "CacheDataLocalFile: " << this->filePath_ << std::endl;
 	cudf_io::table_metadata metadata;
 	for(auto name : table->names()) {
@@ -321,7 +326,14 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 							"rows"_a=table->num_rows());
 
 						// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
-						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table));
+						// want to get only cache directory where orc files should be saved
+						std::map<std::string, std::string> config_options = ctx->getConfigOptions();
+						auto it = config_options.find("BLAZING_CACHE_DIRECTORY");
+						std::string orc_files_path;
+						if (it != config_options.end()) {
+							orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
+						}
+						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
 						// NOTE: Wait don't kill the main process until the last thread is finished!
