@@ -37,7 +37,8 @@ public:
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 
-		BatchSequence input(this->input_.get_cache("input_a"), this);
+		bool ordered = false;
+		BatchSequence input(this->input_.get_cache("input_a"), this, ordered);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
@@ -127,7 +128,8 @@ public:
 			order_by_samples_ratio = std::stof(config_options["ORDER_BY_SAMPLES_RATIO"]);
 		}
 
-		BatchSequence input(this->input_cache(), this);
+		bool ordered = false;
+		BatchSequence input(this->input_cache(), this, ordered);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
 		std::size_t localTotalNumRows = 0;
@@ -242,7 +244,8 @@ public:
 		context->incrementQuerySubstep();
 
 		BlazingThread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, this](){
-			BatchSequence input(input_cache, this);
+			bool ordered = false;
+			BatchSequence input(input_cache, this, ordered);
 			int batch_count = 0;
 			while (input.wait_for_next()) {
 				try {

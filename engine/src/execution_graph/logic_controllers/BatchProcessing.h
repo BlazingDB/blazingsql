@@ -64,8 +64,8 @@ using frame_type = std::vector<std::unique_ptr<ral::frame::BlazingTable>>;
 using Context = blazingdb::manager::Context;
 class BatchSequence {
 public:
-	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr)
-	: cache{cache}, kernel{kernel}
+	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr, bool ordered = true)
+	: cache{cache}, kernel{kernel}, ordered{ordered}
 	{}
 	void set_source(std::shared_ptr<ral::cache::CacheMachine> cache) {
 		this->cache = cache;
@@ -77,7 +77,12 @@ public:
 		CodeTimer cacheEventTimer(false);
 
 		cacheEventTimer.start();
-		auto output = cache->pullFromCache();
+		std::unique_ptr<ral::frame::BlazingTable> output
+		if (ordered) {
+			output = cache->pullFromCache();
+		} else {
+			output = cache->pullUnorderedFromCache();
+		}
 		cacheEventTimer.stop();
 
 		if(output){
@@ -114,6 +119,7 @@ public:
 private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
 	const ral::cache::kernel * kernel;
+	bool ordered
 };
 
 class BatchSequenceBypass {
