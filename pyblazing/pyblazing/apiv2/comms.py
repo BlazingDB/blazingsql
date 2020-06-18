@@ -7,15 +7,45 @@ from distributed.comm.utils import from_frames
 from distributed.protocol import to_serialize
 from distributed.utils import nbytes
 
+import asyncio
 import rmm
 import numpy as np
+
+
+class BlazingMessage():
+    def __init__(self, metadata, data):
+        self.metadata = metadata
+        self.data = data
+
+    def is_valid(self):
+        return ("query_id" in self.metadata and
+                "cache_id" in self.metadata and
+                "worker_ids" in self.metadata and
+                len(self.metadata["worker_ids"]) > 0 and
+                self.data is not None)
 
 
 class CommsClient:
 
     def __init__(self, client=None):
-
         self.workers = client.run(self.get_ip_port)
+        self.closed = True
+
+    def close(self):
+        self.closed = True
+
+    async def listen(self):
+
+        self.closed = False
+
+        ep_listeners = []
+        for ip, port in self.workers:
+            ep = UCX().get_endpoint(ip, port)
+            ep_listeners.append(self.recv(ep))
+
+        while not self.closed:
+            [await asyncio.create_task(self.recv(ep))
+             for ep in ep_listeners]
 
     @staticmethod
     def get_ip_port():
@@ -26,27 +56,20 @@ class CommsClient:
         ip, port = parse_host_port(get_worker().address)
         return ip, UCX().listener_port()
 
-    @staticmethod
-    async def msg_received():
-        """
-        Handles received message
-        """
-        await self.recv_frames(ep)
-
-    async def send(self, workers, metadata, payload,
+    async def send(self, workers, blazing_msg,
                    serializers={"cuda", "dask", "pickle"}):
 
         for ip, port in workers:
             ep = UCX().get_endpoint(ip, port)
 
             # Send Metadata
-            meta_msg = {"data": to_serialize(metadata)}
+            meta_msg = {"data": to_serialize(blazing_msg.metadata)}
             frames = await to_frames(meta_msg, serializers)
 
             await self.send_frames(ep, frames)
 
             # Send payload
-            payload_msg = {"data": to_serialize(payload)}
+            payload_msg = {"data": to_serialize(blazing_msg.data)}
             frames = await to_frames(payload_msg, serializers)
             await self.send_frames(ep, frames)
 
@@ -63,6 +86,14 @@ class CommsClient:
         for frame in frames:
             if nbytes(frame) > 0:
                 await ep.send(frame)
+
+    @staticmethod
+    async def recv(ep, callback_func):
+        """
+        Handles received message
+        """
+        frames = await CommsClient.recv_frames(ep)
+        callback_func(frames)
 
     @staticmethod
     async def recv_frames(ep):
