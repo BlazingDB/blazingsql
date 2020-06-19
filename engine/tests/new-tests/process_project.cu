@@ -1,8 +1,8 @@
-#include "from_cudf/cpp_tests/utilities/base_fixture.hpp"
-#include "from_cudf/cpp_tests/utilities/column_utilities.hpp"
-#include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
-#include "from_cudf/cpp_tests/utilities/table_utilities.hpp"
-#include "from_cudf/cpp_tests/utilities/type_lists.hpp"
+#include "cudf/cpp/tests/utilities/base_fixture.hpp"
+#include "cudf/cpp/tests/utilities/column_utilities.hpp"
+#include "cudf/cpp/tests/utilities/column_wrapper.hpp"
+#include "cudf/cpp/tests/utilities/table_utilities.hpp"
+#include "cudf/cpp/tests/utilities/type_lists.hpp"
 
 #include "execution_graph/logic_controllers/LogicalProject.h"
 

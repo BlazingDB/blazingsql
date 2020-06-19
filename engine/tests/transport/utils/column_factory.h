@@ -13,8 +13,8 @@
 
 #include <cudf/io/functions.hpp>
 #include <cudf/column/column_factories.hpp> 
-#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
-#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
+#include <cudf/cpp/tests/utilities/column_utilities.hpp>
+#include <cudf/cpp/tests/utilities/type_lists.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/strings/detail/utilities.hpp>
 #include <string>
