@@ -49,6 +49,9 @@ message(STATUS "CUDA_VERSION_MAJOR: ${CUDA_VERSION_MAJOR}")
 message(STATUS "CUDA_VERSION_MINOR: ${CUDA_VERSION_MINOR}")
 message(STATUS "CUDA_VERSION: ${CUDA_VERSION}")
 
+find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
+             HINTS "$ENV{CUDF_ROOT}/lib")
+
 # Always set this convenience variable
 set(CUDA_VERSION_STRING "${CUDA_VERSION}")
 
@@ -190,6 +193,27 @@ add_definitions(${CXX_DEFINES})
 get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 
+
+William falta copiar codigo de cuspalci here en particular el q define la variable CUDF_TEST_INCLUDE apartir del envvar cudf_home
+
+###################################################################################################
+# - common test utils -----------------------------------------------------------------------------
+
+find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
+             HINTS "$ENV{CUDF_ROOT}/lib")
+
+message(STATUS "CUDFTESTUTIL: CUDFTESTUTIL_LIBRARY set to ${CUDFTESTUTIL_LIBRARY}")
+message(STATUS "CUDFTESTUTIL: CUDF_TEST_INCLUDE set to ${CUDF_TEST_INCLUDE}")
+
+add_library(cudftestutil STATIC IMPORTED ${CUDFTESTUTIL_LIBRARY})
+
+if (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
+    set_target_properties(cudftestutil PROPERTIES IMPORTED_LOCATION ${CUDFTESTUTIL_LIBRARY})
+endif (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
+
+###################################################################################################
+
+
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
@@ -315,6 +339,7 @@ target_link_libraries(blazingsql-engine
     gcov
 
     gtest
+    cudftestutil
 )
 
 ###################################################################################################
