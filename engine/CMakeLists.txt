@@ -199,27 +199,19 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/thirdparty/jitify
     ${BSQL_BLD_PREFIX}/include
     ${BSQL_BLD_PREFIX}/include/cudf
-    ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/cub
-    ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx
-    ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${BSQL_BLD_PREFIX}/include/libcudf/libcudacxx/
     ${BSQL_BLD_PREFIX}/include/blazingdb/io
     ${PREFIX}/include
     ${PREFIX}/include/cudf
-    ${PREFIX}/include/bsql-rapids-thirdparty/cub
-    ${PREFIX}/include/bsql-rapids-thirdparty/libcudacxx
-    ${PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${PREFIX}/include/libcudf/libcudacxx/
     ${PREFIX}/include/blazingdb/io
     ${CMAKE_INSTALL_PREFIX}/include
     ${CMAKE_INSTALL_PREFIX}/include/cudf
-    ${CMAKE_INSTALL_PREFIX}/include/bsql-rapids-thirdparty/cub
-    ${CMAKE_INSTALL_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx
-    ${CMAKE_INSTALL_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${CMAKE_INSTALL_PREFIX}/include/libcudf/libcudacxx/
     ${CMAKE_INSTALL_PREFIX}/include/blazingdb/io
     $ENV{INSTALL_PREFIX}/include
     $ENV{INSTALL_PREFIX}/include/cudf
-    $ENV{INSTALL_PREFIX}/include/bsql-rapids-thirdparty/cub
-    $ENV{INSTALL_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx
-    $ENV{INSTALL_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    $ENV{INSTALL_PREFIX}/include/libcudf/libcudacxx/
     $ENV{INSTALL_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
     )

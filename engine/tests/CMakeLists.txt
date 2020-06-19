@@ -111,7 +111,7 @@ message(STATUS "******** Configuring tests ********")
 
 # add_subdirectory(sort)
 
-add_subdirectory(logical-groupby)
+#add_subdirectory(logical-groupby)
 add_subdirectory(new-tests)
 add_subdirectory(transport)
 add_subdirectory(skipdata)
