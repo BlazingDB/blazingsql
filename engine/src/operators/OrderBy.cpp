@@ -7,7 +7,7 @@
 #include <cudf/sorting.hpp>
 #include <cudf/search.hpp>
 #include <cudf/strings/copying.hpp>
-#include <cudf/cpp/tests/utilities/column_utilities.hpp>
+#include <tests/utilities/column_utilities.hpp>
 #include "parser/expression_utils.hpp"
 #include "utilities/CommonOperations.h"
 

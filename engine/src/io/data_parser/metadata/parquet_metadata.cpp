@@ -8,7 +8,7 @@
 #include "parquet_metadata.h"
 #include "blazingdb/concurrency/BlazingThread.h"
 #include <cudf/column/column_factories.hpp>
-#include "cudf/cpp/tests/utilities/column_wrapper.hpp"
+#include "tests/utilities/column_wrapper.hpp"
 
 std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::string> col_names) {
 	const int ncols = col_names.size();

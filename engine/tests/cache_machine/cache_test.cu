@@ -2,9 +2,9 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include <cudf/cudf.h>
-#include <cudf/cpp/tests/utilities/base_fixture.hpp>
+#include <tests/utilities/base_fixture.hpp>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
-#include <src/cudf/cpp/tests/utilities/column_wrapper.hpp>
+#include <src/tests/utilities/column_wrapper.hpp>
 #include <src/utilities/DebuggingUtils.h>
 #include "../BlazingUnitTest.h"
 

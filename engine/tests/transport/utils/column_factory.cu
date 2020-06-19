@@ -1,6 +1,6 @@
 #include "column_factory.h"
-#include <cudf/cpp/tests/utilities/column_wrapper.hpp>
-#include <cudf/cpp/tests/utilities/table_utilities.hpp>
+#include <tests/utilities/column_wrapper.hpp>
+#include <tests/utilities/table_utilities.hpp>
 
 namespace blazingdb {
 namespace test {

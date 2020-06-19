@@ -3,11 +3,11 @@
 #include <cudf/detail/aggregation/aggregation.hpp>
 
 #include <operators/GroupBy.h>
-#include <cudf/cpp/tests/utilities/column_wrapper.hpp>
-#include <cudf/cpp/tests/utilities/base_fixture.hpp>
-#include <cudf/cpp/tests/utilities/type_lists.hpp>
-#include <cudf/cpp/tests/utilities/table_utilities.hpp>
-#include <cudf/cpp/tests/utilities/column_utilities.hpp>
+#include <tests/utilities/column_wrapper.hpp>
+#include <tests/utilities/base_fixture.hpp>
+#include <tests/utilities/type_lists.hpp>
+#include <tests/utilities/table_utilities.hpp>
+#include <tests/utilities/column_utilities.hpp>
 #include "tests/BlazingUnitTest.h"
 
  template <typename T>

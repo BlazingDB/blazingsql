@@ -1,5 +1,5 @@
 #include <thread>
-#include <src/cudf/cpp/tests/utilities/base_fixture.hpp>
+#include <src/tests/utilities/base_fixture.hpp>
 
 #include "tests/utilities/MemoryConsumer.cuh"
 #include "tests/BlazingUnitTest.h"

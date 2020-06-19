@@ -4,7 +4,7 @@
 #include "DebuggingUtils.h"
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/strings/string_view.cuh>
-#include <cudf/cpp/tests/utilities/column_utilities.hpp>
+#include <tests/utilities/column_utilities.hpp>
 
 namespace ral {
 namespace utilities {

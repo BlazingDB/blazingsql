@@ -11,9 +11,9 @@
 #include "communication/messages/ComponentMessages.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
-#include <cudf/cpp/tests/utilities/base_fixture.hpp>
-#include <cudf/cpp/tests/utilities/column_wrapper.hpp>
-#include <cudf/cpp/tests/utilities/table_utilities.hpp>
+#include <tests/utilities/base_fixture.hpp>
+#include <tests/utilities/column_wrapper.hpp>
+#include <tests/utilities/table_utilities.hpp>
 #include <execution_graph/logic_controllers/BatchProcessing.h>
 #include "../BlazingUnitTest.h"
 
