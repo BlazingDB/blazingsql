@@ -1989,14 +1989,16 @@ class BlazingContext(object):
         Returns all query_ids (as a DataFrame) that were executed in a Context.
         In reverse order (log_df[0] is the last ran query and so on .. )
         """
-        log_df = self.log("select log_time, query_id from bsql_logs where query_id is not null and info like '%Query Execution Done' group by log_time, query_id order by log_time desc")
+        log_df = self.log("select log_time, query_id from bsql_logs where query_id is not null and info like '%Query Start%' group by log_time, query_id order by log_time desc")
         if isinstance(log_df, dask_cudf.core.DataFrame):
             log_df = log_df.compute()
+        log_df = log_df.to_pandas()
         log_df.index = list(range(0, log_df.shape[0]))
+
         return log_df['query_id']
 
 
-    def last_query_log(self):
+    def last_query_log(self, truncate=False):
         """
         Returns the log from the last query that was executed.
         If no queries were ran then returns a empty DataFrame
@@ -2005,7 +2007,12 @@ class BlazingContext(object):
         
         if len(query_ids_df) > 0:
             last_ran_query_id = query_ids_df.iloc[0]
-            return self.sql(f"select * from bsql_logs where query_id = {last_ran_query_id}")
+            last_log_df = self.sql(f"select * from bsql_logs where query_id = {last_ran_query_id}")
+
+            if truncate: # to see info column in more detail
+                pandas.set_option('display.expand_frame_repr', False)
+                pandas.set_option('max_colwidth', 800)
+            return last_log_df
         else:
             print("NOTE: No queries were ran")
             return cudf.DataFrame(columns=[
