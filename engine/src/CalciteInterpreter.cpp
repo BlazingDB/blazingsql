@@ -49,7 +49,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 		auto query_graph_and_max_kernel_id = tree.build_batch_graph(logicalPlan);
 		auto query_graph = std::get<0>(query_graph_and_max_kernel_id);
 		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
-		ral::batch::OutputKernel output(max_kernel_id, queryContext.clone());
+		auto output = std::shared_ptr<ral::cache::kernel>(new ral::batch::OutputKernel(max_kernel_id, queryContext.clone()));
 
 		logger->info("{query_id}|{step}|{substep}|{info}|||||",
 									"query_id"_a=queryContext.getContextToken(),
@@ -98,7 +98,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 			cache_machine_config.type = queryContext.getTotalNodes() == 1 ? ral::cache::CacheType::CONCATENATING : ral::cache::CacheType::SIMPLE;
 			cache_machine_config.context = queryContext.clone();
 
-			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);
+			query_graph->addPair(ral::cache::kpair(query_graph->get_last_kernel(), output, cache_machine_config));
 			// query_graph.show();
 
 			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
@@ -120,13 +120,13 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_graph(std::shared_ptr<ral::cache::graph> graph) {
 	CodeTimer blazing_timer;
 	auto logger = spdlog::get("batch_logger");
-	uint32_t context_token = graph->get_last_kernel().get_context()->getContextToken();
+	uint32_t context_token = graph->get_last_kernel()->get_context()->getContextToken();
 
 	try {
 
 		graph->execute();
 
-		auto output_frame = static_cast<ral::batch::OutputKernel&>(graph->get_last_kernel()).release();
+		auto output_frame = static_cast<ral::batch::OutputKernel&>(*(graph->get_last_kernel())).release();
 		assert(!output_frame.empty());
 
 		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
