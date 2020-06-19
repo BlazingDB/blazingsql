@@ -478,7 +478,7 @@ void CacheMachine::wait_if_cache_is_saturated() {
 
 // take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
 // this function does not change the order of the caches
-size_t CacheMachine::downgradeCache() {
+size_t CacheMachine::downgradeCacheData() {
 	size_t bytes_downgraded = 0;
 	std::unique_lock<std::mutex> lock = this->waitingCache->lock();
 	std::vector<std::unique_ptr<message>> all_messages = this->waitingCache->get_all_unsafe();

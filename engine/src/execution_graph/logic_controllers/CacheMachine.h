@@ -397,7 +397,7 @@ public:
 
 	// take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
 	// this function does not change the order of the caches
-	size_t downgradeCache();
+	size_t downgradeCacheData();
 
 
 protected:
