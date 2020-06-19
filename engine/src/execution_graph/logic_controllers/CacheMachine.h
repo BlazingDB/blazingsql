@@ -19,7 +19,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
-#include <src/communication/messages/GPUComponentMessage.h>
+#include <communication/messages/GPUComponentMessage.h>
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -195,11 +195,11 @@ public:
 
 	bool empty() const { return this->message_queue_.size() == 0; }
 
-	message_ptr pop_or_wait() {		
+	message_ptr pop_or_wait() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -208,7 +208,7 @@ public:
 				}
 				return done_waiting;
 			})){}
-		
+
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -220,8 +220,8 @@ public:
 	bool wait_for_next() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -245,8 +245,8 @@ public:
 	void wait_until_finished() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst); 
+		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -297,8 +297,8 @@ public:
 	std::vector<message_ptr> get_all_or_wait() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms,  [&blazing_timer, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst); 
+		while(!condition_variable_.wait_for(lock, 60000ms,  [&blazing_timer, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -374,7 +374,7 @@ public:
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
 	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
-	
+
 	virtual void wait_if_cache_is_saturated();
 
 
@@ -512,6 +512,41 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
 };
+
+/// \brief An enum type that  represent a cache machine type
+/// `SIMPLE` is used to identify a CacheMachine class.
+/// `CONCATENATING` is used to identify a ConcatenatingCacheMachine class.
+/// `FOR_EACH` is used to identify a graph execution with kernels that need to send many partitions at once,
+/// for example for kernels PartitionSingleNodeKernel and MergeStreamKernel.
+enum class CacheType {SIMPLE, CONCATENATING, FOR_EACH };
+
+/// \brief An object that  represent a cache machine configuration (type and num_partitions)
+/// used in create_cache_machine and create_cache_machine functions.
+struct cache_settings {
+	CacheType type = CacheType::SIMPLE;
+	int num_partitions = 1;
+	std::shared_ptr<Context> context;
+	std::uint32_t flow_control_batches_threshold = std::numeric_limits<std::uint32_t>::max();
+	std::size_t flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
+};
+
+static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cache_settings& config) {
+	std::shared_ptr<ral::cache::CacheMachine> machine;
+	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
+		machine =  std::make_shared<ral::cache::CacheMachine>(config.context, config.flow_control_batches_threshold, config.flow_control_bytes_threshold);
+	} else if (config.type == CacheType::CONCATENATING) {
+		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context, config.flow_control_batches_threshold, config.flow_control_bytes_threshold);
+	}
+	return machine;
+}
+
+static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machines(const cache_settings& config) {
+	std::vector<std::shared_ptr<ral::cache::CacheMachine>> machines;
+	for (size_t i = 0; i < config.num_partitions; i++) {
+		machines.push_back(create_cache_machine(config));
+	}
+	return machines;
+}
 
 }  // namespace cache
 } // namespace ral

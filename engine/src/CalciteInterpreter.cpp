@@ -1,6 +1,6 @@
 #include "CalciteInterpreter.h"
 
-#include <blazingdb/io/Library/Logging/Logger.h>
+#include <spdlog/spdlog.h>
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include <regex>
@@ -22,13 +22,13 @@
 
 using namespace fmt::literals;
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
+std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
 	std::vector<std::string> table_scans,
 	std::string logicalPlan,
 	int64_t connection,
-	Context & queryContext)  {
+	Context & queryContext) {
 
 	CodeTimer blazing_timer;
 	auto logger = spdlog::get("batch_logger");
@@ -36,7 +36,6 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 	try {
 		assert(input_loaders.size() == table_names.size());
 
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> output_frame;
 		ral::batch::tree_processor tree{
 			.root = {},
 			.context = queryContext.clone(),
@@ -51,7 +50,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 		auto query_graph = std::get<0>(query_graph_and_max_kernel_id);
 		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
 		ral::batch::OutputKernel output(max_kernel_id, queryContext.clone());
-		
+
 		logger->info("{query_id}|{step}|{substep}|{info}|||||",
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
@@ -104,34 +103,51 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 
 			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
 			query_graph->check_for_simple_scan_with_limit_query();
-
-			query_graph->execute();
-			output_frame = output.release();
 		}
 
-		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
-									"query_id"_a=queryContext.getContextToken(),
-									"step"_a=queryContext.getQueryStep(),
-									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="Query Execution Done",
-									"duration"_a=blazing_timer.elapsed_time());
-
-		assert(!output_frame.empty());
-
-		logger->flush();
-
-		return output_frame;
+		return query_graph;
 	} catch(const std::exception& e) {
 		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
 									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="In execute_plan. What: {}"_format(e.what()),
+									"info"_a="In generate_graph. What: {}"_format(e.what()),
 									"duration"_a="");
 		throw;
 	}
 }
 
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_graph(std::shared_ptr<ral::cache::graph> graph) {
+	CodeTimer blazing_timer;
+	auto logger = spdlog::get("batch_logger");
+	uint32_t context_token = graph->get_last_kernel().get_context()->getContextToken();
+
+	try {
+
+		graph->execute();
+
+		auto output_frame = static_cast<ral::batch::OutputKernel&>(graph->get_last_kernel()).release();
+		assert(!output_frame.empty());
+
+		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=context_token,
+									"step"_a="",
+									"substep"_a="",
+									"info"_a="Query Execution Done",
+									"duration"_a=blazing_timer.elapsed_time());
+		logger->flush();
+
+		return output_frame;
+	} catch(const std::exception& e) {
+		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+									"query_id"_a=context_token,
+									"step"_a="",
+									"substep"_a="",
+									"info"_a="In execute_graph. What: {}"_format(e.what()),
+									"duration"_a="");
+		throw;
+	}
+}
 
 void getTableScanInfo(std::string & logicalPlan_in,
 						std::vector<std::string> & relational_algebra_steps_out,
