@@ -77,7 +77,7 @@ public:
 		CodeTimer cacheEventTimer(false);
 
 		cacheEventTimer.start();
-		std::unique_ptr<ral::frame::BlazingTable> output
+		std::unique_ptr<ral::frame::BlazingTable> output;
 		if (ordered) {
 			output = cache->pullFromCache();
 		} else {
@@ -119,7 +119,7 @@ public:
 private:
 	std::shared_ptr<ral::cache::CacheMachine> cache;
 	const ral::cache::kernel * kernel;
-	bool ordered
+	bool ordered;
 };
 
 class BatchSequenceBypass {
