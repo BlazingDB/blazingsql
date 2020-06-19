@@ -9,7 +9,7 @@ from distributed.comm.addressing import parse_host_port
 import asyncio
 
 
-class BlazingMessage():
+class BlazingMessage:
     def __init__(self, metadata, data):
         self.metadata = metadata
         self.data = data
@@ -30,7 +30,7 @@ class UCXClient:
         self.ip, self.port = self.get_ip_port()
 
     def close(self):
-
+        self.closed = True
 
     async def listen(self, callback_func):
 
@@ -53,7 +53,7 @@ class UCXClient:
         if it doesn't yet exist
         """
         ip, port = parse_host_port(get_worker().address)
-        return ip, UCX().listener_port()
+        return ip, UCX.get().listener_port()
 
     async def send(self, blazing_msg,
                    serializers=("cuda", "dask", "pickle", "error")):
