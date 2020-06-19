@@ -4,6 +4,9 @@ set(parse_csv-test_SRCS
 
 configure_test(parse_csv-test "${parse_csv-test_SRCS}")
 
+find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
+             HINTS "$ENV{CUDF_ROOT}/lib")
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   
 set(parse_parquet-test_SRCS
@@ -22,7 +25,6 @@ target_compile_definitions(parse_parquet-test
 
 set(parse_orc-test_SRCS
     parse_orc.cu
-    ${CMAKE_SOURCE_DIR}/src/cudf/cpp/tests/utilities/table_utilities.cu
 )
 
 configure_test(parse_orc-test "${parse_orc-test_SRCS}")
@@ -31,7 +33,6 @@ configure_test(parse_orc-test "${parse_orc-test_SRCS}")
 
 set(parse_gdf-test_SRCS
     parse_gdf.cu
-    ${CMAKE_SOURCE_DIR}/src/cudf/cpp/tests/utilities/table_utilities.cu
 )
 
 configure_test(parse_gdf-test "${parse_gdf-test_SRCS}")

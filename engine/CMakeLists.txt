@@ -194,10 +194,10 @@ get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COM
 message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 
 
-William falta copiar codigo de cuspalci here en particular el q define la variable CUDF_TEST_INCLUDE apartir del envvar cudf_home
-
 ###################################################################################################
 # - common test utils -----------------------------------------------------------------------------
+
+set(CUDF_TEST_INCLUDE "$ENV{CUDF_HOME}/cpp")
 
 find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
              HINTS "$ENV{CUDF_ROOT}/lib")
@@ -238,6 +238,7 @@ include_directories(
     $ENV{INSTALL_PREFIX}/include/libcudf/libcudacxx/
     $ENV{INSTALL_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
+    ${CUDF_TEST_INCLUDE}
     )
 
 ## communication primitives

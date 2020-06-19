@@ -21,7 +21,6 @@
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/cpp/tests/utilities/type_lists.hpp>
 #include <cudf/cpp/tests/utilities/column_wrapper.hpp>
-// #include <cudf/cpp/tests/utilities/legacy/cudf_test_utils.cuh>
 #include <cudf/cpp/tests/utilities/table_utilities.hpp>
 
 using ral::communication::messages::SampleToNodeMasterMessage;
