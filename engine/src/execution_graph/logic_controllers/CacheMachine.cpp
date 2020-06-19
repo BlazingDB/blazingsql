@@ -389,7 +389,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	return std::move(output);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache() {
+std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache() {
 
 	std::unique_ptr<message> message_data = nullptr;
 	{ // scope for lock
@@ -403,7 +403,7 @@ std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache() {
 				remaining_messages.emplace_back(std::move(all_messages[i]));
 			}
 		}
-		this->waitingCache->put_all_unsafe(remaining_messages);
+		this->waitingCache->put_all_unsafe(std::move(remaining_messages));
 	}
 	if (message_data){
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
@@ -529,7 +529,7 @@ size_t CacheMachine::downgradeCache() {
 			break;
 		}
 	}
-	this->waitingCache->put_all_unsafe(all_messages);
+	this->waitingCache->put_all_unsafe(std::move(all_messages));
 	return bytes_downgraded;
 }
 

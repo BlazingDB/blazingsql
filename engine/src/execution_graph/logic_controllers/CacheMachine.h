@@ -387,7 +387,7 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
