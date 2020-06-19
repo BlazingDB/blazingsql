@@ -3,7 +3,7 @@ package com.blazingdb.calcite.application;
 import com.blazingdb.calcite.rules.FilterTableScanRule;
 import com.blazingdb.calcite.rules.ProjectFilterTransposeRule;
 import com.blazingdb.calcite.rules.ProjectTableScanRule;
-import com.blazingdb.calcite.rules.ReduceExpressionsRule;
+//import com.blazingdb.calcite.rules.ReduceExpressionsRule;
 import com.blazingdb.calcite.schema.BlazingSchema;
 import com.blazingdb.calcite.schema.BlazingTable;
 
@@ -29,6 +29,7 @@ import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.rel.rules.ProjectMergeRule;
 import org.apache.calcite.rel.rules.ProjectRemoveRule;
 import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
+import org.apache.calcite.rel.rules.ReduceExpressionsRule;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
@@ -180,9 +181,6 @@ public class RelationalAlgebraGenerator {
 	getOptimizedRelationalAlgebra(RelNode nonOptimizedPlan) throws RelConversionException {
 		if(rules == null) {
 			program = new HepProgramBuilder()
-						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
-						  .addRuleInstance(ReduceExpressionsRule.FILTER_INSTANCE)
-						  .addRuleInstance(ReduceExpressionsRule.JOIN_INSTANCE)
 						  .addRuleInstance(AggregateExpandDistinctAggregatesRule.JOIN)
 						  .addRuleInstance(FilterAggregateTransposeRule.INSTANCE)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN)
@@ -196,6 +194,9 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(FilterTableScanRule.INSTANCE)
 						  .addRuleInstance(FilterRemoveIsNotDistinctFromRule.INSTANCE)
 						  .addRuleInstance(AggregateReduceFunctionsRule.INSTANCE)
+						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
+						  .addRuleInstance(ReduceExpressionsRule.FILTER_INSTANCE)
+						  .addRuleInstance(ReduceExpressionsRule.JOIN_INSTANCE)
 						  .build();
 		} else {
 			HepProgramBuilder programBuilder = new HepProgramBuilder();
