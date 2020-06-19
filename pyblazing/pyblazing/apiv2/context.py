@@ -22,7 +22,6 @@ import socket
 import errno
 import subprocess
 import os
-import shutil
 import re
 import pandas
 import numpy as np
