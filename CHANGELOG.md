@@ -5,7 +5,7 @@
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
-
+- #815 Implemented Unordered pull from cache to help performance
 
 
 ## Bug Fixes
