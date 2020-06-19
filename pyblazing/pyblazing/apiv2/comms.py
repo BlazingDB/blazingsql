@@ -2,14 +2,11 @@
 import ucp
 from distributed import get_worker
 
-from distributed.comm.utils import to_frames
-from distributed.comm.utils import from_frames
-from distributed.protocol import to_serialize
-from distributed.utils import nbytes
+from distributed.comm.ucx import UCXListener
+from distributed.comm.ucx import UCXConnector
+from distributed.comm.addressing import parse_host_port
 
 import asyncio
-import rmm
-import numpy as np
 
 
 class BlazingMessage():
@@ -25,27 +22,29 @@ class BlazingMessage():
                 self.data is not None)
 
 
-class CommsClient:
+class UCXClient:
 
     def __init__(self, client=None):
         self.workers = client.run(self.get_ip_port)
         self.closed = True
+        self.ip, self.port = self.get_ip_port()
 
     def close(self):
-        self.closed = True
 
-    async def listen(self):
+
+    async def listen(self, callback_func):
 
         self.closed = False
 
         ep_listeners = []
-        for ip, port in self.workers:
-            ep = UCX().get_endpoint(ip, port)
+        for remote_addr in self.workers:
+            ep = UCX.get(self.addr).get_endpoint(remote_addr)
             ep_listeners.append(self.recv(ep))
 
         while not self.closed:
-            [await asyncio.create_task(self.recv(ep))
-             for ep in ep_listeners]
+            for ep in ep_listeners:
+                if not ep.closed():
+                    await asyncio.create_task(self.recv(ep, callback_func))
 
     @staticmethod
     def get_ip_port():
@@ -56,97 +55,26 @@ class CommsClient:
         ip, port = parse_host_port(get_worker().address)
         return ip, UCX().listener_port()
 
-    async def send(self, workers, blazing_msg,
-                   serializers={"cuda", "dask", "pickle"}):
+    async def send(self, blazing_msg,
+                   serializers=("cuda", "dask", "pickle", "error")):
+        """
+        Send a BlazingMessage to the workers specified in `worker_ids`
+        field of metadata
+        """
+        for addr in blazing_msg.worker_ids.values():
+            ep = UCX.get().get_endpoint(addr)
 
-        for ip, port in workers:
-            ep = UCX().get_endpoint(ip, port)
+            msg = {"meta": blazing_msg.metadata, "data": blazing_msg.data}
+            await self.write(ep, msg=msg, serializers=serializers)
 
-            # Send Metadata
-            meta_msg = {"data": to_serialize(blazing_msg.metadata)}
-            frames = await to_frames(meta_msg, serializers)
-
-            await self.send_frames(ep, frames)
-
-            # Send payload
-            payload_msg = {"data": to_serialize(blazing_msg.data)}
-            frames = await to_frames(payload_msg, serializers)
-            await self.send_frames(ep, frames)
-
-    @staticmethod
-    async def send_frames(ep, frames):
-        await ep.send(np.array([len(frames)], dtype=np.uint64))
-        await ep.send(
-            np.array(
-                [hasattr(f, "__cuda_array_interface__") for f in frames], dtype=np.bool
-            )
-        )
-        await ep.send(np.array([nbytes(f) for f in frames], dtype=np.uint64))
-        # Send frames
-        for frame in frames:
-            if nbytes(frame) > 0:
-                await ep.send(frame)
-
-    @staticmethod
-    async def recv(ep, callback_func):
+    async def recv(self, ep, callback_func,
+                   deserializers=("cuda", "dask", "pickle", "error")):
         """
         Handles received message
         """
-        frames = await CommsClient.recv_frames(ep)
-        callback_func(frames)
-
-    @staticmethod
-    async def recv_frames(ep):
-        try:
-            # Recv meta data
-            nframes = np.empty(1, dtype=np.uint64)
-            await ep.recv(nframes)
-            is_cudas = np.empty(nframes[0], dtype=np.bool)
-            await ep.recv(is_cudas)
-            sizes = np.empty(nframes[0], dtype=np.uint64)
-            await ep.recv(sizes)
-        except (ucp.exceptions.UCXCanceled, ucp.exceptions.UCXCloseError) as e:
-            raise e("An error occurred receiving frames")
-
-        # Recv frames
-        frames = []
-        for is_cuda, size in zip(is_cudas.tolist(), sizes.tolist()):
-            if size > 0:
-                if is_cuda:
-                    frame = cuda_array(size)
-                else:
-                    frame = np.empty(size, dtype=np.uint8)
-                await ep.recv(frame)
-                frames.append(frame)
-            else:
-                if is_cuda:
-                    frames.append(cuda_array(size))
-                else:
-                    frames.append(b"")
-
-        msg = await from_frames(frames)
-        return frames, msg
-
-
-async def _connection_func(ep):
-    return 0
-
-
-def parse_host_port(address):
-    """
-    Given a string address with host/port, build a tuple(host, port)
-    :param address: string address to parse
-    :return: tuple(host, port)
-    """
-    if '://' in address:
-        address = address.rsplit('://', 1)[1]
-    host, port = address.split(':')
-    port = int(port)
-    return host, port
-
-
-def cuda_array(size):
-    return rmm.DeviceBuffer(size=size)
+        # Receive message metadata
+        msg = await ep.read(deserializers)
+        callback_func(BlazingMessage(*msg))
 
 
 class UCX:
@@ -161,46 +89,54 @@ class UCX:
     def __init__(self, listener_callback):
 
         self.listener_callback = listener_callback
-
-        self._create_listener()
         self._endpoints = {}
+        self._listener = None
 
         assert UCX.__instance is None
 
         UCX.__instance = self
 
     @staticmethod
-    def get(listener_callback=_connection_func):
+    def get(listener_callback=None):
         if UCX.__instance is None:
             UCX(listener_callback)
         return UCX.__instance
 
-    def get_ucp_worker(self):
+    @staticmethod
+    def get_ucp_worker():
         return ucp.get_ucp_worker()
 
-    def _create_listener(self):
-        self._listener = ucp.create_listener(self.listener_callback)
+    async def start_listener(self):
+        self._listener = UCXListener(get_worker().address)
+        self._listener.start()
 
     def listener_port(self):
-        return self._listener.port
+        return self._listener.port()
 
-    async def _create_endpoint(self, ip, port):
-        ep = await ucp.create_endpoint(ip, port)
-        self._endpoints[(ip, port)] = ep
+    async def _create_endpoint(self, addr):
+        ep = await UCXConnector().connect(addr)
+        self._endpoints[addr] = ep
         return ep
 
-    async def get_endpoint(self, ip, port):
-        if (ip, port) not in self._endpoints:
-            ep = await self._create_endpoint(ip, port)
+    async def get_endpoint(self, addr):
+        if addr not in self._endpoints:
+            ep = await self._create_endpoint(addr)
         else:
-            ep = self._endpoints[(ip, port)]
+            ep = self._endpoints[addr]
 
         return ep
 
-    def __del__(self):
-        for ip_port, ep in self._endpoints.items():
+    def stop_endpoints(self):
+        for addr, ep in self._endpoints.items():
             if not ep.closed():
                 ep.abort()
             del ep
+        self._endpoints = {}
 
-        self._listener.close()
+    def stop_listener(self):
+        if self._listener is not None:
+            self._listener.stop()
+
+    def __del__(self):
+        self.stop_endpoints()
+        self.stop_listener()
