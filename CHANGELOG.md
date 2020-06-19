@@ -5,6 +5,7 @@
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
+- #817 remove "from_cudf" code
 
 
 
