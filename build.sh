@@ -126,6 +126,7 @@ fi
 
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
     if [ ! -d "${REPODIR}/thirdparty/rapids/" ]; then
+        cd ${REPODIR}/thirdparty/
         DIR_BSQL="bsql-rapids-thirdparty"
         mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
         mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx/libcxx/include
@@ -158,6 +159,13 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
         rm -rf cudf/thirdparty/libcudacxx/libcxx/test/
         cp -rf cudf/thirdparty/libcudacxx/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
 
+        if [[ $CONDA_BUILD -eq 1 ]]; then
+            cd ${REPODIR}
+            # WARNING DO NOT TOUCH OR CHANGE THESE PATHS (william mario c.gonzales)
+            echo "==>> In conda build env: thirdparty/rapids headers"
+            echo "==>> Current working directory: $PWD"
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/include/$DIR_BSQL /conda/conda-bld/blazingsql_*/_build_env/include
+        fi
 
         echo "thirdparty/rapids headers has been installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
     else
@@ -165,6 +173,7 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
     fi
 
     if [ ! -d "${REPODIR}/thirdparty/aws-cpp/" ]; then
+        cd ${REPODIR}/thirdparty/
         aws_cpp_version=$(conda list | grep aws-sdk-cpp|tail -n 1|awk '{print $2}')
         echo "aws_cpp_version for aws cpp sdk 3rdparty is: $aws_cpp_version"
 
@@ -180,6 +189,19 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
             -DCMAKE_BUILD_TYPE=Release \
             ..
         ninja install
+
+        if [[ $CONDA_BUILD -eq 1 ]]; then
+            cd ${REPODIR}
+            # WARNING DO NOT TOUCH OR CHANGE THESE PATHS (william mario c.gonzales)
+            echo "==>> In conda build env: aws sdk cpp thirdparty"
+            echo "==>> Current working directory: $PWD"
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/include/aws/* /conda/conda-bld/blazingsql_*/_build_env/include/aws/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/*aws* /conda/conda-bld/blazingsql_*/_build_env/lib/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/cmake/*aws* /conda/conda-bld/blazingsql_*/_build_env/lib/cmake/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/cmake/AWS* /conda/conda-bld/blazingsql_*/_build_env/lib/cmake/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/cmake/*Aws* /conda/conda-bld/blazingsql_*/_build_env/lib/cmake/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/pkgconfig/*aws* /conda/conda-bld/blazingsql_*/_build_env/lib/pkgconfig/
+        fi
     else
         echo "thirdparty/aws-cpp/ is already installed in ${INSTALL_PREFIX}"
     fi

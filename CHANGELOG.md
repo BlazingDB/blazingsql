@@ -18,7 +18,7 @@
 - #798 Fix when the algebra plan was provided using one-line as logical plan
 - #799 Fix uri values computacion in runQueryCaller
 - #792 Remove orc temp files when cached on Disk
-
+- #814 Fix when checking only Limit and Scan Kernels
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
@@ -61,3 +61,4 @@
 - #757 Ensure GPU portability (so we can run on any cloud instance with GPU)
 - #753 Fix for host memory threshold parameter with Dask envs
 - #801 Fix build with new cudf 0.15 and arrow 0.17.1
+- #809 Fix conda build issues
