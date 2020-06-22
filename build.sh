@@ -127,10 +127,18 @@ fi
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
     if [ ! -d "${REPODIR}/thirdparty/cudf/" ]; then
         cd ${REPODIR}/thirdparty/
-        git clone https://github.com/rapidsai/cudf.git        
+        git clone https://github.com/rapidsai/cudf.git   
+        cd cudf/cpp
+        mkdir build
+        cd build
+        cmake ..
     else
         cd ${REPODIR}/thirdparty/cudf
         git pull
+        if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
+            mkdir cpp/build
+        cd cpp/build
+        cmake ..
     fi
     export CUDF_HOME=${REPODIR}/thirdparty/cudf/
 
