@@ -10,9 +10,14 @@ namespace ral {
     class MemoryMonitor {
 
         public:
-            MemoryMonitor(ral::batch::tree_processor* tree) : tree(tree), finished(false){
+            MemoryMonitor(ral::batch::tree_processor* tree, std::map<std::string, std::string> config_options) : tree(tree), finished(false){
                 resource = &blazing_device_memory_resource::getInstance();
-                period = std::chrono::milliseconds(50); // WSM make this configurable
+                
+                period = std::chrono::milliseconds(50); 
+                auto it = config_options.find("MEMORY_MONITOR_PERIOD");
+                if (it != config_options.end()){
+                    period = std::chrono::milliseconds(std::stoull(config_options["MEMORY_MONITOR_PERIOD"]));
+                }
             }
 
             void start();
