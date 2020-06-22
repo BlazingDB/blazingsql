@@ -6,6 +6,10 @@ from distributed.comm.ucx import UCXListener
 from distributed.comm.ucx import UCXConnector
 from distributed.comm.addressing import parse_host_port
 
+from dask.distributed import default_client
+
+import cudf.comm.serialize  # noqa: F401
+
 import asyncio
 
 
@@ -22,59 +26,18 @@ class BlazingMessage:
                 self.data is not None)
 
 
+async def listen(callback_func, client=None):
+    client = client if client is not None else default_client()
+    return await client.run(start_listener, callback_func, wait=True)
+
+
+async def start_listener(listener_callback):
+    return await UCX.get(listener_callback).start_listener()
+
+
 class UCXClient:
-
     def __init__(self, client=None):
-        self.workers = client.run(self.get_ip_port)
         self.closed = True
-        self.ip, self.port = self.get_ip_port()
-
-    def close(self):
-        self.closed = True
-
-    async def listen(self, callback_func):
-
-        self.closed = False
-
-        ep_listeners = []
-        for remote_addr in self.workers:
-            ep = UCX.get(self.addr).get_endpoint(remote_addr)
-            ep_listeners.append(self.recv(ep))
-
-        while not self.closed:
-            for ep in ep_listeners:
-                if not ep.closed():
-                    await asyncio.create_task(self.recv(ep, callback_func))
-
-    @staticmethod
-    def get_ip_port():
-        """
-        Returns the local UCX listener port. The port will be created
-        if it doesn't yet exist
-        """
-        ip, port = parse_host_port(get_worker().address)
-        return ip, UCX.get().listener_port()
-
-    async def send(self, blazing_msg,
-                   serializers=("cuda", "dask", "pickle", "error")):
-        """
-        Send a BlazingMessage to the workers specified in `worker_ids`
-        field of metadata
-        """
-        for addr in blazing_msg.worker_ids.values():
-            ep = UCX.get().get_endpoint(addr)
-
-            msg = {"meta": blazing_msg.metadata, "data": blazing_msg.data}
-            await self.write(ep, msg=msg, serializers=serializers)
-
-    async def recv(self, ep, callback_func,
-                   deserializers=("cuda", "dask", "pickle", "error")):
-        """
-        Handles received message
-        """
-        # Receive message metadata
-        msg = await ep.read(deserializers)
-        callback_func(BlazingMessage(*msg))
 
 
 class UCX:
@@ -107,8 +70,17 @@ class UCX:
         return ucp.get_ucp_worker()
 
     async def start_listener(self):
-        self._listener = UCXListener(get_worker().address)
-        self._listener.start()
+
+        async def handle_comm(comm):
+            msg = await comm.read()
+            self.listener_callback(BlazingMessage(*msg))
+
+        ip, port = parse_host_port(get_worker().address)
+
+        self._listener = await UCXListener(ip, handle_comm)
+        await self._listener.start()
+
+        return "ucx://%s:%s" % (ip, self._listener.port)
 
     def listener_port(self):
         return self._listener.port()
@@ -125,6 +97,19 @@ class UCX:
             ep = self._endpoints[addr]
 
         return ep
+
+    async def send(self, blazing_msg,
+                   serializers=("cuda", "dask", "pickle", "error")):
+        """
+        Send a BlazingMessage to the workers specified in `worker_ids`
+        field of metadata
+        """
+
+        for addr in blazing_msg.metadata["worker_ids"]:
+            ep = await self.get_endpoint(addr)
+
+            msg = {"meta": blazing_msg.metadata, "data": blazing_msg.data}
+            await ep.write(msg=msg, serializers=serializers)
 
     def stop_endpoints(self):
         for addr, ep in self._endpoints.items():
