@@ -6,16 +6,9 @@ import ucp
 from dask_cuda import LocalCUDACluster
 from distributed import Client, Worker, Scheduler, wait, get_worker
 from distributed.comm import ucx, listen, connect
-from distributed.comm.registry import backends, get_backend
-from distributed.comm import ucx, parse_address
-from distributed.protocol import to_serialize
-from distributed.deploy.local import LocalCluster
-from dask.dataframe.utils import assert_eq
-from distributed.utils_test import gen_test, loop, inc, cleanup, popen  # noqa: 401
-
+import numpy as np
 from ..apiv2.comms import listen, BlazingMessage, UCX
-
-import cudf
+from distributed.utils_test import gen_test, loop, inc, cleanup, popen  # noqa: 401
 
 try:
     HOST = ucp.get_address()
@@ -57,25 +50,14 @@ async def test_ucx_localcluster(cleanup):
 
             # Build message for one worker to send to the other
             for dask_addr, blazing_addr in ips_ports.items():
-                meta = {"worker_ids": [blazing_addr]}
+                meta = {"worker_ids": list(ips_ports.values())}
                 data = "THIS IS DATA"
                 msg = BlazingMessage(meta, data)
 
                 await client.run(send, msg, workers=[dask_addr], wait=True)
 
             received = await client.run(gather_results, wait=True)
+            print("MSGS: " + str(received))
 
-            print(str(received))
-
-
-
-
-
-
-
-
-
-
-
-
-
+            for worker_addr, msgs in received.items():
+                assert len(msgs) == len(ips_ports)
