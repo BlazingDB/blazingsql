@@ -19,3 +19,5 @@ class S3EncryptionType(IntEnum):
     NONE = 1
     AES_256 = 2
     AWS_KMS = 3
+
+

@@ -8,9 +8,24 @@ from distributed.comm.addressing import parse_host_port
 
 from dask.distributed import default_client
 
-import cudf.comm.serialize  # noqa: F401
 
 import asyncio
+
+import cudf.comm.serialize  # noqa: F401
+
+
+def register_serialization():
+
+    from distributed.protocol import register_generic
+
+    from distributed.protocol import dask_deserialize, dask_serialize
+    from distributed.protocol.cuda import cuda_deserialize, cuda_serialize
+
+    register_generic(BlazingMessage, 'cuda',
+                     cuda_serialize, cuda_deserialize)
+
+    register_generic(BlazingMessage, 'dask',
+                     dask_serialize, dask_deserialize)
 
 
 class BlazingMessage:
@@ -26,9 +41,9 @@ class BlazingMessage:
                 self.data is not None)
 
 
-async def listen(connection_callback, client=None):
+async def listen(client=None):
     client = client if client is not None else default_client()
-    return await client.run(start_listener, connection_callback, wait=True)
+    return await client.run(start_listener, wait=True)
 
 
 async def register_callbacks(msg_callback, addrs, client=None):
@@ -39,23 +54,18 @@ async def register_callbacks(msg_callback, addrs, client=None):
 async def read(msg_callback, addrs):
     tasks = []
     for addr in addrs:
-
-        ip, port = parse_host_port(addr)
-
-        if port != UCX.get()._listener.port:
-
-            print("Creating task from %s to %s" % (UCX.get()._listener.port, addr))
-            tasks.append(asyncio.create_task(
-                UCX.get().register_callback(addr, msg_callback))
-            )
+        print("Creating task from %s to %s" % (UCX.get()._listener.port, addr))
+        tasks.append(asyncio.create_task(
+            UCX.get().register_callback(addr, msg_callback))
+        )
 
     [await task for task in tasks]
 
     print("Done read")
 
 
-async def start_listener(listener_callback):
-    return await UCX.get(listener_callback).start_listener()
+async def start_listener():
+    return await UCX.get().start_listener()
 
 
 class UCX:
@@ -67,9 +77,8 @@ class UCX:
 
     __instance = None
 
-    def __init__(self, listener_callback):
+    def __init__(self):
 
-        self.listener_callback = listener_callback
         self._endpoints = {}
         self._listener = None
         self.q = asyncio.queues.Queue()
@@ -79,9 +88,9 @@ class UCX:
         UCX.__instance = self
 
     @staticmethod
-    def get(listener_callback=None):
+    def get():
         if UCX.__instance is None:
-            UCX(listener_callback)
+            UCX()
         return UCX.__instance
 
     @staticmethod
@@ -124,26 +133,23 @@ class UCX:
     async def register_callback(self, addr, callback_func):
         ep = await self.get_endpoint(addr)
         while not ep.closed():
-
             msg = await self.q.get()
 
             print("Received msg in q: %s" % msg)
-            await callback_func(BlazingMessage(*msg))
+            await callback_func(msg)
 
-    async def send(self, blazing_msg,
-                   serializers=("cuda", "dask", "pickle", "error")):
+    async def send(self, blazing_msg):
         """
         Send a BlazingMessage to the workers specified in `worker_ids`
         field of metadata
         """
 
+        register_serialization()
+
         for addr in blazing_msg.metadata["worker_ids"]:
             ep = await self.get_endpoint(addr)
-
-            msg = {"meta": blazing_msg.metadata, "data": blazing_msg.data}
-
-            print("Sending %s" % msg)
-            await ep.write(msg=msg, serializers=serializers)
+            await ep.write(msg=blazing_msg,
+                           serializers=("dask", "cuda", "pickle", "error"))
             print("Sent")
 
     def stop_endpoints(self):
