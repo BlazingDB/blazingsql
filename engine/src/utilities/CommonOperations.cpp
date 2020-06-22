@@ -115,7 +115,7 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bo
 		}
 	}
 	if (strict) {
-		RAL_FAIL("No common type between " + std::to_string(type1.id()) + " and " + std::to_string(type2.id()));
+		RAL_FAIL("No common type between " + std::to_string(static_cast<int32_t>(type1.id())) + " and " + std::to_string(static_cast<int32_t>(type2.id())));
 	} else {
 		if(is_type_float(type1.id()) && is_type_integer(type2.id())) {
 			return type1;
@@ -129,9 +129,9 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bo
 	}
 }
 
-void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types, 
+void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types,
 		std::vector<cudf::size_type> column_indices) {
-	
+
 	if (column_indices.size() == 0){
 		RAL_EXPECTS(table->num_columns() == types.size(), "In normalize_types: table->num_columns() != types.size()");
 		column_indices.resize(table->num_columns());
@@ -143,10 +143,10 @@ void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const s
 	for (size_t i = 0; i < column_indices.size(); i++){
 		if (!(columns[column_indices[i]]->view().type() == types[i])){
 			std::unique_ptr<CudfColumn> casted = cudf::cast(columns[column_indices[i]]->view(), types[i]);
-			columns[column_indices[i]] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted));			
+			columns[column_indices[i]] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted));
 		}
 	}
-	table = std::make_unique<ral::frame::BlazingTable>(std::move(columns), table->names());	
+	table = std::make_unique<ral::frame::BlazingTable>(std::move(columns), table->names());
 }
 
 

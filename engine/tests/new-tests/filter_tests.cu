@@ -15,7 +15,7 @@
 
 template <typename T>
 struct LogicalFilterTest : public BlazingUnitTest {
-  
+
 };
 
 TYPED_TEST_CASE(LogicalFilterTest, cudf::test::NumericTypes);
@@ -25,16 +25,16 @@ TYPED_TEST(LogicalFilterTest, filter_input_table_empty)
   using namespace ral::frame;
 
   using T = TypeParam;
-  
+
   cudf::test::fixed_width_column_wrapper<T> col1;
-  
+
   cudf::table_view in_table_view ({col1});
   std::vector<std::string> column_names(in_table_view.num_columns());
 
   auto out_table = ral::processor::process_filter(BlazingTableView{in_table_view, column_names},
                                                   "LogicalFilter(condition=[<(+($0, $1), 0)])",
                                                   nullptr);
-  
+
   cudf::test::fixed_width_column_wrapper<T> expected_col1;
   cudf::table_view expected_table_view ({expected_col1});
 
@@ -57,14 +57,14 @@ TYPED_TEST(LogicalFilterTest, filter_out_table_empty)
       return static_cast<T>(2 * row);
     });
   cudf::test::fixed_width_column_wrapper<T> col2(sequence2, sequence2 + inputRows);
-  
+
   cudf::table_view in_table_view {{col1, col2}};
   std::vector<std::string> column_names(in_table_view.num_columns());
 
   auto out_table = ral::processor::process_filter(BlazingTableView{in_table_view, column_names},
                                                   "LogicalFilter(condition=[<(+($0, $1), 0)])",
                                                   nullptr);
-  
+
   cudf::test::fixed_width_column_wrapper<T> expected_col1;
   cudf::test::fixed_width_column_wrapper<T> expected_col2;
   cudf::table_view expected_table_view ({expected_col1, expected_col2});
@@ -88,7 +88,7 @@ TYPED_TEST(LogicalFilterTest, filter_table)
       return static_cast<T>(2 * row);
     });
   cudf::test::fixed_width_column_wrapper<T> col2(sequence2, sequence2 + inputRows);
-  
+
   cudf::table_view in_table_view {{col1, col2}};
   std::vector<std::string> column_names(in_table_view.num_columns());
 
@@ -97,9 +97,9 @@ TYPED_TEST(LogicalFilterTest, filter_table)
                                                   nullptr);
 
   cudf::size_type outputRows = (inputRows / 2);
-  if (cudf::type_to_id<T>() == cudf::BOOL8) {
+  if (cudf::type_to_id<T>() == cudf::type_id::BOOL8) {
     outputRows = inputRows;
-  }  
+  }
 
   auto sequenceOut1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(2 * row);;
@@ -137,7 +137,7 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
       return row % 2 == 0;
     });
   cudf::test::fixed_width_column_wrapper<T> col2(sequence2, sequence2 + inputRows, sequenceValidity2);
-  
+
   cudf::table_view in_table_view {{col1, col2}};
   std::vector<std::string> column_names(in_table_view.num_columns());
 
@@ -149,7 +149,7 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
   //   cudf::test::print(c);
   //   std::cout << std::endl;
   // }
-  
+
   auto sequenceOut1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(2 * row);;
     });
@@ -172,7 +172,7 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
 
 
 struct LogicalFilterWithStringsTest : public BlazingUnitTest {
-  
+
 };
 
 TEST_F(LogicalFilterWithStringsTest, NoNulls)
@@ -185,7 +185,7 @@ TEST_F(LogicalFilterWithStringsTest, NoNulls)
 
   auto out_table = ral::processor::process_filter(ral::frame::BlazingTableView{in_table_view, column_names},
                                                   "LogicalFilter(condition=[=($0, 'bar')])", nullptr);
-  
+
   cudf::test::strings_column_wrapper expected_col1({"bar"});
   cudf::test::fixed_width_column_wrapper<int32_t> expected_col2({7});
 
@@ -195,7 +195,7 @@ TEST_F(LogicalFilterWithStringsTest, NoNulls)
 }
 
 TEST_F(LogicalFilterWithStringsTest, IneqWithNulls)
-{  
+{
   cudf::test::strings_column_wrapper col1({"foo", "d", "e", "a", "hello", "k", "d", "l", "bar", ""}, {1, 1, 0, 1, 1, 0, 1, 1, 0, 1});
   cudf::test::fixed_width_column_wrapper<int32_t> col2({10,8,6,4,2,1,11,9,7,5}, {1, 1, 0, 1, 1, 0, 1, 1, 0, 1});
 

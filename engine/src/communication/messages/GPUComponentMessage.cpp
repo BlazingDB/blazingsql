@@ -26,7 +26,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
 			.strings_offsets_size = 0,
 			.size_in_bytes = 0};
         strcpy(col_transport.metadata.col_name, table_view.names().at(i).c_str());
-        
+
         if (column.size() == 0) {
             // do nothing
         } else if(column.type().id() == cudf::type_id::STRING) {
@@ -37,7 +37,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
 
                 if (str_col_view.size() + 1 == offsets_column.size()){
                     // this column does not come from a buffer than had been zero-copy partitioned
-                    
+
                     col_transport.strings_data = raw_buffers.size();
                     buffer_sizes.push_back(chars_column.size());
 					col_transport.size_in_bytes += chars_column.size();
@@ -69,7 +69,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
 					col_transport.size_in_bytes += col_transport.strings_data_size;
 
 					raw_buffers.push_back(chars_column.head<char>() + char_col_start_end.first);
-                    
+
                     col_transport.strings_offsets = raw_buffers.size();
                     col_transport.strings_offsets_size = new_offsets->size() * sizeof(int32_t);
                     buffer_sizes.push_back(col_transport.strings_offsets_size);
@@ -144,10 +144,10 @@ auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & colum
 		if(string_offset != -1) {
 			cudf::size_type num_strings = columns_offsets[i].metadata.size;
 			std::unique_ptr<cudf::column> offsets_column
-				= std::make_unique<cudf::column>(cudf::data_type{cudf::INT32}, num_strings + 1, std::move(raw_buffers[columns_offsets[i].strings_offsets]));
+				= std::make_unique<cudf::column>(cudf::data_type{cudf::type_id::INT32}, num_strings + 1, std::move(raw_buffers[columns_offsets[i].strings_offsets]));
 
 			cudf::size_type total_bytes = columns_offsets[i].strings_data_size;
-			std::unique_ptr<cudf::column> chars_column	= std::make_unique<cudf::column>(cudf::data_type{cudf::INT8}, total_bytes, std::move(raw_buffers[columns_offsets[i].strings_data]));
+			std::unique_ptr<cudf::column> chars_column	= std::make_unique<cudf::column>(cudf::data_type{cudf::type_id::INT8}, total_bytes, std::move(raw_buffers[columns_offsets[i].strings_data]));
 			rmm::device_buffer null_mask;
 			if (columns_offsets[i].strings_nullmask != -1)
 				null_mask = rmm::device_buffer(std::move(raw_buffers[columns_offsets[i].strings_nullmask]));

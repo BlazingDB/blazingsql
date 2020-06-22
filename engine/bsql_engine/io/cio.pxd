@@ -74,7 +74,6 @@ cdef extern from "../include/io/io.h":
         DASK_CUDF = 5,
         ARROW = 6
 
-
     cdef struct TableSchema:
         vector[BlazingTableView] blazingTableViews
         vector[type_id] types
