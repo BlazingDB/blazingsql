@@ -106,7 +106,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			query_graph->check_for_simple_scan_with_limit_query();
 
 
-			ral::MemoryMonitor mem_monitor(&tree);
+			ral::MemoryMonitor mem_monitor(&tree, config_options);
 			mem_monitor.start();
 			query_graph->execute();
 			mem_monitor.finalize();
