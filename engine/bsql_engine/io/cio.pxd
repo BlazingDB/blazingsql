@@ -7,7 +7,7 @@ from libcpp.pair cimport pair
 from libcpp.map cimport map
 from libcpp.memory cimport shared_ptr
 from cudf._lib.column cimport Column
-
+from libcpp.utility cimport pair
 from libcpp cimport bool
 from pyarrow.lib cimport *
 
@@ -122,18 +122,37 @@ cdef extern from "../include/io/io.h":
     TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,type_id]] types, bool ignore_missing_paths) except +raiseParseSchemaError
     unique_ptr[ResultSet] parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) except +raiseParseSchemaError
 
+
 cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
         cdef cppclass BlazingTable:
+            BlazingTable(unique_ptr[CudfTable] table, const vector[string] & columnNames)
+            BlazingTable(const CudfTableView & table, const vector[string] & columnNames)
             size_type num_columns
             size_type num_rows
             CudfTableView view()
             vector[string] names()
+            void ensureOwnership()
 
         cdef cppclass BlazingTableView:
             BlazingTableView()
             BlazingTableView(CudfTableView, vector[string]) except +
             CudfTableView view()
             vector[string] names()
+
+
+cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" namespace "ral::cache":
+        cdef cppclass CacheData
+        cdef cppclass MetadataDictionary:
+            void set_values(map[string,string] new_values)
+        cdef cppclass GPUCacheDataMetaData:
+            GPUCacheDataMetaData(BlazingTable table, MetadataDictionary metadata)
+            map[string, string] get_map()
+            pair[unique_ptr[BlazingTable], MetadataDictionary ] decacheWithMetaData()
+        cdef cppclass CacheMachine:
+            void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id )
+            void addToCache(unique_ptr[BlazingTable] table, const string & message_id )
+            unique_ptr[CacheData] pullCacheData()
+            unique_ptr[CacheData] pullCacheData(string message_id)
 
 # REMARK: We have some compilation errors from cython assigning temp = unique_ptr[ResultSet]
 # We force the move using this function
@@ -142,9 +161,12 @@ cdef extern from * namespace "blazing":
         namespace blazing {
         template <class T> inline typename std::remove_reference<T>::type&& blaz_move(T& t) { return std::move(t); }
         template <class T> inline typename std::remove_reference<T>::type&& blaz_move(T&& t) { return std::move(t); }
+        template <class T> inline typename std::remove_reference<T>::type&& blaz_move2(T& t) { return std::move(t); }
+        template <class T> inline typename std::remove_reference<T>::type&& blaz_move2(T&& t) { return std::move(t); }
         }
         """
         cdef T blaz_move[T](T)
+        cdef unique_ptr[CacheData] blaz_move2(unique_ptr[GPUCacheDataMetaData])
 
 cdef extern from "../include/engine/engine.h":
 
@@ -163,10 +185,9 @@ cdef extern from "../include/engine/engine.h":
         TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h":
-    cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +raiseInitializeError
+    cdef pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ] initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
     cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) except +raiseBlazingSetAllocatorError
 
 cdef extern from "../include/engine/static.h":
     cdef map[string,string] getProductDetails() except +raiseGetProductDetailsError
-

@@ -1,8 +1,11 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "execution_graph/logic_controllers/CacheMachine.h"
+#include <utility>
+#include <memory>
 
-void initialize(int ralId,
+std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> > initialize(int ralId,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
@@ -13,7 +16,6 @@ void initialize(int ralId,
 void finalize();
 
 void blazingSetAllocator(
-	std::string allocation_mode, 
-	std::size_t initial_pool_size, 
+	std::string allocation_mode,
+	std::size_t initial_pool_size,
 	std::map<std::string, std::string> config_options);
-	

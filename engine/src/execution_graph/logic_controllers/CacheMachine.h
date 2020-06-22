@@ -19,7 +19,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
-#include <src/communication/messages/GPUComponentMessage.h>
+#include <communication/messages/GPUComponentMessage.h>
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -28,6 +28,9 @@
 #include <spdlog/spdlog.h>
 #include "communication/CommunicationData.h"
 #include "CodeTimer.h"
+#include "error.hpp"
+#include <map>
+
 using namespace std::chrono_literals;
 
 namespace ral {
@@ -37,7 +40,11 @@ using Context = blazingdb::manager::Context;
 using namespace fmt::literals;
 
 /// \brief An enum type to represent the cache level ID
-enum class CacheDataType { GPU, CPU, LOCAL_FILE };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA };
+
+const std::string KERNEL_ID_METADATA_LABEL = "kernel_id";
+const std::string QUERY_ID_METADATA_LABEL = "query_id";
+const std::string CACHE_ID_METADATA_LABEL = "cache_id";
 
 /// \brief An interface which represent a CacheData
 class CacheData {
@@ -72,11 +79,39 @@ protected:
 	size_t n_rows;
 };
 
+class MetadataDictionary{
+public:
+	void add_value(std::string key, std::string value){
+		this->values[key] = value;
+	}
+
+	int get_kernel_id(){
+		if( this->values.find(KERNEL_ID_METADATA_LABEL) == this->values.end()){
+			throw BlazingMissingMetadataException(KERNEL_ID_METADATA_LABEL);
+		}
+		return std::stoi(values[KERNEL_ID_METADATA_LABEL]);
+	}
+
+	std::map<std::string,std::string> get_values(){
+		return this->values;
+	}
+
+	void set_values(std::map<std::string,std::string> new_values){
+		this->values= new_values;
+	}
+private:
+	std::map<std::string,std::string> values;
+};
+
 /// \brief A specific class for a CacheData on GPU Memory
 class GPUCacheData : public CacheData {
 public:
 	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table)
 		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
+
+		GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table, CacheDataType cache_type_override)
+			: CacheData(cache_type_override,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
+
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
 
@@ -84,9 +119,30 @@ public:
 
 	virtual ~GPUCacheData() {}
 
-private:
+protected:
 	std::unique_ptr<ral::frame::BlazingTable> data;
 };
+
+class GPUCacheDataMetaData : public GPUCacheData {
+public:
+	GPUCacheDataMetaData(std::unique_ptr<ral::frame::BlazingTable> table, const MetadataDictionary & metadata)
+		: GPUCacheData(std::move(table), CacheDataType::GPU_METADATA),
+		metadata(metadata)
+		 { }
+
+	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
+
+	std::tuple<std::unique_ptr<ral::frame::BlazingTable>,MetadataDictionary > decacheWithMetaData(){
+		 return std::make_tuple(std::move(data),this->metadata); }
+
+	size_t sizeInBytes() const override { return data->sizeInBytes(); }
+
+	virtual ~GPUCacheDataMetaData() {}
+
+private:
+	MetadataDictionary metadata;
+};
+
 
 /// \brief A specific class for a CacheData on CPU Memory
  class CPUCacheData : public CacheData {
@@ -195,11 +251,11 @@ public:
 
 	bool empty() const { return this->message_queue_.size() == 0; }
 
-	message_ptr pop_or_wait() {		
+	message_ptr pop_or_wait() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -208,7 +264,7 @@ public:
 				}
 				return done_waiting;
 			})){}
-		
+
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -220,8 +276,8 @@ public:
 	bool wait_for_next() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -245,8 +301,8 @@ public:
 	void wait_until_finished() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst); 
+		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -297,8 +353,8 @@ public:
 	std::vector<message_ptr> get_all_or_wait() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms,  [&blazing_timer, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst); 
+		while(!condition_variable_.wait_for(lock, 60000ms,  [&blazing_timer, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -371,10 +427,12 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
+
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
 	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
-	
+
 	virtual void wait_if_cache_is_saturated();
 
 

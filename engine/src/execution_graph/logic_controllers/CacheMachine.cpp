@@ -98,8 +98,8 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_
 	CacheMachine::cache_count++;
 
 	waitingCache = std::make_unique<WaitingQueue>();
-	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
-	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() ); 
+	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
+	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
@@ -275,7 +275,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 		flow_control_batches_count++;
 		flow_control_bytes_count += table->sizeInBytes();
 		lock.unlock();
-		
+
 		num_rows_added += table->num_rows();
 		num_bytes_added += table->sizeInBytes();
 		int cacheIndex = 0;
@@ -358,7 +358,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 	if (message_data == nullptr) {
 		return nullptr;
 	}
-	
+
 	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
 	std::unique_lock<std::mutex> lock(flow_control_mutex);
 	flow_control_batches_count--;
@@ -390,6 +390,30 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	return std::move(output);
 }
 
+std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(std::string message_id) {
+	std::unique_ptr<message> message_data = waitingCache->get_or_wait(message_id);
+	if (message_data == nullptr) {
+		return nullptr;
+	}
+
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+								"duration"_a="",
+								"kernel_id"_a=message_data->get_message_id(),
+								"rows"_a=message_data->get_data().num_rows());
+
+	std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
+	std::unique_lock<std::mutex> lock(flow_control_mutex);
+	flow_control_batches_count--;
+	flow_control_bytes_count -= output->sizeInBytes();
+	flow_control_condition_variable.notify_all();
+	return std::move(output);
+}
+
+
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
@@ -415,7 +439,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 
 
 bool CacheMachine::thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count){
-		
+
 	return batches_count > this->flow_control_batches_threshold && bytes_count > this->flow_control_bytes_threshold;
 }
 
@@ -424,7 +448,7 @@ void CacheMachine::wait_if_cache_is_saturated() {
 	CodeTimer blazing_timer;
 
 	std::unique_lock<std::mutex> lock(flow_control_mutex);
-	while(!flow_control_condition_variable.wait_for(lock, 60000ms, [&, this] { 
+	while(!flow_control_condition_variable.wait_for(lock, 60000ms, [&, this] {
 			bool cache_not_saturated = !thresholds_are_met(flow_control_batches_count, flow_control_bytes_count);
 
 			if (!cache_not_saturated && blazing_timer.elapsed_time() > 59000){
@@ -447,7 +471,7 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> co
 
 // This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
-	
+
 	size_t total_bytes = 0;
 	std::vector<std::unique_ptr<message>> collected_messages;
 	std::unique_ptr<message> message_data;
@@ -488,7 +512,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		}
 		output = ral::utilities::concatTables(table_views);
 		num_rows = output->num_rows();
-	}	
+	}
 
 	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),

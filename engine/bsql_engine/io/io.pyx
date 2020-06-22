@@ -13,7 +13,8 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.map cimport map
-from libcpp.memory cimport unique_ptr
+from libcpp.memory cimport unique_ptr, shared_ptr, make_shared, make_unique
+from cython.operator cimport dereference as deref
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
@@ -42,6 +43,7 @@ from cython.operator cimport dereference, postincrement
 from cudf._lib.table cimport Table as CudfXxTable
 from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 
+from libcpp.utility cimport pair
 import logging
 
 # TODO: module for errors and move pyerrors to cpyerrors
@@ -102,7 +104,7 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
 
 cdef unique_ptr[cio.PartitionedResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except *:
     return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options))
-
+from libcpp.utility cimport pair
 cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) except *:
     return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
 
@@ -113,8 +115,8 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
-    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
+    return cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cdef void finalizePython() except *:
     cio.finalize()
@@ -161,8 +163,53 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
 
+
+
+cdef class PyBlazingCache:
+    cdef shared_ptr[cio.CacheMachine] c_cache
+
+    def add_to_cache(self,cudf_data,metadata):
+        cdef cio.MetadataDictionary c_metadata
+        cdef map[string,string] metadata_map
+        cdef string c_key
+        for key in metadata.keys():
+          c_key = key.encode()
+          metadata_map[c_key] = metadata[key].encode()
+        c_metadata.set_values(metadata_map)
+        cdef vector[string] column_names
+        for column_name in cudf_data:
+           column_names.push_back(str.encode(column_name))
+        cdef vector[column_view] column_views
+        cdef Column cython_col
+        for cython_col in cudf_data._data.values():
+           column_views.push_back(cython_col.view())
+
+        cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
+        deref(blazing_table).ensureOwnership()
+        deref(self.c_cache).addCacheData(blaz_move2(make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)),metadata["kernel_id"])
+
+    def add_to_cache(self,cudf_data):
+        cdef vector[string] column_names
+        for column_name in cudf_data:
+            column_names.push_back(str.encode(column_name))
+
+        cdef vector[column_view] column_views
+        cdef Column cython_col
+        for cython_col in cudf_data._data.values():
+            column_views.push_back(cython_col.view())
+        cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
+        deref(blazing_table).ensureOwnership()
+        cdef string message_id
+        deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id)
+
 cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
-    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+    caches = initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+    transport_out = PyBlazingCache()
+    transport_out.c_cache = caches.first
+    transport_in = PyBlazingCache()
+    transport_in.c_cache = caches.second
+    return (transport_out,transport_in)
+
 
 cpdef finalizeCaller():
     finalizePython()

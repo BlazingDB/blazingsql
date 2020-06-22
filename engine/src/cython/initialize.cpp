@@ -32,7 +32,12 @@
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
 
+#include "execution_graph/logic_controllers/CacheMachine.h"
+#include <utility>
+#include <memory>
+
 using namespace fmt::literals;
+using namespace ral::cache;
 
 #include <engine/static.h> // this contains function call for getProductDetails
 
@@ -81,7 +86,12 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, boo
 	spdlog::flush_every(std::chrono::seconds(1));
 }
 
-void initialize(int ralId,
+/**
+* Initializes the engine and gives us shared pointers to both our transport out cache
+* and the cache we use for receiving messages
+*
+*/
+std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initialize(int ralId,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
@@ -148,7 +158,7 @@ void initialize(int ralId,
 	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
 	// having all RALs independently trying to create a directory simulatenously can cause problems
 		logging_directory_missing = true;
-		logging_dir = "";		
+		logging_dir = "";
 	}
 
 
@@ -217,6 +227,9 @@ void initialize(int ralId,
 		it++;
 	}
 	logger->debug("|||{info}|||||","info"_a=product_details_str);
+
+	return std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
+
 }
 
 void finalize() {
