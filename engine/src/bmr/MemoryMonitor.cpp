@@ -1,5 +1,3 @@
-#pragma once
-
 #include "MemoryMonitor.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 
@@ -7,13 +5,16 @@
 namespace ral {
 
     void MemoryMonitor::start(){
-
-        std::unique_lock<std::mutex> lock(finished_lock);
-        while(!condition.wait_for(lock, period, [this] { return this->finished; })){
-            if (need_to_free_memory()){
-                downgradeCaches(&tree->root);
+        
+        BlazingThread thread([this](){
+            std::unique_lock<std::mutex> lock(finished_lock);
+            while(!condition.wait_for(lock, period, [this] { return this->finished; })){
+                if (need_to_free_memory()){
+                    downgradeCaches(&tree->root);
+                }
             }
-        }
+        });
+        thread.detach();
     }
 
     void MemoryMonitor::downgradeCaches(ral::batch::node* starting_node){

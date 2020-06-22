@@ -32,15 +32,6 @@ struct node {
 };
 struct tree_processor {
 	
-	tree_processor(std::shared_ptr<Context> context, 
-		std::vector<ral::io::data_loader> input_loaders,
-		std::vector<ral::io::Schema> schemas,
-		std::vector<std::string> table_names,
-		std::vector<std::string> table_scans,
-		bool transform_operators_bigger_than_gpu) : 
-			input_loaders(input_loaders), schemas(schemas), table_names(table_names),
-			table_scans(table_scans), transform_operators_bigger_than_gpu(transform_operators_bigger_than_gpu) {}
-	
 	node root;
 	std::shared_ptr<Context> context;
 	std::vector<ral::io::data_loader> input_loaders;
