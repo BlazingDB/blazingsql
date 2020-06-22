@@ -10,7 +10,7 @@ namespace ral {
     class MemoryMonitor {
 
         public:
-            MemoryMonitor(std::shared_ptr<ral::batch::tree_processor> tree) : tree(tree), finished(false){
+            MemoryMonitor(ral::batch::tree_processor* tree) : tree(tree), finished(false){
                 resource = &blazing_device_memory_resource::getInstance();
                 period = std::chrono::milliseconds(50); // WSM make this configurable
             }
@@ -28,7 +28,8 @@ namespace ral {
             bool finished;
             std::mutex finished_lock;
             std::condition_variable condition;
-            std::shared_ptr<ral::batch::tree_processor> tree;
+            // std::shared_ptr<ral::batch::tree_processor> tree;
+            ral::batch::tree_processor* tree;
             std::chrono::milliseconds period;
             BlazingMemoryResource* resource;
 

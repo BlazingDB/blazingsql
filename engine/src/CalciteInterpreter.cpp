@@ -38,10 +38,17 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 		assert(input_loaders.size() == table_names.size());
 
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> output_frame;
-		std::shared_ptr<ral::batch::tree_processor> tree = std::make_shared<ral::batch::tree_processor>(
-			queryContext.clone(), input_loaders, schemas, table_names, table_scans, true);
+		ral::batch::tree_processor tree{
+			.root = {},
+			.context = queryContext.clone(),
+			.input_loaders = input_loaders,
+			.schemas = schemas,
+			.table_names = table_names,
+			.table_scans = table_scans,
+			.transform_operators_bigger_than_gpu = true
+		};
 			
-		auto query_graph_and_max_kernel_id = tree->build_batch_graph(logicalPlan);
+		auto query_graph_and_max_kernel_id = tree.build_batch_graph(logicalPlan);
 		auto query_graph = std::get<0>(query_graph_and_max_kernel_id);
 		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
 		ral::batch::OutputKernel output(max_kernel_id, queryContext.clone());
@@ -50,7 +57,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
 									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="\"Query Start\n{}\""_format(tree->to_string()));
+									"info"_a="\"Query Start\n{}\""_format(tree.to_string()));
 
 		std::string tables_info = "";
 		for (int i = 0; i < table_names.size(); i++){
@@ -100,7 +107,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			query_graph->check_for_simple_scan_with_limit_query();
 
 
-			ral::MemoryMonitor mem_monitor(tree);
+			ral::MemoryMonitor mem_monitor(&tree);
 			mem_monitor.start();
 			query_graph->execute();
 			mem_monitor.finalize();
