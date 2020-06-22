@@ -61,7 +61,9 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 
 	cudf_io::write_orc(out_args);
 }
-
+std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData> base_pointer){
+	return std::unique_ptr<GPUCacheDataMetaData>(static_cast<GPUCacheDataMetaData *>(base_pointer.release()));
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cache_id(CacheMachine::cache_count)

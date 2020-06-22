@@ -132,6 +132,7 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
             CudfTableView view()
             vector[string] names()
             void ensureOwnership()
+            unique_ptr[CudfTable] releaseCudfTable()
 
         cdef cppclass BlazingTableView:
             BlazingTableView()
@@ -142,8 +143,10 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
 
 cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" namespace "ral::cache":
         cdef cppclass CacheData
+        cdef unique_ptr[GPUCacheDataMetaData] cast_cache_data_to_gpu_with_meta(unique_ptr[CacheData] base_pointer)
         cdef cppclass MetadataDictionary:
             void set_values(map[string,string] new_values)
+            map[string,string] get_values()
         cdef cppclass GPUCacheDataMetaData:
             GPUCacheDataMetaData(BlazingTable table, MetadataDictionary metadata)
             map[string, string] get_map()

@@ -132,8 +132,8 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
 
-	std::tuple<std::unique_ptr<ral::frame::BlazingTable>,MetadataDictionary > decacheWithMetaData(){
-		 return std::make_tuple(std::move(data),this->metadata); }
+	std::pair<std::unique_ptr<ral::frame::BlazingTable>,MetadataDictionary > decacheWithMetaData(){
+		 return std::make_pair(std::move(data),this->metadata); }
 
 	size_t sizeInBytes() const override { return data->sizeInBytes(); }
 
@@ -380,6 +380,10 @@ private:
 	std::atomic<bool> finished;
 	std::condition_variable condition_variable_;
 };
+
+
+
+std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData>  base_pointer);
 /**
 	@brief A class that represents a Cache Machine on a
 	multi-tier (GPU memory, CPU memory, Disk memory) cache system.
@@ -430,6 +434,7 @@ public:
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
+
 
 	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
 

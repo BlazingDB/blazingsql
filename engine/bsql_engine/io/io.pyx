@@ -14,7 +14,7 @@ from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.map cimport map
 from libcpp.memory cimport unique_ptr, shared_ptr, make_shared, make_unique
-from cython.operator cimport dereference as deref
+from cython.operator cimport dereference as deref, postincrement
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
@@ -136,7 +136,7 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         hdfs.port = fs['port']
         hdfs.user = str.encode(fs['user'])
         driver = fs['driver']
-        if 'libhdfs' == driver:
+        if 'libhdfs' == driver: # Increment the iterator to the net element
             hdfs.DriverType = 1
         elif 'libhdfs3' == driver:
             hdfs.DriverType = 2
@@ -168,7 +168,7 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
 cdef class PyBlazingCache:
     cdef shared_ptr[cio.CacheMachine] c_cache
 
-    def add_to_cache(self,cudf_data,metadata):
+    def add_to_cache_with_meta(self,cudf_data,metadata):
         cdef cio.MetadataDictionary c_metadata
         cdef map[string,string] metadata_map
         cdef string c_key
@@ -185,6 +185,7 @@ cdef class PyBlazingCache:
            column_views.push_back(cython_col.view())
 
         cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
+        print("a")
         deref(blazing_table).ensureOwnership()
         deref(self.c_cache).addCacheData(blaz_move2(make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)),metadata["kernel_id"])
 
@@ -201,6 +202,24 @@ cdef class PyBlazingCache:
         deref(blazing_table).ensureOwnership()
         cdef string message_id
         deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id)
+
+    def pull_from_cache(self):
+        cdef unique_ptr[CacheData] cache_data_generic = deref(self.c_cache).pullCacheData()
+        cdef unique_ptr[GPUCacheDataMetaData] cache_data = cast_cache_data_to_gpu_with_meta(blaz_move(cache_data_generic))
+        cdef pair[unique_ptr[BlazingTable], MetadataDictionary ] table_and_meta = deref(cache_data).decacheWithMetaData()
+        table = blaz_move(table_and_meta.first)
+        metadata = table_and_meta.second
+        metadata_py = {}
+        cdef map[string,string].iterator it = metadata.get_values().begin()
+        while(it != metadata.get_values().end()):
+            metadata_py[dereference(it).first] = dereference(it).second
+            postincrement(it)
+        decoded_names = []
+        for i in range(deref(table).names().size()):
+            decoded_names.append(deref(table).names()[i].decode('utf-8'))
+        df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(deref(table).releaseCudfTable()), decoded_names)._data)
+        df._rename_columns(decoded_names)
+        return df, metadata_py
 
 cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
     caches = initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
@@ -291,7 +310,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
 
     names = dereference(resultSet).names
     decoded_names = []
-    for i in range(names.size()):
+    for i in range(names.size()): # Increment the iterator to the net element
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
