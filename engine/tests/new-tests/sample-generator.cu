@@ -13,7 +13,7 @@ class SampleGeneratorTest : public BlazingUnitTest {};
 
 using NumericTypesForSampling = cudf::test::Types<int8_t, int16_t, int32_t, int64_t, float, double>;
 
-TYPED_TEST_SUITE(SampleGeneratorTest, NumericTypesForSampling);
+TYPED_TEST_CASE(SampleGeneratorTest, NumericTypesForSampling);
 
 TYPED_TEST(SampleGeneratorTest, BaseCase) {
 	using T =  TypeParam;
