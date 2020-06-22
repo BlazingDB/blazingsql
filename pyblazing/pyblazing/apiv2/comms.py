@@ -26,18 +26,36 @@ class BlazingMessage:
                 self.data is not None)
 
 
-async def listen(callback_func, client=None):
+async def listen(connection_callback, client=None):
     client = client if client is not None else default_client()
-    return await client.run(start_listener, callback_func, wait=True)
+    return await client.run(start_listener, connection_callback, wait=True)
+
+
+async def register_callbacks(msg_callback, addrs, client=None):
+    client = client if client is not None else default_client()
+    await client.run(read, msg_callback, addrs, wait=False)
+
+
+async def read(msg_callback, addrs):
+    tasks = []
+    for addr in addrs:
+
+        ip, port = parse_host_port(addr)
+
+        if port != UCX.get()._listener.port:
+
+            print("Creating task from %s to %s" % (UCX.get()._listener.port, addr))
+            tasks.append(asyncio.create_task(
+                UCX.get().register_callback(addr, msg_callback))
+            )
+
+    [await task for task in tasks]
+
+    print("Done read")
 
 
 async def start_listener(listener_callback):
     return await UCX.get(listener_callback).start_listener()
-
-
-class UCXClient:
-    def __init__(self, client=None):
-        self.closed = True
 
 
 class UCX:
@@ -54,6 +72,7 @@ class UCX:
         self.listener_callback = listener_callback
         self._endpoints = {}
         self._listener = None
+        self.q = asyncio.queues.Queue()
 
         assert UCX.__instance is None
 
@@ -72,8 +91,12 @@ class UCX:
     async def start_listener(self):
 
         async def handle_comm(comm):
-            msg = await comm.read()
-            self.listener_callback(BlazingMessage(*msg))
+            print("Comm request: %s" % comm)
+
+            while not comm.closed():
+                msg = await comm.read()
+                print("Message Received: %s" % msg)
+                await self.q.put(msg)
 
         ip, port = parse_host_port(get_worker().address)
 
@@ -98,6 +121,15 @@ class UCX:
 
         return ep
 
+    async def register_callback(self, addr, callback_func):
+        ep = await self.get_endpoint(addr)
+        while not ep.closed():
+
+            msg = await self.q.get()
+
+            print("Received msg in q: %s" % msg)
+            await callback_func(BlazingMessage(*msg))
+
     async def send(self, blazing_msg,
                    serializers=("cuda", "dask", "pickle", "error")):
         """
@@ -109,7 +141,10 @@ class UCX:
             ep = await self.get_endpoint(addr)
 
             msg = {"meta": blazing_msg.metadata, "data": blazing_msg.data}
+
+            print("Sending %s" % msg)
             await ep.write(msg=msg, serializers=serializers)
+            print("Sent")
 
     def stop_endpoints(self):
         for addr, ep in self._endpoints.items():
