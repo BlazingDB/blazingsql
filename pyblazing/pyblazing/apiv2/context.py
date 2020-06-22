@@ -1859,7 +1859,7 @@ class BlazingContext(object):
                 i = 0
                 for node in self.nodes:
                     worker = node['worker']
-                    dask_futures.append(
+                    graph_futures.append(
                         self.dask_client.submit(
                             generateGraphs,
                             masterIndex,
