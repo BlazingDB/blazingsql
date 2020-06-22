@@ -251,7 +251,7 @@ cudf::data_type expr_parser::type_from_type_token(const lexer::token & token) {
   }
 
   if (token_value == "INTEGER"
-      //INTERVAL MONTH AND YEAR ARE NOT CURRENTLY SUPPORTED
+      //INTERVALS MONTH AND YEAR ARE NOT CURRENTLY SUPPORTED
       || token_value == "INTERVAL SECOND"
       || token_value == "INTERVAL MINUTE"
       || token_value == "INTERVAL HOUR"
