@@ -28,6 +28,8 @@ async def mock_msg_callback(msg):
     a message is received on an endpoint.
     """
 
+    print(msg)
+
     print("Invoked w/ %s" % msg)
     if not hasattr(get_worker(), "_test_msgs_received"):
         get_worker()._test_msgs_received = []
@@ -36,8 +38,10 @@ async def mock_msg_callback(msg):
     get_worker()._test_msgs_received.append(msg)
 
 
-
 class PyBlazingCache():
+    """
+    Probably want to add a
+    """
     def add_to_cache_with_meta(self,cudf_data,metadata):
         pass
 

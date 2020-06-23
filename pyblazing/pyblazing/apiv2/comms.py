@@ -9,6 +9,7 @@ from distributed.protocol.serialize import serialize, deserialize
 
 from dask.distributed import default_client
 
+serde = ("dask", "cuda", "pickle", "error")
 
 def register_serialization():
 
@@ -17,6 +18,20 @@ def register_serialization():
 
     from distributed.protocol import dask_deserialize, dask_serialize
     from distributed.protocol.cuda import cuda_deserialize, cuda_serialize
+    from distributed.protocol.serialize import pickle_dumps, pickle_loads
+
+    # @dask_serialize.register(BlazingMessage)
+    # @cuda_serialize.register(BlazingMessage)
+    # def rfr_serialize(rf):
+    #
+    #     print("SERIALIZING")
+    #     return pickle_dumps(rf)
+    #
+    # @dask_deserialize.register(BlazingMessage)
+    # @cuda_deserialize.register(BlazingMessage)
+    # def rfr_deserialize(header, frames):
+    #     print("DESERIALIZING")
+    #     return pickle_loads(header, frames)
 
     register_generic(BlazingMessage, 'cuda',
                      cuda_serialize, cuda_deserialize)
@@ -84,9 +99,9 @@ class UCX:
 
             while not comm.closed():
                 msg = await comm.read()
-                #msg = deserialize(*msg,
-                      #            deserializers=("dask", "cuda", "pickle", "error"))
-                print("Message Received: %s" % msg)
+                msg = deserialize(*msg,
+                                 deserializers=serde)
+                # print("Message Received: %s" % msg)
                 await self.callback(msg)
 
         ip, port = parse_host_port(get_worker().address)
@@ -124,12 +139,12 @@ class UCX:
         """
         for addr in blazing_msg.metadata["worker_ids"]:
             ep = await self.get_endpoint(addr)
-            #msg = serialize(blazing_msg,
-            #                serializers=("dask", "cuda", "pickle", "error"))
-
-            msg = "Hello World!"
+            msg = serialize(blazing_msg,
+                           serializers=serde)
+            #
+            # msg = "Hello World!"
             await ep.write(msg=msg,
-                           serializers=("dask", "cuda", "pickle", "error"))
+                           serializers=serde)
             print("Sent")
 
     def stop_endpoints(self):
