@@ -57,7 +57,7 @@ extensions = [
             os.path.join(
                 os.sys.prefix,
                 "lib")],
-        libraries=["blazingsql-engine"],
+        libraries=["blazingsql-engine", "gmock", "gtest", "gtest_main"],
         language="c++",
         extra_compile_args=["-std=c++14"],
     )]

@@ -186,6 +186,8 @@ find_package(PythonLibs)
 # TODO jp mario c.gonzales we must use find here!
 #find_package(spdlog REQUIRED)
 
+find_package(GTest REQUIRED)
+
 # BEGIN MAIN #
 
 # TODO percy move this to tool-chain and add support for cuda def and more than 1 defs
@@ -339,7 +341,9 @@ target_link_libraries(blazingsql-engine
     # Library needed for blazing communication repository (debug)
     gcov
 
+    gmock
     gtest
+    gtest_main
     cudftestutil
 )
 
@@ -369,8 +373,6 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libblazingsql-engine.so DESTINATION li
 
 # Tests
 if(BUILD_TESTING)
-    find_package(GTest REQUIRED)
-
     if(GTEST_FOUND)
         add_subdirectory(tests)
     else()

@@ -127,23 +127,13 @@ fi
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
     if [ ! -d "${REPODIR}/thirdparty/cudf/" ]; then
         cd ${REPODIR}/thirdparty/
-        git clone https://github.com/rapidsai/cudf.git   
+        git clone https://github.com/rapidsai/cudf.git
         cd cudf/cpp
         mkdir build
         cd build
-        cmake ..
-        cp -r install/lib/* ${INSTALL_PREFIX}/lib/
-        cp -r install/include/* ${INSTALL_PREFIX}/include/
+        cmake -DCMAKE_CXX11_ABI=ON ..
     else
-        cd ${REPODIR}/thirdparty/cudf
-        git pull
-        if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
-            mkdir cpp/build
-        fi
-        cd cpp/build
-        cmake ..
-        cp -r googletest/install/lib/* ${INSTALL_PREFIX}/lib/
-        cp -r googletest/install/include/* ${INSTALL_PREFIX}/include/
+        echo "thirdparty/cudf/ is already installed in ${INSTALL_PREFIX}"
     fi
     export CUDF_HOME=${REPODIR}/thirdparty/cudf/
 
