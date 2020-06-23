@@ -97,7 +97,7 @@ TYPED_TEST(LogicalFilterTest, filter_table)
                                                   nullptr);
 
   cudf::size_type outputRows = (inputRows / 2);
-  if (cudf::type_to_id<T>() == cudf::BOOL8) {
+  if (cudf::type_to_id<T>() == cudf::type_id::BOOL8) {
     outputRows = inputRows;
   }  
 
