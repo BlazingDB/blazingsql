@@ -153,6 +153,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort,
         singleNode,
         config_options)
+
     if singleNode is False:
         worker = dask.distributed.get_worker()
         worker.output_cache = output_cache
@@ -190,7 +191,7 @@ def get_element(query_partid):
     del  worker.query_parts[query_partid]
     return df
 
-def collectPartitionsRunQuery(
+def generateGraphs(
         masterIndex,
         nodes,
         tables,
@@ -209,8 +210,8 @@ def collectPartitionsRunQuery(
             if single_gpu:
                 tables[table_index].input = [tables[table_index].input.compute()]
             else:
-                print("ERROR: collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
-                logging.error("collectPartitionsRunQuery should not be called with an input of dask_cudf.core.DataFrame")
+                print("ERROR: generateGraphs should not be called with an input of dask_cudf.core.DataFrame")
+                logging.error("generateGraphs should not be called with an input of dask_cudf.core.DataFrame")
 
         if not single_gpu and hasattr(tables[table_index],'partition_keys'): # this is a dask cudf table
             if len(tables[table_index].partition_keys) > 0:
@@ -218,23 +219,30 @@ def collectPartitionsRunQuery(
                 for key in tables[table_index].partition_keys:
                     tables[table_index].input.append(worker.data[key])
 
-    try:
-        dfs = cio.runQueryCaller(
-                            masterIndex,
-                            nodes,
-                            tables,
-                            table_scans,
-                            fileTypes,
-                            ctxToken,
-                            algebra,
-                            accessToken,
-                            config_options,
-                            is_single_node=False)
-    except cio.RunQueryError as e:
-        print(">>>>>>>> ", e)
-        result = [cudf.DataFrame()]
-    except Exception as e:
-        raise e
+    graph = cio.runGenerateGraphCaller(
+                        masterIndex,
+                        nodes,
+                        tables,
+                        table_scans,
+                        fileTypes,
+                        ctxToken,
+                        algebra,
+                        accessToken,
+                        config_options)
+
+    with worker._lock:
+        if not hasattr(worker, "query_graphs"):
+            worker.query_graphs = {}
+
+    worker.query_graphs[ctxToken] = graph
+
+def executeGraph(ctxToken):
+
+    import dask.distributed
+    worker = dask.distributed.get_worker()
+
+    graph = worker.query_graphs[ctxToken]
+    dfs = cio.runExecuteGraphCaller(graph, is_single_node=False)
 
     meta = dask.dataframe.utils.make_meta(dfs[0])
     query_partids = []
@@ -1820,8 +1828,7 @@ class BlazingContext(object):
         algebra = get_plan(algebra)
 
         if self.dask_client is None:
-            try:
-                result = cio.runQueryCaller(
+            graph = cio.runGenerateGraphCaller(
                             masterIndex,
                             self.nodes,
                             nodeTableList[0],
@@ -1830,20 +1837,15 @@ class BlazingContext(object):
                             ctxToken,
                             algebra,
                             accessToken,
-                            query_config_options,
-                            is_single_node=True)
-            except cio.RunQueryError as e:
-                print(">>>>>>>> ", e)
-                result = cudf.DataFrame()
-            except Exception as e:
-                raise e
+                            query_config_options)
+            result = cio.runExecuteGraphCaller(graph, is_single_node=True)
 
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
                 #an array of dask_futures or a df, this makes it consistent
-                dask_futures = [self.dask_client.submit(
-                        collectPartitionsRunQuery,
+                graph_futures = [self.dask_client.submit(
+                        generateGraphs,
                         masterIndex,
                         [self.nodes[0],],
                         nodeTableList[0],
@@ -1854,14 +1856,17 @@ class BlazingContext(object):
                         accessToken,
                         query_config_options,
                         single_gpu=True)]
+                self.dask_client.gather(graph_futures)
+
+                dask_futures = [self.dask_client.submit(executeGraph, ctxToken)]
             else:
-                dask_futures = []
+                graph_futures = []
                 i = 0
                 for node in self.nodes:
                     worker = node['worker']
-                    dask_futures.append(
+                    graph_futures.append(
                         self.dask_client.submit(
-                            collectPartitionsRunQuery,
+                            generateGraphs,
                             masterIndex,
                             self.nodes,
                             nodeTableList[i],
@@ -1873,6 +1878,16 @@ class BlazingContext(object):
                             query_config_options,
                             workers=[worker]))
                     i = i + 1
+                self.dask_client.gather(graph_futures)
+
+                dask_futures = []
+                for node in self.nodes:
+                    worker = node['worker']
+                    dask_futures.append(
+                        self.dask_client.submit(
+                            executeGraph,
+                            ctxToken,
+                            workers=[worker]))
 
             if(return_futures):
                 result  = dask_futures

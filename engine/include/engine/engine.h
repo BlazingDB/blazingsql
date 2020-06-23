@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
+#include <execution_graph/logic_controllers/taskflow/graph.h>
 
 struct SkipDataResultSet {
 	std::vector<int> files;
@@ -16,7 +17,7 @@ struct NodeMetaDataTCP {
 	std::int32_t communication_port;
 };
 
-std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
+std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
@@ -31,6 +32,7 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options);
 
+std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph);
 
 struct TableScanInfo {
 	std::vector<std::string> relational_algebra_steps;
@@ -41,8 +43,8 @@ struct TableScanInfo {
 TableScanInfo getTableScanInfo(std::string logicalPlan);
 
 std::unique_ptr<ResultSet> runSkipData(
-	ral::frame::BlazingTableView metadata, 
-	std::vector<std::string> all_column_names, 
+	ral::frame::BlazingTableView metadata,
+	std::vector<std::string> all_column_names,
 	std::string query);
 
 std::unique_ptr<ResultSet> performPartition(

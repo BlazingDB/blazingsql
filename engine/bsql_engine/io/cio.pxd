@@ -31,7 +31,9 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseFinalizeError()
     cdef void raiseBlazingSetAllocatorError()
     cdef void raiseGetProductDetailsError()
-    cdef void raiseRunQueryError()
+    cdef void raisePerformPartitionError()
+    cdef void raiseRunGenerateGraphError()
+    cdef void raiseRunExecuteGraphError()
     cdef void raiseRunSkipDataError()
     cdef void raiseParseSchemaError()
     cdef void raiseRegisterFileSystemHDFSError();
@@ -140,6 +142,9 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
             CudfTableView view()
             vector[string] names()
 
+cdef extern from "../src/execution_graph/logic_controllers/taskflow/graph.h" namespace "ral::cache":
+        cdef cppclass graph:
+            void execute()
 
 cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" namespace "ral::cache":
         cdef cppclass CacheData
@@ -173,12 +178,13 @@ cdef extern from * namespace "blazing":
 
 cdef extern from "../include/engine/engine.h":
 
-        unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raiseRunQueryError
+        unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raisePerformPartitionError
 
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
-        unique_ptr[PartitionedResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +raiseRunQueryError
+        shared_ptr[graph] runGenerateGraph(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +raiseRunGenerateGraphError
+        unique_ptr[PartitionedResultSet] runExecuteGraph(shared_ptr[graph]) except +raiseRunExecuteGraphError
         unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunSkipDataError
 
         cdef struct TableScanInfo:
