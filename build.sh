@@ -133,7 +133,13 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
         cd build
         cmake -DCMAKE_CXX11_ABI=ON ..
     else
-        echo "thirdparty/cudf/ is already installed in ${INSTALL_PREFIX}"
+        cd ${REPODIR}/thirdparty/cudf
+        git pull
+        if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
+            mkdir cpp/build
+        fi
+        cd cpp/build
+        cmake -DCMAKE_CXX11_ABI=ON ..
     fi
     export CUDF_HOME=${REPODIR}/thirdparty/cudf/
 
