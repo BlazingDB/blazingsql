@@ -132,8 +132,6 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
         mkdir build
         cd build
         cmake ..
-        cp -r googletest/install/lib/* ${INSTALL_PREFIX}/lib/
-        cp -r googletest/install/include/* ${INSTALL_PREFIX}/include/
     else
         cd ${REPODIR}/thirdparty/cudf
         git pull
@@ -142,8 +140,6 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
         fi
         cd cpp/build
         cmake ..
-        cp -r googletest/install/lib/* ${INSTALL_PREFIX}/lib/
-        cp -r googletest/install/include/* ${INSTALL_PREFIX}/include/
     fi
     export CUDF_HOME=${REPODIR}/thirdparty/cudf/
 

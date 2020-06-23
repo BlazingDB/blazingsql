@@ -20,6 +20,7 @@ source:
 
 requirements:
     build:
+        - gtest
         - gmock
         - google-cloud-cpp
         - cmake
@@ -35,6 +36,7 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - cudatoolkit {{ cuda_version }}.*
     host:
+        - gtest
         - google-cloud-cpp
         - cmake
         - python
@@ -48,6 +50,7 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - cudatoolkit {{ cuda_version }}.*
     run:
+        - gtest
         - google-cloud-cpp
         - cppzmq
         - openjdk >=8.0
