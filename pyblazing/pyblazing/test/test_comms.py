@@ -8,8 +8,13 @@ from dask_cuda import LocalCUDACluster
 from distributed import Client, Worker, Scheduler, wait, get_worker
 from distributed.comm import ucx, listen, connect
 import numpy as np
-from ..apiv2.comms import listen, BlazingMessage, UCX, register_callbacks, register_serialization
+from ..apiv2.comms import listen, BlazingMessage, UCX, register_serialization
 from distributed.utils_test import gen_test, loop, inc, cleanup, popen  # noqa: 401
+
+enable_tcp_over_ucx = True
+enable_nvlink = False
+enable_infiniband = False
+
 
 try:
     HOST = ucp.get_address()
@@ -34,28 +39,31 @@ async def gather_results():
 async def send(msg):
     await UCX.get().send(msg)
 
+
 @pytest.mark.asyncio
 async def test_ucx_localcluster( cleanup):
     async with LocalCUDACluster(
         protocol="ucx",
+
         dashboard_address=None,
         n_workers=2,
         threads_per_worker=1,
         processes=True,
         asynchronous=True,
+        enable_tcp_over_ucx=enable_tcp_over_ucx,
+        enable_nvlink=enable_nvlink,
+        enable_infiniband=enable_infiniband
     ) as cluster:
         async with Client(cluster, asynchronous=True) as client:
 
             register_serialization()
             await client.run(register_serialization, wait=True)
 
-            ips_ports = await listen(client)
+            ips_ports = await listen(mock_msg_callback, client)
 
             assert len(ips_ports) == len(client.scheduler_info()["workers"])
             for k, v in ips_ports.items():
                 assert v is not None
-
-            await register_callbacks(mock_msg_callback, list(ips_ports.values()), client)
 
             # Build message for one worker to send to the other
             for dask_addr, blazing_addr in ips_ports.items():
@@ -71,19 +79,3 @@ async def test_ucx_localcluster( cleanup):
 
             for worker_addr, msgs in received.items():
                 assert len(msgs) == len(ips_ports)
-
-
-def test_serialize_blazingmsg():
-    from distributed.protocol.serialize import serialize, deserialize
-
-    meta = {"worker_ids": [0, 1, 2, 3]}
-    data = cudf.DataFrame()
-    data["a"] = cudf.Series([0, 1, 2, 3, 4])
-    msg = BlazingMessage(meta, data)
-
-    ser = serialize(msg, serializers=("cuda", "dask"))
-
-
-    print(str(ser))
-
-    de = deserialize(*ser)
