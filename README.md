@@ -139,18 +139,19 @@ $CONDA_PREFIX now has a folder for the blazingsql repository.
 ```bash
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
-conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain=0.15
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults nvstrings=0.15 cudf=0.15 dask-cudf=0.15 dask-cuda=0.15 cudatoolkit=$CUDA_VERSION
+
+conda install --yes -c conda-forge google-cloud-cpp ninja
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.15 dask-cudf=0.15 cudf=0.15 python=3.7 cudatoolkit=$CUDA_VERSION
+conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven thrift=0.13.0 jpype1 netifaces pyhive
 ```
 Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
 *For example for CUDA 10.0 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
-conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain=0.15
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults nvstrings=0.15 cudf=0.15 dask-cudf=0.15 dask-cuda=0.15 cudatoolkit=10.0
+conda install --yes -c conda-forge google-cloud-cpp ninja
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.15 dask-cudf=0.15 cudf=0.15 python=3.7 cudatoolkit=10.0
+conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven thrift=0.13.0 jpype1 netifaces pyhive
 ```
 
 ### Build

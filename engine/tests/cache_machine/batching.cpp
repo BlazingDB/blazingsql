@@ -56,7 +56,7 @@ TEST_F(Batching, SimpleQuery) {
 	std::shared_ptr<ral::io::uri_data_provider> provider;
 	ral::io::Schema schema;
 	std::tie(parser, provider, schema) = blazingdb::test::CreateParquetNationTableProvider(queryContext.get(), n_batches);
-	
+
 	ral::io::data_loader loader(parser, provider);
 
 	tree_processor tree{
@@ -70,7 +70,7 @@ TEST_F(Batching, SimpleQuery) {
 	std::shared_ptr<ral::cache::graph> graph = tree.build_batch_graph(json);
 	try {
 		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
-		*graph += link(graph->get_last_kernel(), print, simple_cache_config);
+		graph->addPair(kpair(graph->get_last_kernel(), print, simple_cache_config));
 		graph->execute();
 	} catch(std::exception & ex) {
 		std::cout << ex.what() << "\n";
@@ -113,7 +113,7 @@ TEST_F(Batching, BindableQuery) {
 	std::shared_ptr<ral::cache::graph> graph = tree.build_batch_graph(json);
 	try {
 		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
-		*graph += link(graph->get_last_kernel(), print, simple_cache_config);
+		graph->addPair(kpair(graph->get_last_kernel(), print, simple_cache_config));
 		graph->execute();
 	} catch(std::exception & ex) {
 		std::cout << ex.what() << "\n";
@@ -148,13 +148,13 @@ TEST_F(Batching, SortSamplePartitionTest) {
 	try {
 		auto cache_machine_config =
 			ral::cache::cache_settings{.type = ral::cache::CacheType::FOR_EACH, .num_partitions = 32};
-		m += customer_generator >> filter;
-		m += filter >> project;
-		m += project >> sort_and_sample;
-		m += sort_and_sample["output_a"] >> partition["input_a"];
-		m += sort_and_sample["output_b"] >> partition["input_b"];
-		m += link(partition, merge, cache_machine_config);
-		m += link(merge, print, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING});
+		m->addPair(customer_generator >> filter);
+		m->addPair(filter >> project);
+		m->addPair(project >> sort_and_sample);
+		m->addPair(kpair(&sort_and_sample, "output_a", &partition, "input_a"));
+		m->addPair(kpair(&sort_and_sample, "output_b", &partition, "input_b"));
+		m->addPair(kpair(partition, merge, cache_machine_config));
+		m->addPair(kpair(merge, print, ral::cache::cache_settings{.type = ral::cache::CacheType::CONCATENATING}));
 		m.execute();
 	} catch(std::exception & ex) {
 		std::cout << ex.what() << "\n";

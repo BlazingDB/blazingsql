@@ -18,10 +18,11 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="clean io comms libengine engine pyblazing algebra -t -v -g -n -h"
+VALIDARGS="clean thirdparty io comms libengine engine pyblazing algebra -t -v -g -n -h"
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean        - remove all existing build artifacts and configuration (start
-                  over)
+                  over) Use 'clean thirdparty' to delete thirdparty folder
+   thirdparty   - build the Thirdparty C++ code only
    io           - build the IO C++ code only
    comms        - build the communications C++ code only
    libengine    - build the engine C++ code only
@@ -36,13 +37,14 @@ HELP="$0 [-v] [-g] [-n] [-h] [-t]
    default action (no args) is to build and install all code and packages
 "
 
+THIRDPARTY_BUILD_DIR=${REPODIR}/thirdparty/aws-cpp/build
 IO_BUILD_DIR=${REPODIR}/io/build
 COMMS_BUILD_DIR=${REPODIR}/comms/build
 LIBENGINE_BUILD_DIR=${REPODIR}/engine/build
 ENGINE_BUILD_DIR=${REPODIR}/engine
 PYBLAZING_BUILD_DIR=${REPODIR}/pyblazing
 ALGEBRA_BUILD_DIR=${REPODIR}/algebra
-BUILD_DIRS="${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
+BUILD_DIRS="${THIRDPARTY_BUILD_DIR} ${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
 
 # Set defaults for vars modified by flags to this script
 VERBOSE=""
@@ -111,8 +113,99 @@ if hasArg clean; then
         rmdir ${bd} || true
     fi
     done
+
+    if hasArg thirdparty; then
+        rm -rf ${REPODIR}/thirdparty/rapids/
+        rm -rf ${REPODIR}/thirdparty/aws-cpp/
+    fi
+
+    exit 0
 fi
 
+################################################################################
+
+if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
+    if [ ! -d "${REPODIR}/thirdparty/rapids/" ]; then
+        cd ${REPODIR}/thirdparty/
+        DIR_BSQL="bsql-rapids-thirdparty"
+        mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
+        mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx/libcxx/include
+        mkdir -p ${REPODIR}/thirdparty/rapids/
+        cd ${REPODIR}/thirdparty/rapids/
+
+        cudf_version=$(conda list | grep libcudf|tail -n 1|awk '{print $2}')
+        cudf_version="$(cut -d '.' -f 1 <<< "$cudf_version")"."$(cut -d '.' -f 2 <<< "$cudf_version")"
+        cudf_version="0.14" # TODO william jp mario we need to use 0.15 here
+        echo "cudf_version for rapids 3rdparty is: $cudf_version"
+
+# CODE FOR 0.15
+#         git clone -b branch-$cudf_version --recurse-submodules https://github.com/rapidsai/cudf.git
+#         cd cudf/cpp
+#         mkdir build
+#         cd build
+#         cmake -DBUILD_TESTS=OFF ..
+#         cp -rf _deps/cub-src/cub/* ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
+#         cp -rf _deps/libcudacxx-src/include/ ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+#         cp -rf _deps/libcudacxx-src/libcxx/include/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx/libcxx/include
+
+
+        DIR_BSQL="bsql-rapids-thirdparty"
+        mkdir -p $INSTALL_PREFIX/include/bsql-rapids-thirdparty/
+        cd ${REPODIR}/thirdparty/rapids/
+        git clone -b branch-0.14 --recurse-submodules https://github.com/rapidsai/cudf.git
+
+        cp -rf cudf/thirdparty/cub/* ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
+
+        rm -rf cudf/thirdparty/libcudacxx/libcxx/test/
+        cp -rf cudf/thirdparty/libcudacxx/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
+
+        if [[ $CONDA_BUILD -eq 1 ]]; then
+            cd ${REPODIR}
+            # WARNING DO NOT TOUCH OR CHANGE THESE PATHS (william mario c.gonzales)
+            echo "==>> In conda build env: thirdparty/rapids headers"
+            echo "==>> Current working directory: $PWD"
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/include/$DIR_BSQL /conda/conda-bld/blazingsql_*/_build_env/include
+        fi
+
+        echo "thirdparty/rapids headers has been installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
+    else
+        echo "thirdparty/rapids is already installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
+    fi
+
+    if [ ! -d "${REPODIR}/thirdparty/aws-cpp/" ]; then
+        cd ${REPODIR}/thirdparty/
+        aws_cpp_version=$(conda list | grep aws-sdk-cpp|tail -n 1|awk '{print $2}')
+        echo "aws_cpp_version for aws cpp sdk 3rdparty is: $aws_cpp_version"
+
+        git clone -b $aws_cpp_version --depth=1 https://github.com/aws/aws-sdk-cpp.git ${REPODIR}/thirdparty/aws-cpp/
+        mkdir -p ${THIRDPARTY_BUILD_DIR}
+        cd ${THIRDPARTY_BUILD_DIR}
+        cmake -GNinja \
+            -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+            -DCMAKE_INSTALL_LIBDIR=lib \
+            -DBUILD_ONLY='s3-encryption' \
+            -DENABLE_UNITY_BUILD=on \
+            -DENABLE_TESTING=off \
+            -DCMAKE_BUILD_TYPE=Release \
+            ..
+        ninja install
+
+        if [[ $CONDA_BUILD -eq 1 ]]; then
+            cd ${REPODIR}
+            # WARNING DO NOT TOUCH OR CHANGE THESE PATHS (william mario c.gonzales)
+            echo "==>> In conda build env: aws sdk cpp thirdparty"
+            echo "==>> Current working directory: $PWD"
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/include/aws/* /conda/conda-bld/blazingsql_*/_build_env/include/aws/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/*aws* /conda/conda-bld/blazingsql_*/_build_env/lib/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/cmake/*aws* /conda/conda-bld/blazingsql_*/_build_env/lib/cmake/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/cmake/AWS* /conda/conda-bld/blazingsql_*/_build_env/lib/cmake/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/cmake/*Aws* /conda/conda-bld/blazingsql_*/_build_env/lib/cmake/
+            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/pkgconfig/*aws* /conda/conda-bld/blazingsql_*/_build_env/lib/pkgconfig/
+        fi
+    else
+        echo "thirdparty/aws-cpp/ is already installed in ${INSTALL_PREFIX}"
+    fi
+fi
 
 ################################################################################
 

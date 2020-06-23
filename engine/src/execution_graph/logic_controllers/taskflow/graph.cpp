@@ -4,7 +4,7 @@
 namespace ral {
 namespace cache {
 
-	kpair graph::operator+=(kpair p) {
+	void graph::addPair(kpair p) {
 		std::string source_port_name = std::to_string(p.src->get_id());
 		std::string target_port_name = std::to_string(p.dst->get_id());
 
@@ -15,15 +15,13 @@ namespace cache {
 			target_port_name = p.dst_port_name;
 		}
 		this->add_edge(p.src, p.dst, source_port_name, target_port_name, p.cache_machine_config);
-
-		return p;
 	}
 
 	void graph::check_and_complete_work_flow() {
 		for(auto node : container_) {
-			kernel * kernel_node = node.second;
+			std::shared_ptr<kernel> kernel_node = node.second;
 			if(kernel_node) {
-				if(get_neighbours(kernel_node).size() == 0) {
+				if(get_neighbours(kernel_node.get()).size() == 0) {
 					Edge fake_edge = {.source = (int32_t) kernel_node->get_id(),
 						.target = -1,
 						.source_port_name = std::to_string(kernel_node->get_id()),
@@ -47,8 +45,8 @@ namespace cache {
 			auto source_id = Q.front();
 			auto source = get_node(source_id);
 			auto source_edges = get_reverse_neighbours(source);
-			bool node_has_all_dependencies = source_edges.size() == 0 ? true : 
-				std::all_of(source_edges.begin(), source_edges.end(), [visited](Edge edge) { 
+			bool node_has_all_dependencies = source_edges.size() == 0 ? true :
+				std::all_of(source_edges.begin(), source_edges.end(), [visited](Edge edge) {
 					auto edge_id = std::make_pair(edge.source, edge.target);
 					return visited.find(edge_id) != visited.end();});
 			Q.pop_front();
@@ -159,7 +157,7 @@ namespace cache {
 			target_kernel = get_node((*(source_edges.begin())).source);
 			// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
 			// or do something more complicated for other kernels
-			return target_kernel->get_estimated_output_num_rows();			
+			return target_kernel->get_estimated_output_num_rows();
 		} else {
 			return std::make_pair(false, 0);
 		}
@@ -178,28 +176,31 @@ namespace cache {
 				target_kernel = get_node(edge.source);
 				// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
 				// or do something more complicated for other kernels
-				return target_kernel->get_estimated_output_num_rows();				
+				return target_kernel->get_estimated_output_num_rows();
 			}
 		}
 		std::cout<<"ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel "<<id<<" cache "<<port_name<<std::endl;
 		return std::make_pair(false, 0);
 	}
 
-	kernel & graph::get_last_kernel() { return *kernels_.at(kernels_.size() - 1); }
-	
+	std::shared_ptr<kernel> graph::get_last_kernel() {
+		int32_t kernel_id = kernels_.at(kernels_.size() - 1)->get_id();
+		return container_[kernel_id];
+	}
+
 	size_t graph::num_nodes() const { return kernels_.size(); }
-	
-	size_t graph::add_node(kernel * k) {
+
+	size_t graph::add_node(std::shared_ptr<kernel> k) {
 		if(k != nullptr) {
 			container_[k->get_id()] = k;
-			kernels_.push_back(k);
+			kernels_.push_back(k.get());
 			return k->get_id();
 		}
 		return head_id_;
 	}
 
-	void graph::add_edge(kernel * source,
-		kernel * target,
+	void graph::add_edge(std::shared_ptr<kernel> source,
+		std::shared_ptr<kernel> target,
 		std::string source_port,
 		std::string target_port,
 		const cache_settings & config) {
@@ -259,20 +260,24 @@ namespace cache {
 		}
 	}
 
-	kernel * graph::get_node(size_t id) { return container_[id]; }
+	kernel * graph::get_node(size_t id) { return container_[id].get(); }
+
+	std::shared_ptr<ral::cache::CacheMachine>  graph::get_kernel_output_cache(size_t kernel_id, std::string cache_id){
+		return container_[kernel_id].get()->output_cache(cache_id);
+	}
 
 	std::set<graph::Edge> graph::get_neighbours(kernel * from) { return edges_[from->get_id()]; }
 	std::set<graph::Edge> graph::get_neighbours(int32_t id) { return edges_[id]; }
-	std::set<graph::Edge> graph::get_reverse_neighbours(kernel * from) { 
+	std::set<graph::Edge> graph::get_reverse_neighbours(kernel * from) {
 		if (from) {
 			return get_reverse_neighbours(from->get_id());
 		} else {
 			return std::set<graph::Edge>();
 		}
 	}
-	std::set<graph::Edge> graph::get_reverse_neighbours(int32_t id) { 
+	std::set<graph::Edge> graph::get_reverse_neighbours(int32_t id) {
 		if (reverse_edges_.find(id) != reverse_edges_.end()){
-			return reverse_edges_[id]; 
+			return reverse_edges_[id];
 		} else {
 			return std::set<graph::Edge>();
 		}
@@ -280,27 +285,26 @@ namespace cache {
 
 	// This function will work when the Relational Algebra only contains: TableScan (or BindableTableScan) and Limit
 	void graph::check_for_simple_scan_with_limit_query() {
-		auto first_iterator = container_.begin(); // points to null
+		auto first_iterator = container_.begin();
 		first_iterator++;
 		int32_t min_index_valid = first_iterator->first;
-		size_t total_kernels = container_.size(); 
+		size_t total_kernels = container_.size();
 
-		if (total_kernels == 4) { // null, TableScanKernel (or BindableTableScan), LimitKernel, OutputKernel
-			if ( get_node(min_index_valid )->expression == "OutputKernel" &&
-				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::LimitKernel &&
-			 	 	(get_node(min_index_valid + 2)->get_type_id() == kernel_type::TableScanKernel || 
-					 get_node(min_index_valid + 2)->get_type_id() == kernel_type::BindableTableScanKernel)
+		if (total_kernels == 4) { // LimitKernel, TableScanKernel (or BindableTableScan), OutputKernel and null
+			if ( get_node(min_index_valid)->get_type_id() == kernel_type::LimitKernel &&
+				(get_node(min_index_valid + 1)->get_type_id() == kernel_type::TableScanKernel ||
+				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::BindableTableScanKernel) &&
+				 get_node(min_index_valid + 2)->expression == "OutputKernel"
 				)
 			{
-				get_node(min_index_valid + 2)->has_limit_ = true;
-
+				get_node(min_index_valid + 1)->has_limit_ = true;
 				// get the limit value from LogicalLimit
-				std::string LimitExpression = get_node(min_index_valid + 1)->expression;
+				std::string LimitExpression = get_node(min_index_valid)->expression;
 				int64_t scan_only_rows = ral::operators::get_limit_rows_when_relational_alg_is_simple(LimitExpression);
-				get_node(min_index_valid + 2)->limit_rows_ = scan_only_rows;
+				get_node(min_index_valid + 1)->limit_rows_ = scan_only_rows;
 			}
 		}
 	}
-	
+
 }  // namespace cache
 }  // namespace ral

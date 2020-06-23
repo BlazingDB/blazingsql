@@ -347,9 +347,7 @@ std::shared_ptr<arrow::io::RandomAccessFile> FileSystemManager::Private::openRea
 
 		// TODO check fileSystemId ... manage error cases
 
-		const auto ret = this->fileSystems.at(fileSystemId)->openReadable(uri);
-
-		return ret;
+		return this->fileSystems.at(fileSystemId)->openReadable(uri);
 	} catch(const std::exception & e) {
 		std::string uriStr = uri.toString();
 		Logging::Logger().logError("Caught error in openReadable with Uri: " + uriStr);
@@ -367,9 +365,7 @@ std::shared_ptr<arrow::io::OutputStream> FileSystemManager::Private::openWriteab
 
 		// TODO check fileSystemId ... manage error cases
 
-		const auto ret = this->fileSystems.at(fileSystemId)->openWriteable(uri);
-
-		return ret;
+		return this->fileSystems.at(fileSystemId)->openWriteable(uri);
 	} catch(const std::exception & e) {
 		std::string uriStr = uri.toString();
 		Logging::Logger().logError("Caught error in openWriteable with Uri: " + uriStr);

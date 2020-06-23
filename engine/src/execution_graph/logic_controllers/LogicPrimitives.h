@@ -58,7 +58,7 @@ public:
 	std::vector<std::unique_ptr<BlazingColumn>> releaseBlazingColumns();
 
 	unsigned long long sizeInBytes();
-
+	void ensureOwnership();
 private:
 	std::vector<std::string> columnNames;
 	std::vector<std::unique_ptr<BlazingColumn>> columns;

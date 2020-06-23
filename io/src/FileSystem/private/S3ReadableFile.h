@@ -19,20 +19,20 @@ public:
 
 	arrow::Status Close() override;
 
-	arrow::Status GetSize(int64_t * size) override;
+    arrow::Result<int64_t> GetSize() override;
 
-	arrow::Status Read(int64_t nbytes, int64_t * bytesRead, void * buffer) override;
+	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override;
 
-	arrow::Status Read(int64_t nbytes, std::shared_ptr<arrow::Buffer> * out) override;
+	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override;
 
-	arrow::Status ReadAt(int64_t position, int64_t nbytes, int64_t * bytes_read, void * buffer) override;
+	arrow::Result<int64_t> ReadAt(int64_t position, int64_t nbytes, void* out) override;
 
-	arrow::Status ReadAt(int64_t position, int64_t nbytes, std::shared_ptr<arrow::Buffer> * out) override;
+	arrow::Result<std::shared_ptr<arrow::Buffer>> ReadAt(int64_t position, int64_t nbytes) override;
 
 	bool supports_zero_copy() const override;
 
 	arrow::Status Seek(int64_t position) override;
-	arrow::Status Tell(int64_t * position) const override;
+	arrow::Result<int64_t> Tell() const override;
 
 	bool isValid() { return valid; }
 
