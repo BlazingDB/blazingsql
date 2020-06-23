@@ -367,6 +367,10 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
 cdef class PyBlazingGraph:
     cdef shared_ptr[cio.graph] ptr
 
+    def get_kernel_output_cache(self,kernel_id, cache_id = ""):
+        cache = PyBlazingCache()
+        cache.c_cache = deref(self.ptr).get_kernel_output_cache(kernel_id,str.endcode(cache_id))
+
 cpdef runGenerateGraphCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options):
     cdef string query
     query = str.encode(queryPy)

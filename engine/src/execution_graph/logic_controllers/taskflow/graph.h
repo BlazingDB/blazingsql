@@ -2,6 +2,7 @@
 
 #include "kernel.h"
 #include "kpair.h"
+#include "../CacheMachine.h"
 
 namespace ral {
 namespace cache {
@@ -61,6 +62,7 @@ public:
 		const cache_settings & config);
 
 	kernel * get_node(size_t id);
+	std::shared_ptr<ral::cache::CacheMachine>  get_kernel_output_cache(size_t kernel_id, std::string cache_id = "");
 
 	std::set<Edge> get_neighbours(kernel * from);
 	std::set<Edge> get_neighbours(int32_t id);
