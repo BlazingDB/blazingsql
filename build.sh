@@ -132,8 +132,8 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
         mkdir build
         cd build
         cmake ..
-        cp -r install/lib/* ${INSTALL_PREFIX}/lib/
-        cp -r install/include/* ${INSTALL_PREFIX}/include/
+        cp -r googletest/install/lib/* ${INSTALL_PREFIX}/lib/
+        cp -r googletest/install/include/* ${INSTALL_PREFIX}/include/
     else
         cd ${REPODIR}/thirdparty/cudf
         git pull
