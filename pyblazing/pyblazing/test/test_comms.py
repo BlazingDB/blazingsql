@@ -7,9 +7,8 @@ import cudf
 from dask_cuda import LocalCUDACluster
 from distributed import Client, Worker, Scheduler, wait, get_worker
 from distributed.comm import ucx, listen, connect
-import numpy as np
 from ..apiv2.comms import listen, BlazingMessage, UCX, register_serialization
-from distributed.utils_test import gen_test, loop, inc, cleanup, popen  # noqa: 401
+from distributed.utils_test import cleanup  # noqa: 401
 
 enable_tcp_over_ucx = True
 enable_nvlink = False
@@ -24,6 +23,11 @@ except Exception:
 
 async def mock_msg_callback(msg):
 
+    """
+    Mocks the real callback which gets invoked each time
+    a message is received on an endpoint.
+    """
+
     print("Invoked w/ %s" % msg)
     if not hasattr(get_worker(), "_test_msgs_received"):
         get_worker()._test_msgs_received = []
@@ -33,10 +37,18 @@ async def mock_msg_callback(msg):
 
 
 async def gather_results():
+    """
+    For testing purposes only- gathers the received
+    messages on each worker.
+    """
     return get_worker()._test_msgs_received
 
 
 async def send(msg):
+    """
+    Just for testing- wrapper function/task to send
+    a message on a worker.
+    """
     await UCX.get().send(msg)
 
 
@@ -46,6 +58,7 @@ class PyBlazingCache():
 
     def add_to_cache(self,cudf_data):
         pass
+
 
 @pytest.mark.asyncio
 async def test_ucx_localcluster( cleanup):

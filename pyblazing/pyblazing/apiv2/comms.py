@@ -40,12 +40,7 @@ class BlazingMessage:
 
 async def listen(callback, client=None):
     client = client if client is not None else default_client()
-    return await client.run(start_listener, callback, wait=True)
-
-
-async def start_listener(callback):
-    UCX.get().callback = callback
-    return await UCX.get().start_listener()
+    return await client.run(UCX.start_listener_on_worker, callback, wait=True)
 
 
 class UCX:
@@ -74,6 +69,11 @@ class UCX:
         return UCX.__instance
 
     @staticmethod
+    async def start_listener_on_worker(callback):
+        UCX.get().callback = callback
+        return await UCX.get().start_listener()
+
+    @staticmethod
     def get_ucp_worker():
         return ucp.get_ucp_worker()
 
@@ -94,10 +94,10 @@ class UCX:
         self._listener = await UCXListener(ip, handle_comm)
         await self._listener.start()
 
-        return "ucx://%s:%s" % (ip, self._listener.port)
+        return "ucx://%s:%s" % (ip, self.listener_port())
 
     def listener_port(self):
-        return self._listener.port()
+        return self._listener.port
 
     async def _create_endpoint(self, addr):
 
