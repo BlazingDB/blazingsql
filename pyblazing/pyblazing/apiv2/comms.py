@@ -11,6 +11,7 @@ from dask.distributed import default_client
 
 serde = ("dask", "cuda", "pickle", "error")
 
+
 def register_serialization():
 
     import cudf.comm.serialize  # noqa: F401
@@ -18,20 +19,7 @@ def register_serialization():
 
     from distributed.protocol import dask_deserialize, dask_serialize
     from distributed.protocol.cuda import cuda_deserialize, cuda_serialize
-    from distributed.protocol.serialize import pickle_dumps, pickle_loads
 
-    # @dask_serialize.register(BlazingMessage)
-    # @cuda_serialize.register(BlazingMessage)
-    # def rfr_serialize(rf):
-    #
-    #     print("SERIALIZING")
-    #     return pickle_dumps(rf)
-    #
-    # @dask_deserialize.register(BlazingMessage)
-    # @cuda_deserialize.register(BlazingMessage)
-    # def rfr_deserialize(header, frames):
-    #     print("DESERIALIZING")
-    #     return pickle_loads(header, frames)
 
     register_generic(BlazingMessage, 'cuda',
                      cuda_serialize, cuda_deserialize)
@@ -95,7 +83,6 @@ class UCX:
     async def start_listener(self):
 
         async def handle_comm(comm):
-            print("Comm request: %s" % comm)
 
             while not comm.closed():
                 msg = await comm.read()
@@ -115,19 +102,14 @@ class UCX:
         return self._listener.port
 
     async def _create_endpoint(self, addr):
-
-        print("Connecting to %s" % addr)
         ep = await UCXConnector().connect(addr)
-        print("Done connecting to %s" % addr)
         self._endpoints[addr] = ep
         return ep
 
     async def get_endpoint(self, addr):
         if addr not in self._endpoints:
-            print("Creating endpoint from %s to %s" % (get_worker().address, addr))
             ep = await self._create_endpoint(addr)
         else:
-            print("Using endpoint from %s to %s" % (get_worker().address, addr))
             ep = self._endpoints[addr]
 
         return ep
@@ -141,11 +123,8 @@ class UCX:
             ep = await self.get_endpoint(addr)
             msg = serialize(blazing_msg,
                            serializers=serde)
-            #
-            # msg = "Hello World!"
             await ep.write(msg=msg,
                            serializers=serde)
-            print("Sent")
 
     def stop_endpoints(self):
         for addr, ep in self._endpoints.items():
