@@ -40,6 +40,13 @@ async def send(msg):
     await UCX.get().send(msg)
 
 
+class PyBlazingCache():
+    def add_to_cache_with_meta(self,cudf_data,metadata):
+        pass
+
+    def add_to_cache(self,cudf_data):
+        pass
+
 @pytest.mark.asyncio
 async def test_ucx_localcluster( cleanup):
     async with LocalCUDACluster(
