@@ -4,7 +4,7 @@
 #include "DebuggingUtils.h"
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/strings/string_view.cuh>
-#include <tests/utilities/column_utilities.hpp>
+// #include <tests/utilities/column_utilities.hpp> // these test utilities have been causing issues. Hopefully we can use them again in non-test code
 
 namespace ral {
 namespace utilities {
@@ -37,7 +37,7 @@ void print_blazing_table_view(ral::frame::BlazingTableView table_view, const std
 	for(size_t col_idx=0; col_idx<table_view.num_columns(); col_idx++){
 		std::string col_string;
 		if (table_view.num_rows() > 0){
-			col_string = cudf::test::to_string(table_view.column(col_idx), "|");
+			// col_string = cudf::test::to_string(table_view.column(col_idx), "|");
 		}
 		std::cout<<"\t"<<table_view.names().at(col_idx)<<" ("<<"type: "<<type_string(table_view.column(col_idx).type())<<"): "<<col_string<<std::endl;
 	}
