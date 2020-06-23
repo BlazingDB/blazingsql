@@ -26,13 +26,11 @@ import pandas as pd
 import pyarrow as pa
 
 import cudf
-from cudf.utils import cudautils
-from cudf.utils.dtypes import is_categorical_dtype
-from cudf.utils.utils import mask_dtype, mask_bitsize
 
-from cudf.core.column.column import build_column
-import rmm
 from cudf._lib cimport *
+from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
+from cudf._lib.cpp.types cimport type_id
+from cudf._lib.types cimport underlying_type_t_type_id
 
 from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
@@ -40,7 +38,6 @@ from cpython.ref cimport PyObject
 from cython.operator cimport dereference, postincrement
 
 from cudf._lib.table cimport Table as CudfXxTable
-from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 
 import logging
 
@@ -100,8 +97,8 @@ cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_
 cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values):
     return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef unique_ptr[cio.PartitionedResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except *:
-    return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options))
+# cdef unique_ptr[cio.PartitionedResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except *:
+#     return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options))
 
 cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) except *:
     return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
@@ -203,18 +200,22 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_
 
     cdef vector[pair[string,type_id]] extra_columns_cpp
     cdef pair[string,type_id] extra_column_cpp
-
+    
     for extra_column in extra_columns:
-        extra_column_cpp = (extra_column[0].encode(),extra_column[1])
+        extra_column_cpp.first = extra_column[0].encode()
+        extra_column_cpp.second = <type_id>(<underlying_type_t_type_id>(extra_column[1]))
         extra_columns_cpp.push_back(extra_column_cpp)
 
     tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp, ignore_missing_paths)
+
     return_object = {}
     return_object['datasource'] = files
     return_object['files'] = tableSchema.files
     return_object['file_type'] = tableSchema.data_type
     return_object['args'] = args
-    return_object['types'] = tableSchema.types
+    return_object['types'] = []
+    for type in tableSchema.types:
+        return_object['types'].append(<underlying_type_t_type_id>(type))
     return_object['names'] = tableSchema.names
     return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
 
@@ -229,12 +230,14 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     cdef vector[string] arg_keys
     cdef vector[string] arg_values
     cdef TableSchema cpp_schema
+    cdef type_id tid
 
     for col in schema['names']:
         cpp_schema.names.push_back(col)
 
     for col_type in schema['types']:
-        cpp_schema.types.push_back(col_type)
+        tid = <type_id>(<underlying_type_t_type_id>(col_type))
+        cpp_schema.types.push_back(tid)
 
     for key, value in args.items():
       arg_keys.push_back(str.encode(key))
@@ -287,124 +290,124 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
 
     return df
 
-cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, bool is_single_node):
-    cdef string query
-    query = str.encode(queryPy)
-    cdef vector[NodeMetaDataTCP] tcpMetadataCpp
-    cdef vector[TableSchema] tableSchemaCpp
-    cdef vector[vector[string]] tableSchemaCppArgKeys
-    cdef vector[vector[string]] tableSchemaCppArgValues
-    cdef vector[string] currentTableSchemaCppArgKeys
-    cdef vector[string] currentTableSchemaCppArgValues
-    cdef vector[string] tableNames
-    cdef vector[string] tableScans
-    cdef vector[type_id] types
-    cdef vector[string] names
-    cdef TableSchema currentTableSchemaCpp
-    cdef NodeMetaDataTCP currentMetadataCpp
-    cdef vector[vector[string]] filesAll
-    cdef vector[string] currentFilesAll
-    cdef vector[BlazingTableView] blazingTableViews
+# cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, bool is_single_node):
+#     cdef string query
+#     query = str.encode(queryPy)
+#     cdef vector[NodeMetaDataTCP] tcpMetadataCpp
+#     cdef vector[TableSchema] tableSchemaCpp
+#     cdef vector[vector[string]] tableSchemaCppArgKeys
+#     cdef vector[vector[string]] tableSchemaCppArgValues
+#     cdef vector[string] currentTableSchemaCppArgKeys
+#     cdef vector[string] currentTableSchemaCppArgValues
+#     cdef vector[string] tableNames
+#     cdef vector[string] tableScans
+#     cdef vector[type_id] types
+#     cdef vector[string] names
+#     cdef TableSchema currentTableSchemaCpp
+#     cdef NodeMetaDataTCP currentMetadataCpp
+#     cdef vector[vector[string]] filesAll
+#     cdef vector[string] currentFilesAll
+#     cdef vector[BlazingTableView] blazingTableViews
 
-    cdef vector[vector[map[string,string]]] uri_values_cpp_all
-    cdef vector[map[string,string]] uri_values_cpp
-    cdef map[string,string] cur_uri_values
+#     cdef vector[vector[map[string,string]]] uri_values_cpp_all
+#     cdef vector[map[string,string]] uri_values_cpp
+#     cdef map[string,string] cur_uri_values
 
-    cdef vector[column_view] column_views
-    cdef Column cython_col
+#     cdef vector[column_view] column_views
+#     cdef Column cython_col
 
-    for tableIndex in range(len(tables)):
-      uri_values_cpp.clear()
-      for uri_value in tables[tableIndex].uri_values:
-        cur_uri_values.clear()
-        for column_tuple in uri_value:
-          key = column_tuple[0]
-          value = column_tuple[1]
-          cur_uri_values[key.encode()] = value.encode()
+#     for tableIndex in range(len(tables)):
+#       uri_values_cpp.clear()
+#       for uri_value in tables[tableIndex].uri_values:
+#         cur_uri_values.clear()
+#         for column_tuple in uri_value:
+#           key = column_tuple[0]
+#           value = column_tuple[1]
+#           cur_uri_values[key.encode()] = value.encode()
 
-        uri_values_cpp.push_back(cur_uri_values)
+#         uri_values_cpp.push_back(cur_uri_values)
 
-      uri_values_cpp_all.push_back(uri_values_cpp)
+#       uri_values_cpp_all.push_back(uri_values_cpp)
 
-      tableNames.push_back(str.encode(tables[tableIndex].name))
-      tableScans.push_back(str.encode(table_scans[tableIndex]))
-      table = tables[tableIndex]
-      currentFilesAll.resize(0)
-      if table.files is not None:
-        for file in table.files:
-          currentFilesAll.push_back(file)
-      filesAll.push_back(currentFilesAll)
-      types.resize(0)
-      names.resize(0)
-      fileType = fileTypes[tableIndex]
+#       tableNames.push_back(str.encode(tables[tableIndex].name))
+#       tableScans.push_back(str.encode(table_scans[tableIndex]))
+#       table = tables[tableIndex]
+#       currentFilesAll.resize(0)
+#       if table.files is not None:
+#         for file in table.files:
+#           currentFilesAll.push_back(file)
+#       filesAll.push_back(currentFilesAll)
+#       types.resize(0)
+#       names.resize(0)
+#       fileType = fileTypes[tableIndex]
 
-      if len(table.file_column_names) == 0:
-        for col_name in table.column_names:
-          if type(col_name) == np.str:
-              names.push_back(col_name.encode())
-          else: # from file
-              names.push_back(col_name)
-      else:
-        for col_name in table.file_column_names:
-          if type(col_name) == np.str:
-              names.push_back(col_name.encode())
-          else: # from file
-              names.push_back(col_name)
+#       if len(table.file_column_names) == 0:
+#         for col_name in table.column_names:
+#           if type(col_name) == np.str:
+#               names.push_back(col_name.encode())
+#           else: # from file
+#               names.push_back(col_name)
+#       else:
+#         for col_name in table.file_column_names:
+#           if type(col_name) == np.str:
+#               names.push_back(col_name.encode())
+#           else: # from file
+#               names.push_back(col_name)
 
-      for col_type in table.column_types:
-        types.push_back(col_type)
+#       for col_type in table.column_types:
+#         types.push_back(col_type)
 
-      if table.fileType in (4, 5): # if cudf DataFrame or dask.cudf DataFrame
-        blazingTableViews.resize(0)
-        for cython_table in table.input:
-          column_views.resize(0)
-          for cython_col in cython_table._data.values():
-            column_views.push_back(cython_col.view())
-          blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
-        currentTableSchemaCpp.blazingTableViews = blazingTableViews
+#       if table.fileType in (4, 5): # if cudf DataFrame or dask.cudf DataFrame
+#         blazingTableViews.resize(0)
+#         for cython_table in table.input:
+#           column_views.resize(0)
+#           for cython_col in cython_table._data.values():
+#             column_views.push_back(cython_col.view())
+#           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
+#         currentTableSchemaCpp.blazingTableViews = blazingTableViews
 
-      currentTableSchemaCpp.names = names
-      currentTableSchemaCpp.types = types
+#       currentTableSchemaCpp.names = names
+#       currentTableSchemaCpp.types = types
 
-      currentTableSchemaCpp.datasource = table.datasource
-      if table.calcite_to_file_indices is not None:
-        currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
-      currentTableSchemaCpp.in_file = table.in_file
-      currentTableSchemaCppArgKeys.resize(0)
-      currentTableSchemaCppArgValues.resize(0)
-      tableSchemaCppArgKeys.push_back(currentTableSchemaCppArgKeys)
-      tableSchemaCppArgValues.push_back(currentTableSchemaCppArgValues)
-      for key, value in table.args.items():
-          tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
-          tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
+#       currentTableSchemaCpp.datasource = table.datasource
+#       if table.calcite_to_file_indices is not None:
+#         currentTableSchemaCpp.calcite_to_file_indices = table.calcite_to_file_indices
+#       currentTableSchemaCpp.in_file = table.in_file
+#       currentTableSchemaCppArgKeys.resize(0)
+#       currentTableSchemaCppArgValues.resize(0)
+#       tableSchemaCppArgKeys.push_back(currentTableSchemaCppArgKeys)
+#       tableSchemaCppArgValues.push_back(currentTableSchemaCppArgValues)
+#       for key, value in table.args.items():
+#           tableSchemaCppArgKeys[tableIndex].push_back(str.encode(key))
+#           tableSchemaCppArgValues[tableIndex].push_back(str.encode(str(value)))
 
-      if table.row_groups_ids is not None:
-        currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
-      else:
-        currentTableSchemaCpp.row_groups_ids = []
+#       if table.row_groups_ids is not None:
+#         currentTableSchemaCpp.row_groups_ids = table.row_groups_ids
+#       else:
+#         currentTableSchemaCpp.row_groups_ids = []
 
-      tableSchemaCpp.push_back(currentTableSchemaCpp)
+#       tableSchemaCpp.push_back(currentTableSchemaCpp)
 
-    for currentMetadata in tcpMetadata:
-        currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        currentMetadataCpp.communication_port = currentMetadata['communication_port']
-        tcpMetadataCpp.push_back(currentMetadataCpp)
+#     for currentMetadata in tcpMetadata:
+#         currentMetadataCpp.ip = currentMetadata['ip'].encode()
+#         currentMetadataCpp.communication_port = currentMetadata['communication_port']
+#         tcpMetadataCpp.push_back(currentMetadataCpp)
 
-    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options))
+#     resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options))
 
-    names = dereference(resultSet).names
-    decoded_names = []
-    for i in range(names.size()):
-        decoded_names.append(names[i].decode('utf-8'))
+#     names = dereference(resultSet).names
+#     decoded_names = []
+#     for i in range(names.size()):
+#         decoded_names.append(names[i].decode('utf-8'))
 
-    if is_single_node: # the engine returns a concatenated dataframe
-        df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[0]), decoded_names)._data)
-        return df
-    else: # the engine returns a vector of dataframes
-        dfs = []
-        for i in range(dereference(resultSet).cudfTables.size()):
-            dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
-        return dfs
+#     if is_single_node: # the engine returns a concatenated dataframe
+#         df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[0]), decoded_names)._data)
+#         return df
+#     else: # the engine returns a vector of dataframes
+#         dfs = []
+#         for i in range(dereference(resultSet).cudfTables.size()):
+#             dfs.append(cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTables[i]), decoded_names)._data))
+#         return dfs
 
 cpdef runSkipDataCaller(table, queryPy):
     cdef string query
@@ -459,39 +462,11 @@ cpdef getTableScanInfoCaller(logicalPlan,tables):
 
     return new_tables, table_scans
 
-# cpdef getTableScanInfoCaller(logicalPlan,tables):
-#     temp = getTableScanInfoPython(str.encode(logicalPlan))
-#     #print(temp)
-#     new_tables = {}
-#     table_names = [name.decode('utf-8') for name in temp.table_names]
 
-#     relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
-#     relational_algebra_steps = {}
-#     for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
+cpdef np_to_cudf_types_int(dtype):
+    return <underlying_type_t_type_id> ( np_to_cudf_types[dtype])
 
-#         new_table = tables[table_name]
+cpdef cudf_type_int_to_np_types(type_int):
+    return cudf_to_np_types[<underlying_type_t_type_id> (type_int)]
 
-#         # TODO percy c.gonzales felipe
-#         if new_table.fileType == 6:
-#           if table_name in new_tables:
-#             #TODO: this is not yet implemented the function unionColumns needs to be NotImplemented
-#             #for this to work
-#             temp_table = new_tables[table_name].filterAndRemapColumns(table_columns)
-#             new_tables[table_name] = temp_table.unionColumns(new_tables[table_name])
-#           else:
-#             if len(table_columns) != 0:
-#               new_table = new_table.filterAndRemapColumns(table_columns)
-#             else:
-#               new_table = new_table.convertForQuery()
-#         if table_name in relational_algebra_steps:
-#           relational_algebra_steps[table_name]['table_scans'].append(scan_string)
-#           relational_algebra_steps[table_name]['table_columns'].append(table_columns)
-#         else:
-#           relational_algebra_steps[table_name] = {}
-#           relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
-#           relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
 
-#         new_table.column_names = tables[table_name].column_names
-#         new_tables[table_name] = new_table
-
-#     return new_tables, relational_algebra_steps
