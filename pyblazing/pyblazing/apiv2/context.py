@@ -145,7 +145,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         config_options
     )
 
-    cio.initializeCaller(
+    output_cache, input_cache = cio.initializeCaller(
         ralId,
         0,
         networkInterface.encode(),
@@ -153,6 +153,11 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort,
         singleNode,
         config_options)
+
+    if singleNode is False:
+        worker = dask.distributed.get_worker()
+        worker.output_cache = output_cache
+        worker.input_cache = input_cache
 
     if (os.path.isabs(logging_dir_path)):
         log_path = logging_dir_path

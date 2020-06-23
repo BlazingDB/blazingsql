@@ -13,7 +13,8 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.map cimport map
-from libcpp.memory cimport unique_ptr
+from libcpp.memory cimport unique_ptr, shared_ptr, make_shared, make_unique
+from cython.operator cimport dereference as deref, postincrement
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
@@ -42,6 +43,7 @@ from cython.operator cimport dereference, postincrement
 from cudf._lib.table cimport Table as CudfXxTable
 from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 
+from libcpp.utility cimport pair
 import logging
 
 # TODO: module for errors and move pyerrors to cpyerrors
@@ -124,8 +126,8 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
-    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
+    return cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cdef void finalizePython() except *:
     cio.finalize()
@@ -145,7 +147,7 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         hdfs.port = fs['port']
         hdfs.user = str.encode(fs['user'])
         driver = fs['driver']
-        if 'libhdfs' == driver:
+        if 'libhdfs' == driver: # Increment the iterator to the net element
             hdfs.DriverType = 1
         elif 'libhdfs3' == driver:
             hdfs.DriverType = 2
@@ -172,8 +174,72 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
 
+
+
+cdef class PyBlazingCache:
+    cdef shared_ptr[cio.CacheMachine] c_cache
+
+    def add_to_cache_with_meta(self,cudf_data,metadata):
+        cdef cio.MetadataDictionary c_metadata
+        cdef map[string,string] metadata_map
+        cdef string c_key
+        for key in metadata.keys():
+          c_key = key.encode()
+          metadata_map[c_key] = metadata[key].encode()
+        c_metadata.set_values(metadata_map)
+        cdef vector[string] column_names
+        for column_name in cudf_data:
+           column_names.push_back(str.encode(column_name))
+        cdef vector[column_view] column_views
+        cdef Column cython_col
+        for cython_col in cudf_data._data.values():
+           column_views.push_back(cython_col.view())
+
+        cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
+        print("a")
+        deref(blazing_table).ensureOwnership()
+        deref(self.c_cache).addCacheData(blaz_move2(make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)),metadata["kernel_id"])
+
+    def add_to_cache(self,cudf_data):
+        cdef vector[string] column_names
+        for column_name in cudf_data:
+            column_names.push_back(str.encode(column_name))
+
+        cdef vector[column_view] column_views
+        cdef Column cython_col
+        for cython_col in cudf_data._data.values():
+            column_views.push_back(cython_col.view())
+        cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
+        deref(blazing_table).ensureOwnership()
+        cdef string message_id
+        deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id)
+
+    def pull_from_cache(self):
+        cdef unique_ptr[CacheData] cache_data_generic = deref(self.c_cache).pullCacheData()
+        cdef unique_ptr[GPUCacheDataMetaData] cache_data = cast_cache_data_to_gpu_with_meta(blaz_move(cache_data_generic))
+        cdef pair[unique_ptr[BlazingTable], MetadataDictionary ] table_and_meta = deref(cache_data).decacheWithMetaData()
+        table = blaz_move(table_and_meta.first)
+        metadata = table_and_meta.second
+        metadata_py = {}
+        cdef map[string,string].iterator it = metadata.get_values().begin()
+        while(it != metadata.get_values().end()):
+            metadata_py[dereference(it).first] = dereference(it).second
+            postincrement(it)
+        decoded_names = []
+        for i in range(deref(table).names().size()):
+            decoded_names.append(deref(table).names()[i].decode('utf-8'))
+        df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(deref(table).releaseCudfTable()), decoded_names)._data)
+        df._rename_columns(decoded_names)
+        return df, metadata_py
+
 cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
-    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+    caches = initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+    transport_out = PyBlazingCache()
+    transport_out.c_cache = caches.first
+    transport_in = PyBlazingCache()
+    transport_in.c_cache = caches.second
+    return (transport_out,transport_in)
+
 
 cpdef finalizeCaller():
     finalizePython()
@@ -255,7 +321,7 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
 
     names = dereference(resultSet).names
     decoded_names = []
-    for i in range(names.size()):
+    for i in range(names.size()): # Increment the iterator to the net element
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
