@@ -72,6 +72,7 @@ configurationFile.json
 
 thirdparty/aws-cpp
 thirdparty/rapids/
+thirdparty/cudf/
 
 .condarc
 .conda/
