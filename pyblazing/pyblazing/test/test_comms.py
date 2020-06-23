@@ -36,21 +36,6 @@ async def mock_msg_callback(msg):
     get_worker()._test_msgs_received.append(msg)
 
 
-async def gather_results():
-    """
-    For testing purposes only- gathers the received
-    messages on each worker.
-    """
-    return get_worker()._test_msgs_received
-
-
-async def send(msg):
-    """
-    Just for testing- wrapper function/task to send
-    a message on a worker.
-    """
-    await UCX.get().send(msg)
-
 
 class PyBlazingCache():
     def add_to_cache_with_meta(self,cudf_data,metadata):
@@ -76,25 +61,45 @@ async def test_ucx_localcluster( cleanup):
     ) as cluster:
         async with Client(cluster, asynchronous=True) as client:
 
+            """
+            First need to register BlazingMessage in the serialization layer
+            on Dask client and workers
+            """
             register_serialization()
             await client.run(register_serialization, wait=True)
 
+            """
+            Next, simply call list using an asynchronous Dask client.
+            The callback function is pushed to the workers and 
+            invoked when a message is received with a BlazingMessage
+            """
             ips_ports = await listen(mock_msg_callback, client)
+
+            "<<<<<<<<<< Begin Test Logic >>>>>>>>>>>>"
 
             assert len(ips_ports) == len(client.scheduler_info()["workers"])
             for k, v in ips_ports.items():
                 assert v is not None
 
-            # Build message for one worker to send to the other
+
+            """
+            Loop through each of the workers, sending a test BlazingMessage
+            to all other workers.
+            """
             for dask_addr, blazing_addr in ips_ports.items():
                 meta = {"worker_ids": list(ips_ports.values())}
                 data = cudf.DataFrame()
                 data["a"] = cudf.Series([0, 1, 2, 3, 4])
                 msg = BlazingMessage(meta, data)
 
+                async def send(msg): await UCX.get().send(msg)
                 await client.run(send, msg, workers=[dask_addr], wait=True)
 
-            received = await client.run(gather_results, wait=True)
+            """
+            Gather messages received on each worker for validation
+            """
+            received = await client.run(lambda: get_worker()._test_msgs_received, wait=True)
+
             print("MSGS: " + str(received))
 
             for worker_addr, msgs in received.items():
