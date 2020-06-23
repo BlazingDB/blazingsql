@@ -3,8 +3,8 @@
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include <cudf/cudf.h>
 #include <tests/utilities/base_fixture.hpp>
+#include <tests/utilities/column_wrapper.hpp>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
-#include <src/tests/utilities/column_wrapper.hpp>
 #include <src/utilities/DebuggingUtils.h>
 #include "../BlazingUnitTest.h"
 
