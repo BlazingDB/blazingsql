@@ -37,6 +37,7 @@ requirements:
         - cudatoolkit {{ cuda_version }}.*
     host:
         - gtest
+        - gmock
         - google-cloud-cpp
         - cmake
         - python
@@ -51,6 +52,7 @@ requirements:
         - cudatoolkit {{ cuda_version }}.*
     run:
         - gtest
+        - gmock
         - google-cloud-cpp
         - cppzmq
         - openjdk >=8.0
