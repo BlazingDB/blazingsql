@@ -3,6 +3,8 @@ import pytest
 
 import ucp
 import cudf
+from cudf.tests import utils as cudf_test
+
 import numpy as np
 
 from dask_cuda import LocalCUDACluster
@@ -108,9 +110,7 @@ async def test_ucx_localcluster( dask_cleanup):
 
                 for worker_addr, msgs in received.items():
                     for msg in msgs:
-                        msg.data.columns == ["a"]
-                        np.array_equal(msg.data["a"].values.get(), data["a"].values.get())
-                        assert msg.data == data
+                        cudf_test.assert_eq(msg.data, data)
                         assert msg.metadata == meta
                     assert len(msgs) == len(ips_ports)
             finally:
