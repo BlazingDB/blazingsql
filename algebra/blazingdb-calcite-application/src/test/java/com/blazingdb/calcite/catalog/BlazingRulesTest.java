@@ -41,7 +41,7 @@ import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
-import org.testng.Assert;
+import org.testng.asserts.SoftAssert;
 
 public class BlazingRulesTest {
 	private static SessionFactory sessionFactory = null;
@@ -301,6 +301,8 @@ public class BlazingRulesTest {
 		FileInputStream file = new FileInputStream(reference_filename);
 		ObjectInputStream in = new ObjectInputStream(file);
 
+		SoftAssert softAssert = new SoftAssert();
+
 		for (Entry<String, String> entry : tpch_queries)
 		{
 			String sql = entry.getValue();
@@ -309,10 +311,12 @@ public class BlazingRulesTest {
 			String logicalPlan = RelOptUtil.toString(optimizedPlan);
             String reference = (String)in.readObject();
 
-			Assert.assertEquals(reference, logicalPlan);
+			softAssert.assertEquals(reference, logicalPlan, "In test " + entry.getKey());
 		}
 
 		in.close();
 		file.close();
+
+		softAssert.assertAll();
 	}
 }
