@@ -210,7 +210,7 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> join_set(
 		const ral::frame::BlazingTableView & table_left,
 		const ral::frame::BlazingTableView & table_right,
-		std::string condition = false)
+		std::string condition = "")
 	{
 		std::unique_ptr<CudfTable> result_table;
 		std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
