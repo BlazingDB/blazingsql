@@ -5,6 +5,7 @@
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
+- #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
 
 
 
