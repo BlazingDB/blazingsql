@@ -26,13 +26,11 @@ import pandas as pd
 import pyarrow as pa
 
 import cudf
-from cudf.utils import cudautils
-from cudf.utils.dtypes import is_categorical_dtype
-from cudf.utils.utils import mask_dtype, mask_bitsize
 
-from cudf.core.column.column import build_column
-import rmm
 from cudf._lib cimport *
+from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
+from cudf._lib.cpp.types cimport type_id
+from cudf._lib.types cimport underlying_type_t_type_id
 
 from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
@@ -40,7 +38,6 @@ from cpython.ref cimport PyObject
 from cython.operator cimport dereference, postincrement
 
 from cudf._lib.table cimport Table as CudfXxTable
-from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 
 import logging
 
@@ -203,18 +200,22 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_
 
     cdef vector[pair[string,type_id]] extra_columns_cpp
     cdef pair[string,type_id] extra_column_cpp
-
+    
     for extra_column in extra_columns:
-        extra_column_cpp = (extra_column[0].encode(),extra_column[1])
+        extra_column_cpp.first = extra_column[0].encode()
+        extra_column_cpp.second = <type_id>(<underlying_type_t_type_id>(extra_column[1]))
         extra_columns_cpp.push_back(extra_column_cpp)
 
     tableSchema = parseSchemaPython(files,str.encode(file_format_hint),arg_keys,arg_values, extra_columns_cpp, ignore_missing_paths)
+
     return_object = {}
     return_object['datasource'] = files
     return_object['files'] = tableSchema.files
     return_object['file_type'] = tableSchema.data_type
     return_object['args'] = args
-    return_object['types'] = tableSchema.types
+    return_object['types'] = []
+    for type in tableSchema.types:
+        return_object['types'].append(<underlying_type_t_type_id>(type))
     return_object['names'] = tableSchema.names
     return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
 
@@ -229,12 +230,14 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     cdef vector[string] arg_keys
     cdef vector[string] arg_values
     cdef TableSchema cpp_schema
+    cdef type_id tid
 
     for col in schema['names']:
         cpp_schema.names.push_back(col)
 
     for col_type in schema['types']:
-        cpp_schema.types.push_back(col_type)
+        tid = <type_id>(<underlying_type_t_type_id>(col_type))
+        cpp_schema.types.push_back(tid)
 
     for key, value in args.items():
       arg_keys.push_back(str.encode(key))
@@ -352,7 +355,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vecto
               names.push_back(col_name)
 
       for col_type in table.column_types:
-        types.push_back(col_type)
+        types.push_back(<type_id>(<underlying_type_t_type_id>(col_type)))
 
       if table.fileType in (4, 5): # if cudf DataFrame or dask.cudf DataFrame
         blazingTableViews.resize(0)
@@ -459,39 +462,11 @@ cpdef getTableScanInfoCaller(logicalPlan,tables):
 
     return new_tables, table_scans
 
-# cpdef getTableScanInfoCaller(logicalPlan,tables):
-#     temp = getTableScanInfoPython(str.encode(logicalPlan))
-#     #print(temp)
-#     new_tables = {}
-#     table_names = [name.decode('utf-8') for name in temp.table_names]
 
-#     relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
-#     relational_algebra_steps = {}
-#     for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
+cpdef np_to_cudf_types_int(dtype):
+    return <underlying_type_t_type_id> ( np_to_cudf_types[dtype])
 
-#         new_table = tables[table_name]
+cpdef cudf_type_int_to_np_types(type_int):
+    return cudf_to_np_types[<underlying_type_t_type_id> (type_int)]
 
-#         # TODO percy c.gonzales felipe
-#         if new_table.fileType == 6:
-#           if table_name in new_tables:
-#             #TODO: this is not yet implemented the function unionColumns needs to be NotImplemented
-#             #for this to work
-#             temp_table = new_tables[table_name].filterAndRemapColumns(table_columns)
-#             new_tables[table_name] = temp_table.unionColumns(new_tables[table_name])
-#           else:
-#             if len(table_columns) != 0:
-#               new_table = new_table.filterAndRemapColumns(table_columns)
-#             else:
-#               new_table = new_table.convertForQuery()
-#         if table_name in relational_algebra_steps:
-#           relational_algebra_steps[table_name]['table_scans'].append(scan_string)
-#           relational_algebra_steps[table_name]['table_columns'].append(table_columns)
-#         else:
-#           relational_algebra_steps[table_name] = {}
-#           relational_algebra_steps[table_name]['table_scans'] = [scan_string,]
-#           relational_algebra_steps[table_name]['table_columns'] = [table_columns,]
 
-#         new_table.column_names = tables[table_name].column_names
-#         new_tables[table_name] = new_table
-
-#     return new_tables, relational_algebra_steps

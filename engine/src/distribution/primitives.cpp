@@ -11,11 +11,10 @@
 #include <cudf/merge.hpp>
 
 #include "utilities/CommonOperations.h"
-#include "utilities/DebuggingUtils.h"
 #include "utilities/random_generator.cuh"
 #include "error.hpp"
 
-#include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
+#include "tests/utilities/column_wrapper.hpp"
 
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;
@@ -350,10 +349,13 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 
 	int32_t step = outputRowSize / number_partitions;
 
-	auto sequence_iter = cudf::test::make_counting_transform_iterator(0, [step](auto i) { return int32_t(i * step) + step;});
-	cudf::test::fixed_width_column_wrapper<int32_t> gather_map_wrapper(sequence_iter, sequence_iter + pivotsSize);
-	CudfColumnView gather_map(gather_map_wrapper);
-	std::unique_ptr<CudfTable> pivots = cudf::gather( sortedSamples.view(), gather_map );
+	std::vector<int32_t> sequence(pivotsSize);
+    std::iota(sequence.begin(), sequence.end(), 1);
+    std::transform(sequence.begin(), sequence.end(), sequence.begin(), [step](int32_t i){ return i*step;});
+
+	auto gather_map = ral::utilities::vector_to_column(sequence, cudf::data_type(cudf::type_id::INT32));
+
+	std::unique_ptr<CudfTable> pivots = cudf::gather( sortedSamples.view(), gather_map->view() );
 
 	return std::make_unique<BlazingTable>(std::move(pivots), sortedSamples.names());
 }
@@ -425,8 +427,10 @@ void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, in
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	cudf::test::fixed_width_column_wrapper<int64_t>num_bytes_col{bytes_left, bytes_right};
-	CudfTableView num_bytes_table{{num_bytes_col}};
+	std::vector<int64_t> num_bytes_col_vect{bytes_left, bytes_right};
+	auto num_bytes_col = ral::utilities::vector_to_column(num_bytes_col_vect, cudf::data_type(cudf::type_id::INT64));
+
+	CudfTableView num_bytes_table{{num_bytes_col->view()}};
 	std::vector<std::string> names{"left_num_bytes", "right_num_bytes"};
 	BlazingTableView num_bytes_blz_table(num_bytes_table, names);
 	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_bytes_blz_table);

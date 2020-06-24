@@ -5,6 +5,7 @@
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
+- #822 remove "from_cudf" code and cudf test utilities from engine code
 - #802 Support for timestampadd and constant expressions evaluation by Calcite
 
 
