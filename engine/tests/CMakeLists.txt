@@ -67,6 +67,8 @@ function(configure_test TEST_NAME Tests_SRCS)
         # TODO jp c.gonzales make use of standard cmake find_package here (see above)
         #spdlog::spdlog
         libspdlog.a
+        
+        cudftestutil
     )
 
     set_target_properties(${TEST_NAME} PROPERTIES

@@ -1,7 +1,6 @@
 # NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
 import cudf
 
-from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 from cudf.core.column.column import build_column
 
 from collections import OrderedDict
@@ -344,12 +343,8 @@ def parseHiveMetadata(curr_table, uri_values):
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
 
-    if all(type in cudf_to_np_types for type in curr_table.column_types):
-        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
-    else:
-        for i in range(len(curr_table.column_types)):
-            if not (curr_table.column_types[i] in cudf_to_np_types):
-                print("ERROR: Column " + curr_table.column_names[i] + " has type that cannot be mapped: " + curr_table.column_types[i])
+    dtypes = [cudf_type_int_to_np_types(t) for t in curr_table.column_types]
+
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
         col_name = columns[index]
@@ -698,10 +693,10 @@ class BlazingTable(object):
 
         if self.fileType == DataType.CUDF:
             self.column_names = [x for x in self.input._data.keys()]
-            self.column_types = [np_to_cudf_types[x.dtype] for x in self.input._data.values()]
+            self.column_types = [cio.np_to_cudf_types_int(x.dtype) for x in self.input._data.values()]
         elif self.fileType == DataType.DASK_CUDF:
             self.column_names = [x for x in input.columns]
-            self.column_types = [np_to_cudf_types[x] for x in input.dtypes]
+            self.column_types = [cio.np_to_cudf_types_int(x) for x in input.dtypes]
 
         # file_column_names are usually the same as column_names, except for when
         # in a hive table the column names defined by the hive schema

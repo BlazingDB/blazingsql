@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <tests/utilities/base_fixture.hpp>
 #include <cudf/table/table_view.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>
 #include <cudf/column/column_factories.hpp>
-#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
-#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
-#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-#include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
+#include <tests/utilities/column_utilities.hpp>
+#include <tests/utilities/type_lists.hpp>
+#include <tests/utilities/column_wrapper.hpp>
+#include <tests/utilities/table_utilities.hpp>
 #include <execution_graph/logic_controllers/LogicalFilter.h>
 #include "cudf/stream_compaction.hpp"
 #include <cudf/datetime.hpp>
