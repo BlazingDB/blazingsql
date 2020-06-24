@@ -371,6 +371,9 @@ cdef class PyBlazingGraph:
         cache = PyBlazingCache()
         cache.c_cache = deref(self.ptr).get_kernel_output_cache(kernel_id,str.endcode(cache_id))
 
+    cpdef set_input_and_output_caches(self, PyBlazingCache input_cache, PyBlazingCache output_cache):
+        deref(self.ptr).set_input_and_output_caches(input_cache.c_cache, output_cache.c_cache)
+
 cpdef runGenerateGraphCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options):
     cdef string query
     query = str.encode(queryPy)
@@ -472,6 +475,7 @@ cpdef runGenerateGraphCaller(int masterIndex,  tcpMetadata,  tables,  table_scan
       tableSchemaCpp.push_back(currentTableSchemaCpp)
 
     for currentMetadata in tcpMetadata:
+        currentMetadataCpp.worker_id = currentMetadata.get('worker', '').encode()
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)

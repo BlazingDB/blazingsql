@@ -184,9 +184,17 @@ public:
                                 this->add_to_output_cache(std::move(empty));
                                 set_empty_part_for_non_master_node = true;
                             }
-                            std::vector<ral::distribution::NodeColumnView> selfPartition;
-                            selfPartition.emplace_back(this->context->getMasterNode(), batch->toBlazingTableView());
-                            ral::distribution::distributeTablePartitions(this->context.get(), selfPartition);
+                            // std::vector<ral::distribution::NodeColumnView> selfPartition;
+                            // selfPartition.emplace_back(this->context->getMasterNode(), batch->toBlazingTableView());
+                            // ral::distribution::distributeTablePartitions(this->context.get(), selfPartition);
+
+                            ral::cache::MetadataDictionary metadata;
+                            metadata->add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
+                            metadata->add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
+                            metadata->add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
+                            metadata->add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
+                            ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
+                            output_cache->addCacheData(std::unique_ptr<GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(batch), metadata)));
                         }
                     } else {
                         CudfTableView batch_view = batch->view();
@@ -205,21 +213,39 @@ public:
                             }
                         }
 
-                        std::vector<ral::distribution::NodeColumnView > partitions_to_send;
+                        // std::vector<ral::distribution::NodeColumnView > partitions_to_send;
+                        // for(int nodeIndex = 0; nodeIndex < this->context->getTotalNodes(); nodeIndex++ ){
+                        //     ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
+                        //     if (this->context->getNode(nodeIndex) == ral::communication::CommunicationData::getInstance().getSelfNode()){
+                        //         // hash_partition followed by split does not create a partition that we can own, so we need to clone it.
+                        //         // if we dont clone it, hashed_data will go out of scope before we get to use the partition
+                        //         // also we need a BlazingTable to put into the cache, we cant cache views.
+                        //         std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
+                        //         this->add_to_output_cache(std::move(partition_table_clone));
+                        //     } else {
+                        //         partitions_to_send.emplace_back(
+                        //             std::make_pair(this->context->getNode(nodeIndex), partition_table_view));
+                        //     }
+                        // }
+                        // ral::distribution::distributeTablePartitions(this->context.get(), partitions_to_send);
+
+                        ral::cache::MetadataDictionary metadata;
+                        metadata->add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
+                        metadata->add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
+                        metadata->add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
+                        metadata->add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
+                        ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
                         for(int nodeIndex = 0; nodeIndex < this->context->getTotalNodes(); nodeIndex++ ){
-                            ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
+                            auto partition = std::make_unique<ral::frame::BlazingTable>(partitioned[nodeIndex], batch->names());
                             if (this->context->getNode(nodeIndex) == ral::communication::CommunicationData::getInstance().getSelfNode()){
                                 // hash_partition followed by split does not create a partition that we can own, so we need to clone it.
                                 // if we dont clone it, hashed_data will go out of scope before we get to use the partition
                                 // also we need a BlazingTable to put into the cache, we cant cache views.
-                                std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
-                                this->add_to_output_cache(std::move(partition_table_clone));
+                                this->add_to_output_cache(std::move(partition));
                             } else {
-                                partitions_to_send.emplace_back(
-                                    std::make_pair(this->context->getNode(nodeIndex), partition_table_view));
+                                output_cache->addCacheData(std::unique_ptr<GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(partition), metadata)));
                             }
                         }
-                        ral::distribution::distributeTablePartitions(this->context.get(), partitions_to_send);
                     }
                     batch_count++;
                 } catch(const std::exception& e) {
@@ -392,10 +418,6 @@ public:
 private:
 
 };
-
-
-
-
 
 } // namespace batch
 } // namespace ral

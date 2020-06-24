@@ -147,7 +147,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	for(auto currentMetadata : tcpMetadata) {
 		auto address =
 			blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-		contextNodes.push_back(Node(address));
+		contextNodes.push_back(Node(address, currentMetadata.worker_id));
 	}
 
 	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};

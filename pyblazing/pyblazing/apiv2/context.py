@@ -230,6 +230,8 @@ def generateGraphs(
                         accessToken,
                         config_options)
 
+    graph.set_input_and_output_caches(worker.input_cache, worker.output_cache)
+
     with worker._lock:
         if not hasattr(worker, "query_graphs"):
             worker.query_graphs = {}

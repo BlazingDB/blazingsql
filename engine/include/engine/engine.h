@@ -13,6 +13,7 @@ struct SkipDataResultSet {
 };
 
 struct NodeMetaDataTCP {
+	std::string worker_id;
 	std::string ip;
 	std::int32_t communication_port;
 };
