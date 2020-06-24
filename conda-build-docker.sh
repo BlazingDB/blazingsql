@@ -31,6 +31,11 @@ if [ ! -z $5 ]; then
   CONDA_USERNAME=$5
 fi
 
+THE_CMD=./ci/cpu/build.sh
+if [ ! -z $6 ]; then
+  THE_CMD=$6
+fi
+
 docker run --rm -ti \
     --runtime=nvidia \
     -u $(id -u):$(id -g) \
@@ -42,5 +47,4 @@ docker run --rm -ti \
     -v /etc/passwd:/etc/passwd \
     -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
     gpuci/rapidsai-base:cuda${CUDA_VERSION}-ubuntu16.04-gcc5-py${PYTHON_VERSION} \
-    ./ci/cpu/build.sh
-
+    $THE_CMD

@@ -342,9 +342,7 @@ target_link_libraries(blazingsql-engine
     # Library needed for blazing communication repository (debug)
     gcov
 
-    gmock
     gtest
-    gtest_main
     cudftestutil
 )
 
