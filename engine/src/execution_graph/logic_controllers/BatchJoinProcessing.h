@@ -193,7 +193,7 @@ public:
 	}
 
   // this function makes sure that the columns being joined are of the same type so that we can join them properly
-	void computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const	std::vector<cudf::data_type> & right_types){
+	void computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types){
 		std::vector<cudf::data_type> left_join_types, right_join_types;
 		for (size_t i = 0; i < this->left_column_indices.size(); i++){
 			left_join_types.push_back(left_types[this->left_column_indices[i]]);
@@ -207,7 +207,11 @@ public:
 													right_join_types.cbegin(), right_join_types.cend());
 	}
 
-	std::unique_ptr<ral::frame::BlazingTable> join_set(const ral::frame::BlazingTableView & table_left, const ral::frame::BlazingTableView & table_right){
+	std::unique_ptr<ral::frame::BlazingTable> join_set(
+		const ral::frame::BlazingTableView & table_left,
+		const ral::frame::BlazingTableView & table_right,
+		std::string condition = false)
+	{
 		std::unique_ptr<CudfTable> result_table;
 		std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 		if(this->join_type == INNER_JOIN) {
@@ -222,13 +226,21 @@ public:
 			if(has_nulls_right){
 				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
 			}
-
-			result_table = cudf::inner_join(
-				has_nulls_left ? table_left_dropna->view() : table_left.view(),
-				has_nulls_right ? table_right_dropna->view() : table_right.view(),
-				this->left_column_indices,
-				this->right_column_indices,
-				columns_in_common);
+			
+			// cross join
+			if (condition == "true") {
+				result_table = cudf::cross_join(
+					has_nulls_left ? table_left_dropna->view() : table_left.view(),
+					has_nulls_right ? table_right_dropna->view() : table_right.view());
+			} else {
+				result_table = cudf::inner_join(
+					has_nulls_left ? table_left_dropna->view() : table_left.view(),
+					has_nulls_right ? table_right_dropna->view() : table_right.view(),
+					this->left_column_indices,
+					this->right_column_indices,
+					columns_in_common);
+			}
+			
 		} else if(this->join_type == LEFT_JOIN) {
 			//Removing nulls on right key columns before joining
 			std::unique_ptr<CudfTable> table_right_dropna;
@@ -368,7 +380,7 @@ public:
 					auto log_input_num_rows = left_batch->num_rows() + right_batch->num_rows();
 					auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
 
-					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
+					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView(), condition);
 
 					auto log_output_num_rows = joined->num_rows();
 					auto log_output_num_bytes = joined->sizeInBytes();
