@@ -1,4 +1,3 @@
-
 import ucp
 from distributed import get_worker
 
@@ -12,6 +11,8 @@ from dask.distributed import default_client
 serde = ("dask", "cuda", "pickle", "error")
 
 
+CTRL_STOP = "stopit"
+
 def register_serialization():
 
     import cudf.comm.serialize  # noqa: F401
@@ -19,7 +20,6 @@ def register_serialization():
 
     from distributed.protocol import dask_deserialize, dask_serialize
     from distributed.protocol.cuda import cuda_deserialize, cuda_serialize
-
 
     register_generic(BlazingMessage, 'cuda',
                      cuda_serialize, cuda_deserialize)
@@ -44,6 +44,16 @@ class BlazingMessage:
 async def listen(callback, client=None):
     client = client if client is not None else default_client()
     return await client.run(UCX.start_listener_on_worker, callback, wait=True)
+
+
+async def cleanup(client=None):
+    async def kill_ucx():
+        await UCX.get().stop_endpoints()
+        UCX.get().stop_listener()
+
+    client = client if client is not None else default_client()
+    return await client.run(kill_ucx, wait=True)
+
 
 
 class UCX:
@@ -84,12 +94,14 @@ class UCX:
 
         async def handle_comm(comm):
 
-            while not comm.closed():
+            should_stop = False
+            while not comm.closed() and not should_stop:
                 msg = await comm.read()
-                msg = deserialize(*msg,
-                                 deserializers=serde)
-                # print("Message Received: %s" % msg)
-                await self.callback(msg)
+                if msg == CTRL_STOP:
+                    should_stop = True
+                else:
+                    msg = deserialize(*msg, deserializers=serde)
+                    await self.callback(msg)
 
         ip, port = parse_host_port(get_worker().address)
 
@@ -121,15 +133,21 @@ class UCX:
         """
         for addr in blazing_msg.metadata["worker_ids"]:
             ep = await self.get_endpoint(addr)
-            msg = serialize(blazing_msg,
-                           serializers=serde)
-            await ep.write(msg=msg,
-                           serializers=serde)
+            msg = serialize(blazing_msg, serializers=serde)
+            await ep.write(msg=msg, serializers=serde)
 
-    def stop_endpoints(self):
+    def abort_endpoints(self):
         for addr, ep in self._endpoints.items():
             if not ep.closed():
                 ep.abort()
+            del ep
+        self._endpoints = {}
+
+    async def stop_endpoints(self):
+        for addr, ep in self._endpoints.items():
+            if not ep.closed():
+                await ep.write(msg=CTRL_STOP, serializers=serde)
+                await ep.close()
             del ep
         self._endpoints = {}
 
@@ -138,5 +156,5 @@ class UCX:
             self._listener.stop()
 
     def __del__(self):
-        self.stop_endpoints()
+        self.abort_endpoints()
         self.stop_listener()
