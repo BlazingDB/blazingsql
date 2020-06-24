@@ -52,7 +52,6 @@ requirements:
         - cudatoolkit {{ cuda_version }}.*
     run:
         - gtest
-        - gmock
         - google-cloud-cpp
         - cppzmq
         - openjdk >=8.0
