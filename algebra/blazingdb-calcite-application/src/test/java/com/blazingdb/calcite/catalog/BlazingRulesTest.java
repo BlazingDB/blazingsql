@@ -311,7 +311,7 @@ public class BlazingRulesTest {
 			String logicalPlan = RelOptUtil.toString(optimizedPlan);
             String reference = (String)in.readObject();
 
-			softAssert.assertEquals(reference, logicalPlan, "In test " + entry.getKey());
+			softAssert.assertEquals(logicalPlan, reference, "In test " + entry.getKey());
 		}
 
 		in.close();
