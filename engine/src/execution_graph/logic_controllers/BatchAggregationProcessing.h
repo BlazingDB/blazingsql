@@ -9,7 +9,6 @@
 #include "communication/CommunicationData.h"
 #include "operators/GroupBy.h"
 #include "distribution/primitives.h"
-#include "utilities/DebuggingUtils.h"
 #include <cudf/partitioning.hpp>
 #include "CodeTimer.h"
 

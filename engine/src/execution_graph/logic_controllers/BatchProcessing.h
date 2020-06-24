@@ -360,6 +360,12 @@ public:
 		}
 		bool has_limit = this->has_limit_;
 		size_t limit_ = this->limit_rows_;
+
+		// want to read only one file at a time to avoid OOM when `select * from table limit N`
+		if (has_limit) {
+			table_scan_kernel_num_threads = 1;
+		}
+
 		cudf::size_type current_rows = 0;
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {

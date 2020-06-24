@@ -27,7 +27,7 @@ bool is_type_integer(cudf::type_id type) {
 			cudf::type_id::INT64 == type);
 }
 
-bool is_type_bool(cudf::type_id type) { return cudf::type_id::BOOL8; }
+bool is_type_bool(cudf::type_id type) { return cudf::type_id::BOOL8 == type; }
 
 bool is_type_timestamp(cudf::type_id type) {
 	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
@@ -35,7 +35,7 @@ bool is_type_timestamp(cudf::type_id type) {
 			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
 }
 
-bool is_type_string(cudf::type_id type) { return cudf::type_id::STRING; }
+bool is_type_string(cudf::type_id type) { return cudf::type_id::STRING == type; }
 
 cudf::size_type get_index(const std::string & operand_string) {
 	assert(is_var_column(operand_string) || is_literal(operand_string));
