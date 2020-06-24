@@ -3,12 +3,14 @@ import pytest
 
 import ucp
 import cudf
+import numpy as np
 
 from dask_cuda import LocalCUDACluster
 from distributed import Client, Worker, Scheduler, wait, get_worker
 from distributed.comm import ucx, listen, connect
 from ..apiv2.comms import listen, BlazingMessage, UCX, register_serialization, cleanup
 from distributed.utils_test import cleanup as dask_cleanup  # noqa: 401
+
 
 enable_tcp_over_ucx = True
 enable_nvlink = False
@@ -84,15 +86,14 @@ async def test_ucx_localcluster( dask_cleanup):
                 for k, v in ips_ports.items():
                     assert v is not None
 
+                meta = {"worker_ids": tuple(ips_ports.values())}
+                data = cudf.DataFrame({"a": cudf.Series([0, 1, 2, 3, 4])})
 
                 """
                 Loop through each of the workers, sending a test BlazingMessage
                 to all other workers.
                 """
                 for dask_addr, blazing_addr in ips_ports.items():
-                    meta = {"worker_ids": list(ips_ports.values())}
-                    data = cudf.DataFrame()
-                    data["a"] = cudf.Series([0, 1, 2, 3, 4])
                     msg = BlazingMessage(meta, data)
 
                     async def send(msg): await UCX.get().send(msg)
@@ -103,9 +104,14 @@ async def test_ucx_localcluster( dask_cleanup):
                 """
                 received = await client.run(lambda: get_worker()._test_msgs_received, wait=True)
 
-                print("MSGS: " + str(received))
+                assert len(received) == len(ips_ports)
 
                 for worker_addr, msgs in received.items():
+                    for msg in msgs:
+                        msg.data.columns == ["a"]
+                        np.array_equal(msg.data["a"].values.get(), data["a"].values.get())
+                        assert msg.data == data
+                        assert msg.metadata == meta
                     assert len(msgs) == len(ips_ports)
             finally:
 
