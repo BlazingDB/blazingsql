@@ -397,7 +397,7 @@ public:
 
 	// take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
 	// this function does not change the order of the caches
-	size_t downgradeCacheData();
+	virtual size_t downgradeCacheData();
 
 
 protected:
@@ -533,6 +533,10 @@ public:
 	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+
+	size_t downgradeCacheData() override { // dont want to be able to downgrage concatenating caches
+		return 0;
+	}
 };
 
 }  // namespace cache
