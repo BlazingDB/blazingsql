@@ -18,12 +18,14 @@ namespace ral {
     }
 
     void MemoryMonitor::downgradeCaches(ral::batch::node* starting_node){
-        for (auto iter = starting_node->kernel_unit->output_.cache_machines_.begin(); 
-                iter != starting_node->kernel_unit->output_.cache_machines_.end(); iter++) {
-            size_t amount_downgraded = 0;
-            do {
-                amount_downgraded = iter->second->downgradeCacheData();
-            } while (amount_downgraded > 0 && need_to_free_memory()); // if amount_downgraded is 0 then there is was nothing left to downgrade
+        if (starting_node->kernel_unit->get_id() != 0) { // we want to skip the output node
+            for (auto iter = starting_node->kernel_unit->output_.cache_machines_.begin(); 
+                    iter != starting_node->kernel_unit->output_.cache_machines_.end(); iter++) {
+                size_t amount_downgraded = 0;
+                do {
+                    amount_downgraded = iter->second->downgradeCacheData();
+                } while (amount_downgraded > 0 && need_to_free_memory()); // if amount_downgraded is 0 then there is was nothing left to downgrade
+            }
         }
         if (need_to_free_memory()){
             if (starting_node->children.size() == 1){
