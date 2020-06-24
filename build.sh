@@ -115,7 +115,7 @@ if hasArg clean; then
     done
 
     if hasArg thirdparty; then
-        rm -rf ${REPODIR}/thirdparty/rapids/
+        rm -rf ${REPODIR}/thirdparty/cudf/
         rm -rf ${REPODIR}/thirdparty/aws-cpp/
     fi
 
