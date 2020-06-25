@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 import pyspark.sql.types as st
 from blazingsql import DataType
-# from dask.distributed import Client, wait
 from pyhive import hive
 
 from Configuration import Settings as Settings

@@ -1,12 +1,5 @@
 import argparse
-# import re
-# import sys
-# from collections import OrderedDict
-# from copy import deepcopy
-
 import input_generator as generator
-# import numpy as np
-# import pandas as pd
 import tpch
 from pydrill.client import PyDrill
 
