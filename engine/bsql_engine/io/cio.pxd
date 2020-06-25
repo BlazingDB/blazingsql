@@ -146,6 +146,7 @@ cdef extern from "../src/execution_graph/logic_controllers/taskflow/graph.h" nam
         cdef cppclass graph:
             void execute()
             shared_ptr[CacheMachine] get_kernel_output_cache(size_t kernel_id, string cache_id)
+            void set_input_and_output_caches(shared_ptr[CacheMachine] input_cache, shared_ptr[CacheMachine] output_cache)
 
 cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" namespace "ral::cache":
         cdef cppclass CacheData
@@ -182,6 +183,7 @@ cdef extern from "../include/engine/engine.h":
         unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raisePerformPartitionError
 
         cdef struct NodeMetaDataTCP:
+            string worker_id
             string ip
             int communication_port
         shared_ptr[graph] runGenerateGraph(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +raiseRunGenerateGraphError

@@ -27,7 +27,7 @@ protected:
   explicit Message(std::string const &messageToken,
                    uint32_t const &contextToken,
                    const blazingdb::transport::Node& sender_node)
-      : node_{sender_node.address()} {
+      : node_{sender_node.address(), sender_node.id()} {
     set_metadata(messageToken, contextToken);
   }
 

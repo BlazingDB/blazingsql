@@ -266,6 +266,15 @@ namespace cache {
 		return container_[kernel_id].get()->output_cache(cache_id);
 	}
 
+	void graph::set_input_and_output_caches(std::shared_ptr<ral::cache::CacheMachine> input_cache, std::shared_ptr<ral::cache::CacheMachine> output_cache) {
+		this->input_cache_ = input_cache;
+		this->output_cache_ = output_cache;
+	}
+
+	ral::cache::CacheMachine* get_input_cache() { return input_cache_.get(); }
+
+	ral::cache::CacheMachine* get_output_cache() {return output_cache_.get(); }
+
 	std::set<graph::Edge> graph::get_neighbours(kernel * from) { return edges_[from->get_id()]; }
 	std::set<graph::Edge> graph::get_neighbours(int32_t id) { return edges_[id]; }
 	std::set<graph::Edge> graph::get_reverse_neighbours(kernel * from) {

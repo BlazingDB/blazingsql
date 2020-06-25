@@ -54,7 +54,7 @@ void ExecMaster() {
 	// auto cache_machine = std::make_shared<ral::cache::HostCacheMachine>();
 
 	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);
-	
+
 	BlazingThread([cache_machine]() {
 		auto table = cache_machine->pullFromCache();
 		assert(table != nullptr);
@@ -62,7 +62,7 @@ void ExecMaster() {
 		std::cout << "message received\n";
 		expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, table->view().column(0));
 		cudf::test::strings_column_wrapper expected({"d", "e", "a", "d", "k", "d", "l", "a", "b", "c"}, {1, 0, 1, 1, 1, 1, 1, 1, 0 , 1});
-		cudf::test::expect_columns_equal(table->view().column(4), expected);		
+		cudf::test::expect_columns_equal(table->view().column(4), expected);
 		std::this_thread::sleep_for (std::chrono::seconds(1));
 	}).join();
 }
@@ -73,11 +73,11 @@ void ExecWorker() {
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
-	auto sender_node = Node(Address::TCP("127.0.0.1", 8001, 1234));
-	auto server_node = Node(Address::TCP("127.0.0.1", 8000, 1234));
+	auto sender_node = Node(Address::TCP("127.0.0.1", 8001, 1234), "");
+	auto server_node = Node(Address::TCP("127.0.0.1", 8000, 1234), "");
 
 	const auto samples = blazingdb::test::build_custom_table();
-	
+
 	std::uint64_t total_row_size = samples.num_rows();
 	ral::frame::BlazingTableView table_view(samples.view(), samples.names());
 	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);

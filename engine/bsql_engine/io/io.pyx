@@ -126,8 +126,8 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
-    return cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
+    return cio.initialize( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cdef void finalizePython() except *:
     cio.finalize()
@@ -232,8 +232,8 @@ cdef class PyBlazingCache:
         df._rename_columns(decoded_names)
         return df, metadata_py
 
-cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
-    caches = initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
+    caches = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
     transport_out = PyBlazingCache()
     transport_out.c_cache = caches.first
     transport_in = PyBlazingCache()
@@ -371,6 +371,9 @@ cdef class PyBlazingGraph:
         cache = PyBlazingCache()
         cache.c_cache = deref(self.ptr).get_kernel_output_cache(kernel_id,str.endcode(cache_id))
 
+    cpdef set_input_and_output_caches(self, PyBlazingCache input_cache, PyBlazingCache output_cache):
+        deref(self.ptr).set_input_and_output_caches(input_cache.c_cache, output_cache.c_cache)
+
 cpdef runGenerateGraphCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options):
     cdef string query
     query = str.encode(queryPy)
@@ -472,6 +475,7 @@ cpdef runGenerateGraphCaller(int masterIndex,  tcpMetadata,  tables,  table_scan
       tableSchemaCpp.push_back(currentTableSchemaCpp)
 
     for currentMetadata in tcpMetadata:
+        currentMetadataCpp.worker_id = currentMetadata.get('worker', '').encode()
         currentMetadataCpp.ip = currentMetadata['ip'].encode()
         currentMetadataCpp.communication_port = currentMetadata['communication_port']
         tcpMetadataCpp.push_back(currentMetadataCpp)

@@ -92,6 +92,7 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, boo
 *
 */
 std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initialize(int ralId,
+	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
@@ -128,7 +129,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
-	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);
+	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
 
 	ral::communication::network::Server::start(ralCommunicationPort, true);
 

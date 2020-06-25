@@ -45,6 +45,11 @@ enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA };
 const std::string KERNEL_ID_METADATA_LABEL = "kernel_id";
 const std::string QUERY_ID_METADATA_LABEL = "query_id";
 const std::string CACHE_ID_METADATA_LABEL = "cache_id";
+const std::string ADD_TO_SPECIFIC_CACHE_METADATA_LABEL = "add_to_specific_cache";
+const std::string SENDER_WORKER_ID_METADATA_LABEL = "sender_worker_id";
+const std::string WORKER_IDS_METADATA_LABEL = "worker_ids";
+const std::string TOTAL_TABLE_ROWS_METADATA_LABEL = "total_table_rows";
+const std::string PARTITION_INDEX_METADATA_LABEL = "partition_index";
 
 /// \brief An interface which represent a CacheData
 class CacheData {

@@ -64,6 +64,10 @@ public:
 	kernel * get_node(size_t id);
 	std::shared_ptr<ral::cache::CacheMachine>  get_kernel_output_cache(size_t kernel_id, std::string cache_id = "");
 
+	void set_input_and_output_caches(std::shared_ptr<ral::cache::CacheMachine> input_cache, std::shared_ptr<ral::cache::CacheMachine> output_cache);
+	ral::cache::CacheMachine* get_input_cache();
+	ral::cache::CacheMachine* get_output_cache();
+
 	std::set<Edge> get_neighbours(kernel * from);
 	std::set<Edge> get_neighbours(int32_t id);
 	std::set<Edge> get_reverse_neighbours(kernel * from);
@@ -77,6 +81,9 @@ private:
 	std::map<std::int32_t, std::shared_ptr<kernel>> container_;
 	std::map<std::int32_t, std::set<Edge>> edges_;
 	std::map<std::int32_t, std::set<Edge>> reverse_edges_;
+
+	std::shared_ptr<ral::cache::CacheMachine> input_cache_;
+	std::shared_ptr<ral::cache::CacheMachine> output_cache_;
 
 	std::shared_ptr<spdlog::logger> kernels_edges_logger;
 };

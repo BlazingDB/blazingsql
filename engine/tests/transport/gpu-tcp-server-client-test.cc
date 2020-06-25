@@ -75,11 +75,11 @@ static void ExecWorker() {
 	auto sizeBuffer = GPU_MEMORY_SIZE / 4;
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffer, nthread);
-	auto sender_node = Node(Address::TCP("127.0.0.1", 8001, 1234));
-	auto server_node = Node(Address::TCP("127.0.0.1", 8000, 1234));
+	auto sender_node = Node(Address::TCP("127.0.0.1", 8001, 1234), "");
+	auto server_node = Node(Address::TCP("127.0.0.1", 8000, 1234), "");
 
 	const auto samples = blazingdb::test::build_custom_table();
-	
+
 	std::uint64_t total_row_size = samples.num_rows();
 	ral::frame::BlazingTableView table_view(samples.view(), samples.names());
 	std::string message_token = SampleToNodeMasterMessage::MessageID() + "_" + std::to_string(1);

@@ -6,6 +6,7 @@
 #include <memory>
 
 std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> > initialize(int ralId,
+	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
