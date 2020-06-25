@@ -6,8 +6,10 @@
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
 - #786 Added check for concat String overflow
-
-
+- #820 Implemented Unordered pull from cache to help performance and a memory monitor
+- #822 remove "from_cudf" code and cudf test utilities from engine code
+- #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
+- #802 Support for timestampadd and constant expressions evaluation by Calcite
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -18,6 +20,9 @@
 - #770 Fix interops operators output types
 - #798 Fix when the algebra plan was provided using one-line as logical plan
 - #799 Fix uri values computacion in runQueryCaller
+- #792 Remove orc temp files when cached on Disk
+- #814 Fix when checking only Limit and Scan Kernels
+- #816 Loading one file at a time (LimitKernel and ScanKernel) 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
@@ -59,3 +64,6 @@
 - #763 Implemented ability to set the folder for all log files
 - #757 Ensure GPU portability (so we can run on any cloud instance with GPU)
 - #753 Fix for host memory threshold parameter with Dask envs
+- #801 Fix build with new cudf 0.15 and arrow 0.17.1
+- #809 Fix conda build issues
+- #828 Fix gpuci issues and improve tooling to debug gpuci related issues

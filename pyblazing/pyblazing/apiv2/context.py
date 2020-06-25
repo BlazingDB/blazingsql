@@ -1,7 +1,6 @@
 # NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
 import cudf
 
-from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 from cudf.core.column.column import build_column
 
 from collections import OrderedDict
@@ -53,7 +52,13 @@ jpype.addClassPath(
         os.getenv("CONDA_PREFIX"),
         'lib/blazingsql-algebra-core.jar'))
 
+# NOTE felipe try first with CONDA_PREFIX/jre/lib/amd64/server/libjvm.so (for older Java versions e.g. 8.x)
 jvm_path=os.environ["CONDA_PREFIX"]+"/jre/lib/amd64/server/libjvm.so"
+
+if not os.path.isfile(jvm_path):
+    # NOTE felipe try a second time using CONDA_PREFIX/lib/server/ (for newer java versions e.g. 11.x)
+    jvm_path=os.environ["CONDA_PREFIX"]+"/lib/server/libjvm.so"
+
 jpype.startJVM('-ea', convertStrings=False, jvmpath=jvm_path)
 
 ArrayClass = jpype.JClass('java.util.ArrayList')
@@ -94,7 +99,6 @@ class blazing_allocation_mode(IntEnum):
     CudaManagedMemory = (2,)
 
 
-
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
                       initial_pool_size=None, 
@@ -122,8 +126,8 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         "cuda_memory_resource", "managed_memory_resource", "cnmem_memory_resource", 
         "cnmem_managed_memory_resource" ]
     if allocator not in possible_allocators:
-                print('ERROR: parameter "allocator" was not set to a proper value. It was set to: ' + str(allocator) + '. It needs to be either "managed", "default" or "existing"')
-                allocator = "managed"
+        print('ERROR: parameter "allocator" was not set to a proper value. It was set to: ' + str(allocator) + '. It needs to be either "managed", "default" or "existing"')
+        allocator = "managed"
 
     if not pool and allocator == "default":
         allocator = "cuda_memory_resource"
@@ -225,7 +229,7 @@ def collectPartitionsRunQuery(
         print(">>>>>>>> ", e)
         result = [cudf.DataFrame()]
     except Exception as e:
-        raise e
+        raise e   
 
     meta = dask.dataframe.utils.make_meta(dfs[0])
     query_partids = []
@@ -339,12 +343,8 @@ def parseHiveMetadata(curr_table, uri_values):
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
 
-    if all(type in cudf_to_np_types for type in curr_table.column_types):
-        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
-    else:
-        for i in range(len(curr_table.column_types)):
-            if not (curr_table.column_types[i] in cudf_to_np_types):
-                print("ERROR: Column " + curr_table.column_names[i] + " has type that cannot be mapped: " + curr_table.column_types[i])
+    dtypes = [cudf_type_int_to_np_types(t) for t in curr_table.column_types]
+
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
         col_name = columns[index]
@@ -589,7 +589,7 @@ def adjust_due_to_missing_rowgroups(metadata, files):
     return metadata, new_files
 
 
-def distributed_initialize_logging_directory(client, logging_dir_path):
+def distributed_initialize_server_directory(client, dir_path):
 
     # lets make host_list which is a list of all the unique hosts. 
     # This way we do the logging folder creation only once per host (server)
@@ -603,8 +603,8 @@ def distributed_initialize_logging_directory(client, logging_dir_path):
         if not initialized[worker_info['host']]:
             dask_futures.append(
                 client.submit(
-                    initialize_logging_directory,
-                    logging_dir_path,
+                    initialize_server_directory,
+                    dir_path,
                     workers=[worker]))
             initialized[worker_info['host']] = True
     
@@ -612,13 +612,26 @@ def distributed_initialize_logging_directory(client, logging_dir_path):
         made_dir = connection.result()
     
 
-def initialize_logging_directory(logging_dir_path):
-    if (not os.path.exists(logging_dir_path)):
-        os.mkdir(logging_dir_path)
+def initialize_server_directory(dir_path):
+    if (not os.path.exists(dir_path)):
+        os.mkdir(dir_path)
         return True
     else:
         return False
-        
+
+
+# Delete all generated (older than 1 hour) orc files
+def remove_orc_files_from_disk(data_dir):
+    if os.path.isfile(data_dir): # only if data_dir exists
+        all_files = os.listdir(data_dir)
+        current_time = time.time()
+        for file in all_files:
+            if ".blazing-temp" in file:
+                full_path_file = data_dir + "/" + file
+                creation_time = os.path.getctime(full_path_file)
+                if (current_time - creation_time) // (1 * 60 * 60) >= 1:
+                    os.remove(full_path_file)
+
 
 class BlazingTable(object):
     def __init__(
@@ -680,10 +693,10 @@ class BlazingTable(object):
 
         if self.fileType == DataType.CUDF:
             self.column_names = [x for x in self.input._data.keys()]
-            self.column_types = [np_to_cudf_types[x.dtype] for x in self.input._data.values()]
+            self.column_types = [cio.np_to_cudf_types_int(x.dtype) for x in self.input._data.values()]
         elif self.fileType == DataType.DASK_CUDF:
             self.column_names = [x for x in input.columns]
-            self.column_types = [np_to_cudf_types[x] for x in input.dtypes]
+            self.column_types = [cio.np_to_cudf_types_int(x) for x in input.dtypes]
 
         # file_column_names are usually the same as column_names, except for when
         # in a hive table the column names defined by the hive schema
@@ -841,7 +854,12 @@ class BlazingContext(object):
                                             default: 0.75 
                                     BLAZING_LOGGING_DIRECTORY : A folder path to place all logging files. The path can be relative or absolute.
                                             NOTE: This parameter only works when used in the BlazingContext
-                                            default: 'blazing_log'                               
+                                            default: 'blazing_log'
+                                    BLAZING_CACHE_DIRECTORY : A folder path to place all orc files when start caching on Disk. The path can be relative or absolute.
+                                            NOTE: This parameter only works when used in the BlazingContext
+                                            default: '/tmp/'
+                                    MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory consumption. The value is in milliseconds.
+                                            default: 50  (milliseconds)
 
         Examples
         --------
@@ -883,12 +901,22 @@ class BlazingContext(object):
         if ('BLAZING_LOGGING_DIRECTORY' in config_options): # want to use config_options and not self.config_options since its not encoded
             logging_dir_path = config_options['BLAZING_LOGGING_DIRECTORY']
 
+        cache_dir_path = '/tmp' # default directory to store orc files
+        if ('BLAZING_CACHE_DIRECTORY' in config_options):
+            cache_dir_path = config_options['BLAZING_CACHE_DIRECTORY'] + "tmp"
+
+        self.config_options['BLAZING_CACHE_DIRECTORY'.encode()] = cache_dir_path.encode()
+
+        # remove if exists older orc tmp files
+        remove_orc_files_from_disk(cache_dir_path)
+
         host_memory_quota = 0.75
         if not "BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode() in self.config_options:
             self.config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode()] = str(host_memory_quota).encode()
 
         if(dask_client is not None):
-            distributed_initialize_logging_directory(self.dask_client, logging_dir_path) 
+            distributed_initialize_server_directory(self.dask_client, logging_dir_path)
+            distributed_initialize_server_directory(self.dask_client, cache_dir_path)
 
             if network_interface is None:
                 network_interface = 'eth0'
@@ -933,13 +961,14 @@ class BlazingContext(object):
             
             # need to initialize this logging independently, in case its set as a relative path 
             # and the location from where the python script is running is different than the local dask workers
-            initialize_logging_directory(logging_dir_path) 
+            initialize_server_directory(logging_dir_path)
             # this one is for the non dask side
             FORMAT='%(asctime)s||%(levelname)s|||"%(message)s"||||||'
             filename = os.path.join(logging_dir_path, 'pyblazing.log')
             logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
         else:
-            initialize_logging_directory(logging_dir_path)
+            initialize_server_directory(logging_dir_path)
+            initialize_server_directory(cache_dir_path)
 
             ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
@@ -1715,6 +1744,7 @@ class BlazingContext(object):
         if (algebra is None):
             algebra = self.explain(query)
 
+
         # when an empty `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
         if "LogicalValues(tuples=[[]])" in algebra:
             print("This SQL statement returns empty result. Please double check your query.")
@@ -1800,6 +1830,7 @@ class BlazingContext(object):
                 result = cudf.DataFrame()
             except Exception as e:
                 raise e
+
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return

@@ -161,7 +161,7 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bo
 		}
 	}
 	if (strict) {
-		RAL_FAIL("No common type between " + std::to_string(type1.id()) + " and " + std::to_string(type2.id()));
+		RAL_FAIL("No common type between " + std::to_string(static_cast<int32_t>(type1.id())) + " and " + std::to_string(static_cast<int32_t>(type2.id())));
 	} else {
 		if(is_type_float(type1.id()) && is_type_integer(type2.id())) {
 			return type1;

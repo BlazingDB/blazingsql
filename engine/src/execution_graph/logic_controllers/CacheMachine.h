@@ -119,7 +119,7 @@ protected:
 /// \brief A specific class for a CacheData on Disk Memory
 class CacheDataLocalFile : public CacheData {
 public:
-	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table);
+	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path);
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override;
 
@@ -129,7 +129,6 @@ public:
 
 private:
 	std::string filePath_;
-	// ideally would be a writeable file
 };
 
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
@@ -308,13 +307,29 @@ public:
 				}
 				return done_waiting;
 			})){}
-		std::vector<message_ptr> response;
+		return get_all_unsafe();
+	}
+
+	std::unique_lock<std::mutex> lock(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		return std::move(lock);
+	}
+
+	std::vector<message_ptr> get_all_unsafe() {
+		std::vector<message_ptr> messages;
 		for(message_ptr & it : message_queue_) {
-			response.emplace_back(std::move(it));
+			messages.emplace_back(std::move(it));
 		}
 		message_queue_.erase(message_queue_.begin(), message_queue_.end());
-		return response;
+		return messages;
 	}
+
+	void put_all_unsafe(std::vector<message_ptr> messages) {
+		for(size_t i = 0; i < messages.size(); i++) {
+			putWaitingQueue(std::move(messages[i]));
+		}		
+	}
+
 
 private:
 	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
@@ -372,11 +387,17 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
+
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
 	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
 	
 	virtual void wait_if_cache_is_saturated();
+
+	// take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
+	// this function does not change the order of the caches
+	virtual size_t downgradeCacheData();
 
 
 protected:
@@ -513,8 +534,13 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
 
+	size_t downgradeCacheData() override { // dont want to be able to downgrage concatenating caches
+		return 0;
+	}
+	
 private:
 	bool concat_all;
+	
 };
 
 }  // namespace cache
