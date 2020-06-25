@@ -77,3 +77,10 @@ thirdparty/cudf/
 .condarc
 .conda/
 core
+
+# stuff from our docker utils
+.cache/
+.config/
+.cupy/
+.jitify-cache/
+.nv/
