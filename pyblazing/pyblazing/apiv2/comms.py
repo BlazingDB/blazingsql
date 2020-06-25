@@ -4,7 +4,7 @@ from distributed import get_worker
 from distributed.comm.ucx import UCXListener
 from distributed.comm.ucx import UCXConnector
 from distributed.comm.addressing import parse_host_port
-from distributed.protocol.serialize import serialize, deserialize
+from distributed.protocol.serialize import to_serialize, deserialize
 
 from dask.distributed import default_client
 
@@ -12,6 +12,7 @@ serde = ("dask", "cuda", "pickle", "error")
 
 
 CTRL_STOP = "stopit"
+
 
 def register_serialization():
 
@@ -100,7 +101,8 @@ class UCX:
                 if msg == CTRL_STOP:
                     should_stop = True
                 else:
-                    msg = deserialize(*msg, deserializers=serde)
+                    msg = BlazingMessage(**{k: v.deserialize()
+                                            for k, v in msg.items()})
                     await self.callback(msg)
 
         ip, port = parse_host_port(get_worker().address)
@@ -133,8 +135,9 @@ class UCX:
         """
         for addr in blazing_msg.metadata["worker_ids"]:
             ep = await self.get_endpoint(addr)
-            msg = serialize(blazing_msg, serializers=serde)
-            await ep.write(msg=msg, serializers=serde)
+            to_ser = {"metadata": to_serialize(blazing_msg.metadata),
+                      "data": to_serialize(blazing_msg.data)}
+            await ep.write(msg=to_ser, serializers=serde)
 
     def abort_endpoints(self):
         for addr, ep in self._endpoints.items():
