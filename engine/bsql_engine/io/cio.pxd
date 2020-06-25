@@ -161,8 +161,8 @@ cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" names
         cdef cppclass CacheMachine:
             void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id )
             void addToCache(unique_ptr[BlazingTable] table, const string & message_id )
-            unique_ptr[CacheData] pullCacheData()
-            unique_ptr[CacheData] pullCacheData(string message_id)
+            unique_ptr[CacheData] pullCacheData() nogil
+            unique_ptr[CacheData] pullCacheData(string message_id) nogil
 
 # REMARK: We have some compilation errors from cython assigning temp = unique_ptr[ResultSet]
 # We force the move using this function

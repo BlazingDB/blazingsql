@@ -14,7 +14,12 @@ from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 
+
+from distributed.comm import listen
+
+
 from pyblazing.apiv2.comms import run_polling_thread, listen
+
 
 
 from .hive import *
@@ -984,8 +989,10 @@ class BlazingContext(object):
             # Start polling thread in asyncio function on each worker
             self.dask_client.run(run_polling_thread, wait=False)
 
+
             # Start listener on each worker to send received messages to router
             listen(self.dask_client)
+
 
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different than the local dask workers

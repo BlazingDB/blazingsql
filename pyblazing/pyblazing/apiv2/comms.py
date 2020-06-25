@@ -28,8 +28,7 @@ async def run_polling_thread():  # doctest: +SKIP
     dask_worker = get_worker()
     import asyncio
     while True:
-        with nogil:
-            df, metadata = dask_worker.output_cache.pull_from_cache()
+        df, metadata = dask_worker.output_cache.pull_from_cache()
         await  UCX.get().send(BlazingMessage(df, metadata))
         await asyncio.sleep(0)
 
