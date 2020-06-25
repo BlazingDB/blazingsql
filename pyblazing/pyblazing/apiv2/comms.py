@@ -4,7 +4,7 @@ from distributed import get_worker
 from distributed.comm.ucx import UCXListener
 from distributed.comm.ucx import UCXConnector
 from distributed.comm.addressing import parse_host_port
-from distributed.protocol.serialize import to_serialize, deserialize
+from distributed.protocol.serialize import to_serialize
 
 from dask.distributed import default_client
 
