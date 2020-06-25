@@ -92,6 +92,11 @@ public:
 		this->values[key] = value;
 	}
 
+	void add_value(std::string key, int value){
+		this->values[key] = std::to_string(value);
+	}
+
+
 	int get_kernel_id(){
 		if( this->values.find(KERNEL_ID_METADATA_LABEL) == this->values.end()){
 			throw BlazingMissingMetadataException(KERNEL_ID_METADATA_LABEL);

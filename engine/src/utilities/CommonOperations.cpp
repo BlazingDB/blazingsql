@@ -53,7 +53,7 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 }
 
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names,
-	const std::vector<cudf::type_id> &dtypes, std::vector<size_t> column_indices) {
+	const std::vector<cudf::data_type> &dtypes, std::vector<size_t> column_indices) {
 
 	if (column_indices.size() == 0){
 		column_indices.resize(column_names.size());
@@ -63,7 +63,7 @@ std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<s
 	std::vector<std::unique_ptr<cudf::column>> columns(column_indices.size());
 
 	for (auto idx : column_indices) {
-		columns[idx] =  make_empty_column(cudf::data_type(dtypes[idx]));
+		columns[idx] =  make_empty_column(dtypes[idx]);
 	}
 	auto table = std::make_unique<cudf::table>(std::move(columns));
 	return std::make_unique<ral::frame::BlazingTable>(std::move(table), column_names);

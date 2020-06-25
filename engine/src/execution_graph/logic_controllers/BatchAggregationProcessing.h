@@ -159,7 +159,7 @@ public:
         std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
         std::vector<std::string> messages_to_wait_for; 
 		std::map<std::string, int> node_count;
-        BlazingThread producer_thread([this, group_column_indices, columns_to_hash](){
+        BlazingThread producer_thread([this, group_column_indices, columns_to_hash, &node_count](){
             // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
             // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
             int num_partitions = this->context->getTotalNodes();
@@ -198,7 +198,7 @@ public:
                             metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
                             metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getMasterNode().id());
                             ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
-                            output_cache->addCacheData(std::unique_ptr<GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(batch), metadata)));
+                            output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(batch), metadata)));
 							node_count[this->context->getMasterNode().id()]++;
 						}
                     } else {
@@ -250,9 +250,9 @@ public:
                                 this->add_to_output_cache(std::move(partition));
 								node_count[self_node.id()]++;
                             } else {
-                                metadata->add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getNode(i).id());
+                                metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getNode(i).id());
 								node_count[this->context->getNode(i).id()]++;
-                                output_cache->addCacheData(std::unique_ptr<GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(partition), metadata)));
+                                output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(partition), metadata)));
                             }
                         }
                     }
@@ -271,7 +271,7 @@ public:
 
             
 
-            auto self_node = CommunicationData::getInstance().getSelfNode();
+            auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
             auto nodes = context->getAllNodes();
             std::string worker_ids = "";
 
@@ -297,24 +297,24 @@ public:
 
                     std::vector<cudf::type_id> empty_types;
                     std::unique_ptr<ral::frame::BlazingTable> empty =
-                        ral::utilities::create_empty_table(empty_types);
+                        std::make_unique<ral::frame::BlazingTable>(std::move(ral::utilities::create_empty_table(empty_types)));
 
-                    this->query_graph->get_output_cache().addCacheData(
-                        std::unique_ptr<GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(empty), metadata)));
+                    this->query_graph->get_output_cache()->addCacheData(
+                        std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(empty), metadata)));
                 }
             }
 
         });
         //TODO: remove producer thread we don't really need it anymore
         producer_thread.join();
-        
+        auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
         int total_count = node_count[self_node.id()];
-        for (auto message : messages){
-            auto meta_message = this->query_graph->get_input_cache().pullCacheData(message);
-            total_count += meta_message.get_values()[ral::cache::PARTITION_COUNT];
+        for (auto message : messages_to_wait_for){
+            auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
+            total_count += static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT];
         }
 
-        this->output_cache("").wait_for_count(total_count);
+        this->output_cache()->wait_for_count(total_count);
 
 
 

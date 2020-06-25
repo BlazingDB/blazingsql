@@ -3,7 +3,7 @@
 namespace ral {
 namespace communication {
 
-CommunicationData::CommunicationData() : orchestratorPort{0} {}
+CommunicationData::CommunicationData() {}
 
 CommunicationData & CommunicationData::getInstance() {
 	static CommunicationData communicationData;
