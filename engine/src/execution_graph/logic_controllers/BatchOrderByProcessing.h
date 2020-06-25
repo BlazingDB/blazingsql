@@ -333,7 +333,6 @@ public:
 					metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
 					metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
 					metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
-					metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
 					metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
 					ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
 					for (auto i = 0; i < partitions.size(); i++) {
@@ -345,8 +344,8 @@ public:
 						}
 
 						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
+						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "output_" + std::to_string(part_ids[i]) );
 						
-						metadata.add_value(ral::cache::PARTITION_INDEX_METADATA_LABEL, std::to_string(part_ids[i]));
 						node_count[dest_node.id()]++;
 						output_cache->addCacheData(std::unique_ptr<GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)));
 					}
@@ -418,7 +417,7 @@ public:
             total_count += meta_message.get_values()[ral::cache::PARTITION_COUNT];
         }
 
-        this->output_cache.wait_for_count(total_count);
+        this->output_cache("").wait_for_count(total_count);
 
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
