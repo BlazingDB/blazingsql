@@ -215,7 +215,7 @@ cdef class PyBlazingCache:
         deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id)
 
     def pull_from_cache(self):
-        cdef unique_ptr[CacheData] cache_data_generic
+        cdef unique_ptr[CacheData] cache_data_generic 
         with nogil:
             cache_data_generic = deref(self.c_cache).pullCacheData()
         cdef unique_ptr[GPUCacheDataMetaData] cache_data = cast_cache_data_to_gpu_with_meta(blaz_move(cache_data_generic))

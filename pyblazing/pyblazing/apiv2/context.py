@@ -13,8 +13,14 @@ from threading import Lock
 from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
-from pyblazing.apiv2.comms import register_serialization, route_message, run_polling_thread, UCX
+
+
 from distributed.comm import listen
+
+
+from pyblazing.apiv2.comms import run_polling_thread, listen
+
+
 
 from .hive import *
 import time
@@ -980,12 +986,13 @@ class BlazingContext(object):
                 self.node_log_paths.append(log_path)
                 i = i + 1
 
-            register_serialization()
-            self.dask_client.run(register_serialization, wait=True)
-
+            # Start polling thread in asyncio function on each worker
             self.dask_client.run(run_polling_thread, wait=False)
 
-            UCX.get().start_listener_on_worker(route_message)
+
+            # Start listener on each worker to send received messages to router
+            listen(self.dask_client)
+
 
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different than the local dask workers

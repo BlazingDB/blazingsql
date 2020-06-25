@@ -16,37 +16,26 @@ def route_message(msg):
     if msg.metadata["add_to_specific_cache"]:
         cache = worker.query_graphs[msg.metadata["query_id"]].get_kernel_output_cache(
             msg.metadata["kernel_id"],
-            cache_id = msg.metadata["cache_id"]
+            cache_id=msg.metadata["cache_id"]
         )
         cache.add_to_cache(msg.data)
     else:
         cache = worker.input_cache
         cache.add_to_cache_with_meta(msg.data,msg.metadata)
 
-async def run_polling_thread(dask_worker):  # doctest: +SKIP
+
+async def run_polling_thread():  # doctest: +SKIP
+    dask_worker = get_worker()
     import asyncio
     while True:
-        df,metadata = dask_worker.output_cache.pull_from_cache()
-        UCX.get().send(BlazingMessage(df,metadata))
+
+
+        df, metadata = dask_worker.output_cache.pull_from_cache()
+        await  UCX.get().send(BlazingMessage(df, metadata))
+
         await asyncio.sleep(0)
 
 CTRL_STOP = "stopit"
-
-
-
-def register_serialization():
-
-    import cudf.comm.serialize  # noqa: F401
-    from distributed.protocol import register_generic
-
-    from distributed.protocol import dask_deserialize, dask_serialize
-    from distributed.protocol.cuda import cuda_deserialize, cuda_serialize
-
-    register_generic(BlazingMessage, 'cuda',
-                     cuda_serialize, cuda_deserialize)
-
-    register_generic(BlazingMessage, 'dask',
-                     dask_serialize, dask_deserialize)
 
 
 class BlazingMessage:
@@ -62,9 +51,9 @@ class BlazingMessage:
                 self.data is not None)
 
 
-async def listen(callback, client=None):
+def listen(callback=route_message, client=None):
     client = client if client is not None else default_client()
-    return await client.run(UCX.start_listener_on_worker, callback, wait=True)
+    return client.run(UCX.start_listener_on_worker, callback, wait=True)
 
 
 async def cleanup(client=None):

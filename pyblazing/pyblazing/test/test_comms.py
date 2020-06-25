@@ -10,7 +10,7 @@ import numpy as np
 from dask_cuda import LocalCUDACluster
 from distributed import Client, Worker, Scheduler, wait, get_worker
 from distributed.comm import ucx, listen, connect
-from ..apiv2.comms import listen, BlazingMessage, UCX, register_serialization, cleanup
+from ..apiv2.comms import listen, BlazingMessage, UCX, cleanup
 from distributed.utils_test import cleanup as dask_cleanup  # noqa: 401
 
 
@@ -66,13 +66,6 @@ async def test_ucx_localcluster( dask_cleanup):
         enable_infiniband=enable_infiniband
     ) as cluster:
         async with Client(cluster, asynchronous=True) as client:
-
-            """
-            First need to register BlazingMessage in the serialization layer
-            on Dask client and workers
-            """
-            register_serialization()
-            await client.run(register_serialization, wait=True)
 
             """
             Next, simply call list using an asynchronous Dask client.
