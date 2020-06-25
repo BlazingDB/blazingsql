@@ -12,6 +12,26 @@ from dask.distributed import default_client
 serde = ("dask", "cuda", "pickle", "error")
 
 
+def route_message(msg):
+    worker = get_worker()
+    if msg.metadata["add_to_specific_cache"]:
+        cache = worker.query_graphs[msg.metadata["query_id"]].get_kernel_output_cache(
+            msg.metadata["kernel_id"],
+            cache_id = msg.metadata["cache_id"]
+        )
+        cache.add_to_cache(msg.data)
+    else:
+        cache = worker.input_cache
+        cache.add_to_cache_with_meta(msg.data,msg.metadata)
+
+async def run_polling_thread(dask_worker):  # doctest: +SKIP
+    import asyncio
+    while True:
+        with nogil:
+            df,metadata = dask_worker.output_cache.pull_from_cache()
+        UCX.get().send(BlazingMessage(df,metadata))
+        await asyncio.sleep(0)
+
 def register_serialization():
 
     import cudf.comm.serialize  # noqa: F401

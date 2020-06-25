@@ -198,7 +198,7 @@ cdef class PyBlazingCache:
         cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
         print("a")
         deref(blazing_table).ensureOwnership()
-        deref(self.c_cache).addCacheData(blaz_move2(make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)),metadata["kernel_id"])
+        deref(self.c_cache).addCacheData(blaz_move2(make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)),metadata["query_id"] + "_" + metadata["kernel_id"])
 
     def add_to_cache(self,cudf_data):
         cdef vector[string] column_names

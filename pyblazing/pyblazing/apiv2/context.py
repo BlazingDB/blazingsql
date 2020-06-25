@@ -76,6 +76,8 @@ BlazingSchemaClass = jpype.JClass('com.blazingdb.calcite.schema.BlazingSchema')
 RelationalAlgebraGeneratorClass = jpype.JClass(
     'com.blazingdb.calcite.application.RelationalAlgebraGenerator')
 
+
+
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -973,6 +975,10 @@ class BlazingContext(object):
                 self.node_log_paths.append(log_path)
                 i = i + 1
 
+            register_serialization()
+            self.dask_client.run(register_serialization, wait=True)
+
+            self.dask_client.run(run_polling_thread, wait=False)
 
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different than the local dask workers
