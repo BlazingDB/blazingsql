@@ -45,7 +45,7 @@ from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 
 from libcpp.utility cimport pair
 import logging
-if dereference(it).first.decode('utf-8') == "worker_id":
+
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
     """Base class for blazing errors."""
@@ -226,7 +226,7 @@ cdef class PyBlazingCache:
             if dereference(it).first.decode('utf-8') == "worker_id":
                 worker_str = dereference(it).second.decode('utf-8')
                 metadata_py[dereference(it).first.decode('utf-8')] = worker_str.split(",")
-            else: 
+            else:
                 metadata_py[dereference(it).first.decode('utf-8')] = dereference(it).second.decode('utf-8')
             postincrement(it)
         decoded_names = []

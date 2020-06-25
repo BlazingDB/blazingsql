@@ -157,9 +157,9 @@ public:
 
         std::vector<cudf::size_type> columns_to_hash;
         std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-        std::vector<std::string> messages_to_wait_for; 
+        std::vector<std::string> messages_to_wait_for;
 		std::map<std::string, int> node_count;
-        BlazingThread producer_thread([this, group_column_indices, columns_to_hash, &node_count](){
+        BlazingThread producer_thread([this, group_column_indices, columns_to_hash, &node_count, &messages_to_wait_for](){
             // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
             // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
             int num_partitions = this->context->getTotalNodes();
@@ -269,13 +269,13 @@ public:
                 }
             }
 
-            
+
 
             auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
             auto nodes = context->getAllNodes();
             std::string worker_ids = "";
 
- 
+
             for(std::size_t i = 0; i < nodes.size(); ++i) {
                 if(!(nodes[i] == self_node)) {
 
@@ -289,18 +289,13 @@ public:
                                                                                                             metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
                                                                                                         metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL] 	);
                     metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
-                    metadata.add_value(ral::cache::PARTITION_COUNT, node_count[nodes[i].id()])
-                    messages_to_wait_for.push_back(ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
+                    metadata.add_value(ral::cache::PARTITION_COUNT, node_count[nodes[i].id()]);
+                    messages_to_wait_for.push_back(metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
                                             metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
                                             metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
-                    
-
-                    std::vector<cudf::type_id> empty_types;
-                    std::unique_ptr<ral::frame::BlazingTable> empty =
-                        std::make_unique<ral::frame::BlazingTable>(std::move(ral::utilities::create_empty_table(empty_types)));
 
                     this->query_graph->get_output_cache()->addCacheData(
-                        std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(empty), metadata)));
+                        std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)));
                 }
             }
 
@@ -311,7 +306,7 @@ public:
         int total_count = node_count[self_node.id()];
         for (auto message : messages_to_wait_for){
             auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
-            total_count += static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT];
+            total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
         }
 
         this->output_cache()->wait_for_count(total_count);
