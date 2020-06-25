@@ -8,6 +8,7 @@
 - #822 remove "from_cudf" code and cudf test utilities from engine code
 - #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
 - #802 Support for timestampadd and constant expressions evaluation by Calcite
+- #831 Reverted memory monitor and unordered pull from cache
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
