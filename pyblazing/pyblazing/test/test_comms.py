@@ -3,12 +3,16 @@ import pytest
 
 import ucp
 import cudf
+from cudf.tests import utils as cudf_test
+
+import numpy as np
 
 from dask_cuda import LocalCUDACluster
 from distributed import Client, Worker, Scheduler, wait, get_worker
 from distributed.comm import ucx, listen, connect
-from ..apiv2.comms import listen, BlazingMessage, UCX, register_serialization
-from distributed.utils_test import cleanup  # noqa: 401
+from ..apiv2.comms import listen, BlazingMessage, UCX, register_serialization, cleanup
+from distributed.utils_test import cleanup as dask_cleanup  # noqa: 401
+
 
 enable_tcp_over_ucx = True
 enable_nvlink = False
@@ -27,8 +31,6 @@ async def mock_msg_callback(msg):
     Mocks the real callback which gets invoked each time
     a message is received on an endpoint.
     """
-
-    print(msg)
 
     print("Invoked w/ %s" % msg)
     if not hasattr(get_worker(), "_test_msgs_received"):
@@ -50,7 +52,7 @@ class PyBlazingCache():
 
 
 @pytest.mark.asyncio
-async def test_ucx_localcluster( cleanup):
+async def test_ucx_localcluster( dask_cleanup):
     async with LocalCUDACluster(
         protocol="ucx",
 
@@ -77,34 +79,43 @@ async def test_ucx_localcluster( cleanup):
             The callback function is pushed to the workers and 
             invoked when a message is received with a BlazingMessage
             """
-            ips_ports = await listen(mock_msg_callback, client)
+            try:
+                ips_ports = await listen(mock_msg_callback, client)
 
-            "<<<<<<<<<< Begin Test Logic >>>>>>>>>>>>"
+                "<<<<<<<<<< Begin Test Logic >>>>>>>>>>>>"
 
-            assert len(ips_ports) == len(client.scheduler_info()["workers"])
-            for k, v in ips_ports.items():
-                assert v is not None
+                assert len(ips_ports) == len(client.scheduler_info()["workers"])
+                for k, v in ips_ports.items():
+                    assert v is not None
+
+                meta = {"worker_ids": tuple(ips_ports.values())}
+                data = cudf.DataFrame({"a": cudf.Series([0, 1, 2, 3, 4])})
+
+                """
+                Loop through each of the workers, sending a test BlazingMessage
+                to all other workers.
+                """
+                for dask_addr, blazing_addr in ips_ports.items():
+                    msg = BlazingMessage(meta, data)
+
+                    async def send(msg): await UCX.get().send(msg)
+                    await client.run(send, msg, workers=[dask_addr], wait=True)
+
+                """
+                Gather messages received on each worker for validation
+                """
+                received = await client.run(lambda: get_worker()._test_msgs_received, wait=True)
+
+                assert len(received) == len(ips_ports)
+
+                for worker_addr, msgs in received.items():
+                    for msg in msgs:
+                        cudf_test.assert_eq(msg.data, data)
+                        assert msg.metadata == meta
+                    assert len(msgs) == len(ips_ports)
+            finally:
+
+                print("Cleaning up")
+                await cleanup(client)
 
 
-            """
-            Loop through each of the workers, sending a test BlazingMessage
-            to all other workers.
-            """
-            for dask_addr, blazing_addr in ips_ports.items():
-                meta = {"worker_ids": list(ips_ports.values())}
-                data = cudf.DataFrame()
-                data["a"] = cudf.Series([0, 1, 2, 3, 4])
-                msg = BlazingMessage(meta, data)
-
-                async def send(msg): await UCX.get().send(msg)
-                await client.run(send, msg, workers=[dask_addr], wait=True)
-
-            """
-            Gather messages received on each worker for validation
-            """
-            received = await client.run(lambda: get_worker()._test_msgs_received, wait=True)
-
-            print("MSGS: " + str(received))
-
-            for worker_addr, msgs in received.items():
-                assert len(msgs) == len(ips_ports)
