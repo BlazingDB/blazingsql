@@ -5,11 +5,10 @@
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
+- #820 Implemented Unordered pull from cache to help performance and a memory monitor
 - #822 remove "from_cudf" code and cudf test utilities from engine code
 - #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
-
-
-
+- #802 Support for timestampadd and constant expressions evaluation by Calcite
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -66,3 +65,4 @@
 - #753 Fix for host memory threshold parameter with Dask envs
 - #801 Fix build with new cudf 0.15 and arrow 0.17.1
 - #809 Fix conda build issues
+- #828 Fix gpuci issues and improve tooling to debug gpuci related issues

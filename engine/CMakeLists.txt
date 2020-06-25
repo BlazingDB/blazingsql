@@ -293,6 +293,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
+              ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${communication_source_files}
         )
 
