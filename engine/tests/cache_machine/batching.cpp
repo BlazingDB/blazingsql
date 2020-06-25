@@ -47,7 +47,7 @@ TEST_F(Batching, SimpleQuery) {
 
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
-	contextNodes.push_back(Node(address));
+	contextNodes.push_back(Node(address, ""));
 	uint32_t ctxToken = 123;
 	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "", std::map<std::string, std::string>());
 
@@ -90,7 +90,7 @@ TEST_F(Batching, BindableQuery) {
 
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
-	contextNodes.push_back(Node(address));
+	contextNodes.push_back(Node(address, ""));
 	uint32_t ctxToken = 123;
 	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "", std::map<std::string, std::string>());
 
@@ -123,7 +123,7 @@ TEST_F(Batching, BindableQuery) {
 TEST_F(Batching, SortSamplePartitionTest) {
 	std::vector<Node> contextNodes;
 	auto address = Address::TCP("127.0.0.1", 8089, 0);
-	contextNodes.push_back(Node(address));
+	contextNodes.push_back(Node(address, ""));
 	uint32_t ctxToken = 123;
 	auto queryContext = std::make_shared<Context>(ctxToken, contextNodes, contextNodes[0], "", std::map<std::string, std::string>());
 

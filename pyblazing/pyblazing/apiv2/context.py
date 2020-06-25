@@ -100,7 +100,7 @@ class blazing_allocation_mode(IntEnum):
     CudaManagedMemory = (2,)
 
 
-def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
+def initializeBlazing(ralId=0, worker_id='', networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
                       initial_pool_size=None,
                       config_options={}, logging_dir_path='blazing_log'):
@@ -147,6 +147,7 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
 
     output_cache, input_cache = cio.initializeCaller(
         ralId,
+        worker_id.encode(),
         0,
         networkInterface.encode(),
         workerIp.encode(),
@@ -954,6 +955,7 @@ class BlazingContext(object):
                     self.dask_client.submit(
                         initializeBlazing,
                         ralId=i,
+                        worker_id=worker,
                         networkInterface=network_interface,
                         singleNode=False,
                         allocator=allocator,
@@ -988,7 +990,7 @@ class BlazingContext(object):
             initialize_server_directory(cache_dir_path)
 
             ralPort, ralIp, log_path = initializeBlazing(
-                ralId=0, networkInterface='lo', singleNode=True,
+                ralId=0, worker_id='', networkInterface='lo', singleNode=True,
                 allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
                 config_options=self.config_options, logging_dir_path=logging_dir_path)
             node = {}

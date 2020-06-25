@@ -201,7 +201,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		for(auto currentMetadata : tcpMetadata) {
 			auto address =
 				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node(address));
+			contextNodes.push_back(Node(address, currentMetadata.worker_id));
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};

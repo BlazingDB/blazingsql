@@ -126,8 +126,8 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
     temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
-    return cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
+    return cio.initialize( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
 cdef void finalizePython() except *:
     cio.finalize()
@@ -232,8 +232,8 @@ cdef class PyBlazingCache:
         df._rename_columns(decoded_names)
         return df, metadata_py
 
-cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
-    caches = initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
+    caches = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
     transport_out = PyBlazingCache()
     transport_out.c_cache = caches.first
     transport_in = PyBlazingCache()
