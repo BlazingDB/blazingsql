@@ -1,5 +1,5 @@
-from pyblazing.apiv2 import S3EncryptionType
-from pyblazing.apiv2 import DataType
+# from pyblazing.apiv2 import S3EncryptionType
+# from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.context import BlazingContext
 
 from cio import getProductDetailsCaller
@@ -25,4 +25,5 @@ def __info__():
     print("BlazingSQL cuda flags: %s" % __cuda_flags__)
     print("BlazingSQL Operating system kernel: %s" % __os_kernel__)
     print("BlazingSQL Operating system architecture: %s" % __os_arch__)
-    print("BlazingSQL Linux Operating system release: %s" % __os_release__, flush=True)
+    print("BlazingSQL Linux Operating system release: %s" % __os_release__,
+          flush=True)
