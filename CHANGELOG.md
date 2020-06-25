@@ -22,6 +22,7 @@
 - #792 Remove orc temp files when cached on Disk
 - #814 Fix when checking only Limit and Scan Kernels
 - #816 Loading one file at a time (LimitKernel and ScanKernel) 
+- #832 updated calcite test reference 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
