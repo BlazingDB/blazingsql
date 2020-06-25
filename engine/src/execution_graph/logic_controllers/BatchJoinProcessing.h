@@ -92,15 +92,14 @@ public:
 
 		while ((input.wait_for_next() && bytes_loaded < join_partition_size_theshold) ||
 					(load_all && input.wait_for_next())) {
-			auto temp_batch = input.next();
-			tables_loaded.emplace_back(std::move(temp_batch));
+			tables_loaded.emplace_back(std::move(input.next()));
 			bytes_loaded += tables_loaded.back()->sizeInBytes();
 
 			//If the concatenation so far produces a string overflow, we put back the batch because in this case the order of the elements does not matter
 			if(ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_loaded)){
 				bytes_loaded -= tables_loaded.back()->sizeInBytes();
-				tables_loaded.pop_back();
-				cache->addToCache(std::move(temp_batch));
+				cache->addToCache(std::move(tables_loaded.back()));
+				tables_loaded.pop_back();				
 				break;
 			}
 		}
