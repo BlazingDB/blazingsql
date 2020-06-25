@@ -66,3 +66,4 @@
 - #753 Fix for host memory threshold parameter with Dask envs
 - #801 Fix build with new cudf 0.15 and arrow 0.17.1
 - #809 Fix conda build issues
+- #828 Fix gpuci issues and improve tooling to debug gpuci related issues
