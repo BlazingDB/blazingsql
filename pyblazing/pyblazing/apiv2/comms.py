@@ -26,8 +26,7 @@ def route_message(msg):
 async def run_polling_thread(dask_worker):  # doctest: +SKIP
     import asyncio
     while True:
-        with nogil:
-            df,metadata = dask_worker.output_cache.pull_from_cache()
+        df,metadata = dask_worker.output_cache.pull_from_cache()
         UCX.get().send(BlazingMessage(df,metadata))
         await asyncio.sleep(0)
 
