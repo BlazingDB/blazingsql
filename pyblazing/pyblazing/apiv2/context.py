@@ -858,8 +858,6 @@ class BlazingContext(object):
                                     BLAZING_CACHE_DIRECTORY : A folder path to place all orc files when start caching on Disk. The path can be relative or absolute.
                                             NOTE: This parameter only works when used in the BlazingContext
                                             default: '/tmp/'
-                                    MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory consumption. The value is in milliseconds.
-                                            default: 50  (milliseconds)
 
         Examples
         --------
