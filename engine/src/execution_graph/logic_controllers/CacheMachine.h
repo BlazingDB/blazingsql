@@ -50,6 +50,8 @@ const std::string SENDER_WORKER_ID_METADATA_LABEL = "sender_worker_id";
 const std::string WORKER_IDS_METADATA_LABEL = "worker_ids";
 const std::string TOTAL_TABLE_ROWS_METADATA_LABEL = "total_table_rows";
 const std::string PARTITION_INDEX_METADATA_LABEL = "partition_index";
+const std::string MESSAGE_ID = "message_id";
+const std::string PARTITION_COUNT = "partition_count";
 
 /// \brief An interface which represent a CacheData
 class CacheData {
@@ -124,6 +126,10 @@ public:
 
 	virtual ~GPUCacheData() {}
 
+	ral::frame::BlazingTableView getTableView(){
+		return this->data->toBlazingTableView();
+	}
+
 protected:
 	std::unique_ptr<ral::frame::BlazingTable> data;
 };
@@ -141,6 +147,10 @@ public:
 		 return std::make_pair(std::move(data),this->metadata); }
 
 	size_t sizeInBytes() const override { return data->sizeInBytes(); }
+
+	MetadataDictionary getMetadata(){
+		return this->metadata;
+	}
 
 	virtual ~GPUCacheDataMetaData() {}
 
@@ -255,6 +265,17 @@ public:
 	}
 
 	bool empty() const { return this->message_queue_.size() == 0; }
+
+	void wait_for_count(int count){
+
+		std::unique_lock<std::mutex> lock(mutex_);
+		condition_variable_.wait(lock, [&, this] () {
+			return count == this->message_queue_.size();
+		});
+
+
+	}
+	
 
 	message_ptr pop_or_wait() {
 		CodeTimer blazing_timer;
@@ -445,6 +466,9 @@ public:
 
 	virtual void wait_if_cache_is_saturated();
 
+	void wait_for_count(int count){
+		return this->waitingCache->wait_for_count(count);
+	}
 
 protected:
 	static std::size_t cache_count;

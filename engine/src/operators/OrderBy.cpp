@@ -135,17 +135,6 @@ int64_t get_limit_rows_when_relational_alg_is_simple(const std::string & query_p
 	return limitRows;
 }
 
-int64_t get_local_limit(int64_t total_batch_rows, const std::string & query_part, Context * context){
-	cudf::size_type limitRows;
-	std::tie(std::ignore, std::ignore, limitRows) = get_sort_vars(query_part);
-
-	if(context->getTotalNodes() > 1 && limitRows >= 0) {
-		limitRows = determine_local_limit(context, total_batch_rows, limitRows);
-	}
-
-	return limitRows;
-}
-
 std::pair<std::unique_ptr<ral::frame::BlazingTable>, int64_t>
 limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_limit) {
 
