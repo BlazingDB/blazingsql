@@ -1,7 +1,7 @@
 # BlazingSQL 0.15.0 (Date TBS)
 
 ## New Features
-
+- #836 Added a memory monitor for better memory management and added pull ordered from cache
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
