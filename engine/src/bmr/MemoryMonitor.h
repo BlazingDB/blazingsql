@@ -25,7 +25,9 @@ namespace ral {
             void finalize(){
                 std::unique_lock<std::mutex> lock(finished_lock);
                 finished = true;
+                lock.unlock();
                 condition.notify_all();
+                this->monitor_thread.join();                
             }
 
 
@@ -37,6 +39,7 @@ namespace ral {
             ral::batch::tree_processor* tree;
             std::chrono::milliseconds period;
             BlazingMemoryResource* resource;
+            BlazingThread monitor_thread;
 
             bool need_to_free_memory(){
                 return resource->get_memory_used() > resource->get_memory_limit();

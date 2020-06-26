@@ -6,15 +6,14 @@ namespace ral {
 
     void MemoryMonitor::start(){
         
-        BlazingThread thread([this](){
+        this->monitor_thread = BlazingThread([this](){
             std::unique_lock<std::mutex> lock(finished_lock);
             while(!condition.wait_for(lock, period, [this] { return this->finished; })){
                 if (need_to_free_memory()){
                     downgradeCaches(&tree->root);
                 }
             }
-        });
-        thread.detach();
+        });        
     }
 
     void MemoryMonitor::downgradeCaches(ral::batch::node* starting_node){
