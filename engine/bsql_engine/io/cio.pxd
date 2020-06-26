@@ -12,7 +12,7 @@ from libcpp cimport bool
 from pyarrow.lib cimport *
 
 from cudf import DataFrame
-
+from cudf._lib.cpp.types cimport type_id
 from cudf._lib.table cimport table
 
 from libc.stdint cimport (  # noqa: E211
@@ -36,10 +36,10 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseRunExecuteGraphError()
     cdef void raiseRunSkipDataError()
     cdef void raiseParseSchemaError()
-    cdef void raiseRegisterFileSystemHDFSError();
-    cdef void raiseRegisterFileSystemGCSError();
-    cdef void raiseRegisterFileSystemS3Error();
-    cdef void raiseRegisterFileSystemLocalError();
+    cdef void raiseRegisterFileSystemHDFSError()
+    cdef void raiseRegisterFileSystemGCSError()
+    cdef void raiseRegisterFileSystemS3Error()
+    cdef void raiseRegisterFileSystemLocalError()
 
 
 from cudf._lib.cpp.column cimport *

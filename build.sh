@@ -115,7 +115,7 @@ if hasArg clean; then
     done
 
     if hasArg thirdparty; then
-        rm -rf ${REPODIR}/thirdparty/rapids/
+        rm -rf ${REPODIR}/thirdparty/cudf/
         rm -rf ${REPODIR}/thirdparty/aws-cpp/
     fi
 
@@ -125,52 +125,23 @@ fi
 ################################################################################
 
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
-    if [ ! -d "${REPODIR}/thirdparty/rapids/" ]; then
+    if [ ! -d "${REPODIR}/thirdparty/cudf/" ]; then
         cd ${REPODIR}/thirdparty/
-        DIR_BSQL="bsql-rapids-thirdparty"
-        mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
-        mkdir -p ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx/libcxx/include
-        mkdir -p ${REPODIR}/thirdparty/rapids/
-        cd ${REPODIR}/thirdparty/rapids/
-
-        cudf_version=$(conda list | grep libcudf|tail -n 1|awk '{print $2}')
-        cudf_version="$(cut -d '.' -f 1 <<< "$cudf_version")"."$(cut -d '.' -f 2 <<< "$cudf_version")"
-        cudf_version="0.14" # TODO william jp mario we need to use 0.15 here
-        echo "cudf_version for rapids 3rdparty is: $cudf_version"
-
-# CODE FOR 0.15
-#         git clone -b branch-$cudf_version --recurse-submodules https://github.com/rapidsai/cudf.git
-#         cd cudf/cpp
-#         mkdir build
-#         cd build
-#         cmake -DBUILD_TESTS=OFF ..
-#         cp -rf _deps/cub-src/cub/* ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
-#         cp -rf _deps/libcudacxx-src/include/ ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
-#         cp -rf _deps/libcudacxx-src/libcxx/include/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx/libcxx/include
-
-
-        DIR_BSQL="bsql-rapids-thirdparty"
-        mkdir -p $INSTALL_PREFIX/include/bsql-rapids-thirdparty/
-        cd ${REPODIR}/thirdparty/rapids/
-        git clone -b branch-0.14 --recurse-submodules https://github.com/rapidsai/cudf.git
-
-        cp -rf cudf/thirdparty/cub/* ${INSTALL_PREFIX}/include/$DIR_BSQL/cub
-
-        rm -rf cudf/thirdparty/libcudacxx/libcxx/test/
-        cp -rf cudf/thirdparty/libcudacxx/* ${INSTALL_PREFIX}/include/$DIR_BSQL/libcudacxx
-
-        if [[ $CONDA_BUILD -eq 1 ]]; then
-            cd ${REPODIR}
-            # WARNING DO NOT TOUCH OR CHANGE THESE PATHS (william mario c.gonzales)
-            echo "==>> In conda build env: thirdparty/rapids headers"
-            echo "==>> Current working directory: $PWD"
-            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/include/$DIR_BSQL /conda/conda-bld/blazingsql_*/_build_env/include
-        fi
-
-        echo "thirdparty/rapids headers has been installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
+        git clone https://github.com/rapidsai/cudf.git
+        cd cudf/cpp
+        mkdir build
+        cd build
+        cmake -DCMAKE_CXX11_ABI=ON ..
     else
-        echo "thirdparty/rapids is already installed in ${INSTALL_PREFIX}/include/$DIR_BSQL"
+        cd ${REPODIR}/thirdparty/cudf
+        git pull
+        if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
+            mkdir cpp/build
+        fi
+        cd cpp/build
+        cmake -DCMAKE_CXX11_ABI=ON ..
     fi
+    export CUDF_HOME=${REPODIR}/thirdparty/cudf/
 
     if [ ! -d "${REPODIR}/thirdparty/aws-cpp/" ]; then
         cd ${REPODIR}/thirdparty/
@@ -195,12 +166,14 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
             # WARNING DO NOT TOUCH OR CHANGE THESE PATHS (william mario c.gonzales)
             echo "==>> In conda build env: aws sdk cpp thirdparty"
             echo "==>> Current working directory: $PWD"
-            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/include/aws/* /conda/conda-bld/blazingsql_*/_build_env/include/aws/
-            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/*aws* /conda/conda-bld/blazingsql_*/_build_env/lib/
-            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/cmake/*aws* /conda/conda-bld/blazingsql_*/_build_env/lib/cmake/
-            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/cmake/AWS* /conda/conda-bld/blazingsql_*/_build_env/lib/cmake/
-            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/cmake/*Aws* /conda/conda-bld/blazingsql_*/_build_env/lib/cmake/
-            cp --remove-destination -rfu /conda/conda-bld/blazingsql_*/_h_env*/lib/pkgconfig/*aws* /conda/conda-bld/blazingsql_*/_build_env/lib/pkgconfig/
+            conda_bld_dir=/conda/envs/gdf/conda-bld/
+            echo "==>> conda_bld_dir: $conda_bld_dir"
+            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/include/aws/* $conda_bld_dir/blazingsql_*/_build_env/include/aws/
+            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/*aws* $conda_bld_dir/blazingsql_*/_build_env/lib/
+            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/cmake/*aws* $conda_bld_dir/blazingsql_*/_build_env/lib/cmake/
+            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/cmake/AWS* $conda_bld_dir/blazingsql_*/_build_env/lib/cmake/
+            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/cmake/*Aws* $conda_bld_dir/blazingsql_*/_build_env/lib/cmake/
+            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/pkgconfig/*aws* $conda_bld_dir/blazingsql_*/_build_env/lib/pkgconfig/
         fi
     else
         echo "thirdparty/aws-cpp/ is already installed in ${INSTALL_PREFIX}"
