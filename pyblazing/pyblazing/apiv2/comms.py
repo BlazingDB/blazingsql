@@ -21,18 +21,15 @@ def route_message(msg):
         cache.add_to_cache(msg.data)
     else:
         cache = worker.input_cache
-        cache.add_to_cache_with_meta(msg.data,msg.metadata)
+        cache.add_to_cache_with_meta(msg.data, msg.metadata)
 
 
 async def run_polling_thread():  # doctest: +SKIP
     dask_worker = get_worker()
     import asyncio
     while True:
-
-
         df, metadata = dask_worker.output_cache.pull_from_cache()
         await  UCX.get().send(BlazingMessage(df, metadata))
-
         await asyncio.sleep(0)
 
 CTRL_STOP = "stopit"
@@ -56,14 +53,13 @@ async def listen(callback=route_message, client=None):
     return await client.run(UCX.start_listener_on_worker, callback, wait=True)
 
 
-async def cleanup(client=None):
+def cleanup(client=None):
     async def kill_ucx():
         await UCX.get().stop_endpoints()
         UCX.get().stop_listener()
 
     client = client if client is not None else default_client()
-    return await client.run(kill_ucx, wait=True)
-
+    return client.run(kill_ucx, wait=True)
 
 
 class UCX:

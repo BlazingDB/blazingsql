@@ -72,6 +72,7 @@ async def test_ucx_localcluster( dask_cleanup):
             The callback function is pushed to the workers and 
             invoked when a message is received with a BlazingMessage
             """
+
             try:
                 ips_ports = await listen(mock_msg_callback, client)
 
