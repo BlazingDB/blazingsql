@@ -986,16 +986,15 @@ class BlazingContext(object):
                 self.node_log_paths.append(log_path)
                 i = i + 1
 
+            print("starting polling thread")
             # Start polling thread in asyncio function on each worker
             self.dask_client.run(run_polling_thread, wait=False)
 
 
             # Start listener on each worker to send received messages to router
-                   
-            task = asyncio.create_task(listen(client=self.dask_client))
-            
-            while not task.done():
-                time.sleep(.2)
+            print("starting listeners")
+            listen(client=self.dask_client)
+            print("started listeners")
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different than the local dask workers
             initialize_server_directory(logging_dir_path)

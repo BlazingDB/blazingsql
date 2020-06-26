@@ -48,9 +48,9 @@ class BlazingMessage:
                 self.data is not None)
 
 
-async def listen(callback=route_message, client=None):
+def listen(callback=route_message, client=None):
     client = client if client is not None else default_client()
-    return await client.run(UCX.start_listener_on_worker, callback, wait=True)
+    return client.run(UCX.start_listener_on_worker, callback, wait=True)
 
 
 def cleanup(client=None):
