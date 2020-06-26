@@ -301,15 +301,14 @@ public:
         });
         //TODO: remove producer thread we don't really need it anymore
         producer_thread.join();
+
         auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
         int total_count = node_count[self_node.id()];
         for (auto message : messages_to_wait_for){
             auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
             total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
         }
-
         this->output_cache()->wait_for_count(total_count);
-
 
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",

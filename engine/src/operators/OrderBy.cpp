@@ -90,14 +90,16 @@ std::unique_ptr<cudf::table> logicalLimit(const cudf::table_view& table, cudf::s
  * @returns The limit that would be applied to this partition
  *---------------------------------------------------------------------------**/
 int64_t determine_local_limit(Context * context, int64_t local_num_rows, cudf::size_type limit_rows){
-	context->incrementQuerySubstep();
-	ral::distribution::distributeNumRows(context, local_num_rows);
+	// context->incrementQuerySubstep();
+	// ral::distribution::distributeNumRows(context, local_num_rows);
 
-	std::vector<int64_t> nodesRowSize = ral::distribution::collectNumRows(context);
-	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	int64_t prev_total_rows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, int64_t(0));
+	// std::vector<int64_t> nodesRowSize = ral::distribution::collectNumRows(context);
+	// int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	// int64_t prev_total_rows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, int64_t(0));
 
-	return std::min(std::max(limit_rows - prev_total_rows, int64_t{0}), local_num_rows);
+	// return std::min(std::max(limit_rows - prev_total_rows, int64_t{0}), local_num_rows);
+
+	return 0;
 }
 
 std::tuple<std::vector<int>, std::vector<cudf::order>, cudf::size_type>

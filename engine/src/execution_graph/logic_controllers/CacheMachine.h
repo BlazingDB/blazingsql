@@ -49,7 +49,8 @@ const std::string ADD_TO_SPECIFIC_CACHE_METADATA_LABEL = "add_to_specific_cache"
 const std::string SENDER_WORKER_ID_METADATA_LABEL = "sender_worker_id";
 const std::string WORKER_IDS_METADATA_LABEL = "worker_ids";
 const std::string TOTAL_TABLE_ROWS_METADATA_LABEL = "total_table_rows";
-const std::string PARTITION_INDEX_METADATA_LABEL = "partition_index";
+const std::string JOIN_LEFT_BYTES_METADATA_LABEL = "join_left_bytes_metadata_label";
+const std::string JOIN_RIGHT_BYTES_METADATA_LABEL = "join_right_bytes_metadata_label";
 const std::string MESSAGE_ID = "message_id";
 const std::string PARTITION_COUNT = "partition_count";
 
@@ -280,7 +281,7 @@ public:
 
 
 	}
-	
+
 
 	message_ptr pop_or_wait() {
 		CodeTimer blazing_timer;
