@@ -39,8 +39,7 @@ public:
         std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
             aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
-        bool ordered = false; // If we start using sort based aggregations this may need to change
-        BatchSequence input(this->input_cache(), this, ordered);
+        BatchSequence input(this->input_cache(), this);
         int batch_count = 0;
         while (input.wait_for_next()) {
 
@@ -165,8 +164,7 @@ public:
             int num_partitions = this->context->getTotalNodes();
             bool set_empty_part_for_non_master_node = false; // this is only for aggregation without group by
 
-            bool ordered = false; // If we start using sort based aggregations this may need to change
-            BatchSequence input(this->input_cache(), this, ordered);
+            BatchSequence input(this->input_cache(), this);
             int batch_count = 0;
             while (input.wait_for_next()) {
                 auto batch = input.next();
@@ -293,8 +291,7 @@ public:
         // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
         this->input_cache()->wait_until_finished();
 
-        bool ordered = false; // If we start using sort based aggregations this may need to change
-        BatchSequence input(this->input_cache(), this, ordered);
+        BatchSequence input(this->input_cache(), this);
         int batch_count=0;
         try {
             while (input.wait_for_next()) {

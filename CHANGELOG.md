@@ -6,7 +6,6 @@
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
 - #786 Added check for concat String overflow
-- #820 Implemented Unordered pull from cache to help performance and a memory monitor
 - #822 remove "from_cudf" code and cudf test utilities from engine code
 - #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
 - #802 Support for timestampadd and constant expressions evaluation by Calcite
