@@ -96,7 +96,7 @@ public:
 			bytes_loaded += tables_loaded.back()->sizeInBytes();
 
 			//If the concatenation so far produces a string overflow, we put back the batch because in this case the order of the elements does not matter
-			if(ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_loaded)){
+			if(!load_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_loaded)){
 				bytes_loaded -= tables_loaded.back()->sizeInBytes();
 				cache->addToCache(std::move(tables_loaded.back()));
 				tables_loaded.pop_back();				
@@ -112,6 +112,15 @@ public:
 			std::vector<ral::frame::BlazingTableView> tables_to_concat(tables_loaded.size());
 			for (std::size_t i = 0; i < tables_loaded.size(); i++){
 				tables_to_concat[i] = tables_loaded[i]->toBlazingTableView();
+			}
+
+			// if we were supposed to load all and strings will overflow, lets at least provide a warning
+			if (load_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_to_concat)){
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In PartwiseJoin::load_set Concatenating Strings will overflow strings length");			
 			}
 
 			return ral::utilities::concatTables(tables_to_concat);
