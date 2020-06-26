@@ -3,6 +3,8 @@ import cudf
 
 from cudf.core.column.column import build_column
 
+from dask.distributed import get_worker
+
 from collections import OrderedDict
 from enum import Enum
 
@@ -983,9 +985,13 @@ class BlazingContext(object):
 
             print("starting polling thread")
             # Start polling thread in asyncio function on each worker
-            self.dask_client.run(run_polling_thread, wait=False)
-
-
+            import threading
+            def polling_thread():
+                print("Starting thread")
+                t1 = threading.Thread(target=run_polling_thread)
+                t1.start()
+                get_worker().polling_thread = t1
+            self.dask_client.run(polling_thread, wait=True)
             # Start listener on each worker to send received messages to router
             print("starting listeners")
             listen(client=self.dask_client)

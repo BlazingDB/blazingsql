@@ -24,13 +24,26 @@ def route_message(msg):
         cache.add_to_cache_with_meta(msg.data, msg.metadata)
 
 
-async def run_polling_thread():  # doctest: +SKIP
+#async def run_polling_thread():  # doctest: +SKIP
+#    dask_worker = get_worker()
+#    import asyncio
+#    while True:
+#        df, metadata = dask_worker.output_cache.pull_from_cache()
+#        await UCX.get().send(BlazingMessage(df, metadata))
+#        await asyncio.sleep(1)
+
+def run_polling_thread():  # doctest: +SKIP
     dask_worker = get_worker()
     import asyncio
+
     while True:
+
+        print("Pull_from_cache")
         df, metadata = dask_worker.output_cache.pull_from_cache()
-        await  UCX.get().send(BlazingMessage(df, metadata))
-        await asyncio.sleep(0)
+        print("Should never get here!")
+        asyncio.get_event_loop().run_until_complete(UCX.get().send(BlazingMessage(df, metadata)))
+        asyncio.get_event_loop().run_until_complete(asyncio.sleep(0))
+
 
 CTRL_STOP = "stopit"
 
@@ -50,6 +63,7 @@ class BlazingMessage:
 
 def listen(callback=route_message, client=None):
     client = client if client is not None else default_client()
+    print("Sending listen start message to workers")
     return client.run(UCX.start_listener_on_worker, callback, wait=True)
 
 
@@ -113,7 +127,11 @@ class UCX:
         ip, port = parse_host_port(get_worker().address)
 
         self._listener = await UCXListener(ip, handle_comm)
+
+        print("Starting listener on worker")
         await self._listener.start()
+
+        print("Started listener on port " + str(self.listener_port()))
 
         return "ucx://%s:%s" % (ip, self.listener_port())
 
