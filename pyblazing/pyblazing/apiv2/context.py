@@ -14,7 +14,7 @@ from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 
-
+import asyncio
 from distributed.comm import listen
 
 
@@ -991,9 +991,11 @@ class BlazingContext(object):
 
 
             # Start listener on each worker to send received messages to router
-            listen(self.dask_client)
-
-
+                   
+            task = asyncio.create_task(listen(client=self.dask_client))
+            
+            while not task.done():
+                time.sleep(.2)
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different than the local dask workers
             initialize_server_directory(logging_dir_path)
