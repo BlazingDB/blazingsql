@@ -367,7 +367,7 @@ if __name__ == "__main__":
 
     # Create Table Hive ----------------------------------------------------
     cursor = hive.connect("172.22.0.3").cursor()
-    cs.init_hive_schema(cursor,
+    cs.init_hive_schema(drill, cursor,
                         Settings.data["TestSettings"]["dataDirectory"])
 
     # Create Context For BlazingSQL

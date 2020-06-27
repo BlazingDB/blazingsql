@@ -9,6 +9,8 @@ import cudf
 import dask_cudf
 import numpy as np
 import pandas as pd
+import pyblazing
+# from pyblazing import get_dtype_values
 import pyspark.sql.types as st
 from blazingsql import DataType
 from pyhive import hive
@@ -111,7 +113,7 @@ def init_spark_schema(spark, tpch_dir, **kwargs):
         tpch_table_df.createOrReplaceTempView(tpch_table)
 
 
-def init_hive_schema(cursor, tpch_dir, **kwargs):
+def init_hive_schema(drill, cursor, tpch_dir, **kwargs):
     timeout = 300
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -120,8 +122,8 @@ def init_hive_schema(cursor, tpch_dir, **kwargs):
     tpch_dir = tpch_dir + "tpch/"
 
     for name in tableNames:
-        cursor.execute("DROP TABLE IF EXISTS %(table)s "
-                       + "PURGE" % {"table": name})
+        cursor.execute(
+            "DROP TABLE IF EXISTS %(table)s PURGE" % {"table": name})
         print("DROP TABLE IF EXISTS %(table)s" % {"table": name})
 
     # cursor.execute('select * from customer')
