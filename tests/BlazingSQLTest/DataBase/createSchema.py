@@ -43,8 +43,10 @@ def getFiles_to_tmp(tpch_dir, n_files):
     for item in list_files:
         dataFileTokens = item.split(".")
         dataFileName = dataFileTokens[0]
-        os.symlink(tpch_dir + item, dirpath + "/" + dataFileName
-                   + "_" + str(count) + ".psv")
+        os.symlink(
+            tpch_dir + item, dirpath + "/" + dataFileName +
+            "_" + str(count) + ".psv"
+        )
         count = count + 1
 
     return dirpath
@@ -192,11 +194,12 @@ def init_hive_schema(cursor, tpch_dir, **kwargs):
                 % {"tpch_table": tpch_table, "column_list": column_list}
             )
 
-            cursor.execute("""LOAD DATA INPATH
+            cursor.execute(
+                """LOAD DATA INPATH
                            'hdfs:%(tpch_dir)s/%(tpch_table)s_*.parquet'
                             INTO TABLE %(tpch_table)s"""
-                            % {"tpch_dir": tpch_dir, "tpch_table": tpch_table}
-                            )
+                % {"tpch_dir": tpch_dir, "tpch_table": tpch_table}
+            )
 
             # cursor.execute('DROP TABLE TRANSACTIONS')
 
@@ -253,8 +256,10 @@ def init_drill_schema(drill, tpch_dir, **kwargs):
     tpch_dir = tpch_dir + "tpch/"
 
     for name in tableNames:
-        drill.query("DROP TABLE IF EXISTS"
-                    + "dfs.tmp.`%(table)s`" % {"table": name}, timeout)
+        drill.query(
+            "DROP TABLE IF EXISTS" + "dfs.tmp.`%(table)s`"
+            % {"table": name}, timeout
+        )
 
     num_files = kwargs.get("n_files")
     if num_files is not None:
@@ -288,12 +293,14 @@ def init_drill_schema(drill, tpch_dir, **kwargs):
         )
 
     for tpch_table in tpchTables:
-        drill.query(""" create table dfs.tmp.`%(tpch_table)s` as select * FROM
+        drill.query(
+            """ create table dfs.tmp.`%(tpch_table)s` as select * FROM
                      table(dfs.`%(tpch_dir)s/%(tpch_table)s_*.parquet`
                      (type => 'parquet'))
                     """
-                    % {"tpch_dir": tpch_dir, "tpch_table": tpch_table},
-                    timeout, )
+            % {"tpch_dir": tpch_dir, "tpch_table": tpch_table},
+            timeout,
+        )
 
 
 def init_drill_mortgage_schema(drill, tpch_dir):
@@ -306,8 +313,10 @@ def init_drill_mortgage_schema(drill, tpch_dir):
     timeout = 200
 
     for name in tableNames:
-        drill.query("DROP TABLE IF EXISTS"
-                    + "dfs.tmp.`%(table)s`" % {"table": name}, timeout)
+        drill.query(
+            "DROP TABLE IF EXISTS" + "dfs.tmp.`%(table)s`"
+            % {"table": name}, timeout
+        )
     drill.query(
         """
         create table dfs.tmp.`perf/` as
@@ -567,7 +576,8 @@ def get_dtypes_wstrings(table_name):
             "int64",
             "str",
             "float32",
-            "str"],
+            "str"
+        ],
         "partsupp": ["int64", "int64", "int64", "float32", "str"],
     }
     # Get the function from switcher dictionary
@@ -586,7 +596,8 @@ def get_dtypes(table_name, bool_column=False):
             "str",
             "float64",
             "str",
-            "str"],
+            "str"
+        ],
         "region": ["int32", "str", "str"],
         "nation": ["int32", "str", "int32", "str"],
         "lineitem": [
@@ -861,8 +872,10 @@ def Read_tpch_files(column_names, files_dir, table, data_types):
         if dataFileExt == "psv":
             if (table == dataFileName) or re.match(tableName_, dataFileName):
                 file_dir = files_dir + "/" + dataFile
-                tmp = cudf.read_csv(file_dir, delimiter="|",
-                                    names=column_names, dtype=data_types)
+                tmp = cudf.read_csv(
+                    file_dir, delimiter="|", names=column_names,
+                    dtype=data_types
+                )
                 dataframes.append(tmp)
     if len(dataframes) != 0:
         table_pdf = cudf.concat(dataframes)
@@ -901,8 +914,7 @@ def get_filenames_table(table, dir_data_lc, n_files, **kwargs):
             dataFileExt = dataFileTokens[1]
             tableName_ = table + "_"
             if dataFileExt == "psv":
-                if (table == dataFileName or
-                        re.match(tableName_, dataFileName)):
+                if table == dataFileName or re.match(tableName_, dataFileName):
                     if c < n_files:
                         if full_path:
                             dataFiles.append(dir_data_lc + "/" + dataFile)
@@ -1237,8 +1249,10 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
 
             dtypes = get_dtypes(table, bool_orders_flag)
             col_names = get_column_names(table, bool_orders_flag)
-            bc.create_table(table, table_files, delimiter="|",
-                            dtype=dtypes, names=col_names)
+            bc.create_table(
+                table, table_files, delimiter="|", dtype=dtypes,
+                names=col_names
+            )
         elif fileSchemaType == DataType.CUDF:
             bool_column = bool_orders_index != -1
             gdf = read_data(table, dir_data_lc, bool_column)
