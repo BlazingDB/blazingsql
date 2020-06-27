@@ -245,7 +245,8 @@ def main():
 
     # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
-    if Settings.execution_mode != ExecutionMode.GENERATOR:
+    if (Settings.execution_mode != ExecutionMode.GENERATOR and
+            Settings.execution_mode != ExecutionMode.GPUCI):
 
         result, error_msgs = runTest.save_log()
 

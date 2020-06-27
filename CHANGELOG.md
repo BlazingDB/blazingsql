@@ -6,8 +6,10 @@
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
 - #822 remove "from_cudf" code and cudf test utilities from engine code
+- #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
+- #802 Support for timestampadd and constant expressions evaluation by Calcite
+- #831 Reverted memory monitor and unordered pull from cache
 - #829 Python/Cython check code style
-
 
 
 ## Bug Fixes
@@ -21,6 +23,9 @@
 - #799 Fix uri values computacion in runQueryCaller
 - #792 Remove orc temp files when cached on Disk
 - #814 Fix when checking only Limit and Scan Kernels
+- #816 Loading one file at a time (LimitKernel and ScanKernel) 
+- #832 updated calcite test reference 
+- #834 Fixed small issue with hive and cudf_type_int_to_np_types
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
@@ -64,3 +69,4 @@
 - #753 Fix for host memory threshold parameter with Dask envs
 - #801 Fix build with new cudf 0.15 and arrow 0.17.1
 - #809 Fix conda build issues
+- #828 Fix gpuci issues and improve tooling to debug gpuci related issues
