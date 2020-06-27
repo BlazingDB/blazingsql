@@ -1095,7 +1095,7 @@ def gpu_load_performance_csv(performance_path, **kwargs):
         path=performance_path,
         delimiter="|",
         names=cols,
-        dtypes=get_dtype_values(dtypes),
+        dtypes=dtypes,  # TODO: dtypes=get_dtype_values(dtypes)
         skip_rows=1,
     )
     Chronometer.show(chronometer, "Read Performance CSV")
@@ -1177,7 +1177,7 @@ def gpu_load_acquisition_csv(acquisition_path, **kwargs):
         path=acquisition_path,
         delimiter="|",
         names=cols,
-        dtypes=get_dtype_values(dtypes),
+        dtypes=dtypes,  # TODO: dtypes=get_dtype_values(dtypes)
         skip_rows=1,
     )
     Chronometer.show(chronometer, "Read Acquisition CSV")
@@ -1206,7 +1206,7 @@ def gpu_load_names(col_names_path, **kwargs):
         path=new,
         delimiter="|",
         names=cols,
-        dtypes=get_dtype_values(dtypes),
+        dtypes=dtypes,  # TODO: dtypes=get_dtype_values(dtypes)
         skip_rows=1,
     )
     Chronometer.show(chronometer, "Read Names CSV")
