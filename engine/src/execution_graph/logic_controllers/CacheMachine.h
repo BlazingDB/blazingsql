@@ -192,16 +192,11 @@ public:
 		return this->finished.load(std::memory_order_seq_cst);
 	}
 
-	bool empty() { 
-		std::unique_lock<std::mutex> lock(mutex_);
-		return this->message_queue_.size() == 0; 
-	}
-
 	message_ptr pop_or_wait() {		
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or this->message_queue_.size() != 0; 
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -334,6 +329,10 @@ public:
 
 
 private:
+	bool empty() { 
+		return this->message_queue_.size() == 0; 
+	}
+	
 	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
 
 private:
