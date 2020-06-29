@@ -442,6 +442,8 @@ def save_log (**kwargs):
     if 'saveLog' in Settings.data['RunSettings']:
         saveLog = Settings.data['RunSettings']['saveLog'] 
 
+    print("saveLog = " + str(saveLog))
+
     # TODO william kharoly felipe we should try to enable and use this function in the future
     #result, error_msgs = verify_prev_google_sheet_results(df1)
     result, error_msgs = True, []

@@ -119,7 +119,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             int32_t length = arg_tokens.size() == 3 ? std::stoi(arg_tokens[2]) : -1;
             int32_t end = length >= 0 ? start + length : 0;
 
-            computed_col = cudf::strings::slice_strings(column, start, cudf::numeric_scalar<int32_t>(end, length >= 0));
+            computed_col = cudf::strings::slice_strings(column, start, cudf::numeric_scalar<int32_t>(end, length >= 0));            
         } else {
             // TODO: create a version of cudf::strings::slice_strings that uses start and length columns
             // so we can remove all the calculations for start and end
@@ -127,13 +127,13 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             std::unique_ptr<cudf::column> computed_string_column;
             cudf::column_view column;
             if (is_var_column(arg_tokens[0])) {
-                column = table.column(get_index(arg_tokens[0]));
+                column = table.column(get_index(arg_tokens[0]));                
             } else {
                 auto evaluated_col = evaluate_expressions(table, {arg_tokens[0]});
                 RAL_EXPECTS(evaluated_col.size() == 1 && evaluated_col[0]->view().type().id() == cudf::type_id::STRING, "Expression does not evaluate to a string column");
 
                 computed_string_column = evaluated_col[0]->release();
-                column = computed_string_column->view();
+                column = computed_string_column->view();                
             }
 
             std::unique_ptr<cudf::column> computed_start_column;
@@ -185,11 +185,11 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 ral::utilities::transform_length_to_end(mutable_view, start_column);
                 end_column = computed_end_column->view();
             } else {
-                std::unique_ptr<cudf::scalar> end_scalar = get_scalar_from_string("0", start_column.type());
+                std::unique_ptr<cudf::scalar> end_scalar = get_max_integer_scalar(start_column.type());
                 computed_end_column = cudf::make_column_from_scalar(*end_scalar, table.num_rows());
                 end_column = computed_end_column->view();
             }
-
+            
             computed_col = cudf::strings::slice_strings(column, start_column, end_column);
         }
         break;
