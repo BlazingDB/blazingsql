@@ -540,8 +540,8 @@ size_t CacheMachine::downgradeCacheData() {
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
 	: CacheMachine(context) {}
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold)
-	: CacheMachine(context, flow_control_batches_threshold, flow_control_bytes_threshold) {}
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold, bool concat_all)
+	: CacheMachine(context, flow_control_batches_threshold, flow_control_bytes_threshold), concat_all(concat_all) {}
 
 // This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
@@ -553,7 +553,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
-		if (collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes())) {
+		if (concat_all || collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes())) {
 			total_bytes += cache_data.sizeInBytes();
 			message_id = message_data->get_message_id();
 			collected_messages.push_back(std::move(message_data));
@@ -577,12 +577,42 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		output = std::move(data->decache());
 		num_rows = output->num_rows();
 	}	else {
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder(collected_messages.size());
-		std::vector<ral::frame::BlazingTableView> table_views(collected_messages.size());
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder;
+		std::vector<ral::frame::BlazingTableView> table_views;
 		for (int i = 0; i < collected_messages.size(); i++){
 			auto data = collected_messages[i]->release_data();
-			tables_holder[i] = std::move(data->decache());
-			table_views[i] = tables_holder[i]->toBlazingTableView();
+			tables_holder.push_back(std::move(data->decache()));
+			table_views.push_back(tables_holder[i]->toBlazingTableView());
+
+			// if we dont have to concatenate all, lets make sure we are not overflowing, and if we are, lets put one back
+			if (!concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views)){
+				logger->warn("{query_id}|{step}|{substep}|{info}|||||",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating could have caused overflow strings length. Adding cache data back");
+
+				auto cache_data = std::make_unique<GPUCacheData>(std::move(tables_holder.back()));
+				tables_holder.pop_back();
+				table_views.pop_back();
+				collected_messages[i] =	std::make_unique<message>(std::move(cache_data), collected_messages[i]->get_message_id());
+				std::unique_lock<std::mutex> lock(flow_control_mutex);
+				for (; i < collected_messages.size(); i++){
+					flow_control_batches_count++;
+					flow_control_bytes_count += collected_messages[i]->get_data().sizeInBytes();
+					this->waitingCache->put(std::move(collected_messages[i]));
+				}
+				flow_control_condition_variable.notify_all();
+				break;				
+			}
+		}
+
+		if( concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views) ) { // if we have to concatenate all, then lets throw a warning if it will overflow strings
+			logger->warn("{query_id}|{step}|{substep}|{info}|||||",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating will overflow strings length");
 		}
 		output = ral::utilities::concatTables(table_views);
 		num_rows = output->num_rows();

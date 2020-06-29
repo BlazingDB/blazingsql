@@ -343,7 +343,7 @@ def parseHiveMetadata(curr_table, uri_values):
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
 
-    dtypes = [cudf_type_int_to_np_types(t) for t in curr_table.column_types]
+    dtypes = [cio.cudf_type_int_to_np_types(t) for t in curr_table.column_types]
 
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
