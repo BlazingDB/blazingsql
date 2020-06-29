@@ -389,6 +389,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	return std::move(output);
 }
 
+
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache() {
 
 	std::unique_ptr<message> message_data = nullptr;
@@ -400,7 +401,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache()
 			if (all_messages[i]->get_data().get_type() == CacheDataType::GPU && message_data == nullptr){
 				message_data = std::move(all_messages[i]);
 			} else {
-				remaining_messages.emplace_back(std::move(all_messages[i]));
+				remaining_messages.push_back(std::move(all_messages[i]));
 			}
 		}
 		this->waitingCache->put_all_unsafe(std::move(remaining_messages));

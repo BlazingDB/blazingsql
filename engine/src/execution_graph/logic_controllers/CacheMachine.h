@@ -179,7 +179,6 @@ public:
 	void put(message_ptr item) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		putWaitingQueue(std::move(item));
-		lock.unlock();
 		condition_variable_.notify_all();
 	}
 
@@ -193,13 +192,16 @@ public:
 		return this->finished.load(std::memory_order_seq_cst);
 	}
 
-	bool empty() const { return this->message_queue_.size() == 0; }
+	bool empty() { 
+		std::unique_lock<std::mutex> lock(mutex_);
+		return this->message_queue_.size() == 0; 
+	}
 
 	message_ptr pop_or_wait() {		
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or this->message_queue_.size() != 0; 
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
@@ -279,7 +281,7 @@ public:
 			return nullptr;
 		}
 		while (true){
-			auto data = this->pop();
+			auto data = this->pop_unsafe();
 			if (data->get_message_id() == message_id){
 				return std::move(data);
 			} else {
@@ -288,7 +290,7 @@ public:
 		}
 	}
 
-	message_ptr pop() {
+	message_ptr pop_unsafe() {
 		auto data = std::move(this->message_queue_.front());
 		this->message_queue_.pop_front();
 		return std::move(data);
@@ -320,7 +322,7 @@ public:
 		for(message_ptr & it : message_queue_) {
 			messages.emplace_back(std::move(it));
 		}
-		message_queue_.erase(message_queue_.begin(), message_queue_.end());
+		message_queue_.clear();
 		return messages;
 	}
 
@@ -533,6 +535,10 @@ public:
 	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+
+	std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache() override {
+		return pullFromCache();
+	}
 
 	size_t downgradeCacheData() override { // dont want to be able to downgrage concatenating caches
 		return 0;
