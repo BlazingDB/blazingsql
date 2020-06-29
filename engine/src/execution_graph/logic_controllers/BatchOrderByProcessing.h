@@ -100,6 +100,13 @@ public:
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
 			this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		} else { // distributed mode
+			if( ral::utilities::checkIfConcatenatingStringsWillOverflow(sampledTableViews)) {
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
+			}
 			auto concatSamples = ral::utilities::concatTables(sampledTableViews);
 			auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(),
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());

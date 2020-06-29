@@ -529,7 +529,7 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;
 
@@ -542,6 +542,10 @@ public:
 	size_t downgradeCacheData() override { // dont want to be able to downgrage concatenating caches
 		return 0;
 	}
+
+  private:
+	bool concat_all;
+
 };
 
 }  // namespace cache
