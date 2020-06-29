@@ -97,6 +97,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			ral::cache::cache_settings cache_machine_config;
 			cache_machine_config.type = queryContext.getTotalNodes() == 1 ? ral::cache::CacheType::CONCATENATING : ral::cache::CacheType::SIMPLE;
 			cache_machine_config.context = queryContext.clone();
+			cache_machine_config.concat_all = true;
 
 			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);
 			// query_graph.show();

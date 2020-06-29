@@ -304,6 +304,13 @@ public:
             }
             eventTimer.start();
 
+			if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In MergeAggregateKernel::run Concatenating Strings will overflow strings length");
+			}
             auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
 
             auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
