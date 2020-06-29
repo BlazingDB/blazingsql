@@ -278,8 +278,9 @@ public:
     virtual kstatus run() {
 		CodeTimer timer;
 
-		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this);
-		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this);
+		bool ordered = false; 
+        this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this, ordered);
+		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this, ordered);
 
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;
@@ -840,8 +841,9 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-		BatchSequence left_sequence(this->input_.get_cache("input_a"), this);
-		BatchSequence right_sequence(this->input_.get_cache("input_b"), this);
+		bool ordered = false;
+		BatchSequence left_sequence(this->input_.get_cache("input_a"), this, ordered);
+		BatchSequence right_sequence(this->input_.get_cache("input_b"), this, ordered);
 
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;

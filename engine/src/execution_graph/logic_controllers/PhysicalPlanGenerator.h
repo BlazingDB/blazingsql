@@ -24,14 +24,15 @@ using ral::cache::kernel_type;
 using ral::cache::cache_settings;
 using ral::cache::CacheType;
 
+struct node {
+	std::string expr;               // expr
+	int level;                      // level
+	std::shared_ptr<kernel>            kernel_unit;
+	std::vector<std::shared_ptr<node>> children;  // children nodes
+};
 struct tree_processor {
-	struct node {
-		std::string expr;               // expr
-		int level;                      // level
-		std::shared_ptr<kernel>            kernel_unit;
-		std::vector<std::shared_ptr<node>> children;  // children nodes
-
-	} root;
+	
+	node root;
 	std::shared_ptr<Context> context;
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
