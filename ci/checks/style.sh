@@ -14,7 +14,8 @@ LANG=C.UTF-8
 source activate gdf
 
 # Run isort and get results/return code
-ISORT=`isort --recursive --check-only pyblazing`
+# TODO: cordova in a near future consider hive.py and context.py
+ISORT=`isort --recursive --check-only pyblazing --skip __init__.py --skip context.py --skip hive.py`
 ISORT_RETVAL=$?
 
 # Run black and get results/return code
@@ -30,13 +31,13 @@ FLAKE_CYTHON=`flake8 --config=pyblazing/.flake8.cython`
 FLAKE_CYTHON_RETVAL=$?
 
 # Output results if failure otherwise show pass
-#if [ "$ISORT_RETVAL" != "0" ]; then
-#  echo -e "\n\n>>>> FAILED: isort style check; begin output\n\n"
-#  echo -e "$ISORT"
-#  echo -e "\n\n>>>> FAILED: isort style check; end output\n\n"
-#else
-#  echo -e "\n\n>>>> PASSED: isort style check\n\n"
-#fi
+if [ "$ISORT_RETVAL" != "0" ]; then
+  echo -e "\n\n>>>> FAILED: isort style check; begin output\n\n"
+  echo -e "$ISORT"
+  echo -e "\n\n>>>> FAILED: isort style check; end output\n\n"
+else
+  echo -e "\n\n>>>> PASSED: isort style check\n\n"
+fi
 
 if [ "$BLACK_RETVAL" != "0" ]; then
   echo -e "\n\n>>>> FAILED: black style check; begin output\n\n"
