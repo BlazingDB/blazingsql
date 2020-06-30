@@ -220,7 +220,7 @@ def main():
     
     if Settings.execution_mode != ExecutionMode.GENERATOR:
 
-        result, error_msgs = runTest.save_log()
+        result, error_msgs = runTest.save_log(Settings.execution_mode == ExecutionMode.GPUCI)
         
         max = 0 
         for i in range(0, len(Settings.memory_list)):
