@@ -1,12 +1,15 @@
 # BlazingSQL 0.15.0 (Date TBS)
 
 ## New Features
-
+- #835 Added a memory monitor for better memory management and added pull ordered from cache
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
-
-
+- #786 Added check for concat String overflow
+- #815 Implemented Unordered pull from cache to help performance
+- #822 remove "from_cudf" code and cudf test utilities from engine code
+- #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
+- #802 Support for timestampadd and constant expressions evaluation by Calcite
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -19,6 +22,9 @@
 - #799 Fix uri values computacion in runQueryCaller
 - #792 Remove orc temp files when cached on Disk
 - #814 Fix when checking only Limit and Scan Kernels
+- #816 Loading one file at a time (LimitKernel and ScanKernel) 
+- #832 updated calcite test reference 
+- #834 Fixed small issue with hive and cudf_type_int_to_np_types
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
@@ -62,3 +68,4 @@
 - #753 Fix for host memory threshold parameter with Dask envs
 - #801 Fix build with new cudf 0.15 and arrow 0.17.1
 - #809 Fix conda build issues
+- #828 Fix gpuci issues and improve tooling to debug gpuci related issues
