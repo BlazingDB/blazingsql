@@ -9,4 +9,6 @@ ignore =
     F401
     # too large
     E501 
+    # E231 missing whitespace after ','
+    E231
 
