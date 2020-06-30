@@ -256,8 +256,12 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             computed_column = evaluated_col[0]->release();
             column = computed_column->view();
         }
-
-        computed_col = cudf::type_dispatcher(column.type(), cast_to_str_functor{}, column);
+        if (column.type() == cudf::data_type{cudf::type_id::STRING}){
+            // this should not happen, but sometimes calcite produces inefficient plans that ask to cast a string column to a "VARCHAR NOT NULL"
+            computed_col = std::make_unique<cudf::column>(column);
+        } else {
+            computed_col = cudf::type_dispatcher(column.type(), cast_to_str_functor{}, column);
+        }        
         break;
     }
     case operator_type::BLZ_CAST_TINYINT:
