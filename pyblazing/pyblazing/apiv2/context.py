@@ -996,6 +996,7 @@ class BlazingContext(object):
             # Start listener on each worker to send received messages to router
             print("starting listeners")
             listen(client=self.dask_client)
+
             print("started listeners")
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different than the local dask workers

@@ -62,11 +62,22 @@ class BlazingMessage:
                 len(self.metadata["worker_ids"]) > 0 and
                 self.data is not None)
 
+def set_id_mappings_on_worker(mapping):
+    get_worker().ucx_addresses = mapping
+
 
 def listen(callback=route_message, client=None):
     client = client if client is not None else default_client()
     print("Sending listen start message to workers")
-    return client.run(UCX.start_listener_on_worker, callback, wait=True)
+    worker_id_maps = client.run(UCX.start_listener_on_worker, callback, wait=True)
+    client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
+    
+
+async def listen_async(callback=route_message, client=None):
+    client = client if client is not None else default_client()
+    print("Sending listen start message to workers")
+    worker_id_maps = await client.run(UCX.start_listener_on_worker, callback, wait=True)
+    return client.run(set_id_mappings_on_worker, worker_id_mappings, wait=True)
 
 
 def cleanup(client=None):
@@ -119,13 +130,16 @@ class UCX:
             should_stop = False
             while not comm.closed() and not should_stop:
                 msg = await comm.read()
-                print("got msg")
+                print("got msg: " + str(msg))
                 if msg == CTRL_STOP:
                     should_stop = True
                 else:
                     msg = BlazingMessage(**{k: v.deserialize()
                                             for k, v in msg.items()})
+                    print("Invoking callback")
                     await self.callback(msg)
+
+            print("Listener shutting down")
 
         ip, port = parse_host_port(get_worker().address)
 
@@ -160,8 +174,10 @@ class UCX:
         field of metadata
         """
         print("calling send")
-        for addr in blazing_msg.metadata["worker_ids"]:
-            print("sending to " + addr)
+        for dask_addr in blazing_msg.metadata["worker_ids"]:
+            # Map Dask address to internal ucx endpoint address
+            addr = get_worker().ucx_addresses[dask_addr] 
+            print("dask_addr=%s mapped to %s" %(dask_addr, addr))
             ep = await self.get_endpoint(addr)
             print(ep)
             to_ser = {"metadata": to_serialize(blazing_msg.metadata),

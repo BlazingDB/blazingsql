@@ -76,6 +76,8 @@ async def test_ucx_localcluster( dask_cleanup):
             try:
                 ips_ports = await listen(mock_msg_callback, client)
 
+                print(str(ips_ports))
+
                 "<<<<<<<<<< Begin Test Logic >>>>>>>>>>>>"
 
                 assert len(ips_ports) == len(client.scheduler_info()["workers"])
