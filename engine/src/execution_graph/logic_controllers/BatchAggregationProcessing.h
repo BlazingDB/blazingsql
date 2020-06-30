@@ -239,6 +239,7 @@ public:
                         metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
                         metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
                         metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
+												metadata.print();
                         ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
                         for(int i = 0; i < this->context->getTotalNodes(); i++ ){
                             auto partition = std::make_unique<ral::frame::BlazingTable>(partitioned[i], batch->names());
@@ -252,7 +253,8 @@ public:
                                 metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getNode(i).id());
 								node_count[this->context->getNode(i).id()]++;
                                 output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(partition), metadata)));
-                            }
+																std::cout<<"Added to the cache"<<std::endl;
+													  }
                         }
                     }
                     batch_count++;
@@ -294,7 +296,8 @@ public:
                                             metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
 
                     this->query_graph->get_output_cache()->addCacheData(
-                        std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)));
+                        std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)),"",true);
+												std::cout<<"added empty message"<<std::endl;
                 }
             }
 

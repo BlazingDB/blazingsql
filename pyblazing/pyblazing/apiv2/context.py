@@ -213,7 +213,7 @@ def generateGraphs(
         accessToken,
         config_options,
         single_gpu=False):
-
+    print("generated graphs")
     import dask.distributed
     worker = dask.distributed.get_worker()
     for table_index in range(len(tables)):
@@ -248,9 +248,10 @@ def generateGraphs(
             worker.query_graphs = {}
 
     worker.query_graphs[ctxToken] = graph
+    print("finished graph")
 
 def executeGraph(ctxToken):
-
+    print("starting execute graph")
     import dask.distributed
     worker = dask.distributed.get_worker()
 
@@ -1898,18 +1899,21 @@ class BlazingContext(object):
                             algebra,
                             accessToken,
                             query_config_options,
-                            workers=[worker]))
+                            workers=[worker],
+                            pure=False))
                     i = i + 1
-                self.dask_client.gather(graph_futures)
+                graph_futures = self.dask_client.gather(graph_futures)
 
                 dask_futures = []
                 for node in self.nodes:
                     worker = node['worker']
+                    print("running on " + str(worker))
                     dask_futures.append(
                         self.dask_client.submit(
                             executeGraph,
                             ctxToken,
-                            workers=[worker]))
+                            workers=[worker],
+                            pure=False))
 
             if(return_futures):
                 result  = dask_futures

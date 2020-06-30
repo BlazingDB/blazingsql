@@ -188,10 +188,10 @@ void CacheMachine::clear() {
 	this->waitingCache->finish();
 }
 
-void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id){
+void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, bool always_add){
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
-	if (!this->something_added || cache_data->num_rows() > 0){
+	if ((!this->something_added || cache_data->num_rows() > 0) || always_add){
 		std::unique_lock<std::mutex> lock(flow_control_mutex);
 		flow_control_batches_count++;
 		flow_control_bytes_count += cache_data->sizeInBytes();
@@ -259,6 +259,10 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 	if (!this->something_added || table->num_rows() > 0){
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
 			if (table->view().column(col_ind).offset() > 0){
+				table->ensureOwnership();
+			}
+
+			if (table->view().column(col_ind).offset() > 0){
 				std::string err = "ERROR: Add to CacheMachine into cache table column " + table->names()[col_ind] + " has offset";
 				logger->error("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|offset|{offset}",
 								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
@@ -270,6 +274,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 								"offset"_a=table->view().column(col_ind).offset());
 				throw err;
 			}
+
 		}
 
 		std::unique_lock<std::mutex> lock(flow_control_mutex);

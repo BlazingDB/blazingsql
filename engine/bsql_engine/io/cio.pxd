@@ -154,6 +154,7 @@ cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" names
         cdef cppclass MetadataDictionary:
             void set_values(map[string,string] new_values)
             map[string,string] get_values()
+            void print() nogil
         cdef cppclass GPUCacheDataMetaData:
             GPUCacheDataMetaData(BlazingTable table, MetadataDictionary metadata)
             map[string, string] get_map()
@@ -163,6 +164,7 @@ cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" names
             void addToCache(unique_ptr[BlazingTable] table, const string & message_id )
             unique_ptr[CacheData] pullCacheData() nogil
             unique_ptr[CacheData] pullCacheData(string message_id) nogil
+            bool has_next_now()
 
 # REMARK: We have some compilation errors from cython assigning temp = unique_ptr[ResultSet]
 # We force the move using this function
@@ -175,7 +177,7 @@ cdef extern from * namespace "blazing":
         template <class T> inline typename std::remove_reference<T>::type&& blaz_move2(T&& t) { return std::move(t); }
         }
         """
-        cdef T blaz_move[T](T)
+        cdef T blaz_move[T](T) nogil
         cdef unique_ptr[CacheData] blaz_move2(unique_ptr[GPUCacheDataMetaData])
 
 cdef extern from "../include/engine/engine.h":
@@ -187,7 +189,7 @@ cdef extern from "../include/engine/engine.h":
             string ip
             int communication_port
         shared_ptr[graph] runGenerateGraph(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +raiseRunGenerateGraphError
-        unique_ptr[PartitionedResultSet] runExecuteGraph(shared_ptr[graph]) except +raiseRunExecuteGraphError
+        unique_ptr[PartitionedResultSet] runExecuteGraph(shared_ptr[graph]) nogil except +raiseRunExecuteGraphError
         unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunSkipDataError
 
         cdef struct TableScanInfo:

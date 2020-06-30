@@ -111,7 +111,8 @@ cdef shared_ptr[cio.graph] runGenerateGraphPython(int masterIndex, vector[NodeMe
     return cio.runGenerateGraph(masterIndex, tcpMetadata, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options)
 
 cdef unique_ptr[cio.PartitionedResultSet] runExecuteGraphPython(shared_ptr[cio.graph] graph) except *:
-    return blaz_move(cio.runExecuteGraph(graph))
+    with nogil:
+      return blaz_move(cio.runExecuteGraph(graph))
 
 cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) except *:
     return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
@@ -197,6 +198,9 @@ cdef class PyBlazingCache:
         deref(blazing_table).ensureOwnership()
         deref(self.c_cache).addCacheData(blaz_move2(make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)),metadata["query_id"] + "_" + metadata["kernel_id"])
 
+    def has_next_now(self,):
+        return deref(self.c_cache).has_next_now()
+
     def add_to_cache(self,cudf_data):
         cdef vector[string] column_names
         for column_name in cudf_data:
@@ -212,22 +216,27 @@ cdef class PyBlazingCache:
         deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id)
 
     def pull_from_cache(self):
-        cdef unique_ptr[CacheData] cache_data_generic 
+        cdef unique_ptr[CacheData] cache_data_generic
         with nogil:
             cache_data_generic = deref(self.c_cache).pullCacheData()
+        print("pulled from cache!!!")
         cdef unique_ptr[GPUCacheDataMetaData] cache_data = cast_cache_data_to_gpu_with_meta(blaz_move(cache_data_generic))
         cdef pair[unique_ptr[BlazingTable], MetadataDictionary ] table_and_meta = deref(cache_data).decacheWithMetaData()
         table = blaz_move(table_and_meta.first)
+
         metadata = table_and_meta.second
+        metadata.print()
+        metadata_temp = metadata.get_values()
         metadata_py = {}
-        cdef map[string,string].iterator it = metadata.get_values().begin()
-        while(it != metadata.get_values().end()):
-            if dereference(it).first.decode('utf-8') == "worker_id":
-                worker_str = dereference(it).second.decode('utf-8')
-                metadata_py[dereference(it).first.decode('utf-8')] = worker_str.split(",")
+        for key_val in metadata_temp:
+            key = key_val.first.decode('utf-8')
+            val = key_val.second.decode('utf-8')
+            if(key == "worker_ids"):
+                metadata_py[key] = val.split(",")
             else:
-                metadata_py[dereference(it).first.decode('utf-8')] = dereference(it).second.decode('utf-8')
-            postincrement(it)
+                metadata_py[key] = val
+        print(metadata_py)
+
         decoded_names = []
         for i in range(deref(table).names().size()):
             decoded_names.append(deref(table).names()[i].decode('utf-8'))
@@ -283,7 +292,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_
 
     cdef vector[pair[string,type_id]] extra_columns_cpp
     cdef pair[string,type_id] extra_column_cpp
-    
+
     for extra_column in extra_columns:
         extra_column_cpp.first = extra_column[0].encode()
         extra_column_cpp.second = <type_id>(<underlying_type_t_type_id>(extra_column[1]))
@@ -569,5 +578,3 @@ cpdef np_to_cudf_types_int(dtype):
 
 cpdef cudf_type_int_to_np_types(type_int):
     return cudf_to_np_types[<underlying_type_t_type_id> (type_int)]
-
-

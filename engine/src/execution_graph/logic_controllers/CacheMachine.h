@@ -105,6 +105,12 @@ public:
 		return std::stoi(values[KERNEL_ID_METADATA_LABEL]);
 	}
 
+	void print(){
+		for(auto elem : this->values)
+		{
+		   std::cout << elem.first << " " << elem.second<< "\n";
+		}
+	}
 	std::map<std::string,std::string> get_values(){
 		return this->values;
 	}
@@ -436,7 +442,7 @@ public:
 
 	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "");
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "");
+	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
 
 	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
 

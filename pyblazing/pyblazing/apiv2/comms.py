@@ -12,6 +12,7 @@ serde = ("dask", "cuda", "pickle", "error")
 
 
 def route_message(msg):
+    print("routing message!")
     worker = get_worker()
     if msg.metadata["add_to_specific_cache"]:
         cache = worker.query_graphs[msg.metadata["query_id"]].get_kernel_output_cache(
@@ -41,7 +42,8 @@ def run_polling_thread():  # doctest: +SKIP
         print("Pull_from_cache")
         df, metadata = dask_worker.output_cache.pull_from_cache()
         print("Should never get here!")
-        asyncio.get_event_loop().run_until_complete(UCX.get().send(BlazingMessage(df, metadata)))
+        print(metadata)
+        asyncio.get_event_loop().run_until_complete(UCX.get().send(BlazingMessage(metadata, df)))
         asyncio.get_event_loop().run_until_complete(asyncio.sleep(0))
 
 
@@ -113,10 +115,11 @@ class UCX:
     async def start_listener(self):
 
         async def handle_comm(comm):
-
+            print("handling comm")
             should_stop = False
             while not comm.closed() and not should_stop:
                 msg = await comm.read()
+                print("got msg")
                 if msg == CTRL_STOP:
                     should_stop = True
                 else:
@@ -156,11 +159,15 @@ class UCX:
         Send a BlazingMessage to the workers specified in `worker_ids`
         field of metadata
         """
+        print("calling send")
         for addr in blazing_msg.metadata["worker_ids"]:
+            print("sending to " + addr)
             ep = await self.get_endpoint(addr)
+            print(ep)
             to_ser = {"metadata": to_serialize(blazing_msg.metadata),
                       "data": to_serialize(blazing_msg.data)}
             await ep.write(msg=to_ser, serializers=serde)
+            print("seems like it wrote")
 
     def abort_endpoints(self):
         for addr, ep in self._endpoints.items():
