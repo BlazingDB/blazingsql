@@ -19,10 +19,13 @@ def route_message(msg):
             msg.metadata["kernel_id"],
             cache_id=msg.metadata["cache_id"]
         )
+        print("got cache in route")
         cache.add_to_cache(msg.data)
+        print("added to cache in route")
     else:
         cache = worker.input_cache
         cache.add_to_cache_with_meta(msg.data, msg.metadata)
+    print("finished route")
 
 
 #async def run_polling_thread():  # doctest: +SKIP
@@ -71,7 +74,7 @@ def listen(callback=route_message, client=None):
     print("Sending listen start message to workers")
     worker_id_maps = client.run(UCX.start_listener_on_worker, callback, wait=True)
     client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
-    
+
 
 async def listen_async(callback=route_message, client=None):
     client = client if client is not None else default_client()
@@ -176,7 +179,7 @@ class UCX:
         print("calling send")
         for dask_addr in blazing_msg.metadata["worker_ids"]:
             # Map Dask address to internal ucx endpoint address
-            addr = get_worker().ucx_addresses[dask_addr] 
+            addr = get_worker().ucx_addresses[dask_addr]
             print("dask_addr=%s mapped to %s" %(dask_addr, addr))
             ep = await self.get_endpoint(addr)
             print(ep)
