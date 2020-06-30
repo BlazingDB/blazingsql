@@ -11,7 +11,7 @@ from dask.distributed import default_client
 serde = ("dask", "cuda", "pickle", "error")
 
 
-def route_message(msg):
+async def route_message(msg):
     print("routing message!")
     worker = get_worker()
     if msg.metadata["add_to_specific_cache"]:
@@ -26,6 +26,8 @@ def route_message(msg):
         cache = worker.input_cache
         cache.add_to_cache_with_meta(msg.data, msg.metadata)
     print("finished route")
+
+    print("done routing message")
 
 
 #async def run_polling_thread():  # doctest: +SKIP
@@ -54,7 +56,7 @@ CTRL_STOP = "stopit"
 
 
 class BlazingMessage:
-    def __init__(self, metadata, data):
+    def __init__(self, metadata, data=None):
         self.metadata = metadata
         self.data = data
 
@@ -132,6 +134,7 @@ class UCX:
             print("handling comm")
             should_stop = False
             while not comm.closed() and not should_stop:
+                print("Listening!")
                 msg = await comm.read()
                 print("got msg: " + str(msg))
                 if msg == CTRL_STOP:
@@ -141,6 +144,7 @@ class UCX:
                                             for k, v in msg.items()})
                     print("Invoking callback")
                     await self.callback(msg)
+                    print("Done invoting callback")
 
             print("Listener shutting down")
 
@@ -183,8 +187,11 @@ class UCX:
             print("dask_addr=%s mapped to %s" %(dask_addr, addr))
             ep = await self.get_endpoint(addr)
             print(ep)
-            to_ser = {"metadata": to_serialize(blazing_msg.metadata),
-                      "data": to_serialize(blazing_msg.data)}
+            
+            to_ser = {"metadata": to_serialize(blazing_msg.metadata)}
+            print(str(blazing_msg.data.shape))
+            if blazing_msg.data is not None and blazing_msg.data.shape[0] > 0:
+                to_ser["data"] = to_serialize(blazing_msg.data)
             await ep.write(msg=to_ser, serializers=serde)
             print("seems like it wrote")
 
