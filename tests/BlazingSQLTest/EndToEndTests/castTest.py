@@ -91,6 +91,13 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             if fileSchemaType != DataType.ORC:
                 runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
+            queryId = 'TEST_13'
+            query = """select cast(o_totalprice AS INTEGER), 4, 4.0, 5 from orders where o_orderkey < 10"""
+            algebra = """LogicalProject(EXPR$0=[CAST($1):INTEGER], scan_type=[CAST(4:INTEGER):INTEGER], scan_type2=[CAST(4:FLOAT):DOUBLE], scan_type3=[5])
+  BindableTableScan(table=[[main, orders]], filters=[[<($0, 10)]], projects=[[0, 3]], aliases=[[$f0, $f1]])
+"""
+            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType, algebra=algebra)
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break
