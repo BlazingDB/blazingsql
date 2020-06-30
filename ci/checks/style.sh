@@ -18,7 +18,7 @@ ISORT=`isort --recursive --check-only pyblazing`
 ISORT_RETVAL=$?
 
 # Run black and get results/return code
-BLACK=`black --check pyblazing`
+BLACK=`black --check --exclude=__init__.py pyblazing`
 BLACK_RETVAL=$?
 
 # Run flake8 and get results/return code
