@@ -4,6 +4,7 @@ import cudf
 # from cudf.core.column.column import build_column
 
 from collections import OrderedDict
+
 # from enum import Enum
 
 from urllib.parse import urlparse
@@ -21,7 +22,7 @@ from .hive import (
     convertTypeNameStrToCudfType,
     getFolderListFromPartitions,
     getPartitionsFromUserPartitions,
-    get_hive_table
+    get_hive_table,
 )
 import time
 import socket
@@ -67,14 +68,10 @@ ColumnTypeClass = jpype.JClass(
     "com.blazingdb.calcite.catalog.domain.CatalogColumnDataType"
 )
 dataType = ColumnTypeClass.fromString("GDF_INT8")
-ColumnClass = jpype.JClass(
-    "com.blazingdb.calcite.catalog.domain.CatalogColumnImpl")
-TableClass = jpype.JClass(
-    "com.blazingdb.calcite.catalog.domain.CatalogTableImpl")
-DatabaseClass = jpype.JClass(
-    "com.blazingdb.calcite.catalog.domain.CatalogDatabaseImpl")
-BlazingSchemaClass = jpype.JClass(
-    "com.blazingdb.calcite.schema.BlazingSchema")
+ColumnClass = jpype.JClass("com.blazingdb.calcite.catalog.domain.CatalogColumnImpl")
+TableClass = jpype.JClass("com.blazingdb.calcite.catalog.domain.CatalogTableImpl")
+DatabaseClass = jpype.JClass("com.blazingdb.calcite.catalog.domain.CatalogDatabaseImpl")
+BlazingSchemaClass = jpype.JClass("com.blazingdb.calcite.schema.BlazingSchema")
 RelationalAlgebraGeneratorClass = jpype.JClass(
     "com.blazingdb.calcite.application.RelationalAlgebraGenerator"
 )
@@ -92,8 +89,7 @@ def checkSocket(socketNum):
             socket_free = False
         else:
             # something else raised the socket.error exception
-            print("ERROR: Something happened when checking socket "
-                  + str(socketNum))
+            print("ERROR: Something happened when checking socket " + str(socketNum))
     s.close()
     return socket_free
 
@@ -116,8 +112,7 @@ def initializeBlazing(
 ):
     last_str = '|%(levelname)s|||"%(message)s"||||||'
     FORMAT = "%(asctime)s|" + str(ralId) + last_str
-    filename = os.path.join(logging_dir_path,
-                            "pyblazing." + str(ralId) + ".log")
+    filename = os.path.join(logging_dir_path, "pyblazing." + str(ralId) + ".log")
     logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"]
     ralCommunicationPort = random.randint(10000, 32000) + ralId
@@ -161,8 +156,7 @@ def initializeBlazing(
     elif pool and allocator == "managed":
         allocator = "cnmem_managed_memory_resource"
 
-    cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size,
-                                  config_options)
+    cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
 
     cio.initializeCaller(
         ralId,
@@ -228,8 +222,7 @@ def collectPartitionsRunQuery(
     for table_index in range(len(tables)):
         if isinstance(tables[table_index].input, dask_cudf.core.DataFrame):
             if single_gpu:
-                tables[table_index].input = [tables[
-                                             table_index].input.compute()]
+                tables[table_index].input = [tables[table_index].input.compute()]
             else:
                 print(
                     "ERROR: collectPartitionsRunQuery should not be called "
@@ -283,9 +276,9 @@ def collectPartitionsRunQuery(
     return query_partids, meta, worker.name
 
 
-def collectPartitionsPerformPartition(masterIndex, nodes, ctxToken, input,
-                                      partition_keys_mapping, df_schema,
-                                      by, i):
+def collectPartitionsPerformPartition(
+    masterIndex, nodes, ctxToken, input, partition_keys_mapping, df_schema, by, i
+):
     import dask.distributed
 
     worker = dask.distributed.get_worker()
@@ -307,8 +300,7 @@ def collectPartitionsPerformPartition(masterIndex, nodes, ctxToken, input,
     else:
         node_input = df_schema
 
-    return cio.performPartitionCaller(masterIndex, nodes, ctxToken,
-                                      node_input, by)
+    return cio.performPartitionCaller(masterIndex, nodes, ctxToken, node_input, by)
 
 
 # returns a map of table names to the indices of the columns needed.
@@ -322,10 +314,9 @@ def mergeTableScans(tableScanInfo):
 
     for index, table_name in enumerate(tableScanInfo["table_names"]):
         # if the column list is empty, it means we want all columns
-        if (len(tableScanInfo["table_columns"][index]) > 0):
+        if len(tableScanInfo["table_columns"][index]) > 0:
             table_columns[table_name] = list(
-                set(table_columns[table_name]
-                    + tableScanInfo["table_columns"][index])
+                set(table_columns[table_name] + tableScanInfo["table_columns"][index])
             )
             table_columns[table_name].sort()
         else:
@@ -372,8 +363,7 @@ def get_uri_values(files, partitions, base_folder):
         if partition_name in partitions:
             uri_values.append(partitions[partition_name])
         else:
-            print("ERROR: Could not get partition values for file: "
-                  + file.decode())
+            print("ERROR: Could not get partition values for file: " + file.decode())
     return uri_values
 
 
@@ -382,11 +372,10 @@ def parseHiveMetadata(curr_table, uri_values):
     names = []
     # not all columns will have hive metadata, so this vector will capture
     # all the names that will actually be used in the end
-    final_names = ([])
+    final_names = []
     n_cols = len(curr_table.column_names)
 
-    dtypes = [cio.cudf_type_int_to_np_types(t) for t
-              in curr_table.column_types]
+    dtypes = [cio.cudf_type_int_to_np_types(t) for t in curr_table.column_types]
 
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
@@ -418,12 +407,12 @@ def parseHiveMetadata(curr_table, uri_values):
             ):
                 np_col_value = np.datetime64(col_value_id)
             else:
-                np_col_value = np.fromstring(col_value_id, dtypes[col_index],
-                                             sep=" ")[0]
+                np_col_value = np.fromstring(col_value_id, dtypes[col_index], sep=" ")[
+                    0
+                ]
 
             table_partition.setdefault(col_name, []).append(np_col_value)
-        minmax_metadata_table[
-            len(minmax_metadata_table) - 2].append(file_index)
+        minmax_metadata_table[len(minmax_metadata_table) - 2].append(file_index)
         # this assumes that you only have one row group per partitioned file
         # but is addressed in the mergeMetadata function, where you will have
         # information about how many rowgroups per file and you can expand
@@ -477,17 +466,18 @@ def parseHiveMetadata(curr_table, uri_values):
             final_names.append(names[2 * index])
             final_names.append(names[2 * index + 1])
     index = n_cols
-    col1 = pandas.Series(minmax_metadata_table[2 * index], dtype=np.int32,
-                         name=names[2 * index])
-    col2 = pandas.Series(minmax_metadata_table[2 * index + 1], dtype=np.int32,
-                         name=names[2 * index + 1])
+    col1 = pandas.Series(
+        minmax_metadata_table[2 * index], dtype=np.int32, name=names[2 * index]
+    )
+    col2 = pandas.Series(
+        minmax_metadata_table[2 * index + 1], dtype=np.int32, name=names[2 * index + 1]
+    )
     final_names.append(names[2 * index])
     final_names.append(names[2 * index + 1])
     series.append(col1)
     series.append(col2)
 
-    frame = OrderedDict((key, value) for (key, value)
-                        in zip(final_names, series))
+    frame = OrderedDict((key, value) for (key, value) in zip(final_names, series))
     metadata = cudf.DataFrame(frame)
     for index, col_type in enumerate(dtypes):
         min_col_name = names[2 * index]
@@ -540,7 +530,7 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     names = []
     # not all columns will have hive metadata, so this vector will capture
     # all the names that will actually be used in the end
-    final_names = ([])
+    final_names = []
     for index in range(n_cols):
         col_name = columns[index]
         names.append("min_" + str(index) + "_" + col_name)
@@ -561,8 +551,7 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
             series.append(col)
             final_names.append(col_name)
 
-    frame = OrderedDict(
-        (key, value) for (key, value) in zip(final_names, series))
+    frame = OrderedDict((key, value) for (key, value) in zip(final_names, series))
     result = cudf.DataFrame(frame)
     return result
 
@@ -601,8 +590,7 @@ def visit(lines):
             elif child_level == curr_level + 1:
                 index = curr_index + 1
                 if is_double_children(curr_expr):
-                    while (index < len(lines)
-                            and len(curr_dicc["children"]) < 2):
+                    while index < len(lines) and len(curr_dicc["children"]) < 2:
                         child_level, expr = lines[index]
                         if child_level == curr_level + 1:
                             new_dicc = {"expr": expr, "children": []}
@@ -614,8 +602,7 @@ def visit(lines):
                             stack.append((index, child_level, expr, new_dicc))
                         index += 1
                 else:
-                    while (index < len(lines)
-                            and len(curr_dicc["children"]) < 1):
+                    while index < len(lines) and len(curr_dicc["children"]) < 1:
                         child_level, expr = lines[index]
                         if child_level == curr_level + 1:
                             new_dicc = {"expr": expr, "children": []}
@@ -676,8 +663,7 @@ def resolve_relative_path(files):
 # have data files that do not have data wont show up in the metadata and
 # we will want to remove them from the table schema
 def adjust_due_missing_rowgroups(metadata, files):
-    metadata_ids = metadata[
-        ["file_handle_index", "row_group_index"]].to_pandas()
+    metadata_ids = metadata[["file_handle_index", "row_group_index"]].to_pandas()
     grouped = metadata_ids.groupby("file_handle_index")
     new_files = []
     missing_file_inds = []
@@ -692,8 +678,7 @@ def adjust_due_missing_rowgroups(metadata, files):
     missing_file_inds = list(reversed(missing_file_inds))
     for ind in missing_file_inds:
         mask = metadata["file_handle_index"] > ind
-        metadata["file_handle_index"][mask] = metadata[
-            "file_handle_index"][mask] - 1
+        metadata["file_handle_index"][mask] = metadata["file_handle_index"][mask] - 1
     return metadata, new_files
 
 
@@ -702,9 +687,7 @@ def distributed_initialize_server_directory(client, dir_path):
     # lets make host_list which is a list of all the unique hosts.
     # This way we do the logging folder creation only once per host (server)
     all_items = client.scheduler_info()["workers"].items()
-    host_list = list(
-        set([value["host"] for key, value in all_items])
-    )
+    host_list = list(set([value["host"] for key, value in all_items]))
     initialized = {}
     for host in host_list:
         initialized[host] = False
@@ -713,8 +696,7 @@ def distributed_initialize_server_directory(client, dir_path):
     for worker, worker_info in client.scheduler_info()["workers"].items():
         if not initialized[worker_info["host"]]:
             dask_futures.append(
-                client.submit(initialize_server_directory, dir_path,
-                              workers=[worker])
+                client.submit(initialize_server_directory, dir_path, workers=[worker])
             )
             initialized[worker_info["host"]] = True
 
@@ -772,8 +754,7 @@ class BlazingTable(object):
                 self.input = cudf.DataFrame.from_arrow(input)
                 self.fileType = DataType.CUDF
             else:
-                self.input = cudf.DataFrame.from_arrow(
-                    input.schema.empty_table())
+                self.input = cudf.DataFrame.from_arrow(input.schema.empty_table())
                 self.arrow_table = input
         else:
             self.input = input
@@ -784,8 +765,7 @@ class BlazingTable(object):
         self.datasource = datasource
 
         self.args = args
-        if (self.fileType == DataType.CUDF
-                or self.fileType == DataType.DASK_CUDF):
+        if self.fileType == DataType.CUDF or self.fileType == DataType.DASK_CUDF:
             if convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame):
                 self.input = dask_cudf.from_cudf(
                     self.input, npartitions=convert_gdf_to_dask_partitions
@@ -813,12 +793,10 @@ class BlazingTable(object):
         if self.fileType == DataType.CUDF:
             self.column_names = [x for x in self.input._data.keys()]
             data_values = self.input._data.values()
-            self.column_types = [
-                cio.np_to_cudf_types_int(x.dtype) for x in data_values]
+            self.column_types = [cio.np_to_cudf_types_int(x.dtype) for x in data_values]
         elif self.fileType == DataType.DASK_CUDF:
             self.column_names = [x for x in input.columns]
-            self.column_types = [
-                cio.np_to_cudf_types_int(x) for x in input.dtypes]
+            self.column_types = [cio.np_to_cudf_types_int(x) for x in input.dtypes]
 
         # file_column_names are usually the same as column_names, except
         # for when in a hive table the column names defined by the hive schema
@@ -885,20 +863,19 @@ class BlazingTable(object):
         nodeFilesList = []
         if self.files is None:
             for i in range(0, numSlices):
-                nodeFilesList.append(BlazingTable(self.name, self.input,
-                                                  self.fileType))
+                nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
             return nodeFilesList
         remaining = len(self.files)
         startIndex = 0
         for i in range(0, numSlices):
             batchSize = int(remaining / (numSlices - i))
-            tempFiles = self.files[startIndex: startIndex + batchSize]
-            uri_values = self.uri_values[startIndex: startIndex + batchSize]
+            tempFiles = self.files[startIndex : startIndex + batchSize]
+            uri_values = self.uri_values[startIndex : startIndex + batchSize]
 
             slice_row_groups_ids = []
             if self.row_groups_ids is not None:
                 slice_row_groups_ids = self.row_groups_ids[
-                    startIndex: startIndex + batchSize
+                    startIndex : startIndex + batchSize
                 ]
 
             bt = BlazingTable(
@@ -1098,19 +1075,14 @@ class BlazingContext(object):
         remove_orc_files_from_disk(cache_dir_path)
 
         host_memory_quota = 0.75
-        if (
-            not "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()
-            in self.config_options
-        ):
-            self.config_options[
-                "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()
-            ] = str(host_memory_quota).encode()
+        if not "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode() in self.config_options:
+            self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
+                host_memory_quota
+            ).encode()
 
         if dask_client is not None:
-            distributed_initialize_server_directory(self.dask_client,
-                                                    logging_dir_path)
-            distributed_initialize_server_directory(self.dask_client,
-                                                    cache_dir_path)
+            distributed_initialize_server_directory(self.dask_client, logging_dir_path)
+            distributed_initialize_server_directory(self.dask_client, cache_dir_path)
 
             if network_interface is None:
                 network_interface = "eth0"
@@ -1121,9 +1093,7 @@ class BlazingContext(object):
 
             if "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD" in config_options:
                 host_memory_quota = float(
-                    self.config_options[
-                        "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()
-                    ]
+                    self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()]
                 )
 
             # If all workers are on the same machine, the memory threshold is
@@ -1131,10 +1101,9 @@ class BlazingContext(object):
             # the same number of GPUs/workers per server.
             workers_info = self.dask_client.scheduler_info()["workers"]
             host_list = [value["host"] for key, value in workers_info.items()]
-            self.config_options[
-                "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
-                    host_memory_quota * len(
-                        set(host_list)) / len(workers_info)).encode()
+            self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
+                host_memory_quota * len(set(host_list)) / len(workers_info)
+            ).encode()
 
             for worker in list(self.dask_client.scheduler_info()["workers"]):
                 dask_futures.append(
@@ -1171,8 +1140,7 @@ class BlazingContext(object):
             # this one is for the non dask side
             FORMAT = '%(asctime)s||%(levelname)s|||"%(message)s"||||||'
             filename = os.path.join(logging_dir_path, "pyblazing.log")
-            logging.basicConfig(filename=filename, format=FORMAT,
-                                level=logging.INFO)
+            logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
         else:
             initialize_server_directory(logging_dir_path)
             initialize_server_directory(cache_dir_path)
@@ -1492,8 +1460,7 @@ class BlazingContext(object):
         # of the form partitions=
         # {'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}
         user_partitions = kwargs.get("partitions", None)
-        if (user_partitions is not None
-                and not isinstance(user_partitions, dict)):
+        if user_partitions is not None and not isinstance(user_partitions, dict):
             print(
                 """ERROR: User defined partitions should be a dictionary
                  object of the form partitions={'col_nameA':[val, val],
@@ -1523,8 +1490,9 @@ class BlazingContext(object):
                     + " to be used when defining 'partitions'"
                 )
                 return
-            elif (not isinstance(user_partitions_schema, list) and all(
-                    len(schema) == 2 for schema in user_partitions_schema)):
+            elif not isinstance(user_partitions_schema, list) and all(
+                len(schema) == 2 for schema in user_partitions_schema
+            ):
                 print(
                     "ERROR: 'partitions_schema' should be a list of tuples of"
                     + " the column name and column type of the form "
@@ -1630,8 +1598,7 @@ class BlazingContext(object):
             extra_columns = []
             for part_schema in user_partitions_schema:
                 extra_columns.append(
-                    (part_schema[0],
-                     convertTypeNameStrToCudfType(part_schema[1]))
+                    (part_schema[0], convertTypeNameStrToCudfType(part_schema[1]))
                 )
 
         if isinstance(input, str):
@@ -1665,10 +1632,9 @@ class BlazingContext(object):
 
             # if we are using user defined partitions without hive,
             # we want to ignore paths we dont find.
-            ignore_missing_paths = (user_partitions_schema is not None)
+            ignore_missing_paths = user_partitions_schema is not None
             parsedSchema = self._parseSchema(
-                input, file_format_hint, kwargs, extra_columns,
-                ignore_missing_paths
+                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
             )
 
             if is_hive_input or user_partitions is not None:
@@ -1692,8 +1658,7 @@ class BlazingContext(object):
                 file_type,
                 files=parsedSchema["files"],
                 datasource=parsedSchema["datasource"],
-                calcite_to_file_indices=parsedSchema[
-                    "calcite_to_file_indices"],
+                calcite_to_file_indices=parsedSchema["calcite_to_file_indices"],
                 args=parsedSchema["args"],
                 uri_values=uri_values,
                 in_file=in_file,
@@ -1762,8 +1727,7 @@ class BlazingContext(object):
                 # that does not actually have data
                 # files that do not have data wont show up in the metadata
                 # and we will want to remove them from the table schema
-                file_groups = table.metadata.groupby(
-                    "file_handle_index")._grouped()
+                file_groups = table.metadata.groupby("file_handle_index")._grouped()
                 if len(file_groups) != len(table.files):
                     table.metadata, table.files = adjust_due_missing_rowgroups(
                         table.metadata, table.files
@@ -1813,8 +1777,9 @@ class BlazingContext(object):
         """
         self.add_remove_table(table_name, False)
 
-    def _parseSchema(self, input, file_format_hint, kwargs,
-                     extra_columns, ignore_missing_paths):
+    def _parseSchema(
+        self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
+    ):
         if self.dask_client:
             worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
             connection = self.dask_client.submit(
@@ -1829,12 +1794,10 @@ class BlazingContext(object):
             return connection.result()
         else:
             return cio.parseSchemaCaller(
-                input, file_format_hint, kwargs, extra_columns,
-                ignore_missing_paths
+                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
             )
 
-    def _parseMetadata(self, file_format_hint, currentTableNodes,
-                       schema, kwargs):
+    def _parseMetadata(self, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()["workers"])
@@ -1857,8 +1820,7 @@ class BlazingContext(object):
         else:
             files = [file.decode() for file in currentTableNodes[0].files]
             return cio.parseMetadataCaller(
-                files, currentTableNodes[0].offset, schema,
-                file_format_hint, kwargs
+                files, currentTableNodes[0].offset, schema, file_format_hint, kwargs
             )
 
     def _sliceRowGroups(self, numSlices, files, uri_values, row_groups_ids):
@@ -1882,7 +1844,7 @@ class BlazingContext(object):
         for i in range(0, numSlices):
             batchSize = int(remaining / (numSlices - i))
             file_indexes_for_slice = file_index_per_rowgroups[
-                startIndex: startIndex + batchSize
+                startIndex : startIndex + batchSize
             ]
             unique_file_indexes_for_slice = list(
                 dict.fromkeys(file_indexes_for_slice)
@@ -1900,8 +1862,7 @@ class BlazingContext(object):
             for ind, file_index in enumerate(file_indexes_for_slice):
                 if last_file_index is None or file_index != last_file_index:
                     sliced_rowgroup_ids.append([])
-                sliced_rowgroup_ids[-1].append(
-                    flattened_rowgroup_ids[ind + startIndex])
+                sliced_rowgroup_ids[-1].append(flattened_rowgroup_ids[ind + startIndex])
                 last_file_index = file_index
 
             startIndex = startIndex + batchSize
@@ -1911,8 +1872,7 @@ class BlazingContext(object):
             all_sliced_uri_values.append(sliced_uri_values)
             all_sliced_row_groups_ids.append(sliced_rowgroup_ids)
 
-        return (all_sliced_files, all_sliced_uri_values,
-                all_sliced_row_groups_ids)
+        return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
 
     def _optimize_skip_data_getSlices(
         self, current_table, scan_table_query, single_gpu
@@ -1949,8 +1909,7 @@ class BlazingContext(object):
                 file_and_rowgroup_indices = (
                     file_indices_and_rowgroup_indices.to_pandas()
                 )
-                grouped = file_and_rowgroup_indices.groupby(
-                    "file_handle_index")
+                grouped = file_and_rowgroup_indices.groupby("file_handle_index")
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
                     actual_files.append(current_table.files[group_id])
@@ -2011,8 +1970,9 @@ class BlazingContext(object):
                         all_sliced_files,
                         all_sliced_uri_values,
                         all_sliced_row_groups_ids,
-                    ) = self._sliceRowGroups(len(self.nodes), actual_files,
-                                             uri_values, row_groups_ids)
+                    ) = self._sliceRowGroups(
+                        len(self.nodes), actual_files, uri_values, row_groups_ids
+                    )
 
                     for i, node in enumerate(self.nodes):
                         curr_calcite = current_table.calcite_to_file_indices
@@ -2075,8 +2035,7 @@ class BlazingContext(object):
             if not isinstance(input, dask_cudf.core.DataFrame):
                 print("Not supported...")
             else:
-                partition_keys_mapping = getNodePartitionKeys(input,
-                                                              self.dask_client)
+                partition_keys_mapping = getNodePartitionKeys(input, self.dask_client)
                 df_schema = input._meta
 
                 dask_futures = []
@@ -2209,13 +2168,11 @@ class BlazingContext(object):
                 ).encode()  # make sure all options are encoded strings
 
         if self.dask_client is None or single_gpu:
-            query_tables, table_scans = cio.getTableScanInfoCaller(algebra,
-                                                                   self.tables)
+            query_tables, table_scans = cio.getTableScanInfoCaller(algebra, self.tables)
         else:
             worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
             connection = self.dask_client.submit(
-                cio.getTableScanInfoCaller, algebra, self.tables,
-                workers=[worker]
+                cio.getTableScanInfoCaller, algebra, self.tables, workers=[worker]
             )
             query_tables, table_scans = connection.result()
 
@@ -2240,8 +2197,7 @@ class BlazingContext(object):
                     if single_gpu:
                         currentTableNodes = query_table.getSlices(1)
                     else:
-                        currentTableNodes = query_table.getSlices(
-                            len(self.nodes))
+                        currentTableNodes = query_table.getSlices(len(self.nodes))
             elif query_table.fileType == DataType.DASK_CUDF:
                 if single_gpu:
                     # TODO: repartition onto the node that does the work
@@ -2301,7 +2257,7 @@ class BlazingContext(object):
                     self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
-                        [self.nodes[0], ],
+                        [self.nodes[0],],
                         nodeTableList[0],
                         table_scans,
                         fileTypes,
@@ -2439,8 +2395,7 @@ class BlazingContext(object):
                     ["int32", "int32", "int64", "str"],
                 ),
                 "bsql_kernels": (
-                    ["ral_id", "query_id", "kernel_id", "is_kernel",
-                     "kernel_type"],
+                    ["ral_id", "query_id", "kernel_id", "is_kernel", "kernel_type"],
                     ["int32", "int32", "int64", "int16", "str"],
                 ),
                 "bsql_kernels_edges": (
@@ -2504,8 +2459,7 @@ class BlazingContext(object):
             for log_table_name in log_schemas:
                 log_files = [
                     os.path.join(
-                        self.node_log_paths[i], log_table_name + "." + str(i)
-                        + ".log"
+                        self.node_log_paths[i], log_table_name + "." + str(i) + ".log"
                     )
                     for i in range(0, len(self.node_log_paths))
                 ]

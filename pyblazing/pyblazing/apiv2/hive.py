@@ -1,6 +1,7 @@
 from itertools import repeat
 
 import cudf
+
 # from pyhive import hive
 from TCLIService.ttypes import TOperationState
 
@@ -51,8 +52,7 @@ def convertTypeNameStrToCudfType(hiveType):
         return None
     else:
         print(
-            "ERROR: Data type " + str(hiveType)
-            + " did not match any understood type"
+            "ERROR: Data type " + str(hiveType) + " did not match any understood type"
         )
         return None
 
@@ -118,8 +118,7 @@ def getPartitionsFromUserPartitions(user_partitions):
     partitions_out = {}
     num_partition_cols = len(user_partitions)
     partition_columns = list(user_partitions.keys())
-    num_partitions_per_column = [
-        len(user_partitions[col]) for col in partition_columns]
+    num_partitions_per_column = [len(user_partitions[col]) for col in partition_columns]
     per_column_count = [0] * num_partition_cols
     done = False
     partition_key = ""
@@ -183,17 +182,14 @@ def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
                     parsingColumns = False
                 else:
                     schema["columns"].append(
-                        (triple[0], convertTypeNameStrToCudfType(
-                         triple[1]), False)
+                        (triple[0], convertTypeNameStrToCudfType(triple[1]), False)
                     )
-            elif (isinstance(triple[0], str)
-                    and triple[0].startswith("Location:")):
+            elif isinstance(triple[0], str) and triple[0].startswith("Location:"):
                 if triple[1].startswith("file:"):
                     schema["location"] = triple[1].replace("file:", "")
                 else:
                     schema["location"] = triple[1]
-            elif (isinstance(triple[0], str)
-                    and triple[0].startswith("InputFormat:")):
+            elif isinstance(triple[0], str) and triple[0].startswith("InputFormat:"):
                 if "TextInputFormat" in triple[1]:
                     #   schema['fileType'] = self.CSV_FILE_TYPE
                     schema["fileType"] = "csv"
@@ -206,8 +202,7 @@ def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
                 if "JsonInputFormat" in triple[1]:
                     #   schema['fileType'] = self.JSON_FILE_TYPE
                     schema["fileType"] = "json"
-            elif (isinstance(triple[1], str)
-                    and triple[1].startswith("field.delim")):
+            elif isinstance(triple[1], str) and triple[1].startswith("field.delim"):
                 schema["delimiter"] = triple[2][0]
             elif triple[0] == "# Partition Information":
                 parsingPartitionColumns = True
@@ -217,8 +212,7 @@ def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
                     parsingPartitionColumns = False
                 elif triple[0] != "":
                     schema["columns"].append(
-                        (triple[0], convertTypeNameStrToCudfType(
-                         triple[1]), True)
+                        (triple[0], convertTypeNameStrToCudfType(triple[1]), True)
                     )
         i = i + 1
 
@@ -287,16 +281,14 @@ def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
 def runHiveDDL(cursor, query):
     cursor.execute(query, async_=True)
     status = cursor.poll().operationState
-    while status in (TOperationState.INITIALIZED_STATE,
-                     TOperationState.RUNNING_STATE):
+    while status in (TOperationState.INITIALIZED_STATE, TOperationState.RUNNING_STATE):
         status = cursor.poll().operationState
 
 
 def runHiveQuery(cursor, query):
     cursor.execute(query, async_=True)
     status = cursor.poll().operationState
-    while status in (TOperationState.INITIALIZED_STATE,
-                     TOperationState.RUNNING_STATE):
+    while status in (TOperationState.INITIALIZED_STATE, TOperationState.RUNNING_STATE):
         status = cursor.poll().operationState
     return cursor.fetchall(), cursor.description
 

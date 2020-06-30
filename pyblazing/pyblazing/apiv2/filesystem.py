@@ -89,8 +89,7 @@ class FileSystem(object):
         secret_key = kwargs.get("secret_key", "")
         session_token = kwargs.get("session_token", "")
         encryption_type = kwargs.get("encryption_type", S3EncryptionType.NONE)
-        kms_key_amazon_resource_n = kwargs.get("kms_key_amazon_resource_name",
-                                               "")
+        kms_key_amazon_resource_n = kwargs.get("kms_key_amazon_resource_name", "")
         endpoint_override = kwargs.get("endpoint_override", "")
         region = kwargs.get("region", "")
 
@@ -112,8 +111,7 @@ class FileSystem(object):
 
         project_id = kwargs.get("project_id", "")
         bucket_name = kwargs.get("bucket_name", "")
-        use_default_adc_json_file = kwargs.get("use_default_adc_json_file",
-                                               True)
+        use_default_adc_json_file = kwargs.get("use_default_adc_json_file", True)
         adc_json_file = kwargs.get("adc_json_file", "")
 
         fs = OrderedDict()

@@ -6,5 +6,7 @@ ignore =
     # whitespace before :
     E203
     # import not used
-    F401 
+    F401
+    # too large
+    E501 
 
