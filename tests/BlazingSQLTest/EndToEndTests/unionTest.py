@@ -37,6 +37,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             print("==============================")
             print(queryType)
+
             print("==============================")
 
             queryId = "TEST_01"
@@ -92,7 +93,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     )
                     union all
                     (
-                        select o_orderkey, o_custkey as keyy from orders
+                        select o_orderkey, o_custkey as key from orders
                         where o_orderkey < 300 and o_orderkey >= 200
                     )"""
             runTest.run_query(

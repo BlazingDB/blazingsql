@@ -1,14 +1,15 @@
 # BlazingSQL 0.15.0 (Date TBS)
 
 ## New Features
-
+- #835 Added a memory monitor for better memory management and added pull ordered from cache
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
+- #786 Added check for concat String overflow
+- #815 Implemented Unordered pull from cache to help performance
 - #822 remove "from_cudf" code and cudf test utilities from engine code
 - #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
 - #802 Support for timestampadd and constant expressions evaluation by Calcite
-- #831 Reverted memory monitor and unordered pull from cache
 - #829 Python/Cython check code style
 
 
