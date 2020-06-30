@@ -14,19 +14,19 @@ LANG=C.UTF-8
 source activate gdf
 
 # Run isort and get results/return code
-ISORT=`isort --recursive --check-only python`
+ISORT=`isort --recursive --check-only pyblazing`
 ISORT_RETVAL=$?
 
 # Run black and get results/return code
-BLACK=`black --check python`
+BLACK=`black --check pyblazing`
 BLACK_RETVAL=$?
 
 # Run flake8 and get results/return code
-FLAKE=`flake8 python`
+FLAKE=`flake8 --config=pyblazing/.flake8 pyblazing`
 FLAKE_RETVAL=$?
 
 # Run flake8-cython and get results/return code
-FLAKE_CYTHON=`flake8 --config=python/cudf/.flake8.cython`
+FLAKE_CYTHON=`flake8 --config=pyblazing/.flake8.cython`
 FLAKE_CYTHON_RETVAL=$?
 
 # Output results if failure otherwise show pass
