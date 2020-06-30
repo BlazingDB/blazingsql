@@ -25,6 +25,7 @@
 - #816 Loading one file at a time (LimitKernel and ScanKernel) 
 - #832 updated calcite test reference 
 - #834 Fixed small issue with hive and cudf_type_int_to_np_types
+- #839 Fixes literal cast 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
