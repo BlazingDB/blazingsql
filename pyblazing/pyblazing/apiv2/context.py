@@ -229,7 +229,7 @@ def collectPartitionsRunQuery(
         if isinstance(tables[table_index].input, dask_cudf.core.DataFrame):
             if single_gpu:
                 tables[table_index].input = [tables[
-                                            table_index].input.compute()]
+                                             table_index].input.compute()]
             else:
                 print(
                     "ERROR: collectPartitionsRunQuery should not be called "
@@ -324,10 +324,8 @@ def mergeTableScans(tableScanInfo):
         # if the column list is empty, it means we want all columns
         if (len(tableScanInfo["table_columns"][index]) > 0):
             table_columns[table_name] = list(
-                set(
-                    table_columns[table_name] +
-                    tableScanInfo["table_columns"][index]
-                )
+                set(table_columns[table_name]
+                    + tableScanInfo["table_columns"][index])
             )
             table_columns[table_name].sort()
         else:
@@ -488,8 +486,8 @@ def parseHiveMetadata(curr_table, uri_values):
     series.append(col1)
     series.append(col2)
 
-    frame = OrderedDict(
-            (key, value) for (key, value) in zip(final_names, series))
+    frame = OrderedDict((key, value) for (key, value)
+                        in zip(final_names, series))
     metadata = cudf.DataFrame(frame)
     for index, col_type in enumerate(dtypes):
         min_col_name = names[2 * index]
@@ -527,8 +525,8 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
         )
         return hiveMetadata
 
-    if not fileMetadata["file_handle_index"].equals(
-                                        hiveMetadata["file_handle_index"]):
+    file_hand_hive = hiveMetadata["file_handle_index"]
+    if not fileMetadata["file_handle_index"].equals(file_hand_hive):
         print(
             """ERROR: file_handle_index of fileMetadata does not match
              the same order as in hiveMetadata"""
@@ -603,8 +601,8 @@ def visit(lines):
             elif child_level == curr_level + 1:
                 index = curr_index + 1
                 if is_double_children(curr_expr):
-                    while (index < len(lines) and
-                            len(curr_dicc["children"]) < 2):
+                    while (index < len(lines)
+                            and len(curr_dicc["children"]) < 2):
                         child_level, expr = lines[index]
                         if child_level == curr_level + 1:
                             new_dicc = {"expr": expr, "children": []}
@@ -616,8 +614,8 @@ def visit(lines):
                             stack.append((index, child_level, expr, new_dicc))
                         index += 1
                 else:
-                    while (index < len(lines) and
-                            len(curr_dicc["children"]) < 1):
+                    while (index < len(lines)
+                            and len(curr_dicc["children"]) < 1):
                         child_level, expr = lines[index]
                         if child_level == curr_level + 1:
                             new_dicc = {"expr": expr, "children": []}
@@ -786,8 +784,8 @@ class BlazingTable(object):
         self.datasource = datasource
 
         self.args = args
-        if (self.fileType == DataType.CUDF or
-                self.fileType == DataType.DASK_CUDF):
+        if (self.fileType == DataType.CUDF
+                or self.fileType == DataType.DASK_CUDF):
             if convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame):
                 self.input = dask_cudf.from_cudf(
                     self.input, npartitions=convert_gdf_to_dask_partitions
@@ -1494,8 +1492,8 @@ class BlazingContext(object):
         # of the form partitions=
         # {'col_nameA':[val, val], 'col_nameB':['str_val', 'str_val']}
         user_partitions = kwargs.get("partitions", None)
-        if (user_partitions is not None and
-                not isinstance(user_partitions, dict)):
+        if (user_partitions is not None
+                and not isinstance(user_partitions, dict)):
             print(
                 """ERROR: User defined partitions should be a dictionary
                  object of the form partitions={'col_nameA':[val, val],
@@ -1622,9 +1620,8 @@ class BlazingContext(object):
                      of the partitioned data"""
                 )
                 return
-
-            hive_schema["partitions"] = getPartitionsFromUserPartitions(
-                                                        user_partitions)
+            partitions_users = getPartitionsFromUserPartitions(user_partitions)
+            hive_schema["partitions"] = partitions_users
             input = getFolderListFromPartitions(
                 hive_schema["partitions"], hive_schema["location"]
             )
@@ -1780,8 +1777,8 @@ class BlazingContext(object):
                 row_groups_ids = []
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
-                    row_groups_col = metadata_ids[
-                                    "row_group_index"].values.tolist()
+                    row_meta_ids = metadata_ids["row_group_index"]
+                    row_groups_col = row_meta_ids.values.tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
                 table.row_groups_ids = row_groups_ids
@@ -2014,9 +2011,8 @@ class BlazingContext(object):
                         all_sliced_files,
                         all_sliced_uri_values,
                         all_sliced_row_groups_ids,
-                    ) = self._sliceRowGroups(
-                            len(self.nodes), actual_files, uri_values,
-                            row_groups_ids)
+                    ) = self._sliceRowGroups(len(self.nodes), actual_files,
+                                             uri_values, row_groups_ids)
 
                     for i, node in enumerate(self.nodes):
                         curr_calcite = current_table.calcite_to_file_indices
@@ -2079,8 +2075,8 @@ class BlazingContext(object):
             if not isinstance(input, dask_cudf.core.DataFrame):
                 print("Not supported...")
             else:
-                partition_keys_mapping = getNodePartitionKeys(
-                                        input, self.dask_client)
+                partition_keys_mapping = getNodePartitionKeys(input,
+                                                              self.dask_client)
                 df_schema = input._meta
 
                 dask_futures = []
@@ -2213,8 +2209,8 @@ class BlazingContext(object):
                 ).encode()  # make sure all options are encoded strings
 
         if self.dask_client is None or single_gpu:
-            query_tables, table_scans = cio.getTableScanInfoCaller(
-                                            algebra, self.tables)
+            query_tables, table_scans = cio.getTableScanInfoCaller(algebra,
+                                                                   self.tables)
         else:
             worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
             connection = self.dask_client.submit(

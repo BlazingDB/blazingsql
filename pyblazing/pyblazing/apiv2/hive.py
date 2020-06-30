@@ -51,8 +51,8 @@ def convertTypeNameStrToCudfType(hiveType):
         return None
     else:
         print(
-            "ERROR: Data type " + str(hiveType) +
-            " did not match any understood type"
+            "ERROR: Data type " + str(hiveType)
+            + " did not match any understood type"
         )
         return None
 
@@ -186,14 +186,14 @@ def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
                         (triple[0], convertTypeNameStrToCudfType(
                          triple[1]), False)
                     )
-            elif (isinstance(triple[0], str) and
-                    triple[0].startswith("Location:")):
+            elif (isinstance(triple[0], str)
+                    and triple[0].startswith("Location:")):
                 if triple[1].startswith("file:"):
                     schema["location"] = triple[1].replace("file:", "")
                 else:
                     schema["location"] = triple[1]
-            elif (isinstance(triple[0], str) and
-                    triple[0].startswith("InputFormat:")):
+            elif (isinstance(triple[0], str)
+                    and triple[0].startswith("InputFormat:")):
                 if "TextInputFormat" in triple[1]:
                     #   schema['fileType'] = self.CSV_FILE_TYPE
                     schema["fileType"] = "csv"
@@ -206,8 +206,8 @@ def get_hive_table(cursor, tableName, hive_database_name, user_partitions):
                 if "JsonInputFormat" in triple[1]:
                     #   schema['fileType'] = self.JSON_FILE_TYPE
                     schema["fileType"] = "json"
-            elif (isinstance(triple[1], str) and
-                    triple[1].startswith("field.delim")):
+            elif (isinstance(triple[1], str)
+                    and triple[1].startswith("field.delim")):
                 schema["delimiter"] = triple[2][0]
             elif triple[0] == "# Partition Information":
                 parsingPartitionColumns = True
