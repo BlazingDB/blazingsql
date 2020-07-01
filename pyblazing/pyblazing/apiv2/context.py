@@ -696,8 +696,11 @@ def distributed_initialize_server_directory(client, dir_path):
             )
             initialized[worker_info["host"]] = True
 
-    # for connection in dask_futures:
-    #    made_dir = connection.result()
+    for connection in dask_futures:
+        made_dir = connection.result()
+        if not made_dir:
+            print("WARNING: Count not make directory")
+            logging.error("WARNING: Count not make directory")
 
 
 def initialize_server_directory(dir_path):
