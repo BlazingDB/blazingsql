@@ -35,7 +35,8 @@ public:
 	virtual void parse_schema(
 		std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) = 0;
 
-	virtual std::unique_ptr<ral::frame::BlazingTable> get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset) {
+	virtual std::unique_ptr<ral::frame::BlazingTable> get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, 
+				std::vector<std::string> file_paths, int offset) {
 		return nullptr;
 	}
 };

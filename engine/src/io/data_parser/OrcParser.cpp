@@ -3,6 +3,11 @@
 #include <arrow/io/file.h>
 
 #include <blazingdb/io/Library/Logging/Logger.h>
+#include "blazingdb/concurrency/BlazingThread.h"
+
+#include <orc/OrcFile.hh>
+#include <orc/Reader.hh>
+#include <orc/Statistics.hh>
 
 #include <numeric>
 
@@ -70,6 +75,65 @@ void orc_parser::parse_schema(
 		bool is_in_file = true;
 		schema.add_column(name, type, file_index, is_in_file);
 	}
+}
+
+std::unique_ptr<ral::frame::BlazingTable> orc_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, 
+		std::vector<std::string> file_paths, int offset){
+
+	std::vector<size_t> num_row_groups(files.size());
+	BlazingThread threads[files.size()];
+	// std::vector<std::unique_ptr<orc::InputStream>> orc_input_streams(files.size()); 
+
+	std::unique_ptr<orc::InputStream> orc_input_stream = orc::readLocalFile(file_paths[0]);
+
+	orc::ReaderOptions reader_options = orc::ReaderOptions();
+	std::unique_ptr<orc::Reader> orc_reader = orc::createReader(std::move(orc_input_stream), reader_options);
+
+	uint64_t num_rows = orc_reader->getNumberOfRows();
+	std::cout<<"getNumberOfRows: "<<num_rows<<std::endl;
+	std::list<std::string> metadata_keys = orc_reader->getMetadataKeys();
+	std::cout<<"num metadata keys: "<<metadata_keys.size()<<std::endl;
+	for (int i =0; i < metadata_keys.size(); i++){
+		std::string key = metadata_keys.front();
+		metadata_keys.pop_front();
+		std::string value = orc_reader->getMetadataValue(key);
+		std::cout<<"metadata "<<i<<" key: "<<key<<" value: "<<value<<std::endl;
+	}
+	
+	uint64_t row_index_stride = orc_reader->getRowIndexStride();
+	std::cout<<"row_index_stride: "<<row_index_stride<<std::endl;
+	uint64_t num_striped = orc_reader->getNumberOfStripes();
+	std::cout<<"num_striped: "<<num_striped<<std::endl;
+	uint64_t num_stripe_statistics = orc_reader->getNumberOfStripeStatistics();
+	std::cout<<"num_stripe_statistics: "<<num_stripe_statistics<<std::endl;
+	bool correct_statistics = orc_reader->hasCorrectStatistics();
+	std::cout<<"correct_statistics: "<<correct_statistics<<std::endl;
+
+
+
+	// std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
+	// for(int file_index = 0; file_index < files.size(); file_index++) {
+	// 	threads[file_index] = BlazingThread([&, file_index]() {
+	// 	  parquet_readers[file_index] =
+	// 		  std::move(parquet::ParquetFileReader::Open(files[file_index]));
+	// 	  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
+	// 	  const parquet::SchemaDescriptor * schema = file_metadata->schema();
+	// 	  num_row_groups[file_index] = file_metadata->num_row_groups();
+	// 	});
+	// }
+
+	// for(int file_index = 0; file_index < files.size(); file_index++) {
+	// 	threads[file_index].join();
+	// }
+
+	// size_t total_num_row_groups =
+	// 	std::accumulate(num_row_groups.begin(), num_row_groups.end(), size_t(0));
+
+	// auto minmax_metadata_table = get_minmax_metadata(parquet_readers, total_num_row_groups, offset);
+	// for (auto &reader : parquet_readers) {
+	// 	reader->Close();
+	// }
+	// return std::move(minmax_metadata_table);
 }
 
 } /* namespace io */

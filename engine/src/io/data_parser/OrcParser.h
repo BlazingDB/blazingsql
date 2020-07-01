@@ -27,6 +27,9 @@ public:
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
+	std::unique_ptr<ral::frame::BlazingTable> get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, 
+		std::vector<std::string> file_paths, int offset);
+
 private:
 	cudf::io::read_orc_args orc_args{cudf_io::source_info("")};
 };

@@ -137,11 +137,13 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 	std::vector<ral::frame::BlazingTableView> metadata_batche_views;
 	while(this->provider->has_next()){
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
+		std::vector<std::string> file_paths;
 		std::vector<data_handle> handles = this->provider->get_some(NUM_FILES_AT_A_TIME);
 		for(auto handle : handles) {
 			files.push_back(handle.fileHandle);
+			file_paths.push_back(handle.uri.toString());
 		}
-		metadata_batches.emplace_back(this->parser->get_metadata(files,  offset));
+		metadata_batches.emplace_back(this->parser->get_metadata(files, file_paths, offset));
 		metadata_batche_views.emplace_back(metadata_batches.back()->toBlazingTableView());
 		offset += files.size();
 		this->provider->close_file_handles();
