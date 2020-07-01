@@ -19,6 +19,7 @@ ISORT=`isort --recursive --check-only pyblazing --skip __init__.py --skip contex
 ISORT_RETVAL=$?
 
 # Run black and get results/return code
+# TODO: cordova remove /blazingsql when ucx will ready
 BLACK=`black --check --exclude=__init__.py pyblazing`
 BLACK_RETVAL=$?
 
