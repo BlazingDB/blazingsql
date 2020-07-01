@@ -2,7 +2,6 @@ from itertools import repeat
 
 import cudf
 
-# from pyhive import hive
 from TCLIService.ttypes import TOperationState
 
 

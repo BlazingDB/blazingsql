@@ -1,8 +1,6 @@
 # NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
 import cudf
 
-# from cudf.core.column.column import build_column
-
 from collections import OrderedDict
 
 # from enum import Enum
@@ -177,8 +175,6 @@ def initializeBlazing(
 
 
 def getNodePartitionKeys(df, client):
-    # from dask import delayed
-
     workers = client.scheduler_info()["workers"]
 
     worker_partitions = {}
@@ -700,8 +696,8 @@ def distributed_initialize_server_directory(client, dir_path):
             )
             initialized[worker_info["host"]] = True
 
-    # for connection in dask_futures:
-    #    made_dir = connection.result()
+    for connection in dask_futures:
+        made_dir = connection.result()
 
 
 def initialize_server_directory(dir_path):
@@ -1161,10 +1157,6 @@ class BlazingContext(object):
             self.nodes.append(node)
             self.node_log_paths.append(log_path)
 
-        # NOTE ("//"+) is a neat trick to handle ip:port cases
-        # internal_api.SetupOrchestratorConnection(orchestrator_host_ip,
-        # orchestrator_port)
-
         self.fs = FileSystem()
 
         self.db = DatabaseClass("main")
@@ -1176,12 +1168,6 @@ class BlazingContext(object):
         # waitForPingSuccess(self.client)
         print("BlazingContext ready")
 
-    # def ready(self, wait=False):
-    #    if wait:
-    #        waitForPingSuccess(self.client)
-    #        return True
-    #    else:
-    #        return self.client.ping()
 
     def __del__(self):
         self.finalizeCaller()

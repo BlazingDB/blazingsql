@@ -85,8 +85,6 @@ setup(
     packages=find_packages(include=["bsql_engine", "bsql_engine.*"]),
     # TODO: force comment to pass style issue
     package_data={
-        # "bsql_engine.io": ["bsql_engine/io/cio.pxd"],
-        # "bsql_engine.io": ["*.pxd"],
         "bsql_engine.io": ["cio.pxd"],
         "bsql_engine": ["bsql_engine/io/cio.pxd"],
     },
