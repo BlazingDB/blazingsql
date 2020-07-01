@@ -8,6 +8,7 @@ import re
 import time
 
 import blazingsql
+
 # import git
 import gspread
 import numpy as np
@@ -78,13 +79,14 @@ def to_pandas_f64_engine(df, expected_types_list):
 
         if expected_types_list[count] != np.dtype(object):
             if df.shape[0] > 0:
-                if (not np.issubdtype(df[col].dtype, np.number) and
-                        not np.issubdtype(df[col].dtype, np.datetime64)):
+                if not np.issubdtype(df[col].dtype, np.number) and not np.issubdtype(
+                    df[col].dtype, np.datetime64
+                ):
                     if np.issubdtype(expected_types_list[count], np.bool_):
-                        df[col] = (df[col].map({"true": 1.0,
-                                   "false": 0.0}).astype(np.float32))
-                    elif np.issubdtype(expected_types_list[count],
-                                       np.datetime64):
+                        df[col] = (
+                            df[col].map({"true": 1.0, "false": 0.0}).astype(np.float32)
+                        )
+                    elif np.issubdtype(expected_types_list[count], np.datetime64):
                         df[col] = df[col].astype(expected_types_list[count])
                     else:
                         df[col] = pd.to_numeric(df[col], errors="coerce")
@@ -140,10 +142,9 @@ def assert_equal(pdf1, pdf2, acceptable_difference, use_percentage, engine):
             #           np.absolute(tmp_pdf1.values - tmp_pdf2.values) <=
             #                                       acceptable_difference
 
-            res = np.all(exac_comp) and np.allclose(tmp_pdf1.values,
-                                                    tmp_pdf2.values,
-                                                    acceptable_difference,
-                                                    equal_nan=True)
+            res = np.all(exac_comp) and np.allclose(
+                tmp_pdf1.values, tmp_pdf2.values, acceptable_difference, equal_nan=True
+            )
             if res:
                 return "Success"
             else:
@@ -197,8 +198,7 @@ def compare_results(vdf1, vdf2, acceptable_difference, use_percentage, engine):
     elif pre_compare_results(vdf1.values, vdf2.values):
         return "Success"
     else:
-        res = assert_equal(vdf1, vdf2, acceptable_difference,
-                           use_percentage, engine)
+        res = assert_equal(vdf1, vdf2, acceptable_difference, use_percentage, engine)
         return res
 
 
@@ -429,8 +429,7 @@ def print_query_results2(sql, queryId, queryType, error_message):
 
     logger = logginghelper(name)
     print_fixed_log(
-        logger, queryType, queryId, sql, "Crash", error_message,
-        None, None, None
+        logger, queryType, queryId, sql, "Crash", error_message, None, None, None
     )
 
 
@@ -528,7 +527,7 @@ class Test:
         self.fail_ids = []
 
 
-def save_log(**kwargs):
+def save_log(gpu_ci_mode):
 
     c = 1
     cadena = []
@@ -600,29 +599,34 @@ def save_log(**kwargs):
         ]
     ].copy()
 
-    create_summary_detail(df)
+    create_summary_detail(df, gpu_ci_mode)
 
-    printSummary(countPass, countCrash, total)
+    printSummary(countPass, countCrash, total, gpu_ci_mode)
 
-    saveLogInFile(df1)
+    if not gpu_ci_mode:
+        saveLogInFile(df1)
 
-    saveLog = False
-    if "saveLog" in Settings.data["RunSettings"]:
-        saveLog = Settings.data["RunSettings"]["saveLog"]
+        saveLog = False
+        if "saveLog" in Settings.data["RunSettings"]:
+            saveLog = Settings.data["RunSettings"]["saveLog"]
 
-    # TODO william kharoly felipe we should try to enable and use
-    # this function in the future
-    # result, error_msgs = verify_prev_google_sheet_results(df1)
-    result, error_msgs = True, []
+        print("saveLog = " + str(saveLog))
 
-    if result is True and saveLog == "true":
-        saving_google_sheet_results(df1)
+        # TODO william kharoly felipe we should try to enable and use
+        # this function in the future
+        # result, error_msgs = verify_prev_google_sheet_results(df1)
+        result, error_msgs = True, []
+
+        if result is True and saveLog == "true":
+            saving_google_sheet_results(df1)
+    else:
+        result, error_msgs = True, []
 
     loggingClose(name)
     return result, error_msgs
 
 
-def create_summary_detail(df):
+def create_summary_detail(df, no_color):
     pdf = df
     pdf["Result"] = df["Result"].replace(1, "Success")
     pdf["Result"] = df["Result"].replace(0, "Fail")
@@ -634,10 +638,16 @@ def create_summary_detail(df):
     pdf2 = pdf.where(filter_fail)
     pdf_fail = pdf2.dropna()
 
-    green = bcolors.OKGREEN
-    yellow = bcolors.WARNING
-    # red = bcolors.FAIL
-    endc = bcolors.ENDC
+    if no_color:
+        green = ""
+        yellow = ""
+        # red = ""
+        endc = ""
+    else:
+        green = bcolors.OKGREEN
+        yellow = bcolors.WARNING
+        # red = bcolors.FAIL
+        endc = bcolors.ENDC
 
     # display
     print(green + "========================================================")
@@ -688,9 +698,11 @@ def _verify_prev_google_sheet_results(log_pdf):
         log_info = Settings.data["RunSettings"]["logInfo"]
 
         if log_info == "":
-            print("""####### ======= >>>>>>> WARNING this test run will not
+            print(
+                """####### ======= >>>>>>> WARNING this test run will not
                    be compared against old results from Google Docs. Define
-                   the env var BLAZINGSQL_E2E_LOG_INFO""")
+                   the env var BLAZINGSQL_E2E_LOG_INFO"""
+            )
             return None
 
         log_info = json.loads(log_info)
@@ -758,11 +770,13 @@ def _verify_prev_google_sheet_results(log_pdf):
             0, 1
         ]  # select the first Timestamp from the unique values
 
-    print("####### ======= >>>>>>> E2E INFO: We will compare the"
-          + " current run against the ID (Timestamp): " + last_e2e_run_id)
+    print(
+        "####### ======= >>>>>>> E2E INFO: We will compare the"
+        + " current run against the ID (Timestamp): "
+        + last_e2e_run_id
+    )
 
-    last_e2e_run_df = gspread_df.loc[
-                        gspread_df["Timestamp"] == last_e2e_run_id]
+    last_e2e_run_df = gspread_df.loc[gspread_df["Timestamp"] == last_e2e_run_id]
 
     # NOTE percy kharo william we need to rename some columns to use our dfs
     log_pdf_copy = log_pdf_copy.rename(
@@ -798,8 +812,7 @@ def _verify_prev_google_sheet_results(log_pdf):
         ]
         error_msg = (
             "ERROR: current e2e has less test groups than"
-            + " previous run, delta is %s"
-            % list_difference
+            + " previous run, delta is %s" % list_difference
         )
         error_msgs.append(error_msg)
 
@@ -817,11 +830,8 @@ def _verify_prev_google_sheet_results(log_pdf):
             prev_test_group_df.groupby("Input Type").count().index.tolist()
         )
 
-        curr_test_group_df = log_pdf_copy.loc[
-                             log_pdf_copy["Test Group"] == test_group]
-        cur_input_typ = (
-            curr_test_group_df.groupby("Input Type").count().index.tolist()
-        )
+        curr_test_group_df = log_pdf_copy.loc[log_pdf_copy["Test Group"] == test_group]
+        cur_input_typ = curr_test_group_df.groupby("Input Type").count().index.tolist()
 
         has_less_input_types = len(prev_input_types) > len(cur_input_typ)
 
@@ -829,9 +839,11 @@ def _verify_prev_google_sheet_results(log_pdf):
             list_difference = [
                 item for item in prev_input_types if item not in cur_input_typ
             ]
-            error_msg = ("""ERROR: current test group %s has less
-                         input types cases, delta is %s"""
-                         % (test_group, list_difference))
+            error_msg = """ERROR: current test group %s has less
+                         input types cases, delta is %s""" % (
+                test_group,
+                list_difference,
+            )
             error_msgs.append(error_msg)
 
         for input_type in prev_input_types:
@@ -874,9 +886,12 @@ def _verify_prev_google_sheet_results(log_pdf):
                 list_difference = [
                     item for item in prev_tests if item not in curr_tests
                 ]
-                error_msg = ("""ERROR: The test group %s has less tests than
-                              previous run for input type %s, delta is %s"""
-                             % (test_group, input_type, list_difference))
+                error_msg = """ERROR: The test group %s has less tests than
+                              previous run for input type %s, delta is %s""" % (
+                    test_group,
+                    input_type,
+                    list_difference,
+                )
                 error_msgs.append(error_msg)
 
                 n = len_prev_tests_df - len_curr_tests_df
@@ -893,9 +908,12 @@ def _verify_prev_google_sheet_results(log_pdf):
                 curr_test_result = curr_tests_results[i]
 
                 if prev_test_result == 1 and curr_test_result == 0:
-                    error_msg = ("""ERROR: Test %d for %s (%s) is now failing
-                                  but before was ok!"""
-                                 % (i + 1, test_group, input_type))
+                    error_msg = """ERROR: Test %d for %s (%s) is now failing
+                                  but before was ok!""" % (
+                        i + 1,
+                        test_group,
+                        input_type,
+                    )
                     error_msgs.append(error_msg)
 
     succs = len(error_msgs) == 0
@@ -906,8 +924,10 @@ def saving_google_sheet_results(log_pdf):
     log_info = Settings.data["RunSettings"]["logInfo"]
 
     if log_info == "":
-        print("""####### ======= >>>>>>> WARNING this test run will
-             not save its results into the Google spreadsheet.""")
+        print(
+            """####### ======= >>>>>>> WARNING this test run will
+             not save its results into the Google spreadsheet."""
+        )
         return
 
     # Create an empty list
@@ -949,8 +969,7 @@ def saving_google_sheet_results(log_pdf):
     print(current_dir)
 
     log_info = json.loads(log_info)
-    creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info,
-                                                                     scope)
+    creds_blazing = ServiceAccountCredentials.from_json_keyfile_dict(log_info, scope)
     client_blazing = gspread.authorize(creds_blazing)
     # Find a Locally workbook by name and open a sheet
     work_sheet = "BSQL Log Results"
@@ -995,8 +1014,10 @@ def on_jenkins():
 
 
 def print_tests(tests, onlyFails=False):
-    print("""************************************************************
-          *******************""")
+    print(
+        """************************************************************
+          *******************"""
+    )
 
     tab = "    "
 
@@ -1055,7 +1076,7 @@ def print_tests(tests, onlyFails=False):
                 endc = bcolors.ENDC
 
                 # don't use colors since jenkins doesn't support ansi chars
-                if (on_jenkins()):
+                if on_jenkins():
                     green = ""
                     yellow = ""
                     red = ""
@@ -1131,17 +1152,25 @@ def print_tests(tests, onlyFails=False):
                     print(tab + "TOTAL: " + str(total))
 
 
-def printSummary(countPass, countCrash, total):
+def printSummary(countPass, countCrash, total, no_color):
 
-    green = bcolors.OKGREEN
-    yellow = bcolors.WARNING
-    red = bcolors.FAIL
-    endc = bcolors.ENDC
+    if no_color:
+        green = ""
+        yellow = ""
+        red = ""
+        endc = ""
+    else:
+        green = bcolors.OKGREEN
+        yellow = bcolors.WARNING
+        red = bcolors.FAIL
+        endc = bcolors.ENDC
 
     # Second: print the global summary (totals from all the tests)
     fails = total - countPass - countCrash
-    print("""**********************************************************
-          *********************""")
+    print(
+        """**********************************************************
+          *********************"""
+    )
     print("TOTAL SUMMARY for test suite: ")
     print(green + "PASSED: " + str(countPass) + "/" + str(total) + endc)
     print(yellow + "FAILED: " + str(fails) + "/" + str(total) + endc)
@@ -1216,8 +1245,7 @@ def get_blazingsql_query(db_name, query):
     for table_name in get_table_occurrences(query):
         new_query = replace_all(
             new_query,
-            {table_name: " %(table)s "
-             % {"table": db_name + "." + table_name}},
+            {table_name: " %(table)s " % {"table": db_name + "." + table_name}},
         )
     return new_query
 
@@ -1225,9 +1253,9 @@ def get_blazingsql_query(db_name, query):
 def get_drill_query(query):
     new_query = query
     for table_name in get_table_occurrences(query):
-        new_query = replace_all(new_query,
-                                {table_name: " dfs.tmp.`%(table)s` "
-                                 % {"table": table_name}})
+        new_query = replace_all(
+            new_query, {table_name: " dfs.tmp.`%(table)s` " % {"table": table_name}}
+        )
     return new_query
 
 
@@ -1392,8 +1420,7 @@ def run_query(
                     pdf2 = to_pandas_f64_engine(
                         result_drill_gd.resultSet, expected_dtypes
                     )
-                    pdf2 = upcast_to_float(pdf2).fillna(
-                                            get_null_constants(pdf2))
+                    pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
                     formatResults(pdf1, pdf2, worder, orderBy)
 
                     if Settings.execution_mode == ExecutionMode.GENERATOR:
@@ -1449,8 +1476,7 @@ def run_query(
                     pdf2 = to_pandas_f64_engine(
                         result_spark_df.resultSet, expected_dtypes
                     )
-                    pdf2 = upcast_to_float(pdf2).fillna(
-                                        get_null_constants(pdf2))
+                    pdf2 = upcast_to_float(pdf2).fillna(get_null_constants(pdf2))
                     formatResults(pdf1, pdf2, worder, orderBy)
 
                     if Settings.execution_mode == ExecutionMode.GENERATOR:
@@ -1589,8 +1615,7 @@ def run_query_performance(
     if result_gdf.error_message == "":
         print_query_results_performance(query, queryId, queryType, result_gdf)
     else:
-        print_query_results2(query, queryId, queryType,
-                             result_gdf.error_message)
+        print_query_results2(query, queryId, queryType, result_gdf.error_message)
 
 
 def formatResults(pdf1, pdf2, worder, orderBy):
@@ -1606,8 +1631,7 @@ def formatResults(pdf1, pdf2, worder, orderBy):
 
 def format_pdf(pdf, worder, orderBy):
     if worder == 1 and pdf.size != 0:
-        pdf.sort_values([orderBy] if orderBy else pdf.columns.to_list(),
-                        inplace=True)
+        pdf.sort_values([orderBy] if orderBy else pdf.columns.to_list(), inplace=True)
 
 
 def get_results(result_file):

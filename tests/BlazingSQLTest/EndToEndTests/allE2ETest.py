@@ -1,6 +1,7 @@
 # from blazingsql import BlazingContext
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
+
 # from dask.distributed import Client
 from DataBase import createSchema as createSchema
 
@@ -74,17 +75,16 @@ def main():
     if "compare_results" in Settings.data["RunSettings"]:
         compareResults = Settings.data["RunSettings"]["compare_results"]
 
-    if ((Settings.execution_mode == ExecutionMode.FULL and
-         compareResults == "true") or
-            Settings.execution_mode == ExecutionMode.GENERATOR):
+    if (
+        Settings.execution_mode == ExecutionMode.FULL and compareResults == "true"
+    ) or Settings.execution_mode == ExecutionMode.GENERATOR:
 
         # Create Table Drill -----------------------------------------
         from pydrill.client import PyDrill
 
         drill = PyDrill(host="localhost", port=8047)
         createSchema.init_drill_schema(
-            drill, Settings.data["TestSettings"]["dataDirectory"],
-            bool_test=True
+            drill, Settings.data["TestSettings"]["dataDirectory"], bool_test=True
         )
 
         # Create Table Spark -------------------------------------------------
@@ -115,15 +115,13 @@ def main():
         columnBasisTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("commonTableExpressionsTest" in targetTestGroups):
-        commonTableExpressionsTest.main(dask_client, drill, dir_data_file,
-                                        bc, nRals)
+        commonTableExpressionsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # we are not supporting count distinct yet
     # countDistincTest.main(dask_client, drill, dir_data_file, bc)
 
     if runAllTests or ("countWithoutGroupByTest" in targetTestGroups):
-        countWithoutGroupByTest.main(dask_client, drill, dir_data_file,
-                                     bc, nRals)
+        countWithoutGroupByTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("dateTest" in targetTestGroups):
         dateTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -138,8 +136,7 @@ def main():
         groupByTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("GroupByWitoutAggregations" in targetTestGroups):
-        GroupByWitoutAggregations.main(dask_client, drill, dir_data_file,
-                                       bc, nRals)
+        GroupByWitoutAggregations.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("innerJoinsTest" in targetTestGroups):
         innerJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -162,11 +159,10 @@ def main():
         predicatesWithNulls.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("stringTests" in targetTestGroups):
-        stringTests.main(dask_client, drill, dir_data_file, bc, nRals)
+        stringTests.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("tablesFromPandasTest" in targetTestGroups):
-        tablesFromPandasTest.main(dask_client, drill, dir_data_file,
-                                  bc, nRals)
+        tablesFromPandasTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("unaryOpsTest" in targetTestGroups):
         unaryOpsTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -184,8 +180,7 @@ def main():
         whereClauseTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("bindableAliasTest" in targetTestGroups):
-        bindableAliasTest.main(dask_client, drill, spark, dir_data_file,
-                               bc, nRals)
+        bindableAliasTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("booleanTest" in targetTestGroups):
         booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -215,18 +210,16 @@ def main():
         likeTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("simpleDistributionTest" in targetTestGroups):
-        simpleDistributionTest.main(dask_client, drill, spark, dir_data_file,
-                                    bc, nRals)
+        simpleDistributionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("substringTest" in targetTestGroups):
-        substringTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("wildCardTest" in targetTestGroups):
         wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("tpchQueriesTest" in targetTestGroups):
-        tpchQueriesTest.main(dask_client, drill, spark, dir_data_file,
-                             bc, nRals)
+        tpchQueriesTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("roundTest" in targetTestGroups):
         roundTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -236,19 +229,18 @@ def main():
 
     if Settings.execution_mode != ExecutionMode.GPUCI:
         if runAllTests or ("fileSystemS3Test" in targetTestGroups):
-            fileSystemS3Test.main(dask_client, drill, dir_data_file,
-                                  bc, nRals)
+            fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
 
         if runAllTests or ("fileSystemGSTest" in targetTestGroups):
-            fileSystemGSTest.main(dask_client, drill, dir_data_file,
-                                  bc, nRals)
+            fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
-    if (Settings.execution_mode != ExecutionMode.GENERATOR and
-            Settings.execution_mode != ExecutionMode.GPUCI):
+    if Settings.execution_mode != ExecutionMode.GENERATOR:
 
-        result, error_msgs = runTest.save_log()
+        result, error_msgs = runTest.save_log(
+            Settings.execution_mode == ExecutionMode.GPUCI
+        )
 
         max = 0
         for i in range(0, len(Settings.memory_list)):
@@ -256,8 +248,10 @@ def main():
                 max = Settings.memory_list[i].delta
 
         print("MAX DELTA: " + str(max))
-        print("""***********************************************************
-              ********************""")
+        print(
+            """***********************************************************
+              ********************"""
+        )
 
         for i in range(0, len(Settings.memory_list)):
             print(

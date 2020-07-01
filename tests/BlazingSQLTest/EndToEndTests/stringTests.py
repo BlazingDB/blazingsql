@@ -3,14 +3,14 @@ from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 from pynvml import nvmlInit
+from pyspark.sql import SparkSession
 from Runner import runTest
-from Utils import Execution,  gpuMemory, init_context, skip_test
+from Utils import Execution, gpuMemory, init_context, skip_test
 
 queryType = "Simple String"
 
 
-def main(dask_client, drill, dir_data_file, bc, nRals):
-
+def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     def executionTest():
@@ -38,6 +38,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             print("==============================")
             print(queryType)
+
             print("==============================")
 
             queryId = "TEST_01"
@@ -165,6 +166,37 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_08"
+            query = """select c_custkey, CHAR_LENGTH(c_comment)
+                    from customer where MOD(CHAR_LENGTH(c_comment), 7) = 0"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_09"
+            query = "select sum(CHAR_LENGTH(c_comment)) from customer"
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
@@ -183,30 +215,38 @@ if __name__ == "__main__":
     nvmlInit()
 
     drill = "drill"  # None
+    spark = "spark"
 
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
         compareResults = Settings.data["RunSettings"]["compare_results"]
 
-    if ((Settings.execution_mode == ExecutionMode.FULL and
-         compareResults == "true") or
-            Settings.execution_mode == ExecutionMode.GENERATOR):
+    if (
+        Settings.execution_mode == ExecutionMode.FULL and compareResults == "true"
+    ) or Settings.execution_mode == ExecutionMode.GENERATOR:
         # Create Table Drill ------------------------------------------------
         print("starting drill")
         from pydrill.client import PyDrill
 
         drill = PyDrill(host="localhost", port=8047)
-        cs.init_drill_schema(drill,
-                             Settings.data["TestSettings"]["dataDirectory"])
+        cs.init_drill_schema(drill, Settings.data["TestSettings"]["dataDirectory"])
 
-    # Create Context For BlazingSQL
+        # Create Table Spark ------------------------------------------------
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data["TestSettings"]["dataDirectory"])
 
     bc, dask_client = init_context()
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill, Settings.data["TestSettings"]["dataDirectory"],
-         bc, nRals)
+    main(
+        dask_client,
+        drill,
+        spark,
+        Settings.data["TestSettings"]["dataDirectory"],
+        bc,
+        nRals,
+    )
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()

@@ -3,12 +3,12 @@ from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 from pynvml import nvmlInit
+from pyspark.sql import SparkSession
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
 
 
-def main(dask_client, drill, dir_data_file, bc, nRals):
-
+def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     queryType = "Substring"
@@ -164,11 +164,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_08"
             query = """select * from (
-                        select c.c_custkey, SUBSTRING(c.c_name, 1, 8) as n1,
-                        SUBSTRING(c.c_name, 10, 18) || '**' as n2
-                    from customer c where c.c_custkey < 50
-                    ) as n
-                    where SUBSTRING(n.n1, 1,7) = 'Customer'"""
+                            select c.c_custkey, SUBSTRING(c.c_name, 1, 8) as n1, SUBSTRING(c.c_name, 10, 18) || '**' as n2
+                            from customer c where c.c_custkey < 50
+                     ) as n where SUBSTRING(n.n1, 1,7) = 'Customer'"""
             runTest.run_query(
                 bc,
                 drill,
@@ -180,6 +178,69 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+            )
+
+            queryId = "TEST_09"
+            query = """select substring(c_comment, 5 , CHAR_LENGTH(c_comment) - 5 ),
+                        substring(c_comment, CHAR_LENGTH(c_comment) - 3 , CHAR_LENGTH(c_comment) - 1 ),
+                        substring(substring(c_comment, 3 , CHAR_LENGTH(c_comment) - 1 ), 1, 1 )
+                        from customer where c_custkey < 100"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_10"
+            query = """select c_custkey, substring(c_name, 1),
+                         substring(c_name, 10),
+                        substring(c_name, cast(c_nationkey as bigint)),
+                        substring(c_name, c_nationkey + 3)
+                    from customer
+                    where (c_nationkey between 1 and 10) and c_custkey < 100"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                print_result=True,
+            )
+
+            queryId = "TEST_11"
+            query = """select c_custkey, substring(c_name, 1, 5),
+                        substring(c_name, 10, 7),
+                        substring(c_name, 3, cast(c_nationkey as bigint)),
+                        substring(c_name, c_nationkey, 4),
+                        substring(c_name, cast(c_nationkey as bigint),
+                            c_nationkey + 0),
+                        substring(c_name, c_nationkey + 3, c_nationkey)
+                    from customer
+                    where (c_nationkey between 1 and 10) and c_custkey < 100"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                print_result=True,
             )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
@@ -200,21 +261,28 @@ if __name__ == "__main__":
     nvmlInit()
 
     drill = "drill"  # None
+    spark = "spark"
 
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
         compareResults = Settings.data["RunSettings"]["compare_results"]
 
-    if ((Settings.execution_mode == ExecutionMode.FULL and
-         compareResults == "true") or
-            Settings.execution_mode == ExecutionMode.GENERATOR):
+    if (
+        Settings.execution_mode == ExecutionMode.FULL and compareResults == "true"
+    ) or Settings.execution_mode == ExecutionMode.GENERATOR:
         # Create Table Drill ------------------------------------------------
         print("starting drill")
+
         from pydrill.client import PyDrill
 
         drill = PyDrill(host="localhost", port=8047)
-        cs.init_drill_schema(drill,
-                             Settings.data["TestSettings"]["dataDirectory"])
+        cs.init_drill_schema(drill, Settings.data["TestSettings"]["dataDirectory"])
+
+        # Create Context For BlazingSQL
+
+        # Create Table Spark ------------------------------------------------------------------------------------------------------
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data["TestSettings"]["dataDirectory"])
 
     # Create Context For BlazingSQL
 
@@ -222,8 +290,14 @@ if __name__ == "__main__":
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill, Settings.data["TestSettings"]["dataDirectory"],
-         bc, nRals)
+    main(
+        dask_client,
+        drill,
+        spark,
+        Settings.data["TestSettings"]["dataDirectory"],
+        bc,
+        nRals,
+    )
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()
