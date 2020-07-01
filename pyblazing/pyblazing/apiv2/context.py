@@ -696,8 +696,8 @@ def distributed_initialize_server_directory(client, dir_path):
             )
             initialized[worker_info["host"]] = True
 
-    for connection in dask_futures:
-        made_dir = connection.result()
+    # for connection in dask_futures:
+    #    made_dir = connection.result()
 
 
 def initialize_server_directory(dir_path):
@@ -1167,7 +1167,6 @@ class BlazingContext(object):
 
         # waitForPingSuccess(self.client)
         print("BlazingContext ready")
-
 
     def __del__(self):
         self.finalizeCaller()
