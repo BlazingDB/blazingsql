@@ -19,9 +19,8 @@ ISORT=`isort --recursive --check-only pyblazing --skip __init__.py --skip contex
 ISORT_RETVAL=$?
 
 # Run black and get results/return code
-# TODO: cordova update this rules when ucx will ready
-#BLACK=`black --check --exclude=__init__.py pyblazing`
-#BLACK_RETVAL=$?
+BLACK=`black --check --exclude=__init__.py pyblazing`
+BLACK_RETVAL=$?
 
 # Run flake8 and get results/return code
 FLAKE=`flake8 --config=pyblazing/.flake8 pyblazing`
@@ -40,14 +39,13 @@ else
   echo -e "\n\n>>>> PASSED: isort style check\n\n"
 fi
 
-# TODO: cordova update this rule when ucx will ready
-#if [ "$BLACK_RETVAL" != "0" ]; then
-#  echo -e "\n\n>>>> FAILED: black style check; begin output\n\n"
-#  echo -e "$BLACK"
-#  echo -e "\n\n>>>> FAILED: black style check; end output\n\n"
-#else
-#  echo -e "\n\n>>>> PASSED: black style check\n\n"
-#fi
+if [ "$BLACK_RETVAL" != "0" ]; then
+  echo -e "\n\n>>>> FAILED: black style check; begin output\n\n"
+  echo -e "$BLACK"
+  echo -e "\n\n>>>> FAILED: black style check; end output\n\n"
+else
+  echo -e "\n\n>>>> PASSED: black style check\n\n"
+fi
 
 if [ "$FLAKE_RETVAL" != "0" ]; then
   echo -e "\n\n>>>> FAILED: flake8 style check; begin output\n\n"
