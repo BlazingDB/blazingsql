@@ -1,5 +1,5 @@
 [flake8]
-exclude = __init__.py
+exclude = __init__.py context.py
 ignore =
     # line break before binary operator
     W503
