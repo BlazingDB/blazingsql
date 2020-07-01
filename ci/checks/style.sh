@@ -19,8 +19,9 @@ ISORT=`isort --recursive --check-only pyblazing --skip __init__.py --skip contex
 ISORT_RETVAL=$?
 
 # Run black and get results/return code
-BLACK=`black --check --exclude=__init__.py pyblazing`
-BLACK_RETVAL=$?
+# TODO: cordova update this rules when ucx will ready
+#BLACK=`black --check --exclude=__init__.py pyblazing`
+#BLACK_RETVAL=$?
 
 # Run flake8 and get results/return code
 FLAKE=`flake8 --config=pyblazing/.flake8 pyblazing`
