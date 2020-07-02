@@ -14,12 +14,11 @@ LANG=C.UTF-8
 source activate gdf
 
 # Run isort and get results/return code
-# TODO: cordova update this rules when ucx will ready
+# TODO: cordova in a near future consider hive.py and context.py
 ISORT=`isort --recursive --check-only pyblazing --skip __init__.py --skip context.py --skip hive.py`
 ISORT_RETVAL=$?
 
 # Run black and get results/return code
-# TODO: cordova remove /blazingsql when ucx will ready
 BLACK=`black --check --exclude=__init__.py pyblazing`
 BLACK_RETVAL=$?
 
@@ -56,7 +55,7 @@ else
   echo -e "\n\n>>>> PASSED: flake8 style check\n\n"
 fi
 
-# TODO: cordova update this rule when ucx will ready
+# TODO: cordova uncomment this when cython files were updated
 #if [ "$FLAKE_CYTHON_RETVAL" != "0" ]; then
 #  echo -e "\n\n>>>> FAILED: flake8-cython style check; begin output\n\n"
 #  echo -e "$FLAKE_CYTHON"
@@ -65,7 +64,6 @@ fi
 #  echo -e "\n\n>>>> PASSED: flake8-cython style check\n\n"
 #fi
 
-# TODO: cordova update this when ucx will ready
 #RETVALS=($ISORT_RETVAL $BLACK_RETVAL $FLAKE_RETVAL $FLAKE_CYTHON_RETVAL)
 RETVALS=($BLACK_RETVAL $FLAKE_RETVAL)
 IFS=$'\n'

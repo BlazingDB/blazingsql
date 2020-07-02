@@ -1,5 +1,5 @@
 [flake8]
-exclude = __init__.py context.py
+exclude = __init__.py
 ignore =
     # line break before binary operator
     W503
@@ -11,4 +11,3 @@ ignore =
     E501 
     # E231 missing whitespace after ','
     E231
-
