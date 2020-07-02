@@ -190,10 +190,9 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
 						  .addRuleInstance(ProjectRemoveRule.INSTANCE)
 
-						  //The following three rules evaluate expressions in Projects, Filters and Joins
+						  //The following three rules evaluate expressions in Projects and Filters
 						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
 						  .addRuleInstance(ReduceExpressionsRule.FILTER_INSTANCE)
-						  .addRuleInstance(ReduceExpressionsRule.JOIN_INSTANCE)
 
 						  .addRuleInstance(ProjectTableScanRule.INSTANCE)
 						  .addRuleInstance(FilterTableScanRule.INSTANCE)
