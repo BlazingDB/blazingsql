@@ -10,7 +10,7 @@ import numpy as np
 from dask_cuda import LocalCUDACluster
 from distributed import Client, Worker, Scheduler, wait, get_worker
 from distributed.comm import ucx, listen, connect
-from ..apiv2.comms import listen, BlazingMessage, UCX, cleanup
+from ..apiv2.comms import listen_async, BlazingMessage, UCX, cleanup
 from distributed.utils_test import cleanup as dask_cleanup  # noqa: 401
 
 
@@ -74,7 +74,7 @@ async def test_ucx_localcluster( dask_cleanup):
             """
 
             try:
-                ips_ports = await listen(mock_msg_callback, client)
+                ips_ports = await listen_async(callback=mock_msg_callback, client=client)
 
                 print(str(ips_ports))
 
@@ -84,7 +84,7 @@ async def test_ucx_localcluster( dask_cleanup):
                 for k, v in ips_ports.items():
                     assert v is not None
 
-                meta = {"worker_ids": tuple(ips_ports.values())}
+                meta = {"worker_ids": tuple(ips_ports.keys())}
                 data = cudf.DataFrame({"a": cudf.Series([0, 1, 2, 3, 4])})
 
                 """

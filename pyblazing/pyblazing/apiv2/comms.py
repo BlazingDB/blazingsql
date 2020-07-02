@@ -38,7 +38,7 @@ async def route_message(msg):
             import cudf
             msg.data = cudf.DataFrame()
         cache.add_to_cache_with_meta(msg.data, msg.metadata)
-    print("finished route")
+    print("finished ro9a24736c82d1682763e24d0803caf1534f40104dute")
 
     print("done routing message")
 
@@ -85,18 +85,20 @@ def set_id_mappings_on_worker(mapping):
     get_worker().ucx_addresses = mapping
 
 
+async def listen_async(callback=route_message, client=None):
+    print("Invoked async listener")
+    client = client if client is not None else default_client()
+    worker_id_maps = await client.run(UCX.start_listener_on_worker, callback, wait=True)
+    await client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
+    return worker_id_maps
+
+
+
 def listen(callback=route_message, client=None):
     client = client if client is not None else default_client()
-    print("Sending listen start message to workers")
     worker_id_maps = client.run(UCX.start_listener_on_worker, callback, wait=True)
     client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
-
-
-async def listen_async(callback=route_message, client=None):
-    client = client if client is not None else default_client()
-    print("Sending listen start message to workers")
-    worker_id_maps = await client.run(UCX.start_listener_on_worker, callback, wait=True)
-    return client.run(set_id_mappings_on_worker, worker_id_mappings, wait=True)
+    return worker_id_maps
 
 
 def cleanup(client=None):
