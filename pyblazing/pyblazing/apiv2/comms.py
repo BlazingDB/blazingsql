@@ -14,16 +14,29 @@ serde = ("dask", "cuda", "pickle", "error")
 async def route_message(msg):
     print("routing message!")
     worker = get_worker()
-    if msg.metadata["add_to_specific_cache"]:
-        cache = worker.query_graphs[msg.metadata["query_id"]].get_kernel_output_cache(
-            msg.metadata["kernel_id"],
+    print("got worker and add to specific=" + msg.metadata["add_to_specific_cache"])
+    if msg.metadata["add_to_specific_cache"] == "true":
+        print("about to get cache " + msg.metadata["query_id"])
+        print(worker.query_graphs)
+        print(msg.metadata["query_id"])
+        graph = worker.query_graphs[int(msg.metadata["query_id"])]
+        print("got graph")
+        print(msg.metadata)
+        cache = graph.get_kernel_output_cache(
+            int(msg.metadata["kernel_id"]),
             cache_id=msg.metadata["cache_id"]
         )
+        print(cache)
+        print(msg.data)
         print("got cache in route")
         cache.add_to_cache(msg.data)
         print("added to cache in route")
     else:
+        print("going into alt")
         cache = worker.input_cache
+        if(msg.data is None):
+            import cudf
+            msg.data = cudf.DataFrame()
         cache.add_to_cache_with_meta(msg.data, msg.metadata)
     print("finished route")
 
@@ -44,10 +57,11 @@ def run_polling_thread():  # doctest: +SKIP
 
     while True:
 
-        print("Pull_from_cache")
+        #print("Pull_from_cache")
         df, metadata = dask_worker.output_cache.pull_from_cache()
-        print("Should never get here!")
-        print(metadata)
+        #print("Should never get here!")
+        #print(metadata)
+        print(df)
         asyncio.get_event_loop().run_until_complete(UCX.get().send(BlazingMessage(metadata, df)))
         asyncio.get_event_loop().run_until_complete(asyncio.sleep(0))
 
@@ -187,10 +201,10 @@ class UCX:
             print("dask_addr=%s mapped to %s" %(dask_addr, addr))
             ep = await self.get_endpoint(addr)
             print(ep)
-            
+
             to_ser = {"metadata": to_serialize(blazing_msg.metadata)}
             print(str(blazing_msg.data.shape))
-            if blazing_msg.data is not None and blazing_msg.data.shape[0] > 0:
+            if blazing_msg.data is not None:
                 to_ser["data"] = to_serialize(blazing_msg.data)
             await ep.write(msg=to_ser, serializers=serde)
             print("seems like it wrote")

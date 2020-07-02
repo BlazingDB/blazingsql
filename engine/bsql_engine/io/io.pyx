@@ -182,8 +182,11 @@ cdef class PyBlazingCache:
         cdef map[string,string] metadata_map
         cdef string c_key
         for key in metadata.keys():
-          c_key = key.encode()
-          metadata_map[c_key] = metadata[key].encode()
+          if key != "worker_ids":
+            print(key)
+            c_key = key.encode()
+            metadata_map[c_key] = metadata[key].encode()
+            print("set " + key + " = " + metadata[key])
         c_metadata.set_values(metadata_map)
         cdef vector[string] column_names
         for column_name in cudf_data:
@@ -192,11 +195,11 @@ cdef class PyBlazingCache:
         cdef Column cython_col
         for cython_col in cudf_data._data.values():
            column_views.push_back(cython_col.view())
-
         cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
-        print("a")
         deref(blazing_table).ensureOwnership()
-        deref(self.c_cache).addCacheData(blaz_move2(make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)),metadata["query_id"] + "_" + metadata["kernel_id"])
+        cdef unique_ptr[cio.GPUCacheDataMetaData] ptr = make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)
+        deref(self.c_cache).addCacheData(blaz_move2(ptr),metadata["message_id"].encode(),1)
+
 
     def has_next_now(self,):
         return deref(self.c_cache).has_next_now()
@@ -204,6 +207,7 @@ cdef class PyBlazingCache:
     def add_to_cache(self,cudf_data):
         cdef vector[string] column_names
         for column_name in cudf_data:
+            print(column_name)
             column_names.push_back(str.encode(column_name))
 
         cdef vector[column_view] column_views
@@ -213,7 +217,7 @@ cdef class PyBlazingCache:
         cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
         deref(blazing_table).ensureOwnership()
         cdef string message_id
-        deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id)
+        deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id,1)
 
     def pull_from_cache(self):
         cdef unique_ptr[CacheData] cache_data_generic
@@ -225,7 +229,7 @@ cdef class PyBlazingCache:
         table = blaz_move(table_and_meta.first)
 
         metadata = table_and_meta.second
-        metadata.print()
+
         metadata_temp = metadata.get_values()
         metadata_py = {}
         for key_val in metadata_temp:
@@ -235,7 +239,7 @@ cdef class PyBlazingCache:
                 metadata_py[key] = val.split(",")
             else:
                 metadata_py[key] = val
-        print(metadata_py)
+
 
         decoded_names = []
         for i in range(deref(table).names().size()):
@@ -386,8 +390,11 @@ cdef class PyBlazingGraph:
     cdef shared_ptr[cio.graph] ptr
 
     def get_kernel_output_cache(self,kernel_id, cache_id = ""):
+        print("about to make cache")
         cache = PyBlazingCache()
-        cache.c_cache = deref(self.ptr).get_kernel_output_cache(kernel_id,str.endcode(cache_id))
+        print("made new cache")
+        cache.c_cache = deref(self.ptr).get_kernel_output_cache(int(kernel_id),str.encode(cache_id))
+        return cache
 
     cpdef set_input_and_output_caches(self, PyBlazingCache input_cache, PyBlazingCache output_cache):
         deref(self.ptr).set_input_and_output_caches(input_cache.c_cache, output_cache.c_cache)

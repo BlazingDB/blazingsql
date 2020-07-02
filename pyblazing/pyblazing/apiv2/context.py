@@ -256,8 +256,9 @@ def executeGraph(ctxToken):
     worker = dask.distributed.get_worker()
 
     graph = worker.query_graphs[ctxToken]
+    print("about to run")
     dfs = cio.runExecuteGraphCaller(graph, is_single_node=False)
-
+    print("ran graph")
     meta = dask.dataframe.utils.make_meta(dfs[0])
     query_partids = []
 
@@ -269,7 +270,7 @@ def executeGraph(ctxToken):
         query_partid = random.randint(0, np.iinfo(np.int32).max) # query_partid should be a unique identifier
         worker.query_parts[query_partid] = df
         query_partids.append(query_partid)
-
+    del worker.query_graphs[ctxToken]
     return query_partids, meta, worker.name
 
 def collectPartitionsPerformPartition(
@@ -1379,7 +1380,7 @@ class BlazingContext(object):
             ignore_missing_paths = user_partitions_schema is not None # if we are using user defined partitions without hive, we want to ignore paths we dont find.
             parsedSchema = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
-
+            print(parsedSchema)
             if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(parsedSchema['files'], hive_schema['partitions'], hive_schema['location'])
                 num_cols = len(parsedSchema['names'])
@@ -1809,7 +1810,8 @@ class BlazingContext(object):
                 cio.getTableScanInfoCaller,
                 algebra,
                 self.tables,
-                workers=[worker])
+                workers=[worker],
+                pure=False)
             query_tables, table_scans = connection.result()
 
         # this was for ARROW tables which are currently deprecated
@@ -1879,10 +1881,12 @@ class BlazingContext(object):
                         algebra,
                         accessToken,
                         query_config_options,
-                        single_gpu=True)]
+                        single_gpu=True,
+                        pure=False)]
                 self.dask_client.gather(graph_futures)
 
-                dask_futures = [self.dask_client.submit(executeGraph, ctxToken)]
+                dask_futures = [self.dask_client.submit(executeGraph, ctxToken,
+                pure=False)]
             else:
                 graph_futures = []
                 i = 0
@@ -1924,7 +1928,8 @@ class BlazingContext(object):
                 futures = []
                 for query_partids, meta, worker_id in meta_results:
                     for query_partid in query_partids:
-                        futures.append(self.dask_client.submit(get_element, query_partid, workers=[worker_id]))
+                        futures.append(self.dask_client.submit(get_element, query_partid, workers=[worker_id],
+                        pure=False))
 
                 result = dask.dataframe.from_delayed(futures, meta=meta)
         return result

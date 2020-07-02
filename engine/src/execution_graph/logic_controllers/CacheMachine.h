@@ -117,6 +117,7 @@ public:
 
 	void set_values(std::map<std::string,std::string> new_values){
 		this->values= new_values;
+		print();
 	}
 private:
 	std::map<std::string,std::string> values;
@@ -282,6 +283,7 @@ public:
 
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
+			std::cout<<"message queue size is "<<this->message_queue_.size()<<std::endl;
 			return count == this->message_queue_.size();
 		});
 
@@ -440,7 +442,7 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "");
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
 
 	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
 

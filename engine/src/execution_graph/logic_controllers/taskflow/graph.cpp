@@ -263,6 +263,8 @@ namespace cache {
 	kernel * graph::get_node(size_t id) { return container_[id].get(); }
 
 	std::shared_ptr<ral::cache::CacheMachine>  graph::get_kernel_output_cache(size_t kernel_id, std::string cache_id){
+		std::cout<<"Cacheid='"<<cache_id<<"'"<<std::endl;
+		std::cout<<container_[kernel_id].get()->output_cache(cache_id).get()<<std::endl;
 		return container_[kernel_id].get()->output_cache(cache_id);
 	}
 

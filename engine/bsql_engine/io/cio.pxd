@@ -144,8 +144,8 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
 
 cdef extern from "../src/execution_graph/logic_controllers/taskflow/graph.h" namespace "ral::cache":
         cdef cppclass graph:
-            void execute()
-            shared_ptr[CacheMachine] get_kernel_output_cache(size_t kernel_id, string cache_id)
+            void execute() except +
+            shared_ptr[CacheMachine] get_kernel_output_cache(size_t kernel_id, string cache_id) except +
             void set_input_and_output_caches(shared_ptr[CacheMachine] input_cache, shared_ptr[CacheMachine] output_cache)
 
 cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" namespace "ral::cache":
@@ -160,8 +160,8 @@ cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" names
             map[string, string] get_map()
             pair[unique_ptr[BlazingTable], MetadataDictionary ] decacheWithMetaData()
         cdef cppclass CacheMachine:
-            void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id )
-            void addToCache(unique_ptr[BlazingTable] table, const string & message_id )
+            void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id, bool always_add )
+            void addToCache(unique_ptr[BlazingTable] table, const string & message_id , bool always_add)
             unique_ptr[CacheData] pullCacheData() nogil
             unique_ptr[CacheData] pullCacheData(string message_id) nogil
             bool has_next_now()
