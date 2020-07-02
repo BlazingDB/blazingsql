@@ -789,7 +789,6 @@ class BlazingTable(object):
 
         return nodeFilesList
 
-    
 class BlazingContext(object):
     """
     BlazingContext is the Python API of BlazingSQL. Along with initialization arguments allowing for
@@ -839,8 +838,8 @@ class BlazingContext(object):
                                             stop execution until the output cache contains less.
                                             default: max int (makes it not applicable)
                                     FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to
-                                self.tables,
-                            default: max size_t (makes it not applicable)
+                                            stop execution until the output cache contains less.
+                                            default: max size_t (makes it not applicable)
                                     ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
                                            calculate the number of samples
                                            default: 0.1
@@ -1764,17 +1763,15 @@ class BlazingContext(object):
                 query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
         if self.dask_client is None or single_gpu == True :
-            table_names, table_scans = cio.getTableScanInfoCaller(algebra)
+            query_tables, table_scans = cio.getTableScanInfoCaller(algebra,self.tables)
         else:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
             connection = self.dask_client.submit(
                 cio.getTableScanInfoCaller,
                 algebra,
+                self.tables,
                 workers=[worker])
-            table_names, table_scans = connection.result()
-        
-        query_tables = [self.tables[table_name] for table_name in table_names]        
-
+            query_tables, table_scans = connection.result()
 
         # this was for ARROW tables which are currently deprecated
         # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
