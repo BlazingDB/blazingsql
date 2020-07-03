@@ -125,23 +125,27 @@ fi
 ################################################################################
 
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
-    if [ ! -d "${REPODIR}/thirdparty/cudf/" ]; then
-        cd ${REPODIR}/thirdparty/
-        git clone https://github.com/rapidsai/cudf.git
-        cd cudf/cpp
-        mkdir build
-        cd build
-        cmake -DCMAKE_CXX11_ABI=ON ..
+    if [ -d "${CUDF_HOME}" ]; then
+	echo "CUDF_HOME env var set to path that exists - using cuDF from ${CUDF_HOME}"
     else
-        cd ${REPODIR}/thirdparty/cudf
-        git pull
-        if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
-            mkdir cpp/build
+        if [ ! -d "${REPODIR}/thirdparty/cudf/" ]; then
+            cd ${REPODIR}/thirdparty/
+            git clone https://github.com/rapidsai/cudf.git
+            cd cudf/cpp
+            mkdir build
+            cd build
+            cmake -DCMAKE_CXX11_ABI=ON ..
+        else
+            cd ${REPODIR}/thirdparty/cudf
+            git pull
+            if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
+                mkdir cpp/build
+            fi
+            cd cpp/build
+            cmake -DCMAKE_CXX11_ABI=ON ..
         fi
-        cd cpp/build
-        cmake -DCMAKE_CXX11_ABI=ON ..
+        export CUDF_HOME=${REPODIR}/thirdparty/cudf/
     fi
-    export CUDF_HOME=${REPODIR}/thirdparty/cudf/
 
     if [ ! -d "${REPODIR}/thirdparty/aws-cpp/" ]; then
         cd ${REPODIR}/thirdparty/
