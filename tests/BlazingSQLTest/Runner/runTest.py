@@ -198,6 +198,7 @@ def get_codTest(test_name):
         "Concat": "CONCAT",
         "Count Distinct": "COUNTD",
         "Count without group by": "COUNTWOGRBY",
+        "Cross join": "CROSSJOIN",
         "Date": "DATE",
         "Dir": "DIR",
         "File System Google Storage": "FSGS",
@@ -399,7 +400,7 @@ class Test:
         self.fail_ids= []
 
 
-def save_log (**kwargs):
+def save_log (gpu_ci_mode):
 
     c = 1
     cadena = []
@@ -432,27 +433,32 @@ def save_log (**kwargs):
 
     df1 = df[['QueryID', 'TimeStamp', 'TestGroup', 'InputType', 'Query', 'Result', 'Error', 'Branch', 'CommitHash', 'nRals', 'nGPUs', 'DataDirectory', 'LoadingTime', 'EngineTotalTime', 'TotalTime']].copy()
 
-    create_summary_detail(df)
+    create_summary_detail(df, gpu_ci_mode)
    
-    printSummary(countPass, countCrash, total)
+    printSummary(countPass, countCrash, total, gpu_ci_mode)
 
-    saveLogInFile(df1)
+    if not gpu_ci_mode:
+        saveLogInFile(df1)
 
-    saveLog = False
-    if 'saveLog' in Settings.data['RunSettings']:
-        saveLog = Settings.data['RunSettings']['saveLog'] 
+        saveLog = False
+        if 'saveLog' in Settings.data['RunSettings']:
+            saveLog = Settings.data['RunSettings']['saveLog'] 
 
-    # TODO william kharoly felipe we should try to enable and use this function in the future
-    #result, error_msgs = verify_prev_google_sheet_results(df1)
-    result, error_msgs = True, []
-    
-    if result == True and saveLog == "true":
-        saving_google_sheet_results(df1)
+        print("saveLog = " + str(saveLog))
+
+        # TODO william kharoly felipe we should try to enable and use this function in the future
+        #result, error_msgs = verify_prev_google_sheet_results(df1)
+        result, error_msgs = True, []
+        
+        if result == True and saveLog == "true":
+            saving_google_sheet_results(df1)
+    else:
+        result, error_msgs = True, []
     
     loggingClose(name)
     return result, error_msgs
 
-def create_summary_detail(df):
+def create_summary_detail(df, no_color):
     pdf = df
     pdf['Result'] = df['Result'].replace(1, 'Success')
     pdf['Result'] = df['Result'].replace(0, 'Fail')
@@ -464,10 +470,17 @@ def create_summary_detail(df):
     pdf2 = pdf.where(filter_fail)
     pdf_fail = pdf2.dropna()
 
-    green = bcolors.OKGREEN
-    yellow = bcolors.WARNING
-    red = bcolors.FAIL
-    endc = bcolors.ENDC
+    if no_color:
+        green = ""
+        yellow = ""
+        red = ""
+        endc = ""
+    else:
+        green = bcolors.OKGREEN
+        yellow = bcolors.WARNING
+        red = bcolors.FAIL
+        endc = bcolors.ENDC
+    
 
     # display 
     print(green + "========================================================")
@@ -820,12 +833,18 @@ def print_tests(tests, onlyFails = False):
                     print(tab+'TOTAL: ' + str(total))
 
 
-def printSummary(countPass, countCrash, total):
+def printSummary(countPass, countCrash, total, no_color):
     
-    green = bcolors.OKGREEN
-    yellow = bcolors.WARNING
-    red = bcolors.FAIL
-    endc = bcolors.ENDC
+    if no_color:
+        green = ""
+        yellow = ""
+        red = ""
+        endc = ""
+    else:
+        green = bcolors.OKGREEN
+        yellow = bcolors.WARNING
+        red = bcolors.FAIL
+        endc = bcolors.ENDC
       
     # Second: print the global summary (totals from all the tests)
     fails = total - countPass - countCrash

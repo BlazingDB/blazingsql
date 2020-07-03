@@ -14,6 +14,7 @@ from EndToEndTests import groupByTest as groupByTest
 from EndToEndTests import orderbyTest as orderbyTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import innerJoinsTest as innerJoinsTest
+from EndToEndTests import crossJoinsTest as crossJoinsTest
 from EndToEndTests import unionTest as unionTest
 from EndToEndTests import leftOuterJoinsTest as leftOuterJoinsTest
 from EndToEndTests import nonEquiJoinsTest
@@ -123,7 +124,10 @@ def main():
     
     if runAllTests or ("innerJoinsTest" in targetTestGroups):
         innerJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
-    
+
+    if runAllTests or ("crossJoinsTest" in targetTestGroups):
+        crossJoinsTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
     if runAllTests or ("" in targetTestGroups):
         leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
     
@@ -142,7 +146,7 @@ def main():
         predicatesWithNulls.main(dask_client, drill, dir_data_file, bc, nRals)
     
     if runAllTests or ("stringTests" in targetTestGroups):
-        stringTests.main(dask_client, drill, dir_data_file, bc, nRals)
+        stringTests.main(dask_client, drill, spark, dir_data_file, bc, nRals)
     
     if runAllTests or ("tablesFromPandasTest" in targetTestGroups):
         tablesFromPandasTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -194,7 +198,7 @@ def main():
         simpleDistributionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
     
     if runAllTests or ("substringTest" in targetTestGroups):
-        substringTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
     
     if runAllTests or ("wildCardTest" in targetTestGroups):
         wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -220,7 +224,7 @@ def main():
     
     if Settings.execution_mode != ExecutionMode.GENERATOR:
 
-        result, error_msgs = runTest.save_log()
+        result, error_msgs = runTest.save_log(Settings.execution_mode == ExecutionMode.GPUCI)
         
         max = 0 
         for i in range(0, len(Settings.memory_list)):

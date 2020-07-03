@@ -79,7 +79,7 @@ public:
 	cudf::column_view const & column(cudf::size_type column_index) const { return table.column(column_index); }
 	std::vector<std::unique_ptr<BlazingColumn>> toBlazingColumns() const;
 
-	std::vector<cudf::data_type> get_schema();
+	std::vector<cudf::data_type> get_schema() const;
 
 	std::vector<std::string> names() const;
 	void setNames(const std::vector<std::string> & names) { this->columnNames = names; }

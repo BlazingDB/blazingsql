@@ -74,7 +74,7 @@ public:
 	std::unique_ptr<TableSchema> left_schema{nullptr};
  	std::unique_ptr<TableSchema> right_schema{nullptr};
 
-	std::unique_ptr<ral::frame::BlazingTable> load_set(BatchSequence & input, bool load_all){
+	std::unique_ptr<ral::frame::BlazingTable> load_set(BatchSequence & input, std::shared_ptr<ral::cache::CacheMachine> cache, bool load_all){
 		std::size_t bytes_loaded = 0;
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_loaded;
 		if (input.wait_for_next()){
@@ -92,9 +92,18 @@ public:
 
 		while ((input.wait_for_next() && bytes_loaded < join_partition_size_theshold) ||
 					(load_all && input.wait_for_next())) {
-			tables_loaded.emplace_back(input.next());
+			tables_loaded.emplace_back(std::move(input.next()));
 			bytes_loaded += tables_loaded.back()->sizeInBytes();
+
+			//If the concatenation so far produces a string overflow, we put back the batch because in this case the order of the elements does not matter
+			if(!load_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_loaded)){
+				bytes_loaded -= tables_loaded.back()->sizeInBytes();
+				cache->addToCache(std::move(tables_loaded.back()));
+				tables_loaded.pop_back();				
+				break;
+			}
 		}
+
 		if (tables_loaded.size() == 0){
 			return nullptr;
 		} else if (tables_loaded.size() == 1){
@@ -104,6 +113,16 @@ public:
 			for (std::size_t i = 0; i < tables_loaded.size(); i++){
 				tables_to_concat[i] = tables_loaded[i]->toBlazingTableView();
 			}
+
+			// if we were supposed to load all and strings will overflow, lets at least provide a warning
+			if (load_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_to_concat)){
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In PartwiseJoin::load_set Concatenating Strings will overflow strings length");			
+			}
+
 			return ral::utilities::concatTables(tables_to_concat);
 		}
 	}
@@ -114,7 +133,7 @@ public:
 		this->max_left_ind++;
 		// need to load all the left side, only if doing a FULL OUTER JOIN
 		bool load_all = this->join_type == OUTER_JOIN ?  true : false;
-		auto table = load_set(this->left_sequence, load_all);
+		auto table = load_set(this->left_sequence, this->input_.get_cache("input_a"), load_all);
 		if (not left_schema && table != nullptr) {
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -128,7 +147,7 @@ public:
 		this->max_right_ind++;
 		// need to load all the right side, if doing any type of outer join
 		bool load_all = this->join_type != INNER_JOIN ?  true : false;
-		auto table = load_set(this->right_sequence, load_all);
+		auto table = load_set(this->right_sequence, this->input_.get_cache("input_b"), load_all);
 		if (not right_schema && table != nullptr) {
 			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -285,8 +304,9 @@ public:
     virtual kstatus run() {
 		CodeTimer timer;
 
-		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this);
-		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this);
+		bool ordered = false; 
+        this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this, ordered);
+		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this, ordered);
 
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;
@@ -847,8 +867,9 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-		BatchSequence left_sequence(this->input_.get_cache("input_a"), this);
-		BatchSequence right_sequence(this->input_.get_cache("input_b"), this);
+		bool ordered = false;
+		BatchSequence left_sequence(this->input_.get_cache("input_a"), this, ordered);
+		BatchSequence right_sequence(this->input_.get_cache("input_b"), this, ordered);
 
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;

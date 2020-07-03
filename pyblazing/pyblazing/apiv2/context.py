@@ -343,7 +343,7 @@ def parseHiveMetadata(curr_table, uri_values):
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
 
-    dtypes = [cudf_type_int_to_np_types(t) for t in curr_table.column_types]
+    dtypes = [cio.cudf_type_int_to_np_types(t) for t in curr_table.column_types]
 
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
@@ -858,6 +858,8 @@ class BlazingContext(object):
                                     BLAZING_CACHE_DIRECTORY : A folder path to place all orc files when start caching on Disk. The path can be relative or absolute.
                                             NOTE: This parameter only works when used in the BlazingContext
                                             default: '/tmp/'
+                                    MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory consumption. The value is in milliseconds.
+                                            default: 50  (milliseconds)
 
         Examples
         --------
