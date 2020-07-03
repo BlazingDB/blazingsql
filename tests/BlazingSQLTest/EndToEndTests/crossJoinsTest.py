@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
     nvmlInit()
 
-    drill = "drill"  # None
+    # NOTE: Drill doesn't support CROSS JOIN
     spark = "spark"
 
     compareResults = True
@@ -125,13 +125,6 @@ if __name__ == '__main__':
     if ((Settings.execution_mode == ExecutionMode.FULL
          and compareResults == "true")
             or Settings.execution_mode == ExecutionMode.GENERATOR):
-        # Create Table Drill -------------------------------------------------
-        print("starting drill")
-        # from pydrill.client import PyDrill
-        # drill = PyDrill(host='localhost', port=8047)
-        # cs.init_drill_schema(drill,
-        #                     Settings.data['TestSettings']['dataDirectory'])
-
         # Create Table Spark --------------------------------------------------
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
         cs.init_spark_schema(spark,
