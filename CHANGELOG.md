@@ -30,6 +30,7 @@
 - #838 Fixed issue with start and length of substring being different types
 - #823 Fixed issue on logical plans when there is an EXISTS clause
 - #845 Fixed issue with casting string to string
+- #851 Fix row_groups issue in ParquetParser.cpp
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
