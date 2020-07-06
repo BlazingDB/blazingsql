@@ -255,7 +255,7 @@ public:
 																std::cout<<"Adding to the cache with "<<partition->num_rows()<<" rows "<<std::endl;
                                 metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getNode(i).id());
 																node_count[this->context->getNode(i).id()]++;
-                                output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(partition), metadata));
+                                output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(partition), metadata),"",true);
 																std::cout<<"Added to the cache"<<std::endl;
 													  }
                         }

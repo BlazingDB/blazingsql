@@ -557,7 +557,7 @@ public:
 					blazingdb::transport::Node dest_node;
 					ral::frame::BlazingTableView table_view;
 					std::tie(dest_node, table_view) = partitions_to_send[i];
-					if(dest_node == self_node || table_view.num_rows() == 0) {
+					if(dest_node == self_node ) {
 						continue;
 					}
 
@@ -565,7 +565,7 @@ public:
 					metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
 
 					node_count[dest_node.id()]++;
-					graph_output->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)));
+					graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",true);
 				}
 
 				if (sequence.wait_for_next()){
@@ -587,6 +587,7 @@ public:
 				throw;
 			}
 		}
+		std::cout<<"finished distributing pieces"<<std::endl;
 		//printf("... notifyLastTablePartitions\n");
 		// ral::distribution::notifyLastTablePartitions(local_context.get(), ColumnDataPartitionMessage::MessageID());
 
@@ -609,9 +610,10 @@ public:
 																			metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
 
 				graph_output->addCacheData(
-						std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)));
+						std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 			}
 		}
+		std::cout<<"sent partition counts for other nodes_to_send"
 	}
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
@@ -696,7 +698,7 @@ public:
 		metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
 		metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
 		ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
-		output_cache->addCacheData(std::unique_ptr<ral::cache::CacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)));
+		output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -710,7 +712,7 @@ public:
 		std::vector<int64_t> nodes_num_bytes_right(this->context->getTotalNodes());
 
 		// ral::distribution::collectLeftRightTableSizeBytes(context.get(), nodes_num_bytes_left, nodes_num_bytes_right);
-
+		std::cout<<"Added all byte estimates for join to output cache, waiting for responses"<<std::endl;
 		int64_t prev_total_rows = 0;
 		for (auto i = 0; i < messages_to_wait_for.size(); i++)	{
 			auto message = this->query_graph->get_input_cache()->pullCacheData(messages_to_wait_for[i]);
@@ -721,7 +723,7 @@ public:
 		}
 		nodes_num_bytes_left[self_node_idx] = left_bytes_estimate;
 		nodes_num_bytes_right[self_node_idx] = right_bytes_estimate;
-
+		std::cout<<"received all byte estimates"<<std::endl;
 		std::string collectLeftRightTableSizeBytesInfo = "nodes_num_bytes_left: ";
 		for (auto num_bytes : nodes_num_bytes_left){
 			collectLeftRightTableSizeBytesInfo += std::to_string(num_bytes) + ", ";
@@ -890,7 +892,7 @@ public:
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			while (!done) {
 				try {
-					if(small_table_batch != nullptr && small_table_batch->num_rows() > 0) {
+					if(small_table_batch != nullptr ) {
 						// ral::distribution::scatterData(this->context.get(), small_table_batch->toBlazingTableView());
 
 						int self_node_idx = context->getNodeIndex(self_node);
@@ -913,7 +915,7 @@ public:
 						metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
 						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
 						ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
-						output_cache->addCacheData(std::unique_ptr<ral::cache::CacheData>(new ral::cache::GPUCacheDataMetaData(small_table_batch->toBlazingTableView().clone(), metadata)));
+						output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(small_table_batch->toBlazingTableView().clone(), metadata),"",true);
 					}
 
 					this->add_to_output_cache(std::move(small_table_batch), small_output_cache_name);
@@ -956,7 +958,7 @@ public:
 																				metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
 
 					this->query_graph->get_output_cache()->addCacheData(
-							std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)));
+							std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 				}
 			}
 		});
