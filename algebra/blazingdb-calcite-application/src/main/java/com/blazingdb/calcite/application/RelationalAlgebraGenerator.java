@@ -189,14 +189,15 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
 						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
 						  .addRuleInstance(ProjectRemoveRule.INSTANCE)
+
+						  //The following three rules evaluate expressions in Projects and Filters
+						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
+						  .addRuleInstance(ReduceExpressionsRule.FILTER_INSTANCE)
+
 						  .addRuleInstance(ProjectTableScanRule.INSTANCE)
 						  .addRuleInstance(FilterTableScanRule.INSTANCE)
 						  .addRuleInstance(FilterRemoveIsNotDistinctFromRule.INSTANCE)
 						  .addRuleInstance(AggregateReduceFunctionsRule.INSTANCE)
-						  //The following three rules evaluate expressions in Projects, Filters and Joins
-						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
-						  .addRuleInstance(ReduceExpressionsRule.FILTER_INSTANCE)
-						  .addRuleInstance(ReduceExpressionsRule.JOIN_INSTANCE)
 						  .build();
 		} else {
 			HepProgramBuilder programBuilder = new HepProgramBuilder();
