@@ -45,7 +45,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
 
             queryId = 'TEST_02'
             query = """
-                    select o_orderkey, o_totalprice, o_clerk,
+                    select o_orderkey, o_totalprice,
                          l_linenumber, l_shipmode
                     from orders cross join lineitem
                     where o_orderkey < 6
@@ -53,6 +53,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                     and l_linenumber > 5
                     and o_totalprice < 74029.55
                     and o_clerk = 'Clerk#000000880'
+                    and l_shipmode IN ('FOB', 'RAIL')
                     order by o_orderkey, o_totalprice, l_linenumber"""
             runTest.run_query(bc, spark, query, queryId, queryType,
                               worder, '', acceptable_difference,
@@ -67,7 +68,8 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                     group by o_orderkey, n_nationkey, o_orderdate
                     order by o_orderkey, n_nationkey"""
             runTest.run_query(bc, spark, query, queryId, queryType, worder,
-                              '', 0.01, use_percentage, fileSchemaType)
+                              '', acceptable_difference,
+                              use_percentage, fileSchemaType)
 
             queryId = 'TEST_04'
             query = """
@@ -96,7 +98,8 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                     where n_name = 'RUSSIA'
                     order by c_custkey"""
             runTest.run_query(bc, spark, query, queryId, queryType, worder,
-                              '', 0.01, use_percentage, fileSchemaType)
+                              '', acceptable_difference,
+                              use_percentage, fileSchemaType)
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
@@ -121,7 +124,7 @@ if __name__ == '__main__':
     compareResults = True
     if 'compare_results' in Settings.data['RunSettings']:
         compareResults = Settings.data['RunSettings']['compare_results']
-    print(">>>>>>>>>>>>>>>> ", Settings.execution_mode)
+
     if ((Settings.execution_mode == ExecutionMode.FULL
          and compareResults == "true")
             or Settings.execution_mode == ExecutionMode.GENERATOR):
