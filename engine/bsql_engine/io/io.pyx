@@ -448,19 +448,12 @@ cpdef runSkipDataCaller(table, queryPy):
       return_object['metadata'] = df
       return return_object
 
-cpdef getTableScanInfoCaller(logicalPlan,tables):
+cpdef getTableScanInfoCaller(logicalPlan):
     temp = getTableScanInfoPython(str.encode(logicalPlan))
 
     table_names = [name.decode('utf-8') for name in temp.table_names]
-    relational_algebra = [step.decode('utf-8') for step in temp.relational_algebra_steps]
-
-    new_tables = []
-    table_scans = []
-    for table_name, table_columns, scan_string in zip(table_names, temp.table_columns,relational_algebra ):
-      new_tables.append(tables[table_name])
-      table_scans.append(scan_string)
-
-    return new_tables, table_scans
+    table_scans = [step.decode('utf-8') for step in temp.relational_algebra_steps]
+    return table_names, table_scans
 
 
 cpdef np_to_cudf_types_int(dtype):
