@@ -13,6 +13,7 @@
 - #849 Added check for CUDF_HOME to allow build to use an existing prebuilt cudf source tree
 - #829 Python/Cython check code style
 
+
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
 - #781 Fixed issue with Hive partitions when doing SELECT *
