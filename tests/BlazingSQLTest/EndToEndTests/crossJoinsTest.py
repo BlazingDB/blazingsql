@@ -17,8 +17,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
 
     def executionTest():
         tables = ["nation", "region", "customer", "lineitem", "orders"]
-        data_types = [DataType.DASK_CUDF, DataType.CUDF, DataType.CSV,
-                      DataType.ORC, DataType.PARQUET]  # TODO json
+        data_types = [DataType.PARQUET]  # TODO json
 
         # Create Tables ------------------------------------------------------
         for fileSchemaType in data_types:
@@ -60,12 +59,12 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                               use_percentage, fileSchemaType)
 
             queryId = 'TEST_03'
-            query = """select o_orderkey, n_nationkey,
-                    count(n_nationkey) as counting
+            query = """select o_orderkey, n_nationkey
                     from nation cross join orders
-                    where o_totalprice > 2964.14
+                    where o_totalprice > 4000.0
                     and o_orderdate > date '1998-07-12'
-                    group by o_orderkey, n_nationkey, o_orderdate
+                    and o_orderkey > 425000
+                    group by o_orderkey, n_nationkey
                     order by o_orderkey, n_nationkey"""
             runTest.run_query(bc, spark, query, queryId, queryType, worder,
                               '', acceptable_difference,
