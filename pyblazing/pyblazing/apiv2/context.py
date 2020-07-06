@@ -2155,14 +2155,17 @@ class BlazingContext(object):
                     config_options[option]
                 ).encode()  # make sure all options are encoded strings
 
-        if self.dask_client is None or single_gpu:
-            query_tables, table_scans = cio.getTableScanInfoCaller(algebra, self.tables)
+        if self.dask_client is None or single_gpu == True :
+            table_names, table_scans = cio.getTableScanInfoCaller(algebra)
         else:
             worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
             connection = self.dask_client.submit(
-                cio.getTableScanInfoCaller, algebra, self.tables, workers=[worker]
-            )
-            query_tables, table_scans = connection.result()
+                cio.getTableScanInfoCaller,
+                algebra,
+                workers=[worker])
+            table_names, table_scans = connection.result()
+        
+        query_tables = [self.tables[table_name] for table_name in table_names]
 
         # this was for ARROW tables which are currently deprecated
         # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(
