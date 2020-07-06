@@ -271,3 +271,4 @@ fi
 
 logger "You can run docker exec on the containers, if not needed then just kill them!"
 docker ps -a
+
