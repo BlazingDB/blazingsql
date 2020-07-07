@@ -183,10 +183,9 @@ cdef class PyBlazingCache:
         cdef string c_key
         for key in metadata.keys():
           if key != "worker_ids":
-            print(key)
             c_key = key.encode()
             metadata_map[c_key] = metadata[key].encode()
-            print("set " + key + " = " + metadata[key])
+
         c_metadata.set_values(metadata_map)
         cdef vector[string] column_names
         for column_name in cudf_data:
@@ -207,7 +206,6 @@ cdef class PyBlazingCache:
     def add_to_cache(self,cudf_data):
         cdef vector[string] column_names
         for column_name in cudf_data:
-            print(column_name)
             column_names.push_back(str.encode(column_name))
 
         cdef vector[column_view] column_views

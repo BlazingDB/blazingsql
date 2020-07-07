@@ -12,25 +12,19 @@ serde = ("dask", "cuda", "pickle", "error")
 
 
 async def route_message(msg):
-    print("routing message!")
+
     worker = get_worker()
-    print("got worker and add to specific=" + msg.metadata["add_to_specific_cache"])
     if msg.metadata["add_to_specific_cache"] == "true":
-        print("about to get cache " + msg.metadata["query_id"])
-        print(worker.query_graphs)
-        print(msg.metadata["query_id"])
         graph = worker.query_graphs[int(msg.metadata["query_id"])]
-        print("got graph")
-        print(msg.metadata)
+        #print(msg.metadata)
+        print("Cacheid = " + msg.metadata["cache_id"])
         cache = graph.get_kernel_output_cache(
             int(msg.metadata["kernel_id"]),
             cache_id=msg.metadata["cache_id"]
         )
-        print(cache)
+
         print(msg.data)
-        print("got cache in route")
         cache.add_to_cache(msg.data)
-        print("added to cache in route")
     else:
         print("going into alt")
         cache = worker.input_cache
@@ -38,8 +32,6 @@ async def route_message(msg):
             import cudf
             msg.data = cudf.DataFrame()
         cache.add_to_cache_with_meta(msg.data, msg.metadata)
-    print("finished ro9a24736c82d1682763e24d0803caf1534f40104dute")
-
     print("done routing message")
 
 
@@ -64,6 +56,7 @@ def run_polling_thread():  # doctest: +SKIP
         print(df)
         asyncio.get_event_loop().run_until_complete(UCX.get().send(BlazingMessage(metadata, df)))
         asyncio.get_event_loop().run_until_complete(asyncio.sleep(0))
+
 
 
 CTRL_STOP = "stopit"
@@ -98,6 +91,7 @@ def listen(callback=route_message, client=None):
     client = client if client is not None else default_client()
     worker_id_maps = client.run(UCX.start_listener_on_worker, callback, wait=True)
     client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
+    client.run(UCX.init_handlers,wait=True)
     return worker_id_maps
 
 
@@ -139,6 +133,14 @@ class UCX:
     async def start_listener_on_worker(callback):
         UCX.get().callback = callback
         return await UCX.get().start_listener()
+
+    @staticmethod
+    async def init_handlers():
+        addresses = get_worker().ucx_addresses
+        eps = []
+        for address in addresses:
+            ep = await UCX.get().get_endpoint(address)
+            print(ep)
 
     @staticmethod
     def get_ucp_worker():
