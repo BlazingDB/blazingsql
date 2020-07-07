@@ -558,6 +558,12 @@ public:
 				auto batch_view = batch->view();
 				std::vector<CudfTableView> partitioned;
 				if (batch->num_rows() > 0) {
+					// When is cross_join. `column_indices` is equal to 0, so we need all `batch` columns to apply cudf::hash_partition correctly
+					if (column_indices.size() == 0) {
+						column_indices.resize(batch->num_columns());
+						std::iota(std::begin(column_indices), std::end(column_indices), 0);
+					}
+
 					std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
 
 					assert(hased_data_offsets.begin() != hased_data_offsets.end());
