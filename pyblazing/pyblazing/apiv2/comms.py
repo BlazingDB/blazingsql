@@ -78,11 +78,16 @@ def set_id_mappings_on_worker(mapping):
     get_worker().ucx_addresses = mapping
 
 
+async def init_endpoints():
+    for addr in get_worker().ucx_addresses.values():
+        await UCX.get().get_endpoint(addr)
+
 async def listen_async(callback=route_message, client=None):
     print("Invoked async listener")
     client = client if client is not None else default_client()
     worker_id_maps = await client.run(UCX.start_listener_on_worker, callback, wait=True)
     await client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
+    
     return worker_id_maps
 
 
@@ -118,6 +123,8 @@ class UCX:
         self.callback = None
         self._endpoints = {}
         self._listener = None
+        self.received = 0
+        self.sent = 0
 
         assert UCX.__instance is None
 
@@ -129,6 +136,7 @@ class UCX:
             UCX()
         return UCX.__instance
 
+
     @staticmethod
     async def start_listener_on_worker(callback):
         UCX.get().callback = callback
@@ -137,8 +145,9 @@ class UCX:
     @staticmethod
     async def init_handlers():
         addresses = get_worker().ucx_addresses
+        print("addresses: "+ str(addresses))
         eps = []
-        for address in addresses:
+        for address in addresses.values():
             ep = await UCX.get().get_endpoint(address)
             print(ep)
 
@@ -156,10 +165,17 @@ class UCX:
                 msg = await comm.read()
                 print("got msg: " + str(msg))
                 if msg == CTRL_STOP:
+                    print("SHOULD STOP SET!")
                     should_stop = True
                 else:
                     msg = BlazingMessage(**{k: v.deserialize()
                                             for k, v in msg.items()})
+                    self.received += 1
+                    print("%d messages received on %s" % (self.received, get_worker().address))
+                    if "message_id" in msg.metadata:
+                        print("Finished receiving message id: "+ str(msg.metadata["message_id"]))
+                    else:
+                        print("No message_id")
                     print("Invoking callback")
                     await self.callback(msg)
                     print("Done invoting callback")
@@ -183,6 +199,7 @@ class UCX:
     async def _create_endpoint(self, addr):
         ep = await UCXConnector().connect(addr)
         self._endpoints[addr] = ep
+        print("Created endpoint: " + str(ep))
         return ep
 
     async def get_endpoint(self, addr):
@@ -199,18 +216,23 @@ class UCX:
         field of metadata
         """
         print("calling send")
+
+        local_dask_addr = get_worker().ucx_addresses[get_worker().address]
         for dask_addr in blazing_msg.metadata["worker_ids"]:
             # Map Dask address to internal ucx endpoint address
             addr = get_worker().ucx_addresses[dask_addr]
-            print("dask_addr=%s mapped to %s" %(dask_addr, addr))
+            print("dask_addr=%s mapped to blazing_ucx_addr=%s" %(dask_addr, addr))
+
+            print("local_worker=%s, remote_worker=%s" % (local_dask_addr, addr))
             ep = await self.get_endpoint(addr)
-            print(ep)
 
             to_ser = {"metadata": to_serialize(blazing_msg.metadata)}
             print(str(blazing_msg.data.shape))
             if blazing_msg.data is not None:
                 to_ser["data"] = to_serialize(blazing_msg.data)
             await ep.write(msg=to_ser, serializers=serde)
+            self.sent += 1
+            print("%d messages sent on %s" % (self.sent, get_worker().address))
             print("seems like it wrote")
 
     def abort_endpoints(self):
@@ -233,5 +255,7 @@ class UCX:
             self._listener.stop()
 
     def __del__(self):
+        print("Cleaning up")
         self.abort_endpoints()
         self.stop_listener()
+
