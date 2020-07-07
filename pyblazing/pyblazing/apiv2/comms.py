@@ -79,7 +79,7 @@ def set_id_mappings_on_worker(mapping):
 
 
 async def init_endpoints():
-    for addr in get_worker().ucx_addresses.keys():
+    for addr in get_worker().ucx_addresses.values():
         await UCX.get().get_endpoint(addr)
 
 async def listen_async(callback=route_message, client=None):
@@ -134,6 +134,7 @@ class UCX:
             UCX()
         return UCX.__instance
 
+
     @staticmethod
     async def start_listener_on_worker(callback):
         UCX.get().callback = callback
@@ -162,10 +163,16 @@ class UCX:
                 msg = await comm.read()
                 print("got msg: " + str(msg))
                 if msg == CTRL_STOP:
+                    print("SHOULD STOP SET!")
                     should_stop = True
                 else:
                     msg = BlazingMessage(**{k: v.deserialize()
                                             for k, v in msg.items()})
+
+                    if "message_id" in msg.metadata:
+                        print("Finished receiving message id: "+ str(msg.metadata["message_id"]))
+                    else:
+                        print("No message_id")
                     print("Invoking callback")
                     await self.callback(msg)
                     print("Done invoting callback")
@@ -189,6 +196,7 @@ class UCX:
     async def _create_endpoint(self, addr):
         ep = await UCXConnector().connect(addr)
         self._endpoints[addr] = ep
+        print("Created endpoint: " + str(ep))
         return ep
 
     async def get_endpoint(self, addr):
@@ -205,12 +213,15 @@ class UCX:
         field of metadata
         """
         print("calling send")
+
+        local_dask_addr = get_worker().ucx_addresses[get_worker().address]
         for dask_addr in blazing_msg.metadata["worker_ids"]:
             # Map Dask address to internal ucx endpoint address
             addr = get_worker().ucx_addresses[dask_addr]
             print("dask_addr=%s mapped to blazing_ucx_addr=%s" %(dask_addr, addr))
+
+            print("local_worker=%s, remote_worker=%s" % (local_dask_addr, addr))
             ep = await self.get_endpoint(addr)
-            print(ep)
 
             to_ser = {"metadata": to_serialize(blazing_msg.metadata)}
             print(str(blazing_msg.data.shape))
@@ -239,5 +250,7 @@ class UCX:
             self._listener.stop()
 
     def __del__(self):
+        print("Cleaning up")
         self.abort_endpoints()
         self.stop_listener()
+
