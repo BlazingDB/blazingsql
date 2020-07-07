@@ -27,6 +27,7 @@ const std::string INNER_JOIN = "inner";
 const std::string LEFT_JOIN = "left";
 const std::string RIGHT_JOIN = "right";
 const std::string OUTER_JOIN = "full";
+const std::string CROSS_JOIN = "cross";
 
 struct TableSchema {
 	std::vector<cudf::data_type> column_types;
@@ -228,14 +229,12 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> join_set(
 		const ral::frame::BlazingTableView & table_left,
-		const ral::frame::BlazingTableView & table_right,
-		std::string condition = "")
+		const ral::frame::BlazingTableView & table_right)
 	{
 		std::unique_ptr<CudfTable> result_table;
 		std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 
-		// cross join  (condition=[true])
-		if (condition == "true") {
+		if (this->join_type == CROSS_JOIN) {
 			//Removing nulls on key columns before joining
 			std::unique_ptr<CudfTable> table_left_dropna;
 			std::unique_ptr<CudfTable> table_right_dropna;
@@ -312,8 +311,14 @@ public:
 		std::string new_join_statement, filter_statement;
 		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
 		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
+
+		// Getting the condition and type of join
 		std::string condition = get_named_expression(new_join_statement, "condition");
 		this->join_type = get_named_expression(new_join_statement, "joinType");
+
+		if (condition == "true" && this->join_type == INNER_JOIN) {
+			this->join_type = CROSS_JOIN;
+		}
 
 		std::unique_ptr<ral::frame::BlazingTable> left_batch = nullptr;
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = nullptr;
@@ -414,7 +419,7 @@ public:
 					auto log_input_num_rows = left_batch->num_rows() + right_batch->num_rows();
 					auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
 
-					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView(), condition);
+					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
 
 					auto log_output_num_rows = joined->num_rows();
 					auto log_output_num_bytes = joined->sizeInBytes();
