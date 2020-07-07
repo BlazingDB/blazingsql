@@ -123,6 +123,8 @@ class UCX:
         self.callback = None
         self._endpoints = {}
         self._listener = None
+        self.received = 0
+        self.sent = 0
 
         assert UCX.__instance is None
 
@@ -168,7 +170,8 @@ class UCX:
                 else:
                     msg = BlazingMessage(**{k: v.deserialize()
                                             for k, v in msg.items()})
-
+                    self.received += 1
+                    print("%d messages received on %s" % (self.received, get_worker().address))
                     if "message_id" in msg.metadata:
                         print("Finished receiving message id: "+ str(msg.metadata["message_id"]))
                     else:
@@ -228,6 +231,8 @@ class UCX:
             if blazing_msg.data is not None:
                 to_ser["data"] = to_serialize(blazing_msg.data)
             await ep.write(msg=to_ser, serializers=serde)
+            self.sent += 1
+            print("%d messages sent on %s" % (self.sent, get_worker().address))
             print("seems like it wrote")
 
     def abort_endpoints(self):
