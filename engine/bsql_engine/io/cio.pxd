@@ -161,7 +161,7 @@ cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" names
             pair[unique_ptr[BlazingTable], MetadataDictionary ] decacheWithMetaData()
         cdef cppclass CacheMachine:
             void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id, bool always_add )
-            void addToCache(unique_ptr[BlazingTable] table, const string & message_id , bool always_add)
+            void addToCache(unique_ptr[BlazingTable] table, const string & message_id , bool always_add) nogil except+
             unique_ptr[CacheData] pullCacheData() nogil
             unique_ptr[CacheData] pullCacheData(string message_id) nogil
             bool has_next_now()

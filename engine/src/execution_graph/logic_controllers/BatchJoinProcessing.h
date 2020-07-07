@@ -543,6 +543,7 @@ public:
 
 						// TODO: create message id and send to add add_to_output_cache
 						output->addToCache(std::move(partition_table_clone));
+						std::cout<<"added to self node "<<cache_id<<std::endl;
 						node_count[self_node.id()]++;
 					} else {
 						partitions_to_send.emplace_back(
@@ -569,6 +570,7 @@ public:
 
 					node_count[dest_node.id()]++;
 					graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",true);
+					std::cout<<"added to output node "<<cache_id<<std::endl;
 				}
 
 				if (sequence.wait_for_next()){
@@ -829,7 +831,18 @@ public:
 		// 	}
 		// });
 
+std::cout<<"waiting left dist!"<<std::endl;
+		distribute_left_thread.join();
+		std::cout<<"distributed all left!"<<std::endl;
+		int total_count_left = node_count_left[self_node.id()];
+		for (auto message : messages_to_wait_for_left){
+				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
+				total_count_left += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
+		}
+		std::cout<<"Waiting for left"<<total_count_left<<" parts"<<std::endl;
+		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
 
+		std::cout<<"got all left"<<std::endl;
 
 		// clone context, increment step counter to make it so that the next partition_table will have different message id
 		auto cloned_context = context->clone();
@@ -837,7 +850,7 @@ public:
 
 		std::map<std::string, int> node_count_right;
 		std::vector<std::string> messages_to_wait_for_right;
-		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, std::to_string(this->get_id()), cloned_context.get(),
+		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, std::to_string(this->get_id()), this->context.get(),
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), this->normalize_right, this->join_column_common_types,
 			this->output_.get_cache("output_b").get(),
 			this->query_graph->get_output_cache(),
@@ -856,18 +869,7 @@ public:
 		// 		this->add_to_output_cache(std::move(host_table), "output_b");
 		// 	}
 		// });
-		std::cout<<"waiting left dist!"<<std::endl;
-		distribute_left_thread.join();
-		std::cout<<"distributed all left!"<<std::endl;
-		int total_count_left = node_count_left[self_node.id()];
-		for (auto message : messages_to_wait_for_left){
-				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
-				total_count_left += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
-		}
-		std::cout<<"Waiting for "<<total_count_left<<" parts"<<std::endl;
-		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
-
-		std::cout<<"got all left"<<std::endl;
+		
 		distribute_right_thread.join();
 
 		int total_count_right = node_count_right[self_node.id()];

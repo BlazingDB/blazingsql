@@ -20,9 +20,9 @@ async def route_message(msg):
         print("Cacheid = " + msg.metadata["cache_id"])
         cache = graph.get_kernel_output_cache(
             int(msg.metadata["kernel_id"]),
-            cache_id=msg.metadata["cache_id"]
+            msg.metadata["cache_id"]
         )
-
+        print("this is the route ")
         print(msg.data)
         cache.add_to_cache(msg.data)
     else:

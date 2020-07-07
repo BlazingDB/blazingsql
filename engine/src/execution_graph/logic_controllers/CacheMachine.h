@@ -263,10 +263,14 @@ public:
 	void put(message_ptr item) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		putWaitingQueue(std::move(item));
+		processed++;
 		lock.unlock();
 		condition_variable_.notify_all();
+		
 	}
-
+	int processed_parts(){
+		return processed;
+	}
 	void finish() {
 		std::unique_lock<std::mutex> lock(mutex_);
 		this->finished = true;
@@ -283,8 +287,8 @@ public:
 
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
-			std::cout<<"message queue size is "<<this->message_queue_.size()<<std::endl;
-			return count == this->message_queue_.size();
+			std::cout<<"message queue size is "<<this->processed<<std::endl;
+			return count == this->processed;
 		});
 
 
@@ -419,6 +423,7 @@ private:
 	std::deque<message_ptr> message_queue_;
 	std::atomic<bool> finished;
 	std::condition_variable condition_variable_;
+	int processed = 0;
 };
 
 

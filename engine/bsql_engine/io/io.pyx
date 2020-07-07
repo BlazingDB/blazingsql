@@ -215,7 +215,8 @@ cdef class PyBlazingCache:
         cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
         deref(blazing_table).ensureOwnership()
         cdef string message_id
-        deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id,1)
+        with nogil:
+            deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id,1)
 
     def pull_from_cache(self):
         cdef unique_ptr[CacheData] cache_data_generic
@@ -387,7 +388,7 @@ cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, 
 cdef class PyBlazingGraph:
     cdef shared_ptr[cio.graph] ptr
 
-    def get_kernel_output_cache(self,kernel_id, cache_id = ""):
+    def get_kernel_output_cache(self,kernel_id, cache_id):
         print("about to make cache")
         cache = PyBlazingCache()
         print("made new cache")
