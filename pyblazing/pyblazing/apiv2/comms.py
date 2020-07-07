@@ -78,11 +78,16 @@ def set_id_mappings_on_worker(mapping):
     get_worker().ucx_addresses = mapping
 
 
+async def init_endpoints():
+    for addr in get_worker().ucx_addresses.keys():
+        await UCX.get().get_endpoint(addr)
+
 async def listen_async(callback=route_message, client=None):
     print("Invoked async listener")
     client = client if client is not None else default_client()
     worker_id_maps = await client.run(UCX.start_listener_on_worker, callback, wait=True)
     await client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
+    
     return worker_id_maps
 
 
@@ -137,8 +142,9 @@ class UCX:
     @staticmethod
     async def init_handlers():
         addresses = get_worker().ucx_addresses
+        print("addresses: "+ str(addresses))
         eps = []
-        for address in addresses:
+        for address in addresses.values():
             ep = await UCX.get().get_endpoint(address)
             print(ep)
 
@@ -202,7 +208,7 @@ class UCX:
         for dask_addr in blazing_msg.metadata["worker_ids"]:
             # Map Dask address to internal ucx endpoint address
             addr = get_worker().ucx_addresses[dask_addr]
-            print("dask_addr=%s mapped to %s" %(dask_addr, addr))
+            print("dask_addr=%s mapped to blazing_ucx_addr=%s" %(dask_addr, addr))
             ep = await self.get_endpoint(addr)
             print(ep)
 
