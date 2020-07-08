@@ -11,6 +11,7 @@
 - #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
 - #802 Support for timestampadd and constant expressions evaluation by Calcite
 - #849 Added check for CUDF_HOME to allow build to use an existing prebuilt cudf source tree
+- #866 Added nogil statements for pure C functions in Cython
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -29,7 +30,7 @@
 - #839 Fixes literal cast
 - #838 Fixed issue with start and length of substring being different types
 - #823 Fixed issue on logical plans when there is an EXISTS clause
-- #845 Fixed issue with casting string to string 
+- #845 Fixed issue with casting string to string
 - #850 Fixed issue with getTableScanInfoCaller
 - #851 Fix row_groups issue in ParquetParser.cpp
 - #847 Fixed issue with some constant expressions not evaluated by calcite
