@@ -3,11 +3,12 @@ from DataBase import createSchema as cs
 from Configuration import Settings as Settings
 from Runner import runTest
 from Utils import Execution
-from blazingsql import BlazingContext
-from Utils import gpuMemory, test_name, skip_test, init_context
-from pynvml import *
+from Utils import gpuMemory, skip_test, init_context
+from pynvml import nvmlInit
 from blazingsql import DataType
 from Configuration import ExecutionMode
+from pyspark.sql import SparkSession
+
 
 def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
@@ -22,7 +23,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
         #Create Tables ------------------------------------------------------------------------------------------------------------
         for fileSchemaType in data_types:
-            if skip_test(dask_client, nRals, fileSchemaType, queryType): continue
+            if skip_test(dask_client, nRals, fileSchemaType, queryType):
+                continue
             cs.create_tables(bc, dir_data_file, fileSchemaType, tables=tables)
 
             #Run Query -----------------------------------------------------------------------------
@@ -213,7 +215,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     revenue desc
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(bc, spark, query, queryId, queryType, worder,
+                                  '', acceptable_difference, use_percentage,
+                                  fileSchemaType)
             else:
                 runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
@@ -330,7 +334,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     o_year
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(bc, spark, query, queryId, queryType, worder,
+                                  '', acceptable_difference, use_percentage,
+                                  fileSchemaType)
             else:
                 runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
@@ -417,7 +423,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 limit 20
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(bc, spark, query, queryId, queryType, worder,
+                                  '', acceptable_difference, use_percentage,
+                                  fileSchemaType)
             else:
                 runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
@@ -552,7 +560,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     and l.l_shipdate < date '1995-09-01' + interval '1' month
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(bc, spark, query, queryId, queryType,
+                                  worder, '', acceptable_difference,
+                                  use_percentage, fileSchemaType)
             else:
                 runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
@@ -708,7 +718,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 limit 100
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(bc, spark, query, queryId, queryType, worder,
+                                  '', acceptable_difference, use_percentage,
+                                  fileSchemaType)
             else:
                 runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
@@ -910,23 +922,29 @@ if __name__ == '__main__':
 
     nvmlInit()
 
-    drill = "drill" #None
+    drill = "drill"  # None
     spark = "spark"
 
     compareResults = True
     if 'compare_results' in Settings.data['RunSettings']:
         compareResults = Settings.data['RunSettings']['compare_results']
 
-    if (Settings.execution_mode == ExecutionMode.FULL and compareResults == "true") or Settings.execution_mode == ExecutionMode.GENERATOR:
-        # Create Table Drill ------------------------------------------------------------------------------------------------------
+    if ((Settings.execution_mode == ExecutionMode.FULL and
+         compareResults == "true") or
+            Settings.execution_mode == ExecutionMode.GENERATOR):
+        # Create Table Drill -----------------------------------------
         print("starting drill")
-        from pydrill.client import PyDrill
-        drill = PyDrill(host = 'localhost', port = 8047)
-        cs.init_drill_schema(drill, Settings.data['TestSettings']['dataDirectory'])
 
-        # Create Table Spark ------------------------------------------------------------------------------------------------------
+        drill = PyDrill(host='localhost', port=8047)
+        cs.init_drill_schema(drill,
+                             Settings.data['TestSettings']['dataDirectory'])
+
+        # Create Table Spark -------------------------------------------------
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
-        cs.init_spark_schema(spark, Settings.data['TestSettings']['dataDirectory'])
+        cs.init_spark_schema(spark,
+                             Settings.data['TestSettings']['dataDirectory'])
+
+    # Create Context For BlazingSQL
 
     #Create Context For BlazingSQL
 
