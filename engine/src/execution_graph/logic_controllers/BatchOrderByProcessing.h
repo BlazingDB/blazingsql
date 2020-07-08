@@ -146,7 +146,7 @@ public:
 
 
 						ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
-						output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheDataMetaData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)));
+						output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheDataMetaData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)),"",true);
 					}
 				}
 				this->add_to_output_cache(std::move(partitionPlan), "output_b");
@@ -167,7 +167,7 @@ public:
 				metadata.add_value(ral::cache::MESSAGE_ID, message_id);
 
 				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
-				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)));
+				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)),"",true);
 
 				context->incrementQuerySubstep();
 
