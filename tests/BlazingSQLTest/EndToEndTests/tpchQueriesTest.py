@@ -14,29 +14,45 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
-    queryType = 'TPCH Queries'
+    queryType = "TPCH Queries"
 
     def executionTest(queryType):
 
-        tables = ["nation", "region", "customer", "lineitem", "orders", "supplier", "part", "partsupp"]
-        data_types =  [DataType.DASK_CUDF, DataType.CUDF, DataType.CSV, DataType.ORC, DataType.PARQUET]# TODO json
+        tables = [
+            "nation",
+            "region",
+            "customer",
+            "lineitem",
+            "orders",
+            "supplier",
+            "part",
+            "partsupp",
+        ]
+        data_types = [
+            DataType.DASK_CUDF,
+            DataType.CUDF,
+            DataType.CSV,
+            DataType.ORC,
+            DataType.PARQUET,
+        ]  # TODO json
 
-        #Create Tables ------------------------------------------------------------------------------------------------------------
+        # Create Tables ------------------------------------------------------
         for fileSchemaType in data_types:
             if skip_test(dask_client, nRals, fileSchemaType, queryType):
                 continue
             cs.create_tables(bc, dir_data_file, fileSchemaType, tables=tables)
 
-            #Run Query -----------------------------------------------------------------------------
-            worder = 1 #Parameter to indicate if its necessary to order the resulsets before compare them
+            # Run Query ------------------------------------------------------
+            worder = 1  # Parameter to indicate if its necessary to order
+            # the resulsets before compare them
             use_percentage = False
             acceptable_difference = 0.001
 
-            print('==============================')
+            print("==============================")
             print(queryType)
-            print('==============================')
+            print("==============================")
 
-            queryId = 'TEST_01'
+            queryId = "TEST_01"
 
             query = """
                 select
@@ -45,7 +61,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     sum(l_quantity) as sum_qty,
                     sum(l_extendedprice) as sum_base_price,
                     sum(l_extendedprice*(1-l_discount)) as sum_disc_price,
-                    sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge,
+                    sum(l_extendedprice*(1-l_discount)*(1+l_tax))
+                        as sum_charge,
                     avg(l_quantity) as avg_qty,
                     avg(l_extendedprice) as avg_price,
                     avg(l_discount) as avg_disc,
@@ -61,10 +78,20 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     l_returnflag,
                     l_linestatus
             """
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-
-            queryId = 'TEST_02'
+            queryId = "TEST_02"
 
             # Edited:
             # - implicit joins generated some condition=[true] on Blazingsql
@@ -95,9 +122,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                             min(psq.ps_supplycost)
                         from
                             partsupp as psq
-                            inner join supplier sq on sq.s_suppkey = psq.ps_suppkey
-                            inner join nation as nq on sq.s_nationkey = nq.n_nationkey
-                            inner join region as rq on nq.n_regionkey = rq.r_regionkey
+                            inner join supplier sq on
+                                sq.s_suppkey = psq.ps_suppkey
+                            inner join nation as nq on
+                                sq.s_nationkey = nq.n_nationkey
+                            inner join region as rq on
+                                nq.n_regionkey = rq.r_regionkey
                         where
                             p.p_partkey = psq.ps_partkey
                             and rq.r_name = 'EUROPE'
@@ -109,13 +139,24 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     p.p_partkey
                 limit 100
             """
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-
-            queryId = 'TEST_03'
+            queryId = "TEST_03"
 
             # Edited:
-            # - implicit joins without table aliases causes parsing errors on Drill
+            # - implicit joins without table aliases causes
+            #   parsing errors on Drill
             # - added table aliases to avoid ambiguity on Drill
             # - There is an issue with validation on gpuci
 
@@ -145,17 +186,39 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 limit 10
             """
             # if fileSchemaType == DataType.ORC:
-            #    runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            #     runTest.run_query(
+            #         bc,
+            #         spark,
+            #         query,
+            #         queryId,
+            #         queryType,
+            #         worder,
+            #         "",
+            #         acceptable_difference,
+            #         use_percentage,
+            #         fileSchemaType,
+            #     )
             # else:
-            #    runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            #     runTest.run_query(
+            #         bc,
+            #         drill,
+            #         query,
+            #         queryId,
+            #         queryType,
+            #         worder,
+            #         "",
+            #         acceptable_difference,
+            #         use_percentage,
+            #         fileSchemaType,
+            #     )
 
-
-            queryId = 'TEST_04'
+            queryId = "TEST_04"
 
             # WARNING:
             # - Fails with Drill, passes only with ORC files on PySpark
             # - Passes with BigQuery
-            # - Blazingsql is returning different results for parquet, psv, and gdf
+            # - Blazingsql is returning different results
+            #   for parquet, psv, and gdf
 
             query = """
                 select
@@ -180,13 +243,24 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 order by
                     o_orderpriority
             """
-            # runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
+            queryId = "TEST_05"
 
-            queryId = 'TEST_05'
-            
             # Edited:
-            # - implicit joins without table aliases causes parsing errors on Drill
+            # - implicit joins without table aliases causes
+            #   parsing errors on Drill
 
             query = """
                 select
@@ -215,19 +289,39 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     revenue desc
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder,
-                                  '', acceptable_difference, use_percentage,
-                                  fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
             else:
-                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
-
-            queryId = 'TEST_06'
+            queryId = "TEST_06"
 
             # Edited:
             # - Even that there is a difference with evaluations on Calcite,
             # the query passes on PySpark and BigQuery but fails on Drill
-            # >=($6, -(0.06:DECIMAL(3, 2), 0.01:DECIMAL(3, 2))), <=($6, +(0.06:DECIMAL(3, 2), 0.01:DECIMAL(3, 2))) became
+            # >=($6, -(0.06:DECIMAL(3, 2), 0.01:DECIMAL(3, 2))),
+            #   <=($6, +(0.06:DECIMAL(3, 2), 0.01:DECIMAL(3, 2))) became
             # >=($2, 0.05:DECIMAL(4, 2)), <=($2, 0.07:DECIMAL(4, 2))
 
             query = """
@@ -241,13 +335,24 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     and l_discount between 0.06 - 0.01 and 0.06 + 0.01
                     and l_quantity < 24
             """
-            runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-
-            queryId = 'TEST_07'
+            queryId = "TEST_07"
 
             # Edited:
-            # - implicit joins without table aliases causes parsing errors on Drill
+            # - implicit joins without table aliases causes
+            #   parsing errors on Drill
 
             query = """
                 select
@@ -277,7 +382,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                             (n1.n_name = 'FRANCE' and n2.n_name = 'GERMANY')
                             or (n1.n_name = 'GERMANY' and n2.n_name = 'FRANCE')
                         )
-                        and l.l_shipdate between date '1995-01-01' and date '1996-12-31'
+                        and l.l_shipdate between date '1995-01-01' and
+                                                 date '1996-12-31'
                     ) as shipping
                 group by
                     supp_nation,
@@ -289,16 +395,38 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     l_year
             """
             if fileSchemaType == DataType.ORC:
-               runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
             else:
-               runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
-
-            queryId = 'TEST_08'
+            queryId = "TEST_08"
 
             # Edited:
             # - implicit joins generated some condition=[true] on Blazingsql
-            # - 'nation' colum name was renamed to nationl because it produces a parse error on Drill
+            # - 'nation' colum name was renamed to nationl because it produces
+            #   a parse error on Drill
             # - added table aliases to avoid ambiguity on Drill
 
             query = """
@@ -320,12 +448,16 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         inner join supplier as s on s.s_suppkey = l.l_suppkey
                         inner join orders as o on o.o_orderkey = l.l_orderkey
                         inner join customer as c on c.c_custkey = o.o_custkey
-                        inner join nation as n1 on n1.n_nationkey = c.c_nationkey
-                        inner join nation as n2 on n2.n_nationkey = s.s_nationkey
-                        inner join region as r on r.r_regionkey = n1.n_regionkey
+                        inner join nation as n1 on
+                            n1.n_nationkey = c.c_nationkey
+                        inner join nation as n2 on
+                            n2.n_nationkey = s.s_nationkey
+                        inner join region as r on
+                            r.r_regionkey = n1.n_regionkey
                     where
                         r.r_name = 'AMERICA'
-                        and o.o_orderdate between date '1995-01-01' and date '1996-12-31'
+                        and o.o_orderdate between date '1995-01-01' and
+                                                  date '1996-12-31'
                         and p.p_type = 'ECONOMY ANODIZED STEEL'
                     ) as all_nations
                 group by
@@ -334,19 +466,40 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     o_year
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder,
-                                  '', acceptable_difference, use_percentage,
-                                  fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
             else:
-                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
-
-            queryId = 'TEST_09'
+            queryId = "TEST_09"
 
             # Edited:
             # - implicit joins generated some condition=[true] on Blazingsql
-            # - 'nation' colum name was renamed to nationl because it produces a parse error on Drill
-            # - implicit joins without table aliases causes parsing errors on Drill
+            # - 'nation' colum name was renamed to nationl because it
+            #   produces a parse error on Drill
+            # - implicit joins without table aliases causes parsing
+            #   errors on Drill
 
             query = """
                 select
@@ -357,14 +510,20 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     select
                         n.n_name as nationl,
                         extract(year from o.o_orderdate) as o_year,
-                        l.l_extendedprice * (1 - l.l_discount) - ps.ps_supplycost * l.l_quantity as amount
+                        l.l_extendedprice * (1 - l.l_discount) -
+                            ps.ps_supplycost * l.l_quantity as amount
                     from
                         lineitem as l
-                        inner join orders as o on o.o_orderkey = l.l_orderkey
-                        inner join partsupp as ps on ps.ps_suppkey = l.l_suppkey
-                        inner join part as p on p.p_partkey = l.l_partkey
-                        inner join supplier as s on s.s_suppkey = l.l_suppkey
-                        inner join nation as n on n.n_nationkey = s.s_nationkey
+                        inner join orders as o
+                            on o.o_orderkey = l.l_orderkey
+                        inner join partsupp as ps
+                            on ps.ps_suppkey = l.l_suppkey
+                        inner join part as p
+                            on p.p_partkey = l.l_partkey
+                        inner join supplier as s
+                            on s.s_suppkey = l.l_suppkey
+                        inner join nation as n
+                            on n.n_nationkey = s.s_nationkey
                     where
                         l.l_partkey = ps.ps_partkey
                         and p.p_name like '%green%'
@@ -377,16 +536,39 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     o_year desc
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
             else:
-                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
-
-            queryId = 'TEST_10'
+            queryId = "TEST_10"
 
             # Edited:
-            # - implicit joins without table aliases causes parsing errors on Drill
-            #   no needed to converting to explicit joins, added only table aliases
+            # - implicit joins without table aliases causes parsing
+            #   errors on Drill
+            # - no needed to converting to explicit joins, added
+            #   only table aliases
 
             query = """
                 select
@@ -423,19 +605,39 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 limit 20
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder,
-                                  '', acceptable_difference, use_percentage,
-                                  fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
             else:
-                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
-
-            queryId = 'TEST_11'
+            queryId = "TEST_11"
 
             # Edited:
-            # - 'value' colum name was renamed to valuep because it produces a parse error on Drill
+            # - 'value' colum name was renamed to valuep because it produces
+            #   a parse error on Drill
             # WARNING: Join condition is currently not supported
-        
+
             query = """
                 select
                     ps_partkey,
@@ -465,14 +667,26 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 order by
                     valuep desc
             """
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-
-            queryId = 'TEST_12'
+            queryId = "TEST_12"
 
             # Edited:
-            # - implicit joins without table aliases causes parsing errors on Drill
-            #   no needed to converting to explicit joins, added only table aliases
+            # - implicit joins without table aliases causes parsing
+            #   errors on Drill
+            # - no needed to converting to explicit joins, added
+            #   only table aliases
 
             query = """
                 select
@@ -498,19 +712,41 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     and l.l_commitdate < l.l_receiptdate
                     and l.l_shipdate < l.l_commitdate
                     and l.l_receiptdate >= date '1994-01-01'
-                    and l.l_receiptdate < date '1994-01-01' + interval '1' year
+                    and l.l_receiptdate < date '1994-01-01' +
+                                                interval '1' year
                 group by
                     l.l_shipmode
                 order by
                     l.l_shipmode
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
             else:
-                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
-
-            queryId = 'TEST_13'
+            queryId = "TEST_13"
 
             # Edited:
             # - added table aliases to avoid ambiguity on Drill
@@ -535,14 +771,26 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     custdist desc,
                     c_count desc
             """
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-
-            queryId = 'TEST_14'
+            queryId = "TEST_14"
 
             # Edited:
-            # - implicit joins without table aliases causes parsing errors on Drill
-            #   no needed to converting to explicit joins, added only table aliases 
+            # - implicit joins without table aliases causes parsing
+            #   errors on Drill
+            # - no needed to converting to explicit joins, added
+            #   only table aliases
 
             query = """
                 select
@@ -550,7 +798,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         when p.p_type like 'PROMO%'
                         then l.l_extendedprice*(1-l.l_discount)
                         else 0
-                    end) / sum(l.l_extendedprice * (1 - l.l_discount)) as promo_revenue
+                    end) / sum(l.l_extendedprice * (1 - l.l_discount))
+                            as promo_revenue
                 from
                     lineitem l,
                     part p
@@ -560,14 +809,33 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     and l.l_shipdate < date '1995-09-01' + interval '1' month
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType,
-                                  worder, '', acceptable_difference,
-                                  use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
             else:
-                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
-
-            queryId = 'TEST_15'
+            queryId = "TEST_15"
 
             # Edited:
             # - Replacing 'create view' by 'with' clause
@@ -606,10 +874,20 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 order by
                     s_suppkey
             """
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType, print_result=True)
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType
+            # )
 
-
-            queryId = 'TEST_16'
+            queryId = "TEST_16"
 
             # WARNING: Join condition=[true] is currently not supported
 
@@ -645,15 +923,28 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     p_type,
                     p_size
             """
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     '',
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType
+            # )
 
-
-            queryId = 'TEST_17'
+            queryId = "TEST_17"
 
             # Edited:
-            # - implicit joins without table aliases causes parsing errors on Drill
-            #   no needed to converting to explicit joins, added only table aliases
-            # - this query fails on Drill with all format files, but passes on PySpark
+            # - implicit joins without table aliases causes parsing
+            #   errors on Drill
+            # - no needed to converting to explicit joins, added
+            #   only table aliases
+            # - this query fails on Drill with all format files,
+            #   but passes on PySpark
 
             query = """
                 select
@@ -673,14 +964,26 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         where
                             l_partkey = p_partkey)
             """
-            runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-
-            queryId = 'TEST_18'
+            queryId = "TEST_18"
 
             # Edited:
-            # - implicit joins without table aliases causes parsing errors on Drill
-            #   no needed to converting to explicit joins, added only table aliases
+            # - implicit joins without table aliases causes parsing
+            #   errors on Drill
+            # - no needed to converting to explicit joins, added only
+            #   table aliases
 
             query = """
                 select
@@ -718,31 +1021,56 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 limit 100
             """
             if fileSchemaType == DataType.ORC:
-                runTest.run_query(bc, spark, query, queryId, queryType, worder,
-                                  '', acceptable_difference, use_percentage,
-                                  fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
             else:
-                runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
-
-            queryId = 'TEST_19'
+            queryId = "TEST_19"
 
             # Edited:
-            # - implicit joins on Blazingsql generates 'Join condition is currently not supported' with
-            #   LogicalJoin(condition=[OR(AND(=($10, $0), $11, $12, $2, $3, $13, $14, $4, $5), AND(=($10, $0), $15, $16, $6, $7, $13, $17, $4, $5), AND(=($10, $0), $18, $19, $8, $9, $13, $20, $4, $5))], joinType=[inner])
+            # - implicit joins on Blazingsql generates 'Join condition is
+            #   currently not supported' with
+            #   LogicalJoin(condition=[OR(
+            #       AND(=($10, $0), $11, $12, $2, $3, $13, $14, $4, $5),
+            #       AND(=($10, $0), $15, $16, $6, $7, $13, $17, $4, $5),
+            #       AND(=($10, $0), $18, $19, $8, $9, $13, $20, $4, $5))],
+            #       joinType=[inner])
             #   also parsing errors on Drill
             # - added table aliases to avoid ambiguity on Drill
-            
+
             query = """
                 select
                     sum(l.l_extendedprice * (1 - l.l_discount) ) as revenue
-                from 
+                from
                     lineitem l
                 inner join part p ON l.l_partkey = p.p_partkey
                 where
                     (
                         p.p_brand = 'Brand#12'
-                        and p.p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+                        and p.p_container in ('SM CASE', 'SM BOX',
+                                              'SM PACK', 'SM PKG')
                         and l.l_quantity >= 1 and l.l_quantity <= 1 + 10
                         and p.p_size between 1 and 5
                         and l.l_shipmode in ('AIR', 'AIR REG')
@@ -751,7 +1079,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     or
                     (
                         p.p_brand = 'Brand#23'
-                        and p.p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+                        and p.p_container in ('MED BAG', 'MED BOX',
+                                              'MED PKG', 'MED PACK')
                         and l.l_quantity >= 10 and l.l_quantity <= 10 + 10
                         and p.p_size between 1 and 10
                         and l.l_shipmode in ('AIR', 'AIR REG')
@@ -760,22 +1089,35 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     or
                     (
                         p.p_brand = 'Brand#34'
-                        and p.p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+                        and p.p_container in ('LG CASE', 'LG BOX',
+                                              'LG PACK', 'LG PKG')
                         and l.l_quantity >= 20 and l.l_quantity <= 20 + 10
                         and p.p_size between 1 and 15
                         and l.l_shipmode in ('AIR', 'AIR REG')
                         and l.l_shipinstruct = 'DELIVER IN PERSON'
                     )
             """
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-
-            queryId = 'TEST_20'
+            queryId = "TEST_20"
 
             # Edited:
-            # - implicit joins without table aliases causes parsing errors on Drill
-            #   no needed to converting to explicit joins, added only table aliases
-            # - this query fails on Drill with all format files, but passes on PySpark
+            # - implicit joins without table aliases causes parsing errors
+            #   on Drill no needed to converting to explicit joins, added
+            #   only table aliases
+            # - this query fails on Drill with all format files, but passes
+            #   on PySpark
 
             query = """
                 select
@@ -807,7 +1149,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                                 l_partkey = ps_partkey
                                 and l_suppkey = ps_suppkey
                                 and l_shipdate >= date '1994-01-01'
-                                and l_shipdate < date '1994-01-01' + interval '1' year
+                                and l_shipdate <
+                                    date '1994-01-01' + interval '1' year
                         )
                     )
                     and s.s_nationkey = n.n_nationkey
@@ -815,14 +1158,25 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 order by
                     s.s_name
             """
-            runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-
-            queryId = 'TEST_21'
+            queryId = "TEST_21"
 
             # Edited:
             # - implicit joins generated some condition=[true] on Blazingsql
-            # - by comparing with Pyspark there is no needed of adding more table aliases
+            # - by comparing with Pyspark there is no needed
+            #   of adding more table aliases
 
             query = """
                 select
@@ -863,10 +1217,20 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     s_name
                 limit 100
             """
-            runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
-
-            queryId = 'TEST_22'
+            queryId = "TEST_22"
 
             # WARNING: Join condition is currently not supported
 
@@ -908,7 +1272,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 order by
                     cntrycode
             """
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
     executionTest(queryType)
 
@@ -916,7 +1291,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     Execution.getArgs()
 
@@ -926,33 +1302,45 @@ if __name__ == '__main__':
     spark = "spark"
 
     compareResults = True
-    if 'compare_results' in Settings.data['RunSettings']:
-        compareResults = Settings.data['RunSettings']['compare_results']
+    if "compare_results" in Settings.data["RunSettings"]:
+        compareResults = Settings.data["RunSettings"]["compare_results"]
 
-    if ((Settings.execution_mode == ExecutionMode.FULL and
-         compareResults == "true") or
-            Settings.execution_mode == ExecutionMode.GENERATOR):
+    if (
+        Settings.execution_mode == ExecutionMode.FULL and
+            compareResults == "true"
+    ) or Settings.execution_mode == ExecutionMode.GENERATOR:
         # Create Table Drill -----------------------------------------
         print("starting drill")
 
-        drill = PyDrill(host='localhost', port=8047)
-        cs.init_drill_schema(drill,
-                             Settings.data['TestSettings']['dataDirectory'])
+        drill = PyDrill(host="localhost", port=8047)
+        cs.init_drill_schema(
+                            drill,
+                            Settings.data["TestSettings"]["dataDirectory"]
+        )
 
         # Create Table Spark -------------------------------------------------
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
-        cs.init_spark_schema(spark,
-                             Settings.data['TestSettings']['dataDirectory'])
+        cs.init_spark_schema(
+                            spark,
+                            Settings.data["TestSettings"]["dataDirectory"]
+        )
 
     # Create Context For BlazingSQL
 
-    #Create Context For BlazingSQL
+    # Create Context For BlazingSQL
 
     bc, dask_client = init_context()
 
-    nRals = Settings.data['RunSettings']['nRals']
+    nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill, spark, Settings.data['TestSettings']['dataDirectory'], bc, nRals)
+    main(
+        dask_client,
+        drill,
+        spark,
+        Settings.data["TestSettings"]["dataDirectory"],
+        bc,
+        nRals,
+    )
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()
