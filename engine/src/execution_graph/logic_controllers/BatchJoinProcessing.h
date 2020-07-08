@@ -238,18 +238,18 @@ public:
 			//Removing nulls on key columns before joining
 			std::unique_ptr<CudfTable> table_left_dropna;
 			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
-			if(has_nulls_left){
-				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
-			}
-			if(has_nulls_right){
-				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
-			}
-
+			// TODO: cordova Remove these lines
+			//bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
+			//bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
+			//if(has_nulls_left){
+			//	table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
+			//}
+			//if(has_nulls_right){
+			//	table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
+			//}
 			result_table = cudf::cross_join(
-				has_nulls_left ? table_left_dropna->view() : table_left.view(),
-				has_nulls_right ? table_right_dropna->view() : table_right.view());
+				table_left.view(),
+				table_right.view());
 		} else {
 			if(this->join_type == INNER_JOIN) {
 				//Removing nulls on key columns before joining
@@ -316,7 +316,7 @@ public:
 		std::string condition = get_named_expression(new_join_statement, "condition");
 		this->join_type = get_named_expression(new_join_statement, "joinType");
 
-		if (condition == "true" && this->join_type == INNER_JOIN) {
+		if (condition == "true") {
 			this->join_type = CROSS_JOIN;
 		}
 
