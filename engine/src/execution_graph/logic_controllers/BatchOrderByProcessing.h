@@ -350,7 +350,7 @@ public:
 						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "output_" + std::to_string(part_ids[i]) );
 
 						node_count[dest_node.id()]++;
-						output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)));
+						output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)),"",true);
 					}
 
 					for (auto i = 0; i < partitions.size(); i++) {
@@ -395,7 +395,7 @@ public:
 																				metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
 
 					this->query_graph->get_output_cache()->addCacheData(
-							std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)));
+							std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)),"",true);
 				}
 			}
 		});
@@ -407,7 +407,13 @@ public:
 			auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
 			total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
-		this->output_cache()->wait_for_count(total_count);
+
+		//for (auto i = 0; i < partitions.size(); i++) {
+		//		std::string cache_id = "output_" + std::to_string(part_ids[i]);
+		//		this->output_cache(cache_id)->wait_for_count(total_count);
+		//}
+
+
 
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
