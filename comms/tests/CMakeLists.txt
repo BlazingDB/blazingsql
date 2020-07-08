@@ -12,7 +12,7 @@ function(configure_test TEST_NAME Tests_SRCS)
     set(CUDF_TEST_INCLUDE "$ENV{CUDF_HOME}/cpp")
 
     find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-                HINTS "$ENV{CUDF_ROOT}/lib")
+                HINTS "$ENV{CUDF_ROOT}/lib" "$ENV{CUDF_ROOT}/tests")
 
     message(STATUS "CUDFTESTUTIL: CUDFTESTUTIL_LIBRARY set to ${CUDFTESTUTIL_LIBRARY}")
     message(STATUS "CUDFTESTUTIL: CUDF_TEST_INCLUDE set to ${CUDF_TEST_INCLUDE}")

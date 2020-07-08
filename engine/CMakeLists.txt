@@ -50,7 +50,7 @@ message(STATUS "CUDA_VERSION_MINOR: ${CUDA_VERSION_MINOR}")
 message(STATUS "CUDA_VERSION: ${CUDA_VERSION}")
 
 find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
+             HINTS "$ENV{CUDF_ROOT}/lib" "$ENV{CUDF_ROOT}/tests")
 
 # Always set this convenience variable
 set(CUDA_VERSION_STRING "${CUDA_VERSION}")
@@ -202,7 +202,7 @@ message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 set(CUDF_TEST_INCLUDE "$ENV{CUDF_HOME}/cpp")
 
 find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
+             HINTS "$ENV{CUDF_ROOT}/lib" "$ENV{CUDF_ROOT}/tests")
 
 message(STATUS "CUDFTESTUTIL: CUDFTESTUTIL_LIBRARY set to ${CUDFTESTUTIL_LIBRARY}")
 message(STATUS "CUDFTESTUTIL: CUDF_TEST_INCLUDE set to ${CUDF_TEST_INCLUDE}")
