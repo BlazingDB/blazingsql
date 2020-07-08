@@ -235,18 +235,6 @@ public:
 		std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 
 		if (this->join_type == CROSS_JOIN) {
-			//Removing nulls on key columns before joining
-			std::unique_ptr<CudfTable> table_left_dropna;
-			std::unique_ptr<CudfTable> table_right_dropna;
-			// TODO: cordova Remove these lines
-			//bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
-			//bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
-			//if(has_nulls_left){
-			//	table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
-			//}
-			//if(has_nulls_right){
-			//	table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
-			//}
 			result_table = cudf::cross_join(
 				table_left.view(),
 				table_right.view());
