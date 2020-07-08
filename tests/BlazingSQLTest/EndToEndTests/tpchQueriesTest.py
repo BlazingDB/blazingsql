@@ -13,9 +13,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
-    queryType = 'TPCH Queries' 
+    queryType = 'TPCH Queries'
 
-    def executionTest(queryType):   
+    def executionTest(queryType):
 
         tables = ["nation", "region", "customer", "lineitem", "orders", "supplier", "part", "partsupp"]
         data_types =  [DataType.DASK_CUDF, DataType.CUDF, DataType.CSV, DataType.ORC, DataType.PARQUET]# TODO json
@@ -150,8 +150,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = 'TEST_04'
 
             # WARNING:
-            # - Fail with Drill, passes only with ORC files on PySpark
+            # - Fails with Drill, passes only with ORC files on PySpark
             # - Passes with BigQuery
+            # - Blazingsql is returning different results for parquet, psv, and gdf
 
             query = """
                 select
@@ -559,6 +560,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             # Edited:
             # - Replacing 'create view' by 'with' clause
+            # - Pyspark doest not support this syntax as is
+            # WARNING: Drill presents undeterministic results
 
             query = """
                 with revenue (suplier_no, total_revenue) as (
@@ -592,7 +595,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 order by
                     s_suppkey
             """
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType, print_result=True)
+            # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType, print_result=True)
 
 
             queryId = 'TEST_16'
@@ -893,17 +896,17 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     cntrycode
             """
             # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
-          
+
     executionTest(queryType)
-    
+
     end_mem = gpuMemory.capture_gpu_memory_usage()
 
     gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
-    
+
 if __name__ == '__main__':
 
     Execution.getArgs()
-    
+
     nvmlInit()
 
     drill = "drill" #None
@@ -911,7 +914,7 @@ if __name__ == '__main__':
 
     compareResults = True
     if 'compare_results' in Settings.data['RunSettings']:
-        compareResults = Settings.data['RunSettings']['compare_results'] 
+        compareResults = Settings.data['RunSettings']['compare_results']
 
     if (Settings.execution_mode == ExecutionMode.FULL and compareResults == "true") or Settings.execution_mode == ExecutionMode.GENERATOR:
         # Create Table Drill ------------------------------------------------------------------------------------------------------
@@ -925,15 +928,13 @@ if __name__ == '__main__':
         cs.init_spark_schema(spark, Settings.data['TestSettings']['dataDirectory'])
 
     #Create Context For BlazingSQL
-    
+
     bc, dask_client = init_context()
 
     nRals = Settings.data['RunSettings']['nRals']
 
     main(dask_client, drill, spark, Settings.data['TestSettings']['dataDirectory'], bc, nRals)
-    
+
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()
         gpuMemory.print_log_gpu_memory()
-    
-    
