@@ -5,7 +5,7 @@ set(parse_csv-test_SRCS
 configure_test(parse_csv-test "${parse_csv-test_SRCS}")
 
 find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
+             HINTS "$ENV{CUDF_ROOT}/lib" "$ENV{CUDF_ROOT}/tests")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   
@@ -36,4 +36,3 @@ set(parse_gdf-test_SRCS
 )
 
 configure_test(parse_gdf-test "${parse_gdf-test_SRCS}")
-
