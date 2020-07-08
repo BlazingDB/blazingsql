@@ -1,0 +1,13 @@
+[flake8]
+exclude = __init__.py
+ignore =
+    # line break before binary operator
+    W503
+    # whitespace before :
+    E203
+    # import not used
+    F401
+    # too large
+    E501 
+    # E231 missing whitespace after ','
+    E231
