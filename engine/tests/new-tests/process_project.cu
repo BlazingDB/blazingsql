@@ -1,15 +1,16 @@
-#include "from_cudf/cpp_tests/utilities/base_fixture.hpp"
-#include "from_cudf/cpp_tests/utilities/column_utilities.hpp"
-#include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
-#include "from_cudf/cpp_tests/utilities/table_utilities.hpp"
-#include "from_cudf/cpp_tests/utilities/type_lists.hpp"
+#include "tests/utilities/base_fixture.hpp"
+#include "tests/utilities/column_utilities.hpp"
+#include "tests/utilities/column_wrapper.hpp"
+#include "tests/utilities/table_utilities.hpp"
+#include "tests/utilities/type_lists.hpp"
 
 #include "execution_graph/logic_controllers/LogicalProject.h"
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
+#include "tests/BlazingUnitTest.h"
 
 template <typename T>
-struct ProjectTestNumeric : public cudf::test::BaseFixture {};
+struct ProjectTestNumeric : public BlazingUnitTest {};
 
 TYPED_TEST_CASE(ProjectTestNumeric, cudf::test::NumericTypes);
 
@@ -192,7 +193,7 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types6)
     }
 }
 
-struct ProjectTestString : public cudf::test::BaseFixture {};
+struct ProjectTestString : public BlazingUnitTest {};
 
 TEST_F(ProjectTestString, test_string_like)
 {
@@ -339,7 +340,7 @@ TEST_F(ProjectTestString, test_string_nested_case)
 }
 
 template <typename T>
-struct ProjectRoundTest : public cudf::test::BaseFixture {};
+struct ProjectRoundTest : public BlazingUnitTest {};
 
 TYPED_TEST_CASE(ProjectRoundTest, cudf::test::FloatingPointTypes);
 

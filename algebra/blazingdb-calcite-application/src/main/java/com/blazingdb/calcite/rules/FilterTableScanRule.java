@@ -1,7 +1,7 @@
 /*
  * This file is a copy with some modifications of the FilterTableScanRule from
  * the Apache Calcite project. The original code can be found at:
- * https://github.com/apache/calcite/blob/branch-1.21/core/src/main/java/org/apache/calcite/rel/rules/FilterTableScanRule.java
+ * https://github.com/apache/calcite/blob/branch-1.23/core/src/main/java/org/apache/calcite/rel/rules/FilterTableScanRule.java
  * The changes are about passing the column aliases extracted from the Filter
  * to our customized BindableTableScan.
  */
@@ -118,5 +118,3 @@ public abstract class FilterTableScanRule extends RelOptRule {
 			BindableTableScan.create(scan.getCluster(), scan.getTable(), filters.build(), projects, aliases));
 	}
 }
-
-// End FilterTableScanRule.java

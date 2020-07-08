@@ -22,55 +22,46 @@ requirements:
     build:
         - gtest
         - gmock
-        - arrow-cpp=0.15.0
+        - google-cloud-cpp
         - cmake
-        - bsql-toolchain {{ minor_version }}.*
         - cppzmq
-        - cudatoolkit {{ cuda_version }}.*
-        - librmm {{ minor_version }}.*
-        - libnvstrings {{ minor_version }}.*
-        - libcudf {{ minor_version }}.*
-        - libhdfs3
         - python
         - pip
         - setuptools
         - cython >=0.29,<0.30
+        - openjdk >=8.0
+        - maven
+        - ninja
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
-        - openjdk=8.0
-        - maven
+        - cudatoolkit {{ cuda_version }}.*
     host:
         - gtest
+        - gmock
+        - google-cloud-cpp
         - cmake
-        - cudatoolkit {{ cuda_version }}.*
         - python
         - pip
         - setuptools
         - cython >=0.29,<0.30
+        - openjdk >=8.0
+        - maven
+        - ninja
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
-        - openjdk=8.0
-        - maven
+        - cudatoolkit {{ cuda_version }}.*
     run:
         - gtest
-        - arrow-cpp=0.15.0
-        - bsql-toolchain {{ minor_version }}.*
+        - google-cloud-cpp
         - cppzmq
-        - cudatoolkit {{ cuda_version }}.*
-        - librmm {{ minor_version }}.*
-        - libnvstrings {{ minor_version }}.*
-        - libcudf {{ minor_version }}.*
-        - libhdfs3
-        - python
-        - pip
-        - setuptools
-        - dask-cudf {{ minor_version }}.*
-        - dask-cuda {{ minor_version }}.*
-        - openjdk=8.0
+        - openjdk >=8.0
         - jpype1
         - netifaces
         - pyhive
-        - sasl=0.2.1
+        - thrift 0.13.0
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
+        - cudatoolkit {{ cuda_version }}.*
 
 test:
     commands:

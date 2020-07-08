@@ -5,18 +5,19 @@
 
 #include <cudf/cudf.h>
 #include <cudf/types.hpp>
-#include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <tests/utilities/base_fixture.hpp>
 #include <cudf/table/table_view.hpp>
-#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
+#include <tests/utilities/column_utilities.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
-#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
-#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-#include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
+#include <tests/utilities/type_lists.hpp>
+#include <tests/utilities/column_wrapper.hpp>
+#include <tests/utilities/table_utilities.hpp>
 #include <vector>
 #include <execution_graph/logic_controllers/LogicalFilter.h>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 #include <cudf/io/functions.hpp>
+#include "tests/BlazingUnitTest.h"
 
 
 using namespace ral::frame;
@@ -27,7 +28,7 @@ using Node = blazingdb::transport::Node;
 
 
 template <typename T>
-struct GDFTest : public cudf::test::BaseFixture {};
+struct GDFTest : public BlazingUnitTest {};
 
 // TYPED_TEST_CASE will run only a type: int16_t
 TYPED_TEST_CASE(GDFTest, cudf::test::NumericTypes);
@@ -57,7 +58,10 @@ TYPED_TEST(GDFTest, multipleColumns)
     ral::io::Schema schema(names, {} );
     
     Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""}; 
-    std::unique_ptr<BlazingTable> table_out = loader.load_data(&queryContext, {}, schema); 
+    auto handle = provider->get_next();
+    std::vector<cudf::size_type> row_group_ids;
+
+    std::unique_ptr<BlazingTable> table_out = loader.load_batch(&queryContext, {}, schema, handle, 0, row_group_ids);
 
     // Here we are creating the expected output (same as the begin)
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 3, 5, 8, 5, 6}, {1, 1, 1, 1, 1, 1, 1}};

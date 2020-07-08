@@ -1,10 +1,9 @@
 /*
  * This file is a copy with some modifications of the ProjectTableScanRule from
  * the Apache Calcite project. The original code can be found at:
- * https://github.com/apache/calcite/blob/branch-1.21/core/src/main/java/org/apache/calcite/rel/rules/ProjectTableScanRule.java
+ * https://github.com/apache/calcite/blob/branch-1.23/core/src/main/java/org/apache/calcite/rel/rules/ProjectTableScanRule.java
  * The changes are about passing the column aliases extracted from the Projection
- * to our customized BindableTableScan. Also, was adapted a fix for projections with evaluations from
- * https://github.com/apache/calcite/pull/1500
+ * to our customized BindableTableScan.
  */
 package com.blazingdb.calcite.rules;
 
@@ -138,5 +137,3 @@ public abstract class ProjectTableScanRule extends RelOptRule {
 		}
 	}
 }
-
-// End ProjectTableScanRule.java

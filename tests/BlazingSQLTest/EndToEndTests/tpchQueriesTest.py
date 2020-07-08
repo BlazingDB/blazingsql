@@ -44,7 +44,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 from 
                     lineitem
                 where
-                    cast(l_shipdate as date) <= date '1998-09-01'
+                    l_shipdate <= date '1998-12-01' - interval '90' day
                 group by
                     l_returnflag, l_linestatus
                 order by
@@ -110,7 +110,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     orders
                 where
                     o_orderdate >= date '1993-07-01'
-                    and o_orderdate < date '1994-10-01'
+                    and o_orderdate < date '1993-07-01' + interval '3' month
                     and exists (select
                                     *
                                     from
@@ -137,7 +137,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     where
                         r.r_name = 'ASIA' 
                         and o.o_orderdate >= date '1994-01-01'
-                        and o.o_orderdate < date '1995-01-01'                    
+                        and o.o_orderdate < date '1994-01-01' + interval '1' year
                     group by
                         n.n_name
                     order by
@@ -156,7 +156,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     lineitem
                 where
                     l_shipdate >= date '1994-01-01' 
-                    and l_shipdate < date '1995-01-01'
+                    and l_shipdate < date '1994-01-01' + interval '1' year
                     and l_discount between 0.05 and 0.07 
                     and l_quantity < 24"""            
             runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
@@ -252,7 +252,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 INNER JOIN lineitem as l ON l.l_orderkey = o.o_orderkey
                 where 
                 o.o_orderdate >= date '1993-10-01'
-                and o.o_orderdate < date '1994-10-01'
+                and o.o_orderdate < date '1993-10-01' + interval '3' month
                 and l.l_returnflag = 'R'
                 group by
                     c.c_custkey, c.c_name, c.c_acctbal, c.c_phone, n.n_name, c.c_address, c.c_comment"""            
@@ -300,7 +300,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     and l.l_commitdate < l.l_receiptdate
                     and l.l_shipdate < l.l_commitdate 
                     and l.l_receiptdate >= date '1994-01-01'
-                    and l.l_receiptdate < date '1995-01-01'
+                    and l.l_receiptdate < date '1994-01-01' + interval '1' year
                 group by l.l_shipmode
                 order by l.l_shipmode"""          
             #if fileSchemaType != DataType.ORC: # TODO CRASH percy kharoly c.cordova rommel we should fix this
@@ -329,13 +329,13 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = 'TEST_14'
             
             query = """ select 100.00 * sum( case when p.p_type like 'PROMO%' then l.l_extendedprice * (1 - l.l_discount)
-                                else 0 end) / sum(l.l_extendedprice * (1 - l.l_discount) ) as promo_revenue
-            from 
-                lineitem as l
-            INNER JOIN part as p ON p.p_partkey = l.l_partkey
-            where
-                l.l_shipdate >= date '1995-09-01' 
-                and l.l_shipdate < date '1995-10-01'"""          
+                                            else 0 end) / sum(l.l_extendedprice * (1 - l.l_discount) ) as promo_revenue
+                        from 
+                            lineitem as l
+                        INNER JOIN part as p ON p.p_partkey = l.l_partkey
+                        where
+                            l.l_shipdate >= date '1995-09-01' 
+                            and l.l_shipdate < date '1995-09-01' + interval '1' month"""
             if fileSchemaType == DataType.ORC:
                 runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
             else:
@@ -345,25 +345,25 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = 'TEST_15'
             
             query = """with revenue (suplier_no, total_revenue) as
-                (
-                select
-                l_suppkey, cast(sum(l_extendedprice * (1-l_discount)) as int)
-                from
-                lineitem
-                where
-                l_shipdate >= date '1996-01-01' and l_shipdate < date '1996-04-01'
-                group by
-                l_suppkey
-                )
-                select
-                s.s_suppkey, s.s_name, s.s_address, s.s_phone, re.total_revenue
-                from
-                supplier as s
-                INNER JOIN revenue as re on s.s_suppkey = re.suplier_no
-                where
-                re.total_revenue = cast((select max(total_revenue) from revenue) as int)
-                order by
-                s.s_suppkey"""        
+                    (
+                    select
+                    l_suppkey, cast(sum(l_extendedprice * (1-l_discount)) as int)
+                    from
+                    lineitem
+                    where
+                    l_shipdate >= date '1996-01-01' and l_shipdate < date '1996-01-01' + interval '3' month
+                    group by
+                    l_suppkey
+                    )
+                    select
+                    s.s_suppkey, s.s_name, s.s_address, s.s_phone, re.total_revenue
+                    from
+                    supplier as s
+                    INNER JOIN revenue as re on s.s_suppkey = re.suplier_no
+                    where
+                    re.total_revenue = cast((select max(total_revenue) from revenue) as int)
+                    order by
+                    s.s_suppkey"""
             runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
             queryId = 'TEST_16'
@@ -454,20 +454,20 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             queryId = 'TEST_20'
             
             query = """ select s.s_name, s.s_address
-                    from supplier s
-                inner join nation n on s.s_nationkey = n.n_nationkey
-                where
-                    s.s_suppkey in (select ps.ps_suppkey from partsupp ps where ps.ps_partkey in (select p.p_partkey
-                                                                                        from part p where
-                                                                                    p.p_name like 'forest%')
-                                and ps_availqty > (select 0.5 * sum(l.l_quantity) from lineitem l where
-                                                    l.l_partkey = ps.ps_partkey and l.l_suppkey = ps.ps_suppkey
-                                                    and l.l_shipdate >= date '1994-01-01' 
-                                                    and l.l_shipdate < date '1995-01-01'))
-                    and n.n_name = 'CANADA'
-                order by s.s_name"""             
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
-
+                        from supplier s
+                        inner join nation n on s.s_nationkey = n.n_nationkey
+                        where
+                            s.s_suppkey in (select ps.ps_suppkey from partsupp ps where ps.ps_partkey in (select p.p_partkey
+                                                                                                from part p where
+                                                                                            p.p_name like 'forest%')
+                                        and ps_availqty > (select 0.5 * sum(l.l_quantity) from lineitem l where
+                                                            l.l_partkey = ps.ps_partkey and l.l_suppkey = ps.ps_suppkey
+                                                            and l.l_shipdate >= date '1994-01-01' 
+                                                            and l.l_shipdate < date '1994-01-01' + interval '1' year))
+                            and n.n_name = 'CANADA'
+                        order by s.s_name"""
+            #runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            #falta cambiar  
             queryId = 'TEST_21'
             
             query = """ select

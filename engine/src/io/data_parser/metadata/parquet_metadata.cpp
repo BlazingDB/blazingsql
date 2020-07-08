@@ -6,10 +6,9 @@
 #define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
 
 #include "parquet_metadata.h"
-#include <rmm/rmm.h>
 #include "blazingdb/concurrency/BlazingThread.h"
+#include "utilities/CommonOperations.h"
 #include <cudf/column/column_factories.hpp>
-#include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
 
 std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::string> col_names) {
 	const int ncols = col_names.size();
@@ -32,9 +31,9 @@ std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::str
 	std::vector<std::unique_ptr<cudf::column>> minmax_metadata_gdf_table;
 	minmax_metadata_gdf_table.resize(metadata_col_names.size());
 	for (int i = 0; i < metadata_col_names.size(); ++i) {
-		//std::unique_ptr<cudf::column> empty = cudf::make_empty_column(cudf::data_type(cudf::type_id::INT32));
-		cudf::test::fixed_width_column_wrapper<int32_t> expected_col2{{(int32_t)-1}};
-		minmax_metadata_gdf_table[i] = expected_col2.release();
+		std::vector<int32_t> temp{(int32_t)-1};
+		auto expected_col2 = ral::utilities::vector_to_column(temp, cudf::data_type(cudf::type_id::INT32));
+		minmax_metadata_gdf_table[i] = std::move(expected_col2);
 	}
 
 	auto cudf_metadata_table = std::make_unique<cudf::table>(std::move(minmax_metadata_gdf_table));

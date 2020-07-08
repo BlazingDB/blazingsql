@@ -8,16 +8,16 @@
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
-#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-#include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
-#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
-#include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
+#include <tests/utilities/column_wrapper.hpp>
+#include <tests/utilities/base_fixture.hpp>
+#include <tests/utilities/type_lists.hpp>
+#include <tests/utilities/table_utilities.hpp>
 #include <cudf/detail/gather.hpp>
-
+#include "tests/BlazingUnitTest.h"
 #include <operators/OrderBy.h>
 
 template <typename T>
-struct SortTest : public cudf::test::BaseFixture {};
+struct SortTest : public BlazingUnitTest {};
 
 TYPED_TEST_CASE(SortTest, cudf::test::NumericTypes);
 
@@ -52,7 +52,7 @@ TYPED_TEST(SortTest, withoutNull) {
 }
 
 template <typename T>
-struct LimitTest : public cudf::test::BaseFixture {};
+struct LimitTest : public BlazingUnitTest {};
 
 TYPED_TEST_CASE(LimitTest, cudf::test::NumericTypes);
 

@@ -2,8 +2,8 @@
 #include <sys/stat.h>
 #include <random>
 #include <src/utilities/CommonOperations.h>
-#include <src/utilities/DebuggingUtils.h>
 #include "communication/CommunicationData.h"
+#include <stdio.h>
 
 using namespace std::chrono_literals;
 namespace ral {
@@ -39,14 +39,18 @@ size_t CacheDataLocalFile::sizeInBytes() const {
 std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath_}};
 	auto result = cudf_io::read_orc(in_args);
+
+	// Remove temp orc files
+	const char *orc_path_file = this->filePath_.c_str();
+	remove(orc_path_file);
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
 }
 
-CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table)
+CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path)
 	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
 {
-	// TODO: make this configurable
-	this->filePath_ = "/tmp/.blazing-temp-" + randomString(64) + ".orc";
+	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
+
 	std::cout << "CacheDataLocalFile: " << this->filePath_ << std::endl;
 	cudf_io::table_metadata metadata;
 	for(auto name : table->names()) {
@@ -65,7 +69,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cach
 
 	waitingCache = std::make_unique<WaitingQueue>();
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
-	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() );
+	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
@@ -94,7 +98,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_
 
 	waitingCache = std::make_unique<WaitingQueue>();
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() ); 
-	this->memory_resources.push_back( &blazing_host_memory_mesource::getInstance() ); 
+	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() ); 
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
@@ -321,7 +325,14 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 							"rows"_a=table->num_rows());
 
 						// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
-						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table));
+						// want to get only cache directory where orc files should be saved
+						std::map<std::string, std::string> config_options = ctx->getConfigOptions();
+						auto it = config_options.find("BLAZING_CACHE_DIRECTORY");
+						std::string orc_files_path;
+						if (it != config_options.end()) {
+							orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
+						}
+						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
 						// NOTE: Wait don't kill the main process until the last thread is finished!
@@ -378,6 +389,44 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	return std::move(output);
 }
 
+
+std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache() {
+
+	std::unique_ptr<message> message_data = nullptr;
+	{ // scope for lock
+		std::unique_lock<std::mutex> lock = this->waitingCache->lock();
+		std::vector<std::unique_ptr<message>> all_messages = this->waitingCache->get_all_unsafe();
+		std::vector<std::unique_ptr<message>> remaining_messages;
+		for(size_t i = 0; i < all_messages.size(); i++) {
+			if (all_messages[i]->get_data().get_type() == CacheDataType::GPU && message_data == nullptr){
+				message_data = std::move(all_messages[i]);
+			} else {
+				remaining_messages.push_back(std::move(all_messages[i]));
+			}
+		}
+		this->waitingCache->put_all_unsafe(std::move(remaining_messages));
+	}
+	if (message_data){
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Pull Unordered from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+								"duration"_a="",
+								"kernel_id"_a=message_data->get_message_id(),
+								"rows"_a=message_data->get_data().num_rows());
+
+		std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
+		std::unique_lock<std::mutex> lock(flow_control_mutex);
+		flow_control_batches_count--;
+		flow_control_bytes_count -= output->sizeInBytes();
+		flow_control_condition_variable.notify_all();
+		return std::move(output);
+	} else {
+		return pullFromCache();
+	}
+}
+
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
@@ -427,11 +476,72 @@ void CacheMachine::wait_if_cache_is_saturated() {
 		})){}
 }
 
+// take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
+// this function does not change the order of the caches
+size_t CacheMachine::downgradeCacheData() {
+	size_t bytes_downgraded = 0;
+	std::unique_lock<std::mutex> lock = this->waitingCache->lock();
+	std::vector<std::unique_ptr<message>> all_messages = this->waitingCache->get_all_unsafe();
+	for(int i = all_messages.size() - 1; i >= 0; i--) {
+		if (all_messages[i]->get_data().get_type() == CacheDataType::GPU){
+
+			std::unique_ptr<ral::frame::BlazingTable> table = all_messages[i]->get_data().decache();
+
+			std::string message_id = all_messages[i]->get_message_id();
+			bytes_downgraded += table->sizeInBytes();
+			int cacheIndex = 1; // starting at RAM cache
+			while(cacheIndex < memory_resources.size()) {
+				auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
+				if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
+					if(cacheIndex == 1) {
+						logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
+							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+							"info"_a="Downgraded CacheData to CPU cache",
+							"kernel_id"_a=message_id,
+							"rows"_a=table->num_rows());
+
+						auto cache_data = std::make_unique<CPUCacheData>(std::move(table));
+						auto new_message =	std::make_unique<message>(std::move(cache_data), message_id);
+						all_messages[i] = std::move(new_message);
+					} else if(cacheIndex == 2) {
+						logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
+							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+							"info"_a="Downgraded CacheData to Disk cache",
+							"kernel_id"_a=message_id,
+							"rows"_a=table->num_rows());
+
+						// want to get only cache directory where orc files should be saved
+						std::map<std::string, std::string> config_options = ctx->getConfigOptions();
+						auto it = config_options.find("BLAZING_CACHE_DIRECTORY");
+						std::string orc_files_path;
+						if (it != config_options.end()) {
+							orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
+						}
+						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
+						auto new_message = std::make_unique<message>(std::move(cache_data), message_id);
+						all_messages[i] = std::move(new_message);						
+					}					
+					break;
+				}
+				cacheIndex++;
+			}
+			break;
+		}
+	}
+	
+	this->waitingCache->put_all_unsafe(std::move(all_messages));
+	return bytes_downgraded;
+}
+
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
 	: CacheMachine(context) {}
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold)
-	: CacheMachine(context, flow_control_batches_threshold, flow_control_bytes_threshold) {}
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold, bool concat_all)
+	: CacheMachine(context, flow_control_batches_threshold, flow_control_bytes_threshold), concat_all(concat_all) {}
 
 // This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
@@ -443,7 +553,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	while (message_data = waitingCache->pop_or_wait())
 	{
 		auto& cache_data = message_data->get_data();
-		if (collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes())) {
+		if (concat_all || collected_messages.empty() || !thresholds_are_met(1 + collected_messages.size(), total_bytes + cache_data.sizeInBytes())) {
 			total_bytes += cache_data.sizeInBytes();
 			message_id = message_data->get_message_id();
 			collected_messages.push_back(std::move(message_data));
@@ -467,12 +577,42 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		output = std::move(data->decache());
 		num_rows = output->num_rows();
 	}	else {
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder(collected_messages.size());
-		std::vector<ral::frame::BlazingTableView> table_views(collected_messages.size());
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder;
+		std::vector<ral::frame::BlazingTableView> table_views;
 		for (int i = 0; i < collected_messages.size(); i++){
 			auto data = collected_messages[i]->release_data();
-			tables_holder[i] = std::move(data->decache());
-			table_views[i] = tables_holder[i]->toBlazingTableView();
+			tables_holder.push_back(std::move(data->decache()));
+			table_views.push_back(tables_holder[i]->toBlazingTableView());
+
+			// if we dont have to concatenate all, lets make sure we are not overflowing, and if we are, lets put one back
+			if (!concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views)){
+				logger->warn("{query_id}|{step}|{substep}|{info}|||||",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating could have caused overflow strings length. Adding cache data back");
+
+				auto cache_data = std::make_unique<GPUCacheData>(std::move(tables_holder.back()));
+				tables_holder.pop_back();
+				table_views.pop_back();
+				collected_messages[i] =	std::make_unique<message>(std::move(cache_data), collected_messages[i]->get_message_id());
+				std::unique_lock<std::mutex> lock(flow_control_mutex);
+				for (; i < collected_messages.size(); i++){
+					flow_control_batches_count++;
+					flow_control_bytes_count += collected_messages[i]->get_data().sizeInBytes();
+					this->waitingCache->put(std::move(collected_messages[i]));
+				}
+				flow_control_condition_variable.notify_all();
+				break;				
+			}
+		}
+
+		if( concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views) ) { // if we have to concatenate all, then lets throw a warning if it will overflow strings
+			logger->warn("{query_id}|{step}|{substep}|{info}|||||",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating will overflow strings length");
 		}
 		output = ral::utilities::concatTables(table_views);
 		num_rows = output->num_rows();

@@ -31,9 +31,9 @@ using Node = blazingdb::transport::Node;
 
 
 struct ParquetReaderAPITest : public ::testing::Test {
-	void SetUp() { ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS); }
+	void SetUp() {  }
 
-	void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
+	void TearDown() { }
 };
 
 namespace cudf_io = cudf::io;
@@ -72,8 +72,9 @@ TEST_F(ParquetReaderAPITest, ByIdsInFromInterface) {
 	}
 	Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
 	ral::io::data_loader loader(parser, provider);
+	std::vector<cudf::size_type> row_group_ids;
+    auto csv_table = loader.load_batch(&queryContext, {}, schema, handle, 0, row_group_ids);
 
-	auto csv_table = loader.load_data(&queryContext, {}, schema);
 	if(csv_table != nullptr) {
 		std::cout << "csv_table != nullptr\n";
 		for(auto name : csv_table->names()) {

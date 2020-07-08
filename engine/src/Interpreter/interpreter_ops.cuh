@@ -135,7 +135,6 @@ public:
 		const column_index_type * final_output_positions,
 		const cudf::type_id * input_types_left,
 		const cudf::type_id * input_types_right,
-		const cudf::type_id * output_types,
 		const operator_type * operations,
 		cudf::detail::scalar_device_view_base ** scalars_left,
 		cudf::detail::scalar_device_view_base ** scalars_right,
@@ -150,7 +149,6 @@ public:
 			final_output_positions{final_output_positions},
 			input_types_left{input_types_left},
 			input_types_right{input_types_right},
-			output_types{output_types},
 			operations{operations},
 			scalars_left{scalars_left},
 			scalars_right{scalars_right},
@@ -247,7 +245,7 @@ private:
 			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row).time_since_epoch().count());
 		}
 
-		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
+		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>() or cudf::is_duration<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
 																					cudf::size_type col_index,
 																					cudf::size_type row,
@@ -295,7 +293,7 @@ private:
 			out_table.column(col_index).element<ColType>(row) =	static_cast<typename ColType::rep>(*(buffer + (position * blockDim.x + threadIdx.x)));
 		}
 
-		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
+		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>() or cudf::is_duration<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
 																					cudf::size_type col_index,
 																					cudf::size_type row,
@@ -772,7 +770,6 @@ private:
 
 	const cudf::type_id * input_types_left;
 	const cudf::type_id * input_types_right;
-	const cudf::type_id * output_types;
 
 	const operator_type * operations;
 

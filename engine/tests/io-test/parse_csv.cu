@@ -27,9 +27,9 @@ using Node = blazingdb::transport::Node;
 
 struct ParseCSVTest : public ::testing::Test {
 
-  void SetUp() { ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS); }
+  void SetUp() {  }
 
-  void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
+  void TearDown() {  }
 };
 
 namespace cudf_io = cudf::io;
@@ -79,7 +79,7 @@ TEST_F(ParseCSVTest, startingNewVersion) {
 
   Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
 
-  auto csv_table = loader.load_data(&queryContext, {}, schema);
+  auto csv_table = loader.load_batch(&queryContext, {}, schema);
   if (csv_table != nullptr) {
     expect_column_data_equal(std::vector<int32_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, csv_table->view().column(0));
     expect_column_data_equal(std::vector<int32_t>{0, 1, 1, 1, 4, 0, 3, 3, 2, 2, 4},  csv_table->view().column(2));
@@ -127,7 +127,10 @@ TEST_F(ParseCSVTest, Empty) {
 
   Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
 
-  auto csv_table = loader.load_data(&queryContext, {}, schema);
+  auto handle = provider->get_next();
+  std::vector<cudf::size_type> row_group_ids;
+  auto csv_table = loader.load_batch(&queryContext, {}, schema, handle, 0, row_group_ids);
+  
   if (csv_table != nullptr) {
     expect_column_data_equal(std::vector<int32_t>{}, csv_table->view().column(0));
     expect_column_data_equal(std::vector<int32_t>{},  csv_table->view().column(2));

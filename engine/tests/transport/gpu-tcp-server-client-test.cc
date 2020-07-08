@@ -15,14 +15,13 @@
 #include <numeric>
 #include <nvstrings/NVCategory.h>
 
-#include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <tests/utilities/base_fixture.hpp>
 #include <cudf/column/column_factories.hpp>
-#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
+#include <tests/utilities/column_utilities.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
-#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
-#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-// #include <from_cudf/cpp_tests/utilities/legacy/cudf_test_utils.cuh>
-#include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
+#include <tests/utilities/type_lists.hpp>
+#include <tests/utilities/column_wrapper.hpp>
+#include <tests/utilities/table_utilities.hpp>
 
 using ral::communication::messages::SampleToNodeMasterMessage;
 using ral::communication::messages::ReceivedDeviceMessage;
@@ -92,9 +91,9 @@ static void ExecWorker() {
 
 struct SendSamplesTest : public ::testing::Test {
 
-  void SetUp() { ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS); }
+  void SetUp() { }
 
-  void TearDown() { ASSERT_EQ(rmmFinalize(), RMM_SUCCESS); }
+  void TearDown() {}
 };
 
 

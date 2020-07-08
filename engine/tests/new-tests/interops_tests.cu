@@ -4,25 +4,32 @@
 #include <cudf/sorting.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
 
-#include "from_cudf/cpp_tests/utilities/base_fixture.hpp"
-#include "from_cudf/cpp_tests/utilities/column_utilities.hpp"
-#include "from_cudf/cpp_tests/utilities/column_wrapper.hpp"
-#include "from_cudf/cpp_tests/utilities/table_utilities.hpp"
-#include "from_cudf/cpp_tests/utilities/type_lists.hpp"
+#include "tests/utilities/base_fixture.hpp"
+#include "tests/utilities/column_utilities.hpp"
+#include "tests/utilities/column_wrapper.hpp"
+#include "tests/utilities/table_utilities.hpp"
+#include "tests/utilities/type_lists.hpp"
+#include "tests/utilities/type_list_utilities.hpp"
 #include "Interpreter/interpreter_cpp.h"
-#include <bmr/initializer.h>
+#include "tests/BlazingUnitTest.h"
 
 template <typename T>
-struct InteropsTestNumeric : public cudf::test::BaseFixture {
+struct InteropsTestNumeric : public BlazingUnitTest {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 
-TYPED_TEST_CASE(InteropsTestNumeric, cudf::test::NumericTypes);
+using SignedIntegralTypesNotBool =
+  cudf::test::Types<int8_t, int16_t, int32_t, int64_t>;
+using SignedIntegralTypes = cudf::test::Concat<SignedIntegralTypesNotBool, cudf::test::Types<bool>>;
+using SignedNumericTypes = cudf::test::Concat<SignedIntegralTypes, cudf::test::FloatingPointTypes>;
+
+TYPED_TEST_CASE(InteropsTestNumeric, SignedNumericTypes);
+// TYPED_TEST_CASE(InteropsTestNumeric, cudf::test::NumericTypes); // need to have unsigned support to use cudf::test::NumericTypes
 
 TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 {
@@ -100,12 +107,12 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types)
 }
 /*
 template <typename T>
-struct InteropsTestNumericDivZero : public cudf::test::BaseFixture {
+struct InteropsTestNumericDivZero : public BlazingUnitTest {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 
@@ -169,12 +176,12 @@ TYPED_TEST(InteropsTestNumericDivZero, test_numeric_types_divzero)
 }
 
 template <typename T>
-struct InteropsTestTimestamp : public cudf::test::BaseFixture {
+struct InteropsTestTimestamp : public BlazingUnitTest {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 
@@ -331,12 +338,12 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
   cudf::test::expect_tables_equal(expected_table_view, out_table_view);
 }
 
-struct InteropsTestString : public cudf::test::BaseFixture {
+struct InteropsTestString : public BlazingUnitTest {
   void SetUp() {
-	  rmmInitialize(nullptr);
+	  
   }
   void TearDown() {
-    rmmFinalize();
+    
   }
 };
 

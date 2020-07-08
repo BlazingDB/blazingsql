@@ -461,8 +461,7 @@ bool FileUtilv2::copyFile(const Uri & src, const Uri & dst) {
 	try {
 		std::shared_ptr<arrow::io::RandomAccessFile> file =
 			BlazingContext::getInstance()->getFileSystemManager()->openReadable(src);
-		int64_t fileSize;
-		file->GetSize(&fileSize);
+		int64_t fileSize = file->GetSize().ValueOrDie();
 
 		uint8_t * origData = new uint8_t[fileSize];
 		bool success = FileUtilv2::readCompletely(file, fileSize, origData);
@@ -487,26 +486,30 @@ bool FileUtilv2::copyFile(const Uri & src, const Uri & dst) {
 bool FileUtilv2::readCompletely(
 	std::shared_ptr<arrow::io::RandomAccessFile> file, int64_t bytesToRead, uint8_t * buffer) {
 	if(bytesToRead > 0) {
-		int64_t totalRead;
-		arrow::Status status = file->Read(bytesToRead, &totalRead, buffer);
+		auto status = file->Read(bytesToRead, buffer);
 
 		if(!status.ok()) {
-			Library::Logging::Logger().logError("In FileUtilv2::readCompletely on first read: " + status.ToString());
+			Library::Logging::Logger().logError("In FileUtilv2::readCompletely on first read: " + status.status().ToString());
 			return false;
 		}
 
+        int64_t totalRead = status.ValueOrDie();
+        
 		if(totalRead < bytesToRead) {
 			int totalReadTries = 0;
 			int emptyReads = 0;
 
 			while(totalRead < bytesToRead && totalReadTries < 100 && emptyReads < 10) {
 				int64_t bytesRead;
-				status = file->Read(bytesToRead - totalRead, &bytesRead, buffer + totalRead);
+				status = file->Read(bytesToRead - totalRead, buffer + totalRead);
 				if(!status.ok()) {
 					Library::Logging::Logger().logError("In FileUtilv2::readCompletely on read " +
-														std::to_string(totalRead) + "  status : " + status.ToString());
+														std::to_string(totalRead) + "  status : " + status.status().ToString());
 					return false;
 				}
+                
+                bytesRead = status.ValueOrDie();
+                
 				if(bytesRead == 0) {
 					emptyReads++;
 				}

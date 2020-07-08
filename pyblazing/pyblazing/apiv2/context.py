@@ -1,7 +1,6 @@
 # NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
 import cudf
 
-from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 from cudf.core.column.column import build_column
 
 from collections import OrderedDict
@@ -53,7 +52,13 @@ jpype.addClassPath(
         os.getenv("CONDA_PREFIX"),
         'lib/blazingsql-algebra-core.jar'))
 
+# NOTE felipe try first with CONDA_PREFIX/jre/lib/amd64/server/libjvm.so (for older Java versions e.g. 8.x)
 jvm_path=os.environ["CONDA_PREFIX"]+"/jre/lib/amd64/server/libjvm.so"
+
+if not os.path.isfile(jvm_path):
+    # NOTE felipe try a second time using CONDA_PREFIX/lib/server/ (for newer java versions e.g. 11.x)
+    jvm_path=os.environ["CONDA_PREFIX"]+"/lib/server/libjvm.so"
+
 jpype.startJVM('-ea', convertStrings=False, jvmpath=jvm_path)
 
 ArrayClass = jpype.JClass('java.util.ArrayList')
@@ -94,14 +99,13 @@ class blazing_allocation_mode(IntEnum):
     CudaManagedMemory = (2,)
 
 
-
 def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
                       allocator="managed", pool=False,
-
-                      initial_pool_size=None, enable_logging=False, devices=0, config_options={}):
+                      initial_pool_size=None, 
+                      config_options={}, logging_dir_path='blazing_log'):
 
     FORMAT='%(asctime)s|' + str(ralId) + '|%(levelname)s|||"%(message)s"||||||'
-    filename = 'pyblazing.' + str(ralId) + '.log'
+    filename = os.path.join(logging_dir_path, 'pyblazing.' + str(ralId) + '.log')
     logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]['addr']
     ralCommunicationPort = random.randint(10000, 32000) + ralId
@@ -111,35 +115,34 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
     while checkSocket(ralCommunicationPort) == False:
         ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    if (allocator != 'existing'):
+    if not pool:
+        initial_pool_size = 0
+    elif pool and initial_pool_size is None:
+        initial_pool_size = 0
+    elif pool and initial_pool_size == 0:
+        initial_pool_size = 1
+    
+    possible_allocators = ["default", "managed", "existing", 
+        "cuda_memory_resource", "managed_memory_resource", "cnmem_memory_resource", 
+        "cnmem_managed_memory_resource" ]
+    if allocator not in possible_allocators:
+        print('ERROR: parameter "allocator" was not set to a proper value. It was set to: ' + str(allocator) + '. It needs to be either "managed", "default" or "existing"')
+        allocator = "managed"
 
-        managed_memory = True if allocator == "managed" else False
-        allocation_mode = 0
+    if not pool and allocator == "default":
+        allocator = "cuda_memory_resource"
+    elif not pool and allocator == "managed":
+        allocator = "managed_memory_resource"
+    elif pool and allocator == "default":
+        allocator = "cnmem_memory_resource"
+    elif pool and allocator == "managed":
+        allocator = "cnmem_managed_memory_resource"    
 
-        if pool:
-            allocation_mode |= blazing_allocation_mode.PoolAllocation
-        if managed_memory:
-            allocation_mode |= blazing_allocation_mode.CudaManagedMemory
-
-        if not pool:
-            initial_pool_size = 0
-        elif pool and initial_pool_size is None:
-            initial_pool_size = 0
-        elif pool and initial_pool_size == 0:
-            initial_pool_size = 1
-
-        if devices is None:
-            devices = [0]
-        elif isinstance(devices, int):
-            devices = [devices]
-
-        cio.blazingSetAllocatorCaller(
-            allocation_mode,
-            initial_pool_size,
-            devices,
-            enable_logging,
-            config_options
-        )
+    cio.blazingSetAllocatorCaller(
+        allocator.encode(),
+        initial_pool_size,
+        config_options
+    )
 
     cio.initializeCaller(
         ralId,
@@ -149,9 +152,13 @@ def initializeBlazing(ralId=0, networkInterface='lo', singleNode=False,
         ralCommunicationPort,
         singleNode,
         config_options)
-    cwd = os.getcwd()
+    
+    if (os.path.isabs(logging_dir_path)):
+        log_path = logging_dir_path
+    else:
+        log_path = os.path.join(os.getcwd(), logging_dir_path)
 
-    return ralCommunicationPort, workerIp, cwd
+    return ralCommunicationPort, workerIp, log_path
 
 def getNodePartitionKeys(df, client):
     from dask import delayed
@@ -222,7 +229,7 @@ def collectPartitionsRunQuery(
         print(">>>>>>>> ", e)
         result = [cudf.DataFrame()]
     except Exception as e:
-        raise e
+        raise e   
 
     meta = dask.dataframe.utils.make_meta(dfs[0])
     query_partids = []
@@ -316,7 +323,9 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, tableScanInfo,origi
 
 
 def get_uri_values(files, partitions, base_folder):
-    base_folder = base_folder + '/'
+    if (base_folder[-1] != '/'):
+        base_folder = base_folder + '/'
+
     uri_values = []
     for file in files:
         file_dir = os.path.dirname(file.decode())
@@ -334,12 +343,8 @@ def parseHiveMetadata(curr_table, uri_values):
     final_names = [] # not all columns will have hive metadata, so this vector will capture all the names that will actually be used in the end
     n_cols = len(curr_table.column_names)
 
-    if all(type in cudf_to_np_types for type in curr_table.column_types):
-        dtypes = [cudf_to_np_types[t] for t in curr_table.column_types]
-    else:
-        for i in range(len(curr_table.column_types)):
-            if not (curr_table.column_types[i] in cudf_to_np_types):
-                print("ERROR: Column " + curr_table.column_names[i] + " has type that cannot be mapped: " + curr_table.column_types[i])
+    dtypes = [cio.cudf_type_int_to_np_types(t) for t in curr_table.column_types]
+
     columns = [name.decode() for name in curr_table.column_names]
     for index in range(n_cols):
         col_name = columns[index]
@@ -533,6 +538,10 @@ def visit (lines):
 def get_plan(algebra):
     algebra = algebra.replace("  ", "\t")
     lines = algebra.split("\n")
+    # when algebra plan was provided and only contains one-line as logical plan
+    if len(lines) == 1:
+        algebra += "\n"
+        lines = algebra.split("\n")
     new_lines = []
     for i in range(len(lines) - 1):
         line = lines[i]
@@ -578,6 +587,50 @@ def adjust_due_to_missing_rowgroups(metadata, files):
         mask = metadata['file_handle_index'] > ind
         metadata['file_handle_index'][mask] = metadata['file_handle_index'][mask] - 1
     return metadata, new_files
+
+
+def distributed_initialize_server_directory(client, dir_path):
+
+    # lets make host_list which is a list of all the unique hosts. 
+    # This way we do the logging folder creation only once per host (server)
+    host_list = list(set([value['host'] for key,value in client.scheduler_info()["workers"].items()]))
+    initialized = {}
+    for host in host_list:
+        initialized[host]=False
+
+    dask_futures = []
+    for worker, worker_info in client.scheduler_info()["workers"].items():
+        if not initialized[worker_info['host']]:
+            dask_futures.append(
+                client.submit(
+                    initialize_server_directory,
+                    dir_path,
+                    workers=[worker]))
+            initialized[worker_info['host']] = True
+    
+    for connection in dask_futures:
+        made_dir = connection.result()
+    
+
+def initialize_server_directory(dir_path):
+    if (not os.path.exists(dir_path)):
+        os.mkdir(dir_path)
+        return True
+    else:
+        return False
+
+
+# Delete all generated (older than 1 hour) orc files
+def remove_orc_files_from_disk(data_dir):
+    if os.path.isfile(data_dir): # only if data_dir exists
+        all_files = os.listdir(data_dir)
+        current_time = time.time()
+        for file in all_files:
+            if ".blazing-temp" in file:
+                full_path_file = data_dir + "/" + file
+                creation_time = os.path.getctime(full_path_file)
+                if (current_time - creation_time) // (1 * 60 * 60) >= 1:
+                    os.remove(full_path_file)
 
 
 class BlazingTable(object):
@@ -640,10 +693,10 @@ class BlazingTable(object):
 
         if self.fileType == DataType.CUDF:
             self.column_names = [x for x in self.input._data.keys()]
-            self.column_types = [np_to_cudf_types[x.dtype] for x in self.input._data.values()]
+            self.column_types = [cio.np_to_cudf_types_int(x.dtype) for x in self.input._data.values()]
         elif self.fileType == DataType.DASK_CUDF:
             self.column_names = [x for x in input.columns]
-            self.column_types = [np_to_cudf_types[x] for x in input.dtypes]
+            self.column_types = [cio.np_to_cudf_types_int(x) for x in input.dtypes]
 
         # file_column_names are usually the same as column_names, except for when
         # in a hive table the column names defined by the hive schema
@@ -746,7 +799,7 @@ class BlazingContext(object):
     """
 
     def __init__(self, dask_client=None, network_interface=None, allocator="managed",
-                 pool=False, initial_pool_size=None, enable_logging=False, config_options={}):
+                 pool=False, initial_pool_size=None, config_options={}):
         """
         Create a BlazingSQL API instance.
 
@@ -755,13 +808,13 @@ class BlazingContext(object):
 
         dask_client (optional) : dask.distributed.Client instance. only necessary for distributed query execution.
         network_interface (optional) : for communicating with the dask-scheduler. see note below.
-        allocator (optional) :  "managed" or "default", where "managed" uses Unified Virtual Memory (UVM)
-                                and may use system memory if GPU memory runs out, "default" assumes rmm
-                                allocator is already set and does not initialize it.
+        allocator (optional) :  "managed" or "default" or "existing", where "managed" uses Unified Virtual Memory (UVM)
+                                and may use system memory if GPU memory runs out, "default" uses the default Cuda allocation
+                                and "existing" assumes rmm allocator is already set and does not initialize it.
+                                "managed" is the BlazingSQL default, since it provides the most robustness against OOM errors.
         pool (optional) : if True, BlazingContext will self-allocate a GPU memory pool. can greatly improve performance.
         initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
                                        if None, and pool=True, defaults to 1/2 GPU memory.
-        enable_logging (optional) : if True, memory allocator logging will be enabled. can negatively impact perforamance.
         config_options (optional) : this is a dictionary for setting certain parameters in the engine. These parameters will be used for all queries except
                                     if overriden by setting these parameters when running the query itself. The possible parameters are:
                                     JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join
@@ -792,7 +845,21 @@ class BlazingContext(object):
                                            default: 0.1
                                     BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource
                                             will consider to be full
+                                            NOTE: This parameter only works when used in the BlazingContext
                                             default: 0.95
+                                    BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total host memory that the memory resource
+                                            will consider to be full. In the presence of several GPUs per server, this resource will be shared among all of
+                                            them in equal parts.
+                                            NOTE: This parameter only works when used in the BlazingContext
+                                            default: 0.75 
+                                    BLAZING_LOGGING_DIRECTORY : A folder path to place all logging files. The path can be relative or absolute.
+                                            NOTE: This parameter only works when used in the BlazingContext
+                                            default: 'blazing_log'
+                                    BLAZING_CACHE_DIRECTORY : A folder path to place all orc files when start caching on Disk. The path can be relative or absolute.
+                                            NOTE: This parameter only works when used in the BlazingContext
+                                            default: '/tmp/'
+                                    MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory consumption. The value is in milliseconds.
+                                            default: 50  (milliseconds)
 
         Examples
         --------
@@ -824,13 +891,33 @@ class BlazingContext(object):
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
         self.nodes = []
-        self.node_cwds = []
+        self.node_log_paths = []
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = {}
         for option in config_options:
             self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
+        
+        logging_dir_path = 'blazing_log'
+        if ('BLAZING_LOGGING_DIRECTORY' in config_options): # want to use config_options and not self.config_options since its not encoded
+            logging_dir_path = config_options['BLAZING_LOGGING_DIRECTORY']
+
+        cache_dir_path = '/tmp' # default directory to store orc files
+        if ('BLAZING_CACHE_DIRECTORY' in config_options):
+            cache_dir_path = config_options['BLAZING_CACHE_DIRECTORY'] + "tmp"
+
+        self.config_options['BLAZING_CACHE_DIRECTORY'.encode()] = cache_dir_path.encode()
+
+        # remove if exists older orc tmp files
+        remove_orc_files_from_disk(cache_dir_path)
+
+        host_memory_quota = 0.75
+        if not "BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode() in self.config_options:
+            self.config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode()] = str(host_memory_quota).encode()
 
         if(dask_client is not None):
+            distributed_initialize_server_directory(self.dask_client, logging_dir_path)
+            distributed_initialize_server_directory(self.dask_client, cache_dir_path)
+
             if network_interface is None:
                 network_interface = 'eth0'
 
@@ -838,6 +925,13 @@ class BlazingContext(object):
             dask_futures = []
             masterIndex = 0
             i = 0
+
+            if "BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD" in config_options:
+                host_memory_quota = float(self.config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode()])
+
+            #If all workers are on the same machine, the memory threshold is split between the workers, here we are assuming that there are the same number of GPUs/workers per server.
+            self.config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD".encode()] = str(host_memory_quota * len(set([value['host'] for key,value in self.dask_client.scheduler_info()["workers"].items()])) / len(self.dask_client.scheduler_info()["workers"])).encode()
+
             for worker in list(self.dask_client.scheduler_info()["workers"]):
                 dask_futures.append(
                     self.dask_client.submit(
@@ -848,36 +942,43 @@ class BlazingContext(object):
                         allocator=allocator,
                         pool=pool,
                         initial_pool_size=initial_pool_size,
-                        enable_logging=enable_logging,
                         config_options=self.config_options,
+                        logging_dir_path=logging_dir_path,
                         workers=[worker]))
                 worker_list.append(worker)
                 i = i + 1
             i = 0
             for connection in dask_futures:
-                ralPort, ralIp, cwd = connection.result()
+                ralPort, ralIp, log_path = connection.result()
                 node = {}
                 node['worker'] = worker_list[i]
                 node['ip'] = ralIp
                 node['communication_port'] = ralPort
                 self.nodes.append(node)
-                self.node_cwds.append(cwd)
+                self.node_log_paths.append(log_path)
                 i = i + 1
 
+            
+            # need to initialize this logging independently, in case its set as a relative path 
+            # and the location from where the python script is running is different than the local dask workers
+            initialize_server_directory(logging_dir_path)
             # this one is for the non dask side
             FORMAT='%(asctime)s||%(levelname)s|||"%(message)s"||||||'
-            filename = 'pyblazing.log'
+            filename = os.path.join(logging_dir_path, 'pyblazing.log')
             logging.basicConfig(filename=filename,format=FORMAT, level=logging.INFO)
         else:
-            ralPort, ralIp, cwd = initializeBlazing(
+            initialize_server_directory(logging_dir_path)
+            initialize_server_directory(cache_dir_path)
+
+            ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0, networkInterface='lo', singleNode=True,
                 allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
-                enable_logging=enable_logging, config_options=self.config_options)
+                config_options=self.config_options, logging_dir_path=logging_dir_path)
             node = {}
             node['ip'] = ralIp
             node['communication_port'] = ralPort
             self.nodes.append(node)
-            self.node_cwds.append(cwd)
+            self.node_log_paths.append(log_path)
 
         # NOTE ("//"+) is a neat trick to handle ip:port cases
         #internal_api.SetupOrchestratorConnection(orchestrator_host_ip, orchestrator_port)
@@ -1643,6 +1744,7 @@ class BlazingContext(object):
         if (algebra is None):
             algebra = self.explain(query)
 
+
         # when an empty `LogicalValues` appears on the optimized plan there aren't neither BindableTableScan nor TableScan nor Project
         if "LogicalValues(tuples=[[]])" in algebra:
             print("This SQL statement returns empty result. Please double check your query.")
@@ -1661,15 +1763,16 @@ class BlazingContext(object):
                 query_config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
 
         if self.dask_client is None or single_gpu == True :
-            query_tables, table_scans = cio.getTableScanInfoCaller(algebra,self.tables)
+            table_names, table_scans = cio.getTableScanInfoCaller(algebra)
         else:
             worker = tuple(self.dask_client.scheduler_info()['workers'])[0]
             connection = self.dask_client.submit(
                 cio.getTableScanInfoCaller,
                 algebra,
-                self.tables,
                 workers=[worker])
-            query_tables, table_scans = connection.result()
+            table_names, table_scans = connection.result()
+        
+        query_tables = [self.tables[table_name] for table_name in table_names]
 
         # this was for ARROW tables which are currently deprecated
         # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
@@ -1728,6 +1831,7 @@ class BlazingContext(object):
                 result = cudf.DataFrame()
             except Exception as e:
                 raise e
+
         else:
             if single_gpu == True:
                 #the following is wrapped in an array because .sql expects to return
@@ -1813,8 +1917,7 @@ class BlazingContext(object):
         """
         if not self.logs_initialized:
             self.logs_table_name = logs_table_name
-            log_files = [self.node_cwds[i] + '/RAL.' + \
-                str(i) + '.log' for i in range(0, len(self.node_cwds))]
+            log_files = [os.path.join(self.node_log_paths[i], 'RAL.' + str(i) + '.log') for i in range(0, len(self.node_log_paths))]
             dtypes = [
                 'date64',
                 'int32',
@@ -1863,9 +1966,8 @@ class BlazingContext(object):
             }
 
             for log_table_name in log_schemas:
-                log_files = [self.node_cwds[i] + '/'+log_table_name+'.' + \
-                    str(i) + '.log' for i in range(0, len(self.node_cwds))]
-
+                log_files = [os.path.join(self.node_log_paths[i], log_table_name + '.' + str(i) + '.log') for i in range(0, len(self.node_log_paths))]
+                
                 names, dtypes = log_schemas[log_table_name]
                 t = self.create_table(
                     log_table_name,

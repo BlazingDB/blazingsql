@@ -7,7 +7,6 @@
 #include <cudf/sorting.hpp>
 #include <cudf/search.hpp>
 #include <cudf/strings/copying.hpp>
-#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
 #include "parser/expression_utils.hpp"
 #include "utilities/CommonOperations.h"
 
@@ -198,13 +197,10 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 
 	cudf::table_view columns_to_search = sortedTable.view().select(sortColIndices);
-	auto pivot_indexes = cudf::upper_bound(columns_to_search,
-																											partitionPlan.view(),
-																											sortOrderTypes,
-																											null_orders);
+	auto pivot_indexes = cudf::upper_bound(columns_to_search, partitionPlan.view(),
+												sortOrderTypes, null_orders);
 
-	auto host_pivot_indexes = cudf::test::to_host<cudf::size_type>(pivot_indexes->view());
-	std::vector<cudf::size_type> split_indexes(host_pivot_indexes.first.begin(), host_pivot_indexes.first.end());
+	std::vector<cudf::size_type> split_indexes = ral::utilities::vector_to_column<cudf::size_type>(pivot_indexes->view());
 	return cudf::split(sortedTable.view(), split_indexes);
 }
 
@@ -248,6 +244,13 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 								"substep"_a=context->getQuerySubstep(),
 								"info"_a="Determining Number of Order By Partitions " + info);
 	
+	if( ral::utilities::checkIfConcatenatingStringsWillOverflow(samples)) {
+		logger->warn("{query_id}|{step}|{substep}|{info}",
+						"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+						"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+						"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+						"info"_a="In generatePartitionPlans Concatenating Strings will overflow strings length");
+	}
 	partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
 	context->incrementQuerySubstep();
 		

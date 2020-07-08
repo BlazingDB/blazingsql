@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <limits.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
@@ -27,7 +28,7 @@ bool is_type_integer(cudf::type_id type) {
 			cudf::type_id::INT64 == type);
 }
 
-bool is_type_bool(cudf::type_id type) { return cudf::type_id::BOOL8; }
+bool is_type_bool(cudf::type_id type) { return cudf::type_id::BOOL8 == type; }
 
 bool is_type_timestamp(cudf::type_id type) {
 	return (cudf::type_id::TIMESTAMP_DAYS == type || cudf::type_id::TIMESTAMP_SECONDS == type ||
@@ -35,13 +36,47 @@ bool is_type_timestamp(cudf::type_id type) {
 			cudf::type_id::TIMESTAMP_NANOSECONDS == type);
 }
 
-bool is_type_string(cudf::type_id type) { return cudf::type_id::STRING; }
+bool is_type_string(cudf::type_id type) { return cudf::type_id::STRING == type; }
 
 cudf::size_type get_index(const std::string & operand_string) {
 	assert(is_var_column(operand_string) || is_literal(operand_string));
 
 	return std::stoi(is_literal(operand_string) ? operand_string : operand_string.substr(1, operand_string.size() - 1));
 }
+
+
+std::unique_ptr<cudf::scalar> get_max_integer_scalar(cudf::data_type type) {
+	if(type.id() == cudf::type_id::INT8) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int8_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(SCHAR_MAX));
+		return ret;
+	}
+	if(type.id() == cudf::type_id::INT16) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int16_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(SHRT_MAX));
+		return ret;
+	}
+	if(type.id() == cudf::type_id::INT32) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int32_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(INT_MAX));
+		return ret;
+	}
+	if(type.id() == cudf::type_id::INT64) {
+		auto ret = cudf::make_numeric_scalar(type);
+		using T = int64_t;
+		using ScalarType = cudf::scalar_type_t<T>;
+		static_cast<ScalarType *>(ret.get())->set_value(static_cast<T>(LONG_MAX));
+		return ret;
+	}
+	assert(false);
+}
+
 
 std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, cudf::data_type type) {
 	if (is_null(scalar_string)) {

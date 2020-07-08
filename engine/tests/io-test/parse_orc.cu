@@ -5,13 +5,13 @@
 
 #include <cudf/cudf.h>
 #include <cudf/types.hpp>
-#include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <tests/utilities/base_fixture.hpp>
 #include <cudf/table/table_view.hpp>
-#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
+#include <tests/utilities/column_utilities.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
-#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
-#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-#include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
+#include <tests/utilities/type_lists.hpp>
+#include <tests/utilities/column_wrapper.hpp>
+#include <tests/utilities/table_utilities.hpp>
 #include <vector>
 #include <execution_graph/logic_controllers/LogicalFilter.h>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include <cudf/io/functions.hpp>
+#include "tests/BlazingUnitTest.h"
 
 using blazingdb::manager::Context;
 using Node = blazingdb::transport::Node;
@@ -28,7 +29,7 @@ using namespace ral::frame;
 using namespace ral::processor;
 
 template <typename T>
-struct OrcTest : public cudf::test::BaseFixture {};
+struct OrcTest : public BlazingUnitTest {};
 
 // To get the current directory
 std::string GetCurrentWorkingDir( void ) {
@@ -70,7 +71,9 @@ TYPED_TEST(OrcTest, multipleColumns)
     loader.get_schema(schema, {});
     
     Context queryContext{0, std::vector<std::shared_ptr<Node>>(), std::shared_ptr<Node>(), ""};
-    std::unique_ptr<BlazingTable> orc_table = loader.load_data(&queryContext, {}, schema);
+    auto handle = provider->get_next();
+    std::vector<cudf::size_type> row_group_ids;
+    std::unique_ptr<BlazingTable> orc_table = loader.load_batch(&queryContext, {}, schema, handle, 0, row_group_ids);
 
     // Here we are creating the expected output
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{0, 1, 2, 3, 4}, {1, 1, 1, 1, 1}};
