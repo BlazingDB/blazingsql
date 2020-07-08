@@ -96,10 +96,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 order by
                     revenue desc, o.o_orderdate"""          
             # TODO kharoly william percy this test was commented because was insatiable but should pass 
-            if fileSchemaType == DataType.ORC:
-               runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
-            else:
-               runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # if fileSchemaType == DataType.ORC:
+            #    runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # else:
+            #    runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
                 
 
             queryId = 'TEST_04'
@@ -122,7 +122,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     o_orderpriority 
                 order by 
                     o_orderpriority"""           
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
             queryId = 'TEST_05'
             
@@ -187,9 +187,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 order by 
                     supp_nation, cust_nation, l_year
                     """            
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
-            queryId = 'TEST_08'
+            queryId = 'TEST-08' #
             
             query = """ select 
                     o_year, sum(case when nationl = 'BRAZIL' then volume else 0 end) / sum(volume) as mkt_share
@@ -238,7 +238,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     nationl, o_year 
                 order by 
                     nationl, o_year desc"""           
-            runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # runTest.run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
             queryId = 'TEST_10'
             
@@ -304,7 +304,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 group by l.l_shipmode
                 order by l.l_shipmode"""          
             #if fileSchemaType != DataType.ORC: # TODO CRASH percy kharoly c.cordova rommel we should fix this
-            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
                     
 
             queryId = 'TEST_13'
