@@ -59,7 +59,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     l_returnflag,
                     l_linestatus
             """
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
 
 
             queryId = 'TEST_02'
