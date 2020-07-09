@@ -51,7 +51,7 @@ ctypedef table_view CudfTableView
 ctypedef table CudfTable
 
 
-cdef extern from "../include/io/io.h":
+cdef extern from "../include/io/io.h" nogil:
     cdef struct ResultSet:
         unique_ptr[table] cudfTable
         vector[string]  names
@@ -119,8 +119,8 @@ cdef extern from "../include/io/io.h":
     pair[bool, string] registerFileSystemGCS( GCS gcs, string root, string authority) except +raiseRegisterFileSystemGCSError
     pair[bool, string] registerFileSystemS3( S3 s3, string root, string authority) except +raiseRegisterFileSystemS3Error
     pair[bool, string] registerFileSystemLocal(  string root, string authority) except +raiseRegisterFileSystemLocalError
-    TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,type_id]] types, bool ignore_missing_paths) nogil except +raiseParseSchemaError
-    unique_ptr[ResultSet] parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) nogil except +raiseParseSchemaError
+    TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,type_id]] types, bool ignore_missing_paths) except +raiseParseSchemaError
+    unique_ptr[ResultSet] parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) except +raiseParseSchemaError
 
 cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
         cdef cppclass BlazingTable:
@@ -146,26 +146,26 @@ cdef extern from * namespace "blazing":
         """
         cdef T blaz_move[T](T) nogil
 
-cdef extern from "../include/engine/engine.h":
+cdef extern from "../include/engine/engine.h" nogil:
 
-        unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) nogil except +raiseRunQueryError
+        unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raiseRunQueryError
 
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
-        unique_ptr[PartitionedResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) nogil except +raiseRunQueryError
-        unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) nogil except +raiseRunSkipDataError
+        unique_ptr[PartitionedResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +raiseRunQueryError
+        unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunSkipDataError
 
         cdef struct TableScanInfo:
             vector[string] relational_algebra_steps
             vector[string] table_names
             vector[vector[int]] table_columns
-        TableScanInfo getTableScanInfo(string logicalPlan) nogil
+        TableScanInfo getTableScanInfo(string logicalPlan)
 
-cdef extern from "../include/engine/initialize.h":
-    cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) nogil except +raiseInitializeError
-    cdef void finalize() nogil except +raiseFinalizeError
-    cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except +raiseBlazingSetAllocatorError
+cdef extern from "../include/engine/initialize.h" nogil:
+    cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +raiseInitializeError
+    cdef void finalize() except +raiseFinalizeError
+    cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) except +raiseBlazingSetAllocatorError
 
-cdef extern from "../include/engine/static.h":
-    cdef map[string,string] getProductDetails() nogil except +raiseGetProductDetailsError
+cdef extern from "../include/engine/static.h" nogil:
+    cdef map[string,string] getProductDetails() except +raiseGetProductDetailsError
