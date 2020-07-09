@@ -8,7 +8,6 @@
 #include "../io/data_provider/UriDataProvider.h"
 
 #include "utilities/CommonOperations.h"
-#include "utilities/DebuggingUtils.h"
 
 #include <blazingdb/io/Config/BlazingContext.h>
 

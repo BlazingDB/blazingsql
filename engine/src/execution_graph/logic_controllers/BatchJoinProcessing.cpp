@@ -89,7 +89,9 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 	tree.build(condition);
 
 	std::string new_join_statement_expression, filter_statement_expression;
-	assert(tree.root().type == ral::parser::node_type::OPERATOR);
+	assert(tree.root().type == ral::parser::node_type::OPERATOR or
+		tree.root().type == ral::parser::node_type::LITERAL); // condition=[true] (for cross join)
+
 	if (tree.root().value == "=") {
 		// this would be a regular single equality join
 		new_join_statement_expression = condition;  // the join_out is the same as the original input
@@ -154,7 +156,10 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 		} else {
 			RAL_FAIL("Join condition is currently not supported");
 		}
-	} else {
+	} else if (tree.root().value == "true") { // cross join case
+		new_join_statement_expression = "true";
+	}
+	 else {
 		RAL_FAIL("Join condition is currently not supported");
 	}
 

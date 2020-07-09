@@ -119,7 +119,7 @@ protected:
 /// \brief A specific class for a CacheData on Disk Memory
 class CacheDataLocalFile : public CacheData {
 public:
-	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table);
+	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path);
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override;
 
@@ -129,7 +129,6 @@ public:
 
 private:
 	std::string filePath_;
-	// ideally would be a writeable file
 };
 
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
@@ -180,7 +179,6 @@ public:
 	void put(message_ptr item) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		putWaitingQueue(std::move(item));
-		lock.unlock();
 		condition_variable_.notify_all();
 	}
 
@@ -193,8 +191,6 @@ public:
 	bool is_finished() {
 		return this->finished.load(std::memory_order_seq_cst);
 	}
-
-	bool empty() const { return this->message_queue_.size() == 0; }
 
 	message_ptr pop_or_wait() {		
 		CodeTimer blazing_timer;
@@ -280,7 +276,7 @@ public:
 			return nullptr;
 		}
 		while (true){
-			auto data = this->pop();
+			auto data = this->pop_unsafe();
 			if (data->get_message_id() == message_id){
 				return std::move(data);
 			} else {
@@ -289,7 +285,7 @@ public:
 		}
 	}
 
-	message_ptr pop() {
+	message_ptr pop_unsafe() {
 		auto data = std::move(this->message_queue_.front());
 		this->message_queue_.pop_front();
 		return std::move(data);
@@ -308,15 +304,35 @@ public:
 				}
 				return done_waiting;
 			})){}
-		std::vector<message_ptr> response;
-		for(message_ptr & it : message_queue_) {
-			response.emplace_back(std::move(it));
-		}
-		message_queue_.erase(message_queue_.begin(), message_queue_.end());
-		return response;
+		return get_all_unsafe();
 	}
 
+	std::unique_lock<std::mutex> lock(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		return std::move(lock);
+	}
+
+	std::vector<message_ptr> get_all_unsafe() {
+		std::vector<message_ptr> messages;
+		for(message_ptr & it : message_queue_) {
+			messages.emplace_back(std::move(it));
+		}
+		message_queue_.clear();
+		return messages;
+	}
+
+	void put_all_unsafe(std::vector<message_ptr> messages) {
+		for(size_t i = 0; i < messages.size(); i++) {
+			putWaitingQueue(std::move(messages[i]));
+		}		
+	}
+
+
 private:
+	bool empty() { 
+		return this->message_queue_.size() == 0; 
+	}
+	
 	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
 
 private:
@@ -372,11 +388,17 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
+
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
 	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
 	
 	virtual void wait_if_cache_is_saturated();
+
+	// take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
+	// this function does not change the order of the caches
+	virtual size_t downgradeCacheData();
 
 
 protected:
@@ -507,11 +529,23 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+
+	std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache() override {
+		return pullFromCache();
+	}
+
+	size_t downgradeCacheData() override { // dont want to be able to downgrage concatenating caches
+		return 0;
+	}
+
+  private:
+	bool concat_all;
+
 };
 
 }  // namespace cache

@@ -5,18 +5,19 @@
 
 #include <cudf/cudf.h>
 #include <cudf/types.hpp>
-#include <from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <tests/utilities/base_fixture.hpp>
 #include <cudf/table/table_view.hpp>
-#include <from_cudf/cpp_tests/utilities/column_utilities.hpp>
+#include <tests/utilities/column_utilities.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
-#include <from_cudf/cpp_tests/utilities/type_lists.hpp>
-#include <from_cudf/cpp_tests/utilities/column_wrapper.hpp>
-#include <from_cudf/cpp_tests/utilities/table_utilities.hpp>
+#include <tests/utilities/type_lists.hpp>
+#include <tests/utilities/column_wrapper.hpp>
+#include <tests/utilities/table_utilities.hpp>
 #include <vector>
 #include <execution_graph/logic_controllers/LogicalFilter.h>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 #include <cudf/io/functions.hpp>
+#include "tests/BlazingUnitTest.h"
 
 
 using namespace ral::frame;
@@ -27,7 +28,7 @@ using Node = blazingdb::transport::Node;
 
 
 template <typename T>
-struct GDFTest : public cudf::test::BaseFixture {};
+struct GDFTest : public BlazingUnitTest {};
 
 // TYPED_TEST_CASE will run only a type: int16_t
 TYPED_TEST_CASE(GDFTest, cudf::test::NumericTypes);

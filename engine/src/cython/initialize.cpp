@@ -112,8 +112,8 @@ void initialize(int ralId,
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
  	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
-	assert( config_options.find("BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD") != config_options.end() );
-	float host_memory_quota = std::stof(config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
+	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
+	float host_memory_quota = std::stof(config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD"]);
 
 	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
@@ -230,25 +230,15 @@ void finalize() {
 
 
 void blazingSetAllocator(
-	int allocation_mode,
+	std::string allocation_mode,
 	std::size_t initial_pool_size,
-	std::vector<int> devices,
-	bool enable_logging,
 	std::map<std::string, std::string> config_options) {
 
-	rmmOptions_t rmmValues;
-	rmmValues.allocation_mode = static_cast<rmmAllocationMode_t>(allocation_mode);
-	rmmValues.initial_pool_size = initial_pool_size;
-	rmmValues.enable_logging = enable_logging;
-
-	for (size_t i = 0; i < devices.size(); ++i)
-		rmmValues.devices.push_back(devices[i]);
-
 	float device_mem_resouce_consumption_thresh = 0.95;
-	auto it = config_options.find("BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD");
+	auto it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
 	if (it != config_options.end()){
-		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
+		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
 	}
 
-	BlazingRMMInitialize(&rmmValues, device_mem_resouce_consumption_thresh);
+	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
 }

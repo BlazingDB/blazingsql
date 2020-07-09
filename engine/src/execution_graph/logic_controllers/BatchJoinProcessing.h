@@ -27,6 +27,7 @@ const std::string INNER_JOIN = "inner";
 const std::string LEFT_JOIN = "left";
 const std::string RIGHT_JOIN = "right";
 const std::string OUTER_JOIN = "full";
+const std::string CROSS_JOIN = "cross";
 
 struct TableSchema {
 	std::vector<cudf::data_type> column_types;
@@ -74,7 +75,7 @@ public:
 	std::unique_ptr<TableSchema> left_schema{nullptr};
  	std::unique_ptr<TableSchema> right_schema{nullptr};
 
-	std::unique_ptr<ral::frame::BlazingTable> load_set(BatchSequence & input, bool load_all){
+	std::unique_ptr<ral::frame::BlazingTable> load_set(BatchSequence & input, std::shared_ptr<ral::cache::CacheMachine> cache, bool load_all){
 		std::size_t bytes_loaded = 0;
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_loaded;
 		if (input.wait_for_next()){
@@ -92,9 +93,18 @@ public:
 
 		while ((input.wait_for_next() && bytes_loaded < join_partition_size_theshold) ||
 					(load_all && input.wait_for_next())) {
-			tables_loaded.emplace_back(input.next());
+			tables_loaded.emplace_back(std::move(input.next()));
 			bytes_loaded += tables_loaded.back()->sizeInBytes();
+
+			//If the concatenation so far produces a string overflow, we put back the batch because in this case the order of the elements does not matter
+			if(!load_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_loaded)){
+				bytes_loaded -= tables_loaded.back()->sizeInBytes();
+				cache->addToCache(std::move(tables_loaded.back()));
+				tables_loaded.pop_back();				
+				break;
+			}
 		}
+
 		if (tables_loaded.size() == 0){
 			return nullptr;
 		} else if (tables_loaded.size() == 1){
@@ -104,6 +114,16 @@ public:
 			for (std::size_t i = 0; i < tables_loaded.size(); i++){
 				tables_to_concat[i] = tables_loaded[i]->toBlazingTableView();
 			}
+
+			// if we were supposed to load all and strings will overflow, lets at least provide a warning
+			if (load_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_to_concat)){
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In PartwiseJoin::load_set Concatenating Strings will overflow strings length");			
+			}
+
 			return ral::utilities::concatTables(tables_to_concat);
 		}
 	}
@@ -114,7 +134,7 @@ public:
 		this->max_left_ind++;
 		// need to load all the left side, only if doing a FULL OUTER JOIN
 		bool load_all = this->join_type == OUTER_JOIN ?  true : false;
-		auto table = load_set(this->left_sequence, load_all);
+		auto table = load_set(this->left_sequence, this->input_.get_cache("input_a"), load_all);
 		if (not left_schema && table != nullptr) {
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -128,7 +148,7 @@ public:
 		this->max_right_ind++;
 		// need to load all the right side, if doing any type of outer join
 		bool load_all = this->join_type != INNER_JOIN ?  true : false;
-		auto table = load_set(this->right_sequence, load_all);
+		auto table = load_set(this->right_sequence, this->input_.get_cache("input_b"), load_all);
 		if (not right_schema && table != nullptr) {
 			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -193,7 +213,7 @@ public:
 	}
 
   // this function makes sure that the columns being joined are of the same type so that we can join them properly
-	void computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const	std::vector<cudf::data_type> & right_types){
+	void computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types){
 		std::vector<cudf::data_type> left_join_types, right_join_types;
 		for (size_t i = 0; i < this->left_column_indices.size(); i++){
 			left_join_types.push_back(left_types[this->left_column_indices[i]]);
@@ -207,67 +227,86 @@ public:
 													right_join_types.cbegin(), right_join_types.cend());
 	}
 
-	std::unique_ptr<ral::frame::BlazingTable> join_set(const ral::frame::BlazingTableView & table_left, const ral::frame::BlazingTableView & table_right){
+	std::unique_ptr<ral::frame::BlazingTable> join_set(
+		const ral::frame::BlazingTableView & table_left,
+		const ral::frame::BlazingTableView & table_right)
+	{
 		std::unique_ptr<CudfTable> result_table;
 		std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
-		if(this->join_type == INNER_JOIN) {
-			//Removing nulls on key columns before joining
-			std::unique_ptr<CudfTable> table_left_dropna;
-			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
-			if(has_nulls_left){
-				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
-			}
-			if(has_nulls_right){
-				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
-			}
 
-			result_table = cudf::inner_join(
-				has_nulls_left ? table_left_dropna->view() : table_left.view(),
-				has_nulls_right ? table_right_dropna->view() : table_right.view(),
-				this->left_column_indices,
-				this->right_column_indices,
-				columns_in_common);
-		} else if(this->join_type == LEFT_JOIN) {
-			//Removing nulls on right key columns before joining
-			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
-			if(has_nulls_right){
-				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
-			}
-
-			result_table = cudf::left_join(
+		if (this->join_type == CROSS_JOIN) {
+			result_table = cudf::cross_join(
 				table_left.view(),
-				has_nulls_right ? table_right_dropna->view() : table_right.view(),
-				this->left_column_indices,
-				this->right_column_indices,
-				columns_in_common);
-		} else if(this->join_type == OUTER_JOIN) {
-			result_table = cudf::full_join(
-				table_left.view(),
-				table_right.view(),
-				this->left_column_indices,
-				this->right_column_indices,
-				columns_in_common);
+				table_right.view());
 		} else {
-			RAL_FAIL("Unsupported join operator");
+			if(this->join_type == INNER_JOIN) {
+				//Removing nulls on key columns before joining
+				std::unique_ptr<CudfTable> table_left_dropna;
+				std::unique_ptr<CudfTable> table_right_dropna;
+				bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
+				bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
+				if(has_nulls_left){
+					table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
+				}
+				if(has_nulls_right){
+					table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
+				}
+				
+				result_table = cudf::inner_join(
+					has_nulls_left ? table_left_dropna->view() : table_left.view(),
+					has_nulls_right ? table_right_dropna->view() : table_right.view(),
+					this->left_column_indices,
+					this->right_column_indices,
+					columns_in_common);
+				
+			} else if(this->join_type == LEFT_JOIN) {
+				//Removing nulls on right key columns before joining
+				std::unique_ptr<CudfTable> table_right_dropna;
+				bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
+				if(has_nulls_right){
+					table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
+				}
+
+				result_table = cudf::left_join(
+					table_left.view(),
+					has_nulls_right ? table_right_dropna->view() : table_right.view(),
+					this->left_column_indices,
+					this->right_column_indices,
+					columns_in_common);
+			} else if(this->join_type == OUTER_JOIN) {
+				result_table = cudf::full_join(
+					table_left.view(),
+					table_right.view(),
+					this->left_column_indices,
+					this->right_column_indices,
+					columns_in_common);
+			} else {
+				RAL_FAIL("Unsupported join operator");
+			}
 		}
+		
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), this->result_names);
 	}
 
     virtual kstatus run() {
 		CodeTimer timer;
 
-		this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this);
-		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this);
+		bool ordered = false; 
+        this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this, ordered);
+		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this, ordered);
 
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;
 		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
 		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
+
+		// Getting the condition and type of join
 		std::string condition = get_named_expression(new_join_statement, "condition");
 		this->join_type = get_named_expression(new_join_statement, "joinType");
+
+		if (condition == "true") {
+			this->join_type = CROSS_JOIN;
+		}
 
 		std::unique_ptr<ral::frame::BlazingTable> left_batch = nullptr;
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = nullptr;
@@ -512,6 +551,12 @@ public:
 				auto batch_view = batch->view();
 				std::vector<CudfTableView> partitioned;
 				if (batch->num_rows() > 0) {
+					// When is cross_join. `column_indices` is equal to 0, so we need all `batch` columns to apply cudf::hash_partition correctly
+					if (column_indices.size() == 0) {
+						column_indices.resize(batch->num_columns());
+						std::iota(std::begin(column_indices), std::end(column_indices), 0);
+					}
+
 					std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
 
 					assert(hased_data_offsets.begin() != hased_data_offsets.end());
@@ -821,8 +866,9 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-		BatchSequence left_sequence(this->input_.get_cache("input_a"), this);
-		BatchSequence right_sequence(this->input_.get_cache("input_b"), this);
+		bool ordered = false;
+		BatchSequence left_sequence(this->input_.get_cache("input_a"), this, ordered);
+		BatchSequence right_sequence(this->input_.get_cache("input_b"), this, ordered);
 
 		// lets parse part of the expression here, because we need the joinType before we load
 		std::string new_join_statement, filter_statement;

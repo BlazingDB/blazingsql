@@ -4,6 +4,7 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+using namespace fmt::literals;
 
 #include <cudf/table/table_view.hpp>
 #include <cudf/join.hpp>
@@ -20,7 +21,6 @@
 #include "distribution/primitives.h"
 #include "communication/CommunicationData.h"
 #include "utilities/CommonOperations.h"
-#include "utilities/DebuggingUtils.h"
 #include "utilities/StringUtils.h"
 #include "error.hpp"
 
@@ -125,6 +125,13 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       }
     }
     assert(found_self_partition);
+
+    if( ral::utilities::checkIfConcatenatingStringsWillOverflow(partitions_to_concat) ) {
+      auto logger = spdlog::get("batch_logger");
+      logger->warn("|||{info}|||||",
+                  "info"_a="In process_distribution_table Concatenating will overflow strings length");
+    }
+
     return ral::utilities::concatTables(partitions_to_concat);
   }
 

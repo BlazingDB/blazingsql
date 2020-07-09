@@ -12,7 +12,7 @@ from libcpp cimport bool
 from pyarrow.lib cimport *
 
 from cudf import DataFrame
-
+from cudf._lib.cpp.types cimport type_id
 from cudf._lib.table cimport table
 
 from libc.stdint cimport (  # noqa: E211
@@ -34,10 +34,10 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseRunQueryError()
     cdef void raiseRunSkipDataError()
     cdef void raiseParseSchemaError()
-    cdef void raiseRegisterFileSystemHDFSError();
-    cdef void raiseRegisterFileSystemGCSError();
-    cdef void raiseRegisterFileSystemS3Error();
-    cdef void raiseRegisterFileSystemLocalError();
+    cdef void raiseRegisterFileSystemHDFSError()
+    cdef void raiseRegisterFileSystemGCSError()
+    cdef void raiseRegisterFileSystemS3Error()
+    cdef void raiseRegisterFileSystemLocalError()
 
 
 from cudf._lib.cpp.column cimport *
@@ -165,7 +165,7 @@ cdef extern from "../include/engine/engine.h":
 cdef extern from "../include/engine/initialize.h":
     cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
-    cdef void blazingSetAllocator(int allocation_mode, size_t initial_pool_size, vector[int] devices , bool enable_logging, map[string,string] config_options) except +raiseBlazingSetAllocatorError
+    cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) except +raiseBlazingSetAllocatorError
 
 cdef extern from "../include/engine/static.h":
     cdef map[string,string] getProductDetails() except +raiseGetProductDetailsError

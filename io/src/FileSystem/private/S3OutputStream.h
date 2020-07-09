@@ -21,8 +21,8 @@ public:
 	arrow::Status Close() override;
 	arrow::Status Write(const void * buffer, int64_t nbytes) override;
 	arrow::Status Flush() override;
-	arrow::Status Tell(int64_t * position) const override;
-
+    arrow::Result<int64_t> Tell() const override;
+    
 	bool closed() const override;
 
 private:

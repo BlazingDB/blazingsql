@@ -9,6 +9,21 @@
 #include "arrow/io/interfaces.h"
 #include "arrow/status.h"
 
+// BEGIN UGLY PATCH william jp c.gonzales if we don't do this we get a compile error: Mismatched major version (always before of the 1sr google header)
+#define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_STORAGE_VERSION_INFO_H 1
+
+#define STORAGE_CLIENT_VERSION_MAJOR 1
+#define STORAGE_CLIENT_VERSION_MINOR 14
+#define STORAGE_CLIENT_VERSION_PATCH 0
+
+#define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_INTERNAL_VERSION_INFO_H 1
+
+#define GOOGLE_CLOUD_CPP_VERSION_MAJOR 1
+#define GOOGLE_CLOUD_CPP_VERSION_MINOR 14
+#define GOOGLE_CLOUD_CPP_VERSION_PATCH 0
+
+// END UGLY PATCH
+
 #include "google/cloud/storage/client.h"
 
 namespace gcs = google::cloud::storage;
@@ -18,22 +33,22 @@ public:
 	GoogleCloudStorageReadableFile(std::shared_ptr<gcs::Client> gcsClient, std::string bucket, std::string key);
 	~GoogleCloudStorageReadableFile();
 
-	arrow::Status Close() override;
+    arrow::Status Close() override;
 
-	arrow::Status GetSize(int64_t * size) override;
+    arrow::Result<int64_t> GetSize() override;
 
-	arrow::Status Read(int64_t nbytes, int64_t * bytesRead, void * buffer) override;
+	arrow::Result<int64_t> Read(int64_t nbytes, void* out) override;
 
-	arrow::Status Read(int64_t nbytes, std::shared_ptr<arrow::Buffer> * out) override;
+	arrow::Result<std::shared_ptr<arrow::Buffer>> Read(int64_t nbytes) override;
 
-	arrow::Status ReadAt(int64_t position, int64_t nbytes, int64_t * bytes_read, void * buffer) override;
+	arrow::Result<int64_t> ReadAt(int64_t position, int64_t nbytes, void* out) override;
 
-	arrow::Status ReadAt(int64_t position, int64_t nbytes, std::shared_ptr<arrow::Buffer> * out) override;
+	arrow::Result<std::shared_ptr<arrow::Buffer>> ReadAt(int64_t position, int64_t nbytes) override;
 
 	bool supports_zero_copy() const override;
 
 	arrow::Status Seek(int64_t position) override;
-	arrow::Status Tell(int64_t * position) const override;
+	arrow::Result<int64_t> Tell() const override;
 
 	bool isValid() { return valid; }
 

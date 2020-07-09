@@ -7,6 +7,7 @@
 
 #include <memory.h>
 
+#include <arrow/io/api.h>
 #include <arrow/memory_pool.h>
 
 #include <FileSystem/private/GoogleCloudStorageReadableFile.h>
@@ -33,7 +34,7 @@ public:
 	arrow::Status write(const void * buffer, int64_t nbytes);
 	arrow::Status write(const void * buffer, int64_t nbytes, int64_t * bytes_written);
 	arrow::Status flush();
-	arrow::Status tell(int64_t * position) const;
+	arrow::Result<int64_t> tell() const;
 
 private:
 	std::shared_ptr<gcs::Client> gcsClient;
@@ -168,8 +169,8 @@ arrow::Status GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl
 	////	GoogleCloudStorageClient->CompleteMultipartUpload(uploadCompleteRequest);
 }
 
-arrow::Status GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl::tell(int64_t * position) const {
-	*position = written;
+arrow::Result<int64_t> GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl::tell() const {
+	return written;
 }
 
 // BEGIN GoogleCloudStorageOutputStream
@@ -188,7 +189,7 @@ arrow::Status GoogleCloudStorageOutputStream::Write(const void * buffer, int64_t
 
 arrow::Status GoogleCloudStorageOutputStream::Flush() { return this->impl_->flush(); }
 
-arrow::Status GoogleCloudStorageOutputStream::Tell(int64_t * position) const { return this->impl_->tell(position); }
+arrow::Result<int64_t> GoogleCloudStorageOutputStream::Tell() const { return this->impl_->tell(); }
 
 bool GoogleCloudStorageOutputStream::closed() const {
 	// Since every file interaction is a request, then the file is never really open. This function is necesary due to
