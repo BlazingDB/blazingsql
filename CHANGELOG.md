@@ -12,6 +12,7 @@
 - #802 Support for timestampadd and constant expressions evaluation by Calcite
 - #849 Added check for CUDF_HOME to allow build to use an existing prebuilt cudf source tree
 - #829 Python/Cython check code style
+- #826 Support cross join
 - #866 Added nogil statements for pure C functions in Cython
 
 ## Bug Fixes
