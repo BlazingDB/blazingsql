@@ -218,7 +218,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             # runTest.run_query(bc, drill, query, queryId, queryType, worder,
             #  '', acceptable_difference, use_percentage, fileSchemaType)
 
-            queryId = 'TEST-08'
+            queryId = 'TEST_08'
             query = """ select o_year, sum(case when nationl = 'BRAZIL' then
                          volume else 0 end) / sum(volume) as mkt_share
                     from (
