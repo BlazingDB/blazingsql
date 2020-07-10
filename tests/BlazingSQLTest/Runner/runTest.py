@@ -248,6 +248,7 @@ def get_codTest(test_name):
         "Concat": "CONCAT",
         "Count Distinct": "COUNTD",
         "Count without group by": "COUNTWOGRBY",
+        "Cross join": "CROSSJOIN",
         "Date": "DATE",
         "Dir": "DIR",
         "File System Google Storage": "FSGS",
