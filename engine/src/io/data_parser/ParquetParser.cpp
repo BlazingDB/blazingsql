@@ -45,7 +45,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		pq_args.row_group_list = row_groups;
+		pq_args.row_groups = std::vector<std::vector<cudf::size_type>>(1, row_groups);
 
 		auto result = cudf_io::read_parquet(pq_args);
 
@@ -73,7 +73,7 @@ void parquet_parser::parse_schema(
 
 	cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
 	pq_args.strings_to_categorical = false;
-	pq_args.row_group = 0;
+	pq_args.row_groups = std::vector<std::vector<cudf::size_type>>(1, std::vector<cudf::size_type>(1, 0));
 	pq_args.num_rows = 1;
 
 	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);
