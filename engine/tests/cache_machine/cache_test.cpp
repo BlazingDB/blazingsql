@@ -1,4 +1,7 @@
-
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <tests/utilities/base_fixture.hpp>
 #include <tests/utilities/column_wrapper.hpp>
@@ -8,6 +11,8 @@
 #include <src/utilities/DebuggingUtils.h>
 #include "../BlazingUnitTest.h"
 
+#include <tests/utilities/column_wrapper.hpp>
+
 using blazingdb::manager::Context;
 using blazingdb::transport::Address;
 using blazingdb::transport::Node;
@@ -16,17 +21,15 @@ struct CacheMachineTest : public BlazingUnitTest {};
 
 template<class TypeParam>
 std::unique_ptr<cudf::column> make_col(cudf::size_type size) {
-	thrust::device_vector<TypeParam> d_integers(size);
-	thrust::sequence( thrust::device, d_integers.begin(), d_integers.end());
-	cudf::mask_state state = cudf::mask_state::ALL_VALID;
-
-	auto integers = cudf::make_numeric_column(cudf::data_type{cudf::type_to_id<TypeParam>()}, size, state);
-	auto integers_view = integers->mutable_view();
-	cudaMemcpy( integers_view.data<TypeParam>(), d_integers.data().get(), size * sizeof(TypeParam), cudaMemcpyDeviceToDevice );
-	return integers;
+    auto sequence = cudf::test::make_counting_transform_iterator(0, [](auto i) { return TypeParam(i); });
+    std::vector<TypeParam> data(sequence, sequence + size);
+    cudf::test::fixed_width_column_wrapper<TypeParam> col(data.begin(), data.end());
+    return col.release();
 }
 
 std::unique_ptr<ral::frame::BlazingTable> build_custom_table() {
+    
+    
 	cudf::size_type size = 10;
 
 	auto num_column_1 = make_col<int32_t>(size);

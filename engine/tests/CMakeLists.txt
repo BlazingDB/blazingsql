@@ -86,12 +86,12 @@ enable_testing()
 # -------------------
 message(STATUS "******** Configuring tests ********")
 
-# add_subdirectory(cache_machine)
+add_subdirectory(cache_machine)
 add_subdirectory(logical-groupby)
 add_subdirectory(new-tests)
 add_subdirectory(parser)
 add_subdirectory(skipdata)
-# add_subdirectory(sort)
+add_subdirectory(sort)
 add_subdirectory(transport)
 
 

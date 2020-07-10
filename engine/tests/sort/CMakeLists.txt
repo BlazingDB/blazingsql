@@ -1,5 +1,5 @@
 set(source_files
-    sort.cu
+    sort.cpp
 )
 
 configure_test(sort-test "${source_files}")
