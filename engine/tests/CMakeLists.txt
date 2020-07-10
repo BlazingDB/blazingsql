@@ -55,9 +55,9 @@ function(configure_test TEST_NAME Tests_SRCS)
         google_cloud_cpp_common
         crc32c
 
-        libboost_filesystem.a
-        libboost_system.a
-        libboost_regex.a
+        libboost_filesystem.so
+        libboost_system.so
+        libboost_regex.so
 
         protobuf
 
