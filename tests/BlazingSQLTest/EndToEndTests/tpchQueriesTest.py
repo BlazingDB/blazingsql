@@ -889,23 +889,24 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             queryId = "TEST_16"
 
-            # WARNING: Join condition=[true] is currently not supported
+            # Edited:
+            # - implicit joins generated some condition=[true] on Blazingsql
+            # - added table aliases to avoid ambiguity on Drill
 
             query = """
                 select
-                    p_brand,
-                    p_type,
-                    p_size,
-                    count(distinct ps_suppkey) as supplier_cnt
+                    p.p_brand,
+                    p.p_type,
+                    p.p_size,
+                    count(distinct ps.ps_suppkey) as supplier_cnt
                 from
-                    partsupp,
-                    part
+                    partsupp ps
+                    inner join part p on p.p_partkey = ps.ps_partkey
                 where
-                    p_partkey = ps_partkey
-                    and p_brand <> 'Brand#45'
-                    and p_type not like 'MEDIUM POLISHED%'
-                    and p_size in (49, 14, 23, 45, 19, 3, 36, 9)
-                    and ps_suppkey not in (
+                    p.p_brand <> 'Brand#45'
+                    and p.p_type not like 'MEDIUM POLISHED%'
+                    and p.p_size in (49, 14, 23, 45, 19, 3, 36, 9)
+                    and ps.ps_suppkey not in (
                         select
                             s_suppkey
                         from
@@ -914,27 +915,27 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                             s_comment like '%Customer%Complaints%'
                     )
                 group by
-                    p_brand,
-                    p_type,
-                    p_size
+                    p.p_brand,
+                    p.p_type,
+                    p.p_size
                 order by
                     supplier_cnt desc,
-                    p_brand,
-                    p_type,
-                    p_size
+                    p.p_brand,
+                    p.p_type,
+                    p.p_size
             """
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     '',
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType
-            # )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                '',
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType
+            )
 
             queryId = "TEST_17"
 
