@@ -25,10 +25,8 @@ TYPED_TEST(SortTest, withoutNull) {
 
     using T = TypeParam;
 
-    blazing_frame input;
     std::vector<cudf::column_view> rawCols;
-    std::vector<gdf_column_cpp> sortedTable;
-
+    
     cudf::test::fixed_width_column_wrapper<T> col1{{4, 5, 3, 5, 8, 5, 6}, {1, 1, 1, 1, 1, 1, 1}};
     cudf::test::strings_column_wrapper col2({"b", "d", "a", "d", "l", "d", "k"}, {1, 1, 1, 1, 1, 1, 1});
     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
@@ -39,7 +37,7 @@ TYPED_TEST(SortTest, withoutNull) {
     ral::frame::BlazingTableView table(cudf_table_in_view, names);
 
     std::vector<int> sortColIndices{0,1};
-    std::vector<int8_t> sortOrderTypes{0, 0};
+    std::vector<cudf::order> sortOrderTypes{cudf::order::ASCENDING, cudf::order::ASCENDING};
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::operators::logicalSort(table, sortColIndices, sortOrderTypes);
 
@@ -60,19 +58,14 @@ TYPED_TEST(LimitTest, withoutNull) {
 
     using T = TypeParam;
 
-    blazing_frame input;
     std::vector<cudf::column_view> rawCols;
-    std::vector<gdf_column_cpp> sortedTable;
-
+    
     cudf::test::fixed_width_column_wrapper<T> col1{{5, 4, 3, 5, 8, 5, 6}, {1, 1, 1, 1, 1, 1, 1}};
     cudf::test::fixed_width_column_wrapper<T> col2{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
 
     CudfTableView cudf_table_in_view {{col1, col2}};
 
-    std::vector<std::string> names({"A", "B"});
-    ral::frame::BlazingTableView table(cudf_table_in_view, names);
-
-    std::unique_ptr<ral::frame::BlazingTable> table_out = ral::operators::logicalLimit(table, 5);
+    std::unique_ptr<cudf::table> table_out = ral::operators::logicalLimit(cudf_table_in_view, 5);
 
     cudf::test::fixed_width_column_wrapper<T> expect_col1{{5, 4, 3, 5, 8}};
     cudf::test::fixed_width_column_wrapper<T> expect_col2{{10, 40, 70, 5, 2}};

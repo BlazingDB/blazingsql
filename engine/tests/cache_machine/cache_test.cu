@@ -1,10 +1,10 @@
 
-#include "execution_graph/logic_controllers/LogicalProject.h"
-#include "execution_graph/logic_controllers/CacheMachine.h"
-#include <cudf/cudf.h>
+
 #include <tests/utilities/base_fixture.hpp>
 #include <tests/utilities/column_wrapper.hpp>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
+#include <src/execution_graph/logic_controllers/LogicalProject.h>
+#include <src/execution_graph/logic_controllers/CacheMachine.h>
 #include <src/utilities/DebuggingUtils.h>
 #include "../BlazingUnitTest.h"
 
@@ -12,10 +12,7 @@ using blazingdb::manager::Context;
 using blazingdb::transport::Address;
 using blazingdb::transport::Node;
 
-struct CacheMachineTest : public BlazingUnitTest {
-	CacheMachineTest() {}
-	~CacheMachineTest() {}
-};
+struct CacheMachineTest : public BlazingUnitTest {};
 
 template<class TypeParam>
 std::unique_ptr<cudf::column> make_col(cudf::size_type size) {
@@ -69,7 +66,13 @@ std::unique_ptr<ral::frame::BlazingTable>  build_custom_one_column_table() {
 }
 
 TEST_F(CacheMachineTest, CacheMachineTest) {
-	ral::cache::CacheMachine cacheMachine;
+	std::vector<Node> nodes;
+	Node master_node;
+	std::string logicalPlan;
+	std::map<std::string, std::string> config_options;
+
+	std::shared_ptr<Context> context = std::make_shared<Context>(0, nodes, master_node, logicalPlan, config_options);
+	ral::cache::CacheMachine cacheMachine(context);
 
 	for(int i = 0; i < 10; ++i) {
 		auto table = build_custom_table();

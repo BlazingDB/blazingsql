@@ -67,7 +67,8 @@ TEST_F(Batching, SimpleQuery) {
 		.table_names = {"nation"}
 	};
 	Print print;
-	std::shared_ptr<ral::cache::graph> graph = tree.build_batch_graph(json);
+	std::tuple<std::shared_ptr<ral::cache::graph>,std::size_t> graph_tuple = tree.build_batch_graph(json);
+	std::shared_ptr<ral::cache::graph> graph = std::get<0>(graph_tuple);
 	try {
 		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
 		*graph += link(graph->get_last_kernel(), print, simple_cache_config);
@@ -110,7 +111,8 @@ TEST_F(Batching, BindableQuery) {
 		.table_names = {"nation"}
 	};
 	Print print;
-	std::shared_ptr<ral::cache::graph> graph = tree.build_batch_graph(json);
+	std::tuple<std::shared_ptr<ral::cache::graph>,std::size_t> graph_tuple = tree.build_batch_graph(json);
+	std::shared_ptr<ral::cache::graph> graph = std::get<0>(graph_tuple);	
 	try {
 		ral::cache::cache_settings simple_cache_config{.type = ral::cache::CacheType::SIMPLE};
 		*graph += link(graph->get_last_kernel(), print, simple_cache_config);
@@ -135,14 +137,15 @@ TEST_F(Batching, SortSamplePartitionTest) {
 
 	ral::io::data_loader loader(parser, provider);
 
-	TableScan customer_generator("", loader, schema, queryContext, nullptr);
+	std::shared_ptr<ral::cache::graph> query_graph = std::make_shared<ral::cache::graph>();
+	TableScan customer_generator(0,"", loader, schema, queryContext, query_graph);
 
-	SortAndSampleKernel sort_and_sample("Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
-	PartitionSingleNodeKernel partition("LogicalPartition(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
-	MergeStreamKernel merge("LogicalMerge(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, nullptr);
+	SortAndSampleKernel sort_and_sample(1, "Logical_SortAndSample(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, query_graph);
+	PartitionSingleNodeKernel partition(2, "LogicalPartition(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, query_graph);
+	MergeStreamKernel merge(3, "LogicalMerge(sort0=[$1], sort1=[$0], dir0=[DESC], dir1=[ASC])", queryContext, query_graph);
 
-	Projection project("LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext, nullptr);
-	Filter filter("LogicalFilter(condition=[<($0, 100)])", queryContext, nullptr);
+	Projection project(4, "LogicalProject(c_custkey=[$0], c_nationkey=[$3])", queryContext, query_graph);
+	Filter filter(5, "LogicalFilter(condition=[<($0, 100)])", queryContext, query_graph);
 	Print print;
 	ral::cache::graph m;
 	try {
