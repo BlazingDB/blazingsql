@@ -344,6 +344,8 @@ target_link_libraries(blazingsql-engine
 
     gtest
     cudftestutil
+    
+    liborc.so
 )
 
 ###################################################################################################

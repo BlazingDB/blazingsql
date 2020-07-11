@@ -117,6 +117,7 @@ if hasArg clean; then
     if hasArg thirdparty; then
         rm -rf ${REPODIR}/thirdparty/cudf/
         rm -rf ${REPODIR}/thirdparty/aws-cpp/
+        rm -rf ${REPODIR}/thirdparty/orc/
     fi
 
     exit 0
@@ -181,6 +182,50 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
         fi
     else
         echo "thirdparty/aws-cpp/ is already installed in ${INSTALL_PREFIX}"
+    fi
+
+    if [ ! -d "${REPODIR}/thirdparty/orc/" ]; then
+        orc_release=1.6.3
+        orc_cmake_list_src=${REPODIR}/thirdparty/orc/orc-rel-release-$orc_release/c++/src/CMakeLists.txt
+        # NOTE we need to define these var so orc can find its dependencies in the conda env
+        # all these vars will be used inside the cmake process of orc
+        export SNAPPY_HOME=$INSTALL_PREFIX
+        export ZLIB_HOME=$INSTALL_PREFIX
+        export LZ4_HOME=$INSTALL_PREFIX
+        export PROTOBUF_HOME=$INSTALL_PREFIX
+        export ZSTD_HOME=$INSTALL_PREFIX
+        export GTEST_HOME=$INSTALL_PREFIX
+
+        cd ${REPODIR}/thirdparty/
+        mkdir -p orc
+        cd orc
+        wget https://github.com/apache/orc/archive/rel/release-$orc_release.tar.gz
+        tar xvf release-$orc_release.tar.gz
+        cd orc-rel-release-$orc_release
+
+        # NOTE patch and fix
+        # Patch the orc target and force to build a dynamic version for the orc lib
+        sed -i 's/STATIC/SHARED/g' $orc_cmake_list_src
+        # Fix FindZSTD.cmake file name
+        cd ${REPODIR}/thirdparty/orc/orc-rel-release-$orc_release/cmake_modules
+        ln -s FindZSTD.cmake Findzstd.cmake
+        # Force to use the dynamic lib libzstd.so instead of the static one
+        sed -i 's/zstd/libzstd.so/g' $orc_cmake_list_src
+        # Force to use the dynamic lib libsnappy.so instead of the static one
+        sed -i 's/snappy/libsnappy.so/g' $orc_cmake_list_src
+
+        # NOTE build & install
+        cd ${REPODIR}/thirdparty/orc/orc-rel-release-$orc_release/
+        mkdir -p build
+        cd build/
+        cmake -DCMAKE_PREFIX_PATH=$INSTALL_PREFIX \
+        -DBUILD_JAVA=OFF -DBUILD_CPP_TESTS=OFF -DINSTALL_VENDORED_LIBS=OFF \
+        -DBUILD_LIBHDFSPP=OFF -DBUILD_TOOLS=OFF -DZSTD_STATIC_LIB_NAME=zstd ..
+        make -j$PARALLEL_LEVEL package
+        tar xvf ORC-1.6.3-Linux.tar.gz
+        cp -rf ORC-1.6.3-Linux/* $INSTALL_PREFIX
+    else
+        echo "thirdparty/orc/ is already installed in ${INSTALL_PREFIX}"
     fi
 fi
 

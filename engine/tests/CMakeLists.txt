@@ -69,6 +69,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         libspdlog.a
         
         cudftestutil
+        liborc.so
     )
 
     set_target_properties(${TEST_NAME} PROPERTIES
