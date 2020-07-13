@@ -611,10 +611,7 @@ public:
 																									metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
 				metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
 				metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[nodes[i].id()]));
-				messages_to_wait_for.push_back(std::to_string(table_idx) + "partition_" +
-																			metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-																			metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-																			metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
+				messages_to_wait_for.push_back(metadata.get_values()[ral::cache::MESSAGE_ID]);
 
 				graph_output->addCacheData(
 						std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
@@ -836,6 +833,7 @@ std::cout<<"waiting left dist!"<<std::endl;
 		std::cout<<"distributed all left!"<<std::endl;
 		int total_count_left = node_count_left[self_node.id()];
 		for (auto message : messages_to_wait_for_left){
+			std::cout<<"Waiting for message"<<message<<std::endl;
 				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
 				total_count_left += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
@@ -869,13 +867,15 @@ std::cout<<"waiting left dist!"<<std::endl;
 		// 		this->add_to_output_cache(std::move(host_table), "output_b");
 		// 	}
 		// });
-		
+		std::cout<<"waiting for right"<<std::endl;
 		distribute_right_thread.join();
-
+		std::cout<<"distributed right"<<std::endl;
 		int total_count_right = node_count_right[self_node.id()];
 		for (auto message : messages_to_wait_for_right){
+						std::cout<<"Waiting for message right"<<message<<std::endl;
 				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
 				total_count_right += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
+				std::cout<<total_count_right<<" is total count right"<<std::endl;
 		}
 		this->output_.get_cache("output_b")->wait_for_count(total_count_right);
 		std::cout<<"got all right"<<std::endl;
@@ -1000,7 +1000,7 @@ std::cout<<"waiting left dist!"<<std::endl;
 		}
 		std::cout<<"waiting for count small table"<<std::endl;
 
-		this->output_cache()->wait_for_count(total_count);
+		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
 
 		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
 		BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name](){

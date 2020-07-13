@@ -37,7 +37,6 @@ public:
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 
-bc.create_table("test",["test.csv","test2.csv"])
 		BatchSequence input(this->input_.get_cache("input_a"), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
@@ -82,7 +81,6 @@ bc.create_table("test",["test.csv","test2.csv"])
 	}
 
 private:
-bc.create_table("test",["test.csv","test2.csv"])
 
 };
 

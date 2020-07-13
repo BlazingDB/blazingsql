@@ -288,7 +288,7 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
 			std::cout<<"message queue size is "<<this->processed<<std::endl;
-			return count == this->processed;
+			return count <= this->processed;
 		});
 
 
