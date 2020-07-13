@@ -15,6 +15,7 @@
 - #826 Support cross join
 - #866 Added nogil statements for pure C functions in Cython
 - #784 Updated set of TPCH queries on the E2E tests
+- #877 round robing dask workers on single gpu queries
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
