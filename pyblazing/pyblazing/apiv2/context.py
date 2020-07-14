@@ -695,15 +695,15 @@ def distributed_initialize_server_directory(client, dir_path):
     current_dir_hosts = client.gather(dask_futures)
 
     map_host_path = {}
-    for path, worker in zip(current_dir_hosts,
-                            [worker for worker, worker_info in all_items]):
+    for path, worker in zip(
+        current_dir_hosts, [worker for worker, worker_info in all_items]
+    ):
         map_host_path[path] = worker
 
     dask_futures = []
     for path, worker in map_host_path.items():
         dask_futures.append(
-            client.submit(initialize_server_directory,
-                          dir_path, i, workers=[worker])
+            client.submit(initialize_server_directory, dir_path, i, workers=[worker])
         )
         i = i + 1
 
@@ -2174,14 +2174,13 @@ class BlazingContext(object):
                     config_options[option]
                 ).encode()  # make sure all options are encoded strings
 
-        if self.dask_client is None or single_gpu is True :
+        if self.dask_client is None or single_gpu is True:
             table_names, table_scans = cio.getTableScanInfoCaller(algebra)
         else:
             worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
             connection = self.dask_client.submit(
-                cio.getTableScanInfoCaller,
-                algebra,
-                workers=[worker])
+                cio.getTableScanInfoCaller, algebra, workers=[worker]
+            )
             table_names, table_scans = connection.result()
 
         query_tables = [self.tables[table_name] for table_name in table_names]
