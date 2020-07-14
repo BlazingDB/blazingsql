@@ -694,7 +694,7 @@ def distributed_initialize_server_directory(client, dir_path):
 
     current_dir_hosts = client.gather(dask_futures)
 
-    map_host_path={}
+    map_host_path = {}
     for path, worker in zip(current_dir_hosts,
                             [worker for worker, worker_info in all_items]):
         map_host_path[path] = worker
@@ -703,7 +703,7 @@ def distributed_initialize_server_directory(client, dir_path):
     for path, worker in map_host_path.items():
         dask_futures.append(
             client.submit(initialize_server_directory,
-                            dir_path, i, workers=[worker])
+                          dir_path, i, workers=[worker])
         )
         i = i + 1
 
@@ -724,8 +724,10 @@ def initialize_server_directory(dir_path, idx=0):
     else:
         return False
 
+
 def get_current_directory_path(idx=0):
     return os.getcwd()
+
 
 # Delete all generated (older than 1 hour) orc files
 def remove_orc_files_from_disk(data_dir):
@@ -2235,7 +2237,7 @@ class BlazingContext(object):
         accessToken = 0
 
         algebra = get_plan(algebra)
-        
+
         if self.dask_client is None:
             try:
                 result = cio.runQueryCaller(
