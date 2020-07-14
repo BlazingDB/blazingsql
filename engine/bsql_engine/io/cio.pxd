@@ -53,7 +53,7 @@ ctypedef table_view CudfTableView
 ctypedef table CudfTable
 
 
-cdef extern from "../include/io/io.h":
+cdef extern from "../include/io/io.h" nogil:
     cdef struct ResultSet:
         unique_ptr[table] cudfTable
         vector[string]  names
@@ -178,9 +178,10 @@ cdef extern from * namespace "blazing":
         }
         """
         cdef T blaz_move[T](T) nogil
+
         cdef unique_ptr[CacheData] blaz_move2(unique_ptr[GPUCacheDataMetaData])
 
-cdef extern from "../include/engine/engine.h":
+cdef extern from "../include/engine/engine.h" nogil:
 
         unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raisePerformPartitionError
 
@@ -203,5 +204,5 @@ cdef extern from "../include/engine/initialize.h":
     cdef void finalize() except +raiseFinalizeError
     cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) except +raiseBlazingSetAllocatorError
 
-cdef extern from "../include/engine/static.h":
+cdef extern from "../include/engine/static.h" nogil:
     cdef map[string,string] getProductDetails() except +raiseGetProductDetailsError

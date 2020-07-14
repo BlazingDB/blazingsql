@@ -205,6 +205,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 	static std::map<std::string, operator_type> OPERATOR_MAP = {
 		// Unary operators
 		{"NOT", operator_type::BLZ_NOT},
+		{"IS NOT TRUE", operator_type::BLZ_NOT},
 		{"SIN", operator_type::BLZ_SIN},
 		{"ASIN", operator_type::BLZ_ASIN},
 		{"COS", operator_type::BLZ_COS},

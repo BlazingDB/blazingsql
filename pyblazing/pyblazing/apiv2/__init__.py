@@ -1,5 +1,6 @@
 from enum import IntEnum, unique
 
+
 # NOTE Same values from ral (bsqlengine) DataType (DataType.h and cio.pdx)
 @unique
 class DataType(IntEnum):
@@ -11,6 +12,7 @@ class DataType(IntEnum):
     CUDF = 4,
     DASK_CUDF = 5
     ARROW = 6
+
 
 # NOTE Same values from io
 @unique
