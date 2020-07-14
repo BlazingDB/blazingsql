@@ -1044,6 +1044,7 @@ class BlazingContext(object):
         command ifconfig. The default is set to 'eth0'.
         """
 
+        self.single_gpu_idx = 0
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.dask_client = dask_client
@@ -2218,7 +2219,7 @@ class BlazingContext(object):
         accessToken = 0
 
         algebra = get_plan(algebra)
-
+        
         if self.dask_client is None:
             try:
                 result = cio.runQueryCaller(
@@ -2244,6 +2245,10 @@ class BlazingContext(object):
                 # the following is wrapped in an array because
                 # .sql expects to return
                 # an array of dask_futures or a df, this makes it consistent
+                worker = self.nodes[self.single_gpu_idx]["worker"]
+                self.single_gpu_idx = self.single_gpu_idx + 1
+                if self.single_gpu_idx >= len(self.nodes):
+                    self.single_gpu_idx = 0
                 dask_futures = [
                     self.dask_client.submit(
                         collectPartitionsRunQuery,
