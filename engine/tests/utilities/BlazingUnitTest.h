@@ -1,7 +1,7 @@
 #pragma once
 
 #include <bmr/initializer.h>
-#include <gtest/gtest.h>
+#include "tests/utilities/cudf_gtest.hpp"
 
 
 struct BlazingUnitTest : public ::testing::Test {

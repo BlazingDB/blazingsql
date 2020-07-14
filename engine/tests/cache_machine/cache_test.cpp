@@ -1,6 +1,6 @@
+#include <spdlog/spdlog.h>
 #include "tests/utilities/BlazingUnitTest.h"
 
-#include <tests/utilities/column_wrapper.hpp>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include <src/execution_graph/logic_controllers/LogicalProject.h>
 #include <src/execution_graph/logic_controllers/CacheMachine.h>
