@@ -21,7 +21,7 @@ conda_env_inc = os.path.join(conda_env_dir, "include")
 conda_env_inc_cudf = os.path.join(conda_env_inc, "cudf")
 conda_env_inc_cub = os.path.join(conda_env_inc, "bsql-rapids-thirdparty/cub")
 conda_env_inc_libcudacxx = os.path.join(
-    conda_env_inc, "bsql-rapids-thirdparty/libcudacxx/include"
+    conda_env_inc, "libcudf/libcudacxx"
 )
 
 # TODO percy c.gonzales fix blazingdb-io headers

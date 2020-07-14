@@ -951,7 +951,7 @@ class BlazingContext(object):
         self,
         dask_client=None,
         network_interface=None,
-        allocator="managed",
+        allocator="default",
         pool=False,
         initial_pool_size=None,
         config_options={},
