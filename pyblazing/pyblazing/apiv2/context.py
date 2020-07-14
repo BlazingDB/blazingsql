@@ -252,6 +252,7 @@ def collectPartitionsRunQuery(
         )
     except cio.RunQueryError as e:
         print(">>>>>>>> ", e)
+        raise e
     except Exception as e:
         raise e
 
