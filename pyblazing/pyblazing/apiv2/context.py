@@ -681,11 +681,12 @@ def adjust_due_missing_rowgroups(metadata, files):
 def distributed_initialize_server_directory(client, dir_path):
 
     # lets make host_list which is a list of all the unique hosts.
-    # This way we do the logging folder creation only once per host (server)
+    # this way we do the logging folder creation only once per host (server)
+    # or for each worker whenever run from different directories
     all_items = client.scheduler_info()["workers"].items()
 
     dask_futures = []
-    i = 0
+    i = 0  # this extra index is to avoid scheduler optimization
     for worker, worker_info in all_items:
         dask_futures.append(
             client.submit(get_current_directory_path, i, workers=[worker])
@@ -694,6 +695,8 @@ def distributed_initialize_server_directory(client, dir_path):
 
     current_dir_hosts = client.gather(dask_futures)
 
+    # lets map the working directories shared by several workers,
+    # in such a way that only one worker will create the logging folder
     map_host_path = {}
     for path, worker in zip(
         current_dir_hosts, [worker for worker, worker_info in all_items]
