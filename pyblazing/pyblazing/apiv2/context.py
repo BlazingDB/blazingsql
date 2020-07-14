@@ -707,7 +707,7 @@ def adjust_due_missing_rowgroups(metadata, files):
 
 
 def distributed_initialize_server_directory(client, dir_path):
-
+    
     # lets make host_list which is a list of all the unique hosts.
     # This way we do the logging folder creation only once per host (server)
     all_items = client.scheduler_info()["workers"].items()
@@ -729,20 +729,22 @@ def distributed_initialize_server_directory(client, dir_path):
     for connection in dask_futures:
         made_dir = connection.result()
         if not made_dir:
-            print("WARNING: Count not make directory")
-            logging.warning("WARNING: Count not make directory")
-            client.submit(initialize_server_directory, dir_path, workers=[worker])
-            initialized[worker_info["host"]] = True
-
+            print("WARNING: Could not make directory")
+ 
 
 
 
 def initialize_server_directory(dir_path):
+    print(dir_path)
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
-        return True
+        if os.path.exists(dir_path):
+            return True
+        else:
+            return False
     else:
-        return False
+        return True
+    
 
 
 # Delete all generated (older than 1 hour) orc files
