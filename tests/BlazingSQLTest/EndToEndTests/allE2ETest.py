@@ -29,6 +29,7 @@ from EndToEndTests import (
 from EndToEndTests import fullOuterJoinsTest as fullOuterJoinsTest
 from EndToEndTests import groupByTest as groupByTest
 from EndToEndTests import innerJoinsTest as innerJoinsTest
+from EndToEndTests import crossJoinsTest as crossJoinsTest
 from EndToEndTests import leftOuterJoinsTest as leftOuterJoinsTest
 from EndToEndTests import (
     likeTest,
@@ -140,6 +141,9 @@ def main():
 
     if runAllTests or ("innerJoinsTest" in targetTestGroups):
         innerJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("crossJoinsTest" in targetTestGroups):
+        crossJoinsTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("" in targetTestGroups):
         leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)

@@ -27,6 +27,7 @@ const std::string INNER_JOIN = "inner";
 const std::string LEFT_JOIN = "left";
 const std::string RIGHT_JOIN = "right";
 const std::string OUTER_JOIN = "full";
+const std::string CROSS_JOIN = "cross";
 
 struct TableSchema {
 	std::vector<cudf::data_type> column_types;
@@ -212,7 +213,7 @@ public:
 	}
 
   // this function makes sure that the columns being joined are of the same type so that we can join them properly
-	void computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const	std::vector<cudf::data_type> & right_types){
+	void computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types){
 		std::vector<cudf::data_type> left_join_types, right_join_types;
 		for (size_t i = 0; i < this->left_column_indices.size(); i++){
 			left_join_types.push_back(left_types[this->left_column_indices[i]]);
@@ -226,52 +227,64 @@ public:
 													right_join_types.cbegin(), right_join_types.cend());
 	}
 
-	std::unique_ptr<ral::frame::BlazingTable> join_set(const ral::frame::BlazingTableView & table_left, const ral::frame::BlazingTableView & table_right){
+	std::unique_ptr<ral::frame::BlazingTable> join_set(
+		const ral::frame::BlazingTableView & table_left,
+		const ral::frame::BlazingTableView & table_right)
+	{
 		std::unique_ptr<CudfTable> result_table;
 		std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
-		if(this->join_type == INNER_JOIN) {
-			//Removing nulls on key columns before joining
-			std::unique_ptr<CudfTable> table_left_dropna;
-			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
-			if(has_nulls_left){
-				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
-			}
-			if(has_nulls_right){
-				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
-			}
 
-			result_table = cudf::inner_join(
-				has_nulls_left ? table_left_dropna->view() : table_left.view(),
-				has_nulls_right ? table_right_dropna->view() : table_right.view(),
-				this->left_column_indices,
-				this->right_column_indices,
-				columns_in_common);
-		} else if(this->join_type == LEFT_JOIN) {
-			//Removing nulls on right key columns before joining
-			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
-			if(has_nulls_right){
-				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
-			}
-
-			result_table = cudf::left_join(
+		if (this->join_type == CROSS_JOIN) {
+			result_table = cudf::cross_join(
 				table_left.view(),
-				has_nulls_right ? table_right_dropna->view() : table_right.view(),
-				this->left_column_indices,
-				this->right_column_indices,
-				columns_in_common);
-		} else if(this->join_type == OUTER_JOIN) {
-			result_table = cudf::full_join(
-				table_left.view(),
-				table_right.view(),
-				this->left_column_indices,
-				this->right_column_indices,
-				columns_in_common);
+				table_right.view());
 		} else {
-			RAL_FAIL("Unsupported join operator");
+			if(this->join_type == INNER_JOIN) {
+				//Removing nulls on key columns before joining
+				std::unique_ptr<CudfTable> table_left_dropna;
+				std::unique_ptr<CudfTable> table_right_dropna;
+				bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
+				bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
+				if(has_nulls_left){
+					table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
+				}
+				if(has_nulls_right){
+					table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
+				}
+				
+				result_table = cudf::inner_join(
+					has_nulls_left ? table_left_dropna->view() : table_left.view(),
+					has_nulls_right ? table_right_dropna->view() : table_right.view(),
+					this->left_column_indices,
+					this->right_column_indices,
+					columns_in_common);
+				
+			} else if(this->join_type == LEFT_JOIN) {
+				//Removing nulls on right key columns before joining
+				std::unique_ptr<CudfTable> table_right_dropna;
+				bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
+				if(has_nulls_right){
+					table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
+				}
+
+				result_table = cudf::left_join(
+					table_left.view(),
+					has_nulls_right ? table_right_dropna->view() : table_right.view(),
+					this->left_column_indices,
+					this->right_column_indices,
+					columns_in_common);
+			} else if(this->join_type == OUTER_JOIN) {
+				result_table = cudf::full_join(
+					table_left.view(),
+					table_right.view(),
+					this->left_column_indices,
+					this->right_column_indices,
+					columns_in_common);
+			} else {
+				RAL_FAIL("Unsupported join operator");
+			}
 		}
+		
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), this->result_names);
 	}
 
@@ -286,8 +299,14 @@ public:
 		std::string new_join_statement, filter_statement;
 		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
 		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
+
+		// Getting the condition and type of join
 		std::string condition = get_named_expression(new_join_statement, "condition");
 		this->join_type = get_named_expression(new_join_statement, "joinType");
+
+		if (condition == "true") {
+			this->join_type = CROSS_JOIN;
+		}
 
 		std::unique_ptr<ral::frame::BlazingTable> left_batch = nullptr;
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = nullptr;
@@ -532,6 +551,12 @@ public:
 				auto batch_view = batch->view();
 				std::vector<CudfTableView> partitioned;
 				if (batch->num_rows() > 0) {
+					// When is cross_join. `column_indices` is equal to 0, so we need all `batch` columns to apply cudf::hash_partition correctly
+					if (column_indices.size() == 0) {
+						column_indices.resize(batch->num_columns());
+						std::iota(std::begin(column_indices), std::end(column_indices), 0);
+					}
+
 					std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
 
 					assert(hased_data_offsets.begin() != hased_data_offsets.end());

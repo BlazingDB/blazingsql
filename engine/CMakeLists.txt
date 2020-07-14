@@ -331,9 +331,9 @@ target_link_libraries(blazingsql-engine
     google_cloud_cpp_common
     crc32c
 
-    libboost_filesystem.a
-    libboost_system.a
-    libboost_regex.a
+    libboost_filesystem.so
+    libboost_system.so
+    libboost_regex.so
 
     # TODO jp c.gonzales make use of standard cmake find_package here (see above)
     #spdlog::spdlog
