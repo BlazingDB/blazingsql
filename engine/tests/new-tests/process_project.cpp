@@ -7,7 +7,7 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
-#include "tests/BlazingUnitTest.h"
+#include "tests/utilities/BlazingUnitTest.h"
 
 template <typename T>
 struct ProjectTestNumeric : public BlazingUnitTest {};

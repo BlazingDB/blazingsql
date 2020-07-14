@@ -6,7 +6,7 @@
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 #include "utilities/random_generator.cuh"
-#include "tests/BlazingUnitTest.h"
+#include "tests/utilities/BlazingUnitTest.h"
 
 template <class T>
 class SampleGeneratorTest : public BlazingUnitTest {};

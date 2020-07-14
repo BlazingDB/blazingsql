@@ -8,7 +8,7 @@
 #include <tests/utilities/type_lists.hpp>
 #include <tests/utilities/table_utilities.hpp>
 #include <tests/utilities/column_utilities.hpp>
-#include "tests/BlazingUnitTest.h"
+#include "tests/utilities/BlazingUnitTest.h"
 
  template <typename T>
 struct AggregationTest : public BlazingUnitTest {};

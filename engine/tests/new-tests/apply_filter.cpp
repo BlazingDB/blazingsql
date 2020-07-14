@@ -26,7 +26,7 @@
 #include <execution_graph/logic_controllers/LogicalFilter.h>
 #include "cudf/stream_compaction.hpp"
 #include <cudf/datetime.hpp>
-#include "tests/BlazingUnitTest.h"
+#include "tests/utilities/BlazingUnitTest.h"
 
 using namespace ral::frame;
 using namespace ral::processor;

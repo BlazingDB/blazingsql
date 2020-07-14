@@ -8,14 +8,15 @@
 function(configure_test TEST_NAME Tests_SRCS)
     include_directories(
         ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/tests/utils
+        ${CMAKE_SOURCE_DIR}/tests/utilities
         ${CMAKE_SOURCE_DIR}/thirdparty/jitify
         $ENV{PREFIX}/include
     )
 
     add_executable(${TEST_NAME}
                    ${Tests_SRCS}
-                   ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp)
+                   ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp
+                   ${CMAKE_SOURCE_DIR}/tests/utilities/BlazingUnitTest.cpp)
     link_directories($ENV{PREFIX}/lib)
     # TODO percy do not use libgdf.so here and use gdf (the static lib) instead
     target_link_libraries(${TEST_NAME}
@@ -92,9 +93,6 @@ add_subdirectory(new-tests)
 add_subdirectory(parser)
 add_subdirectory(skipdata)
 add_subdirectory(sort)
-add_subdirectory(transport)
-
-
 
 
 message(STATUS "******** Tests are ready ********")

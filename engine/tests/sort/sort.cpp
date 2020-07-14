@@ -12,7 +12,7 @@
 #include <tests/utilities/type_lists.hpp>
 #include <tests/utilities/table_utilities.hpp>
 #include <cudf/detail/gather.hpp>
-#include "tests/BlazingUnitTest.h"
+#include "tests/utilities/BlazingUnitTest.h"
 #include <operators/OrderBy.h>
 
 template <typename T>

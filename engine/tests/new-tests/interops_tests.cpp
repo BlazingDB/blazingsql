@@ -11,7 +11,7 @@
 #include "tests/utilities/type_lists.hpp"
 #include "tests/utilities/type_list_utilities.hpp"
 #include "Interpreter/interpreter_cpp.h"
-#include "tests/BlazingUnitTest.h"
+#include "tests/utilities/BlazingUnitTest.h"
 
 template <typename T>
 struct InteropsTestNumeric : public BlazingUnitTest {

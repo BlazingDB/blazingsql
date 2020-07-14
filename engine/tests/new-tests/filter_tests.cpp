@@ -11,7 +11,7 @@
 #include "tests/utilities/type_lists.hpp"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "utilities/DebuggingUtils.h"
-#include "tests/BlazingUnitTest.h"
+#include "tests/utilities/BlazingUnitTest.h"
 
 template <typename T>
 struct LogicalFilterTest : public BlazingUnitTest {
