@@ -263,8 +263,11 @@ public:
 	void put(message_ptr item) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		putWaitingQueue(std::move(item));
+<<<<<<< HEAD
 		processed++;
 		lock.unlock();
+=======
+>>>>>>> cbfdbe9d557794f8c130c43df41d6454ca783601
 		condition_variable_.notify_all();
 		
 	}
@@ -281,7 +284,7 @@ public:
 		return this->finished.load(std::memory_order_seq_cst);
 	}
 
-	bool empty() const { return this->message_queue_.size() == 0; }
+
 
 	void wait_for_count(int count){
 
@@ -295,7 +298,8 @@ public:
 	}
 
 
-	message_ptr pop_or_wait() {
+	message_ptr pop_or_wait() {		
+
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
@@ -379,7 +383,7 @@ public:
 			return nullptr;
 		}
 		while (true){
-			auto data = this->pop();
+			auto data = this->pop_unsafe();
 			if (data->get_message_id() == message_id){
 				return std::move(data);
 			} else {
@@ -388,7 +392,7 @@ public:
 		}
 	}
 
-	message_ptr pop() {
+	message_ptr pop_unsafe() {
 		auto data = std::move(this->message_queue_.front());
 		this->message_queue_.pop_front();
 		return std::move(data);
@@ -407,15 +411,35 @@ public:
 				}
 				return done_waiting;
 			})){}
-		std::vector<message_ptr> response;
-		for(message_ptr & it : message_queue_) {
-			response.emplace_back(std::move(it));
-		}
-		message_queue_.erase(message_queue_.begin(), message_queue_.end());
-		return response;
+		return get_all_unsafe();
 	}
 
+	std::unique_lock<std::mutex> lock(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		return std::move(lock);
+	}
+
+	std::vector<message_ptr> get_all_unsafe() {
+		std::vector<message_ptr> messages;
+		for(message_ptr & it : message_queue_) {
+			messages.emplace_back(std::move(it));
+		}
+		message_queue_.clear();
+		return messages;
+	}
+
+	void put_all_unsafe(std::vector<message_ptr> messages) {
+		for(size_t i = 0; i < messages.size(); i++) {
+			putWaitingQueue(std::move(messages[i]));
+		}		
+	}
+
+
 private:
+	bool empty() { 
+		return this->message_queue_.size() == 0; 
+	}
+	
 	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
 
 private:
@@ -476,7 +500,11 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+<<<<<<< HEAD
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
+=======
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
+>>>>>>> cbfdbe9d557794f8c130c43df41d6454ca783601
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
@@ -485,9 +513,16 @@ public:
 
 	virtual void wait_if_cache_is_saturated();
 
+<<<<<<< HEAD
 	void wait_for_count(int count){
 		return this->waitingCache->wait_for_count(count);
 	}
+=======
+	// take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
+	// this function does not change the order of the caches
+	virtual size_t downgradeCacheData();
+
+>>>>>>> cbfdbe9d557794f8c130c43df41d6454ca783601
 
 protected:
 	static std::size_t cache_count;
@@ -617,11 +652,23 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;
 
 	std::unique_ptr<ral::frame::BlazingTable> pullFromCache() override;
+
+	std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache() override {
+		return pullFromCache();
+	}
+
+	size_t downgradeCacheData() override { // dont want to be able to downgrage concatenating caches
+		return 0;
+	}
+
+  private:
+	bool concat_all;
+
 };
 
 /// \brief An enum type that  represent a cache machine type

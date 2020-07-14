@@ -10,6 +10,7 @@
 #include <cudf/types.hpp>
 
 #include "CalciteExpressionParsing.h"
+#include "utilities/CommonOperations.h"
 #include "skip_data/utils.hpp"
 #include "expression_utils.hpp"
 #include "error.hpp"
@@ -177,6 +178,8 @@ public:
             return remove_reinterpret(node);
         } else if(node.value == "ROUND") {
             return transform_round(node);
+        } else if(StringUtil::beginsWith(node.value, "CAST")) {
+            return transform_cast_literal(node);
         }
 
         return &node;
@@ -219,6 +222,27 @@ private:
         }
 
         return &round_node;
+    }
+
+    node * transform_cast_literal(operator_node& cast_node) {
+        assert(cast_node.children.size() == 1);
+
+        operator_type cast_op = map_to_operator_type(cast_node.value);
+
+        auto operand = cast_node.children[0].get();
+        if (operand->type == node_type::LITERAL) {
+            // Special case for calcite expressions like `CAST(4:INTEGER):INTEGER`
+
+            auto literal = static_cast<literal_node *>(operand);
+            cudf::data_type new_type(get_output_type(cast_op, literal->type().id()));
+
+            // Ensure that the types are compatible
+            ral::utilities::get_common_type(literal->type(), new_type, true);
+
+            return new literal_node(literal->value, new_type);
+        }
+
+        return &cast_node;
     }
 };
 

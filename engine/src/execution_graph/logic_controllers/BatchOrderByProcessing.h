@@ -37,7 +37,8 @@ public:
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 
-		BatchSequence input(this->input_.get_cache("input_a"), this);
+		bool ordered = false;
+		BatchSequence input(this->input_.get_cache("input_a"), this, ordered);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
@@ -99,6 +100,13 @@ public:
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
 			this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		} else { // distributed mode
+			if( ral::utilities::checkIfConcatenatingStringsWillOverflow(sampledTableViews)) {
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
+			}
 			auto concatSamples = ral::utilities::concatTables(sampledTableViews);
 			std::vector<ral::frame::BlazingTableView> samples;
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
@@ -198,7 +206,8 @@ public:
 			order_by_samples_ratio = std::stof(config_options["ORDER_BY_SAMPLES_RATIO"]);
 		}
 
-		BatchSequence input(this->input_cache(), this);
+		bool ordered = false;
+		BatchSequence input(this->input_cache(), this, ordered);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
 		std::size_t localTotalNumRows = 0;
@@ -311,10 +320,12 @@ public:
 		auto partitionPlan = std::move(input_partitionPlan.next());
 
 		context->incrementQuerySubstep();
+
 		std::vector<std::string> messages_to_wait_for;
 		std::map<std::string, int> node_count;
 		BlazingThread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, &node_count, &messages_to_wait_for,this](){
-			BatchSequence input(input_cache, this);
+			bool ordered = false;
+			BatchSequence input(input_cache, this, ordered);
 			int batch_count = 0;
 			std::vector<cudf::order> sortOrderTypes;
 			std::vector<int> sortColIndices;
