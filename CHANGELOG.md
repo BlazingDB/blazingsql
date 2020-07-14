@@ -38,6 +38,7 @@
 - #850 Fixed issue with getTableScanInfoCaller
 - #851 Fix row_groups issue in ParquetParser.cpp
 - #847 Fixed issue with some constant expressions not evaluated by calcite
+- #879 Fixed issue with log directory creation in a distributed environment
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
