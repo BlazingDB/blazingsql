@@ -2,7 +2,7 @@
 
 #include "kernel.h"
 #include "kpair.h"
-#include "../CacheMachine.h"
+#include "execution_graph/logic_controllers/CacheMachine.h"
 
 namespace ral {
 namespace cache {

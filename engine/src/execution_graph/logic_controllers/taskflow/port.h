@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include "../CacheMachine.h"
+#include "execution_graph/logic_controllers/CacheMachine.h"
 
 namespace ral {
 namespace cache { 
