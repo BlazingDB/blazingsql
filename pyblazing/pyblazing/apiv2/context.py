@@ -683,33 +683,49 @@ def distributed_initialize_server_directory(client, dir_path):
     # lets make host_list which is a list of all the unique hosts.
     # This way we do the logging folder creation only once per host (server)
     all_items = client.scheduler_info()["workers"].items()
-    host_list = list(set([value["host"] for key, value in all_items]))
-    initialized = {}
-    for host in host_list:
-        initialized[host] = False
 
     dask_futures = []
-    for worker, worker_info in client.scheduler_info()["workers"].items():
-        if not initialized[worker_info["host"]]:
-            dask_futures.append(
-                client.submit(initialize_server_directory, dir_path, workers=[worker])
-            )
-            initialized[worker_info["host"]] = True
+    i = 0
+    for worker, worker_info in all_items:
+        dask_futures.append(
+            client.submit(get_current_directory_path, i, workers=[worker])
+        )
+        i = i + 1
+
+    current_dir_hosts = client.gather(dask_futures)
+
+    map_host_path={}
+    for path, worker in zip(current_dir_hosts,
+                            [worker for worker, worker_info in all_items]):
+        map_host_path[path] = worker
+
+    dask_futures = []
+    for path, worker in map_host_path.items():
+        dask_futures.append(
+            client.submit(initialize_server_directory,
+                            dir_path, i, workers=[worker])
+        )
+        i = i + 1
 
     for connection in dask_futures:
         made_dir = connection.result()
         if not made_dir:
-            print("WARNING: Count not make directory")
-            logging.warning("WARNING: Count not make directory")
+            logging.info("Directory already exists")
 
 
-def initialize_server_directory(dir_path):
+def initialize_server_directory(dir_path, idx=0):
     if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
+        try:
+            os.mkdir(dir_path)
+        except OSError as error:
+            logging.error("Could not create directory: " + error)
+            raise
         return True
     else:
         return False
 
+def get_current_directory_path(idx=0):
+    return os.getcwd()
 
 # Delete all generated (older than 1 hour) orc files
 def remove_orc_files_from_disk(data_dir):
