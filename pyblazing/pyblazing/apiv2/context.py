@@ -109,7 +109,7 @@ class blazing_allocation_mode(IntEnum):
 
 def initializeBlazing(
     ralId=0,
-    worker_id=''
+    worker_id='',
     networkInterface="lo",
     singleNode=False,
     allocator="managed",
@@ -252,8 +252,8 @@ def generateGraphs(
                 for key in tables[table_index].partition_keys:
                     tables[table_index].input.append(worker.data[key])
 
-<<<<<<< HEAD
-    graph = cio.runGenerateGraphCaller(
+    try:
+        graph = cio.runGenerateGraphCaller(
                         masterIndex,
                         nodes,
                         tables,
@@ -263,27 +263,9 @@ def generateGraphs(
                         algebra,
                         accessToken,
                         config_options)
-
-    graph.set_input_and_output_caches(worker.input_cache, worker.output_cache)
-=======
-    try:
-        dfs = cio.runQueryCaller(
-            masterIndex,
-            nodes,
-            tables,
-            table_scans,
-            fileTypes,
-            ctxToken,
-            algebra,
-            accessToken,
-            config_options,
-            is_single_node=False,
-        )
-    except cio.RunQueryError as e:
-        print(">>>>>>>> ", e)
+        graph.set_input_and_output_caches(worker.input_cache, worker.output_cache)
     except Exception as e:
         raise e
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
 
     with worker._lock:
         if not hasattr(worker, "query_graphs"):
@@ -738,7 +720,6 @@ def distributed_initialize_server_directory(client, dir_path):
     for worker, worker_info in client.scheduler_info()["workers"].items():
         if not initialized[worker_info["host"]]:
             dask_futures.append(
-<<<<<<< HEAD
                 client.submit(
                     initialize_server_directory,
                     dir_path,
@@ -747,17 +728,13 @@ def distributed_initialize_server_directory(client, dir_path):
 
     for connection in dask_futures:
         made_dir = connection.result()
-=======
-                client.submit(initialize_server_directory, dir_path, workers=[worker])
-            )
-            initialized[worker_info["host"]] = True
-
-    for connection in dask_futures:
-        made_dir = connection.result()
         if not made_dir:
             print("WARNING: Count not make directory")
             logging.warning("WARNING: Count not make directory")
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
+            client.submit(initialize_server_directory, dir_path, workers=[worker])
+            initialized[worker_info["host"]] = True
+
+
 
 
 def initialize_server_directory(dir_path):
@@ -930,19 +907,6 @@ class BlazingTable(object):
 
             slice_row_groups_ids = []
             if self.row_groups_ids is not None:
-<<<<<<< HEAD
-                slice_row_groups_ids=self.row_groups_ids[startIndex: startIndex + batchSize]
-
-            bt = BlazingTable(self.name,
-                                self.input,
-                                self.fileType,
-                                files=tempFiles,
-                                calcite_to_file_indices=self.calcite_to_file_indices,
-                                uri_values=uri_values,
-                                args=self.args,
-                                row_groups_ids=slice_row_groups_ids,
-                                in_file=self.in_file)
-=======
                 slice_row_groups_ids = self.row_groups_ids[
                     startIndex : startIndex + batchSize
                 ]
@@ -958,7 +922,6 @@ class BlazingTable(object):
                 row_groups_ids=slice_row_groups_ids,
                 in_file=self.in_file,
             )
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
             bt.offset = (startIndex, batchSize)
             bt.column_names = self.column_names
             bt.file_column_names = self.file_column_names
@@ -997,62 +960,6 @@ class BlazingContext(object):
         Parameters
         -------------------
 
-<<<<<<< HEAD
-        dask_client (optional) : dask.distributed.Client instance. only necessary for distributed query execution.
-        network_interface (optional) : for communicating with the dask-scheduler. see note below.
-        allocator (optional) :  "managed" or "default" or "existing", where "managed" uses Unified Virtual Memory (UVM)
-                                and may use system memory if GPU memory runs out, "default" uses the default Cuda allocation
-                                and "existing" assumes rmm allocator is already set and does not initialize it.
-                                "managed" is the BlazingSQL default, since it provides the most robustness against OOM errors.
-        pool (optional) : if True, BlazingContext will self-allocate a GPU memory pool. can greatly improve performance.
-        initial_pool_size (optional) : initial size of memory pool in bytes (if pool=True).
-                                       if None, and pool=True, defaults to 1/2 GPU memory.
-        config_options (optional) : this is a dictionary for setting certain parameters in the engine. These parameters will be used for all queries except
-                                    if overriden by setting these parameters when running the query itself. The possible parameters are:
-                                    JOIN_PARTITION_SIZE_THRESHOLD : Num bytes to try to have the partitions for each side of a join
-                                           before doing the join. Too small can lead to overpartitioning, too big can lead to OOM errors.
-                                           default: 400000000
-                                    MAX_JOIN_SCATTER_MEM_OVERHEAD : The bigger this value, the more likely one of the tables of join will be
-                                           scattered to all the nodes, instead of doing a standard hash based partitioning shuffle. Value is in bytes.
-                                           default: 500000000
-                                    MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE : The maximum number of partitions that will be made for an order by.
-                                           Increse this number if running into OOM issues when doing order bys with large amounts of data.
-                                           default: 8
-                                    NUM_BYTES_PER_ORDER_BY_PARTITION : The max number size in bytes for each order by partition. Note that,
-                                           MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE will be enforced over this parameter.
-                                           default: 400000000
-                                    TABLE_SCAN_KERNEL_NUM_THREADS: The number of threads used in the TableScan and BindableTableScan kernels for
-                                           reading batches
-                                           default: 4
-                                    MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to concatenate the batches read from the scan kernels
-                                           default: 400000000
-                                    FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this value in num batches, the kernel will try to
-                                            stop execution until the output cache contains less.
-                                            default: max int (makes it not applicable)
-                                    FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this value in bytes, the kernel will try to
-                                            stop execution until the output cache contains less.
-                                            default: max size_t (makes it not applicable)
-                                    ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total number of rows in the SortAndSampleKernel to
-                                           calculate the number of samples
-                                           default: 0.1
-                                    BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total GPU memory that the memory resource
-                                            will consider to be full
-                                            NOTE: This parameter only works when used in the BlazingContext
-                                            default: 0.95
-                                    BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD : The percent (as a decimal) of total host memory that the memory resource
-                                            will consider to be full. In the presence of several GPUs per server, this resource will be shared among all of
-                                            them in equal parts.
-                                            NOTE: This parameter only works when used in the BlazingContext
-                                            default: 0.75
-                                    BLAZING_LOGGING_DIRECTORY : A folder path to place all logging files. The path can be relative or absolute.
-                                            NOTE: This parameter only works when used in the BlazingContext
-                                            default: 'blazing_log'
-                                    BLAZING_CACHE_DIRECTORY : A folder path to place all orc files when start caching on Disk. The path can be relative or absolute.
-                                            NOTE: This parameter only works when used in the BlazingContext
-                                            default: '/tmp/'
-                                    MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory consumption. The value is in milliseconds.
-                                            default: 50  (milliseconds)
-=======
         dask_client (optional) : dask.distributed.Client instance.
                     only necessary for distributed query execution.
         network_interface (optional) : for communicating with the
@@ -1141,7 +1048,6 @@ class BlazingContext(object):
             MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory
                     consumption. The value is in milliseconds.
                     default: 50  (milliseconds)
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
 
         Examples
         --------
@@ -1181,17 +1087,9 @@ class BlazingContext(object):
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = {}
         for option in config_options:
-<<<<<<< HEAD
-            self.config_options[option.encode()] = str(config_options[option]).encode() # make sure all options are encoded strings
-
-        logging_dir_path = 'blazing_log'
-        if ('BLAZING_LOGGING_DIRECTORY' in config_options): # want to use config_options and not self.config_options since its not encoded
-            logging_dir_path = config_options['BLAZING_LOGGING_DIRECTORY']
-=======
             self.config_options[option.encode()] = str(
                 config_options[option]
             ).encode()  # make sure all options are encoded strings
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
 
         logging_dir_path = "blazing_log"
         # want to use config_options and not self.config_options
@@ -1270,7 +1168,7 @@ class BlazingContext(object):
                 self.node_log_paths.append(log_path)
                 i = i + 1
 
-<<<<<<< HEAD
+
             
             print("starting polling thread")
             # Start polling thread in asyncio function on each worker
@@ -1289,12 +1187,10 @@ class BlazingContext(object):
             print("started listeners")
 
             # need to initialize this logging independently, in case its set as a relative path
-            # and the location from where the python script is running is different than the local dask workers
-=======
-            # need to initialize this logging independently, in case its set
-            # as a relative path and the location from where the python script
-            # is running is different than the local dask workers
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
+            # and the location from where the python script is running is different 
+            # than the local dask workers
+
+
             initialize_server_directory(logging_dir_path)
             # this one is for the non dask side
             FORMAT = '%(asctime)s||%(levelname)s|||"%(message)s"||||||'
@@ -1305,12 +1201,8 @@ class BlazingContext(object):
             initialize_server_directory(cache_dir_path)
 
             ralPort, ralIp, log_path = initializeBlazing(
-<<<<<<< HEAD
-                ralId=0, worker_id='', networkInterface='lo', singleNode=True,
-                allocator=allocator, pool=pool, initial_pool_size=initial_pool_size,
-                config_options=self.config_options, logging_dir_path=logging_dir_path)
-=======
                 ralId=0,
+                worker_id='',
                 networkInterface="lo",
                 singleNode=True,
                 allocator=allocator,
@@ -1319,7 +1211,6 @@ class BlazingContext(object):
                 config_options=self.config_options,
                 logging_dir_path=logging_dir_path,
             )
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
             node = {}
             node["ip"] = ralIp
             node["communication_port"] = ralPort
@@ -1788,14 +1679,9 @@ class BlazingContext(object):
             # we want to ignore paths we dont find.
             ignore_missing_paths = user_partitions_schema is not None
             parsedSchema = self._parseSchema(
-<<<<<<< HEAD
-                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths)
-            print(parsedSchema)
-=======
                 input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
             )
 
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
             if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(
                     parsedSchema["files"],
@@ -2081,17 +1967,6 @@ class BlazingContext(object):
                     row_groups_ids.append(row_group_ids)
 
             if self.dask_client is None:
-<<<<<<< HEAD
-                bt = BlazingTable(current_table.name,
-                                current_table.input,
-                                current_table.fileType,
-                                files=actual_files,
-                                calcite_to_file_indices=current_table.calcite_to_file_indices,
-                                uri_values=uri_values,
-                                args=current_table.args,
-                                row_groups_ids=row_groups_ids,
-                                in_file=current_table.in_file)
-=======
                 curr_calcite = current_table.calcite_to_file_indices
                 bt = BlazingTable(
                     current_table.name,
@@ -2104,7 +1979,6 @@ class BlazingContext(object):
                     row_groups_ids=row_groups_ids,
                     in_file=current_table.in_file,
                 )
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
                 bt.column_names = current_table.column_names
                 bt.file_column_names = current_table.file_column_names
                 bt.column_types = current_table.column_types
@@ -2120,17 +1994,6 @@ class BlazingContext(object):
                         1, actual_files, uri_values, row_groups_ids
                     )
                     i = 0
-<<<<<<< HEAD
-                    bt = BlazingTable(current_table.name,
-                                current_table.input,
-                                current_table.fileType,
-                                files=all_sliced_files[i],
-                                calcite_to_file_indices=current_table.calcite_to_file_indices,
-                                uri_values=all_sliced_uri_values[i],
-                                args=current_table.args,
-                                row_groups_ids=all_sliced_row_groups_ids[i],
-                                in_file=current_table.in_file)
-=======
                     curr_calcite = current_table.calcite_to_file_indices
                     bt = BlazingTable(
                         current_table.name,
@@ -2143,7 +2006,6 @@ class BlazingContext(object):
                         row_groups_ids=all_sliced_row_groups_ids[i],
                         in_file=current_table.in_file,
                     )
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
                     bt.column_names = current_table.column_names
                     bt.file_column_names = current_table.file_column_names
                     bt.column_types = current_table.column_types
@@ -2158,17 +2020,6 @@ class BlazingContext(object):
                     )
 
                     for i, node in enumerate(self.nodes):
-<<<<<<< HEAD
-                        bt = BlazingTable(current_table.name,
-                                    current_table.input,
-                                    current_table.fileType,
-                                    files=all_sliced_files[i],
-                                    calcite_to_file_indices=current_table.calcite_to_file_indices,
-                                    uri_values=all_sliced_uri_values[i],
-                                    args=current_table.args,
-                                    row_groups_ids=all_sliced_row_groups_ids[i],
-                                    in_file=current_table.in_file)
-=======
                         curr_calcite = current_table.calcite_to_file_indices
                         bt = BlazingTable(
                             current_table.name,
@@ -2181,7 +2032,6 @@ class BlazingContext(object):
                             row_groups_ids=all_sliced_row_groups_ids[i],
                             in_file=current_table.in_file,
                         )
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
                         bt.column_names = current_table.column_names
                         bt.file_column_names = current_table.file_column_names
                         bt.column_types = current_table.column_types
@@ -2369,24 +2219,14 @@ class BlazingContext(object):
             connection = self.dask_client.submit(
                 cio.getTableScanInfoCaller,
                 algebra,
-<<<<<<< HEAD
-                self.tables,
                 workers=[worker],
                 pure=False)
-            query_tables, table_scans = connection.result()
-
-        # this was for ARROW tables which are currently deprecated
-        # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
-=======
-                workers=[worker])
             table_names, table_scans = connection.result()
 
         query_tables = [self.tables[table_name] for table_name in table_names]
 
         # this was for ARROW tables which are currently deprecated
-        # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(
-        #   algebra, relational_algebra_steps,self.tables)
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
+        # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
 
         for table_idx, query_table in enumerate(query_tables):
             fileTypes.append(query_table.fileType)
@@ -2398,13 +2238,9 @@ class BlazingContext(object):
                 or ftype == DataType.CSV
             ):
                 if query_table.has_metadata():
-<<<<<<< HEAD
-                    currentTableNodes = self._optimize_with_skip_data_getSlices(query_table, table_scans[table_idx], single_gpu)
-=======
                     currentTableNodes = self._optimize_skip_data_getSlices(
                         query_table, table_scans[table_idx], single_gpu
                     )
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
                 else:
                     if single_gpu:
                         currentTableNodes = query_table.getSlices(1)
@@ -2441,58 +2277,33 @@ class BlazingContext(object):
         algebra = get_plan(algebra)
         
         if self.dask_client is None:
-<<<<<<< HEAD
-            graph = cio.runGenerateGraphCaller(
-                            masterIndex,
-                            self.nodes,
-                            nodeTableList[0],
-                            table_scans,
-                            fileTypes,
-                            ctxToken,
-                            algebra,
-                            accessToken,
-                            query_config_options)
-            result = cio.runExecuteGraphCaller(graph, is_single_node=True)
-
-        else:
-            if single_gpu == True:
-                #the following is wrapped in an array because .sql expects to return
-                #an array of dask_futures or a df, this makes it consistent
-                graph_futures = [self.dask_client.submit(
-                        generateGraphs,
-=======
             try:
-                result = cio.runQueryCaller(
-                    masterIndex,
-                    self.nodes,
-                    nodeTableList[0],
-                    table_scans,
-                    fileTypes,
-                    ctxToken,
-                    algebra,
-                    accessToken,
-                    query_config_options,
-                    is_single_node=True,
-                )
+                graph = cio.runGenerateGraphCaller(
+                                masterIndex,
+                                self.nodes,
+                                nodeTableList[0],
+                                table_scans,
+                                fileTypes,
+                                ctxToken,
+                                algebra,
+                                accessToken,
+                                query_config_options)
+                result = cio.runExecuteGraphCaller(graph, is_single_node=True)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
                 result = cudf.DataFrame()
             except Exception as e:
                 raise e
-
         else:
-            if single_gpu:
-                # the following is wrapped in an array because
-                # .sql expects to return
-                # an array of dask_futures or a df, this makes it consistent
+            if single_gpu == True:
+                #the following is wrapped in an array because .sql expects to return
+                #an array of dask_futures or a df, this makes it consistent
                 worker = self.nodes[self.single_gpu_idx]["worker"]
                 self.single_gpu_idx = self.single_gpu_idx + 1
                 if self.single_gpu_idx >= len(self.nodes):
                     self.single_gpu_idx = 0
-                dask_futures = [
-                    self.dask_client.submit(
-                        collectPartitionsRunQuery,
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
+                graph_futures = [self.dask_client.submit(
+                        generateGraphs,
                         masterIndex,
                         [self.nodes[0],],
                         nodeTableList[0],
@@ -2503,27 +2314,18 @@ class BlazingContext(object):
                         accessToken,
                         query_config_options,
                         single_gpu=True,
-<<<<<<< HEAD
-                        pure=False)]
+                        pure=False,
+                        workers=[worker])]
                 self.dask_client.gather(graph_futures)
 
                 dask_futures = [self.dask_client.submit(executeGraph, ctxToken,
                 pure=False)]
-=======
-                    )
-                ]
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
             else:
                 graph_futures = []
                 i = 0
                 for node in self.nodes:
-<<<<<<< HEAD
                     worker = node['worker']
                     graph_futures.append(
-=======
-                    worker = node["worker"]
-                    dask_futures.append(
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
                         self.dask_client.submit(
                             generateGraphs,
                             masterIndex,
@@ -2536,12 +2338,7 @@ class BlazingContext(object):
                             accessToken,
                             query_config_options,
                             workers=[worker],
-<<<<<<< HEAD
                             pure=False))
-=======
-                        )
-                    )
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
                     i = i + 1
                 graph_futures = self.dask_client.gather(graph_futures)
 
@@ -2564,16 +2361,8 @@ class BlazingContext(object):
                 futures = []
                 for query_partids, meta, worker_id in meta_results:
                     for query_partid in query_partids:
-<<<<<<< HEAD
                         futures.append(self.dask_client.submit(get_element, query_partid, workers=[worker_id],
                         pure=False))
-=======
-                        futures.append(
-                            self.dask_client.submit(
-                                get_element, query_partid, workers=[worker_id]
-                            )
-                        )
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
 
                 result = dask.dataframe.from_delayed(futures, meta=meta)
         return result
@@ -2728,16 +2517,12 @@ class BlazingContext(object):
             }
 
             for log_table_name in log_schemas:
-<<<<<<< HEAD
-                log_files = [os.path.join(self.node_log_paths[i], log_table_name + '.' + str(i) + '.log') for i in range(0, len(self.node_log_paths))]
-=======
                 log_files = [
                     os.path.join(
                         self.node_log_paths[i], log_table_name + "." + str(i) + ".log"
                     )
                     for i in range(0, len(self.node_log_paths))
                 ]
->>>>>>> 15baf6e2213793285da851ab60e9118540be68df
 
                 names, dtypes = log_schemas[log_table_name]
                 self.create_table(

@@ -191,7 +191,7 @@ cdef extern from "../include/engine/engine.h" nogil:
             int communication_port
         shared_ptr[graph] runGenerateGraph(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +raiseRunGenerateGraphError
         unique_ptr[PartitionedResultSet] runExecuteGraph(shared_ptr[graph]) nogil except +raiseRunExecuteGraphError
-        unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunSkipDataError
+        unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) nogil except +raiseRunSkipDataError
 
         cdef struct TableScanInfo:
             vector[string] relational_algebra_steps
@@ -200,9 +200,9 @@ cdef extern from "../include/engine/engine.h" nogil:
         TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h":
-    cdef pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +raiseInitializeError
-    cdef void finalize() except +raiseFinalizeError
-    cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) except +raiseBlazingSetAllocatorError
+    cdef pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) nogil except +raiseInitializeError
+    cdef void finalize() nogil except +raiseFinalizeError
+    cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except +raiseBlazingSetAllocatorError
 
 cdef extern from "../include/engine/static.h" nogil:
     cdef map[string,string] getProductDetails() except +raiseGetProductDetailsError

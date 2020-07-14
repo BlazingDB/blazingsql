@@ -107,11 +107,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 
 
 
-			ral::MemoryMonitor mem_monitor(&tree, config_options);
-			mem_monitor.start();
-			query_graph->execute();
-			mem_monitor.finalize();
-			output_frame = output.release();
+			
 
 		}
 
@@ -134,7 +130,10 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_graph(std::shared
 
 	try {
 
+//		ral::MemoryMonitor mem_monitor(&tree, config_options);
+//		mem_monitor.start();
 		graph->execute();
+//		mem_monitor.finalize();
 
 		auto output_frame = static_cast<ral::batch::OutputKernel&>(*(graph->get_last_kernel())).release();
 		assert(!output_frame.empty());

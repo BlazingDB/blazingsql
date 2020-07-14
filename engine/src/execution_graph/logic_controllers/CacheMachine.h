@@ -31,6 +31,7 @@
 #include "error.hpp"
 #include <map>
 
+
 using namespace std::chrono_literals;
 
 namespace ral {
@@ -263,11 +264,7 @@ public:
 	void put(message_ptr item) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		putWaitingQueue(std::move(item));
-<<<<<<< HEAD
 		processed++;
-		lock.unlock();
-=======
->>>>>>> cbfdbe9d557794f8c130c43df41d6454ca783601
 		condition_variable_.notify_all();
 		
 	}
@@ -500,11 +497,11 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
-<<<<<<< HEAD
+
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
-=======
+
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
->>>>>>> cbfdbe9d557794f8c130c43df41d6454ca783601
+
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
@@ -513,16 +510,13 @@ public:
 
 	virtual void wait_if_cache_is_saturated();
 
-<<<<<<< HEAD
 	void wait_for_count(int count){
 		return this->waitingCache->wait_for_count(count);
 	}
-=======
 	// take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
 	// this function does not change the order of the caches
 	virtual size_t downgradeCacheData();
 
->>>>>>> cbfdbe9d557794f8c130c43df41d6454ca783601
 
 protected:
 	static std::size_t cache_count;
@@ -671,40 +665,8 @@ public:
 
 };
 
-/// \brief An enum type that  represent a cache machine type
-/// `SIMPLE` is used to identify a CacheMachine class.
-/// `CONCATENATING` is used to identify a ConcatenatingCacheMachine class.
-/// `FOR_EACH` is used to identify a graph execution with kernels that need to send many partitions at once,
-/// for example for kernels PartitionSingleNodeKernel and MergeStreamKernel.
-enum class CacheType {SIMPLE, CONCATENATING, FOR_EACH };
 
-/// \brief An object that  represent a cache machine configuration (type and num_partitions)
-/// used in create_cache_machine and create_cache_machine functions.
-struct cache_settings {
-	CacheType type = CacheType::SIMPLE;
-	int num_partitions = 1;
-	std::shared_ptr<Context> context;
-	std::uint32_t flow_control_batches_threshold = std::numeric_limits<std::uint32_t>::max();
-	std::size_t flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
-};
 
-static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cache_settings& config) {
-	std::shared_ptr<ral::cache::CacheMachine> machine;
-	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
-		machine =  std::make_shared<ral::cache::CacheMachine>(config.context, config.flow_control_batches_threshold, config.flow_control_bytes_threshold);
-	} else if (config.type == CacheType::CONCATENATING) {
-		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context, config.flow_control_batches_threshold, config.flow_control_bytes_threshold);
-	}
-	return machine;
-}
-
-static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machines(const cache_settings& config) {
-	std::vector<std::shared_ptr<ral::cache::CacheMachine>> machines;
-	for (size_t i = 0; i < config.num_partitions; i++) {
-		machines.push_back(create_cache_machine(config));
-	}
-	return machines;
-}
 
 }  // namespace cache
 } // namespace ral
