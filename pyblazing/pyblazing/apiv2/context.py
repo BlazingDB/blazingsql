@@ -2219,7 +2219,7 @@ class BlazingContext(object):
         accessToken = 0
 
         algebra = get_plan(algebra)
-        
+
         if self.dask_client is None:
             try:
                 result = cio.runQueryCaller(
