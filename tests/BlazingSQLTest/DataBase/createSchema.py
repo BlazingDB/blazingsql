@@ -259,7 +259,7 @@ def init_drill_schema(drill, tpch_dir, **kwargs):
 
     for name in tableNames:
         drill.query(
-            "DROP TABLE IF EXISTS" + "dfs.tmp.`%(table)s`"
+            "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
             % {"table": name}, timeout
         )
 

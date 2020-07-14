@@ -90,37 +90,47 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
-cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns, bool ignore_missing_paths):
-    temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns, ignore_missing_paths)
+cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns, bool ignore_missing_paths) nogil:
+    with nogil:
+        temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns, ignore_missing_paths)
     return temp
 
-cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values):
-    return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
+cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) nogil:
+    with nogil:
+        return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef unique_ptr[cio.PartitionedResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except *:
-    return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options))
+cdef unique_ptr[cio.PartitionedResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) nogil except *:
+    with nogil:
+        return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options))
 
-cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) except *:
-    return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
+cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) nogil except *:
+    with nogil:
+        return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
 
-cdef unique_ptr[cio.ResultSet] runSkipDataPython(BlazingTableView metadata, vector[string] all_column_names, string query) except *:
-    return blaz_move(cio.runSkipData( metadata, all_column_names, query))
+cdef unique_ptr[cio.ResultSet] runSkipDataPython(BlazingTableView metadata, vector[string] all_column_names, string query) nogil except *:
+    with nogil:
+        return blaz_move(cio.runSkipData( metadata, all_column_names, query))
 
-cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan):
-    temp = cio.getTableScanInfo(logicalPlan)
+cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
+    with nogil:
+        temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
-    cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) nogil except *:
+    with nogil:
+        cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
-cdef void finalizePython() except *:
-    cio.finalize()
+cdef void finalizePython() nogil except *:
+    with nogil:
+        cio.finalize()
 
-cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) except *:
-    cio.blazingSetAllocator(allocation_mode, initial_pool_size, config_options)
+cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except *:
+    with nogil:
+        cio.blazingSetAllocator(allocation_mode, initial_pool_size, config_options)
 
-cdef map[string, string] getProductDetailsPython() except *:
-    return cio.getProductDetails()
+cdef map[string, string] getProductDetailsPython() nogil except *:
+    with nogil:
+        return cio.getProductDetails()
 
 cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     cdef HDFS hdfs
@@ -200,7 +210,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_
 
     cdef vector[pair[string,type_id]] extra_columns_cpp
     cdef pair[string,type_id] extra_column_cpp
-    
+
     for extra_column in extra_columns:
         extra_column_cpp.first = extra_column[0].encode()
         extra_column_cpp.second = <type_id>(<underlying_type_t_type_id>(extra_column[1]))
@@ -461,5 +471,3 @@ cpdef np_to_cudf_types_int(dtype):
 
 cpdef cudf_type_int_to_np_types(type_int):
     return cudf_to_np_types[<underlying_type_t_type_id> (type_int)]
-
-
