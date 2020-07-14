@@ -23,15 +23,16 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types1)
     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
 
     CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(cudf_table_in_view);
 
     std::vector<std::string> names({"A", "B", "C"});
-    ral::frame::BlazingTableView table(cudf_table_in_view, names);
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
     std::string query_part = "LogicalProject(A=[$0])";
     blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
-        table, 
+        std::move(table), 
         query_part,
         context);
 
@@ -50,15 +51,16 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types2)
     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
 
     CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(cudf_table_in_view);
 
     std::vector<std::string> names({"A", "B", "C"});
-    ral::frame::BlazingTableView table(cudf_table_in_view, names);
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
     std::string query_part = "LogicalProject(C=[$2])";
     blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
-        table, 
+        std::move(table), 
         query_part,
         context);
 
@@ -77,15 +79,16 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types3)
     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
 
     CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(cudf_table_in_view);
 
     std::vector<std::string> names({"A", "B", "C"});
-    ral::frame::BlazingTableView table(cudf_table_in_view, names);
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
     std::string query_part = "LogicalProject(A=[$0], C=[$2])";
     blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
-        table, 
+        std::move(table), 
         query_part,
         context);
 
@@ -105,15 +108,16 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types4)
     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
 
     CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(cudf_table_in_view);
 
     std::vector<std::string> names({"A", "B", "C"});
-    ral::frame::BlazingTableView table(cudf_table_in_view, names);
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
     std::string query_part = "LogicalProject(EXPR$0=[1])";
     blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
-        table, 
+        std::move(table), 
         query_part,
         context);
 
@@ -132,15 +136,16 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types5)
     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
 
     CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(cudf_table_in_view);
 
     std::vector<std::string> names({"A", "B", "C"});
-    ral::frame::BlazingTableView table(cudf_table_in_view, names);
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
     std::string query_part = "LogicalProject(EXPR$0=[>($0, 3)])";
     blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
-        table,
+        std::move(table),
         query_part,
         context);
 
@@ -166,15 +171,16 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types6)
     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
 
     CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(cudf_table_in_view);
 
     std::vector<std::string> names({"A", "B", "C"});
-    ral::frame::BlazingTableView table(cudf_table_in_view, names);
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
     std::string query_part = "LogicalProject(EXPR$0=[>($0, 3)], EXPR$1=[<($2, 3)])";
     blazingdb::manager::Context * context = nullptr;
 
     std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
-        table, 
+        std::move(table), 
         query_part,
         context);
 
@@ -200,9 +206,11 @@ TEST_F(ProjectTestString, test_string_like)
     cudf::test::strings_column_wrapper col1{{"foo", "d", "e", "a", "hello", "k", "d", "l", "bar", ""}};
   
     cudf::table_view in_table_view {{col1}};
-    std::vector<std::string> column_names(in_table_view.num_columns());
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
-    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+    auto out_table = ral::processor::process_project(std::move(table),
                                                     "LogicalProject(EXPR$0=[LIKE($0, '_')], EXPR$1=[LIKE($0, '%o')])",
                                                     nullptr);
   
@@ -218,9 +226,11 @@ TEST_F(ProjectTestString, test_string_substring)
     cudf::test::strings_column_wrapper col1{{"The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"}};
   
     cudf::table_view in_table_view {{col1}};
-    std::vector<std::string> column_names(in_table_view.num_columns());
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
-    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+    auto out_table = ral::processor::process_project(std::move(table),
                                                     "LogicalProject(EXPR$0=[SUBSTRING($0, 3, -1)])",
                                                     nullptr);
 
@@ -236,9 +246,11 @@ TEST_F(ProjectTestString, test_string_concat)
     cudf::test::strings_column_wrapper col2{{"The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog", ""}};
   
     cudf::table_view in_table_view {{col1, col2}};
-    std::vector<std::string> column_names(in_table_view.num_columns());
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
-    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+    auto out_table = ral::processor::process_project(std::move(table),
                                                     "LogicalProject(EXPR$0=[||($0,'XD=D')], EXPR$1=[||($0,$1)])",
                                                     nullptr);
   
@@ -257,9 +269,11 @@ TEST_F(ProjectTestString, test_cast_to_string)
     cudf::test::fixed_width_column_wrapper<cudf::timestamp_s> col4{{0, 10, 2600, 89260, 579500, 6834000, 86796400, 135768000, 715360000, 1230720000}};
   
     cudf::table_view in_table_view {{col1, col2, col3, col4}};
-    std::vector<std::string> column_names(in_table_view.num_columns());
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
-    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+    auto out_table = ral::processor::process_project(std::move(table),
                                                     "LogicalProject(EXPR$0=[CAST($0):VARCHAR], EXPR$1=[CAST($1):VARCHAR], EXPR$2=[CAST($2):VARCHAR], EXPR$3=[CAST($3):VARCHAR])",
                                                     nullptr);
   
@@ -279,9 +293,11 @@ TEST_F(ProjectTestString, test_cast_from_string)
     cudf::test::strings_column_wrapper col3{{"1970-01-01 00:00:00","1970-01-01 00:00:10","1970-01-01 00:43:20","1970-01-02 00:47:40","1970-01-07 16:58:20","1970-03-21 02:20:00","1972-10-01 14:06:40","1974-04-21 09:20:00","1992-09-01 15:06:40","2008-12-31 10:40:00"}};
   
     cudf::table_view in_table_view {{col1, col2, col3}};
-    std::vector<std::string> column_names(in_table_view.num_columns());
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
-    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+    auto out_table = ral::processor::process_project(std::move(table),
                                                     "LogicalProject(EXPR$0=[CAST($0):INTEGER], EXPR$1=[CAST($1):DOUBLE], EXPR$2=[CAST($2):TIMESTAMP])",
                                                     nullptr);
 
@@ -300,7 +316,7 @@ TEST_F(ProjectTestString, test_cast_from_string)
         cudf::timestamp_ns{cudf::timestamp_s{1230720000}}}};
     cudf::table_view expected_table_view {{expected_col1, expected_col2, expected_col3}};
 
-    cudf::test::expect_tables_equal(expected_table_view, out_table->view());
+    cudf::test::expect_tables_equivalent(expected_table_view, out_table->view());
 }
 
 TEST_F(ProjectTestString, test_string_case)
@@ -309,9 +325,11 @@ TEST_F(ProjectTestString, test_string_case)
     cudf::test::strings_column_wrapper col2{{"The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"}};
   
     cudf::table_view in_table_view {{col1, col2}};
-    std::vector<std::string> column_names(in_table_view.num_columns());
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
-    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+    auto out_table = ral::processor::process_project(std::move(table),
                                                     "LogicalProject(EXPR$0=[CASE(=(MOD($0, 2), 0), $1, 'LOL')])",
                                                     nullptr);
   
@@ -327,9 +345,11 @@ TEST_F(ProjectTestString, test_string_nested_case)
     cudf::test::strings_column_wrapper col2{{"The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"}};
   
     cudf::table_view in_table_view {{col1, col2}};
-    std::vector<std::string> column_names(in_table_view.num_columns());
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
-    auto out_table = ral::processor::process_project(ral::frame::BlazingTableView{in_table_view, column_names},
+    auto out_table = ral::processor::process_project(std::move(table),
                                                     "LogicalProject(EXPR$0=[=(CASE(=(MOD($0, 2), 0), $1, 'LOL'), 'LOL')])",
                                                     nullptr);
   
@@ -350,10 +370,12 @@ TYPED_TEST(ProjectRoundTest, test_round)
 
     cudf::test::fixed_width_column_wrapper<T> col1{{4.0, 5.21, 87317.3, 0.1232387, 0.0000007, 342.9348, 698.3243}};
 
-    CudfTableView cudf_table_in_view{{col1}};
-    std::vector<std::string> names(cudf_table_in_view.num_columns());
+    CudfTableView in_table_view{{col1}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
 
-    auto table_out = ral::processor::process_project(ral::frame::BlazingTableView{cudf_table_in_view, names}, 
+    auto out_table = ral::processor::process_project(std::move(table),
                                                     "LogicalProject(EXPR$0=[ROUND($0)], EXPR$1=[ROUND($0, 2)], EXPR$2=[ROUND($0, 5)])",
                                                     nullptr);
 
@@ -362,5 +384,5 @@ TYPED_TEST(ProjectRoundTest, test_round)
     cudf::test::fixed_width_column_wrapper<T> expect_col3{{4.00000, 5.21000, 87317.30000, 0.12324, 0.00000, 342.93480, 698.32430}, {1, 1, 1, 1, 1, 1, 1}};
     CudfTableView expect_cudf_table_view{{expect_col1, expect_col2, expect_col3}};
 
-    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+    cudf::test::expect_tables_equal(expect_cudf_table_view, out_table->view());
 }

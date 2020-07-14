@@ -1,5 +1,5 @@
-set(source_files
+set(sort_test_sources
     sort.cpp
 )
 
-configure_test(sort-test "${source_files}")
+configure_test(sort-test "${sort_test_sources}")
