@@ -686,12 +686,12 @@ def distributed_initialize_server_directory(client, dir_path):
     all_items = client.scheduler_info()["workers"].items()
 
     dask_futures = []
-    i = 0  # this extra index is to avoid scheduler optimization
     for worker, worker_info in all_items:
         dask_futures.append(
-            client.submit(get_current_directory_path, i, workers=[worker])
+            client.submit(
+                get_current_directory_path, workers=[worker], pure=False
+            )
         )
-        i = i + 1
 
     current_dir_hosts = client.gather(dask_futures)
 
@@ -706,9 +706,10 @@ def distributed_initialize_server_directory(client, dir_path):
     dask_futures = []
     for path, worker in map_host_path.items():
         dask_futures.append(
-            client.submit(initialize_server_directory, dir_path, i, workers=[worker])
+            client.submit(
+                initialize_server_directory, dir_path, workers=[worker], pure=False
+            )
         )
-        i = i + 1
 
     for connection in dask_futures:
         made_dir = connection.result()
@@ -716,7 +717,7 @@ def distributed_initialize_server_directory(client, dir_path):
             logging.info("Directory already exists")
 
 
-def initialize_server_directory(dir_path, idx=0):
+def initialize_server_directory(dir_path):
     if not os.path.exists(dir_path):
         try:
             os.mkdir(dir_path)
@@ -728,7 +729,7 @@ def initialize_server_directory(dir_path, idx=0):
         return False
 
 
-def get_current_directory_path(idx=0):
+def get_current_directory_path():
     return os.getcwd()
 
 
