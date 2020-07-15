@@ -642,13 +642,16 @@ public:
 		// ral::distribution::notifyLastTablePartitions(local_context.get(), ColumnDataPartitionMessage::MessageID());
 
 		auto nodes = local_context->getAllNodes();
+		std::cout<<"self node is "<<self_node.id()<<std::endl;
 		for(std::size_t i = 0; i < nodes.size(); ++i) {
+			std::cout<<"other node id is "<<nodes[i].id()<<std::endl;
+
 			if(!(nodes[i] == self_node)) {
 				ral::cache::MetadataDictionary metadata;
 				metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, kernel_id);
 				metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(local_context->getContextToken()));
 				metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-				metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
+				metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
 				metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
 				metadata.add_value(ral::cache::MESSAGE_ID,std::to_string(table_idx) + "partition_" +
 				 																					metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
@@ -660,12 +663,13 @@ public:
 				 																					metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
 																									metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
 																									nodes[i].id());
-
+				std::cout<<"sent this message id "<<metadata.get_values()[ral::cache::MESSAGE_ID]<<std::endl;
 				graph_output->addCacheData(
 						std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 			}
 		}
-		std::cout<<"sent partition counts for other nodes_to_send"<<std::endl;
+
+		std::cout<<"waiting for other nodes_to_send "<<messages_to_wait_for[messages_to_wait_for.size()-1]<<std::endl;
 	}
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
@@ -920,7 +924,7 @@ std::cout<<"waiting left dist!"<<std::endl;
 		std::cout<<"distributed right"<<std::endl;
 		int total_count_right = node_count_right[self_node.id()];
 		for (auto message : messages_to_wait_for_right){
-						std::cout<<"Waiting for message right"<<message<<std::endl;
+						std::cout<<"Waiting for message right "<<message<<std::endl;
 				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
 				total_count_right += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 				std::cout<<total_count_right<<" is total count right"<<std::endl;

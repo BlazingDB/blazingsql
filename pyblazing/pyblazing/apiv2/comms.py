@@ -12,7 +12,7 @@ serde = ("dask", "cuda", "pickle", "error")
 
 
 async def route_message(msg):
-
+    print("calling route")
     worker = get_worker()
     if msg.metadata["add_to_specific_cache"] == "true":
         graph = worker.query_graphs[int(msg.metadata["query_id"])]
@@ -35,7 +35,7 @@ async def route_message(msg):
     print("done routing message")
 
 
-#async def run_polling_thread():  # doctest: +SKIP
+# async def run_polling_thread():  # doctest: +SKIP
 #    dask_worker = get_worker()
 #    import asyncio
 #    while True:
@@ -49,14 +49,15 @@ def run_polling_thread():  # doctest: +SKIP
 
     while True:
 
-        #print("Pull_from_cache")
+        # print("Pull_from_cache")
         df, metadata = dask_worker.output_cache.pull_from_cache()
-        #print("Should never get here!")
-        #print(metadata)
+        if metadata["add_to_specific_cache"] == "false":
+            df = None
+        # print("Should never get here!")
+        # print(metadata)
         print(df)
         asyncio.get_event_loop().run_until_complete(UCX.get().send(BlazingMessage(metadata, df)))
         asyncio.get_event_loop().run_until_complete(asyncio.sleep(0))
-
 
 
 CTRL_STOP = "stopit"
@@ -227,9 +228,10 @@ class UCX:
             ep = await self.get_endpoint(addr)
 
             to_ser = {"metadata": to_serialize(blazing_msg.metadata)}
-            print(str(blazing_msg.data.shape))
+            
             if blazing_msg.data is not None:
                 to_ser["data"] = to_serialize(blazing_msg.data)
+                print(str(blazing_msg.data.shape))
             await ep.write(msg=to_ser, serializers=serde)
             self.sent += 1
             print("%d messages sent on %s" % (self.sent, get_worker().address))
