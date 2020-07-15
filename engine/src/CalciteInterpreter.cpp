@@ -1,6 +1,5 @@
 #include "CalciteInterpreter.h"
 
-#include <spdlog/spdlog.h>
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include <regex>

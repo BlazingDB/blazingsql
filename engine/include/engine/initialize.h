@@ -1,9 +1,9 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "execution_graph/logic_controllers/CacheMachine.h"
-#include <utility>
 #include <memory>
+
+#include "execution_graph/logic_controllers/CacheMachine.h"
 
 std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> > initialize(int ralId,
 	std::string worker_id,

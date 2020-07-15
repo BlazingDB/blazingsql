@@ -5,11 +5,6 @@ namespace ral {
 namespace cache {
 void port::register_port(std::string port_name) { cache_machines_[port_name] = nullptr; }
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <execinfo.h>
-#include <cxxabi.h>
-
 std::shared_ptr<CacheMachine> & port::get_cache(const std::string & port_name) {
 	if(port_name.length() == 0) {
 		// NOTE: id is the `default` cache_machine name

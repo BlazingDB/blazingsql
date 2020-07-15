@@ -1,5 +1,17 @@
 #pragma once
 
+#include <atomic>
+#include <future>
+#include <memory>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+#include <string>
+#include <typeindex>
+#include <vector>
+#include <limits>
+#include <map>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -8,28 +20,18 @@
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
+#include <cudf/io/functions.hpp>
+
+#include "error.hpp"
+#include "CodeTimer.h"
+#include <blazingdb/manager/Context.h>
+#include <communication/messages/GPUComponentMessage.h>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
-#include <atomic>
-#include <blazingdb/manager/Context.h>
-#include <cudf/io/functions.hpp>
-#include <future>
-#include <memory>
-#include <condition_variable>
-#include <mutex>
-#include <queue>
-#include <communication/messages/GPUComponentMessage.h>
-#include <string>
-#include <typeindex>
-#include <vector>
-#include <limits>
 #include <bmr/BlazingMemoryResource.h>
-#include <spdlog/spdlog.h>
 #include "communication/CommunicationData.h"
-#include "CodeTimer.h"
-#include "error.hpp"
-#include <map>
+
 
 
 using namespace std::chrono_literals;
