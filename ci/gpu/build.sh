@@ -68,8 +68,8 @@ conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=$
 echo "cudf and other rapids dependencies installed"
 
 # install end to end tests dependencies
-echo "conda install --yes openjdk=8.0 maven pyspark=2.4.3 pytest"
-conda install --yes openjdk=8.0 maven pyspark=2.4.3 pytest
+echo "conda install --yes openjdk=8.0 maven pyspark=3.0.0 pytest"
+conda install --yes openjdk=8.0 maven pyspark=3.0.0 pytest
 
 echo "pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client"
 pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client
