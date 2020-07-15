@@ -8,7 +8,7 @@ from distributed.protocol.serialize import to_serialize
 
 from dask.distributed import default_client
 
-serde = ("dask", "cuda", "pickle", "error")
+serde = ("cuda","dask", "pickle", "error")
 
 
 async def route_message(msg):
