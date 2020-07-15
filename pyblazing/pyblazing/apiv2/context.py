@@ -3,8 +3,6 @@ import cudf
 
 from collections import OrderedDict
 
-# from enum import Enum
-
 from urllib.parse import urlparse
 
 from threading import Lock
