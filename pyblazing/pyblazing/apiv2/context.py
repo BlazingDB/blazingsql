@@ -681,39 +681,80 @@ def adjust_due_missing_rowgroups(metadata, files):
 
 def distributed_initialize_server_directory(client, dir_path):
 
-    # lets make host_list which is a list of all the unique hosts.
-    # this way we do the logging folder creation only once per host (server)
-    # or for each worker whenever run from different directories
+    # We are going to differentiate the two cases. When path is absolute,
+    # we do the logging folder creation only once per host (server).
+    # When path is relative, we have to group the workers according
+    # to whether they have the same current working directory,
+    # so, a unique folder will be created for each sub common cwd set.
+
     all_items = client.scheduler_info()["workers"].items()
 
-    dask_futures = []
-    for worker, worker_info in all_items:
-        dask_futures.append(
-            client.submit(get_current_directory_path, workers=[worker], pure=False)
-        )
+    is_absolute_path = os.path.isabs(dir_path)
 
-    current_dir_hosts = client.gather(dask_futures)
+    if is_absolute_path:
+        # Let's group the workers by host_name
+        host_worker_dict = {}
+        for worker, worker_info in all_items:
+            host_name = worker.split(":")[0]
+            if host_name not in host_worker_dict.keys():
+                host_worker_dict[host_name] = [worker]
+            else:
+                host_worker_dict[host_name].append(worker)
 
-    # lets map the working directories shared by several workers,
-    # in such a way that only one worker will create the logging folder
-    map_host_path = {}
-    for path, worker in zip(
-        current_dir_hosts, [worker for worker, worker_info in all_items]
-    ):
-        map_host_path[path] = worker
-
-    dask_futures = []
-    for path, worker in map_host_path.items():
-        dask_futures.append(
-            client.submit(
-                initialize_server_directory, dir_path, workers=[worker], pure=False
+        dask_futures = []
+        for host_name, worker_list in host_worker_dict.items():
+            dask_futures.append(
+                client.submit(
+                    initialize_server_directory,
+                    dir_path,
+                    workers=[worker_list[0]],
+                    pure=False,
+                )
             )
-        )
 
-    for connection in dask_futures:
-        made_dir = connection.result()
-        if not made_dir:
-            logging.info("Directory already exists")
+        for connection in dask_futures:
+            made_dir = connection.result()
+            if not made_dir:
+                logging.info("Directory already exists")
+    else:
+        # Let's get the current working directory of all workers
+        dask_futures = []
+        for worker, worker_info in all_items:
+            dask_futures.append(
+                client.submit(get_current_directory_path, workers=[worker], pure=False)
+            )
+
+        current_working_dirs = client.gather(dask_futures)
+
+        # Let's group the workers by host_name and by common cwd
+        host_worker_dict = {}
+        for worker_key, cwd in zip(all_items, current_working_dirs):
+            worker = worker_key[0]
+            host_name = worker.split(":")[0]
+            if host_name not in host_worker_dict.keys():
+                host_worker_dict[host_name] = {cwd: [worker]}
+            else:
+                if cwd not in host_worker_dict[host_name].keys():
+                    host_worker_dict[host_name][cwd] = [worker]
+                else:
+                    host_worker_dict[host_name][cwd].append(worker)
+
+        dask_futures = []
+        for host_name, common_current_work in host_worker_dict.items():
+            for cwd, worker_list in common_current_work.items():
+                dask_futures.append(
+                    client.submit(
+                        initialize_server_directory,
+                        dir_path,
+                        workers=[worker_list[0]],
+                        pure=False,
+                    )
+                )
+
+        for connection in dask_futures:
+            made_dir = connection.result()
+            if not made_dir:
+                logging.info("Directory already exists")
 
 
 def initialize_server_directory(dir_path):
