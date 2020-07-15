@@ -688,9 +688,7 @@ def distributed_initialize_server_directory(client, dir_path):
     dask_futures = []
     for worker, worker_info in all_items:
         dask_futures.append(
-            client.submit(
-                get_current_directory_path, workers=[worker], pure=False
-            )
+            client.submit(get_current_directory_path, workers=[worker], pure=False)
         )
 
     current_dir_hosts = client.gather(dask_futures)
