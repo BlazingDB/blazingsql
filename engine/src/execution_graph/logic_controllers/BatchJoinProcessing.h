@@ -126,7 +126,6 @@ public:
 								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
 								"info"_a="In PartwiseJoin::load_set Concatenating Strings will overflow strings length");			
 			}
-
 			return ral::utilities::concatTables(tables_to_concat);
 		}
 	}
@@ -587,10 +586,11 @@ public:
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
 						// TODO: create message id and send to add add_to_output_cache
-						output->addToCache(std::move(partition_table_clone));
+						output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id);
 						std::cout<<"added to self node "<<cache_id<<std::endl;
 						node_count[self_node.id()]++;
 					} else {
+						std::cout<<"partition_table is going to send table of bytes: "<<partition_table_clone->sizeInBytes()<<std::endl;
 						partitions_to_send.emplace_back(
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
 					}
@@ -880,7 +880,7 @@ public:
 		// 	}
 		// });
 
-std::cout<<"waiting left dist!"<<std::endl;
+		std::cout<<"waiting left dist!"<<std::endl;
 		distribute_left_thread.join();
 		std::cout<<"distributed all left!"<<std::endl;
 		int total_count_left = node_count_left[self_node.id()];
@@ -891,12 +891,7 @@ std::cout<<"waiting left dist!"<<std::endl;
 		}
 		std::cout<<"Waiting for left"<<total_count_left<<" parts"<<std::endl;
 		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
-
 		std::cout<<"got all left"<<std::endl;
-
-		// clone context, increment step counter to make it so that the next partition_table will have different message id
-		auto cloned_context = context->clone();
-		cloned_context->incrementQuerySubstep();
 
 		std::map<std::string, int> node_count_right;
 		std::vector<std::string> messages_to_wait_for_right;

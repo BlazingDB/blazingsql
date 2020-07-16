@@ -135,6 +135,13 @@ std::int32_t CacheMachine::get_id() const { return (cache_id); }
 
 void CacheMachine::finish() {
 	this->waitingCache->finish();
+	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|cache_id|{cache_id}||",
+									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+									"info"_a="CacheMachine finish()",
+									"duration"_a="",
+									"cache_id"_a=cache_id);
 }
 
 bool CacheMachine::is_finished() {
