@@ -8,7 +8,7 @@ from distributed.protocol.serialize import to_serialize
 
 from dask.distributed import default_client
 
-serde = ("dask", "cuda", "pickle", "error")
+serde = ("cuda", "dask", "pickle", "error")
 
 
 async def route_message(msg):
@@ -162,9 +162,9 @@ class UCX:
             print("handling comm")
             should_stop = False
             while not comm.closed() and not should_stop:
-                print("Listening!")
+                print("%s- Listening!" % get_worker().address)
                 msg = await comm.read()
-                print("got msg: " + str(msg))
+                print("%s- got msg: %s" % (get_worker().address, msg))
                 if msg == CTRL_STOP:
                     print("SHOULD STOP SET!")
                     should_stop = True
@@ -216,7 +216,7 @@ class UCX:
         Send a BlazingMessage to the workers specified in `worker_ids`
         field of metadata
         """
-        print("calling send")
+        print("calling send: "+ str(blazing_msg.metadata))
 
         local_dask_addr = get_worker().ucx_addresses[get_worker().address]
         for dask_addr in blazing_msg.metadata["worker_ids"]:
@@ -225,14 +225,22 @@ class UCX:
             print("dask_addr=%s mapped to blazing_ucx_addr=%s" %(dask_addr, addr))
 
             print("local_worker=%s, remote_worker=%s" % (local_dask_addr, addr))
-            ep = await self.get_endpoint(addr)
-
-            to_ser = {"metadata": to_serialize(blazing_msg.metadata)}
             
-            if blazing_msg.data is not None:
-                to_ser["data"] = to_serialize(blazing_msg.data)
-                print(str(blazing_msg.data.shape))
-            await ep.write(msg=to_ser, serializers=serde)
+            ep = await self.get_endpoint(addr)
+            try:
+                to_ser = {"metadata": to_serialize(blazing_msg.metadata)}
+            
+                if blazing_msg.data is not None:
+                    to_ser["data"] = to_serialize(blazing_msg.data)
+                     
+                    print(str(blazing_msg.data))
+            except:
+                print("An error occurred in serialization")
+
+            try:
+                await ep.write(msg=to_ser, serializers=serde)
+            except:
+                print("Error occurred during write")
             self.sent += 1
             print("%d messages sent on %s" % (self.sent, get_worker().address))
             print("seems like it wrote")
