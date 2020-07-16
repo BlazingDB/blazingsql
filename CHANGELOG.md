@@ -17,6 +17,7 @@
 - #784 Updated set of TPCH queries on the E2E tests
 - #877 round robing dask workers on single gpu queries
 - #880 reraising query errors in context.py
+- #883 add rand() and running unary operations on literals
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
