@@ -67,7 +67,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         # TODO jp c.gonzales make use of standard cmake find_package here (see above)
         #spdlog::spdlog
         libspdlog.a
-        
+
         cudftestutil
     )
 
@@ -119,5 +119,6 @@ add_subdirectory(transport)
 add_subdirectory(skipdata)
 add_subdirectory(cache_machine)
 add_subdirectory(parser)
+add_subdirectory(waiting_queue)
 
 message(STATUS "******** Tests are ready ********")
