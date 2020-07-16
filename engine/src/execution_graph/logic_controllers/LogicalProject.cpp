@@ -693,7 +693,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
                                                 final_output_positions,
                                                 operators,
                                                 left_scalars,
-                                                right_scalars);
+                                                right_scalars,
+                                                table.num_rows());
     }
 
     return std::move(out_columns);

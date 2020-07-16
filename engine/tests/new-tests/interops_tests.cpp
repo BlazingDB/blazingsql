@@ -116,6 +116,70 @@ using namespace interops;
 
 }
 
+TEST_F(OperatorTest, rand_num_2) {
+
+  //hastily assembled assuming nthis goes away when we get the new cudf interpreter
+using namespace interops;
+
+  using T = double;
+  
+  cudf::table_view in_table_view;
+
+  // 0> + * + $0 $1 $2 $1   | + $1 2
+  // 1> + * (+ $0 $1) $2 $1 | + $1 2
+  // 2> + (* $5 $2) $1      | + $1 2
+  // 3> (+ $5 $1)           | (+ $1 2)
+  // 4> $3                  | $4
+
+  std::vector<column_index_type> left_inputs =  { NULLARY_INDEX};
+  std::vector<column_index_type> right_inputs = {NULLARY_INDEX};
+  std::vector<column_index_type> outputs =      { 0 };
+
+  std::vector<column_index_type> final_output_positions = {0};
+
+  std::vector<operator_type> operators = { operator_type::BLZ_RAND};
+
+  auto dtype = cudf::data_type{cudf::type_to_id<T>()};
+  std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_numeric_scalar(dtype)};
+  std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
+  std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype)};
+  std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
+
+  cudf::size_type input_rows = 100;
+  
+  // using OUT_T = typename output_type<T>::type;
+  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+      return T{};
+    });
+  cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + input_rows);
+ 
+  cudf::mutable_table_view out_table_view ({out_col1});
+
+  perform_interpreter_operation(out_table_view,
+                              in_table_view,
+                              left_inputs,
+                              right_inputs,
+                              outputs,
+                              final_output_positions,
+                              operators,
+                              left_scalars,
+                              right_scalars,
+                              input_rows);
+
+   //for (auto &&c : out_table_view) {
+   //    cudf::test::print(c);
+   //    std::cout << std::endl;
+   //}
+  
+
+  std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask =  cudf::test::to_host<T>(out_col1);
+
+  for (int i = 0; i < data_mask.first.size(); i++){
+    ASSERT_TRUE(data_mask.first[i] >= 0.0d && data_mask.first[i] <= 1.0d);
+  }
+  ASSERT_TRUE(out_table_view.num_rows() == input_rows);
+}
+
 using SignedIntegralTypesNotBool =
   cudf::test::Types<int8_t, int16_t, int32_t, int64_t>;
 using SignedIntegralTypes = cudf::test::Concat<SignedIntegralTypesNotBool, cudf::test::Types<bool>>;

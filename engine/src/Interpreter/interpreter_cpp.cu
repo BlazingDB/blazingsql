@@ -439,7 +439,8 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	const std::vector<column_index_type> & final_output_positions,
 	const std::vector<operator_type> & operators,
 	const std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
-	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars) {
+	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars,
+	cudf::size_type operation_num_rows) {
 	using namespace detail;
 	cudaStream_t stream = 0;
 
@@ -551,6 +552,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	rmm::device_vector<operator_type> device_operators(operators);
 
 
+
 	InterpreterFunctor op(*device_out_table_view,
 												*device_table_view,
 												static_cast<cudf::size_type>(left_device_inputs.size()),
@@ -575,11 +577,13 @@ rmm::device_vector<curandState> states(min_grid_size * block_size);
 		block_size,
 		shared_memory_per_thread * block_size,
 		stream>>>(states.data().get(),seed);
-
+	if (operation_num_rows == 0){
+		operation_num_rows = table.num_rows();
+	}
 	transformKernel<<<min_grid_size,
 		block_size,
 		shared_memory_per_thread * block_size,
-		stream>>>(op, table.num_rows(), states.data().get());
+		stream>>>(op, operation_num_rows, states.data().get());
 	CUDA_TRY(cudaStreamSynchronize(stream));
 }
 

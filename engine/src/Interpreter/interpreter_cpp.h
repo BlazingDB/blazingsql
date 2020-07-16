@@ -45,6 +45,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	const std::vector<column_index_type> & final_output_positions,
 	const std::vector<operator_type> & operators,
 	const std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
-	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars);
+	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars,
+	cudf::size_type operation_num_rows = 0);
 
 } // namespace interops
