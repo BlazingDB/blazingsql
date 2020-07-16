@@ -199,6 +199,49 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types6)
     }
 }
 
+
+TYPED_TEST(ProjectTestNumeric, test_numeric_types7)
+{
+    using T = TypeParam;
+
+    cudf::test::fixed_width_column_wrapper<T> col1{{4, 5, 3, 5, 8, 5, 6}, {1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::strings_column_wrapper col2({"b", "d", "a", "d", "l", "d", "k"}, {1, 1, 1, 1, 1, 1, 1});
+    cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
+
+    CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(cudf_table_in_view);
+
+    std::vector<std::string> names({"A", "B", "C"});
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
+
+    std::string query_part = "LogicalProject(EXPR$0=[RAND()], EXPR$1=[*($2, RAND())])";
+    blazingdb::manager::Context * context = nullptr;
+
+    std::unique_ptr<ral::frame::BlazingTable> table_out = ral::processor::process_project(
+        std::move(table), 
+        query_part,
+        context);
+
+  //  for (auto &&c : table_out->toBlazingTableView().view()) {
+  //     cudf::test::print(c);
+  //     std::cout << std::endl;
+  // }
+    //if (std::is_same<T, bool>::value) {
+    //    cudf::test::fixed_width_column_wrapper<bool> expect_col1{{0, 0, 0, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
+    //    cudf::test::fixed_width_column_wrapper<bool> expect_col3{{1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
+    //    CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
+
+//        cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+//    } else {
+//        cudf::test::fixed_width_column_wrapper<bool> expect_col1{{1, 1, 0, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}};
+//        cudf::test::fixed_width_column_wrapper<bool> expect_col3{{0, 0, 0, 0, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 1}};
+//        CudfTableView expect_cudf_table_view {{expect_col1, expect_col3}};
+
+//        cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+//   }
+}
+
+
 struct ProjectTestString : public BlazingUnitTest {};
 
 TEST_F(ProjectTestString, test_string_like)

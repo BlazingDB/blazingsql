@@ -21,7 +21,9 @@ typedef int16_t column_index_type;
 enum column_index : column_index_type {
 	UNARY_INDEX = -1,
 	SCALAR_INDEX = -2,
-	SCALAR_NULL_INDEX = -3
+	SCALAR_NULL_INDEX = -3,
+	NULLARY_INDEX = -4
+
 };
 
 void add_expression_to_interpreter_plan(const ral::parser::parse_tree & expr_tree,
