@@ -535,9 +535,11 @@ public:
 		operator_type op = map_to_operator_type(node.value);
 		if(is_binary_operator(op)) {
 			output_type = cudf::data_type{get_output_type(op, node_to_type_map_.at(node.children[0].get()).id(), node_to_type_map_.at(node.children[1].get()).id())};
-		} else {
+		} else if (is_unary_operator(op)) {
 			output_type = cudf::data_type{get_output_type(op, node_to_type_map_.at(node.children[0].get()).id())};
-		}
+		}else{
+            output_type = cudf::data_type{get_output_type(op)};
+        }
 
 		node_to_type_map_.insert({&node, output_type});
 		expr_output_type_ = output_type;
@@ -691,7 +693,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
                                                 final_output_positions,
                                                 operators,
                                                 left_scalars,
-                                                right_scalars);
+                                                right_scalars,
+                                                table.num_rows());
     }
 
     return std::move(out_columns);

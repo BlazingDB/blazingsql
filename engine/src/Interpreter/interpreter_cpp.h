@@ -21,7 +21,9 @@ typedef int16_t column_index_type;
 enum column_index : column_index_type {
 	UNARY_INDEX = -1,
 	SCALAR_INDEX = -2,
-	SCALAR_NULL_INDEX = -3
+	SCALAR_NULL_INDEX = -3,
+	NULLARY_INDEX = -4
+
 };
 
 void add_expression_to_interpreter_plan(const ral::parser::parse_tree & expr_tree,
@@ -43,6 +45,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	const std::vector<column_index_type> & final_output_positions,
 	const std::vector<operator_type> & operators,
 	const std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
-	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars);
+	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars,
+	cudf::size_type operation_num_rows = 0);
 
 } // namespace interops
