@@ -590,7 +590,7 @@ public:
 						std::cout<<"added to self node "<<cache_id<<std::endl;
 						node_count[self_node.id()]++;
 					} else {
-						std::cout<<"partition_table is going to send table of bytes: "<<partition_table_clone->sizeInBytes()<<std::endl;
+				//		std::cout<<"partition_table is going to send table of bytes: "<<partition_table_clone->sizeInBytes()<<std::endl;
 						partitions_to_send.emplace_back(
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
 					}
