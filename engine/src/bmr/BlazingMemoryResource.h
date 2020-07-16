@@ -10,6 +10,7 @@
 #include <rmm/mr/device/managed_memory_resource.hpp>
 #include <rmm/mr/device/cnmem_managed_memory_resource.hpp>
 #include <rmm/mr/device/cnmem_memory_resource.hpp>
+#include <rmm/mr/device/default_memory_resource.hpp>
 
 #include "config/GPUManager.cuh"
 

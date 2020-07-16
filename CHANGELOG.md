@@ -15,6 +15,8 @@
 - #826 Support cross join
 - #866 Added nogil statements for pure C functions in Cython
 - #784 Updated set of TPCH queries on the E2E tests
+- #877 round robing dask workers on single gpu queries
+- #880 reraising query errors in context.py
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -37,6 +39,8 @@
 - #850 Fixed issue with getTableScanInfoCaller
 - #851 Fix row_groups issue in ParquetParser.cpp
 - #847 Fixed issue with some constant expressions not evaluated by calcite
+- #875 Recovered some old unit tests and deleted obsolete unit tests
+- #879 Fixed issue with log directory creation in a distributed environment
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
