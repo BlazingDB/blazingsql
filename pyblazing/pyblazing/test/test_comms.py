@@ -83,9 +83,9 @@ async def test_ucx_localcluster( dask_cleanup):
                 assert len(ips_ports) == len(client.scheduler_info()["workers"])
                 for k, v in ips_ports.items():
                     assert v is not None
-
+                import numpy
                 meta = {"worker_ids": tuple(ips_ports.keys())}
-                data = cudf.DataFrame({"a": cudf.Series([0, 1, 2, 3, 4])})
+                data = cudf.DataFrame({"%s" % x: cudf.Series(np.arange(37000)) for x in range(50)})
 
                 """
                 Loop through each of the workers, sending a test BlazingMessage
@@ -94,8 +94,9 @@ async def test_ucx_localcluster( dask_cleanup):
                 for dask_addr, blazing_addr in ips_ports.items():
                     msg = BlazingMessage(meta, data)
 
-                    async def send(msg): await UCX.get().send(msg)
-                    await client.run(send, msg, workers=[dask_addr], wait=True)
+                    for n in range(1):
+                        async def send(msg): await UCX.get().send(msg)
+                        await client.run(send, msg, workers=[dask_addr], wait=True)
 
                 """
                 Gather messages received on each worker for validation

@@ -202,7 +202,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		int cacheIndex = 0;
 		while(cacheIndex < this->memory_resources.size()) {
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
-			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
+			if( memory_to_use < 999999999999) {
 				if(cacheIndex == 0) {
 					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 						"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
