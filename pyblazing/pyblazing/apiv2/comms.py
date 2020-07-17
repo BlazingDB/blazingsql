@@ -196,7 +196,6 @@ class UCX:
                         print("Finished receiving message id: "+ str(msg.metadata["message_id"]))
                     else:
                         print("No message_id")
-                        #print('This is what we got: ',msg)
                     print("Invoking callback")
                     await self.callback(msg)
                     print("Done invoting callback")
@@ -205,7 +204,7 @@ class UCX:
 
         ip, port = parse_host_port(get_worker().address)
 
-        self._listener = await UCXListener(ip, handle_comm, guarantee_msg_order=True)
+        self._listener = await UCXListener(ip, handle_comm)
 
         print("Starting listener on worker")
         await self._listener.start()
