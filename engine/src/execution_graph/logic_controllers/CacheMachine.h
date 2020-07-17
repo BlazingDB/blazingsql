@@ -192,20 +192,22 @@ public:
 		return this->finished.load(std::memory_order_seq_cst);
 	}
 
-	message_ptr pop_or_wait() {		
+	message_ptr pop_or_wait() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
-					logger->warn("|||{info}|{duration}||||",
-										"info"_a="WaitingQueue pop_or_wait timed out",
-										"duration"_a=blazing_timer.elapsed_time());
+					if(logger != nullptr) {
+						logger->warn("|||{info}|{duration}||||",
+											"info"_a="WaitingQueue pop_or_wait timed out",
+											"duration"_a=blazing_timer.elapsed_time());
+					}
 				}
 				return done_waiting;
 			})){}
-		
+
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -217,13 +219,15 @@ public:
 	bool wait_for_next() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty(); 
+		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
-					logger->warn("|||{info}|{duration}||||",
-										"info"_a="WaitingQueue wait_for_next timed out",
-										"duration"_a=blazing_timer.elapsed_time());
+					if(logger != nullptr) {
+						logger->warn("|||{info}|{duration}||||",
+											"info"_a="WaitingQueue wait_for_next timed out",
+											"duration"_a=blazing_timer.elapsed_time());
+					}
 				}
 				return done_waiting;
 			})){}
@@ -242,13 +246,15 @@ public:
 	void wait_until_finished() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst); 
+		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
-					logger->warn("|||{info}|{duration}||||",
-										"info"_a="WaitingQueue wait_until_finished timed out",
-										"duration"_a=blazing_timer.elapsed_time());
+					if(logger != nullptr) {
+						logger->warn("|||{info}|{duration}||||",
+											"info"_a="WaitingQueue wait_until_finished timed out",
+											"duration"_a=blazing_timer.elapsed_time());
+					}
 				}
 				return done_waiting;
 			})){}
@@ -265,10 +271,12 @@ public:
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or result;
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
-					logger->warn("|||{info}|{duration}|message_id|{message_id}||",
-										"info"_a="WaitingQueue get_or_wait timed out",
-										"duration"_a=blazing_timer.elapsed_time(),
-										"message_id"_a=message_id);
+					if(logger != nullptr) {
+						logger->warn("|||{info}|{duration}|message_id|{message_id}||",
+											"info"_a="WaitingQueue get_or_wait timed out",
+											"duration"_a=blazing_timer.elapsed_time(),
+											"message_id"_a=message_id);
+					}
 				}
 				return done_waiting;
 			})){}
@@ -294,13 +302,15 @@ public:
 	std::vector<message_ptr> get_all_or_wait() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms,  [&blazing_timer, this] { 
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst); 
+		while(!condition_variable_.wait_for(lock, 60000ms,  [&blazing_timer, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
-					logger->warn("|||{info}|{duration}||||",
-										"info"_a="WaitingQueue get_all_or_wait timed out",
-										"duration"_a=blazing_timer.elapsed_time());
+					if(logger != nullptr) {
+						logger->warn("|||{info}|{duration}||||",
+											"info"_a="WaitingQueue get_all_or_wait timed out",
+											"duration"_a=blazing_timer.elapsed_time());
+					}
 				}
 				return done_waiting;
 			})){}
@@ -324,15 +334,15 @@ public:
 	void put_all_unsafe(std::vector<message_ptr> messages) {
 		for(size_t i = 0; i < messages.size(); i++) {
 			putWaitingQueue(std::move(messages[i]));
-		}		
+		}
 	}
 
 
 private:
-	bool empty() { 
-		return this->message_queue_.size() == 0; 
+	bool empty() {
+		return this->message_queue_.size() == 0;
 	}
-	
+
 	void putWaitingQueue(message_ptr item) { message_queue_.emplace_back(std::move(item)); }
 
 private:
@@ -393,7 +403,7 @@ public:
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
 	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
-	
+
 	virtual void wait_if_cache_is_saturated();
 
 	// take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate

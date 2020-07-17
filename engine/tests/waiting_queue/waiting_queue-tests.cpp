@@ -6,7 +6,6 @@
 #include "execution_graph/logic_controllers/CacheMachine.h"  // WaitingQueue
 #include "execution_graph/logic_controllers/LogicPrimitives.h"  // BlazingTable
 #include "execution_graph/logic_controllers/BlazingColumn.h"  // BlazingColumn
-#include "execution_graph/logic_controllers/BlazingColumnOwner.h"  // BlazingColumnOwner
 
 #define DESCR(d) RecordProperty("description", d)
 
@@ -15,9 +14,7 @@ using namespace ral;
 
 class WaitingQueueTest : public ::testing::Test {
 protected:
-   void SetUp() override {
-   }
-
+   // void SetUp() override {}
    // void TearDown() override {}
 
    // Minimum required to create and return a cache::message instance for use
@@ -33,10 +30,16 @@ protected:
       return std::move(std::make_unique<cache::message>(std::move(content), msgId));
    }
 
-   // Calls put() on a WaitingQueue instance pointer after waiting delayMs
+   // Calls put() and passes msg on a WaitingQueue instance pointer after waiting delayMs
    std::thread
    putCacheMsgAfter(int delayMs, cache::WaitingQueue* wqPtr, std::unique_ptr<cache::message> msg) {
       return std::thread(&WaitingQueueTest::putCacheMsgAfterWorker, this, delayMs, wqPtr, std::move(msg));
+   }
+
+   // Calls finish() on a WaitingQueue instance pointer after waiting delayMs
+   std::thread
+   callFinishAfter(int delayMs, cache::WaitingQueue* wqPtr) {
+      return std::thread(&WaitingQueueTest::callFinishAfterWorker, this, delayMs, wqPtr);
    }
 
 private:
@@ -44,6 +47,12 @@ private:
    putCacheMsgAfterWorker(int delayMs, cache::WaitingQueue* wqPtr, std::unique_ptr<cache::message> msg) {
       std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
       wqPtr->put(std::move(msg));
+   }
+
+   void
+   callFinishAfterWorker(int delayMs, cache::WaitingQueue* wqPtr) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+      wqPtr->finish();
    }
 };
 
@@ -92,7 +101,6 @@ TEST_F(WaitingQueueTest, putWaitForPop) {
    std::thread t = putCacheMsgAfter(300, &wq, std::move(msg));
 
    // This should wait until the message is present
-   // FIXME: if this times out, a crash results from calling spdlog (CacheMachine.h:202)
    auto msgOut = wq.pop_or_wait();
 
    ASSERT_NE(msgOut, nullptr);
@@ -128,7 +136,6 @@ TEST_F(WaitingQueueTest, putGetWaitForId) {
    std::thread t = putCacheMsgAfter(300, &wq, createCacheMsg(msgId2));
 
    // msg with ID 2 won't show up for ~300ms, so this should wait
-   // FIXME: this will wait forever or crash with a spdlog problem (CacheMachine.h:268)
    auto msgOut = wq.get_or_wait(msgId2);
    ASSERT_NE(msgOut, nullptr);
    EXPECT_EQ(msgOut->get_message_id(), msgId2);
@@ -141,7 +148,23 @@ TEST_F(WaitingQueueTest, putGetWaitForId) {
 }
 
 
-/*
-TODO:
-  * test lock()
-*/
+// FIXME: enable this test when
+// https://github.com/BlazingDB/blazingsql/issues/884 is closed
+TEST_F(WaitingQueueTest, DISABLED_putGetWaitForNonexistantId) {
+   DESCR("ensures a get_or_wait() call on a non-existant ID can be cancelled");
+
+   cache::WaitingQueue wq;
+   std::string msgId1 = "uniqueId1";
+   std::string msgId2 = "uniqueId2";
+
+   wq.put(createCacheMsg(msgId1));
+
+   // msg with ID 2 will never show up.
+   // finish() will be called after 300ms, which should break get_or_wait() out
+   // of its polling loop.
+   std::thread t = callFinishAfter(300, &wq);
+   auto msgOut = wq.get_or_wait(msgId2);    // FIXME: this will not return!
+
+   ASSERT_NE(msgOut, nullptr);
+   t.join();  // should not be needed
+}
