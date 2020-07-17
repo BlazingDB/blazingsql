@@ -2,12 +2,14 @@
 
 #include <arrow/io/file.h>
 
-#include <blazingdb/io/Library/Logging/Logger.h>
-#include "blazingdb/concurrency/BlazingThread.h"
-
 #include <orc/OrcFile.hh>
 #include <orc/Reader.hh>
 #include <orc/Statistics.hh>
+
+#include <blazingdb/io/Library/Logging/Logger.h>
+#include "blazingdb/concurrency/BlazingThread.h"
+
+#include "metadata/BlazingInputStream.h"
 
 #include <numeric>
 
@@ -102,12 +104,46 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::get_metadata(std::vector<s
 	
 	uint64_t row_index_stride = orc_reader->getRowIndexStride();
 	std::cout<<"row_index_stride: "<<row_index_stride<<std::endl;
-	uint64_t num_striped = orc_reader->getNumberOfStripes();
-	std::cout<<"num_striped: "<<num_striped<<std::endl;
+	uint64_t num_stripes = orc_reader->getNumberOfStripes();
+	std::cout<<"num_stripes: "<<num_stripes<<std::endl;
 	uint64_t num_stripe_statistics = orc_reader->getNumberOfStripeStatistics();
 	std::cout<<"num_stripe_statistics: "<<num_stripe_statistics<<std::endl;
 	bool correct_statistics = orc_reader->hasCorrectStatistics();
 	std::cout<<"correct_statistics: "<<correct_statistics<<std::endl;
+
+    for (int i = 0; i < num_stripes; i++){
+        std::unique_ptr<orc::StripeInformation> info = orc_reader->getStripe(i);
+        uint64_t num_streams = info->getNumberOfStreams();
+        std::cout<<"stripe: "<<i<<" num_streams: "<<num_streams<<std::endl;
+
+        std::unique_ptr<orc::StripeStatistics> stats = orc_reader->getStripeStatistics(i);
+        uint32_t num_cols = stats->getNumberOfColumns();
+        std::cout<<"stripe: "<<i<<" num_cols: "<<num_cols<<std::endl;
+
+        for (int j = 0; j < num_cols; j++){
+            uint32_t num_row_idx = stats->getNumberOfRowIndexStats(j);
+            std::cout<<"stripe: "<<i<<" col: "<<j<<" num_row_idx: "<<num_row_idx<<std::endl;
+
+
+            std::unique_ptr<orc::ColumnStatistics> col_stats = orc_reader->getColumnStatistics(j);
+            std::string col_stats_str = col_stats->toString();
+            std::cout<<"col_stats: "<<col_stats_str<<std::endl;
+
+            const orc::ColumnStatistics* col_stripe_stats = stats->getColumnStatistics(j);
+            std::string col_stripe_stats_str = col_stripe_stats->toString();
+            std::cout<<"col_stripe_stats_str: "<<col_stripe_stats_str<<std::endl;
+
+            const orc::ColumnStatistics* col_rowidx_stats0 = stats->getRowIndexStatistics(j, 0);
+            std::string col_rowidx_stats_str0 = col_rowidx_stats0->toString();
+            std::cout<<"col_rowidx_stats0: "<<col_rowidx_stats_str0<<std::endl;
+
+            // const orc::ColumnStatistics* col_rowidx_stats1 = stats->getRowIndexStatistics(j, 1);
+            // std::string col_rowidx_stats_str1 = col_rowidx_stats1->toString();
+            // std::cout<<"col_rowidx_stats1: "<<col_rowidx_stats_str1<<std::endl;
+        }
+
+        
+    }
 
 
 

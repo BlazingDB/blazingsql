@@ -213,6 +213,8 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
         sed -i 's/zstd/libzstd.so/g' $orc_cmake_list_src
         # Force to use the dynamic lib libsnappy.so instead of the static one
         sed -i 's/snappy/libsnappy.so/g' $orc_cmake_list_src
+        # Force to use the dynamic lib libprotobuf.so instead of the static one
+        sed -i 's/protobuf/libprotobuf.so/g' $orc_cmake_list_src
 
         # NOTE build & install
         cd ${REPODIR}/thirdparty/orc/orc-rel-release-$orc_release/
