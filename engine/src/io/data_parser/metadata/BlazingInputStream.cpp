@@ -2,14 +2,16 @@
 
 
 BlazingInputStream::BlazingInputStream(std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle, std::string file_path) :
-    arrow_file_handle(arrow_file_handle), file_name(file_path){};
+    arrow_file_handle(arrow_file_handle), file_name(file_path){}
+
+BlazingInputStream::~BlazingInputStream(){}
 
 /**
  * Get the total length of the file in bytes.
  */
 uint64_t BlazingInputStream::getLength() const {
     return arrow_file_handle->GetSize().ValueOrDie();
-};
+}
 
 /**
  * Get the natural size for reads.
