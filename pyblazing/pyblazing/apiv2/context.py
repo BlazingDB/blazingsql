@@ -19,7 +19,7 @@ from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 import asyncio
 from distributed.comm import listen
-from pyblazing.apiv2.comms import run_polling_thread, listen
+from pyblazing.apiv2.comms import PollingPlugin, listen
 import json
 import collections
 from pyhive import hive
@@ -1172,15 +1172,10 @@ class BlazingContext(object):
 
 
             
-            print("starting polling thread")
-            # Start polling thread in asyncio function on each worker
-            import threading
-            def polling_thread():
-                print("Starting thread")
-                t1 = threading.Thread(target=run_polling_thread)
-                t1.start()
-                get_worker().polling_thread = t1
-            self.dask_client.run(polling_thread, wait=True)
+            print("starting polling plugin")
+            # Register and start polling plugin on each Dask worker
+            self.polling_plugin = PollingPlugin()
+            self.dask_client.register_worker_plugin(self.polling_plugin)
 
             # Start listener on each worker to send received messages to router
             print("starting listeners")

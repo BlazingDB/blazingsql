@@ -1,3 +1,4 @@
+from tornado.ioloop import PeriodicCallback
 import ucp
 from distributed import get_worker
 
@@ -35,29 +36,32 @@ async def route_message(msg):
     print("done routing message")
 
 
-# async def run_polling_thread():  # doctest: +SKIP
-#    dask_worker = get_worker()
-#    import asyncio
-#    while True:
-#        df, metadata = dask_worker.output_cache.pull_from_cache()
-#        await UCX.get().send(BlazingMessage(df, metadata))
-#        await asyncio.sleep(1)
+class PollingPlugin:
+    def __init__(self, *args, **kwargs):
+        pass
 
-def run_polling_thread():  # doctest: +SKIP
-    dask_worker = get_worker()
-    import asyncio
+    def setup(self, worker=None):
+        self._worker = worker
+        self._pc = PeriodicCallback(callback=self.async_run_polling, callback_time=10)
+        self._pc.start()
+        print("Register Polling Plugin...")
 
-    while True:
+    async def async_run_polling(self):
+        import asyncio, os
 
-        # print("Pull_from_cache")
-        df, metadata = dask_worker.output_cache.pull_from_cache()
-        if metadata["add_to_specific_cache"] == "false":
-            df = None
-        # print("Should never get here!")
-        # print(metadata)
-        print(df)
-        asyncio.get_event_loop().run_until_complete(UCX.get().send(BlazingMessage(metadata, df)))
-        asyncio.get_event_loop().run_until_complete(asyncio.sleep(0))
+        #print("Polling [%d]" % (os.getpid(),))
+
+        if self._worker.output_cache.has_next_now():
+            # print("Pull_from_cache")
+            df, metadata = self._worker.output_cache.pull_from_cache()
+            if metadata["add_to_specific_cache"] == "false":
+                df = None
+            # print("Should never get here!")
+            # print(metadata)
+            print(df)
+            await UCX.get().send(BlazingMessage(metadata, df))
+            await asyncio.sleep(0)
+
 
 
 CTRL_STOP = "stopit"
