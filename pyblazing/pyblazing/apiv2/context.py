@@ -18,8 +18,7 @@ from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 import asyncio
-from distributed.comm import listen
-from pyblazing.apiv2.comms import run_polling_thread, listen
+from pyblazing.apiv2.comms import run_comm_thread
 import json
 import collections
 from pyhive import hive
@@ -66,7 +65,8 @@ if not os.path.isfile(jvm_path):
     # (for newer java versions e.g. 11.x)
     jvm_path = os.environ["CONDA_PREFIX"] + "/lib/server/libjvm.so"
 
-jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
+#jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
+jpype.startJVM()
 
 ArrayClass = jpype.JClass("java.util.ArrayList")
 ColumnTypeClass = jpype.JClass(
@@ -1171,22 +1171,33 @@ class BlazingContext(object):
                 i = i + 1
 
 
-            
-            print("starting polling thread")
+            print("starting communications thread")
             # Start polling thread in asyncio function on each worker
             import threading
-            def polling_thread():
+
+            # wait for listener to be set up
+            def comm_thread():
+                import queue
+                from threading import Condition
+                get_worker().queue = queue.Queue()
+                get_worker().cv_have_map = Condition()
+
                 print("Starting thread")
-                t1 = threading.Thread(target=run_polling_thread)
+                t1 = threading.Thread(target=run_comm_thread)
                 t1.start()
-                get_worker().polling_thread = t1
-            self.dask_client.run(polling_thread, wait=True)
+                get_worker().comm_thread = t1
+            self.dask_client.run(comm_thread, wait=True)
 
-            # Start listener on each worker to send received messages to router
-            print("starting listeners")
-            listen(client=self.dask_client)
+            # collect addresses from other workers
+            addr_map = self.dask_client.run(lambda: get_worker().queue.get(), wait=True)
 
-            print("started listeners")
+            # wake up communication thread
+            def set_addr_map_wait(addr_map):
+                get_worker().worker_addr_map = addr_map
+                cv_have_map = get_worker().cv_have_map
+                with cv_have_map:
+                    cv_have_map.notify()
+            self.dask_client.run(set_addr_map_wait, addr_map, wait=True)
 
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different 

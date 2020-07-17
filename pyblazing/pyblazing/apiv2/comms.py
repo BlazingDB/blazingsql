@@ -5,11 +5,11 @@ from distributed.comm.ucx import UCXListener
 from distributed.comm.ucx import UCXConnector
 from distributed.comm.addressing import parse_host_port
 from distributed.protocol.serialize import to_serialize
+import concurrent.futures
 
 from dask.distributed import default_client
 
 serde = ("cuda", "dask", "pickle", "error")
-
 
 async def route_message(msg):
     print("calling route")
@@ -35,7 +35,7 @@ async def route_message(msg):
     print("done routing message")
 
 
-# async def run_polling_thread():  # doctest: +SKIP
+# async def run_comm_thread():  # doctest: +SKIP
 #    dask_worker = get_worker()
 #    import asyncio
 #    while True:
@@ -43,21 +43,40 @@ async def route_message(msg):
 #        await UCX.get().send(BlazingMessage(df, metadata))
 #        await asyncio.sleep(1)
 
-def run_polling_thread():  # doctest: +SKIP
+def run_comm_thread():  # doctest: +SKIP
     dask_worker = get_worker()
     import asyncio
 
-    while True:
+    try:
+        loop = asyncio.get_event_loop()
+        print("Starting listeners")
+        dask_worker.queue.put(loop.run_until_complete(UCX.start_listener_on_worker(route_message)))
 
-        # print("Pull_from_cache")
-        df, metadata = dask_worker.output_cache.pull_from_cache()
-        if metadata["add_to_specific_cache"] == "false":
-            df = None
-        # print("Should never get here!")
-        # print(metadata)
-        print(df)
-        asyncio.get_event_loop().run_until_complete(UCX.get().send(BlazingMessage(metadata, df)))
-        asyncio.get_event_loop().run_until_complete(asyncio.sleep(0))
+        # wait for address mapping to be avaiable
+        cv_have_map = dask_worker.cv_have_map
+        with cv_have_map:
+            cv_have_map.wait()
+
+        set_id_mappings_on_worker(dask_worker.worker_addr_map)
+        loop.run_until_complete(UCX.init_handlers())
+
+        async def work():
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                while True:
+                    # print("Pull_from_cache")
+                    df, metadata = await loop.run_in_executor(pool,
+                        dask_worker.output_cache.pull_from_cache)
+                    if metadata["add_to_specific_cache"] == "false":
+                        #print("Should never get here!")
+                        #print(metadata)
+                        df = None
+                    print(df)
+                    await UCX.get().send(BlazingMessage(metadata, df))
+
+        # run this coroutine
+        loop.run_until_complete(work())
+    except Exception as e:
+        print('Communication thread down: {}'.format(repr(e)))
 
 
 CTRL_STOP = "stopit"
@@ -177,6 +196,7 @@ class UCX:
                         print("Finished receiving message id: "+ str(msg.metadata["message_id"]))
                     else:
                         print("No message_id")
+                        #print('This is what we got: ',msg)
                     print("Invoking callback")
                     await self.callback(msg)
                     print("Done invoting callback")
@@ -185,7 +205,7 @@ class UCX:
 
         ip, port = parse_host_port(get_worker().address)
 
-        self._listener = await UCXListener(ip, handle_comm)
+        self._listener = await UCXListener(ip, handle_comm, guarantee_msg_order=True)
 
         print("Starting listener on worker")
         await self._listener.start()
