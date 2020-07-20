@@ -300,8 +300,28 @@ struct tree_processor {
 			} else {
 				auto child_kernel_type = child->kernel_unit->get_type_id();
 				auto parent_kernel_type = parent->kernel_unit->get_type_id();
-				if ((child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel)
-					    || (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
+				if (child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel) {
+
+					std::size_t max_data_load_concat_cache_bytes_size = 400000000; // 400 MB
+					config_options = context->getConfigOptions();
+					it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
+					if (it != config_options.end()){
+						max_data_load_concat_cache_bytes_size = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
+					}
+
+					auto join_type = static_cast<PartwiseJoin*>(parent->kernel_unit.get())->get_join_type();					
+					bool left_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					bool right_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					cache_settings left_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
+						.flow_control_bytes_threshold = max_data_load_concat_cache_bytes_size, .concat_all = left_concat_all};
+					cache_settings right_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
+						.flow_control_bytes_threshold = max_data_load_concat_cache_bytes_size, .concat_all = right_concat_all};
+					
+					query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], left_cache_machine_config);
+					query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], right_cache_machine_config);
+
+
+				} else if ((child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
 						|| (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
 
 					if (parent->kernel_unit->can_you_throttle_my_input()){

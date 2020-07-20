@@ -66,6 +66,19 @@ public:
 
 		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config);
 		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config);
+
+		// lets parse part of the expression here, because we need the joinType before we load
+		std::string new_join_statement;
+		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
+		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
+
+		// Getting the condition and type of join
+		this->condition = get_named_expression(new_join_statement, "condition");
+		this->join_type = get_named_expression(new_join_statement, "joinType");
+
+		if (condition == "true") {
+			this->join_type = CROSS_JOIN;
+		}
 	}
 
 	bool can_you_throttle_my_input() {
@@ -75,66 +88,13 @@ public:
 	std::unique_ptr<TableSchema> left_schema{nullptr};
  	std::unique_ptr<TableSchema> right_schema{nullptr};
 
-	std::unique_ptr<ral::frame::BlazingTable> load_set(BatchSequence & input, std::shared_ptr<ral::cache::CacheMachine> cache, bool load_all){
-		std::size_t bytes_loaded = 0;
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_loaded;
-		if (input.wait_for_next()){
-			tables_loaded.emplace_back(input.next());
-			bytes_loaded += tables_loaded.back()->sizeInBytes();
-		} else {
-			return nullptr;
-		}
-		// NOTE this used to be like this:
-		// while ((input.has_next_now() && bytes_loaded < join_partition_size_theshold) ||
-		//  	(load_all && input.wait_for_next())) {
-		// with the idea that it would just start processing as soon as there was data to process.
-		// This actually does not make it faster, because it makes it so that there are more chunks to do pairwise joins and therefore more join operations
-		// We may want to revisit or rethink this
-
-		while ((input.wait_for_next() && bytes_loaded < join_partition_size_theshold) ||
-					(load_all && input.wait_for_next())) {
-			tables_loaded.emplace_back(std::move(input.next()));
-			bytes_loaded += tables_loaded.back()->sizeInBytes();
-
-			//If the concatenation so far produces a string overflow, we put back the batch because in this case the order of the elements does not matter
-			if(!load_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_loaded)){
-				bytes_loaded -= tables_loaded.back()->sizeInBytes();
-				cache->addToCache(std::move(tables_loaded.back()));
-				tables_loaded.pop_back();				
-				break;
-			}
-		}
-
-		if (tables_loaded.size() == 0){
-			return nullptr;
-		} else if (tables_loaded.size() == 1){
-			return std::move(tables_loaded[0]);
-		} else {
-			std::vector<ral::frame::BlazingTableView> tables_to_concat(tables_loaded.size());
-			for (std::size_t i = 0; i < tables_loaded.size(); i++){
-				tables_to_concat[i] = tables_loaded[i]->toBlazingTableView();
-			}
-
-			// if we were supposed to load all and strings will overflow, lets at least provide a warning
-			if (load_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(tables_to_concat)){
-				logger->warn("{query_id}|{step}|{substep}|{info}",
-								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
-								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
-								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
-								"info"_a="In PartwiseJoin::load_set Concatenating Strings will overflow strings length");			
-			}
-
-			return ral::utilities::concatTables(tables_to_concat);
-		}
-	}
-
-
     std::unique_ptr<ral::frame::BlazingTable> load_left_set(){
 
 		this->max_left_ind++;
-		// need to load all the left side, only if doing a FULL OUTER JOIN
-		bool load_all = this->join_type == OUTER_JOIN ?  true : false;
-		auto table = load_set(this->left_sequence, this->input_.get_cache("input_a"), load_all);
+		std::unique_ptr<ral::frame::BlazingTable> table;
+		if (this->left_sequence.wait_for_next()){
+			table = this->left_sequence.next();
+		}
 		if (not left_schema && table != nullptr) {
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -146,11 +106,12 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> load_right_set(){
 		this->max_right_ind++;
-		// need to load all the right side, if doing any type of outer join
-		bool load_all = this->join_type != INNER_JOIN ?  true : false;
-		auto table = load_set(this->right_sequence, this->input_.get_cache("input_b"), load_all);
+		std::unique_ptr<ral::frame::BlazingTable> table;
+		if (this->right_sequence.wait_for_next()){
+			table = this->right_sequence.next();
+		}
 		if (not right_schema && table != nullptr) {
-			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
+			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
 		if (table == nullptr) {
 			return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
@@ -295,19 +256,6 @@ public:
         this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this, ordered);
 		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this, ordered);
 
-		// lets parse part of the expression here, because we need the joinType before we load
-		std::string new_join_statement, filter_statement;
-		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
-		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
-
-		// Getting the condition and type of join
-		std::string condition = get_named_expression(new_join_statement, "condition");
-		this->join_type = get_named_expression(new_join_statement, "joinType");
-
-		if (condition == "true") {
-			this->join_type = CROSS_JOIN;
-		}
-
 		std::unique_ptr<ral::frame::BlazingTable> left_batch = nullptr;
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = nullptr;
 		bool done = false;
@@ -326,7 +274,7 @@ public:
 
 					// parsing more of the expression here because we need to have the number of columns of the tables
 					std::vector<int> column_indices;
-					parseJoinConditionToColumnIndices(condition, column_indices);
+					parseJoinConditionToColumnIndices(this->condition, column_indices);
 					for(int i = 0; i < column_indices.size();i++){
 						if(column_indices[i] >= left_batch->num_columns()){
 							this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
@@ -476,6 +424,10 @@ public:
 		return kstatus::proceed;
 	}
 
+	std::string get_join_type() {
+		return join_type;
+	}
+
 private:
 	BatchSequence left_sequence, right_sequence;
 
@@ -488,6 +440,8 @@ private:
 
 	// parsed expression related parameters
 	std::string join_type;
+	std::string condition;
+	std::string filter_statement;
 	std::vector<cudf::size_type> left_column_indices, right_column_indices;
 	std::vector<cudf::data_type> join_column_common_types;
 	bool normalize_left, normalize_right;
@@ -502,6 +456,19 @@ public:
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
+
+		// lets parse part of the expression here, because we need the joinType before we load
+		std::string new_join_statement;
+		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
+		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
+
+		// Getting the condition and type of join
+		std::string condition = get_named_expression(new_join_statement, "condition");
+		this->join_type = get_named_expression(new_join_statement, "joinType");
+
+		if (condition == "true") {
+			this->join_type = CROSS_JOIN;
+		}
 	}
 
 	bool can_you_throttle_my_input() {
@@ -870,13 +837,6 @@ public:
 		BatchSequence left_sequence(this->input_.get_cache("input_a"), this, ordered);
 		BatchSequence right_sequence(this->input_.get_cache("input_b"), this, ordered);
 
-		// lets parse part of the expression here, because we need the joinType before we load
-		std::string new_join_statement, filter_statement;
-		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
-		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
-		std::string condition = get_named_expression(new_join_statement, "condition");
-		this->join_type = get_named_expression(new_join_statement, "joinType");
-
 		std::unique_ptr<ral::frame::BlazingTable> left_batch = left_sequence.next();
 		std::unique_ptr<ral::frame::BlazingTable> right_batch = right_sequence.next();
 
@@ -959,9 +919,15 @@ public:
 		return kstatus::proceed;
 	}
 
+	std::string get_join_type() {
+		return join_type;
+	}
+
 private:
 	// parsed expression related parameters
 	std::string join_type;
+	std::string condition;
+	std::string filter_statement;
 	std::vector<cudf::size_type> left_column_indices, right_column_indices;
 	std::vector<cudf::data_type> join_column_common_types;
 	bool normalize_left, normalize_right;
