@@ -45,14 +45,20 @@ class PollingPlugin:
         self._worker = worker
         self._pc = PeriodicCallback(callback=self.async_run_polling, callback_time=10)
         self._pc.start()
-        print("Register Polling Plugin...")
+        get_worker().polling = False
+        print("Register Polling Plugin..")
 
     async def async_run_polling(self):
         import asyncio, os
 
+        worker = get_worker()
+        if worker.polling == True:
+            return
+        worker.polling = True
         #print("Polling [%d]" % (os.getpid(),))
-
-        if self._worker.output_cache.has_next_now():
+        
+        while self._worker.output_cache.has_next_now():
+            
             # print("Pull_from_cache")
             df, metadata = self._worker.output_cache.pull_from_cache()
             if metadata["add_to_specific_cache"] == "false":
@@ -61,7 +67,10 @@ class PollingPlugin:
             # print(metadata)
             print(df)
             await UCX.get().send(BlazingMessage(metadata, df))
-            await asyncio.sleep(0)
+           
+            print("after send we have")
+            print(df)
+        worker.polling = False
 
 
 

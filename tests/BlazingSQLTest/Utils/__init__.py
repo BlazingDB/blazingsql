@@ -131,9 +131,9 @@ def init_context():
             bc = BlazingContext(
                 dask_client=dask_client,
                 network_interface=iface,
-                pool=False,
-                initial_pool_size=None,
-                allocator="managed",
+                pool=True,
+                initial_pool_size=1000000000,
+                allocator="default",
             )
         else:
             # Fallback: could not found a valid dask server

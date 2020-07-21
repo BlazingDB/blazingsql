@@ -115,9 +115,9 @@ def initializeBlazing(
     worker_id='',
     networkInterface="lo",
     singleNode=False,
-    allocator="managed",
-    pool=False,
-    initial_pool_size=None,
+    allocator="default",
+    pool=True,
+    initial_pool_size=1000000000,
     config_options={},
     logging_dir_path="blazing_log",
 ):

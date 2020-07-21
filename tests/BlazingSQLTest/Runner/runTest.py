@@ -1313,7 +1313,8 @@ def run_query(
     input_type,
     **kwargs
 ):
-
+    print(query)
+    
     query_spark = kwargs.get("query_spark", query)
 
     algebra = kwargs.get("algebra", "")
