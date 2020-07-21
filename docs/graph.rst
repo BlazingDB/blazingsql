@@ -22,7 +22,7 @@ The BlazingSQL engine executes a relational algebra plan. This plan is initially
 created by Apache Calcite, which in turn receives a SQL query.
 The initial relational algebra is converted into an physical plan,
 which is effectively a modified version of the original relational algebra plan,
-o, wherein some of the relational algebra steps is expanded into multiple steps.
+wherein some of the relational algebra steps is expanded into multiple steps.
 
 SQL
 ^^^
@@ -61,13 +61,14 @@ Physical Plan Multi GPU
               BindableTableScan(table=[[main, orders]], filters=[[<($0, 10)]], projects=[[0, 1, 3]], aliases=[[$f0, o_custkey, o_totalprice]])
 
 
-The conversion of the relational algebra gets done by the function transform_json_tree in PhysicialPlanGenerator.h. This function gets called by build_batch_graph.
+The conversion of the relational algebra gets done by the function ``transform_json_tree`` in 
+:blazing_repo:`PhysicalPlanGenerator.h</engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h>`. 
+This function gets called by ``build_batch_graph``.
 
+This new relational algebra plan is converted into a graph and each node in the graph becomes an execution kernel, while each edge becomes a ``CacheMachine``.
 
-
-This new relational algebra plan is converted into a graph and each node in the graph becomes an execution kernel, while each edge becomes a CacheMachine.
-
-The graph is created by ral::batch::tree_processor that has a function called build_batch_graph. This produces the actual graph object, which is what contains all the execution kernels and CacheMachines. The graph has a function called execute() which is what actually starts the run() function of every execution kernel, each on its own thread.
+The graph is created by ``ral::batch::tree_processor`` that has a function called ``build_batch_graph``. This produces the actual graph object, 
+which is what contains all the execution kernels and CacheMachines. The graph has a function called ``execute()`` which is what actually starts the ``run()`` function of every execution kernel, each on its own thread.
 
 Column/Table Wrappers
 ---------------------
@@ -78,7 +79,7 @@ BlazingTable
 ^^^^^^^^^^^^
 BlazingTableView
 ^^^^^^^^^^^^^^^^
-Implements the same api as BlazingTable but wraps a cudf::table_view instead of
+Implements the same api as BlazingTable but wraps a ``cudf::table_view`` instead of
 a vector of BlazingColumn.
 
 
@@ -105,13 +106,14 @@ Only in the TableScan and BindableTableScan kernels are the input ports not defi
 In these two cases the kernels themselves generate data either by passing
 through a cudf or by reading files.
 
-A kernel will have a run() function which starts its execution. It pulls data
+A kernel will have a `run()` function which starts its execution. It pulls data
 from its input ports, operates on them, then sends the results to its output ports.
 The ports are just maps of name to CachedMachine.
 
 
 All kernels basically take data in batches from one or more input cache machines, do some work, and put results into an output cache machine.
-Almost all work done is done in batches, and usually the way the kernels iterate through those batches is via some for of a DataSequencer or which there are 4 kinds (these are defined in BatchProcessing.h):
+Almost all work done is done in batches, and usually the way the kernels iterate through those batches is via some form of a `DataSequencer` or which there are 4 kinds 
+(these are defined in :blazing_repo:`Join Kernels</engine/src/execution_graph/logic_controllers/BatchProcessing.h>`):
 BatchSequence
 This is the standard data sequences that just pulls data from an input cache one batch at a time
 BatchSequenceBypass
@@ -173,4 +175,4 @@ the data is placed in an ORC file and a CacheDataLocalFile is created to keep tr
 Aside from the standard CacheMachine, there are two specialty types: HostCacheMachine and ConcatenatingCacheMachine. The HostCacheMachine is only used to place data received by other nodes and the ConcatenatingCacheMachine is used as the output of TableScans. The ConcatenatingCacheMachine will concatenate batches so that the resulting batch is not too small. This is configurable, and its done to increase performance. Operating on really small batches can be detrimental to performance.
 
 
-CacheMachines and CacheData are defined CacheMachine.h
+CacheMachines and CacheData are defined :blazing_repo:`CacheMachine.h</engine/src/execution_graph/logic_controllers/CacheMachine.h>`
