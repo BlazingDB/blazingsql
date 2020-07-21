@@ -178,7 +178,7 @@ cd $CONDA_PREFIX
 cd blazingsql/docs
 make html
 ```
-The generated documentation can be viewed in a browser at `blazingsql/docs/_build/index.html`
+The generated documentation can be viewed in a browser at `blazingsql/docs/_build/html/index.html`
 
 
 # Community
