@@ -18,8 +18,10 @@ from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 import asyncio
+
 from distributed.comm import listen
 from pyblazing.apiv2.comms import PollingPlugin, listen
+
 import json
 import collections
 from pyhive import hive
@@ -66,7 +68,8 @@ if not os.path.isfile(jvm_path):
     # (for newer java versions e.g. 11.x)
     jvm_path = os.environ["CONDA_PREFIX"] + "/lib/server/libjvm.so"
 
-jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
+#jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
+jpype.startJVM()
 
 ArrayClass = jpype.JClass("java.util.ArrayList")
 ColumnTypeClass = jpype.JClass(
@@ -1170,7 +1173,6 @@ class BlazingContext(object):
                 self.node_log_paths.append(log_path)
                 i = i + 1
 
-
             
             print("starting polling plugin")
             # Register and start polling plugin on each Dask worker
@@ -1182,6 +1184,8 @@ class BlazingContext(object):
             listen(client=self.dask_client)
 
             print("started listeners")
+
+
 
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different 
