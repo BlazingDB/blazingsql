@@ -18,7 +18,10 @@ from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 import asyncio
-from pyblazing.apiv2.comms import run_comm_thread
+
+from distributed.comm import listen
+from pyblazing.apiv2.comms import PollingPlugin, listen
+
 import json
 import collections
 from pyhive import hive
@@ -1170,34 +1173,19 @@ class BlazingContext(object):
                 self.node_log_paths.append(log_path)
                 i = i + 1
 
+            
+            print("starting polling plugin")
+            # Register and start polling plugin on each Dask worker
+            self.polling_plugin = PollingPlugin()
+            self.dask_client.register_worker_plugin(self.polling_plugin)
 
-            print("starting communications thread")
-            # Start polling thread in asyncio function on each worker
-            import threading
+            # Start listener on each worker to send received messages to router
+            print("starting listeners")
+            listen(client=self.dask_client)
 
-            # wait for listener to be set up
-            def comm_thread():
-                import queue
-                from threading import Condition
-                get_worker().queue = queue.Queue()
-                get_worker().cv_have_map = Condition()
+            print("started listeners")
 
-                print("Starting thread")
-                t1 = threading.Thread(target=run_comm_thread)
-                t1.start()
-                get_worker().comm_thread = t1
-            self.dask_client.run(comm_thread, wait=True)
 
-            # collect addresses from other workers
-            addr_map = self.dask_client.run(lambda: get_worker().queue.get(), wait=True)
-
-            # wake up communication thread
-            def set_addr_map_wait(addr_map):
-                get_worker().worker_addr_map = addr_map
-                cv_have_map = get_worker().cv_have_map
-                with cv_have_map:
-                    cv_have_map.notify()
-            self.dask_client.run(set_addr_map_wait, addr_map, wait=True)
 
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different 

@@ -1,3 +1,4 @@
+from tornado.ioloop import PeriodicCallback
 import ucp
 from distributed import get_worker
 
@@ -35,48 +36,34 @@ async def route_message(msg):
     print("done routing message")
 
 
-# async def run_comm_thread():  # doctest: +SKIP
-#    dask_worker = get_worker()
-#    import asyncio
-#    while True:
-#        df, metadata = dask_worker.output_cache.pull_from_cache()
-#        await UCX.get().send(BlazingMessage(df, metadata))
-#        await asyncio.sleep(1)
 
-def run_comm_thread():  # doctest: +SKIP
-    dask_worker = get_worker()
-    import asyncio
+class PollingPlugin:
+    def __init__(self, *args, **kwargs):
+        pass
 
-    try:
-        loop = asyncio.get_event_loop()
-        print("Starting listeners")
-        dask_worker.queue.put(loop.run_until_complete(UCX.start_listener_on_worker(route_message)))
+    def setup(self, worker=None):
+        self._worker = worker
+        self._pc = PeriodicCallback(callback=self.async_run_polling, callback_time=10)
+        self._pc.start()
+        print("Register Polling Plugin...")
 
-        # wait for address mapping to be avaiable
-        cv_have_map = dask_worker.cv_have_map
-        with cv_have_map:
-            cv_have_map.wait()
+    async def async_run_polling(self):
+        import asyncio, os
 
-        set_id_mappings_on_worker(dask_worker.worker_addr_map)
-        loop.run_until_complete(UCX.init_handlers())
+        #print("Polling [%d]" % (os.getpid(),))
 
-        async def work():
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                while True:
-                    # print("Pull_from_cache")
-                    df, metadata = await loop.run_in_executor(pool,
-                        dask_worker.output_cache.pull_from_cache)
-                    if metadata["add_to_specific_cache"] == "false":
-                        #print("Should never get here!")
-                        #print(metadata)
-                        df = None
-                    print(df)
-                    await UCX.get().send(BlazingMessage(metadata, df))
+        if self._worker.output_cache.has_next_now():
+            # print("Pull_from_cache")
+            df, metadata = self._worker.output_cache.pull_from_cache()
+            if metadata["add_to_specific_cache"] == "false":
+                df = None
+            # print("Should never get here!")
+            # print(metadata)
+            print(df)
+            await UCX.get().send(BlazingMessage(metadata, df))
+            await asyncio.sleep(0)
 
-        # run this coroutine
-        loop.run_until_complete(work())
-    except Exception as e:
-        print('Communication thread down: {}'.format(repr(e)))
+
 
 
 CTRL_STOP = "stopit"
