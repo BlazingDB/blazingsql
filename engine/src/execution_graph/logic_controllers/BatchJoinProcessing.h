@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tuple>
+
 #include "BatchProcessing.h"
 #include "BlazingColumn.h"
 #include "LogicPrimitives.h"
@@ -37,6 +39,13 @@ struct TableSchema {
 	{}
 };
 
+/* This function takes in the relational algrebra expression and returns:
+- modified relational algrbra expression
+- join condition
+- filter_statement
+- join type */
+std::tuple<std::string, std::string, std::string, std::string> parseExpressionToGetTypeAndCondition(const std::string & expression);
+
 void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices);
 
 void split_inequality_join_into_join_and_filter(const std::string & join_statement, std::string & new_join_statement, std::string & filter_statement);
@@ -48,12 +57,6 @@ public:
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
-		join_partition_size_theshold = 400000000; // Threshold for how big to try to make each partition for joining
-		std::map<std::string, std::string> config_options = context->getConfigOptions();
-		auto it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
-		if (it != config_options.end()){
-			join_partition_size_theshold = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
-		}
 		this->max_left_ind = -1;
 		this->max_right_ind = -1;
 
@@ -67,18 +70,7 @@ public:
 		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config);
 		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config);
 
-		// lets parse part of the expression here, because we need the joinType before we load
-		std::string new_join_statement;
-		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
-		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
-
-		// Getting the condition and type of join
-		this->condition = get_named_expression(new_join_statement, "condition");
-		this->join_type = get_named_expression(new_join_statement, "joinType");
-
-		if (this->condition == "true") {
-			this->join_type = CROSS_JOIN;
-		}		
+		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);		
 	}
 
 	bool can_you_throttle_my_input() {
@@ -91,10 +83,7 @@ public:
     std::unique_ptr<ral::frame::BlazingTable> load_left_set(){
 
 		this->max_left_ind++;
-		std::unique_ptr<ral::frame::BlazingTable> table;
-		if (this->left_sequence.wait_for_next()){
-			table = this->left_sequence.next();
-		}
+		std::unique_ptr<ral::frame::BlazingTable> table = this->left_sequence.next();
 		if (not left_schema && table != nullptr) {
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -106,12 +95,9 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> load_right_set(){
 		this->max_right_ind++;
-		std::unique_ptr<ral::frame::BlazingTable> table;
-		if (this->right_sequence.wait_for_next()){
-			table = this->right_sequence.next();
-		}
+		std::unique_ptr<ral::frame::BlazingTable> table = this->right_sequence.next();
 		if (not right_schema && table != nullptr) {
-			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
+			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
 		if (table == nullptr) {
 			return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
@@ -441,8 +427,7 @@ private:
 	std::vector<std::vector<bool>> completion_matrix;
 	std::shared_ptr<ral::cache::CacheMachine> leftArrayCache;
 	std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
-	std::size_t join_partition_size_theshold;
-
+	
 	// parsed expression related parameters
 	std::string join_type;
 	std::string condition;
@@ -462,18 +447,7 @@ public:
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
 
-		// lets parse part of the expression here, because we need the joinType before we load
-		std::string new_join_statement;
-		StringUtil::findAndReplaceAll(this->expression, "IS NOT DISTINCT FROM", "=");
-		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
-
-		// Getting the condition and type of join
-		this->condition = get_named_expression(new_join_statement, "condition");
-		this->join_type = get_named_expression(new_join_statement, "joinType");
-
-		if (this->condition == "true") {
-			this->join_type = CROSS_JOIN;
-		}		
+		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 	}
 
 	bool can_you_throttle_my_input() {

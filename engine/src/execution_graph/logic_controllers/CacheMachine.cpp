@@ -207,7 +207,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		int cacheIndex = 0;
 		while(cacheIndex < this->memory_resources.size()) {
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
-			if( memory_to_use < 999999999999) {
+			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
 				if(cacheIndex == 0) {
 					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 						"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
@@ -264,21 +264,8 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
 			if (table->view().column(col_ind).offset() > 0){
 				table->ensureOwnership();
+				break;
 			}
-
-			if (table->view().column(col_ind).offset() > 0){
-				std::string err = "ERROR: Add to CacheMachine into cache table column " + table->names()[col_ind] + " has offset";
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|offset|{offset}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a=err,
-								"duration"_a="",
-								"kernel_id"_a=message_id,
-								"offset"_a=table->view().column(col_ind).offset());
-				throw err;
-			}
-
 		}
 		std::unique_lock<std::mutex> lock(flow_control_mutex);
 		flow_control_bytes_count += table->sizeInBytes();
@@ -301,12 +288,9 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 						"rows"_a=table->num_rows());
 
 					// before we put into a cache, we need to make sure we fully own the table
-					auto column_names = table->names();
-					auto cudf_table = table->releaseCudfTable();
-					std::unique_ptr<ral::frame::BlazingTable> fully_owned_table =
-						std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), column_names);
-
-					auto cache_data = std::make_unique<GPUCacheData>(std::move(fully_owned_table));
+					table->ensureOwnership();
+					
+					auto cache_data = std::make_unique<GPUCacheData>(std::move(table));
 					auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
 				} else {

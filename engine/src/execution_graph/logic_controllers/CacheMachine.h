@@ -291,11 +291,11 @@ public:
 
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
-			std::cout<<"message queue size is "<<this->processed<<std::endl;
-			return count <= this->processed;
+			if (count > this->processed){
+				throw std::runtime_error("WaitingQueue::wait_for_count encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
+			}
+			return count == this->processed;
 		});
-
-
 	}
 
 
