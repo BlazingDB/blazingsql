@@ -229,7 +229,7 @@ def generateGraphs(
     config_options,
     single_gpu=False,
 ):
-  
+
     import dask.distributed
 
     worker = dask.distributed.get_worker()
@@ -284,12 +284,12 @@ def executeGraph(ctxToken):
 
     graph = worker.query_graphs[ctxToken]
     print("about to run")
-    dfs = cio.runExecuteGraphCaller(graph, is_single_node=False)
-    print("ran graph")
-    meta = dask.dataframe.utils.make_meta(dfs[0])
-    query_partids = []
-
     with worker._lock:
+        dfs = cio.runExecuteGraphCaller(graph, is_single_node=False)
+        print("ran graph")
+        meta = dask.dataframe.utils.make_meta(dfs[0])
+        query_partids = []
+
         if not hasattr(worker, "query_parts"):
             worker.query_parts = {}
 
@@ -710,7 +710,7 @@ def adjust_due_missing_rowgroups(metadata, files):
 
 
 def distributed_initialize_server_directory(client, dir_path):
-    
+
     # lets make host_list which is a list of all the unique hosts.
     # This way we do the logging folder creation only once per host (server)
     all_items = client.scheduler_info()["workers"].items()
@@ -733,7 +733,7 @@ def distributed_initialize_server_directory(client, dir_path):
         made_dir = connection.result()
         if not made_dir:
             print("WARNING: Could not make directory")
- 
+
 
 
 
@@ -747,7 +747,7 @@ def initialize_server_directory(dir_path):
             return False
     else:
         return True
-    
+
 
 
 # Delete all generated (older than 1 hour) orc files
@@ -1173,7 +1173,7 @@ class BlazingContext(object):
                 self.node_log_paths.append(log_path)
                 i = i + 1
 
-            
+
             print("starting polling plugin")
             # Register and start polling plugin on each Dask worker
             self.polling_plugin = PollingPlugin()
@@ -1188,7 +1188,7 @@ class BlazingContext(object):
 
 
             # need to initialize this logging independently, in case its set as a relative path
-            # and the location from where the python script is running is different 
+            # and the location from where the python script is running is different
             # than the local dask workers
 
 
@@ -2276,7 +2276,7 @@ class BlazingContext(object):
         accessToken = 0
 
         algebra = get_plan(algebra)
-        
+
         if self.dask_client is None:
             try:
                 graph = cio.runGenerateGraphCaller(
