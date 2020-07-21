@@ -76,9 +76,9 @@ public:
 		this->condition = get_named_expression(new_join_statement, "condition");
 		this->join_type = get_named_expression(new_join_statement, "joinType");
 
-		if (condition == "true") {
+		if (this->condition == "true") {
 			this->join_type = CROSS_JOIN;
-		}
+		}		
 	}
 
 	bool can_you_throttle_my_input() {
@@ -468,12 +468,12 @@ public:
 		split_inequality_join_into_join_and_filter(this->expression, new_join_statement, filter_statement);
 
 		// Getting the condition and type of join
-		std::string condition = get_named_expression(new_join_statement, "condition");
+		this->condition = get_named_expression(new_join_statement, "condition");
 		this->join_type = get_named_expression(new_join_statement, "joinType");
 
-		if (condition == "true") {
+		if (this->condition == "true") {
 			this->join_type = CROSS_JOIN;
-		}
+		}		
 	}
 
 	bool can_you_throttle_my_input() {
