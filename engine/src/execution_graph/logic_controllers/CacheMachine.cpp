@@ -56,7 +56,6 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 	this->size_in_bytes = table->sizeInBytes();
 	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
 
-	std::cout << "CacheDataLocalFile: " << this->filePath_ << std::endl;
 	cudf_io::table_metadata metadata;
 	for(auto name : table->names()) {
 		metadata.column_names.emplace_back(name);
@@ -260,7 +259,6 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 }
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, bool always_add) {
-	std::cout<<"cpp add to cache message="<<message_id<<std::endl;
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || table->num_rows() > 0|| always_add){
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
@@ -282,7 +280,6 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 			}
 
 		}
-		std::cout<<"we own the data="<<message_id<<std::endl;
 		std::unique_lock<std::mutex> lock(flow_control_mutex);
 		flow_control_bytes_count += table->sizeInBytes();
 		lock.unlock();
@@ -312,7 +309,6 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 					auto cache_data = std::make_unique<GPUCacheData>(std::move(fully_owned_table));
 					auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
-					std::cout<<"added to gpu="<<message_id<<std::endl;
 				} else {
 					if(cacheIndex == 1) {
 						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",

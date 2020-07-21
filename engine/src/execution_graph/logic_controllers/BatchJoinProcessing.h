@@ -267,6 +267,11 @@ public:
 			try {
 
 				if (left_batch == nullptr && right_batch == nullptr){ // first load
+					
+					// before we load anything, lets make sure each side has data to process
+					this->left_sequence.wait_for_next();
+					this->right_sequence.wait_for_next();
+					
 					left_batch = load_left_set();
 					right_batch = load_right_set();
 					this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
