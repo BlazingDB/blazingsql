@@ -18,6 +18,7 @@
 - #877 round robing dask workers on single gpu queries
 - #880 reraising query errors in context.py
 - #883 add rand() and running unary operations on literals
+- #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf

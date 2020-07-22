@@ -19,7 +19,6 @@ struct cache_settings {
 	CacheType type = CacheType::SIMPLE;
 	int num_partitions = 1;
 	std::shared_ptr<Context> context;
-	std::uint32_t flow_control_batches_threshold = std::numeric_limits<std::uint32_t>::max();
 	std::size_t flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
 	bool concat_all = false; //applicable only for concatenating caches
 };
