@@ -96,6 +96,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 				const std::vector<cudf::order> & sortOrderTypes) {
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::concatTables(samples);
+	std::cout<<"========================"<<std::endl<<concatSamples->num_rows();
 
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 	// TODO this is just a default setting. Will want to be able to properly set null_order
@@ -110,6 +111,9 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 			names = samples[i].names();
 			break;
 		}
+	}
+	if(names.size() == 0){
+		throw std::exception();
 	}
 
 	return getPivotPointsTable(number_partitions, BlazingTableView(sortedSamples->view(), names));
@@ -183,6 +187,8 @@ std::vector<NodeColumnView> partitionData(Context * context,
 		std::cout<<pivot<<",";
 	}
 	std::cout<<std::endl;
+	std::cout<<"table size in split is "<<table.num_rows()<<std::endl;
+
 	std::vector<CudfTableView> partitioned_data = cudf::split(table.view(), host_data);
 	std::cout<<"partitioned_data is "<<partitioned_data.size()<<std::endl;
 //	ral::utilities::print_blazing_table_view(BlazingTableView(partitioned_data,std::vector<std::string>(partitioned_data.size())));	

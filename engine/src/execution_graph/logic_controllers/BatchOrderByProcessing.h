@@ -137,7 +137,9 @@ public:
 
 
 				std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
-
+				for(int i  = 0; i < samples.size(); i++){
+					std::cout<<"samples num_rows is "<<samples[i].num_rows()<<std::endl;
+				}
 				partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, this->expression, this->context.get());
 				std::cout<<"partitionPlan generated has "<<partitionPlan->num_rows()<<" rows"<<std::endl;
 
@@ -184,6 +186,7 @@ public:
 				metadata.add_value(ral::cache::MESSAGE_ID, message_id);
 
 				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
+				concatSamples->ensureOwnership();
 				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)),"",true);
 
 				context->incrementQuerySubstep();
@@ -245,13 +248,20 @@ public:
 					try_num_rows_estimation = false;
 				}
 				population_sampled += batch->num_rows();
-				if (estimate_samples && population_sampled > population_to_sample)	{
+				if (estimate_samples && population_to_sample > 0 && population_sampled > population_to_sample)	{
 					size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, num_rows_estimate);
 					estimate_samples = false;
 				}
+				std::cout<<"estimate of samples is "<<population_to_sample<<std::endl;
 				// End estimation
 
+				if (partition_plan_thread.joinable()){
+					partition_plan_thread.join();
+				} else {
+					size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+					compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
+				}
 				eventTimer.stop();
 
 				if(sortedTable){
@@ -286,12 +296,7 @@ public:
 			}
 		}
 
-		if (partition_plan_thread.joinable()){
-			partition_plan_thread.join();
-		} else {
-			size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-			compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
-		}
+
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -370,7 +375,7 @@ public:
 
 						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
 						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "output_" + std::to_string(part_ids[i]) );
-
+						
 						node_count[dest_node.id()]++;
 						output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)),"",true);
 					}

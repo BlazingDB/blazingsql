@@ -7,7 +7,11 @@ namespace cache {
 // this function gets the estimated num_rows for the output
 // the default is that its the same as the input (i.e. project, sort, ...)
 std::pair<bool, uint64_t> kernel::get_estimated_output_num_rows(){
-    return this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
+    auto result = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
+    if(result.second == 0){
+        result.first = false;
+    }
+    return result;
 }
 
 

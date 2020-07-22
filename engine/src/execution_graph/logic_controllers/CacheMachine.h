@@ -274,10 +274,8 @@ public:
 		return processed;
 	}
 	void finish() {
-		std::cout<<"started called finish"<<std::endl;
 		std::unique_lock<std::mutex> lock(mutex_);
 		this->finished = true;
-		std::cout<<"finsihed called finish"<<std::endl;
 		condition_variable_.notify_all();
 	}
 
