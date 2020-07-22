@@ -621,12 +621,13 @@ public:
 
 			int64_t prev_total_rows = 0;
 			for (auto i = 0; i < messages_to_wait_for.size(); i++)	{
+				std::cout<<"waiting for"<<messages_to_wait_for[i]<<std::endl;
 				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(messages_to_wait_for[i]);
 				if(i < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
 					prev_total_rows += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
 				}
 			}
-
+			std::cout<<"waiting for finished"<<std::endl;
 			rows_limit = std::min(std::max(rows_limit - prev_total_rows, int64_t{0}), total_batch_rows);
 		}
 
