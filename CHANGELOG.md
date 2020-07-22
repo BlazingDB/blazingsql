@@ -2,6 +2,7 @@
 
 ## New Features
 - #835 Added a memory monitor for better memory management and added pull ordered from cache
+- #889 Added Sphinx based code architecture documentation
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
