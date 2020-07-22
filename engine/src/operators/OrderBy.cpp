@@ -171,6 +171,7 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), sortColNames);
 
 	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::generateSamplesFromRatio(sortColumns, 0.1);
+	std::cout<<"sortColumns "<<sortColumns.num_rows()<<" sampled "<<selfSamples->num_rows()<<std::endl;
 	return selfSamples;
 }
 

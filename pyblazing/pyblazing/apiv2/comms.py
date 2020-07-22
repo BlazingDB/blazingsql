@@ -65,8 +65,6 @@ class PollingPlugin:
             
             # print("Pull_from_cache")
             df, metadata = self._worker.output_cache.pull_from_cache()
-            if metadata["add_to_specific_cache"] == "false":
-                df = None
             # print("Should never get here!")
             # print(metadata)
             print(df)
