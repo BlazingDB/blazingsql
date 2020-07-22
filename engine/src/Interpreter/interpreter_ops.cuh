@@ -712,16 +712,20 @@ private:
 						computed = cudf::timestamp_D{static_cast<cudf::timestamp_D::rep>(left_value)};
 						break;
 					case cudf::type_id::TIMESTAMP_SECONDS:
-						computed = cudf::timestamp_D{cudf::timestamp_s{static_cast<cudf::timestamp_s::rep>(left_value)}};
+						// computed = cudf::timestamp_D{cudf::timestamp_s{static_cast<cudf::timestamp_s::rep>(left_value)}};
+						computed = cudf::timestamp_D{static_cast<cudf::timestamp_s::rep>(left_value)};
 						break;
 					case cudf::type_id::TIMESTAMP_MILLISECONDS:
-						computed = cudf::timestamp_D{cudf::timestamp_ms{static_cast<cudf::timestamp_ms::rep>(left_value)}};
+						// computed = cudf::timestamp_D{cudf::timestamp_ms{static_cast<cudf::timestamp_ms::rep>(left_value)}};
+						computed = cudf::timestamp_D{static_cast<cudf::timestamp_ms::rep>(left_value)};
 						break;
 					case cudf::type_id::TIMESTAMP_MICROSECONDS:
-						computed = cudf::timestamp_D{cudf::timestamp_us{static_cast<cudf::timestamp_us::rep>(left_value)}};
+						// computed = cudf::timestamp_D{cudf::timestamp_us{static_cast<cudf::timestamp_us::rep>(left_value)}};
+						computed = cudf::timestamp_D{static_cast<cudf::timestamp_us::rep>(left_value)};
 						break;
 					case cudf::type_id::TIMESTAMP_NANOSECONDS:
-						computed = cudf::timestamp_D{cudf::timestamp_ns{static_cast<cudf::timestamp_ns::rep>(left_value)}};
+						// computed = cudf::timestamp_D{cudf::timestamp_ns{static_cast<cudf::timestamp_ns::rep>(left_value)}};
+						computed = cudf::timestamp_D{static_cast<cudf::timestamp_ns::rep>(left_value)};
 						break;
 					default:
 						// should not reach here, invalid conversion
