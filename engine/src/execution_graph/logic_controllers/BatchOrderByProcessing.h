@@ -615,7 +615,7 @@ public:
 			metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
 			metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(total_batch_rows));
 			ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
-			output_cache->addCacheData(std::unique_ptr<ral::cache::CacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)));
+			output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 
 			// std::vector<int64_t> nodesRowSize = ral::distribution::collectNumRows(context.get());
 
