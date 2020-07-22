@@ -159,11 +159,11 @@ cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" names
             map[string, string] get_map()
             pair[unique_ptr[BlazingTable], MetadataDictionary ] decacheWithMetaData()
         cdef cppclass CacheMachine:
-            void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id, bool always_add )
+            void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id, bool always_add ) nogil except +
             void addToCache(unique_ptr[BlazingTable] table, const string & message_id , bool always_add) nogil except+
-            unique_ptr[CacheData] pullCacheData() nogil
-            unique_ptr[CacheData] pullCacheData(string message_id) nogil
-            bool has_next_now()
+            unique_ptr[CacheData] pullCacheData() nogil  except +
+            unique_ptr[CacheData] pullCacheData(string message_id) nogil except +
+            bool has_next_now() except +
 
 # REMARK: We have some compilation errors from cython assigning temp = unique_ptr[ResultSet]
 # We force the move using this function
@@ -178,7 +178,7 @@ cdef extern from * namespace "blazing":
         """
         cdef T blaz_move[T](T) nogil
 
-        cdef unique_ptr[CacheData] blaz_move2(unique_ptr[GPUCacheDataMetaData])
+        cdef unique_ptr[CacheData] blaz_move2(unique_ptr[GPUCacheDataMetaData]) nogil
 
 cdef extern from "../include/engine/engine.h" nogil:
 

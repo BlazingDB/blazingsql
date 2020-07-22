@@ -229,7 +229,8 @@ def generateGraphs(
     config_options,
     single_gpu=False,
 ):
-
+    for i in range(10):
+        print()
     import dask.distributed
 
     worker = dask.distributed.get_worker()
@@ -2178,6 +2179,8 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/single-gpu
         """
+
+        
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [[] for _ in range(len(self.nodes))]

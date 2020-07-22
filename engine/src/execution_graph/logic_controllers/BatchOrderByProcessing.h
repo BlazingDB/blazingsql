@@ -139,24 +139,33 @@ public:
 				std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
 
 				partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, this->expression, this->context.get());
+				std::cout<<"partitionPlan generated has "<<partitionPlan->num_rows()<<" rows"<<std::endl;
 
-
-				for(std::size_t i = 0; i < nodes.size(); ++i) {
-					if(!(nodes[i] == self_node)) {
-						ral::cache::MetadataDictionary metadata;
-						metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-						metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-						metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
-						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "output_b");
-						metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
-						metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(local_total_num_rows));
-
-
-						ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
-						output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheDataMetaData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)),"",true);
+				int self_node_idx = context->getNodeIndex(self_node);
+				auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
+				std::string worker_ids_metadata;
+				for (auto i = 0; i < nodes_to_send.size(); i++)	{
+					if(nodes_to_send[i].id() != self_node.id()){
+						worker_ids_metadata += nodes_to_send[i].id();
+						if (i < nodes_to_send.size() - 1) {
+							worker_ids_metadata += ",";
+						}
 					}
+
 				}
+				ral::cache::MetadataDictionary metadata;
+				metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
+				metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
+				metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
+				metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "output_b");
+				metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
+				metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
+				metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(local_total_num_rows));
+
+
+				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
+				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheDataMetaData>(new ral::cache::GPUCacheDataMetaData(std::move(partitionPlan->toBlazingTableView().clone()), metadata)),"",true);
+						
 				this->add_to_output_cache(std::move(partitionPlan), "output_b");
 			} else {
 				context->incrementQuerySubstep();
@@ -318,6 +327,7 @@ public:
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
+		std::cout<<"partitionPlan received in PartitionKernel has "<<partitionPlan->num_rows()<<" rows"<<std::endl;
 
 		context->incrementQuerySubstep();
 
@@ -338,6 +348,7 @@ public:
 					std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), batch->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
 
 					std::vector<int32_t> part_ids(partitions.size());
+					std::cout<<"williamisnicewilliamisnicewilliamisnicewilliamisnicewilliamisnicewilliamisnicewilliamisnice"<<std::endl<<partitions.size()<<std::endl;
 					int num_partitions_per_node = partitions.size() / this->context->getTotalNodes();
 					std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
 

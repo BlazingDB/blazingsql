@@ -206,7 +206,9 @@ cdef class PyBlazingCache:
         cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
         deref(blazing_table).ensureOwnership()
         cdef unique_ptr[cio.GPUCacheDataMetaData] ptr = make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)
-        deref(self.c_cache).addCacheData(blaz_move2(ptr),metadata["message_id"].encode(),1)
+        cdef string msg_id = metadata["message_id"].encode()
+        with nogil:
+            deref(self.c_cache).addCacheData(blaz_move2(ptr),msg_id,1)
 
 
     def has_next_now(self,):
@@ -230,7 +232,7 @@ cdef class PyBlazingCache:
     def pull_from_cache(self):
         cdef unique_ptr[CacheData] cache_data_generic
         with nogil:
-            cache_data_generic = deref(self.c_cache).pullCacheData()
+            cache_data_generic = blaz_move(deref(self.c_cache).pullCacheData())
         print("pulled from cache!!!")
         cdef unique_ptr[GPUCacheDataMetaData] cache_data = cast_cache_data_to_gpu_with_meta(blaz_move(cache_data_generic))
         cdef pair[unique_ptr[BlazingTable], MetadataDictionary ] table_and_meta = deref(cache_data).decacheWithMetaData()

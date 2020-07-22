@@ -78,7 +78,13 @@ namespace cache {
 			}
 		}
 		for(auto & thread : threads) {
-			thread.join();
+			try{
+				thread.join();
+			}catch(const std::exception& e){
+				
+				throw;
+			}
+
 		}
 	}
 

@@ -14,6 +14,9 @@ serde = ("cuda", "dask", "pickle", "error")
 
 async def route_message(msg):
     print("calling route")
+    print(msg.data)
+    print(msg.metadata)
+    
     worker = get_worker()
     if msg.metadata["add_to_specific_cache"] == "true":
         graph = worker.query_graphs[int(msg.metadata["query_id"])]
@@ -43,7 +46,7 @@ class PollingPlugin:
 
     def setup(self, worker=None):
         self._worker = worker
-        self._pc = PeriodicCallback(callback=self.async_run_polling, callback_time=10)
+        self._pc = PeriodicCallback(callback=self.async_run_polling, callback_time=100)
         self._pc.start()
         get_worker().polling = False
         print("Register Polling Plugin..")
@@ -53,6 +56,7 @@ class PollingPlugin:
 
         worker = get_worker()
         if worker.polling == True:
+            print("!!!!!!!!!!!!!!!!!!!!NO WAY!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
             return
         worker.polling = True
         #print("Polling [%d]" % (os.getpid(),))
@@ -234,20 +238,20 @@ class UCX:
         print("calling send: "+ str(blazing_msg.metadata))
 
         local_dask_addr = get_worker().ucx_addresses[get_worker().address]
+        if blazing_msg.metadata["sender_worker_id"] in blazing_msg.metadata["worker_ids"]:
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TRYING TO SEND TO SELF!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         for dask_addr in blazing_msg.metadata["worker_ids"]:
             # Map Dask address to internal ucx endpoint address
             addr = get_worker().ucx_addresses[dask_addr]
             print("dask_addr=%s mapped to blazing_ucx_addr=%s" %(dask_addr, addr))
 
             print("local_worker=%s, remote_worker=%s" % (local_dask_addr, addr))
-            
+
             ep = await self.get_endpoint(addr)
             try:
                 to_ser = {"metadata": to_serialize(blazing_msg.metadata)}
-            
                 if blazing_msg.data is not None:
                     to_ser["data"] = to_serialize(blazing_msg.data)
-                     
                     print(str(blazing_msg.data))
             except:
                 print("An error occurred in serialization")

@@ -16,7 +16,13 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
     def executionTest(queryType):
         tables = ["nation", "region", "customer", "orders", "lineitem"]
         # TODO json
-        data_types = [DataType.DASK_CUDF, DataType.CSV, DataType.PARQUET]
+        data_types = [
+            DataType.DASK_CUDF,
+            DataType.CUDF,
+            DataType.CSV,
+            DataType.ORC,
+            DataType.PARQUET,
+        ]  # TODO json
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:

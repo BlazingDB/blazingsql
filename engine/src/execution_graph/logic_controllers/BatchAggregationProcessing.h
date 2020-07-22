@@ -186,6 +186,7 @@ public:
                                     ral::utilities::create_empty_table(batch->toBlazingTableView());
                                 this->add_to_output_cache(std::move(empty));
                                 set_empty_part_for_non_master_node = true;
+                                node_count[self_node.id()]++;
                             }
                             // std::vector<ral::distribution::NodeColumnView> selfPartition;
                             // selfPartition.emplace_back(this->context->getMasterNode(), batch->toBlazingTableView());
@@ -317,7 +318,7 @@ public:
             auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
             total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 					std::cout<<"got message total_count is now"<<total_count<<std::endl;
-				}
+	    }
         this->output_cache()->wait_for_count(total_count);
 				std::cout<<"looks lke we are done!!"<<std::endl;
 

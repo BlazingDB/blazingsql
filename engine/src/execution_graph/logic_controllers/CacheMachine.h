@@ -31,7 +31,7 @@
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
 #include <bmr/BlazingMemoryResource.h>
 #include "communication/CommunicationData.h"
-
+#include <exception>
 
 
 using namespace std::chrono_literals;
@@ -274,8 +274,10 @@ public:
 		return processed;
 	}
 	void finish() {
+		std::cout<<"started called finish"<<std::endl;
 		std::unique_lock<std::mutex> lock(mutex_);
 		this->finished = true;
+		std::cout<<"finsihed called finish"<<std::endl;
 		condition_variable_.notify_all();
 	}
 
@@ -290,6 +292,10 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
 			std::cout<<"message queue size is "<<this->processed<<std::endl;
+			if (count < this->processed){
+				std::cout<<"WE PRCOESSSED MORE THAN COUNT*******************************"<<std::endl;
+				throw std::exception();
+			}
 			return count <= this->processed;
 		});
 
@@ -363,7 +369,7 @@ public:
 	message_ptr get_or_wait(std::string message_id) {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [message_id, &blazing_timer, this] {
+		condition_variable_.wait(lock, [message_id, &blazing_timer, this] {
 				auto result = std::any_of(this->message_queue_.cbegin(),
 							this->message_queue_.cend(), [&](auto &e) {
 								return e->get_message_id() == message_id;
@@ -377,7 +383,7 @@ public:
 										"message_id"_a=message_id);
 				}
 				return done_waiting;
-			})){}
+			});
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -593,7 +599,9 @@ public:
 	std::int32_t get_id() const { return cache_id; }
 
 	virtual void finish() {
+		std::cout<<"finishing  from cache machine"<<this->cache_id<<std::endl;
 		this->waitingCache->finish();
+		std::cout<<"finishing "<<this->cache_id<<std::endl;
 	}
 
 	void wait_until_finished() {
