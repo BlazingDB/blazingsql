@@ -14,7 +14,7 @@
 #include "utilities/random_generator.cuh"
 #include "error.hpp"
 
-#include "tests/utilities/column_wrapper.hpp"
+#include "cudf/utilities/traits.hpp"
 
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;
