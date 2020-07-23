@@ -134,7 +134,7 @@ Context * CacheMachine::get_context() const {
 std::int32_t CacheMachine::get_id() const { return (cache_id); }
 
 void CacheMachine::finish() {
-	
+	std::cout<<"calling_finish on"<<cache_id<<std::endl;
 	this->waitingCache->finish();
 	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|cache_id|{cache_id}||",
 									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),

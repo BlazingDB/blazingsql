@@ -178,7 +178,8 @@ public:
                     auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
                     if (group_column_indices.size() == 0) {
                         if(this->context->isMasterNode(self_node)) {
-                            this->add_to_output_cache(std::move(batch));
+                            this->output_.get_cache()->addToCache(std::move(batch),"",true);
+							
 							node_count[self_node.id()]++;
                         } else {
                             if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
@@ -252,7 +253,7 @@ public:
                                 // if we dont clone it, hashed_data will go out of scope before we get to use the partition
                                 // also we need a BlazingTable to put into the cache, we cant cache views.
 																std::cout<<"Adding to output cache with "<<partition->num_rows()<<" rows "<<std::endl;
-                                this->add_to_output_cache(std::move(partition));
+                                this->output_.get_cache()->addToCache(std::move(partition),"",true);
 																node_count[self_node.id()]++;
                             } else {
 																std::cout<<"Adding to the cache with "<<partition->num_rows()<<" rows "<<std::endl;

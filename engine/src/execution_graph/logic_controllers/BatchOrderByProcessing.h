@@ -210,7 +210,7 @@ public:
 		uint64_t num_rows_estimate = 0;
 		uint64_t population_to_sample = 0;
 		uint64_t population_sampled = 0;
-		BlazingThread partition_plan_thread;
+
 		float order_by_samples_ratio = 0.1;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("ORDER_BY_SAMPLES_RATIO");
@@ -225,8 +225,10 @@ public:
 		std::size_t localTotalNumRows = 0;
 		std::size_t localTotalBytes = 0;
 		int batch_count = 0;
+		bool distributed = false;
 		while (input.wait_for_next()) {
 			try {
+				BlazingThread partition_plan_thread;
 				this->output_cache("output_a")->wait_if_cache_is_saturated();
 				auto batch = input.next();
 
@@ -244,7 +246,10 @@ public:
 				// Try samples estimation
 				if(try_num_rows_estimation) {
 					std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
-					population_to_sample = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
+					if (num_rows_estimate == 0){
+						num_rows_estimate = 10;
+					}
+					population_to_sample = static_cast<uint64_t>(std::ceil(num_rows_estimate * order_by_samples_ratio));
 					try_num_rows_estimation = false;
 				}
 				population_sampled += batch->num_rows();
@@ -252,16 +257,15 @@ public:
 					size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, num_rows_estimate);
 					estimate_samples = false;
+					partition_plan_thread.join();
+					distributed = true;
 				}
 				std::cout<<"estimate of samples is "<<population_to_sample<<std::endl;
 				// End estimation
 
-				if (partition_plan_thread.joinable()){
-					partition_plan_thread.join();
-				} else {
-					size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-					compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
-				}
+				
+				
+				
 				eventTimer.stop();
 
 				if(sortedTable){
@@ -296,6 +300,10 @@ public:
 			}
 		}
 
+		if(!distributed){
+			size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+					compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
+		}
 
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
