@@ -108,12 +108,7 @@ public:
 		return std::stoi(values[KERNEL_ID_METADATA_LABEL]);
 	}
 
-	void print(){
-		for(auto elem : this->values)
-		{
-		   std::cout << elem.first << " " << elem.second<< "\n";
-		}
-	}
+	
 	std::map<std::string,std::string> get_values(){
 		return this->values;
 	}

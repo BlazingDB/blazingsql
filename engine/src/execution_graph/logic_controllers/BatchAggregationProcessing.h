@@ -243,7 +243,6 @@ public:
                         metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
                         metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
                         metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-												metadata.print();
                         ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
                         for(int i = 0; i < this->context->getTotalNodes(); i++ ){
                             auto partition = std::make_unique<ral::frame::BlazingTable>(partitioned[i], batch->names());
