@@ -137,11 +137,7 @@ public:
 
 
 				std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
-				for(int i  = 0; i < samples.size(); i++){
-					std::cout<<"samples num_rows is "<<samples[i].num_rows()<<std::endl;
-				}
 				partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, this->expression, this->context.get());
-				std::cout<<"partitionPlan generated has "<<partitionPlan->num_rows()<<" rows"<<std::endl;
 
 				int self_node_idx = context->getNodeIndex(self_node);
 				auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
@@ -260,7 +256,6 @@ public:
 					partition_plan_thread.join();
 					distributed = true;
 				}
-				std::cout<<"estimate of samples is "<<population_to_sample<<std::endl;
 				// End estimation
 
 				
@@ -340,7 +335,6 @@ public:
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
-		std::cout<<"partitionPlan received in PartitionKernel has "<<partitionPlan->num_rows()<<" rows"<<std::endl;
 
 		context->incrementQuerySubstep();
 
@@ -361,7 +355,6 @@ public:
 					std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), batch->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
 
 					std::vector<int32_t> part_ids(partitions.size());
-					std::cout<<"williamisnicewilliamisnicewilliamisnicewilliamisnicewilliamisnicewilliamisnicewilliamisnice"<<std::endl<<partitions.size()<<std::endl;
 					int num_partitions_per_node = partitions.size() / this->context->getTotalNodes();
 					std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
 
@@ -629,13 +622,11 @@ public:
 
 			int64_t prev_total_rows = 0;
 			for (auto i = 0; i < messages_to_wait_for.size(); i++)	{
-				std::cout<<"waiting for"<<messages_to_wait_for[i]<<std::endl;
 				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(messages_to_wait_for[i]);
 				if(i < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
 					prev_total_rows += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
 				}
 			}
-			std::cout<<"waiting for finished"<<std::endl;
 			rows_limit = std::min(std::max(rows_limit - prev_total_rows, int64_t{0}), total_batch_rows);
 		}
 

@@ -154,9 +154,6 @@ public:
 							"event_type"_a="removeCache",
 							"timestamp_begin"_a=cacheEventTimer.start_time(),
 							"timestamp_end"_a=cacheEventTimer.end_time());
-			std::cout<<"The bypas is returning real data!!!"<<std::endl;
-		}else{
-			std::cout<<"The bypas is returning nullptr!!!"<<std::endl;
 		}
 
 		return output;

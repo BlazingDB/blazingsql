@@ -585,17 +585,13 @@ public:
 						// also we need a BlazingTable to put into the cache, we cant cache views.
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
-						// TODO: create message id and send to add add_to_output_cache
 						output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,true);
-						std::cout<<"added to self node "<<cache_id<<std::endl;
 						node_count[self_node.id()]++;
 					} else {
-				//		std::cout<<"partition_table is going to send table of bytes: "<<partition_table_clone->sizeInBytes()<<std::endl;
 						partitions_to_send.emplace_back(
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
 					}
 				}
-				// ral::distribution::distributeTablePartitions(local_context.get(), partitions_to_send);
 
 				ral::cache::MetadataDictionary metadata;
 				metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, kernel_id);
@@ -615,7 +611,6 @@ public:
 
 					node_count[dest_node.id()]++;
 					graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",true);
-					std::cout<<"added to output node "<<cache_id<<std::endl;
 				}
 
 				if (sequence.wait_for_next()){
@@ -637,14 +632,9 @@ public:
 				throw;
 			}
 		}
-		std::cout<<"finished distributing pieces"<<std::endl;
-		//printf("... notifyLastTablePartitions\n");
-		// ral::distribution::notifyLastTablePartitions(local_context.get(), ColumnDataPartitionMessage::MessageID());
 
 		auto nodes = local_context->getAllNodes();
-		std::cout<<"self node is "<<self_node.id()<<std::endl;
 		for(std::size_t i = 0; i < nodes.size(); ++i) {
-			std::cout<<"other node id is "<<nodes[i].id()<<std::endl;
 
 			if(!(nodes[i] == self_node)) {
 				ral::cache::MetadataDictionary metadata;
@@ -663,13 +653,11 @@ public:
 				 																					metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
 																									metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
 																									nodes[i].id());
-				std::cout<<"sent this message id "<<metadata.get_values()[ral::cache::MESSAGE_ID]<<std::endl;
 				graph_output->addCacheData(
 						std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 			}
 		}
 
-		std::cout<<"waiting for other nodes_to_send "<<messages_to_wait_for[messages_to_wait_for.size()-1]<<std::endl;
 	}
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
@@ -768,13 +756,10 @@ public:
 		std::vector<int64_t> nodes_num_bytes_left(this->context->getTotalNodes());
 		std::vector<int64_t> nodes_num_bytes_right(this->context->getTotalNodes());
 
-		// ral::distribution::collectLeftRightTableSizeBytes(context.get(), nodes_num_bytes_left, nodes_num_bytes_right);
-		std::cout<<"Added all byte estimates for join to output cache, waiting for responses"<<std::endl;
+
 		int64_t prev_total_rows = 0;
 		for (auto i = 0; i < messages_to_wait_for.size(); i++)	{
-			std::cout<<"waiting for byte size message"<<std::endl<<messages_to_wait_for[i]<<std::endl;
 			auto message = this->query_graph->get_input_cache()->pullCacheData(messages_to_wait_for[i]);
-			std::cout<<"got byte size message"<<std::endl;
 			auto message_with_metadata = static_cast<ral::cache::GPUCacheDataMetaData*>(message.get());
 			int node_idx = context->getNodeIndex(context->getNode(message_with_metadata->getMetadata().get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]));
 			nodes_num_bytes_left[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL]);
@@ -782,7 +767,6 @@ public:
 		}
 		nodes_num_bytes_left[self_node_idx] = left_bytes_estimate;
 		nodes_num_bytes_right[self_node_idx] = right_bytes_estimate;
-		std::cout<<"received all byte estimates"<<std::endl;
 		std::string collectLeftRightTableSizeBytesInfo = "nodes_num_bytes_left: ";
 		for (auto num_bytes : nodes_num_bytes_left){
 			collectLeftRightTableSizeBytesInfo += std::to_string(num_bytes) + ", ";
@@ -882,18 +866,13 @@ public:
 		// 	}
 		// });
 
-		std::cout<<"waiting left dist!"<<std::endl;
 		distribute_left_thread.join();
-		std::cout<<"distributed all left!"<<std::endl;
 		int total_count_left = node_count_left[self_node.id()];
 		for (auto message : messages_to_wait_for_left){
-			std::cout<<"Waiting for message"<<message<<std::endl;
-				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
-				total_count_left += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
+			auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
+			total_count_left += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
-		std::cout<<"Waiting for left"<<total_count_left<<" parts"<<std::endl;
 		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
-		std::cout<<"got all left"<<std::endl;
 
 		std::map<std::string, int> node_count_right;
 		std::vector<std::string> messages_to_wait_for_right;
@@ -916,20 +895,13 @@ public:
 		// 		this->add_to_output_cache(std::move(host_table), "output_b");
 		// 	}
 		// });
-		std::cout<<"waiting for right"<<std::endl;
 		distribute_right_thread.join();
-		std::cout<<"distributed right"<<std::endl;
 		int total_count_right = node_count_right[self_node.id()];
 		for (auto message : messages_to_wait_for_right){
-						std::cout<<"Waiting for message right "<<message<<std::endl;
-				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
-				total_count_right += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
-				std::cout<<total_count_right<<" is total count right"<<std::endl;
+			auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
+			total_count_right += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
 		this->output_.get_cache("output_b")->wait_for_count(total_count_right);
-		std::cout<<"got all right"<<std::endl;
-		// left_consumer.join();
-		// right_consumer.join();
 	}
 
 	void small_table_scatter_distribution(std::unique_ptr<ral::frame::BlazingTable> small_table_batch,
@@ -948,7 +920,6 @@ public:
 		std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
 		std::map<std::string, int> node_count;
 		std::vector<std::string> messages_to_wait_for;
-		std::cout<<"rungin distribute small table"<<std::endl;
 
 		BlazingThread distribute_small_table_thread([this, &small_table_batch, &small_table_sequence, small_output_cache_name, &node_count, &messages_to_wait_for](){
 			bool done = false;
@@ -956,7 +927,6 @@ public:
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			while (!done) {
 				try {
-					std::cout<<"is small talbe nullptr?" <<(small_table_batch == nullptr )<<std::endl;
 					if(small_table_batch != nullptr ) {
 						// ral::distribution::scatterData(this->context.get(), small_table_batch->toBlazingTableView());
 
@@ -1041,16 +1011,12 @@ public:
 		// 	}
 		// });
 		distribute_small_table_thread.join();
-
-		std::cout<<"about to pull messages small table"<<std::endl;
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
  		int total_count = node_count[self_node.id()];
 		for (auto message : messages_to_wait_for){
 			auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
 			total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
-		std::cout<<"waiting for count small table"<<total_count<<std::endl;
-
 		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
 
 		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);

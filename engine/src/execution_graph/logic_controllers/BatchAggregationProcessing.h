@@ -247,21 +247,18 @@ public:
                         ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
                         for(int i = 0; i < this->context->getTotalNodes(); i++ ){
                             auto partition = std::make_unique<ral::frame::BlazingTable>(partitioned[i], batch->names());
-														partition->ensureOwnership();
-														if (this->context->getNode(i) == self_node){
+							partition->ensureOwnership();
+                            if (this->context->getNode(i) == self_node){
                                 // hash_partition followed by split does not create a partition that we can own, so we need to clone it.
                                 // if we dont clone it, hashed_data will go out of scope before we get to use the partition
                                 // also we need a BlazingTable to put into the cache, we cant cache views.
-																std::cout<<"Adding to output cache with "<<partition->num_rows()<<" rows "<<std::endl;
                                 this->output_.get_cache()->addToCache(std::move(partition),"",true);
-																node_count[self_node.id()]++;
+                                node_count[self_node.id()]++;
                             } else {
-																std::cout<<"Adding to the cache with "<<partition->num_rows()<<" rows "<<std::endl;
                                 metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getNode(i).id());
-																node_count[this->context->getNode(i).id()]++;
+								node_count[this->context->getNode(i).id()]++;
                                 output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(partition), metadata),"",true);
-																std::cout<<"Added to the cache"<<std::endl;
-													  }
+							}
                         }
                     }
                     batch_count++;
@@ -294,8 +291,8 @@ public:
                     metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
                     metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
                     metadata.add_value(ral::cache::MESSAGE_ID, metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-                                                                                                            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-                                                                                                        metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL] 	);
+                                                                metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
+                                                                metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL] 	);
                     metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
                     metadata.add_value(ral::cache::PARTITION_COUNT, node_count[nodes[i].id()]);
                     messages_to_wait_for.push_back(metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
@@ -304,7 +301,6 @@ public:
 
                     this->query_graph->get_output_cache()->addCacheData(
                         std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)),"",true);
-												std::cout<<"added empty message"<<std::endl;
                 }
             }
 
@@ -315,13 +311,10 @@ public:
         auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
         int total_count = node_count[self_node.id()];
         for (auto message : messages_to_wait_for){
-					std::cout<<"Waiting for"<<message<<std::endl;
             auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
             total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
-					std::cout<<"got message total_count is now"<<total_count<<std::endl;
 	    }
         this->output_cache()->wait_for_count(total_count);
-				std::cout<<"looks lke we are done!!"<<std::endl;
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),

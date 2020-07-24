@@ -120,7 +120,6 @@ public:
 
 	void set_values(std::map<std::string,std::string> new_values){
 		this->values= new_values;
-		print();
 	}
 private:
 	std::map<std::string,std::string> values;
@@ -289,7 +288,6 @@ public:
 
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
-			std::cout<<"message queue size is "<<this->processed<<std::endl;
 			if (count < this->processed){
 				std::cout<<"WE PRCOESSSED MORE THAN COUNT*******************************"<<std::endl;
 				throw std::exception();
@@ -597,9 +595,7 @@ public:
 	std::int32_t get_id() const { return cache_id; }
 
 	virtual void finish() {
-		std::cout<<"finishing  from cache machine"<<this->cache_id<<std::endl;
 		this->waitingCache->finish();
-		std::cout<<"finishing "<<this->cache_id<<std::endl;
 	}
 
 	void wait_until_finished() {

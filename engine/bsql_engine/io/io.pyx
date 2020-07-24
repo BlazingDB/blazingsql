@@ -233,7 +233,6 @@ cdef class PyBlazingCache:
         cdef unique_ptr[CacheData] cache_data_generic
         with nogil:
             cache_data_generic = blaz_move(deref(self.c_cache).pullCacheData())
-        print("pulled from cache!!!")
         cdef unique_ptr[GPUCacheDataMetaData] cache_data = cast_cache_data_to_gpu_with_meta(blaz_move(cache_data_generic))
         cdef pair[unique_ptr[BlazingTable], MetadataDictionary ] table_and_meta = deref(cache_data).decacheWithMetaData()
         table = blaz_move(table_and_meta.first)
@@ -400,9 +399,7 @@ cdef class PyBlazingGraph:
     cdef shared_ptr[cio.graph] ptr
 
     def get_kernel_output_cache(self,kernel_id, cache_id):
-        print("about to make cache")
         cache = PyBlazingCache()
-        print("made new cache")
         cache.c_cache = deref(self.ptr).get_kernel_output_cache(int(kernel_id),str.encode(cache_id))
         return cache
 

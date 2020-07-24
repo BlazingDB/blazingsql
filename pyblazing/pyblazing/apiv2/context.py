@@ -229,8 +229,7 @@ def generateGraphs(
     config_options,
     single_gpu=False,
 ):
-    for i in range(10):
-        print()
+
     import dask.distributed
 
     worker = dask.distributed.get_worker()
@@ -276,18 +275,14 @@ def generateGraphs(
             worker.query_graphs = {}
 
     worker.query_graphs[ctxToken] = graph
-    print("finished graph")
 
 def executeGraph(ctxToken):
-    print("starting execute graph")
     import dask.distributed
     worker = dask.distributed.get_worker()
 
     graph = worker.query_graphs[ctxToken]
-    print("about to run")
     with worker._lock:
         dfs = cio.runExecuteGraphCaller(graph, is_single_node=False)
-        print("ran graph")
         meta = dask.dataframe.utils.make_meta(dfs[0])
         query_partids = []
 
@@ -739,7 +734,6 @@ def distributed_initialize_server_directory(client, dir_path):
 
 
 def initialize_server_directory(dir_path):
-    print(dir_path)
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
         if os.path.exists(dir_path):
@@ -1175,17 +1169,14 @@ class BlazingContext(object):
                 i = i + 1
 
 
-            print("starting polling plugin")
+
             # Register and start polling plugin on each Dask worker
             self.polling_plugin = PollingPlugin()
             self.dask_client.register_worker_plugin(self.polling_plugin)
 
             # Start listener on each worker to send received messages to router
-            print("starting listeners")
+            
             listen(client=self.dask_client)
-
-            print("started listeners")
-
 
 
             # need to initialize this logging independently, in case its set as a relative path
@@ -2349,7 +2340,6 @@ class BlazingContext(object):
                 dask_futures = []
                 for node in self.nodes:
                     worker = node['worker']
-                    print("running on " + str(worker))
                     dask_futures.append(
                         self.dask_client.submit(
                             executeGraph,
