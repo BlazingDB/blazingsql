@@ -33,7 +33,7 @@ data_provider_pair CreateCsvCustomerTableProvider(int index) {
 
 	std::string filename = "/tmp/customer_" + std::to_string(index) + ".psv";
 	std::ofstream outfile(filename, std::ofstream::out);
-	outfile << content << std::endl;
+	outfile << content << '\n';
 	outfile.close();
 
 	std::vector<std::pair<std::string, std::string>> customer_map = {{"c_custkey", "int64"},
@@ -86,7 +86,7 @@ data_provider_pair CreateCsvOrderTableProvider(int index) {
 
 	std::string filename = "/tmp/orders_" + std::to_string(index) + ".psv";
 	std::ofstream outfile(filename, std::ofstream::out);
-	outfile << content << std::endl;
+	outfile << content << '\n';
 	outfile.close();
 
 	std::vector<std::pair<std::string, std::string>> orders_map = {{"o_orderkey", "int64"},
@@ -135,7 +135,7 @@ const std::string content =
 
 	std::string filename = "/tmp/nation_" + std::to_string(index) + ".psv";
 	std::ofstream outfile(filename, std::ofstream::out);
-	outfile << content << std::endl;
+	outfile << content << '\n';
 	outfile.close();
 
 	std::vector<std::pair<std::string, std::string>> columns_map = {
