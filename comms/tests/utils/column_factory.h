@@ -102,7 +102,7 @@ static cudf::table build_table() {
   std::cout << "csv_with_strings\n";
   std::string filename = "/tmp/nation.psv";
   std::ofstream outfile(filename, std::ofstream::out);
-  outfile << content << std::endl;
+  outfile << content << '\n';
   outfile.close();
 
   cudf::csv_read_arg args(cudf::source_info{filename});
@@ -114,7 +114,7 @@ static cudf::table build_table() {
 
   cudf::table table = cudf::read_csv(args);
   std::cout << "table_size: " << table.num_columns() << "|" << table.num_rows()
-            << std::endl;
+            << '\n';
   return transfor_to_nv_category(table);
 }
 
