@@ -186,7 +186,7 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 									"info"_a="In runQuery. What: {}"_format(e.what()),
 									"duration"_a="");
 		logger->flush();
-		std::cerr << e.what() << std::endl;
+		std::cerr << e.what() << '\n';
 		throw;
 	}
 }
@@ -239,7 +239,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		logger->flush();
 
 		std::cerr << "**[performPartition]** error partitioning table.\n";
-		std::cerr << e.what() << std::endl;
+		std::cerr << e.what() << '\n';
 		throw;
 	}
 }
@@ -269,7 +269,7 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 		logger->flush();
 		
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
-		std::cerr << e.what() << std::endl;
+		std::cerr << e.what() << '\n';
 		throw;
 	}
 }
