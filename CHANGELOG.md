@@ -45,6 +45,7 @@
 - #875 Recovered some old unit tests and deleted obsolete unit tests
 - #879 Fixed issue with log directory creation in a distributed environment
 - #890 Fixed issue where we were including testing hpp in our code
+- #891 Fixed issue caused by replacing join load_set with concatenating cache
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)

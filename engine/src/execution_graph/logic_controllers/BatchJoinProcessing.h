@@ -644,17 +644,27 @@ public:
 		bool any_unknowns_left = std::any_of(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), [](int64_t bytes){return bytes == -1;});
 		bool any_unknowns_right = std::any_of(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), [](int64_t bytes){return bytes == -1;});
 
-		if (any_unknowns_left || any_unknowns_right){
-			return std::make_pair(false, false); // we wont do any small table scatter if we have unknowns
-		}
-
 		int64_t total_bytes_left = std::accumulate(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), int64_t(0));
 		int64_t total_bytes_right = std::accumulate(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), int64_t(0));
 
-		int num_nodes = context->getTotalNodes();
-
 		bool scatter_left = false;
 		bool scatter_right = false;
+		if (any_unknowns_left || any_unknowns_right){
+			// with CROSS_JOIN we want to scatter or or the other, no matter what, even with unknowns
+			if (this->join_type == CROSS_JOIN){
+				if(total_bytes_left < total_bytes_right) {
+					scatter_left = true;
+				} else {
+					scatter_right = true;
+				}
+				return std::make_pair(scatter_left, scatter_right);
+			} else {
+				return std::make_pair(false, false); // we wont do any small table scatter if we have unknowns
+			}
+		}
+
+		int num_nodes = context->getTotalNodes();
+
 		int64_t estimate_regular_distribution = (total_bytes_left + total_bytes_right) * (num_nodes - 1) / num_nodes;
 		int64_t estimate_scatter_left = (total_bytes_left) * (num_nodes - 1);
 		int64_t estimate_scatter_right = (total_bytes_right) * (num_nodes - 1);
@@ -666,14 +676,29 @@ public:
 			max_join_scatter_mem_overhead = std::stoull(config_options["MAX_JOIN_SCATTER_MEM_OVERHEAD"]);
 		}
 
-		if(estimate_scatter_left < estimate_regular_distribution ||
-			estimate_scatter_right < estimate_regular_distribution) {
-			if(estimate_scatter_left < estimate_scatter_right &&
-				total_bytes_left < max_join_scatter_mem_overhead) {
+		// with CROSS_JOIN we want to scatter or or the other
+		if (this->join_type == CROSS_JOIN){
+			if(estimate_scatter_left < estimate_scatter_right) {
 				scatter_left = true;
-			} else if(estimate_scatter_right < estimate_scatter_left &&
-					total_bytes_right < max_join_scatter_mem_overhead) {
+			} else {
 				scatter_right = true;
+			}
+		// with LEFT_JOIN we cant scatter the left side
+		} else if (this->join_type == LEFT_JOIN) {
+			if(estimate_scatter_right < estimate_regular_distribution &&
+						total_bytes_right < max_join_scatter_mem_overhead) {
+				scatter_right = true;
+			}
+		} else {
+			if(estimate_scatter_left < estimate_regular_distribution ||
+				estimate_scatter_right < estimate_regular_distribution) {
+				if(estimate_scatter_left < estimate_scatter_right &&
+					total_bytes_left < max_join_scatter_mem_overhead) {
+					scatter_left = true;
+				} else if(estimate_scatter_right < estimate_scatter_left &&
+						total_bytes_right < max_join_scatter_mem_overhead) {
+					scatter_right = true;
+				}
 			}
 		}
 		return std::make_pair(scatter_left, scatter_right);
@@ -845,9 +870,6 @@ public:
 		} else {
 			scatter_left_right = determine_if_we_are_scattering_a_small_table(left_batch->toBlazingTableView(),
 																				right_batch->toBlazingTableView());
-			if (scatter_left_right.first && this->join_type == LEFT_JOIN){
-				scatter_left_right.first = false; // cant scatter the left side for a left outer join
-			}
 		}
 		// scatter_left_right = std::make_pair(false, false); // Do this for debugging if you want to disable small table join optmization
 		if (scatter_left_right.first){
