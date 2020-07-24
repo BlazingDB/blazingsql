@@ -137,7 +137,7 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
             cmake -DCMAKE_CXX11_ABI=ON ..
         else
             cd ${REPODIR}/thirdparty/cudf
-            git pull
+            # git pull
             if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
                 mkdir cpp/build
             fi
