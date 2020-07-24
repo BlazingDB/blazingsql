@@ -31,6 +31,12 @@ BlazingTable::BlazingTable(const CudfTableView & table, const std::vector<std::s
 	this->columnNames = columnNames;
 }
 
+void BlazingTable::ensureOwnership(){
+	for (size_t i = 0; i < columns.size(); i++){
+		columns[i] = std::make_unique<BlazingColumnOwner>(std::move(columns[i]->release()));
+	}
+}
+
 CudfTableView BlazingTable::view() const{
 	std::vector<CudfColumnView> column_views(columns.size());
 	for (size_t i = 0; i < columns.size(); i++){

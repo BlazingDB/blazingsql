@@ -1,5 +1,17 @@
 #pragma once
 
+#include <atomic>
+#include <future>
+#include <memory>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+#include <string>
+#include <typeindex>
+#include <vector>
+#include <limits>
+#include <map>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -8,26 +20,20 @@
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
+#include <cudf/io/functions.hpp>
+
+#include "error.hpp"
+#include "CodeTimer.h"
+#include <blazingdb/manager/Context.h>
+#include <communication/messages/GPUComponentMessage.h>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
-#include <atomic>
-#include <blazingdb/manager/Context.h>
-#include <cudf/io/functions.hpp>
-#include <future>
-#include <memory>
-#include <condition_variable>
-#include <mutex>
-#include <queue>
-#include <src/communication/messages/GPUComponentMessage.h>
-#include <string>
-#include <typeindex>
-#include <vector>
-#include <limits>
 #include <bmr/BlazingMemoryResource.h>
-#include <spdlog/spdlog.h>
 #include "communication/CommunicationData.h"
-#include "CodeTimer.h"
+
+
+
 using namespace std::chrono_literals;
 
 namespace ral {
@@ -37,7 +43,19 @@ using Context = blazingdb::manager::Context;
 using namespace fmt::literals;
 
 /// \brief An enum type to represent the cache level ID
-enum class CacheDataType { GPU, CPU, LOCAL_FILE };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA };
+
+const std::string KERNEL_ID_METADATA_LABEL = "kernel_id";
+const std::string QUERY_ID_METADATA_LABEL = "query_id";
+const std::string CACHE_ID_METADATA_LABEL = "cache_id";
+const std::string ADD_TO_SPECIFIC_CACHE_METADATA_LABEL = "add_to_specific_cache";
+const std::string SENDER_WORKER_ID_METADATA_LABEL = "sender_worker_id";
+const std::string WORKER_IDS_METADATA_LABEL = "worker_ids";
+const std::string TOTAL_TABLE_ROWS_METADATA_LABEL = "total_table_rows";
+const std::string JOIN_LEFT_BYTES_METADATA_LABEL = "join_left_bytes_metadata_label";
+const std::string JOIN_RIGHT_BYTES_METADATA_LABEL = "join_right_bytes_metadata_label";
+const std::string MESSAGE_ID = "message_id";
+const std::string PARTITION_COUNT = "partition_count";
 
 /// \brief An interface which represent a CacheData
 class CacheData {
@@ -72,11 +90,51 @@ protected:
 	size_t n_rows;
 };
 
+class MetadataDictionary{
+public:
+	void add_value(std::string key, std::string value){
+		this->values[key] = value;
+	}
+
+	void add_value(std::string key, int value){
+		this->values[key] = std::to_string(value);
+	}
+
+
+	int get_kernel_id(){
+		if( this->values.find(KERNEL_ID_METADATA_LABEL) == this->values.end()){
+			throw BlazingMissingMetadataException(KERNEL_ID_METADATA_LABEL);
+		}
+		return std::stoi(values[KERNEL_ID_METADATA_LABEL]);
+	}
+
+	void print(){
+		for(auto elem : this->values)
+		{
+		   std::cout << elem.first << " " << elem.second<< "\n";
+		}
+	}
+	std::map<std::string,std::string> get_values(){
+		return this->values;
+	}
+
+	void set_values(std::map<std::string,std::string> new_values){
+		this->values= new_values;
+		print();
+	}
+private:
+	std::map<std::string,std::string> values;
+};
+
 /// \brief A specific class for a CacheData on GPU Memory
 class GPUCacheData : public CacheData {
 public:
 	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table)
 		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
+
+		GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table, CacheDataType cache_type_override)
+			: CacheData(cache_type_override,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
+
 
 	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
 
@@ -84,9 +142,38 @@ public:
 
 	virtual ~GPUCacheData() {}
 
-private:
+	ral::frame::BlazingTableView getTableView(){
+		return this->data->toBlazingTableView();
+	}
+
+protected:
 	std::unique_ptr<ral::frame::BlazingTable> data;
 };
+
+class GPUCacheDataMetaData : public GPUCacheData {
+public:
+	GPUCacheDataMetaData(std::unique_ptr<ral::frame::BlazingTable> table, const MetadataDictionary & metadata)
+		: GPUCacheData(std::move(table), CacheDataType::GPU_METADATA),
+		metadata(metadata)
+		 { }
+
+	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
+
+	std::pair<std::unique_ptr<ral::frame::BlazingTable>,MetadataDictionary > decacheWithMetaData(){
+		 return std::make_pair(std::move(data),this->metadata); }
+
+	size_t sizeInBytes() const override { return data->sizeInBytes(); }
+
+	MetadataDictionary getMetadata(){
+		return this->metadata;
+	}
+
+	virtual ~GPUCacheDataMetaData() {}
+
+private:
+	MetadataDictionary metadata;
+};
+
 
 /// \brief A specific class for a CacheData on CPU Memory
  class CPUCacheData : public CacheData {
@@ -124,11 +211,13 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> decache() override;
 
 	size_t sizeInBytes() const override;
+	size_t fileSizeInBytes() const;
 	virtual ~CacheDataLocalFile() {}
 	std::string filePath() const { return filePath_; }
 
 private:
 	std::string filePath_;
+	size_t size_in_bytes;
 };
 
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
@@ -179,9 +268,13 @@ public:
 	void put(message_ptr item) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		putWaitingQueue(std::move(item));
+		processed++;
 		condition_variable_.notify_all();
-	}
 
+	}
+	int processed_parts(){
+		return processed;
+	}
 	void finish() {
 		std::unique_lock<std::mutex> lock(mutex_);
 		this->finished = true;
@@ -192,7 +285,20 @@ public:
 		return this->finished.load(std::memory_order_seq_cst);
 	}
 
+	void wait_for_count(int count){
+
+		std::unique_lock<std::mutex> lock(mutex_);
+		condition_variable_.wait(lock, [&, this] () {
+			if (count > this->processed){
+				throw std::runtime_error("WaitingQueue::wait_for_count encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
+			}
+			return count == this->processed;
+		});
+	}
+
+
 	message_ptr pop_or_wait() {
+
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
@@ -250,6 +356,28 @@ public:
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
+					logger->warn("|||{info}|{duration}||||",
+										"info"_a="WaitingQueue wait_until_finished timed out",
+										"duration"_a=blazing_timer.elapsed_time());
+				}
+				return done_waiting;
+			})){}
+	}
+
+	void wait_until_num_bytes(size_t num_bytes) {
+		CodeTimer blazing_timer;
+		std::unique_lock<std::mutex> lock(mutex_);
+		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, num_bytes, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
+				if (!done_waiting) {
+					size_t total_bytes = 0;
+					for (int i = 0; i < message_queue_.size(); i++){
+						total_bytes += message_queue_[i]->get_data().sizeInBytes();
+					}
+					done_waiting = total_bytes > num_bytes;
+				}
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
 											"info"_a="WaitingQueue wait_until_finished timed out",
@@ -258,6 +386,15 @@ public:
 				}
 				return done_waiting;
 			})){}
+	}
+
+	size_t get_next_size_in_bytes(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		if (message_queue_.size() > 0){
+			message_queue_[0]->get_data().sizeInBytes();
+		} else {
+			return 0;
+		}
 	}
 
 	message_ptr get_or_wait(std::string message_id) {
@@ -350,7 +487,12 @@ private:
 	std::deque<message_ptr> message_queue_;
 	std::atomic<bool> finished;
 	std::condition_variable condition_variable_;
+	int processed = 0;
 };
+
+
+
+std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData>  base_pointer);
 /**
 	@brief A class that represents a Cache Machine on a
 	multi-tier (GPU memory, CPU memory, Disk memory) cache system.
@@ -359,7 +501,7 @@ class CacheMachine {
 public:
 	CacheMachine(std::shared_ptr<Context> context);
 
-	CacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
+	CacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold);
 
 	~CacheMachine();
 
@@ -369,9 +511,9 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "");
+	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "");
+	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
 
 	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
 
@@ -398,14 +540,21 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+
+	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
+
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
+
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
-	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
+	bool thresholds_are_met(std::size_t bytes_count);
 
 	virtual void wait_if_cache_is_saturated();
 
+	void wait_for_count(int count){
+		return this->waitingCache->wait_for_count(count);
+	}
 	// take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
 	// this function does not change the order of the caches
 	virtual size_t downgradeCacheData();
@@ -428,9 +577,7 @@ protected:
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
 
-	std::uint32_t flow_control_batches_threshold;
 	std::size_t flow_control_bytes_threshold;
-	std::uint32_t flow_control_batches_count;
 	std::size_t flow_control_bytes_count;
 	std::mutex flow_control_mutex;
 	std::condition_variable flow_control_condition_variable;
@@ -539,7 +686,7 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold, bool concat_all);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;
 
@@ -557,6 +704,9 @@ public:
 	bool concat_all;
 
 };
+
+
+
 
 }  // namespace cache
 } // namespace ral

@@ -2,6 +2,7 @@
 
 ## New Features
 - #835 Added a memory monitor for better memory management and added pull ordered from cache
+- #889 Added Sphinx based code architecture documentation
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
@@ -18,6 +19,7 @@
 - #877 round robing dask workers on single gpu queries
 - #880 reraising query errors in context.py
 - #883 add rand() and running unary operations on literals
+- #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 - #885 Added initial set of unit tests for `WaitingQueue` and nullptr checks around spdlog calls
 
 ## Bug Fixes
@@ -43,6 +45,7 @@
 - #847 Fixed issue with some constant expressions not evaluated by calcite
 - #875 Recovered some old unit tests and deleted obsolete unit tests
 - #879 Fixed issue with log directory creation in a distributed environment
+- #890 Fixed issue where we were including testing hpp in our code
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
