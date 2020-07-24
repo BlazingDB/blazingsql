@@ -11,9 +11,17 @@
 
 using namespace ral;
 
+using MsgVect = std::vector<std::string>;
+using MsgVectPtr = std::shared_ptr<MsgVect>;
+using ThreadIDMsgVectMap = std::map<std::thread::id, MsgVectPtr>;
+
 
 class WaitingQueueTest : public ::testing::Test {
 protected:
+   // Map of thread IDs to vector of message ID strings, used for tracking which
+   // thread popped what message IDs (and possibly other uses).
+   ThreadIDMsgVectMap threadIdMsgsMap;
+
    // void SetUp() override {}
    // void TearDown() override {}
 
@@ -57,7 +65,22 @@ protected:
       return std::thread(worker, delayMs, wqPtr);
    }
 
-private:
+   std::thread
+   createPopOrWaitThread(cache::WaitingQueue* wqPtr) {
+      MsgVectPtr msgVectPtr = std::make_shared<MsgVect>();
+      auto worker = [](cache::WaitingQueue* wqPtr,
+                       MsgVectPtr msgVectPtr) {
+         while(!wqPtr->is_finished()) {
+            std::unique_ptr<cache::message> msg = wqPtr->pop_or_wait();
+            if(msg != nullptr) {
+               msgVectPtr->push_back(msg->get_message_id());
+            }
+         }
+      };
+      auto thread = std::thread(worker, wqPtr, msgVectPtr);
+      threadIdMsgsMap[thread.get_id()] = msgVectPtr;
+      return thread;
+   }
 };
 
 
@@ -79,14 +102,14 @@ TEST_F(WaitingQueueTest, putPopSeveral) {
    DESCR("test of several put-pop operations ensuring proper ordering");
 
    cache::WaitingQueue wq;
-   int numItems = 99;
+   int totalNumItems = 99;
 
-   for(int i=0; i<numItems; ++i) {
+   for(int i=0; i<totalNumItems; ++i) {
       wq.put(createCacheMsg("uniqueId" + std::to_string(i)));
    }
 
    // Ensure msgs popped in correct order
-   for(int i=0; i<numItems; ++i) {
+   for(int i=0; i<totalNumItems; ++i) {
       auto msgOut = wq.pop_or_wait();
       ASSERT_NE(msgOut, nullptr);
       EXPECT_EQ(msgOut->get_message_id(), "uniqueId" + std::to_string(i));
@@ -99,15 +122,15 @@ TEST_F(WaitingQueueTest, putMultiThreadsPopAtEnd) {
          "asynchronously, ensuring all msgs processed");
 
    cache::WaitingQueue wq;
-   int numItems = 99;
+   int totalNumItems = 99;
 
    // Create all the IDs upfront and use the vector for adding messages to a
    // WaitingQueue
    std::set<std::string> ids;
-   for(int i=0; i<numItems; ++i) {
+   for(int i=0; i<totalNumItems; ++i) {
       ids.insert("uniqueId" + std::to_string(i));
    }
-   ASSERT_EQ(ids.size(), numItems);
+   ASSERT_EQ(ids.size(), totalNumItems);
 
    // Create individual threads that each push an individual message on at a
    // random time in the future (10ms < time < 110ms)
@@ -117,14 +140,14 @@ TEST_F(WaitingQueueTest, putMultiThreadsPopAtEnd) {
       threads.push_back(putCacheMsgAfter(((rand() % 100) + 10), &wq,
                                          std::move(msg)));
    }
-   ASSERT_EQ(threads.size(), numItems);
+   ASSERT_EQ(threads.size(), totalNumItems);
 
    // Ensure all messages are pushed before checking the WaitingQueue
    std::for_each(threads.begin(), threads.end(),
                  [](std::thread& t){ t.join(); });
 
    // Ensure every message was accounted for
-   for(int i=0; i<numItems; ++i) {
+   for(int i=0; i<totalNumItems; ++i) {
       auto msgOut = wq.pop_or_wait();
       ASSERT_NE(msgOut, nullptr);
       auto idFound = ids.find(msgOut->get_message_id());
@@ -159,7 +182,7 @@ TEST_F(WaitingQueueTest, putWaitForPop) {
 }
 
 
-TEST_F(WaitingQueueTest, DISABLED_putAndPopMultiThreads) {
+TEST_F(WaitingQueueTest, putAndPopMultiThreads) {
    DESCR("test of several put-pop operations from different asynchronous "
          "threads simultaneously, ensuring all msgs processed");
    // Start out with a queue with some message_ptr already in it, run pop_or
@@ -169,6 +192,62 @@ TEST_F(WaitingQueueTest, DISABLED_putAndPopMultiThreads) {
    // dequeue in a lock safe way.
    // This uses both a short and long delay to ensure the timeout for logging is
    // being triggered.
+
+   // Prepopulate the queue with 100 msgs
+   cache::WaitingQueue wq;
+   int numItems = 0;
+
+   for(; numItems<100; ++numItems) {
+      wq.put(createCacheMsg("uniqueId" + std::to_string(numItems)));
+   }
+
+   // Start 4 threads that are running pop_or_wait(). These threads will run
+   // until stopped by a call to finish(), and will return a list of all the IDs
+   // they've popped. The total of all 4 lists should equal every msg put() on
+   // the queue.
+   auto t1 = createPopOrWaitThread(&wq);
+   auto t2 = createPopOrWaitThread(&wq);
+   auto t3 = createPopOrWaitThread(&wq);
+   auto t4 = createPopOrWaitThread(&wq);
+   std::vector<std::thread::id> tIds = {t1.get_id(), t2.get_id(),
+                                        t3.get_id(), t4.get_id()};
+
+   // Add more msgs to the queue while the threads are still running
+   // pop_or_wait(). Ensure at some point that there's a delay of at least
+   // waiting timeout that triggers logging.
+   for(; numItems<200; ++numItems) {
+      wq.put(createCacheMsg("uniqueId" + std::to_string(numItems)));
+   }
+   // Current waiting timeout for logging is 60s (add 5 to ensure all prior msgs
+   // processed and threads are waiting)
+   std::this_thread::sleep_for(std::chrono::milliseconds((60 + 5) * 1000));
+
+   for(; numItems<300; ++numItems) {
+      wq.put(createCacheMsg("uniqueId" + std::to_string(numItems)));
+   }
+
+   // Stop the thread by calling finish() and get the msgs popped from each
+   // thread. IDs 0-299 must be present.
+   wq.finish();
+   t1.join(); t2.join(); t3.join(); t4.join();
+
+   std::set<std::string> idsPopped;
+   // Gather all the popped msg IDs, ensure no repeats.
+   for(auto tId : tIds) {
+      MsgVectPtr msgVectPtr = threadIdMsgsMap[tId];
+      for(auto msgIdIt = msgVectPtr->cbegin();
+          msgIdIt != msgVectPtr->cend();
+          ++msgIdIt) {
+         EXPECT_EQ(idsPopped.count(*msgIdIt), 0);  // check ID not seen before
+         idsPopped.insert(*msgIdIt);
+         //std::cout << "thread: " << tId << " popped: " << *msgIdIt << std::endl;
+      }
+   }
+   // Assert that each message put() was popped().
+   for(int i=0; i<numItems; ++i) {
+      idsPopped.erase("uniqueId" + std::to_string(i));
+   }
+   EXPECT_EQ(idsPopped.size(), 0);
 }
 
 
