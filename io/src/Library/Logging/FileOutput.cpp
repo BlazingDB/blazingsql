@@ -29,19 +29,19 @@ FileOutput::~FileOutput() {}
 
 void FileOutput::flush(std::string && log) {
 	std::unique_lock<std::mutex> lock(mutex);
-	file << log << std::endl;
+	file << log << '\n';
 }
 
 void FileOutput::flush(const std::string & log) {
 	std::unique_lock<std::mutex> lock(mutex);
-	file << log << std::endl;
+	file << log << '\n';
 }
 
 
 void FileOutput::flush(
 	const int nodeInd, const std::string & datetime, const std::string & level, const std::string & log) {
 	std::unique_lock<std::mutex> lock(mutex);
-	file << datetime << "|" << nodeInd << "|" << level << "|" << log << std::endl;
+	file << datetime << "|" << nodeInd << "|" << level << "|" << log << '\n';
 }
 
 // void FileOutput::setNodeIdentifier(const unsigned int nodeInd){
