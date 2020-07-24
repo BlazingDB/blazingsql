@@ -10,12 +10,12 @@ CoutOutput::~CoutOutput() {}
 
 void CoutOutput::flush(std::string && log) {
 	std::unique_lock<std::mutex> lock(mutex);
-	std::cout << log << std::endl;
+	std::cout << log << '\n';
 }
 
 void CoutOutput::flush(const std::string & log) {
 	std::unique_lock<std::mutex> lock(mutex);
-	std::cout << log << std::endl;
+	std::cout << log << '\n';
 }
 
 void CoutOutput::flush(
