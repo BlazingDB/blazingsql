@@ -66,7 +66,7 @@ namespace cache {
 								if(state == kstatus::proceed) {
 									source->output_.finish();
 								} else if (edge.target != -1) { // not a dummy node
-									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
+									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<'\n';
 								}
 							});
 							threads.push_back(std::move(t));
@@ -94,7 +94,7 @@ namespace cache {
 		}
 		std::cout << "kernel id -> kernel type id\n";
 		for(kernel * k : kernels_) {
-			std::cout << (int) k->get_id() << " -> " << (int) k->get_type_id() << std::endl;
+			std::cout << (int) k->get_id() << " -> " << (int) k->get_type_id() << '\n';
 		}
 		while(not Q.empty()) {
 			auto source_id = Q.front();
@@ -106,7 +106,7 @@ namespace cache {
 					auto target = get_node(target_id);
 					auto edge_id = std::make_pair(source_id, target_id);
 					if(visited.find(edge_id) == visited.end()) {
-						std::cout << "source_id: " << source_id << " -> " << target_id << std::endl;
+						std::cout << "source_id: " << source_id << " -> " << target_id << '\n';
 						visited.insert(edge_id);
 						Q.push_back(target_id);
 					} else {
@@ -117,7 +117,7 @@ namespace cache {
 	}
 
 	void graph::show_from_kernel (int32_t id) {
-		std::cout<<"show_from_kernel "<<id<<std::endl;
+		std::cout<<"show_from_kernel "<<id<<'\n';
 		check_and_complete_work_flow();
 
 		std::set<std::pair<size_t, size_t>> visited;
@@ -135,7 +135,7 @@ namespace cache {
 					auto source = get_node(source_id);
 					auto edge_id = std::make_pair(target_id, source_id);
 					if(visited.find(edge_id) == visited.end()) {
-						std::cout << "target_id: " << target_id << " <- " << source_id << std::endl;
+						std::cout << "target_id: " << target_id << " <- " << source_id << '\n';
 						visited.insert(edge_id);
 						Q.push_back(source_id);
 					} else {
@@ -181,7 +181,7 @@ namespace cache {
 				return target_kernel->get_estimated_output_num_rows();				
 			}
 		}
-		std::cout<<"ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel "<<id<<" cache "<<port_name<<std::endl;
+		std::cout<<"ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel "<<id<<" cache "<<port_name<<'\n';
 		return std::make_pair(false, 0);
 	}
 
