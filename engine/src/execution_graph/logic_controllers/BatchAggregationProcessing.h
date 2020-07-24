@@ -25,6 +25,9 @@ public:
 	ComputeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{kernel_id, queryString, context, kernel_type::ComputeAggregateKernel} {
         this->query_graph = query_graph;
+
+        std::tie(this->group_column_indices, this->aggregation_input_expressions, this->aggregation_types,
+            this->aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 	}
 
     bool can_you_throttle_my_input() {
@@ -34,10 +37,6 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
         CodeTimer eventTimer(false);
-
-        std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
-        std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
-            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
         bool ordered = false; // If we start using sort based aggregations this may need to change
         BatchSequence input(this->input_cache(), this, ordered);
@@ -131,6 +130,8 @@ public:
 private:
     std::vector<AggregateKind> aggregation_types;
     std::vector<int> group_column_indices;
+    std::vector<std::string> aggregation_input_expressions;
+    std::vector<std::string> aggregation_column_assigned_aliases;
 };
 
 class DistributeAggregateKernel : public kernel {
@@ -138,6 +139,11 @@ public:
 	DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel} {
         this->query_graph = query_graph;
+        std::tie(this->group_column_indices, this->aggregation_input_expressions, this->aggregation_types,
+            this->aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
+
+        std::transform(this->group_column_indices.begin(), this->group_column_indices.end(), 
+            std::back_inserter(this->columns_to_hash), [](int index) { return (cudf::size_type)index; });
 	}
 
     bool can_you_throttle_my_input() {
@@ -149,17 +155,8 @@ public:
 
         CodeTimer timer;
 
-        std::vector<int> group_column_indices;
-        std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases; // not used in this kernel
-        std::vector<AggregateKind> aggregation_types; // not used in this kernel
-        std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
-            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
-
-        std::vector<cudf::size_type> columns_to_hash;
-        std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-
-
-        BlazingThread producer_thread([this, group_column_indices, columns_to_hash](){
+        
+        BlazingThread producer_thread([this](){
             // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
             // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
             int num_partitions = this->context->getTotalNodes();
@@ -175,7 +172,7 @@ public:
                     //std::cout<<"DistributeAggregateKernel batch "<<batch_count<<std::endl;
 
                     // If its an aggregation without group by we want to send all the results to the master node
-                    if (group_column_indices.size() == 0) {
+                    if (this->group_column_indices.size() == 0) {
                         if(this->context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
                             this->add_to_output_cache(std::move(batch));
                         } else {
@@ -195,7 +192,7 @@ public:
                         std::unique_ptr<CudfTable> hashed_data; // Keep table alive in this scope
                         if (batch_view.num_rows() > 0) {
                             std::vector<cudf::size_type> hased_data_offsets;
-                            std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), columns_to_hash, num_partitions);
+                            std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), this->columns_to_hash, num_partitions);
                             // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
                             std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
                             partitioned = cudf::split(hashed_data->view(), split_indexes);
@@ -235,16 +232,16 @@ public:
                 }
             }
 
-            if (!(group_column_indices.size() == 0
+            if (!(this->group_column_indices.size() == 0
                 && this->context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode()))) {
                 // Aggregations without groupby does not send distributeTablePartitions
                 ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
             }
         });
 
-        BlazingThread consumer_thread([this, group_column_indices](){
+        BlazingThread consumer_thread([this](){
             // Lets put the server listener to feed the output, but not if its aggregations without group by and its not the master
-            if(group_column_indices.size() > 0 ||
+            if(this->group_column_indices.size() > 0 ||
                         this->context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
                 ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id(), this);
                 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
@@ -268,7 +265,11 @@ public:
 	}
 
 private:
-
+    std::vector<AggregateKind> aggregation_types;
+    std::vector<int> group_column_indices;
+    std::vector<std::string> aggregation_input_expressions;
+    std::vector<std::string> aggregation_column_assigned_aliases;
+    std::vector<cudf::size_type> columns_to_hash;
 };
 
 
