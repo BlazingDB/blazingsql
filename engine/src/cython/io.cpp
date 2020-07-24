@@ -151,7 +151,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(std::exception e) {
-		std::cerr << e.what() << std::endl;
+		std::cerr << e.what() << '\n';
 		throw e;
 	}
 }
