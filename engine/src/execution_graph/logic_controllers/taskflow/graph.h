@@ -42,7 +42,7 @@ protected:
 		bool operator==(const Edge & e) const { return this->target == e.target && this->source == e.source; }
 
 		void print() const {
-			std::cout<<"Edge: source id: "<<source<<" name: "<<source_port_name<<" target id: "<<target<<" name: "<<target_port_name<<std::endl;
+			std::cout<<"Edge: source id: "<<source<<" name: "<<source_port_name<<" target id: "<<target<<" name: "<<target_port_name<<'\n';
 		}
 	};
 
