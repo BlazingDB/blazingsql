@@ -112,7 +112,7 @@ public:
 		try {
 			thread.join();
 		} catch(std::exception & e) {
-			std::cout << "ServerTCP::exception: " << e.what() << std::endl;
+			std::cout << "ServerTCP::exception: " << e.what() << '\n';
 		}
 	}
 
@@ -216,7 +216,7 @@ void ServerTCP::Run() {
 					this->putMessage(message->metadata().contextToken, message);
 				}
 			} catch(const std::runtime_error & exception) {
-				std::cerr << "[ERROR] " << exception.what() << std::endl;
+				std::cerr << "[ERROR] " << exception.what() << '\n';
 				// TODO: write failure
 				throw exception;
 			}
@@ -281,7 +281,7 @@ public:
 						
 					}
 				} catch(const std::runtime_error & exception) {
-					std::cerr << "[ERROR] " << exception.what() << std::endl;
+					std::cerr << "[ERROR] " << exception.what() << '\n';
 					// TODO: write failure
 					throw exception;
 				}
