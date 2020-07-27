@@ -1,7 +1,8 @@
 #include "CacheMachine.h"
 #include <sys/stat.h>
 #include <random>
-#include <src/utilities/CommonOperations.h>
+#include <utilities/CommonOperations.h>
+#include <utilities/DebuggingUtils.h>
 #include "communication/CommunicationData.h"
 #include <stdio.h>
 
@@ -209,54 +210,65 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		num_rows_added += cache_data->num_rows();
 		num_bytes_added += cache_data->sizeInBytes();
 		int cacheIndex = 0;
-		while(cacheIndex < this->memory_resources.size()) {
-			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
-			if( memory_to_use < 999999999999) {
-				if(cacheIndex == 0) {
-					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+		ral::cache::CacheDataType type = cache_data->get_type();
+		if (type == ral::cache::CacheDataType::GPU || type == ral::cache::CacheDataType::GPU_METADATA){
+			cacheIndex = 0;
+		} else if (type == ral::cache::CacheDataType::GPU){
+			cacheIndex = 1;
+		} else {
+			cacheIndex = 2;
+		}
+
+		// WSM: this is for debuggin. We probably dont need this long term
+		std::string schema_string = ral::utilities::cache_data_schema_to_string(cache_data.get());
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 						"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 						"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 						"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-						"info"_a="Add to CacheMachine general CacheData object into GPU cache ",
+						"info"_a="CacheMachine::addCacheData schema: " + schema_string,
 						"duration"_a="",
-						"kernel_id"_a=message_id,
+						"cache_id"_a=cache_id,
 						"rows"_a=cache_data->num_rows());
 
-					auto item = std::make_unique<message>(std::move(cache_data), message_id);
-					this->waitingCache->put(std::move(item));
-				} else {
-					if(cacheIndex == 1) {
-						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-							"info"_a="Add to CacheMachine general CacheData object into CPU cache ",
-							"duration"_a="",
-							"kernel_id"_a=message_id,
-							"rows"_a=cache_data->num_rows());
+		if(cacheIndex == 0) {
+			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+				"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+				"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+				"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+				"info"_a="Add to CacheMachine general CacheData object into GPU cache ",
+				"duration"_a="",
+				"kernel_id"_a=message_id,
+				"rows"_a=cache_data->num_rows());
 
-						auto item = std::make_unique<message>(std::move(cache_data), message_id);
-						this->waitingCache->put(std::move(item));
-					} else if(cacheIndex == 2) {
-						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-							"info"_a="Add to CacheMachine general CacheData object into Disk cache ",
-							"duration"_a="",
-							"kernel_id"_a=message_id,
-							"rows"_a=cache_data->num_rows());
+			auto item = std::make_unique<message>(std::move(cache_data), message_id);
+			this->waitingCache->put(std::move(item));
+		} else if(cacheIndex == 1) {
+				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+					"info"_a="Add to CacheMachine general CacheData object into CPU cache ",
+					"duration"_a="",
+					"kernel_id"_a=message_id,
+					"rows"_a=cache_data->num_rows());
 
-						// BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
-						auto item = std::make_unique<message>(std::move(cache_data), message_id);
-						this->waitingCache->put(std::move(item));
-						// NOTE: Wait don't kill the main process until the last thread is finished!
-						// }); t.detach();
-					}
-				}
-				break;
-			}
-			cacheIndex++;
+				auto item = std::make_unique<message>(std::move(cache_data), message_id);
+				this->waitingCache->put(std::move(item));
+		} else if(cacheIndex == 2) {
+				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+					"info"_a="Add to CacheMachine general CacheData object into Disk cache ",
+					"duration"_a="",
+					"kernel_id"_a=message_id,
+					"rows"_a=cache_data->num_rows());
+
+				// BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
+				auto item = std::make_unique<message>(std::move(cache_data), message_id);
+				this->waitingCache->put(std::move(item));
+				// NOTE: Wait don't kill the main process until the last thread is finished!
+				// }); t.detach();
 		}
 		this->something_added = true;
 	}
@@ -285,6 +297,19 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 			}
 
 		}
+
+		// WSM: this is for debuggin. We probably dont need this long term
+		std::string schema = ral::utilities::blazing_table_view_schema_to_string(table->toBlazingTableView(), message_id);
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+						"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+						"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+						"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+						"info"_a="CacheMachine::addToCache schema: " + schema,
+						"duration"_a="",
+						"cache_id"_a=cache_id,
+						"rows"_a=table->num_rows());
+
+
 		std::unique_lock<std::mutex> lock(flow_control_mutex);
 		flow_control_batches_count++;
 		flow_control_bytes_count += table->sizeInBytes();
