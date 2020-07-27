@@ -18,10 +18,11 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="clean thirdparty io comms libengine engine pyblazing algebra -t -v -g -n -h"
+VALIDARGS="clean update thirdparty io comms libengine engine pyblazing algebra -t -v -g -n -h"
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean        - remove all existing build artifacts and configuration (start
                   over) Use 'clean thirdparty' to delete thirdparty folder
+   update       - update cudf thirdparty code and update cudf conda packages
    thirdparty   - build the Thirdparty C++ code only
    io           - build the IO C++ code only
    comms        - build the communications C++ code only
@@ -86,6 +87,10 @@ if (( ${NUMARGS} != 0 )); then
     done
 fi
 
+# Get version number
+export GIT_DESCRIBE_TAG=`git describe --tags`
+export MINOR_VERSION=`echo $GIT_DESCRIBE_TAG | grep -o -E '([0-9]+\.[0-9]+)'`
+
 # Process flags
 if hasArg -v; then
     VERBOSE=1
@@ -124,7 +129,7 @@ fi
 
 ################################################################################
 
-if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
+if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg update; then
     if [ -d "${CUDF_HOME}" ]; then
 	echo "CUDF_HOME env var set to path that exists - using cuDF from ${CUDF_HOME}"
     else
@@ -137,7 +142,9 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
             cmake -DCMAKE_CXX11_ABI=ON ..
         else
             cd ${REPODIR}/thirdparty/cudf
-            # git pull
+            if hasArg update; then
+                git pull
+            fi
             if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
                 mkdir cpp/build
             fi
@@ -182,6 +189,12 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
     else
         echo "thirdparty/aws-cpp/ is already installed in ${INSTALL_PREFIX}"
     fi
+fi
+
+################################################################################
+
+if hasArg update; then
+    conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults librmm=$MINOR_VERSION rmm=$MINOR_VERSION libcudf=$MINOR_VERSION cudf=$MINOR_VERSION dask-cudf=$MINOR_VERSION dask-cuda=$MINOR_VERSION
 fi
 
 ################################################################################
