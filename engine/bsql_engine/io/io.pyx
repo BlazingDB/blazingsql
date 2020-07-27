@@ -109,18 +109,18 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
     with nogil:
         return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef shared_ptr[cio.graph] runGenerateGraphPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except *:
+cdef shared_ptr[cio.graph] runGenerateGraphPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +:
     return cio.runGenerateGraph(masterIndex, tcpMetadata, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options)
 
-cdef unique_ptr[cio.PartitionedResultSet] runExecuteGraphPython(shared_ptr[cio.graph] graph) except *:
+cdef unique_ptr[cio.PartitionedResultSet] runExecuteGraphPython(shared_ptr[cio.graph] graph) except +:
     with nogil:
       return blaz_move(cio.runExecuteGraph(graph))
 
-cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) nogil except *:
+cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) nogil except +:
     with nogil:
         return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
 
-cdef unique_ptr[cio.ResultSet] runSkipDataPython(BlazingTableView metadata, vector[string] all_column_names, string query) nogil except *:
+cdef unique_ptr[cio.ResultSet] runSkipDataPython(BlazingTableView metadata, vector[string] all_column_names, string query) nogil except +:
     with nogil:
         return blaz_move(cio.runSkipData( metadata, all_column_names, query))
 
@@ -129,19 +129,19 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
         temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except *:
+cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +:
     with nogil:
         return cio.initialize( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
 
-cdef void finalizePython() nogil except *:
+cdef void finalizePython() nogil except +:
     with nogil:
         cio.finalize()
 
-cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except *:
+cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except +:
     with nogil:
         cio.blazingSetAllocator(allocation_mode, initial_pool_size, config_options)
 
-cdef map[string, string] getProductDetailsPython() nogil except *:
+cdef map[string, string] getProductDetailsPython() nogil except +:
     with nogil:
         return cio.getProductDetails()
 

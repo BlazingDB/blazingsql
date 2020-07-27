@@ -15,7 +15,7 @@
 #include "error.hpp"
 
 #include "cudf/utilities/traits.hpp"
-#include "utilities/DebuggingUtils.h"
+
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;
 
@@ -96,7 +96,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 				const std::vector<cudf::order> & sortOrderTypes) {
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::concatTables(samples);
-	std::cout<<"========================"<<std::endl<<concatSamples->num_rows();
+	
 
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 	// TODO this is just a default setting. Will want to be able to properly set null_order
@@ -173,7 +173,6 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 	CudfTableView columns_to_search = table.view().select(searchColIndices);
 
-	ral::utilities::print_blazing_table_view(BlazingTableView(pivots.view(),std::vector<std::string>(pivots.num_columns())));	
 	std::unique_ptr<cudf::column> pivot_indexes = cudf::upper_bound(columns_to_search,
                                     pivots.view(),
                                     sortOrderTypes,
@@ -183,15 +182,8 @@ std::vector<NodeColumnView> partitionData(Context * context,
 	std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
 	CUDA_TRY(cudaMemcpy(host_data.data(), pivot_indexes->view().data<cudf::size_type>(), pivot_indexes->view().size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
 
-	for(auto pivot : host_data){
-		std::cout<<pivot<<",";
-	}
-	std::cout<<std::endl;
-	std::cout<<"table size in split is "<<table.num_rows()<<std::endl;
 
 	std::vector<CudfTableView> partitioned_data = cudf::split(table.view(), host_data);
-	std::cout<<"partitioned_data is "<<partitioned_data.size()<<std::endl;
-//	ral::utilities::print_blazing_table_view(BlazingTableView(partitioned_data,std::vector<std::string>(partitioned_data.size())));	
 	std::vector<Node> all_nodes = context->getAllNodes();
 
 	RAL_EXPECTS(all_nodes.size() <= partitioned_data.size(), "Number of table partitions is smalled than total nodes");
