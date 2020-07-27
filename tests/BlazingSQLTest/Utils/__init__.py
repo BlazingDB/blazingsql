@@ -125,8 +125,8 @@ def init_context():
         if dask_client is not None:
             dask_conn = Settings.data["TestSettings"]["daskConnection"]
             iface = Settings.data["RunSettings"]["networkInterface"]
-            print("Using dask: " + dask_conn)
-            if "local" != dask_conn:
+            # print("Using dask: " + dask_conn)
+            # if "local" != dask_conn:
 
             bc = BlazingContext(
                 dask_client=dask_client,
