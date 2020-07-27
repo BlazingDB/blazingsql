@@ -11,59 +11,61 @@
 
 using namespace ral;
 
-using MsgVect = std::vector<std::string>;
-using MsgVectPtr = std::shared_ptr<MsgVect>;
-using ThreadIDMsgVectMap = std::map<std::thread::id, MsgVectPtr>;
+// Minimum required to create and return a cache::message instance for use
+// with a WaitingQueue.
+std::unique_ptr<cache::message>
+createCacheMsg(std::string msgId) {
+   std::vector<std::unique_ptr<frame::BlazingColumn>> blazingColumns;
+   std::vector<std::string> colNames = {};
+
+   auto blazingTable = \
+      std::make_unique<frame::BlazingTable>(std::move(blazingColumns),
+                                               colNames);
+   auto content = \
+      std::make_unique<cache::GPUCacheData>(std::move(blazingTable));
+
+   return std::move(std::make_unique<cache::message>(std::move(content),
+                                                     msgId));
+}
+
+// Calls put() and passes msg on a WaitingQueue instance pointer after
+// waiting delayMs
+std::thread
+putCacheMsgAfter(int delayMs, cache::WaitingQueue* wqPtr,
+                 std::unique_ptr<cache::message> msg) {
+   auto worker = [](int delayMs, cache::WaitingQueue* wqPtr,
+                    std::unique_ptr<cache::message> msg) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+      wqPtr->put(std::move(msg));
+   };
+   return std::thread(worker, delayMs, wqPtr, std::move(msg));
+}
+
+// Calls finish() on a WaitingQueue instance pointer after waiting delayMs
+std::thread
+callFinishAfter(int delayMs, cache::WaitingQueue* wqPtr) {
+   auto worker = [](int delayMs, cache::WaitingQueue* wqPtr) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+      wqPtr->finish();
+   };
+   return std::thread(worker, delayMs, wqPtr);
+}
 
 
-class WaitingQueueTest : public ::testing::Test {
+class WaitingQueueTestFixture : public ::testing::Test {
 protected:
+
+   using MsgVect = std::vector<std::string>;
+   using MsgVectPtr = std::shared_ptr<MsgVect>;
+   using ThreadIDMsgVectMap = std::map<std::thread::id, MsgVectPtr>;
+   using ThreadIDPairsVect = std::vector<std::pair<std::thread, std::thread::id>>;
+
    // Map of thread IDs to vector of message ID strings, used for tracking which
    // thread popped what message IDs (and possibly other uses).
    ThreadIDMsgVectMap threadIdMsgsMap;
 
    // void SetUp() override {}
    // void TearDown() override {}
-
-   // Minimum required to create and return a cache::message instance for use
-   // with a WaitingQueue.
-   std::unique_ptr<cache::message>
-   createCacheMsg(std::string msgId) {
-      std::vector<std::unique_ptr<frame::BlazingColumn>> blazingColumns;
-      std::vector<std::string> colNames = {};
-
-      auto blazingTable = \
-         std::make_unique<frame::BlazingTable>(std::move(blazingColumns),
-                                               colNames);
-      auto content = \
-         std::make_unique<cache::GPUCacheData>(std::move(blazingTable));
-
-      return std::move(std::make_unique<cache::message>(std::move(content),
-                                                        msgId));
-   }
-
-   // Calls put() and passes msg on a WaitingQueue instance pointer after
-   // waiting delayMs
-   std::thread
-   putCacheMsgAfter(int delayMs, cache::WaitingQueue* wqPtr,
-                    std::unique_ptr<cache::message> msg) {
-      auto worker = [](int delayMs, cache::WaitingQueue* wqPtr,
-                       std::unique_ptr<cache::message> msg) {
-         std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
-         wqPtr->put(std::move(msg));
-      };
-      return std::thread(worker, delayMs, wqPtr, std::move(msg));
-   }
-
-   // Calls finish() on a WaitingQueue instance pointer after waiting delayMs
-   std::thread
-   callFinishAfter(int delayMs, cache::WaitingQueue* wqPtr) {
-      auto worker = [](int delayMs, cache::WaitingQueue* wqPtr) {
-         std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
-         wqPtr->finish();
-      };
-      return std::thread(worker, delayMs, wqPtr);
-   }
 
    std::thread
    createPopOrWaitThread(cache::WaitingQueue* wqPtr) {
@@ -81,10 +83,63 @@ protected:
       threadIdMsgsMap[thread.get_id()] = msgVectPtr;
       return thread;
    }
+
+   std::thread
+   createWaitForNextThread(cache::WaitingQueue* wqPtr) {
+      MsgVectPtr msgVectPtr = std::make_shared<MsgVect>();
+      auto worker = [](cache::WaitingQueue* wqPtr,
+                       MsgVectPtr msgVectPtr) {
+         if(wqPtr->wait_for_next()) {
+            // Should this be pop_unsafe() instead?
+            std::unique_ptr<cache::message> msg = wqPtr->pop_or_wait();
+            if(msg != nullptr) {
+               msgVectPtr->push_back(msg->get_message_id());
+            }
+         }
+      };
+      auto thread = std::thread(worker, wqPtr, msgVectPtr);
+      threadIdMsgsMap[thread.get_id()] = msgVectPtr;
+      return thread;
+   }
+
+   std::thread
+   createWaitUntilFinishedThread(cache::WaitingQueue* wqPtr) {
+      auto worker = [](cache::WaitingQueue* wqPtr) {
+         wqPtr->wait_until_finished();
+      };
+      auto thread = std::thread(worker, wqPtr);
+      return thread;
+   }
+
+   std::thread
+   getAllOrWaitAfter(int delayMs, cache::WaitingQueue* wqPtr) {
+      MsgVectPtr msgVectPtr = std::make_shared<MsgVect>();
+      auto worker = [](int delayMs, cache::WaitingQueue* wqPtr,
+                       MsgVectPtr msgVectPtr) {
+         std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+         // Use a MsgVectPtr associated with the thread id to store the messages
+         // returned. Even though get_all_or_wait() returns a vector, using a
+         // MsgVectPtr like the other tests and helpers use will make this
+         // easier to maintain.
+         for(auto &msg : wqPtr->get_all_or_wait()) {
+            msgVectPtr->push_back(msg->get_message_id());
+         }
+      };
+      auto thread = std::thread(worker, delayMs, wqPtr, msgVectPtr);
+      threadIdMsgsMap[thread.get_id()] = msgVectPtr;
+      return thread;
+   }
+
 };
 
 
-TEST_F(WaitingQueueTest, putPop) {
+class WaitingQueueTestTimeoutParamFixture :
+   public WaitingQueueTestFixture,
+   public ::testing::WithParamInterface<int> {
+};
+
+
+TEST_F(WaitingQueueTestFixture, putPop) {
    DESCR("simple test of single put-pop");
 
    cache::WaitingQueue wq;
@@ -98,7 +153,7 @@ TEST_F(WaitingQueueTest, putPop) {
 }
 
 
-TEST_F(WaitingQueueTest, putPopSeveral) {
+TEST_F(WaitingQueueTestFixture, putPopSeveral) {
    DESCR("test of several put-pop operations ensuring proper ordering");
 
    cache::WaitingQueue wq;
@@ -117,7 +172,7 @@ TEST_F(WaitingQueueTest, putPopSeveral) {
 }
 
 
-TEST_F(WaitingQueueTest, putMultiThreadsPopAtEnd) {
+TEST_F(WaitingQueueTestFixture, putMultiThreadsPopAtEnd) {
    DESCR("test of several put operations from different threads "
          "asynchronously, ensuring all msgs processed");
 
@@ -163,7 +218,7 @@ TEST_F(WaitingQueueTest, putMultiThreadsPopAtEnd) {
 }
 
 
-TEST_F(WaitingQueueTest, putWaitForPop) {
+TEST_F(WaitingQueueTestFixture, putWaitForPop) {
    DESCR("ensures pop_or_wait() properly waits for a message");
 
    cache::WaitingQueue wq;
@@ -182,7 +237,7 @@ TEST_F(WaitingQueueTest, putWaitForPop) {
 }
 
 
-TEST_F(WaitingQueueTest, putAndPopMultiThreads) {
+TEST_P(WaitingQueueTestTimeoutParamFixture, putAndPopMultiThreads) {
    DESCR("test of several put-pop operations from different asynchronous "
          "threads simultaneously, ensuring all msgs processed");
    // Start out with a queue with some message_ptr already in it, run pop_or
@@ -205,12 +260,11 @@ TEST_F(WaitingQueueTest, putAndPopMultiThreads) {
    // until stopped by a call to finish(), and will return a list of all the IDs
    // they've popped. The total of all 4 lists should equal every msg put() on
    // the queue.
-   auto t1 = createPopOrWaitThread(&wq);
-   auto t2 = createPopOrWaitThread(&wq);
-   auto t3 = createPopOrWaitThread(&wq);
-   auto t4 = createPopOrWaitThread(&wq);
-   std::vector<std::thread::id> tIds = {t1.get_id(), t2.get_id(),
-                                        t3.get_id(), t4.get_id()};
+   ThreadIDPairsVect threadIdPairs;
+   for(int i=0; i<4; ++i) {
+      std::thread &&t = createPopOrWaitThread(&wq);
+      threadIdPairs.push_back(std::make_pair(std::move(t), t.get_id()));
+   }
 
    // Add more msgs to the queue while the threads are still running
    // pop_or_wait(). Ensure at some point that there's a delay of at least
@@ -218,9 +272,10 @@ TEST_F(WaitingQueueTest, putAndPopMultiThreads) {
    for(; numItems<200; ++numItems) {
       wq.put(createCacheMsg("uniqueId" + std::to_string(numItems)));
    }
-   // Current waiting timeout for logging is 60s (add 5 to ensure all prior msgs
-   // processed and threads are waiting)
-   std::this_thread::sleep_for(std::chrono::milliseconds((60 + 5) * 1000));
+
+   // Wait before adding more msgs to exercise timeouts
+   int delay = GetParam();
+   std::this_thread::sleep_for(std::chrono::milliseconds(delay * 1000));
 
    for(; numItems<300; ++numItems) {
       wq.put(createCacheMsg("uniqueId" + std::to_string(numItems)));
@@ -229,12 +284,12 @@ TEST_F(WaitingQueueTest, putAndPopMultiThreads) {
    // Stop the thread by calling finish() and get the msgs popped from each
    // thread. IDs 0-299 must be present.
    wq.finish();
-   t1.join(); t2.join(); t3.join(); t4.join();
 
-   std::set<std::string> idsPopped;
    // Gather all the popped msg IDs, ensure no repeats.
-   for(auto tId : tIds) {
-      MsgVectPtr msgVectPtr = threadIdMsgsMap[tId];
+   std::set<std::string> idsPopped;
+   for(auto& p : threadIdPairs) {
+      p.first.join();
+      MsgVectPtr msgVectPtr = threadIdMsgsMap[p.second];
       for(auto msgIdIt = msgVectPtr->cbegin();
           msgIdIt != msgVectPtr->cend();
           ++msgIdIt) {
@@ -251,7 +306,7 @@ TEST_F(WaitingQueueTest, putAndPopMultiThreads) {
 }
 
 
-TEST_F(WaitingQueueTest, putGet) {
+TEST_F(WaitingQueueTestFixture, putGet) {
    DESCR("simple test of single put-get");
 
    cache::WaitingQueue wq;
@@ -266,7 +321,7 @@ TEST_F(WaitingQueueTest, putGet) {
 }
 
 
-TEST_F(WaitingQueueTest, putGetWaitForId) {
+TEST_F(WaitingQueueTestFixture, putGetWaitForId) {
    DESCR("ensures get waits for msg with proper ID");
 
    cache::WaitingQueue wq;
@@ -292,7 +347,7 @@ TEST_F(WaitingQueueTest, putGetWaitForId) {
 
 // FIXME: enable this test when
 // https://github.com/BlazingDB/blazingsql/issues/884 is closed
-TEST_F(WaitingQueueTest, DISABLED_putGetWaitForNonexistantId) {
+TEST_F(WaitingQueueTestFixture, DISABLED_putGetWaitForNonexistantId) {
    DESCR("ensures a get_or_wait() call on a non-existant ID can be cancelled");
 
    cache::WaitingQueue wq;
@@ -312,7 +367,7 @@ TEST_F(WaitingQueueTest, DISABLED_putGetWaitForNonexistantId) {
 }
 
 
-TEST_F(WaitingQueueTest, DISABLED_waitForNextMultiThreads) {
+TEST_P(WaitingQueueTestTimeoutParamFixture, waitForNextMultiThreads) {
    DESCR("ensures wait_for_next() from multiple threads service all the msgs "
          "put asynchronously");
    // Start out with an empty dequeue. call wait_for_next on n threads. Add n
@@ -321,10 +376,35 @@ TEST_F(WaitingQueueTest, DISABLED_waitForNextMultiThreads) {
    // inserted.
    // This uses both a short and long delay to ensure the timeout for logging is
    // being triggered.
+   cache::WaitingQueue wq;
+
+   ThreadIDPairsVect threadIdPairs;
+   for(int i=0; i<4; ++i) {
+      std::thread &&t = createWaitForNextThread(&wq);
+      threadIdPairs.push_back(std::make_pair(std::move(t), t.get_id()));
+   }
+
+   // Wait before adding msgs to exercise timeouts
+   int delay = GetParam();
+   std::this_thread::sleep_for(std::chrono::milliseconds(delay * 1000));
+
+   for(int i=0; i<4; ++i) {
+      wq.put(createCacheMsg("uniqueId" + std::to_string(i)));
+   }
+
+   // Check that each thread completed and there's a message from each thread
+   std::set<std::string> idsPopped;
+   for(auto& p : threadIdPairs) {
+      p.first.join();
+      MsgVectPtr msgVectPtr = threadIdMsgsMap[p.second];
+      EXPECT_EQ(msgVectPtr->size(), 1);
+      EXPECT_EQ(idsPopped.count(msgVectPtr->front()), 0);  // check ID not seen before
+      idsPopped.insert(msgVectPtr->front());
+   }
 }
 
 
-TEST_F(WaitingQueueTest, DISABLED_waitUntilFinishedMultiThreads) {
+TEST_P(WaitingQueueTestTimeoutParamFixture, waitUntilFinishedMultiThreads) {
    DESCR("test wait_until_finished() from multiple threads with a single "
          "separate thread calling finish() asynchronously");
    // start a few threads which call wait until finished. On a second thread
@@ -332,17 +412,31 @@ TEST_F(WaitingQueueTest, DISABLED_waitUntilFinishedMultiThreads) {
    // WaitingQueue.
    // This uses both a short and long delay to ensure the timeout for logging is
    // being triggered.
+
+   cache::WaitingQueue wq;
+
+   // Create 100 threads that all wait for finish()
+   ThreadIDPairsVect threadIdPairs;
+   for(int i=0; i<100; ++i) {
+      std::thread &&t = createWaitUntilFinishedThread(&wq);
+      threadIdPairs.push_back(std::make_pair(std::move(t), t.get_id()));
+   }
+
+   // Wait before calling finish() to exercise timeouts
+   int delay = GetParam();
+   std::this_thread::sleep_for(std::chrono::milliseconds(delay * 1000));
+
+   wq.finish();
+
+   // Check that each thread completed
+   std::set<std::string> idsPopped;
+   for(auto& p : threadIdPairs) {
+      p.first.join();
+   }
 }
 
 
-TEST_F(WaitingQueueTest, DISABLED_popUnsafe) {
-   DESCR("ensures all msgs added are removed in fifo order using pop_unsafe()");
-   // start out with n messages in the dequeue and call pop_unsafe n times and
-   // make sure that you have the same messages back in a fifo order
-}
-
-
-TEST_F(WaitingQueueTest, DISABLED_getAllOrWaitMultiThreads) {
+TEST_P(WaitingQueueTestTimeoutParamFixture, getAllOrWaitMultiThreads) {
    DESCR("tests get_all_or_wait() from a thread then adding msgs and calling "
          "finish() from another");
    // start out with a queue that is empty. on one thread add n messages to it
@@ -350,16 +444,116 @@ TEST_F(WaitingQueueTest, DISABLED_getAllOrWaitMultiThreads) {
    // get_all_or_wait()
    // This uses both a short and long delay to ensure the timeout for logging is
    // being triggered.
+   cache::WaitingQueue wq;
+   int totalNumItems = 100;
+
+   // Set up a call to get_all_or_wait() after 1ms in another thread which will
+   // be waiting on the call to finish() below.
+   auto t1 = getAllOrWaitAfter(1, &wq);
+   auto t1Id = t1.get_id();
+
+   for(int i=0; i<totalNumItems; ++i) {
+      wq.put(createCacheMsg("uniqueId" + std::to_string(i)));
+   }
+
+   // Wait before calling finish() to exercise timeouts
+   int delay = GetParam();
+   std::this_thread::sleep_for(std::chrono::milliseconds(delay * 1000));
+
+   wq.finish();
+
+   // Check that all message IDs are present
+   t1.join();
+   MsgVectPtr msgVectPtr = threadIdMsgsMap[t1Id];
+   ASSERT_EQ(msgVectPtr->size(), totalNumItems);  // Use ASSERT to ensure all
+                                                  // items can be indexed
+   for(int i=0; i<totalNumItems; ++i) {
+      EXPECT_EQ((*msgVectPtr)[i], "uniqueId" + std::to_string(i));
+   }
+
+}
+
+// Every timeout test will use both a short (1s) and long (65s) pause to ensure
+// the timeouts are either not triggered or triggered accordingly.
+INSTANTIATE_TEST_SUITE_P(
+   TimeoutTests,
+   WaitingQueueTestTimeoutParamFixture,
+   ::testing::Values(1, 65));
+
+
+TEST_F(WaitingQueueTestFixture, popUnsafe) {
+   DESCR("ensures all msgs added are removed in fifo order using pop_unsafe()");
+   // start out with n messages in the dequeue and call pop_unsafe n times and
+   // make sure that you have the same messages back in a fifo order
+
+   // Prepopulate the queue with 100 msgs
+   cache::WaitingQueue wq;
+   int totalNumItems = 100;
+
+   for(int i=0; i<totalNumItems; ++i) {
+      wq.put(createCacheMsg("uniqueId" + std::to_string(i)));
+   }
+
+   // pop_unsafe() should return messages in the same order put()
+   for(int i=0; i<totalNumItems; ++i) {
+      std::unique_ptr<cache::message> msg = wq.pop_unsafe();
+      EXPECT_EQ(msg->get_message_id(), "uniqueId" + std::to_string(i));
+   }
+
+   // Now that all msgs have been popped, calling again should return NULL
+   std::unique_ptr<cache::message> msg = wq.pop_unsafe();
+   EXPECT_EQ(msg, nullptr);
 }
 
 
-TEST_F(WaitingQueueTest, DISABLED_getAllUnsafe) {
+TEST_F(WaitingQueueTestFixture, getAllUnsafe) {
    DESCR("tests get_all_unsafe() by ensuring it returns all queued messages");
    // start out with a dequeue that contains n messages. call get_all_unsafe and
    // ensure you got all of the messages that were in the dequeue
+
+   // Prepopulate the queue with 100 msgs
+   cache::WaitingQueue wq;
+   int totalNumItems = 100;
+
+   for(int i=0; i<totalNumItems; ++i) {
+      wq.put(createCacheMsg("uniqueId" + std::to_string(i)));
+   }
+
+   // get_all_unsafe() should return messages in the same order put()
+   std::vector<std::unique_ptr<cache::message>> msgVect = wq.get_all_unsafe();
+   ASSERT_EQ(msgVect.size(), totalNumItems);  // Use ASSERT to ensure all items
+                                              // can be indexed
+   for(int i=0; i<totalNumItems; ++i) {
+      EXPECT_EQ(msgVect[i]->get_message_id(), "uniqueId" + std::to_string(i));
+   }
+
+   // Now that all msgs have been retrieved, calling again should return an
+   // empty vector
+   msgVect = wq.get_all_unsafe();
+   EXPECT_EQ(msgVect.size(), 0);
 }
 
 
-TEST_F(WaitingQueueTest, DISABLED_putAllUnsafe) {
+TEST_F(WaitingQueueTestFixture, putAllUnsafe) {
    DESCR("tests put_all_unsafe() by ensuring it queued all messages put");
+
+   cache::WaitingQueue wq;
+
+   // Create a vector of totalNumItems messages to pass to put_all_unsafe().
+   int totalNumItems = 100;
+   std::vector<std::unique_ptr<cache::message>> msgVect;
+
+   for(int i=0; i<totalNumItems; ++i) {
+      msgVect.push_back(createCacheMsg("uniqueId" + std::to_string(i)));
+   }
+
+   wq.put_all_unsafe(std::move(msgVect));
+
+   // Use get_all_unsafe() to ensure all messages were added.
+   msgVect = wq.get_all_unsafe();
+   ASSERT_EQ(msgVect.size(), totalNumItems);  // Use ASSERT to ensure all items
+                                              // can be indexed
+   for(int i=0; i<totalNumItems; ++i) {
+      EXPECT_EQ(msgVect[i]->get_message_id(), "uniqueId" + std::to_string(i));
+   }
 }

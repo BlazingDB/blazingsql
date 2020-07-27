@@ -356,9 +356,11 @@ public:
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
-					logger->warn("|||{info}|{duration}||||",
-										"info"_a="WaitingQueue wait_until_finished timed out",
-										"duration"_a=blazing_timer.elapsed_time());
+					if(logger != nullptr) {
+					   logger->warn("|||{info}|{duration}||||",
+										   "info"_a="WaitingQueue wait_until_finished timed out",
+ 										   "duration"_a=blazing_timer.elapsed_time());
+					}
 				}
 				return done_waiting;
 			})){}
@@ -431,6 +433,9 @@ public:
 	}
 
 	message_ptr pop_unsafe() {
+		if(this->message_queue_.size() == 0) {
+			return nullptr;
+		}
 		auto data = std::move(this->message_queue_.front());
 		this->message_queue_.pop_front();
 		return std::move(data);
