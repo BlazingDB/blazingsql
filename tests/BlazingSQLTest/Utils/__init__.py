@@ -132,7 +132,7 @@ def init_context():
                 dask_client=dask_client,
                 network_interface=iface,
                 pool=True,
-                # initial_pool_size=300000000,
+                initial_pool_size=300000000,
                 allocator="default",
             )
         else:
