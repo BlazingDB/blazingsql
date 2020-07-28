@@ -95,7 +95,7 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 
 	size_t empty_count = 0;
 	for(size_t i = 0; i < table_views_to_concat.size(); i++) {
-		if (table_views_to_concat[i].num_rows()){
+		if (table_views_to_concat[i].num_rows() == 0){
 			++empty_count;
 		}		
 	}
