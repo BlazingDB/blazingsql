@@ -131,8 +131,8 @@ def init_context():
             bc = BlazingContext(
                 dask_client=dask_client,
                 network_interface=iface,
-                pool=True,
-                initial_pool_size=300000000,
+                # pool=True,
+                # initial_pool_size=300000000,
                 allocator="default",
             )
         else:

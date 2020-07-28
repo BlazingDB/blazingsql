@@ -30,12 +30,25 @@ bool checkIfConcatenatingStringsWillOverflow(const std::vector<BlazingTableView>
 		return false;
 	}
 
-	for(size_t col_idx = 0; col_idx < tables[0].get_schema().size(); col_idx++) {
-		if(tables[0].get_schema()[col_idx].id() == cudf::type_id::STRING) {
+	// Lets only look at tables that not empty
+	std::vector<size_t> non_empty_index;
+	for(size_t table_idx = 0; table_idx < tables.size(); table_idx++) {
+		if (tables[table_idx].num_columns() > 0){
+			non_empty_index.push_back(table_idx);
+		}
+	}
+	if( non_empty_index.size() == 0 ) {
+		return false;
+	}
+
+
+	for(size_t col_idx = 0; col_idx < tables[non_empty_index[0]].get_schema().size(); col_idx++) {
+		if(tables[non_empty_index[0]].get_schema()[col_idx].id() == cudf::type_id::STRING) {
 			std::size_t total_bytes_size = 0;
 			std::size_t total_offset_count = 0;
 
-			for(size_t table_idx = 0; table_idx < tables.size(); table_idx++) {
+			for(size_t i = 0; i < non_empty_index.size(); i++) {
+				size_t table_idx = non_empty_index[i];
 
 				// Column i-th from the next tables are expected to have the same string data type
 				assert( tables[table_idx].get_schema()[col_idx].id() == cudf::type_id::STRING );
@@ -82,11 +95,9 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 
 	size_t empty_count = 0;
 	for(size_t i = 0; i < table_views_to_concat.size(); i++) {
-		ral::frame::BlazingTableView tview(table_views_to_concat[i], names);
-
- 		if (tview.num_rows() == 0) {
+		if (table_views_to_concat[i].num_rows()){
 			++empty_count;
-		}
+		}		
 	}
 
  	// All tables are empty so we just need to return the 1st one
