@@ -1961,7 +1961,8 @@ class BlazingContext(object):
                     if group_id < len(current_table.uri_values):
                         uri_values.append(current_table.uri_values[group_id])
                     row_groups_col = file_and_rowgroup_indices[
-                        "row_group_index"].tolist()
+                        "row_group_index"
+                    ].tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
 
