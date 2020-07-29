@@ -173,7 +173,8 @@ User guides and public APIs documentation can be found at [here](https://docs.bl
 
 Our internal code architecture can be built using Spinx.
 ```bash
-pip install recommonmark
+pip install recommonmark exhale
+conda install -c conda-forge doxygen
 cd $CONDA_PREFIX
 cd blazingsql/docs
 make html
