@@ -168,6 +168,19 @@ NOTE: You can do `./build.sh -h` to see more build options.
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
 
+# Documentation
+User guides and public APIs documentation can be found at [here](https://docs.blazingdb.com/docs)
+
+Our internal code architecture can be built using Spinx.
+```bash
+pip install recommonmark
+cd $CONDA_PREFIX
+cd blazingsql/docs
+make html
+```
+The generated documentation can be viewed in a browser at `blazingsql/docs/_build/html/index.html`
+
+
 # Community
 ## Contributing
 Have questions or feedback? Post a [new github issue](https://github.com/blazingdb/blazingsql/issues/new/choose).

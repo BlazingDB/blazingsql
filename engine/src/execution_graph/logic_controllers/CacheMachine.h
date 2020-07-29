@@ -205,11 +205,13 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> decache() override;
 
 	size_t sizeInBytes() const override;
+	size_t fileSizeInBytes() const;
 	virtual ~CacheDataLocalFile() {}
 	std::string filePath() const { return filePath_; }
 
 private:
 	std::string filePath_;
+	size_t size_in_bytes;
 };
 
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
@@ -284,13 +286,10 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
 			if (count < this->processed){
-				std::cout<<"WE PRCOESSSED MORE THAN COUNT*******************************"<<std::endl;
-				throw std::exception();
+				throw std::runtime_error("WaitingQueue::wait_for_count encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
 			}
-			return count <= this->processed;
+			return count == this->processed;
 		});
-
-
 	}
 
 
@@ -355,6 +354,37 @@ public:
 				}
 				return done_waiting;
 			})){}
+	}
+
+	void wait_until_num_bytes(size_t num_bytes) {
+		CodeTimer blazing_timer;
+		std::unique_lock<std::mutex> lock(mutex_);
+		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, num_bytes, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
+				if (!done_waiting) {
+					size_t total_bytes = 0;
+					for (int i = 0; i < message_queue_.size(); i++){
+						total_bytes += message_queue_[i]->get_data().sizeInBytes();
+					}
+					done_waiting = total_bytes > num_bytes;
+				}
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+					auto logger = spdlog::get("batch_logger");
+					logger->warn("|||{info}|{duration}||||",
+										"info"_a="WaitingQueue wait_until_finished timed out",
+										"duration"_a=blazing_timer.elapsed_time());
+				}
+				return done_waiting;
+			})){}
+	}
+
+	size_t get_next_size_in_bytes(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		if (message_queue_.size() > 0){
+			message_queue_[0]->get_data().sizeInBytes();
+		} else {
+			return 0;
+		}
 	}
 
 	message_ptr get_or_wait(std::string message_id) {
@@ -457,7 +487,7 @@ class CacheMachine {
 public:
 	CacheMachine(std::shared_ptr<Context> context);
 
-	CacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold);
+	CacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold);
 
 	~CacheMachine();
 
@@ -505,7 +535,7 @@ public:
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
 
-	bool thresholds_are_met(std::uint32_t batches_count, std::size_t bytes_count);
+	bool thresholds_are_met(std::size_t bytes_count);
 
 	virtual void wait_if_cache_is_saturated();
 
@@ -534,9 +564,7 @@ protected:
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
 
-	std::uint32_t flow_control_batches_threshold;
 	std::size_t flow_control_bytes_threshold;
-	std::uint32_t flow_control_batches_count;
 	std::size_t flow_control_bytes_count;
 	std::mutex flow_control_mutex;
 	std::condition_variable flow_control_condition_variable;
@@ -645,7 +673,7 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::uint32_t flow_control_batches_threshold, std::size_t flow_control_bytes_threshold, bool concat_all);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;
 

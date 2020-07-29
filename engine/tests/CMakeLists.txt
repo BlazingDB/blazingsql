@@ -8,14 +8,15 @@
 function(configure_test TEST_NAME Tests_SRCS)
     include_directories(
         ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/tests/utils
+        ${CMAKE_SOURCE_DIR}/tests/utilities
         ${CMAKE_SOURCE_DIR}/thirdparty/jitify
         $ENV{PREFIX}/include
     )
 
     add_executable(${TEST_NAME}
                    ${Tests_SRCS}
-                   ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp)
+                   ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp
+                   ${CMAKE_SOURCE_DIR}/tests/utilities/BlazingUnitTest.cpp)
     link_directories($ENV{PREFIX}/lib)
     # TODO percy do not use libgdf.so here and use gdf (the static lib) instead
     target_link_libraries(${TEST_NAME}
@@ -86,38 +87,12 @@ enable_testing()
 # -------------------
 message(STATUS "******** Configuring tests ********")
 
-#add_subdirectory(logical-filter)
-#add_subdirectory(calcite-interpreter)
-#add_subdirectory(cudf/generator)
-#add_subdirectory(nvcategory)
-#add_subdirectory(integration)
-#add_subdirectory(dtypes)
-#add_subdirectory(pjoins)
-#add_subdirectory(evaluate_query)
-#add_subdirectory(order-by)
-#add_subdirectory(gdf_column_cpp)
-#add_subdirectory(where)
-#add_subdirectory(joins)
-#add_subdirectory(tpch)
-#add_subdirectory(io-test)
-#add_subdirectory(union)
-#add_subdirectory(unary)
-#add_subdirectory(groupbywoagg)
-
-# # TODO Felipe JP
-# #add_subdirectory(interpreter)
-
-#add_subdirectory(utils)
-#add_subdirectory(resultset-repository)
-#add_subdirectory(parser)
-
-# add_subdirectory(sort)
-
+add_subdirectory(cache_machine)
 add_subdirectory(logical-groupby)
 add_subdirectory(new-tests)
-add_subdirectory(transport)
-add_subdirectory(skipdata)
-add_subdirectory(cache_machine)
 add_subdirectory(parser)
+add_subdirectory(skipdata)
+add_subdirectory(sort)
+
 
 message(STATUS "******** Tests are ready ********")

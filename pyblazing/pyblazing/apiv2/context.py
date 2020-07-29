@@ -9,8 +9,6 @@ from dask.distributed import get_worker
 
 from collections import OrderedDict
 
-# from enum import Enum
-
 from urllib.parse import urlparse
 
 from threading import Lock
@@ -707,42 +705,97 @@ def adjust_due_missing_rowgroups(metadata, files):
 
 def distributed_initialize_server_directory(client, dir_path):
 
-    # lets make host_list which is a list of all the unique hosts.
-    # This way we do the logging folder creation only once per host (server)
-    all_items = client.scheduler_info()["workers"].items()
-    host_list = list(set([value["host"] for key, value in all_items]))
-    initialized = {}
-    for host in host_list:
-        initialized[host] = False
+    # We are going to differentiate the two cases. When path is absolute,
+    # we do the logging folder creation only once per host (server).
+    # When path is relative, we have to group the workers according
+    # to whether they have the same current working directory,
+    # so, a unique folder will be created for each sub common cwd set.
 
-    dask_futures = []
-    for worker, worker_info in client.scheduler_info()["workers"].items():
-        if not initialized[worker_info["host"]]:
+    all_items = client.scheduler_info()["workers"].items()
+
+    is_absolute_path = os.path.isabs(dir_path)
+
+    if is_absolute_path:
+        # Let's group the workers by host_name
+        host_worker_dict = {}
+        for worker, worker_info in all_items:
+            host_name = worker.split(":")[0]
+            if host_name not in host_worker_dict.keys():
+                host_worker_dict[host_name] = [worker]
+            else:
+                host_worker_dict[host_name].append(worker)
+
+        dask_futures = []
+        for host_name, worker_list in host_worker_dict.items():
             dask_futures.append(
                 client.submit(
                     initialize_server_directory,
                     dir_path,
-                    workers=[worker]))
-            initialized[worker_info['host']] = True
+                    workers=[worker_list[0]],
+                    pure=False,
+                )
+            )
 
-    for connection in dask_futures:
-        made_dir = connection.result()
-        if not made_dir:
-            print("WARNING: Could not make directory")
+        for connection in dask_futures:
+            made_dir = connection.result()
+            if not made_dir:
+                logging.info("Directory already exists")
+    else:
+        # Let's get the current working directory of all workers
+        dask_futures = []
+        for worker, worker_info in all_items:
+            dask_futures.append(
+                client.submit(get_current_directory_path, workers=[worker], pure=False)
+            )
 
+        current_working_dirs = client.gather(dask_futures)
 
+        # Let's group the workers by host_name and by common cwd
+        host_worker_dict = {}
+        for worker_key, cwd in zip(all_items, current_working_dirs):
+            worker = worker_key[0]
+            host_name = worker.split(":")[0]
+            if host_name not in host_worker_dict.keys():
+                host_worker_dict[host_name] = {cwd: [worker]}
+            else:
+                if cwd not in host_worker_dict[host_name].keys():
+                    host_worker_dict[host_name][cwd] = [worker]
+                else:
+                    host_worker_dict[host_name][cwd].append(worker)
+
+        dask_futures = []
+        for host_name, common_current_work in host_worker_dict.items():
+            for cwd, worker_list in common_current_work.items():
+                dask_futures.append(
+                    client.submit(
+                        initialize_server_directory,
+                        dir_path,
+                        workers=[worker_list[0]],
+                        pure=False,
+                    )
+                )
+
+        for connection in dask_futures:
+            made_dir = connection.result()
+            if not made_dir:
+                logging.info("Directory already exists")
 
 
 def initialize_server_directory(dir_path):
     if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
-        if os.path.exists(dir_path):
-            return True
-        else:
-            return False
+        try:
+            os.mkdir(dir_path)
+        except OSError as error:
+            logging.error("Could not create directory: " + error)
+            raise
+        return True
     else:
         return True
 
+
+
+def get_current_directory_path():
+    return os.getcwd()
 
 
 # Delete all generated (older than 1 hour) orc files
@@ -1008,10 +1061,6 @@ class BlazingContext(object):
             MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to
                     concatenate the batches read from the scan kernels
                     default: 400000000
-            FLOW_CONTROL_BATCHES_THRESHOLD : If an output cache surpasses this
-                    value in num batches, the kernel will try to stop
-                    execution until the output cache contains less.
-                    default: max int (makes it not applicable)
             FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this
                     value in bytes, the kernel will try to stop
                     execution until the output cache contains less.
@@ -2207,7 +2256,7 @@ class BlazingContext(object):
                     config_options[option]
                 ).encode()  # make sure all options are encoded strings
 
-        if self.dask_client is None or single_gpu is True :
+        if self.dask_client is None or single_gpu is True:
             table_names, table_scans = cio.getTableScanInfoCaller(algebra)
         else:
             worker = tuple(self.dask_client.scheduler_info()["workers"])[0]

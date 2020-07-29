@@ -47,7 +47,7 @@ logger "Check GPU usage..."
 nvidia-smi
 
 logger "Activate conda env..."
-conda create python=$PYTHON -y -n bsql
+conda create python=$PYTHON_VER -y -n bsql
 source activate bsql
 
 echo "Installing BlazingSQL dev environment"
@@ -63,13 +63,13 @@ conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=
 echo "BlazingSQL deps installed"
 
 # install cudf
-echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL"
-conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL
+echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL"
+conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL
 echo "cudf and other rapids dependencies installed"
 
 # install end to end tests dependencies
-echo "conda install --yes openjdk=8.0 maven pyspark=2.4.3 pytest"
-conda install --yes openjdk=8.0 maven pyspark=2.4.3 pytest
+echo "conda install --yes openjdk=8.0 maven pyspark=3.0.0 pytest"
+conda install --yes openjdk=8.0 maven pyspark=3.0.0 pytest
 
 echo "pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client"
 pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client

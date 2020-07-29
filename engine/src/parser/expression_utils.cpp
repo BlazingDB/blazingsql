@@ -7,6 +7,16 @@
 #include "CalciteExpressionParsing.h"
 #include "error.hpp"
 
+bool is_nullary_operator(operator_type op){
+switch (op)
+	{
+	case operator_type::BLZ_RAND:
+		return true;
+	default:
+		return false;
+	}	
+}
+
 bool is_unary_operator(operator_type op) {
 	switch (op)
 	{
@@ -80,6 +90,17 @@ bool is_binary_operator(operator_type op) {
 		return true;
 	default:
 		return false;
+	}
+}
+
+cudf::type_id get_output_type(operator_type op) {
+	switch (op)
+	{
+	case operator_type::BLZ_RAND:
+		return cudf::type_id::FLOAT64;
+	default:
+	 	assert(false);
+		return cudf::type_id::EMPTY;
 	}
 }
 
@@ -203,6 +224,9 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 
 operator_type map_to_operator_type(const std::string & operator_token) {
 	static std::map<std::string, operator_type> OPERATOR_MAP = {
+		// Nullary operators
+		{"BLZ_RND", operator_type::BLZ_RAND},
+
 		// Unary operators
 		{"NOT", operator_type::BLZ_NOT},
 		{"IS NOT TRUE", operator_type::BLZ_NOT},
@@ -514,7 +538,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
 	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
-
+	StringUtil::findAndReplaceAll(ret, "RAND()", "BLZ_RND()");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DAY), ", "BL_DAY(");

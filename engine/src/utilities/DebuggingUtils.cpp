@@ -68,17 +68,17 @@ std::string blazing_table_view_schema_to_string(ral::frame::BlazingTableView tab
 	return ostream.str();
 }
 
-std::string cache_data_schema_to_string(ral::cache::CacheData * cache_data){
-	std::ostringstream ostream;
-	std::vector<std::string> cache_data_names = cache_data->names();
-	std::vector<cudf::data_type> cache_data_types = cache_data->get_schema();
-	ostream<<"Num Rows: "<<cache_data->num_rows()<<std::endl;
-	ostream<<"\t"<<"Num Columns: "<<cache_data_names.size()<<std::endl;
-	for(size_t col_idx=0; col_idx<cache_data_names.size(); col_idx++){
-		ostream<<"\t"<<cache_data_names[col_idx]<<" ("<<"type: "<<type_string(cache_data_types[col_idx])<<")"<<std::endl;
-	}
-	return ostream.str();
-}
+// std::string cache_data_schema_to_string(ral::cache::CacheData * cache_data){
+// 	std::ostringstream ostream;
+// 	std::vector<std::string> cache_data_names = cache_data->names();
+// 	std::vector<cudf::data_type> cache_data_types = cache_data->get_schema();
+// 	ostream<<"Num Rows: "<<cache_data->num_rows()<<std::endl;
+// 	ostream<<"\t"<<"Num Columns: "<<cache_data_names.size()<<std::endl;
+// 	for(size_t col_idx=0; col_idx<cache_data_names.size(); col_idx++){
+// 		ostream<<"\t"<<cache_data_names[col_idx]<<" ("<<"type: "<<type_string(cache_data_types[col_idx])<<")"<<std::endl;
+// 	}
+// 	return ostream.str();
+// }
 
 }  // namespace utilities
 }  // namespace ral
