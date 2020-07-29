@@ -35,6 +35,4 @@ BlazingSQL provides a high-performance distributed SQL engine in Python. Built o
 Indices and tables
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
