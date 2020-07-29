@@ -285,11 +285,32 @@ struct tree_processor {
 			cache_settings default_throttled_cache_machine_config = cache_settings{.type = CacheType::SIMPLE, .num_partitions = 1, .context = context->clone(),
 						.flow_control_bytes_threshold = flow_control_bytes_threshold};
 
+			auto child_kernel_type = child->kernel_unit->get_type_id();
+			auto parent_kernel_type = parent->kernel_unit->get_type_id();
 			if (children.size() > 1) {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
 				port_name.push_back(index_char);
-				if (parent->kernel_unit->can_you_throttle_my_input()){
+
+				if (parent_kernel_type == kernel_type::PartwiseJoinKernel) {
+
+					std::size_t join_partition_size_thresh = 400000000; // 400 MB
+					config_options = context->getConfigOptions();
+					it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
+					if (it != config_options.end()){
+						join_partition_size_thresh = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
+					}
+
+					auto join_type = static_cast<PartwiseJoin*>(parent->kernel_unit.get())->get_join_type();
+					bool left_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					bool concat_all = index == 0 ? left_concat_all : right_concat_all;
+					cache_settings join_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
+						.flow_control_bytes_threshold = join_partition_size_thresh, .concat_all = concat_all};
+					
+					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], join_cache_machine_config);
+
+				} else if (parent->kernel_unit->can_you_throttle_my_input()){
 					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], default_throttled_cache_machine_config);
 				} else {
 					cache_settings cache_machine_config;
@@ -298,8 +319,7 @@ struct tree_processor {
 					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], cache_machine_config);
 				}
 			} else {
-				auto child_kernel_type = child->kernel_unit->get_type_id();
-				auto parent_kernel_type = parent->kernel_unit->get_type_id();
+				
 				if (child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel) {
 
 					std::size_t join_partition_size_thresh = 400000000; // 400 MB
@@ -309,9 +329,9 @@ struct tree_processor {
 						join_partition_size_thresh = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
 					}
 
-					auto join_type = static_cast<PartwiseJoin*>(parent->kernel_unit.get())->get_join_type();					
-					bool left_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
-					bool right_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					auto join_type = static_cast<PartwiseJoin*>(parent->kernel_unit.get())->get_join_type();
+					bool left_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					cache_settings left_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
 						.flow_control_bytes_threshold = join_partition_size_thresh, .concat_all = left_concat_all};
 					cache_settings right_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
