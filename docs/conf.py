@@ -83,5 +83,5 @@ html_theme = 'alabaster'
 html_static_path = ['_static']
 
 
-extlinks = {'blazing_repo': ('https://github.com/BlazingDB/blazingsql/tree/branch-0.15/%s',
+extlinks = {'blazing_repo': ('https://github.com/BlazingDB/blazingsql/blob/branch-0.15/%s',
                       'View on github')}
