@@ -19,6 +19,7 @@
 - #877 round robing dask workers on single gpu queries
 - #880 reraising query errors in context.py
 - #883 add rand() and running unary operations on literals
+- #894 added exhale to generate doxygen for sphinx docs
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 - #901 Added more documentation about memory management 
 
