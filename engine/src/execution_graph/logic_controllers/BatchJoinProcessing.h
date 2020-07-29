@@ -364,7 +364,9 @@ public:
 						// printf("joined table\n");
 						// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
 						eventTimer.stop();
-						this->add_to_output_cache(std::move(joined));
+						if (joined->num_rows() > 0) {
+							this->add_to_output_cache(std::move(joined));
+						}
 					}
 
 					events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
