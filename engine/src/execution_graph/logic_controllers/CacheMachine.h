@@ -377,7 +377,7 @@ public:
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
 					logger->warn("|||{info}|{duration}||||",
-										"info"_a="WaitingQueue wait_until_finished timed out",
+										"info"_a="WaitingQueue wait_until_num_bytes timed out",
 										"duration"_a=blazing_timer.elapsed_time());
 				}
 				return done_waiting;
