@@ -13,10 +13,10 @@ class graph;
 using kernel_pair = std::pair<kernel *, std::string>;
 
 /**
-	@brief This interface represents a computation unit in the execution graph.
-	Each kernel has basically and input and output ports and the expression asocciated to the computation unit.
-	Each class that implements this interface should define how the computation is executed. See `run()` method.
-*/
+ * @brief This interface represents a computation unit in the execution graph.
+ * Each kernel has basically and input and output ports and the expression asocciated to the computation unit.
+ * Each class that implements this interface should define how the computation is executed. See `run()` method.
+ */
 class kernel {
 public:
 	kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id} {
@@ -39,7 +39,19 @@ public:
 								"is_kernel"_a=1, //true
 								"kernel_type"_a=get_kernel_type_name(this->get_type_id()));
 	}
+
+	/**
+	 * @brief Set its parent kernel.
+	 *
+	 * @param id The identifier of its parent.
+	 */
 	void set_parent(size_t id) { parent_id_ = id; }
+
+	/**
+	 * @brief Indicates if the kernel has a parent.
+	 *
+	 * @return true If the kernel has a parent, false otherwise.
+	 */
 	bool has_parent() const { return parent_id_ != -1; }
 
 	virtual ~kernel() = default;
@@ -48,24 +60,53 @@ public:
 
 	kernel_pair operator[](const std::string & portname) { return std::make_pair(this, portname); }
 
+	/**
+	 * @brief Returns the kernel identifier.
+	 *
+	 * @return int32_t The kernel identifier.
+	 */
 	std::int32_t get_id() const { return (kernel_id); }
 
+	/**
+	 * @brief Returns the kernel type identifier.
+	 *
+	 * @return kernel_type The kernel type identifier.
+	 */
 	kernel_type get_type_id() const { return kernel_type_id; }
 
+	/**
+	 * @brief Set the kernel type identifier.
+	 *
+	 * @param kernel_type The new kernel type identifier.
+	 */
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
 
 	virtual bool can_you_throttle_my_input() = 0;
 
-	std::shared_ptr<ral::cache::CacheMachine>  input_cache() {
+	/**
+	 * @brief Returns the input cache.
+	 */
+	std::shared_ptr<ral::cache::CacheMachine> input_cache() {
 		auto kernel_id = std::to_string(this->get_id());
 		return this->input_.get_cache(kernel_id);
 	}
 
-	std::shared_ptr<ral::cache::CacheMachine>  output_cache(std::string cache_id = "") {
+	/**
+	 * @brief Returns the output cache associated to an identifier.
+	 *
+	 * @return cache_id The identifier of the output cache.
+	 */
+	std::shared_ptr<ral::cache::CacheMachine> output_cache(std::string cache_id = "") {
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
 		return this->output_.get_cache(cache_id);
 	}
 
+	/**
+	 * @brief Adds a BlazingTable into the output cache.
+	 *
+	 * @param table The table that will be added to the output cache.
+	 * @param cache_id The cache identifier.
+	 */
 	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "") {
 		CodeTimer cacheEventTimer(false);
 
@@ -93,6 +134,12 @@ public:
 						"timestamp_end"_a=cacheEventTimer.end_time());
 	}
 
+	/**
+	 * @brief Adds a CacheData into the output cache.
+	 *
+	 * @param cache_data The cache_data that will be added to the output cache.
+	 * @param cache_id The cache identifier.
+	 */
 	void add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id = "") {
 		CodeTimer cacheEventTimer(false);
 
@@ -120,6 +167,12 @@ public:
 						"timestamp_end"_a=cacheEventTimer.end_time());
 	}
 
+	/**
+	 * @brief Adds a BlazingHostTable into the output cache.
+	 *
+	 * @param host_table The host table that will be added to the output cache.
+	 * @param cache_id The cache identifier.
+	 */
 	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id = "") {
 		CodeTimer cacheEventTimer(false);
 
@@ -147,38 +200,63 @@ public:
 						"timestamp_end"_a=cacheEventTimer.end_time());
 	}
 
+	/**
+	 * @brief Returns the current context.
+	 */
 	Context * get_context() const {
 		return context.get();
 	}
 
+	/**
+	 * @brief Returns the id message as a string.
+	 */
 	std::string get_message_id(){
 		return std::to_string((int)this->get_type_id()) + "_" + std::to_string(this->get_id());
 	}
 
-	// returns true if all the caches of an input are finished
+	/**
+	 * @brief Returns true if all the caches of an input are finished.
+	 */
 	bool input_all_finished() {
 		return this->input_.all_finished();
 	}
 
-	// returns sum of all the rows added to all caches of the input port
+	/**
+	 * @brief Returns sum of all the rows added to all caches of the input port.
+	 */
 	uint64_t total_input_rows_added() {
 		return this->input_.total_rows_added();
 	}
 
-	// returns true if a specific input cache is finished
+	/**
+	 * @brief Returns true if a specific input cache is finished.
+	 *
+	 * @param port_name Name of the port.
+	 */
 	bool input_cache_finished(const std::string & port_name) {
 		return this->input_.is_finished(port_name);
 	}
 
-	// returns the number of rows added to a specific input cache
+	/**
+	 * @brief Returns the number of rows added to a specific input cache.
+	 *
+	 * @param port_name Name of the port.
+	 */
 	uint64_t input_cache_num_rows_added(const std::string & port_name) {
 		return this->input_.get_num_rows_added(port_name);
 	}
 
-	// this function gets the estimated num_rows for the output
-	// the default is that its the same as the input (i.e. project, sort, ...)
+	/**
+	 * @brief Returns the estimated num_rows for the output, the default
+	 * is that its the same as the input (i.e. project, sort, ...).
+	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
 
+	/**
+	 * @brief Waits if the output cache is saturated.
+	 *
+	 * @param cache_id The cache identifier.
+	 */
 	void wait_if_output_is_saturated(std::string cache_id = ""){
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
@@ -200,9 +278,9 @@ public:
 	std::shared_ptr<graph> query_graph;
 	std::shared_ptr<Context> context;
 
-	// useful when the Algebra Relacional only contains: LogicalTableScan (or BindableTableScan) and LogicalLimit
-	bool has_limit_;
-	int64_t limit_rows_;
+	bool has_limit_;		///< Indicates if the Logical plan only contains
+							///< a LogicalTableScan (or BindableTableScan) and LogicalLimit.
+	int64_t limit_rows_;	///< Specifies the maximum number of rows to return.
 
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> events_logger;
