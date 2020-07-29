@@ -62,6 +62,10 @@ using namespace fmt::literals;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using frame_type = std::vector<std::unique_ptr<ral::frame::BlazingTable>>;
 using Context = blazingdb::manager::Context;
+
+/**
+ * @brief This is the standard data sequencer that just pulls data from an input cache one batch at a time.
+ */
 class BatchSequence {
 public:
 	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr, bool ordered = true)
@@ -122,6 +126,9 @@ private:
 	bool ordered;
 };
 
+/**
+ * @brief This data sequencer works as a bypass to take data from one input to an output without decacheing.
+ */
 class BatchSequenceBypass {
 public:
 	BatchSequenceBypass(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr)
@@ -175,6 +182,11 @@ using ral::communication::network::Server;
 using ral::communication::network::Client;
 using ral::communication::messages::ReceivedHostMessage;
 
+/**
+ * @brief Connects a HostCacheMachine to a server receiving certain types of messages,
+ * so that basically the data sequencer is effectively iterating through batches
+ * received from another node via out communication layer.
+ */
 template<class MessageType>
 class ExternalBatchColumnDataSequence {
 public:
@@ -246,7 +258,10 @@ private:
 	int last_message_counter;
 };
 
-
+/**
+ * @brief Gets data from a data source, such as a set of files or from a DataFrame.
+ * These data sequencers are used by the TableScan's.
+ */
 class DataSourceSequence {
 public:
 	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
@@ -343,6 +358,9 @@ private:
 	std::mutex mutex_;
 };
 
+/**
+ * @brief This kernel loads the data from the specified data source.
+ */
 class TableScan : public kernel {
 public:
 	TableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
@@ -437,6 +455,11 @@ private:
 	DataSourceSequence input;
 };
 
+/**
+ * @brief This kernel loads the data and delivers only columns that are requested.
+ * It also filters the data if there are one or more filters, and sets their column aliases
+ * accordingly.
+ */
 class BindableTableScan : public kernel {
 public:
 	BindableTableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
@@ -578,6 +601,9 @@ private:
 	DataSourceSequence input;
 };
 
+/**
+ * @brief This kernel only returns the subset columns contained in the logical projection expression.
+ */
 class Projection : public kernel {
 public:
 	Projection(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
@@ -655,6 +681,9 @@ private:
 
 };
 
+/**
+ * @brief This kernel filters the data according to the specified conditions.
+ */
 class Filter : public kernel {
 public:
 	Filter(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
@@ -745,6 +774,9 @@ private:
 
 };
 
+/**
+ * @brief This kernel allows printing the preceding input caches to the standard output.
+ */
 class Print : public kernel {
 public:
 	Print() : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
@@ -770,6 +802,11 @@ protected:
 };
 
 
+/**
+ * @brief This kernel represents the last step of the execution graph.
+ * Basically it allows to extract the result of the different levels of
+ * memory abstractions in the form of a concrete table.
+ */
 class OutputKernel : public kernel {
 public:
 	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
