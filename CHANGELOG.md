@@ -46,7 +46,7 @@
 - #879 Fixed issue with log directory creation in a distributed environment
 - #890 Fixed issue where we were including testing hpp in our code
 - #891 Fixed issue caused by replacing join load_set with concatenating cache
-
+- #907 Fixed issue with empty partWiseJoin table
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
