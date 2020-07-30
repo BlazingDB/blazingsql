@@ -22,6 +22,7 @@
 - #894 added exhale to generate doxygen for sphinx docs
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 - #901 Added more documentation about memory management 
+- #910 updated readme 
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
