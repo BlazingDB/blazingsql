@@ -19,7 +19,8 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args orc_arg,
 	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
 	bool first_row_only = false){
 
-	orc_arg.source = cudf_io::source_info(arrow_file_handle);
+	auto arrow_source = cudf_io::arrow_io_source{arrow_file_handle};
+	orc_arg.source = cudf_io::source_info{&arrow_source};
 
 	if (first_row_only)
 		orc_arg.num_rows = 1;
@@ -42,7 +43,8 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 	}
 	if(column_indices.size() > 0) {
 		// Fill data to orc_args
-		cudf_io::read_orc_args orc_args{cudf_io::source_info{file}};
+		auto arrow_source = cudf_io::arrow_io_source{file};
+		orc_args.source = cudf_io::source_info{&arrow_source};
 
 		orc_args.columns.resize(column_indices.size());
 

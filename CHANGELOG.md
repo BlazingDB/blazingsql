@@ -22,6 +22,7 @@
 - #894 added exhale to generate doxygen for sphinx docs
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 - #901 Added more documentation about memory management 
+- #910 updated readme 
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -49,6 +50,7 @@
 - #890 Fixed issue where we were including testing hpp in our code
 - #891 Fixed issue caused by replacing join load_set with concatenating cache
 - #902 Fixed optimization regression on the select count(*) case
+- #909 Fixed issue caused by using now arrow_io_source
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
