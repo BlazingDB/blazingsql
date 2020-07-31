@@ -243,6 +243,15 @@ private:
 			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row));
 		}
 
+		template <typename ColType, std::enable_if_t<cudf::is_fixed_point<ColType>()> * = nullptr>
+		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
+																					cudf::size_type col_index,
+																					cudf::size_type row,
+																					int64_t * buffer) {
+			//TODO: implement fixed point
+			//*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row));
+		}
+
 		template <typename ColType, std::enable_if_t<std::is_floating_point<ColType>::value> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
 																					cudf::size_type col_index,
@@ -287,6 +296,16 @@ private:
 																					int64_t * buffer,
 																					int position) {
 			out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(*(buffer + (position * blockDim.x + threadIdx.x)));
+		}
+
+		template <typename ColType, std::enable_if_t<cudf::is_fixed_point<ColType>()> * = nullptr>
+		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
+																					cudf::size_type col_index,
+																					cudf::size_type row,
+																					int64_t * buffer,
+																					int position) {
+			//TODO: implement fixed point
+			//out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(*(buffer + (position * blockDim.x + threadIdx.x)));
 		}
 
 		template <typename ColType, std::enable_if_t<std::is_floating_point<ColType>::value> * = nullptr>
