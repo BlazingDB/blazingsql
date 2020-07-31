@@ -35,6 +35,7 @@ requirements:
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
         - ucx-py {{ minor_version }}.*
+        - ucx-proc=*=gpu
         - cudatoolkit {{ cuda_version }}.*
     host:
         - gtest
@@ -51,6 +52,7 @@ requirements:
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
         - ucx-py {{ minor_version }}.*
+        - ucx-proc=*=gpu
         - cudatoolkit {{ cuda_version }}.*
     run:
         - gtest
@@ -64,6 +66,7 @@ requirements:
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
         - ucx-py {{ minor_version }}.*
+        - ucx-proc=*=gpu
         - cudatoolkit {{ cuda_version }}.*
 
 test:
