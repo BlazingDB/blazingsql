@@ -29,8 +29,6 @@ conda_env_inc_io = os.path.join(conda_env_inc, "blazingdb/io")
 conda_env_inc_manager = os.path.join(conda_env_inc, "blazingdb/manager")
 conda_env_inc_communication = os.path.join(conda_env_inc,
                                            "blazingdb/communication")
-
-
 conda_env_lib = os.path.join(conda_env_dir, "lib")
 
 print("Using CONDA_PREFIX : " + conda_env_dir)
