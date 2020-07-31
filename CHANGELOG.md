@@ -21,6 +21,7 @@
 - #883 add rand() and running unary operations on literals
 - #894 added exhale to generate doxygen for sphinx docs
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
+- #904 Added doxygen comments to CacheMachine.h
 - #901 Added more documentation about memory management 
 - #910 updated readme 
 
