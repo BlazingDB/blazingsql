@@ -24,6 +24,7 @@
 - #904 Added doxygen comments to CacheMachine.h
 - #901 Added more documentation about memory management 
 - #910 updated readme 
+- #912 Added UCX support to how the engine runs
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
