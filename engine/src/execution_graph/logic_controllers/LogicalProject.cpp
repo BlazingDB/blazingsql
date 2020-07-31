@@ -58,6 +58,11 @@ struct cast_to_str_functor {
         return cudf::strings::from_booleans(col);
     }
 
+    template<typename T, std::enable_if_t<cudf::is_fixed_point<T>()> * = nullptr>
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+        return cudf::strings::from_floats(col);
+    }
+
     template<typename T, std::enable_if_t<std::is_integral<T>::value && !cudf::is_boolean<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
         return cudf::strings::from_integers(col);

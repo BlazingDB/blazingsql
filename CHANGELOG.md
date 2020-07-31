@@ -52,6 +52,7 @@
 - #891 Fixed issue caused by replacing join load_set with concatenating cache
 - #902 Fixed optimization regression on the select count(*) case
 - #909 Fixed issue caused by using now arrow_io_source
+- #913 Fixed issues caused by cudf adding DECIMAL data type 
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
