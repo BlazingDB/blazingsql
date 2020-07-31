@@ -50,6 +50,7 @@
 - #879 Fixed issue with log directory creation in a distributed environment
 - #890 Fixed issue where we were including testing hpp in our code
 - #891 Fixed issue caused by replacing join load_set with concatenating cache
+- #902 Fixed optimization regression on the select count(*) case
 - #909 Fixed issue caused by using now arrow_io_source
 
 
