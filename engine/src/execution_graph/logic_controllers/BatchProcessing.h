@@ -307,7 +307,7 @@ public:
 	}
 
 	bool has_next() {
-		return (is_empty_data_source && batch_index < 1) || (is_gdf_parser && batch_index.load() < n_batches) || (cur_file_index < n_files);
+		return (is_empty_data_source && batch_index.load() < 1) || (is_gdf_parser && batch_index.load() < n_batches) || (cur_file_index < n_files);
 	}
 
 	void set_projections(std::vector<size_t> projections) {
@@ -591,16 +591,57 @@ public:
 	}
 
 	virtual kstatus run() {
-		CodeTimer timer;
-		CodeTimer eventTimer(false);
 
-		BatchSequence input(this->input_cache(), this);
+		kstatus status = kstatus::stop;
+
+		CodeTimer timer;
+		
+		BatchSequenceBypass input(this->input_cache(), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
 				this->output_cache()->wait_if_cache_is_saturated();
 
-				auto batch = input.next();
+				std::vector<std::unique_ptr<ral::cache::CacheData>> batches;
+				batches.push_back(input.next());
+				
+				status = run_batch(std::move(batches), batch_count);
+
+				batch_count++;
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In Projection kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
+				throw;
+			}
+		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Projection Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
+		return kstatus::proceed;
+	}
+
+	virtual kstatus run_batch(std::vector<std::unique_ptr<ral::cache::CacheData>> batches, int batch_count) {
+		
+		// run_batch for Project kernel only really expects one CacheData in batches
+        for (int cache_ind = 0; cache_ind < batches.size(); cache_ind++){
+
+			CodeTimer eventTimer(false);
+			eventTimer.start();
+
+			try {
+
+				auto batch = batches[cache_ind]->decache();
 
 				auto log_input_num_rows = batch ? batch->num_rows() : 0;
 				auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
@@ -627,7 +668,7 @@ public:
 				}
 
 				this->add_to_output_cache(std::move(columns));
-				batch_count++;
+				
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
@@ -639,16 +680,8 @@ public:
 				throw;
 			}
 		}
-
-		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-									"query_id"_a=context->getContextToken(),
-									"step"_a=context->getQueryStep(),
-									"substep"_a=context->getQuerySubstep(),
-									"info"_a="Projection Kernel Completed",
-									"duration"_a=timer.elapsed_time(),
-									"kernel_id"_a=this->get_id());
-
 		return kstatus::proceed;
+
 	}
 
 private:
@@ -668,16 +701,57 @@ public:
 	}
 
 	virtual kstatus run() {
-		CodeTimer timer;
-		CodeTimer eventTimer(false);
 
-		BatchSequence input(this->input_cache(), this);
+		kstatus status = kstatus::stop;
+
+		CodeTimer timer;
+		
+		BatchSequenceBypass input(this->input_cache(), this);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
 				this->output_cache()->wait_if_cache_is_saturated();
 
-				auto batch = input.next();
+				std::vector<std::unique_ptr<ral::cache::CacheData>> batches;
+				batches.push_back(input.next());
+				
+				status = run_batch(std::move(batches), batch_count);
+
+				batch_count++;
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In Filter kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
+				throw;
+			}
+		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Filter Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
+		return kstatus::proceed;
+	}
+
+	virtual kstatus run_batch(std::vector<std::unique_ptr<ral::cache::CacheData>> batches, int batch_count) {
+		
+		// run_batch for Filter kernel only really expects one CacheData in batches
+        for (int cache_ind = 0; cache_ind < batches.size(); cache_ind++){
+
+			CodeTimer eventTimer(false);
+			eventTimer.start();
+
+			try {
+
+				auto batch = batches[cache_ind]->decache();
 
 				auto log_input_num_rows = batch->num_rows();
 				auto log_input_num_bytes = batch->sizeInBytes();
@@ -702,7 +776,7 @@ public:
 								"timestamp_end"_a=eventTimer.end_time());
 
 				this->add_to_output_cache(std::move(columns));
-				batch_count++;
+				
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
@@ -714,14 +788,6 @@ public:
 				throw;
 			}
 		}
-
-		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-									"query_id"_a=context->getContextToken(),
-									"step"_a=context->getQueryStep(),
-									"substep"_a=context->getQuerySubstep(),
-									"info"_a="Filter Kernel Completed",
-									"duration"_a=timer.elapsed_time(),
-									"kernel_id"_a=this->get_id());
 
 		return kstatus::proceed;
 	}
@@ -755,10 +821,27 @@ public:
 	}
 
 	virtual kstatus run() {
+		kstatus status = kstatus::stop;
 		std::lock_guard<std::mutex> lg(print_lock);
-		BatchSequence input(this->input_cache(), this);
+		BatchSequenceBypass input(this->input_cache(), this);
+		int batch_count = 0;
 		while (input.wait_for_next() ) {
-			auto batch = input.next();
+			std::vector<std::unique_ptr<ral::cache::CacheData>> batches;
+			batches.push_back(input.next());
+			
+			status = run_batch(std::move(batches), batch_count);
+
+			batch_count++;
+		}
+		return status;
+	}
+
+	virtual kstatus run_batch(std::vector<std::unique_ptr<ral::cache::CacheData>> batches, int batch_count) {
+
+		// run_batch for Project kernel only really expects one CacheData in batches
+        for (int cache_ind = 0; cache_ind < batches.size(); cache_ind++){
+			std::lock_guard<std::mutex> lg(print_lock);
+			auto batch = batches[cache_ind]->decache();
 			ral::utilities::print_blazing_table_view(batch->toBlazingTableView());
 		}
 		return kstatus::stop;
@@ -801,6 +884,11 @@ public:
 			}
 		}
 
+		return kstatus::stop;
+	}
+
+	virtual kstatus run_batch(std::vector<std::unique_ptr<ral::cache::CacheData>> batches, int batch_count) {
+		// OutputKernel does not really do much, so its not something we want to put in job?
 		return kstatus::stop;
 	}
 

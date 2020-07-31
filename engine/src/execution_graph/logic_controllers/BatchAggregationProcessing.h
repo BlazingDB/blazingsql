@@ -66,16 +66,16 @@ public:
         return kstatus::proceed;
     }
 
-    virtual kstatus run_batch(std::vector<std::unique_ptr<ral::cache::CacheData>> cache_datas, int batch_count) {
+    virtual kstatus run_batch(std::vector<std::unique_ptr<ral::cache::CacheData>> batches, int batch_count) {
 
-        // run_batch for ComputeAggregateKernel only really expects one CacheData in cache_datas
-        for (int cache_ind = 0; cache_ind < cache_datas.size(); cache_ind++){
-            CodeTimer timer;
+        // run_batch for ComputeAggregateKernel only really expects one CacheData in batches
+        for (int cache_ind = 0; cache_ind < batches.size(); cache_ind++){
+            
             CodeTimer eventTimer(false);
         
             eventTimer.start();
 
-            auto batch = cache_datas[cache_ind]->decache();
+            auto batch = batches[cache_ind]->decache();
 
             auto log_input_num_rows = batch ? batch->num_rows() : 0;
             auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
@@ -304,24 +304,62 @@ public:
 	}
 
 	virtual kstatus run() {
+        
+        kstatus status = kstatus::stop;
+        CodeTimer timer;
+        
+        std::vector<std::unique_ptr<ral::cache::CacheData>> batches;
+		
+        // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
+        this->input_cache()->wait_until_finished();
+
+        bool ordered = false; // If we start using sort based aggregations this may need to change
+        BatchSequenceBypass input(this->input_cache(), this);
+        try {
+            while (input.wait_for_next()) {
+                batches.push_back(input.next());
+            }
+
+            timer.start();
+
+            status = run_batch(std::move(batches), 0);
+            
+            timer.stop();
+
+        } catch(const std::exception& e) {
+            // TODO add retry here
+            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                        "query_id"_a=context->getContextToken(),
+                        "step"_a=context->getQueryStep(),
+                        "substep"_a=context->getQuerySubstep(),
+                        "info"_a="In MergeAggregate kernel for {}. What: {}"_format(expression, e.what()),
+                        "duration"_a="");
+            throw;
+        }
+
+
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="MergeAggregate Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+
+		return status;
+	}
+
+    virtual kstatus run_batch(std::vector<std::unique_ptr<ral::cache::CacheData>> batches, int batch_count) {
+
         CodeTimer timer;
         CodeTimer eventTimer(false);
 
         std::vector<std::unique_ptr<ral::frame::BlazingTable>> tablesToConcat;
 		std::vector<ral::frame::BlazingTableView> tableViewsToConcat;
 
-        // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
-        this->input_cache()->wait_until_finished();
-
-        bool ordered = false; // If we start using sort based aggregations this may need to change
-        BatchSequence input(this->input_cache(), this, ordered);
-        int batch_count=0;
         try {
-            while (input.wait_for_next()) {
-                auto batch = input.next();
-                // std::cout<<"MergeAggregateKernel batch "<<batch_count<<std::endl;
-                // ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "MergeAggregateKernel_batch" + std::to_string(batch_count));
-                batch_count++;
+            for (int i = 0; i < batches.size(); i++) {
+                auto batch = batches[i]->decache();
                 tableViewsToConcat.emplace_back(batch->toBlazingTableView());
                 tablesToConcat.emplace_back(std::move(batch));
             }
@@ -400,18 +438,8 @@ public:
                         "duration"_a="");
             throw;
         }
-
-
-        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                    "query_id"_a=context->getContextToken(),
-                    "step"_a=context->getQueryStep(),
-                    "substep"_a=context->getQuerySubstep(),
-                    "info"_a="MergeAggregate Kernel Completed",
-                    "duration"_a=timer.elapsed_time(),
-                    "kernel_id"_a=this->get_id());
-
-		return kstatus::proceed;
-	}
+        return kstatus::proceed;
+    }
 
     bool ready_to_execute() {
         // WSM TODO: in this function we want to wait until all batch inputs are available
