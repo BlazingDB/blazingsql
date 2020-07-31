@@ -1,5 +1,5 @@
 set(aggregation-test_SRCS
-    aggregation-test.cu
+    aggregation-test.cpp
 )
 
-#configure_test(aggregation-test "${aggregation-test_SRCS}")
+configure_test(aggregation-test "${aggregation-test_SRCS}")

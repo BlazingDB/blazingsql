@@ -2,7 +2,7 @@
 #include <tests/utilities/base_fixture.hpp>
 
 #include "tests/utilities/MemoryConsumer.cuh"
-#include "tests/BlazingUnitTest.h"
+#include "tests/utilities/BlazingUnitTest.h"
 
 struct MemoryConsumerTest : public BlazingUnitTest {
 	MemoryConsumerTest() {}

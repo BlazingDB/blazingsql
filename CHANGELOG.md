@@ -2,6 +2,7 @@
 
 ## New Features
 - #835 Added a memory monitor for better memory management and added pull ordered from cache
+- #889 Added Sphinx based code architecture documentation
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
@@ -14,6 +15,15 @@
 - #829 Python/Cython check code style
 - #826 Support cross join
 - #866 Added nogil statements for pure C functions in Cython
+- #784 Updated set of TPCH queries on the E2E tests
+- #877 round robing dask workers on single gpu queries
+- #880 reraising query errors in context.py
+- #883 add rand() and running unary operations on literals
+- #894 added exhale to generate doxygen for sphinx docs
+- #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
+- #904 Added doxygen comments to CacheMachine.h
+- #901 Added more documentation about memory management 
+- #910 updated readme 
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -36,6 +46,13 @@
 - #850 Fixed issue with getTableScanInfoCaller
 - #851 Fix row_groups issue in ParquetParser.cpp
 - #847 Fixed issue with some constant expressions not evaluated by calcite
+- #875 Recovered some old unit tests and deleted obsolete unit tests
+- #879 Fixed issue with log directory creation in a distributed environment
+- #890 Fixed issue where we were including testing hpp in our code
+- #891 Fixed issue caused by replacing join load_set with concatenating cache
+- #902 Fixed optimization regression on the select count(*) case
+- #909 Fixed issue caused by using now arrow_io_source
+- #913 Fixed issues caused by cudf adding DECIMAL data type 
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)

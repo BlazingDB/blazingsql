@@ -6,10 +6,12 @@
 #include <stack>
 #include <map>
 #include <regex>
+#include <random>
 
 #include "interpreter_ops.cuh"
 #include "CalciteExpressionParsing.h"
 #include "error.hpp"
+#include <curand_kernel.h>
 
 namespace interops {
 namespace detail {
@@ -348,7 +350,7 @@ public:
 				left_scalars.emplace_back(nullptr);
 				right_scalars.emplace_back(nullptr);
 			}
-		} else { // if(is_unary_operator(operation))
+		} else if(is_unary_operator(operation)) {  
 			const ral::parser::node * left_operand = node.children[0].get();
 			RAL_EXPECTS(left_operand->type != ral::parser::node_type::LITERAL, "Unary operations on literals is not supported");
 
@@ -359,6 +361,12 @@ public:
 
 			left_inputs.push_back(left_position);
 			right_inputs.push_back(UNARY_INDEX);
+			left_scalars.emplace_back(nullptr);
+			right_scalars.emplace_back(nullptr);
+		}else{
+
+			left_inputs.push_back(NULLARY_INDEX);
+			right_inputs.push_back(NULLARY_INDEX);
 			left_scalars.emplace_back(nullptr);
 			right_scalars.emplace_back(nullptr);
 		}
@@ -431,7 +439,8 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	const std::vector<column_index_type> & final_output_positions,
 	const std::vector<operator_type> & operators,
 	const std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
-	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars) {
+	const std::vector<std::unique_ptr<cudf::scalar>> & right_scalars,
+	cudf::size_type operation_num_rows) {
 	using namespace detail;
 	cudaStream_t stream = 0;
 
@@ -480,6 +489,8 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	}
 	rmm::device_vector<cudf::detail::scalar_device_view_base *> left_device_scalars(left_device_scalars_raw);
 	rmm::device_vector<cudf::detail::scalar_device_view_base *> right_device_scalars(right_device_scalars_raw);
+	
+
 
 	// device left, right and output types
 	size_t num_operations = left_inputs.size();
@@ -520,9 +531,14 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 			right_input_types_vec[i] = output_map_type[right_index];
 		}
 
-		output_types_vec[i] = (right_index == UNARY_INDEX
-													? get_output_type(operators[i], left_input_types_vec[i])
-													: get_output_type(operators[i], left_input_types_vec[i], right_input_types_vec[i]));
+		if(right_index == UNARY_INDEX){
+			output_types_vec[i] =  get_output_type(operators[i], left_input_types_vec[i]);
+		}else if(right_index == NULLARY_INDEX){
+			output_types_vec[i] = get_output_type(operators[i]);
+		}else{
+			output_types_vec[i] = get_output_type(operators[i], left_input_types_vec[i], right_input_types_vec[i]);
+		}
+		
 
 		output_map_type[output_index] = output_types_vec[i];
 	}
@@ -534,6 +550,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	rmm::device_vector<column_index_type> device_outputs(outputs);
 	rmm::device_vector<column_index_type> final_device_output_positions(final_output_positions);
 	rmm::device_vector<operator_type> device_operators(operators);
+
 
 
 	InterpreterFunctor op(*device_out_table_view,
@@ -551,13 +568,22 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 												temp_device_valids_in_buffer.data(),
 												temp_device_valids_out_buffer.data());
 
+rmm::device_vector<curandState> states(min_grid_size * block_size);
+	 std::random_device rd;
+	  std::default_random_engine generator(rd());
+  std::uniform_int_distribution<long long unsigned> distribution(0,0xFFFFFFFFFFFFFFFF);
+	unsigned long long seed = distribution(generator);
+	setup_rand_kernel<<<min_grid_size,
+		block_size,
+		shared_memory_per_thread * block_size,
+		stream>>>(states.data().get(),seed);
+	if (operation_num_rows == 0){
+		operation_num_rows = table.num_rows();
+	}
 	transformKernel<<<min_grid_size,
 		block_size,
-			// transformKernel<<<1
-			// ,1,
 		shared_memory_per_thread * block_size,
-		stream>>>(op, table.num_rows());
-
+		stream>>>(op, operation_num_rows, states.data().get());
 	CUDA_TRY(cudaStreamSynchronize(stream));
 }
 
