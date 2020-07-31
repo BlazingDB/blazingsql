@@ -383,6 +383,23 @@ std::vector<size_t> get_projections(const std::string & query_part) {
 		projections.push_back(std::stoull(project_string_split[i]));
 	}
 
+	// On Calcite, the select count(*) case is represented with
+	// the projection list empty and the aliases list containing
+	// only one element as follows:
+	//
+	// ...
+	//   BindableTableScan(table=[[main, big_taxi]], projects=[[]], aliases=[[$f0]])
+	//
+	// So, in such a scenario, we will load only the first column.
+
+	std::string aliases_string = get_named_expression(query_part, "aliases");
+	std::vector<std::string> aliases_string_split =
+		get_expressions_from_expression_list(aliases_string, true);
+
+	if(projections.size() == 0 && aliases_string_split.size() == 1) {
+		projections.push_back(0);
+	}
+
 	return projections;
 }
 
