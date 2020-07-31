@@ -26,8 +26,10 @@ conda_env_inc_libcudacxx = os.path.join(
 
 # TODO percy c.gonzales fix blazingdb-io headers
 conda_env_inc_io = os.path.join(conda_env_inc, "blazingdb/io")
+conda_env_inc_manager = os.path.join(conda_env_inc, "blazingdb/manager")
 conda_env_inc_communication = os.path.join(conda_env_inc,
                                            "blazingdb/communication")
+
 
 conda_env_lib = os.path.join(conda_env_dir, "lib")
 
@@ -48,6 +50,7 @@ extensions = [
             conda_env_inc_libcudacxx,
             conda_env_inc_io,
             conda_env_inc_communication,
+            conda_env_inc_manager,
             "/usr/local/cuda/include",
             os.path.dirname(sysconfig.get_path("include")),
             np.get_include(),
