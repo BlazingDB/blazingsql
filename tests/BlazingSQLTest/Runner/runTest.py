@@ -133,17 +133,19 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
             tmp_pdf1 = pdf1.select_dtypes(include=np.inexact)
             tmp_pdf2 = pdf2.select_dtypes(include=np.inexact)
 
-            # if use_percentage:
-            #     delta_comp =
-            #           np.absolute(1 - (tmp_pdf1.values/tmp_pdf2.values)) <=
-            #                                       acceptable_difference
-            # else:
-            #     delta_comp =
-            #           np.absolute(tmp_pdf1.values - tmp_pdf2.values) <=
-            #                                       acceptable_difference
+            
+            if use_percentage:
+                relative_tolerance = acceptable_difference
+                absolute_tolerance = 0
+            else:
+                relative_tolerance = 0
+                absolute_tolerance = acceptable_difference
+            # np.allclose follows this formula:
+            #    absolute(a - b) <= (absolute_tolerance + relative_tolerance * absolute(b))
 
             res = np.all(exac_comp) and np.allclose(
-                tmp_pdf1.values, tmp_pdf2.values, acceptable_difference, equal_nan=True
+                tmp_pdf1.values, tmp_pdf2.values, relative_tolerance, 
+                absolute_tolerance, equal_nan=True
             )
             if res:
                 return "Success"
