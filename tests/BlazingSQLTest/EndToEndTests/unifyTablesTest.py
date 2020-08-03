@@ -113,7 +113,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_02"
-            query = """select avg(c.c_custkey),
+            query = """select avg(CAST(c.c_custkey AS DOUBLE)),
                     avg(CAST(c.c_nationkey AS DOUBLE)), n.n_regionkey
                     from customer as c
                     inner join nation as n
@@ -152,7 +152,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_04"
-            query = """select avg(c.c_custkey), avg(c.c_acctbal),
+            query = """select avg(CAST(c.c_custkey AS DOUBLE)), avg(c.c_acctbal),
                     n.n_nationkey, r.r_regionkey
                     from customer as c
                     inner join nation as n on c.c_nationkey = n.n_nationkey
