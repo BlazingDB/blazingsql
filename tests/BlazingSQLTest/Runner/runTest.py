@@ -105,17 +105,12 @@ def get_null_constants(df):
     return null_values
 
 
-def pre_compare_results(vdf1, vdf2):
-    try:
-        np.testing.assert_equal(vdf1, vdf2)
-        return True
-    except (AssertionError, ValueError, TypeError) as e:
-        print(e)
-        return False
-
-
-def assert_equal(pdf1, pdf2, acceptable_difference, use_percentage, engine):
+def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
     np.warnings.filterwarnings("ignore")
+
+    if pdf1.size == 0 and pdf2.size == 0:
+        return "Success"
+
     if pdf1.shape[0] == pdf2.shape[0]:
         if pdf1.shape[1] == pdf2.shape[1]:
 
@@ -124,14 +119,19 @@ def assert_equal(pdf1, pdf2, acceptable_difference, use_percentage, engine):
             pdf1.reset_index(drop=True, inplace=True)
             pdf2.reset_index(drop=True, inplace=True)
 
+            # Make the column labels equal as equals() also compare labels
+            orig_pdf2_labels = pdf2.columns.to_list()
+            pdf2.columns = pdf1.columns.to_list()
+
             exac_comp = pdf1.select_dtypes(exclude=np.inexact).equals(
                 pdf2.select_dtypes(exclude=np.inexact)
             )
 
+            # Restore labels
+            pdf2.columns = orig_pdf2_labels
+
             tmp_pdf1 = pdf1.select_dtypes(include=np.inexact)
             tmp_pdf2 = pdf2.select_dtypes(include=np.inexact)
-
-            # inexac_comp = tmp_pdf1.values == tmp_pdf2.values
 
             # if use_percentage:
             #     delta_comp =
@@ -190,17 +190,6 @@ def compare_column_names(pdf1, pdf2):
                 print("Different columns")
                 return False
     return True
-
-
-def compare_results(vdf1, vdf2, acceptable_difference, use_percentage, engine):
-    if vdf1.size == 0 and vdf2.size == 0:
-        return "Success"
-    elif pre_compare_results(vdf1.values, vdf2.values):
-        return "Success"
-    else:
-        res = assert_equal(vdf1, vdf2, acceptable_difference, use_percentage, engine)
-        return res
-
 
 # NOTE kharoly percy william: NEVER CHANGE THE ORDER of these
 # lines (the logger logic depends that we log first queryType and then queryId
@@ -1637,5 +1626,10 @@ def format_pdf(pdf, worder, orderBy):
 
 def get_results(result_file):
     df = pd.read_parquet(result_file)
+
+    # Cast Object type to string
+    for name in df.columns:
+        if df[name].dtype == np.object:
+            df[name] = df[name].astype('string')
 
     return df
