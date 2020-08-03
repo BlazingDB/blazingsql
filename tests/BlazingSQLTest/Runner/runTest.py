@@ -114,6 +114,14 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
     if pdf1.shape[0] == pdf2.shape[0]:
         if pdf1.shape[1] == pdf2.shape[1]:
 
+            for name in pdf1.columns:
+                if pdf1[name].dtype == np.object:
+                    pdf1[name] = pdf1[name].astype('string')
+
+            for name in pdf2.columns:
+                if pdf2[name].dtype == np.object:
+                    pdf2[name] = pdf2[name].astype('string')
+
             # Removing indexes, because those are considered when
             # comparing with equals()
             pdf1.reset_index(drop=True, inplace=True)
@@ -1628,10 +1636,5 @@ def format_pdf(pdf, worder, orderBy):
 
 def get_results(result_file):
     df = pd.read_parquet(result_file)
-
-    # Cast Object type to string
-    for name in df.columns:
-        if df[name].dtype == np.object:
-            df[name] = df[name].astype('string')
 
     return df
