@@ -100,3 +100,5 @@
 - #809 Fix conda build issues
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
+- #785 Add script for Manual Testing Artifacts.
+
