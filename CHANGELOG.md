@@ -26,6 +26,7 @@
 - #910 updated readme
 - #921 Make AWS and GCS optional
 
+
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
 - #781 Fixed issue with Hive partitions when doing SELECT *
@@ -54,6 +55,7 @@
 - #902 Fixed optimization regression on the select count(*) case
 - #909 Fixed issue caused by using now arrow_io_source
 - #913 Fixed issues caused by cudf adding DECIMAL data type
+- #916 Fix e2e string comparison
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
