@@ -25,6 +25,7 @@
 - #901 Added more documentation about memory management 
 - #910 updated readme 
 - #915 Adding max kernel num threads pool
+- #921 Make AWS and GCS optional
 
 
 ## Bug Fixes
