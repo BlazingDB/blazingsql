@@ -26,6 +26,7 @@
 - #910 updated readme 
 - #915 Adding max kernel num threads pool
 
+
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
 - #781 Fixed issue with Hive partitions when doing SELECT *
@@ -53,7 +54,8 @@
 - #891 Fixed issue caused by replacing join load_set with concatenating cache
 - #902 Fixed optimization regression on the select count(*) case
 - #909 Fixed issue caused by using now arrow_io_source
-- #913 Fixed issues caused by cudf adding DECIMAL data type 
+- #913 Fixed issues caused by cudf adding DECIMAL data type
+- #916 Fix e2e string comparison
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
@@ -101,4 +103,3 @@
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
 - #785 Add script for Manual Testing Artifacts.
-

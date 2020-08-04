@@ -1072,7 +1072,7 @@ class BlazingContext(object):
                     default: 50  (milliseconds)
             MAX_KERNEL_RUN_THREADS : The number of threads available to run
                     kernels simultaneously.
-                    default: 4
+                    default: 16
 
         Examples
         --------

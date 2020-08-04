@@ -106,7 +106,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
 			query_graph->check_for_simple_scan_with_limit_query();
 
-			size_t max_kernel_run_threads = 4; //default
+			size_t max_kernel_run_threads = 16; //default
 			std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
 			auto it = config_options.find("MAX_KERNEL_RUN_THREADS");
 			if (it != config_options.end()){
