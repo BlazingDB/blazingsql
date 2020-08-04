@@ -124,7 +124,7 @@ public:
 						std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
 
 
-						table_scope_holder.push_back(this->query_graph->get_input_cache()->pullCacheData(message_id));
+						table_scope_holder.push_back(this->query_graph->get_input_message_cache()->pullCacheData(message_id));
 						ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (table_scope_holder[table_scope_holder.size() - 1].get());
 
 						total_table_rows.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]));
@@ -161,7 +161,7 @@ public:
 				metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(local_total_num_rows));
 
 
-				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
+				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
 				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheDataMetaData>(new ral::cache::GPUCacheDataMetaData(std::move(partitionPlan->toBlazingTableView().clone()), metadata)),"",true);
 						
 				this->add_to_output_cache(std::move(partitionPlan), "output_b");
@@ -181,7 +181,7 @@ public:
 				std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + self_node.id();
 				metadata.add_value(ral::cache::MESSAGE_ID, message_id);
 
-				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
+				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
 				concatSamples->ensureOwnership();
 				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)),"",true);
 
@@ -360,7 +360,7 @@ public:
 					metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
 					metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
 					metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-					ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
+					ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
 					for (auto i = 0; i < partitions.size(); i++) {
 						blazingdb::transport::Node dest_node;
 						ral::frame::BlazingTableView table_view;
@@ -417,7 +417,7 @@ public:
 																				metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
 																				metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
 
-					this->query_graph->get_output_cache()->addCacheData(
+					this->query_graph->get_output_message_cache()->addCacheData(
 							std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)),"",true);
 				}
 			}
@@ -427,7 +427,7 @@ public:
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
  		int total_count = node_count[self_node.id()];
 		for (auto message : messages_to_wait_for){
-			auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
+			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
 			total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
 
@@ -610,14 +610,14 @@ public:
 																								metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
 			metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
 			metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(total_batch_rows));
-			ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
+			ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
 			output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 
 			// std::vector<int64_t> nodesRowSize = ral::distribution::collectNumRows(context.get());
 
 			int64_t prev_total_rows = 0;
 			for (auto i = 0; i < messages_to_wait_for.size(); i++)	{
-				auto meta_message = this->query_graph->get_input_cache()->pullCacheData(messages_to_wait_for[i]);
+				auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(messages_to_wait_for[i]);
 				if(i < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
 					prev_total_rows += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
 				}
