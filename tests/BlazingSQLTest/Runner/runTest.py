@@ -105,45 +105,55 @@ def get_null_constants(df):
     return null_values
 
 
-def pre_compare_results(vdf1, vdf2):
-    try:
-        np.testing.assert_equal(vdf1, vdf2)
-        return True
-    except (AssertionError, ValueError, TypeError) as e:
-        print(e)
-        return False
-
-
-def assert_equal(pdf1, pdf2, acceptable_difference, use_percentage, engine):
+def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
     np.warnings.filterwarnings("ignore")
+
+    if pdf1.size == 0 and pdf2.size == 0:
+        return "Success"
+
     if pdf1.shape[0] == pdf2.shape[0]:
         if pdf1.shape[1] == pdf2.shape[1]:
+
+            for name in pdf1.columns:
+                if pdf1[name].dtype == np.object:
+                    pdf1[name] = pdf1[name].astype('string')
+
+            for name in pdf2.columns:
+                if pdf2[name].dtype == np.object:
+                    pdf2[name] = pdf2[name].astype('string')
 
             # Removing indexes, because those are considered when
             # comparing with equals()
             pdf1.reset_index(drop=True, inplace=True)
             pdf2.reset_index(drop=True, inplace=True)
 
+            # Make the column labels equal as equals() also compare labels
+            orig_pdf2_labels = pdf2.columns.to_list()
+            pdf2.columns = pdf1.columns.to_list()
+
             exac_comp = pdf1.select_dtypes(exclude=np.inexact).equals(
                 pdf2.select_dtypes(exclude=np.inexact)
             )
 
+            # Restore labels
+            pdf2.columns = orig_pdf2_labels
+
             tmp_pdf1 = pdf1.select_dtypes(include=np.inexact)
             tmp_pdf2 = pdf2.select_dtypes(include=np.inexact)
 
-            # inexac_comp = tmp_pdf1.values == tmp_pdf2.values
-
-            # if use_percentage:
-            #     delta_comp =
-            #           np.absolute(1 - (tmp_pdf1.values/tmp_pdf2.values)) <=
-            #                                       acceptable_difference
-            # else:
-            #     delta_comp =
-            #           np.absolute(tmp_pdf1.values - tmp_pdf2.values) <=
-            #                                       acceptable_difference
+            
+            if use_percentage:
+                relative_tolerance = acceptable_difference
+                absolute_tolerance = 0
+            else:
+                relative_tolerance = 0
+                absolute_tolerance = acceptable_difference
+            # np.allclose follows this formula:
+            #    absolute(a - b) <= (absolute_tolerance + relative_tolerance * absolute(b))
 
             res = np.all(exac_comp) and np.allclose(
-                tmp_pdf1.values, tmp_pdf2.values, acceptable_difference, equal_nan=True
+                tmp_pdf1.values, tmp_pdf2.values, relative_tolerance, 
+                absolute_tolerance, equal_nan=True
             )
             if res:
                 return "Success"
@@ -190,17 +200,6 @@ def compare_column_names(pdf1, pdf2):
                 print("Different columns")
                 return False
     return True
-
-
-def compare_results(vdf1, vdf2, acceptable_difference, use_percentage, engine):
-    if vdf1.size == 0 and vdf2.size == 0:
-        return "Success"
-    elif pre_compare_results(vdf1.values, vdf2.values):
-        return "Success"
-    else:
-        res = assert_equal(vdf1, vdf2, acceptable_difference, use_percentage, engine)
-        return res
-
 
 # NOTE kharoly percy william: NEVER CHANGE THE ORDER of these
 # lines (the logger logic depends that we log first queryType and then queryId

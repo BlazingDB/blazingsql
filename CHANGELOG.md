@@ -53,6 +53,8 @@
 - #891 Fixed issue caused by replacing join load_set with concatenating cache
 - #902 Fixed optimization regression on the select count(*) case
 - #909 Fixed issue caused by using now arrow_io_source
+- #913 Fixed issues caused by cudf adding DECIMAL data type
+- #916 Fix e2e string comparison
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
@@ -99,3 +101,4 @@
 - #809 Fix conda build issues
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
+- #785 Add script for Manual Testing Artifacts.
