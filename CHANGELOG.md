@@ -100,4 +100,5 @@
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
 - #785 Add script for Manual Testing Artifacts.
+- #918 Activate validation for GPU_CI tests results.
 
