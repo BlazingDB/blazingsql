@@ -24,6 +24,8 @@
 - #904 Added doxygen comments to CacheMachine.h
 - #901 Added more documentation about memory management
 - #910 updated readme
+- #921 Make AWS and GCS optional
+
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
