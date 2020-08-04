@@ -203,7 +203,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 )
 
             queryId = "TEST_10"
-            query = """select (l_quantity + 2) as new_quantityfrom lineitem
+            query = """select (l_quantity + 2) as new_quantity from lineitem
                     group by l_quantity order by l_quantity asc limit 30"""
             runTest.run_query(
                 bc,
