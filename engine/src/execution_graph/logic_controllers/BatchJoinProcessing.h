@@ -689,7 +689,7 @@ public:
 		metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
 		metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
 		metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
-		ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
+		ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
 		output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -706,7 +706,7 @@ public:
 
 		int64_t prev_total_rows = 0;
 		for (auto i = 0; i < messages_to_wait_for.size(); i++)	{
-			auto message = this->query_graph->get_input_cache()->pullCacheData(messages_to_wait_for[i]);
+			auto message = this->query_graph->get_input_message_cache()->pullCacheData(messages_to_wait_for[i]);
 			auto message_with_metadata = static_cast<ral::cache::GPUCacheDataMetaData*>(message.get());
 			int node_idx = context->getNodeIndex(context->getNode(message_with_metadata->getMetadata().get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]));
 			nodes_num_bytes_left[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL]);
@@ -822,7 +822,7 @@ public:
 		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, std::to_string(this->get_id()), this->context.get(),
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), this->normalize_left, this->join_column_common_types,
 			this->output_.get_cache("output_a").get(),
-			this->query_graph->get_output_cache(),
+			this->query_graph->get_output_message_cache(),
 			"output_a",
 			std::ref(node_count_left),
 			std::ref(messages_to_wait_for_left),
@@ -841,7 +841,7 @@ public:
 		distribute_left_thread.join();
 		int total_count_left = node_count_left[self_node.id()];
 		for (auto message : messages_to_wait_for_left){
-			auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
+			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
 			total_count_left += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
 		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
@@ -851,7 +851,7 @@ public:
 		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, std::to_string(this->get_id()), this->context.get(),
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), this->normalize_right, this->join_column_common_types,
 			this->output_.get_cache("output_b").get(),
-			this->query_graph->get_output_cache(),
+			this->query_graph->get_output_message_cache(),
 			"output_b",
 			std::ref(node_count_right),
 			std::ref(messages_to_wait_for_right),
@@ -870,7 +870,7 @@ public:
 		distribute_right_thread.join();
 		int total_count_right = node_count_right[self_node.id()];
 		for (auto message : messages_to_wait_for_right){
-			auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
+			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
 			total_count_right += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
 		this->output_.get_cache("output_b")->wait_for_count(total_count_right);
@@ -924,7 +924,7 @@ public:
 						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, small_output_cache_name);
 						metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
 						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
-						ral::cache::CacheMachine* output_cache = this->query_graph->get_output_cache();
+						ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
 						output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(small_table_batch->toBlazingTableView().clone(), metadata),"",true);
 						this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",true);
 					}
@@ -968,7 +968,7 @@ public:
 																				metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
 																				metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
 
-					this->query_graph->get_output_cache()->addCacheData(
+					this->query_graph->get_output_message_cache()->addCacheData(
 							std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 				}
 			}
@@ -986,7 +986,7 @@ public:
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
  		int total_count = node_count[self_node.id()];
 		for (auto message : messages_to_wait_for){
-			auto meta_message = this->query_graph->get_input_cache()->pullCacheData(message);
+			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
 			total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
 		this->output_cache(small_output_cache_name)->wait_for_count(total_count);

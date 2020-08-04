@@ -85,8 +85,8 @@ public:
 	std::shared_ptr<ral::cache::CacheMachine>  get_kernel_output_cache(size_t kernel_id, std::string cache_id = "");
 
 	void set_input_and_output_caches(std::shared_ptr<ral::cache::CacheMachine> input_cache, std::shared_ptr<ral::cache::CacheMachine> output_cache);
-	ral::cache::CacheMachine* get_input_cache();
-	ral::cache::CacheMachine* get_output_cache();
+	ral::cache::CacheMachine* get_input_message_cache();
+	ral::cache::CacheMachine* get_output_message_cache();
 
 	std::set<Edge> get_neighbours(kernel * from);
 	std::set<Edge> get_neighbours(int32_t id);
