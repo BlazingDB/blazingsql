@@ -25,6 +25,7 @@
 - #901 Added more documentation about memory management
 - #910 updated readme
 - #921 Make AWS and GCS optional
+- #925 Replace random_generator with cudf::sample
 
 
 ## Bug Fixes
